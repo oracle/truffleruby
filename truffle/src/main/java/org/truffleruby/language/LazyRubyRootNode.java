@@ -32,10 +32,12 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
+import java.util.List;
+
 public class LazyRubyRootNode extends RootNode implements InternalRootNode {
 
     private final Source source;
-    private final String[] argumentNames;
+    private final List<String> argumentNames;
 
     @Child private Node findContextNode = RubyLanguage.INSTANCE.unprotectedCreateFindContextNode();
 
@@ -46,7 +48,7 @@ public class LazyRubyRootNode extends RootNode implements InternalRootNode {
     @Child private DirectCallNode callNode;
 
     public LazyRubyRootNode(SourceSection sourceSection, FrameDescriptor frameDescriptor, Source source,
-                            String[] argumentNames) {
+                            List<String> argumentNames) {
         super(RubyLanguage.class, sourceSection, frameDescriptor);
         this.source = source;
         this.argumentNames = argumentNames;
@@ -75,7 +77,7 @@ public class LazyRubyRootNode extends RootNode implements InternalRootNode {
             }
 
             final RubyRootNode rootNode = translator.parse(context, source, UTF8Encoding.INSTANCE,
-                    parserContext, argumentNames, null, null, true, null);
+                    parserContext, argumentNames.toArray(new String[argumentNames.size()]), null, null, true, null);
 
             final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 

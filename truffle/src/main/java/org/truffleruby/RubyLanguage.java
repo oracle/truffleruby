@@ -90,8 +90,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
-    protected CallTarget parse(Source source, Node node, String... argumentNames) throws IOException {
-        return Truffle.getRuntime().createCallTarget(new LazyRubyRootNode(null, null, source, argumentNames));
+    protected CallTarget parse(ParsingRequest request) throws Exception {
+        return Truffle.getRuntime().createCallTarget(new LazyRubyRootNode(null, null, request.getSource(), request.getArgumentNames()));
     }
 
     @Override
@@ -107,11 +107,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     protected boolean isObjectOfLanguage(Object object) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected Object evalInContext(Source source, Node node, MaterializedFrame mFrame) throws IOException {
-        return null;
     }
 
     @Override
