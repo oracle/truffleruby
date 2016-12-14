@@ -249,11 +249,11 @@ Truffle::Tool.add_config :actionview,
                                     stubs.fetch(:html_sanitizer))
 
 class Truffle::Tool::CIEnvironment
-  def rails_ci(has_exclusions: false, skip_test_files: [], require_pattern: 'test/**/*_test.rb')
+  def rails_ci(has_exclusions: false, exclusion_pattern: nil, require_pattern: 'test/**/*_test.rb')
     rails_ci_setup has_exclusions: has_exclusions
-    set_result rails_ci_run has_exclusions:  has_exclusions,
-                            skip_test_files: skip_test_files,
-                            require_pattern: require_pattern
+    set_result rails_ci_run has_exclusions:    has_exclusions,
+                            exclusion_pattern: exclusion_pattern,
+                            require_pattern:   require_pattern
   end
 
   def rails_ci_setup(has_exclusions: false)
@@ -269,12 +269,13 @@ class Truffle::Tool::CIEnvironment
     has_to_succeed setup
   end
 
-  def rails_ci_run(has_exclusions: false, skip_test_files: [], require_pattern: 'test/**/*_test.rb')
-    run([*(['--exclude-pattern', *skip_test_files.join('|')] unless skip_test_files.empty?),
+  def rails_ci_run(has_exclusions: false, exclusion_pattern: nil, require_pattern: 'test/**/*_test.rb', environment: {})
+    run([*(['--exclude-pattern', exclusion_pattern] if exclusion_pattern),
          '--require-pattern', require_pattern,
          *(%w[-r excluded-tests] if has_exclusions && option(:exclude)),
          *(%w[--debug] if option(:debug)),
-         *%w[-- -I test -e nil]])
+         *%w[-- -Xtruffle.backtraces.hide_core_files=false -- -I test -e nil]],
+        options: { run: { environment: environment } })
   end
 end
 
@@ -295,8 +296,8 @@ end
 
 Truffle::Tool.add_ci_definition :railties do
   subdir 'railties'
-  rails_ci has_exclusions:  true,
-           skip_test_files: %w[
+  rails_ci has_exclusions:    true,
+           exclusion_pattern: %w[
               test/application/asset_debugging_test.rb
               test/application/assets_test.rb
               test/application/bin_setup_test.rb
@@ -340,11 +341,10 @@ Truffle::Tool.add_ci_definition :railties do
               test/railties/railtie_test.rb
               test/fixtures
               test/rails_info_controller_test
-              test/commands/console_test]
+              test/commands/console_test].join('|')
 end
 
 Truffle::Tool.add_ci_definition :algebrick do
-
   has_to_succeed setup
 
   set_result run(%w[test/algebrick_test.rb])

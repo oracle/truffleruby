@@ -895,11 +895,12 @@ module Truffle
         result or cancel_ci!
       end
 
-      def run(options)
-        raise ArgumentError unless options.is_a? Array
+      def run(args, options: {})
+        raise ArgumentError unless args.is_a? Array
         Dir.chdir(testing_dir) do
-          Tool.new(['run', *options].compact,
-                   dig_deep(@runner.options, global: :verbose)).run
+          Tool.new(['run', *args].compact,
+                   deep_merge(options,
+                              dig_deep(@runner.options, global: :verbose))).run
         end
       end
 
