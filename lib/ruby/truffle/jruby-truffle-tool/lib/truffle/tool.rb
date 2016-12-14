@@ -98,7 +98,7 @@ module Truffle
         selection = case selection
                     when Hash
                       selection
-                    when Array
+                    when ::Array
                       selection.reduce({}) { |h, k| h.update k => nil }
                     else
                       { selection => nil }
@@ -107,7 +107,7 @@ module Truffle
         case data
         when Hash
           selection.each_with_object({}) { |(key, sel), hash| hash[key] = dig_deep data[key], sel }
-        when Array
+        when ::Array
           selection.map { |key, sel| dig_deep data[key], sel }
         else
           raise data.inspect + selection.inspect
@@ -131,8 +131,8 @@ module Truffle
           end
         end
 
-        if Array === a
-          if Array === b
+        if ::Array === a
+          if ::Array === b
             return a.concat b
           else
             return a
@@ -151,8 +151,8 @@ module Truffle
           end
         end
 
-        if Array === a
-          if Array === b
+        if ::Array === a
+          if ::Array === b
             return a + b
           else
             return a
@@ -245,7 +245,7 @@ module Truffle
           setup:  { help:    ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false],
                     before:  ['--before SH_CMD', 'Commands to execute before setup', ADD_TO_ARRAY, []],
                     after:   ['--after SH_CMD', 'Commands to execute after setup', ADD_TO_ARRAY, []],
-                    file:    ['--file NAME,CONTENT', Array, 'Create file in truffle_bundle_path', MERGE_TO_HASH, {}],
+                    file:    ['--file NAME,CONTENT', ::Array, 'Create file in truffle_bundle_path', MERGE_TO_HASH, {}],
                     without: ['--without GROUP', 'Do not install listed gem group by bundler', ADD_TO_ARRAY, []],
                     bundler: ['--[no-]bundler', 'Skip bundle install step', STORE_NEW_VALUE, true]
                   }.merge(shared_offline_options),
@@ -263,7 +263,7 @@ module Truffle
               load_path:        ['-I', '--load-path LOAD_PATH', 'Paths to add to load path, same as Ruby\'s -I', ADD_TO_ARRAY, [ROOT.join('lib').to_s]],
               executable:       ['-S', '--executable NAME', 'finds and runs an executable of a gem', STORE_NEW_VALUE, nil],
               jexception:       ['--jexception', 'print Java exceptions', STORE_NEW_VALUE, false],
-              environment:      ['--environment NAME,VALUE', Array, 'Set environment variables', MERGE_TO_HASH, {}],
+              environment:      ['--environment NAME,VALUE', ::Array, 'Set environment variables', MERGE_TO_HASH, {}],
               xmx:              ['--xmx SIZE', 'Max memory size', STORE_NEW_VALUE, '2G'],
               no_asserts:       ['--no-asserts', 'Disable asserts -ea -esa', STORE_NEW_NEGATED_VALUE, false]
           },
@@ -551,7 +551,7 @@ module Truffle
         case cmd
         when Proc
           cmd.call
-        when Array, String
+        when ::Array, String
           execute_cmd([{ 'JRUBY_BIN' => JRUBY_BIN.to_s }, cmd])
         else
           raise
@@ -896,7 +896,7 @@ module Truffle
       end
 
       def run(args, options: {})
-        raise ArgumentError unless args.is_a? Array
+        raise ArgumentError unless args.is_a? ::Array
         Dir.chdir(testing_dir) do
           Tool.new(['run', *args].compact,
                    deep_merge(options,
