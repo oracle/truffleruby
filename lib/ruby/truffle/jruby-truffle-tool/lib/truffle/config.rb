@@ -118,6 +118,19 @@ stubs = {
       end
     RUBY
 
+    concurrent_ruby: dedent(<<-RUBY)
+      require 'concurrent/synchronization'
+      module Concurrent
+        module Synchronization
+          module TruffleAttrVolatile
+            def full_memory_barrier
+              Truffle::System.full_memory_barrier
+            end     
+          end     
+        end     
+      end
+    RUBY
+
 }.reduce({}) do |h, (k, v)|
   file_name = "stub-#{k}"
   h.update k => { setup: { file: { "#{file_name}.rb" => v } },
@@ -248,6 +261,23 @@ Truffle::Tool.add_config :actionview,
                                     exclusions_for(:actionview, ignore_missing: true),
                                     stubs.fetch(:html_sanitizer))
 
+Truffle::Tool.add_config :actionmailer,
+                         deep_merge(rails_common,
+                                    exclusions_for(:actionmailer),
+                                    stubs.fetch(:html_sanitizer))
+
+Truffle::Tool.add_config :activejob,
+                         rails_common
+
+Truffle::Tool.add_config :'sprockets-rails',
+                         deep_merge(replacements.fetch(:bundler),
+                                    stubs.fetch(:concurrent_ruby),
+                                    stubs.fetch(:html_sanitizer),
+                                    stubs.fetch(:activesupport_isolation),
+                                    additions.fetch(:minitest_reporters),
+                                    run: { require: %w(openssl-stubs) })
+
+
 class Truffle::Tool::CIEnvironment
   def rails_ci(has_exclusions: false, exclusion_pattern: nil, require_pattern: 'test/**/*_test.rb')
     rails_ci_setup has_exclusions: has_exclusions
@@ -364,4 +394,30 @@ Truffle::Tool.add_ci_definition :actionview do
   ]
 
   set_result results.all?
+end
+
+Truffle::Tool.add_ci_definition :actionmailer do
+  subdir 'actionmailer'
+  rails_ci has_exclusions:  true,
+           require_pattern: 'test/**/*_test.rb'
+end
+
+Truffle::Tool.add_ci_definition :activejob do
+  subdir 'activejob'
+  rails_ci_setup
+
+  adapters = %w[inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner test]
+  results  = adapters.map do |adapter|
+    rails_ci_run(environment:     { 'AJ_ADAPTER' => adapter },
+                 require_pattern: 'test/cases/**/*_test.rb')
+  end
+  set_result results.all?
+end
+
+Truffle::Tool.add_ci_definition :'sprockets-rails' do
+  declare_options debug: ['-d', '--[no-]debug', 'Run tests with remote debugging enabled.', STORE_NEW_VALUE, false]
+  has_to_succeed setup
+  set_result run([*%w[--require-pattern test/test_*.rb],
+                  *(%w[--debug] if option(:debug)),
+                  *%w[-- -I test -e nil]])
 end
