@@ -356,13 +356,15 @@ bundler_updater = <<-HEREDOC
 Workaround: Shell to gunzip in bundler updater
 HEREDOC
 puts bundler_updater if $VERBOSE
-bundler_loaded = false
-begin
+
+bundler_loaded = begin
   require "bundler"
   require "bundler/vendor/compact_index_client/lib/compact_index_client"
-  bundler_loaded = true
+  true
 rescue LoadError
+  false
 end
+
 if bundler_loaded
   class Bundler::CompactIndexClient
     class Updater
@@ -419,54 +421,6 @@ if bundler_loaded
   end
 end
 
-
-module OpenSSL
-
-  verify_peer = <<-HEREDOC
-      ==========================================
-      Workaround: Stub OpenSSL::SSL::VERIFY_PEER
-      Error:
-        uninitialized constant OpenSSL::SSL::VERIFY_PEER
-      Called here:
-        bundler/vendor/net/http/persistent.rb:519
-  HEREDOC
-  puts verify_peer if $VERBOSE
-  module SSL
-    VERIFY_PEER = 1
-  end
-
-  verify_none = <<-HEREDOC
-      ==========================================
-      Workaround: Stub OpenSSL::SSL::VERIFY_NONE
-      Error:
-        uninitialized constant OpenSSL::SSL::VERIFY_NONE
-      Called here:
-        bundler/vendor/net/http/persistent.rb:1142
-  HEREDOC
-  puts verify_none if $VERBOSE
-  module SSL
-    VERIFY_NONE = 0
-  end
-
-  #   module Digest
-  #     def self.new(enc)
-  #
-  #     end
-  #   end
-
-  module X509
-    class Store
-      def set_default_paths
-
-      end
-      def add_file(f)
-
-      end
-    end
-
-  end
-
-end
 
 bundler_fetcher = <<-HEREDOC
 ==========================================
