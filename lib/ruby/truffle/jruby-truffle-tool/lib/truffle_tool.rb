@@ -198,7 +198,7 @@ class TruffleTool
   include OptionBlocks
 
   begin
-    apply_pattern = -> (pattern, old, options) do
+    apply_pattern          = -> (pattern, old, options) do
       Dir.glob(pattern).sort.each do |file|
         if options[:exclude_pattern].any? { |p| /#{p}/ =~ file }
           puts "skipped: #{file}"
@@ -209,6 +209,7 @@ class TruffleTool
       old << pattern
     end
 
+    # TODO (pitr-ch 07-Jan-2017): move to global instead?
     shared_offline_options = {
         offline:          ['--[no-]offline', 'Use local gems only', STORE_NEW_VALUE, false],
         offline_gem_path: ['--offline-gem-path', 'Path to a local pre-installed gems', STORE_NEW_VALUE,
@@ -222,25 +223,25 @@ class TruffleTool
     #                                                     default_value]
     #   }
     OPTION_DEFINITIONS     = {
-        global: {
-            verbose:             ['-v', '--verbose', 'Run verbosely (prints options)', STORE_NEW_VALUE, false],
-            help:                ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false],
-            debug_port:          ['--debug-port PORT', 'Debug port', STORE_NEW_VALUE, '51819'],
-            debug_option:        ['--debug-option OPTION', 'Debug JVM option', STORE_NEW_VALUE,
-                                  '-J-agentlib:jdwp=transport=dt_socket,server=y,address=%d,suspend=y'],
-            truffle_bundle_path: ['--truffle-bundle-path NAME', 'Bundle path', STORE_NEW_VALUE, '.jruby-truffle-tool_bundle'],
-            graal_path:          ['--graal-path PATH', 'Path to Graal', STORE_NEW_VALUE, (JRUBY_PATH + '../GraalVM-0.10/jre/bin/javao').to_s],
-            mock_load_path:      ['--mock-load-path PATH',
-                                  'Path of mocks & monkey-patches (prepended in $:, relative to --truffle_bundle_path)',
-                                  STORE_NEW_VALUE, 'mocks'],
-            use_fs_core:         ['--[no-]use-fs-core', 'Use core from the filesystem rather than the JAR',
-                                  STORE_NEW_VALUE, true],
-            bundle_options:      ['--bundle-options OPTIONS', 'bundle options separated by space', STORE_NEW_VALUE, ''],
-            configuration:       ['--config GEM_NAME', 'Load configuration for specified gem', STORE_NEW_VALUE, nil],
-            configuration_file:  ['--config-file PATH', 'Path to a file defining configuration of gems',
-                                  STORE_NEW_VALUE, ROOT.join('lib', 'config.rb')],
-            dir:                 ['--dir DIRECTORY', 'Set working directory', STORE_NEW_VALUE, nil],
+        global: { verbose:             ['-v', '--verbose', 'Run verbosely (prints options)', STORE_NEW_VALUE, false],
+                  help:                ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false],
+                  debug_port:          ['--debug-port PORT', 'Debug port', STORE_NEW_VALUE, '51819'],
+                  debug_option:        ['--debug-option OPTION', 'Debug JVM option', STORE_NEW_VALUE,
+                                        '-J-agentlib:jdwp=transport=dt_socket,server=y,address=%d,suspend=y'],
+                  truffle_bundle_path: ['--truffle-bundle-path NAME', 'Bundle path', STORE_NEW_VALUE, '.jruby-truffle-tool_bundle'],
+                  graal_path:          ['--graal-path PATH', 'Path to Graal', STORE_NEW_VALUE, (JRUBY_PATH + '../GraalVM-0.10/jre/bin/javao').to_s],
+                  mock_load_path:      ['--mock-load-path PATH',
+                                        'Path of mocks & monkey-patches (prepended in $:, relative to --truffle_bundle_path)',
+                                        STORE_NEW_VALUE, 'mocks'],
+                  use_fs_core:         ['--[no-]use-fs-core', 'Use core from the filesystem rather than the JAR',
+                                        STORE_NEW_VALUE, true],
+                  bundle_options:      ['--bundle-options OPTIONS', 'bundle options separated by space', STORE_NEW_VALUE, ''],
+                  configuration:       ['--config GEM_NAME', 'Load configuration for specified gem', STORE_NEW_VALUE, nil],
+                  configuration_file:  ['--config-file PATH', 'Path to a file defining configuration of gems',
+                                        STORE_NEW_VALUE, ROOT.join('lib', 'config.rb')],
+                  dir:                 ['--dir DIRECTORY', 'Set working directory', STORE_NEW_VALUE, nil],
         },
+
         setup:  { help:    ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false],
                   before:  ['--before SH_CMD', 'Commands to execute before setup', ADD_TO_ARRAY, []],
                   after:   ['--after SH_CMD', 'Commands to execute after setup', ADD_TO_ARRAY, []],
@@ -248,35 +249,35 @@ class TruffleTool
                   without: ['--without GROUP', 'Do not install listed gem group by bundler', ADD_TO_ARRAY, []],
                   bundler: ['--[no-]bundler', 'Skip bundle install step', STORE_NEW_VALUE, true]
                 }.merge(shared_offline_options),
-        run:    {
-            help:             ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false],
-            interpreter_path: ['--interpreter-path PATH', "Path to #{BRANDING} interpreter executable", STORE_NEW_VALUE, INTERPRETER_PATH],
-            no_truffle:       ['-n', '--no-truffle', "Use conventional JRuby instead of #{BRANDING}", STORE_NEW_NEGATED_VALUE, false],
-            graal:            ['-g', '--graal', 'Run on graal', STORE_NEW_VALUE, false],
-            build:            ['-b', '--build', 'Run `jt build` using conventional JRuby', STORE_NEW_VALUE, false],
-            rebuild:          ['--rebuild', 'Run `jt rebuild` using conventional JRuby', STORE_NEW_VALUE, false],
-            debug:            ['-d', '--debug', 'JVM remote debugging', STORE_NEW_VALUE, false],
-            require:          ['-r', '--require FILE', 'Files to require, same as Ruby\'s -r', ADD_TO_ARRAY, []],
-            require_pattern:  ['--require-pattern DIR_GLOB_PATTERN', 'Files matching the pattern will be required', apply_pattern, []],
-            exclude_pattern:  ['--exclude-pattern REGEXP', 'Files matching the regexp will not be required by --require-pattern (applies to subsequent --require-pattern options)', ADD_TO_ARRAY, []],
-            load_path:        ['-I', '--load-path LOAD_PATH', 'Paths to add to load path, same as Ruby\'s -I', ADD_TO_ARRAY, [ROOT.join('lib').to_s]],
-            executable:       ['-S', '--executable NAME', 'finds and runs an executable of a gem', STORE_NEW_VALUE, nil],
-            jexception:       ['--jexception', 'print Java exceptions', STORE_NEW_VALUE, false],
-            environment:      ['--environment NAME,VALUE', Array, 'Set environment variables', MERGE_TO_HASH, {}],
-            xmx:              ['--xmx SIZE', 'Max memory size', STORE_NEW_VALUE, '2G'],
-            no_asserts:       ['--no-asserts', 'Disable asserts -ea -esa', STORE_NEW_NEGATED_VALUE, false]
-        },
+
+        run:    { help:             ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false],
+                  interpreter_path: ['--interpreter-path PATH', "Path to #{BRANDING} interpreter executable", STORE_NEW_VALUE, INTERPRETER_PATH],
+                  no_truffle:       ['-n', '--no-truffle', "Use conventional JRuby instead of #{BRANDING}", STORE_NEW_NEGATED_VALUE, false],
+                  graal:            ['-g', '--graal', 'Run on graal', STORE_NEW_VALUE, false],
+                  build:            ['-b', '--build', 'Run `jt build` using conventional JRuby', STORE_NEW_VALUE, false],
+                  rebuild:          ['--rebuild', 'Run `jt rebuild` using conventional JRuby', STORE_NEW_VALUE, false],
+                  debug:            ['-d', '--debug', 'JVM remote debugging', STORE_NEW_VALUE, false],
+                  require:          ['-r', '--require FILE', 'Files to require, same as Ruby\'s -r', ADD_TO_ARRAY, []],
+                  require_pattern:  ['--require-pattern DIR_GLOB_PATTERN', 'Files matching the pattern will be required', apply_pattern, []],
+                  exclude_pattern:  ['--exclude-pattern REGEXP',
+                                     'Files matching the regexp will not be required by --require-pattern (applies to subsequent --require-pattern options)',
+                                     ADD_TO_ARRAY, []],
+                  load_path:        ['-I', '--load-path LOAD_PATH', 'Paths to add to load path, same as Ruby\'s -I', ADD_TO_ARRAY, []],
+                  jexception:       ['--jexception', 'print Java exceptions', STORE_NEW_VALUE, false],
+                  environment:      ['--environment NAME,VALUE', Array, 'Set environment variables', MERGE_TO_HASH, {}],
+                  xmx:              ['--xmx SIZE', 'Max memory size', STORE_NEW_VALUE, '2G'],
+                  no_asserts:       ['--no-asserts', 'Disable asserts -ea -esa', STORE_NEW_NEGATED_VALUE, false]
+                }.merge(shared_offline_options),
+
         ci:     { batch:      ['--batch FILE', 'Run batch of ci tests supplied in a file. One ci command options per line. If FILE is in or stdin it reads from $stdin.',
                                STORE_NEW_VALUE, nil],
                   definition: ['--definition NAME', 'Specify which definition file to use', STORE_NEW_VALUE, nil],
                   help:       ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false]
                 }.merge(shared_offline_options),
-        clean:  {
-            help: ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false]
-        },
-        readme: {
-            help: ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false]
-        }
+
+        clean:  { help: ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false] },
+
+        readme: { help: ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false] }
     }.each { |group, options| options.each { |name, definition| definition.last.freeze } }
   end
 
@@ -517,35 +518,14 @@ class TruffleTool
     BUNDLER_EVAL_ENV.send :eval, line
   end
 
-  def gemfile_use_path!(gems_path)
-    gemfile = Bundler.default_gemfile.to_s
-
-    new_lines = File.read(gemfile).lines.map do |line|
-      if line =~ /^( +)gem.*git:/
-        space             = $1
-        gem_name, options = parse_gemfile_line(line)
-        repo_name         = options[:git].split('/').last
-        repo_match        = "#{gems_path}/bundler/gems/#{repo_name}-*"
-        repo_path         = Dir[repo_match].sort.first
-
-        ["# Overridden by jtr\n",
-         '# ' + line,
-         repo_path ?
-             "gem '#{gem_name}', path: '#{repo_path}'\n" :
-             "raise \"no repository found on '#{repo_match}'\"\n"
-        ].map { |l| space + l }.join
-      else
-        line
-      end
-    end
-
-    File.write gemfile, new_lines.join
+  def mock_path
+    bundle_path = File.expand_path(@options[:global][:truffle_bundle_path])
+    File.join(bundle_path, @options[:global][:mock_load_path])
   end
-
 
   def subcommand_setup(rest)
     bundle_options = @options[:global][:bundle_options].split(' ')
-    bundle_path    = File.expand_path(@options[:global][:truffle_bundle_path])
+    offline        = @options[:setup][:offline]
     execute_all    = lambda do |cmd|
       case cmd
       when Proc
@@ -557,52 +537,34 @@ class TruffleTool
       end
     end
 
-    real_path          = File.join(bundle_path, RUBY_ENGINE)
-    target_gem_path    = File.join(bundle_path, RUBY_ENGINE, '2.3.0')
-    target_gem_path_22 = File.join(bundle_path, RUBY_ENGINE, '2.2.0')
-    jruby_truffle_path = File.join(bundle_path, 'jruby+truffle')
-    mock_path          = File.join(bundle_path, @options[:global][:mock_load_path])
-
-    FileUtils.mkpath real_path
-    FileUtils.mkpath mock_path
-
-    File.symlink RUBY_ENGINE, jruby_truffle_path unless File.exist? jruby_truffle_path
-
-    if @options[:setup][:offline]
-      FileUtils.rmtree target_gem_path
-      File.symlink @options[:setup][:offline_gem_path], target_gem_path
-    else
-      File.delete target_gem_path if File.symlink?(target_gem_path)
-      FileUtils.mkpath target_gem_path
-    end
-
-    File.symlink '2.3.0', target_gem_path_22 unless File.exist? target_gem_path_22
-
     @options[:setup][:before].each(&execute_all)
 
-    gemfile_use_path!(target_gem_path) if @options[:setup][:offline]
+    @options[:setup]
+
+    # TODO (pitr-ch 07-Jan-2017): can we drop it?
+    # target_gem_path    = File.join(bundle_path, RUBY_ENGINE, '2.3.0')
+    # gemfile_use_path!(target_gem_path) if offline
 
     if @options[:setup][:bundler]
-      execute_cmd([JRUBY_BIN.to_s,
-                   '-X-C', # See https://github.com/jruby/jruby/issues/4171
-                   "#{Gem.bindir}/bundle",
+      execute_cmd([*([{ 'GEM_HOME' => @options[:setup][:offline_gem_path].to_s,
+                        'GEM_PATH' => @options[:setup][:offline_gem_path].to_s }] if offline),
+                   JRUBY_BIN.to_s,
+                   '-X+T',
+                   '-r', 'bundler-workarounds',
+                   *%w[-S bundle],
                    *bundle_options,
                    'install',
-                   *(%w(--local --no-prune) if @options[:setup][:offline]),
-                   '--standalone',
-                   '--path', bundle_path,
+                   *(%w(--local --no-prune) if offline),
                    *(['--without', @options[:setup][:without].join(' ')] unless @options[:setup][:without].empty?)].compact,
                   print_always: true)
     end
+
+    FileUtils.rmtree mock_path
 
     @options[:setup][:file].each do |name, content|
       log "creating file: #{mock_path}/#{name}" if verbose?
       FileUtils.mkpath File.dirname("#{mock_path}/#{name}")
       File.write "#{mock_path}/#{name}", content
-    end
-
-    File.open("#{bundle_path}/bundler/setup.rb", 'a') do |f|
-      f.write %[$:.unshift "\#{path}/../#{@options[:global][:mock_load_path]}"]
     end
 
     @options[:setup][:after].each(&execute_all)
@@ -633,12 +595,6 @@ class TruffleTool
       end
     end
 
-    executable = if @options[:run][:executable]
-                   executables = Dir.glob("#{@options[:global][:truffle_bundle_path]}/jruby+truffle/2.3.0/bin/*").sort
-                   executables.find { |path| File.basename(path) == @options[:run][:executable] } or
-                       raise "no executable with name '#{@options[:run][:executable]}' found"
-                 end
-
     core_load_path = jruby_path.join 'truffle/src/main/ruby'
 
     missing_core_load_path = !File.exists?(core_load_path)
@@ -657,23 +613,27 @@ class TruffleTool
         *(truffle_options unless @options[:run][:no_truffle])
     ]
 
-    bundler_setup = File.expand_path "#{@options[:global][:truffle_bundle_path]}/bundler/setup.rb"
-    env_options   = [
+    env_options = [
         *ruby_options,
-        *(['-r', bundler_setup] if File.exist? bundler_setup),
-        *@options[:run][:load_path].flat_map { |v| ['-I', v] },
+        *[*@options[:run][:load_path], mock_path].flat_map { |v| ['-I', v] },
         *@options[:run][:require].flat_map { |v| ['-r', v] }
     ]
 
-    env            = @options[:run][:environment]
-    env['JAVACMD'] = @options[:global][:graal_path] if @options[:run][:graal]
+    env = @options[:run][:environment].
+        merge(@options[:run][:graal] ?
+                  { 'JAVACMD' => @options[:global][:graal_path] } :
+                  {}).
+        merge(@options[:run][:offline] ?
+                  { 'GEM_HOME' => @options[:run][:offline_gem_path].to_s,
+                    'GEM_PATH' => @options[:run][:offline_gem_path].to_s } :
+                  {})
+
     env.each { |k, v| env[k] = v.to_s }
 
     cmd = [(env unless env.empty?),
            *interpreter_path,
            *jruby_options,
            *env_options,
-           executable,
            *rest
     ].compact
 
@@ -899,7 +859,8 @@ class TruffleTool
       Dir.chdir(testing_dir) do
         TruffleTool.new(['run', *args].compact,
                         deep_merge(options,
-                                   dig_deep(@runner.options, global: :verbose))).run
+                                   dig_deep(@runner.options, global: :verbose, ci: [:offline, :offline_gem_path]).
+                                       tap { |h| h.update run: h.delete(:ci) })).run
       end
     end
 
