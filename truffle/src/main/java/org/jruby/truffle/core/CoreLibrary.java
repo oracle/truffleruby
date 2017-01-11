@@ -906,7 +906,6 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_VARARGS", RubiniusTypes.TYPE_VARARGS);
 
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.RUBY_VERSION, UTF8Encoding.INSTANCE)));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "JRUBY_VERSION", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.VERSION, UTF8Encoding.INSTANCE)));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PATCHLEVEL", 0);
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", RubyLanguage.RUBY_REVISION);
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.ENGINE, UTF8Encoding.INSTANCE)));

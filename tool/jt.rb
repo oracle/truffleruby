@@ -13,7 +13,7 @@
 
 # Recommended: function jt { ruby tool/jt.rb "$@"; }
 
-abort "Do not run #{$0} with JRuby+Truffle itself, use MRI or some other Ruby." if RUBY_ENGINE == "jruby+truffle"
+abort "Do not run #{$0} with JRuby+Truffle itself, use MRI or some other Ruby." if RUBY_ENGINE == "ruby" && defined?(::Truffle)
 
 require 'fileutils'
 require 'json'
@@ -899,7 +899,7 @@ module Commands
     sh 'ant', '-f', 'spec/truffle/buildTestReports.xml'
   end
   private :test_cexts
-  
+
   def check_test_port
     lsof = `lsof -i :14873`
     unless lsof.empty?
@@ -1273,21 +1273,21 @@ module Commands
         a
       end
     end
-    
+
     benchmark_ruby = ENV['JT_BENCHMARK_RUBY']
-    
+
     run_args = []
 
     unless benchmark_ruby
       run_args.push '--graal' unless args.delete('--no-graal') || args.include?('list')
       run_args.push '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
     end
-    
+
     run_args.push "-I#{Utilities.find_gem('deep-bench')}/lib" rescue nil
     run_args.push "-I#{Utilities.find_gem('benchmark-ips')}/lib" rescue nil
     run_args.push "#{Utilities.find_gem('benchmark-interface')}/bin/benchmark"
     run_args.push *args
-    
+
     if benchmark_ruby
       sh benchmark_ruby, *run_args
     else
@@ -1303,7 +1303,7 @@ module Commands
       end
     end
   end
-  
+
   def install(name)
     case name
     when "graal-core"

@@ -171,16 +171,6 @@ class Gem::RemoteFetcher
 end
 
 
-ruby_version = <<-HEREDOC
-==========================================
-Workaround: Set RUBY_ENGINE to 'ruby'
-Error:
-  RUBY_ENGINE value jruby+truffle is not recognized
-Called here:
-  lib/bundler/ruby_version.rb:98
-HEREDOC
-puts ruby_version if $VERBOSE
-RUBY_ENGINE = "ruby"
 
 
 curl_https = <<-HEREDOC

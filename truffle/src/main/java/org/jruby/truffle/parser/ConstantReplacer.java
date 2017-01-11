@@ -24,7 +24,8 @@ public class ConstantReplacer {
         // a fallback.  We rename the constant being looked for to one that doesn't exist so the defined?
         // lookup fails.
         if (sourceSection.getSource().getName().endsWith("thread_safe.rb")) {
-            if (name.equals("JRUBY_VERSION") || name.equals("RUBY_VERSION")) {
+            // TODO (pitr-ch 13-Jan-2017): we end up in a branch where Array = ::Array which is not threadsafe
+            if (name.equals("RUBY_VERSION")) {
                 return name + "_NONEXISTENT";
             }
         }
