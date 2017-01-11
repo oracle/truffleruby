@@ -147,19 +147,33 @@ public class RubyWarnings implements WarnCallback {
      */
     @SuppressWarnings("deprecation")
     public void warn(ID id, String fileName, String message) {
-        if (!runtime.warningsEnabled()) return;
+        if (!runtime.warningsEnabled()) {
+            return;
+        }
 
         StringBuilder buffer = new StringBuilder(100);
 
         buffer.append(fileName).append(' ');
         buffer.append("warning: ").append(message).append('\n');
-        DebugHelpers.eval(runtime, "$stderr.write Truffle::Interop.from_java_string(message)", "message", buffer.toString());
+        DebugHelpers.eval(
+                runtime,
+                "$stderr.write Truffle::Interop.from_java_string(message)",
+                "message",
+                buffer.toString());
     }
 
     public void warn(ID id, String message) {
-        if (!runtime.warningsEnabled()) return;
+        if (!runtime.warningsEnabled()) {
+            return;
+        }
 
-        throw new UnsupportedOperationException();
+        StringBuilder buffer = new StringBuilder(100);
+        buffer.append("warning: ").append(message).append('\n');
+        DebugHelpers.eval(
+                runtime,
+                "$stderr.write Truffle::Interop.from_java_string(message)",
+                "message",
+                buffer.toString());
     }
 
     public void warnOnce(ID id, String message) {
