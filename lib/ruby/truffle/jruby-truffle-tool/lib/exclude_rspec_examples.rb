@@ -1,4 +1,4 @@
-module Truffle::Tool
+module TruffleTool
 
   def self.exclude_rspec_examples(exclusions, ignore_missing: false)
     return if exclusions.nil?
