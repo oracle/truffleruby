@@ -10,7 +10,7 @@ stubs = {
 
       module ActiveSupport
         module Testing
-          module Isolation
+          module Isolation      
 
             def run
               with_info_handler do
@@ -188,45 +188,54 @@ def exclusion_file(gem_name)
 end
 
 def exclusions_for(name, ignore_missing: false)
-  { setup: { file: { 'excluded-tests.rb' => format(dedent(<<-RUBY), exclusion_file(name)) } } }
+  ruby = dedent(<<-RUBY)
     failures = %s
-    require 'truffle/exclude_rspec_examples'
-    TruffleTool.exclude_rspec_examples failures, ignore_missing: #{!!ignore_missing}
+    require "%s"
+    TruffleTool.exclude_rspec_examples failures, ignore_missing: %s
   RUBY
+  { setup: { file: {
+      'excluded-tests.rb' => format(ruby,
+                                    exclusion_file(name),
+                                    TruffleTool::ROOT.join('lib', 'exclude_rspec_examples.rb'),
+                                    !!ignore_missing) } } }
 end
 
-rails_common =
-    deep_merge replacements.fetch(:bundler),
-               stubs.fetch(:kernel_gem),
-               additions.fetch(:minitest_reporters),
-               setup: { without: %w(db job) },
-               run:   { environment: { 'N' => 1 },
-                        require:     %w(rubygems date bigdecimal pathname openssl-stubs) }
+rails_basic = { setup: { without: %w(db job) },
+                run:   { environment: { 'N' => 1 } } }
+
+use_bundler_environment = { run: { require: %w(bundler-workarounds bundler/setup) } }
+
+# TODO (pitr-ch 07-Jan-2017): group config nad ci for each gem
 
 TruffleTool.add_config :activesupport,
                        deep_merge(
-                           rails_common,
+                           use_bundler_environment,
+                           rails_basic,
                            stubs.fetch(:activesupport_isolation),
                            replacements.fetch(:method_source),
                            exclusions_for(:activesupport))
 
 TruffleTool.add_config :activemodel,
                        deep_merge(
-                           rails_common,
+                           use_bundler_environment,
+                           rails_basic,
                            stubs.fetch(:activesupport_isolation),
                            stubs.fetch(:bcrypt))
+# additions.fetch(:minitest_reporters)) # TODO (pitr-ch 05-Jan-2017): not added for now since it's missing in the bundle
 
 TruffleTool.add_config :actionpack,
                        deep_merge(
-                           rails_common,
+                           use_bundler_environment,
+                           rails_basic,
                            stubs.fetch(:html_sanitizer),
                            exclusions_for(:actionpack))
 
 TruffleTool.add_config :railties,
-                       deep_merge(rails_common,
-                                  stubs.fetch(:activesupport_isolation),
-                                  exclusions_for(:railties),
-                                  run: { require: %w[bundler.rb] })
+                       deep_merge(
+                           use_bundler_environment,
+                           rails_basic,
+                           stubs.fetch(:activesupport_isolation),
+                           exclusions_for(:railties))
 
 TruffleTool.add_config :'concurrent-ruby',
                        setup: { file: { "stub-processor_number.rb" => dedent(<<-RUBY) } },
@@ -257,24 +266,31 @@ TruffleTool.add_config :psd,
                        replacements.fetch(:nokogiri)
 
 TruffleTool.add_config :actionview,
-                       deep_merge(rails_common,
-                                  exclusions_for(:actionview, ignore_missing: true),
-                                  stubs.fetch(:html_sanitizer))
+                       deep_merge(
+                           use_bundler_environment,
+                           rails_basic,
+                           exclusions_for(:actionview, ignore_missing: true),
+                           stubs.fetch(:html_sanitizer))
 
 TruffleTool.add_config :actionmailer,
-                       deep_merge(rails_common,
-                                  exclusions_for(:actionmailer),
-                                  stubs.fetch(:html_sanitizer))
+                       deep_merge(
+                           use_bundler_environment,
+                           rails_basic,
+                           exclusions_for(:actionmailer),
+                           stubs.fetch(:html_sanitizer))
 
 TruffleTool.add_config :activejob,
-                       rails_common
+                       deep_merge(
+                           use_bundler_environment,
+                           { setup: { without: %w(db) },
+                             run:   { environment: { 'N' => 1 } } }
+                       )
 
 TruffleTool.add_config :'sprockets-rails',
-                       deep_merge(replacements.fetch(:bundler),
+                       deep_merge(use_bundler_environment,
                                   stubs.fetch(:concurrent_ruby),
                                   stubs.fetch(:html_sanitizer),
                                   stubs.fetch(:activesupport_isolation),
-                                  additions.fetch(:minitest_reporters),
                                   run: { require: %w(openssl-stubs) })
 
 
@@ -316,7 +332,7 @@ end
 
 TruffleTool.add_ci_definition :activemodel do
   subdir 'activemodel'
-  rails_ci
+  rails_ci require_pattern: 'test/cases/**/*_test.rb'
 end
 
 TruffleTool.add_ci_definition :activesupport do
@@ -377,7 +393,7 @@ end
 TruffleTool.add_ci_definition :algebrick do
   has_to_succeed setup
 
-  set_result run(%w[test/algebrick_test.rb])
+  set_result run(%w[-- -S bundle exec ruby test/algebrick_test.rb])
 end
 
 TruffleTool.add_ci_definition :actionview do
