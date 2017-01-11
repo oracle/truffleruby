@@ -483,28 +483,6 @@ if bundler_loaded
   end
 end
 
-resolver_search_for = <<-HEREDOC
-==========================================
-Workaround: Change =~ to == for resolver#search_for
-Error:  type mismatch: String given
-        stdlib/rubygems/resolver.rb:237:in `block in search_for'
-HEREDOC
-puts resolver_search_for if $VERBOSE
-require "rubygems/resolver"
-class Gem::Resolver
-  def search_for(dependency)
-    possibles, all = find_possible(dependency)
-    if !@soft_missing && possibles.empty?
-      @missing << dependency
-      exc = Gem::UnsatisfiableDependencyError.new dependency, all
-      exc.errors = @set.errors
-      raise exc
-    end
-    possibles.sort_by { |s| [s.source, s.version, Gem::Platform.local == s.platform ? 1 : 0] }.
-        map { |s| ActivationRequest.new s, dependency, [] }
-  end
-end
-
 native_extensions = <<-HEREDOC
 ==========================================
 Workaround: Ignore native extensions
