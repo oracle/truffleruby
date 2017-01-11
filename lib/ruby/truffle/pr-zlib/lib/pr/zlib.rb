@@ -423,12 +423,12 @@ module Zlib
     end
 
     def total_in
-      raise GzipFile::Error,"closed gzip stream" unless @gz.z.ZSTREAM_IS_READY()
+      raise GzipFile::Error,"closed gzip stream" unless @z.ZSTREAM_IS_READY()
       @z.stream.total_in
     end
 
     def total_out
-      raise GzipFile::Error,"closed gzip stream" unless @gz.z.ZSTREAM_IS_READY()
+      raise GzipFile::Error,"closed gzip stream" unless @z.ZSTREAM_IS_READY()
       @z.stream.total_out
     end
 
