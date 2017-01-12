@@ -14,6 +14,7 @@
 package org.jruby.truffle.language.loader;
 
 import com.oracle.truffle.api.source.Source;
+import org.jruby.truffle.RubyLanguage;
 import org.jruby.truffle.aot.RootedFileVisitor;
 import org.jruby.truffle.aot.SimpleRootedFileVisitor;
 
@@ -78,7 +79,6 @@ public final class JRubySourceLoaderSupport {
         return coreLibraryFiles;
     }
 
-    @SuppressWarnings("deprecation")
     private static Map<String, CoreLibraryFile> getCoreLibrary() {
         Map<String, CoreLibraryFile> coreLibrary = new HashMap<>();
         Set<String> coreLibraryFiles = getCoreLibraryFiles();
@@ -87,7 +87,7 @@ public final class JRubySourceLoaderSupport {
                 Path filePath = jarFileSystem.getPath("/" + name);
                 try (Reader reader = Files.newBufferedReader(filePath)) {
                     if (reader != null) {
-                        Source source = Source.fromReader(reader, name);
+                        Source source = Source.newBuilder(reader).name(name).mimeType(RubyLanguage.MIME_TYPE).build();
 
                         byte[] code = source.getCode().getBytes(StandardCharsets.UTF_8);
                         coreLibrary.put(name, new CoreLibraryFile(code, null));
