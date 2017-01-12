@@ -309,15 +309,7 @@ class Regexp
   #    #=> {}
   #
   def named_captures
-    if @named_captures
-      @named_captures.dup
-    else
-      named_captures = Hash[Truffle.invoke_primitive(:regexp_names, self)]
-      unless frozen?
-        @named_captures = named_captures.dup.freeze
-      end
-      named_captures
-    end
+    Hash[Truffle.invoke_primitive(:regexp_names, self)]
   end
 
   #
