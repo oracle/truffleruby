@@ -205,95 +205,6 @@ rails_basic = { setup: { without: %w(db job) },
 
 use_bundler_environment = { run: { require: %w(bundler-workarounds bundler/setup) } }
 
-# TODO (pitr-ch 07-Jan-2017): group config nad ci for each gem
-
-TruffleTool.add_config :activesupport,
-                       deep_merge(
-                           use_bundler_environment,
-                           rails_basic,
-                           stubs.fetch(:activesupport_isolation),
-                           replacements.fetch(:method_source),
-                           exclusions_for(:activesupport))
-
-TruffleTool.add_config :activemodel,
-                       deep_merge(
-                           use_bundler_environment,
-                           rails_basic,
-                           stubs.fetch(:activesupport_isolation),
-                           stubs.fetch(:bcrypt))
-# additions.fetch(:minitest_reporters)) # TODO (pitr-ch 05-Jan-2017): not added for now since it's missing in the bundle
-
-TruffleTool.add_config :actionpack,
-                       deep_merge(
-                           use_bundler_environment,
-                           rails_basic,
-                           stubs.fetch(:html_sanitizer),
-                           exclusions_for(:actionpack))
-
-TruffleTool.add_config :railties,
-                       deep_merge(
-                           use_bundler_environment,
-                           rails_basic,
-                           stubs.fetch(:activesupport_isolation),
-                           exclusions_for(:railties))
-
-TruffleTool.add_config :'concurrent-ruby',
-                       setup: { file: { "stub-processor_number.rb" => dedent(<<-RUBY) } },
-                              # stub methods calling #system
-                              require 'concurrent'
-                              module Concurrent
-                                module Utility
-                                  class ProcessorCounter
-                                    def compute_processor_count
-                                      2
-                                    end
-                                    def compute_physical_processor_count
-                                      2
-                                    end
-                                  end
-                                end
-                              end
-                       RUBY
-                       run: { require: %w(stub-processor_number) }
-
-TruffleTool.add_config :monkey_patch,
-                       replacements.fetch(:bundler)
-
-TruffleTool.add_config :openweather,
-                       replacements.fetch(:'bundler/gem_tasks')
-
-TruffleTool.add_config :psd,
-                       replacements.fetch(:nokogiri)
-
-TruffleTool.add_config :actionview,
-                       deep_merge(
-                           use_bundler_environment,
-                           rails_basic,
-                           exclusions_for(:actionview, ignore_missing: true),
-                           stubs.fetch(:html_sanitizer))
-
-TruffleTool.add_config :actionmailer,
-                       deep_merge(
-                           use_bundler_environment,
-                           rails_basic,
-                           exclusions_for(:actionmailer),
-                           stubs.fetch(:html_sanitizer))
-
-TruffleTool.add_config :activejob,
-                       deep_merge(
-                           use_bundler_environment,
-                           { setup: { without: %w(db) },
-                             run:   { environment: { 'N' => 1 } } }
-                       )
-
-TruffleTool.add_config :'sprockets-rails',
-                       deep_merge(use_bundler_environment,
-                                  stubs.fetch(:concurrent_ruby),
-                                  stubs.fetch(:html_sanitizer),
-                                  stubs.fetch(:activesupport_isolation),
-                                  run: { require: %w(openssl-stubs) })
-
-
 class TruffleTool::CIEnvironment
   def rails_ci(has_exclusions: false, exclusion_pattern: nil, require_pattern: 'test/**/*_test.rb')
     rails_ci_setup has_exclusions: has_exclusions
@@ -325,25 +236,57 @@ class TruffleTool::CIEnvironment
   end
 end
 
-TruffleTool.add_ci_definition :actionpack do
-  subdir 'actionpack'
-  rails_ci has_exclusions: true
-end
+begin # tested gems in CI
 
-TruffleTool.add_ci_definition :activemodel do
-  subdir 'activemodel'
-  rails_ci require_pattern: 'test/cases/**/*_test.rb'
-end
+  TruffleTool.add_config :activesupport,
+                         deep_merge(
+                             use_bundler_environment,
+                             rails_basic,
+                             stubs.fetch(:activesupport_isolation),
+                             replacements.fetch(:method_source),
+                             exclusions_for(:activesupport))
+  TruffleTool.add_ci_definition :activesupport do
+    subdir 'activesupport'
+    rails_ci has_exclusions: true
+  end
 
-TruffleTool.add_ci_definition :activesupport do
-  subdir 'activesupport'
-  rails_ci has_exclusions: true
-end
 
-TruffleTool.add_ci_definition :railties do
-  subdir 'railties'
-  rails_ci has_exclusions:    true,
-           exclusion_pattern: %w[
+  TruffleTool.add_config :activemodel,
+                         deep_merge(
+                             use_bundler_environment,
+                             rails_basic,
+                             stubs.fetch(:activesupport_isolation),
+                             stubs.fetch(:bcrypt))
+  # TODO (pitr-ch 05-Jan-2017): not added for now since it's missing in the bundle
+  # additions.fetch(:minitest_reporters))
+  TruffleTool.add_ci_definition :activemodel do
+    subdir 'activemodel'
+    rails_ci require_pattern: 'test/cases/**/*_test.rb'
+  end
+
+
+  TruffleTool.add_config :actionpack,
+                         deep_merge(
+                             use_bundler_environment,
+                             rails_basic,
+                             stubs.fetch(:html_sanitizer),
+                             exclusions_for(:actionpack))
+  TruffleTool.add_ci_definition :actionpack do
+    subdir 'actionpack'
+    rails_ci has_exclusions: true
+  end
+
+
+  TruffleTool.add_config :railties,
+                         deep_merge(
+                             use_bundler_environment,
+                             rails_basic,
+                             stubs.fetch(:activesupport_isolation),
+                             exclusions_for(:railties))
+  TruffleTool.add_ci_definition :railties do
+    subdir 'railties'
+    rails_ci has_exclusions:    true,
+             exclusion_pattern: %w[
               test/application/asset_debugging_test.rb
               test/application/assets_test.rb
               test/application/bin_setup_test.rb
@@ -388,52 +331,123 @@ TruffleTool.add_ci_definition :railties do
               test/fixtures
               test/rails_info_controller_test
               test/commands/console_test].join('|')
-end
-
-TruffleTool.add_ci_definition :algebrick do
-  has_to_succeed setup
-
-  set_result run(%w[-- -S bundle exec ruby test/algebrick_test.rb])
-end
-
-TruffleTool.add_ci_definition :actionview do
-  subdir 'actionview'
-  rails_ci_setup(has_exclusions: true)
-  results = [
-      rails_ci_run(has_exclusions:  true,
-                   require_pattern: 'test/template/**/*_test.rb'),
-      rails_ci_run(has_exclusions:  true,
-                   require_pattern: 'test/actionpack/**/*_test.rb')
-  # TODO (pitr-ch 17-Nov-2016): requires ActiveRecord connection to database to run, uses sqlite
-  # rails_ci_run(has_exclusions:  true,
-  #              require_pattern: 'test/activerecord/*_test.rb')
-  ]
-
-  set_result results.all?
-end
-
-TruffleTool.add_ci_definition :actionmailer do
-  subdir 'actionmailer'
-  rails_ci has_exclusions:  true,
-           require_pattern: 'test/**/*_test.rb'
-end
-
-TruffleTool.add_ci_definition :activejob do
-  subdir 'activejob'
-  rails_ci_setup
-
-  adapters = %w[inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner test]
-  results  = adapters.map do |adapter|
-    rails_ci_run(environment:     { 'AJ_ADAPTER' => adapter },
-                 require_pattern: 'test/cases/**/*_test.rb')
   end
-  set_result results.all?
+
+  TruffleTool.add_config :actionview,
+                         deep_merge(
+                             use_bundler_environment,
+                             rails_basic,
+                             exclusions_for(:actionview, ignore_missing: true),
+                             stubs.fetch(:html_sanitizer))
+  TruffleTool.add_ci_definition :actionview do
+    subdir 'actionview'
+    rails_ci_setup(has_exclusions: true)
+    results = [
+        rails_ci_run(has_exclusions:  true,
+                     require_pattern: 'test/template/**/*_test.rb'),
+        rails_ci_run(has_exclusions:  true,
+                     require_pattern: 'test/actionpack/**/*_test.rb')
+    # TODO (pitr-ch 17-Nov-2016): requires ActiveRecord connection to database to run, uses sqlite
+    # rails_ci_run(has_exclusions:  true,
+    #              require_pattern: 'test/activerecord/*_test.rb')
+    ]
+
+    set_result results.all?
+  end
+
+  TruffleTool.add_ci_definition :algebrick do
+    has_to_succeed setup
+    set_result run(%w[-- -S bundle exec ruby test/algebrick_test.rb])
+  end
 end
 
-TruffleTool.add_ci_definition :'sprockets-rails' do
-  declare_options debug: ['-d', '--[no-]debug', 'Run tests with remote debugging enabled.', STORE_NEW_VALUE, false]
-  has_to_succeed setup
-  set_result run([*%w[--require-pattern test/test_*.rb],
-                  *(%w[--debug] if option(:debug)),
-                  *%w[-- -I test -e nil]])
+begin # not tested in CI
+  TruffleTool.add_config :'concurrent-ruby',
+                         setup: { file: { "stub-processor_number.rb" => dedent(<<-RUBY) } },
+                              # stub methods calling #system
+                              require 'concurrent'
+                              module Concurrent
+                                module Utility
+                                  class ProcessorCounter
+                                    def compute_processor_count
+                                      2
+                                    end
+                                    def compute_physical_processor_count
+                                      2
+                                    end
+                                  end
+                                end
+                              end
+                         RUBY
+                         run: { require: %w(stub-processor_number) }
+
+  TruffleTool.add_config :monkey_patch,
+                         replacements.fetch(:bundler)
+
+  TruffleTool.add_config :openweather,
+                         replacements.fetch(:'bundler/gem_tasks')
+
+  TruffleTool.add_config :psd,
+                         replacements.fetch(:nokogiri)
+
+
+  TruffleTool.add_config :activerecord,
+                         deep_merge(
+                             use_bundler_environment,
+                             rails_basic,
+                             exclusions_for(:activerecord))
+  TruffleTool.add_ci_definition :activerecord do
+    subdir 'activerecord'
+    rails_ci has_exclusions:    true,
+             require_pattern:   'test/cases/**/*_test.rb',
+             exclusion_pattern: 'test/cases/adapters/'
+  end
+
+
+  TruffleTool.add_config :actionmailer,
+                         deep_merge(
+                             use_bundler_environment,
+                             rails_basic,
+                             exclusions_for(:actionmailer),
+                             stubs.fetch(:html_sanitizer))
+  TruffleTool.add_ci_definition :actionmailer do
+    subdir 'actionmailer'
+    rails_ci has_exclusions:  true,
+             require_pattern: 'test/**/*_test.rb'
+  end
+
+
+  TruffleTool.add_config :activejob,
+                         deep_merge(
+                             use_bundler_environment,
+                             { setup: { without: %w(db) },
+                               run:   { environment: { 'N' => 1 } } }
+                         )
+  TruffleTool.add_ci_definition :activejob do
+    subdir 'activejob'
+    rails_ci_setup
+
+    adapters = %w[inline delayed_job qu que queue_classic resque sidekiq sneakers sucker_punch backburner test]
+    results  = adapters.map do |adapter|
+      rails_ci_run(environment:     { 'AJ_ADAPTER' => adapter },
+                   require_pattern: 'test/cases/**/*_test.rb')
+    end
+    set_result results.all?
+  end
+
+  TruffleTool.add_config :'sprockets-rails',
+                         deep_merge(use_bundler_environment,
+                                    stubs.fetch(:concurrent_ruby),
+                                    stubs.fetch(:html_sanitizer),
+                                    stubs.fetch(:activesupport_isolation),
+                                    run: { require: %w(openssl-stubs) })
+  TruffleTool.add_ci_definition :'sprockets-rails' do
+    declare_options debug: ['-d', '--[no-]debug', 'Run tests with remote debugging enabled.', STORE_NEW_VALUE, false]
+    has_to_succeed setup
+    set_result run([*%w[--require-pattern test/test_*.rb],
+                    *(%w[--debug] if option(:debug)),
+                    *%w[-- -I test -e nil]])
+  end
 end
+
+# TODO (pitr-ch 07-Jan-2017): check Rakefiles for the test patterns
