@@ -37,19 +37,9 @@ module GC
     run(false)
   end
 
-  if Truffle::Graal.substrate?
-
-    def self.run(force)
-      Truffle::Interop.execute(Truffle::Interop.read_property(Truffle::Java::System, :gc))
-    end
-
-  else
-
-    def self.run(force)
-      Truffle.primitive :vm_gc_start
-      raise PrimitiveFailure, "GC.run primitive failed"
-    end
-
+  def self.run(force)
+    Truffle.primitive :vm_gc_start
+    raise PrimitiveFailure, "GC.run primitive failed"
   end
 
   # Totally fake.
