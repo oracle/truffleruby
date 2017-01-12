@@ -518,6 +518,34 @@ class TruffleTool
     BUNDLER_EVAL_ENV.send :eval, line
   end
 
+  def gemfile_use_path!(gems_path)
+    gemfile = Bundler.default_gemfile.to_s
+
+    new_lines = File.read(gemfile).lines.map do |line|
+      if line =~ /^( +)gem.*git:/
+        space               = $1
+        gem_name, options   = parse_gemfile_line(line)
+        repo_name           = options[:git].split('/').last
+        repo_match          = "#{gems_path}/bundler/gems/#{repo_name}-*"
+        repo_path           = Dir[repo_match].sort.first
+        options_without_git = options.merge(path: repo_path).tap do |h|
+          h.delete(:git)
+          h.delete(:branch)
+        end
+
+        format(<<-RUBY.gsub(/^ +/, space), line.strip, gem_name, options_without_git)
+          # Overridden by jtt
+          # %s
+          gem '%s', %p
+        RUBY
+      else
+        line
+      end
+    end
+
+    File.write gemfile, new_lines.join
+  end
+
   def mock_path
     bundle_path = File.expand_path(@options[:global][:truffle_bundle_path])
     File.join(bundle_path, @options[:global][:mock_load_path])
@@ -539,11 +567,7 @@ class TruffleTool
 
     @options[:setup][:before].each(&execute_all)
 
-    @options[:setup]
-
-    # TODO (pitr-ch 07-Jan-2017): can we drop it?
-    # target_gem_path    = File.join(bundle_path, RUBY_ENGINE, '2.3.0')
-    # gemfile_use_path!(target_gem_path) if offline
+    gemfile_use_path!(@options[:setup][:offline_gem_path]) if offline
 
     if @options[:setup][:bundler]
       execute_cmd([*([{ 'GEM_HOME' => @options[:setup][:offline_gem_path].to_s,
