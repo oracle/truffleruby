@@ -21,10 +21,8 @@ else
         rm tmp/pids/server.pid
     fi
 
-    $JRUBY $JRUBY_BIN/gem install bundler
-
     $JTR setup --offline
-    $JTR run -r rubygems -- bin/rails server &
+    $JTR run --offline -- -S bundle exec ./bin/rails server &
     serverpid=$!
     url=http://localhost:3000
 
