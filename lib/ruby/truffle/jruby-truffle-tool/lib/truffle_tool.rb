@@ -183,10 +183,8 @@ class TruffleTool
   BRANDING          = EXECUTABLE.include?('jruby') ? 'JRuby+Truffle' : 'RubyTruffle'
   LOCAL_CONFIG_FILE = '.jruby-truffle-tool.yaml'
   ROOT              = Pathname(__FILE__).dirname.parent.expand_path
-  JRUBY_PATH        = ROOT.join('../../../..').expand_path
-  JRUBY_BIN         = JRUBY_PATH.join('bin', 'jruby')
-  JT                = JRUBY_PATH.join('tool', 'jt.rb')
-  INTERPRETER_PATH  = JT.exist? ? [JT.to_s, "ruby"] : JRUBY_BIN.to_s
+  TRUFFLERUBY_PATH  = ROOT.join('../../../..').expand_path
+  TRUFFLERUBY_BIN   = TRUFFLERUBY_PATH.join('bin', 'jruby-truffle')
 
   module OptionBlocks
     STORE_NEW_VALUE         = -> (new, old, _) { new }
@@ -213,7 +211,7 @@ class TruffleTool
     shared_offline_options = {
         offline:          ['--[no-]offline', 'Use local gems only', STORE_NEW_VALUE, false],
         offline_gem_path: ['--offline-gem-path', 'Path to a local pre-installed gems', STORE_NEW_VALUE,
-                           JRUBY_PATH.join('..', 'jruby-truffle-gem-test-pack', 'gems')] }
+                           TRUFFLERUBY_PATH.join('..', 'jruby-truffle-gem-test-pack', 'gems')] }
 
 
     # Format:
@@ -229,7 +227,7 @@ class TruffleTool
                   debug_option:        ['--debug-option OPTION', 'Debug JVM option', STORE_NEW_VALUE,
                                         '-J-agentlib:jdwp=transport=dt_socket,server=y,address=%d,suspend=y'],
                   truffle_bundle_path: ['--truffle-bundle-path NAME', 'Bundle path', STORE_NEW_VALUE, '.jruby-truffle-tool_bundle'],
-                  graal_path:          ['--graal-path PATH', 'Path to Graal', STORE_NEW_VALUE, (JRUBY_PATH + '../GraalVM-0.10/jre/bin/javao').to_s],
+                  graal_path:          ['--graal-path PATH', 'Path to Graal', STORE_NEW_VALUE, (TRUFFLERUBY_PATH + '../GraalVM-0.10/jre/bin/javao').to_s],
                   mock_load_path:      ['--mock-load-path PATH',
                                         'Path of mocks & monkey-patches (prepended in $:, relative to --truffle_bundle_path)',
                                         STORE_NEW_VALUE, 'mocks'],
@@ -251,8 +249,7 @@ class TruffleTool
                 }.merge(shared_offline_options),
 
         run:    { help:             ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false],
-                  interpreter_path: ['--interpreter-path PATH', "Path to #{BRANDING} interpreter executable", STORE_NEW_VALUE, INTERPRETER_PATH],
-                  no_truffle:       ['-n', '--no-truffle', "Use conventional JRuby instead of #{BRANDING}", STORE_NEW_NEGATED_VALUE, false],
+                  interpreter_path: ['--interpreter-path PATH', "Path to #{BRANDING} interpreter executable", STORE_NEW_VALUE, TRUFFLERUBY_BIN.to_s],
                   graal:            ['-g', '--graal', 'Run on graal', STORE_NEW_VALUE, false],
                   build:            ['-b', '--build', 'Run `jt build` using conventional JRuby', STORE_NEW_VALUE, false],
                   rebuild:          ['--rebuild', 'Run `jt rebuild` using conventional JRuby', STORE_NEW_VALUE, false],
@@ -559,7 +556,7 @@ class TruffleTool
       when Proc
         cmd.call
       when Array, String
-        execute_cmd([{ 'JRUBY_BIN' => JRUBY_BIN.to_s }, cmd])
+        execute_cmd([{ 'TRUFFLERUBY_BIN' => TRUFFLERUBY_BIN.to_s }, cmd])
       else
         raise
       end
@@ -572,8 +569,7 @@ class TruffleTool
     if @options[:setup][:bundler]
       execute_cmd([*([{ 'GEM_HOME' => @options[:setup][:offline_gem_path].to_s,
                         'GEM_PATH' => @options[:setup][:offline_gem_path].to_s }] if offline),
-                   JRUBY_BIN.to_s,
-                   '-X+T',
+                   TRUFFLERUBY_BIN.to_s,
                    '-r', 'bundler-workarounds',
                    *%w[-S bundle],
                    *bundle_options,
@@ -625,16 +621,15 @@ class TruffleTool
     log "Core load path: #{core_load_path} does not exist, fallbacking to --no-use-fs-core" if missing_core_load_path
 
     truffle_options = [
-        '-X+T',
         "-J-Xmx#{@options[:run][:xmx]}",
         *(%w[-J-ea -J-esa] unless @options[:run][:no_asserts]),
         *("-Xtruffle.core.load_path=#{core_load_path}" if @options[:global][:use_fs_core] && !missing_core_load_path),
         *('-Xtruffle.exceptions.print_java=true' if @options[:run][:jexception])
     ]
 
-    jruby_options = [
+    interpreter_options = [
         *(format(@options[:global][:debug_option], @options[:global][:debug_port]) if @options[:run][:debug]),
-        *(truffle_options unless @options[:run][:no_truffle])
+        *truffle_options
     ]
 
     env_options = [
@@ -656,7 +651,7 @@ class TruffleTool
 
     cmd = [(env unless env.empty?),
            *interpreter_path,
-           *jruby_options,
+           *interpreter_options,
            *env_options,
            *rest
     ].compact
@@ -828,7 +823,7 @@ class TruffleTool
     end
 
     def jruby_path
-      JRUBY_PATH
+      TRUFFLERUBY_PATH
     end
 
     def jruby_truffle_path
