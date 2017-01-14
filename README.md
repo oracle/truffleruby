@@ -42,15 +42,15 @@ such as OpenSSL and Nokogiri is missing.
 TruffleRuby is ready for experimentation and curious end-users to try on their
 gems and smaller applications.
 
-#### Common questions about the status of TruffleRuby
+### Common questions about the status of TruffleRuby
 
-##### Do you run Rails?
+#### Do you run Rails?
 
 We do run Rails, and pass the majority of the Rails test suite. But we are
 missing support for OpenSSL and Nokogiri which makes it not practical to run
 real Rails applications at the moment.
 
-##### What is happening with AOT, startup time, and the SubstrateVM?
+#### What is happening with AOT, startup time, and the SubstrateVM?
 
 Ahead-of-time compilation of the TruffleRuby interpreter, along with the Graal
 compiler, is our proposed solution to the problem of startup time of a language
@@ -58,7 +58,7 @@ implemented in Java. The technology we are using to do this is called the
 SubstrateVM. We hope to make the SubstrateVM available publicly at some point
 soon.
 
-##### Running on a standard JVM
+#### Running on a standard JVM
 
 It is possible to run today on an unmodified JDK 9 EA build, but at the moment
 this requires building Graal yourself and we don't recommend end-users try it.
