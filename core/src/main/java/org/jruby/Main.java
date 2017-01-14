@@ -190,6 +190,11 @@ public class Main {
      * @param args command-line args, provided by the JVM.
      */
     public static void main(String[] args) {
+        if (System.getenv("USING_CLASSIC") == null) {
+            deprecationWarning();
+            System.exit(1);
+        }
+
         doGCJCheck();
 
         Main main;
@@ -224,6 +229,14 @@ public class Main {
 
             System.exit(1);
         }
+    }
+
+    private static void deprecationWarning() {
+        System.err.println("--------------------------------------------------------------------");
+        System.err.println("--   You're using JRuby Classic from the TruffleRuby repository.  --");
+        System.err.println("-- This won't be possible soon. Set the USING_CLASSIC environment --");
+        System.err.println("--         variable to show that you know this is happening.      --");
+        System.err.println("--------------------------------------------------------------------");
     }
 
     public Status run(String[] args) {
