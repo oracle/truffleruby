@@ -1,81 +1,102 @@
-# JRuby - an implementation of the Ruby language on the JVM
+# TruffleRuby
 
-Master: [![Build Status](https://travis-ci.org/jruby/jruby.svg?branch=master)](https://travis-ci.org/jruby/jruby)
-1.7 branch: [![Build Status](https://travis-ci.org/jruby/jruby.svg?branch=jruby-1_7)](https://travis-ci.org/jruby/jruby/branches)
-
-## About
-
-JRuby is an implementation of the [Ruby language](http://www.ruby-lang.org)
-using the JVM.
-
-It aims to be a complete, correct and fast implementation of Ruby, at the same
-time as providing powerful new features such as concurrency without a
-[global-interpreter-lock](http://en.wikipedia.org/wiki/Global_Interpreter_Lock),
-true parallelism, and tight integration to the Java language to allow you to
-use Java classes in your Ruby program and to allow JRuby to be embedded into a
-Java application.
-
-You can use JRuby simply as a faster version of Ruby, you can use it to run Ruby
-on the JVM and access powerful JVM libraries such as highly tuned concurrency
-primitives, you can use it to embed Ruby as a scripting language in your Java
-program, or many other possibilites.
-
-We're a welcoming community - you can talk to us on [#jruby on Freenode](http://richard.esplins.org/siwi/2011/07/08/getting-started-freenode-irc/).
-There are core team members in the EU and US time zones.
-
-Visit the [JRuby website](http://jruby.org) and the [JRuby wiki](https://github.com/jruby/jruby/wiki)
-for more information.
-
-## Getting JRuby
-
-To run JRuby you will need a JRE (the JVM runtime environment) version 7 or higher.
-
-Your operating system may provide a JRE and JRuby in a package manager, but you may find that this
-version is very old.
-
-An alternative is to use one of the [Ruby version managers](https://www.ruby-lang.org/en/documentation/installation/#managers).
-
-For [`rbenv`](https://github.com/sstephenson/rbenv) you will need the
-[`ruby-build`](https://github.com/sstephenson/ruby-build) plugin. You may find that your system
-package manager can provide these. Then you can run:
-
-```
-$ rbenv install jruby-9.1.6.0
-```
-
-For [`rvm`](https://rvm.io) you can simply do:
-
-```
-$ rvm install jruby
-```
-
-You can also [download packages from the JRuby website](http://jruby.org/download) that
-you can unpack and run in place.
-
-## Building JRuby from source
-
-See [BUILDING](BUILDING.md) for information about prerequisites, how to compile JRuby from source
-and how to test it.
+A high performance implementation of the Ruby programming language. Built on the
+GraalVM by [Oracle Labs](https://labs.oracle.com).
 
 ## Authors
 
-Stefan Matthias Aust, Anders Bengtsson, Geert Bevin, Ola Bini,
- Piergiuliano Bossi, Johannes Brodwall, Rocky Burt, Paul Butcher,
- Benoit Cerrina, Wyss Clemens, David Corbin, Benoit Daloze, Thomas E Enebo,
- Robert Feldt, Chad Fowler, Russ Freeman, Joey Gibson, Kiel Hodges,
- Xandy Johnson, Kelvin Liu, Kevin Menard, Alan Moore, Akinori Musha,
- Charles Nutter, Takashi Okamoto, Jan Arne Petersen, Tobias Reif, David Saff,
- Subramanya Sastry, Chris Seaton, Nick Sieger, Ed Sinjiashvili, Vladimir Sizikov,
- Daiki Ueno, Matthias Veit, Jason Voegele, Sergey Yevtushenko, Robert Yokota,
-   and many gracious contributors from the community.
+The main authors of TruffleRuby in order of joining the project are:
 
-JRuby uses code generously shared by the creator of the Ruby language,
-Yukihiro Matsumoto <matz@netlab.co.jp>.
+* Chris Seaton
+* Benoit Daloze
+* Kevin Menard
+* Petr Chalupa
+* Brandon Fish
+* Duncan MacGregor
 
-Project Contact: Thomas E Enebo <tom.enebo@gmail.com>
+Additionally:
 
-## License
+* Thomas Würthinger
+* Matthias Grimmer
+* Josef Haider
+* Fabio Niephaus
+* Matthias Springer
+* Lucas Allan Amorim
+* Aditya Bhardwaj
 
-JRuby is licensed to you under three licenses - the EPL 1.0, GPL 2 and LGPL 2.1.
-Some components have other licenses and copyright. See the [COPYING](COPYING)
-file for more specifics.
+Collaborations with:
+
+* [Institut für Systemsoftware at Johannes Kepler University Linz](http://ssw.jku.at)
+
+And others.
+
+The best way to get in touch with us is to join us in `#jruby` on Freenode, but 
+you can also Tweet to @chrisgseaton, or email chris.seaton@oracle.com.
+
+## Current Status
+
+TruffleRuby is progressing fast but is currently probably not ready for you to
+try running your full Ruby application on. Support for critical C extensions
+such as OpenSSL and Nokogiri is missing.
+
+TruffleRuby is ready for experimentation and curious end-users to try on their
+gems and smaller applications.
+
+#### Common questions about the status of TruffleRuby
+
+##### Do you run Rails?
+
+We do run Rails, and pass the majority of the Rails test suite. But we are
+missing support for OpenSSL and Nokogiri make it not practical to run real Rails
+applications at the moment.
+
+##### What is happening with AOT, startup time, and the SubstrateVM
+
+Ahead-of-time compilation of the TruffleRuby interpreter, along with the Graal
+compiler, is our proposed solution to the problem of startup time of a language
+implemented in Java. The technology we are using to do this is called the
+SubstrateVM. We hope to make the SubstrateVM available publicly at some point
+soon.
+
+##### Running on a standard JVM
+
+It is possible to run today on an unmodified JDK 9 EA build, but at the moment
+this requires building Graal yourself and we don't recommend end-users try it.
+It will be supported when Java 9 is released.
+
+## Getting Started
+
+The best way to get started with TruffleRuby is via the GraalVM, which includes
+compatible versions of everything you need as well as TruffleRuby.
+
+http://www.oracle.com/technetwork/oracle-labs/program-languages/
+
+Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby.
+
+## User Documentation
+
+User documentation is in
+[`doc/user`](https://github.com/graalvm/truffleruby/tree/truffle-head/doc/user).
+
+## Contributor Documentation
+
+Contributor documentation is in [`doc/contributor`](https://github.com/graalvm/truffleruby/tree/truffle-head/doc/contributor).
+
+## Licence
+
+TruffleRuby is copyright (c) 2013-2017 Oracle and/or its
+affiliates, and is made available to you under the terms of three licenses:
+
+* Eclipse Public License version 1.0
+* GNU General Public License version 2
+* GNU Lesser General Public License version 2.1
+
+TruffleRuby contains code from other projects, including JRuby, Rubinius and
+MRI, under difference licenses. See `COPYING` for details and the full text of
+licenses.
+
+## Attribution
+
+TruffleRuby is a fork of [JRuby](https://github.com/jruby/jruby), combining it
+with code from the [Rubinius](https://github.com/rubinius/rubinius) project, and
+also containing code from the standard implementation of Ruby, MRI.
