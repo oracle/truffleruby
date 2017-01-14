@@ -58,6 +58,8 @@ implemented in Java. The technology we are using to do this is called the
 SubstrateVM. We hope to make the SubstrateVM available publicly at some point
 soon.
 
+https://youtu.be/FJY96_6Y3a4?t=10023
+
 #### Running on a standard JVM
 
 It is possible to run today on an unmodified JDK 9 EA build, but at the moment
