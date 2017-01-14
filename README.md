@@ -47,10 +47,10 @@ gems and smaller applications.
 ##### Do you run Rails?
 
 We do run Rails, and pass the majority of the Rails test suite. But we are
-missing support for OpenSSL and Nokogiri make it not practical to run real Rails
-applications at the moment.
+missing support for OpenSSL and Nokogiri which makes it not practical to run
+real Rails applications at the moment.
 
-##### What is happening with AOT, startup time, and the SubstrateVM
+##### What is happening with AOT, startup time, and the SubstrateVM?
 
 Ahead-of-time compilation of the TruffleRuby interpreter, along with the Graal
 compiler, is our proposed solution to the problem of startup time of a language
