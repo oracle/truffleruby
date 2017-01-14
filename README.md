@@ -73,12 +73,9 @@ http://www.oracle.com/technetwork/oracle-labs/program-languages/
 
 Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby.
 
-## User Documentation
+## Documentation
 
-User documentation is in
-[`doc/user`](https://github.com/graalvm/truffleruby/tree/truffle-head/doc/user).
-
-## Contributor Documentation
+User documentation is in [`doc/user`](https://github.com/graalvm/truffleruby/tree/truffle-head/doc/user).
 
 Contributor documentation is in [`doc/contributor`](https://github.com/graalvm/truffleruby/tree/truffle-head/doc/contributor).
 
