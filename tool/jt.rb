@@ -107,7 +107,8 @@ module Utilities
       options = ['--no-bootclasspath']
     elsif graal_home
       graal_home = File.expand_path(graal_home)
-      output = `mx -v -p #{graal_home} vm -version 2>&1`.lines.to_a
+      mx = find_mx(graal_home)
+      output = `#{mx} -v -p #{graal_home} vm -version 2>&1`.lines.to_a
       command_line = output.select { |line| line.include? '-version' }
       if command_line.size == 1
         command_line = command_line[0]
@@ -133,6 +134,15 @@ module Utilities
       raise 'set one of GRAALVM_BIN or GRAAL_HOME in order to use Graal'
     end
     [javacmd, vm_args.map { |arg| "-J#{arg}" } + options]
+  end
+
+  def self.find_mx(graal_home)
+    sibling_mx = File.expand_path("../mx/mx", graal_home)
+    if File.executable?(sibling_mx)
+      sibling_mx
+    else
+      "mx"
+    end
   end
 
   def self.find_graal_js
