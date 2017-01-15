@@ -407,7 +407,7 @@ public class RubyLexer {
 
     protected void setCompileOptionFlag(String name, ParserByteList value) {
         if (tokenSeen) {
-            warnings.warn(RubyWarnings.ID.ACCESSOR_MODULE_FUNCTION, "`" + name + "' is ignored after any tokens");
+            warnings.warn(RubyWarnings.ID.ACCESSOR_MODULE_FUNCTION, getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`" + name + "' is ignored after any tokens");
             return;
         }
 
