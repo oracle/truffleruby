@@ -1304,6 +1304,61 @@ module Commands
     end
   end
   
+  def install(name)
+    case name
+    when "graal-core"
+      install_graal_core
+    else
+      raise "Unknown how to install #{what}"
+    end
+  end
+
+  def install_graal_core
+    raise "Pre-built JDK only available on Linux currently" unless `uname`.include? 'Linux'
+
+    dir = "#{JRUBY_DIR}/graal"
+    Dir.mkdir(dir) unless File.directory?(dir)
+    Dir.chdir(dir) do
+      unless File.directory?("#{dir}/mx")
+        puts "Cloning mx"
+        raw_sh "git", "clone", "https://github.com/graalvm/mx.git"
+      end
+
+      unless File.directory?("#{dir}/graal-core")
+        puts "Cloning graal-core"
+        raw_sh "git", "clone", "https://github.com/graalvm/graal-core.git"
+      end
+
+      puts "Downloading JDK8 with JVMCI"
+      if Dir["#{dir}/jdk1.8.0*"].empty?
+        jvmci_releases = "https://github.com/dougxc/openjdk8-jvmci-builder/releases/download"
+        jvmci_version = "jvmci-0.23"
+        raw_sh "wget", "#{jvmci_releases}/#{jvmci_version}/jdk1.8.0_111-#{jvmci_version}-linux-amd64.tar.gz", "-O", "jvmci.tar.gz"
+        raw_sh *%w[tar xf jvmci.tar.gz]
+      end
+
+      java_home = Dir["#{dir}/jdk1.8.0*"].sort.first
+      java_home = File.expand_path(java_home)
+
+      puts "Testing JDK"
+      raw_sh "#{java_home}/bin/java", "-version"
+
+      puts "Building graal-core"
+      Dir.chdir("#{dir}/graal-core") do
+        File.write("mx.graal-core/env", "JAVA_HOME=#{java_home}\n")
+        raw_sh "../mx/mx", "build"
+      end
+
+      puts "Running with Graal"
+      env = { "GRAAL_HOME" => "#{dir}/graal-core" }
+      sh env, "tool/jt.rb", "ruby", "--graal", "-e", "p Truffle::Graal.graal?"
+
+      puts
+      puts "To run with graal-core, run:"
+      puts "GRAAL_HOME=#{dir}/graal-core tool/jt.rb ruby --graal ..."
+    end
+  end
+
   def next(*args)
     puts `cat spec/truffle/tags/core/**/**.txt | grep 'fails:'`.lines.sample
   end
