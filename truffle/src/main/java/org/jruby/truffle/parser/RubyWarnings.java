@@ -153,7 +153,9 @@ public class RubyWarnings implements WarnCallback {
 
         StringBuilder buffer = new StringBuilder(100);
 
-        buffer.append(fileName).append(' ');
+        if (fileName != null) {
+            buffer.append(fileName).append(' ');
+        }
         buffer.append("warning: ").append(message).append('\n');
         DebugHelpers.eval(
                 runtime,
@@ -163,17 +165,7 @@ public class RubyWarnings implements WarnCallback {
     }
 
     public void warn(ID id, String message) {
-        if (!runtime.warningsEnabled()) {
-            return;
-        }
-
-        StringBuilder buffer = new StringBuilder(100);
-        buffer.append("warning: ").append(message).append('\n');
-        DebugHelpers.eval(
-                runtime,
-                "$stderr.write Truffle::Interop.from_java_string(message)",
-                "message",
-                buffer.toString());
+        warn(id, null, message);
     }
 
     public void warnOnce(ID id, String message) {
