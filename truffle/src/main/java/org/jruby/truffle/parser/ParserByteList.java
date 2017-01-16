@@ -94,14 +94,6 @@ public class ParserByteList {
         return rope;
     }
 
-    public int getEncodingLength(Encoding encoding) {
-        if ((encoding == rope.getEncoding() && rope.isSingleByteOptimizable()) || encoding.isSingleByte()) {
-            return 1;
-        }
-
-        return StringSupport.encFastMBCLen(rope.getBytes(), 0, rope.byteLength(), encoding);
-    }
-
     private ParserByteListNode getParseByteListNode() {
         if (parserByteListNode == null) {
             parserByteListNode = new ParserByteListNode();

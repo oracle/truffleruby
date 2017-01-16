@@ -56,7 +56,9 @@ import org.jruby.truffle.Layouts;
 import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.core.regexp.ClassicRegexp;
 import org.jruby.truffle.core.rope.CodeRange;
+import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeOperations;
+import org.jruby.truffle.core.string.StringSupport;
 import org.jruby.truffle.language.SourceIndexLength;
 import org.jruby.truffle.language.control.RaiseException;
 import org.jruby.truffle.parser.ParserByteList;
@@ -2734,7 +2736,15 @@ public class RubyLexer {
         int start = lex_p - 1;
         int end = lex_pend;
         int length = end - start;
-        return lexb.makeShared(start, length).getEncodingLength(current_enc);
+        return getEncodingLength(lexb.makeShared(start, length).toRope(), current_enc);
+    }
+
+    public int getEncodingLength(Rope rope, Encoding encoding) {
+        if ((encoding == rope.getEncoding() && rope.isSingleByteOptimizable()) || encoding.isSingleByte()) {
+            return 1;
+        }
+
+        return StringSupport.encFastMBCLen(rope.getBytes(), 0, rope.byteLength(), encoding);
     }
 
     public void pushback(int c) {
