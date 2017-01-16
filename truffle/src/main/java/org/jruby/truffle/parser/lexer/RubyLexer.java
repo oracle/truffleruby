@@ -2091,7 +2091,7 @@ public class RubyLexer {
                     } else if (nondigit != '\0') {
                         compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
                     }
-                    return getIntegerToken(RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, numberBuffer.toRope()), 16, numberLiteralSuffix(SUFFIX_ALL));
+                    return getIntegerToken(numberBuffer.toString(), 16, numberLiteralSuffix(SUFFIX_ALL));
                 case 'b' :
                 case 'B' : // binary
                     c = nextc();
@@ -2115,7 +2115,7 @@ public class RubyLexer {
                     } else if (nondigit != '\0') {
                         compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
                     }
-                    return getIntegerToken(RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, numberBuffer.toRope()), 2, numberLiteralSuffix(SUFFIX_ALL));
+                    return getIntegerToken(numberBuffer.toString(), 2, numberLiteralSuffix(SUFFIX_ALL));
                 case 'd' :
                 case 'D' : // decimal
                     c = nextc();
@@ -2139,7 +2139,7 @@ public class RubyLexer {
                     } else if (nondigit != '\0') {
                         compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
                     }
-                    return getIntegerToken(RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, numberBuffer.toRope()), 10, numberLiteralSuffix(SUFFIX_ALL));
+                    return getIntegerToken(numberBuffer.toString(), 10, numberLiteralSuffix(SUFFIX_ALL));
                 case 'o':
                 case 'O':
                     c = nextc();
@@ -2162,7 +2162,7 @@ public class RubyLexer {
 
                         if (nondigit != '\0') compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
 
-                        return getIntegerToken(RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, numberBuffer.toRope()), 8, numberLiteralSuffix(SUFFIX_ALL));
+                        return getIntegerToken(numberBuffer.toString(), 8, numberLiteralSuffix(SUFFIX_ALL));
                     }
                 case '8' :
                 case '9' :
@@ -2175,7 +2175,7 @@ public class RubyLexer {
                 default :
                     pushback(c);
                     numberBuffer.append('0');
-                    return getIntegerToken(RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, numberBuffer.toRope()), 10, numberLiteralSuffix(SUFFIX_ALL));
+                    return getIntegerToken(numberBuffer.toString(), 10, numberLiteralSuffix(SUFFIX_ALL));
             }
         }
 
@@ -2203,7 +2203,7 @@ public class RubyLexer {
                         compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
                     } else if (seen_point || seen_e) {
                         pushback(c);
-                        return getNumberToken(RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, numberBuffer.toRope()), seen_e, seen_point, nondigit);
+                        return getNumberToken(numberBuffer.toString(), seen_e, seen_point, nondigit);
                     } else {
                     	int c2;
                         if (!Character.isDigit(c2 = nextc())) {
@@ -2213,7 +2213,7 @@ public class RubyLexer {
                             		// Enebo:  c can never be antrhign but '.'
                             		// Why did I put this here?
                             } else {
-                                return getIntegerToken(RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, numberBuffer.toRope()), 10, numberLiteralSuffix(SUFFIX_ALL));
+                                return getIntegerToken(numberBuffer.toString(), 10, numberLiteralSuffix(SUFFIX_ALL));
                             }
                         } else {
                             numberBuffer.append('.');
@@ -2229,7 +2229,7 @@ public class RubyLexer {
                         compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
                     } else if (seen_e) {
                         pushback(c);
-                        return getNumberToken(RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, numberBuffer.toRope()), seen_e, seen_point, nondigit);
+                        return getNumberToken(numberBuffer.toString(), seen_e, seen_point, nondigit);
                     } else {
                         numberBuffer.append((char) c);
                         seen_e = true;
@@ -2249,7 +2249,7 @@ public class RubyLexer {
                     break;
                 default :
                     pushback(c);
-                    return getNumberToken(RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, numberBuffer.toRope()), seen_e, seen_point, nondigit);
+                    return getNumberToken(numberBuffer.toString(), seen_e, seen_point, nondigit);
             }
         }
     }

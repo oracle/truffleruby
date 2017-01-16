@@ -15,6 +15,9 @@ import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeOperations;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 
@@ -65,6 +68,14 @@ public class ParserByteListBuilder {
 
     public Rope toRope() {
         return RopeOperations.create(getBytes(), encoding, CR_UNKNOWN);
+    }
+
+    public String toString() {
+        return toString(StandardCharsets.ISO_8859_1);
+    }
+
+    private String toString(Charset charset) {
+        return charset.decode(ByteBuffer.wrap(getBytes())).toString();
     }
 
 }
