@@ -84,8 +84,4 @@ public class ParserByteListBuilder {
         return RopeOperations.create(Arrays.copyOfRange(Arrays.copyOf(bytes, length), 0, 0 + length), encoding, CR_UNKNOWN);
     }
 
-    public void removeOffset(int offset) {
-        System.arraycopy(bytes, offset, bytes, 0, length - offset);
-        length -= offset;
-    }
 }

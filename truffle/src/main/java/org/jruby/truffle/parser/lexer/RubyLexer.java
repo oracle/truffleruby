@@ -327,10 +327,7 @@ public class RubyLexer {
 
         if (root instanceof StrParseNode) {
             StrParseNode str = (StrParseNode) root;
-            ParserByteListBuilder builder = new ParserByteListBuilder();
-            builder.append(str.getValue());
-            dedent_string(builder, indent);
-            str.setValue(builder.toRope());
+            str.setValue(dedent_string(str.getValue(), indent));
         } else if (root instanceof ListParseNode) {
             ListParseNode list = (ListParseNode) root;
             int length = list.size();
@@ -342,10 +339,8 @@ public class RubyLexer {
                 currentLine = child.getPosition().toSourceSection(src.getSource()).getStartLine() - 1;                 // New line
 
                 if (child instanceof StrParseNode) {
-                    ParserByteListBuilder builder = new ParserByteListBuilder();
-                    builder.append(((StrParseNode) child).getValue());
-                    dedent_string(builder, indent);
-                    ((StrParseNode) child).setValue(builder.toRope());
+                    final StrParseNode childStrNode = (StrParseNode) child;
+                    childStrNode.setValue(dedent_string(childStrNode.getValue(), indent));
                 }
             }
         }
@@ -2529,15 +2524,14 @@ public class RubyLexer {
         return createTokenString(tokp);
     }
 
-    protected int dedent_string(ParserByteListBuilder string, int width) {
-        long len = string.getLength();
+    protected Rope dedent_string(Rope string, int width) {
+        int len = string.byteLength();
         int i, col = 0;
-        byte[] str = string.getUnsafeBytes();
 
         for (i = 0; i < len && col < width; i++) {
-            if (str[i] == ' ') {
+            if (string.get(i) == ' ') {
                 col++;
-            } else if (str[i] == '\t') {
+            } else if (string.get(i) == '\t') {
                 int n = TAB_WIDTH * (col / TAB_WIDTH + 1);
                 if (n > width) break;
                 col = n;
@@ -2546,8 +2540,7 @@ public class RubyLexer {
             }
         }
 
-        string.removeOffset(i);
-        return i;
+        return parserRopeOperations.makeShared(string, i, len - i);
     }
 
     protected void flush() {
