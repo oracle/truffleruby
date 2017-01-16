@@ -7,38 +7,29 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.parser;
+package org.jruby.truffle.collections;
 
-import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
 import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeOperations;
 
-import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
-public class RopeBuilder {
+public class ByteArrayBuilder {
 
-    private ByteArrayBuilder bytes = new ByteArrayBuilder();
-    private Encoding encoding = ASCIIEncoding.INSTANCE;
+    private ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
     public int getLength() {
-        return bytes.getLength();
-    }
-
-    public Encoding getEncoding() {
-        return encoding;
-    }
-
-    public void setEncoding(Encoding encoding) {
-        this.encoding = encoding;
+        return bytes.size();
     }
 
     public void append(int b) {
-        bytes.append(b);
+        bytes.write(b);
     }
 
     public void append(byte b) {
-        bytes.append(b);
+        bytes.write(b);
     }
 
     public void append(byte[] appendBytes) {
@@ -50,19 +41,23 @@ public class RopeBuilder {
     }
 
     public void append(byte[] appendBytes, int appendStart, int appendLength) {
-        bytes.append(appendBytes, appendStart, appendLength);
+        bytes.write(appendBytes, appendStart, appendLength);
     }
 
     public byte[] getBytes() {
-        return bytes.getBytes();
+        return bytes.toByteArray();
     }
 
     public void clear() {
-        bytes = new ByteArrayBuilder();
+        bytes = new ByteArrayOutputStream();
     }
 
-    public Rope toRope() {
-        return RopeOperations.create(getBytes(), encoding, CR_UNKNOWN);
+    public String toString() {
+        return toString(StandardCharsets.ISO_8859_1);
+    }
+
+    private String toString(Charset charset) {
+        return charset.decode(ByteBuffer.wrap(getBytes())).toString();
     }
 
 }
