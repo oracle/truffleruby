@@ -14,20 +14,15 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeOperations;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-
 import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 
-public class ParserByteListBuilder {
+public class RopeBuilder {
 
-    private ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    private ByteArrayBuilder bytes = new ByteArrayBuilder();
     private Encoding encoding = ASCIIEncoding.INSTANCE;
 
     public int getLength() {
-        return bytes.size();
+        return bytes.getLength();
     }
 
     public Encoding getEncoding() {
@@ -39,11 +34,11 @@ public class ParserByteListBuilder {
     }
 
     public void append(int b) {
-        bytes.write(b);
+        bytes.append(b);
     }
 
     public void append(byte b) {
-        bytes.write(b);
+        bytes.append(b);
     }
 
     public void append(byte[] appendBytes) {
@@ -55,27 +50,19 @@ public class ParserByteListBuilder {
     }
 
     public void append(byte[] appendBytes, int appendStart, int appendLength) {
-        bytes.write(appendBytes, appendStart, appendLength);
+        bytes.append(appendBytes, appendStart, appendLength);
     }
 
     public byte[] getBytes() {
-        return bytes.toByteArray();
+        return bytes.getBytes();
     }
 
     public void clear() {
-        bytes = new ByteArrayOutputStream();
+        bytes = new ByteArrayBuilder();
     }
 
     public Rope toRope() {
         return RopeOperations.create(getBytes(), encoding, CR_UNKNOWN);
-    }
-
-    public String toString() {
-        return toString(StandardCharsets.ISO_8859_1);
-    }
-
-    private String toString(Charset charset) {
-        return charset.decode(ByteBuffer.wrap(getBytes())).toString();
     }
 
 }

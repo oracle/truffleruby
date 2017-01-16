@@ -32,7 +32,7 @@ package org.jruby.truffle.parser.lexer;
 import org.jcodings.Encoding;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.parser.ParserByteListBuilder;
+import org.jruby.truffle.parser.RopeBuilder;
 import org.jruby.truffle.parser.parser.ParserRopeOperations;
 import org.jruby.truffle.parser.parser.Tokens;
 
@@ -99,7 +99,7 @@ public class HeredocTerm extends StrTerm {
 
     @Override
     public int parseString(RubyLexer lexer) throws java.io.IOException {
-        ParserByteListBuilder str = null;
+        RopeBuilder str = null;
         Rope eos = nd_lit;
         int len = nd_lit.byteLength() - 1;
         boolean indent = (flags & STR_FUNC_INDENT) != 0;
@@ -141,7 +141,7 @@ public class HeredocTerm extends StrTerm {
                 if (str != null) {
                     str.append(parserRopeOperations.makeShared(lbuf, p, pend - p));
                 } else {
-                    final ParserByteListBuilder builder = new ParserByteListBuilder();
+                    final RopeBuilder builder = new RopeBuilder();
                     builder.append(parserRopeOperations.makeShared(lbuf, p, pend - p));
                     str = builder;
                 }
@@ -157,7 +157,7 @@ public class HeredocTerm extends StrTerm {
                 if (lexer.nextc() == -1) return error(lexer, len, null, eos);
             } while (!lexer.whole_match_p(eos, indent));
         } else {
-            ParserByteListBuilder tok = new ParserByteListBuilder();
+            RopeBuilder tok = new RopeBuilder();
             tok.setEncoding(lexer.getEncoding());
             if (c == '#') {
                 switch (c = lexer.nextc()) {

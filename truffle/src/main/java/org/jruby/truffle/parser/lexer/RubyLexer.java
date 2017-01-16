@@ -61,7 +61,8 @@ import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.core.string.StringSupport;
 import org.jruby.truffle.language.SourceIndexLength;
 import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.parser.ParserByteListBuilder;
+import org.jruby.truffle.parser.ByteArrayBuilder;
+import org.jruby.truffle.parser.RopeBuilder;
 import org.jruby.truffle.parser.RubyWarnings;
 import org.jruby.truffle.parser.SafeDoubleParser;
 import org.jruby.truffle.parser.ast.BackRefParseNode;
@@ -517,7 +518,7 @@ public class RubyLexer {
         return considerComplex(Tokens.tINTEGER, suffix);
     }
 
-    public StrParseNode createStr(ParserByteListBuilder buffer, int flags) {
+    public StrParseNode createStr(RopeBuilder buffer, int flags) {
         return createStr(buffer.toRope(), flags);
     }
 
@@ -1884,7 +1885,7 @@ public class RubyLexer {
         } else if (c == '\\') {
             if (peek('u')) {
                 nextc(); // Eat 'u'
-                ParserByteListBuilder oneCharBL = new ParserByteListBuilder();
+                RopeBuilder oneCharBL = new RopeBuilder();
                 oneCharBL.setEncoding(getEncoding());
 
                 c = readUTFEscape(oneCharBL, false, false);
@@ -1906,7 +1907,7 @@ public class RubyLexer {
             newtok(true);
         }
 
-        ParserByteListBuilder oneCharBL = new ParserByteListBuilder();
+        RopeBuilder oneCharBL = new RopeBuilder();
         oneCharBL.append(c);
         yaccValue = new StrParseNode(getPosition(), oneCharBL.toRope());
         setState(EXPR_END);
@@ -2040,7 +2041,7 @@ public class RubyLexer {
         return Tokens.tTILDE;
     }
 
-    private ParserByteListBuilder numberBuffer = new ParserByteListBuilder(); // ascii is good enough.
+    private ByteArrayBuilder numberBuffer = new ByteArrayBuilder(); // ascii is good enough.
     /**
      *  Parse a number from the input stream.
      *
@@ -2267,7 +2268,7 @@ public class RubyLexer {
 
     // Note: parser_tokadd_utf8 variant just for regexp literal parsing.  This variant is to be
     // called when string_literal and regexp_literal.
-    public void readUTFEscapeRegexpLiteral(ParserByteListBuilder buffer) throws IOException {
+    public void readUTFEscapeRegexpLiteral(RopeBuilder buffer) throws IOException {
         buffer.append('\\');
         buffer.append('u');
 
@@ -2289,7 +2290,7 @@ public class RubyLexer {
     }
 
     // MRI: parser_tokadd_utf8 sans regexp literal parsing
-    public int readUTFEscape(ParserByteListBuilder buffer, boolean stringLiteral, boolean symbolLiteral) throws IOException {
+    public int readUTFEscape(RopeBuilder buffer, boolean stringLiteral, boolean symbolLiteral) throws IOException {
         int codepoint;
         int c;
 
@@ -2315,7 +2316,7 @@ public class RubyLexer {
         return codepoint;
     }
     
-    private void readUTF8EscapeIntoBuffer(int codepoint, ParserByteListBuilder buffer, boolean stringLiteral) throws IOException {
+    private void readUTF8EscapeIntoBuffer(int codepoint, RopeBuilder buffer, boolean stringLiteral) throws IOException {
         if (codepoint >= 0x80) {
             buffer.setEncoding(UTF8_ENCODING);
             if (stringLiteral) tokaddmbc(codepoint, buffer);
@@ -2390,7 +2391,7 @@ public class RubyLexer {
      * exception will be thrown.  This will also return the codepoint as a value so codepoint
      * ranges can be checked.
      */
-    private char scanHexLiteral(ParserByteListBuilder buffer, int count, boolean strict, String errorMessage)
+    private char scanHexLiteral(RopeBuilder buffer, int count, boolean strict, String errorMessage)
             throws IOException {
         int i = 0;
         char hexValue = '\0';
@@ -2894,11 +2895,11 @@ public class RubyLexer {
         return parserRopeOperations.makeShared(one, 0, length).equals(parserRopeOperations.makeShared(two, 0, length));
     }
 
-    public void tokAdd(int first_byte, ParserByteListBuilder buffer) {
+    public void tokAdd(int first_byte, RopeBuilder buffer) {
         buffer.append((byte) first_byte);
     }
 
-    public void tokCopy(int length, ParserByteListBuilder buffer) {
+    public void tokCopy(int length, RopeBuilder buffer) {
         buffer.append(parserRopeOperations.makeShared(lexb, lex_p - length, length));
     }
 
@@ -2938,7 +2939,7 @@ public class RubyLexer {
     }
 
     // mri: parser_tokadd_mbchar
-    public boolean tokadd_mbchar(int first_byte, ParserByteListBuilder buffer) {
+    public boolean tokadd_mbchar(int first_byte, RopeBuilder buffer) {
         int length = precise_mbclen();
 
         if (length <= 0) compile_error("invalid multibyte char (" + getEncoding() + ")");
@@ -2955,7 +2956,7 @@ public class RubyLexer {
      *  the bytelists encoding and the first parameter is a full codepoint and not the first byte
      *  of a mbc sequence.
      */
-    public void tokaddmbc(int codepoint, ParserByteListBuilder buffer) {
+    public void tokaddmbc(int codepoint, RopeBuilder buffer) {
         Encoding encoding = buffer.getEncoding();
         int length = encoding.codeToMbcLength(codepoint);
         final byte[] bytes = Arrays.copyOf(buffer.getBytes(), buffer.getLength() + length);

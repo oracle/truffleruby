@@ -35,7 +35,7 @@ package org.jruby.truffle.parser.ast;
 import org.jruby.truffle.core.rope.CodeRange;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ParserByteListBuilder;
+import org.jruby.truffle.parser.RopeBuilder;
 import org.jruby.truffle.parser.ast.types.ILiteralNode;
 import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
 
@@ -66,7 +66,7 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
         Rope headBL = head.getValue();
         Rope tailBL = tail.getValue();
 
-        ParserByteListBuilder myValue = new ParserByteListBuilder();
+        RopeBuilder myValue = new RopeBuilder();
         myValue.setEncoding(headBL.getEncoding());
         myValue.append(headBL);
         myValue.append(tailBL);

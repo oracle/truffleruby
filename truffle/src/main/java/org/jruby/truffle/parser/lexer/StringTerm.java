@@ -32,7 +32,7 @@ import org.jruby.truffle.core.regexp.RegexpOptions;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.string.KCode;
-import org.jruby.truffle.parser.ParserByteListBuilder;
+import org.jruby.truffle.parser.RopeBuilder;
 import org.jruby.truffle.parser.ast.RegexpParseNode;
 import org.jruby.truffle.parser.parser.Tokens;
 
@@ -72,8 +72,8 @@ public class StringTerm extends StrTerm {
         return flags;
     }
 
-    protected ParserByteListBuilder createByteList(RubyLexer lexer) {
-        ParserByteListBuilder bytelist = new ParserByteListBuilder();
+    protected RopeBuilder createByteList(RubyLexer lexer) {
+        RopeBuilder bytelist = new RopeBuilder();
         bytelist.setEncoding(lexer.getEncoding());
         return bytelist;
     }
@@ -194,7 +194,7 @@ public class StringTerm extends StrTerm {
             return ' ';
         }
 
-        ParserByteListBuilder buffer = createByteList(lexer);
+        RopeBuilder buffer = createByteList(lexer);
         lexer.newtok(true);
         if ((flags & STR_FUNC_EXPAND) != 0 && c == '#') {
             int token = parsePeekVariableName(lexer);
@@ -268,7 +268,7 @@ public class StringTerm extends StrTerm {
     }
 
     // mri: parser_tokadd_string
-    public int parseStringIntoBuffer(RubyLexer lexer, ParserByteListBuilder buffer, Encoding enc[]) throws IOException {
+    public int parseStringIntoBuffer(RubyLexer lexer, RopeBuilder buffer, Encoding enc[]) throws IOException {
         boolean qwords = (flags & STR_FUNC_QWORDS) != 0;
         boolean expand = (flags & STR_FUNC_EXPAND) != 0;
         boolean escape = (flags & STR_FUNC_ESCAPE) != 0;
@@ -422,7 +422,7 @@ public class StringTerm extends StrTerm {
 
     // Was a goto in original ruby lexer
     @SuppressWarnings("fallthrough")
-    private void escaped(RubyLexer lexer, ParserByteListBuilder buffer) throws IOException {
+    private void escaped(RubyLexer lexer, RopeBuilder buffer) throws IOException {
         int c;
 
         switch (c = lexer.nextc()) {
@@ -437,7 +437,7 @@ public class StringTerm extends StrTerm {
     }
 
     @SuppressWarnings("fallthrough")
-    private void parseEscapeIntoBuffer(RubyLexer lexer, ParserByteListBuilder buffer) throws IOException {
+    private void parseEscapeIntoBuffer(RubyLexer lexer, RopeBuilder buffer) throws IOException {
         int c;
 
         switch (c = lexer.nextc()) {
