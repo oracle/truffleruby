@@ -10,7 +10,7 @@ stubs = {
 
       module ActiveSupport
         module Testing
-          module Isolation      
+          module Isolation
 
             def run
               with_info_handler do
