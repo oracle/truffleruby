@@ -56,7 +56,7 @@ public abstract class WriteUUStringNode extends FormatNode {
         // TODO CS 30-Mar-15 should write our own optimizable version of UU
 
         final ByteList output = new ByteList();
-        EncodeUM.encodeUM(null, new ByteList(bytes), length, ignoreStar, 'u', output);
+        EncodeUM.encodeUM(null, ByteList.createByteList(bytes), length, ignoreStar, 'u', output);
         return output.bytes();
     }
 

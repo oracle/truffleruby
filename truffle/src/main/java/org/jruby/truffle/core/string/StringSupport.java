@@ -644,7 +644,7 @@ public final class StringSupport {
         int carryLen = 1;
 
         Encoding enc = original.getEncoding();
-        ByteList valueCopy = new ByteList(original.getBytes(), enc);
+        ByteList valueCopy = ByteList.createByteList(original.getBytes(), enc);
         int p = 0;
         int end = p + valueCopy.length();
         int s = end;
@@ -899,7 +899,7 @@ public final class StringSupport {
     }
 
     public static ByteList addByteLists(ByteList value1, ByteList value2) {
-        ByteList result = new ByteList(value1.length() + value2.length());
+        ByteList result = ByteList.createByteList(value1.length() + value2.length());
         result.realSize(value1.length() + value2.length());
         System.arraycopy(value1.getUnsafeBytes(), 0, result.getUnsafeBytes(), 0, value1.length());
         System.arraycopy(value2.getUnsafeBytes(), 0, result.getUnsafeBytes(), value1.length(), value2.length());

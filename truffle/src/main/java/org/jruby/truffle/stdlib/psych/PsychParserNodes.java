@@ -456,7 +456,7 @@ public abstract class PsychParserNodes {
             }
 
             int len = str.byteLength();
-            ByteList newStr = new ByteList(len);
+            ByteList newStr = ByteList.createByteList(len);
             int olen = len;
 
             EConv ec = econvOpenOpts(context, fromEncoding, toEncoding, ecflags, ecopts);

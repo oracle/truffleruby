@@ -217,7 +217,7 @@ public abstract class StringNodes {
                 // Taken from org.jruby.util.StringSupport.addByteLists.
 
                 final int newLength = leftByteList.length() + right.byteLength();
-                concatByteList = new ByteList(newLength);
+                concatByteList = ByteList.createByteList(newLength);
                 concatByteList.realSize(newLength);
                 System.arraycopy(leftByteList.getUnsafeBytes(), 0, concatByteList.getUnsafeBytes(), 0, leftByteList.length());
                 System.arraycopy(right.getBytes(), 0, concatByteList.getUnsafeBytes(), leftByteList.length(), right.byteLength());
@@ -814,7 +814,7 @@ public abstract class StringNodes {
                 taintResultNode = insert(new TaintResultNode());
             }
 
-            final DynamicObject ret = createString(RopeOperations.ropeFromByteList(new ByteList(cryptedString, 0, cryptedString.length - 1, ASCIIEncoding.INSTANCE)));
+            final DynamicObject ret = createString(RopeOperations.ropeFromByteList(ByteList.createByteList(cryptedString, 0, cryptedString.length - 1, ASCIIEncoding.INSTANCE)));
 
             taintResultNode.maybeTaint(string, ret);
             taintResultNode.maybeTaint(salt, ret);
@@ -1644,7 +1644,7 @@ public abstract class StringNodes {
                 len += ".force_encoding(\"".length() + enc.getName().length + "\")".length();
             }
 
-            ByteList outBytes = new ByteList(len);
+            ByteList outBytes = ByteList.createByteList(len);
             byte out[] = outBytes.getUnsafeBytes();
             int q = 0;
             p = 0;
@@ -3963,7 +3963,7 @@ public abstract class StringNodes {
             final Rope insert = rope(other);
             final int rightSideStartingIndex = spliceByteIndex + byteCountToReplace;
 
-            final ByteList byteList = new ByteList(source.byteLength() + insert.byteLength() - byteCountToReplace);
+            final ByteList byteList = ByteList.createByteList(source.byteLength() + insert.byteLength() - byteCountToReplace);
 
             byteList.append(source.getByteList(), 0, spliceByteIndex);
             byteList.append(insert.getBytes());
@@ -4262,7 +4262,7 @@ public abstract class StringNodes {
 
             final DynamicObject ret = allocateNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(string),
-                    new RopeBuffer(new ByteList(buffer.getByteList(), beg, len), buffer.getCodeRange(), buffer.isSingleByteOptimizable(), len));
+                    new RopeBuffer(ByteList.createByteList(buffer.getByteList(), beg, len), buffer.getCodeRange(), buffer.isSingleByteOptimizable(), len));
 
             taintResultNode.maybeTaint(string, ret);
 
@@ -4288,7 +4288,7 @@ public abstract class StringNodes {
         public DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count) {
             // Data is copied here - can we do something COW?
             final ByteList byteList = Layouts.BYTE_ARRAY.getBytes(bytes);
-            return createString(new ByteList(byteList, start, count));
+            return createString(ByteList.createByteList(byteList, start, count));
         }
 
     }

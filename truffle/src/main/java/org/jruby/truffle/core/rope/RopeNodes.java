@@ -690,7 +690,7 @@ public abstract class RopeNodes {
         public Rope multiplyBuffer(RopeBuffer base, int times) {
             final ByteList inputBytes = base.getByteList();
             int len = inputBytes.length() * times;
-            final ByteList outputBytes = new ByteList(len);
+            final ByteList outputBytes = ByteList.createByteList(len);
             outputBytes.realSize(len);
 
             int n = inputBytes.length();

@@ -48,89 +48,45 @@ public class ByteList {
     private int realSize;
     private Encoding encoding = ASCIIEncoding.INSTANCE;
 
-    /**
-     * Creates a new instance of ByteList
-     */
     public ByteList() {
     }
 
-    /**
-     * Creates a new instance of Bytelist with a pre-allocated size.  If you know the size ahead
-     * of time this saves additional array allocations to grow the bytelist to the proper size.
-     *
-     * @param size to preallocate the bytelist to
-     */
-    public ByteList(int size) {
-        ensure(size);
+    public static ByteList createByteList(int size) {
+        final ByteList byteList = new ByteList();
+        byteList.ensure(size);
+        return byteList;
     }
 
-    /**
-     * Create a new instance of ByteList with the bytes supplied using the specified encoding.
-     *
-     * Important: bytes is used as the initial backing store for the bytelist.  Over time as the
-     * bytelist is mutated this backing store may be replaced with a new one to hold the additional
-     * bytes.  If you pass in bytes and then modify the contents of the original bytes, then those
-     * changes will get reflected.
-     *
-     * @param bytes to use
-     * @param encoding
-     */
-    // TODO: Deprecate and replace with a static method which implies the caveats of this constructor.
-    public ByteList(byte[] bytes, Encoding encoding) {
-        append(bytes);
-        setEncoding(encoding);
+    public static ByteList createByteList(byte[] bytes, Encoding encoding) {
+        final ByteList byteList = new ByteList();
+        byteList.append(bytes);
+        byteList.setEncoding(encoding);
+        return byteList;
     }
 
-    /**
-     * Create a new instance of ByteList with the contents of wrap.  This constructor will make
-     * a copy of bytes passed
-     *
-     * @param wrap the initial bytes for this ByteList
-     */
-    public ByteList(byte[] wrap) {
-        append(wrap);
+    public static ByteList createByteList(byte[] wrap) {
+        final ByteList byteList = new ByteList();
+        byteList.append(wrap);
+        return byteList;
     }
 
-    /**
-     * Create a new instance of ByteList using wrap as a backing store where index is the first
-     * index in the byte array where the data starts and len indicates how long the data portion
-     * of the bytelist is.  wrap will be array copied in this constructor.
-     *
-     * @param wrap the bytes to use
-     * @param index where in the bytes the data starts
-     * @param len how long the data is in the wrap array
-     */
-    public ByteList(byte[] wrap, int index, int len) {
-        append(wrap, index, len);
+    public static ByteList createByteList(byte[] wrap, int index, int len) {
+        final ByteList byteList = new ByteList();
+        byteList.append(wrap, index, len);
+        return byteList;
     }
 
-    /**
-     * Create a new instance of ByteList using wrap as a backing store where index is the first
-     * index in the byte array where the data starts and len indicates how long the data portion
-     * of the bytelist is.  wrap will be array copied if copy is true OR if index != 0.
-     *
-     * @param wrap the bytes to use
-     * @param index where in the bytes the data starts
-     * @param len how long the data is in the wrap array
-     * @param copy if true array copy wrap. otherwise use as backing store
-     */
-    public ByteList(byte[] wrap, int index, int len, Encoding encoding) {
-        append(wrap, index, len);
-        setEncoding(encoding);
+    public static ByteList createByteList(byte[] wrap, int index, int len, Encoding encoding) {
+        final ByteList byteList = new ByteList();
+        byteList.append(wrap, index, len);
+        byteList.setEncoding(encoding);
+        return byteList;
     }
 
-    /**
-     * Create a new instance of ByteList using wrap as a backing store where index is the first
-     * index in the byte array where the data starts and len indicates how long the data portion
-     * of the bytelist is.  wrap's byte array will be array copied for initial backing store.
-     *
-     * @param wrap the bytes to use
-     * @param index where in the bytes the data starts
-     * @param len how long the data is in the wrap array
-     */
-    public ByteList(ByteList wrap, int index, int len) {
-        append(wrap.getUnsafeBytes(), index, len);
-        setEncoding(wrap.getEncoding());
+    public static ByteList createByteList(ByteList wrap, int index, int len) {
+        final ByteList byteList = new ByteList();
+        byteList.append(wrap, index, len);
+        return byteList;
     }
 
     /**
@@ -162,7 +118,7 @@ public class ByteList {
      * (namely to COW with having <code>length - realSize</code> bytes ahead)
      */
     public ByteList dup(int length) {
-        ByteList dup = new ByteList(length);
+        ByteList dup = createByteList(length);
 
         dup.append(this.bytes, 0, this.realSize);
         dup.encoding = encoding;

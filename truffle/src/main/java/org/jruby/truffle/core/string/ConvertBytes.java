@@ -23,7 +23,6 @@ import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.language.control.RaiseException;
 
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class ConvertBytes {
@@ -557,9 +556,9 @@ public class ConvertBytes {
     }
 
     public static final ByteList longToByteList(long i, int radix, byte[] digitmap) {
-        if (i == 0) return new ByteList(ZERO_BYTES);
+        if (i == 0) return ByteList.createByteList(ZERO_BYTES);
 
-        if (i == Long.MIN_VALUE) return new ByteList(MIN_VALUE_BYTES[radix]);
+        if (i == Long.MIN_VALUE) return ByteList.createByteList(MIN_VALUE_BYTES[radix]);
 
         boolean neg = false;
         if (i < 0) {
@@ -577,7 +576,7 @@ public class ConvertBytes {
         } while ((i /= radix) > 0);
         if (neg) buf[--pos] = (byte)'-';
 
-        return new ByteList(buf, pos, len - pos);
+        return ByteList.createByteList(buf, pos, len - pos);
     }
 
     private static final ByteList intToUnsignedByteList(int i, int shift, byte[] digitmap) {
@@ -589,7 +588,7 @@ public class ConvertBytes {
             buf[--charPos] = digitmap[(int)(i & mask)];
             i >>>= shift;
         } while (i != 0);
-        return new ByteList(buf, charPos, (32 - charPos));
+        return ByteList.createByteList(buf, charPos, (32 - charPos));
     }
 
     private static final ByteList longToUnsignedByteList(long i, int shift, byte[] digitmap) {
@@ -601,7 +600,7 @@ public class ConvertBytes {
             buf[--charPos] = digitmap[(int)(i & mask)];
             i >>>= shift;
         } while (i != 0);
-        return new ByteList(buf, charPos, (64 - charPos));
+        return ByteList.createByteList(buf, charPos, (64 - charPos));
     }
 
     public static final byte[] twosComplementToBinaryBytes(byte[] in) {

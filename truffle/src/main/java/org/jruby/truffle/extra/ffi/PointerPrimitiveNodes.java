@@ -129,7 +129,7 @@ public abstract class PointerPrimitiveNodes {
         public DynamicObject readString(DynamicObject pointer, int length) {
             final byte[] bytes = new byte[length];
             Layouts.POINTER.getPointer(pointer).get(0, bytes, 0, length);
-            return createString(new ByteList(bytes));
+            return createString(ByteList.createByteList(bytes));
         }
 
     }
@@ -306,7 +306,7 @@ public abstract class PointerPrimitiveNodes {
 
                 ptr.get(0, bytes, 0, bytes.length);
 
-                return StringOperations.createString(getContext(), new ByteList(bytes));
+                return StringOperations.createString(getContext(), ByteList.createByteList(bytes));
             }
 
             return createString(MemoryIO.getInstance().getZeroTerminatedByteArray(Layouts.POINTER.getPointer(pointer).address()), ASCIIEncoding.INSTANCE);

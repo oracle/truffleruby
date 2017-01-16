@@ -491,7 +491,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     public static ByteList preprocess(RubyContext runtime, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
-        ByteList to = new ByteList(str.byteLength());
+        ByteList to = ByteList.createByteList(str.byteLength());
 
         if (enc.isAsciiCompatible()) {
             fixedEnc[0] = null;
@@ -594,7 +594,7 @@ public class ClassicRegexp implements ReOptions {
             return bs;
         } while (false);
 
-        ByteList result = new ByteList(end * 2);
+        ByteList result = ByteList.createByteList(end * 2);
         result.setEncoding(asciiOnly ? USASCIIEncoding.INSTANCE : bs.getEncoding());
         byte[]obytes = result.getUnsafeBytes();
         int op = p;
@@ -705,7 +705,7 @@ public class ClassicRegexp implements ReOptions {
         int len = str.byteLength();
         byte[] bytes = str.getBytes();
 
-        ByteList result = new ByteList(len);
+        ByteList result = ByteList.createByteList(len);
         result.append((byte)'(').append((byte)'?');
 
         again: do {
