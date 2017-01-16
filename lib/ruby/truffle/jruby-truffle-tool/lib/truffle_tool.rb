@@ -530,10 +530,10 @@ class TruffleTool
           h.delete(:branch)
         end
 
-        format(<<-RUBY.gsub(/^ +/, space), line.strip, gem_name, options_without_git)
+        <<-RUBY.gsub(/^ +/, space)
           # Overridden by jtt
-          # %s
-          gem '%s', %p
+          # #{line.strip}
+          gem '#{gem_name}', #{options_without_git.inspect}
         RUBY
       else
         line
