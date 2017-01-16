@@ -83,7 +83,7 @@ public class ByteList {
     public ByteList(byte[] bytes, Encoding encoding) {
         this.bytes = bytes;
         this.realSize = bytes.length;
-        this.encoding = safeEncoding(encoding);
+        this.encoding = encoding;
     }
 
     /**
@@ -125,7 +125,7 @@ public class ByteList {
             this.bytes = wrap;
         }
         this.realSize = wrap.length;
-        this.encoding = safeEncoding(encoding);
+        this.encoding = encoding;
     }
 
     /**
@@ -178,7 +178,7 @@ public class ByteList {
             bytes = wrap;
         }
         realSize = len;
-        this.encoding = safeEncoding(encoding);
+        this.encoding = encoding;
     }
 
     /**
@@ -227,7 +227,7 @@ public class ByteList {
         ByteList dup = new ByteList(length);
 
         dup.append(this.bytes, 0, this.realSize);
-        dup.encoding = safeEncoding(encoding);
+        dup.encoding = encoding;
 
         return dup;
     }
@@ -514,14 +514,7 @@ public class ByteList {
      */
     public void setEncoding(Encoding encoding) {
         assert encoding != null;
-        this.encoding = safeEncoding(encoding);
+        this.encoding = encoding;
     }
 
-    /**
-     * Ensure the encoding is always non-null.
-     */
-    private static Encoding safeEncoding(Encoding incoming) {
-        if (incoming == null) return ASCIIEncoding.INSTANCE;
-        return incoming;
-    }
 }
