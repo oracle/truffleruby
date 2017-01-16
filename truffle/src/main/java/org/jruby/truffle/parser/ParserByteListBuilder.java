@@ -14,24 +14,17 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeOperations;
 
-import java.util.Arrays;
+import java.io.ByteArrayOutputStream;
 
 import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 
 public class ParserByteListBuilder {
 
-    private byte[] bytes;
-    private int length;
-    private Encoding encoding;
-
-    public ParserByteListBuilder() {
-        bytes = new byte[16];
-        length = 0;
-        encoding = ASCIIEncoding.INSTANCE;
-    }
+    private ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    private Encoding encoding = ASCIIEncoding.INSTANCE;
 
     public int getLength() {
-        return length;
+        return bytes.size();
     }
 
     public Encoding getEncoding() {
@@ -43,17 +36,15 @@ public class ParserByteListBuilder {
     }
 
     public void append(int b) {
-        append((byte) b);
+        bytes.write(b);
     }
 
     public void append(byte b) {
-        grow(1);
-        bytes[length] = b;
-        length++;
+        bytes.write(b);
     }
 
-    public void append(byte[] bytes) {
-        append(bytes, 0, bytes.length);
+    public void append(byte[] appendBytes) {
+        append(appendBytes, 0, appendBytes.length);
     }
 
     public void append(Rope other) {
@@ -61,24 +52,15 @@ public class ParserByteListBuilder {
     }
 
     public void append(byte[] appendBytes, int appendStart, int appendLength) {
-        grow(appendLength);
-        System.arraycopy(appendBytes, appendStart, bytes, length, appendLength);
-        length += appendLength;
-    }
-
-    public void grow(int extra) {
-        if (length + extra > bytes.length) {
-            bytes = Arrays.copyOf(bytes, (length + extra) * 2);
-        }
+        bytes.write(appendBytes, appendStart, appendLength);
     }
 
     public byte[] getBytes() {
-        return Arrays.copyOf(bytes, length);
+        return bytes.toByteArray();
     }
 
     public void clear() {
-        bytes = new byte[]{};
-        length = 0;
+        bytes = new ByteArrayOutputStream();
     }
 
     public Rope toRope() {
