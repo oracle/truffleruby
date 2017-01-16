@@ -37,12 +37,13 @@
 package org.jruby.truffle.parser.parser;
 
 import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.interop.ForeignCodeNode;
 import org.jruby.truffle.collections.Tuple;
+import org.jruby.truffle.core.rope.CodeRange;
+import org.jruby.truffle.core.rope.RopeOperations;
+import org.jruby.truffle.interop.ForeignCodeNode;
+import org.jruby.truffle.language.SourceIndexLength;
 import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.RubyWarnings;
-import org.jruby.truffle.parser.TempSourceSection;
 import org.jruby.truffle.parser.ast.ArgsParseNode;
 import org.jruby.truffle.parser.ast.ArgumentParseNode;
 import org.jruby.truffle.parser.ast.ArrayParseNode;
@@ -129,6 +130,7 @@ import org.jruby.truffle.parser.lexer.SyntaxException.PID;
 
 import java.io.IOException;
 
+import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 import static org.jruby.truffle.parser.lexer.RubyLexer.EXPR_BEG;
 import static org.jruby.truffle.parser.lexer.RubyLexer.EXPR_END;
 import static org.jruby.truffle.parser.lexer.RubyLexer.EXPR_ENDARG;
@@ -2001,7 +2003,7 @@ qsym_list      : /* none */ {
                 }
 
 string_contents : /* none */ {
-                    $$ = lexer.createStr(new ParserByteList(new byte[]{}, 0, 0, lexer.getEncoding()), 0);
+                    $$ = lexer.createStr(new ParserByteList(RopeOperations.create(new byte[]{}, lexer.getEncoding(), CR_UNKNOWN)), 0);
                 }
                 | string_contents string_content {
                     $$ = support.literal_concat($1.getPosition(), $1, $<ParseNode>2);
@@ -2149,8 +2151,7 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = new FalseParseNode(lexer.getPosition());
                 }
                 | k__FILE__ {
-                    $$ = new FileParseNode(lexer.getPosition(), new ParserByteList(lexer.getFile().getBytes(),
-                    support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding()));
+                    $$ = new FileParseNode(lexer.getPosition(), new ParserByteList(RopeOperations.create(lexer.getFile().getBytes(), support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding(), CR_UNKNOWN)));
                 }
                 | k__LINE__ {
                     $$ = new FixnumParseNode(lexer.getPosition(), lexer.tokline.toSourceSection(lexer.getSource()).getStartLine());

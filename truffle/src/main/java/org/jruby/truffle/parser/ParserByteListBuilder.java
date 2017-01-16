@@ -11,8 +11,11 @@ package org.jruby.truffle.parser;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jruby.truffle.core.rope.RopeOperations;
 
 import java.util.Arrays;
+
+import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 
 public class ParserByteListBuilder {
 
@@ -77,7 +80,7 @@ public class ParserByteListBuilder {
     }
 
     public ParserByteList toParserByteList() {
-        return new ParserByteList(Arrays.copyOf(bytes, length), 0, length, encoding);
+        return new ParserByteList(RopeOperations.create(Arrays.copyOfRange(Arrays.copyOf(bytes, length), 0, 0 + length), encoding, CR_UNKNOWN));
     }
 
     public void removeOffset(int offset) {

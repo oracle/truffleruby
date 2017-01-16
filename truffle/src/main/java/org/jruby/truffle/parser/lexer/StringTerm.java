@@ -86,7 +86,7 @@ public class StringTerm extends StrTerm {
 
             if ((flags & STR_FUNC_REGEXP) != 0) {
                 RegexpOptions options = parseRegexpFlags(lexer);
-                ParserByteList regexpBytelist = new ParserByteList(new byte[]{});
+                ParserByteList regexpBytelist = ParserByteList.EMPTY_ASCII_ENCODING;
 
                 lexer.setValue(new RegexpParseNode(lexer.getPosition(), regexpBytelist, options));
                 return Tokens.tREGEXP_END;

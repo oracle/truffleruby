@@ -42,6 +42,7 @@ import org.jruby.truffle.collections.Tuple;
 import org.jruby.truffle.core.regexp.ClassicRegexp;
 import org.jruby.truffle.core.regexp.RegexpOptions;
 import org.jruby.truffle.core.rope.CodeRange;
+import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.language.SourceIndexLength;
 import org.jruby.truffle.language.control.RaiseException;
 import org.jruby.truffle.parser.ParserByteList;
@@ -136,6 +137,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 import static org.jruby.truffle.parser.lexer.RubyLexer.ASCII8BIT_ENCODING;
 import static org.jruby.truffle.parser.lexer.RubyLexer.USASCII_ENCODING;
 import static org.jruby.truffle.parser.lexer.RubyLexer.UTF8_ENCODING;
@@ -1493,7 +1495,7 @@ public class ParserSupport {
         Encoding encoding = lexer.getEncoding();
 
         if (contents == null) {
-            ParserByteList newValue = new ParserByteList(new byte[]{});
+            ParserByteList newValue = ParserByteList.EMPTY_ASCII_ENCODING;
             if (encoding != null) {
                 newValue = newValue.withEncoding(encoding);
             }
@@ -1539,7 +1541,7 @@ public class ParserSupport {
     private ParserByteList createMaster(RegexpOptions options) {
         Encoding encoding = options.setup(configuration.getContext());
 
-        return new ParserByteList(new byte[]{}, encoding == null ? ASCIIEncoding.INSTANCE : encoding);
+        return new ParserByteList(RopeOperations.create(new byte[]{}, encoding == null ? ASCIIEncoding.INSTANCE : encoding, CR_UNKNOWN));
     }
     
     public KeywordArgParseNode keyword_arg(SourceIndexLength position, AssignableParseNode assignable) {

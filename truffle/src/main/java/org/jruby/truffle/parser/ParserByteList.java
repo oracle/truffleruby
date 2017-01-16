@@ -39,7 +39,6 @@ package org.jruby.truffle.parser;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jruby.truffle.core.rope.CodeRange;
@@ -52,26 +51,18 @@ import org.jruby.truffle.language.RubyNode;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import static org.jruby.truffle.core.rope.CodeRange.CR_7BIT;
 import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 
 public class ParserByteList {
+
+    public static final ParserByteList EMPTY_ASCII_ENCODING = new ParserByteList(RopeOperations.create(new byte[]{}, ASCIIEncoding.INSTANCE, CR_7BIT));
+
     private final Rope rope;
     private ParserByteListNode parserByteListNode;
 
     public ParserByteList(Rope rope) {
         this.rope = rope;
-    }
-
-    public ParserByteList(byte[] bytes) {
-        this(bytes, ASCIIEncoding.INSTANCE);
-    }
-
-    public ParserByteList(byte[] bytes, Encoding encoding) {
-        this(RopeOperations.create(bytes, encoding, CR_UNKNOWN));
-    }
-
-    public ParserByteList(byte[] bytes, int start, int length, Encoding encoding) {
-        this(RopeOperations.create(Arrays.copyOfRange(bytes, start, start + length), encoding, CR_UNKNOWN));
     }
 
     public int getLength() {

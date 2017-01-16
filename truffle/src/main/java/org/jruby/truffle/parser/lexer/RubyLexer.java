@@ -56,6 +56,7 @@ import org.jruby.truffle.Layouts;
 import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.core.regexp.ClassicRegexp;
 import org.jruby.truffle.core.rope.CodeRange;
+import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.language.SourceIndexLength;
 import org.jruby.truffle.language.control.RaiseException;
 import org.jruby.truffle.parser.ParserByteList;
@@ -81,6 +82,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
+
+import static org.jruby.truffle.core.rope.CodeRange.CR_7BIT;
 
 /*
  * This is a port of the MRI lexer to Java.
@@ -419,8 +422,8 @@ public class RubyLexer {
         parserSupport.getConfiguration().setFrozenStringLiteral(b == 1);
     }
 
-    private final ParserByteList TRUE = new ParserByteList(new byte[] {'t', 'r', 'u', 'e'});
-    private final ParserByteList FALSE = new ParserByteList(new byte[] {'f', 'a', 'l', 's', 'e'});
+    private final ParserByteList TRUE = new ParserByteList(RopeOperations.create(new byte[] {'t', 'r', 'u', 'e'}, ASCIIEncoding.INSTANCE, CR_7BIT));
+    private final ParserByteList FALSE = new ParserByteList(RopeOperations.create(new byte[] {'f', 'a', 'l', 's', 'e'}, ASCIIEncoding.INSTANCE, CR_7BIT));
     protected int asTruth(String name, ParserByteList value) {
         int result = value.caseInsensitiveCmp(TRUE);
         if (result == 0) return 1;
@@ -3070,10 +3073,10 @@ public class RubyLexer {
 
     public static final int EOF = -1; // 0 in MRI
 
-    public static ParserByteList END_MARKER = new ParserByteList(new byte[] {'_', '_', 'E', 'N', 'D', '_', '_'});
-    public static ParserByteList BEGIN_DOC_MARKER = new ParserByteList(new byte[] {'b', 'e', 'g', 'i', 'n'});
-    public static ParserByteList END_DOC_MARKER = new ParserByteList(new byte[] {'e', 'n', 'd'});
-    public static ParserByteList CODING = new ParserByteList(new byte[] {'c', 'o', 'd', 'i', 'n', 'g'});
+    public static ParserByteList END_MARKER = new ParserByteList(RopeOperations.create(new byte[] {'_', '_', 'E', 'N', 'D', '_', '_'}, ASCIIEncoding.INSTANCE, CR_7BIT));
+    public static ParserByteList BEGIN_DOC_MARKER = new ParserByteList(RopeOperations.create(new byte[] {'b', 'e', 'g', 'i', 'n'}, ASCIIEncoding.INSTANCE, CR_7BIT));
+    public static ParserByteList END_DOC_MARKER = new ParserByteList(RopeOperations.create(new byte[] {'e', 'n', 'd'}, ASCIIEncoding.INSTANCE, CR_7BIT));
+    public static ParserByteList CODING = new ParserByteList(RopeOperations.create(new byte[] {'c', 'o', 'd', 'i', 'n', 'g'}, ASCIIEncoding.INSTANCE, CR_7BIT));
 
     public static final Encoding UTF8_ENCODING = UTF8Encoding.INSTANCE;
     public static final Encoding USASCII_ENCODING = USASCIIEncoding.INSTANCE;

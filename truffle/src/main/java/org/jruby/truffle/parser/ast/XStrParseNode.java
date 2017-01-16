@@ -49,7 +49,7 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
     public XStrParseNode(SourceIndexLength position, ParserByteList value, CodeRange coderange) {
         // FIXME: Shouldn't this have codeRange like StrParseNode?
         super(position, false);
-        this.value = (value == null ? new ParserByteList(new byte[]{}) : value);
+        this.value = (value == null ? ParserByteList.EMPTY_ASCII_ENCODING : value);
         this.coderange = coderange;
     }
 
