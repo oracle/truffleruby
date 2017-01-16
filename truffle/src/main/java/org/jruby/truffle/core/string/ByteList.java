@@ -451,17 +451,6 @@ public class ByteList {
     }
 
     /**
-     * Returns the internal byte array. This is unsafe unless you know what you're
-     * doing. But it can improve performance for byte-array operations that
-     * won't change the array.
-     *
-     * @return the internal byte array
-     */
-    public byte[] unsafeBytes() {
-        return bytes;
-    }
-
-    /**
      * Get a copy of the bytes referenced by this ByteList.  It will make an optimal copy and not
      * carry along unused bytes from COW sharing.
      *
@@ -506,25 +495,6 @@ public class ByteList {
     }
 
     /**
-     * @return the realSize
-     */
-    public int getRealSize() {
-        return realSize();
-    }
-
-    /**
-     * @param realSize the realSize to set
-     */
-    public void setRealSize(int realSize) {
-        realSize(realSize);
-    }
-
-    /**
-     * @return the realSize
-     */
-    public int realSize() { return realSize; }
-
-    /**
      * @param realSize the realSize to set
      */
     public void realSize(int realSize) {
@@ -550,7 +520,7 @@ public class ByteList {
     /**
      * Ensure the encoding is always non-null.
      */
-    public static Encoding safeEncoding(Encoding incoming) {
+    private static Encoding safeEncoding(Encoding incoming) {
         if (incoming == null) return ASCIIEncoding.INSTANCE;
         return incoming;
     }

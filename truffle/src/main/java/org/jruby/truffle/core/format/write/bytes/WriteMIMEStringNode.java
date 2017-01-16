@@ -101,7 +101,7 @@ public abstract class WriteMIMEStringNode extends FormatNode {
         int lPrevChar = -1;
         byte[] l2Encode = i2Encode.getUnsafeBytes();
         try {
-            int end = i2Encode.getRealSize();
+            int end = i2Encode.length();
             for (int i = 0; i < end; i++) {
                 int lCurChar = l2Encode[i] & 0xff;
                 if (lCurChar > 126 || (lCurChar < 32 && lCurChar != '\n' && lCurChar != '\t') || lCurChar == '=') {

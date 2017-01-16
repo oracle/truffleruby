@@ -134,7 +134,7 @@ public abstract class WriteBERNode extends FormatNode {
         }
 
         int left = 0;
-        int right = buf.getRealSize() - 1;
+        int right = buf.length() - 1;
 
         if (right >= 0) {
             buf.getUnsafeBytes()[0] &= 0x7F;

@@ -93,7 +93,7 @@ public class ClassicRegexp implements ReOptions {
 
     private static Regex makeRegexp(RubyContext runtime, ByteList bytes, RegexpOptions options, Encoding enc) {
         try {
-            return new Regex(bytes.getUnsafeBytes(), 0, bytes.getRealSize(), options.toJoniOptions(), enc, Syntax.DEFAULT, new WarnCallback() {
+            return new Regex(bytes.getUnsafeBytes(), 0, bytes.length(), options.toJoniOptions(), enc, Syntax.DEFAULT, new WarnCallback() {
                 @Override
                 public void warn(String s) {
                     //
@@ -306,8 +306,8 @@ public class ClassicRegexp implements ReOptions {
             if (to != null) to.append(String.format("\\x%02X", code).getBytes(StandardCharsets.US_ASCII));
         } else {
             if (to != null) {
-                to.ensure(to.getRealSize() + 6);
-                to.setRealSize(to.getRealSize() + utf8Decode(context, to.getUnsafeBytes(), to.getRealSize(), code));
+                to.ensure(to.length() + 6);
+                to.realSize(to.length() + utf8Decode(context, to.getUnsafeBytes(), to.length(), code));
             }
             if (enc[0] == null) {
                 enc[0] = UTF8Encoding.INSTANCE;
@@ -654,7 +654,7 @@ public class ClassicRegexp implements ReOptions {
             op += enc.codeToMbc(c, obytes, op);
         }
 
-        result.setRealSize(op);
+        result.realSize(op);
         return RopeOperations.ropeFromByteList(result);
     }
 

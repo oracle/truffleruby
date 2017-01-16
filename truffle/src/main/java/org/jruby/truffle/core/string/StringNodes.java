@@ -216,16 +216,16 @@ public abstract class StringNodes {
             } else {
                 // Taken from org.jruby.util.StringSupport.addByteLists.
 
-                final int newLength = leftByteList.realSize() + right.byteLength();
+                final int newLength = leftByteList.length() + right.byteLength();
                 concatByteList = new ByteList(newLength);
                 concatByteList.realSize(newLength);
-                System.arraycopy(leftByteList.unsafeBytes(), 0, concatByteList.unsafeBytes(), 0, leftByteList.realSize());
-                System.arraycopy(right.getBytes(), 0, concatByteList.unsafeBytes(), leftByteList.realSize(), right.byteLength());
+                System.arraycopy(leftByteList.getUnsafeBytes(), 0, concatByteList.getUnsafeBytes(), 0, leftByteList.length());
+                System.arraycopy(right.getBytes(), 0, concatByteList.getUnsafeBytes(), leftByteList.length(), right.byteLength());
             }
 
             concatByteList.setEncoding(enc);
 
-            final RopeBuffer concatRope = new RopeBuffer(concatByteList, left.getCodeRange(), left.isSingleByteOptimizable(), concatByteList.realSize());
+            final RopeBuffer concatRope = new RopeBuffer(concatByteList, left.getCodeRange(), left.isSingleByteOptimizable(), concatByteList.length());
             final DynamicObject ret = Layouts.STRING.createString(coreLibrary().getStringFactory(), concatRope);
 
             taintResultNode.maybeTaint(string, ret);
@@ -662,7 +662,7 @@ public abstract class StringNodes {
             final Rope rope = rope(string);
 
             if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {
-                return ((RopeBuffer) rope).getByteList().realSize();
+                return ((RopeBuffer) rope).getByteList().length();
             }
 
             return rope(string).byteLength();
@@ -1628,8 +1628,8 @@ public abstract class StringNodes {
                                     if (buf == null) buf = new ByteList();
                                     int cc = codePointX(enc, bytes, p - 1, end);
                                     buf.append(String.format("%x", cc).getBytes(StandardCharsets.US_ASCII));
-                                    len += buf.getRealSize() + 4;
-                                    buf.setRealSize(0);
+                                    len += buf.length() + 4;
+                                    buf.realSize(0);
                                     p += n;
                                     break;
                                 }
@@ -1692,19 +1692,19 @@ public abstract class StringNodes {
                         if (n > 0) {
                             int cc = codePointX(enc, bytes, p - 1, end);
                             p += n;
-                            outBytes.setRealSize(q);
+                            outBytes.realSize(q);
                             outBytes.append(String.format("u{%x}", cc).getBytes(StandardCharsets.US_ASCII));
-                            q = outBytes.getRealSize();
+                            q = outBytes.length();
                             continue;
                         }
                     }
-                    outBytes.setRealSize(q);
+                    outBytes.realSize(q);
                     outBytes.append(String.format("x%02X", c).getBytes(StandardCharsets.US_ASCII));
-                    q = outBytes.getRealSize();
+                    q = outBytes.length();
                 }
             }
             out[q++] = '"';
-            outBytes.setRealSize(q);
+            outBytes.realSize(q);
             assert out == outBytes.getUnsafeBytes(); // must not reallocate
 
             return outBytes;
@@ -1856,10 +1856,10 @@ public abstract class StringNodes {
 
             if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {
                 if (isSingleByteOptimizableRopeBufferProfile.profile(rope.isSingleByteOptimizable())) {
-                    return ((RopeBuffer) rope).getByteList().realSize();
+                    return ((RopeBuffer) rope).getByteList().length();
                 } else {
                     final ByteList byteList = ((RopeBuffer) rope).getByteList();
-                    return RopeOperations.strLength(rope.getEncoding(), byteList.unsafeBytes(), 0, byteList.realSize());
+                    return RopeOperations.strLength(rope.getEncoding(), byteList.getUnsafeBytes(), 0, byteList.length());
                 }
             } else {
                 return rope.characterLength();
@@ -2403,7 +2403,7 @@ public abstract class StringNodes {
             }
 
             final ByteList bytes = RopeOperations.toByteListCopy(rope);
-            final boolean modified = multiByteUpcase(encoding, bytes.unsafeBytes(), 0, bytes.realSize());
+            final boolean modified = multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.length());
             if (modified) {
                 StringOperations.setRope(string, RopeOperations.ropeFromByteList(bytes, rope.getCodeRange()));
 

@@ -481,7 +481,7 @@ public abstract class PsychParserNodes {
                 int convertedInput = sp.p - start;
                 int rest = len - convertedInput;
                 convertedOutput = dp.p - dest;
-                newStr.setRealSize(convertedOutput);
+                newStr.realSize(convertedOutput);
                 if (convertedInput != 0 && convertedOutput != 0 &&
                         rest < (Integer.MAX_VALUE / convertedOutput)) {
                     rest = (rest * convertedOutput) / convertedInput;
@@ -502,7 +502,7 @@ public abstract class PsychParserNodes {
             switch (ret) {
                 case Finished:
                     len = dp.p;
-                    newStr.setRealSize(len);
+                    newStr.realSize(len);
                     newStr.setEncoding(toEncoding);
                     return RopeOperations.ropeFromByteList(newStr);
 

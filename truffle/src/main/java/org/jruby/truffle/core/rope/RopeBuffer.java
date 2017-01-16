@@ -30,7 +30,7 @@ public class RopeBuffer extends LeafRope {
     }
 
     public RopeBuffer(ByteList byteList, CodeRange codeRange, boolean singleByteOptimizable, int characterLength) {
-        super(byteList.unsafeBytes(), byteList.getEncoding(), codeRange, singleByteOptimizable, characterLength);
+        super(byteList.getUnsafeBytes(), byteList.getEncoding(), codeRange, singleByteOptimizable, characterLength);
         this.byteList =  byteList;
     }
 

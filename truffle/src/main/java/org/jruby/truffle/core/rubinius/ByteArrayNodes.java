@@ -47,7 +47,7 @@ public abstract class ByteArrayNodes {
             // advantage of that fact. So, where they expect to receive a NULL byte, we'd be out-of-bounds and raise
             // an exception. Simply appending a NULL byte may trigger a full copy of the original byte[], which we
             // want to avoid. The compromise is bending on the semantics here.
-            if (nullByteIndexProfile.profile(index == byteList.realSize())) {
+            if (nullByteIndexProfile.profile(index == byteList.length())) {
                 return 0;
             }
 
@@ -79,7 +79,7 @@ public abstract class ByteArrayNodes {
         @Specialization
         public Object setByte(DynamicObject bytes, int index, int value,
                 @Cached("create()") BranchProfile errorProfile) {
-            if (index < 0 || index >= Layouts.BYTE_ARRAY.getBytes(bytes).getRealSize()) {
+            if (index < 0 || index >= Layouts.BYTE_ARRAY.getBytes(bytes).length()) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().indexError("index out of bounds", this));
             }
@@ -95,7 +95,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization
         public int size(DynamicObject bytes) {
-            return Layouts.BYTE_ARRAY.getBytes(bytes).getRealSize();
+            return Layouts.BYTE_ARRAY.getBytes(bytes).length();
         }
 
     }

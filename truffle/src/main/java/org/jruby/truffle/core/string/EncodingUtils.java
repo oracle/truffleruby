@@ -173,7 +173,7 @@ public class EncodingUtils {
 
         // much logic is missing here, since we don't manually manage the ByteList buffer
 
-        total = str.getRealSize() + len;
+        total = str.length() + len;
         str.ensure(total);
         str.append(ptrBytes, ptr, len);
     }
@@ -188,7 +188,7 @@ public class EncodingUtils {
 
     // MRI: get_actual_encoding
     public static Encoding getActualEncoding(Encoding enc, ByteList byteList) {
-        return getActualEncoding(enc, byteList.getUnsafeBytes(), 0, byteList.realSize());
+        return getActualEncoding(enc, byteList.getUnsafeBytes(), 0, byteList.length());
     }
 
     public static Encoding getActualEncoding(Encoding enc, byte[] bytes, int p, int end) {

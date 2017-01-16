@@ -689,18 +689,18 @@ public abstract class RopeNodes {
         @Specialization(guards = "times > 1")
         public Rope multiplyBuffer(RopeBuffer base, int times) {
             final ByteList inputBytes = base.getByteList();
-            int len = inputBytes.realSize() * times;
+            int len = inputBytes.length() * times;
             final ByteList outputBytes = new ByteList(len);
             outputBytes.realSize(len);
 
-            int n = inputBytes.realSize();
+            int n = inputBytes.length();
 
-            System.arraycopy(inputBytes.unsafeBytes(), 0, outputBytes.unsafeBytes(), 0, n);
+            System.arraycopy(inputBytes.getUnsafeBytes(), 0, outputBytes.getUnsafeBytes(), 0, n);
             while (n <= len / 2) {
-                System.arraycopy(outputBytes.unsafeBytes(), 0, outputBytes.unsafeBytes(), n, n);
+                System.arraycopy(outputBytes.getUnsafeBytes(), 0, outputBytes.getUnsafeBytes(), n, n);
                 n *= 2;
             }
-            System.arraycopy(outputBytes.unsafeBytes(), 0, outputBytes.unsafeBytes(), n, len - n);
+            System.arraycopy(outputBytes.getUnsafeBytes(), 0, outputBytes.getUnsafeBytes(), n, len - n);
 
 
             outputBytes.setEncoding(inputBytes.getEncoding());
