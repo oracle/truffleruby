@@ -15,33 +15,32 @@ import org.jcodings.Encoding;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeNodes;
 import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.parser.ParserByteList;
 
 import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 
 public class ParserRopeOperations {
 
-    public ParserByteList withEncoding(ParserByteList rope, Encoding encoding) {
-        final Rope newRope = parserByteListNode.getWithEncodingNode().executeWithEncoding(rope.toRope(), encoding, CR_UNKNOWN);
+    public Rope withEncoding(Rope rope, Encoding encoding) {
+        final Rope newRope = RopeNode.getWithEncodingNode().executeWithEncoding(rope, encoding, CR_UNKNOWN);
 
-        if (newRope == rope.toRope()) {
+        if (newRope == rope) {
             return rope;
         }
 
-        return new ParserByteList(newRope);
+        return newRope;
     }
 
-    public ParserByteList makeShared(ParserByteList rope, int sharedStart, int sharedLength) {
-        final Rope newRope = parserByteListNode.getMakeSubstringNode().executeMake(rope.toRope(), sharedStart, sharedLength);
+    public Rope makeShared(Rope rope, int sharedStart, int sharedLength) {
+        final Rope newRope = RopeNode.getMakeSubstringNode().executeMake(rope, sharedStart, sharedLength);
 
-        if (newRope == rope.toRope()) {
+        if (newRope == rope) {
             return rope;
         }
 
-        return new ParserByteList(newRope);
+        return newRope;
     }
 
-    private static class ParserByteListNode extends RubyNode {
+    private static class RopeNode extends RubyNode {
 
         @Child RopeNodes.MakeSubstringNode makeSubstringNode;
         @Child RopeNodes.WithEncodingNode withEncodingNode;
@@ -71,6 +70,6 @@ public class ParserRopeOperations {
 
     }
 
-    private final ParserByteListNode parserByteListNode = new ParserByteListNode();
+    private final RopeNode RopeNode = new RopeNode();
 
 }

@@ -42,7 +42,6 @@ import org.jruby.truffle.core.rope.CodeRange;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.interop.ForeignCodeNode;
 import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.RubyWarnings;
 import org.jruby.truffle.parser.ast.ArgsParseNode;
 import org.jruby.truffle.parser.ast.ArgumentParseNode;
@@ -2003,7 +2002,7 @@ qsym_list      : /* none */ {
                 }
 
 string_contents : /* none */ {
-                    $$ = lexer.createStr(new ParserByteList(RopeOperations.create(new byte[]{}, lexer.getEncoding(), CR_UNKNOWN)), 0);
+                    $$ = lexer.createStr(new Rope(RopeOperations.create(new byte[]{}, lexer.getEncoding(), CR_UNKNOWN)), 0);
                 }
                 | string_contents string_content {
                     $$ = support.literal_concat($1.getPosition(), $1, $<ParseNode>2);
@@ -2151,7 +2150,7 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = new FalseParseNode(lexer.getPosition());
                 }
                 | k__FILE__ {
-                    $$ = new FileParseNode(lexer.getPosition(), new ParserByteList(RopeOperations.create(lexer.getFile().getBytes(), support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding(), CR_UNKNOWN)));
+                    $$ = new FileParseNode(lexer.getPosition(), new Rope(RopeOperations.create(lexer.getFile().getBytes(), support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding(), CR_UNKNOWN)));
                 }
                 | k__LINE__ {
                     $$ = new FixnumParseNode(lexer.getPosition(), lexer.tokline.toSourceSection(lexer.getSource()).getStartLine());

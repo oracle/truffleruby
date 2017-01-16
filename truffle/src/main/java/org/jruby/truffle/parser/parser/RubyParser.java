@@ -45,7 +45,6 @@ import org.jruby.truffle.core.rope.CodeRange;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.interop.ForeignCodeNode;
 import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.RubyWarnings;
 import org.jruby.truffle.parser.ast.ArgsParseNode;
 import org.jruby.truffle.parser.ast.ArgumentParseNode;
@@ -3779,7 +3778,7 @@ states[479] = new ParserState() {
 };
 states[480] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
-                    yyVal = lexer.createStr(new ParserByteList(RopeOperations.create(new byte[]{}, lexer.getEncoding(), CR_UNKNOWN)), 0);
+    yyVal = lexer.createStr(RopeOperations.create(new byte[]{}, lexer.getEncoding(), CR_UNKNOWN), 0);
     return yyVal;
   }
 };
@@ -4023,7 +4022,7 @@ states[519] = new ParserState() {
 };
 states[520] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
-                    yyVal = new FileParseNode(lexer.getPosition(), new ParserByteList(RopeOperations.create(lexer.getFile().getBytes(), support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding(), CR_UNKNOWN)));
+    yyVal = new FileParseNode(lexer.getPosition(), RopeOperations.create(lexer.getFile().getBytes(), support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding(), CR_UNKNOWN));
     return yyVal;
   }
 };

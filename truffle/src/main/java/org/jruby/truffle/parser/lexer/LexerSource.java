@@ -38,8 +38,8 @@ package org.jruby.truffle.parser.lexer;
 
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
+import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.parser.ParserRopeOperations;
 
 import java.nio.charset.StandardCharsets;
@@ -52,14 +52,14 @@ public class LexerSource {
     private final Source source;
     private final int lineStartOffset;
 
-    private ParserByteList sourceBytes;
+    private Rope sourceBytes;
 
     private int byteOffset;
 
     public LexerSource(Source source, int lineStartOffset, Encoding encoding) {
         this.source = source;
         this.lineStartOffset = lineStartOffset;
-        this.sourceBytes = new ParserByteList(RopeOperations.create(source.getCode().getBytes(StandardCharsets.UTF_8), encoding, CR_UNKNOWN));
+        this.sourceBytes = RopeOperations.create(source.getCode().getBytes(StandardCharsets.UTF_8), encoding, CR_UNKNOWN);
     }
 
     public Source getSource() {
@@ -67,7 +67,7 @@ public class LexerSource {
     }
 
     public Encoding getEncoding() {
-        return sourceBytes.toRope().getEncoding();
+        return sourceBytes.getEncoding();
     }
 
     public void setEncoding(Encoding encoding) {
@@ -82,15 +82,15 @@ public class LexerSource {
         return lineStartOffset;
     }
 
-    public ParserByteList gets() {
-        if (byteOffset >= sourceBytes.toRope().byteLength()) {
+    public Rope gets() {
+        if (byteOffset >= sourceBytes.byteLength()) {
             return null;
         }
 
         int lineEnd = nextNewLine() + 1;
 
         if (lineEnd == 0) {
-            lineEnd = sourceBytes.toRope().byteLength();
+            lineEnd = sourceBytes.byteLength();
         }
 
         final int start = byteOffset;
@@ -104,8 +104,8 @@ public class LexerSource {
     private int nextNewLine() {
         int n = byteOffset;
 
-        while (n < sourceBytes.toRope().byteLength()) {
-            if ((int) sourceBytes.toRope().get(n) == '\n') {
+        while (n < sourceBytes.byteLength()) {
+            if ((int) sourceBytes.get(n) == '\n') {
                 return n;
             }
 

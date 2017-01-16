@@ -42,11 +42,11 @@ import org.jruby.truffle.collections.Tuple;
 import org.jruby.truffle.core.regexp.ClassicRegexp;
 import org.jruby.truffle.core.regexp.RegexpOptions;
 import org.jruby.truffle.core.rope.CodeRange;
+import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.language.SourceIndexLength;
 import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.RubyWarnings;
 import org.jruby.truffle.parser.Signature;
 import org.jruby.truffle.parser.ast.AliasParseNode;
@@ -1081,7 +1081,7 @@ public class ParserSupport {
                 StrParseNode front = (StrParseNode) head;
                 // string_contents always makes an empty strnode...which is sometimes valid but
                 // never if it ever is in literal_concat.
-                if (front.getValue().toRope().byteLength() > 0) {
+                if (front.getValue().byteLength() > 0) {
                     return new StrParseNode(head.getPosition(), front, (StrParseNode) tail);
                 } else {
                     return tail;
@@ -1106,7 +1106,7 @@ public class ParserSupport {
         if (head instanceof StrParseNode) {
 
             //Do not add an empty string node
-            if(((StrParseNode) head).getValue().toRope().byteLength() == 0) {
+            if(((StrParseNode) head).getValue().byteLength() == 0) {
                 head = createDStrNode(head.getPosition());
             } else {
                 head = createDStrNode(head.getPosition()).add(head);
@@ -1383,10 +1383,10 @@ public class ParserSupport {
     }
 
     // MRI: reg_fragment_check
-    public ParserByteList regexpFragmentCheck(RegexpParseNode end, ParserByteList value) {
+    public Rope regexpFragmentCheck(RegexpParseNode end, Rope value) {
         value = setRegexpEncoding(end, value);
         try {
-            ClassicRegexp.preprocessCheck(configuration.getContext(), value.toRope());
+            ClassicRegexp.preprocessCheck(configuration.getContext(), value);
         } catch (RaiseException re) {
             compile_error(re.getMessage());
         }
@@ -1394,7 +1394,7 @@ public class ParserSupport {
     }        // 1.9 mode overrides to do extra checking...
 
     private List<Integer> allocateNamedLocals(RegexpParseNode regexpNode) {
-        ClassicRegexp pattern = ClassicRegexp.newRegexp(configuration.getContext(), regexpNode.getValue().toRope(), regexpNode.getOptions());
+        ClassicRegexp pattern = ClassicRegexp.newRegexp(configuration.getContext(), regexpNode.getValue(), regexpNode.getOptions());
         pattern.setLiteral();
         String[] names = pattern.getNames();
         int length = names.length;
@@ -1420,8 +1420,8 @@ public class ParserSupport {
         return locals;
     }
 
-    private boolean is7BitASCII(ParserByteList value) {
-        return value.toRope().getCodeRange() == CodeRange.CR_7BIT;
+    private boolean is7BitASCII(Rope value) {
+        return value.getCodeRange() == CodeRange.CR_7BIT;
     }
 
     // TODO: Put somewhere more consolidated (similiar
@@ -1454,20 +1454,20 @@ public class ParserSupport {
     }
     
     // MRI: reg_fragment_setenc_gen
-    public ParserByteList setRegexpEncoding(RegexpParseNode end, ParserByteList value) {
+    public Rope setRegexpEncoding(RegexpParseNode end, Rope value) {
         RegexpOptions options = end.getOptions();
         Encoding optionsEncoding = options.setup(configuration.getContext()) ;
 
         // Change encoding to one specified by regexp options as long as the string is compatible.
         if (optionsEncoding != null) {
-            if (optionsEncoding != value.toRope().getEncoding() && !is7BitASCII(value)) {
-                compileError(optionsEncoding, value.toRope().getEncoding());
+            if (optionsEncoding != value.getEncoding() && !is7BitASCII(value)) {
+                compileError(optionsEncoding, value.getEncoding());
             }
 
             value = parserRopeOperations.withEncoding(value, optionsEncoding);
         } else if (options.isEncodingNone()) {
-            if (value.toRope().getEncoding() == ASCII8BIT_ENCODING && !is7BitASCII(value)) {
-                compileError(optionsEncoding, value.toRope().getEncoding());
+            if (value.getEncoding() == ASCII8BIT_ENCODING && !is7BitASCII(value)) {
+                compileError(optionsEncoding, value.getEncoding());
             }
             value = parserRopeOperations.withEncoding(value, ASCII8BIT_ENCODING);
         } else if (lexer.getEncoding() == USASCII_ENCODING) {
@@ -1480,15 +1480,15 @@ public class ParserSupport {
         return value;
     }    
 
-    protected void checkRegexpSyntax(ParserByteList value, RegexpOptions options) {
-        final String stringValue = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, value.toRope());
+    protected void checkRegexpSyntax(Rope value, RegexpOptions options) {
+        final String stringValue = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, value);
         // Joni doesn't support these modifiers - but we can fix up in some cases - let the error delay until we try that
         if (stringValue.startsWith("(?u)") || stringValue.startsWith("(?a)") || stringValue.startsWith("(?d)"))
             return;
 
         try {
             // This is only for syntax checking but this will as a side-effect create an entry in the regexp cache.
-            ClassicRegexp.newRegexpParser(getConfiguration().getContext(), value.toRope(), (RegexpOptions)options.clone());
+            ClassicRegexp.newRegexpParser(getConfiguration().getContext(), value, (RegexpOptions)options.clone());
         } catch (RaiseException re) {
             compile_error(re.getMessage());
         }
@@ -1499,7 +1499,7 @@ public class ParserSupport {
         Encoding encoding = lexer.getEncoding();
 
         if (contents == null) {
-            ParserByteList newValue = new ParserByteList(RopeConstants.EMPTY_US_ASCII_ROPE);
+            Rope newValue = RopeConstants.EMPTY_US_ASCII_ROPE;
             if (encoding != null) {
                 newValue = parserRopeOperations.withEncoding(newValue, encoding);
             }
@@ -1507,7 +1507,7 @@ public class ParserSupport {
             newValue = regexpFragmentCheck(end, newValue);
             return new RegexpParseNode(position, newValue, options.withoutOnce());
         } else if (contents instanceof StrParseNode) {
-            ParserByteList meat = ((StrParseNode) contents).getValue();
+            Rope meat = ((StrParseNode) contents).getValue();
             meat = regexpFragmentCheck(end, meat);
             checkRegexpSyntax(meat, options.withoutOnce());
             return new RegexpParseNode(contents.getPosition(), meat, options.withoutOnce());
@@ -1517,7 +1517,7 @@ public class ParserSupport {
             for (int i = 0; i < dStrNode.size(); i++) {
                 ParseNode fragment = dStrNode.get(i);
                 if (fragment instanceof StrParseNode) {
-                    ParserByteList frag = ((StrParseNode) fragment).getValue();
+                    Rope frag = ((StrParseNode) fragment).getValue();
                     frag = regexpFragmentCheck(end, frag);
 //                    if (!lexer.isOneEight()) encoding = frag.getEncoding();
                 }
@@ -1530,9 +1530,9 @@ public class ParserSupport {
         }
 
         // EvStrParseNode: #{val}: no fragment check, but at least set encoding
-        ParserByteList master = createMaster(options);
+        Rope master = createMaster(options);
         master = regexpFragmentCheck(end, master);
-        encoding = master.toRope().getEncoding();
+        encoding = master.getEncoding();
         DRegexpParseNode node = new DRegexpParseNode(position, options, encoding);
         node.add(new StrParseNode(contents.getPosition(), master));
         node.add(contents);
@@ -1542,10 +1542,11 @@ public class ParserSupport {
     // Create the magical empty 'master' string which will be encoded with
     // regexp options encoding so dregexps can end up starting with the
     // right encoding.
-    private ParserByteList createMaster(RegexpOptions options) {
+    private Rope createMaster(RegexpOptions options) {
         Encoding encoding = options.setup(configuration.getContext());
 
-        return new ParserByteList(RopeOperations.create(new byte[]{}, encoding == null ? ASCIIEncoding.INSTANCE : encoding, CR_UNKNOWN));
+        Rope rope = RopeOperations.create(new byte[]{}, encoding == null ? ASCIIEncoding.INSTANCE : encoding, CR_UNKNOWN);
+        return rope;
     }
     
     public KeywordArgParseNode keyword_arg(SourceIndexLength position, AssignableParseNode assignable) {

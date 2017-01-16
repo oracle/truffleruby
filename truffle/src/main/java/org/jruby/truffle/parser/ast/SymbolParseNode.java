@@ -35,9 +35,9 @@ package org.jruby.truffle.parser.ast;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jruby.truffle.core.rope.CodeRange;
+import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.ast.types.ILiteralNode;
 import org.jruby.truffle.parser.ast.types.INameNode;
 import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
@@ -65,14 +65,14 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
     }
 
     // String path (e.g. [':', str_beg, str_content, str_end])
-    public SymbolParseNode(SourceIndexLength position, ParserByteList value) {
+    public SymbolParseNode(SourceIndexLength position, Rope value) {
         super(position, false);
-        this.name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, value.toRope()).intern();
+        this.name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, value).intern();
 
-        if (value.toRope().getEncoding() != USASCIIEncoding.INSTANCE) {
-            int size = value.toRope().byteLength();
-            this.encoding = value.toRope().characterLength() == size ?
-                    USASCIIEncoding.INSTANCE : value.toRope().getEncoding();
+        if (value.getEncoding() != USASCIIEncoding.INSTANCE) {
+            int size = value.byteLength();
+            this.encoding = value.characterLength() == size ?
+                    USASCIIEncoding.INSTANCE : value.getEncoding();
         } else {
             this.encoding = USASCIIEncoding.INSTANCE;
         }

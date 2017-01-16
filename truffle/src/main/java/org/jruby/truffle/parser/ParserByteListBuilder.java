@@ -11,6 +11,7 @@ package org.jruby.truffle.parser;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeOperations;
 
 import java.util.Arrays;
@@ -59,8 +60,8 @@ public class ParserByteListBuilder {
         append(bytes, 0, bytes.length);
     }
 
-    public void append(ParserByteList other) {
-        append(other.toRope().getBytes());
+    public void append(Rope other) {
+        append(other.getBytes());
     }
 
     public void append(byte[] appendBytes, int appendStart, int appendLength) {
@@ -79,8 +80,8 @@ public class ParserByteListBuilder {
         return bytes;
     }
 
-    public ParserByteList toParserByteList() {
-        return new ParserByteList(RopeOperations.create(Arrays.copyOfRange(Arrays.copyOf(bytes, length), 0, 0 + length), encoding, CR_UNKNOWN));
+    public Rope toRope() {
+        return RopeOperations.create(Arrays.copyOfRange(Arrays.copyOf(bytes, length), 0, 0 + length), encoding, CR_UNKNOWN);
     }
 
     public void removeOffset(int offset) {

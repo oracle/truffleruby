@@ -29,9 +29,9 @@ package org.jruby.truffle.parser.lexer;
 
 import org.jcodings.Encoding;
 import org.jruby.truffle.core.regexp.RegexpOptions;
+import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.string.KCode;
-import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.ParserByteListBuilder;
 import org.jruby.truffle.parser.ast.RegexpParseNode;
 import org.jruby.truffle.parser.parser.Tokens;
@@ -87,7 +87,7 @@ public class StringTerm extends StrTerm {
 
             if ((flags & STR_FUNC_REGEXP) != 0) {
                 RegexpOptions options = parseRegexpFlags(lexer);
-                ParserByteList regexpBytelist = new ParserByteList(RopeConstants.EMPTY_US_ASCII_ROPE);
+                Rope regexpBytelist = RopeConstants.EMPTY_US_ASCII_ROPE;
 
                 lexer.setValue(new RegexpParseNode(lexer.getPosition(), regexpBytelist, options));
                 return Tokens.tREGEXP_END;

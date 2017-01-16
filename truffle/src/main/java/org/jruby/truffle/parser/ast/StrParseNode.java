@@ -33,8 +33,8 @@
 package org.jruby.truffle.parser.ast;
 
 import org.jruby.truffle.core.rope.CodeRange;
+import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.ParserByteListBuilder;
 import org.jruby.truffle.parser.ast.types.ILiteralNode;
 import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
@@ -45,15 +45,15 @@ import java.util.List;
  * Representing a simple String literal.
  */
 public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectFree {
-    private ParserByteList value;
+    private Rope value;
     private final CodeRange codeRange;
     private boolean frozen;
 
-    public StrParseNode(SourceIndexLength position, ParserByteList value) {
-        this(position, value, value.toRope().getCodeRange());
+    public StrParseNode(SourceIndexLength position, Rope value) {
+        this(position, value, value.getCodeRange());
     }
 
-    public StrParseNode(SourceIndexLength position, ParserByteList value, CodeRange codeRange) {
+    public StrParseNode(SourceIndexLength position, Rope value, CodeRange codeRange) {
         super(position, false);
 
         this.value = value;
@@ -63,17 +63,17 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
     public StrParseNode(SourceIndexLength position, StrParseNode head, StrParseNode tail) {
         super(position, false);
 
-        ParserByteList headBL = head.getValue();
-        ParserByteList tailBL = tail.getValue();
+        Rope headBL = head.getValue();
+        Rope tailBL = tail.getValue();
 
         ParserByteListBuilder myValue = new ParserByteListBuilder();
-        myValue.setEncoding(headBL.toRope().getEncoding());
+        myValue.setEncoding(headBL.getEncoding());
         myValue.append(headBL);
         myValue.append(tailBL);
 
         frozen = head.isFrozen() && tail.isFrozen();
-        value = myValue.toParserByteList();
-        codeRange = value.toRope().getCodeRange();
+        value = myValue.toRope();
+        codeRange = value.getCodeRange();
     }
 
     public NodeType getNodeType() {
@@ -91,7 +91,7 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
      * Gets the value.
      * @return Returns a String
      */
-    public ParserByteList getValue() {
+    public Rope getValue() {
         return value;
     }
 
@@ -116,7 +116,7 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
         this.frozen = frozen;
     }
 
-    public void setValue(ParserByteList value) {
+    public void setValue(Rope value) {
         this.value = value;
     }
 }

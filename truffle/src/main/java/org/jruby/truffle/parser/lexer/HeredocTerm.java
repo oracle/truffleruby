@@ -30,8 +30,8 @@
 package org.jruby.truffle.parser.lexer;
 
 import org.jcodings.Encoding;
+import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.ParserByteListBuilder;
 import org.jruby.truffle.parser.parser.ParserRopeOperations;
 import org.jruby.truffle.parser.parser.Tokens;
@@ -58,7 +58,7 @@ import static org.jruby.truffle.parser.lexer.RubyLexer.STR_FUNC_INDENT;
  */
 public class HeredocTerm extends StrTerm {
     // Marker delimiting heredoc boundary
-    private final ParserByteList nd_lit;
+    private final Rope nd_lit;
 
     // Expand variables, Indentation of final marker
     private final int flags;
@@ -68,11 +68,11 @@ public class HeredocTerm extends StrTerm {
     protected final int line;
 
     // Portion of line right after beginning marker
-    protected final ParserByteList lastLine;
+    protected final Rope lastLine;
 
     private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
 
-    public HeredocTerm(ParserByteList marker, int func, int nth, int line, ParserByteList lastLine) {
+    public HeredocTerm(Rope marker, int func, int nth, int line, Rope lastLine) {
         this.nd_lit = marker;
         this.flags = func;
         this.nth = nth;
@@ -85,8 +85,8 @@ public class HeredocTerm extends StrTerm {
         return flags;
     }
 
-    protected int error(RubyLexer lexer, int len, ParserByteList str, ParserByteList eos) {
-        lexer.compile_error("can't find string \"" + RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, eos.toRope()) + "\" anywhere before EOF");
+    protected int error(RubyLexer lexer, int len, Rope str, Rope eos) {
+        lexer.compile_error("can't find string \"" + RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, eos) + "\" anywhere before EOF");
         return -1;
     }
 
@@ -100,12 +100,12 @@ public class HeredocTerm extends StrTerm {
     @Override
     public int parseString(RubyLexer lexer) throws java.io.IOException {
         ParserByteListBuilder str = null;
-        ParserByteList eos = nd_lit;
-        int len = nd_lit.toRope().byteLength() - 1;
+        Rope eos = nd_lit;
+        int len = nd_lit.byteLength() - 1;
         boolean indent = (flags & STR_FUNC_INDENT) != 0;
         int c = lexer.nextc();
 
-        if (c == EOF) return error(lexer, len, str.toParserByteList(), eos);
+        if (c == EOF) return error(lexer, len, str.toRope(), eos);
 
         // Found end marker for this heredoc
         if (lexer.was_bol() && lexer.whole_match_p(nd_lit, indent)) {
@@ -115,7 +115,7 @@ public class HeredocTerm extends StrTerm {
 
         if ((flags & STR_FUNC_EXPAND) == 0) {
             do {
-                ParserByteList lbuf = lexer.lex_lastline;
+                Rope lbuf = lexer.lex_lastline;
                 int p = 0;
                 int pend = lexer.lex_pend;
                 if (pend > p) {
@@ -180,7 +180,7 @@ public class HeredocTerm extends StrTerm {
                 enc[0] = lexer.getEncoding();
 
                 if ((c = new StringTerm(flags, '\0', '\n').parseStringIntoBuffer(lexer, tok, enc)) == EOF) {
-                    if (lexer.eofp) return error(lexer, len, str.toParserByteList(), eos);
+                    if (lexer.eofp) return error(lexer, len, str.toRope(), eos);
                     return restore(lexer);
                 }
                 if (c != '\n') {
@@ -195,7 +195,7 @@ public class HeredocTerm extends StrTerm {
                     return Tokens.tSTRING_CONTENT;
                 }
 
-                if ((c = lexer.nextc()) == EOF) return error(lexer, len, str.toParserByteList(), eos);
+                if ((c = lexer.nextc()) == EOF) return error(lexer, len, str.toRope(), eos);
             } while (!lexer.whole_match_p(eos, indent));
             str = tok;
         }
