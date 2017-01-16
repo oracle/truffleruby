@@ -47,7 +47,7 @@ public abstract class WriteBase64StringNode extends FormatNode {
         // TODO CS 30-Mar-15 should write our own optimisable version of Base64
 
         final ByteList output = new ByteList();
-        EncodeUM.encodeUM(null, new ByteList(bytes, false), length, ignoreStar, 'm', output);
+        EncodeUM.encodeUM(null, new ByteList(bytes), length, ignoreStar, 'm', output);
         return output.bytes();
     }
 

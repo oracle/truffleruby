@@ -644,7 +644,7 @@ public final class StringSupport {
         int carryLen = 1;
 
         Encoding enc = original.getEncoding();
-        ByteList valueCopy = new ByteList(original.getBytes(), enc, true);
+        ByteList valueCopy = new ByteList(original.getBytes(), enc);
         int p = 0;
         int end = p + valueCopy.length();
         int s = end;

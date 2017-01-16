@@ -44,17 +44,14 @@ import java.nio.charset.StandardCharsets;
  */
 public class ByteList {
 
-    private byte[] bytes;
+    private byte[] bytes = new byte[]{};
     private int realSize;
     private Encoding encoding = ASCIIEncoding.INSTANCE;
-
-    private static final int DEFAULT_SIZE = 4;
 
     /**
      * Creates a new instance of ByteList
      */
     public ByteList() {
-        this(DEFAULT_SIZE);
     }
 
     /**
@@ -64,8 +61,7 @@ public class ByteList {
      * @param size to preallocate the bytelist to
      */
     public ByteList(int size) {
-        bytes = new byte[size];
-        realSize = 0;
+        ensure(size);
     }
 
     /**
@@ -81,9 +77,8 @@ public class ByteList {
      */
     // TODO: Deprecate and replace with a static method which implies the caveats of this constructor.
     public ByteList(byte[] bytes, Encoding encoding) {
-        this.bytes = bytes;
-        this.realSize = bytes.length;
-        this.encoding = encoding;
+        append(bytes);
+        setEncoding(encoding);
     }
 
     /**
@@ -93,39 +88,7 @@ public class ByteList {
      * @param wrap the initial bytes for this ByteList
      */
     public ByteList(byte[] wrap) {
-        this(wrap, true);
-    }
-
-    /**
-     * Create a new instance of ByteList with the contents of wrap.  If copy is true then it will
-     * array copy the contents.  Otherwise it will use the byte array passed in as its initial
-     * backing store.
-     *
-     * @param wrap the initial bytes for this ByteList
-     * @param copy whether to arraycopy wrap for the backing store or not
-     */
-    public ByteList(byte[] wrap, boolean copy) {
-        this(wrap, ASCIIEncoding.INSTANCE, copy);
-    }
-
-    /**
-     * Create a new instance of ByteList with the contents of wrap.  If copy is true then it will
-     * array copy the contents.  Otherwise it will use the byte array passed in as its initial
-     * backing store.
-     *
-     * @param wrap the initial bytes for this ByteList
-     * @param encoding the encoding for the bytes
-     * @param copy whether to arraycopy wrap for the backing store or not
-     */
-    public ByteList(byte[] wrap, Encoding encoding, boolean copy) {
-        assert wrap != null;
-        if (copy) {
-            this.bytes = wrap.clone();
-        } else {
-            this.bytes = wrap;
-        }
-        this.realSize = wrap.length;
-        this.encoding = encoding;
+        append(wrap);
     }
 
     /**
@@ -138,7 +101,7 @@ public class ByteList {
      * @param len how long the data is in the wrap array
      */
     public ByteList(byte[] wrap, int index, int len) {
-        this(wrap, index, len, true);
+        append(wrap, index, len);
     }
 
     /**
@@ -151,34 +114,9 @@ public class ByteList {
      * @param len how long the data is in the wrap array
      * @param copy if true array copy wrap. otherwise use as backing store
      */
-    // FIXME:  Fix the index != 0 not honoring copy and separate out into a different caller. JRuby.next would be the right time for this.
-    public ByteList(byte[] wrap, int index, int len, boolean copy) {
-        this(wrap, index, len, ASCIIEncoding.INSTANCE, copy);
-    }
-
-    /**
-     * Create a new instance of ByteList using wrap as a backing store where index is the first
-     * index in the byte array where the data starts and len indicates how long the data portion
-     * of the bytelist is.  wrap will be array copied if copy is true OR if index != 0.
-     *
-     * @param wrap the bytes to use
-     * @param index where in the bytes the data starts
-     * @param len how long the data is in the wrap array
-     * @param copy if true array copy wrap. otherwise use as backing store
-     */
-    public ByteList(byte[] wrap, int index, int len, Encoding encoding, boolean copy) {
-        assert wrap != null : "'wrap' must not be null";
-        assert index >= 0 && index <= wrap.length : "'index' is not without bounds of 'wrap' array";
-        assert wrap.length >= index + len : "'index' + 'len' is longer than the 'wrap' array";
-
-        if (index != 0 || copy) {
-            bytes = new byte[len];
-            System.arraycopy(wrap, index, bytes, 0, len);
-        } else {
-            bytes = wrap;
-        }
-        realSize = len;
-        this.encoding = encoding;
+    public ByteList(byte[] wrap, int index, int len, Encoding encoding) {
+        append(wrap, index, len);
+        setEncoding(encoding);
     }
 
     /**
@@ -191,8 +129,8 @@ public class ByteList {
      * @param len how long the data is in the wrap array
      */
     public ByteList(ByteList wrap, int index, int len) {
-        this(wrap.bytes, index, len);
-        encoding = wrap.encoding;
+        append(wrap.getUnsafeBytes(), index, len);
+        setEncoding(wrap.getEncoding());
     }
 
     /**

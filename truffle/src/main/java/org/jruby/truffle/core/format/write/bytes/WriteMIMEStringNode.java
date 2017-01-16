@@ -77,7 +77,7 @@ public abstract class WriteMIMEStringNode extends FormatNode {
         // TODO CS 30-Mar-15 should write our own optimizable version of MIME
 
         final ByteList output = new ByteList();
-        qpencode(output, new ByteList(bytes, false), length);
+        qpencode(output, new ByteList(bytes), length);
         return output.bytes();
     }
 

@@ -18,7 +18,7 @@ public class RopeBuffer extends LeafRope {
 
     protected RopeBuffer(byte[] bytes, Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int characterLength) {
         super(bytes, encoding, codeRange, singleByteOptimizable, characterLength);
-        this.byteList = new ByteList(bytes, encoding, false);
+        this.byteList = new ByteList(bytes, encoding);
     }
 
     public RopeBuffer(Rope original) {

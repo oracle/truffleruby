@@ -631,7 +631,7 @@ public class ConvertBytes {
             buf[--charPos] = digitmap[(int)(i & mask)];
             i >>>= shift;
         } while (i != 0);
-        return new ByteList(buf, charPos, (32 - charPos), false);
+        return new ByteList(buf, charPos, (32 - charPos));
     }
 
     private static final ByteList longToUnsignedByteList(long i, int shift, byte[] digitmap) {
@@ -643,7 +643,7 @@ public class ConvertBytes {
             buf[--charPos] = digitmap[(int)(i & mask)];
             i >>>= shift;
         } while (i != 0);
-        return new ByteList(buf, charPos, (64 - charPos), false);
+        return new ByteList(buf, charPos, (64 - charPos));
     }
 
     public static final byte[] twosComplementToBinaryBytes(byte[] in) {

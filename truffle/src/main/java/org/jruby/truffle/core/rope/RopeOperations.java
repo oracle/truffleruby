@@ -544,11 +544,11 @@ public class RopeOperations {
 
 
     public static ByteList getByteListReadOnly(Rope rope) {
-        return new ByteList(rope.getBytes(), rope.getEncoding(), false);
+        return new ByteList(rope.getBytes(), rope.getEncoding());
     }
 
     public static ByteList toByteListCopy(Rope rope) {
-        return new ByteList(rope.getBytes(), rope.getEncoding(), true);
+        return new ByteList(rope.getBytes(), rope.getEncoding());
     }
 
     @TruffleBoundary
