@@ -30,7 +30,6 @@ package org.jruby.truffle.options;
 
 import org.jruby.truffle.core.string.KCode;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

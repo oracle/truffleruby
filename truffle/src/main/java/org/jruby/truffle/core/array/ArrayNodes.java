@@ -52,7 +52,6 @@ import org.jruby.truffle.core.numeric.FixnumLowerNodeGen;
 import org.jruby.truffle.core.proc.ProcOperations;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeNodes;
-import org.jruby.truffle.core.rope.RopeNodesFactory;
 import org.jruby.truffle.core.string.StringCachingGuards;
 import org.jruby.truffle.language.NotProvided;
 import org.jruby.truffle.language.RubyGuards;

@@ -16,7 +16,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.language.RubyBaseNode;
 
 /*

@@ -22,7 +22,6 @@ import org.jruby.truffle.platform.posix.JNRTrufflePosix;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.Map;

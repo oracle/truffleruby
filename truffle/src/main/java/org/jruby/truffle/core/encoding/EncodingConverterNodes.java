@@ -32,7 +32,6 @@ import org.jruby.truffle.builtins.YieldingCoreMethodNode;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.rope.RopeNodes;
-import org.jruby.truffle.core.rope.RopeNodesFactory;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;

@@ -72,7 +72,6 @@ import org.jruby.truffle.parser.ast.RootParseNode;
 import org.jruby.truffle.parser.lexer.LexerSource;
 import org.jruby.truffle.parser.lexer.SyntaxException;
 import org.jruby.truffle.parser.parser.ParserConfiguration;
-import org.jruby.truffle.parser.parser.ParserRopeOperations;
 import org.jruby.truffle.parser.parser.RubyParser;
 import org.jruby.truffle.parser.parser.RubyParserResult;
 import org.jruby.truffle.parser.scope.DynamicScope;

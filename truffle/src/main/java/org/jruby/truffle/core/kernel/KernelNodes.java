@@ -81,7 +81,6 @@ import org.jruby.truffle.core.proc.ProcOperations;
 import org.jruby.truffle.core.proc.ProcType;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeNodes;
-import org.jruby.truffle.core.rope.RopeNodesFactory;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.core.string.StringCachingGuards;
 import org.jruby.truffle.core.string.StringOperations;

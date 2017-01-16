@@ -39,7 +39,6 @@ import org.jruby.truffle.language.yield.YieldNode;
 import org.jruby.truffle.platform.UnsafeGroup;
 import org.jruby.truffle.tools.simpleshell.SimpleShell;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 

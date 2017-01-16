@@ -20,8 +20,6 @@ import org.jruby.truffle.Log;
 import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.RubyLanguage;
 import org.jruby.truffle.core.array.ArrayOperations;
-import org.jruby.truffle.language.CallStackManager;
-import org.jruby.truffle.language.RubyNode;
 import org.jruby.truffle.language.control.JavaException;
 import org.jruby.truffle.language.control.RaiseException;
 

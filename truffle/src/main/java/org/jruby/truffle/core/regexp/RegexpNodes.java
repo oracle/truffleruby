@@ -59,7 +59,6 @@ import org.jruby.truffle.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimit
 import org.jruby.truffle.core.rope.CodeRange;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeNodes;
-import org.jruby.truffle.core.rope.RopeNodesFactory;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;

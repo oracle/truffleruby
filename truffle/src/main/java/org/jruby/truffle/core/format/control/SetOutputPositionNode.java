@@ -10,7 +10,6 @@
 package org.jruby.truffle.core.format.control;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.core.format.FormatNode;
 
 public class SetOutputPositionNode extends FormatNode {

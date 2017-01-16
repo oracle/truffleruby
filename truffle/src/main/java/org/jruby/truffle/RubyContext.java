@@ -37,7 +37,6 @@ import org.jruby.truffle.language.LexicalScope;
 import org.jruby.truffle.language.RubyGuards;
 import org.jruby.truffle.language.SafepointManager;
 import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.control.JavaException;
 import org.jruby.truffle.language.loader.CodeLoader;
 import org.jruby.truffle.language.loader.FeatureLoader;
 import org.jruby.truffle.language.loader.SourceLoader;
@@ -60,7 +59,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.CodeSource;
 

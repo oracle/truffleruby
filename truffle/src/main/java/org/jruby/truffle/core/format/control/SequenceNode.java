@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.LoopNode;
-import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.core.format.FormatNode;
 
 public class SequenceNode extends FormatNode {

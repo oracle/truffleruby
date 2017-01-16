@@ -15,7 +15,6 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.core.format.FormatNode;
 
 public class StarNode extends FormatNode {

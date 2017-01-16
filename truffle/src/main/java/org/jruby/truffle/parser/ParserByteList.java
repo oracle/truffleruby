@@ -38,7 +38,6 @@
 package org.jruby.truffle.parser;
 
 import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.parser.parser.ParserRopeOperations;
 
 public class ParserByteList {
 

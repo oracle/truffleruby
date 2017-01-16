@@ -18,7 +18,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import jnr.constants.platform.Fcntl;
-import jnr.ffi.Pointer;
 import org.jcodings.specific.UTF8Encoding;
 import org.jruby.truffle.Layouts;
 import org.jruby.truffle.builtins.CoreClass;
