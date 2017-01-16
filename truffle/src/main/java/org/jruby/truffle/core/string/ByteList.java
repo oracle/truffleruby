@@ -410,23 +410,6 @@ public class ByteList {
      * @param other is the bytelist to compare with
      * @return true is this ByteList is the same
      */
-    @Override
-    public boolean equals(Object other) {
-        if (other instanceof ByteList) return equal((ByteList)other);
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    /**
-     * Does this ByteList equal the other ByteList?
-     *
-     * @param other is the bytelist to compare with
-     * @return true is this ByteList is the same
-     */
     public boolean equal(ByteList other) {
         if (other == this) return true;
 

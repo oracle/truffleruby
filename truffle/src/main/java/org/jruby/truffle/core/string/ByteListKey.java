@@ -28,7 +28,7 @@ public class ByteListKey {
 
         ByteListKey that = (ByteListKey) o;
 
-        return bytes.equals(that.bytes);
+        return bytes.equal(that.bytes);
     }
 
     @Override
