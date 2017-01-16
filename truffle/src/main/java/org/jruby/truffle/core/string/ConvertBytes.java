@@ -524,25 +524,8 @@ public class ConvertBytes {
         return intToUnsignedByteList(i, 3, LOWER_DIGITS).bytes();
     }
 
-    public static final byte[] intToHexBytes(int i) {
-        return intToUnsignedByteList(i, 4, LOWER_DIGITS).bytes();
-    }
-
     public static final byte[] intToHexBytes(int i, boolean upper) {
         return intToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS).bytes();
-    }
-
-    public static final ByteList intToBinaryByteList(int i) {
-        return new ByteList(intToBinaryBytes(i));
-    }
-    public static final ByteList intToOctalByteList(int i) {
-        return new ByteList(intToOctalBytes(i));
-    }
-    public static final ByteList intToHexByteList(int i) {
-        return new ByteList(intToHexBytes(i));
-    }
-    public static final ByteList intToHexByteList(int i, boolean upper) {
-        return new ByteList(intToHexBytes(i, upper));
     }
 
     public static final byte[] intToByteArray(int i, int radix, boolean upper) {
@@ -561,25 +544,8 @@ public class ConvertBytes {
         return longToUnsignedByteList(i, 3, LOWER_DIGITS).bytes();
     }
 
-    public static final byte[] longToHexBytes(long i) {
-        return longToUnsignedByteList(i, 4, LOWER_DIGITS).bytes();
-    }
-
     public static final byte[] longToHexBytes(long i, boolean upper) {
         return longToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS).bytes();
-    }
-
-    public static final ByteList longToBinaryByteList(long i) {
-        return longToByteList(i, 2, LOWER_DIGITS);
-    }
-    public static final ByteList longToOctalByteList(long i) {
-        return longToByteList(i, 8, LOWER_DIGITS);
-    }
-    public static final ByteList longToHexByteList(long i) {
-        return longToByteList(i, 16, LOWER_DIGITS);
-    }
-    public static final ByteList longToHexByteList(long i, boolean upper) {
-        return longToByteList(i, 16, upper ? UPPER_DIGITS : LOWER_DIGITS);
     }
 
     public static final byte[] longToByteArray(long i, int radix, boolean upper) {
@@ -588,14 +554,6 @@ public class ConvertBytes {
 
     public static final byte[] longToCharBytes(long i) {
         return longToByteList(i, 10, LOWER_DIGITS).bytes();
-    }
-
-    public static final ByteList longToByteList(long i) {
-        return longToByteList(i, 10, LOWER_DIGITS);
-    }
-
-    public static final ByteList longToByteList(long i, int radix) {
-        return longToByteList(i, radix, LOWER_DIGITS);
     }
 
     public static final ByteList longToByteList(long i, int radix, byte[] digitmap) {
@@ -727,57 +685,5 @@ public class ConvertBytes {
         space['\r'] = true;
         space[' '] = true;
     }
-
-    public static byte[] bytesToUUIDBytes(byte[] randBytes, boolean upper) {
-        ByteBuffer bytes = ByteBuffer.wrap(randBytes);
-        long N0 = bytes.getInt() & 0xFFFFFFFFL;
-        int n1 = bytes.getShort() & 0xFFFF;
-        int n2 = bytes.getShort() & 0xFFFF;
-        n2 = n2 & 0x0FFF | 0x4000;
-        int n3 = bytes.getShort() & 0xFFFF;
-        n3 = n3 & 0x3FFF | 0x8000;
-        int n4 = bytes.getShort() & 0xFFFF;
-        long N5 = bytes.getInt() & 0xFFFFFFFFL;
-        byte[] convert = upper ? UPPER_DIGITS : LOWER_DIGITS;
-        return new byte[]{
-                convert[(int)((N0 >> 28) & 0xF)],
-                convert[(int)((N0 >> 24) & 0xF)],
-                convert[(int)((N0 >> 20) & 0xF)],
-                convert[(int)((N0 >> 16) & 0xF)],
-                convert[(int)((N0 >> 12) & 0xF)],
-                convert[(int)((N0 >> 8) & 0xF)],
-                convert[(int)((N0 >> 4) & 0xF)],
-                convert[(int)(N0 & 0xF)],
-                (byte)'-',
-                convert[(n1 >> 12) & 0xF],
-                convert[(n1 >> 8) & 0xF],
-                convert[(n1 >> 4) & 0xF],
-                convert[n1 & 0xF],
-                (byte)'-',
-                convert[(n2 >> 12) & 0xF],
-                convert[(n2 >> 8) & 0xF],
-                convert[(n2 >> 4) & 0xF],
-                convert[n2 & 0xF],
-                (byte)'-',
-                convert[(n3 >> 12) & 0xF],
-                convert[(n3 >> 8) & 0xF],
-                convert[(n3 >> 4) & 0xF],
-                convert[n3 & 0xF],
-                (byte)'-',
-                convert[(n4 >> 12) & 0xF],
-                convert[(n4 >> 8) & 0xF],
-                convert[(n4 >> 4) & 0xF],
-                convert[n4 & 0xF],
-                convert[(int)((N5 >> 28) & 0xF)],
-                convert[(int)((N5 >> 24) & 0xF)],
-                convert[(int)((N5 >> 20) & 0xF)],
-                convert[(int)((N5 >> 16) & 0xF)],
-                convert[(int)((N5 >> 12) & 0xF)],
-                convert[(int)((N5 >> 8) & 0xF)],
-                convert[(int)((N5 >> 4) & 0xF)],
-                convert[(int)(N5 & 0xF)]
-        };
-    }
-
 
 }
