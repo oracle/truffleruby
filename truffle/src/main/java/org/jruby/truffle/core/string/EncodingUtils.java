@@ -277,8 +277,4 @@ public class EncodingUtils {
         enc.codeToMbc(c, buf, p);
     }
 
-    public static Encoding STR_ENC_GET(ByteListHolder str) {
-        return getEncoding(str.getByteList());
-    }
-
 }
