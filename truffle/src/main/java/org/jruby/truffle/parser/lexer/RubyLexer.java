@@ -292,7 +292,7 @@ public class RubyLexer {
             updateLineOffset();
             line_count++;
             lex_pbeg = lex_p = 0;
-            lex_pend = lex_p + v.getLength();
+            lex_pend = lex_p + v.toRope().byteLength();
             lexb = v;
             flush();
             lex_lastline = v;
@@ -351,7 +351,7 @@ public class RubyLexer {
 
     // FIXME: How does lexb.toString() vs getCurrentLine() differ.
     public void compile_error(SyntaxException.PID pid, String message) {
-        String src = lex_lastline.toEncodedString();
+        String src = RopeOperations.decodeRope(lex_lastline.toRope());
         throw new SyntaxException(pid, getFile(), ruby_sourceline, src, message);
     }
 
@@ -359,7 +359,7 @@ public class RubyLexer {
         ParserByteList line = here.lastLine;
         lex_lastline = line;
         lex_pbeg = 0;
-        lex_pend = lex_pbeg + line.getLength();
+        lex_pend = lex_pbeg + line.toRope().byteLength();
         lex_p = lex_pbeg + here.nth;
         lexb = line;
         heredoc_end = ruby_sourceline;
@@ -425,10 +425,10 @@ public class RubyLexer {
     private final ParserByteList TRUE = new ParserByteList(RopeOperations.create(new byte[] {'t', 'r', 'u', 'e'}, ASCIIEncoding.INSTANCE, CR_7BIT));
     private final ParserByteList FALSE = new ParserByteList(RopeOperations.create(new byte[] {'f', 'a', 'l', 's', 'e'}, ASCIIEncoding.INSTANCE, CR_7BIT));
     protected int asTruth(String name, ParserByteList value) {
-        int result = value.caseInsensitiveCmp(TRUE);
+        int result = RopeOperations.caseInsensitiveCmp(value.toRope(), TRUE.toRope());
         if (result == 0) return 1;
 
-        result = value.caseInsensitiveCmp(FALSE);
+        result = RopeOperations.caseInsensitiveCmp(value.toRope(), FALSE.toRope());
         if (result == 0) return 0;
 
         warnings.warn(RubyWarnings.ID.ACCESSOR_MODULE_FUNCTION, "invalid value for " + name + ": " + value);
@@ -520,8 +520,8 @@ public class RubyLexer {
 
     // STR_NEW3/parser_str_new
     public StrParseNode createStr(ParserByteList buffer, int flags) {
-        Encoding bufferEncoding = buffer.getEncoding();
-        CodeRange codeRange = buffer.codeRangeScan();
+        Encoding bufferEncoding = buffer.toRope().getEncoding();
+        CodeRange codeRange = buffer.toRope().getCodeRange();
 
         if ((flags & STR_FUNC_REGEXP) == 0 && bufferEncoding.isAsciiCompatible()) {
             // If we have characters outside 7-bit range and we are still ascii then change to ascii-8bit
@@ -542,7 +542,7 @@ public class RubyLexer {
     }
 
     public static CodeRange associateEncoding(ParserByteList buffer, Encoding newEncoding, CodeRange codeRange) {
-        Encoding bufferEncoding = buffer.getEncoding();
+        Encoding bufferEncoding = buffer.toRope().getEncoding();
 
         if (newEncoding == bufferEncoding) return codeRange;
 
@@ -839,7 +839,7 @@ public class RubyLexer {
             case '=':
                 // documentation nodes
                 if (was_bol()) {
-                    if (strncmp(lexb.makeShared(lex_p, lex_pend - lex_p), BEGIN_DOC_MARKER, BEGIN_DOC_MARKER.getLength()) &&
+                    if (strncmp(lexb.makeShared(lex_p, lex_pend - lex_p), BEGIN_DOC_MARKER, BEGIN_DOC_MARKER.toRope().byteLength()) &&
                             Character.isWhitespace(p(lex_p + 5))) {
                         for (;;) {
                             lex_goto_eol();
@@ -853,7 +853,7 @@ public class RubyLexer {
 
                             if (c != '=') continue;
 
-                            if (strncmp(lexb.makeShared(lex_p, lex_pend - lex_p), END_DOC_MARKER, END_DOC_MARKER.getLength()) &&
+                            if (strncmp(lexb.makeShared(lex_p, lex_pend - lex_p), END_DOC_MARKER, END_DOC_MARKER.toRope().byteLength()) &&
                                     (lex_p + 3 == lex_pend || Character.isWhitespace(p(lex_p + 3)))) {
                                 break;
                             }
@@ -1029,7 +1029,7 @@ public class RubyLexer {
 
     // MRI: parser_magic_comment
     public boolean parseMagicComment(ParserByteList magicLine) throws IOException {
-        int length = magicLine.getLength();
+        int length = magicLine.toRope().byteLength();
 
         if (length <= 7) return false;
         int beg = magicCommentMarker(magicLine, 0);
@@ -1042,7 +1042,7 @@ public class RubyLexer {
         }
 
         int begin = beg;
-        Matcher matcher = magicRegexp.matcher(magicLine.getBytes());
+        Matcher matcher = magicRegexp.matcher(magicLine.toRope().getBytes());
         int result = ClassicRegexp.matcherSearch(matcher, begin, begin + length, Option.NONE);
 
         if (result < 0) return false;
@@ -2515,7 +2515,7 @@ public class RubyLexer {
     }
 
     public String createTokenString(int start) {
-        return lexb.makeShared(start, lex_p - start).toEncodedString();
+        return RopeOperations.decodeRope(lexb.makeShared(start, lex_p - start).toRope());
     }
 
     public String createTokenString() {
@@ -2607,7 +2607,7 @@ public class RubyLexer {
 
     // mri: parser_isascii
     public boolean isASCII() {
-        return Encoding.isMbcAscii((byte) lexb.charAt(lex_p - 1));
+        return Encoding.isMbcAscii((byte) (int) lexb.toRope().get(lex_p - 1));
     }
 
     public boolean isASCII(int c) {
@@ -2714,11 +2714,11 @@ public class RubyLexer {
         }
         pushback(c);
 
-        current_enc = lex_lastline.getEncoding();
+        current_enc = lex_lastline.toRope().getEncoding();
     }
 
     public int p(int offset) {
-        return lexb.charAt(offset) & 0xff;
+        return (int) lexb.toRope().get(offset) & 0xff;
     }
 
     public boolean peek(int c) {
@@ -2826,7 +2826,7 @@ public class RubyLexer {
                     if (Character.isSpaceChar(p(str))) break;
                     continue;
             }
-            if (lexb.makeShared(str - 6, 6).caseInsensitiveCmp(CODING) == 0) break;
+            if (RopeOperations.caseInsensitiveCmp(lexb.makeShared(str - 6, 6).toRope(), CODING.toRope()) == 0) break;
         }
 
         for(;;) {
@@ -2880,9 +2880,9 @@ public class RubyLexer {
     }
 
     protected boolean strncmp(ParserByteList one, ParserByteList two, int length) {
-        if (one.getLength() < length || two.getLength() < length) return false;
+        if (one.toRope().byteLength() < length || two.toRope().byteLength() < length) return false;
 
-        return one.makeShared(0, length).equal(two.makeShared(0, length));
+        return one.makeShared(0, length).toRope().equals(two.makeShared(0, length).toRope());
     }
 
     public void tokAdd(int first_byte, ParserByteListBuilder buffer) {
@@ -3030,7 +3030,7 @@ public class RubyLexer {
     }
 
     public boolean whole_match_p(ParserByteList eos, boolean indent) {
-        int len = eos.getLength();
+        int len = eos.toRope().byteLength();
         int p = lex_pbeg;
 
         if (indent) {
@@ -3151,20 +3151,20 @@ public class RubyLexer {
      */
     public static int magicCommentMarker(ParserByteList str, int begin) {
         int i = begin;
-        int len = str.getLength();
+        int len = str.toRope().byteLength();
 
         while (i < len) {
-            switch (str.charAt(i)) {
+            switch ((int) str.toRope().get(i)) {
                 case '-':
-                    if (i >= 2 && str.charAt(i - 1) == '*' && str.charAt(i - 2) == '-') return i + 1;
+                    if (i >= 2 && (int) str.toRope().get(i - 1) == '*' && (int) str.toRope().get(i - 2) == '-') return i + 1;
                     i += 2;
                     break;
                 case '*':
                     if (i + 1 >= len) return -1;
 
-                    if (str.charAt(i + 1) != '-') {
+                    if ((int) str.toRope().get(i + 1) != '-') {
                         i += 4;
-                    } else if (str.charAt(i - 1) != '-') {
+                    } else if ((int) str.toRope().get(i - 1) != '-') {
                         i += 2;
                     } else {
                         return i + 2;

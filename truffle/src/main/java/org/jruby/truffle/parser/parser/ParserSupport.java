@@ -1077,7 +1077,7 @@ public class ParserSupport {
                 StrParseNode front = (StrParseNode) head;
                 // string_contents always makes an empty strnode...which is sometimes valid but
                 // never if it ever is in literal_concat.
-                if (front.getValue().getLength() > 0) {
+                if (front.getValue().toRope().byteLength() > 0) {
                     return new StrParseNode(head.getPosition(), front, (StrParseNode) tail);
                 } else {
                     return tail;
@@ -1102,7 +1102,7 @@ public class ParserSupport {
         if (head instanceof StrParseNode) {
 
             //Do not add an empty string node
-            if(((StrParseNode) head).getValue().getLength() == 0) {
+            if(((StrParseNode) head).getValue().toRope().byteLength() == 0) {
                 head = createDStrNode(head.getPosition());
             } else {
                 head = createDStrNode(head.getPosition()).add(head);
@@ -1417,7 +1417,7 @@ public class ParserSupport {
     }
 
     private boolean is7BitASCII(ParserByteList value) {
-        return value.codeRangeScan() == CodeRange.CR_7BIT;
+        return value.toRope().getCodeRange() == CodeRange.CR_7BIT;
     }
 
     // TODO: Put somewhere more consolidated (similiar
@@ -1456,14 +1456,14 @@ public class ParserSupport {
 
         // Change encoding to one specified by regexp options as long as the string is compatible.
         if (optionsEncoding != null) {
-            if (optionsEncoding != value.getEncoding() && !is7BitASCII(value)) {
-                compileError(optionsEncoding, value.getEncoding());
+            if (optionsEncoding != value.toRope().getEncoding() && !is7BitASCII(value)) {
+                compileError(optionsEncoding, value.toRope().getEncoding());
             }
 
             value = value.withEncoding(optionsEncoding);
         } else if (options.isEncodingNone()) {
-            if (value.getEncoding() == ASCII8BIT_ENCODING && !is7BitASCII(value)) {
-                compileError(optionsEncoding, value.getEncoding());
+            if (value.toRope().getEncoding() == ASCII8BIT_ENCODING && !is7BitASCII(value)) {
+                compileError(optionsEncoding, value.toRope().getEncoding());
             }
             value = value.withEncoding(ASCII8BIT_ENCODING);
         } else if (lexer.getEncoding() == USASCII_ENCODING) {
@@ -1528,7 +1528,7 @@ public class ParserSupport {
         // EvStrParseNode: #{val}: no fragment check, but at least set encoding
         ParserByteList master = createMaster(options);
         master = regexpFragmentCheck(end, master);
-        encoding = master.getEncoding();
+        encoding = master.toRope().getEncoding();
         DRegexpParseNode node = new DRegexpParseNode(position, options, encoding);
         node.add(new StrParseNode(contents.getPosition(), master));
         node.add(contents);

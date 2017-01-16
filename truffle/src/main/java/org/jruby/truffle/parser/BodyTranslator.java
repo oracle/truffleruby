@@ -2167,7 +2167,7 @@ public class BodyTranslator extends Translator {
 
         if (node.getReceiverNode() instanceof RegexpParseNode) {
             final RegexpParseNode regexpNode = (RegexpParseNode) node.getReceiverNode();
-            final byte[] bytes = regexpNode.getValue().getBytes();
+            final byte[] bytes = regexpNode.getValue().toRope().getBytes();
             final Regex regex = new Regex(bytes, 0, bytes.length, regexpNode.getOptions().toOptions(), regexpNode.getEncoding(), Syntax.RUBY);
 
             if (regex.numberOfNames() > 0) {

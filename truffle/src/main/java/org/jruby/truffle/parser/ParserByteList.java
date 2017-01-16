@@ -65,14 +65,6 @@ public class ParserByteList {
         this.rope = rope;
     }
 
-    public int getLength() {
-        return rope.byteLength();
-    }
-
-    public Encoding getEncoding() {
-        return rope.getEncoding();
-    }
-
     public ParserByteList withEncoding(Encoding encoding) {
         final Rope newRope = getParseByteListNode().getWithEncodingNode().executeWithEncoding(rope, encoding, CR_UNKNOWN);
 
@@ -93,18 +85,6 @@ public class ParserByteList {
         return new ParserByteList(newRope);
     }
 
-    public int caseInsensitiveCmp(ParserByteList other) {
-        return RopeOperations.caseInsensitiveCmp(rope, other.rope);
-    }
-
-    public boolean equal(ParserByteList other) {
-        return rope.equals(other.rope);
-    }
-
-    public int charAt(int index) {
-        return rope.get(index);
-    }
-
     @Override
     public String toString() {
         return RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, rope);
@@ -114,28 +94,12 @@ public class ParserByteList {
         return rope;
     }
 
-    public byte[] getBytes() {
-        return rope.getBytes();
-    }
-
-    public CodeRange codeRangeScan() {
-        return rope.getCodeRange();
-    }
-
-    public int getStringLength() {
-        return rope.characterLength();
-    }
-
     public int getEncodingLength(Encoding encoding) {
         if ((encoding == rope.getEncoding() && rope.isSingleByteOptimizable()) || encoding.isSingleByte()) {
             return 1;
         }
 
         return StringSupport.encFastMBCLen(rope.getBytes(), 0, rope.byteLength(), encoding);
-    }
-
-    public String toEncodedString() {
-        return RopeOperations.decodeRope(rope);
     }
 
     private ParserByteListNode getParseByteListNode() {

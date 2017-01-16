@@ -65,7 +65,7 @@ public class LexerSource {
     }
 
     public Encoding getEncoding() {
-        return sourceBytes.getEncoding();
+        return sourceBytes.toRope().getEncoding();
     }
 
     public void setEncoding(Encoding encoding) {
@@ -81,14 +81,14 @@ public class LexerSource {
     }
 
     public ParserByteList gets() {
-        if (byteOffset >= sourceBytes.getLength()) {
+        if (byteOffset >= sourceBytes.toRope().byteLength()) {
             return null;
         }
 
         int lineEnd = nextNewLine() + 1;
 
         if (lineEnd == 0) {
-            lineEnd = sourceBytes.getLength();
+            lineEnd = sourceBytes.toRope().byteLength();
         }
 
         final int start = byteOffset;
@@ -102,8 +102,8 @@ public class LexerSource {
     private int nextNewLine() {
         int n = byteOffset;
 
-        while (n < sourceBytes.getLength()) {
-            if (sourceBytes.charAt(n) == '\n') {
+        while (n < sourceBytes.toRope().byteLength()) {
+            if ((int) sourceBytes.toRope().get(n) == '\n') {
                 return n;
             }
 

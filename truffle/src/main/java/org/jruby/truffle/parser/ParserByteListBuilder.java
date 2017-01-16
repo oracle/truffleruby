@@ -60,7 +60,7 @@ public class ParserByteListBuilder {
     }
 
     public void append(ParserByteList other) {
-        append(other.getBytes());
+        append(other.toRope().getBytes());
     }
 
     public void append(byte[] appendBytes, int appendStart, int appendLength) {

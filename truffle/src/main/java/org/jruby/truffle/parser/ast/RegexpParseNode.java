@@ -55,7 +55,7 @@ public class RegexpParseNode extends ParseNode implements ILiteralNode {
     }
 
     public Encoding getEncoding() {
-        return value.getEncoding();
+        return value.toRope().getEncoding();
     }
 
     public NodeType getNodeType() {
