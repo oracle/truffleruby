@@ -37,91 +37,19 @@
  */
 package org.jruby.truffle.parser;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
-import org.jruby.truffle.core.rope.CodeRange;
 import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeNodes;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.StringSupport;
-import org.jruby.truffle.language.RubyNode;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-
-import static org.jruby.truffle.core.rope.CodeRange.CR_7BIT;
-import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
+import org.jruby.truffle.parser.parser.ParserRopeOperations;
 
 public class ParserByteList {
 
     private final Rope rope;
-    private ParserByteListNode parserByteListNode;
 
     public ParserByteList(Rope rope) {
         this.rope = rope;
-    }
-
-    public ParserByteList withEncoding(Encoding encoding) {
-        final Rope newRope = getParseByteListNode().getWithEncodingNode().executeWithEncoding(rope, encoding, CR_UNKNOWN);
-
-        if (newRope == rope) {
-            return this;
-        }
-
-        return new ParserByteList(newRope);
-    }
-
-    public ParserByteList makeShared(int sharedStart, int sharedLength) {
-        final Rope newRope = getParseByteListNode().getMakeSubstringNode().executeMake(rope, sharedStart, sharedLength);
-
-        if (newRope == rope) {
-            return this;
-        }
-
-        return new ParserByteList(newRope);
     }
 
     public Rope toRope() {
         return rope;
     }
 
-    private ParserByteListNode getParseByteListNode() {
-        if (parserByteListNode == null) {
-            parserByteListNode = new ParserByteListNode();
-        }
-
-        return parserByteListNode;
-    }
-
-    private static class ParserByteListNode extends RubyNode {
-
-        @Child RopeNodes.MakeSubstringNode makeSubstringNode;
-        @Child RopeNodes.WithEncodingNode withEncodingNode;
-
-        public RopeNodes.MakeSubstringNode getMakeSubstringNode() {
-            if (makeSubstringNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeSubstringNode = insert(RopeNodes.MakeSubstringNode.create());
-            }
-
-            return makeSubstringNode;
-        }
-
-        public RopeNodes.WithEncodingNode getWithEncodingNode() {
-            if (withEncodingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                withEncodingNode = insert(RopeNodes.WithEncodingNode.create());
-            }
-
-            return withEncodingNode;
-        }
-
-        @Override
-        public Object execute(VirtualFrame frame) {
-            return nil();
-        }
-
-    }
 }

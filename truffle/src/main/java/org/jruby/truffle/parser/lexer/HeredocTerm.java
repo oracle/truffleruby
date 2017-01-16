@@ -33,6 +33,7 @@ import org.jcodings.Encoding;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.ParserByteListBuilder;
+import org.jruby.truffle.parser.parser.ParserRopeOperations;
 import org.jruby.truffle.parser.parser.Tokens;
 
 import java.nio.charset.StandardCharsets;
@@ -68,6 +69,8 @@ public class HeredocTerm extends StrTerm {
 
     // Portion of line right after beginning marker
     protected final ParserByteList lastLine;
+
+    private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
 
     public HeredocTerm(ParserByteList marker, int func, int nth, int line, ParserByteList lastLine) {
         this.nd_lit = marker;
@@ -136,10 +139,10 @@ public class HeredocTerm extends StrTerm {
                 }
 
                 if (str != null) {
-                    str.append(lbuf.makeShared(p, pend - p));
+                    str.append(parserRopeOperations.makeShared(lbuf, p, pend - p));
                 } else {
                     final ParserByteListBuilder builder = new ParserByteListBuilder();
-                    builder.append(lbuf.makeShared(p, pend - p));
+                    builder.append(parserRopeOperations.makeShared(lbuf, p, pend - p));
                     str = builder;
                 }
 

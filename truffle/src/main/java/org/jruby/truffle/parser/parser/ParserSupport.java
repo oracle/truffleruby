@@ -168,6 +168,8 @@ public class ParserSupport {
 
     private String file;
 
+    private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
+
     public ParserSupport(RubyContext context, String file) {
         this.context = context;
         this.file = file;
@@ -1462,17 +1464,17 @@ public class ParserSupport {
                 compileError(optionsEncoding, value.toRope().getEncoding());
             }
 
-            value = value.withEncoding(optionsEncoding);
+            value = parserRopeOperations.withEncoding(value, optionsEncoding);
         } else if (options.isEncodingNone()) {
             if (value.toRope().getEncoding() == ASCII8BIT_ENCODING && !is7BitASCII(value)) {
                 compileError(optionsEncoding, value.toRope().getEncoding());
             }
-            value = value.withEncoding(ASCII8BIT_ENCODING);
+            value = parserRopeOperations.withEncoding(value, ASCII8BIT_ENCODING);
         } else if (lexer.getEncoding() == USASCII_ENCODING) {
             if (!is7BitASCII(value)) {
-                value = value.withEncoding(USASCII_ENCODING); // This will raise later
+                value = parserRopeOperations.withEncoding(value, USASCII_ENCODING); // This will raise later
             } else {
-                value = value.withEncoding(ASCII8BIT_ENCODING);
+                value = parserRopeOperations.withEncoding(value, ASCII8BIT_ENCODING);
             }
         }
         return value;
@@ -1499,7 +1501,7 @@ public class ParserSupport {
         if (contents == null) {
             ParserByteList newValue = new ParserByteList(RopeConstants.EMPTY_US_ASCII_ROPE);
             if (encoding != null) {
-                newValue = newValue.withEncoding(encoding);
+                newValue = parserRopeOperations.withEncoding(newValue, encoding);
             }
 
             newValue = regexpFragmentCheck(end, newValue);

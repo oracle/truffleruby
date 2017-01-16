@@ -76,6 +76,7 @@ import org.jruby.truffle.parser.ast.NumericParseNode;
 import org.jruby.truffle.parser.ast.ParseNode;
 import org.jruby.truffle.parser.ast.RationalParseNode;
 import org.jruby.truffle.parser.ast.StrParseNode;
+import org.jruby.truffle.parser.parser.ParserRopeOperations;
 import org.jruby.truffle.parser.parser.ParserSupport;
 import org.jruby.truffle.parser.parser.RubyParser;
 import org.jruby.truffle.parser.parser.Tokens;
@@ -92,6 +93,9 @@ import static org.jruby.truffle.core.rope.CodeRange.CR_7BIT;
  * This is a port of the MRI lexer to Java.
  */
 public class RubyLexer {
+
+    private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
+
     private static final HashMap<String, Keyword> map;
 
     static {
@@ -533,7 +537,7 @@ public class RubyLexer {
             } else if (getEncoding() == USASCII_ENCODING &&
                     bufferEncoding != UTF8_ENCODING) {
                 codeRange = associateEncoding(buffer, ASCII8BIT_ENCODING, codeRange);
-                buffer = buffer.withEncoding(ASCII8BIT_ENCODING);
+                buffer = parserRopeOperations.withEncoding(buffer, ASCII8BIT_ENCODING);
             }
         }
 
@@ -785,7 +789,7 @@ public class RubyLexer {
                 continue;
             case '#': {	/* it's a comment */
                 this.tokenSeen = tokenSeen;
-                if (!parseMagicComment(lexb.makeShared(lex_p, lex_pend - lex_p))) {
+                if (!parseMagicComment(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p))) {
                     if (comment_at_top()) set_file_encoding(lex_p, lex_pend);
                 }
                 lex_p = lex_pend;
@@ -842,7 +846,7 @@ public class RubyLexer {
             case '=':
                 // documentation nodes
                 if (was_bol()) {
-                    if (strncmp(lexb.makeShared(lex_p, lex_pend - lex_p), BEGIN_DOC_MARKER, BEGIN_DOC_MARKER.toRope().byteLength()) &&
+                    if (strncmp(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p), BEGIN_DOC_MARKER, BEGIN_DOC_MARKER.toRope().byteLength()) &&
                             Character.isWhitespace(p(lex_p + 5))) {
                         for (;;) {
                             lex_goto_eol();
@@ -856,7 +860,7 @@ public class RubyLexer {
 
                             if (c != '=') continue;
 
-                            if (strncmp(lexb.makeShared(lex_p, lex_pend - lex_p), END_DOC_MARKER, END_DOC_MARKER.toRope().byteLength()) &&
+                            if (strncmp(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p), END_DOC_MARKER, END_DOC_MARKER.toRope().byteLength()) &&
                                     (lex_p + 3 == lex_pend || Character.isWhitespace(p(lex_p + 3)))) {
                                 break;
                             }
@@ -1054,7 +1058,7 @@ public class RubyLexer {
         int begs[] = matcher.getRegion().beg;
         int ends[] = matcher.getRegion().end;
         String name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, magicLine.toRope()).subSequence(beg + begs[1], beg + ends[1]).toString().replace('-', '_');
-        ParserByteList value = magicLine.makeShared(beg + begs[2], ends[2] - begs[2]);
+        ParserByteList value = parserRopeOperations.makeShared(magicLine, beg + begs[2], ends[2] - begs[2]);
 
         if ("coding".equals(name) || "encoding".equals(name)) {
             magicCommentEncoding(value);
@@ -2514,11 +2518,11 @@ public class RubyLexer {
     }
 
     public ParserByteList createTokenByteArrayView() {
-        return lexb.makeShared(tokp, lex_p - tokp);
+        return parserRopeOperations.makeShared(lexb, tokp, lex_p - tokp);
     }
 
     public String createTokenString(int start) {
-        return RopeOperations.decodeRope(lexb.makeShared(start, lex_p - start).toRope());
+        return RopeOperations.decodeRope(parserRopeOperations.makeShared(lexb, start, lex_p - start).toRope());
     }
 
     public String createTokenString() {
@@ -2737,7 +2741,7 @@ public class RubyLexer {
         int start = lex_p - 1;
         int end = lex_pend;
         int length = end - start;
-        return getEncodingLength(lexb.makeShared(start, length).toRope(), current_enc);
+        return getEncodingLength(parserRopeOperations.makeShared(lexb, start, length).toRope(), current_enc);
     }
 
     public int getEncodingLength(Rope rope, Encoding encoding) {
@@ -2813,7 +2817,7 @@ public class RubyLexer {
     public void setEncoding(Encoding encoding) {
         setCurrentEncoding(encoding);
         src.setEncoding(encoding);
-        lexb = lexb.withEncoding(encoding);
+        lexb = parserRopeOperations.withEncoding(lexb, encoding);
     }
 
     protected void set_file_encoding(int str, int send) {
@@ -2837,7 +2841,7 @@ public class RubyLexer {
                     if (Character.isSpaceChar(p(str))) break;
                     continue;
             }
-            if (RopeOperations.caseInsensitiveCmp(lexb.makeShared(str - 6, 6).toRope(), CODING.toRope()) == 0) break;
+            if (RopeOperations.caseInsensitiveCmp(parserRopeOperations.makeShared(lexb, str - 6, 6).toRope(), CODING.toRope()) == 0) break;
         }
 
         for(;;) {
@@ -2854,7 +2858,7 @@ public class RubyLexer {
 
         int beg = str;
         while ((p(str) == '-' || p(str) == '_' || Character.isLetterOrDigit(p(str))) && ++str < send) {}
-        setEncoding(lexb.makeShared(beg, str - beg));
+        setEncoding(parserRopeOperations.makeShared(lexb, beg, str - beg));
     }
 
     public void setHeredocLineIndent(int heredoc_line_indent) {
@@ -2893,7 +2897,7 @@ public class RubyLexer {
     protected boolean strncmp(ParserByteList one, ParserByteList two, int length) {
         if (one.toRope().byteLength() < length || two.toRope().byteLength() < length) return false;
 
-        return one.makeShared(0, length).toRope().equals(two.makeShared(0, length).toRope());
+        return parserRopeOperations.makeShared(one, 0, length).toRope().equals(parserRopeOperations.makeShared(two, 0, length).toRope());
     }
 
     public void tokAdd(int first_byte, ParserByteListBuilder buffer) {
@@ -2901,7 +2905,7 @@ public class RubyLexer {
     }
 
     public void tokCopy(int length, ParserByteListBuilder buffer) {
-        buffer.append(lexb.makeShared(lex_p - length, length));
+        buffer.append(parserRopeOperations.makeShared(lexb, lex_p - length, length));
     }
 
     public boolean tokadd_ident(int c) {
@@ -3059,7 +3063,7 @@ public class RubyLexer {
             if (n == 1 || p(p+len+1) != '\n') return false;
         }
 
-        return strncmp(eos, lexb.makeShared(p, len), len);
+        return strncmp(eos, parserRopeOperations.makeShared(lexb, p, len), len);
     }
 
     public static final int TAB_WIDTH = 8;

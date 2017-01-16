@@ -40,6 +40,7 @@ import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.parser.ParserByteList;
+import org.jruby.truffle.parser.parser.ParserRopeOperations;
 
 import java.nio.charset.StandardCharsets;
 
@@ -47,6 +48,7 @@ import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 
 public class LexerSource {
 
+    private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
     private final Source source;
     private final int lineStartOffset;
 
@@ -69,7 +71,7 @@ public class LexerSource {
     }
 
     public void setEncoding(Encoding encoding) {
-        sourceBytes = sourceBytes.withEncoding(encoding);
+        sourceBytes = parserRopeOperations.withEncoding(sourceBytes, encoding);
     }
 
     public int getOffset() {
@@ -96,7 +98,7 @@ public class LexerSource {
 
         byteOffset = lineEnd;
 
-        return sourceBytes.makeShared(start, length);
+        return parserRopeOperations.makeShared(sourceBytes, start, length);
     }
 
     private int nextNewLine() {
