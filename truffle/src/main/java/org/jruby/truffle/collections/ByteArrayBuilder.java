@@ -9,47 +9,53 @@
  */
 package org.jruby.truffle.collections;
 
-import org.jruby.truffle.core.rope.Rope;
-
-import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class ByteArrayBuilder {
 
-    private ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+    private byte[] bytes = new byte[16];
+    private int length;
 
     public int getLength() {
-        return bytes.size();
+        return length;
     }
 
     public void append(int b) {
-        bytes.write(b);
+        append((byte) b);
     }
 
     public void append(byte b) {
-        bytes.write(b);
+        ensureSpace(1);
+        bytes[length] = b;
+        length++;
     }
 
     public void append(byte[] appendBytes) {
         append(appendBytes, 0, appendBytes.length);
     }
 
-    public void append(Rope other) {
-        append(other.getBytes());
+    public void append(byte[] appendBytes, int appendStart, int appendLength) {
+        ensureSpace(appendLength);
+        System.arraycopy(appendBytes, 0, bytes, length, appendLength);
+        length += appendLength;
     }
 
-    public void append(byte[] appendBytes, int appendStart, int appendLength) {
-        bytes.write(appendBytes, appendStart, appendLength);
+    private void ensureSpace(int space) {
+        if (length + space > bytes.length) {
+            bytes = Arrays.copyOf(bytes, (bytes.length + space) * 2);
+        }
     }
 
     public byte[] getBytes() {
-        return bytes.toByteArray();
+        return Arrays.copyOf(bytes, length);
     }
 
     public void clear() {
-        bytes = new ByteArrayOutputStream();
+        bytes = new byte[]{};
+        length = 0;
     }
 
     public String toString() {
