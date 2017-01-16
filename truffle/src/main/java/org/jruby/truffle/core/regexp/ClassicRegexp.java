@@ -52,7 +52,6 @@ import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.core.string.ByteList;
-import org.jruby.truffle.core.string.ByteListKey;
 import org.jruby.truffle.core.string.StringSupport;
 import org.jruby.truffle.parser.ReOptions;
 
@@ -89,7 +88,7 @@ public class ClassicRegexp implements ReOptions {
         // FIXME: transcode?
     }
 
-    static final WeakValuedMap<ByteListKey, Regex> patternCache = new WeakValuedMap<>();
+    static final WeakValuedMap<Rope, Regex> patternCache = new WeakValuedMap<>();
 
     private static Regex makeRegexp(RubyContext runtime, ByteList bytes, RegexpOptions options, Encoding enc) {
         try {
@@ -105,7 +104,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     static Regex getRegexpFromCache(RubyContext runtime, ByteList bytes, Encoding enc, RegexpOptions options) {
-        ByteListKey key = new ByteListKey(bytes);
+        Rope key = RopeOperations.ropeFromByteList(bytes);
         Regex regex = patternCache.get(key);
         if (regex != null && regex.getEncoding() == enc && regex.getOptions() == options.toJoniOptions()) return regex;
         regex = makeRegexp(runtime, bytes, options, enc);
