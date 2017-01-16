@@ -34,10 +34,6 @@ public class ParserByteListBuilder {
         return length;
     }
 
-    public void setLength(int length) {
-        this.length = length;
-    }
-
     public Encoding getEncoding() {
         return encoding;
     }
@@ -80,8 +76,9 @@ public class ParserByteListBuilder {
         return Arrays.copyOf(bytes, length);
     }
 
-    public void replace(byte[] bytes) {
-        this.bytes = bytes;
+    public void clear() {
+        bytes = new byte[]{};
+        length = 0;
     }
 
     public Rope toRope() {

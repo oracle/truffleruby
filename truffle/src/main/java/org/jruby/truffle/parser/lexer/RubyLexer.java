@@ -2052,7 +2052,7 @@ public class RubyLexer {
         setState(EXPR_END);
         newtok(true);
 
-        numberBuffer.setLength(0);
+        numberBuffer.clear();
 
         if (c == '-') {
         	numberBuffer.append((char) c);
@@ -2960,8 +2960,8 @@ public class RubyLexer {
         int length = encoding.codeToMbcLength(codepoint);
         final byte[] bytes = Arrays.copyOf(buffer.getBytes(), buffer.getLength() + length);
         encoding.codeToMbc(codepoint, bytes, buffer.getLength());
-        buffer.replace(bytes);
-        buffer.setLength(buffer.getLength() + length);
+        buffer.clear();
+        buffer.append(bytes);
     }
 
     /**
