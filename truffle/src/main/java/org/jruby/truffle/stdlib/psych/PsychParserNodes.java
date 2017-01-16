@@ -473,7 +473,7 @@ public abstract class PsychParserNodes {
 
             // these are in the while clause in MRI
             destbytes = newStr.getUnsafeBytes();
-            int dest = newStr.begin();
+            int dest = 0;
             dp.p = dest + convertedOutput;
             ret = TranscodingManager.convert(ec, sbytes, sp, start + len, destbytes, dp, dest + olen, 0);
 
@@ -493,7 +493,7 @@ public abstract class PsychParserNodes {
 
                 // these are the while clause in MRI
                 destbytes = newStr.getUnsafeBytes();
-                dest = newStr.begin();
+                dest = 0;
                 dp.p = dest + convertedOutput;
                 ret = TranscodingManager.convert(ec, sbytes, sp, start + len, destbytes, dp, dest + olen, 0);
             }

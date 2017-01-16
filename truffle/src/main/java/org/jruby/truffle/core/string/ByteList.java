@@ -474,17 +474,6 @@ public class ByteList {
     }
 
     /**
-     * First index of the backing array that contains data for the ByteList.  Note that we have
-     * copy-on-write (COW) semantics which means sharing the same backing store will yield different
-     * begin and size values while using the same byte[].
-     *
-     * @return the index
-     */
-    public int begin() {
-        return 0;
-    }
-
-    /**
      * Grow the ByteList by increaseRequested bytes.  A value <0 will be a no-op.
      *
      * @param increaseRequested number of bytes to grow
@@ -509,19 +498,11 @@ public class ByteList {
         return new String(bytes(), StandardCharsets.US_ASCII);
     }
 
-
     /**
      * @return the bytes
      */
     public byte[] getUnsafeBytes() {
         return bytes;
-    }
-
-    /**
-     * @return the begin
-     */
-    public int getBegin() {
-        return 0;
     }
 
     /**

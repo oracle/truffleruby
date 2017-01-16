@@ -93,9 +93,7 @@ public class ClassicRegexp implements ReOptions {
 
     private static Regex makeRegexp(RubyContext runtime, ByteList bytes, RegexpOptions options, Encoding enc) {
         try {
-            int p = bytes.getBegin();
-
-            return new Regex(bytes.getUnsafeBytes(), p, p + bytes.getRealSize(), options.toJoniOptions(), enc, Syntax.DEFAULT, new WarnCallback() {
+            return new Regex(bytes.getUnsafeBytes(), 0, bytes.getRealSize(), options.toJoniOptions(), enc, Syntax.DEFAULT, new WarnCallback() {
                 @Override
                 public void warn(String s) {
                     //
@@ -309,7 +307,7 @@ public class ClassicRegexp implements ReOptions {
         } else {
             if (to != null) {
                 to.ensure(to.getRealSize() + 6);
-                to.setRealSize(to.getRealSize() + utf8Decode(context, to.getUnsafeBytes(), to.getBegin() + to.getRealSize(), code));
+                to.setRealSize(to.getRealSize() + utf8Decode(context, to.getUnsafeBytes(), to.getRealSize(), code));
             }
             if (enc[0] == null) {
                 enc[0] = UTF8Encoding.INSTANCE;

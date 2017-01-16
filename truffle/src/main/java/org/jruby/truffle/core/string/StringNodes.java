@@ -219,7 +219,7 @@ public abstract class StringNodes {
                 final int newLength = leftByteList.realSize() + right.byteLength();
                 concatByteList = new ByteList(newLength);
                 concatByteList.realSize(newLength);
-                System.arraycopy(leftByteList.unsafeBytes(), leftByteList.begin(), concatByteList.unsafeBytes(), 0, leftByteList.realSize());
+                System.arraycopy(leftByteList.unsafeBytes(), 0, concatByteList.unsafeBytes(), 0, leftByteList.realSize());
                 System.arraycopy(right.getBytes(), 0, concatByteList.unsafeBytes(), leftByteList.realSize(), right.byteLength());
             }
 
@@ -1859,7 +1859,7 @@ public abstract class StringNodes {
                     return ((RopeBuffer) rope).getByteList().realSize();
                 } else {
                     final ByteList byteList = ((RopeBuffer) rope).getByteList();
-                    return RopeOperations.strLength(rope.getEncoding(), byteList.unsafeBytes(), byteList.begin(), byteList.realSize());
+                    return RopeOperations.strLength(rope.getEncoding(), byteList.unsafeBytes(), 0, byteList.realSize());
                 }
             } else {
                 return rope.characterLength();
@@ -2403,7 +2403,7 @@ public abstract class StringNodes {
             }
 
             final ByteList bytes = RopeOperations.toByteListCopy(rope);
-            final boolean modified = multiByteUpcase(encoding, bytes.unsafeBytes(), bytes.begin(), bytes.realSize());
+            final boolean modified = multiByteUpcase(encoding, bytes.unsafeBytes(), 0, bytes.realSize());
             if (modified) {
                 StringOperations.setRope(string, RopeOperations.ropeFromByteList(bytes, rope.getCodeRange()));
 

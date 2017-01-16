@@ -64,7 +64,7 @@ public class EncodeUM {
     public static void encodeUM(Object runtime, ByteList lCurElemString, int occurrences, boolean ignoreStar, char type, ByteList result) {
         if (occurrences == 0 && type == 'm' && !ignoreStar) {
             encodes(runtime, result, lCurElemString.getUnsafeBytes(),
-                    lCurElemString.getBegin(), lCurElemString.length(),
+                    0, lCurElemString.length(),
                     lCurElemString.length(), (byte) type, false);
             return;
         }
@@ -75,7 +75,7 @@ public class EncodeUM {
         byte[] charsToEncode = lCurElemString.getUnsafeBytes();
         for (int i = 0; i < lCurElemString.length(); i += occurrences) {
             encodes(runtime, result, charsToEncode,
-                    i + lCurElemString.getBegin(), lCurElemString.length() - i,
+                    i, lCurElemString.length() - i,
                     occurrences, (byte)type, true);
         }
     }

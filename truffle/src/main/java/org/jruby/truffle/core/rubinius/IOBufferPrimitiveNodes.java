@@ -110,7 +110,7 @@ public abstract class IOBufferPrimitiveNodes {
             ByteList storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
 
             // TODO (nirvdrum 08-24-16): Data is copied here - can we do something COW?
-            System.arraycopy(bytes, startPosition, storage.getUnsafeBytes(), storage.begin() + usedSpace, stringSize);
+            System.arraycopy(bytes, startPosition, storage.getUnsafeBytes(), usedSpace, stringSize);
 
             Layouts.IO_BUFFER.setUsed(ioBuffer, usedSpace + stringSize);
 
@@ -146,7 +146,7 @@ public abstract class IOBufferPrimitiveNodes {
                 }
                 final int used = Layouts.IO_BUFFER.getUsed(ioBuffer);
                 final ByteList storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
-                System.arraycopy(readBuffer, 0, storage.getUnsafeBytes(), storage.getBegin() + used, bytesRead);
+                System.arraycopy(readBuffer, 0, storage.getUnsafeBytes(), used, bytesRead);
                 storage.setRealSize(used + bytesRead);
                 Layouts.IO_BUFFER.setUsed(ioBuffer, used + bytesRead);
             }

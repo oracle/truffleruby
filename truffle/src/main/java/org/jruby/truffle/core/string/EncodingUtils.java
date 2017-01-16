@@ -143,15 +143,6 @@ public class EncodingUtils {
         int resize(ByteList destination, int len, int new_len);
     }
 
-    public static final ResizeFunction strTranscodingResize = new ResizeFunction() {
-        @Override
-        public int resize(ByteList destination, int len, int new_len) {
-            destination.setRealSize(len);
-            destination.ensure(new_len);
-            return destination.getBegin();
-        }
-    };
-
     /**
      * Fallback function to provide replacements for characters that fail to transcode.
      *
@@ -197,7 +188,7 @@ public class EncodingUtils {
 
     // MRI: get_actual_encoding
     public static Encoding getActualEncoding(Encoding enc, ByteList byteList) {
-        return getActualEncoding(enc, byteList.getUnsafeBytes(), byteList.begin(), byteList.begin() + byteList.realSize());
+        return getActualEncoding(enc, byteList.getUnsafeBytes(), 0, byteList.realSize());
     }
 
     public static Encoding getActualEncoding(Encoding enc, byte[] bytes, int p, int end) {

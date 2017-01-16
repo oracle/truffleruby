@@ -91,7 +91,7 @@ public abstract class RegexpNodes {
             final ByteList preprocessed = ClassicRegexp.preprocess(context, sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
             final RegexpOptions options = Layouts.REGEXP.getOptions(regexp);
             final Encoding newEnc = checkEncoding(regexp, stringRope, true);
-            regex = new Regex(preprocessed.getUnsafeBytes(), preprocessed.getBegin(), preprocessed.getBegin() + preprocessed.getRealSize(),
+            regex = new Regex(preprocessed.getUnsafeBytes(), 0, preprocessed.getRealSize(),
                     options.toJoniOptions(), newEnc);
             assert enc == newEnc;
         }
@@ -268,7 +268,7 @@ public abstract class RegexpNodes {
             if (fixedEnc[0] != null) options.setFixed(true);
             //if (regexpOptions.isEncodingNone()) setEncodingNone();
 
-            Regex regexp = new Regex(unescaped.getUnsafeBytes(), unescaped.getBegin(), unescaped.getBegin() + unescaped.getRealSize(), options.toJoniOptions(), enc, Syntax.RUBY);
+            Regex regexp = new Regex(unescaped.getUnsafeBytes(), 0, unescaped.getRealSize(), options.toJoniOptions(), enc, Syntax.RUBY);
             regexp.setUserObject(RopeOperations.withEncodingVerySlow(bytes, enc));
 
             return regexp;

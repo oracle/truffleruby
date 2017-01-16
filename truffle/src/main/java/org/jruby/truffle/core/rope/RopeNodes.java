@@ -695,7 +695,7 @@ public abstract class RopeNodes {
 
             int n = inputBytes.realSize();
 
-            System.arraycopy(inputBytes.unsafeBytes(), inputBytes.begin(), outputBytes.unsafeBytes(), 0, n);
+            System.arraycopy(inputBytes.unsafeBytes(), 0, outputBytes.unsafeBytes(), 0, n);
             while (n <= len / 2) {
                 System.arraycopy(outputBytes.unsafeBytes(), 0, outputBytes.unsafeBytes(), n, n);
                 n *= 2;

@@ -194,7 +194,7 @@ public abstract class EncodingConverterNodes {
                 int os = outPtr.p + size;
                 EConvResult res = TranscodingManager.convert(ec, sourceRope.getBytes(), inPtr, sourceRope.byteLength() + inPtr.p, outBytes.getUnsafeBytes(), outPtr, os, options);
 
-                outBytes.setRealSize(outPtr.p - outBytes.begin());
+                outBytes.setRealSize(outPtr.p);
 
                 if (nonNullSource) {
                     sourceRope = makeSubstringNode.executeMake(sourceRope, inPtr.p, sourceRope.byteLength() - inPtr.p);
@@ -253,7 +253,7 @@ public abstract class EncodingConverterNodes {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
             final ByteList bytes = new ByteList(n);
-            ec.putback(bytes.getUnsafeBytes(), bytes.getBegin(), n);
+            ec.putback(bytes.getUnsafeBytes(), 0, n);
             bytes.setRealSize(n);
 
             if (ec.sourceEncoding != null) {
