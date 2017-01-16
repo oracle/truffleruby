@@ -45,7 +45,6 @@ import java.nio.charset.StandardCharsets;
 public class ByteList {
 
     private byte[] bytes;
-    private int begin;
     private int realSize;
     private Encoding encoding = ASCIIEncoding.INSTANCE;
 
@@ -172,11 +171,10 @@ public class ByteList {
         assert index >= 0 && index <= wrap.length : "'index' is not without bounds of 'wrap' array";
         assert wrap.length >= index + len : "'index' + 'len' is longer than the 'wrap' array";
 
-        if (copy) {
+        if (index != 0 || copy) {
             bytes = new byte[len];
             System.arraycopy(wrap, index, bytes, 0, len);
         } else {
-            begin = index;
             bytes = wrap;
         }
         realSize = len;
@@ -193,7 +191,7 @@ public class ByteList {
      * @param len how long the data is in the wrap array
      */
     public ByteList(ByteList wrap, int index, int len) {
-        this(wrap.bytes, wrap.begin + index, len);
+        this(wrap.bytes, index, len);
         encoding = wrap.encoding;
     }
 
@@ -228,7 +226,7 @@ public class ByteList {
     public ByteList dup(int length) {
         ByteList dup = new ByteList(length);
 
-        dup.append(this.bytes, this.begin, this.realSize);
+        dup.append(this.bytes, 0, this.realSize);
         dup.encoding = safeEncoding(encoding);
 
         return dup;
@@ -241,11 +239,10 @@ public class ByteList {
      * @param length to use to make sure ByteList is long enough
      */
     public void ensure(int length) {
-        if (begin + length > bytes.length) {
+        if (length > bytes.length) {
             byte[] tmp = new byte[Math.min(Integer.MAX_VALUE, length + (length >>> 1))];
-            System.arraycopy(bytes, begin, tmp, 0, realSize);
+            System.arraycopy(bytes, 0, tmp, 0, realSize);
             bytes = tmp;
-            begin = 0;
         }
     }
 
@@ -257,7 +254,7 @@ public class ByteList {
      */
     public ByteList append(byte b) {
         grow(1);
-        bytes[begin + realSize] = b;
+        bytes[realSize] = b;
         realSize++;
         return this;
     }
@@ -282,7 +279,7 @@ public class ByteList {
         assert moreBytes != null : "moreBytes is null";
 
         grow(moreBytes.length);
-        System.arraycopy(moreBytes, 0, bytes, begin + realSize, moreBytes.length);
+        System.arraycopy(moreBytes, 0, bytes, realSize, moreBytes.length);
         realSize += moreBytes.length;
         return this;
     }
@@ -296,7 +293,7 @@ public class ByteList {
      * @param len is the number of bytes to append from source ByteList
      */
     public ByteList append(ByteList moreBytes, int index, int len) {
-        return append(moreBytes.bytes, moreBytes.begin + index, len);
+        return append(moreBytes.bytes, index, len);
     }
 
     /**
@@ -314,7 +311,7 @@ public class ByteList {
         assert len >= 0 && moreBytes.length - start >= len : "Bad length";
 
         grow(len);
-        System.arraycopy(moreBytes, start, bytes, begin + realSize, len);
+        System.arraycopy(moreBytes, start, bytes, realSize, len);
         realSize += len;
 
         return this;
@@ -338,7 +335,7 @@ public class ByteList {
     public int get(int index) {
         assert index >= 0 : "index must be positive";
 
-        return bytes[begin + index];
+        return bytes[index];
     }
 
     /**
@@ -349,9 +346,9 @@ public class ByteList {
      */
     public void set(int index, int b) {
         assert index >= 0 : "index must be positive";
-        assert begin + index < begin + realSize : "index is too large";
+        assert index < realSize : "index is too large";
 
-        bytes[begin + index] = (byte)b;
+        bytes[index] = (byte)b;
     }
 
     /**
@@ -362,7 +359,7 @@ public class ByteList {
      * @return the index of the byte or -1 if not found
      */
     public int indexOf(ByteList find, int i) {
-        return indexOf(bytes, begin, realSize, find.bytes, find.begin, find.realSize, i);
+        return indexOf(bytes, 0, realSize, find.bytes, 0, find.realSize, i);
     }
 
     /**
@@ -372,7 +369,7 @@ public class ByteList {
      * @return the index of the byte or -1 if not found
      */
     public int indexOf(Rope find) {
-        return indexOf(bytes, begin, realSize, find.getBytes(), 0, find.byteLength(), 0);
+        return indexOf(bytes, 0, realSize, find.getBytes(), 0, find.byteLength(), 0);
     }
 
     /**
@@ -445,8 +442,8 @@ public class ByteList {
             // backward (I like this one, but it's more expensive for
             // strings that are equal; see sample_equals below).
             first = -1;
-            while (--last > first && buf[begin + last] == otherBuf[other.begin + last] &&
-                    ++first < last && buf[begin + first] == otherBuf[other.begin + first]) {
+            while (--last > first && buf[last] == otherBuf[last] &&
+                    ++first < last && buf[first] == otherBuf[first]) {
             }
             return first >= last;
         }
@@ -472,7 +469,7 @@ public class ByteList {
      */
     public byte[] bytes() {
         byte[] newBytes = new byte[realSize];
-        System.arraycopy(bytes, begin, newBytes, 0, realSize);
+        System.arraycopy(bytes, 0, newBytes, 0, realSize);
         return newBytes;
     }
 
@@ -484,7 +481,7 @@ public class ByteList {
      * @return the index
      */
     public int begin() {
-        return begin;
+        return 0;
     }
 
     /**
@@ -499,11 +496,10 @@ public class ByteList {
         int newSize = realSize + increaseRequested;
 
         // only recopy if bytes does not have enough room *after* the begin index
-        if (newSize > bytes.length - begin) {
+        if (newSize > bytes.length) {
             byte[] newBytes = new byte[newSize + (newSize >> 1)];
-            if (bytes.length != 0) System.arraycopy(bytes, begin, newBytes, 0, realSize);
+            if (bytes.length != 0) System.arraycopy(bytes, 0, newBytes, 0, realSize);
             bytes = newBytes;
-            begin = 0;
         }
     }
 
@@ -525,7 +521,7 @@ public class ByteList {
      * @return the begin
      */
     public int getBegin() {
-        return begin;
+        return 0;
     }
 
     /**
