@@ -83,11 +83,6 @@ public class ParserByteList {
         return new ParserByteList(newRope);
     }
 
-    @Override
-    public String toString() {
-        return RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, rope);
-    }
-
     public Rope toRope() {
         return rope;
     }

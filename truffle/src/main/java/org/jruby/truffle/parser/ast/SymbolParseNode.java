@@ -35,12 +35,14 @@ package org.jruby.truffle.parser.ast;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jruby.truffle.core.rope.CodeRange;
+import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.language.SourceIndexLength;
 import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.ast.types.ILiteralNode;
 import org.jruby.truffle.parser.ast.types.INameNode;
 import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -65,7 +67,7 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
     // String path (e.g. [':', str_beg, str_content, str_end])
     public SymbolParseNode(SourceIndexLength position, ParserByteList value) {
         super(position, false);
-        this.name = value.toString().intern();
+        this.name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, value.toRope()).intern();
 
         if (value.toRope().getEncoding() != USASCIIEncoding.INSTANCE) {
             int size = value.toRope().byteLength();

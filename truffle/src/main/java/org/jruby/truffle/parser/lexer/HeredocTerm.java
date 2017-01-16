@@ -30,9 +30,12 @@
 package org.jruby.truffle.parser.lexer;
 
 import org.jcodings.Encoding;
+import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.ParserByteListBuilder;
 import org.jruby.truffle.parser.parser.Tokens;
+
+import java.nio.charset.StandardCharsets;
 
 import static org.jruby.truffle.parser.lexer.RubyLexer.EOF;
 import static org.jruby.truffle.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
@@ -80,7 +83,7 @@ public class HeredocTerm extends StrTerm {
     }
 
     protected int error(RubyLexer lexer, int len, ParserByteList str, ParserByteList eos) {
-        lexer.compile_error("can't find string \"" + eos.toString() + "\" anywhere before EOF");
+        lexer.compile_error("can't find string \"" + RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, eos.toRope()) + "\" anywhere before EOF");
         return -1;
     }
 
