@@ -42,6 +42,7 @@ import org.jruby.truffle.collections.Tuple;
 import org.jruby.truffle.core.regexp.ClassicRegexp;
 import org.jruby.truffle.core.regexp.RegexpOptions;
 import org.jruby.truffle.core.rope.CodeRange;
+import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.language.SourceIndexLength;
 import org.jruby.truffle.language.control.RaiseException;
@@ -1495,7 +1496,7 @@ public class ParserSupport {
         Encoding encoding = lexer.getEncoding();
 
         if (contents == null) {
-            ParserByteList newValue = ParserByteList.EMPTY_ASCII_ENCODING;
+            ParserByteList newValue = new ParserByteList(RopeConstants.EMPTY_US_ASCII_ROPE);
             if (encoding != null) {
                 newValue = newValue.withEncoding(encoding);
             }

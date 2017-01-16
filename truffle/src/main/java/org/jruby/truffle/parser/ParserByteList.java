@@ -56,8 +56,6 @@ import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 
 public class ParserByteList {
 
-    public static final ParserByteList EMPTY_ASCII_ENCODING = new ParserByteList(RopeOperations.create(new byte[]{}, ASCIIEncoding.INSTANCE, CR_7BIT));
-
     private final Rope rope;
     private ParserByteListNode parserByteListNode;
 

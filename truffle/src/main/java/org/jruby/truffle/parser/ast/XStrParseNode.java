@@ -32,6 +32,7 @@
 package org.jruby.truffle.parser.ast;
 
 import org.jruby.truffle.core.rope.CodeRange;
+import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.language.SourceIndexLength;
 import org.jruby.truffle.parser.ParserByteList;
 import org.jruby.truffle.parser.ast.types.ILiteralNode;
@@ -49,7 +50,7 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
     public XStrParseNode(SourceIndexLength position, ParserByteList value, CodeRange coderange) {
         // FIXME: Shouldn't this have codeRange like StrParseNode?
         super(position, false);
-        this.value = (value == null ? ParserByteList.EMPTY_ASCII_ENCODING : value);
+        this.value = (value == null ? new ParserByteList(RopeConstants.EMPTY_US_ASCII_ROPE) : value);
         this.coderange = coderange;
     }
 
