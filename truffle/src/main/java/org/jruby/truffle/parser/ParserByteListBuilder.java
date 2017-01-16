@@ -76,12 +76,16 @@ public class ParserByteListBuilder {
         }
     }
 
-    public byte[] getUnsafeBytes() {
-        return bytes;
+    public byte[] getBytes() {
+        return Arrays.copyOf(bytes, length);
+    }
+
+    public void replace(byte[] bytes) {
+        this.bytes = bytes;
     }
 
     public Rope toRope() {
-        return RopeOperations.create(Arrays.copyOfRange(Arrays.copyOf(bytes, length), 0, 0 + length), encoding, CR_UNKNOWN);
+        return RopeOperations.create(getBytes(), encoding, CR_UNKNOWN);
     }
 
 }

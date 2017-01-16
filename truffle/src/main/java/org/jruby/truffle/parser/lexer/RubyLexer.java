@@ -84,6 +84,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import static org.jruby.truffle.core.rope.CodeRange.CR_7BIT;
@@ -2957,8 +2958,9 @@ public class RubyLexer {
     public void tokaddmbc(int codepoint, ParserByteListBuilder buffer) {
         Encoding encoding = buffer.getEncoding();
         int length = encoding.codeToMbcLength(codepoint);
-        buffer.grow(length);
-        encoding.codeToMbc(codepoint, buffer.getUnsafeBytes(), buffer.getLength());
+        final byte[] bytes = Arrays.copyOf(buffer.getBytes(), buffer.getLength() + length);
+        encoding.codeToMbc(codepoint, bytes, buffer.getLength());
+        buffer.replace(bytes);
         buffer.setLength(buffer.getLength() + length);
     }
 
