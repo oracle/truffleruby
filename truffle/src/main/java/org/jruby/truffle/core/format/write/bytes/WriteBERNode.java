@@ -53,6 +53,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jruby.truffle.Layouts;
+import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.format.FormatGuards;
 import org.jruby.truffle.core.format.FormatNode;
 import org.jruby.truffle.core.format.exceptions.CantCompressNegativeException;
@@ -103,7 +104,7 @@ public abstract class WriteBERNode extends FormatNode {
     private byte[] encode(Object from) {
         // TODO CS 30-Mar-15 should write our own optimizable version of BER
 
-        final ByteList buf = new ByteList();
+        final ByteArrayBuilder buf = new ByteArrayBuilder();
 
         long l;
 
@@ -134,7 +135,7 @@ public abstract class WriteBERNode extends FormatNode {
         }
 
         int left = 0;
-        int right = buf.length() - 1;
+        int right = buf.getLength() - 1;
 
         if (right >= 0) {
             buf.getUnsafeBytes()[0] &= 0x7F;
@@ -151,7 +152,7 @@ public abstract class WriteBERNode extends FormatNode {
             right--;
         }
 
-        return buf.bytes();
+        return buf.getBytes();
     }
 
 }

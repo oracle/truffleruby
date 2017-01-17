@@ -35,6 +35,7 @@
  ***** END LICENSE BLOCK *****/
 package org.jruby.truffle.core.format.write.bytes;
 
+import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
 
@@ -61,29 +62,29 @@ public class EncodeUM {
         }
     }
 
-    public static void encodeUM(Object runtime, ByteList lCurElemString, int occurrences, boolean ignoreStar, char type, ByteList result) {
+    public static void encodeUM(Object runtime, byte[] lCurElemString, int occurrences, boolean ignoreStar, char type, ByteArrayBuilder result) {
         if (occurrences == 0 && type == 'm' && !ignoreStar) {
-            encodes(runtime, result, lCurElemString.getUnsafeBytes(),
-                    0, lCurElemString.length(),
-                    lCurElemString.length(), (byte) type, false);
+            encodes(runtime, result, lCurElemString,
+                    0, lCurElemString.length,
+                    lCurElemString.length, (byte) type, false);
             return;
         }
 
         occurrences = occurrences <= 2 ? 45 : occurrences / 3 * 3;
-        if (lCurElemString.length() == 0) return;
+        if (lCurElemString.length == 0) return;
 
-        byte[] charsToEncode = lCurElemString.getUnsafeBytes();
-        for (int i = 0; i < lCurElemString.length(); i += occurrences) {
+        byte[] charsToEncode = lCurElemString;
+        for (int i = 0; i < lCurElemString.length; i += occurrences) {
             encodes(runtime, result, charsToEncode,
-                    i, lCurElemString.length() - i,
+                    i, lCurElemString.length - i,
                     occurrences, (byte)type, true);
         }
     }
 
-    private static ByteList encodes(Object runtime, ByteList io2Append,byte[]charsToEncode, int startIndex, int length, int charCount, byte encodingType, boolean tailLf) {
+    private static ByteArrayBuilder encodes(Object runtime, ByteArrayBuilder io2Append,byte[]charsToEncode, int startIndex, int length, int charCount, byte encodingType, boolean tailLf) {
         charCount = charCount < length ? charCount : length;
 
-        io2Append.ensure(charCount * 4 / 3 + 6);
+        io2Append.unsafeEnsureSpace(charCount * 4 / 3 + 6);
         int i = startIndex;
         byte[] lTranslationTable = encodingType == 'u' ? uu_table : b64_table;
         byte lPadding;

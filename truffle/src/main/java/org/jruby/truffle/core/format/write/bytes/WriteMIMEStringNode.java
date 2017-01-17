@@ -46,6 +46,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.format.FormatNode;
 import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
@@ -76,9 +77,9 @@ public abstract class WriteMIMEStringNode extends FormatNode {
     private byte[] encode(byte[] bytes) {
         // TODO CS 30-Mar-15 should write our own optimizable version of MIME
 
-        final ByteList output = new ByteList();
-        qpencode(output, ByteList.createByteList(bytes), length);
-        return output.bytes();
+        final ByteArrayBuilder output = new ByteArrayBuilder();
+        qpencode(output, bytes, length);
+        return output.getBytes();
     }
 
     private static final byte[] hex_table;
@@ -95,13 +96,13 @@ public abstract class WriteMIMEStringNode extends FormatNode {
      * @param iLength The max number of characters to encode
      * @return the io2Append buffer
      **/
-    public static ByteList qpencode(ByteList io2Append, ByteList i2Encode, int iLength) {
-        io2Append.ensure(1024);
+    public static ByteArrayBuilder qpencode(ByteArrayBuilder io2Append, byte[] i2Encode, int iLength) {
+        io2Append.unsafeEnsureSpace(1024);
         int lCurLineLength = 0;
         int lPrevChar = -1;
-        byte[] l2Encode = i2Encode.getUnsafeBytes();
+        byte[] l2Encode = i2Encode;
         try {
-            int end = i2Encode.length();
+            int end = i2Encode.length;
             for (int i = 0; i < end; i++) {
                 int lCurChar = l2Encode[i] & 0xff;
                 if (lCurChar > 126 || (lCurChar < 32 && lCurChar != '\n' && lCurChar != '\t') || lCurChar == '=') {

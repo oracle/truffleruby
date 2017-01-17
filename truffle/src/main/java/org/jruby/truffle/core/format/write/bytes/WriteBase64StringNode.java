@@ -14,6 +14,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.format.FormatNode;
 import org.jruby.truffle.core.format.exceptions.NoImplicitConversionException;
 import org.jruby.truffle.core.string.ByteList;
@@ -46,9 +47,9 @@ public abstract class WriteBase64StringNode extends FormatNode {
     private byte[] encode(byte[] bytes) {
         // TODO CS 30-Mar-15 should write our own optimisable version of Base64
 
-        final ByteList output = new ByteList();
-        EncodeUM.encodeUM(null, ByteList.createByteList(bytes), length, ignoreStar, 'm', output);
-        return output.bytes();
+        final ByteArrayBuilder output = new ByteArrayBuilder();
+        EncodeUM.encodeUM(null, bytes, length, ignoreStar, 'm', output);
+        return output.getBytes();
     }
 
 }
