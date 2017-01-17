@@ -43,8 +43,10 @@ import jnr.constants.platform.Errno;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jruby.truffle.RubyContext;
+import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.encoding.EncodingManager;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.debug.DebugHelpers;
 import org.jruby.truffle.language.control.RaiseException;
@@ -357,9 +359,9 @@ public class RubyDateFormatter {
         }
     }
 
-    public ByteList formatToByteList(List<Token> compiledPattern, ZonedDateTime dt) {
+    public RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
-        ByteList toAppendTo = new ByteList();
+        RopeBuilder toAppendTo = new RopeBuilder();
 
         for (Token token: compiledPattern) {
             String output = null;

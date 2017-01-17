@@ -366,7 +366,7 @@ public abstract class TimeNodes {
         public DynamicObject timeStrftime(DynamicObject time, DynamicObject format) {
             final RubyDateFormatter rdf = new RubyDateFormatter(getContext(), this);
             final List<Token> pattern = rdf.compilePattern(StringOperations.rope(format), false);
-            return createString(rdf.formatToByteList(pattern, Layouts.TIME.getDateTime(time)));
+            return createString(rdf.formatToRopeBuilder(pattern, Layouts.TIME.getDateTime(time)));
         }
 
     }

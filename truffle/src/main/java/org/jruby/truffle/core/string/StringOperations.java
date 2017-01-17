@@ -41,6 +41,7 @@ import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.core.array.ArrayOperations;
 import org.jruby.truffle.core.rope.CodeRange;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.language.RubyGuards;
 
@@ -54,6 +55,10 @@ public abstract class StringOperations {
     /** Creates a String from the ByteList, with unknown CR */
     public static DynamicObject createString(RubyContext context, ByteList bytes) {
         return Layouts.STRING.createString(context.getCoreLibrary().getStringFactory(), RopeOperations.ropeFromByteList(bytes, CodeRange.CR_UNKNOWN));
+    }
+
+    public static DynamicObject createString(RubyContext context, RopeBuilder bytes) {
+        return Layouts.STRING.createString(context.getCoreLibrary().getStringFactory(), RopeOperations.ropeFromBuilder(bytes, CodeRange.CR_UNKNOWN));
     }
 
     public static DynamicObject createString(RubyContext context, Rope rope) {
