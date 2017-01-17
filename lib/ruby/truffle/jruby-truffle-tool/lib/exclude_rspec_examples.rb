@@ -1,6 +1,7 @@
-module Truffle::Tool
+module TruffleTool
 
   def self.exclude_rspec_examples(exclusions, ignore_missing: false)
+    return if exclusions.nil?
     exclusions.each do |mod_name, tests|
       begin
         a_module = Object.const_get mod_name.to_s

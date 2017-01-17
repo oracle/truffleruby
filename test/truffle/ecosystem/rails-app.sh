@@ -3,11 +3,10 @@
 set -e
 set -x
 
-cd ../jruby-truffle-gem-test-pack/gem-testing/rails-app
+truffle_ruby=$(pwd)
+JTR=${truffle_ruby}/bin/jruby-truffle-tool
 
-JRUBY_BIN=../../../jruby/bin
-JRUBY=$JRUBY_BIN/jruby
-JTR=$JRUBY_BIN/jruby-truffle-tool
+cd ${truffle_ruby}/../jruby-truffle-gem-test-pack/gem-testing/rails-app
 
 if [ -n "$CI" -a -z "$HAS_REDIS" ]
 then
@@ -21,10 +20,8 @@ else
         rm tmp/pids/server.pid
     fi
 
-    $JRUBY $JRUBY_BIN/gem install bundler
-
-    $JTR setup --offline
-    $JTR run -r rubygems -- bin/rails server &
+    ${JTR} setup --offline
+    ${JTR} run --offline -- -S bundle exec ./bin/rails server &
     serverpid=$!
     url=http://localhost:3000
 

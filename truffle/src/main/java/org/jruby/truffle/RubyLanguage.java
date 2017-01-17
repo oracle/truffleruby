@@ -49,7 +49,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final int    RUBY_REVISION = 54768;
     public static final String COMPILE_DATE = "2016-12-03";
     public static final String VERSION = "9.1.7.0-SNAPSHOT";
-    public static final String ENGINE = "jruby+truffle";
+    // TODO (pitr-ch 11-Jan-2017): use our value when we are recognized by rubygems
+    public static final String ENGINE = "ruby";
 
     public static final String MIME_TYPE = "application/x-ruby";
     public static final String EXTENSION = ".rb";

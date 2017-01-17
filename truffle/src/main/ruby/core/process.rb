@@ -181,6 +181,9 @@ module Process
     raise "failed" unless new_command.start_with?(new_title)
 
     title
+  rescue => e
+    warn "failed to set proc title to: '#{title}' because: #{e}\n#{e.backtrace.join("\n")}"
+    title
   end
   private_class_method :setproctitle_linux_from_proc_maps
 

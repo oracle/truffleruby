@@ -10,6 +10,7 @@ cache:
 before_install:
 - unset GEM_PATH GEM_HOME IRBRC JRUBY_OPTS
 - rm ~/.m2/settings.xml
+- rvm install 2.1.0
 
 jdk: oraclejdk8
 

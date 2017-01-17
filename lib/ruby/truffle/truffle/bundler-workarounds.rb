@@ -171,16 +171,6 @@ class Gem::RemoteFetcher
 end
 
 
-ruby_version = <<-HEREDOC
-==========================================
-Workaround: Set RUBY_ENGINE to 'ruby'
-Error:
-  RUBY_ENGINE value jruby+truffle is not recognized
-Called here:
-  lib/bundler/ruby_version.rb:98
-HEREDOC
-puts ruby_version if $VERBOSE
-RUBY_ENGINE = "ruby"
 
 
 curl_https = <<-HEREDOC
@@ -366,13 +356,15 @@ bundler_updater = <<-HEREDOC
 Workaround: Shell to gunzip in bundler updater
 HEREDOC
 puts bundler_updater if $VERBOSE
-bundler_loaded = false
-begin
+
+bundler_loaded = begin
   require "bundler"
   require "bundler/vendor/compact_index_client/lib/compact_index_client"
-  bundler_loaded = true
+  true
 rescue LoadError
+  false
 end
+
 if bundler_loaded
   class Bundler::CompactIndexClient
     class Updater
@@ -429,54 +421,6 @@ if bundler_loaded
   end
 end
 
-
-module OpenSSL
-
-  verify_peer = <<-HEREDOC
-      ==========================================
-      Workaround: Stub OpenSSL::SSL::VERIFY_PEER
-      Error:
-        uninitialized constant OpenSSL::SSL::VERIFY_PEER
-      Called here:
-        bundler/vendor/net/http/persistent.rb:519
-  HEREDOC
-  puts verify_peer if $VERBOSE
-  module SSL
-    VERIFY_PEER = 1
-  end
-
-  verify_none = <<-HEREDOC
-      ==========================================
-      Workaround: Stub OpenSSL::SSL::VERIFY_NONE
-      Error:
-        uninitialized constant OpenSSL::SSL::VERIFY_NONE
-      Called here:
-        bundler/vendor/net/http/persistent.rb:1142
-  HEREDOC
-  puts verify_none if $VERBOSE
-  module SSL
-    VERIFY_NONE = 0
-  end
-
-  #   module Digest
-  #     def self.new(enc)
-  #
-  #     end
-  #   end
-
-  module X509
-    class Store
-      def set_default_paths
-
-      end
-      def add_file(f)
-
-      end
-    end
-
-  end
-
-end
 
 bundler_fetcher = <<-HEREDOC
 ==========================================
@@ -536,28 +480,6 @@ if bundler_loaded
 
       end
     end
-  end
-end
-
-resolver_search_for = <<-HEREDOC
-==========================================
-Workaround: Change =~ to == for resolver#search_for
-Error:  type mismatch: String given
-        stdlib/rubygems/resolver.rb:237:in `block in search_for'
-HEREDOC
-puts resolver_search_for if $VERBOSE
-require "rubygems/resolver"
-class Gem::Resolver
-  def search_for(dependency)
-    possibles, all = find_possible(dependency)
-    if !@soft_missing && possibles.empty?
-      @missing << dependency
-      exc = Gem::UnsatisfiableDependencyError.new dependency, all
-      exc.errors = @set.errors
-      raise exc
-    end
-    possibles.sort_by { |s| [s.source, s.version, Gem::Platform.local == s.platform ? 1 : 0] }.
-        map { |s| ActivationRequest.new s, dependency, [] }
   end
 end
 

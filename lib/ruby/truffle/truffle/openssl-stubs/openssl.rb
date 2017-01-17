@@ -19,6 +19,16 @@ module OpenSSL
       end
 
     end
+
+    class Store
+
+      def set_default_paths
+      end
+
+      def add_file(f)
+      end
+
+    end
   end
 
   module Cipher
@@ -63,7 +73,7 @@ module OpenSSL
 
     end
 
-    # valled in lib/ruby/stdlib/rubygems/security.rb:372
+    # called in lib/ruby/stdlib/rubygems/security.rb:372
     def self.new(enc)
     end
   end
@@ -97,9 +107,11 @@ module OpenSSL
   end
 
   module SSL
-    SSLError = Class.new StandardError
-  end
+    SSLError    = Class.new StandardError
+    VERIFY_PEER = 1
+    VERIFY_NONE = 0
 
-  class SSL::SSLSocket
+    class SSLSocket
+    end
   end
 end
