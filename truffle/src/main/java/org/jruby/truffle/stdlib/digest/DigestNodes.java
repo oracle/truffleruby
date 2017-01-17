@@ -13,11 +13,13 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.USASCIIEncoding;
 import org.jruby.truffle.Layouts;
 import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.builtins.CoreClass;
 import org.jruby.truffle.builtins.CoreMethod;
 import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
+import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.rope.CodeRange;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeOperations;
@@ -165,7 +167,7 @@ public abstract class DigestNodes {
         @Specialization(guards = "isRubyString(message)")
         public DynamicObject bubblebabble(DynamicObject message) {
             final Rope rope = StringOperations.rope(message);
-            return createString(bubblebabble(rope.getBytes(), 0, rope.byteLength()));
+            return createString(bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes(), USASCIIEncoding.INSTANCE);
         }
 
         /**
@@ -197,14 +199,14 @@ public abstract class DigestNodes {
          * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
          * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
          */
-        public static ByteList bubblebabble(byte[] message, int begin, int length) {
+        public static ByteArrayBuilder bubblebabble(byte[] message, int begin, int length) {
             char[] vowels = new char[]{'a', 'e', 'i', 'o', 'u', 'y'};
             char[] consonants = new char[]{'b', 'c', 'd', 'f', 'g', 'h', 'k', 'l', 'm',
                     'n', 'p', 'r', 's', 't', 'v', 'z', 'x'};
 
             long seed = 1;
 
-            ByteList retval = new ByteList();
+            ByteArrayBuilder retval = new ByteArrayBuilder();
 
             int rounds = (length / 2) + 1;
             retval.append('x');
