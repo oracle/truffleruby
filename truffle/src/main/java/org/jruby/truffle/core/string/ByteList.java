@@ -33,7 +33,6 @@ package org.jruby.truffle.core.string;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jruby.truffle.core.rope.Rope;
 
 import java.util.Arrays;
 
@@ -149,39 +148,6 @@ public class ByteList {
 
     public void set(int index, int b) {
         bytes[index] = (byte)b;
-    }
-
-    public int indexOf(Rope find) {
-        byte[] target = find.getBytes();
-        int targetCount = find.byteLength();
-        int fromIndex = 0;
-        if (fromIndex >= realSize) return (targetCount == 0 ? realSize : -1);
-        if (fromIndex < 0) fromIndex = 0;
-        if (targetCount == 0) return fromIndex;
-
-        byte first  = target[0];
-        int max = realSize - targetCount;
-
-        for (int i = fromIndex; i <= max; i++) {
-            if (get(i) != first) {
-                while (++i <= max && get(i) != first) {
-                }
-            }
-
-            if (i <= max) {
-                int j = i + 1;
-                int end = j + targetCount - 1;
-                for (int k = 1; j < end && get(j) == target[k]; j++, k++) {
-                }
-
-                if (j == end) return i;
-            }
-        }
-        return -1;
-    }
-
-    public boolean equal(ByteList other) {
-        return Arrays.equals(bytes(), other.bytes());
     }
 
     public byte[] bytes() {
