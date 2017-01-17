@@ -39,7 +39,7 @@ public class ByteArrayBuilder {
 
     public void append(byte[] appendBytes, int appendStart, int appendLength) {
         ensureSpace(appendLength);
-        System.arraycopy(appendBytes, 0, bytes, length, appendLength);
+        System.arraycopy(appendBytes, appendStart, bytes, length, appendLength);
         length += appendLength;
     }
 
