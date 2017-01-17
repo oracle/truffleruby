@@ -123,7 +123,12 @@ public class ByteList {
     }
 
     public void append(ByteList moreBytes, int index, int len) {
-        append(moreBytes.getUnsafeBytes(), index, len);
+        if (index + len > moreBytes.length()) {
+            // TODO S 17-Jan-16 fix this use beyond the known length
+            append(moreBytes.getUnsafeBytes(), index, len);
+        } else {
+            append(moreBytes.bytes(), index, len);
+        }
     }
 
     public void append(byte[] moreBytes, int start, int len) {
