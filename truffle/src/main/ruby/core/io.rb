@@ -255,8 +255,10 @@ class IO
     # If the number is less then the expected, then we need to +empty_to+
     # the IO, and +unshift+ again beginning at +start_pos+.
     def unshift(str, start_pos)
-      Truffle.primitive :iobuffer_unshift
-      raise PrimitiveFailure, "IO::Buffer#unshift primitive failed"
+      @write_synced = false
+      written = Truffle.invoke_primitive :iobuffer_unshift, self, str, start_pos, @used
+      @used += written
+      written
     end
 
     def fill(io)

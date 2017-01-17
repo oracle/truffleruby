@@ -78,43 +78,38 @@ public abstract class IOBufferPrimitiveNodes {
 
     }
 
-    @Primitive(name = "iobuffer_unshift", lowerFixnum = 2, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "iobuffer_unshift", lowerFixnum = { 2, 3 }, unsafe = UnsafeGroup.IO)
     public static abstract class IOBufferUnshiftPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public int unshift(VirtualFrame frame, DynamicObject ioBuffer, DynamicObject string, int startPosition,
+        public int unshift(DynamicObject ioBuffer, DynamicObject string, int startPosition, int used,
                            @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile) {
-            Layouts.IO_BUFFER.setWriteSynced(ioBuffer, false);
-
             final Rope rope = StringOperations.rope(string);
-            final int usedSpace = Layouts.IO_BUFFER.getUsed(ioBuffer);
-            final int availableSpace = IOBUFFER_SIZE - usedSpace;
+            final int available = IOBUFFER_SIZE - used;
 
             final byte[] bytes;
-            int stringSize;
+            int written;
 
             if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {
                 final ByteList byteList = ((RopeBuffer) rope).getByteList();
 
                 bytes = byteList.getUnsafeBytes();
-                stringSize = byteList.length() - startPosition;
+                written = byteList.length() - startPosition;
             } else {
                 bytes = rope.getBytes();
-                stringSize = rope.byteLength() - startPosition;
+                written = rope.byteLength() - startPosition;
             }
 
-            if (stringSize > availableSpace) {
-                stringSize = availableSpace;
+            if (written > available) {
+                written = available;
             }
 
             ByteList storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
 
             // TODO (nirvdrum 08-24-16): Data is copied here - can we do something COW?
-            System.arraycopy(bytes, startPosition, storage.getUnsafeBytes(), usedSpace, stringSize);
+            System.arraycopy(bytes, startPosition, storage.getUnsafeBytes(), used, written);
 
-            Layouts.IO_BUFFER.setUsed(ioBuffer, usedSpace + stringSize);
-
-            return stringSize;
+            return written;
         }
 
     }
