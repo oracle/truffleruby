@@ -35,13 +35,8 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jruby.truffle.core.rope.Rope;
 
-import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
-/**
- * ByteList is simple a collection of bytes in the same way a Java String is a collection
- * of characters. However, its API resembles StringBuffer/StringBuilder more than String
- * because it is a mutable object.
- */
 public class ByteList {
 
     private byte[] bytes = new byte[]{};
@@ -89,63 +84,31 @@ public class ByteList {
         return byteList;
     }
 
-    /**
-     * Append the byte b up to len times onto the end of the current ByteList.
-     *
-     * @param b is byte to be appended
-     * @param len is number of times to repeat the append
-     */
-    // FIXME: Innefficient impl since we know the len up front.
     public void fill(int b, int len) {
         for ( ; --len >= 0; ) {
             append(b);
         }
     }
 
-    /**
-     * creates a duplicate of this bytelist but only in the case of a stringValue and its resulting
-     * hash value.  No other elements are duplicated.
-     */
     public ByteList dup() {
-        ByteList dup = dup(realSize);
+        ByteList dup = new ByteList();
+        append(bytes());
         return dup;
     }
 
-    /**
-     * @param length is the value of how big the buffer is going to be, not the actual length to copy
-     *
-     * It is used by RubyString.modify(int) to prevent COW pathological situations
-     * (namely to COW with having <code>length - realSize</code> bytes ahead)
-     */
     public ByteList dup(int length) {
-        ByteList dup = createByteList(length);
-
-        dup.append(this.bytes, 0, this.realSize);
-        dup.encoding = encoding;
-
+        ByteList dup = new ByteList();
+        ensure(length);
+        append(bytes);
         return dup;
     }
 
-    /**
-     * Ensure that the bytelist is at least length bytes long.  Otherwise grow the backing store
-     * so that it is length bytes long
-     *
-     * @param length to use to make sure ByteList is long enough
-     */
     public void ensure(int length) {
         if (length > bytes.length) {
-            byte[] tmp = new byte[Math.min(Integer.MAX_VALUE, length + (length >>> 1))];
-            System.arraycopy(bytes, 0, tmp, 0, realSize);
-            bytes = tmp;
+            bytes = Arrays.copyOf(bytes, length);
         }
     }
 
-    /**
-     * Append a single byte to the ByteList
-     *
-     * @param b the byte to be added
-     * @return this instance
-     */
     public ByteList append(byte b) {
         grow(1);
         bytes[realSize] = b;
@@ -153,197 +116,78 @@ public class ByteList {
         return this;
     }
 
-    /**
-     * Append a single int to the ByteList
-     *
-     * @param b the int to be added
-     * @return this instance
-     */
     public ByteList append(int b) {
         append((byte)b);
         return this;
     }
 
-    /**
-     * Append moreBytes onto the end of the current ByteList.
-     *
-     * @param moreBytes to be added.
-     */
     public ByteList append(byte[] moreBytes) {
-        assert moreBytes != null : "moreBytes is null";
-
         grow(moreBytes.length);
         System.arraycopy(moreBytes, 0, bytes, realSize, moreBytes.length);
         realSize += moreBytes.length;
         return this;
     }
 
-    /**
-     * Append moreBytes onto the end of the current ByteList with +index as the new begin for
-     * len bytes from the moreBytes ByteList.
-     *
-     * @param moreBytes to be added.
-     * @param index new index past current begin value
-     * @param len is the number of bytes to append from source ByteList
-     */
     public ByteList append(ByteList moreBytes, int index, int len) {
         return append(moreBytes.bytes, index, len);
     }
 
-    /**
-     * Append moreBytes onto the end of the current ByteList with start as the new begin for
-     * len bytes from the moreBytes byte array.
-     *
-     * @param moreBytes to be added.
-     * @param start is the new begin value
-     * @param len is the number of bytes to append from source byte array
-     */
     public ByteList append(byte[] moreBytes, int start, int len) {
-        assert moreBytes != null : "moreBytes is null";
-        // FIXME: Problems on CI box tripping on this.  Re-enable later during 1.6 development.
-        //assert start >= 0 && (start == 0 || start < moreBytes.length) : "Invalid start";
-        assert len >= 0 && moreBytes.length - start >= len : "Bad length";
-
         grow(len);
         System.arraycopy(moreBytes, start, bytes, realSize, len);
         realSize += len;
-
         return this;
     }
 
-    /**
-     * Return the current length of the ByteList.
-     *
-     * @return the number of bytes in this ByteList.
-     */
     public int length() {
         return realSize;
     }
 
-    /**
-     * Get the byte at index from the ByteList.
-     *
-     * @param index to retreive byte from
-     * @return the byte retreived
-     */
     public int get(int index) {
-        assert index >= 0 : "index must be positive";
-
         return bytes[index];
     }
 
-    /**
-     * Set the byte at index to be new value.
-     *
-     * @param index to set byte
-     * @param b is the new value.
-     */
     public void set(int index, int b) {
-        assert index >= 0 : "index must be positive";
-        assert index < realSize : "index is too large";
-
         bytes[index] = (byte)b;
     }
 
-    /**
-     * Get the index of first occurrence of Bytelist find in this ByteList starting at index i.
-     *
-     * @param find the ByteList to find
-     * @param i the index to start from
-     * @return the index of the byte or -1 if not found
-     */
-    public int indexOf(ByteList find, int i) {
-        return indexOf(bytes, 0, realSize, find.bytes, 0, find.realSize, i);
-    }
-
-    /**
-     * Get the index of first occurrence of Bytelist find in this ByteList starting at index i.
-     *
-     * @param find the Rope to
-     * @return the index of the byte or -1 if not found
-     */
     public int indexOf(Rope find) {
-        return indexOf(bytes, 0, realSize, find.getBytes(), 0, find.byteLength(), 0);
-    }
-
-    /**
-     * Get the index of first occurrence of target in source using the offset and count parameters.
-     * fromIndex can be used to start beyond zero on source.
-     *
-     * @return the index of the byte or -1 if not found
-     */
-    static int indexOf(byte[] source, int sourceOffset, int sourceCount, byte[] target, int targetOffset, int targetCount, int fromIndex) {
-        if (fromIndex >= sourceCount) return (targetCount == 0 ? sourceCount : -1);
+        byte[] target = find.getBytes();
+        int targetCount = find.byteLength();
+        int fromIndex = 0;
+        if (fromIndex >= realSize) return (targetCount == 0 ? realSize : -1);
         if (fromIndex < 0) fromIndex = 0;
         if (targetCount == 0) return fromIndex;
 
-        byte first  = target[targetOffset];
-        int max = sourceOffset + (sourceCount - targetCount);
+        byte first  = target[0];
+        int max = realSize - targetCount;
 
-        for (int i = sourceOffset + fromIndex; i <= max; i++) {
-            if (source[i] != first) {
-                while (++i <= max && source[i] != first) {
+        for (int i = fromIndex; i <= max; i++) {
+            if (get(i) != first) {
+                while (++i <= max && get(i) != first) {
                 }
             }
 
             if (i <= max) {
                 int j = i + 1;
                 int end = j + targetCount - 1;
-                for (int k = targetOffset + 1; j < end && source[j] == target[k]; j++, k++) {
+                for (int k = 1; j < end && get(j) == target[k]; j++, k++) {
                 }
 
-                if (j == end) return i - sourceOffset;
+                if (j == end) return i;
             }
         }
         return -1;
     }
 
-    /**
-     * Does this ByteList equal the other ByteList?
-     *
-     * @param other is the bytelist to compare with
-     * @return true is this ByteList is the same
-     */
     public boolean equal(ByteList other) {
-        if (other == this) return true;
-
-        int first, last;
-        if ((last = realSize) == other.realSize) {
-            byte buf[] = bytes;
-            byte otherBuf[] = other.bytes;
-            // scanning from front and back simultaneously, meeting in
-            // the middle. the object is to get a mismatch as quickly as
-            // possible. alternatives might be: scan from the middle outward
-            // (not great because it won't pick up common variations at the
-            // ends until late) or sample odd bytes forward and even bytes
-            // backward (I like this one, but it's more expensive for
-            // strings that are equal; see sample_equals below).
-            first = -1;
-            while (--last > first && buf[last] == otherBuf[last] &&
-                    ++first < last && buf[first] == otherBuf[first]) {
-            }
-            return first >= last;
-        }
-        return false;
+        return Arrays.equals(bytes(), other.bytes());
     }
 
-    /**
-     * Get a copy of the bytes referenced by this ByteList.  It will make an optimal copy and not
-     * carry along unused bytes from COW sharing.
-     *
-     * @return a copy of the bytes.
-     */
     public byte[] bytes() {
-        byte[] newBytes = new byte[realSize];
-        System.arraycopy(bytes, 0, newBytes, 0, realSize);
-        return newBytes;
+        return Arrays.copyOf(bytes, realSize);
     }
 
-    /**
-     * Grow the ByteList by increaseRequested bytes.  A value <0 will be a no-op.
-     *
-     * @param increaseRequested number of bytes to grow
-     */
     private void grow(int increaseRequested) {
         if (increaseRequested < 0) return;
 
@@ -358,39 +202,20 @@ public class ByteList {
         }
     }
 
-    @Override
-    public String toString() {
-        // This should be used for debugging only.
-        return new String(bytes(), StandardCharsets.US_ASCII);
-    }
-
-    /**
-     * @return the bytes
-     */
     public byte[] getUnsafeBytes() {
         return bytes;
     }
 
-    /**
-     * @param realSize the realSize to set
-     */
     public void realSize(int realSize) {
         assert realSize >= 0;
         this.realSize = realSize;
     }
 
-    /**
-     * @return the encoding
-     */
     public Encoding getEncoding() {
         return encoding;
     }
 
-    /**
-     * @param encoding the encoding to set
-     */
     public void setEncoding(Encoding encoding) {
-        assert encoding != null;
         this.encoding = encoding;
     }
 
