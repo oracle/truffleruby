@@ -41,6 +41,5 @@ public interface IOBufferLayout extends BasicObjectLayout {
     void setUsed(DynamicObject object, int value);
 
     int getTotal(DynamicObject object);
-    void setTotal(DynamicObject object, int value);
 
 }
