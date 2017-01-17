@@ -74,19 +74,6 @@ public class ByteList extends RopeBuilder {
         return byteList;
     }
 
-    public ByteList dup() {
-        ByteList dup = new ByteList();
-        append(getBytes());
-        return dup;
-    }
-
-    public ByteList dup(int length) {
-        ByteList dup = new ByteList();
-        unsafeEnsureSpace(length);
-        append(getBytes());
-        return dup;
-    }
-
     public void append(ByteList moreBytes, int index, int len) {
         if (index + len > moreBytes.getLength()) {
             // TODO S 17-Jan-16 fix this use beyond the known length
