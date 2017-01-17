@@ -36,9 +36,9 @@ class TruffleTool
       result      = nil
       system_call = proc do
         begin
-          pid = Process.spawn(*print_cmd(cmd, dir, print))
-          Process.wait pid
-          result = $?.success?
+          pid       = Process.spawn(*print_cmd(cmd, dir, print))
+          _, status = Process.waitpid2 pid
+          result    = status.success?
         rescue SignalException => e
           # terminate the child process on signal received
           Process.kill 'TERM', pid
