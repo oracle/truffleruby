@@ -35,6 +35,18 @@ public class ByteArrayBuilder {
         length++;
     }
 
+    public void append(byte b, int count) {
+        if (count > 0) {
+            ensureSpace(count);
+            Arrays.fill(bytes, length, length + count, b);
+            length += count;
+        }
+    }
+
+    public void append(int b, int count) {
+        append((byte) b, count);
+    }
+
     public void append(byte[] appendBytes) {
         append(appendBytes, 0, appendBytes.length);
     }

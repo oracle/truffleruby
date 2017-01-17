@@ -22,6 +22,7 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jruby.truffle.Layouts;
+import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.format.FormatNode;
 import org.jruby.truffle.core.format.printf.PrintfSimpleTreeBuilder;
 import org.jruby.truffle.core.string.ByteList;
@@ -129,7 +130,7 @@ public abstract class FormatIntegerNode extends FormatNode {
         byte signChar = 0;
         byte leadChar = 0;
 
-        ByteList buf = new ByteList();
+        ByteArrayBuilder buf = new ByteArrayBuilder();
 
         if (hasFSharp) {
             if (!zero) {
@@ -208,7 +209,7 @@ public abstract class FormatIntegerNode extends FormatNode {
             width -= precision;
         }
         if (!hasMinusFlag) {
-            buf.fill(' ', width);
+            buf.append(' ', width);
             width = 0;
         }
         if (signChar != 0) buf.append(signChar);
@@ -219,14 +220,14 @@ public abstract class FormatIntegerNode extends FormatNode {
                 if (fchar != 'd' || !negative ||
                     hasPrecisionFlag ||
                     (hasZeroFlag && !hasMinusFlag)) {
-                    buf.fill('0', precision - len);
+                    buf.append('0', precision - len);
                 }
             } else if (leadChar == '.') {
-                buf.fill(leadChar, precision - len);
+                buf.append(leadChar, precision - len);
                 buf.append(PREFIX_NEGATIVE);
             } else {
                 buf.append(PREFIX_NEGATIVE);
-                buf.fill(leadChar, precision - len - 1);
+                buf.append(leadChar, precision - len - 1);
             }
         } else if (leadChar != 0) {
             if ( "xXbBo".indexOf(fchar) != -1) {
@@ -236,11 +237,11 @@ public abstract class FormatIntegerNode extends FormatNode {
         }
         buf.append(bytes, first, numlen);
 
-        if (width > 0) buf.fill(' ', width);
+        if (width > 0) buf.append(' ', width);
         if (len < precision && fchar == 'd' && negative  && hasMinusFlag) {
-            buf.fill(' ', precision - len);
+            buf.append(' ', precision - len);
         }
-        return buf.bytes();
+        return buf.getBytes();
     }
 
     private boolean getSign(char fchar) {

@@ -20,6 +20,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.format.FormatNode;
 import org.jruby.truffle.core.format.printf.PrintfSimpleTreeBuilder;
 import org.jruby.truffle.core.string.ByteList;
@@ -88,7 +89,7 @@ public abstract class FormatFloatNode extends FormatNode {
         int len = 0;
         byte signChar;
 
-        final ByteList buf = new ByteList();
+        final ByteArrayBuilder buf = new ByteArrayBuilder();
 
         if (nan || inf) {
             if (nan) {
@@ -113,22 +114,22 @@ public abstract class FormatFloatNode extends FormatNode {
             width -= len;
 
             if (width > 0 && !hasMinusFlag) {
-                buf.fill(' ', width);
+                buf.append(' ', width);
                 width = 0;
             }
             if (signChar != 0) buf.append(signChar);
 
             if (width > 0 && !hasMinusFlag) {
-                buf.fill('0', width);
+                buf.append('0', width);
                 width = 0;
             }
             buf.append(digits);
-            if (width > 0) buf.fill(' ', width);
+            if (width > 0) buf.append(' ', width);
 
 //            offset++;
 //            incomplete = false;
 //            break;
-            return buf.bytes();
+            return buf.getBytes();
         }
 
         final Locale locale = Locale.ENGLISH;
@@ -338,14 +339,14 @@ public abstract class FormatFloatNode extends FormatNode {
                     width -= len;
 
                     if (width > 0 && !hasZeroFlag && !hasMinusFlag) {
-                        buf.fill(' ', width);
+                        buf.append(' ', width);
                         width = 0;
                     }
                     if (signChar != 0) {
                         buf.append(signChar);
                     }
                     if (width > 0 && !hasMinusFlag) {
-                        buf.fill('0', width);
+                        buf.append('0', width);
                         width = 0;
                     }
 
@@ -365,13 +366,13 @@ public abstract class FormatFloatNode extends FormatNode {
                     }
 
                     if (precision > 0 && isSharp) {
-                        buf.fill('0', precision);
+                        buf.append('0', precision);
                     }
 
                     writeExp(buf, exponent, expChar);
 
                     if (width > 0) {
-                        buf.fill(' ', width);
+                        buf.append(' ', width);
                     }
                 } else { // decimal form, like (but not *just* like!) 'f'
                     intDigits = Math.max(0, Math.min(nDigits + exponent, nDigits));
@@ -411,14 +412,14 @@ public abstract class FormatFloatNode extends FormatNode {
                     width -= len;
 
                     if (width > 0 && !hasZeroFlag && !hasMinusFlag) {
-                        buf.fill(' ', width);
+                        buf.append(' ', width);
                         width = 0;
                     }
                     if (signChar != 0) {
                         buf.append(signChar);
                     }
                     if (width > 0 && !hasMinusFlag) {
-                        buf.fill('0', width);
+                        buf.append('0', width);
                         width = 0;
                     }
                     // now some data...
@@ -427,7 +428,7 @@ public abstract class FormatFloatNode extends FormatNode {
                             buf.append(digits, 0, intDigits);
                         }
                         if (intZeroes > 0) {
-                            buf.fill('0', intZeroes);
+                            buf.append('0', intZeroes);
                         }
                     } else {
                         // always need at least a 0
@@ -438,7 +439,7 @@ public abstract class FormatFloatNode extends FormatNode {
                     }
                     if (decLength > 0) {
                         if (decZeroes > 0) {
-                            buf.fill('0', decZeroes);
+                            buf.append('0', decZeroes);
                             precision -= decZeroes;
                         }
                         if (decDigits > 0) {
@@ -446,11 +447,11 @@ public abstract class FormatFloatNode extends FormatNode {
                             precision -= decDigits;
                         }
                         if (hasFSharpFlag && precision > 0) {
-                            buf.fill('0', precision);
+                            buf.append('0', precision);
                         }
                     }
-                    if (hasFSharpFlag && precision > 0) buf.fill('0', precision);
-                    if (width > 0) buf.fill(' ', width);
+                    if (hasFSharpFlag && precision > 0) buf.append('0', precision);
+                    if (width > 0) buf.append(' ', width);
                 }
                 break;
 
@@ -495,14 +496,14 @@ public abstract class FormatFloatNode extends FormatNode {
                 width -= len;
 
                 if (width > 0 && !hasZeroFlag && !hasMinusFlag) {
-                    buf.fill(' ', width);
+                    buf.append(' ', width);
                     width = 0;
                 }
                 if (signChar != 0) {
                     buf.append(signChar);
                 }
                 if (width > 0 && !hasMinusFlag) {
-                    buf.fill('0', width);
+                    buf.append('0', width);
                     width = 0;
                 }
                 // now some data...
@@ -511,7 +512,7 @@ public abstract class FormatFloatNode extends FormatNode {
                         buf.append(digits, 0, intDigits);
                     }
                     if (intZeroes > 0) {
-                        buf.fill('0', intZeroes);
+                        buf.append('0', intZeroes);
                     }
                 } else {
                     // always need at least a 0
@@ -522,7 +523,7 @@ public abstract class FormatFloatNode extends FormatNode {
                 }
                 if (precision > 0) {
                     if (decZeroes > 0) {
-                        buf.fill('0', decZeroes);
+                        buf.append('0', decZeroes);
                         precision -= decZeroes;
                     }
                     if (decDigits > 0) {
@@ -531,11 +532,11 @@ public abstract class FormatFloatNode extends FormatNode {
                     }
                     // fill up the rest with zeroes
                     if (precision > 0) {
-                        buf.fill('0', precision);
+                        buf.append('0', precision);
                     }
                 }
                 if (width > 0) {
-                    buf.fill(' ', width);
+                    buf.append(' ', width);
                 }
                 break;
             case 'E':
@@ -579,14 +580,14 @@ public abstract class FormatFloatNode extends FormatNode {
                 width -= len;
 
                 if (width > 0 && !hasZeroFlag && !hasMinusFlag) {
-                    buf.fill(' ', width);
+                    buf.append(' ', width);
                     width = 0;
                 }
                 if (signChar != 0) {
                     buf.append(signChar);
                 }
                 if (width > 0 && !hasMinusFlag) {
-                    buf.fill('0', width);
+                    buf.append('0', width);
                     width = 0;
                 }
                 // now some data...
@@ -597,7 +598,7 @@ public abstract class FormatFloatNode extends FormatNode {
                         buf.append(digits, 1, decDigits);
                         precision -= decDigits;
                     }
-                    if (precision > 0) buf.fill('0', precision);
+                    if (precision > 0) buf.append('0', precision);
 
                 } else if (hasFSharpFlag) {
                     buf.append(decimalSeparator);
@@ -605,10 +606,10 @@ public abstract class FormatFloatNode extends FormatNode {
 
                 writeExp(buf, exponent, expChar);
 
-                if (width > 0) buf.fill(' ', width);
+                if (width > 0) buf.append(' ', width);
 
         }
-        return buf.bytes();
+        return buf.getBytes();
     }
 
     private static final ThreadLocal<Map<Locale, DecimalFormatSymbols>> LOCALE_DECIMAL_FORMATS = new ThreadLocal<>();
@@ -671,7 +672,7 @@ public abstract class FormatFloatNode extends FormatNode {
         return nDigits;
     }
 
-    private static void writeExp(ByteList buf, int exponent, byte expChar) {
+    private static void writeExp(ByteArrayBuilder buf, int exponent, byte expChar) {
         // Unfortunately, the number of digits in the exponent is
         // not clearly defined in Ruby documentation. This is a
         // platform/version-dependent behavior. On Linux/Mac/Cygwin/*nix,
