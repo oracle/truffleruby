@@ -43,7 +43,7 @@ gems/*/lib/*.jar
 gems/*/lib/jruby-jars/version.rb
 gems/*/pkg
 glob_test
-graal
+/graal
 jruby-complete.jar
 jruby-findbugs.html
 latest_source_cache
