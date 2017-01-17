@@ -17,7 +17,6 @@ import org.jruby.truffle.core.basicobject.BasicObjectLayout;
 @Layout
 public interface IOBufferLayout extends BasicObjectLayout {
 
-    String WRITE_SYNCED_IDENTIFIER = "@write_synced";
     String STORAGE_IDENTIFIER = "@storage";
     String USED_IDENTIFIER = "@used";
     String TOTAL_IDENTIFIER = "@total";
@@ -26,16 +25,11 @@ public interface IOBufferLayout extends BasicObjectLayout {
                                              DynamicObject metaClass);
 
     DynamicObject createIOBuffer(DynamicObjectFactory factory,
-                                 boolean writeSynced,
                                  DynamicObject storage,
                                  int used,
                                  int total);
 
-    boolean getWriteSynced(DynamicObject object);
-    void setWriteSynced(DynamicObject object, boolean value);
-
     DynamicObject getStorage(DynamicObject object);
-    void setStorage(DynamicObject object, DynamicObject value);
 
     int getUsed(DynamicObject object);
     void setUsed(DynamicObject object, int value);

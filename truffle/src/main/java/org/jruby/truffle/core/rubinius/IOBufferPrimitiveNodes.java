@@ -70,7 +70,6 @@ public abstract class IOBufferPrimitiveNodes {
         @Specialization
         public DynamicObject allocate(DynamicObject classToAllocate) {
             return allocateNode.allocate(classToAllocate,
-                        true,
                         ByteArrayNodes.createByteArray(coreLibrary().getByteArrayFactory(), ByteList.createByteList(IOBUFFER_SIZE)),
                         0,
                         IOBUFFER_SIZE);

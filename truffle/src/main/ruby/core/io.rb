@@ -234,6 +234,7 @@ class IO
 
     def initialize
       # Truffle: other fields are initialized in Java.
+      @write_synced = true
       @start = 0
       @eof = false
     end
