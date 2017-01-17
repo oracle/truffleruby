@@ -35,6 +35,7 @@ import org.jruby.truffle.collections.IntHashMap;
 import org.jruby.truffle.core.array.ArrayUtils;
 import org.jruby.truffle.core.rope.CodeRange;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeOperations;
 
 import java.util.ArrayList;
@@ -644,7 +645,7 @@ public final class StringSupport {
         int carryLen = 1;
 
         Encoding enc = original.getEncoding();
-        ByteList valueCopy = ByteList.createByteList(original.getBytes(), enc);
+        ByteList valueCopy = RopeBuilder.createRopeBuilder(original.getBytes(), enc);
         int p = 0;
         int end = p + valueCopy.getLength();
         int s = end;
@@ -899,7 +900,7 @@ public final class StringSupport {
     }
 
     public static ByteList addByteLists(ByteList value1, ByteList value2) {
-        ByteList result = ByteList.createByteList(value1.getLength() + value2.getLength());
+        ByteList result = RopeBuilder.createRopeBuilder(value1.getLength() + value2.getLength());
         result.setLength(value1.getLength() + value2.getLength());
         System.arraycopy(value1.getUnsafeBytes(), 0, result.getUnsafeBytes(), 0, value1.getLength());
         System.arraycopy(value2.getUnsafeBytes(), 0, result.getUnsafeBytes(), value1.getLength(), value2.getLength());

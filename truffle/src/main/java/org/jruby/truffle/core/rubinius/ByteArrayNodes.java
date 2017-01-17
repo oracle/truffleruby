@@ -22,6 +22,7 @@ import org.jruby.truffle.builtins.CoreMethod;
 import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
 import org.jruby.truffle.builtins.UnaryCoreMethodNode;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
 import org.jruby.truffle.language.control.RaiseException;
@@ -68,7 +69,7 @@ public abstract class ByteArrayNodes {
             final byte[] prependedBytes = new byte[newLength];
             System.arraycopy(rope.getBytes(), 0, prependedBytes, 0, prependLength);
             System.arraycopy(Layouts.BYTE_ARRAY.getBytes(bytes).getUnsafeBytes(), 0, prependedBytes, prependLength, originalLength);
-            return ByteArrayNodes.createByteArray(coreLibrary().getByteArrayFactory(), ByteList.createByteList(prependedBytes));
+            return ByteArrayNodes.createByteArray(coreLibrary().getByteArrayFactory(), RopeBuilder.createRopeBuilder(prependedBytes));
         }
 
     }
@@ -106,7 +107,7 @@ public abstract class ByteArrayNodes {
         @Specialization(guards = "isRubyString(pattern)")
         public Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length) {
             final Rope patternRope = StringOperations.rope(pattern);
-            final int index = indexOf(ByteList.createByteList(Layouts.BYTE_ARRAY.getBytes(bytes), start, length), patternRope);
+            final int index = indexOf(RopeBuilder.createRopeBuilder(Layouts.BYTE_ARRAY.getBytes(bytes), start, length), patternRope);
 
             if (index == -1) {
                 return nil();

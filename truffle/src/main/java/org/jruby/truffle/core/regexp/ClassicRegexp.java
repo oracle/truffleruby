@@ -49,6 +49,7 @@ import org.joni.exception.JOniException;
 import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.collections.WeakValuedMap;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.core.string.ByteList;
@@ -500,7 +501,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     public static ByteList preprocess(RubyContext runtime, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
-        ByteList to = ByteList.createByteList(str.byteLength());
+        ByteList to = RopeBuilder.createRopeBuilder(str.byteLength());
 
         if (enc.isAsciiCompatible()) {
             fixedEnc[0] = null;
@@ -603,7 +604,7 @@ public class ClassicRegexp implements ReOptions {
             return bs;
         } while (false);
 
-        ByteList result = ByteList.createByteList(end * 2);
+        ByteList result = RopeBuilder.createRopeBuilder(end * 2);
         result.setEncoding(asciiOnly ? USASCIIEncoding.INSTANCE : bs.getEncoding());
         byte[]obytes = result.getUnsafeBytes();
         int op = p;
@@ -714,7 +715,7 @@ public class ClassicRegexp implements ReOptions {
         int len = str.byteLength();
         byte[] bytes = str.getBytes();
 
-        ByteList result = ByteList.createByteList(len);
+        ByteList result = RopeBuilder.createRopeBuilder(len);
         result.append((byte)'(');
         result.append((byte)'?');
 

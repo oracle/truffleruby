@@ -23,8 +23,8 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jruby.truffle.Layouts;
 import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.ISO_8859_16;
 
 import java.nio.charset.Charset;
@@ -55,7 +55,7 @@ public class EncodingManager {
     @TruffleBoundary
     private static DynamicObject newRubyEncoding(RubyContext context, Encoding encoding, byte[] name, int p, int end, boolean dummy) {
         // TODO (nirvdrum 21-Jun-16): We probably don't need to create a ByteList and two Ropes. Without any guarantees on the code range of the encoding name, however, we must be conservative.
-        final Rope rope = RopeOperations.ropeFromByteList(ByteList.createByteList(name, p, end, USASCIIEncoding.INSTANCE));
+        final Rope rope = RopeOperations.ropeFromByteList(RopeBuilder.createRopeBuilder(name, p, end, USASCIIEncoding.INSTANCE));
         final Rope cachedRope = context.getRopeTable().getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
         final DynamicObject string = context.getFrozenStrings().getFrozenString(cachedRope);
 

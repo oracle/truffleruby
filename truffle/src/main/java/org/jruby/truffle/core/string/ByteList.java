@@ -31,52 +31,8 @@
  ***** END LICENSE BLOCK *****/
 package org.jruby.truffle.core.string;
 
-import org.jcodings.Encoding;
 import org.jruby.truffle.core.rope.RopeBuilder;
 
 public class ByteList extends RopeBuilder {
-
-    public static ByteList createByteList(int size) {
-        final ByteList byteList = new ByteList();
-        byteList.unsafeEnsureSpace(size);
-        return byteList;
-    }
-
-    public static ByteList createByteList(byte[] bytes, Encoding encoding) {
-        final ByteList byteList = new ByteList();
-        byteList.append(bytes);
-        byteList.setEncoding(encoding);
-        return byteList;
-    }
-
-    public static ByteList createByteList(byte[] wrap) {
-        final ByteList byteList = new ByteList();
-        byteList.append(wrap);
-        return byteList;
-    }
-
-    public static ByteList createByteList(byte[] wrap, int index, int len) {
-        final ByteList byteList = new ByteList();
-        byteList.append(wrap, index, len);
-        return byteList;
-    }
-
-    public static ByteList createByteList(byte[] wrap, int index, int len, Encoding encoding) {
-        final ByteList byteList = new ByteList();
-        byteList.append(wrap, index, len);
-        byteList.setEncoding(encoding);
-        return byteList;
-    }
-
-    public static ByteList createByteList(ByteList wrap, int index, int len) {
-        final ByteList byteList = new ByteList();
-        if (index + len > wrap.getLength()) {
-            // TODO S 17-Jan-16 fix this use beyond the known length
-            byteList.append(wrap.getUnsafeBytes(), index, len);
-        } else {
-            byteList.append(wrap.getBytes(), index, len);
-        }
-        return byteList;
-    }
 
 }

@@ -12,12 +12,56 @@ package org.jruby.truffle.core.rope;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jruby.truffle.collections.ByteArrayBuilder;
+import org.jruby.truffle.core.string.ByteList;
 
 import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 
 public class RopeBuilder extends ByteArrayBuilder {
 
     private Encoding encoding = ASCIIEncoding.INSTANCE;
+
+    public static ByteList createRopeBuilder(int size) {
+        final ByteList byteList = new ByteList();
+        byteList.unsafeEnsureSpace(size);
+        return byteList;
+    }
+
+    public static ByteList createRopeBuilder(byte[] bytes, Encoding encoding) {
+        final ByteList byteList = new ByteList();
+        byteList.append(bytes);
+        byteList.setEncoding(encoding);
+        return byteList;
+    }
+
+    public static ByteList createRopeBuilder(byte[] wrap) {
+        final ByteList byteList = new ByteList();
+        byteList.append(wrap);
+        return byteList;
+    }
+
+    public static ByteList createRopeBuilder(byte[] wrap, int index, int len) {
+        final ByteList byteList = new ByteList();
+        byteList.append(wrap, index, len);
+        return byteList;
+    }
+
+    public static ByteList createRopeBuilder(byte[] wrap, int index, int len, Encoding encoding) {
+        final ByteList byteList = new ByteList();
+        byteList.append(wrap, index, len);
+        byteList.setEncoding(encoding);
+        return byteList;
+    }
+
+    public static ByteList createRopeBuilder(ByteList wrap, int index, int len) {
+        final ByteList byteList = new ByteList();
+        if (index + len > wrap.getLength()) {
+            // TODO S 17-Jan-16 fix this use beyond the known length
+            byteList.append(wrap.getUnsafeBytes(), index, len);
+        } else {
+            byteList.append(wrap.getBytes(), index, len);
+        }
+        return byteList;
+    }
 
     public Encoding getEncoding() {
         return encoding;

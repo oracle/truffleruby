@@ -82,9 +82,9 @@ import org.jruby.truffle.core.array.ArrayGuards;
 import org.jruby.truffle.core.array.ArrayOperations;
 import org.jruby.truffle.core.rope.BytesVisitor;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
 import org.jruby.truffle.core.thread.ThreadManager;
 import org.jruby.truffle.core.thread.ThreadManager.ResultWithinTime;
@@ -538,7 +538,7 @@ public abstract class IOPrimitiveNodes {
             final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(nativeSockets().recvfrom(sockfd, buffer, length, flags, PointerPrimitiveNodes.NULL_POINTER, PointerPrimitiveNodes.NULL_POINTER)));
             buffer.position(bytesRead);
 
-            return createString(ByteList.createByteList(buffer.array(), buffer.arrayOffset(), buffer.position()));
+            return createString(RopeBuilder.createRopeBuilder(buffer.array(), buffer.arrayOffset(), buffer.position()));
         }
 
     }
@@ -577,7 +577,7 @@ public abstract class IOPrimitiveNodes {
                 return nil();
             }
 
-            return createString(ByteList.createByteList(bytes, 0, bytesRead));
+            return createString(RopeBuilder.createRopeBuilder(bytes, 0, bytesRead));
         }
 
     }
@@ -851,7 +851,7 @@ public abstract class IOPrimitiveNodes {
                 toRead -= bytesRead;
             }
 
-            return createString(ByteList.createByteList(buffer.array(), buffer.arrayOffset(), buffer.position()));
+            return createString(RopeBuilder.createRopeBuilder(buffer.array(), buffer.arrayOffset(), buffer.position()));
         }
 
     }

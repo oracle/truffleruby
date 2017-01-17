@@ -14,8 +14,8 @@ import org.jcodings.Encoding;
 import org.jruby.truffle.Layouts;
 import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.core.rope.CodeRange;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.ByteList;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,7 +35,7 @@ public class OutputStreamAdapter extends OutputStream {
     @Override
     public void write(int bite) throws IOException {
         context.send(object, "write", null, Layouts.STRING.createString(context.getCoreLibrary().getStringFactory(),
-                RopeOperations.ropeFromByteList(ByteList.createByteList(new byte[]{(byte) bite}, encoding), CodeRange.CR_VALID)));
+                RopeOperations.ropeFromByteList(RopeBuilder.createRopeBuilder(new byte[]{(byte) bite}, encoding), CodeRange.CR_VALID)));
     }
 
 }

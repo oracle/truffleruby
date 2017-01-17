@@ -23,8 +23,8 @@ import org.jruby.truffle.Layouts;
 import org.jruby.truffle.builtins.Primitive;
 import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeConstants;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
 import org.jruby.truffle.language.objects.AllocateObjectNode;
 import org.jruby.truffle.platform.RubiniusTypes;
@@ -129,7 +129,7 @@ public abstract class PointerPrimitiveNodes {
         public DynamicObject readString(DynamicObject pointer, int length) {
             final byte[] bytes = new byte[length];
             Layouts.POINTER.getPointer(pointer).get(0, bytes, 0, length);
-            return createString(ByteList.createByteList(bytes));
+            return createString(RopeBuilder.createRopeBuilder(bytes));
         }
 
     }
@@ -306,7 +306,7 @@ public abstract class PointerPrimitiveNodes {
 
                 ptr.get(0, bytes, 0, bytes.length);
 
-                return StringOperations.createString(getContext(), ByteList.createByteList(bytes));
+                return StringOperations.createString(getContext(), RopeBuilder.createRopeBuilder(bytes));
             }
 
             return createString(MemoryIO.getInstance().getZeroTerminatedByteArray(Layouts.POINTER.getPointer(pointer).address()), ASCIIEncoding.INSTANCE);

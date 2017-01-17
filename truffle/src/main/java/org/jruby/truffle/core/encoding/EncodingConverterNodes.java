@@ -30,6 +30,7 @@ import org.jruby.truffle.builtins.Primitive;
 import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
 import org.jruby.truffle.builtins.YieldingCoreMethodNode;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.rope.RopeNodes;
 import org.jruby.truffle.core.rope.RopeOperations;
@@ -252,7 +253,7 @@ public abstract class EncodingConverterNodes {
 
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
-            final ByteList bytes = ByteList.createByteList(n);
+            final ByteList bytes = RopeBuilder.createRopeBuilder(n);
             ec.putback(bytes.getUnsafeBytes(), 0, n);
             bytes.setLength(n);
 
@@ -284,13 +285,13 @@ public abstract class EncodingConverterNodes {
             final Object[] store = new Object[size];
 
             store[0] = eConvResultToSymbol(lastError.getResult());
-            store[1] = createString(ByteList.createByteList(lastError.getSource()));
-            store[2] = createString(ByteList.createByteList(lastError.getDestination()));
-            store[3] = createString(ByteList.createByteList(lastError.getErrorBytes(),
+            store[1] = createString(RopeBuilder.createRopeBuilder(lastError.getSource()));
+            store[2] = createString(RopeBuilder.createRopeBuilder(lastError.getDestination()));
+            store[3] = createString(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
                     lastError.getErrorBytesP(), lastError.getErrorBytesP() + lastError.getErrorBytesLength()));
 
             if (readAgain) {
-                store[4] = createString(ByteList.createByteList(lastError.getErrorBytes(),
+                store[4] = createString(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
                     lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
                     lastError.getReadAgainLength()));
             }
@@ -325,16 +326,16 @@ public abstract class EncodingConverterNodes {
             final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil(), nil(), nil(), nil() };
 
             if (ec.lastError.getSource() != null) {
-                ret[1] = createString(ByteList.createByteList(ec.lastError.getSource()));
+                ret[1] = createString(RopeBuilder.createRopeBuilder(ec.lastError.getSource()));
             }
 
             if (ec.lastError.getDestination() != null) {
-                ret[2] = createString(ByteList.createByteList(ec.lastError.getDestination()));
+                ret[2] = createString(RopeBuilder.createRopeBuilder(ec.lastError.getDestination()));
             }
 
             if (ec.lastError.getErrorBytes() != null) {
-                ret[3] = createString(ByteList.createByteList(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP(), ec.lastError.getErrorBytesLength()));
-                ret[4] = createString(ByteList.createByteList(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(), ec.lastError.getReadAgainLength()));
+                ret[3] = createString(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP(), ec.lastError.getErrorBytesLength()));
+                ret[4] = createString(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(), ec.lastError.getReadAgainLength()));
             }
 
             return createArray(ret, ret.length);

@@ -51,6 +51,7 @@ import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
 import org.jruby.truffle.core.exception.ExceptionOperations;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeBuffer;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
 import org.jruby.truffle.language.control.RaiseException;
@@ -70,7 +71,7 @@ public abstract class IOBufferPrimitiveNodes {
         @Specialization
         public DynamicObject allocate(DynamicObject classToAllocate) {
             return allocateNode.allocate(classToAllocate,
-                        ByteArrayNodes.createByteArray(coreLibrary().getByteArrayFactory(), ByteList.createByteList(IOBUFFER_SIZE)),
+                        ByteArrayNodes.createByteArray(coreLibrary().getByteArrayFactory(), RopeBuilder.createRopeBuilder(IOBUFFER_SIZE)),
                         0,
                         IOBUFFER_SIZE);
         }

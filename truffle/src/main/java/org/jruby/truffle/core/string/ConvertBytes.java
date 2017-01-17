@@ -20,6 +20,7 @@ import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.core.CoreLibrary;
 import org.jruby.truffle.core.numeric.FixnumOrBignumNode;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.language.control.RaiseException;
 
 import java.math.BigInteger;
@@ -559,9 +560,9 @@ public class ConvertBytes {
     }
 
     public static final ByteList longToByteList(long i, int radix, byte[] digitmap) {
-        if (i == 0) return ByteList.createByteList(ZERO_BYTES);
+        if (i == 0) return RopeBuilder.createRopeBuilder(ZERO_BYTES);
 
-        if (i == Long.MIN_VALUE) return ByteList.createByteList(MIN_VALUE_BYTES[radix]);
+        if (i == Long.MIN_VALUE) return RopeBuilder.createRopeBuilder(MIN_VALUE_BYTES[radix]);
 
         boolean neg = false;
         if (i < 0) {
@@ -579,7 +580,7 @@ public class ConvertBytes {
         } while ((i /= radix) > 0);
         if (neg) buf[--pos] = (byte)'-';
 
-        return ByteList.createByteList(buf, pos, len - pos);
+        return RopeBuilder.createRopeBuilder(buf, pos, len - pos);
     }
 
     private static final ByteList intToUnsignedByteList(int i, int shift, byte[] digitmap) {
@@ -591,7 +592,7 @@ public class ConvertBytes {
             buf[--charPos] = digitmap[(int)(i & mask)];
             i >>>= shift;
         } while (i != 0);
-        return ByteList.createByteList(buf, charPos, (32 - charPos));
+        return RopeBuilder.createRopeBuilder(buf, charPos, (32 - charPos));
     }
 
     private static final ByteList longToUnsignedByteList(long i, int shift, byte[] digitmap) {
@@ -603,7 +604,7 @@ public class ConvertBytes {
             buf[--charPos] = digitmap[(int)(i & mask)];
             i >>>= shift;
         } while (i != 0);
-        return ByteList.createByteList(buf, charPos, (64 - charPos));
+        return RopeBuilder.createRopeBuilder(buf, charPos, (64 - charPos));
     }
 
     public static final byte[] twosComplementToBinaryBytes(byte[] in) {
