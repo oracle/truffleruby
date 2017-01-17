@@ -217,7 +217,10 @@ public class ClassicRegexp implements ReOptions {
                         case '1': case '2': case '3':
                         case '4': case '5': case '6': case '7': /* \O, \OO, \OOO or backref */
                             if (StringSupport.scanOct(bytes, p - 1, end - (p - 1)) <= 0177) {
-                                if (to != null) to.append('\\').append(c);
+                                if (to != null) {
+                                    to.append('\\');
+                                    to.append(c);
+                                }
                                 break;
                             }
 
@@ -254,11 +257,17 @@ public class ClassicRegexp implements ReOptions {
                             break;
                         case 'p': /* \p{Hiragana} */
                             if (encp[0] == null) hasProperty = true;
-                            if (to != null) to.append('\\').append(c);
+                            if (to != null) {
+                                to.append('\\');
+                                to.append(c);
+                            }
                             break;
 
                         default:
-                            if (to != null) to.append('\\').append(c);
+                            if (to != null) {
+                                to.append('\\');
+                                to.append(c);
+                            }
                             break;
                     } // inner switch
                     break;
@@ -706,7 +715,8 @@ public class ClassicRegexp implements ReOptions {
         byte[] bytes = str.getBytes();
 
         ByteList result = ByteList.createByteList(len);
-        result.append((byte)'(').append((byte)'?');
+        result.append((byte)'(');
+        result.append((byte)'?');
 
         again: do {
             if (len >= 4 && bytes[p] == '(' && bytes[p + 1] == '?') {

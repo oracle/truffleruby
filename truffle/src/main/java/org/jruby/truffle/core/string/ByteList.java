@@ -108,34 +108,28 @@ public class ByteList {
         }
     }
 
-    public ByteList append(byte b) {
+    public void append(byte b) {
         grow(1);
         bytes[realSize] = b;
         realSize++;
-        return this;
     }
 
-    public ByteList append(int b) {
+    public void append(int b) {
         append((byte)b);
-        return this;
     }
 
-    public ByteList append(byte[] moreBytes) {
-        grow(moreBytes.length);
-        System.arraycopy(moreBytes, 0, bytes, realSize, moreBytes.length);
-        realSize += moreBytes.length;
-        return this;
+    public void append(byte[] moreBytes) {
+        append(moreBytes, 0, moreBytes.length);
     }
 
-    public ByteList append(ByteList moreBytes, int index, int len) {
-        return append(moreBytes.bytes, index, len);
+    public void append(ByteList moreBytes, int index, int len) {
+        append(moreBytes.getUnsafeBytes(), index, len);
     }
 
-    public ByteList append(byte[] moreBytes, int start, int len) {
+    public void append(byte[] moreBytes, int start, int len) {
         grow(len);
         System.arraycopy(moreBytes, start, bytes, realSize, len);
         realSize += len;
-        return this;
     }
 
     public int length() {
@@ -155,17 +149,7 @@ public class ByteList {
     }
 
     private void grow(int increaseRequested) {
-        if (increaseRequested < 0) return;
-
-        // new available size
-        int newSize = realSize + increaseRequested;
-
-        // only recopy if bytes does not have enough room *after* the begin index
-        if (newSize > bytes.length) {
-            byte[] newBytes = new byte[newSize + (newSize >> 1)];
-            if (bytes.length != 0) System.arraycopy(bytes, 0, newBytes, 0, realSize);
-            bytes = newBytes;
-        }
+        ensure(realSize + increaseRequested);
     }
 
     public byte[] getUnsafeBytes() {
