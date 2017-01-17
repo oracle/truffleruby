@@ -1,1 +1,0 @@
-fails:Global variable $0 actually sets the program name
