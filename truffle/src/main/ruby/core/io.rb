@@ -37,32 +37,6 @@ class IO
 
   include Enumerable
 
-  class InternalBuffer
-    def self.allocate
-      Truffle.primitive :iobuffer_allocate
-      raise PrimitiveFailure, "IO::Buffer.allocate primitive failed"
-    end
-
-    ##
-    # Returns the number of bytes that could be written to the buffer.
-    # If the number is less then the expected, then we need to +empty_to+
-    # the IO, and +unshift+ again beginning at +start_pos+.
-    def unshift(str, start_pos)
-      Truffle.primitive :iobuffer_unshift
-      raise PrimitiveFailure, "IO::Buffer#unshift primitive failed"
-    end
-
-    def fill(io)
-      Truffle.primitive :iobuffer_fill
-
-      unless io.kind_of? IO
-        return fill(io.to_io)
-      end
-
-      raise PrimitiveFailure, "IOBuffer#fill primitive failed"
-    end
-  end
-
   def self.allocate
     Truffle.primitive :io_allocate
     raise PrimitiveFailure, "IO.allocate primitive failed"
@@ -253,6 +227,11 @@ class IO
   # buffer.
   class InternalBuffer
 
+    def self.allocate
+      Truffle.primitive :iobuffer_allocate
+      raise PrimitiveFailure, "IO::Buffer.allocate primitive failed"
+    end
+
     def initialize
       # Truffle: other fields are initialized in Java.
       @start = 0
@@ -269,6 +248,25 @@ class IO
     # Returns +true+ if the buffer is empty and cannot be filled further.
     def exhausted?
       @eof and empty?
+    end
+
+    ##
+    # Returns the number of bytes that could be written to the buffer.
+    # If the number is less then the expected, then we need to +empty_to+
+    # the IO, and +unshift+ again beginning at +start_pos+.
+    def unshift(str, start_pos)
+      Truffle.primitive :iobuffer_unshift
+      raise PrimitiveFailure, "IO::Buffer#unshift primitive failed"
+    end
+
+    def fill(io)
+      Truffle.primitive :iobuffer_fill
+
+      unless io.kind_of? IO
+        return fill(io.to_io)
+      end
+
+      raise PrimitiveFailure, "IOBuffer#fill primitive failed"
     end
 
     ##
