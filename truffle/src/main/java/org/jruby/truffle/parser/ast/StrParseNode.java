@@ -34,8 +34,8 @@ package org.jruby.truffle.parser.ast;
 
 import org.jruby.truffle.core.rope.CodeRange;
 import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.language.SourceIndexLength;
 import org.jruby.truffle.core.rope.RopeBuilder;
+import org.jruby.truffle.language.SourceIndexLength;
 import org.jruby.truffle.parser.ast.types.ILiteralNode;
 import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
 

@@ -31,8 +31,8 @@ package org.jruby.truffle.parser.lexer;
 
 import org.jcodings.Encoding;
 import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.core.rope.RopeBuilder;
+import org.jruby.truffle.core.rope.RopeOperations;
 import org.jruby.truffle.parser.parser.ParserRopeOperations;
 import org.jruby.truffle.parser.parser.Tokens;
 

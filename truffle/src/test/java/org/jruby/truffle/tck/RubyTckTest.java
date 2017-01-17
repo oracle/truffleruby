@@ -12,7 +12,6 @@ package org.jruby.truffle.tck;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.tck.TruffleTCK;
-
 import org.jruby.truffle.RubyLanguage;
 import org.junit.Test;
 
@@ -22,7 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 public class RubyTckTest extends TruffleTCK {
 

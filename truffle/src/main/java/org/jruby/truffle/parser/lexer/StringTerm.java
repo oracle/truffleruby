@@ -30,9 +30,9 @@ package org.jruby.truffle.parser.lexer;
 import org.jcodings.Encoding;
 import org.jruby.truffle.core.regexp.RegexpOptions;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.string.KCode;
-import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.parser.ast.RegexpParseNode;
 import org.jruby.truffle.parser.parser.Tokens;
 
