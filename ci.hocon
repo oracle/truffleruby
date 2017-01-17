@@ -53,7 +53,7 @@ labsjdk9: {
   downloads: {
     JAVA9_HOME: {
       name: labsjdk,
-      version: "9-HSCOMPSNAPSHOT",
+      version: "9-ea+152",
       platformspecific: true
     }
   }
