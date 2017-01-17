@@ -52,7 +52,6 @@ import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringSupport;
 import org.jruby.truffle.parser.ReOptions;
 
@@ -91,7 +90,7 @@ public class ClassicRegexp implements ReOptions {
 
     static final WeakValuedMap<Rope, Regex> patternCache = new WeakValuedMap<>();
 
-    private static Regex makeRegexp(RubyContext runtime, ByteList bytes, RegexpOptions options, Encoding enc) {
+    private static Regex makeRegexp(RubyContext runtime, RopeBuilder bytes, RegexpOptions options, Encoding enc) {
         try {
             return new Regex(bytes.getUnsafeBytes(), 0, bytes.getLength(), options.toJoniOptions(), enc, Syntax.DEFAULT, new WarnCallback() {
                 @Override
@@ -104,7 +103,7 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    static Regex getRegexpFromCache(RubyContext runtime, ByteList bytes, Encoding enc, RegexpOptions options) {
+    static Regex getRegexpFromCache(RubyContext runtime, RopeBuilder bytes, Encoding enc, RegexpOptions options) {
         Rope key = RopeOperations.ropeFromByteList(bytes);
         Regex regex = patternCache.get(key);
         if (regex != null && regex.getEncoding() == enc && regex.getOptions() == options.toJoniOptions()) return regex;
@@ -192,7 +191,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     @SuppressWarnings("fallthrough")
-    public static boolean unescapeNonAscii(RubyContext context, ByteList to, byte[] bytes, int p, int end, Encoding enc, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+    public static boolean unescapeNonAscii(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding enc, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
         boolean hasProperty = false;
         byte[] buf = null;
 
@@ -280,7 +279,7 @@ public class ClassicRegexp implements ReOptions {
         return hasProperty;
     }
 
-    private static int unescapeUnicodeBmp(RubyContext context, ByteList to, byte[] bytes, int p, int end, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static int unescapeUnicodeBmp(RubyContext context, RopeBuilder to, byte[] bytes, int p, int end, Encoding[] encp, Rope str, RegexpSupport.ErrorMode mode) {
         if (p + 4 > end) raisePreprocessError(context, str, "invalid Unicode escape", mode);
         int code = StringSupport.scanHex(bytes, p, 4);
         int len = StringSupport.hexLength(bytes, p, 4);
@@ -289,7 +288,7 @@ public class ClassicRegexp implements ReOptions {
         return p + 4;
     }
 
-    private static int unescapeUnicodeList(RubyContext context, ByteList to, byte[]bytes, int p, int end, Encoding[]encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static int unescapeUnicodeList(RubyContext context, RopeBuilder to, byte[]bytes, int p, int end, Encoding[]encp, Rope str, RegexpSupport.ErrorMode mode) {
         while (p < end && ASCIIEncoding.INSTANCE.isSpace(bytes[p] & 0xff)) p++;
 
         boolean hasUnicode = false;
@@ -308,7 +307,7 @@ public class ClassicRegexp implements ReOptions {
         return p;
     }
 
-    private static void appendUtf8(RubyContext context, ByteList to, int code, Encoding[] enc, Rope str, RegexpSupport.ErrorMode mode) {
+    private static void appendUtf8(RubyContext context, RopeBuilder to, int code, Encoding[] enc, Rope str, RegexpSupport.ErrorMode mode) {
         checkUnicodeRange(context, code, str, mode);
 
         if (code < 0x80) {
@@ -376,7 +375,7 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    private static int unescapeEscapedNonAscii(RubyContext context, ByteList to, byte[]bytes, int p, int end, Encoding enc, Encoding[]encp, Rope str, RegexpSupport.ErrorMode mode) {
+    private static int unescapeEscapedNonAscii(RubyContext context, RopeBuilder to, byte[]bytes, int p, int end, Encoding enc, Encoding[]encp, Rope str, RegexpSupport.ErrorMode mode) {
         byte[]chBuf = new byte[enc.maxLength()];
         int chLen = 0;
 
@@ -500,8 +499,8 @@ public class ClassicRegexp implements ReOptions {
         preprocess(runtime, bytes, bytes.getEncoding(), new Encoding[]{null}, RegexpSupport.ErrorMode.RAISE);
     }
 
-    public static ByteList preprocess(RubyContext runtime, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
-        ByteList to = RopeBuilder.createRopeBuilder(str.byteLength());
+    public static RopeBuilder preprocess(RubyContext runtime, Rope str, Encoding enc, Encoding[] fixedEnc, RegexpSupport.ErrorMode mode) {
+        RopeBuilder to = RopeBuilder.createRopeBuilder(str.byteLength());
 
         if (enc.isAsciiCompatible()) {
             fixedEnc[0] = null;
@@ -516,8 +515,8 @@ public class ClassicRegexp implements ReOptions {
         return to;
     }
 
-    public static ByteList preprocessDRegexp(RubyContext context, Rope[] strings, RegexpOptions options) {
-        ByteList string = null;
+    public static RopeBuilder preprocessDRegexp(RubyContext context, Rope[] strings, RegexpOptions options) {
+        RopeBuilder string = null;
         Encoding regexpEnc = null;
 
         for (int i = 0; i < strings.length; i++) {
@@ -604,7 +603,7 @@ public class ClassicRegexp implements ReOptions {
             return bs;
         } while (false);
 
-        ByteList result = RopeBuilder.createRopeBuilder(end * 2);
+        RopeBuilder result = RopeBuilder.createRopeBuilder(end * 2);
         result.setEncoding(asciiOnly ? USASCIIEncoding.INSTANCE : bs.getEncoding());
         byte[]obytes = result.getUnsafeBytes();
         int op = p;
@@ -678,7 +677,7 @@ public class ClassicRegexp implements ReOptions {
         if (enc.isDummy()) throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
 
         Encoding[]fixedEnc = new Encoding[]{null};
-        ByteList unescaped = preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        RopeBuilder unescaped = preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         if (fixedEnc[0] != null) {
             if ((fixedEnc[0] != enc && options.isFixed()) ||
                (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
@@ -702,20 +701,20 @@ public class ClassicRegexp implements ReOptions {
         return this;
     }
 
-    public static void appendOptions(ByteList to, RegexpOptions options) {
+    public static void appendOptions(RopeBuilder to, RegexpOptions options) {
         if (options.isMultiline()) to.append((byte)'m');
         if (options.isIgnorecase()) to.append((byte)'i');
         if (options.isExtended()) to.append((byte)'x');
     }
 
     @SuppressWarnings("unused")
-    public ByteList toByteList() {
+    public RopeBuilder toByteList() {
         RegexpOptions newOptions = (RegexpOptions)options.clone();
         int p = 0;
         int len = str.byteLength();
         byte[] bytes = str.getBytes();
 
-        ByteList result = RopeBuilder.createRopeBuilder(len);
+        RopeBuilder result = RopeBuilder.createRopeBuilder(len);
         result.append((byte)'(');
         result.append((byte)'?');
 
@@ -794,7 +793,7 @@ public class ClassicRegexp implements ReOptions {
         } while (true);
     }
 
-    public void appendRegexpString19(ByteList to, byte[] bytes, int start, int len, Encoding enc, Encoding resEnc) {
+    public void appendRegexpString19(RopeBuilder to, byte[] bytes, int start, int len, Encoding enc, Encoding resEnc) {
         int p = start;
         int end = p + len;
         boolean needEscape = false;

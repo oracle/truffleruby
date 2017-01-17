@@ -17,8 +17,8 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jruby.truffle.Layouts;
 import org.jruby.truffle.core.rope.Rope;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
 import org.jruby.truffle.language.RubyNode;
 import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
@@ -49,7 +49,7 @@ public class InterpolatedRegexpNode extends RubyNode {
             strings[n] = StringOperations.rope(parts[n]);
         }
 
-        final ByteList preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
+        final RopeBuilder preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
 
         final DynamicObject regexp = RegexpNodes.createRubyRegexp(getContext(), this, coreLibrary().getRegexpFactory(),
                 RopeOperations.ropeFromByteList(preprocessed), options);

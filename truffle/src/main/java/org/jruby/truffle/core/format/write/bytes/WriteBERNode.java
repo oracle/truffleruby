@@ -57,7 +57,6 @@ import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.format.FormatGuards;
 import org.jruby.truffle.core.format.FormatNode;
 import org.jruby.truffle.core.format.exceptions.CantCompressNegativeException;
-import org.jruby.truffle.core.string.ByteList;
 
 import java.math.BigInteger;
 

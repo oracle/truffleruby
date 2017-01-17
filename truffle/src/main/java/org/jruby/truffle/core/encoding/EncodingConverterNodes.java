@@ -34,7 +34,6 @@ import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.rope.RopeNodes;
 import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
 import org.jruby.truffle.core.string.StringUtils;
 import org.jruby.truffle.language.NotProvided;
@@ -147,7 +146,7 @@ public abstract class EncodingConverterNodes {
             final boolean nonNullSource = source != nil();
             Rope sourceRope = nonNullSource ? rope(source) : RopeConstants.EMPTY_UTF8_ROPE;
             final Rope targetRope = rope(target);
-            final ByteList outBytes = RopeOperations.toByteListCopy(targetRope);
+            final RopeBuilder outBytes = RopeOperations.toByteListCopy(targetRope);
 
             final Ptr inPtr = new Ptr();
             final Ptr outPtr = new Ptr();
@@ -253,7 +252,7 @@ public abstract class EncodingConverterNodes {
 
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
-            final ByteList bytes = RopeBuilder.createRopeBuilder(n);
+            final RopeBuilder bytes = RopeBuilder.createRopeBuilder(n);
             ec.putback(bytes.getUnsafeBytes(), 0, n);
             bytes.setLength(n);
 

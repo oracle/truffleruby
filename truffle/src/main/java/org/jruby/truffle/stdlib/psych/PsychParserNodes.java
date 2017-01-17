@@ -65,7 +65,6 @@ import org.jruby.truffle.core.rope.CodeRange;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
 import org.jruby.truffle.language.NotProvided;
 import org.jruby.truffle.language.RubyGuards;
@@ -457,7 +456,7 @@ public abstract class PsychParserNodes {
             }
 
             int len = str.byteLength();
-            ByteList newStr = RopeBuilder.createRopeBuilder(len);
+            RopeBuilder newStr = RopeBuilder.createRopeBuilder(len);
             int olen = len;
 
             EConv ec = econvOpenOpts(context, fromEncoding, toEncoding, ecflags, ecopts);

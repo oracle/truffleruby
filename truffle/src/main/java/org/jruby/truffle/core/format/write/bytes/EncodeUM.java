@@ -36,7 +36,6 @@
 package org.jruby.truffle.core.format.write.bytes;
 
 import org.jruby.truffle.collections.ByteArrayBuilder;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
 
 public class EncodeUM {

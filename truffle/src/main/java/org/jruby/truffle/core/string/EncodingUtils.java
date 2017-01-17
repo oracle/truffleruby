@@ -36,6 +36,7 @@ import org.jcodings.specific.UTF32LEEncoding;
 import org.jcodings.transcode.EConv;
 import org.jcodings.transcode.EConvFlags;
 import org.jcodings.unicode.UnicodeEncoding;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.platform.Platform;
 
 import java.util.ArrayList;
@@ -140,7 +141,7 @@ public class EncodingUtils {
          * @param len
          * @param new_len
          */
-        int resize(ByteList destination, int len, int new_len);
+        int resize(RopeBuilder destination, int len, int new_len);
     }
 
     /**
@@ -161,7 +162,7 @@ public class EncodingUtils {
         boolean call(State context, Data fallback, EConv ec);
     }
 
-    public static void strBufCat(ByteList str, byte[] ptrBytes, int ptr, int len) {
+    public static void strBufCat(RopeBuilder str, byte[] ptrBytes, int ptr, int len) {
         int total;
 
         // termlen is not relevant since we have no termination sequence
@@ -179,7 +180,7 @@ public class EncodingUtils {
     }
 
     // MRI: get_encoding
-    public static Encoding getEncoding(ByteList str) {
+    public static Encoding getEncoding(RopeBuilder str) {
         return getActualEncoding(str.getEncoding(), str);
     }
 
@@ -187,7 +188,7 @@ public class EncodingUtils {
     private static final Encoding UTF32Dummy = EncodingDB.getEncodings().get("UTF-32".getBytes()).getEncoding();
 
     // MRI: get_actual_encoding
-    public static Encoding getActualEncoding(Encoding enc, ByteList byteList) {
+    public static Encoding getActualEncoding(Encoding enc, RopeBuilder byteList) {
         return getActualEncoding(enc, byteList.getUnsafeBytes(), 0, byteList.getLength());
     }
 

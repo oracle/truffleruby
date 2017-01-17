@@ -525,7 +525,7 @@ public class ConvertBytes {
     }
 
     public static final byte[] intToHexBytes(int i, boolean upper) {
-        ByteList byteList = intToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        RopeBuilder byteList = intToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
         return byteList.getBytes();
     }
 
@@ -546,12 +546,12 @@ public class ConvertBytes {
     }
 
     public static final byte[] longToHexBytes(long i, boolean upper) {
-        ByteList byteList = longToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        RopeBuilder byteList = longToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
         return byteList.getBytes();
     }
 
     public static final byte[] longToByteArray(long i, int radix, boolean upper) {
-        ByteList byteList = longToByteList(i, radix, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        RopeBuilder byteList = longToByteList(i, radix, upper ? UPPER_DIGITS : LOWER_DIGITS);
         return byteList.getBytes();
     }
 
@@ -559,7 +559,7 @@ public class ConvertBytes {
         return longToByteList(i, 10, LOWER_DIGITS).getBytes();
     }
 
-    public static final ByteList longToByteList(long i, int radix, byte[] digitmap) {
+    public static final RopeBuilder longToByteList(long i, int radix, byte[] digitmap) {
         if (i == 0) return RopeBuilder.createRopeBuilder(ZERO_BYTES);
 
         if (i == Long.MIN_VALUE) return RopeBuilder.createRopeBuilder(MIN_VALUE_BYTES[radix]);
@@ -583,7 +583,7 @@ public class ConvertBytes {
         return RopeBuilder.createRopeBuilder(buf, pos, len - pos);
     }
 
-    private static final ByteList intToUnsignedByteList(int i, int shift, byte[] digitmap) {
+    private static final RopeBuilder intToUnsignedByteList(int i, int shift, byte[] digitmap) {
         byte[] buf = new byte[32];
         int charPos = 32;
         int radix = 1 << shift;
@@ -595,7 +595,7 @@ public class ConvertBytes {
         return RopeBuilder.createRopeBuilder(buf, charPos, (32 - charPos));
     }
 
-    private static final ByteList longToUnsignedByteList(long i, int shift, byte[] digitmap) {
+    private static final RopeBuilder longToUnsignedByteList(long i, int shift, byte[] digitmap) {
         byte[] buf = new byte[64];
         int charPos = 64;
         int radix = 1 << shift;

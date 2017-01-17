@@ -208,10 +208,10 @@ public abstract class StringNodes {
             final Encoding enc = checkEncodingNode.executeCheckEncoding(string, other);
 
             final RopeBuffer left = (RopeBuffer) rope(string);
-            final ByteList leftByteList = left.getByteList();
+            final RopeBuilder leftByteList = left.getByteList();
             final Rope right = rope(other);
 
-            final ByteList concatByteList;
+            final RopeBuilder concatByteList;
             if (ropeBufferProfile.profile(right instanceof RopeBuffer)) {
                 concatByteList = StringSupport.addByteLists(leftByteList, ((RopeBuffer) right).getByteList());
             } else {
@@ -1860,7 +1860,7 @@ public abstract class StringNodes {
                 if (isSingleByteOptimizableRopeBufferProfile.profile(rope.isSingleByteOptimizable())) {
                     return ((RopeBuffer) rope).getByteList().getLength();
                 } else {
-                    final ByteList byteList = ((RopeBuffer) rope).getByteList();
+                    final RopeBuilder byteList = ((RopeBuffer) rope).getByteList();
                     return RopeOperations.strLength(rope.getEncoding(), byteList.getUnsafeBytes(), 0, byteList.getLength());
                 }
             } else {
@@ -1889,7 +1889,7 @@ public abstract class StringNodes {
             // Taken from org.jruby.RubyString#squeeze_bang19.
 
             final Rope rope = rope(string);
-            final ByteList buffer = RopeOperations.toByteListCopy(rope);
+            final RopeBuilder buffer = RopeOperations.toByteListCopy(rope);
 
             final boolean squeeze[] = new boolean[StringSupport.TRANS_SIZE];
             for (int i = 0; i < StringSupport.TRANS_SIZE; i++) squeeze[i] = true;
@@ -1940,7 +1940,7 @@ public abstract class StringNodes {
             }
 
             final Rope rope = rope(string);
-            final ByteList buffer = RopeOperations.toByteListCopy(rope);
+            final RopeBuilder buffer = RopeOperations.toByteListCopy(rope);
 
             DynamicObject otherStr = otherStrings[0];
             Rope otherRope = rope(otherStr);
@@ -1976,7 +1976,7 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        private boolean squeezeCommonMultiByte(ByteList value, boolean squeeze[], StringSupport.TrTables tables, Encoding enc, boolean isArg) {
+        private boolean squeezeCommonMultiByte(RopeBuilder value, boolean squeeze[], StringSupport.TrTables tables, Encoding enc, boolean isArg) {
             return StringSupport.multiByteSqueeze(value, squeeze, tables, enc, isArg);
         }
 
@@ -1994,7 +1994,7 @@ public abstract class StringNodes {
             final Rope rope = rope(string);
 
             if (! rope.isEmpty()) {
-                final ByteList succByteList = StringSupport.succCommon(rope);
+                final RopeBuilder succByteList = StringSupport.succCommon(rope);
 
                 StringOperations.setRope(string, RopeOperations.ropeFromByteList(succByteList, rope.getCodeRange()));
             }
@@ -2404,7 +2404,7 @@ public abstract class StringNodes {
                 return nil();
             }
 
-            final ByteList bytes = RopeOperations.toByteListCopy(rope);
+            final RopeBuilder bytes = RopeOperations.toByteListCopy(rope);
             final boolean modified = multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
             if (modified) {
                 StringOperations.setRope(string, RopeOperations.ropeFromByteList(bytes, rope.getCodeRange()));
@@ -3965,7 +3965,7 @@ public abstract class StringNodes {
             final Rope insert = rope(other);
             final int rightSideStartingIndex = spliceByteIndex + byteCountToReplace;
 
-            final ByteList byteList = RopeBuilder.createRopeBuilder(source.byteLength() + insert.byteLength() - byteCountToReplace);
+            final RopeBuilder byteList = RopeBuilder.createRopeBuilder(source.byteLength() + insert.byteLength() - byteCountToReplace);
 
             byteList.append(source.getByteList().getBytes(), 0, spliceByteIndex);
             byteList.append(insert.getBytes());
@@ -4289,7 +4289,7 @@ public abstract class StringNodes {
         @Specialization(guards = "isRubiniusByteArray(bytes)")
         public DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count) {
             // Data is copied here - can we do something COW?
-            final ByteList byteList = Layouts.BYTE_ARRAY.getBytes(bytes);
+            final RopeBuilder byteList = Layouts.BYTE_ARRAY.getBytes(bytes);
             return createString(RopeBuilder.createRopeBuilder(byteList, start, count));
         }
 

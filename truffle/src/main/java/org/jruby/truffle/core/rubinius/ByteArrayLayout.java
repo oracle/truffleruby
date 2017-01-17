@@ -13,7 +13,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import org.jruby.truffle.core.basicobject.BasicObjectLayout;
-import org.jruby.truffle.core.string.ByteList;
+import org.jruby.truffle.core.rope.RopeBuilder;
 
 @Layout
 public interface ByteArrayLayout extends BasicObjectLayout {
@@ -22,10 +22,10 @@ public interface ByteArrayLayout extends BasicObjectLayout {
                                               DynamicObject metaClass);
 
     DynamicObject createByteArray(DynamicObjectFactory factory,
-                                  ByteList bytes);
+                                  RopeBuilder bytes);
 
     boolean isByteArray(DynamicObject object);
 
-    ByteList getBytes(DynamicObject object);
+    RopeBuilder getBytes(DynamicObject object);
 
 }

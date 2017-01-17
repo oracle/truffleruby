@@ -10,11 +10,10 @@
 package org.jruby.truffle.core.rope;
 
 import org.jcodings.Encoding;
-import org.jruby.truffle.core.string.ByteList;
 
 public class RopeBuffer extends LeafRope {
 
-    private final ByteList byteList;
+    private final RopeBuilder byteList;
 
     protected RopeBuffer(byte[] bytes, Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int characterLength) {
         super(bytes, encoding, codeRange, singleByteOptimizable, characterLength);
@@ -29,7 +28,7 @@ public class RopeBuffer extends LeafRope {
                 original.characterLength());
     }
 
-    public RopeBuffer(ByteList byteList, CodeRange codeRange, boolean singleByteOptimizable, int characterLength) {
+    public RopeBuffer(RopeBuilder byteList, CodeRange codeRange, boolean singleByteOptimizable, int characterLength) {
         super(byteList.getUnsafeBytes(), byteList.getEncoding(), codeRange, singleByteOptimizable, characterLength);
         this.byteList =  byteList;
     }
@@ -45,7 +44,7 @@ public class RopeBuffer extends LeafRope {
         return (byte) byteList.get(index);
     }
 
-    public ByteList getByteList() {
+    public RopeBuilder getByteList() {
         return byteList;
     }
 
@@ -56,7 +55,7 @@ public class RopeBuffer extends LeafRope {
     }
 
     public RopeBuffer dup() {
-        final ByteList duped = new ByteList();
+        final RopeBuilder duped = new RopeBuilder();
         duped.append(byteList.getBytes());
         return new RopeBuffer(duped, getCodeRange(), isSingleByteOptimizable(), characterLength());
     }

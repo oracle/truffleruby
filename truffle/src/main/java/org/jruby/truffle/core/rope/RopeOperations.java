@@ -32,7 +32,6 @@ import org.jruby.truffle.Layouts;
 import org.jruby.truffle.RubyContext;
 import org.jruby.truffle.collections.Memo;
 import org.jruby.truffle.core.encoding.EncodingManager;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.EncodingUtils;
 import org.jruby.truffle.core.string.StringOperations;
 import org.jruby.truffle.core.string.StringSupport;
@@ -543,11 +542,11 @@ public class RopeOperations {
     }
 
 
-    public static ByteList getByteListReadOnly(Rope rope) {
+    public static RopeBuilder getByteListReadOnly(Rope rope) {
         return RopeBuilder.createRopeBuilder(rope.getBytes(), rope.getEncoding());
     }
 
-    public static ByteList toByteListCopy(Rope rope) {
+    public static RopeBuilder toByteListCopy(Rope rope) {
         return RopeBuilder.createRopeBuilder(rope.getBytes(), rope.getEncoding());
     }
 
@@ -639,11 +638,11 @@ public class RopeOperations {
         return size == other.byteLength() ? 0 : size == len ? -1 : 1;
     }
 
-    public static Rope ropeFromByteList(ByteList byteList) {
+    public static Rope ropeFromByteList(RopeBuilder byteList) {
         return create(byteList.getBytes(), byteList.getEncoding(), CR_UNKNOWN);
     }
 
-    public static Rope ropeFromByteList(ByteList byteList, CodeRange codeRange) {
+    public static Rope ropeFromByteList(RopeBuilder byteList, CodeRange codeRange) {
         // TODO (nirvdrum 08-Jan-16) We need to make a copy of the ByteList's bytes for now to be safe, but we should be able to use the unsafe bytes as we move forward.
         return create(byteList.getBytes(), byteList.getEncoding(), codeRange);
     }

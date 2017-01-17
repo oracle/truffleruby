@@ -25,7 +25,6 @@ import org.jruby.truffle.Layouts;
 import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.format.FormatNode;
 import org.jruby.truffle.core.format.printf.PrintfSimpleTreeBuilder;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.ConvertBytes;
 
 import java.math.BigInteger;

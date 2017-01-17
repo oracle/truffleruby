@@ -23,14 +23,13 @@ import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
 import org.jruby.truffle.builtins.UnaryCoreMethodNode;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
 import org.jruby.truffle.language.control.RaiseException;
 
 @CoreClass("Rubinius::ByteArray")
 public abstract class ByteArrayNodes {
 
-    public static DynamicObject createByteArray(DynamicObjectFactory factory, ByteList bytes) {
+    public static DynamicObject createByteArray(DynamicObjectFactory factory, RopeBuilder bytes) {
         return Layouts.BYTE_ARRAY.createByteArray(factory, bytes);
     }
 
@@ -40,7 +39,7 @@ public abstract class ByteArrayNodes {
         @Specialization
         public int getByte(DynamicObject bytes, int index,
                               @Cached("createBinaryProfile()") ConditionProfile nullByteIndexProfile) {
-            final ByteList byteList = Layouts.BYTE_ARRAY.getBytes(bytes);
+            final RopeBuilder byteList = Layouts.BYTE_ARRAY.getBytes(bytes);
 
             // Handling out-of-bounds issues like this is non-standard. In Rubinius, it would raise an exception instead.
             // We're modifying the semantics to address a primary use case for this class: Rubinius's @data array
@@ -117,7 +116,7 @@ public abstract class ByteArrayNodes {
         }
 
         @TruffleBoundary
-        public int indexOf(ByteList in, Rope find) {
+        public int indexOf(RopeBuilder in, Rope find) {
             byte[] target = find.getBytes();
             int targetCount = find.byteLength();
             int fromIndex = 0;

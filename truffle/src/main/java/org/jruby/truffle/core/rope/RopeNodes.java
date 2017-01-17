@@ -28,7 +28,6 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringSupport;
 import org.jruby.truffle.core.string.StringUtils;
 import org.jruby.truffle.language.NotProvided;
@@ -260,7 +259,7 @@ public abstract class RopeNodes {
                 throw new RaiseException(getContext().getCoreExceptions().argumentError("Result of string concatenation exceeds the system maximum string length", this));
             }
 
-            final ByteList byteList = left.getByteList();
+            final RopeBuilder byteList = left.getByteList();
 
             byteList.append(right.getBytes());
 
@@ -688,9 +687,9 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "times > 1")
         public Rope multiplyBuffer(RopeBuffer base, int times) {
-            final ByteList inputBytes = base.getByteList();
+            final RopeBuilder inputBytes = base.getByteList();
             int len = inputBytes.getLength() * times;
-            final ByteList outputBytes = RopeBuilder.createRopeBuilder(len);
+            final RopeBuilder outputBytes = RopeBuilder.createRopeBuilder(len);
             outputBytes.setLength(len);
 
             int n = inputBytes.getLength();

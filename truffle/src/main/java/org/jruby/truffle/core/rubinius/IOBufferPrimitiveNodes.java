@@ -52,7 +52,6 @@ import org.jruby.truffle.core.exception.ExceptionOperations;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeBuffer;
 import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.StringOperations;
 import org.jruby.truffle.language.control.RaiseException;
 import org.jruby.truffle.language.objects.AllocateObjectNode;
@@ -91,7 +90,7 @@ public abstract class IOBufferPrimitiveNodes {
             int written;
 
             if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {
-                final ByteList byteList = ((RopeBuffer) rope).getByteList();
+                final RopeBuilder byteList = ((RopeBuffer) rope).getByteList();
 
                 bytes = byteList.getUnsafeBytes();
                 written = byteList.getLength() - startPosition;
@@ -104,7 +103,7 @@ public abstract class IOBufferPrimitiveNodes {
                 written = available;
             }
 
-            ByteList storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
+            RopeBuilder storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
 
             // TODO (nirvdrum 08-24-16): Data is copied here - can we do something COW?
             System.arraycopy(bytes, startPosition, storage.getUnsafeBytes(), used, written);
@@ -140,7 +139,7 @@ public abstract class IOBufferPrimitiveNodes {
                     throw new RaiseException(coreExceptions().internalError("IO buffer overrun", this));
                 }
                 final int used = Layouts.IO_BUFFER.getUsed(ioBuffer);
-                final ByteList storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
+                final RopeBuilder storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
                 System.arraycopy(readBuffer, 0, storage.getUnsafeBytes(), used, bytesRead);
                 storage.setLength(used + bytesRead);
                 Layouts.IO_BUFFER.setUsed(ioBuffer, used + bytesRead);

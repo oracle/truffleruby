@@ -52,11 +52,6 @@ import java.nio.charset.StandardCharsets;
 
 public abstract class StringOperations {
 
-    /** Creates a String from the ByteList, with unknown CR */
-    public static DynamicObject createString(RubyContext context, ByteList bytes) {
-        return Layouts.STRING.createString(context.getCoreLibrary().getStringFactory(), RopeOperations.ropeFromByteList(bytes, CodeRange.CR_UNKNOWN));
-    }
-
     public static DynamicObject createString(RubyContext context, RopeBuilder bytes) {
         return Layouts.STRING.createString(context.getCoreLibrary().getStringFactory(), RopeOperations.ropeFromBuilder(bytes, CodeRange.CR_UNKNOWN));
     }

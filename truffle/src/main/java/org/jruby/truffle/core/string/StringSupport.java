@@ -638,14 +638,14 @@ public final class StringSupport {
     public enum NeighborChar {NOT_CHAR, FOUND, WRAPPED}
 
     // MRI: str_succ
-    public static ByteList succCommon(Rope original) {
+    public static RopeBuilder succCommon(Rope original) {
         byte carry[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
         int carryP = 0;
         carry[0] = 1;
         int carryLen = 1;
 
         Encoding enc = original.getEncoding();
-        ByteList valueCopy = RopeBuilder.createRopeBuilder(original.getBytes(), enc);
+        RopeBuilder valueCopy = RopeBuilder.createRopeBuilder(original.getBytes(), enc);
         int p = 0;
         int end = p + valueCopy.getLength();
         int s = end;
@@ -899,8 +899,8 @@ public final class StringSupport {
         return modify ? RopeOperations.create(ArrayUtils.extractRange(bytes, 0, t), enc, cr) : null;
     }
 
-    public static ByteList addByteLists(ByteList value1, ByteList value2) {
-        ByteList result = RopeBuilder.createRopeBuilder(value1.getLength() + value2.getLength());
+    public static RopeBuilder addByteLists(RopeBuilder value1, RopeBuilder value2) {
+        RopeBuilder result = RopeBuilder.createRopeBuilder(value1.getLength() + value2.getLength());
         result.setLength(value1.getLength() + value2.getLength());
         System.arraycopy(value1.getUnsafeBytes(), 0, result.getUnsafeBytes(), 0, value1.getLength());
         System.arraycopy(value2.getUnsafeBytes(), 0, result.getUnsafeBytes(), value1.getLength(), value2.getLength());
@@ -1182,7 +1182,7 @@ public final class StringSupport {
         return end - p > oend - op ? 1 : -1;
     }
 
-    public static boolean singleByteSqueeze(ByteList value, boolean squeeze[]) {
+    public static boolean singleByteSqueeze(RopeBuilder value, boolean squeeze[]) {
         int s = 0;
         int t = s;
         int send = s + value.getLength();
@@ -1202,7 +1202,7 @@ public final class StringSupport {
         return false;
     }
 
-    public static boolean multiByteSqueeze(ByteList value, boolean squeeze[], TrTables tables, Encoding enc, boolean isArg) {
+    public static boolean multiByteSqueeze(RopeBuilder value, boolean squeeze[], TrTables tables, Encoding enc, boolean isArg) {
         int s = 0;
         int t = s;
         int send = s + value.getLength();

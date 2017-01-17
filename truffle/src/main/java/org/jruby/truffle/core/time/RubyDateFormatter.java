@@ -43,11 +43,9 @@ import jnr.constants.platform.Errno;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.encoding.EncodingManager;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.debug.DebugHelpers;
 import org.jruby.truffle.language.control.RaiseException;
 

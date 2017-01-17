@@ -33,7 +33,6 @@ import org.jruby.truffle.core.rope.CodeRange;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.ByteList;
 import org.jruby.truffle.core.string.CoreStrings;
 import org.jruby.truffle.core.string.StringOperations;
 import org.jruby.truffle.platform.posix.Sockets;
@@ -80,10 +79,6 @@ public abstract class RubyBaseNode extends Node {
 
     protected Encoding getDefaultInternalEncoding() {
         return getContext().getEncodingManager().getDefaultInternalEncoding();
-    }
-
-    protected DynamicObject createString(ByteList bytes) {
-        return StringOperations.createString(getContext(), bytes);
     }
 
     protected DynamicObject createString(RopeBuilder bytes) {
