@@ -14,7 +14,6 @@ require 'shellwords'
 require 'pathname'
 require 'rbconfig'
 require 'rubygems'
-require 'bundler'
 
 class String
   def pretty_print(q)
@@ -171,6 +170,49 @@ class TruffleTool
     def log(message)
       puts 'jtt: ' + message
     end
+  end
+
+  module GemfileLookUp
+    def self.default_gemfile
+      gemfile = find_gemfile
+      raise "Could not locate Gemfile" unless gemfile
+      Pathname.new(gemfile).untaint
+    end
+
+    private
+
+    def find_gemfile
+      given = ENV["BUNDLE_GEMFILE"]
+      return given if given && !given.empty?
+      find_file("Gemfile", "gems.rb")
+    end
+
+    def find_file(*names)
+      search_up(*names) do |filename|
+        return filename if File.file?(filename)
+      end
+    end
+
+    def search_up(*names)
+      previous = nil
+      current  = File.expand_path(Pathname.pwd).untaint
+
+      until !File.directory?(current) || current == previous
+        if ENV["BUNDLE_SPEC_RUN"]
+          # avoid stepping above the tmp directory when testing
+          return nil if File.file?(File.join(current, "bundler.gemspec"))
+        end
+
+        names.each do |name|
+          filename = File.join(current, name)
+          yield filename
+        end
+        previous = current
+        current  = File.expand_path("..", current)
+      end
+    end
+
+    extend self
   end
 
   include ConfigUtils
@@ -516,7 +558,7 @@ class TruffleTool
   end
 
   def gemfile_use_path!(gems_path)
-    gemfile = Bundler.default_gemfile.to_s
+    gemfile = GemfileLookUp.default_gemfile.to_s
 
     new_lines = File.read(gemfile).lines.map do |line|
       if line =~ /^( +)gem.*git:/
