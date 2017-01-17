@@ -47,7 +47,7 @@ public abstract class ByteArrayNodes {
             // advantage of that fact. So, where they expect to receive a NULL byte, we'd be out-of-bounds and raise
             // an exception. Simply appending a NULL byte may trigger a full copy of the original byte[], which we
             // want to avoid. The compromise is bending on the semantics here.
-            if (nullByteIndexProfile.profile(index == byteList.length())) {
+            if (nullByteIndexProfile.profile(index == byteList.getLength())) {
                 return 0;
             }
 
@@ -79,7 +79,7 @@ public abstract class ByteArrayNodes {
         @Specialization
         public Object setByte(DynamicObject bytes, int index, int value,
                 @Cached("create()") BranchProfile errorProfile) {
-            if (index < 0 || index >= Layouts.BYTE_ARRAY.getBytes(bytes).length()) {
+            if (index < 0 || index >= Layouts.BYTE_ARRAY.getBytes(bytes).getLength()) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().indexError("index out of bounds", this));
             }
@@ -95,7 +95,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization
         public int size(DynamicObject bytes) {
-            return Layouts.BYTE_ARRAY.getBytes(bytes).length();
+            return Layouts.BYTE_ARRAY.getBytes(bytes).getLength();
         }
 
     }
@@ -120,12 +120,12 @@ public abstract class ByteArrayNodes {
             byte[] target = find.getBytes();
             int targetCount = find.byteLength();
             int fromIndex = 0;
-            if (fromIndex >= in.length()) return (targetCount == 0 ? in.length() : -1);
+            if (fromIndex >= in.getLength()) return (targetCount == 0 ? in.getLength() : -1);
             if (fromIndex < 0) fromIndex = 0;
             if (targetCount == 0) return fromIndex;
 
             byte first  = target[0];
-            int max = in.length() - targetCount;
+            int max = in.getLength() - targetCount;
 
             for (int i = fromIndex; i <= max; i++) {
                 if (in.get(i) != first) {

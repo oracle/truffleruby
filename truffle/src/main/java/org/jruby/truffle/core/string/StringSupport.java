@@ -646,7 +646,7 @@ public final class StringSupport {
         Encoding enc = original.getEncoding();
         ByteList valueCopy = ByteList.createByteList(original.getBytes(), enc);
         int p = 0;
-        int end = p + valueCopy.length();
+        int end = p + valueCopy.getLength();
         int s = end;
         byte[]bytes = valueCopy.getUnsafeBytes();
 
@@ -692,11 +692,11 @@ public final class StringSupport {
                 carryP = s - p;
             }
         }
-        valueCopy.ensure(valueCopy.length() + carryLen);
+        valueCopy.unsafeEnsureSpace(valueCopy.getLength() + carryLen);
         s = carryP;
-        System.arraycopy(valueCopy.getUnsafeBytes(), s, valueCopy.getUnsafeBytes(), s + carryLen, valueCopy.length() - carryP);
+        System.arraycopy(valueCopy.getUnsafeBytes(), s, valueCopy.getUnsafeBytes(), s + carryLen, valueCopy.getLength() - carryP);
         System.arraycopy(carry, 0, valueCopy.getUnsafeBytes(), s, carryLen);
-        valueCopy.realSize(valueCopy.length() + carryLen);
+        valueCopy.setLength(valueCopy.getLength() + carryLen);
         return valueCopy;
     }
 
@@ -899,10 +899,10 @@ public final class StringSupport {
     }
 
     public static ByteList addByteLists(ByteList value1, ByteList value2) {
-        ByteList result = ByteList.createByteList(value1.length() + value2.length());
-        result.realSize(value1.length() + value2.length());
-        System.arraycopy(value1.getUnsafeBytes(), 0, result.getUnsafeBytes(), 0, value1.length());
-        System.arraycopy(value2.getUnsafeBytes(), 0, result.getUnsafeBytes(), value1.length(), value2.length());
+        ByteList result = ByteList.createByteList(value1.getLength() + value2.getLength());
+        result.setLength(value1.getLength() + value2.getLength());
+        System.arraycopy(value1.getUnsafeBytes(), 0, result.getUnsafeBytes(), 0, value1.getLength());
+        System.arraycopy(value2.getUnsafeBytes(), 0, result.getUnsafeBytes(), value1.getLength(), value2.getLength());
         return result;
     }
 
@@ -1184,7 +1184,7 @@ public final class StringSupport {
     public static boolean singleByteSqueeze(ByteList value, boolean squeeze[]) {
         int s = 0;
         int t = s;
-        int send = s + value.length();
+        int send = s + value.getLength();
         final byte[] bytes = value.getUnsafeBytes();
         int save = -1;
 
@@ -1193,8 +1193,8 @@ public final class StringSupport {
             if (c != save || !squeeze[c]) bytes[t++] = (byte)(save = c);
         }
 
-        if (t != value.length()) { // modified
-            value.realSize(t);
+        if (t != value.getLength()) { // modified
+            value.setLength(t);
             return true;
         }
 
@@ -1204,7 +1204,7 @@ public final class StringSupport {
     public static boolean multiByteSqueeze(ByteList value, boolean squeeze[], TrTables tables, Encoding enc, boolean isArg) {
         int s = 0;
         int t = s;
-        int send = s + value.length();
+        int send = s + value.getLength();
         byte[]bytes = value.getUnsafeBytes();
         int save = -1;
         int c;
@@ -1225,8 +1225,8 @@ public final class StringSupport {
             }
         }
 
-        if (t != value.length()) { // modified
-            value.realSize(t);
+        if (t != value.getLength()) { // modified
+            value.setLength(t);
             return true;
         }
 

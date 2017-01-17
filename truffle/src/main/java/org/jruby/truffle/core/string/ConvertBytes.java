@@ -516,15 +516,16 @@ public class ConvertBytes {
     }
 
     public static final byte[] intToBinaryBytes(int i) {
-        return intToUnsignedByteList(i, 1, LOWER_DIGITS).bytes();
+        return intToUnsignedByteList(i, 1, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] intToOctalBytes(int i) {
-        return intToUnsignedByteList(i, 3, LOWER_DIGITS).bytes();
+        return intToUnsignedByteList(i, 3, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] intToHexBytes(int i, boolean upper) {
-        return intToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS).bytes();
+        ByteList byteList = intToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return byteList.getBytes();
     }
 
     public static final byte[] intToByteArray(int i, int radix, boolean upper) {
@@ -532,27 +533,29 @@ public class ConvertBytes {
     }
 
     public static final byte[] intToCharBytes(int i) {
-        return longToByteList(i, 10, LOWER_DIGITS).bytes();
+        return longToByteList(i, 10, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] longToBinaryBytes(long i) {
-        return longToUnsignedByteList(i, 1, LOWER_DIGITS).bytes();
+        return longToUnsignedByteList(i, 1, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] longToOctalBytes(long i) {
-        return longToUnsignedByteList(i, 3, LOWER_DIGITS).bytes();
+        return longToUnsignedByteList(i, 3, LOWER_DIGITS).getBytes();
     }
 
     public static final byte[] longToHexBytes(long i, boolean upper) {
-        return longToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS).bytes();
+        ByteList byteList = longToUnsignedByteList(i, 4, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return byteList.getBytes();
     }
 
     public static final byte[] longToByteArray(long i, int radix, boolean upper) {
-        return longToByteList(i, radix, upper ? UPPER_DIGITS : LOWER_DIGITS).bytes();
+        ByteList byteList = longToByteList(i, radix, upper ? UPPER_DIGITS : LOWER_DIGITS);
+        return byteList.getBytes();
     }
 
     public static final byte[] longToCharBytes(long i) {
-        return longToByteList(i, 10, LOWER_DIGITS).bytes();
+        return longToByteList(i, 10, LOWER_DIGITS).getBytes();
     }
 
     public static final ByteList longToByteList(long i, int radix, byte[] digitmap) {

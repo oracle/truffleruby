@@ -93,7 +93,7 @@ public abstract class IOBufferPrimitiveNodes {
                 final ByteList byteList = ((RopeBuffer) rope).getByteList();
 
                 bytes = byteList.getUnsafeBytes();
-                written = byteList.length() - startPosition;
+                written = byteList.getLength() - startPosition;
             } else {
                 bytes = rope.getBytes();
                 written = rope.byteLength() - startPosition;
@@ -141,7 +141,7 @@ public abstract class IOBufferPrimitiveNodes {
                 final int used = Layouts.IO_BUFFER.getUsed(ioBuffer);
                 final ByteList storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
                 System.arraycopy(readBuffer, 0, storage.getUnsafeBytes(), used, bytesRead);
-                storage.realSize(used + bytesRead);
+                storage.setLength(used + bytesRead);
                 Layouts.IO_BUFFER.setUsed(ioBuffer, used + bytesRead);
             }
 

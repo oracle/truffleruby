@@ -34,13 +34,11 @@ package org.jruby.truffle.core.string;
 import org.jcodings.Encoding;
 import org.jruby.truffle.core.rope.RopeBuilder;
 
-public class ByteList {
-
-    private RopeBuilder ropeBuilder = new RopeBuilder();
+public class ByteList extends RopeBuilder {
 
     public static ByteList createByteList(int size) {
         final ByteList byteList = new ByteList();
-        byteList.ensure(size);
+        byteList.unsafeEnsureSpace(size);
         return byteList;
     }
 
@@ -76,81 +74,26 @@ public class ByteList {
         return byteList;
     }
 
-    public void fill(int b, int len) {
-    }
-
     public ByteList dup() {
         ByteList dup = new ByteList();
-        append(bytes());
+        append(getBytes());
         return dup;
     }
 
     public ByteList dup(int length) {
         ByteList dup = new ByteList();
-        ensure(length);
-        append(ropeBuilder.getBytes());
+        unsafeEnsureSpace(length);
+        append(getBytes());
         return dup;
     }
 
-    public void ensure(int length) {
-        ropeBuilder.unsafeEnsureSpace(length);
-    }
-
-    public void append(byte b) {
-        ropeBuilder.append(b);
-    }
-
-    public void append(int b) {
-        ropeBuilder.append(b);
-    }
-
-    public void append(byte[] moreBytes) {
-        append(moreBytes, 0, moreBytes.length);
-    }
-
     public void append(ByteList moreBytes, int index, int len) {
-        if (index + len > moreBytes.length()) {
+        if (index + len > moreBytes.getLength()) {
             // TODO S 17-Jan-16 fix this use beyond the known length
             append(moreBytes.getUnsafeBytes(), index, len);
         } else {
-            append(moreBytes.bytes(), index, len);
+            append(moreBytes.getBytes(), index, len);
         }
-    }
-
-    public void append(byte[] moreBytes, int start, int len) {
-        ropeBuilder.append(moreBytes, start, len);
-    }
-
-    public int length() {
-        return ropeBuilder.getLength();
-    }
-
-    public int get(int index) {
-        return ropeBuilder.getUnsafeBytes()[index];
-    }
-
-    public void set(int index, int b) {
-        ropeBuilder.getUnsafeBytes()[index] = (byte) b;
-    }
-
-    public byte[] bytes() {
-        return ropeBuilder.getBytes();
-    }
-
-    public byte[] getUnsafeBytes() {
-        return ropeBuilder.getUnsafeBytes();
-    }
-
-    public void realSize(int realSize) {
-        ropeBuilder.setLength(realSize);
-    }
-
-    public Encoding getEncoding() {
-        return ropeBuilder.getEncoding();
-    }
-
-    public void setEncoding(Encoding encoding) {
-        ropeBuilder.setEncoding(encoding);
     }
 
 }

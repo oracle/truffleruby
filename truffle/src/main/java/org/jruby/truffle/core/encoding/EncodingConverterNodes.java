@@ -169,10 +169,10 @@ public abstract class EncodingConverterNodes {
             while (true) {
 
                 if (changeOffset) {
-                    offset = outBytes.length();
+                    offset = outBytes.getLength();
                 }
 
-                if (outBytes.length() < offset) {
+                if (outBytes.getLength() < offset) {
                     throw new RaiseException(
                             coreExceptions().argumentError("output offset too big", this)
                     );
@@ -187,14 +187,14 @@ public abstract class EncodingConverterNodes {
                     );
                 }
 
-                outBytes.ensure((int) outputByteEnd);
+                outBytes.unsafeEnsureSpace((int) outputByteEnd);
 
                 inPtr.p = 0;
                 outPtr.p = offset;
                 int os = outPtr.p + size;
                 EConvResult res = TranscodingManager.convert(ec, sourceRope.getBytes(), inPtr, sourceRope.byteLength() + inPtr.p, outBytes.getUnsafeBytes(), outPtr, os, options);
 
-                outBytes.realSize(outPtr.p);
+                outBytes.setLength(outPtr.p);
 
                 if (nonNullSource) {
                     sourceRope = makeSubstringNode.executeMake(sourceRope, inPtr.p, sourceRope.byteLength() - inPtr.p);
@@ -254,7 +254,7 @@ public abstract class EncodingConverterNodes {
 
             final ByteList bytes = ByteList.createByteList(n);
             ec.putback(bytes.getUnsafeBytes(), 0, n);
-            bytes.realSize(n);
+            bytes.setLength(n);
 
             if (ec.sourceEncoding != null) {
                 bytes.setEncoding(ec.sourceEncoding);

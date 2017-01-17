@@ -481,7 +481,7 @@ public abstract class PsychParserNodes {
                 int convertedInput = sp.p - start;
                 int rest = len - convertedInput;
                 convertedOutput = dp.p - dest;
-                newStr.realSize(convertedOutput);
+                newStr.setLength(convertedOutput);
                 if (convertedInput != 0 && convertedOutput != 0 &&
                         rest < (Integer.MAX_VALUE / convertedOutput)) {
                     rest = (rest * convertedOutput) / convertedInput;
@@ -489,7 +489,7 @@ public abstract class PsychParserNodes {
                     rest = olen;
                 }
                 olen += rest < 2 ? 2 : rest;
-                newStr.ensure(olen);
+                newStr.unsafeEnsureSpace(olen);
 
                 // these are the while clause in MRI
                 destbytes = newStr.getUnsafeBytes();
@@ -502,7 +502,7 @@ public abstract class PsychParserNodes {
             switch (ret) {
                 case Finished:
                     len = dp.p;
-                    newStr.realSize(len);
+                    newStr.setLength(len);
                     newStr.setEncoding(toEncoding);
                     return RopeOperations.ropeFromByteList(newStr);
 

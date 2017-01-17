@@ -93,7 +93,6 @@ import org.jruby.truffle.builtins.Primitive;
 import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
 import org.jruby.truffle.builtins.PrimitiveNode;
 import org.jruby.truffle.builtins.YieldingCoreMethodNode;
-import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.array.ArrayCoreMethodNode;
 import org.jruby.truffle.core.array.ArrayUtils;
 import org.jruby.truffle.core.cast.ArrayAttributeCastNodeGen;
@@ -218,16 +217,16 @@ public abstract class StringNodes {
             } else {
                 // Taken from org.jruby.util.StringSupport.addByteLists.
 
-                final int newLength = leftByteList.length() + right.byteLength();
+                final int newLength = leftByteList.getLength() + right.byteLength();
                 concatByteList = ByteList.createByteList(newLength);
-                concatByteList.realSize(newLength);
-                System.arraycopy(leftByteList.getUnsafeBytes(), 0, concatByteList.getUnsafeBytes(), 0, leftByteList.length());
-                System.arraycopy(right.getBytes(), 0, concatByteList.getUnsafeBytes(), leftByteList.length(), right.byteLength());
+                concatByteList.setLength(newLength);
+                System.arraycopy(leftByteList.getUnsafeBytes(), 0, concatByteList.getUnsafeBytes(), 0, leftByteList.getLength());
+                System.arraycopy(right.getBytes(), 0, concatByteList.getUnsafeBytes(), leftByteList.getLength(), right.byteLength());
             }
 
             concatByteList.setEncoding(enc);
 
-            final RopeBuffer concatRope = new RopeBuffer(concatByteList, left.getCodeRange(), left.isSingleByteOptimizable(), concatByteList.length());
+            final RopeBuffer concatRope = new RopeBuffer(concatByteList, left.getCodeRange(), left.isSingleByteOptimizable(), concatByteList.getLength());
             final DynamicObject ret = Layouts.STRING.createString(coreLibrary().getStringFactory(), concatRope);
 
             taintResultNode.maybeTaint(string, ret);
@@ -664,7 +663,7 @@ public abstract class StringNodes {
             final Rope rope = rope(string);
 
             if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {
-                return ((RopeBuffer) rope).getByteList().length();
+                return ((RopeBuffer) rope).getByteList().getLength();
             }
 
             return rope(string).byteLength();
@@ -1859,10 +1858,10 @@ public abstract class StringNodes {
 
             if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {
                 if (isSingleByteOptimizableRopeBufferProfile.profile(rope.isSingleByteOptimizable())) {
-                    return ((RopeBuffer) rope).getByteList().length();
+                    return ((RopeBuffer) rope).getByteList().getLength();
                 } else {
                     final ByteList byteList = ((RopeBuffer) rope).getByteList();
-                    return RopeOperations.strLength(rope.getEncoding(), byteList.getUnsafeBytes(), 0, byteList.length());
+                    return RopeOperations.strLength(rope.getEncoding(), byteList.getUnsafeBytes(), 0, byteList.getLength());
                 }
             } else {
                 return rope.characterLength();
@@ -2406,7 +2405,7 @@ public abstract class StringNodes {
             }
 
             final ByteList bytes = RopeOperations.toByteListCopy(rope);
-            final boolean modified = multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.length());
+            final boolean modified = multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
             if (modified) {
                 StringOperations.setRope(string, RopeOperations.ropeFromByteList(bytes, rope.getCodeRange()));
 

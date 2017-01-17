@@ -63,6 +63,18 @@ public class ByteArrayBuilder {
         }
     }
 
+    public byte get(int n) {
+        return bytes[n];
+    }
+
+    public void set(int n, byte b) {
+        bytes[n] = b;
+    }
+
+    public void set(int n, int b) {
+        bytes[n] = (byte) b;
+    }
+
     public byte[] getBytes() {
         return Arrays.copyOf(bytes, length);
     }

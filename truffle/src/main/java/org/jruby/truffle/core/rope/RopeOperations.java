@@ -640,12 +640,12 @@ public class RopeOperations {
     }
 
     public static Rope ropeFromByteList(ByteList byteList) {
-        return create(byteList.bytes(), byteList.getEncoding(), CR_UNKNOWN);
+        return create(byteList.getBytes(), byteList.getEncoding(), CR_UNKNOWN);
     }
 
     public static Rope ropeFromByteList(ByteList byteList, CodeRange codeRange) {
         // TODO (nirvdrum 08-Jan-16) We need to make a copy of the ByteList's bytes for now to be safe, but we should be able to use the unsafe bytes as we move forward.
-        return create(byteList.bytes(), byteList.getEncoding(), codeRange);
+        return create(byteList.getBytes(), byteList.getEncoding(), codeRange);
     }
 
     public static Rope ropeFromBuilder(RopeBuilder byteList, CodeRange codeRange) {
