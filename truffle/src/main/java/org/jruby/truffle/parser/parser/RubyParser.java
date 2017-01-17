@@ -156,7 +156,7 @@ public class RubyParser {
         support.setWarnings(warnings);
         lexer.setWarnings(warnings);
     }
-					// line 159 "-"
+					// line 160 "-"
   // %token constants
   public static final int kCLASS = 257;
   public static final int kMODULE = 258;
@@ -3778,7 +3778,7 @@ states[479] = new ParserState() {
 };
 states[480] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
-    yyVal = lexer.createStr(RopeOperations.create(new byte[]{}, lexer.getEncoding(), CR_UNKNOWN), 0);
+                    yyVal = lexer.createStr(RopeOperations.create(new byte[]{}, lexer.getEncoding(), CR_UNKNOWN), 0);
     return yyVal;
   }
 };
@@ -4022,7 +4022,7 @@ states[519] = new ParserState() {
 };
 states[520] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
-    yyVal = new FileParseNode(lexer.getPosition(), RopeOperations.create(lexer.getFile().getBytes(), support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding(), CR_UNKNOWN));
+                    yyVal = new FileParseNode(lexer.getPosition(), RopeOperations.create(lexer.getFile().getBytes(), support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding(), CR_UNKNOWN));
     return yyVal;
   }
 };
