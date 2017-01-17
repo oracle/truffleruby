@@ -3967,9 +3967,9 @@ public abstract class StringNodes {
 
             final ByteList byteList = ByteList.createByteList(source.byteLength() + insert.byteLength() - byteCountToReplace);
 
-            byteList.append(source.getByteList(), 0, spliceByteIndex);
+            byteList.append(source.getByteList().getBytes(), 0, spliceByteIndex);
             byteList.append(insert.getBytes());
-            byteList.append(source.getByteList(), rightSideStartingIndex, source.byteLength() - rightSideStartingIndex);
+            byteList.append(source.getByteList().getBytes(), rightSideStartingIndex, source.byteLength() - rightSideStartingIndex);
             byteList.setEncoding(encoding);
 
             final Rope buffer = new RopeBuffer(byteList,

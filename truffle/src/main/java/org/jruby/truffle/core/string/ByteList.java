@@ -70,17 +70,13 @@ public class ByteList extends RopeBuilder {
 
     public static ByteList createByteList(ByteList wrap, int index, int len) {
         final ByteList byteList = new ByteList();
-        byteList.append(wrap, index, len);
-        return byteList;
-    }
-
-    public void append(ByteList moreBytes, int index, int len) {
-        if (index + len > moreBytes.getLength()) {
+        if (index + len > wrap.getLength()) {
             // TODO S 17-Jan-16 fix this use beyond the known length
-            append(moreBytes.getUnsafeBytes(), index, len);
+            byteList.append(wrap.getUnsafeBytes(), index, len);
         } else {
-            append(moreBytes.getBytes(), index, len);
+            byteList.append(wrap.getBytes(), index, len);
         }
+        return byteList;
     }
 
 }
