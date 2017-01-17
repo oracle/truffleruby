@@ -35,8 +35,7 @@ Create a new workspace in Eclipse (>= Luna).
 We can now import the projects:
 * From the main menu bar, select `File` > `Import...`
 * Select `General` > `Existing Projects into Workspace`
-* Select `jruby` directory as root directory
-* **Unselect** `jruby-jars` and `test`
+* Select the `truffleruby` directory as root directory
 * Click `Finish`
 
 You shall be set!
@@ -48,10 +47,10 @@ There should be now 4 projects in your workspace:
 
 ### Running from the Eclipse files directly
 
-The [jt workflow tool](https://github.com/jruby/jruby/tree/master/truffle#workflow-tool)
+The [jt workflow tool](https://github.com/graalvm/truffleruby/blob/truffle-head/doc/contributor/workflow.md)
 automatically picks up the version compiled by mx and Eclipse oven Maven-compiled files.
 
 ```bash
 $ tool/jt.rb ruby -e 'p RUBY_ENGINE'
-"jruby+truffle"
+"truffleruby"
 ```
