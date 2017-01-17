@@ -68,7 +68,7 @@ public class ByteArrayBuilder {
     }
 
     public void clear() {
-        bytes = new byte[]{};
+        bytes = EMPTY_BYTES;
         length = 0;
     }
 

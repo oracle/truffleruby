@@ -77,9 +77,6 @@ public class ByteList {
     }
 
     public void fill(int b, int len) {
-        for ( ; --len >= 0; ) {
-            append(b);
-        }
     }
 
     public ByteList dup() {
@@ -96,7 +93,7 @@ public class ByteList {
     }
 
     public void ensure(int length) {
-        ropeBuilder.getByteArrayBuilder().unsafeEnsureSpace(length);
+        ropeBuilder.unsafeEnsureSpace(length);
     }
 
     public void append(byte b) {
@@ -129,11 +126,11 @@ public class ByteList {
     }
 
     public int get(int index) {
-        return ropeBuilder.getByteArrayBuilder().getUnsafeBytes()[index];
+        return ropeBuilder.getUnsafeBytes()[index];
     }
 
     public void set(int index, int b) {
-        ropeBuilder.getByteArrayBuilder().getUnsafeBytes()[index] = (byte) b;
+        ropeBuilder.getUnsafeBytes()[index] = (byte) b;
     }
 
     public byte[] bytes() {
@@ -141,11 +138,11 @@ public class ByteList {
     }
 
     public byte[] getUnsafeBytes() {
-        return ropeBuilder.getByteArrayBuilder().getUnsafeBytes();
+        return ropeBuilder.getUnsafeBytes();
     }
 
     public void realSize(int realSize) {
-        ropeBuilder.getByteArrayBuilder().setLength(realSize);
+        ropeBuilder.setLength(realSize);
     }
 
     public Encoding getEncoding() {

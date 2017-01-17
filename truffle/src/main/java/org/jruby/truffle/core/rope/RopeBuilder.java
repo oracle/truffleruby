@@ -15,14 +15,9 @@ import org.jruby.truffle.collections.ByteArrayBuilder;
 
 import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
 
-public class RopeBuilder {
+public class RopeBuilder extends ByteArrayBuilder {
 
-    private ByteArrayBuilder bytes = new ByteArrayBuilder();
     private Encoding encoding = ASCIIEncoding.INSTANCE;
-
-    public int getLength() {
-        return bytes.getLength();
-    }
 
     public Encoding getEncoding() {
         return encoding;
@@ -32,41 +27,12 @@ public class RopeBuilder {
         this.encoding = encoding;
     }
 
-    public void append(int b) {
-        bytes.append(b);
-    }
-
-    public void append(byte b) {
-        bytes.append(b);
-    }
-
-    public void append(byte[] appendBytes) {
-        append(appendBytes, 0, appendBytes.length);
-    }
-
     public void append(Rope other) {
         append(other.getBytes());
     }
 
-    public void append(byte[] appendBytes, int appendStart, int appendLength) {
-        bytes.append(appendBytes, appendStart, appendLength);
-    }
-
-    public byte[] getBytes() {
-        return bytes.getBytes();
-    }
-
-    public void clear() {
-        bytes = new ByteArrayBuilder();
-    }
-
     public Rope toRope() {
         return RopeOperations.create(getBytes(), encoding, CR_UNKNOWN);
-    }
-
-    @Deprecated
-    public ByteArrayBuilder getByteArrayBuilder() {
-        return bytes;
     }
 
 }

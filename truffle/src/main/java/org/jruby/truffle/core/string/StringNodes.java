@@ -1631,7 +1631,7 @@ public abstract class StringNodes {
                                     int cc = codePointX(enc, bytes, p - 1, end);
                                     buf.append(String.format("%x", cc).getBytes(StandardCharsets.US_ASCII));
                                     len += buf.getLength() + 4;
-                                    buf.getByteArrayBuilder().setLength(0);
+                                    buf.setLength(0);
                                     p += n;
                                     break;
                                 }
@@ -1647,8 +1647,8 @@ public abstract class StringNodes {
             }
 
             RopeBuilder outBytes = new RopeBuilder();
-            outBytes.getByteArrayBuilder().unsafeEnsureSpace(len);
-            byte out[] = outBytes.getByteArrayBuilder().getUnsafeBytes();
+            outBytes.unsafeEnsureSpace(len);
+            byte out[] = outBytes.getUnsafeBytes();
             int q = 0;
             p = 0;
             end = rope.byteLength();
@@ -1695,20 +1695,20 @@ public abstract class StringNodes {
                         if (n > 0) {
                             int cc = codePointX(enc, bytes, p - 1, end);
                             p += n;
-                            outBytes.getByteArrayBuilder().setLength(q);
+                            outBytes.setLength(q);
                             outBytes.append(String.format("u{%x}", cc).getBytes(StandardCharsets.US_ASCII));
                             q = outBytes.getLength();
                             continue;
                         }
                     }
-                    outBytes.getByteArrayBuilder().setLength(q);
+                    outBytes.setLength(q);
                     outBytes.append(String.format("x%02X", c).getBytes(StandardCharsets.US_ASCII));
                     q = outBytes.getLength();
                 }
             }
             out[q++] = '"';
-            outBytes.getByteArrayBuilder().setLength(q);
-            assert out == outBytes.getByteArrayBuilder().getUnsafeBytes(); // must not reallocate
+            outBytes.setLength(q);
+            assert out == outBytes.getUnsafeBytes(); // must not reallocate
 
             return outBytes;
         }
