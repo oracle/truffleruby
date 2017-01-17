@@ -267,7 +267,7 @@ class TruffleTool
                 }.merge(shared_offline_options),
 
         ci:     { batch:      ['--batch FILE', 'Run batch of ci tests supplied in a file. One ci command options per line. If FILE is in or stdin it reads from $stdin.',
-                               STORE_NEW_VALUE, nil],
+                               STORE_NEW_VALUE, nil], # TODO (pitr-ch 16-Jan-2017): remove the option
                   definition: ['--definition NAME', 'Specify which definition file to use', STORE_NEW_VALUE, nil],
                   help:       ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false]
                 }.merge(shared_offline_options),

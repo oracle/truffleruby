@@ -973,9 +973,10 @@ module Commands
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
-    Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
-      sh env_vars, test_script
+    success = Dir["#{tests_path}/#{test_names}.sh"].sort.all? do |test_script|
+      sh env_vars, test_script, continue_on_failure: true
     end
+    exit success ? 0 : 1
   end
   private :test_ecosystem
 
