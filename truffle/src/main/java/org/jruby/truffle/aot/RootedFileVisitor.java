@@ -13,7 +13,6 @@
  */
 package org.jruby.truffle.aot;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
@@ -32,23 +31,7 @@ public interface RootedFileVisitor<T> extends FileVisitor<T> {
     T getRoot();
 
     static String rubyJarPath() {
-        String svmJarPath = RootedFileVisitor.class.getProtectionDomain().getCodeSource().getLocation().getFile();
-        String parentDir = new File(svmJarPath).getParent();
-
-        final String[] paths = new String[] { parentDir + "/../mx.imports/binary/jruby/mxbuild/dists/ruby.jar", parentDir + "/../../../jruby/mxbuild/dists/ruby.jar", parentDir + "/../../../main/mxbuild/dists/ruby.jar" };
-
-        for (String path : paths) {
-            final File ret = new File(path);
-            if (ret.exists()) {
-                try {
-                    return ret.getCanonicalPath();
-                } catch (IOException e) {
-                    return null;
-                }
-            }
-        }
-
-        return null;
+        return RootedFileVisitor.class.getProtectionDomain().getCodeSource().getLocation().getFile();
     }
 
     static void visitEachFileOnClassPath(RootedFileVisitor<Path> visitor) {
