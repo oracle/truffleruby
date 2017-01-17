@@ -93,6 +93,7 @@ import org.jruby.truffle.builtins.Primitive;
 import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
 import org.jruby.truffle.builtins.PrimitiveNode;
 import org.jruby.truffle.builtins.YieldingCoreMethodNode;
+import org.jruby.truffle.collections.ByteArrayBuilder;
 import org.jruby.truffle.core.array.ArrayCoreMethodNode;
 import org.jruby.truffle.core.array.ArrayUtils;
 import org.jruby.truffle.core.cast.ArrayAttributeCastNodeGen;
@@ -121,6 +122,7 @@ import org.jruby.truffle.core.rope.LeafRope;
 import org.jruby.truffle.core.rope.RepeatingRope;
 import org.jruby.truffle.core.rope.Rope;
 import org.jruby.truffle.core.rope.RopeBuffer;
+import org.jruby.truffle.core.rope.RopeBuilder;
 import org.jruby.truffle.core.rope.RopeConstants;
 import org.jruby.truffle.core.rope.RopeNodes;
 import org.jruby.truffle.core.rope.RopeNodes.MakeRepeatingNode;
@@ -486,7 +488,7 @@ public abstract class StringNodes {
             } else {
 
                 if (begin == stringLength) {
-                    final ByteList byteList = new ByteList();
+                    final RopeBuilder byteList = new RopeBuilder();
                     byteList.setEncoding(encoding(string));
                     return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), RopeOperations.withEncodingVerySlow(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string)));
                 }
@@ -1560,10 +1562,10 @@ public abstract class StringNodes {
         public DynamicObject dumpAsciiCompatible(DynamicObject string) {
             // Taken from org.jruby.RubyString#dump
 
-            ByteList outputBytes = dumpCommon(string);
+            RopeBuilder outputBytes = dumpCommon(string);
             outputBytes.setEncoding(encoding(string));
 
-            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), RopeOperations.ropeFromByteList(outputBytes, CodeRange.CR_7BIT));
+            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), RopeOperations.ropeFromBuilder(outputBytes, CodeRange.CR_7BIT));
 
             return result;
         }
@@ -1573,7 +1575,7 @@ public abstract class StringNodes {
         public DynamicObject dump(DynamicObject string) {
             // Taken from org.jruby.RubyString#dump
 
-            ByteList outputBytes = dumpCommon(string);
+            RopeBuilder outputBytes = dumpCommon(string);
 
             try {
                 outputBytes.append(".force_encoding(\"".getBytes("UTF-8"));
@@ -1587,19 +1589,19 @@ public abstract class StringNodes {
 
             outputBytes.setEncoding(ASCIIEncoding.INSTANCE);
 
-            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), RopeOperations.ropeFromByteList(outputBytes, CodeRange.CR_7BIT));
+            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), RopeOperations.ropeFromBuilder(outputBytes, CodeRange.CR_7BIT));
 
             return result;
         }
 
         @TruffleBoundary
-        private ByteList dumpCommon(DynamicObject string) {
+        private RopeBuilder dumpCommon(DynamicObject string) {
             assert RubyGuards.isRubyString(string);
             return dumpCommon(rope(string));
         }
 
-        private ByteList dumpCommon(Rope rope) {
-            ByteList buf = null;
+        private RopeBuilder dumpCommon(Rope rope) {
+            RopeBuilder buf = null;
             Encoding enc = rope.getEncoding();
 
             int p = 0;
@@ -1625,11 +1627,11 @@ public abstract class StringNodes {
                             if (enc.isUTF8()) {
                                 int n = preciseLength(enc, bytes, p - 1, end) - 1;
                                 if (n > 0) {
-                                    if (buf == null) buf = new ByteList();
+                                    if (buf == null) buf = new RopeBuilder();
                                     int cc = codePointX(enc, bytes, p - 1, end);
                                     buf.append(String.format("%x", cc).getBytes(StandardCharsets.US_ASCII));
-                                    len += buf.length() + 4;
-                                    buf.realSize(0);
+                                    len += buf.getLength() + 4;
+                                    buf.getByteArrayBuilder().setLength(0);
                                     p += n;
                                     break;
                                 }
@@ -1644,8 +1646,9 @@ public abstract class StringNodes {
                 len += ".force_encoding(\"".length() + enc.getName().length + "\")".length();
             }
 
-            ByteList outBytes = ByteList.createByteList(len);
-            byte out[] = outBytes.getUnsafeBytes();
+            RopeBuilder outBytes = new RopeBuilder();
+            outBytes.getByteArrayBuilder().unsafeEnsureSpace(len);
+            byte out[] = outBytes.getByteArrayBuilder().getUnsafeBytes();
             int q = 0;
             p = 0;
             end = rope.byteLength();
@@ -1692,20 +1695,20 @@ public abstract class StringNodes {
                         if (n > 0) {
                             int cc = codePointX(enc, bytes, p - 1, end);
                             p += n;
-                            outBytes.realSize(q);
+                            outBytes.getByteArrayBuilder().setLength(q);
                             outBytes.append(String.format("u{%x}", cc).getBytes(StandardCharsets.US_ASCII));
-                            q = outBytes.length();
+                            q = outBytes.getLength();
                             continue;
                         }
                     }
-                    outBytes.realSize(q);
+                    outBytes.getByteArrayBuilder().setLength(q);
                     outBytes.append(String.format("x%02X", c).getBytes(StandardCharsets.US_ASCII));
-                    q = outBytes.length();
+                    q = outBytes.getLength();
                 }
             }
             out[q++] = '"';
-            outBytes.realSize(q);
-            assert out == outBytes.getUnsafeBytes(); // must not reallocate
+            outBytes.getByteArrayBuilder().setLength(q);
+            assert out == outBytes.getByteArrayBuilder().getUnsafeBytes(); // must not reallocate
 
             return outBytes;
         }
@@ -3019,7 +3022,7 @@ public abstract class StringNodes {
             int p = 0;
             int pend = str.byteLength();
             int prev = p;
-            ByteList result = new ByteList();
+            RopeBuilder result = new RopeBuilder();
             boolean unicode_p = enc.isUnicode();
             boolean asciicompat = enc.isAsciiCompatible();
 
@@ -3074,7 +3077,7 @@ public abstract class StringNodes {
             if (p > prev) result.append(pBytes, prev, p - prev);
 
             result.setEncoding(USASCIIEncoding.INSTANCE);
-            return RopeOperations.ropeFromByteList(result, CodeRange.CR_7BIT);
+            return RopeOperations.ropeFromBuilder(result, CodeRange.CR_7BIT);
         }
 
         private static int MBCLEN_CHARFOUND_LEN(int r) {
