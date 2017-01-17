@@ -32,18 +32,11 @@
 package org.jruby.truffle.core.string;
 
 import org.jcodings.Encoding;
-import org.jcodings.specific.ASCIIEncoding;
-
-import java.util.Arrays;
+import org.jruby.truffle.core.rope.RopeBuilder;
 
 public class ByteList {
 
-    private byte[] bytes = new byte[]{};
-    private int realSize;
-    private Encoding encoding = ASCIIEncoding.INSTANCE;
-
-    public ByteList() {
-    }
+    private RopeBuilder ropeBuilder = new RopeBuilder();
 
     public static ByteList createByteList(int size) {
         final ByteList byteList = new ByteList();
@@ -98,24 +91,20 @@ public class ByteList {
     public ByteList dup(int length) {
         ByteList dup = new ByteList();
         ensure(length);
-        append(bytes);
+        append(ropeBuilder.getBytes());
         return dup;
     }
 
     public void ensure(int length) {
-        if (length > bytes.length) {
-            bytes = Arrays.copyOf(bytes, length);
-        }
+        ropeBuilder.getByteArrayBuilder().unsafeEnsureSpace(length);
     }
 
     public void append(byte b) {
-        grow(1);
-        bytes[realSize] = b;
-        realSize++;
+        ropeBuilder.append(b);
     }
 
     public void append(int b) {
-        append((byte)b);
+        ropeBuilder.append(b);
     }
 
     public void append(byte[] moreBytes) {
@@ -132,46 +121,39 @@ public class ByteList {
     }
 
     public void append(byte[] moreBytes, int start, int len) {
-        grow(len);
-        System.arraycopy(moreBytes, start, bytes, realSize, len);
-        realSize += len;
+        ropeBuilder.append(moreBytes, start, len);
     }
 
     public int length() {
-        return realSize;
+        return ropeBuilder.getLength();
     }
 
     public int get(int index) {
-        return bytes[index];
+        return ropeBuilder.getByteArrayBuilder().getUnsafeBytes()[index];
     }
 
     public void set(int index, int b) {
-        bytes[index] = (byte)b;
+        ropeBuilder.getByteArrayBuilder().getUnsafeBytes()[index] = (byte) b;
     }
 
     public byte[] bytes() {
-        return Arrays.copyOf(bytes, realSize);
-    }
-
-    private void grow(int increaseRequested) {
-        ensure(realSize + increaseRequested);
+        return ropeBuilder.getBytes();
     }
 
     public byte[] getUnsafeBytes() {
-        return bytes;
+        return ropeBuilder.getByteArrayBuilder().getUnsafeBytes();
     }
 
     public void realSize(int realSize) {
-        assert realSize >= 0;
-        this.realSize = realSize;
+        ropeBuilder.getByteArrayBuilder().setLength(realSize);
     }
 
     public Encoding getEncoding() {
-        return encoding;
+        return ropeBuilder.getEncoding();
     }
 
     public void setEncoding(Encoding encoding) {
-        this.encoding = encoding;
+        ropeBuilder.setEncoding(encoding);
     }
 
 }

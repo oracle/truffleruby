@@ -64,4 +64,9 @@ public class RopeBuilder {
         return RopeOperations.create(getBytes(), encoding, CR_UNKNOWN);
     }
 
+    @Deprecated
+    public ByteArrayBuilder getByteArrayBuilder() {
+        return bytes;
+    }
+
 }

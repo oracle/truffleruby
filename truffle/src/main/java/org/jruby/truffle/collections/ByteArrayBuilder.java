@@ -66,4 +66,19 @@ public class ByteArrayBuilder {
         return charset.decode(ByteBuffer.wrap(getBytes())).toString();
     }
 
+    @Deprecated
+    public byte[] getUnsafeBytes() {
+        return bytes;
+    }
+
+    @Deprecated
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    @Deprecated
+    public void unsafeEnsureSpace(int space) {
+        ensureSpace(space);
+    }
+
 }
