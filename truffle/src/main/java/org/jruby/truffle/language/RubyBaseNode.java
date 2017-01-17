@@ -219,7 +219,13 @@ public abstract class RubyBaseNode extends Node {
         if (sourceCharIndex == -1) {
             return null;
         } else {
-            return getSourceIndexLength().toSourceSection(getSource());
+            final Source source = getSource();
+
+            if (source == null) {
+                return null;
+            }
+
+            return getSourceIndexLength().toSourceSection(source);
         }
     }
 
