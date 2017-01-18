@@ -90,9 +90,8 @@ affiliates, and is made available to you under the terms of three licenses:
 * GNU General Public License version 2
 * GNU Lesser General Public License version 2.1
 
-TruffleRuby contains code from other projects, including JRuby, Rubinius and
-MRI, under difference licenses. See `COPYING` for details and the full text of
-licenses.
+TruffleRuby contains additional code not always covered by these licences, and
+with copyright owned by other people. See `doc/legal` for full documentation.
 
 ## Attribution
 
