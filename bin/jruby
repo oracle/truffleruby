@@ -48,29 +48,6 @@ if [ -z "$JRUBY_OPTS" ] ; then
   JRUBY_OPTS=""
 fi
 
-JRUBY_OPTS_SPECIAL="--ng" # space-separated list of special flags
-unset JRUBY_OPTS_TEMP
-function process_special_opts {
-    case $1 in
-        --ng) nailgun_client=true;;
-        *) break;;
-    esac
-}
-for opt in ${JRUBY_OPTS[@]}; do
-    for special in ${JRUBY_OPTS_SPECIAL[@]}; do
-        if [ $opt != $special ]; then
-            JRUBY_OPTS_TEMP="${JRUBY_OPTS_TEMP} $opt"
-        else
-            # make sure flags listed in JRUBY_OPTS_SPECIAL are processed
-            case "$opt" in
-            --ng)
-                process_special_opts $opt;;
-            esac
-        fi
-    done
-done
-JRUBY_OPTS=${JRUBY_OPTS_TEMP}
-
 if [ -z "$JAVACMD" ] ; then
   if [ -z "$JAVA_HOME" ] ; then
     JAVACMD='java'
@@ -275,9 +252,6 @@ do
         java_args=("${java_args[@]}" "-Xprof") ;;
      --no-bootclasspath)
         NO_BOOTCLASSPATH=true ;;
-     --ng)
-        # Use native Nailgun client to toss commands to server
-        process_special_opts "--ng" ;;
      # warn but ignore
      --1.8) echo "warning: --1.8 ignored" ;;
      # warn but ignore
@@ -331,20 +305,8 @@ if $cygwin; then
 
 fi
 
-if [ "$nailgun_client" != "" ]; then
-  if [ -f $JRUBY_HOME/tool/nailgun/ng ]; then
-    exec $JRUBY_HOME/tool/nailgun/ng org.jruby.util.NailMain $mode "$@"
-  else
-    echo "error: ng executable not found; run 'make' in ${JRUBY_HOME}/tool/nailgun"
-    exit 1
-  fi
-else
 exec "$JAVACMD" $JAVA_OPTS "$JFFI_OPTS" "${java_args[@]}" -Xbootclasspath/a:"$JRUBY_CP" -classpath "$CP$CP_DELIMITER$CLASSPATH" \
   "-Djruby.home=$JRUBY_HOME" \
   "-Djruby.lib=$JRUBY_HOME/lib" -Djruby.script=jruby \
   "-Djruby.shell=$JRUBY_SHELL" \
   org.truffleruby.Main $mode "$@"
-fi
-
-# Be careful adding code down here, you might override the exit
-# status of the jruby invocation.
