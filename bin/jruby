@@ -206,26 +206,6 @@ do
      -C|-e|-I|-S) ruby_args=("${ruby_args[@]}" "$1" "$2"); shift ;;
      # Match same switches with argument stuck together
      -e*|-I*|-S*) ruby_args=("${ruby_args[@]}" "$1" ) ;;
-     # Run with JMX management enabled
-     --manage)
-        java_args=("${java_args[@]}" "-Dcom.sun.management.jmxremote")
-        java_args=("${java_args[@]}" "-Djruby.management.enabled=true") ;;
-     # Don't launch a GUI window, no matter what
-     --headless)
-        java_args=("${java_args[@]}" "-Djava.awt.headless=true") ;;
-     # Run under JDB
-     --jdb)
-        if [ -z "$JAVA_HOME" ] ; then
-          JAVACMD='jdb'
-        else
-          JAVACMD="$JAVA_HOME/bin/jdb"
-        fi 
-        java_args=("${java_args[@]}" "-sourcepath" "$JRUBY_HOME/lib/ruby/1.9:.")
-        JRUBY_OPTS=("${JRUBY_OPTS[@]}" "-X+C") ;;
-     --dev)
-        JAVA_OPTS="$JAVA_OPTS -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Djruby.compile.mode=OFF -Djruby.compile.invokedynamic=false" ;;
-     --sample)
-        java_args=("${java_args[@]}" "-Xprof") ;;
      --no-bootclasspath)
         NO_BOOTCLASSPATH=true ;;
      # Abort processing on the double dash
