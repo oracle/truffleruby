@@ -210,8 +210,8 @@ suite = {
             "license": [ "EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib" ],
         },
 
-        "jruby-licenses": {
-            "class": "LicensesProject",
+        "jruby-docs": {
+            "class": "TruffleRubyDocsProject",
             "outputDir": "",
             "prefix": "",
         },
@@ -241,7 +241,7 @@ suite = {
             "relpath": True,
             "dependencies": [
                 "jruby-lib-ruby",
-                "jruby-licenses",
+                "jruby-docs",
             ],
             "overlaps": [
                 "RUBY",

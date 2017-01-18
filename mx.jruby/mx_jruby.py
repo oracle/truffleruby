@@ -11,6 +11,7 @@ import os
 import pipes
 import shutil
 import tarfile
+import glob
 from os.path import join, exists, isdir
 
 import mx
@@ -52,11 +53,15 @@ class ArchiveProject(mx.ArchivableProject):
     def getResults(self):
         return mx.ArchivableProject.walk(self.output_dir())
 
-class LicensesProject(ArchiveProject):
-    license_files = ['BSDL', 'COPYING', 'LICENSE.RUBY']
+class TruffleRubyDocsProject(ArchiveProject):
+    doc_files = (glob.glob(join(_suite.dir, 'doc', 'legal', '*')) +
+        glob.glob(join(_suite.dir, 'doc', 'user', '*')) +
+        glob.glob(join(_suite.dir, '*.md')))
+    
+    print doc_files
 
     def getResults(self):
-        return [join(_suite.dir, f) for f in self.license_files]
+        return [join(_suite.dir, f) for f in self.doc_files]
 
 # Commands
 
