@@ -1,1 +1,0 @@
-fails(compiler):Kernel#sprintf passes some tests for negative %u

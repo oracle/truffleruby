@@ -1,2 +1,0 @@
-fails:Enumerator#peek_values does not advance the position of the current element
-fails:Enumerator#peek_values returns an empty array if yield is called without arguments

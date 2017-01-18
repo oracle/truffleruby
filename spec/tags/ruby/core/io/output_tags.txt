@@ -1,2 +1,0 @@
-windows:IO#<< writes an object to the IO stream
-windows:IO#<< calls #to_s on the object to print it

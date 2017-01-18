@@ -1,2 +1,0 @@
-fails:BasicSocket#recv accepts flags to specify unusual receiving behaviour
-fails:BasicSocket#recv allows an output buffer as third argument

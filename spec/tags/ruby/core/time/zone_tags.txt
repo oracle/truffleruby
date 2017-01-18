@@ -1,1 +1,0 @@
-fails:Time#zone returns nil when getting the local time with a fixed offset

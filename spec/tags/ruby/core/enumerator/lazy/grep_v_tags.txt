@@ -1,2 +1,0 @@
-fails:Enumerator::Lazy#grep_v sets #size to nil
-fails:Enumerator::Lazy#grep_v on a nested Lazy sets #size to nil

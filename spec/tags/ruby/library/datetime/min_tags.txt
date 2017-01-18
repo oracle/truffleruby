@@ -1,2 +1,0 @@
-fails:DateTime.min raises an error for Rational
-fails:DateTime.min raises an error for Float
