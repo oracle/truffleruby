@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-require_relative '../../stdlib/set'
 #--
 #
 # set.rb - defines the Set class
