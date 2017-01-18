@@ -376,10 +376,6 @@ public class ArgumentProcessor {
                     String extendedOption = grabOptionalValue();
                     if (extendedOption == null) {
                         throw new MainExitException(0, "no extended options in Truffle");
-                    } else if (extendedOption.equals("-C") || extendedOption.equals("-CIR")) {
-                        throw new UnsupportedOperationException();
-                    } else if (extendedOption.equals("+C") || extendedOption.equals("+CIR")) {
-                        throw new UnsupportedOperationException();
                     } else if (extendedOption.startsWith("log=")) {
                         final String levelString = extendedOption.substring("log=".length());
 
