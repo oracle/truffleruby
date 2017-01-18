@@ -158,7 +158,7 @@ module Process
       base_ptr = FFI::Pointer.new(FFI::Type::CHAR, base)
       haystack = base_ptr.read_string(size)
 
-      main_index = command.index("\x00org.jruby")
+      main_index = command.index("\x00org.truffleruby")
       raise "Did not find the main class in args" unless main_index
       needle = command[0...main_index]
       i = haystack.index("\x00#{needle}")
