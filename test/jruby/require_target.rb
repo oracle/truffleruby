@@ -1,1 +1,0 @@
-$target_required = true
