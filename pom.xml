@@ -576,151 +576,6 @@ DO NOT MODIFIY - GENERATED CODE
       </modules>
     </profile>
     <profile>
-      <id>jruby-jars</id>
-      <build>
-        <defaultGoal>install</defaultGoal>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <version>2.15</version>
-              <configuration>
-                <skipTests>true</skipTests>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-      <modules>
-        <module>maven</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>main</id>
-      <build>
-        <defaultGoal>install</defaultGoal>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <version>2.15</version>
-              <configuration>
-                <skipTests>true</skipTests>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-      <modules>
-        <module>maven</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>complete</id>
-      <build>
-        <defaultGoal>install</defaultGoal>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <version>2.15</version>
-              <configuration>
-                <skipTests>true</skipTests>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-      <modules>
-        <module>maven</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>dist</id>
-      <build>
-        <defaultGoal>install</defaultGoal>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <version>2.15</version>
-              <configuration>
-                <skipTests>true</skipTests>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-      <modules>
-        <module>maven</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>osgi</id>
-      <build>
-        <defaultGoal>install</defaultGoal>
-        <plugins>
-          <plugin>
-            <artifactId>maven-invoker-plugin</artifactId>
-            <configuration>
-              <pomIncludes>
-                <pomInclude>osgi*/pom.xml</pomInclude>
-              </pomIncludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-      <modules>
-        <module>maven</module>
-      </modules>
-      <properties>
-        <its.osgi>no-excludes/pom.xml</its.osgi>
-        <invoker.skip>false</invoker.skip>
-      </properties>
-    </profile>
-    <profile>
-      <id>j2ee</id>
-      <build>
-        <defaultGoal>install</defaultGoal>
-        <plugins>
-          <plugin>
-            <artifactId>maven-invoker-plugin</artifactId>
-            <configuration>
-              <pomIncludes>
-                <pomInclude>j2ee*/pom.xml</pomInclude>
-              </pomIncludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-      <modules>
-        <module>maven</module>
-      </modules>
-      <properties>
-        <its.j2ee>no-excludes/pom.xml</its.j2ee>
-        <invoker.skip>false</invoker.skip>
-      </properties>
-    </profile>
-    <profile>
-      <id>apps</id>
-      <build>
-        <defaultGoal>install</defaultGoal>
-      </build>
-      <modules>
-        <module>maven</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>jruby_complete_jar_extended</id>
-      <build>
-        <defaultGoal>install</defaultGoal>
-      </build>
-      <modules>
-        <module>test</module>
-        <module>maven</module>
-      </modules>
-    </profile>
-    <profile>
       <id>all</id>
       <build>
         <defaultGoal>install</defaultGoal>
@@ -728,7 +583,6 @@ DO NOT MODIFIY - GENERATED CODE
       <modules>
         <module>truffle</module>
         <module>test</module>
-        <module>maven</module>
       </modules>
     </profile>
     <profile>
@@ -739,7 +593,6 @@ DO NOT MODIFIY - GENERATED CODE
       <modules>
         <module>truffle</module>
         <module>test</module>
-        <module>maven</module>
       </modules>
     </profile>
     <profile>
@@ -747,7 +600,6 @@ DO NOT MODIFIY - GENERATED CODE
       <modules>
         <module>truffle</module>
         <module>test</module>
-        <module>maven</module>
       </modules>
       <properties>
         <invoker.skip>true</invoker.skip>
@@ -784,7 +636,6 @@ DO NOT MODIFIY - GENERATED CODE
       </build>
       <modules>
         <module>truffle</module>
-        <module>maven</module>
       </modules>
       <distributionManagement>
         <repository>

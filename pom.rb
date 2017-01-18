@@ -208,54 +208,7 @@ project 'JRuby', 'https://github.com/jruby/jruby' do
     end
   end
 
-  [ 'jruby-jars', 'main', 'complete', 'dist' ].each do |name|
-
-    profile name do
-
-      modules [ 'maven' ]
-
-      build do
-        default_goal 'install'
-        plugin_management do
-          plugin :surefire, '2.15', :skipTests => true
-        end
-      end
-    end
-  end
-
-  [ 'osgi', 'j2ee' ].each do |name|
-    profile name do
-
-      modules [ 'maven' ]
-
-      properties( 'invoker.skip' => false,
-                  "its.#{name}" => 'no-excludes/pom.xml' )
-
-      build do
-        default_goal 'install'
-        plugin :invoker, 'pomIncludes' => [ "#{name}*/pom.xml" ]
-      end
-    end
-  end
-
-  profile 'apps' do
-    modules ['maven']
-
-    build do
-      default_goal 'install'
-    end
-  end
-
-  profile 'jruby_complete_jar_extended' do
-
-    modules [ 'test', 'maven' ]
-
-    build do
-      default_goal 'install'
-    end
-  end
-
-  all_modules = [ 'truffle', 'test', 'maven' ]
+  all_modules = [ 'truffle', 'test' ]
 
   profile 'all' do
 
@@ -276,13 +229,13 @@ project 'JRuby', 'https://github.com/jruby/jruby' do
   end
 
   profile 'release' do
-    modules [ 'truffle', 'test', 'maven' ]
+    modules [ 'truffle', 'test' ]
     properties 'invoker.skip' => true
   end
 
   profile 'snapshots' do
 
-    modules [ 'truffle', 'maven' ]
+    modules [ 'truffle' ]
 
     distribution_management do
       repository( :url => "file:${project.build.directory}/maven", :id => 'local releases' )
