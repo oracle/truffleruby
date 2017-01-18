@@ -379,7 +379,7 @@ module ShellUtils
 
     args = ['-q', *args] unless VERBOSE
 
-    sh *options, './mvnw', *args
+    sh *options, 'mvn', *args
   end
 
   def mx(dir, *args)
