@@ -228,12 +228,6 @@ do
         java_args=("${java_args[@]}" "-Xprof") ;;
      --no-bootclasspath)
         NO_BOOTCLASSPATH=true ;;
-     # warn but ignore
-     --1.8) echo "warning: --1.8 ignored" ;;
-     # warn but ignore
-     --1.9) echo "warning: --1.9 ignored" ;;
-     # warn but ignore
-     --2.0) echo "warning: --1.9 ignored" ;;
      # Abort processing on the double dash
      --) break ;;
      # Other opts go to ruby
