@@ -1,3 +1,0 @@
-echo "# Added by JRuby installer #########" >> ~/.profile
-echo "export PATH="$INSTALL_DIR"/bin:\$PATH" >> ~/.profile
-echo "####################################" >> ~/.profile
