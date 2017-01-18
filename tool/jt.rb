@@ -493,7 +493,6 @@ module Commands
       jt metrics alloc [--json] ...                  how much memory is allocated running a program (use -Xclassic to test normal JRuby on this metric and others)
       jt metrics minheap ...                         what is the smallest heap you can use to run an application
       jt metrics time ...                            how long does it take to run a command, broken down into different phases
-      jt tarball                                     build the and test the distribution tarball
       jt benchmark [options] args...                 run benchmark-interface (implies --graal)
           --no-graal              don't imply --graal
           JT_BENCHMARK_RUBY=ruby  benchmark some other Ruby, like MRI
@@ -1253,15 +1252,6 @@ module Commands
     times['total'] = total
     times['unaccounted'] = total - accounted_for if times['    load-core']
     times
-  end
-
-  def tarball(*options)
-    mvn '-Pdist'
-    generated_file = "#{JRUBY_DIR}/maven/jruby-dist/target/jruby-dist-#{Utilities.jruby_version}-bin.tar.gz"
-    final_file = "#{JRUBY_DIR}/jruby-bin-#{Utilities.jruby_version}.tar.gz"
-    FileUtils.copy generated_file, final_file
-    FileUtils.copy "#{generated_file}.sha256", "#{final_file}.sha256"
-    sh 'test/truffle/tarball.sh', final_file
   end
 
   def benchmark(*args)
