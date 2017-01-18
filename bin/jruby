@@ -109,8 +109,6 @@ do
      -C|-e|-I|-S) ruby_args=("${ruby_args[@]}" "$1" "$2"); shift ;;
      # Match same switches with argument stuck together
      -e*|-I*|-S*) ruby_args=("${ruby_args[@]}" "$1" ) ;;
-     --no-bootclasspath)
-        NO_BOOTCLASSPATH=true ;;
      # Abort processing on the double dash
      --) break ;;
      # Other opts go to ruby
