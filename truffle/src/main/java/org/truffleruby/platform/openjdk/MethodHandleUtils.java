@@ -7,9 +7,9 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.openjdk;
+package org.truffleruby.platform.openjdk;
 
-import org.jruby.truffle.language.control.JavaException;
+import org.truffleruby.language.control.JavaException;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;

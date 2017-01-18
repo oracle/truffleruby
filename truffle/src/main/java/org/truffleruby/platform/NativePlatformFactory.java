@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform;
+package org.truffleruby.platform;
 
 import com.oracle.truffle.api.TruffleOptions;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.platform.darwin.DarwinPlatform;
-import org.jruby.truffle.platform.java.JavaPlatform;
-import org.jruby.truffle.platform.linux.LinuxPlatform;
-import org.jruby.truffle.platform.solaris.SolarisPlatform;
+import org.truffleruby.RubyContext;
+import org.truffleruby.platform.darwin.DarwinPlatform;
+import org.truffleruby.platform.java.JavaPlatform;
+import org.truffleruby.platform.linux.LinuxPlatform;
+import org.truffleruby.platform.solaris.SolarisPlatform;
 
 public abstract class NativePlatformFactory {
 

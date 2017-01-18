@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.module;
+package org.truffleruby.core.module;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.language.RubyGuards;
+import org.truffleruby.language.RubyGuards;
 
 /**
  * A reference to an included RubyModule.

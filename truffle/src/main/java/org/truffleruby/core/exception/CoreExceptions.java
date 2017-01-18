@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.exception;
+package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
@@ -15,18 +15,18 @@ import com.oracle.truffle.api.object.DynamicObject;
 import jnr.constants.platform.Errno;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.encoding.EncodingOperations;
-import org.jruby.truffle.core.module.ModuleOperations;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.string.CoreStrings;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.Visibility;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.encoding.EncodingOperations;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.CoreStrings;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.Visibility;
 
-import static org.jruby.truffle.core.array.ArrayHelpers.createArray;
+import static org.truffleruby.core.array.ArrayHelpers.createArray;
 
 public class CoreExceptions {
 

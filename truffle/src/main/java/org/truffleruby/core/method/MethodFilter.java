@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.method;
+package org.truffleruby.core.method;
 
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.methods.InternalMethod;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.methods.InternalMethod;
 
 public abstract class MethodFilter {
 

@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.tools;
+package org.truffleruby.tools;
 
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameInstance;
@@ -16,15 +16,15 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.SafepointAction;
-import org.jruby.truffle.language.backtrace.Backtrace;
-import org.jruby.truffle.language.backtrace.BacktraceFormatter;
-import org.jruby.truffle.language.control.JavaException;
-import org.jruby.truffle.tools.simpleshell.SimpleShell;
+import org.truffleruby.Layouts;
+import org.truffleruby.Log;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.SafepointAction;
+import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.tools.simpleshell.SimpleShell;
 
 import java.io.IOException;
 import java.io.OutputStream;

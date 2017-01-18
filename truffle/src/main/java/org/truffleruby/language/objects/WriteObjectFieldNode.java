@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects;
+package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -22,10 +22,10 @@ import com.oracle.truffle.api.object.IncompatibleLocationException;
 import com.oracle.truffle.api.object.Location;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
-import org.jruby.truffle.language.RubyBaseNode;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.objects.shared.SharedObjects;
-import org.jruby.truffle.language.objects.shared.WriteBarrierNode;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 @ImportStatic({ RubyGuards.class, ShapeCachingGuards.class })
 public abstract class WriteObjectFieldNode extends RubyBaseNode {

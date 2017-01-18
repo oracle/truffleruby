@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.signal;
+package org.truffleruby.platform.signal;
 
 import jnr.constants.platform.Signal;
 
@@ -80,17 +80,17 @@ public interface SignalManager {
         // Just ignore the signal.
     };
 
-    org.jruby.truffle.platform.signal.Signal createSignal(String name);
+    org.truffleruby.platform.signal.Signal createSignal(String name);
 
-    void watchSignal(org.jruby.truffle.platform.signal.Signal signal, SignalHandler newHandler) throws IllegalArgumentException;
+    void watchSignal(org.truffleruby.platform.signal.Signal signal, SignalHandler newHandler) throws IllegalArgumentException;
 
-    void watchDefaultForSignal(org.jruby.truffle.platform.signal.Signal signal) throws IllegalArgumentException;
+    void watchDefaultForSignal(org.truffleruby.platform.signal.Signal signal) throws IllegalArgumentException;
 
-    void handle(final org.jruby.truffle.platform.signal.Signal signal, final SignalHandler newHandler) throws IllegalArgumentException;
+    void handle(final org.truffleruby.platform.signal.Signal signal, final SignalHandler newHandler) throws IllegalArgumentException;
 
-    void handleDefault(final org.jruby.truffle.platform.signal.Signal signal) throws IllegalArgumentException;
+    void handleDefault(final org.truffleruby.platform.signal.Signal signal) throws IllegalArgumentException;
 
-    void raise(org.jruby.truffle.platform.signal.Signal signal) throws IllegalArgumentException;
+    void raise(org.truffleruby.platform.signal.Signal signal) throws IllegalArgumentException;
 
     static Map<String, Integer> list() {
         Map<String, Integer> signals = new HashMap<>();

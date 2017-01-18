@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.java;
+package org.truffleruby.platform.java;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import jnr.constants.platform.Errno;
@@ -15,9 +15,9 @@ import jnr.constants.platform.Fcntl;
 import jnr.constants.platform.OpenFlags;
 import jnr.posix.FileStat;
 import jnr.posix.POSIX;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.language.control.JavaException;
-import org.jruby.truffle.platform.posix.JNRTrufflePosix;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.platform.posix.JNRTrufflePosix;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

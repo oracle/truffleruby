@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.string.StringOperations;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.string.StringOperations;
 
 public class DataNode extends RubyNode {
 

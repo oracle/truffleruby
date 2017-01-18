@@ -24,9 +24,9 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser.parser;
+package org.truffleruby.parser.parser;
 
-import org.jruby.truffle.parser.lexer.RubyLexer;
+import org.truffleruby.parser.lexer.RubyLexer;
 
 public interface ParserState {
     public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop);

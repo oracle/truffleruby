@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.symbol;
+package org.truffleruby.core.symbol;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -18,23 +18,23 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.core.proc.ProcOperations;
-import org.jruby.truffle.core.proc.ProcType;
-import org.jruby.truffle.language.RubyRootNode;
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.methods.Arity;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.methods.SharedMethodInfo;
-import org.jruby.truffle.language.methods.SymbolProcNode;
-import org.jruby.truffle.parser.ArgumentDescriptor;
-import org.jruby.truffle.parser.Translator;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.methods.Arity;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.methods.SymbolProcNode;
+import org.truffleruby.parser.ArgumentDescriptor;
+import org.truffleruby.parser.Translator;
 
 import java.util.Arrays;
 

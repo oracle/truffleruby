@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 
 public class RubyConstant {
 

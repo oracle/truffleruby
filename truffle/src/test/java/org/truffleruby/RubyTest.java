@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle;
+package org.truffleruby;
 
 import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.nodes.Node;
@@ -15,10 +15,10 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.language.RubyRootNode;
-import org.jruby.truffle.options.OptionsCatalog;
-import org.jruby.truffle.parser.ParserContext;
-import org.jruby.truffle.parser.TranslatorDriver;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.options.OptionsCatalog;
+import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.TranslatorDriver;
 
 import java.util.List;
 import java.util.function.Consumer;

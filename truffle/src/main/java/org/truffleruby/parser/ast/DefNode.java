@@ -1,6 +1,6 @@
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
-import org.jruby.truffle.parser.scope.StaticScope;
+import org.truffleruby.parser.scope.StaticScope;
 
 /**
  * Methods and blocks both implement these.

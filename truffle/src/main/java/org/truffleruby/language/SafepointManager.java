@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerAsserts;
@@ -17,10 +17,10 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.InterruptMode;
-import org.jruby.truffle.core.thread.ThreadStatus;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.InterruptMode;
+import org.truffleruby.core.thread.ThreadStatus;
 
 import java.util.Collections;
 import java.util.Set;

@@ -8,7 +8,7 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
 import com.oracle.truffle.api.source.SourceSection;
 

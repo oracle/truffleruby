@@ -32,11 +32,11 @@
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
 
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.Helpers;
-import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.Helpers;
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.List;
 

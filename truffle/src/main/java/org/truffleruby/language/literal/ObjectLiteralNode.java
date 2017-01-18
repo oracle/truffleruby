@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.literal;
+package org.truffleruby.language.literal;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.language.RubyNode;
 
 @NodeInfo(cost = NodeCost.NONE)
 public class ObjectLiteralNode extends RubyNode {

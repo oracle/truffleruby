@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.mutex;
+package org.truffleruby.core.mutex;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -17,16 +17,16 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.core.cast.DurationToMillisecondsNodeGen;
-import org.jruby.truffle.core.kernel.KernelNodes;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
+import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.util.concurrent.locks.ReentrantLock;
 

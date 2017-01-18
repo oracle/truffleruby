@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.printf;
+package org.truffleruby.core.format.printf;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.format.FormatEncoding;
-import org.jruby.truffle.core.format.FormatRootNode;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.format.FormatEncoding;
+import org.truffleruby.core.format.FormatRootNode;
+import org.truffleruby.language.RubyNode;
 
 import java.util.List;
 

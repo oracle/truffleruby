@@ -8,7 +8,7 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.core.rubinius;
+package org.truffleruby.core.rubinius;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -17,9 +17,9 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.threadlocal.ThreadLocalObject;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.threadlocal.ThreadLocalObject;
 
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class RubiniusLastStringWriteNode extends RubyNode {

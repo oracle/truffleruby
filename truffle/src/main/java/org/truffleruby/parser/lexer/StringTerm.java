@@ -25,27 +25,27 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser.lexer;
+package org.truffleruby.parser.lexer;
 
 import org.jcodings.Encoding;
-import org.jruby.truffle.core.regexp.RegexpOptions;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.rope.RopeConstants;
-import org.jruby.truffle.core.string.KCode;
-import org.jruby.truffle.parser.ast.RegexpParseNode;
-import org.jruby.truffle.parser.parser.Tokens;
+import org.truffleruby.core.regexp.RegexpOptions;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.KCode;
+import org.truffleruby.parser.ast.RegexpParseNode;
+import org.truffleruby.parser.parser.Tokens;
 
 import java.io.IOException;
 
-import static org.jruby.truffle.parser.lexer.RubyLexer.EOF;
-import static org.jruby.truffle.parser.lexer.RubyLexer.STR_FUNC_ESCAPE;
-import static org.jruby.truffle.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
-import static org.jruby.truffle.parser.lexer.RubyLexer.STR_FUNC_QWORDS;
-import static org.jruby.truffle.parser.lexer.RubyLexer.STR_FUNC_REGEXP;
-import static org.jruby.truffle.parser.lexer.RubyLexer.STR_FUNC_SYMBOL;
-import static org.jruby.truffle.parser.lexer.RubyLexer.isHexChar;
-import static org.jruby.truffle.parser.lexer.RubyLexer.isOctChar;
+import static org.truffleruby.parser.lexer.RubyLexer.EOF;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_ESCAPE;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_QWORDS;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_REGEXP;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_SYMBOL;
+import static org.truffleruby.parser.lexer.RubyLexer.isHexChar;
+import static org.truffleruby.parser.lexer.RubyLexer.isOctChar;
 
 public class StringTerm extends StrTerm {
     // Expand variables, Indentation of final marker

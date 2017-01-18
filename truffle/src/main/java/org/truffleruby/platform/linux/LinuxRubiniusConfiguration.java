@@ -35,11 +35,11 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.jruby.truffle.platform.linux;
+package org.truffleruby.platform.linux;
 
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.platform.DefaultRubiniusConfiguration;
-import org.jruby.truffle.platform.RubiniusConfiguration;
+import org.truffleruby.RubyContext;
+import org.truffleruby.platform.DefaultRubiniusConfiguration;
+import org.truffleruby.platform.RubiniusConfiguration;
 
 public class LinuxRubiniusConfiguration extends DefaultRubiniusConfiguration {
 

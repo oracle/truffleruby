@@ -9,13 +9,13 @@
  */
 
 
-package org.jruby.truffle.core.rope;
+package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.language.RubyGuards;
+import org.truffleruby.language.RubyGuards;
 
-import static org.jruby.truffle.core.rope.CodeRange.CR_7BIT;
-import static org.jruby.truffle.core.string.StringOperations.rope;
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.string.StringOperations.rope;
 
 public class RopeGuards {
 

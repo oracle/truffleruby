@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.write.array;
+package org.truffleruby.core.format.write.array;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -15,10 +15,10 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
-import org.jruby.truffle.core.array.ArrayUtils;
-import org.jruby.truffle.core.format.FormatNode;
-import org.jruby.truffle.core.format.MissingValue;
-import org.jruby.truffle.core.format.write.OutputNode;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.MissingValue;
+import org.truffleruby.core.format.write.OutputNode;
 
 @NodeChildren({
         @NodeChild(value = "output", type = OutputNode.class),

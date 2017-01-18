@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.darwin;
+package org.truffleruby.platform.darwin;
 
 import com.oracle.truffle.api.TruffleOptions;
 import jnr.ffi.LibraryLoader;
 import jnr.ffi.Pointer;
-import org.jruby.truffle.platform.ProcessName;
+import org.truffleruby.platform.ProcessName;
 
 import java.nio.charset.StandardCharsets;
 

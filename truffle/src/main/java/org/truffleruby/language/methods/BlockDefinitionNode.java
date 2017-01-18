@@ -7,19 +7,19 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.methods;
+package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.core.proc.ProcOperations;
-import org.jruby.truffle.core.proc.ProcType;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.control.BreakID;
-import org.jruby.truffle.language.control.FrameOnStackMarker;
-import org.jruby.truffle.language.locals.ReadFrameSlotNode;
-import org.jruby.truffle.language.locals.ReadFrameSlotNodeGen;
+import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.BreakID;
+import org.truffleruby.language.control.FrameOnStackMarker;
+import org.truffleruby.language.locals.ReadFrameSlotNode;
+import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 
 /**
  * Create a Ruby Proc to pass as a block to the called method. The literal block is represented as

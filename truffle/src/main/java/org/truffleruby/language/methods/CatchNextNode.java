@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.methods;
+package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.NextException;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.NextException;
 
 public class CatchNextNode extends RubyNode {
 

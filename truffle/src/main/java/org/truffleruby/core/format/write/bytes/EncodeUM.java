@@ -33,10 +33,10 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.core.format.write.bytes;
+package org.truffleruby.core.format.write.bytes;
 
-import org.jruby.truffle.collections.ByteArrayBuilder;
-import org.jruby.truffle.core.string.StringOperations;
+import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.string.StringOperations;
 
 public class EncodeUM {
 

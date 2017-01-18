@@ -10,11 +10,11 @@
  * Some of the code in this class is transposed from org.jruby.runtime.encoding.EncodingService,
  * licensed under the same EPL1.0/GPL 2.0/LGPL 2.1 used throughout.
  */
-package org.jruby.truffle.core.encoding;
+package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
-import org.jruby.truffle.Layouts;
+import org.truffleruby.Layouts;
 
 public abstract class EncodingOperations {
 

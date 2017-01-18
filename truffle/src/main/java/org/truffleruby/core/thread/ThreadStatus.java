@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.thread;
+package org.truffleruby.core.thread;
 
 public enum ThreadStatus {
     RUN,

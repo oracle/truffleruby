@@ -7,32 +7,32 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.hash.ConcatHashLiteralNode;
-import org.jruby.truffle.core.hash.HashLiteralNode;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.language.arguments.MissingArgumentBehavior;
-import org.jruby.truffle.language.arguments.ProfileArgumentNode;
-import org.jruby.truffle.language.arguments.ReadPreArgumentNode;
-import org.jruby.truffle.language.control.SequenceNode;
-import org.jruby.truffle.language.literal.ObjectLiteralNode;
-import org.jruby.truffle.parser.ast.ArgsParseNode;
-import org.jruby.truffle.parser.ast.ArgumentParseNode;
-import org.jruby.truffle.parser.ast.AssignableParseNode;
-import org.jruby.truffle.parser.ast.KeywordArgParseNode;
-import org.jruby.truffle.parser.ast.KeywordRestArgParseNode;
-import org.jruby.truffle.parser.ast.MultipleAsgnParseNode;
-import org.jruby.truffle.parser.ast.OptArgParseNode;
-import org.jruby.truffle.parser.ast.ParseNode;
-import org.jruby.truffle.parser.ast.RestArgParseNode;
-import org.jruby.truffle.parser.ast.types.INameNode;
+import org.truffleruby.Log;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.hash.ConcatHashLiteralNode;
+import org.truffleruby.core.hash.HashLiteralNode;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.arguments.MissingArgumentBehavior;
+import org.truffleruby.language.arguments.ProfileArgumentNode;
+import org.truffleruby.language.arguments.ReadPreArgumentNode;
+import org.truffleruby.language.control.SequenceNode;
+import org.truffleruby.language.literal.ObjectLiteralNode;
+import org.truffleruby.parser.ast.ArgsParseNode;
+import org.truffleruby.parser.ast.ArgumentParseNode;
+import org.truffleruby.parser.ast.AssignableParseNode;
+import org.truffleruby.parser.ast.KeywordArgParseNode;
+import org.truffleruby.parser.ast.KeywordRestArgParseNode;
+import org.truffleruby.parser.ast.MultipleAsgnParseNode;
+import org.truffleruby.parser.ast.OptArgParseNode;
+import org.truffleruby.parser.ast.ParseNode;
+import org.truffleruby.parser.ast.RestArgParseNode;
+import org.truffleruby.parser.ast.types.INameNode;
 
 import java.util.ArrayList;
 import java.util.List;

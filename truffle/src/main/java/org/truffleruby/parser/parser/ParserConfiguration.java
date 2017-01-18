@@ -28,13 +28,13 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser.parser;
+package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.parser.scope.DynamicScope;
-import org.jruby.truffle.parser.scope.StaticScope;
+import org.truffleruby.RubyContext;
+import org.truffleruby.parser.scope.DynamicScope;
+import org.truffleruby.parser.scope.StaticScope;
 
 public class ParserConfiguration {
     private DynamicScope existingScope = null;

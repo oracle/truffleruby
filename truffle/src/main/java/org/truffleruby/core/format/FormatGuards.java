@@ -7,9 +7,9 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format;
+package org.truffleruby.core.format;
 
-import org.jruby.truffle.language.RubyGuards;
+import org.truffleruby.language.RubyGuards;
 
 import java.math.BigInteger;
 

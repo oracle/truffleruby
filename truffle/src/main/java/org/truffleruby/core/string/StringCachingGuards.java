@@ -8,11 +8,11 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.core.string;
+package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.language.RubyGuards;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.language.RubyGuards;
 
 public abstract class StringCachingGuards {
 

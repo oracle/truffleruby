@@ -9,13 +9,13 @@
  *
  * Contains code modified from JRuby's org.jruby.runtime.Helpers and org.jruby.runtime.ArgumentType.
  */
-package org.jruby.truffle.language.arguments;
+package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.array.ArrayHelpers;
-import org.jruby.truffle.parser.ArgumentDescriptor;
-import org.jruby.truffle.parser.ArgumentType;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.parser.ArgumentDescriptor;
+import org.truffleruby.parser.ArgumentType;
 
 public class ArgumentDescriptorUtils {
 

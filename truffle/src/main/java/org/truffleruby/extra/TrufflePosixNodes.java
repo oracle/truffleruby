@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.extra;
+package org.truffleruby.extra;
 
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Platform.OS;
@@ -19,19 +19,19 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import jnr.constants.platform.Fcntl;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.core.time.GetTimeZoneNode;
-import org.jruby.truffle.extra.ffi.PointerPrimitiveNodes;
-import org.jruby.truffle.language.SnippetNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.platform.UnsafeGroup;
-import org.jruby.truffle.platform.signal.Signal;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.time.GetTimeZoneNode;
+import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
+import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.platform.UnsafeGroup;
+import org.truffleruby.platform.signal.Signal;
 
-import static org.jruby.truffle.core.string.StringOperations.decodeUTF8;
+import static org.truffleruby.core.string.StringOperations.decodeUTF8;
 
 @CoreClass("Truffle::POSIX")
 public abstract class TrufflePosixNodes {

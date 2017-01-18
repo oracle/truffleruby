@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.dispatch;
+package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.objects.MetaClassNode;
-import org.jruby.truffle.language.objects.MetaClassNodeGen;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.objects.MetaClassNode;
+import org.truffleruby.language.objects.MetaClassNodeGen;
 
 public class CachedReturnMissingDispatchNode extends CachedDispatchNode {
 

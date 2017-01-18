@@ -7,17 +7,17 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.exceptions;
+package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.control.RetryException;
-import org.jruby.truffle.language.methods.ExceptionTranslatingNode;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.RetryException;
+import org.truffleruby.language.methods.ExceptionTranslatingNode;
 
 public class TryNode extends RubyNode {
 

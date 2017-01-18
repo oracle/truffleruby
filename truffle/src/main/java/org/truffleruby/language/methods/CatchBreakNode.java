@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.methods;
+package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.BreakException;
-import org.jruby.truffle.language.control.BreakID;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.BreakException;
+import org.truffleruby.language.control.BreakID;
 
 public class CatchBreakNode extends RubyNode {
 

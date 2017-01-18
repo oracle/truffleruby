@@ -2,15 +2,15 @@
 
 package org.jruby.lexer;
 
-import org.jruby.truffle.core.time.RubyDateFormatter.Token;
-import org.jruby.truffle.core.time.RubyTimeOutputFormatter;
+import org.truffleruby.core.time.RubyDateFormatter.Token;
+import org.truffleruby.core.time.RubyTimeOutputFormatter;
 
 %%
 %public
 %class StrftimeLexer
 //%debug
 %unicode
-%type org.jruby.truffle.core.time.RubyDateFormatter.Token
+%type org.truffleruby.core.time.RubyDateFormatter.Token
 %{
     StringBuilder stringBuf = new StringBuilder();
 

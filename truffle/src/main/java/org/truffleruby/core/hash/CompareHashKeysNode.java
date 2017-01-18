@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.hash;
+package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
-import org.jruby.truffle.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
-import org.jruby.truffle.core.kernel.KernelNodes.SameOrEqlNode;
-import org.jruby.truffle.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
-import org.jruby.truffle.language.RubyBaseNode;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
+import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
+import org.truffleruby.language.RubyBaseNode;
 
 public class CompareHashKeysNode extends RubyBaseNode {
 

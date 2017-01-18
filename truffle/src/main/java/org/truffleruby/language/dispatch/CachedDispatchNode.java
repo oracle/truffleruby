@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.dispatch;
+package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -15,11 +15,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.language.methods.InternalMethod;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.InternalMethod;
 
 public abstract class CachedDispatchNode extends DispatchNode {
 

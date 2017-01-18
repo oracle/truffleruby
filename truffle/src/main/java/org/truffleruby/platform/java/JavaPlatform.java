@@ -7,29 +7,29 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.java;
+package org.truffleruby.platform.java;
 
 import jnr.ffi.provider.MemoryManager;
 import jnr.posix.POSIXFactory;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.queue.ArrayBlockingQueueLocksConditions;
-import org.jruby.truffle.core.queue.LinkedBlockingQueueLocksConditions;
-import org.jruby.truffle.platform.DefaultRubiniusConfiguration;
-import org.jruby.truffle.platform.FDSet;
-import org.jruby.truffle.platform.NativePlatform;
-import org.jruby.truffle.platform.ProcessName;
-import org.jruby.truffle.platform.RubiniusConfiguration;
-import org.jruby.truffle.platform.linux.LinuxRubiniusConfiguration;
-import org.jruby.truffle.platform.openjdk.OpenJDKArrayBlockingQueueLocksConditions;
-import org.jruby.truffle.platform.openjdk.OpenJDKLinkedBlockingQueueLocksConditions;
-import org.jruby.truffle.platform.posix.ClockGetTime;
-import org.jruby.truffle.platform.posix.MallocFree;
-import org.jruby.truffle.platform.posix.PosixFDSet4Bytes;
-import org.jruby.truffle.platform.posix.Sockets;
-import org.jruby.truffle.platform.posix.TrufflePosix;
-import org.jruby.truffle.platform.posix.TrufflePosixHandler;
-import org.jruby.truffle.platform.signal.SignalManager;
-import org.jruby.truffle.platform.sunmisc.SunMiscSignalManager;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.queue.ArrayBlockingQueueLocksConditions;
+import org.truffleruby.core.queue.LinkedBlockingQueueLocksConditions;
+import org.truffleruby.platform.DefaultRubiniusConfiguration;
+import org.truffleruby.platform.FDSet;
+import org.truffleruby.platform.NativePlatform;
+import org.truffleruby.platform.ProcessName;
+import org.truffleruby.platform.RubiniusConfiguration;
+import org.truffleruby.platform.linux.LinuxRubiniusConfiguration;
+import org.truffleruby.platform.openjdk.OpenJDKArrayBlockingQueueLocksConditions;
+import org.truffleruby.platform.openjdk.OpenJDKLinkedBlockingQueueLocksConditions;
+import org.truffleruby.platform.posix.ClockGetTime;
+import org.truffleruby.platform.posix.MallocFree;
+import org.truffleruby.platform.posix.PosixFDSet4Bytes;
+import org.truffleruby.platform.posix.Sockets;
+import org.truffleruby.platform.posix.TrufflePosix;
+import org.truffleruby.platform.posix.TrufflePosixHandler;
+import org.truffleruby.platform.signal.SignalManager;
+import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 
 public class JavaPlatform implements NativePlatform {
 

@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.language.LexicalScope;
-import org.jruby.truffle.language.control.BreakID;
-import org.jruby.truffle.language.control.ReturnID;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.control.BreakID;
+import org.truffleruby.language.control.ReturnID;
 
 import java.io.File;
 

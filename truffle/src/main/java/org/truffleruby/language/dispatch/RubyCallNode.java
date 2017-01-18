@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.dispatch;
+package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -15,17 +15,17 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.core.array.ArrayToObjectArrayNode;
-import org.jruby.truffle.core.array.ArrayToObjectArrayNodeGen;
-import org.jruby.truffle.core.cast.BooleanCastNode;
-import org.jruby.truffle.core.cast.BooleanCastNodeGen;
-import org.jruby.truffle.core.cast.ProcOrNullNode;
-import org.jruby.truffle.core.cast.ProcOrNullNodeGen;
-import org.jruby.truffle.core.module.ModuleOperations;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.methods.BlockDefinitionNode;
-import org.jruby.truffle.language.methods.InternalMethod;
+import org.truffleruby.core.array.ArrayToObjectArrayNode;
+import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.cast.ProcOrNullNode;
+import org.truffleruby.core.cast.ProcOrNullNodeGen;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.BlockDefinitionNode;
+import org.truffleruby.language.methods.InternalMethod;
 
 public class RubyCallNode extends RubyNode {
 

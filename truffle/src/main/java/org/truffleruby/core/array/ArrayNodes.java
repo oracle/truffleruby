@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.array;
+package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -27,54 +27,54 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.builtins.YieldingCoreMethodNode;
-import org.jruby.truffle.core.Hashing;
-import org.jruby.truffle.core.array.ArrayNodesFactory.RejectInPlaceNodeFactory;
-import org.jruby.truffle.core.array.ArrayNodesFactory.ReplaceNodeFactory;
-import org.jruby.truffle.core.cast.ToAryNodeGen;
-import org.jruby.truffle.core.cast.ToIntNode;
-import org.jruby.truffle.core.cast.ToIntNodeGen;
-import org.jruby.truffle.core.cast.ToIntRangeNode;
-import org.jruby.truffle.core.format.BytesResult;
-import org.jruby.truffle.core.format.FormatExceptionTranslator;
-import org.jruby.truffle.core.format.exceptions.FormatException;
-import org.jruby.truffle.core.format.pack.PackCompiler;
-import org.jruby.truffle.core.kernel.KernelNodes;
-import org.jruby.truffle.core.kernel.KernelNodesFactory;
-import org.jruby.truffle.core.numeric.FixnumLowerNodeGen;
-import org.jruby.truffle.core.proc.ProcOperations;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeNodes;
-import org.jruby.truffle.core.string.StringCachingGuards;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SnippetNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
-import org.jruby.truffle.language.dispatch.MissingBehavior;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.language.objects.IsFrozenNode;
-import org.jruby.truffle.language.objects.IsFrozenNodeGen;
-import org.jruby.truffle.language.objects.PropagateTaintNode;
-import org.jruby.truffle.language.objects.TaintNode;
-import org.jruby.truffle.language.yield.YieldNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.Hashing;
+import org.truffleruby.core.array.ArrayNodesFactory.RejectInPlaceNodeFactory;
+import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
+import org.truffleruby.core.cast.ToAryNodeGen;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToIntNodeGen;
+import org.truffleruby.core.cast.ToIntRangeNode;
+import org.truffleruby.core.format.BytesResult;
+import org.truffleruby.core.format.FormatExceptionTranslator;
+import org.truffleruby.core.format.exceptions.FormatException;
+import org.truffleruby.core.format.pack.PackCompiler;
+import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.kernel.KernelNodesFactory;
+import org.truffleruby.core.numeric.FixnumLowerNodeGen;
+import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.dispatch.MissingBehavior;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.IsFrozenNode;
+import org.truffleruby.language.objects.IsFrozenNodeGen;
+import org.truffleruby.language.objects.PropagateTaintNode;
+import org.truffleruby.language.objects.TaintNode;
+import org.truffleruby.language.yield.YieldNode;
 
 import java.util.Arrays;
 
-import static org.jruby.truffle.core.array.ArrayHelpers.getSize;
-import static org.jruby.truffle.core.array.ArrayHelpers.getStore;
-import static org.jruby.truffle.core.array.ArrayHelpers.setSize;
-import static org.jruby.truffle.core.array.ArrayHelpers.setStoreAndSize;
+import static org.truffleruby.core.array.ArrayHelpers.getSize;
+import static org.truffleruby.core.array.ArrayHelpers.getStore;
+import static org.truffleruby.core.array.ArrayHelpers.setSize;
+import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 @CoreClass("Array")
 public abstract class ArrayNodes {

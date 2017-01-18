@@ -26,9 +26,9 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.options;
+package org.truffleruby.options;
 
-import org.jruby.truffle.core.string.KCode;
+import org.truffleruby.core.string.KCode;
 
 import java.util.ArrayList;
 import java.util.Collection;

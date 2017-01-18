@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.rubinius;
+package org.truffleruby.core.rubinius;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.platform.RubiniusTypes;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.platform.RubiniusTypes;
 
 public abstract class NativeFunctionPrimitiveNodes {
 

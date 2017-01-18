@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.builtins;
+package org.truffleruby.builtins;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SnippetNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.arguments.RubyArguments;
 
 public class EnumeratorSizeNode extends RubyNode {
 

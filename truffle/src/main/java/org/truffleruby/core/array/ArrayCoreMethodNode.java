@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.array;
+package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayCoreMethodNode extends CoreMethodArrayArgumentsNode {

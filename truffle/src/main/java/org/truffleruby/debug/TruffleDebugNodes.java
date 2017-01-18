@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.debug;
+package org.truffleruby.debug;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -22,22 +22,22 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.core.array.ArrayStrategy;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.LazyRubyNode;
-import org.jruby.truffle.language.backtrace.Backtrace;
-import org.jruby.truffle.language.backtrace.BacktraceFormatter;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.objects.shared.SharedObjects;
-import org.jruby.truffle.language.yield.YieldNode;
-import org.jruby.truffle.platform.UnsafeGroup;
-import org.jruby.truffle.tools.simpleshell.SimpleShell;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.LazyRubyNode;
+import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.platform.UnsafeGroup;
+import org.truffleruby.tools.simpleshell.SimpleShell;
 
 import java.util.ArrayList;
 import java.util.List;

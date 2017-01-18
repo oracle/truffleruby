@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.cext;
+package org.truffleruby.cext;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -17,17 +17,17 @@ import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.core.rope.NativeRope;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeNodes.GetByteNode;
-import org.jruby.truffle.core.rope.RopeNodesFactory.GetByteNodeGen;
-import org.jruby.truffle.core.string.StringNodes.SetByteNode;
-import org.jruby.truffle.core.string.StringNodesFactory.SetByteNodeFactory;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.rope.NativeRope;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes.GetByteNode;
+import org.truffleruby.core.rope.RopeNodesFactory.GetByteNodeGen;
+import org.truffleruby.core.string.StringNodes.SetByteNode;
+import org.truffleruby.core.string.StringNodesFactory.SetByteNodeFactory;
 
-import static org.jruby.truffle.core.string.StringOperations.rope;
+import static org.truffleruby.core.string.StringOperations.rope;
 
 @MessageResolution(
         receiverType = StringCharPointerAdapter.class,

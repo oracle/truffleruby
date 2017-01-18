@@ -1,4 +1,4 @@
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
 /**
  * Marker interface for nodes invisible to IDE consumers

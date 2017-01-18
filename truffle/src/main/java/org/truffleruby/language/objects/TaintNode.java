@@ -7,16 +7,16 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects;
+package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
 
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class TaintNode extends RubyNode {

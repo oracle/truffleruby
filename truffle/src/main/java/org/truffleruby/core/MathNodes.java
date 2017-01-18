@@ -35,7 +35,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.core;
+package org.truffleruby.core;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -43,17 +43,17 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.core.cast.ToFNode;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.objects.IsANode;
-import org.jruby.truffle.language.objects.IsANodeGen;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.cast.ToFNode;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.IsANode;
+import org.truffleruby.language.objects.IsANodeGen;
 
 @CoreClass("Math")
 public abstract class MathNodes {

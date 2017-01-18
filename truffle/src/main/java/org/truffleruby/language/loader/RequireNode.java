@@ -8,7 +8,7 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.language.loader;
+package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -28,17 +28,17 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.RubyRootNode;
-import org.jruby.truffle.language.control.JavaException;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.parser.ParserContext;
+import org.truffleruby.Log;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.parser.ParserContext;
 
 import java.io.File;
 import java.io.IOException;

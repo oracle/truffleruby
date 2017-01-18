@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.openjdk;
+package org.truffleruby.platform.openjdk;
 
-import org.jruby.truffle.core.queue.DelegatingBlockingQueue;
-import org.jruby.truffle.core.queue.LinkedBlockingQueueLocksConditions;
-import org.jruby.truffle.language.control.JavaException;
+import org.truffleruby.core.queue.DelegatingBlockingQueue;
+import org.truffleruby.core.queue.LinkedBlockingQueueLocksConditions;
+import org.truffleruby.language.control.JavaException;
 
 import java.lang.invoke.MethodHandle;
 import java.util.concurrent.LinkedBlockingQueue;

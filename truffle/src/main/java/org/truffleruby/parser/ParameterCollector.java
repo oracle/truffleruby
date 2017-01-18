@@ -7,24 +7,24 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
-import org.jruby.truffle.parser.ast.ArgsParseNode;
-import org.jruby.truffle.parser.ast.ArgumentParseNode;
-import org.jruby.truffle.parser.ast.ArrayParseNode;
-import org.jruby.truffle.parser.ast.BlockArgParseNode;
-import org.jruby.truffle.parser.ast.BlockParseNode;
-import org.jruby.truffle.parser.ast.ClassVarAsgnParseNode;
-import org.jruby.truffle.parser.ast.ClassVarDeclParseNode;
-import org.jruby.truffle.parser.ast.DAsgnParseNode;
-import org.jruby.truffle.parser.ast.KeywordRestArgParseNode;
-import org.jruby.truffle.parser.ast.ListParseNode;
-import org.jruby.truffle.parser.ast.LocalAsgnParseNode;
-import org.jruby.truffle.parser.ast.MultipleAsgnParseNode;
-import org.jruby.truffle.parser.ast.OptArgParseNode;
-import org.jruby.truffle.parser.ast.ParseNode;
-import org.jruby.truffle.parser.ast.RestArgParseNode;
-import org.jruby.truffle.parser.ast.visitor.AbstractNodeVisitor;
+import org.truffleruby.parser.ast.ArgsParseNode;
+import org.truffleruby.parser.ast.ArgumentParseNode;
+import org.truffleruby.parser.ast.ArrayParseNode;
+import org.truffleruby.parser.ast.BlockArgParseNode;
+import org.truffleruby.parser.ast.BlockParseNode;
+import org.truffleruby.parser.ast.ClassVarAsgnParseNode;
+import org.truffleruby.parser.ast.ClassVarDeclParseNode;
+import org.truffleruby.parser.ast.DAsgnParseNode;
+import org.truffleruby.parser.ast.KeywordRestArgParseNode;
+import org.truffleruby.parser.ast.ListParseNode;
+import org.truffleruby.parser.ast.LocalAsgnParseNode;
+import org.truffleruby.parser.ast.MultipleAsgnParseNode;
+import org.truffleruby.parser.ast.OptArgParseNode;
+import org.truffleruby.parser.ast.ParseNode;
+import org.truffleruby.parser.ast.RestArgParseNode;
+import org.truffleruby.parser.ast.visitor.AbstractNodeVisitor;
 
 import java.util.ArrayList;
 import java.util.List;

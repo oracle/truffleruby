@@ -36,7 +36,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.stdlib.psych;
+package org.truffleruby.stdlib.psych;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -44,18 +44,18 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.core.adapaters.OutputStreamAdapter;
-import org.jruby.truffle.core.array.ArrayOperations;
-import org.jruby.truffle.core.encoding.EncodingManager;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.adapaters.OutputStreamAdapter;
+import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.objects.AllocateObjectNode;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.emitter.Emitter;
 import org.yaml.snakeyaml.emitter.EmitterException;

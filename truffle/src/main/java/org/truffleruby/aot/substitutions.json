@@ -1,6 +1,6 @@
 [
   {
-    "annotatedClass": "org.jruby.truffle.aot.Target_org_jcodings_Encoding",
+    "annotatedClass": "org.truffleruby.aot.Target_org_jcodings_Encoding",
     "originalClass": "org.jcodings.Encoding",
     "methods": [
       {
@@ -10,7 +10,7 @@
     ]
   },
   {
-    "annotatedClass": "org.jruby.truffle.aot.Target_org_jcodings_util_ArrayReader",
+    "annotatedClass": "org.truffleruby.aot.Target_org_jcodings_util_ArrayReader",
     "originalClass": "org.jcodings.util.ArrayReader",
     "methods": [
       {

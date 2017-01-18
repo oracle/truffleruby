@@ -7,17 +7,17 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core;
+package org.truffleruby.core;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.core.module.ModuleNodes;
-import org.jruby.truffle.core.module.ModuleNodesFactory;
-import org.jruby.truffle.language.Visibility;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.module.ModuleNodes;
+import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.language.Visibility;
 
 @CoreClass("main")
 public abstract class MainNodes {

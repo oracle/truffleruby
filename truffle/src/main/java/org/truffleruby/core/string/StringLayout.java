@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.string;
+package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.jruby.truffle.core.basicobject.BasicObjectLayout;
-import org.jruby.truffle.core.rope.Rope;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.rope.Rope;
 
 @Layout
 public interface StringLayout extends BasicObjectLayout {

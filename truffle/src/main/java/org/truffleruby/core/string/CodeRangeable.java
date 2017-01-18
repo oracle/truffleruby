@@ -24,9 +24,9 @@
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
 
-package org.jruby.truffle.core.string;
+package org.truffleruby.core.string;
 
-import org.jruby.truffle.core.rope.CodeRange;
+import org.truffleruby.core.rope.CodeRange;
 
 public interface CodeRangeable {
     CodeRange getCodeRange();

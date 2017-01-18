@@ -16,7 +16,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.regexp;
+package org.truffleruby.core.regexp;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -45,32 +45,32 @@ import org.joni.Region;
 import org.joni.Syntax;
 import org.joni.exception.SyntaxException;
 import org.joni.exception.ValueException;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.NonStandard;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.core.cast.ToStrNode;
-import org.jruby.truffle.core.cast.ToStrNodeGen;
-import org.jruby.truffle.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.rope.RopeNodes;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.language.threadlocal.ThreadLocalObject;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.cast.ToStrNode;
+import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.threadlocal.ThreadLocalObject;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;

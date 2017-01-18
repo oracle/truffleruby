@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.array;
+package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import org.jruby.truffle.RubyContext;
+import org.truffleruby.RubyContext;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;

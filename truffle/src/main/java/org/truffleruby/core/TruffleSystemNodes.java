@@ -36,7 +36,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.core;
+package org.truffleruby.core;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleOptions;
@@ -45,12 +45,12 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.builtins.YieldingCoreMethodNode;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.platform.Platform;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.platform.Platform;
 
 import java.lang.reflect.Field;
 import java.util.Set;

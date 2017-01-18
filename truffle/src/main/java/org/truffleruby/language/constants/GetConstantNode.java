@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.constants;
+package org.truffleruby.language.constants;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -18,16 +18,16 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.RubyConstant;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
-import org.jruby.truffle.language.loader.RequireNode;
-import org.jruby.truffle.parser.Identifiers;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.loader.RequireNode;
+import org.truffleruby.parser.Identifiers;
 
 @NodeChildren({ @NodeChild("module"), @NodeChild("name"), @NodeChild("constant"), @NodeChild("lookupConstantNode") })
 public abstract class GetConstantNode extends RubyNode {

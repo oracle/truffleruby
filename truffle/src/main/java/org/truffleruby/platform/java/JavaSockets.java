@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.java;
+package org.truffleruby.platform.java;
 
 import jnr.ffi.Pointer;
 import jnr.posix.Timeval;
-import org.jruby.truffle.platform.posix.Sockets;
+import org.truffleruby.platform.posix.Sockets;
 
 import java.nio.ByteBuffer;
 

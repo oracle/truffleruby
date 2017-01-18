@@ -1,7 +1,7 @@
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ast.types.ILiteralNode;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.types.ILiteralNode;
 
 /**
  * Any node representing a numeric value.

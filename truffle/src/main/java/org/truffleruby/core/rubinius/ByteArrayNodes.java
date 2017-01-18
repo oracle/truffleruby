@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.rubinius;
+package org.truffleruby.core.rubinius;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -16,15 +16,15 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.control.RaiseException;
 
 @CoreClass("Rubinius::ByteArray")
 public abstract class ByteArrayNodes {

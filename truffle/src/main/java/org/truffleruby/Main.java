@@ -42,19 +42,19 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle;
+package org.truffleruby;
 
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
-import org.jruby.truffle.language.control.JavaException;
-import org.jruby.truffle.options.ArgumentProcessor;
-import org.jruby.truffle.options.MainExitException;
-import org.jruby.truffle.options.OptionsBuilder;
-import org.jruby.truffle.options.OptionsCatalog;
-import org.jruby.truffle.options.OutputStrings;
-import org.jruby.truffle.options.RubyInstanceConfig;
-import org.jruby.truffle.platform.graal.Graal;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.options.ArgumentProcessor;
+import org.truffleruby.options.MainExitException;
+import org.truffleruby.options.OptionsBuilder;
+import org.truffleruby.options.OptionsCatalog;
+import org.truffleruby.options.OutputStrings;
+import org.truffleruby.options.RubyInstanceConfig;
+import org.truffleruby.platform.graal.Graal;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

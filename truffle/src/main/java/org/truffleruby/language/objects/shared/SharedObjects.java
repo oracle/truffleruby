@@ -7,20 +7,20 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects.shared;
+package org.truffleruby.language.objects.shared;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.language.objects.ObjectGraph;
-import org.jruby.truffle.options.OptionsBuilder;
-import org.jruby.truffle.options.OptionsCatalog;
+import org.truffleruby.Layouts;
+import org.truffleruby.Log;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.options.OptionsBuilder;
+import org.truffleruby.options.OptionsCatalog;
 
 import java.util.ArrayDeque;
 import java.util.Deque;

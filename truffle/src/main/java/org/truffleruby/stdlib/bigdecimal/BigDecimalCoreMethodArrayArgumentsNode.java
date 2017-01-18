@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.stdlib.bigdecimal;
+package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.dsl.NodeChild;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.language.RubyNode;
 
 @NodeChild(value = "arguments", type = RubyNode[].class)
 public abstract class BigDecimalCoreMethodArrayArgumentsNode extends BigDecimalCoreMethodNode {

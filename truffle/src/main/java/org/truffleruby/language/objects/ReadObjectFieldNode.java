@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects;
+package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -16,8 +16,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
-import org.jruby.truffle.language.RubyBaseNode;
-import org.jruby.truffle.language.RubyGuards;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
 
 @ImportStatic({ RubyGuards.class, ShapeCachingGuards.class })
 public abstract class ReadObjectFieldNode extends RubyBaseNode {

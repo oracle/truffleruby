@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.hash;
+package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -23,29 +23,29 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.builtins.NonStandard;
-import org.jruby.truffle.builtins.YieldingCoreMethodNode;
-import org.jruby.truffle.core.array.ArrayBuilderNode;
-import org.jruby.truffle.core.hash.HashNodesFactory.DefaultValueNodeFactory;
-import org.jruby.truffle.core.hash.HashNodesFactory.GetIndexNodeFactory;
-import org.jruby.truffle.core.hash.HashNodesFactory.InternalRehashNodeGen;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SnippetNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.language.yield.YieldNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.Log;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.array.ArrayBuilderNode;
+import org.truffleruby.core.hash.HashNodesFactory.DefaultValueNodeFactory;
+import org.truffleruby.core.hash.HashNodesFactory.GetIndexNodeFactory;
+import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.yield.YieldNode;
 
 import java.util.Arrays;
 

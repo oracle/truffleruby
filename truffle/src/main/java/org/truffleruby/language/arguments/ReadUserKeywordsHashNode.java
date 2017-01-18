@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.arguments;
+package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 
 public class ReadUserKeywordsHashNode extends RubyNode {
 

@@ -7,19 +7,19 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.read.array;
+package org.truffleruby.core.format.read.array;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.core.format.FormatNode;
-import org.jruby.truffle.core.format.LiteralFormatNode;
-import org.jruby.truffle.core.format.convert.ToStringNode;
-import org.jruby.truffle.core.format.convert.ToStringNodeGen;
-import org.jruby.truffle.core.format.read.SourceNode;
-import org.jruby.truffle.core.format.write.bytes.WriteByteNodeGen;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.LiteralFormatNode;
+import org.truffleruby.core.format.convert.ToStringNode;
+import org.truffleruby.core.format.convert.ToStringNodeGen;
+import org.truffleruby.core.format.read.SourceNode;
+import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
 
 @NodeChildren({
         @NodeChild(value = "source", type = SourceNode.class),

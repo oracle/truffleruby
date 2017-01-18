@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.exceptions;
+package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.language.RubyNode;
 
 public class RescueClassesNode extends RescueNode {
 

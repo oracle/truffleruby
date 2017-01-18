@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.arguments;
+package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.language.RubyNode;
 
 public class ObjectArrayNode extends RubyNode {
 

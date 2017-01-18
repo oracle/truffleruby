@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.posix;
+package org.truffleruby.platform.posix;
 
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Platform.OS;
@@ -22,7 +22,7 @@ import jnr.posix.Passwd;
 import jnr.posix.SignalHandler;
 import jnr.posix.SpawnFileAction;
 import jnr.posix.Times;
-import org.jruby.truffle.core.CoreLibrary;
+import org.truffleruby.core.CoreLibrary;
 
 import java.io.FileDescriptor;
 import java.nio.ByteBuffer;

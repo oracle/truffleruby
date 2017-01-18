@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -16,9 +16,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Shape;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.CheckLayoutNodeFactory.GetObjectTypeNodeGen;
-import org.jruby.truffle.language.objects.ShapeCachingGuards;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.CheckLayoutNodeFactory.GetObjectTypeNodeGen;
+import org.truffleruby.language.objects.ShapeCachingGuards;
 
 public class CheckLayoutNode extends RubyBaseNode {
 

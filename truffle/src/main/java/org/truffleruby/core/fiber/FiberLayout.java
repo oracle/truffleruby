@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.fiber;
+package org.truffleruby.core.fiber;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
 import com.oracle.truffle.api.object.dsl.Volatile;
-import org.jruby.truffle.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;

@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects.shared;
+package org.truffleruby.language.objects.shared;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -18,9 +18,9 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.objects.ObjectGraph;
-import org.jruby.truffle.language.objects.ShapeCachingGuards;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import java.util.ArrayList;
 import java.util.List;

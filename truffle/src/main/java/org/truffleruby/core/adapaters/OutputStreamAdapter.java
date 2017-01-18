@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.adapaters;
+package org.truffleruby.core.adapaters;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.rope.RopeOperations;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeOperations;
 
 import java.io.IOException;
 import java.io.OutputStream;

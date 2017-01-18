@@ -23,10 +23,10 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.options;
+package org.truffleruby.options;
 
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.platform.Platform;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.platform.Platform;
 
 /**
  * Utility methods to generate the command-line output strings for help,

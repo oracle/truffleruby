@@ -1,4 +1,4 @@
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
 /**
  * A marker interface for scoped variables (which have an offset and depth).

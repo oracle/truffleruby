@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.extra.ffi;
+package org.truffleruby.extra.ffi;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import jnr.ffi.Pointer;
-import org.jruby.truffle.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface PointerLayout extends BasicObjectLayout {

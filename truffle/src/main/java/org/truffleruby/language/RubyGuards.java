@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.extra.ffi.PointerPrimitiveNodes;
-import org.jruby.truffle.language.threadlocal.ThreadLocalObject;
+import org.truffleruby.Layouts;
+import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
+import org.truffleruby.language.threadlocal.ThreadLocalObject;
 
 public abstract class RubyGuards {
 

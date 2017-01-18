@@ -36,17 +36,17 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.core.objectspace;
+package org.truffleruby.core.objectspace;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.thread.ThreadManager;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.objects.ObjectIDOperations;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.ObjectIDOperations;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;

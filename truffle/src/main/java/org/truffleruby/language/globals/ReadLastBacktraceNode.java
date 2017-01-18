@@ -8,14 +8,14 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.language.globals;
+package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 public class ReadLastBacktraceNode extends RubyNode {
 

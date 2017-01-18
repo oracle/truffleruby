@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.array;
+package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
 
 /**
  * Concatenate argument arrays (translating a org.jruby.ast.ArgsCatParseNode).

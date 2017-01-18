@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.interop;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -32,20 +32,20 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.core.cast.NameToJavaStringNode;
-import org.jruby.truffle.core.cast.NameToJavaStringNodeGen;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.string.StringCachingGuards;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SnippetNode;
-import org.jruby.truffle.language.control.JavaException;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.Log;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
 
 import java.io.File;
 import java.io.IOException;

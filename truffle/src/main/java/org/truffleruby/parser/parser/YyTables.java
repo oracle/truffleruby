@@ -1,4 +1,4 @@
-package org.jruby.truffle.parser.parser;
+package org.truffleruby.parser.parser;
 
 public class YyTables {
    private static short[] combine(short[] t1, short[] t2, 

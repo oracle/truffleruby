@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -22,15 +22,15 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.backtrace.InternalRootNode;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.objects.shared.SharedObjects;
-import org.jruby.truffle.parser.ParserContext;
-import org.jruby.truffle.parser.TranslatorDriver;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.backtrace.InternalRootNode;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.TranslatorDriver;
 
 public class LazyRubyRootNode extends RootNode implements InternalRootNode {
 

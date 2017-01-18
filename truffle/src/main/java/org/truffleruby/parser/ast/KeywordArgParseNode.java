@@ -2,10 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.List;
 

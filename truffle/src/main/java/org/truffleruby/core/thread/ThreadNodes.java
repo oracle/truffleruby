@@ -38,7 +38,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.core.thread;
+package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -50,28 +50,28 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.specific.USASCIIEncoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.NonStandard;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.builtins.YieldingCoreMethodNode;
-import org.jruby.truffle.collections.Memo;
-import org.jruby.truffle.core.InterruptMode;
-import org.jruby.truffle.core.exception.ExceptionOperations;
-import org.jruby.truffle.core.fiber.FiberManager;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.backtrace.Backtrace;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.language.objects.ReadObjectFieldNode;
-import org.jruby.truffle.language.objects.ReadObjectFieldNodeGen;
-import org.jruby.truffle.platform.UnsafeGroup;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.collections.Memo;
+import org.truffleruby.core.InterruptMode;
+import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.platform.UnsafeGroup;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;

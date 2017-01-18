@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.tck;
+package org.truffleruby.tck;
 
 import com.oracle.truffle.api.debug.Breakpoint;
 import com.oracle.truffle.api.debug.DebugStackFrame;
@@ -18,7 +18,7 @@ import com.oracle.truffle.api.debug.SuspendedEvent;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.api.vm.PolyglotEngine.Value;
-import org.jruby.truffle.RubyLanguage;
+import org.truffleruby.RubyLanguage;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

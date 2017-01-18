@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.unpack;
+package org.truffleruby.core.format.unpack;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.format.LoopRecovery;
-import org.jruby.truffle.core.format.pack.SimplePackParser;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.format.LoopRecovery;
+import org.truffleruby.core.format.pack.SimplePackParser;
+import org.truffleruby.language.RubyNode;
 
 import java.nio.charset.StandardCharsets;
 

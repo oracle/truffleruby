@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.numeric;
+package org.truffleruby.core.numeric;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.core.CoreLibrary;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.CoreLibrary;
 
 @CoreClass("Truffle::Fixnum")
 public abstract class TruffleFixnumNodes {

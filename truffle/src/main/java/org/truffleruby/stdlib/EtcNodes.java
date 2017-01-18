@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.stdlib;
+package org.truffleruby.stdlib;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodNode;
 
 @CoreClass("Truffle::Etc")
 public abstract class EtcNodes {

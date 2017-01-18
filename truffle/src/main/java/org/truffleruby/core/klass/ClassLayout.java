@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.klass;
+package org.truffleruby.core.klass;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.jruby.truffle.core.module.ModuleFields;
-import org.jruby.truffle.core.module.ModuleLayout;
+import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.core.module.ModuleLayout;
 
 @Layout
 public interface ClassLayout extends ModuleLayout {

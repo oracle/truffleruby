@@ -8,14 +8,14 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.core;
+package org.truffleruby.core;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.objects.IsFrozenNode;
-import org.jruby.truffle.language.objects.IsFrozenNodeGen;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.IsFrozenNode;
+import org.truffleruby.language.objects.IsFrozenNodeGen;
 
 public class RaiseIfFrozenNode extends RubyNode {
 

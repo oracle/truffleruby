@@ -7,9 +7,9 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format;
+package org.truffleruby.core.format;
 
-import org.jruby.truffle.core.rope.CodeRange;
+import org.truffleruby.core.rope.CodeRange;
 
 public class BytesResult {
 

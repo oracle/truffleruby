@@ -38,7 +38,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.stdlib.readline;
+package org.truffleruby.stdlib.readline;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -48,18 +48,18 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import jline.console.history.History;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.builtins.YieldingCoreMethodNode;
-import org.jruby.truffle.core.cast.NameToJavaStringNode;
-import org.jruby.truffle.core.cast.NameToJavaStringNodeGen;
-import org.jruby.truffle.core.cast.ToIntNodeGen;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.objects.TaintNode;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.cast.ToIntNodeGen;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.TaintNode;
 
 @CoreClass("Truffle::ReadlineHistory")
 public abstract class ReadlineHistoryNodes {

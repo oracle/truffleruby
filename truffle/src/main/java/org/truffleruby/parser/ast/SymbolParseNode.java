@@ -30,17 +30,17 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ast.types.ILiteralNode;
-import org.jruby.truffle.parser.ast.types.INameNode;
-import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.types.ILiteralNode;
+import org.truffleruby.parser.ast.types.INameNode;
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;

@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.stdlib.bigdecimal;
+package org.truffleruby.stdlib.bigdecimal;
 
 public enum BigDecimalType {
     NEGATIVE_INFINITY("-Infinity"),

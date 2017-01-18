@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.range;
+package org.truffleruby.core.range;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -18,25 +18,25 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.builtins.NonStandard;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.builtins.YieldingCoreMethodNode;
-import org.jruby.truffle.core.CoreLibrary;
-import org.jruby.truffle.core.array.ArrayBuilderNode;
-import org.jruby.truffle.core.cast.BooleanCastNodeGen;
-import org.jruby.truffle.core.cast.BooleanCastWithDefaultNodeGen;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.ArrayBuilderNode;
+import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.objects.AllocateObjectNode;
 
 
 @CoreClass("Range")

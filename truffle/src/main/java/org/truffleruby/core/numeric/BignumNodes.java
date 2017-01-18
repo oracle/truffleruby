@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.numeric;
+package org.truffleruby.core.numeric;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -17,23 +17,23 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.USASCIIEncoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.core.CoreLibrary;
-import org.jruby.truffle.core.cast.BooleanCastNode;
-import org.jruby.truffle.core.cast.BooleanCastNodeGen;
-import org.jruby.truffle.core.cast.ToIntNode;
-import org.jruby.truffle.core.numeric.BignumNodesFactory.DivNodeFactory;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.SnippetNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.numeric.BignumNodesFactory.DivNodeFactory;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 import java.math.BigInteger;
 

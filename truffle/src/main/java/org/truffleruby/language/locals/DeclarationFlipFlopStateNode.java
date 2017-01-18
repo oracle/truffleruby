@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.locals;
+package org.truffleruby.language.locals;
 
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.language.arguments.RubyArguments;
+import org.truffleruby.language.arguments.RubyArguments;
 
 public class DeclarationFlipFlopStateNode extends FlipFlopStateNode {
 

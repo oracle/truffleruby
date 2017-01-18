@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.array;
+package org.truffleruby.core.array;
 
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.literal.IntegerFixnumLiteralNode;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
 
 public abstract class PrimitiveArrayNodeFactory {
 

@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.dispatch;
+package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.language.RubyBaseNode;
+import org.truffleruby.language.RubyBaseNode;
 
 public class DispatchHeadNode extends RubyBaseNode {
 

@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -20,9 +20,9 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.parser.ParserContext;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.parser.ParserContext;
 
 public class SnippetNode extends RubyBaseNode {
 

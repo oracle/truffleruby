@@ -14,18 +14,18 @@
  *
  * Copyright (C) 2007 William N Dortch <bill.dortch@gmail.com>
  */
-package org.jruby.truffle.core.format.format;
+package org.truffleruby.core.format.format;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.collections.ByteArrayBuilder;
-import org.jruby.truffle.core.format.FormatNode;
-import org.jruby.truffle.core.format.printf.PrintfSimpleTreeBuilder;
-import org.jruby.truffle.core.string.ConvertBytes;
+import org.truffleruby.Layouts;
+import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+import org.truffleruby.core.string.ConvertBytes;
 
 import java.math.BigInteger;
 

@@ -26,11 +26,11 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.options;
+package org.truffleruby.options;
 
-import org.jruby.truffle.Log;
-import org.jruby.truffle.core.string.KCode;
-import org.jruby.truffle.core.string.StringSupport;
+import org.truffleruby.Log;
+import org.truffleruby.core.string.KCode;
+import org.truffleruby.core.string.StringSupport;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,8 +1,8 @@
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jruby.truffle.language.SourceIndexLength;
+import org.truffleruby.language.SourceIndexLength;
 
 /**
  * Base class for all D (e.g. Dynamic) node types like DStrParseNode, DSymbolParseNode, etc...

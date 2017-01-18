@@ -8,10 +8,10 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.language.globals;
+package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.language.RubyNode;
 
 public class AliasGlobalVarNode extends RubyNode {
 

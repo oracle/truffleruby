@@ -7,9 +7,9 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.options;
+package org.truffleruby.options;
 
-import org.jruby.truffle.Log;
+import org.truffleruby.Log;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -7,26 +7,26 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.language.arguments.CheckArityNode;
-import org.jruby.truffle.language.arguments.CheckKeywordArityNode;
-import org.jruby.truffle.language.arguments.ProfileArgumentNode;
-import org.jruby.truffle.language.arguments.ReadSelfNode;
-import org.jruby.truffle.language.control.SequenceNode;
-import org.jruby.truffle.language.literal.NilLiteralNode;
-import org.jruby.truffle.language.locals.WriteLocalVariableNode;
-import org.jruby.truffle.language.methods.Arity;
-import org.jruby.truffle.language.objects.SelfNode;
-import org.jruby.truffle.parser.ast.NilImplicitParseNode;
-import org.jruby.truffle.parser.ast.ParseNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.arguments.CheckArityNode;
+import org.truffleruby.language.arguments.CheckKeywordArityNode;
+import org.truffleruby.language.arguments.ProfileArgumentNode;
+import org.truffleruby.language.arguments.ReadSelfNode;
+import org.truffleruby.language.control.SequenceNode;
+import org.truffleruby.language.literal.NilLiteralNode;
+import org.truffleruby.language.locals.WriteLocalVariableNode;
+import org.truffleruby.language.methods.Arity;
+import org.truffleruby.language.objects.SelfNode;
+import org.truffleruby.parser.ast.NilImplicitParseNode;
+import org.truffleruby.parser.ast.ParseNode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class Translator extends org.jruby.truffle.parser.ast.visitor.AbstractNodeVisitor<RubyNode> {
+public abstract class Translator extends org.truffleruby.parser.ast.visitor.AbstractNodeVisitor<RubyNode> {
 
     public static final Set<String> FRAME_LOCAL_GLOBAL_VARIABLES = new HashSet<>(
             Arrays.asList("$_", "$~", "$+", "$&", "$`", "$'", "$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9"));

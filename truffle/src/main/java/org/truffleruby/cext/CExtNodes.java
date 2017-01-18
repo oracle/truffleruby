@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.cext;
+package org.truffleruby.cext;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -23,26 +23,26 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.core.CoreLibrary;
-import org.jruby.truffle.core.cast.NameToJavaStringNodeGen;
-import org.jruby.truffle.core.module.ModuleNodes;
-import org.jruby.truffle.core.module.ModuleNodesFactory;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyConstant;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.constants.GetConstantNode;
-import org.jruby.truffle.language.constants.LookupConstantNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.language.objects.MetaClassNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.Log;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.module.ModuleNodes;
+import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.constants.GetConstantNode;
+import org.truffleruby.language.constants.LookupConstantNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.objects.MetaClassNode;
 
 import java.util.HashMap;
 import java.util.Map;

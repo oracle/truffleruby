@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.queue;
+package org.truffleruby.core.queue;
 
 import java.util.Collection;
 import java.util.Iterator;

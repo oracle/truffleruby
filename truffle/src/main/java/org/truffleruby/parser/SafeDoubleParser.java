@@ -1,4 +1,4 @@
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
 import java.math.BigDecimal;
 

@@ -7,20 +7,20 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format;
+package org.truffleruby.core.format;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.jruby.truffle.core.exception.CoreExceptions;
-import org.jruby.truffle.core.format.exceptions.CantCompressNegativeException;
-import org.jruby.truffle.core.format.exceptions.CantConvertException;
-import org.jruby.truffle.core.format.exceptions.FormatException;
-import org.jruby.truffle.core.format.exceptions.InvalidFormatException;
-import org.jruby.truffle.core.format.exceptions.NoImplicitConversionException;
-import org.jruby.truffle.core.format.exceptions.OutsideOfStringException;
-import org.jruby.truffle.core.format.exceptions.RangeException;
-import org.jruby.truffle.core.format.exceptions.TooFewArgumentsException;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.core.exception.CoreExceptions;
+import org.truffleruby.core.format.exceptions.CantCompressNegativeException;
+import org.truffleruby.core.format.exceptions.CantConvertException;
+import org.truffleruby.core.format.exceptions.FormatException;
+import org.truffleruby.core.format.exceptions.InvalidFormatException;
+import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
+import org.truffleruby.core.format.exceptions.OutsideOfStringException;
+import org.truffleruby.core.format.exceptions.RangeException;
+import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
 
 public abstract class FormatExceptionTranslator {
 

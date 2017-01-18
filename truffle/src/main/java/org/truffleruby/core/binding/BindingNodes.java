@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.binding;
+package org.truffleruby.core.binding;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -22,26 +22,26 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.core.array.ArrayHelpers;
-import org.jruby.truffle.core.cast.NameToJavaStringNodeGen;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.locals.ReadFrameSlotNode;
-import org.jruby.truffle.language.locals.ReadFrameSlotNodeGen;
-import org.jruby.truffle.language.locals.WriteFrameSlotNode;
-import org.jruby.truffle.language.locals.WriteFrameSlotNodeGen;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.language.threadlocal.ThreadLocalObject;
-import org.jruby.truffle.parser.Translator;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.locals.ReadFrameSlotNode;
+import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
+import org.truffleruby.language.locals.WriteFrameSlotNode;
+import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.threadlocal.ThreadLocalObject;
+import org.truffleruby.parser.Translator;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

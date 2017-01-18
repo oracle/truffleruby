@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.RubyTest;
-import org.jruby.truffle.core.array.ArrayLiteralNode;
-import org.jruby.truffle.language.dispatch.RubyCallNode;
-import org.jruby.truffle.language.literal.IntegerFixnumLiteralNode;
-import org.jruby.truffle.language.methods.AddMethodNode;
+import org.truffleruby.RubyTest;
+import org.truffleruby.core.array.ArrayLiteralNode;
+import org.truffleruby.language.dispatch.RubyCallNode;
+import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
+import org.truffleruby.language.methods.AddMethodNode;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

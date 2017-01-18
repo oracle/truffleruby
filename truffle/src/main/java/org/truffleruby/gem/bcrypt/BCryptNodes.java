@@ -7,17 +7,17 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.gem.bcrypt;
+package org.truffleruby.gem.bcrypt;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.USASCIIEncoding;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.string.StringOperations;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringOperations;
 
 @CoreClass("Truffle::Gem::BCrypt")
 public abstract class BCryptNodes {

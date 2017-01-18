@@ -7,18 +7,18 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.stdlib.bigdecimal;
+package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.core.cast.IntegerCastNode;
-import org.jruby.truffle.core.cast.IntegerCastNodeGen;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.cast.IntegerCastNodeGen;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

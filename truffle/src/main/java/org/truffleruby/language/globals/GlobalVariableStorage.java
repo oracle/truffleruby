@@ -8,14 +8,14 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.language.globals;
+package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
-import org.jruby.truffle.options.OptionsBuilder;
-import org.jruby.truffle.options.OptionsCatalog;
+import org.truffleruby.options.OptionsBuilder;
+import org.truffleruby.options.OptionsCatalog;
 
 public class GlobalVariableStorage {
 

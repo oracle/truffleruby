@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format;
+package org.truffleruby.core.format;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -15,10 +15,10 @@ import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.language.backtrace.InternalRootNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.language.backtrace.InternalRootNode;
 
 /**
  * The node at the root of a pack expression.

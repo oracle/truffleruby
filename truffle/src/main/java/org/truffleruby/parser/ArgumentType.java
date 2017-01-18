@@ -24,7 +24,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
 /**
  * Created by headius on 5/8/15.

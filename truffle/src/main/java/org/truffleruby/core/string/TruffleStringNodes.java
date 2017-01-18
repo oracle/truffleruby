@@ -7,22 +7,22 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.string;
+package org.truffleruby.core.string;
 
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeNodes;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.RaiseException;
 
-import static org.jruby.truffle.core.string.StringOperations.rope;
+import static org.truffleruby.core.string.StringOperations.rope;
 
 @CoreClass("Truffle::String")
 public class TruffleStringNodes {

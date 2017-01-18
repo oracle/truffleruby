@@ -12,7 +12,7 @@
  * licensed under the same EPL1.0/GPL 2.0/LGPL 2.1 used throughout.
  */
 
-package org.jruby.truffle.core.rope;
+package org.truffleruby.core.rope;
 
 public enum CodeRange {
     CR_UNKNOWN(0),

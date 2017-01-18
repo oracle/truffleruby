@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.write;
+package org.truffleruby.core.format.write;
 
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
-import org.jruby.truffle.core.format.FormatFrameDescriptor;
+import org.truffleruby.core.format.FormatFrameDescriptor;
 
 public class OutputNode extends Node {
 

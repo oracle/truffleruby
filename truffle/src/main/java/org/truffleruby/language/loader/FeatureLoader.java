@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.loader;
+package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -16,12 +16,12 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.core.array.ArrayOperations;
-import org.jruby.truffle.language.control.JavaException;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.Log;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
 
 import java.io.File;
 import java.io.IOException;

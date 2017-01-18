@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.module;
+package org.truffleruby.core.module;
 
 public class IncludedModulesIterator extends AncestorIterator {
     private final ModuleFields currentModule;

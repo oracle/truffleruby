@@ -34,7 +34,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.stdlib.bigdecimal;
+package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -45,11 +45,11 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SnippetNode;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import java.math.BigDecimal;
 import java.math.MathContext;

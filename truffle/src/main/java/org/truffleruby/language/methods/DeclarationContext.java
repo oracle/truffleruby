@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.methods;
+package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.objects.SingletonClassNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.objects.SingletonClassNode;
 
 /**
  * Declaration context for methods:

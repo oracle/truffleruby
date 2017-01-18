@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects;
+package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -18,15 +18,15 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.LexicalScope;
-import org.jruby.truffle.language.RubyConstant;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.WarnNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.loader.RequireNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.WarnNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.loader.RequireNode;
 
 @NodeChildren({ @NodeChild("name"), @NodeChild("lexicalParent") })
 public abstract class LookupForExistingModuleNode extends RubyNode {

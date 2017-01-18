@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.tools.callgraph;
+package org.truffleruby.tools.callgraph;
 
 import com.oracle.truffle.api.TruffleOptions;
-import org.jruby.truffle.language.RubyRootNode;
-import org.jruby.truffle.language.methods.SharedMethodInfo;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.methods.SharedMethodInfo;
 
 import java.util.Collection;
 import java.util.Collections;

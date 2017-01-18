@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects;
+package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.numeric.BignumOperations;
-import org.jruby.truffle.language.objects.shared.SharedObjects;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 import java.math.BigInteger;
 

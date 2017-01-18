@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.pack;
+package org.truffleruby.core.format.pack;
 
 import java.nio.ByteOrder;
 

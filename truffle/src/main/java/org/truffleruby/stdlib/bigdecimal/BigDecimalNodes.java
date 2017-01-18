@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.stdlib.bigdecimal;
+package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -20,23 +20,23 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.NonStandard;
-import org.jruby.truffle.core.cast.IntegerCastNode;
-import org.jruby.truffle.core.cast.IntegerCastNodeGen;
-import org.jruby.truffle.core.numeric.FixnumOrBignumNode;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SnippetNode;
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.parser.SafeDoubleParser;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.cast.IntegerCastNodeGen;
+import org.truffleruby.core.numeric.FixnumOrBignumNode;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.parser.SafeDoubleParser;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

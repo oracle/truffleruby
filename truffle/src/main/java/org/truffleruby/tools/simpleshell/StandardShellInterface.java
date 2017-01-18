@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.tools.simpleshell;
+package org.truffleruby.tools.simpleshell;
 
 import java.io.BufferedReader;
 import java.io.IOException;

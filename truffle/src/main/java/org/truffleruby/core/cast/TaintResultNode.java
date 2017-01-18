@@ -8,7 +8,7 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.core.cast;
+package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -16,10 +16,10 @@ import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.objects.IsTaintedNode;
-import org.jruby.truffle.language.objects.TaintNode;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.objects.IsTaintedNode;
+import org.truffleruby.language.objects.TaintNode;
 
 public class TaintResultNode extends RubyNode {
 

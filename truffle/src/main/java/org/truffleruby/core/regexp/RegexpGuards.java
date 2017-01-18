@@ -8,12 +8,12 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.core.regexp;
+package org.truffleruby.core.regexp;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.string.StringOperations;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringOperations;
 
 public class RegexpGuards {
 

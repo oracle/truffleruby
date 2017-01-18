@@ -43,7 +43,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.core.format.write.bytes;
+package org.truffleruby.core.format.write.bytes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -52,11 +52,11 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.collections.ByteArrayBuilder;
-import org.jruby.truffle.core.format.FormatGuards;
-import org.jruby.truffle.core.format.FormatNode;
-import org.jruby.truffle.core.format.exceptions.CantCompressNegativeException;
+import org.truffleruby.Layouts;
+import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.format.FormatGuards;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.exceptions.CantCompressNegativeException;
 
 import java.math.BigInteger;
 

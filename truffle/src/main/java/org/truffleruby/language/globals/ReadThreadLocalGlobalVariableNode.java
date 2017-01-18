@@ -7,16 +7,16 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.globals;
+package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.objects.ReadObjectFieldNode;
-import org.jruby.truffle.language.objects.ReadObjectFieldNodeGen;
-import org.jruby.truffle.language.threadlocal.ThreadLocalObjectNode;
-import org.jruby.truffle.language.threadlocal.ThreadLocalObjectNodeGen;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.threadlocal.ThreadLocalObjectNode;
+import org.truffleruby.language.threadlocal.ThreadLocalObjectNodeGen;
 
 public class ReadThreadLocalGlobalVariableNode extends RubyNode {
 

@@ -35,7 +35,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.jruby.truffle.core.rubinius;
+package org.truffleruby.core.rubinius;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -45,17 +45,17 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import jnr.constants.platform.Errno;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.core.exception.ExceptionOperations;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuffer;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.platform.UnsafeGroup;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuffer;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.platform.UnsafeGroup;
 
 public abstract class IOBufferPrimitiveNodes {
 

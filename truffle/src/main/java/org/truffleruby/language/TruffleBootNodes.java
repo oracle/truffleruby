@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -18,19 +18,19 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.collections.Memo;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.control.JavaException;
-import org.jruby.truffle.language.loader.CodeLoader;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.parser.ParserContext;
-import org.jruby.truffle.parser.TranslatorDriver;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.collections.Memo;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.loader.CodeLoader;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.TranslatorDriver;
 
 import java.io.IOException;
 import java.io.InputStream;

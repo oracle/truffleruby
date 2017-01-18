@@ -29,12 +29,12 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
-import org.jruby.truffle.collections.Tuple;
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ast.types.ILiteralNode;
-import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
+import org.truffleruby.collections.Tuple;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.types.ILiteralNode;
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.ArrayList;
 import java.util.List;

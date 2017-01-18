@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects;
+package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.language.LexicalScope;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyNode;
 
 public class LexicalScopeNode extends RubyNode {
 

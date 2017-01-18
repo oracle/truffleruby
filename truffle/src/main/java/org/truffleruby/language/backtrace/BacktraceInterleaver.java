@@ -7,9 +7,9 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.backtrace;
+package org.truffleruby.language.backtrace;
 
-import org.jruby.truffle.core.string.StringUtils;
+import org.truffleruby.core.string.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;

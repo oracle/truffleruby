@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects.shared;
+package org.truffleruby.language.objects.shared;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -16,11 +16,11 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.collections.BoundaryIterable;
-import org.jruby.truffle.core.array.ArrayGuards;
-import org.jruby.truffle.core.queue.LinkedBlockingQueueLocksConditions;
-import org.jruby.truffle.language.objects.ShapeCachingGuards;
+import org.truffleruby.Layouts;
+import org.truffleruby.collections.BoundaryIterable;
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.queue.LinkedBlockingQueueLocksConditions;
+import org.truffleruby.language.objects.ShapeCachingGuards;
 
 /**
  * Share the internal field of an object, accessible by its Layout

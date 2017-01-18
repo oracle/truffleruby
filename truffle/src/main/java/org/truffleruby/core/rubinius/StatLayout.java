@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.rubinius;
+package org.truffleruby.core.rubinius;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
 import jnr.posix.FileStat;
-import org.jruby.truffle.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface StatLayout extends BasicObjectLayout {

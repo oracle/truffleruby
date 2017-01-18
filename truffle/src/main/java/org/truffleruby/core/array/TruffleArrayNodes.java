@@ -7,18 +7,18 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.array;
+package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 
-import static org.jruby.truffle.core.array.ArrayHelpers.getSize;
-import static org.jruby.truffle.core.array.ArrayHelpers.getStore;
+import static org.truffleruby.core.array.ArrayHelpers.getSize;
+import static org.truffleruby.core.array.ArrayHelpers.getStore;
 
 @CoreClass("Truffle::Array")
 public class TruffleArrayNodes {

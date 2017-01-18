@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.darwin;
+package org.truffleruby.platform.darwin;
 
 import jnr.ffi.Pointer;
 

@@ -8,7 +8,7 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.core.rubinius;
+package org.truffleruby.core.rubinius;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
@@ -16,8 +16,8 @@ import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.threadlocal.ThreadLocalObject;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.threadlocal.ThreadLocalObject;
 
 public class RubiniusLastStringReadNode extends RubyNode {
 

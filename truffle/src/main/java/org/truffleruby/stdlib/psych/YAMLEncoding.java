@@ -36,7 +36,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.stdlib.psych;
+package org.truffleruby.stdlib.psych;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF16BEEncoding;

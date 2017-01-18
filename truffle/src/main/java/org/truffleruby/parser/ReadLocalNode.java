@@ -7,9 +7,9 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.language.RubyNode;
 
 public abstract class ReadLocalNode extends RubyNode {
 

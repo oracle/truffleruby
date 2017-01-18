@@ -33,7 +33,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.core.regexp;
+package org.truffleruby.core.regexp;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -46,20 +46,20 @@ import org.joni.Regex;
 import org.joni.Syntax;
 import org.joni.WarnCallback;
 import org.joni.exception.JOniException;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.collections.WeakValuedMap;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.rope.RopeConstants;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.StringSupport;
-import org.jruby.truffle.parser.ReOptions;
+import org.truffleruby.RubyContext;
+import org.truffleruby.collections.WeakValuedMap;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.parser.ReOptions;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
-import static org.jruby.truffle.core.rope.CodeRange.CR_7BIT;
-import static org.jruby.truffle.core.string.StringSupport.EMPTY_STRING_ARRAY;
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.string.StringSupport.EMPTY_STRING_ARRAY;
 
 public class ClassicRegexp implements ReOptions {
     private final RubyContext context;
@@ -99,7 +99,7 @@ public class ClassicRegexp implements ReOptions {
                 }
             });
         } catch (Exception e) {
-            throw new org.jruby.truffle.language.control.RaiseException(runtime.getCoreExceptions().regexpError(e.getMessage(), null));
+            throw new org.truffleruby.language.control.RaiseException(runtime.getCoreExceptions().regexpError(e.getMessage(), null));
         }
     }
 
@@ -166,7 +166,7 @@ public class ClassicRegexp implements ReOptions {
         //try {
             return new ClassicRegexp(runtime, pattern, (RegexpOptions)options.clone());
         //} catch (RaiseException re) {
-        //    throw new org.jruby.truffle.language.control.RaiseException(runtime.getCoreExceptions().syntaxError(re.getMessage(), null));
+        //    throw new org.truffleruby.language.control.RaiseException(runtime.getCoreExceptions().syntaxError(re.getMessage(), null));
         //}
     }
 
@@ -365,7 +365,7 @@ public class ClassicRegexp implements ReOptions {
             to[p + 5] = (byte)((code & 0x3f) | 0x80);
             return 6;
         }
-        throw new org.jruby.truffle.language.control.RaiseException(context.getCoreExceptions().rangeError("pack(U): value out of range", null));
+        throw new org.truffleruby.language.control.RaiseException(context.getCoreExceptions().rangeError("pack(U): value out of range", null));
     }
 
     private static void checkUnicodeRange(RubyContext context, int code, Rope str, RegexpSupport.ErrorMode mode) {
@@ -406,9 +406,9 @@ public class ClassicRegexp implements ReOptions {
     public static int raisePreprocessError(RubyContext context, Rope str, String err, RegexpSupport.ErrorMode mode) {
         switch (mode) {
             case RAISE:
-                throw new org.jruby.truffle.language.control.RaiseException(context.getCoreExceptions().regexpError(err, null));
+                throw new org.truffleruby.language.control.RaiseException(context.getCoreExceptions().regexpError(err, null));
             case PREPROCESS:
-                throw new org.jruby.truffle.language.control.RaiseException(context.getCoreExceptions().argumentError("regexp preprocess failed: " + err, null));
+                throw new org.truffleruby.language.control.RaiseException(context.getCoreExceptions().argumentError("regexp preprocess failed: " + err, null));
             case DESC:
                 // silent ?
         }
@@ -540,7 +540,7 @@ public class ClassicRegexp implements ReOptions {
 
         if (options.isEncodingNone() && strEnc != ASCIIEncoding.INSTANCE) {
             if (str.getCodeRange() != CR_7BIT) {
-                throw new org.jruby.truffle.language.control.RaiseException(context.getCoreExceptions().regexpError("/.../n has a non escaped non ASCII character in non ASCII-8BIT script", null));
+                throw new org.truffleruby.language.control.RaiseException(context.getCoreExceptions().regexpError("/.../n has a non escaped non ASCII character in non ASCII-8BIT script", null));
             }
             strEnc = ASCIIEncoding.INSTANCE;
         }
@@ -552,7 +552,7 @@ public class ClassicRegexp implements ReOptions {
 
         if (fixedEnc[0] != null) {
             if (regexpEnc != null && regexpEnc != fixedEnc[0]) {
-                throw new org.jruby.truffle.language.control.RaiseException(context.getCoreExceptions().regexpError("encoding mismatch in dynamic regexp: " + new String(regexpEnc.getName()) + " and " + new String(fixedEnc[0].getName()), null));
+                throw new org.truffleruby.language.control.RaiseException(context.getCoreExceptions().regexpError("encoding mismatch in dynamic regexp: " + new String(regexpEnc.getName()) + " and " + new String(fixedEnc[0].getName()), null));
             }
             regexpEnc = fixedEnc[0];
         }
@@ -673,7 +673,7 @@ public class ClassicRegexp implements ReOptions {
         //checkFrozen();
         // FIXME: Something unsets this bit, but we aren't...be more permissive until we figure this out
         //if (isLiteral()) throw runtime.newSecurityError("can't modify literal regexp");
-        if (pattern != null) throw new org.jruby.truffle.language.control.RaiseException(context.getCoreExceptions().typeError("already initialized regexp", null));
+        if (pattern != null) throw new org.truffleruby.language.control.RaiseException(context.getCoreExceptions().typeError("already initialized regexp", null));
         if (enc.isDummy()) throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
 
         Encoding[]fixedEnc = new Encoding[]{null};

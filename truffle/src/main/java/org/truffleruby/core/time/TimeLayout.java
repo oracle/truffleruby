@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.time;
+package org.truffleruby.core.time;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.jruby.truffle.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 import java.time.ZonedDateTime;
 

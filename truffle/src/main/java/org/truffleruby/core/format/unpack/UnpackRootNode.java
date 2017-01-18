@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.unpack;
+package org.truffleruby.core.format.unpack;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -15,12 +15,12 @@ import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.core.array.ArrayUtils;
-import org.jruby.truffle.core.format.FormatFrameDescriptor;
-import org.jruby.truffle.core.format.FormatNode;
-import org.jruby.truffle.language.backtrace.InternalRootNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.format.FormatFrameDescriptor;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.language.backtrace.InternalRootNode;
 
 public class UnpackRootNode extends RootNode implements InternalRootNode {
 

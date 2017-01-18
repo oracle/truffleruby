@@ -27,7 +27,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
 public final class Identifiers {
     public static boolean isValidConstantName19(String id) {

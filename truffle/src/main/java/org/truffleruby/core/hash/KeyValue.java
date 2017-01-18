@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.hash;
+package org.truffleruby.core.hash;
 
 import java.util.Map;
 

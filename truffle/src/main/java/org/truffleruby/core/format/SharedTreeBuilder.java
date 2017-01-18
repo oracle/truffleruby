@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format;
+package org.truffleruby.core.format;
 
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.format.control.RepeatExplodedNode;
-import org.jruby.truffle.core.format.control.RepeatLoopNode;
-import org.jruby.truffle.core.format.control.SequenceNode;
-import org.jruby.truffle.core.format.control.StarNode;
-import org.jruby.truffle.core.format.pack.SimplePackParser;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.format.control.RepeatExplodedNode;
+import org.truffleruby.core.format.control.RepeatLoopNode;
+import org.truffleruby.core.format.control.SequenceNode;
+import org.truffleruby.core.format.control.StarNode;
+import org.truffleruby.core.format.pack.SimplePackParser;
 
 import java.util.Deque;
 import java.util.List;

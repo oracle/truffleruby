@@ -7,16 +7,16 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.methods;
+package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.language.LexicalScope;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.objects.ObjectGraphNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.objects.ObjectGraphNode;
 
 import java.util.HashSet;
 import java.util.Set;

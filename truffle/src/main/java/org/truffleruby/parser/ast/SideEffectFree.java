@@ -1,4 +1,4 @@
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
 /**
  * Created by enebo on 9/26/15.

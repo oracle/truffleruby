@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects.shared;
+package org.truffleruby.language.objects.shared;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -15,7 +15,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
-import org.jruby.truffle.language.objects.ShapeCachingGuards;
+import org.truffleruby.language.objects.ShapeCachingGuards;
 
 @ImportStatic(ShapeCachingGuards.class)
 public abstract class WriteBarrierNode extends Node {

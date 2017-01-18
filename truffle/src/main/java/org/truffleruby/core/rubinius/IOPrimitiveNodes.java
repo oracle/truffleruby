@@ -59,7 +59,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.core.rubinius;
+package org.truffleruby.core.rubinius;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -75,32 +75,32 @@ import jnr.constants.platform.Fcntl;
 import jnr.constants.platform.OpenFlags;
 import jnr.posix.DefaultNativeTimeval;
 import jnr.posix.Timeval;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.core.array.ArrayGuards;
-import org.jruby.truffle.core.array.ArrayOperations;
-import org.jruby.truffle.core.rope.BytesVisitor;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.rope.RopeConstants;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.core.thread.ThreadManager;
-import org.jruby.truffle.core.thread.ThreadManager.ResultWithinTime;
-import org.jruby.truffle.extra.ffi.PointerPrimitiveNodes;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.platform.FDSet;
-import org.jruby.truffle.platform.Platform;
-import org.jruby.truffle.platform.UnsafeGroup;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.rope.BytesVisitor;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.core.thread.ThreadManager.ResultWithinTime;
+import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.platform.FDSet;
+import org.truffleruby.platform.Platform;
+import org.truffleruby.platform.UnsafeGroup;
 
 import java.nio.ByteBuffer;
 
-import static org.jruby.truffle.core.string.StringOperations.rope;
+import static org.truffleruby.core.string.StringOperations.rope;
 
 public abstract class IOPrimitiveNodes {
 

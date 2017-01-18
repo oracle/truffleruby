@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.interop;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -15,9 +15,9 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.core.cast.NameToJavaStringNode;
-import org.jruby.truffle.core.string.StringCachingGuards;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.language.RubyNode;
 
 @ImportStatic(StringCachingGuards.class)
 @NodeChild(value = "value", type = RubyNode.class)

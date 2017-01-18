@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.cext;
+package org.truffleruby.cext;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.interop.CanResolve;
@@ -15,11 +15,11 @@ import com.oracle.truffle.api.interop.MessageResolution;
 import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.language.objects.ReadObjectFieldNode;
-import org.jruby.truffle.language.objects.ReadObjectFieldNodeGen;
-import org.jruby.truffle.language.objects.WriteObjectFieldNode;
-import org.jruby.truffle.language.objects.WriteObjectFieldNodeGen;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
 @MessageResolution(
         receiverType = DataAdapter.class,

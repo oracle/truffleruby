@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.thread;
+package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.jruby.truffle.core.basicobject.BasicObjectLayout;
-import org.jruby.truffle.language.backtrace.Activation;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.language.backtrace.Activation;
 
 @Layout
 public interface ThreadBacktraceLocationLayout extends BasicObjectLayout {

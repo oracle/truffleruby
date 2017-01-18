@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.builtins;
+package org.truffleruby.builtins;
 
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.methods.UnsupportedOperationBehavior;
-import org.jruby.truffle.platform.UnsafeGroup;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.methods.UnsupportedOperationBehavior;
+import org.truffleruby.platform.UnsafeGroup;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

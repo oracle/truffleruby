@@ -7,17 +7,17 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core;
+package org.truffleruby.core;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.numeric.FixnumNodesFactory;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.dispatch.RubyCallNode;
-import org.jruby.truffle.language.dispatch.RubyCallNodeParameters;
-import org.jruby.truffle.language.methods.InternalMethod;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.numeric.FixnumNodesFactory;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.RubyCallNode;
+import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.methods.InternalMethod;
 
 public class CoreMethods {
 

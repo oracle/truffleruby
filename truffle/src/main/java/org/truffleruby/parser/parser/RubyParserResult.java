@@ -29,11 +29,11 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser.parser;
+package org.truffleruby.parser.parser;
 
-import org.jruby.truffle.parser.ast.ParseNode;
-import org.jruby.truffle.parser.ast.PreExeParseNode;
-import org.jruby.truffle.parser.scope.DynamicScope;
+import org.truffleruby.parser.ast.ParseNode;
+import org.truffleruby.parser.ast.PreExeParseNode;
+import org.truffleruby.parser.scope.DynamicScope;
 
 import java.util.ArrayList;
 import java.util.List;

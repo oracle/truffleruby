@@ -18,7 +18,7 @@
  * Copyright (C) 2006 Thomas E Enebo <enebo@acm.org>
  */
 
-package org.jruby.truffle.core.cast;
+package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -27,12 +27,12 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 /**
  * This is a port of MRI's rb_cmpint, as taken from RubyComparable and broken out into specialized nodes.

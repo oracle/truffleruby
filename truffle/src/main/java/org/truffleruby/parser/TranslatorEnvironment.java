@@ -7,20 +7,20 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.source.Source;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.language.LexicalScope;
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.language.control.BreakID;
-import org.jruby.truffle.language.control.ReturnID;
-import org.jruby.truffle.language.locals.LocalVariableType;
-import org.jruby.truffle.language.locals.ReadDeclarationVariableNode;
-import org.jruby.truffle.language.locals.ReadLocalVariableNode;
-import org.jruby.truffle.language.methods.SharedMethodInfo;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.control.BreakID;
+import org.truffleruby.language.control.ReturnID;
+import org.truffleruby.language.locals.LocalVariableType;
+import org.truffleruby.language.locals.ReadDeclarationVariableNode;
+import org.truffleruby.language.locals.ReadLocalVariableNode;
+import org.truffleruby.language.methods.SharedMethodInfo;
 
 import java.util.ArrayList;
 import java.util.List;

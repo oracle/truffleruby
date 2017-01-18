@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.objectspace;
+package org.truffleruby.core.objectspace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -16,21 +16,21 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.YieldingCoreMethodNode;
-import org.jruby.truffle.core.module.ModuleOperations;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.DoesRespondDispatchHeadNode;
-import org.jruby.truffle.language.objects.ObjectGraph;
-import org.jruby.truffle.language.objects.ObjectIDOperations;
-import org.jruby.truffle.language.objects.ReadObjectFieldNode;
-import org.jruby.truffle.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ObjectIDOperations;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 
 @CoreClass("ObjectSpace")
 public abstract class ObjectSpaceNodes {

@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.Collections;
 import java.util.List;

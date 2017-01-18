@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.numeric;
+package org.truffleruby.core.numeric;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.core.CoreLibrary;
-import org.jruby.truffle.language.RubyBaseNode;
-import org.jruby.truffle.language.SourceIndexLength;
+import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.SourceIndexLength;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

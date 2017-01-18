@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects;
+package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.core.module.ModuleOperations;
-import org.jruby.truffle.language.LexicalScope;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyNode;
 
 public class WriteClassVariableNode extends RubyNode {
 

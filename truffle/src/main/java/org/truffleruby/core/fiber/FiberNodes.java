@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.fiber;
+package org.truffleruby.core.fiber;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -20,24 +20,24 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.core.cast.SingleValueCastNode;
-import org.jruby.truffle.core.cast.SingleValueCastNodeGen;
-import org.jruby.truffle.core.proc.ProcOperations;
-import org.jruby.truffle.core.thread.ThreadManager.BlockingAction;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.control.BreakException;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.control.ReturnException;
-import org.jruby.truffle.language.methods.UnsupportedOperationBehavior;
-import org.jruby.truffle.platform.UnsafeGroup;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.cast.SingleValueCastNode;
+import org.truffleruby.core.cast.SingleValueCastNodeGen;
+import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.BreakException;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.ReturnException;
+import org.truffleruby.language.methods.UnsupportedOperationBehavior;
+import org.truffleruby.platform.UnsafeGroup;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;

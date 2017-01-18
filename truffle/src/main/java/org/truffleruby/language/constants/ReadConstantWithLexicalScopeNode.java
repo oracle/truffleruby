@@ -7,16 +7,16 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.constants;
+package org.truffleruby.language.constants;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.LexicalScope;
-import org.jruby.truffle.language.RubyConstant;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
 
 /** Read a constant using the current lexical scope: CONST */
 public class ReadConstantWithLexicalScopeNode extends RubyNode {

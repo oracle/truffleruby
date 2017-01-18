@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.dispatch;
+package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.methods.LookupMethodNode;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.LookupMethodNode;
 
 public abstract class DispatchNode extends RubyNode {
 

@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.methods;
+package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.language.LexicalScope;
-import org.jruby.truffle.parser.ArgumentDescriptor;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.LexicalScope;
+import org.truffleruby.parser.ArgumentDescriptor;
 
 /**
  * {@link InternalMethod} objects are copied as properties such as visibility are changed.

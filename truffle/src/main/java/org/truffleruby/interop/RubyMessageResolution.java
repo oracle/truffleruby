@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.interop;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -21,16 +21,16 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyObjectType;
-import org.jruby.truffle.language.dispatch.DispatchAction;
-import org.jruby.truffle.language.dispatch.DispatchHeadNode;
-import org.jruby.truffle.language.dispatch.MissingBehavior;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyObjectType;
+import org.truffleruby.language.dispatch.DispatchAction;
+import org.truffleruby.language.dispatch.DispatchHeadNode;
+import org.truffleruby.language.dispatch.MissingBehavior;
 
 @MessageResolution(
         receiverType = RubyObjectType.class,

@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.control;
+package org.truffleruby.language.control;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.core.cast.BooleanCastNode;
-import org.jruby.truffle.core.cast.BooleanCastNodeGen;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.language.RubyNode;
 
 public class UnlessNode extends RubyNode {
 

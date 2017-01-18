@@ -41,7 +41,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser.lexer;
+package org.truffleruby.parser.lexer;
 
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -52,34 +52,34 @@ import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
 import org.joni.Option;
 import org.joni.Regex;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.collections.ByteArrayBuilder;
-import org.jruby.truffle.core.regexp.ClassicRegexp;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.StringSupport;
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.parser.RubyWarnings;
-import org.jruby.truffle.parser.SafeDoubleParser;
-import org.jruby.truffle.parser.ast.BackRefParseNode;
-import org.jruby.truffle.parser.ast.BignumParseNode;
-import org.jruby.truffle.parser.ast.ComplexParseNode;
-import org.jruby.truffle.parser.ast.FixnumParseNode;
-import org.jruby.truffle.parser.ast.FloatParseNode;
-import org.jruby.truffle.parser.ast.ListParseNode;
-import org.jruby.truffle.parser.ast.NthRefParseNode;
-import org.jruby.truffle.parser.ast.NumericParseNode;
-import org.jruby.truffle.parser.ast.ParseNode;
-import org.jruby.truffle.parser.ast.RationalParseNode;
-import org.jruby.truffle.parser.ast.StrParseNode;
-import org.jruby.truffle.parser.parser.ParserRopeOperations;
-import org.jruby.truffle.parser.parser.ParserSupport;
-import org.jruby.truffle.parser.parser.RubyParser;
-import org.jruby.truffle.parser.parser.Tokens;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.regexp.ClassicRegexp;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.parser.RubyWarnings;
+import org.truffleruby.parser.SafeDoubleParser;
+import org.truffleruby.parser.ast.BackRefParseNode;
+import org.truffleruby.parser.ast.BignumParseNode;
+import org.truffleruby.parser.ast.ComplexParseNode;
+import org.truffleruby.parser.ast.FixnumParseNode;
+import org.truffleruby.parser.ast.FloatParseNode;
+import org.truffleruby.parser.ast.ListParseNode;
+import org.truffleruby.parser.ast.NthRefParseNode;
+import org.truffleruby.parser.ast.NumericParseNode;
+import org.truffleruby.parser.ast.ParseNode;
+import org.truffleruby.parser.ast.RationalParseNode;
+import org.truffleruby.parser.ast.StrParseNode;
+import org.truffleruby.parser.parser.ParserRopeOperations;
+import org.truffleruby.parser.parser.ParserSupport;
+import org.truffleruby.parser.parser.RubyParser;
+import org.truffleruby.parser.parser.Tokens;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -88,7 +88,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import static org.jruby.truffle.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 
 /*
  * This is a port of the MRI lexer to Java.

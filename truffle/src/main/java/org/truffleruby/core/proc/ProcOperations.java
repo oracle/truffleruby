@@ -7,19 +7,19 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.proc;
+package org.truffleruby.core.proc;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.control.FrameOnStackMarker;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.methods.SharedMethodInfo;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.FrameOnStackMarker;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 
 public abstract class ProcOperations {
 

@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.array;
+package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -15,11 +15,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.CoreLibrary;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.language.objects.AllocateObjectNodeGen;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateObjectNodeGen;
 
 public abstract class ArrayLiteralNode extends RubyNode {
 

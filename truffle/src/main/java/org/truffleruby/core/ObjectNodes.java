@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core;
+package org.truffleruby.core;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -15,20 +15,20 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.language.objects.IsTaintedNode;
-import org.jruby.truffle.language.objects.ObjectIDOperations;
-import org.jruby.truffle.language.objects.ObjectIVarGetNode;
-import org.jruby.truffle.language.objects.ObjectIVarGetNodeGen;
-import org.jruby.truffle.language.objects.ObjectIVarSetNode;
-import org.jruby.truffle.language.objects.ObjectIVarSetNodeGen;
-import org.jruby.truffle.language.objects.ReadObjectFieldNode;
-import org.jruby.truffle.language.objects.ReadObjectFieldNodeGen;
-import org.jruby.truffle.language.objects.TaintNode;
-import org.jruby.truffle.language.objects.WriteObjectFieldNode;
-import org.jruby.truffle.language.objects.WriteObjectFieldNodeGen;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.language.objects.IsTaintedNode;
+import org.truffleruby.language.objects.ObjectIDOperations;
+import org.truffleruby.language.objects.ObjectIVarGetNode;
+import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
+import org.truffleruby.language.objects.ObjectIVarSetNode;
+import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.TaintNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
 /**
  * Rubinius primitives associated with the Ruby {@code Object} class.

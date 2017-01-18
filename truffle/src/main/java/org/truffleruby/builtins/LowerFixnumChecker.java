@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.builtins;
+package org.truffleruby.builtins;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.core.array.ArrayUtils;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.Log;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.language.RubyNode;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;

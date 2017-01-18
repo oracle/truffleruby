@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.methods;
+package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.core.module.ModuleOperations;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.Visibility;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.Visibility;
 
 public class GetCurrentVisibilityNode extends RubyNode {
 

@@ -36,7 +36,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.stdlib.psych;
+package org.truffleruby.stdlib.psych;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -53,27 +53,27 @@ import org.jcodings.transcode.EConv;
 import org.jcodings.transcode.EConvResult;
 import org.jcodings.transcode.TranscodingManager;
 import org.jcodings.unicode.UnicodeEncoding;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.collections.BoundaryIterable;
-import org.jruby.truffle.core.adapaters.InputStreamAdapter;
-import org.jruby.truffle.core.cast.ToStrNode;
-import org.jruby.truffle.core.cast.ToStrNodeGen;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.SnippetNode;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DoesRespondDispatchHeadNode;
-import org.jruby.truffle.language.objects.ReadObjectFieldNode;
-import org.jruby.truffle.language.objects.ReadObjectFieldNodeGen;
-import org.jruby.truffle.language.objects.TaintNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.collections.BoundaryIterable;
+import org.truffleruby.core.adapaters.InputStreamAdapter;
+import org.truffleruby.core.cast.ToStrNode;
+import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.TaintNode;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.error.Mark;
 import org.yaml.snakeyaml.events.AliasEvent;

@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.stdlib.bigdecimal;
+package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -15,13 +15,13 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.core.cast.IntegerCastNode;
-import org.jruby.truffle.core.cast.IntegerCastNodeGen;
-import org.jruby.truffle.core.cast.ToIntNode;
-import org.jruby.truffle.language.RubyConstant;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.constants.GetConstantNode;
-import org.jruby.truffle.language.constants.LookupConstantNode;
+import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.cast.IntegerCastNodeGen;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.constants.GetConstantNode;
+import org.truffleruby.language.constants.LookupConstantNode;
 
 @NodeChildren({@NodeChild("module"), @NodeChild("name")})
 public abstract class GetIntegerConstantNode extends RubyNode {

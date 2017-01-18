@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.tck;
+package org.truffleruby.tck;
 
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.tck.TruffleTCK;
-import org.jruby.truffle.RubyLanguage;
+import org.truffleruby.RubyLanguage;
 import org.junit.Test;
 
 import java.io.File;

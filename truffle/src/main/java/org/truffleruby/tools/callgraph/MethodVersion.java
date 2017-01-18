@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.tools.callgraph;
+package org.truffleruby.tools.callgraph;
 
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import org.jruby.truffle.language.RubyRootNode;
+import org.truffleruby.language.RubyRootNode;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;

@@ -8,11 +8,11 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.platform.posix;
+package org.truffleruby.platform.posix;
 
 import jnr.ffi.Pointer;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.platform.FDSet;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.platform.FDSet;
 
 public class PosixFDSet8Bytes implements FDSet {
 

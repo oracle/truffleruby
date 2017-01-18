@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -18,18 +18,18 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.collections.Memo;
-import org.jruby.truffle.core.module.ModuleOperations;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.backtrace.Activation;
-import org.jruby.truffle.language.backtrace.Backtrace;
-import org.jruby.truffle.language.backtrace.BacktraceFormatter;
-import org.jruby.truffle.language.backtrace.InternalRootNode;
-import org.jruby.truffle.language.exceptions.DisablingBacktracesNode;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.methods.SharedMethodInfo;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.collections.Memo;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.backtrace.Activation;
+import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.backtrace.InternalRootNode;
+import org.truffleruby.language.exceptions.DisablingBacktracesNode;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 
 import java.util.ArrayList;
 

@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.thread;
+package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -17,12 +17,12 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.backtrace.Activation;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.backtrace.Activation;
 
 @CoreClass("Thread::Backtrace::Location")
 public class ThreadBacktraceLocationNodes {

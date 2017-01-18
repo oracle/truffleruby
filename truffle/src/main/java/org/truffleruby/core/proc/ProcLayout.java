@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.proc;
+package org.truffleruby.core.proc;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -16,10 +16,10 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.jruby.truffle.core.basicobject.BasicObjectLayout;
-import org.jruby.truffle.language.control.FrameOnStackMarker;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.methods.SharedMethodInfo;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.language.control.FrameOnStackMarker;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 
 // A instance of Proc behaves either as a proc or lambda (its type).
 // Kernel#lambda is the only primitive which can produce a lambda-semantics Proc from a proc-semantics one.

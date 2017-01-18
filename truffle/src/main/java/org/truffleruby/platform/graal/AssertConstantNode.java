@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.graal;
+package org.truffleruby.platform.graal;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
 
 @NodeChild("value")
 public abstract class AssertConstantNode extends RubyNode {

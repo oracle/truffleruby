@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.stdlib;
+package org.truffleruby.stdlib;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -19,8 +19,8 @@ import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 
 import java.io.PrintStream;
 import java.util.HashMap;

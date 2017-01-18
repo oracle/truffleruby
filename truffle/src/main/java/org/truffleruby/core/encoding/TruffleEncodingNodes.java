@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.encoding;
+package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -20,16 +20,16 @@ import org.jcodings.EncodingDB;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.Hash;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.YieldingCoreMethodNode;
-import org.jruby.truffle.core.array.ArrayUtils;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.control.RaiseException;
 
 @CoreClass("Truffle::Encoding")
 public abstract class TruffleEncodingNodes {

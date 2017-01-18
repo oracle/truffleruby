@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.defined;
+package org.truffleruby.language.defined;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.language.RubyNode;
 
 public class DefinedNode extends RubyNode {
 

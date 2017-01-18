@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.method;
+package org.truffleruby.core.method;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -16,24 +16,24 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.core.Hashing;
-import org.jruby.truffle.core.module.ModuleOperations;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.arguments.ArgumentDescriptorUtils;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.methods.CanBindMethodToModuleNode;
-import org.jruby.truffle.language.methods.CanBindMethodToModuleNodeGen;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.objects.MetaClassNode;
-import org.jruby.truffle.language.objects.MetaClassNodeGen;
-import org.jruby.truffle.parser.ArgumentDescriptor;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.Hashing;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.methods.CanBindMethodToModuleNode;
+import org.truffleruby.language.methods.CanBindMethodToModuleNodeGen;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.MetaClassNode;
+import org.truffleruby.language.objects.MetaClassNodeGen;
+import org.truffleruby.parser.ArgumentDescriptor;
 
 @CoreClass("UnboundMethod")
 public abstract class UnboundMethodNodes {

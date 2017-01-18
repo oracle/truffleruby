@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.methods;
+package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.objects.SingletonClassNode;
-import org.jruby.truffle.language.objects.SingletonClassNodeGen;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.objects.SingletonClassNode;
+import org.truffleruby.language.objects.SingletonClassNodeGen;
 
 public class GetDefaultDefineeNode extends RubyNode {
 

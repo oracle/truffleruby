@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.adapaters;
+package org.truffleruby.core.adapaters;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.RubyContext;
+import org.truffleruby.RubyContext;
 
 import java.io.IOException;
 import java.io.InputStream;

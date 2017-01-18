@@ -7,19 +7,19 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.arguments;
+package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.core.hash.HashOperations;
-import org.jruby.truffle.core.hash.KeyValue;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.methods.Arity;
+import org.truffleruby.Log;
+import org.truffleruby.core.hash.HashOperations;
+import org.truffleruby.core.hash.KeyValue;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.methods.Arity;
 
 public class CheckKeywordArityNode extends RubyNode {
 

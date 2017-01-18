@@ -1,6 +1,6 @@
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
-import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.List;
 

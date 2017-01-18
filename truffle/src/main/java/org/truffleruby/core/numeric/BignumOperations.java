@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.numeric;
+package org.truffleruby.core.numeric;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 
 import java.math.BigInteger;
 

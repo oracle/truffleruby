@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.builtins;
+package org.truffleruby.builtins;
 
 import com.oracle.truffle.api.dsl.NodeChild;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.language.RubyNode;
 
 @NodeChild(value = "operand", type = RubyNode.class)
 public abstract class UnaryCoreMethodNode extends CoreMethodNode {

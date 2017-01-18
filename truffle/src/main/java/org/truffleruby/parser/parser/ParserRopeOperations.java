@@ -7,16 +7,16 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.parser.parser;
+package org.truffleruby.parser.parser;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.jcodings.Encoding;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeNodes;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.language.RubyNode;
 
-import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 
 public class ParserRopeOperations {
 

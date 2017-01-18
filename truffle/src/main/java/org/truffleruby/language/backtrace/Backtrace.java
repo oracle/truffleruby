@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.backtrace;
+package org.truffleruby.language.backtrace;
 
 import com.oracle.truffle.api.nodes.Node;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.language.RubyBaseNode;
-import org.jruby.truffle.language.backtrace.BacktraceFormatter.FormattingFlags;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 
 import java.util.Arrays;
 import java.util.Collections;

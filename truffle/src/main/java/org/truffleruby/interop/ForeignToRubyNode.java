@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.interop;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -15,9 +15,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyNode;
 
 /**
  * Only converts primitive types (including java.lang.String).

@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.interop;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -15,13 +15,13 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.methods.CallBoundMethodNode;
-import org.jruby.truffle.language.methods.CallBoundMethodNodeGen;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.language.yield.CallBlockNode;
-import org.jruby.truffle.language.yield.CallBlockNodeGen;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.methods.CallBoundMethodNode;
+import org.truffleruby.language.methods.CallBoundMethodNodeGen;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.yield.CallBlockNode;
+import org.truffleruby.language.yield.CallBlockNodeGen;
 
 @NodeChildren({
         @NodeChild("receiver"),

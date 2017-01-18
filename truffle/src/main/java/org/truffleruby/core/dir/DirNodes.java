@@ -35,20 +35,20 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.jruby.truffle.core.dir;
+package org.truffleruby.core.dir;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.constants.platform.Errno;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.platform.UnsafeGroup;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.platform.UnsafeGroup;
 
 import java.io.File;
 

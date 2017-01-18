@@ -7,16 +7,16 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.methods;
+package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.language.LexicalScope;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.arguments.RubyArguments;
+import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
 
 /**
  * Define a method from a method literal (def mymethod ... end).

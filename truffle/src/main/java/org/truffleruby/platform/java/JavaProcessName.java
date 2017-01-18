@@ -7,9 +7,9 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.java;
+package org.truffleruby.platform.java;
 
-import org.jruby.truffle.platform.ProcessName;
+import org.truffleruby.platform.ProcessName;
 
 public class JavaProcessName implements ProcessName {
 

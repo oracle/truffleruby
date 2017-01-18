@@ -7,18 +7,18 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.time;
+package org.truffleruby.core.time;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.core.time.TimeNodes.TimeZoneParser;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SnippetNode;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.time.TimeNodes.TimeZoneParser;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SnippetNode;
 
 import java.time.ZoneId;
 

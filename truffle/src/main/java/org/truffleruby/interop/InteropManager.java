@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.interop;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.interop.TruffleObject;
-import org.jruby.truffle.RubyContext;
+import org.truffleruby.RubyContext;
 
 import java.util.HashMap;
 import java.util.Map;

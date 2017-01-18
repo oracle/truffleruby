@@ -7,22 +7,22 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.builtins;
+package org.truffleruby.builtins;
 
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.core.array.ArrayUtils;
-import org.jruby.truffle.core.numeric.FixnumLowerNodeGen;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.language.arguments.MissingArgumentBehavior;
-import org.jruby.truffle.language.arguments.ProfileArgumentNode;
-import org.jruby.truffle.language.arguments.ReadPreArgumentNode;
-import org.jruby.truffle.language.arguments.ReadSelfNode;
-import org.jruby.truffle.parser.Translator;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.numeric.FixnumLowerNodeGen;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.language.arguments.MissingArgumentBehavior;
+import org.truffleruby.language.arguments.ProfileArgumentNode;
+import org.truffleruby.language.arguments.ReadPreArgumentNode;
+import org.truffleruby.language.arguments.ReadSelfNode;
+import org.truffleruby.parser.Translator;
 
 import java.util.ArrayList;
 import java.util.List;

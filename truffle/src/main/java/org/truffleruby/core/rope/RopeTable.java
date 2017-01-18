@@ -8,12 +8,12 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.core.rope;
+package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.core.string.StringOperations;
+import org.truffleruby.core.string.StringOperations;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;

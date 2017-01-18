@@ -24,12 +24,12 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser.parser;
+package org.truffleruby.parser.parser;
 
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ast.BlockArgParseNode;
-import org.jruby.truffle.parser.ast.KeywordRestArgParseNode;
-import org.jruby.truffle.parser.ast.ListParseNode;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.BlockArgParseNode;
+import org.truffleruby.parser.ast.KeywordRestArgParseNode;
+import org.truffleruby.parser.ast.ListParseNode;
 
 /**
  * Simple struct to hold values until they can be inserted into the AST.

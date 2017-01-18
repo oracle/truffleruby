@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.numeric;
+package org.truffleruby.core.numeric;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.jruby.truffle.core.CoreLibrary;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.language.RubyNode;
 
 /**
  * Passes through {@code int} values unmodified, but will convert a {@code long} value to an {@code int}, if it fits

@@ -3,9 +3,9 @@
  * and open the template in the editor.
  */
 
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
-import org.jruby.truffle.language.SourceIndexLength;
+import org.truffleruby.language.SourceIndexLength;
 
 /**
  *

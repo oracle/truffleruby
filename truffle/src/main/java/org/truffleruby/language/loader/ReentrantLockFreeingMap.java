@@ -8,12 +8,12 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.language.loader;
+package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import org.jruby.truffle.core.thread.ThreadManager;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.language.RubyNode;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;

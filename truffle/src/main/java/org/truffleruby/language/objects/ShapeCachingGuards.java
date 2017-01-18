@@ -8,14 +8,14 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.language.objects;
+package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Shape;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.objects.shared.SharedObjects;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 public abstract class ShapeCachingGuards {
 

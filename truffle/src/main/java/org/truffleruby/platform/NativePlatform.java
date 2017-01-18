@@ -7,16 +7,16 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform;
+package org.truffleruby.platform;
 
 import jnr.ffi.provider.MemoryManager;
-import org.jruby.truffle.core.queue.ArrayBlockingQueueLocksConditions;
-import org.jruby.truffle.core.queue.LinkedBlockingQueueLocksConditions;
-import org.jruby.truffle.platform.posix.ClockGetTime;
-import org.jruby.truffle.platform.posix.MallocFree;
-import org.jruby.truffle.platform.posix.Sockets;
-import org.jruby.truffle.platform.posix.TrufflePosix;
-import org.jruby.truffle.platform.signal.SignalManager;
+import org.truffleruby.core.queue.ArrayBlockingQueueLocksConditions;
+import org.truffleruby.core.queue.LinkedBlockingQueueLocksConditions;
+import org.truffleruby.platform.posix.ClockGetTime;
+import org.truffleruby.platform.posix.MallocFree;
+import org.truffleruby.platform.posix.Sockets;
+import org.truffleruby.platform.posix.TrufflePosix;
+import org.truffleruby.platform.signal.SignalManager;
 
 public interface NativePlatform {
 

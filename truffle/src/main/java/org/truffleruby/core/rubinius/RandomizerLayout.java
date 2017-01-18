@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.rubinius;
+package org.truffleruby.core.rubinius;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.jruby.truffle.algorithms.Randomizer;
-import org.jruby.truffle.core.basicobject.BasicObjectLayout;
+import org.truffleruby.algorithms.Randomizer;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface RandomizerLayout extends BasicObjectLayout {

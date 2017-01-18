@@ -11,9 +11,9 @@
 
 /* IMPORTANT: must compile with JFlex 1.4, JFlex 1.4.3 seems buggy with look-ahead */
 
-package org.jruby.truffle.core.time;
+package org.truffleruby.core.time;
 
-import org.jruby.truffle.core.time.RubyDateFormatter.Token;
+import org.truffleruby.core.time.RubyDateFormatter.Token;
 
 
 /**

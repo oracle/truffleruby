@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.threadlocal;
+package org.truffleruby.language.threadlocal;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.jruby.truffle.RubyContext;
+import org.truffleruby.RubyContext;
 
 public class ThreadLocalObject extends ThreadLocal<Object> {
 

@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.module;
+package org.truffleruby.core.module;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -17,20 +17,20 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.klass.ClassNodes;
-import org.jruby.truffle.core.method.MethodFilter;
-import org.jruby.truffle.language.RubyConstant;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.objects.IsFrozenNode;
-import org.jruby.truffle.language.objects.ObjectGraphNode;
-import org.jruby.truffle.language.objects.ObjectIDOperations;
-import org.jruby.truffle.language.objects.shared.SharedObjects;
+import org.truffleruby.Layouts;
+import org.truffleruby.Log;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.core.method.MethodFilter;
+import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.IsFrozenNode;
+import org.truffleruby.language.objects.ObjectGraphNode;
+import org.truffleruby.language.objects.ObjectIDOperations;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 import java.util.ArrayDeque;
 import java.util.Collection;

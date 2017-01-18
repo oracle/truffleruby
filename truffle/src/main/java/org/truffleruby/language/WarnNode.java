@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 public class WarnNode extends RubyBaseNode {
 

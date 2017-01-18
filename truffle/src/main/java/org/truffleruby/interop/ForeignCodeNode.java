@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.interop;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.SnippetNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SnippetNode;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

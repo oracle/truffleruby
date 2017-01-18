@@ -43,7 +43,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.core.format.read.bytes;
+package org.truffleruby.core.format.read.bytes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -51,9 +51,9 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.core.format.FormatNode;
-import org.jruby.truffle.core.format.read.SourceNode;
-import org.jruby.truffle.core.numeric.FixnumOrBignumNode;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.read.SourceNode;
+import org.truffleruby.core.numeric.FixnumOrBignumNode;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;

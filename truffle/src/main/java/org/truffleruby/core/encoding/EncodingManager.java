@@ -10,7 +10,7 @@
  * Some of the code in this class is modified from org.jruby.runtime.encoding.EncodingService,
  * licensed under the same EPL1.0/GPL 2.0/LGPL 2.1 used throughout.
  */
-package org.jruby.truffle.core.encoding;
+package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -20,12 +20,12 @@ import org.jcodings.EncodingDB;
 import org.jcodings.EncodingDB.Entry;
 import org.jcodings.specific.ISO8859_16Encoding;
 import org.jcodings.specific.USASCIIEncoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.ISO_8859_16;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.ISO_8859_16;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;

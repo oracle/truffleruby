@@ -31,7 +31,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.core.rubinius;
+package org.truffleruby.core.rubinius;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleOptions;
@@ -39,13 +39,13 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.algorithms.Randomizer;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.core.numeric.FixnumOrBignumNode;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.rope.RopeOperations;
+import org.truffleruby.Layouts;
+import org.truffleruby.algorithms.Randomizer;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.numeric.FixnumOrBignumNode;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeOperations;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;

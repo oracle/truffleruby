@@ -11,17 +11,17 @@
  * The original class is licensed under the same EPL1.0/GPL 2.0/LGPL 2.1 used throughout.
  */
 
-package org.jruby.truffle.core.string;
+package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.CoreLibrary;
-import org.jruby.truffle.core.numeric.FixnumOrBignumNode;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.numeric.FixnumOrBignumNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.language.control.RaiseException;
 
 import java.math.BigInteger;
 import java.util.Arrays;

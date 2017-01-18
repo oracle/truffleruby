@@ -23,7 +23,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.core.string;
+package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
@@ -31,22 +31,22 @@ import org.jcodings.ascii.AsciiTables;
 import org.jcodings.constants.CharacterType;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.util.IntHash;
-import org.jruby.truffle.collections.IntHashMap;
-import org.jruby.truffle.core.array.ArrayUtils;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.rope.RopeOperations;
+import org.truffleruby.collections.IntHashMap;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeOperations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.jruby.truffle.core.rope.CodeRange.CR_7BIT;
-import static org.jruby.truffle.core.rope.CodeRange.CR_BROKEN;
-import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
-import static org.jruby.truffle.core.rope.CodeRange.CR_VALID;
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 public final class StringSupport {
     public static final int TRANS_SIZE = 256;

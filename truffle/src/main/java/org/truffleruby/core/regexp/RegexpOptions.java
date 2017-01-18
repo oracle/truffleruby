@@ -11,16 +11,16 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.jruby.truffle.core.regexp;
+package org.truffleruby.core.regexp;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.string.KCode;
-import org.jruby.truffle.parser.ReOptions;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.string.KCode;
+import org.truffleruby.parser.ReOptions;
 
 public class RegexpOptions implements Cloneable {
     private static String WINDOWS31J = "Windows-31J";

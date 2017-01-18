@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.sunmisc;
+package org.truffleruby.platform.sunmisc;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.jruby.truffle.platform.signal.Signal;
-import org.jruby.truffle.platform.signal.SignalHandler;
-import org.jruby.truffle.platform.signal.SignalManager;
+import org.truffleruby.platform.signal.Signal;
+import org.truffleruby.platform.signal.SignalHandler;
+import org.truffleruby.platform.signal.SignalManager;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

@@ -1,15 +1,15 @@
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
-import org.jruby.truffle.parser.ast.ArgsParseNode;
-import org.jruby.truffle.parser.ast.ArgumentParseNode;
-import org.jruby.truffle.parser.ast.ForParseNode;
-import org.jruby.truffle.parser.ast.IterParseNode;
-import org.jruby.truffle.parser.ast.MultipleAsgnParseNode;
-import org.jruby.truffle.parser.ast.ParseNode;
-import org.jruby.truffle.parser.ast.PostExeParseNode;
-import org.jruby.truffle.parser.ast.PreExeParseNode;
-import org.jruby.truffle.parser.ast.StarParseNode;
-import org.jruby.truffle.parser.ast.UnnamedRestArgParseNode;
+import org.truffleruby.parser.ast.ArgsParseNode;
+import org.truffleruby.parser.ast.ArgumentParseNode;
+import org.truffleruby.parser.ast.ForParseNode;
+import org.truffleruby.parser.ast.IterParseNode;
+import org.truffleruby.parser.ast.MultipleAsgnParseNode;
+import org.truffleruby.parser.ast.ParseNode;
+import org.truffleruby.parser.ast.PostExeParseNode;
+import org.truffleruby.parser.ast.PreExeParseNode;
+import org.truffleruby.parser.ast.StarParseNode;
+import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 
 /**
  * A representation of a Ruby method signature (argument layout, min/max, keyword layout, rest args).

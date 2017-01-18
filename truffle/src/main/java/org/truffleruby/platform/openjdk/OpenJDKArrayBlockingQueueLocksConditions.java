@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.openjdk;
+package org.truffleruby.platform.openjdk;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.jruby.truffle.core.queue.ArrayBlockingQueueLocksConditions;
-import org.jruby.truffle.core.queue.DelegatingBlockingQueue;
-import org.jruby.truffle.language.control.JavaException;
+import org.truffleruby.core.queue.ArrayBlockingQueueLocksConditions;
+import org.truffleruby.core.queue.DelegatingBlockingQueue;
+import org.truffleruby.language.control.JavaException;
 
 import java.lang.invoke.MethodHandle;
 import java.util.concurrent.ArrayBlockingQueue;

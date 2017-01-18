@@ -36,18 +36,18 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.core.time;
+package org.truffleruby.core.time;
 
 import com.oracle.truffle.api.nodes.Node;
 import jnr.constants.platform.Errno;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.encoding.EncodingManager;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.debug.DebugHelpers;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.debug.DebugHelpers;
+import org.truffleruby.language.control.RaiseException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -67,13 +67,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.jruby.truffle.core.time.RubyDateFormatter.FieldType.NUMERIC;
-import static org.jruby.truffle.core.time.RubyDateFormatter.FieldType.NUMERIC2;
-import static org.jruby.truffle.core.time.RubyDateFormatter.FieldType.NUMERIC2BLANK;
-import static org.jruby.truffle.core.time.RubyDateFormatter.FieldType.NUMERIC3;
-import static org.jruby.truffle.core.time.RubyDateFormatter.FieldType.NUMERIC4;
-import static org.jruby.truffle.core.time.RubyDateFormatter.FieldType.NUMERIC5;
-import static org.jruby.truffle.core.time.RubyDateFormatter.FieldType.TEXT;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC2;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC2BLANK;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC3;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC4;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC5;
+import static org.truffleruby.core.time.RubyDateFormatter.FieldType.TEXT;
 
 public class RubyDateFormatter {
     private static final DateFormatSymbols FORMAT_SYMBOLS = new DateFormatSymbols(Locale.US);

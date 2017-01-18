@@ -188,7 +188,7 @@ declare -a ruby_args
 mode=""
 
 JAVA_CLASS_JRUBY_MAIN=org.jruby.Main
-JAVA_CLASS_JRUBY_TRUFFLE_MAIN=org.jruby.truffle.Main
+JAVA_CLASS_JRUBY_TRUFFLE_MAIN=org.truffleruby.Main
 java_class=$JAVA_CLASS_JRUBY_MAIN
 JAVA_CLASS_NGSERVER=org.jruby.main.NailServerMain
 

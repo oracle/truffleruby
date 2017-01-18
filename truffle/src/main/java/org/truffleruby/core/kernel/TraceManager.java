@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.kernel;
+package org.truffleruby.core.kernel;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -25,16 +25,16 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.LazyRubyNode;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.objects.LogicalClassNode;
-import org.jruby.truffle.language.objects.LogicalClassNodeGen;
-import org.jruby.truffle.language.yield.YieldNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.LazyRubyNode;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.objects.LogicalClassNode;
+import org.truffleruby.language.objects.LogicalClassNodeGen;
+import org.truffleruby.language.yield.YieldNode;
 
 import java.util.ArrayList;
 import java.util.Collection;

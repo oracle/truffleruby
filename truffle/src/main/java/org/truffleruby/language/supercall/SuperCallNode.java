@@ -7,24 +7,24 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.supercall;
+package org.truffleruby.language.supercall;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.core.array.ArrayUtils;
-import org.jruby.truffle.core.cast.ProcOrNullNode;
-import org.jruby.truffle.core.cast.ProcOrNullNodeGen;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
-import org.jruby.truffle.language.methods.CallInternalMethodNode;
-import org.jruby.truffle.language.methods.CallInternalMethodNodeGen;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.language.methods.InternalMethod;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.cast.ProcOrNullNode;
+import org.truffleruby.core.cast.ProcOrNullNodeGen;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.methods.CallInternalMethodNode;
+import org.truffleruby.language.methods.CallInternalMethodNodeGen;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.InternalMethod;
 
 public class SuperCallNode extends RubyNode {
 

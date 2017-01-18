@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.format;
+package org.truffleruby.core.format.format;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -16,16 +16,16 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.core.format.FormatNode;
-import org.jruby.truffle.core.format.LiteralFormatNode;
-import org.jruby.truffle.core.format.convert.ToIntegerNode;
-import org.jruby.truffle.core.format.convert.ToIntegerNodeGen;
-import org.jruby.truffle.core.format.convert.ToStringNode;
-import org.jruby.truffle.core.format.convert.ToStringNodeGen;
-import org.jruby.truffle.core.format.exceptions.NoImplicitConversionException;
-import org.jruby.truffle.core.format.write.bytes.WriteByteNodeGen;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.LiteralFormatNode;
+import org.truffleruby.core.format.convert.ToIntegerNode;
+import org.truffleruby.core.format.convert.ToIntegerNodeGen;
+import org.truffleruby.core.format.convert.ToStringNode;
+import org.truffleruby.core.format.convert.ToStringNodeGen;
+import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
+import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.control.RaiseException;
 
 import java.nio.charset.StandardCharsets;
 

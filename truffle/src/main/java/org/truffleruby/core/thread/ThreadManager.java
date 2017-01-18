@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.thread;
+package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
@@ -15,22 +15,22 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import jnr.posix.DefaultNativeTimeval;
 import jnr.posix.Timeval;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.core.InterruptMode;
-import org.jruby.truffle.core.fiber.FiberManager;
-import org.jruby.truffle.core.fiber.FiberNodes;
-import org.jruby.truffle.core.proc.ProcOperations;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.SafepointAction;
-import org.jruby.truffle.language.SafepointManager;
-import org.jruby.truffle.language.backtrace.BacktraceFormatter;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.control.ReturnException;
-import org.jruby.truffle.language.control.ThreadExitException;
-import org.jruby.truffle.language.objects.ReadObjectFieldNode;
-import org.jruby.truffle.language.objects.shared.SharedObjects;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.InterruptMode;
+import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.fiber.FiberNodes;
+import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.SafepointAction;
+import org.truffleruby.language.SafepointManager;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.ReturnException;
+import org.truffleruby.language.control.ThreadExitException;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 import java.util.ArrayList;
 import java.util.Collections;

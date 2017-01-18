@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.basicobject;
+package org.truffleruby.core.basicobject;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -26,36 +26,36 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.NonStandard;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
-import org.jruby.truffle.core.cast.BooleanCastNodeGen;
-import org.jruby.truffle.core.module.ModuleOperations;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.RubyRootNode;
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
-import org.jruby.truffle.language.dispatch.MissingBehavior;
-import org.jruby.truffle.language.dispatch.RubyCallNode;
-import org.jruby.truffle.language.loader.CodeLoader;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.methods.UnsupportedOperationBehavior;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.language.objects.PropertyFlags;
-import org.jruby.truffle.language.supercall.SuperCallNode;
-import org.jruby.truffle.language.yield.YieldNode;
-import org.jruby.truffle.parser.ParserContext;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
+import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.dispatch.MissingBehavior;
+import org.truffleruby.language.dispatch.RubyCallNode;
+import org.truffleruby.language.loader.CodeLoader;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.UnsupportedOperationBehavior;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.PropertyFlags;
+import org.truffleruby.language.supercall.SuperCallNode;
+import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.parser.ParserContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -361,7 +361,7 @@ public abstract class BasicObjectNodes {
         }
 
         /**
-         * See {@link org.jruby.truffle.language.dispatch.DispatchNode#lookup}.
+         * See {@link org.truffleruby.language.dispatch.DispatchNode#lookup}.
          * The only way to fail if method is not null and not undefined is visibility.
          */
         private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name) {

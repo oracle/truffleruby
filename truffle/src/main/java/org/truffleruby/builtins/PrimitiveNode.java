@@ -8,10 +8,10 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.builtins;
+package org.truffleruby.builtins;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.language.RubyNode;
 
 @GenerateNodeFactory
 public abstract class PrimitiveNode extends RubyNode {

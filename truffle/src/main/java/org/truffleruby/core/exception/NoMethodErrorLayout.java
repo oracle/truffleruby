@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.exception;
+package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-import org.jruby.truffle.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.Backtrace;
 
 @Layout
 public interface NoMethodErrorLayout extends NameErrorLayout {

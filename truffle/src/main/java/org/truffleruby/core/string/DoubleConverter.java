@@ -25,10 +25,10 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.core.string;
+package org.truffleruby.core.string;
 
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.parser.SafeDoubleParser;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.parser.SafeDoubleParser;
 
 public class DoubleConverter {
     private byte[] bytes;

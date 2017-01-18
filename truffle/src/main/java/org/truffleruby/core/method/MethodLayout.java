@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.method;
+package org.truffleruby.core.method;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.jruby.truffle.core.basicobject.BasicObjectLayout;
-import org.jruby.truffle.language.methods.InternalMethod;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.language.methods.InternalMethod;
 
 @Layout
 public interface MethodLayout extends BasicObjectLayout {

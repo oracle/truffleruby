@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.ast.NodeType;
-import org.jruby.truffle.parser.ast.ParseNode;
-import org.jruby.truffle.parser.ast.visitor.NodeVisitor;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.ast.NodeType;
+import org.truffleruby.parser.ast.ParseNode;
+import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.Collections;
 import java.util.List;

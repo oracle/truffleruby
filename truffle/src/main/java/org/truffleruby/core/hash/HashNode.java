@@ -7,18 +7,18 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.hash;
+package org.truffleruby.core.hash;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.ObjectNodes.ObjectIDPrimitiveNode;
-import org.jruby.truffle.core.ObjectNodesFactory.ObjectIDPrimitiveNodeFactory;
-import org.jruby.truffle.language.RubyBaseNode;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.ObjectNodes.ObjectIDPrimitiveNode;
+import org.truffleruby.core.ObjectNodesFactory.ObjectIDPrimitiveNodeFactory;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 public class HashNode extends RubyBaseNode {
 

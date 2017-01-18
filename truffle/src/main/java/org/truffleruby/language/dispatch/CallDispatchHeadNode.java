@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.dispatch;
+package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.core.cast.BooleanCastNode;
-import org.jruby.truffle.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.BooleanCastNodeGen;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
 

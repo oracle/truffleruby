@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.yield;
+package org.truffleruby.language.yield;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.methods.DeclarationContext;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.methods.DeclarationContext;
 
 public class YieldNode extends Node {
 

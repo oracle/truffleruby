@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.regexp;
+package org.truffleruby.core.regexp;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -21,26 +21,26 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
 import org.joni.Region;
 import org.joni.exception.ValueException;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.NonStandard;
-import org.jruby.truffle.builtins.UnaryCoreMethodNode;
-import org.jruby.truffle.core.array.ArrayOperations;
-import org.jruby.truffle.core.array.ArrayUtils;
-import org.jruby.truffle.core.cast.TaintResultNode;
-import org.jruby.truffle.core.cast.ToIntNode;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.string.StringGuards;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.core.string.StringSupport;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.cast.TaintResultNode;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringGuards;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
 
 import java.util.Arrays;
 

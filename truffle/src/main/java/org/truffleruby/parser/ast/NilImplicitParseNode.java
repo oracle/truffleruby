@@ -1,4 +1,4 @@
-package org.jruby.truffle.parser.ast;
+package org.truffleruby.parser.ast;
 
 /**
  * A node which behaves like a nil node, but is not actually present in the AST as a syntactical

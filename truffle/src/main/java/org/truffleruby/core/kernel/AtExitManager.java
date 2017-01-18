@@ -7,17 +7,17 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.kernel;
+package org.truffleruby.core.kernel;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.proc.ProcOperations;
-import org.jruby.truffle.debug.DebugHelpers;
-import org.jruby.truffle.language.backtrace.Backtrace;
-import org.jruby.truffle.language.backtrace.BacktraceFormatter;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.debug.DebugHelpers;
+import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.control.RaiseException;
 
 import java.util.ArrayList;
 import java.util.Deque;

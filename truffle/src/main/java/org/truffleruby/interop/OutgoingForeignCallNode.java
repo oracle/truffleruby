@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.interop;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -26,9 +26,9 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.jruby.truffle.Log;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.JavaException;
+import org.truffleruby.Log;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.JavaException;
 
 @NodeChildren({
         @NodeChild("receiver"),

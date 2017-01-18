@@ -7,21 +7,21 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.exceptions;
+package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.objects.ReadObjectFieldNode;
-import org.jruby.truffle.language.objects.ReadObjectFieldNodeGen;
-import org.jruby.truffle.language.objects.WriteObjectFieldNode;
-import org.jruby.truffle.language.objects.WriteObjectFieldNodeGen;
-import org.jruby.truffle.language.threadlocal.ThreadLocalObjectNode;
-import org.jruby.truffle.language.threadlocal.ThreadLocalObjectNodeGen;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
+import org.truffleruby.language.threadlocal.ThreadLocalObjectNode;
+import org.truffleruby.language.threadlocal.ThreadLocalObjectNodeGen;
 
 public class SetExceptionVariableNode extends Node {
 

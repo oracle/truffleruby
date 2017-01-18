@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.extra.ffi;
+package org.truffleruby.extra.ffi;
 
 import com.kenai.jffi.MemoryIO;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -19,16 +19,16 @@ import com.oracle.truffle.api.object.DynamicObject;
 import jnr.ffi.Pointer;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.builtins.Primitive;
-import org.jruby.truffle.builtins.PrimitiveArrayArgumentsNode;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.rope.RopeConstants;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
-import org.jruby.truffle.platform.RubiniusTypes;
-import org.jruby.truffle.platform.UnsafeGroup;
+import org.truffleruby.Layouts;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.platform.RubiniusTypes;
+import org.truffleruby.platform.UnsafeGroup;
 
 public abstract class PointerPrimitiveNodes {
     public static final Pointer NULL_POINTER = jnr.ffi.Runtime.getSystemRuntime().getMemoryManager().newOpaquePointer(0);

@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.methods;
+package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.NextException;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.control.RedoException;
-import org.jruby.truffle.language.control.RetryException;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.NextException;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.RedoException;
+import org.truffleruby.language.control.RetryException;
 
 public class CatchForProcNode extends RubyNode {
 

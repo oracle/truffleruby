@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.backtrace;
+package org.truffleruby.language.backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
@@ -15,14 +15,14 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyRootNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.loader.SourceLoader;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.loader.SourceLoader;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class BacktraceFormatter {
     }
 
     // For debugging:
-    // org.jruby.truffle.language.backtrace.BacktraceFormatter.printableRubyBacktrace(getContext(), this)
+    // org.truffleruby.language.backtrace.BacktraceFormatter.printableRubyBacktrace(getContext(), this)
     public static String printableRubyBacktrace(RubyContext context, Node node) {
         final StringBuilder builder = new StringBuilder();
         for (String line : rubyBacktrace(context, node)) {

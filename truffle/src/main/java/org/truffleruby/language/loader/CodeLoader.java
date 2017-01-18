@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.loader;
+package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -20,15 +20,15 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.Encoding;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.language.LexicalScope;
-import org.jruby.truffle.language.RubyRootNode;
-import org.jruby.truffle.language.Visibility;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.parser.ParserContext;
-import org.jruby.truffle.parser.TranslatorDriver;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.TranslatorDriver;
 
 public class CodeLoader {
 

@@ -142,7 +142,7 @@ def ruby_command(args):
         # '-Xss2048k',
         '-Xbootclasspath/a:' + truffle_api,
         '-cp', ':'.join(classpath),
-        'org.jruby.truffle.Main'
+        'org.truffleruby.Main'
     ]
     allArgs = vmArgs + ['-X+T'] + rubyArgs
 

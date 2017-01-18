@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.posix;
+package org.truffleruby.platform.posix;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import jnr.constants.platform.Errno;
 import jnr.posix.POSIXHandler;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.exception.ExceptionOperations;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.language.control.RaiseException;
 
 import java.io.File;
 import java.io.InputStream;

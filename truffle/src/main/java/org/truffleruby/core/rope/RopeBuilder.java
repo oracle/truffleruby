@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.rope;
+package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jruby.truffle.collections.ByteArrayBuilder;
+import org.truffleruby.collections.ByteArrayBuilder;
 
-import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 
 public class RopeBuilder extends ByteArrayBuilder {
 

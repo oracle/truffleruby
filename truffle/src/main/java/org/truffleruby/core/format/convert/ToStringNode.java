@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.convert;
+package org.truffleruby.core.format.convert;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -17,16 +17,16 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.format.FormatNode;
-import org.jruby.truffle.core.format.exceptions.NoImplicitConversionException;
-import org.jruby.truffle.core.kernel.KernelNodes;
-import org.jruby.truffle.core.kernel.KernelNodesFactory;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
-import org.jruby.truffle.language.dispatch.MissingBehavior;
-import org.jruby.truffle.language.objects.IsTaintedNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
+import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.kernel.KernelNodesFactory;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.dispatch.MissingBehavior;
+import org.truffleruby.language.objects.IsTaintedNode;
 
 import java.nio.charset.StandardCharsets;
 

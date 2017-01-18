@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle;
+package org.truffleruby;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -55,9 +55,9 @@ public class Log {
     }
 
     private static Logger createLogger() {
-        final Logger logger = Logger.getLogger("org.jruby.truffle");
+        final Logger logger = Logger.getLogger("org.truffleruby");
 
-        if (LogManager.getLogManager().getProperty("org.jruby.truffle.handlers") == null) {
+        if (LogManager.getLogManager().getProperty("org.truffleruby.handlers") == null) {
             logger.setUseParentHandlers(false);
             logger.addHandler(new RubyHandler());
         }

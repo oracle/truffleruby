@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.backtrace;
+package org.truffleruby.language.backtrace;
 
 import com.oracle.truffle.api.nodes.Node;
-import org.jruby.truffle.language.methods.InternalMethod;
+import org.truffleruby.language.methods.InternalMethod;
 
 public class Activation {
 

@@ -43,13 +43,13 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.core.format.write.bytes;
+package org.truffleruby.core.format.write.bytes;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.core.format.FormatNode;
+import org.truffleruby.core.format.FormatNode;
 
 import java.nio.ByteOrder;
 

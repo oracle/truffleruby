@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.debug;
+package org.truffleruby.debug;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -17,13 +17,13 @@ import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.RubyLanguage;
-import org.jruby.truffle.language.RubyRootNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.loader.CodeLoader;
-import org.jruby.truffle.language.methods.DeclarationContext;
-import org.jruby.truffle.parser.ParserContext;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.loader.CodeLoader;
+import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.parser.ParserContext;
 
 public abstract class DebugHelpers {
 

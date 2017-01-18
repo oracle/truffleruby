@@ -8,7 +8,7 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.platform;
+package org.truffleruby.platform;
 
 import jnr.ffi.Pointer;
 

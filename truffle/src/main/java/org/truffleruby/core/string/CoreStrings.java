@@ -7,9 +7,9 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.string;
+package org.truffleruby.core.string;
 
-import org.jruby.truffle.RubyContext;
+import org.truffleruby.RubyContext;
 
 public class CoreStrings {
 

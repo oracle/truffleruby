@@ -7,23 +7,23 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.tools.simpleshell;
+package org.truffleruby.tools.simpleshell;
 
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.RubyRootNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.backtrace.Activation;
-import org.jruby.truffle.language.backtrace.BacktraceFormatter;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.loader.CodeLoader;
-import org.jruby.truffle.parser.ParserContext;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.backtrace.Activation;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.loader.CodeLoader;
+import org.truffleruby.parser.ParserContext;
 
 import java.io.IOException;
 import java.util.Collections;

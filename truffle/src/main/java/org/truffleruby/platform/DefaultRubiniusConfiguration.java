@@ -35,17 +35,17 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.jruby.truffle.platform;
+package org.truffleruby.platform;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.constants.platform.Fcntl;
 import jnr.constants.platform.OpenFlags;
 import jnr.posix.FileStat;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.numeric.BignumOperations;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.string.StringOperations;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringOperations;
 
 import java.math.BigInteger;
 import java.util.Arrays;

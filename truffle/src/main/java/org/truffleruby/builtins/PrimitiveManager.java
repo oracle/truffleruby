@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.builtins;
+package org.truffleruby.builtins;
 
 import com.oracle.truffle.api.dsl.NodeFactory;
-import org.jruby.truffle.core.rubinius.UndefinedPrimitiveNodes;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.core.rubinius.UndefinedPrimitiveNodes;
+import org.truffleruby.language.RubyNode;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

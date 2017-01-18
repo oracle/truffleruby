@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.array;
+package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -15,8 +15,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.objects.AllocateObjectNode;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.objects.AllocateObjectNode;
 
 /**
  * Dup an array, without using any method lookup. This isn't a call - it's an operation on a core class.

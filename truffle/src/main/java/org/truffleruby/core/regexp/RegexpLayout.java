@@ -7,15 +7,15 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.regexp;
+package org.truffleruby.core.regexp;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
 import org.joni.Regex;
-import org.jruby.truffle.core.basicobject.BasicObjectLayout;
-import org.jruby.truffle.core.rope.Rope;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.rope.Rope;
 
 @Layout
 public interface RegexpLayout extends BasicObjectLayout {

@@ -549,7 +549,7 @@ module Commands
       ENV['PATH'] = "#{jay}/src:#{ENV['PATH']}"
       sh 'sh', 'tool/truffle/generate_parser'
       yytables = 'truffle/src/main/java/org/jruby/truffle/parser/parser/YyTables.java'
-      File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.jruby.truffle.parser.parser;'))
+      File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.truffleruby.parser.parser;'))
     when 'options'
       sh 'tool/truffle/generate-options.rb'
     when nil

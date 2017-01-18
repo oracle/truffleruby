@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.read.bytes;
+package org.truffleruby.core.format.read.bytes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -17,11 +17,11 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.core.format.FormatNode;
-import org.jruby.truffle.core.format.MissingValue;
-import org.jruby.truffle.core.format.exceptions.InvalidFormatException;
-import org.jruby.truffle.core.format.read.SourceNode;
-import org.jruby.truffle.core.string.StringUtils;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.MissingValue;
+import org.truffleruby.core.format.exceptions.InvalidFormatException;
+import org.truffleruby.core.format.read.SourceNode;
+import org.truffleruby.core.string.StringUtils;
 
 @NodeChildren({
         @NodeChild(value = "source", type = SourceNode.class),

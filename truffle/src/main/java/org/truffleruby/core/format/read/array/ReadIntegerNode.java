@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.read.array;
+package org.truffleruby.core.format.read.array;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -15,10 +15,10 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.core.format.FormatNode;
-import org.jruby.truffle.core.format.convert.ToIntegerNode;
-import org.jruby.truffle.core.format.convert.ToIntegerNodeGen;
-import org.jruby.truffle.core.format.read.SourceNode;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.convert.ToIntegerNode;
+import org.truffleruby.core.format.convert.ToIntegerNodeGen;
+import org.truffleruby.core.format.read.SourceNode;
 
 @NodeChildren({
         @NodeChild(value = "source", type = SourceNode.class),

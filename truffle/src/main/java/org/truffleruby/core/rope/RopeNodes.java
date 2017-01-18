@@ -12,7 +12,7 @@
  * licensed under the same EPL1.0/GPL 2.0/LGPL 2.1 used throughout.
  */
 
-package org.jruby.truffle.core.rope;
+package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -28,20 +28,20 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.core.string.StringSupport;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
+import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 
-import static org.jruby.truffle.core.rope.CodeRange.CR_7BIT;
-import static org.jruby.truffle.core.rope.CodeRange.CR_BROKEN;
-import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
-import static org.jruby.truffle.core.rope.CodeRange.CR_VALID;
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 public abstract class RopeNodes {
 

@@ -11,7 +11,7 @@
  * Some of the code in this class is modified from org.jruby.util.StringSupport,
  * licensed under the same EPL1.0/GPL 2.0/LGPL 2.1 used throughout.
  */
-package org.jruby.truffle.aot;
+package org.truffleruby.aot;
 
 import org.jcodings.exception.InternalException;
 

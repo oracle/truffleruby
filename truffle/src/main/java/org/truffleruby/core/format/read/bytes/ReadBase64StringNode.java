@@ -43,7 +43,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.core.format.read.bytes;
+package org.truffleruby.core.format.read.bytes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -51,12 +51,12 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.format.FormatNode;
-import org.jruby.truffle.core.format.exceptions.InvalidFormatException;
-import org.jruby.truffle.core.format.read.SourceNode;
-import org.jruby.truffle.core.format.write.bytes.EncodeUM;
-import org.jruby.truffle.core.rope.AsciiOnlyLeafRope;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.exceptions.InvalidFormatException;
+import org.truffleruby.core.format.read.SourceNode;
+import org.truffleruby.core.format.write.bytes.EncodeUM;
+import org.truffleruby.core.rope.AsciiOnlyLeafRope;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;

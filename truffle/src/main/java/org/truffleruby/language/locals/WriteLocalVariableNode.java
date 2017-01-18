@@ -7,13 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.locals;
+package org.truffleruby.language.locals;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyNode;
 
 public class WriteLocalVariableNode extends RubyNode {
 

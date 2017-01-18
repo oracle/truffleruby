@@ -7,11 +7,11 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.time;
+package org.truffleruby.core.time;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.string.StringOperations;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.string.StringOperations;
 
 import java.time.ZoneId;
 

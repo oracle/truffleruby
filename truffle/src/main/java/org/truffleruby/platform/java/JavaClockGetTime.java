@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.platform.java;
+package org.truffleruby.platform.java;
 
-import org.jruby.truffle.platform.posix.ClockGetTime;
-import org.jruby.truffle.platform.posix.TimeSpec;
+import org.truffleruby.platform.posix.ClockGetTime;
+import org.truffleruby.platform.posix.TimeSpec;
 
 public class JavaClockGetTime implements ClockGetTime {
 

@@ -24,18 +24,18 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser;
+package org.truffleruby.parser;
 
-import org.jruby.truffle.parser.ast.ArgsParseNode;
-import org.jruby.truffle.parser.ast.ArgumentParseNode;
-import org.jruby.truffle.parser.ast.DAsgnParseNode;
-import org.jruby.truffle.parser.ast.LocalAsgnParseNode;
-import org.jruby.truffle.parser.ast.MultipleAsgnParseNode;
-import org.jruby.truffle.parser.ast.OptArgParseNode;
-import org.jruby.truffle.parser.ast.ParseNode;
-import org.jruby.truffle.parser.ast.RequiredKeywordArgumentValueParseNode;
-import org.jruby.truffle.parser.ast.UnnamedRestArgParseNode;
-import org.jruby.truffle.parser.ast.types.INameNode;
+import org.truffleruby.parser.ast.ArgsParseNode;
+import org.truffleruby.parser.ast.ArgumentParseNode;
+import org.truffleruby.parser.ast.DAsgnParseNode;
+import org.truffleruby.parser.ast.LocalAsgnParseNode;
+import org.truffleruby.parser.ast.MultipleAsgnParseNode;
+import org.truffleruby.parser.ast.OptArgParseNode;
+import org.truffleruby.parser.ast.ParseNode;
+import org.truffleruby.parser.ast.RequiredKeywordArgumentValueParseNode;
+import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
+import org.truffleruby.parser.ast.types.INameNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;

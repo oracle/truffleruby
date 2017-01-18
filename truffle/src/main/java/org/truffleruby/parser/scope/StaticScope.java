@@ -26,17 +26,17 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser.scope;
+package org.truffleruby.parser.scope;
 
-import org.jruby.truffle.language.SourceIndexLength;
-import org.jruby.truffle.parser.Signature;
-import org.jruby.truffle.parser.ast.AssignableParseNode;
-import org.jruby.truffle.parser.ast.DAsgnParseNode;
-import org.jruby.truffle.parser.ast.DVarParseNode;
-import org.jruby.truffle.parser.ast.LocalAsgnParseNode;
-import org.jruby.truffle.parser.ast.LocalVarParseNode;
-import org.jruby.truffle.parser.ast.ParseNode;
-import org.jruby.truffle.parser.ast.VCallParseNode;
+import org.truffleruby.language.SourceIndexLength;
+import org.truffleruby.parser.Signature;
+import org.truffleruby.parser.ast.AssignableParseNode;
+import org.truffleruby.parser.ast.DAsgnParseNode;
+import org.truffleruby.parser.ast.DVarParseNode;
+import org.truffleruby.parser.ast.LocalAsgnParseNode;
+import org.truffleruby.parser.ast.LocalVarParseNode;
+import org.truffleruby.parser.ast.ParseNode;
+import org.truffleruby.parser.ast.VCallParseNode;
 
 import java.util.Arrays;
 

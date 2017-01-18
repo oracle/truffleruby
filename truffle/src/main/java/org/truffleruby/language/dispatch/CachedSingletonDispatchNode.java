@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.dispatch;
+package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.Truffle;
@@ -15,9 +15,9 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.methods.InternalMethod;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.methods.InternalMethod;
 
 /**
  * Like {@link CachedBoxedDispatchNode}, but on singleton objects.

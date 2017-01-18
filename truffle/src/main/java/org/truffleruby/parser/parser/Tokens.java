@@ -27,7 +27,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.jruby.truffle.parser.parser;
+package org.truffleruby.parser.parser;
 
 public interface Tokens {
     int yyErrorCode = RubyParser.yyErrorCode;

@@ -7,9 +7,9 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.printf;
+package org.truffleruby.core.format.printf;
 
-import org.jruby.truffle.core.format.exceptions.InvalidFormatException;
+import org.truffleruby.core.format.exceptions.InvalidFormatException;
 
 public class SprintfConfig {
 

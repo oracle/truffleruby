@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.globals;
+package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.threadlocal.GetFromThreadLocalNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.threadlocal.GetFromThreadLocalNode;
 
 public class ReadMatchReferenceNode extends RubyNode {
 

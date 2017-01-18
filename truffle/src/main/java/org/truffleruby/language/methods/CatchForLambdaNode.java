@@ -7,19 +7,19 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.methods;
+package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.BreakException;
-import org.jruby.truffle.language.control.NextException;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.control.RedoException;
-import org.jruby.truffle.language.control.RetryException;
-import org.jruby.truffle.language.control.ReturnException;
-import org.jruby.truffle.language.control.ReturnID;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.BreakException;
+import org.truffleruby.language.control.NextException;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.RedoException;
+import org.truffleruby.language.control.RetryException;
+import org.truffleruby.language.control.ReturnException;
+import org.truffleruby.language.control.ReturnID;
 
 public class CatchForLambdaNode extends RubyNode {
 

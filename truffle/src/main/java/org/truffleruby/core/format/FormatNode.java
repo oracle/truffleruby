@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format;
+package org.truffleruby.core.format;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -15,10 +15,10 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jruby.truffle.core.array.ArrayUtils;
-import org.jruby.truffle.core.format.exceptions.TooFewArgumentsException;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.language.RubyBaseNode;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.language.RubyBaseNode;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;

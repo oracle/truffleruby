@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.array;
+package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -15,10 +15,10 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyNode;
 
-import static org.jruby.truffle.core.array.ArrayHelpers.setSize;
+import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
 @NodeChildren({
         @NodeChild("array")

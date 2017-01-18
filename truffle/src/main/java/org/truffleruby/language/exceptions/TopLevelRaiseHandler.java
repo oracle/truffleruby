@@ -7,19 +7,19 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.exceptions;
+package org.truffleruby.language.exceptions;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.cast.IntegerCastNode;
-import org.jruby.truffle.core.cast.IntegerCastNodeGen;
-import org.jruby.truffle.core.kernel.AtExitManager;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.ExitException;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.objects.ReadObjectFieldNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.cast.IntegerCastNodeGen;
+import org.truffleruby.core.kernel.AtExitManager;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.ExitException;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
 
 public class TopLevelRaiseHandler extends RubyNode {
 

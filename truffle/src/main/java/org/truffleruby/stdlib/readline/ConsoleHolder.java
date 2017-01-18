@@ -38,7 +38,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.stdlib.readline;
+package org.truffleruby.stdlib.readline;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import jline.console.ConsoleReader;

@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.interop;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -16,12 +16,12 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.dispatch.CallDispatchHeadNode;
-import org.jruby.truffle.language.dispatch.DispatchHeadNodeFactory;
-import org.jruby.truffle.language.dispatch.DoesRespondDispatchHeadNode;
-import org.jruby.truffle.language.objects.WriteObjectFieldNode;
-import org.jruby.truffle.language.objects.WriteObjectFieldNodeGen;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
 @NodeChildren({
         @NodeChild("receiver"),

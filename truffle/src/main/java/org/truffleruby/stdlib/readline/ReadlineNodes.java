@@ -38,7 +38,7 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.jruby.truffle.stdlib.readline;
+package org.truffleruby.stdlib.readline;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -50,20 +50,20 @@ import jline.console.CursorBuffer;
 import jline.console.completer.Completer;
 import jline.console.completer.FileNameCompleter;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.builtins.CoreClass;
-import org.jruby.truffle.builtins.CoreMethod;
-import org.jruby.truffle.builtins.CoreMethodArrayArgumentsNode;
-import org.jruby.truffle.builtins.CoreMethodNode;
-import org.jruby.truffle.core.array.ArrayHelpers;
-import org.jruby.truffle.core.cast.BooleanCastWithDefaultNodeGen;
-import org.jruby.truffle.core.cast.NameToJavaStringNodeGen;
-import org.jruby.truffle.core.cast.NameToJavaStringWithDefaultNodeGen;
-import org.jruby.truffle.core.cast.ToStrNodeGen;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.control.RaiseException;
-import org.jruby.truffle.language.objects.TaintNode;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.cast.NameToJavaStringWithDefaultNodeGen;
+import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.TaintNode;
 
 import java.io.IOException;
 import java.nio.CharBuffer;

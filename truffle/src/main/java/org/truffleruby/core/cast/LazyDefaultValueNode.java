@@ -7,14 +7,14 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.cast;
+package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.jruby.truffle.language.NotProvided;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyNode;
 
 import java.util.function.Supplier;
 

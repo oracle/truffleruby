@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.supercall;
+package org.truffleruby.language.supercall;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -16,14 +16,14 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.module.ModuleOperations;
-import org.jruby.truffle.language.RubyGuards;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.arguments.RubyArguments;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.objects.MetaClassNode;
-import org.jruby.truffle.language.objects.MetaClassNodeGen;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.MetaClassNode;
+import org.truffleruby.language.objects.MetaClassNodeGen;
 
 /**
  * Caches {@link ModuleOperations#lookupSuperMethod}

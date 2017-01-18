@@ -8,15 +8,15 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.jruby.truffle.core.string;
+package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.rope.RopeBuffer;
-import org.jruby.truffle.language.RubyGuards;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeBuffer;
+import org.truffleruby.language.RubyGuards;
 
-import static org.jruby.truffle.core.string.StringOperations.rope;
+import static org.truffleruby.core.string.StringOperations.rope;
 
 public class StringGuards {
 

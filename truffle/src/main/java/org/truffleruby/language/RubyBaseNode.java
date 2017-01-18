@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -21,23 +21,23 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import jnr.ffi.provider.MemoryManager;
 import org.jcodings.Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.CoreLibrary;
-import org.jruby.truffle.core.array.ArrayHelpers;
-import org.jruby.truffle.core.exception.CoreExceptions;
-import org.jruby.truffle.core.format.FormatRootNode;
-import org.jruby.truffle.core.kernel.TraceManager;
-import org.jruby.truffle.core.numeric.BignumOperations;
-import org.jruby.truffle.core.rope.CodeRange;
-import org.jruby.truffle.core.rope.Rope;
-import org.jruby.truffle.core.rope.RopeBuilder;
-import org.jruby.truffle.core.rope.RopeOperations;
-import org.jruby.truffle.core.string.CoreStrings;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.platform.posix.Sockets;
-import org.jruby.truffle.platform.posix.TrufflePosix;
-import org.jruby.truffle.stdlib.CoverageManager;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.exception.CoreExceptions;
+import org.truffleruby.core.format.FormatRootNode;
+import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.CoreStrings;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.platform.posix.Sockets;
+import org.truffleruby.platform.posix.TrufflePosix;
+import org.truffleruby.stdlib.CoverageManager;
 
 import java.math.BigInteger;
 

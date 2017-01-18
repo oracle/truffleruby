@@ -7,18 +7,18 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.exception;
+package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.core.array.ArrayHelpers;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.backtrace.Backtrace;
-import org.jruby.truffle.language.backtrace.BacktraceFormatter;
-import org.jruby.truffle.language.backtrace.BacktraceFormatter.FormattingFlags;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 
 import java.util.EnumSet;
 import java.util.List;

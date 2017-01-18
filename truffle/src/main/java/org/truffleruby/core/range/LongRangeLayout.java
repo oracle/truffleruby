@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.range;
+package org.truffleruby.core.range;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import org.jruby.truffle.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 @Layout
 public interface LongRangeLayout extends BasicObjectLayout {

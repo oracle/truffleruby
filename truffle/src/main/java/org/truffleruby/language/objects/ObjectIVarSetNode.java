@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.language.objects;
+package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -15,9 +15,9 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jruby.truffle.core.symbol.SymbolTable;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.objects.shared.SharedObjects;
+import org.truffleruby.core.symbol.SymbolTable;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.objects.shared.SharedObjects;
 
 @NodeChildren({ @NodeChild("object"), @NodeChild("name"), @NodeChild("value") })
 public abstract class ObjectIVarSetNode extends RubyNode {

@@ -7,10 +7,10 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.format.printf;
+package org.truffleruby.core.format.printf;
 
-import org.jruby.truffle.core.format.exceptions.InvalidFormatException;
-import org.jruby.truffle.language.RubyGuards;
+import org.truffleruby.core.format.exceptions.InvalidFormatException;
+import org.truffleruby.language.RubyGuards;
 
 import java.util.ArrayList;
 import java.util.List;

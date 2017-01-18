@@ -7,17 +7,17 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core.cast;
+package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.core.encoding.EncodingOperations;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.language.RubyNode;
+import org.truffleruby.Layouts;
+import org.truffleruby.core.encoding.EncodingOperations;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyNode;
 
 /**
  * Take a Ruby object that has an encoding and extracts the Java-level encoding object.

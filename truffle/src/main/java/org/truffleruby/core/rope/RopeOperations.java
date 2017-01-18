@@ -19,7 +19,7 @@
  * Copyright (C) 2007 Ola Bini <ola@ologix.com>
  * Copyright (C) 2007 William N Dortch <bill.dortch@gmail.com>
  */
-package org.jruby.truffle.core.rope;
+package org.truffleruby.core.rope;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -28,15 +28,15 @@ import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.jruby.truffle.Layouts;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.collections.Memo;
-import org.jruby.truffle.core.encoding.EncodingManager;
-import org.jruby.truffle.core.string.EncodingUtils;
-import org.jruby.truffle.core.string.StringOperations;
-import org.jruby.truffle.core.string.StringSupport;
-import org.jruby.truffle.core.string.StringUtils;
-import org.jruby.truffle.language.RubyGuards;
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.collections.Memo;
+import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.string.EncodingUtils;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyGuards;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -44,10 +44,10 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.jruby.truffle.core.rope.CodeRange.CR_7BIT;
-import static org.jruby.truffle.core.rope.CodeRange.CR_BROKEN;
-import static org.jruby.truffle.core.rope.CodeRange.CR_UNKNOWN;
-import static org.jruby.truffle.core.rope.CodeRange.CR_VALID;
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 public class RopeOperations {
     private static final Charset UTF8 = Charset.forName("UTF-8");

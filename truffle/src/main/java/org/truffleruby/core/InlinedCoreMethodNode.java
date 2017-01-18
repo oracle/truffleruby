@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.jruby.truffle.core;
+package org.truffleruby.core;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -16,15 +16,15 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
-import org.jruby.truffle.RubyContext;
-import org.jruby.truffle.builtins.CoreMethodNodeManager;
-import org.jruby.truffle.core.array.ArrayUtils;
-import org.jruby.truffle.language.RubyNode;
-import org.jruby.truffle.language.dispatch.RubyCallNode;
-import org.jruby.truffle.language.dispatch.RubyCallNodeParameters;
-import org.jruby.truffle.language.methods.InternalMethod;
-import org.jruby.truffle.language.methods.LookupMethodNode;
-import org.jruby.truffle.language.methods.LookupMethodNodeGen;
+import org.truffleruby.RubyContext;
+import org.truffleruby.builtins.CoreMethodNodeManager;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.RubyCallNode;
+import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.LookupMethodNodeGen;
 
 import java.util.Arrays;
 import java.util.List;
