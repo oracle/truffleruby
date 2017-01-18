@@ -69,9 +69,9 @@ issue when we support Ruby 2.4, as `Integer` is unified there.
 
 #### Keyword arguments
 
-Keyword arguments don't have *very* low performance, but they are not. You don't
-need to avoid keyword arguments, but performance with them may not be what you
-would hope for.
+Keyword arguments don't have *very* low performance, but they are not optimised
+as other language features are. You don't need to avoid keyword arguments, but
+performance with them may not be what you would hope for.
 
 #### `ObjectSpace`
 
