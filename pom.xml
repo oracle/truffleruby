@@ -84,7 +84,6 @@ DO NOT MODIFIY - GENERATED CODE
     </mailingList>
   </mailingLists>
   <modules>
-    <module>core</module>
     <module>lib</module>
   </modules>
   <scm>

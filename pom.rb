@@ -170,7 +170,7 @@ project 'JRuby', 'https://github.com/jruby/jruby' do
                    :phase => 'site-deploy' )
   end
 
-  modules [ 'core', 'lib' ]
+  modules [ 'lib' ]
 
   # Truffle is by default only built if a JDK 8+ is available
   profile 'truffle' do
