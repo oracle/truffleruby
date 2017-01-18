@@ -1,8 +1,0 @@
----
-- &gaha foo
-- bar: x
-  blarg: y
-  quux: now
-- 123
-- !str 123
-- *gaha
