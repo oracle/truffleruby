@@ -20,11 +20,6 @@ case "`uname`" in
   MINGW*) jruby.exe "$@"; exit $?;;
 esac
 
-# ----- Verify and Set Required Environment Variables -------------------------
-if [ -z "$JAVA_VM" ]; then
-  JAVA_VM=-client
-fi
-
 # get the absolute path of the executable
 SELF_PATH=$(builtin cd -P -- "$(dirname -- "$0")" >/dev/null && pwd -P) && SELF_PATH=$SELF_PATH/$(basename -- "$0")
 
@@ -73,9 +68,6 @@ for opt in ${JRUBY_OPTS[@]}; do
             esac
         fi
     done
-    if [ $opt == "-server" ]; then # JRUBY-4204
-        JAVA_VM="-server"
-    fi
 done
 JRUBY_OPTS=${JRUBY_OPTS_TEMP}
 
@@ -100,8 +92,6 @@ unset JAVA_OPTS_TEMP
 JAVA_OPTS_TEMP=""
 for opt in ${JAVA_OPTS[@]}; do
   case $opt in
-    -server)
-      JAVA_VM="-server";;
     -Xmx*)
       JAVA_MEM=$opt;;
     -Xms*)
@@ -284,15 +274,8 @@ do
         fi 
         java_args=("${java_args[@]}" "-sourcepath" "$JRUBY_HOME/lib/ruby/1.9:.")
         JRUBY_OPTS=("${JRUBY_OPTS[@]}" "-X+C") ;;
-     --client)
-        JAVA_VM=-client ;;
-     --server)
-        JAVA_VM=-server ;;
      --dev)
-        JAVA_VM=-client
         JAVA_OPTS="$JAVA_OPTS -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Djruby.compile.mode=OFF -Djruby.compile.invokedynamic=false" ;;
-     --noclient)         # JRUBY-4296
-        unset JAVA_VM ;; # For IBM JVM, neither '-client' nor '-server' is applicable
      --sample)
         java_args=("${java_args[@]}" "-Xprof") ;;
      --ng-server)
