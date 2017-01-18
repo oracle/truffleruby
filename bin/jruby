@@ -86,26 +86,6 @@ JRUBY_SHELL=/bin/sh
 
 CP_DELIMITER=":"
 
-# ----- Set Up The System Classpath -------------------------------------------
-
-# add other jars in lib to CP for command-line execution
-for j in "$JRUBY_HOME"/lib/*.jar; do
-    if [ "$j" == "$JRUBY_HOME"/lib/jruby.jar ]; then
-      continue
-    fi
-    if [ "$j" == "$JRUBY_HOME"/lib/jruby-truffle.jar ]; then
-      continue
-    fi
-    if [ "$j" == "$JRUBY_HOME"/lib/jruby-complete.jar ]; then
-      continue
-    fi
-    if [ "$CP" ]; then
-        CP="$CP:$j"
-        else
-        CP="$j"
-    fi
-done
-
 # ----- Execute The Requested Command -----------------------------------------
 JAVA_ENCODING=""
 
