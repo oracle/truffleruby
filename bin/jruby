@@ -59,10 +59,6 @@ fi
 
 JRUBY_SHELL=/bin/sh
 
-# ----- Set Up The Boot Classpath -------------------------------------------
-
-CP_DELIMITER=":"
-
 # ----- Execute The Requested Command -----------------------------------------
 JAVA_ENCODING=""
 
@@ -80,11 +76,11 @@ do
     -J*)
         val=${1:2}
         if [ "${val}" = "-classpath" ]; then
-            CP="$CP$CP_DELIMITER$2"
+            CP="$CP:$2"
             CLASSPATH=""
             shift
         elif [ "${val}" = "-cp" ]; then
-            CP="$CP$CP_DELIMITER$2"
+            CP="$CP:$2"
             CLASSPATH=""
             shift
         else
@@ -134,7 +130,7 @@ set -- "${ruby_args[@]}"
 
 JFFI_OPTS="-Djffi.boot.library.path=$JRUBY_HOME/lib/jni"
 
-exec "$JAVACMD" $JAVA_OPTS "$JFFI_OPTS" "${java_args[@]}" -Xbootclasspath/a:"$JRUBY_CP" -classpath "$CP$CP_DELIMITER$CLASSPATH" \
+exec "$JAVACMD" $JAVA_OPTS "$JFFI_OPTS" "${java_args[@]}" -Xbootclasspath/a:"$JRUBY_CP" -classpath "$CP:$CLASSPATH" \
   "-Djruby.home=$JRUBY_HOME" \
   "-Djruby.lib=$JRUBY_HOME/lib" -Djruby.script=jruby \
   "-Djruby.shell=$JRUBY_SHELL" \
