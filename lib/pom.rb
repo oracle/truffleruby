@@ -16,8 +16,7 @@ end
 
 project 'JRuby Lib Setup' do
 
-  version = ENV['JRUBY_VERSION'] ||
-    File.read( File.join( basedir, '..', 'VERSION' ) ).strip
+  version = '9.1.7.0'
 
   model_version '4.0.0'
   id 'jruby-stdlib'

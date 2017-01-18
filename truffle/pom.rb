@@ -1,5 +1,4 @@
-version = ENV['JRUBY_VERSION'] ||
-  File.read( File.join( basedir, '..', 'VERSION' ) ).strip
+version = '9.1.7.0'
 
 project 'JRuby Truffle' do
 
