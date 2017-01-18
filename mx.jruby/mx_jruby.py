@@ -57,8 +57,6 @@ class TruffleRubyDocsProject(ArchiveProject):
     doc_files = (glob.glob(join(_suite.dir, 'doc', 'legal', '*')) +
         glob.glob(join(_suite.dir, 'doc', 'user', '*')) +
         glob.glob(join(_suite.dir, '*.md')))
-    
-    print doc_files
 
     def getResults(self):
         return [join(_suite.dir, f) for f in self.doc_files]
