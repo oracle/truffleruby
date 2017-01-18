@@ -35,7 +35,7 @@ We intend to implement refinements, and don't believe that they pose major
 technical challenge, but the need for them seems relatively low compared to
 other priorities.
 
-## Features with major differences
+## Features with major differences
 
 #### Threads run in parallel
 
