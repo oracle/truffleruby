@@ -380,10 +380,6 @@ public class ArgumentProcessor {
                         throw new UnsupportedOperationException();
                     } else if (extendedOption.equals("+C") || extendedOption.equals("+CIR")) {
                         throw new UnsupportedOperationException();
-                    } else if (extendedOption.equals("classic")) {
-                        throw new UnsupportedOperationException();
-                    } else if (extendedOption.equals("+T")) {
-                        // Nothing
                     } else if (extendedOption.endsWith("...")) {
                         throw new UnsupportedOperationException();
                     } else if (extendedOption.endsWith("?")) {

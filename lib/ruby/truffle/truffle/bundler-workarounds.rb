@@ -4,9 +4,9 @@ workaround_header = <<-HEREDOC
 WORKING AROUND BUNDLE INSTALL ISSUES
 Instructions:
   1. Run bundle install command with workarounds. E.g.:
-      GEM_HOME=/Users/brandonfish/Documents/truffle_gem_home ../../jruby/bin/jruby -X+T -rbundler-workarounds -S bundle install
+      GEM_HOME=/Users/brandonfish/Documents/truffle_gem_home ../../jruby/bin/jruby -rbundler-workarounds -S bundle install
   2. Try running gem tests, e.g.:
-      GEM_HOME=/Users/brandonfish/Documents/truffle_gem_home ../../jruby/bin/jruby -X+T -rbundler-workarounds -S bundle exec rake
+      GEM_HOME=/Users/brandonfish/Documents/truffle_gem_home ../../jruby/bin/jruby -rbundler-workarounds -S bundle exec rake
 HEREDOC
 puts workaround_header if $VERBOSE
 

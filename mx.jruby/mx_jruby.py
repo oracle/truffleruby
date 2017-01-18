@@ -76,12 +76,7 @@ def extractArguments(cli_args):
     for args in [jruby_opts, cli_args]:
         while args:
             arg = args.pop(0)
-            if arg == '-X+T':
-                # ignore - default
-                pass
-            elif arg == '-Xclassic':
-                mx.error('-Xclassic no longer supported')
-            elif arg == '-J-cmd':
+            if arg == '-J-cmd':
                 print_command = True
             elif arg.startswith('-J-G:+'):
                 rewritten = '-Dgraal.'+arg[6:]+'=true'
@@ -147,7 +142,7 @@ def ruby_command(args):
         '-cp', ':'.join(classpath),
         'org.truffleruby.Main'
     ]
-    allArgs = vmArgs + ['-X+T'] + rubyArgs
+    allArgs = vmArgs + rubyArgs
 
     env = setup_jruby_home()
 

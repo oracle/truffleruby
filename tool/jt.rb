@@ -447,7 +447,7 @@ module Commands
       jt clean                                       clean
       jt irb                                         irb
       jt rebuild                                     clean and build
-      jt run [options] args...                       run JRuby with -X+T and args
+      jt run [options] args...                       run JRuby with args
           --graal         use Graal (set either GRAALVM_BIN or GRAAL_HOME)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --js            add Graal.js to the classpath (set GRAAL_JS_JAR)
@@ -576,11 +576,7 @@ module Commands
     env_vars = args.first.is_a?(Hash) ? args.shift : {}
     options = args.last.is_a?(Hash) ? args.pop : {}
 
-    jruby_args = ['-X+T']
-
-    if ENV['JRUBY_OPTS'] && ENV['JRUBY_OPTS'].include?('-Xclassic')
-      jruby_args.delete '-X+T'
-    end
+    jruby_args = []
 
     {
       '--asm' => '--graal',

@@ -20,7 +20,6 @@ class MSpecScript
 
   if ARGV[-2..-1] != %w[-t ruby] # No flags for MRI
     flags = %w[
-      -X+T
       -J-ea
       -J-esa
       -J-Xmx2G

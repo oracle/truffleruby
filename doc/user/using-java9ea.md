@@ -18,7 +18,7 @@ configure Java to use Graal.
 
 ```
 $ JAVACMD=.../jdk-9-ea/bin/java \
-    bin/jruby -X+T \
+    bin/jruby \
     -J-XX:+UnlockExperimentalVMOptions \
     -J-XX:+EnableJVMCI \
     -J--add-exports=java.base/jdk.internal.module=com.oracle.graal.graal_core \

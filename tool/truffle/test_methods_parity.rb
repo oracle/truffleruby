@@ -9,7 +9,7 @@
 =begin
 Run first with JRuby+Truffle, then with MRI:
 
-$ .../jruby -X+T test_methods_parity.rb > truffle.methods
+$ .../jruby test_methods_parity.rb > truffle.methods
 $ .../ruby test_methods_parity.rb truffle.methods > mri.methods
 Compare with:
 $ git diff -U10 --no-index mri.methods truffle.methods

@@ -28,7 +28,6 @@ else
     if [ ${mx_time} -gt ${mvn_time} ]; then
         exec "$root"/tool/jruby_mx "$@"
     else
-        exec "$root"/bin/jruby -X+T "$@"
+        exec "$root"/bin/jruby "$@"
     fi
 fi
-

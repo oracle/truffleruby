@@ -187,12 +187,6 @@ do
      # Pass -X... and -X? search options through
      -X*\.\.\.|-X*\?)
         ruby_args=("${ruby_args[@]}" "$1") ;;
-     -Xclassic)
-        unset USING_TRUFFLE
-        ;;
-     -X+T)
-        USING_TRUFFLE="true"
-        ;;
      # Match -Xa.b.c=d to translate to -Da.b.c=d as a java option
      -X*)
         val=${1:2}
@@ -219,7 +213,6 @@ do
 done
 
 JRUBY_CP="$JRUBY_HOME/lib/jruby-truffle.jar"
-ruby_args=("-X+T" "${ruby_args[@]}")
 
 # Force file.encoding to UTF-8 when on Mac, since Apple JDK defaults to MacRoman (JRUBY-3576)
 if [[ $darwin && -z "$JAVA_ENCODING" ]]; then
