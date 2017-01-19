@@ -3638,7 +3638,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_byte_index", needsSelf = false, lowerFixnum = 1)
+    @Primitive(name = "string_byte_index", needsSelf = false, lowerFixnum = { 2, 3 })
     @ImportStatic(StringGuards.class)
     public static abstract class StringByteIndexNode extends PrimitiveArrayArgumentsNode {
 
