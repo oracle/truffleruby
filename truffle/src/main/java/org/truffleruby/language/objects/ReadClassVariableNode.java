@@ -19,20 +19,20 @@ import org.truffleruby.language.control.RaiseException;
 
 public class ReadClassVariableNode extends RubyNode {
 
-    private final LexicalScope lexicalScope;
     private final String name;
-
     private final BranchProfile missingProfile = BranchProfile.create();
 
-    public ReadClassVariableNode(LexicalScope lexicalScope, String name) {
-        this.lexicalScope = lexicalScope;
+    @Child private RubyNode lexicalScopeNode;
+
+    public ReadClassVariableNode(RubyNode lexicalScopeNode, String name) {
+        this.lexicalScopeNode = lexicalScopeNode;
         this.name = name;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
+        final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
         // TODO CS 21-Feb-16 these two operations are uncached and use loops - same for isDefined below
-
         final DynamicObject module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
 
         final Object value = ModuleOperations.lookupClassVariable(module, name);
@@ -47,6 +47,7 @@ public class ReadClassVariableNode extends RubyNode {
 
     @Override
     public Object isDefined(VirtualFrame frame) {
+        final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
         final DynamicObject module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
 
         final Object value = ModuleOperations.lookupClassVariable(module, name);
