@@ -1133,19 +1133,10 @@ public class BodyTranslator extends Translator {
     }
 
     private RubyNode translateCPath(SourceIndexLength sourceSection, Colon3ParseNode node) {
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
-
         final RubyNode ret;
 
         if (node instanceof Colon2ImplicitParseNode) { // use current lexical scope
-            if (environment.getParseEnvironment().isDynamicConstantLookup()) {
-                if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                    Log.LOGGER.info(() -> "dynamic constant lookup at " + RubyLanguage.fileLine(fullSourceSection));
-                }
-                ret = new DynamicLexicalScopeNode();
-            } else {
-                ret = new LexicalScopeNode(environment.getLexicalScope());
-            }
+            ret = getLexicalScopeModuleNode("dynamic constant lookup", sourceSection);
             ret.unsafeSetSourceSection(sourceSection);
         } else if (node instanceof Colon2ConstParseNode) { // A::B
             ret = node.childNodes().get(0).accept(this);
@@ -1176,14 +1167,7 @@ public class BodyTranslator extends Translator {
         final RubyNode moduleNode;
         ParseNode constNode = node.getConstNode();
         if (constNode == null || constNode instanceof Colon2ImplicitParseNode) {
-            if (environment.getParseEnvironment().isDynamicConstantLookup()) {
-                if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                    Log.LOGGER.info(() -> "set dynamic constant at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
-                }
-                moduleNode = new DynamicLexicalScopeNode();
-            } else {
-                moduleNode = new LexicalScopeNode(environment.getLexicalScope());
-            }
+            moduleNode = getLexicalScopeModuleNode("set dynamic constant", sourceSection);
             moduleNode.unsafeSetSourceSection(sourceSection);
         } else if (constNode instanceof Colon2ConstParseNode) {
             constNode = ((Colon2ParseNode) constNode).getLeftNode(); // Misleading doc, we only want the defined part.
@@ -1198,6 +1182,17 @@ public class BodyTranslator extends Translator {
         ret.unsafeSetSourceSection(sourceSection);
 
         return addNewlineIfNeeded(node, ret);
+    }
+
+    private RubyNode getLexicalScopeModuleNode(String kind, SourceIndexLength sourceSection) {
+        if (environment.isDynamicConstantLookup()) {
+            if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
+                Log.LOGGER.info(() -> kind + " at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+            }
+            return new DynamicLexicalScopeNode();
+        } else {
+            return new LexicalScopeNode(environment.getLexicalScope());
+        }
     }
 
     private String getSourcePath(SourceIndexLength sourceSection) {
@@ -1261,7 +1256,7 @@ public class BodyTranslator extends Translator {
         }
 
         final RubyNode ret;
-        if (environment.getParseEnvironment().isDynamicConstantLookup()) {
+        if (environment.isDynamicConstantLookup()) {
             if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
                 Log.LOGGER.info(() -> "dynamic constant lookup at " + RubyLanguage.fileLine(fullSourceSection));
             }
@@ -3084,7 +3079,7 @@ public class BodyTranslator extends Translator {
         final RubyNode receiverNode = node.getReceiverNode().accept(this);
         final SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(receiverNode);
 
-        final boolean dynamicConstantLookup = environment.getParseEnvironment().isDynamicConstantLookup();
+        final boolean dynamicConstantLookup = environment.isDynamicConstantLookup();
         if (!dynamicConstantLookup) {
             if (environment.isModuleBody() && node.getReceiverNode() instanceof SelfParseNode) {
                 // Common case of class << self in a module body, the constant lookup scope is still static
