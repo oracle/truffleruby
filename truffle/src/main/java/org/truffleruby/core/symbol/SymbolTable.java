@@ -69,6 +69,10 @@ public class SymbolTable {
                 return symbol;
             }
 
+            for (int i = 0; i < stringKey.length(); i++) {
+                int c = stringKey.charAt(i);
+                assert c >= 0 && c < 128;
+            }
             // TODO (eregon, 8 Nov. 2016): This doesn't sound right,
             // maybe it should become UTF-8 if it's not 7-bit?
             final Rope rope = StringOperations.encodeRope(stringKey, USASCIIEncoding.INSTANCE);
