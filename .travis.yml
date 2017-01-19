@@ -23,11 +23,13 @@ matrix:
   - env: JT='test specs :truffle'
   - env: JT='test integration'
   - env: JT='test gems' COMMAND=test/truffle/gems/install-gems.sh
-  - env: JT='test ecosystem' JAVA_OPTS="$JAVA_OPTS -Xmx512m" HAS_REDIS=true COMMAND=test/truffle/ecosystem-travis-install.sh
   - env: JT='test tck' COMMAND='mx -v build' SKIP_BUILD=true
   - env: JT='check_dsl_usage' SKIP_BUILD=true V=1
   - env: JT='test mri'
   - env: JT='test bundle'
+  - env: JT='test ecosystem actionpack actionview' JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
+  - env: JT='test ecosystem activemodel activesupport' JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
+  - env: JT='test ecosystem algebrick railties rails-app' HAS_REDIS=true JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
   # Exlude the default job https://github.com/travis-ci/travis-ci/issues/4681
   exclude:
   - jdk: oraclejdk8
