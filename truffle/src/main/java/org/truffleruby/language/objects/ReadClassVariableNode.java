@@ -33,7 +33,7 @@ public class ReadClassVariableNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         // TODO CS 21-Feb-16 these two operations are uncached and use loops - same for isDefined below
 
-        final DynamicObject module = lexicalScope.resolveTargetModuleForClassVariables();
+        final DynamicObject module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
 
         final Object value = ModuleOperations.lookupClassVariable(module, name);
 
@@ -47,7 +47,7 @@ public class ReadClassVariableNode extends RubyNode {
 
     @Override
     public Object isDefined(VirtualFrame frame) {
-        final DynamicObject module = lexicalScope.resolveTargetModuleForClassVariables();
+        final DynamicObject module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
 
         final Object value = ModuleOperations.lookupClassVariable(module, name);
 
