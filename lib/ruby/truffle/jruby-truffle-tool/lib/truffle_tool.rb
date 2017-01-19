@@ -665,8 +665,8 @@ class TruffleTool
     truffle_options = [
         "-J-Xmx#{@options[:run][:xmx]}",
         *(%w[-J-ea -J-esa] unless @options[:run][:no_asserts]),
-        *("-Xtruffle.core.load_path=#{core_load_path}" if @options[:global][:use_fs_core] && !missing_core_load_path),
-        *('-Xtruffle.exceptions.print_java=true' if @options[:run][:jexception])
+        *("-Xcore.load_path=#{core_load_path}" if @options[:global][:use_fs_core] && !missing_core_load_path),
+        *('-Xexceptions.print_java=true' if @options[:run][:jexception])
     ]
 
     interpreter_options = [

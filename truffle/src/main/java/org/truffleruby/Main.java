@@ -48,11 +48,10 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import org.truffleruby.language.control.JavaException;
-import org.truffleruby.options.ArgumentProcessor;
+import org.truffleruby.options.CommandLineParser;
 import org.truffleruby.options.MainExitException;
 import org.truffleruby.options.OptionsBuilder;
 import org.truffleruby.options.OptionsCatalog;
-import org.truffleruby.options.OutputStrings;
 import org.truffleruby.options.RubyInstanceConfig;
 import org.truffleruby.platform.graal.Graal;
 
@@ -80,18 +79,18 @@ public class Main {
             if (!mee.isAborted()) {
                 System.err.println(mee.getMessage());
                 if (mee.isUsageError()) {
-                   System.out.print(OutputStrings.getBasicUsageHelp());
+                    CommandLineParser.printHelp(System.err);
                 }
             }
             System.exit(mee.getStatus());
         }
 
         if (config.isShowVersion()) {
-            System.out.println(OutputStrings.getVersionString());
+            System.out.println(RubyLanguage.getVersionString());
         }
 
         if (config.isShowCopyright()) {
-            System.out.println(OutputStrings.getCopyrightString());
+            System.out.println(RubyLanguage.getCopyrightString());
         }
 
         final int exitCode;
@@ -145,7 +144,7 @@ public class Main {
             }
         } else {
             if (config.getShouldPrintUsage()) {
-                System.out.print(OutputStrings.getBasicUsageHelp());
+                CommandLineParser.printHelp(System.out);
             }
             exitCode = 1;
         }
@@ -156,7 +155,7 @@ public class Main {
     }
 
     public static void processArguments(RubyInstanceConfig config, String[] arguments) {
-        new ArgumentProcessor(arguments, config).processArguments();
+        new CommandLineParser(arguments, config).processArguments();
 
         Object rubyoptObj = System.getenv("RUBYOPT");
         String rubyopt = rubyoptObj == null ? null : rubyoptObj.toString();
@@ -164,7 +163,17 @@ public class Main {
         if (rubyopt != null && rubyopt.length() != 0) {
             String[] rubyoptArgs = rubyopt.split("\\s+");
             if (rubyoptArgs.length != 0) {
-                new ArgumentProcessor(rubyoptArgs, false, true, true, config).processArguments();
+                new CommandLineParser(rubyoptArgs, false, true, true, config).processArguments();
+            }
+        }
+
+        Object truffleRubyoptObj = System.getenv("TRUFFLERUBYOPT");
+        String truffleRubyopt = truffleRubyoptObj == null ? null : truffleRubyoptObj.toString();
+
+        if (truffleRubyopt != truffleRubyopt && rubyopt.length() != 0) {
+            String[] rubyoptArgs = truffleRubyopt.split("\\s+");
+            if (rubyoptArgs.length != 0) {
+                new CommandLineParser(rubyoptArgs, false, true, true, config).processArguments();
             }
         }
 

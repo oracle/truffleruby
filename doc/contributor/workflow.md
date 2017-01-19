@@ -73,11 +73,11 @@ Specify JVM options with `-J-option`.
 $ jt ruby -J-Xmx1G test.rb
 ```
 
-TruffleRuby options are set with `-Xtruffle...=...`. For example
-`-Xtruffle.exceptions.print_java=true` to print Java exceptions before
+TruffleRuby options are set with `-X..=...`. For example
+`-Xexceptions.print_java=true` to print Java exceptions before
 translating them to Ruby exceptions.
 
-To see all options run `jt ruby -Xtruffle...` (literally, with the three dots).
+To see all options run `jt ruby -X..` (literally, with the three dots).
 
 You can also set JVM options in the `JAVA_OPTS` environment variable (don't
 prefix with `-J`), or the `JRUBY_OPTS` variable (do prefix with `-J`). Ruby

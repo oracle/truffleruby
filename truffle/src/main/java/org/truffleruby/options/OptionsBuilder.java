@@ -18,7 +18,7 @@ import java.util.logging.Level;
 
 public class OptionsBuilder {
 
-    private static final String LEGACY_PREFIX = "jruby.truffle.";
+    public static final String PREFIX = "truffleruby.";
 
     private final Map<OptionDescription, Object> options = new HashMap<>();
 
@@ -26,8 +26,8 @@ public class OptionsBuilder {
         for (Map.Entry<Object, Object> property : properties.entrySet()) {
             final String name = (String) property.getKey();
 
-            if (name.startsWith(LEGACY_PREFIX)) {
-                set(name.substring(LEGACY_PREFIX.length()), property.getValue());
+            if (name.startsWith(PREFIX)) {
+                set(name.substring(PREFIX.length()), property.getValue());
             }
         }
     }
@@ -84,7 +84,7 @@ public class OptionsBuilder {
 
     @SuppressWarnings("unchecked")
     public static <T> T readSystemProperty(OptionDescription description) {
-        final Object value = System.getProperty(LEGACY_PREFIX + description.getName());
+        final Object value = System.getProperty(PREFIX + description.getName());
 
         if (value == null) {
             return (T) description.getDefaultValue();

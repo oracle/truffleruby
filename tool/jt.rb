@@ -30,7 +30,7 @@ SULONG_HOME = ENV['SULONG_HOME']
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
 JDEBUG_TEST = "-Dmaven.surefire.debug=-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=#{JDEBUG_PORT} -Xnoagent -Djava.compiler=NONE"
-JEXCEPTION = "-Xtruffle.exceptions.print_uncaught_java=true"
+JEXCEPTION = "-Xexceptions.print_uncaught_java=true"
 METRICS_REPS = 10
 
 VERBOSE = ENV.include? 'V'
@@ -578,7 +578,7 @@ module Commands
     end
 
     unless args.delete('--no-core-load-path')
-      jruby_args << "-Xtruffle.core.load_path=#{JRUBY_DIR}/truffle/src/main/ruby"
+      jruby_args << "-Xcore.load_path=#{JRUBY_DIR}/truffle/src/main/ruby"
     end
 
     if args.delete('--graal')
@@ -591,7 +591,7 @@ module Commands
         jruby_args.push(*javacmd_options)
       end
     else
-      jruby_args << '-Xtruffle.graal.warn_unless=false'
+      jruby_args << '-Xgraal.warn_unless=false'
     end
 
     if args.delete('--stress')
@@ -618,7 +618,7 @@ module Commands
     end
 
     if args.delete('--server')
-      jruby_args += %w[-Xtruffle.instrumentation_server_port=8080]
+      jruby_args += %w[-Xinstrumentation_server_port=8080]
     end
 
     if args.delete('--profile')
@@ -789,7 +789,7 @@ module Commands
       jruby_opts << Utilities.find_graal_js
     end
 
-    jruby_opts << '-Xtruffle.exceptions.print_java=true'
+    jruby_opts << '-Xexceptions.print_java=true'
 
     env = { "JRUBY_OPTS" => jruby_opts.join(' ') }
 
@@ -1101,7 +1101,7 @@ module Commands
     samples = []
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
-      out, err = run '-Xtruffle.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, {capture: true, no_print_cmd: true}
+      out, err = run '-Xmetrics.memory_used_on_exit=true', '-J-verbose:gc', *args, {capture: true, no_print_cmd: true}
       samples.push memory_allocated(out+err)
     end
     Utilities.log "\n", nil
@@ -1184,7 +1184,7 @@ module Commands
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now
-      out, err = run '-Xtruffle.metrics.time=true', *args, {capture: true, no_print_cmd: true}
+      out, err = run '-Xmetrics.time=true', *args, {capture: true, no_print_cmd: true}
       finish = Time.now
       samples.push get_times(err, finish - start)
     end
