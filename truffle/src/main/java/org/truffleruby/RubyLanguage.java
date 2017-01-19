@@ -127,12 +127,12 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
     }
 
-    // @Override in Truffle 0.22
+    @Override
     protected Object findMetaObject(RubyContext context, Object value) {
         return context.getCoreLibrary().getMetaClass(value);
     }
 
-    // @Override in Truffle 0.22
+    @Override
     protected SourceSection findSourceLocation(RubyContext context, Object value) {
         if (RubyGuards.isRubyModule(value)) {
             return Layouts.CLASS.getFields((DynamicObject) value).getSourceSection();
