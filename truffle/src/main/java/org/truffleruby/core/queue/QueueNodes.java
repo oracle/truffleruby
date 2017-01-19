@@ -147,7 +147,7 @@ public abstract class QueueNodes {
                     }
                 }
 
-                final Object result = queue.poll(durationInMillis, TimeUnit.MILLISECONDS);
+                final Object result = queue.poll(durationInMillis);
                 if (result == null) {
                     return false;
                 } else {

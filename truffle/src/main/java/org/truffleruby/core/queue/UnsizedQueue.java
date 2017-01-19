@@ -71,13 +71,14 @@ public class UnsizedQueue {
         }
     }
 
-    public Object poll(long timeout, TimeUnit unit) throws InterruptedException {
+    public Object poll(long timeoutMilliseconds) throws InterruptedException {
         lock.lock();
 
         try {
-            while (takeEnd == null) {
-                // We'll repeat the same timeout period again if we skip in this loop, but it's not a guarantee of anyway
-                canTake.await(timeout, unit);
+            if (takeEnd == null) {
+                if (!canTake.await(timeoutMilliseconds, TimeUnit.MILLISECONDS)) {
+                    return null;
+                }
             }
 
             return doTake();
