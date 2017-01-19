@@ -2607,11 +2607,6 @@ public class RubyLexer {
         return __end__seen;
     }
 
-    // mri: parser_isascii
-    public boolean isASCII() {
-        return Encoding.isMbcAscii((byte) (int) lexb.get(lex_p - 1));
-    }
-
     public boolean isASCII(int c) {
         return Encoding.isMbcAscii((byte) c);
     }
@@ -2720,7 +2715,7 @@ public class RubyLexer {
     }
 
     public int p(int offset) {
-        return (int) lexb.get(offset) & 0xff;
+        return lexb.getBytes()[offset] & 0xff;
     }
 
     public boolean peek(int c) {
@@ -3170,18 +3165,19 @@ public class RubyLexer {
         int i = begin;
         int len = str.byteLength();
 
+        final byte[] bytes = str.getBytes();
         while (i < len) {
-            switch ((int) str.get(i)) {
+            switch ((int) bytes[i]) {
                 case '-':
-                    if (i >= 2 && (int) str.get(i - 1) == '*' && (int) str.get(i - 2) == '-') return i + 1;
+                    if (i >= 2 && (int) bytes[i - 1] == '*' && (int) bytes[i - 2] == '-') return i + 1;
                     i += 2;
                     break;
                 case '*':
                     if (i + 1 >= len) return -1;
 
-                    if ((int) str.get(i + 1) != '-') {
+                    if ((int) bytes[i + 1] != '-') {
                         i += 4;
-                    } else if ((int) str.get(i - 1) != '-') {
+                    } else if ((int) bytes[i - 1] != '-') {
                         i += 2;
                     } else {
                         return i + 2;

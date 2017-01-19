@@ -104,8 +104,9 @@ public class LexerSource {
     private int nextNewLine() {
         int n = byteOffset;
 
-        while (n < sourceBytes.byteLength()) {
-            if ((int) sourceBytes.get(n) == '\n') {
+        final byte[] bytes = sourceBytes.getBytes();
+        while (n < bytes.length) {
+            if ((int) bytes[n] == '\n') {
                 return n;
             }
 
