@@ -24,57 +24,40 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-class Proc
-  attr_accessor :block
-  attr_accessor :bound_method
-  attr_accessor :ruby_method
+module Rubinius
+  class Mirror
+    class Proc < Mirror
+      def self.from_block(klass, env)
+        begin
+          return Rubinius.invoke_primitive :proc_from_env, env, klass
+        rescue Rubinius::Internal => exc
+          if Type.object_kind_of? env, BlockEnvironment
+            msg = "unable to create Proc from BlockEnvironment"
+            raise PrimitiveFailure, msg, exc
+          end
+        end
 
-  alias_method :===, :call
-
-  def curry(curried_arity = nil)
-    if lambda? && curried_arity
-      if arity >= 0 && curried_arity != arity
-        raise ArgumentError, "Wrong number of arguments (%i for %i)" % [
-          curried_arity,
-          arity
-        ]
+        begin
+          env.to_proc
+        rescue Exception
+          raise ArgumentError, "Unable to convert #{env.inspect} to a Proc"
+        end
       end
 
-      if arity < 0 && curried_arity < (-arity - 1)
-        raise ArgumentError, "Wrong number of arguments (%i for %i)" % [
-          curried_arity,
-          -arity - 1
-        ]
+      def curry(executable, args, arity)
+        args.freeze
+
+        name = executable.lambda? ? :lambda : :proc
+
+        Proc.__send__(name) do |*a|
+          all_args = args + a
+          if all_args.size < arity
+            curry executable, all_args, arity
+          else
+            executable[*all_args]
+          end
+        end
       end
     end
-
-    m = Rubinius::Mirror.reflect self
-    f = m.curry self, [], arity
-
-    f.singleton_class.send(:define_method, :binding) do
-      raise ArgumentError, "cannot create binding from f proc"
-    end
-
-    # TODO: set the procs parameters to be :rest to match spec. DMM - 2017-01-19
-    # TODO: set the source location to be nil. DMM - 2017-01-19
-
-    f
-  end
-
-  def to_s
-    file, line = source_location
-
-    l = " (lambda)" if lambda?
-    if file and line
-      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}#{l}>"
-    else
-      "#<#{self.class}:0x#{self.object_id.to_s(16)}#{l}>"
-    end
-  end
-
-  alias_method :inspect, :to_s
-
-  def to_proc
-    self
   end
 end
