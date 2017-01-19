@@ -2,4 +2,4 @@
 
 source test/truffle/common.sh.inc
 
-jt ruby -Xtruffle.platform.use_java=true -e 'puts 14'
+jt ruby -Xplatform.use_java=true -e 'puts 14'

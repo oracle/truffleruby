@@ -76,31 +76,15 @@ def extractArguments(cli_args):
     for args in [jruby_opts, cli_args]:
         while args:
             arg = args.pop(0)
-            if arg == '-J-cmd':
-                print_command = True
-            elif arg.startswith('-J-G:+'):
-                rewritten = '-Dgraal.'+arg[6:]+'=true'
-                mx.warn(arg + ' is deprecated - use -J' + rewritten + ' instead')
-                vmArgs.append(rewritten)
-            elif arg.startswith('-J-G:-'):
-                rewritten = '-Dgraal.'+arg[6:]+'=false'
-                mx.warn(arg + ' is deprecated - use -J' + rewritten + ' instead')
-                vmArgs.append(rewritten)
-            elif arg.startswith('-J-G:'):
-                rewritten = '-Dgraal.'+arg[5:]
-                mx.warn(arg + ' is deprecated - use -J' + rewritten + ' instead')
-                vmArgs.append(rewritten)
-            elif arg == '-J-cp' or arg == '-J-classpath':
+            if arg == '-J-cp' or arg == '-J-classpath':
                 cp = args.pop(0)
                 if cp[:2] == '-J':
                     cp = cp[2:]
                 classpath.append(cp)
             elif arg.startswith('-J-'):
                 vmArgs.append(arg[2:])
-            elif arg.startswith('-X+') or arg.startswith('-X-') or arg.startswith('-Xlog='):
-                rubyArgs.append(arg)
-            elif arg.startswith('-X'):
-                vmArgs.append('-Djruby.'+arg[2:])
+            elif arg.startswith('-J:'):
+                vmArgs.append('-' + arg[2:])
             else:
                 rubyArgs.append(arg)
                 rubyArgs.extend(args)

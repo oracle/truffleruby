@@ -24,6 +24,7 @@ import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
 
 import java.io.IOException;
@@ -148,6 +149,28 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public RubyContext unprotectedFindContext(Node node) {
         return super.findContext(node);
+    }
+
+    public static String getVersionString() {
+        return String.format(
+                "jruby%s %s (%s) %s %s %s %s on %s%s%s [%s-%s]",
+                "+truffle",
+                RubyLanguage.VERSION,
+                RubyLanguage.RUBY_VERSION,
+                RubyLanguage.COMPILE_DATE,
+                "unknown",
+                System.getProperty("java.vm.name", "Unknown JVM"),
+                System.getProperty("java.vm.version", "Unknown JVM version"),
+                System.getProperty("java.runtime.version", System.getProperty("java.version", "Unknown version")),
+                "",
+                "",
+                Platform.getOSName(),
+                Platform.getArchitecture()
+        );
+    }
+
+    public static String getCopyrightString() {
+        return "JRuby - Copyright (C) 2001-2017 The JRuby Community (and contribs)";
     }
 
 }

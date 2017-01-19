@@ -1,5 +1,11 @@
-/***** BEGIN LICENSE BLOCK *****
- * Version: EPL 1.0/GPL 2.0/LGPL 2.1
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 1.0
+ * GNU General Public License version 2
+ * GNU Lesser General Public License version 2.1
  *
  * The contents of this file are subject to the Eclipse Public
  * License Version 1.0 (the "License"); you may not use this file
@@ -25,15 +31,19 @@
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
- ***** END LICENSE BLOCK *****/
+ */
 package org.truffleruby.options;
 
+import com.oracle.truffle.api.TruffleOptions;
 import org.truffleruby.Log;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.platform.Platform;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,19 +53,7 @@ import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-/**
- * Encapsulated logic for processing JRuby's command-line arguments.
- *
- * This class holds the processing logic for JRuby's non-JVM command-line arguments.
- * All standard Ruby options are processed here, as well as nonstandard JRuby-
- * specific options.
- *
- * Options passed directly to the JVM are processed separately, by either a launch
- * script or by a native executable.
- */
-public class ArgumentProcessor {
-
-    public static final String SEPARATOR = "(?<!jar:file|jar|file|classpath|uri:classloader|uri|http|https):";
+public class CommandLineParser {
 
     private static final class Argument {
         final String originalValue;
@@ -91,11 +89,11 @@ public class ArgumentProcessor {
 
     private static final Pattern VERSION_FLAG = Pattern.compile("^--[12]\\.[89012]$");
 
-    public ArgumentProcessor(String[] arguments, RubyInstanceConfig config) {
+    public CommandLineParser(String[] arguments, RubyInstanceConfig config) {
         this(arguments, true, false, false, config);
     }
 
-    public ArgumentProcessor(String[] arguments, boolean processArgv, boolean dashed, boolean rubyOpts, RubyInstanceConfig config) {
+    public CommandLineParser(String[] arguments, boolean processArgv, boolean dashed, boolean rubyOpts, RubyInstanceConfig config) {
         this.config = config;
         if (arguments != null && arguments.length > 0) {
             this.arguments = new ArrayList<>(arguments.length);
@@ -261,12 +259,14 @@ public class ArgumentProcessor {
                     break FOR;
                 case 'I':
                     String s = grabValue(getArgumentError("-I must be followed by a directory name to add to lib path"));
-                    String separator = File.pathSeparator;
-                    if (":".equals(separator)) {
-                        separator = SEPARATOR;
-                    }
-                    String[] ls = s.split(separator);
+                    String[] ls = s.split(File.pathSeparator);
                     config.getLoadPaths().addAll(Arrays.asList(ls));
+                    break FOR;
+                case 'y':
+                    disallowedInRubyOpts(argument);
+                    if (!rubyOpts) {
+                        throw new UnsupportedOperationException();
+                    }
                     break FOR;
                 case 'J':
                     String js = grabOptionalValue();
@@ -376,6 +376,11 @@ public class ArgumentProcessor {
                     String extendedOption = grabOptionalValue();
                     if (extendedOption == null) {
                         throw new MainExitException(0, "no extended options in Truffle");
+                    } else if (extendedOption.equals("options")) {
+                        for (OptionDescription option : OptionsCatalog.allDescriptions()) {
+                            System.out.printf("\t-X%s    %s    %s%n", option.getName(), option.getDescription(), option.toString(option.getDefaultValue()));
+                        }
+                        config.setShouldRunInterpreter(false);
                     } else if (extendedOption.startsWith("log=")) {
                         final String levelString = extendedOption.substring("log=".length());
 
@@ -389,40 +394,37 @@ public class ArgumentProcessor {
 
                         Log.LOGGER.setLevel(level);
                     } else {
-                        MainExitException mee = new MainExitException(1, "jruby: invalid extended option " + extendedOption + " (-X will list valid options)\n");
-                        mee.setUsageError(true);
-                        throw mee;
-                    }
-                    break FOR;
-                case 'y':
-                    disallowedInRubyOpts(argument);
-                    if (!rubyOpts) {
-                        throw new UnsupportedOperationException();
+                        if (extendedOption.startsWith("truffle.")) {
+                            Log.LOGGER.warning("-Xtruffle. is now just -X - switch your scripts as -Xtruffle. will stop working soon");
+                            extendedOption = extendedOption.substring("truffle.".length());
+                        }
+
+                        final String value;
+
+                        final int equals = extendedOption.indexOf('=');
+                        if (equals == -1) {
+                            value = "true";
+                        } else {
+                            value = extendedOption.substring(equals + 1);
+                            extendedOption = extendedOption.substring(0, equals);
+                        }
+
+                        System.setProperty(OptionsBuilder.PREFIX + extendedOption, value);
                     }
                     break FOR;
                 case '-':
-                    if (argument.equals("--command") || argument.equals("--bin")) {
-                        characterIndex = argument.length();
-                        runBinScript();
-                        break;
-                    } else if (argument.equals("--compat")) {
-                        characterIndex = argument.length();
-                        grabValue(getArgumentError("--compat takes an argument, but will be ignored"));
-                        System.err.println("warning: " + argument + " ignored");
-                        break FOR;
-                    } else if (argument.equals("--copyright")) {
+                    if (argument.equals("--copyright")) {
                         disallowedInRubyOpts(argument);
                         config.setShowCopyright(true);
                         config.setShouldRunInterpreter(false);
                         break FOR;
                     } else if (argument.equals("--debug")) {
                         throw new UnsupportedOperationException();
-                    } else if (argument.startsWith("--debug=")) {
-                        throw new UnsupportedOperationException();
-                    } else if (argument.equals("--jdb")) {
-                        config.setDebug(true);
-                        config.setVerbosity(Verbosity.TRUE);
-                        break;
+                    } else if (argument.equals("--yydebug")) {
+                        disallowedInRubyOpts(argument);
+                        if (!rubyOpts) {
+                            throw new UnsupportedOperationException();
+                        }
                     } else if (argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
                         config.setShouldPrintUsage(true);
@@ -433,8 +435,6 @@ public class ArgumentProcessor {
                         config.setShowVersion(true);
                         config.setShouldRunInterpreter(false);
                         break FOR;
-                    } else if (argument.equals("--fast")) {
-                        throw new UnsupportedOperationException();
                     } else if (argument.startsWith("--profile")) {
                         throw new UnsupportedOperationException();
                     } else if (VERSION_FLAG.matcher(argument).matches()) {
@@ -466,46 +466,9 @@ public class ArgumentProcessor {
                         break FOR;
                     } else if (argument.equals("--gemfile")) {
                         throw new UnsupportedOperationException();
-                    } else if (argument.equals("--dump")) {
-                        characterIndex = argument.length();
-                        String error = "--dump only supports [version, copyright, usage, yydebug, syntax, insns] on JRuby";
-                        String dumpArg = grabValue(getArgumentError(error));
-                        if (dumpArg.equals("version")) {
-                            config.setShowVersion(true);
-                            config.setShouldRunInterpreter(false);
-                            break FOR;
-                        } else if (dumpArg.equals("copyright")) {
-                            config.setShowCopyright(true);
-                            config.setShouldRunInterpreter(false);
-                            break FOR;
-                        } else if (dumpArg.equals("usage")) {
-                            config.setShouldPrintUsage(true);
-                            config.setShouldRunInterpreter(false);
-                            break FOR;
-                        } else if (dumpArg.equals("syntax")) {
-                            config.setShouldCheckSyntax(true);
-                        } else {
-                            MainExitException mee = new MainExitException(1, error);
-                            mee.setUsageError(true);
-                            throw mee;
-                        }
-                        break;
-                    } else if (argument.equals("--dev")) {
-                        throw new UnsupportedOperationException();
-                    } else if (argument.equals("--server")) {
-                        // ignore this...can't do anything with it after boot
-                        break FOR;
-                    } else if (argument.equals("--client")) {
-                        // ignore this...can't do anything with it after boot
-                        break FOR;
                     } else if (argument.equals("--verbose")) {
                         config.setVerbosity(Verbosity.TRUE);
                         break FOR;
-                    } else if (argument.equals("--yydebug")) {
-                        disallowedInRubyOpts(argument);
-                        if (!rubyOpts) {
-                            throw new UnsupportedOperationException();
-                        }
                     } else {
                         if (argument.equals("--")) {
                             // ruby interpreter compatibilty
@@ -522,7 +485,7 @@ public class ArgumentProcessor {
     }
 
     private void enableDisableFeature(String name, boolean enable) {
-        BiFunction<ArgumentProcessor, Boolean, Boolean> feature = FEATURES.get(name);
+        BiFunction<CommandLineParser, Boolean, Boolean> feature = FEATURES.get(name);
 
         if (feature == null) {
             System.err.println("warning: unknown argument for --" + (enable ? "enable" : "disable") + ": `" + name + "'");
@@ -600,36 +563,89 @@ public class ArgumentProcessor {
         return null;
     }
 
-    private static final Map<String, BiFunction<ArgumentProcessor, Boolean, Boolean>> FEATURES;
+    public static void printHelp(PrintStream out) {
+        out.println("Usage: ruby [switches] [--] [programfile] [arguments]");
+        out.println("  -0[octal]       specify record separator (\0, if no argument)");
+        out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
+        out.println("  -c              check syntax only");
+        out.println("  -Cdirectory     cd to directory before executing your script");
+        out.println("  -d, --debug     set debugging flags (set $DEBUG to true)");
+        out.println("  -e 'command'    one line of script. Several -e's allowed. Omit [programfile]");
+        out.println("  -Eex[:in], --encoding=ex[:in]");
+        out.println("                  specify the default external and internal character encodings");
+        out.println("  -Fpattern       split() pattern for autosplit (-a)");
+        out.println("  -i[extension]   edit ARGV files in place (make backup if extension supplied)");
+        out.println("  -Idirectory     specify $LOAD_PATH directory (may be used more than once)");
+        out.println("  -l              enable line ending processing");
+        out.println("  -n              assume 'while gets(); ... end' loop around your script");
+        out.println("  -p              assume loop like -n but print line also like sed");
+        out.println("  -rlibrary       require the library before executing your script");
+        out.println("  -s              enable some switch parsing for switches after script name");
+        out.println("  -S              look for the script using PATH environment variable");
+        out.println("  -T[level=1]     turn on tainting checks");
+        out.println("  -v, --verbose   print version number, then turn on verbose mode");
+        out.println("  -w              turn warnings on for your script");
+        out.println("  -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose");
+        out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
+        out.println("  --copyright     print the copyright");
+        out.println("  --enable=feature[,...], --disable=feature[,...]");
+        out.println("                  enable or disable features");
+        out.println("  --external-encoding=encoding, --internal-encoding=encoding");
+        out.println("                  specify the default external or internal character encoding");
+        out.println("  --version       print the version");
+        out.println("  --help          show this message, -h for short message");
+        out.println("Features:");
+        out.println("  gems            rubygems (default: enabled)");
+        out.println("  did_you_mean    did_you_mean (default: enabled)");
+        out.println("  rubyopt         RUBYOPT environment variable (default: enabled)");
+        out.println("  frozen-string-literal");
+        out.println("                  freeze all string literals (default: disabled)");
+        out.println("TruffleRuby:");
+        out.println("  -Xlog=severe,warning,performance,info,config,fine,finer,finest");
+        out.println("                  set the TruffleRuby logging level");
+        out.println("  -Xoptions       print available TrufleRuby options");
+        out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
+
+        if (TruffleOptions.AOT) {
+            out.println("SVM:");
+            out.println("  -Dname=value     set a system property");
+            out.println("  -J:arg, -J-arg  pass arg to the JVM");
+        } else {
+            out.println("JVM:");
+            out.println("  -XX:arg          pass arg to the SVM");
+        }
+    }
+
+    private static final Map<String, BiFunction<CommandLineParser, Boolean, Boolean>> FEATURES;
 
     static {
-        Map<String, BiFunction<ArgumentProcessor, Boolean, Boolean>> features = new HashMap<>(12, 1);
-        BiFunction<ArgumentProcessor, Boolean, Boolean> function2;
+        Map<String, BiFunction<CommandLineParser, Boolean, Boolean>> features = new HashMap<>(12, 1);
+        BiFunction<CommandLineParser, Boolean, Boolean> function2;
 
-        features.put("all", new BiFunction<ArgumentProcessor, Boolean, Boolean>() {
-            public Boolean apply(ArgumentProcessor processor, Boolean enable) {
+        features.put("all", new BiFunction<CommandLineParser, Boolean, Boolean>() {
+            public Boolean apply(CommandLineParser processor, Boolean enable) {
                 // disable all features
-                for (Map.Entry<String, BiFunction<ArgumentProcessor, Boolean, Boolean>> entry : FEATURES.entrySet()) {
+                for (Map.Entry<String, BiFunction<CommandLineParser, Boolean, Boolean>> entry : FEATURES.entrySet()) {
                     if (entry.getKey().equals("all")) continue; // skip self
                     entry.getValue().apply(processor, enable);
                 }
                 return true;
             }
         });
-        features.put("gem", new BiFunction<ArgumentProcessor, Boolean, Boolean>() {
-            public Boolean apply(ArgumentProcessor processor, Boolean enable) {
+        features.put("gem", new BiFunction<CommandLineParser, Boolean, Boolean>() {
+            public Boolean apply(CommandLineParser processor, Boolean enable) {
                 processor.config.setDisableGems(!enable);
                 return true;
             }
         });
-        features.put("gems", new BiFunction<ArgumentProcessor, Boolean, Boolean>() {
-            public Boolean apply(ArgumentProcessor processor, Boolean enable) {
+        features.put("gems", new BiFunction<CommandLineParser, Boolean, Boolean>() {
+            public Boolean apply(CommandLineParser processor, Boolean enable) {
                 processor.config.setDisableGems(!enable);
                 return true;
             }
         });
-        features.put("frozen-string-literal", function2 = new BiFunction<ArgumentProcessor, Boolean, Boolean>() {
-            public Boolean apply(ArgumentProcessor processor, Boolean enable) {
+        features.put("frozen-string-literal", function2 = new BiFunction<CommandLineParser, Boolean, Boolean>() {
+            public Boolean apply(CommandLineParser processor, Boolean enable) {
                 processor.config.setFrozenStringLiteral(enable);
                 return true;
             }

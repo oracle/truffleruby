@@ -125,7 +125,6 @@ import org.truffleruby.language.objects.FreezeNode;
 import org.truffleruby.language.objects.FreezeNodeGen;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
-import org.truffleruby.options.OutputStrings;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.RubiniusTypes;
@@ -911,8 +910,8 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.ENGINE, UTF8Encoding.INSTANCE)));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PLATFORM", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.PLATFORM, UTF8Encoding.INSTANCE)));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_RELEASE_DATE", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.COMPILE_DATE, UTF8Encoding.INSTANCE)));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", StringOperations.createString(context, StringOperations.encodeRope(OutputStrings.getVersionString(), UTF8Encoding.INSTANCE)));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", StringOperations.createString(context, StringOperations.encodeRope(OutputStrings.getCopyrightString(), UTF8Encoding.INSTANCE)));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.getVersionString(), UTF8Encoding.INSTANCE)));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.getCopyrightString(), UTF8Encoding.INSTANCE)));
 
         // BasicObject knows itself
         Layouts.MODULE.getFields(basicObjectClass).setConstant(context, node, "BasicObject", basicObjectClass);

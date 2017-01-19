@@ -3,7 +3,7 @@
 source test/truffle/common.sh.inc
 
 function run {
-  jt ruby -Xtruffle.platform.safe=false "$@"
+  jt ruby -Xplatform.safe=false "$@"
 }
 
 function safe {
@@ -24,7 +24,7 @@ safe -e "Truffle::Safe.puts 'hello, world'"
 
 # But we can make that unsafe as well if really don't want any output
 
-unsafe -Xtruffle.platform.safe_puts=false -e "Truffle::Safe.puts 'hello, world'"
+unsafe -Xplatform.safe_puts=false -e "Truffle::Safe.puts 'hello, world'"
 
 # Try some unsafe operations
 
@@ -36,7 +36,7 @@ unsafe -e "File.open('bad.txt')"
 
 # Check we can enable some unsafe operations if we want to
 
-safe -Xtruffle.platform.safe.exit=true -e 'exit!(0)'
+safe -Xplatform.safe.exit=true -e 'exit!(0)'
 
 # Check that safe_puts sanitises correctly
 

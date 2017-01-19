@@ -1,21 +1,14 @@
 #!/usr/bin/env bash
-# -----------------------------------------------------------------------------
-# jruby.bash - Start Script for the JRuby interpreter
-#
-# Environment Variable Prequisites
-#
-#   JRUBY_OPTS    (Optional) Default JRuby command line args
-#   JRUBY_SHELL   Where/What is system shell
-#
-#   JAVA_HOME     Must point at your Java Development Kit installation.
-#
-# -----------------------------------------------------------------------------
 
-# ----- Identify OS we are running under --------------------------------------
-case "`uname`" in
-  Darwin) darwin=true;;
-  MINGW*) jruby.exe "$@"; exit $?;;
-esac
+if [ -z "$JAVACMD" ]
+then
+  if [ -z "$JAVA_HOME" ]
+  then
+    JAVACMD='java'
+  else
+    JAVACMD="$JAVA_HOME/bin/java"
+  fi
+fi
 
 # get the absolute path of the executable
 SELF_PATH=$(builtin cd -P -- "$(dirname -- "$0")" >/dev/null && pwd -P) && SELF_PATH=$SELF_PATH/$(basename -- "$0")
@@ -31,9 +24,7 @@ while [ -h "$SELF_PATH" ]; do
     SELF_PATH=$(cd "$DIR" && cd $(dirname -- "$SYM") && pwd)/$(basename -- "$SYM")
 done
 
-PRG=$SELF_PATH
-
-JRUBY_HOME_1=`dirname "$PRG"`           # the ./bin dir
+JRUBY_HOME_1=`dirname "$SELF_PATH"`           # the ./bin dir
 if [ "$JRUBY_HOME_1" = '.' ] ; then
   cwd=`pwd`
   JRUBY_HOME=`dirname $cwd` # JRUBY-2699
@@ -41,30 +32,8 @@ else
   JRUBY_HOME=`dirname "$JRUBY_HOME_1"`  # the . dir
 fi
 
-if [ -z "$JRUBY_OPTS" ] ; then
-  JRUBY_OPTS=""
-fi
-
-if [ -z "$JAVACMD" ] ; then
-  if [ -z "$JAVA_HOME" ] ; then
-    JAVACMD='java'
-  else
-    JAVACMD="$JAVA_HOME/bin/java"
-  fi
-fi
-
-# If you're seeing odd exceptions, you may have a bad JVM install.
-# Uncomment this and report the version to the JRuby team along with error.
-#$JAVACMD -version
-
-JRUBY_SHELL=/bin/sh
-
-# ----- Execute The Requested Command -----------------------------------------
-JAVA_ENCODING=""
-
 declare -a java_args
 declare -a ruby_args
-mode=""
 
 # Split out any -J argument for passing to the JVM.
 # Scanning for args is aborted by '--'.
@@ -72,7 +41,25 @@ set -- $JRUBY_OPTS "$@"
 while [ $# -gt 0 ]
 do
     case "$1" in
-    # Stuff after '-J' in this argument goes to JVM
+    -J:*)
+        val=-${1:2}
+        if [ "${val}" = "-classpath" ]; then
+            CP="$CP:$2"
+            CLASSPATH=""
+            shift
+        elif [ "${val}" = "-cp" ]; then
+            CP="$CP:$2"
+            CLASSPATH=""
+            shift
+        else
+            if [ "${val:0:3}" = "-ea" ]; then
+                VERIFY_JRUBY="yes"
+            elif [ "${val:0:16}" = "-Dfile.encoding=" ]; then
+                JAVA_ENCODING=$val
+            fi
+            java_args=("${java_args[@]}" "${1:2}")
+        fi
+        ;;
     -J*)
         val=${1:2}
         if [ "${val}" = "-classpath" ]; then
@@ -92,15 +79,6 @@ do
             java_args=("${java_args[@]}" "${1:2}")
         fi
         ;;
-     # Match -Xa.b.c=d to translate to -Da.b.c=d as a java option
-     -X*)
-        val=${1:2}
-        if expr "$val" : '.*[.]' > /dev/null; then
-          java_args=("${java_args[@]}" "-Djruby.${val}")
-        else
-          ruby_args=("${ruby_args[@]}" "-X${val}")
-        fi
-        ;;
      # Match switches that take an argument
      -C|-e|-I|-S) ruby_args=("${ruby_args[@]}" "$1" "$2"); shift ;;
      # Match same switches with argument stuck together
@@ -115,23 +93,7 @@ do
     shift
 done
 
-JRUBY_CP="$JRUBY_HOME/lib/jruby-truffle.jar"
-
-# Force file.encoding to UTF-8 when on Mac, since Apple JDK defaults to MacRoman (JRUBY-3576)
-if [[ $darwin && -z "$JAVA_ENCODING" ]]; then
-  java_args=("${java_args[@]}" "-Dfile.encoding=UTF-8")
-fi
-
 # Append the rest of the arguments
 ruby_args=("${ruby_args[@]}" "$@")
 
-# Put the ruby_args back into the position arguments $1, $2 etc
-set -- "${ruby_args[@]}"
-
-JFFI_OPTS="-Djffi.boot.library.path=$JRUBY_HOME/lib/jni"
-
-exec "$JAVACMD" $JAVA_OPTS "$JFFI_OPTS" "${java_args[@]}" -Xbootclasspath/a:"$JRUBY_CP" -classpath "$CP:$CLASSPATH" \
-  "-Djruby.home=$JRUBY_HOME" \
-  "-Djruby.lib=$JRUBY_HOME/lib" -Djruby.script=jruby \
-  "-Djruby.shell=$JRUBY_SHELL" \
-  org.truffleruby.Main $mode "$@"
+exec "$JAVACMD" $JAVA_OPTS "${java_args[@]}" "-Xbootclasspath/a:$JRUBY_HOME/lib/jruby-truffle.jar" org.truffleruby.Main "-Xhome=$JRUBY_HOME" "${ruby_args[@]}"

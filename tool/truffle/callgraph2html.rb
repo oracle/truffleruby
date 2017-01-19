@@ -6,7 +6,7 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-# -Xtruffle.callgraph=true -Xtruffle.callgraph.write=test.callgraph
+# -Xcallgraph=true -Xcallgraph.write=test.callgraph
 # ruby tool/truffle/callgraph2html.rb < test.callgraph > callgraph.html && open callgraph.html
 
 require 'erb'

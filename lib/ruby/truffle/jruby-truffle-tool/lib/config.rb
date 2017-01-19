@@ -231,7 +231,7 @@ class TruffleTool::CIEnvironment
          '--require-pattern', require_pattern,
          *(%w[-r excluded-tests] if has_exclusions && option(:exclude)),
          *(%w[--debug] if option(:debug)),
-         *%w[-- -Xtruffle.backtraces.hide_core_files=false -- -I test -e nil]],
+         *%w[-- -Xbacktraces.hide_core_files=false -- -I test -e nil]],
         options: { run: { environment: environment } })
   end
 end

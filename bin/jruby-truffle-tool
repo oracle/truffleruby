@@ -4,6 +4,6 @@ bin="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 root="$(dirname "$bin")"
 
 exec ${bin}/jruby-truffle \
-     -Xtruffle.backtraces.hide_core_files=false \
+     -Xbacktraces.hide_core_files=false \
      ${root}/lib/ruby/truffle/jruby-truffle-tool/bin/jruby-truffle-tool \
      "$@"

@@ -322,7 +322,7 @@ server-benchmarks: {
 
 cext-benchmarks: ${sulong} {
   environment: {
-    JRUBY_OPTS: "-Xtruffle.cexts.log.load=true",
+    JRUBY_OPTS: "-Xcexts.log.load=true",
     USE_CEXTS: "true"
   }
 

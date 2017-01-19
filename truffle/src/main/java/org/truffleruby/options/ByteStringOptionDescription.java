@@ -41,7 +41,11 @@ public class ByteStringOptionDescription extends OptionDescription {
 
     @Override
     public String toString(Object value) {
-        return new String((byte[]) value, StandardCharsets.US_ASCII);
+        if (value == null) {
+            return "null";
+        } else {
+            return new String((byte[]) value, StandardCharsets.US_ASCII);
+        }
     }
 
 }
