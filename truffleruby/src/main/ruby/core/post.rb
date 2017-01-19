@@ -100,5 +100,3 @@ class Module
   end
 
 end
-
-ENV['NO_FORK'] = 'true'

@@ -687,7 +687,8 @@ class TruffleTool
         merge(@options[:run][:offline] ?
                   { 'GEM_HOME' => @options[:run][:offline_gem_path].to_s,
                     'GEM_PATH' => @options[:run][:offline_gem_path].to_s } :
-                  {})
+                  {}).
+        merge({'NO_FORK' => 'true'})
 
     env.each { |k, v| env[k] = v.to_s }
 
