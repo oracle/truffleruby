@@ -314,6 +314,8 @@ ENV = Rubinius::EnvironmentVariables.new
 
 ENV_JAVA = {}
 
+ENV['NO_FORK'] = 'true'
+
 # Windows probably doesn't have a HOME env var, but Rubinius requires it in places, so we need
 # to construct the value and place it in the hash.
 #unless ENV['HOME']
