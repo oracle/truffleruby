@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -19,8 +20,11 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.queue.LinkedBlockingQueueLocksConditions;
+import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.objects.ShapeCachingGuards;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * Share the internal field of an object, accessible by its Layout
@@ -66,12 +70,17 @@ public abstract class ShareInternalFieldsNode extends Node {
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("createBinaryProfile()") ConditionProfile profileEmpty,
             @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
-        LinkedBlockingQueueLocksConditions<Object> queue = Layouts.QUEUE.getQueue(object);
+        UnsizedQueue queue = Layouts.QUEUE.getQueue(object);
         if (!profileEmpty.profile(queue.size() == 0)) {
-            for (Object e : BoundaryIterable.wrap(queue)) {
+            for (Object e : BoundaryIterable.wrap(getQueueContents(queue))) {
                 writeBarrierNode.executeWriteBarrier(e);
             }
         }
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    private Collection<Object> getQueueContents(UnsizedQueue queue) {
+        return queue.getContents();
     }
 
     @Specialization(

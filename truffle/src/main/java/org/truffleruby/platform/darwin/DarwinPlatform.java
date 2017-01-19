@@ -14,16 +14,12 @@ import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.queue.ArrayBlockingQueueLocksConditions;
-import org.truffleruby.core.queue.LinkedBlockingQueueLocksConditions;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.java.JavaClockGetTime;
-import org.truffleruby.platform.openjdk.OpenJDKArrayBlockingQueueLocksConditions;
-import org.truffleruby.platform.openjdk.OpenJDKLinkedBlockingQueueLocksConditions;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.MallocFree;
@@ -101,16 +97,6 @@ public class DarwinPlatform implements NativePlatform {
     @Override
     public FDSet createFDSet() {
         return new PosixFDSet4Bytes();
-    }
-
-    @Override
-    public <T> ArrayBlockingQueueLocksConditions<T> createArrayBlockingQueueLocksConditions(int capacity) {
-        return new OpenJDKArrayBlockingQueueLocksConditions<>(capacity);
-    }
-
-    @Override
-    public <T> LinkedBlockingQueueLocksConditions<T> createLinkedBlockingQueueLocksConditions() {
-        return new OpenJDKLinkedBlockingQueueLocksConditions<>();
     }
 
 }

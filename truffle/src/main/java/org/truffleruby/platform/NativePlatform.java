@@ -10,8 +10,6 @@
 package org.truffleruby.platform;
 
 import jnr.ffi.provider.MemoryManager;
-import org.truffleruby.core.queue.ArrayBlockingQueueLocksConditions;
-import org.truffleruby.core.queue.LinkedBlockingQueueLocksConditions;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.MallocFree;
 import org.truffleruby.platform.posix.Sockets;
@@ -37,9 +35,5 @@ public interface NativePlatform {
     RubiniusConfiguration getRubiniusConfiguration();
 
     FDSet createFDSet();
-
-    <T> ArrayBlockingQueueLocksConditions<T> createArrayBlockingQueueLocksConditions(int capacity);
-
-    <T> LinkedBlockingQueueLocksConditions<T> createLinkedBlockingQueueLocksConditions();
 
 }
