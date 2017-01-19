@@ -121,9 +121,9 @@ project 'JRuby', 'https://github.com/jruby/jruby' do
     plugin :jar, '2.6'
 
     rules = { :requireMavenVersion => { :version => '[3.3.0,)' } }
-    unless model.version =~ /-SNAPSHOT/
-       rules[:requireReleaseDeps] = { :message => 'No Snapshots Allowed!' }
-    end
+    # unless model.version =~ /-SNAPSHOT/
+    #    rules[:requireReleaseDeps] = { :message => 'No Snapshots Allowed!' }
+    # end
     plugin :enforcer, '1.4' do
       execute_goal :enforce, :rules => rules
     end
