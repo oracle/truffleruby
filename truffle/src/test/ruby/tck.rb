@@ -10,39 +10,29 @@ def self.export(method_name)
   Truffle::Interop.export_method method_name
 end
 
-def plus_int(a, b)
+export def plus_int(a, b)
   a + b
 end
 
-Truffle::Interop.export_method(:plus_int)
-
-def fourty_two
+export def fourty_two
   42
 end
 
-Truffle::Interop.export_method(:fourty_two)
-
-def ret_nil
+export def ret_nil
   nil
 end
 
-Truffle::Interop.export_method(:ret_nil)
-
 $invocations = 0
 
-def count_invocations
+export def count_invocations
   $invocations += 1
 end
 
-Truffle::Interop.export_method(:count_invocations)
-
-def apply_numbers(f)
+export def apply_numbers(f)
   f.call(18, 32) + 10
 end
 
-Truffle::Interop.export_method(:apply_numbers)
-
-def compound_object
+export def compound_object
   obj = Object.new
 
   def obj.fourtyTwo
@@ -64,15 +54,11 @@ def compound_object
   obj
 end
 
-Truffle::Interop.export_method(:compound_object)
-
-def identity(value)
+export def identity(value)
   value
 end
 
-Truffle::Interop.export_method(:identity)
-
-def evaluate_source(mime, source)
+export def evaluate_source(mime, source)
   # TODO CS-21-Dec-15 java_string_to_ruby shouldn't be needed - we need to convert j.l.String to Ruby's String automatically
 
   Truffle::Interop.eval(
@@ -80,31 +66,23 @@ def evaluate_source(mime, source)
       Truffle::Interop.unbox(source))
 end
 
-Truffle::Interop.export_method(:evaluate_source)
-
-def complex_add(a, b)
+export def complex_add(a, b)
   a.imaginary = a.imaginary + b.imaginary
   a.real = a.real + b.real
 end
 
-Truffle::Interop.export_method(:complex_add)
-
-def complex_add_with_method(a, b)
+export def complex_add_with_method(a, b)
   a.imaginary = a.imaginary + b.imaginary
   a.real = a.real + b.real
 end
 
-Truffle::Interop.export_method(:complex_add_with_method)
-
-def complex_sum_real(complexes)
+export def complex_sum_real(complexes)
   complexes = Truffle::Interop.enumerable(complexes)
 
   complexes.map{ |c| c.real }.inject(&:+)
 end
 
-Truffle::Interop.export_method(:complex_sum_real)
-
-def complex_copy(a, b)
+export def complex_copy(a, b)
   a = Truffle::Interop.enumerable(a)
   b = Truffle::Interop.enumerable(b)
 
@@ -119,8 +97,6 @@ def complex_copy(a, b)
     x.real = y.real
   end
 end
-
-Truffle::Interop.export_method(:complex_copy)
 
 class ValuesClass
 
@@ -148,19 +124,15 @@ class ValuesClass
 
 end
 
-def values_object
+export def values_object
   ValuesClass.new
 end
 
-Truffle::Interop.export_method(:values_object)
-
-def add_array(array, index, value)
+export def add_array(array, index, value)
   array[index] += value
 end
 
-Truffle::Interop.export_method(:add_array)
-
-def count_up_while(f)
+export def count_up_while(f)
   counter = 0
   loop do
     break unless f.call(counter)
@@ -168,13 +140,9 @@ def count_up_while(f)
   end
 end
 
-Truffle::Interop.export_method(:count_up_while)
-
-def object_with_element
+export def object_with_element
   [1, 2, 42.0, 4]
 end
-
-Truffle::Interop.export_method(:object_with_element)
 
 class ObjectWithValueProperty
 
@@ -186,19 +154,15 @@ class ObjectWithValueProperty
 
 end
 
-def object_with_value_property
+export def object_with_value_property
   ObjectWithValueProperty.new
 end
 
-Truffle::Interop.export_method(:object_with_value_property)
-
-def function_add_numbers
+export def function_add_numbers
   proc do |a, b|
     a + b
   end
 end
-
-Truffle::Interop.export_method(:function_add_numbers)
 
 class ObjectWithValueAndAddProperty
 
@@ -214,71 +178,49 @@ class ObjectWithValueAndAddProperty
 
 end
 
-def object_with_value_and_add_property
+export def object_with_value_and_add_property
   ObjectWithValueAndAddProperty.new
 end
 
-Truffle::Interop.export_method(:object_with_value_and_add_property)
-
-def call_function(function)
+export def call_function(function)
   function.call 41.0, 42.0
 end
 
-Truffle::Interop.export_method(:call_function)
-
-def call_method(object)
+export def call_method(object)
   object.foo 41.0, 42.0
 end
 
-Truffle::Interop.export_method(:call_method)
-
-def read_value_from_foreign(object)
+export def read_value_from_foreign(object)
   object.value
 end
 
-Truffle::Interop.export_method(:read_value_from_foreign)
-
-def read_element_from_foreign(object)
+export def read_element_from_foreign(object)
   object[2]
 end
 
-Truffle::Interop.export_method(:read_element_from_foreign)
-
-def write_value_to_foreign(object)
+export def write_value_to_foreign(object)
   object.value = 42.0
 end
 
-Truffle::Interop.export_method(:write_value_to_foreign)
-
-def write_element_to_foreign(object)
+export def write_element_to_foreign(object)
   object[2] = 42.0
 end
 
-Truffle::Interop.export_method(:write_element_to_foreign)
-
-def get_size_of_foreign(object)
+export def get_size_of_foreign(object)
   Truffle::Interop.size(object)
 end
 
-Truffle::Interop.export_method(:get_size_of_foreign)
-
-def has_size_of_foreign(object)
+export def has_size_of_foreign(object)
   Truffle::Interop.size?(object)
 end
 
-Truffle::Interop.export_method(:has_size_of_foreign)
-
-def is_null_foreign(object)
+export def is_null_foreign(object)
   object.nil?
 end
 
-Truffle::Interop.export_method(:is_null_foreign)
-
-def is_executable_of_foreign(object)
+export def is_executable_of_foreign(object)
   Truffle::Interop.executable?(object)
 end
-
-Truffle::Interop.export_method(:is_executable_of_foreign)
 
 
 export def value_with_source(object)
