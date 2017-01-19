@@ -227,6 +227,20 @@ public class RubyTckTest extends TruffleTCK {
     }
 
     @Override
+    protected String valueWithSource() {
+        return "value_with_source";
+    }
+
+    @Override
+    protected String[] metaObjects() {
+        return new String[]{
+                "meta_objects_int", "meta_objects_int_metaclass",
+                "meta_objects_str", "meta_objects_str_metaclass",
+                "meta_objects_proc", "meta_objects_proc_metaclass",
+        };
+    }
+
+    @Override
     public void readWriteCharValue() throws Exception {
         // Skipped for now
     }
