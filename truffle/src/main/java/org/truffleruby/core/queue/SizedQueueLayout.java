@@ -22,9 +22,9 @@ public interface SizedQueueLayout extends BasicObjectLayout {
                                                DynamicObject metaClass);
 
     DynamicObject createSizedQueue(DynamicObjectFactory factory,
-                                   @Nullable ArrayBlockingQueueLocksConditions<Object> queue);
+                                   @Nullable SizedQueue queue);
 
-    ArrayBlockingQueueLocksConditions<Object> getQueue(DynamicObject object);
-    void setQueue(DynamicObject object, ArrayBlockingQueueLocksConditions<Object> value);
+    SizedQueue getQueue(DynamicObject object);
+    void setQueue(DynamicObject object, SizedQueue value);
 
 }

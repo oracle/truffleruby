@@ -30,9 +30,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * We do not reuse much of class Queue since we need to be able to replace the queue in this case
  * and methods are small anyway.
@@ -63,7 +60,7 @@ public abstract class SizedQueueNodes {
                 throw new RaiseException(coreExceptions().argumentError("queue size must be positive", this));
             }
 
-            final ArrayBlockingQueueLocksConditions<Object> blockingQueue = getContext().getNativePlatform().createArrayBlockingQueueLocksConditions(capacity);
+            final SizedQueue blockingQueue = new SizedQueue(capacity);
             Layouts.SIZED_QUEUE.setQueue(self, blockingQueue);
             return self;
         }
@@ -80,16 +77,8 @@ public abstract class SizedQueueNodes {
                 throw new RaiseException(coreExceptions().argumentError("queue size must be positive", this));
             }
 
-            final ArrayBlockingQueueLocksConditions<Object> oldQueue = Layouts.SIZED_QUEUE.getQueue(self);
-            final ArrayBlockingQueueLocksConditions<Object> newQueue = getContext().getNativePlatform().createArrayBlockingQueueLocksConditions(newCapacity);
-
-            // TODO (eregon, 12 July 2015): racy and what to do if the new capacity is lower?
-            Object element;
-            while ((element = oldQueue.poll()) != null) {
-                newQueue.add(element);
-            }
-            Layouts.SIZED_QUEUE.setQueue(self, newQueue);
-
+            final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
+            queue.changeCapacity(newCapacity);
             return newCapacity;
         }
 
@@ -101,10 +90,8 @@ public abstract class SizedQueueNodes {
         @TruffleBoundary
         @Specialization
         public int max(DynamicObject self) {
-            final BlockingQueue<Object> queue = Layouts.SIZED_QUEUE.getQueue(self);
-
-            // TODO (eregon, 12 July 2015): We could be more accurate here and remember the capacity ourselves
-            return queue.size() + queue.remainingCapacity();
+            final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
+            return queue.getCapacity();
         }
 
     }
@@ -126,7 +113,7 @@ public abstract class SizedQueueNodes {
 
         @Specialization(guards = "!nonBlocking")
         public DynamicObject pushBlocking(DynamicObject self, final Object value, boolean nonBlocking) {
-            final BlockingQueue<Object> queue = Layouts.SIZED_QUEUE.getQueue(self);
+            final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
             propagateSharingNode.propagate(self, value);
             doPushBlocking(value, queue);
@@ -135,7 +122,7 @@ public abstract class SizedQueueNodes {
         }
 
         @TruffleBoundary
-        private void doPushBlocking(final Object value, final BlockingQueue<Object> queue) {
+        private void doPushBlocking(final Object value, final SizedQueue queue) {
             getContext().getThreadManager().runUntilResult(this, new BlockingAction<Boolean>() {
                 @Override
                 public Boolean block() throws InterruptedException {
@@ -148,7 +135,7 @@ public abstract class SizedQueueNodes {
         @Specialization(guards = "nonBlocking")
         public DynamicObject pushNonBlock(DynamicObject self, final Object value, boolean nonBlocking,
                 @Cached("create()") BranchProfile errorProfile) {
-            final BlockingQueue<Object> queue = Layouts.SIZED_QUEUE.getQueue(self);
+            final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
             propagateSharingNode.propagate(self, value);
             final boolean pushed = doOffer(value, queue);
@@ -161,7 +148,7 @@ public abstract class SizedQueueNodes {
         }
 
         @TruffleBoundary
-        private boolean doOffer(final Object value, final BlockingQueue<Object> queue) {
+        private boolean doOffer(final Object value, final SizedQueue queue) {
             return queue.offer(value);
         }
 
@@ -181,20 +168,20 @@ public abstract class SizedQueueNodes {
 
         @Specialization(guards = "!nonBlocking")
         public Object popBlocking(DynamicObject self, boolean nonBlocking) {
-            final BlockingQueue<Object> queue = Layouts.SIZED_QUEUE.getQueue(self);
+            final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
             return doPop(queue);
         }
 
         @TruffleBoundary
-        private Object doPop(final BlockingQueue<Object> queue) {
+        private Object doPop(final SizedQueue queue) {
             return getContext().getThreadManager().runUntilResult(this, () -> queue.take());
         }
 
         @Specialization(guards = "nonBlocking")
         public Object popNonBlock(DynamicObject self, boolean nonBlocking,
                 @Cached("create()") BranchProfile errorProfile) {
-            final BlockingQueue<Object> queue = Layouts.SIZED_QUEUE.getQueue(self);
+            final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
             final Object value = doPoll(queue);
             if (value == null) {
@@ -206,7 +193,7 @@ public abstract class SizedQueueNodes {
         }
 
         @TruffleBoundary
-        private Object doPoll(final BlockingQueue<Object> queue) {
+        private Object doPoll(final SizedQueue queue) {
             return queue.poll();
         }
 
@@ -218,7 +205,7 @@ public abstract class SizedQueueNodes {
         @TruffleBoundary
         @Specialization
         public boolean empty(DynamicObject self) {
-            final BlockingQueue<Object> queue = Layouts.SIZED_QUEUE.getQueue(self);
+            final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
             return queue.isEmpty();
         }
 
@@ -229,7 +216,7 @@ public abstract class SizedQueueNodes {
 
         @Specialization
         public int size(DynamicObject self) {
-            final BlockingQueue<Object> queue = Layouts.SIZED_QUEUE.getQueue(self);
+            final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
             return queue.size();
         }
 
@@ -241,7 +228,7 @@ public abstract class SizedQueueNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject clear(DynamicObject self) {
-            final BlockingQueue<Object> queue = Layouts.SIZED_QUEUE.getQueue(self);
+            final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
             queue.clear();
             return self;
         }
@@ -253,22 +240,8 @@ public abstract class SizedQueueNodes {
 
         @Specialization
         public int num_waiting(DynamicObject self) {
-            final ArrayBlockingQueueLocksConditions<Object> queue = Layouts.SIZED_QUEUE.getQueue(self);
-
-            final ReentrantLock lock = queue.getLock();
-
-            getContext().getThreadManager().runUntilResult(this, new BlockingAction<Boolean>() {
-                @Override
-                public Boolean block() throws InterruptedException {
-                    lock.lockInterruptibly();
-                    return SUCCESS;
-                }
-            });
-            try {
-                return lock.getWaitQueueLength(queue.getNotEmptyCondition()) + lock.getWaitQueueLength(queue.getNotFullCondition());
-            } finally {
-                lock.unlock();
-            }
+            final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
+            return queue.getNumberWaiting();
         }
 
     }

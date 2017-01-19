@@ -24,16 +24,13 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
-import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 @CoreClass("Queue")
 public abstract class QueueNodes {
@@ -45,7 +42,7 @@ public abstract class QueueNodes {
 
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateNode.allocate(rubyClass, getContext().getNativePlatform().createLinkedBlockingQueueLocksConditions());
+            return allocateNode.allocate(rubyClass, new UnsizedQueue());
         }
 
     }
@@ -57,7 +54,7 @@ public abstract class QueueNodes {
 
         @Specialization
         public DynamicObject push(DynamicObject self, final Object value) {
-            final BlockingQueue<Object> queue = Layouts.QUEUE.getQueue(self);
+            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             propagateSharingNode.propagate(self, value);
             doPush(value, queue);
@@ -66,7 +63,7 @@ public abstract class QueueNodes {
         }
 
         @TruffleBoundary
-        private void doPush(final Object value, final BlockingQueue<Object> queue) {
+        private void doPush(final Object value, final UnsizedQueue queue) {
             queue.add(value);
         }
 
@@ -86,20 +83,20 @@ public abstract class QueueNodes {
 
         @Specialization(guards = "!nonBlocking")
         public Object popBlocking(DynamicObject self, boolean nonBlocking) {
-            final BlockingQueue<Object> queue = Layouts.QUEUE.getQueue(self);
+            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             return doPop(queue);
         }
 
         @TruffleBoundary
-        private Object doPop(final BlockingQueue<Object> queue) {
+        private Object doPop(final UnsizedQueue queue) {
             return getContext().getThreadManager().runUntilResult(this, () -> queue.take());
         }
 
         @Specialization(guards = "nonBlocking")
         public Object popNonBlock(DynamicObject self, boolean nonBlocking,
                 @Cached("create()") BranchProfile errorProfile) {
-            final BlockingQueue<Object> queue = Layouts.QUEUE.getQueue(self);
+            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             final Object value = doPoll(queue);
             if (value == null) {
@@ -111,7 +108,7 @@ public abstract class QueueNodes {
         }
 
         @TruffleBoundary
-        private Object doPoll(final BlockingQueue<Object> queue) {
+        private Object doPoll(final UnsizedQueue queue) {
             return queue.poll();
         }
 
@@ -132,7 +129,7 @@ public abstract class QueueNodes {
 
         @Specialization
         public Object receiveTimeout(DynamicObject self, double duration) {
-            final BlockingQueue<Object> queue = Layouts.QUEUE.getQueue(self);
+            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
             final long durationInMillis = (long) (duration * 1000.0);
             final long start = System.currentTimeMillis();
@@ -167,7 +164,7 @@ public abstract class QueueNodes {
         @TruffleBoundary
         @Specialization
         public boolean empty(DynamicObject self) {
-            final BlockingQueue<Object> queue = Layouts.QUEUE.getQueue(self);
+            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
             return queue.isEmpty();
         }
 
@@ -179,7 +176,7 @@ public abstract class QueueNodes {
         @TruffleBoundary
         @Specialization
         public int size(DynamicObject self) {
-            final BlockingQueue<Object> queue = Layouts.QUEUE.getQueue(self);
+            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
             return queue.size();
         }
 
@@ -191,7 +188,7 @@ public abstract class QueueNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject clear(DynamicObject self) {
-            final BlockingQueue<Object> queue = Layouts.QUEUE.getQueue(self);
+            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
             queue.clear();
             return self;
         }
@@ -213,22 +210,8 @@ public abstract class QueueNodes {
 
         @Specialization
         public int num_waiting(DynamicObject self) {
-            final LinkedBlockingQueueLocksConditions<Object> queue = Layouts.QUEUE.getQueue(self);
-
-            final ReentrantLock lock = queue.getLock();
-
-            getContext().getThreadManager().runUntilResult(this, new BlockingAction<Boolean>() {
-                @Override
-                public Boolean block() throws InterruptedException {
-                    lock.lockInterruptibly();
-                    return SUCCESS;
-                }
-            });
-            try {
-                return lock.getWaitQueueLength(queue.getNotEmptyCondition());
-            } finally {
-                lock.unlock();
-            }
+            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
+            return queue.getNumberWaitingToTake();
         }
 
     }

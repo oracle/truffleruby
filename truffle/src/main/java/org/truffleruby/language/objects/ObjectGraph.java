@@ -20,6 +20,8 @@ import com.oracle.truffle.api.object.Property;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.hash.Entry;
+import org.truffleruby.core.queue.SizedQueue;
+import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import java.util.ArrayDeque;
@@ -127,6 +129,18 @@ public abstract class ObjectGraph {
                 }
             } else if (propertyValue instanceof Collection<?>) {
                 for (Object element : ((Collection<?>) propertyValue)) {
+                    if (element instanceof DynamicObject) {
+                        reachable.add((DynamicObject) element);
+                    }
+                }
+            } else if (propertyValue instanceof SizedQueue) {
+                for (Object element : ((SizedQueue) propertyValue).getContents()) {
+                    if (element instanceof DynamicObject) {
+                        reachable.add((DynamicObject) element);
+                    }
+                }
+            } else if (propertyValue instanceof UnsizedQueue) {
+                for (Object element : ((UnsizedQueue) propertyValue).getContents()) {
                     if (element instanceof DynamicObject) {
                         reachable.add((DynamicObject) element);
                     }
