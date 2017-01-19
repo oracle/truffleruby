@@ -3154,15 +3154,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitSymbolNode(SymbolParseNode node) {
-        String name = node.getName();
-        // The symbol is passed as a String but it's really
-        // "interpret the char[] as a byte[] with the given encoding".
-        byte[] bytes = new byte[name.length()];
-        for (int i = 0; i < name.length(); i++) {
-            char val = name.charAt(i);
-            assert val >= 0 && val < 256;
-            bytes[i] = (byte) (val & 0xFF);
-        }
+        final byte[] bytes = StringOperations.plain(node.getName());
         final Rope rope = RopeOperations.create(bytes, node.getEncoding(), CodeRange.CR_UNKNOWN);
         final RubyNode ret = new ObjectLiteralNode(context.getSymbolTable().getSymbol(rope));
         ret.unsafeSetSourceSection(node.getPosition());
