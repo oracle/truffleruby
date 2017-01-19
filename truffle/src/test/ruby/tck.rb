@@ -6,6 +6,10 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
+def self.export(method_name)
+  Truffle::Interop.export_method method_name
+end
+
 def plus_int(a, b)
   a + b
 end
@@ -275,3 +279,33 @@ def is_executable_of_foreign(object)
 end
 
 Truffle::Interop.export_method(:is_executable_of_foreign)
+
+
+export def value_with_source(object)
+  -> {}
+end
+
+
+export def meta_objects_int(object)
+  42
+end
+
+export def meta_objects_int_metaclass(object)
+  Fixnum
+end
+
+export def meta_objects_str(object)
+  "Hello Meta"
+end
+
+export def meta_objects_str_metaclass(object)
+  String
+end
+
+export def meta_objects_proc(object)
+  -> {}
+end
+
+export def meta_objects_proc_metaclass(object)
+  Proc
+end
