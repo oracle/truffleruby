@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.Instrumentable;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
@@ -105,7 +105,8 @@ public abstract class RubyNode extends RubyBaseNode {
 
     // Boundaries
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
+    @Override
     public SourceSection getEncapsulatingSourceSection() {
         return super.getEncapsulatingSourceSection();
     }
