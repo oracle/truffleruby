@@ -18,13 +18,12 @@ import org.truffleruby.language.RubyNode;
 public class WriteClassVariableNode extends RubyNode {
 
     private final String name;
-    private final LexicalScope lexicalScope;
 
+    @Child private RubyNode lexicalScopeNode;
     @Child private RubyNode rhs;
 
-    public WriteClassVariableNode(LexicalScope lexicalScope,
-                                  String name, RubyNode rhs) {
-        this.lexicalScope = lexicalScope;
+    public WriteClassVariableNode(RubyNode lexicalScopeNode, String name, RubyNode rhs) {
+        this.lexicalScopeNode = lexicalScopeNode;
         this.name = name;
         this.rhs = rhs;
     }
@@ -33,8 +32,8 @@ public class WriteClassVariableNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         final Object rhsValue = rhs.execute(frame);
 
+        final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
         // TODO CS 21-Feb-16 these two operations are uncached and use loops
-
         final DynamicObject module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
 
         ModuleOperations.setClassVariable(getContext(), module, name, rhsValue, this);

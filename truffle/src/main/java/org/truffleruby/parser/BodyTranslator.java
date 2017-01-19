@@ -149,6 +149,7 @@ import org.truffleruby.language.objects.DefineClassNode;
 import org.truffleruby.language.objects.DefineModuleNode;
 import org.truffleruby.language.objects.DefineModuleNodeGen;
 import org.truffleruby.language.objects.DynamicLexicalScopeNode;
+import org.truffleruby.language.objects.GetDynamicLexicalScopeNode;
 import org.truffleruby.language.objects.LexicalScopeNode;
 import org.truffleruby.language.objects.ReadClassVariableNode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
@@ -1085,7 +1086,7 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
         final RubyNode rhs = node.getValueNode().accept(this);
 
-        final RubyNode ret = new WriteClassVariableNode(environment.getLexicalScope(), node.getName(), rhs);
+        final RubyNode ret = new WriteClassVariableNode(getLexicalScopeNode("set dynamic class variable", sourceSection), node.getName(), rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -1093,7 +1094,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitClassVarNode(ClassVarParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode ret = new ReadClassVariableNode(environment.getLexicalScope(), node.getName());
+        final RubyNode ret = new ReadClassVariableNode(getLexicalScopeNode("class variable lookup", sourceSection), node.getName());
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -1192,6 +1193,17 @@ public class BodyTranslator extends Translator {
             return new DynamicLexicalScopeNode();
         } else {
             return new LexicalScopeNode(environment.getLexicalScope());
+        }
+    }
+
+    private RubyNode getLexicalScopeNode(String kind, SourceIndexLength sourceSection) {
+        if (environment.isDynamicConstantLookup()) {
+            if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
+                Log.LOGGER.info(() -> kind + " at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+            }
+            return new GetDynamicLexicalScopeNode();
+        } else {
+            return new ObjectLiteralNode(environment.getLexicalScope());
         }
     }
 
