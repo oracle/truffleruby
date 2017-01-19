@@ -2736,15 +2736,21 @@ public class RubyLexer {
         int start = lex_p - 1;
         int end = lex_pend;
         int length = end - start;
-        return getEncodingLength(parserRopeOperations.makeShared(lexb, start, length), current_enc);
-    }
 
-    public int getEncodingLength(Rope rope, Encoding encoding) {
-        if ((encoding == rope.getEncoding() && rope.isSingleByteOptimizable()) || encoding.isSingleByte()) {
+        // A substring of a single-byte optimizable string is always single-byte optimizable, so there's no need
+        // to actually perform the substring operation.
+        if ((current_enc == lexb.getEncoding() && lexb.isSingleByteOptimizable()) || current_enc.isSingleByte()) {
             return 1;
         }
 
-        return StringSupport.encFastMBCLen(rope.getBytes(), 0, rope.byteLength(), encoding);
+        // Otherwise, take the substring and see if that new string is single-byte optimizable.
+        Rope rope = parserRopeOperations.makeShared(lexb, start, length);
+        if ((current_enc == rope.getEncoding() && rope.isSingleByteOptimizable())) {
+            return 1;
+        }
+
+        // Barring all else, we must inspect the bytes for the substring.
+        return StringSupport.encFastMBCLen(rope.getBytes(), 0, rope.byteLength(), current_enc);
     }
 
     public void pushback(int c) {
