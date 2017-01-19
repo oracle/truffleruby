@@ -9,11 +9,13 @@ common: {
 
   downloads : {
     JAVA_HOME : {name : oraclejdk, version : "8u60", platformspecific: true}
+    MAVEN_HOME : {name : maven, version : "3.3.9"}
   }
 
   environment: {
     CI: "true",
     JAVA_OPTS: -Xmx2G
+    PATH: "$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH"
   }
 
   setup: [
