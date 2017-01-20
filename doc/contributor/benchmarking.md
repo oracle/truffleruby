@@ -22,12 +22,6 @@ You can turn off Graal if you want using `--no-graal`.
 $ jt benchmark --no-graal .../all-ruby-benchmarks/classic/mandelbrot.rb --simple
 ```
 
-You can benchmark JRuby Classic using `-Xclassic` in `JRUBY_OPTS`.
-
-```
-$ JRUBY_OPTS=-Xclassic jt benchmark .../all-ruby-benchmarks/classic/mandelbrot.rb --simple
-```
-
 You can benchmark an entirely different implementation using the
 `JT_BENCHMARK_RUBY` environment variable.
 
