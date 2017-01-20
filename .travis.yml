@@ -47,3 +47,8 @@ script:
 
 services:
 - redis-server
+
+branches:
+  only:
+    - truffle-head
+    - /^try/
