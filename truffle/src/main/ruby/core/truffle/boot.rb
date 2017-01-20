@@ -33,6 +33,9 @@ module Truffle
 
       return name if File.exists?(name)
 
+      name_in_ruby_home_lib = "#{RbConfig::CONFIG['libdir']}/bin/#{name}"
+      return name_in_ruby_home_lib if File.exists?(name_in_ruby_home_lib)
+
       name_in_ruby_home_bin = "#{RbConfig::CONFIG['bindir']}/#{name}"
       return name_in_ruby_home_bin if File.exists?(name_in_ruby_home_bin)
 
