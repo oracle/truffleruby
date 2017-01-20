@@ -177,7 +177,7 @@ public class Main {
             }
         }
 
-        if (!TruffleOptions.AOT && !config.doesHaveScriptArgv() && !config.shouldUsePathScript() && System.console() != null) {
+        if (!config.doesHaveScriptArgv() && !config.shouldUsePathScript() && System.console() != null) {
             config.setUsePathScript("irb");
         }
     }
