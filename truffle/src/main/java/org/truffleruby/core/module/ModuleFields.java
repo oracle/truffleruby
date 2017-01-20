@@ -162,7 +162,11 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
         // Do not copy name, the copy is an anonymous module
         final ModuleFields fromFields = Layouts.MODULE.getFields(from);
-        this.methods.putAll(fromFields.methods);
+
+        for (InternalMethod method : fromFields.methods.values()) {
+            this.methods.put(method.getName(), method.withDeclaringModule(rubyModuleObject));
+        }
+
         this.constants.putAll(fromFields.constants);
         this.classVariables.putAll(fromFields.classVariables);
 
