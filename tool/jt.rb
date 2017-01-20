@@ -80,14 +80,6 @@ module Utilities
 
     raise "More than one of GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME defined!" if [graalvm, jvmci, graal_home].compact.count > 1
 
-    if !graalvm && !jvmci && !graal_home
-      if truffle_release?
-        graalvm = ENV['GRAALVM_RELEASE_BIN']
-      else
-        graal_home = ENV['GRAAL_HOME_TRUFFLE_HEAD']
-      end
-    end
-
     if graalvm
       javacmd = File.expand_path(graalvm)
       vm_args = []
@@ -511,8 +503,6 @@ module Commands
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled (so JDK 9 EA build) java command (aslo set JVMCI_GRAAL_HOME)
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
-        GRAALVM_RELEASE_BIN                          Default GraalVM executable when using a released version of Truffle (such as on master)
-        GRAAL_HOME_TRUFFLE_HEAD                      Default Graal directory when using a snapshot version of Truffle (such as on truffle-head)
         SULONG_HOME                                  The Sulong source repository, if you want to run cextc
         GRAAL_JS_JAR                                 The location of trufflejs.jar
         SL_JAR                                       The location of truffle-sl.jar

@@ -65,10 +65,6 @@ $ ruby ...
 $ jt ruby ...
 ```
 
-Note that running Ruby without any arguments does not start a shell. You should
-run `jt irb` if you want an interactive shell, or `irb` to run the shell of your
-system Ruby or a GraalVM tarball.
-
 ## Options
 
 Specify JVM options with `-J-option`.
@@ -94,14 +90,14 @@ To run with a GraalVM binary tarball, set the `GRAALVM_BIN` environment variable
 and run with the `--graal` option.
 
 ```
-$ export GRAALVM_BIN=.../graalvm-0.18-re/bin/java
+$ export GRAALVM_BIN=.../graalvm-0.19-re/bin/java
 $ jt ruby --graal ...
 ```
 
 You can check this is working by printing the value of `Truffle::Graal.graal?`.
 
 ```
-$ export GRAALVM_BIN=.../graalvm-0.18-re/bin/java
+$ export GRAALVM_BIN=.../graalvm-0.19-re/bin/java
 $ jt ruby --graal -e 'p Truffle::Graal.graal?'
 ```
 
