@@ -75,12 +75,12 @@ bet set in the `TRUFFLERUBYOPT` environment variable.
 ## JVM- and SVM-specific arguments
 
 If you are running TruffleRuby on a JVM or the GraalVM, we additionally support
-passing options to the JVM using either a `-J:` or `-J-` prefix. For example
-`-J:ea` or `-J-ea`.
+passing options to the JVM using either a `-J-` or `-J:` prefix. For example
+`-J-ea` or `-J:ea`.
 
 ```
 JVM:
-  -J:arg, -J-arg   pass arg to the JVM
+  -J-arg, -J:arg   pass arg to the JVM
 ```
 
 TruffleRuby also supports the `JAVA_HOME`, `JAVACMD` and `JAVA_OPTS` environment

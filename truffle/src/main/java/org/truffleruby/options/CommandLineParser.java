@@ -612,7 +612,7 @@ public class CommandLineParser {
             out.println("  -Dname=value    set a system property");
         } else {
             out.println("JVM:");
-            out.println("  -J:arg, -J-arg  pass arg to the JVM");
+            out.println("  -J-arg, -J:arg  pass arg to the JVM");
         }
     }
 
