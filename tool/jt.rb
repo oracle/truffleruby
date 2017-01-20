@@ -1101,7 +1101,7 @@ module Commands
     samples = []
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
-      out, err = run '-Xmetrics.memory_used_on_exit=true', '-J-verbose:gc', *args, {capture: true, no_print_cmd: true}
+      out, err = run '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-Xmetrics.memory_used_on_exit=true', '-J-verbose:gc', *args, {capture: true, no_print_cmd: true}
       samples.push memory_allocated(out+err)
     end
     Utilities.log "\n", nil
@@ -1184,7 +1184,7 @@ module Commands
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now
-      out, err = run '-Xmetrics.time=true', *args, {capture: true, no_print_cmd: true}
+      out, err = run '-J-Dtruffleruby.metrics.time=true', '-Xmetrics.time=true', *args, {capture: true, no_print_cmd: true}
       finish = Time.now
       samples.push get_times(err, finish - start)
     end
