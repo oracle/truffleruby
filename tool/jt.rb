@@ -367,9 +367,15 @@ module ShellUtils
       options = []
     end
 
-    args = ['-q', *args] unless VERBOSE
+    if File.exist?('mvnw')
+      mvn = './mvnw'
+    else
+      mvn = 'mvn'
+    end
 
-    sh *options, './mvnw', *args
+    args = ['-q', *args] unless VERBOSE
+    
+    sh *options, mvn, *args
   end
 
   def mx(dir, *args)
