@@ -157,7 +157,7 @@ public class SizedQueue {
                 size = 0;
                 addEnd = 0;
                 takeEnd = 0;
-                canAdd.signal();
+                canAdd.signalAll();
             }
         } finally {
             lock.unlock();
