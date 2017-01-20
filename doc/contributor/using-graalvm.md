@@ -6,10 +6,10 @@ bundled in GraalVM.
 
 For contributors, the version of Graal and Truffle in
 GraalVM is not always compatible, so we recommend building Graal yourself for
-developing TruffleRuby. See `builing-graal.md`.
+developing TruffleRuby. See [Building Graal](building-graal.md).
 
 If you want to run TruffleRuby on a GraalVM release anyway,
-first follow the instructions for end-users in `doc/user/using-graalvm.md`.
+first follow the instructions for end-users in [Running with GraalVM](../user/using-graalvm.md).
 Then set the environment variable `GRAALVM_BIN` to the `bin/java` executable in
 GraalVM and use `jt` to run TruffleRuby.
 
