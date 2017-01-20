@@ -167,7 +167,10 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             this.methods.put(method.getName(), method.withDeclaringModule(rubyModuleObject));
         }
 
-        this.constants.putAll(fromFields.constants);
+        for (Entry<String, RubyConstant> entry : fromFields.constants.entrySet()) {
+            this.constants.put(entry.getKey(), entry.getValue());
+        }
+
         this.classVariables.putAll(fromFields.classVariables);
 
         if (fromFields.hasPrependedModules()) {
