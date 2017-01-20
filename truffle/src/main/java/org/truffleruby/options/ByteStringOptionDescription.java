@@ -12,7 +12,7 @@ package org.truffleruby.options;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public class ByteStringOptionDescription extends OptionDescription {
+public class ByteStringOptionDescription extends OptionDescription<byte[]> {
 
     private final byte[] defaultValue;
 
@@ -22,29 +22,29 @@ public class ByteStringOptionDescription extends OptionDescription {
     }
 
     @Override
-    public Object getDefaultValue() {
+    public byte[] getDefaultValue() {
         return defaultValue;
     }
 
     @Override
-    public Object checkValue(Object value) {
+    public byte[] checkValue(Object value) {
         if (value == null) {
             return null;
         } else if (value instanceof String) {
             return ((String) value).getBytes(Charset.defaultCharset());
         } else if (value instanceof byte[]) {
-            return value;
+            return (byte[]) value;
         } else {
             throw new OptionTypeException(getName(), value.toString());
         }
     }
 
     @Override
-    public String toString(Object value) {
+    public String toString(byte[] value) {
         if (value == null) {
             return "null";
         } else {
-            return new String((byte[]) value, StandardCharsets.US_ASCII);
+            return new String(value, StandardCharsets.US_ASCII);
         }
     }
 

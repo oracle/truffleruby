@@ -9,7 +9,7 @@
  */
 package org.truffleruby.options;
 
-public abstract class OptionDescription {
+public abstract class OptionDescription<T> {
 
     private final String name;
     private final String description;
@@ -27,11 +27,16 @@ public abstract class OptionDescription {
         return description;
     }
 
-    public abstract Object getDefaultValue();
+    public abstract T getDefaultValue();
 
-    public abstract Object checkValue(Object value);
+    public abstract T checkValue(Object value);
 
-    public String toString(Object value) {
+    @SuppressWarnings("unchecked")
+    public T cast(Object value) {
+        return (T) value;
+    }
+
+    public String toString(T value) {
         if (value == null) {
             return "null";
         } else {

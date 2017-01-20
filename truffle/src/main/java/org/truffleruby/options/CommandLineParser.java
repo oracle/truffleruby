@@ -377,8 +377,10 @@ public class CommandLineParser {
                     if (extendedOption == null) {
                         throw new MainExitException(0, "no extended options in Truffle");
                     } else if (extendedOption.equals("options")) {
+                        System.out.println("TruffleRuby options and their default values:");
                         for (OptionDescription option : OptionsCatalog.allDescriptions()) {
-                            System.out.printf("\t-X%s    %s    %s%n", option.getName(), option.getDescription(), option.toString(option.getDefaultValue()));
+                            final String nameValue = String.format("-X%s=%s", option.getName(), option.toString(option.getDefaultValue()));
+                            System.out.printf("  %s%" + (50 - nameValue.length()) + "s# %s%n", nameValue, "", option.getDescription());
                         }
                         config.setShouldRunInterpreter(false);
                     } else if (extendedOption.startsWith("log=")) {

@@ -9,7 +9,7 @@
  */
 package org.truffleruby.options;
 
-public class StringOptionDescription extends OptionDescription {
+public class StringOptionDescription extends OptionDescription<String> {
 
     private final String defaultValue;
 
@@ -19,12 +19,12 @@ public class StringOptionDescription extends OptionDescription {
     }
 
     @Override
-    public Object getDefaultValue() {
+    public String getDefaultValue() {
         return defaultValue;
     }
 
     @Override
-    public Object checkValue(Object value) {
+    public String checkValue(Object value) {
         if (value == null) {
             return null;
         } else {

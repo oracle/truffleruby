@@ -9,7 +9,7 @@
  */
 package org.truffleruby.options;
 
-public class VerbosityOptionDescription extends OptionDescription {
+public class VerbosityOptionDescription extends OptionDescription<Verbosity> {
 
     private final Verbosity defaultValue;
 
@@ -24,7 +24,7 @@ public class VerbosityOptionDescription extends OptionDescription {
     }
 
     @Override
-    public Object checkValue(Object value) {
+    public Verbosity checkValue(Object value) {
         if (value == null) {
             return Verbosity.NIL;
         } else if (value instanceof Boolean) {
@@ -62,7 +62,7 @@ public class VerbosityOptionDescription extends OptionDescription {
                     throw new OptionTypeException(getName(), value.toString());
             }
         } else if (value instanceof Verbosity) {
-            return value;
+            return (Verbosity) value;
         } else {
             throw new OptionTypeException(getName(), value.toString());
         }

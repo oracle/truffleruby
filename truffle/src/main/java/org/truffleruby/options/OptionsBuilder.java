@@ -60,37 +60,34 @@ public class OptionsBuilder {
         return options;
     }
 
-    @SuppressWarnings("unchecked")
-    <T> T getOrDefault(OptionDescription description) {
-        final Object value = options.get(description);
+    <T> T getOrDefault(OptionDescription<T> description) {
+        final T value = description.cast(options.get(description));
 
         if (value == null) {
-            return (T) description.getDefaultValue();
+            return description.getDefaultValue();
         } else {
-            return (T) value;
+            return value;
         }
     }
 
-    @SuppressWarnings("unchecked")
-    <T> T getOrDefault(OptionDescription description, T defaultValue) {
-        final Object value = options.get(description);
+    <T> T getOrDefault(OptionDescription<T> description, T defaultValue) {
+        final T value = description.cast(options.get(description));
 
         if (value == null) {
             return defaultValue;
         } else {
-            return (T) value;
+            return value;
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> T readSystemProperty(OptionDescription description) {
+    public static <T> T readSystemProperty(OptionDescription<T> description) {
         final Object value = System.getProperty(PREFIX + description.getName());
 
         if (value == null) {
-            return (T) description.getDefaultValue();
+            return description.getDefaultValue();
         }
 
-        return (T) description.checkValue(value);
+        return description.checkValue(value);
     }
 
 }

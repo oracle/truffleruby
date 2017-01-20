@@ -123,7 +123,7 @@ public class Options {
         ARGUMENTS = builder.getOrDefault(OptionsCatalog.ARGUMENTS);
         DISPLAYED_FILE_NAME = builder.getOrDefault(OptionsCatalog.DISPLAYED_FILE_NAME);
         DEBUG = builder.getOrDefault(OptionsCatalog.DEBUG);
-        VERBOSITY = builder.getOrDefault(OptionsCatalog.VERBOSITY, Verbosity.FALSE);
+        VERBOSITY = builder.getOrDefault(OptionsCatalog.VERBOSITY);
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
         DISABLE_GEMS = builder.getOrDefault(OptionsCatalog.DISABLE_GEMS);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
@@ -214,7 +214,7 @@ public class Options {
         LOG_FEATURE_LOCATION = builder.getOrDefault(OptionsCatalog.LOG_FEATURE_LOCATION);
     }
 
-    public Object fromDescription(OptionDescription description) {
+    public Object fromDescription(OptionDescription<?> description) {
         switch (description.getName()) {
             case "home":
                 return HOME;
