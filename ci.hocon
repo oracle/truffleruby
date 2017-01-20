@@ -22,7 +22,6 @@ common: {
     ["echo", "-n", "TRUFFLE_RUBY_VERSION=", ">setup-ci-env"],
     ["git", "rev-parse", "HEAD", ">>setup-ci-env"],
     ["export", ["<setup-ci-env"]]
-    [mx, sclone, --kind, git, "https://github.com/jruby/jruby-build-pack.git", jruby-build-pack],
     [mx, build, --force-javac]
   ]
 
