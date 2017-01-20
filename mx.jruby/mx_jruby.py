@@ -85,10 +85,12 @@ def extractArguments(cli_args):
                 vmArgs.append(arg[2:])
             elif arg.startswith('-J:'):
                 vmArgs.append('-' + arg[2:])
-            else:
+            elif arg == '--':
                 rubyArgs.append(arg)
                 rubyArgs.extend(args)
                 break
+            else:
+                rubyArgs.append(arg)
     return vmArgs, rubyArgs, classpath, print_command
 
 def setup_jruby_home():
