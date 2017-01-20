@@ -80,7 +80,7 @@ passing options to the JVM using either a `-J:` or `-J-` prefix. For example
 
 ```
 JVM:
-  -J:arg, -J-arg  pass arg to the JVM
+  -J:arg, -J-arg   pass arg to the JVM
 ```
 
 TruffleRuby also supports the `JAVA_HOME`, `JAVACMD` and `JAVA_OPTS` environment

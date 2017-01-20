@@ -608,11 +608,11 @@ public class CommandLineParser {
 
         if (TruffleOptions.AOT) {
             out.println("SVM:");
-            out.println("  -Dname=value     set a system property");
-            out.println("  -J:arg, -J-arg  pass arg to the JVM");
+            out.println("  -XX:arg         pass arg to the SVM");
+            out.println("  -Dname=value    set a system property");
         } else {
             out.println("JVM:");
-            out.println("  -XX:arg          pass arg to the SVM");
+            out.println("  -J:arg, -J-arg  pass arg to the JVM");
         }
     }
 
