@@ -9,7 +9,7 @@
  */
 package org.truffleruby.options;
 
-public class BooleanOptionDescription extends OptionDescription {
+public class BooleanOptionDescription extends OptionDescription<Boolean> {
 
     private final boolean defaultValue;
 
@@ -19,16 +19,16 @@ public class BooleanOptionDescription extends OptionDescription {
     }
 
     @Override
-    public Object getDefaultValue() {
+    public Boolean getDefaultValue() {
         return defaultValue;
     }
 
     @Override
-    public Object checkValue(Object value) {
+    public Boolean checkValue(Object value) {
         if (value == null) {
             return false;
         } else if (value instanceof Boolean) {
-            return value;
+            return (Boolean) value;
         } else if (value instanceof String) {
             switch ((String) value) {
                 case "true":

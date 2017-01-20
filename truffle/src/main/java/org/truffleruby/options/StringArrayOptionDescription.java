@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class StringArrayOptionDescription extends OptionDescription {
+public class StringArrayOptionDescription extends OptionDescription<String[]> {
 
     private final String[] defaultValue;
 
@@ -23,14 +23,14 @@ public class StringArrayOptionDescription extends OptionDescription {
     }
 
     @Override
-    public Object getDefaultValue() {
+    public String[] getDefaultValue() {
         return defaultValue.clone();
     }
 
     @Override
-    public Object checkValue(Object value) {
+    public String[] checkValue(Object value) {
         if (value instanceof String[]) {
-            return value;
+            return (String[]) value;
         } else if (value instanceof Collection<?>) {
             final Collection<?> collection = (Collection<?>) value;
             final String[] strings = new String[collection.size()];
@@ -108,8 +108,8 @@ public class StringArrayOptionDescription extends OptionDescription {
     }
 
     @Override
-    public String toString(Object value) {
-        return String.join(",", (String[]) value);
+    public String toString(String[] value) {
+        return String.join(",", value);
     }
 
 }

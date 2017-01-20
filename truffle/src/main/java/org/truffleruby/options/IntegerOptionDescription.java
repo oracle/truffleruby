@@ -9,7 +9,7 @@
  */
 package org.truffleruby.options;
 
-public class IntegerOptionDescription extends OptionDescription {
+public class IntegerOptionDescription extends OptionDescription<Integer> {
 
     private final int defaultValue;
 
@@ -19,14 +19,14 @@ public class IntegerOptionDescription extends OptionDescription {
     }
 
     @Override
-    public Object getDefaultValue() {
+    public Integer getDefaultValue() {
         return defaultValue;
     }
 
     @Override
-    public Object checkValue(Object value) {
+    public Integer checkValue(Object value) {
         if (value instanceof Integer) {
-            return value;
+            return (Integer) value;
         } else if (value instanceof String) {
             try {
                 return Integer.parseInt((String) value);
