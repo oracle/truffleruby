@@ -28,10 +28,6 @@ public abstract class TruffleGCNodes {
         @TruffleBoundary
         @Specialization
         public int count() {
-            if (TruffleOptions.AOT) {
-                throw new UnsupportedOperationException("Memory manager is not available with AOT.");
-            }
-
             return getCollectionCount();
         }
 
@@ -51,10 +47,6 @@ public abstract class TruffleGCNodes {
         @TruffleBoundary
         @Specialization
         public long time() {
-            if (TruffleOptions.AOT) {
-                throw new UnsupportedOperationException("Memory manager is not available with AOT.");
-            }
-
             return getCollectionTime();
         }
 

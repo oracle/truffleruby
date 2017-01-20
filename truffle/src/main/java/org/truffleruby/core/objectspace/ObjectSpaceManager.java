@@ -195,10 +195,6 @@ public class ObjectSpaceManager {
     }
 
     public void traceAllocation(DynamicObject object, DynamicObject classPath, DynamicObject methodId, DynamicObject sourcefile, int sourceline) {
-        if (TruffleOptions.AOT) {
-            throw new UnsupportedOperationException("Memory manager is not available with AOT.");
-        }
-
         if (tracingPaused) {
             return;
         }
