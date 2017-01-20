@@ -149,11 +149,17 @@ module Process
       from, to = stack[0].split[0].split('-').map { |addr| Integer(addr, 16) }
       raise unless from < to
 
-      original_argv = Truffle::Boot.original_argv
-      args_length = original_argv.reduce(0) { |bytes,arg| bytes + 1 + arg.bytesize }
-      page = 4096
-      size = 2 * page
-      size += args_length
+      args_length = 0
+      Truffle::Boot.original_argv.each do |arg|
+        args_length += 1 + arg.bytesize
+      end
+
+      env_length = 0
+      ENV.each_pair do |key, val|
+        env_length += key.bytesize + 1 + val.bytesize + 1
+      end
+
+      size = 2 * 4096 + args_length + env_length
       base = to - size
       base_ptr = FFI::Pointer.new(FFI::Type::CHAR, base)
       haystack = base_ptr.read_string(size)
