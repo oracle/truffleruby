@@ -90,7 +90,9 @@ public class UnsizedQueue {
     private Object doTake() {
         assert lock.isHeldByCurrentThread();
         final Object item = takeEnd.getItem();
-        takeEnd = takeEnd.getNextToTake();
+        final Item nextToTake = takeEnd.getNextToTake();
+        takeEnd.clearNextReference();
+        takeEnd = nextToTake;
         if (takeEnd == null) {
             addEnd = null;
         }
@@ -116,6 +118,11 @@ public class UnsizedQueue {
         lock.lock();
 
         try {
+            while (takeEnd != null) {
+                final Item next = takeEnd.getNextToTake();
+                takeEnd.clearNextReference();
+                takeEnd = next;
+            }
             addEnd = null;
             takeEnd = null;
             size = 0;
@@ -172,6 +179,10 @@ public class UnsizedQueue {
 
         public Item getNextToTake() {
             return nextToTake;
+        }
+
+        public void clearNextReference() {
+            nextToTake = null;
         }
 
     }
