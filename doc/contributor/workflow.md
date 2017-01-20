@@ -77,7 +77,7 @@ TruffleRuby options are set with `-Xname=value`. For example
 `-Xexceptions.print_java=true` to print Java exceptions before translating them
 to Ruby exceptions. You can leave off the value to set the option to `true`.
 
-To see all options run `jt ruby -X..` (literally, with the three dots).
+To see all options run `jt ruby -Xoptions`.
 
 You can also set JVM options in the `JAVA_OPTS` environment variable (don't
 prefix with `-J`), or the `JRUBY_OPTS` variable (do prefix with `-J`). Ruby
