@@ -44,7 +44,7 @@ public class ByteStringOptionDescription extends OptionDescription<byte[]> {
         if (value == null) {
             return "null";
         } else {
-            return new String(value, StandardCharsets.US_ASCII);
+            return new String(value, Charset.defaultCharset());
         }
     }
 
