@@ -1,3 +1,11 @@
+# Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 1.0
+# GNU General Public License version 2
+# GNU Lesser General Public License version 2.1
+
 # Copyright (c) 2007-2015, Evan Phoenix and contributors
 # All rights reserved.
 #
@@ -33,18 +41,33 @@ class Proc
 
   def curry(curried_arity = nil)
     if lambda? && curried_arity
+
       if arity >= 0 && curried_arity != arity
-        raise ArgumentError, "Wrong number of arguments (%i for %i)" % [
-          curried_arity,
-          arity
-        ]
+        raise ArgumentError, "Wrong number of arguments (#{curried_arity} for #{arity})"
       end
 
-      if arity < 0 && curried_arity < (-arity - 1)
-        raise ArgumentError, "Wrong number of arguments (%i for %i)" % [
-          curried_arity,
-          -arity - 1
-        ]
+      if arity < 0
+        max_args = 0
+        min_args = 0
+        has_rest = false
+
+        parameters.each do |p|
+          type = p.first
+          min_args += 1 if type == :req
+          max_args += 1 if type != :block
+          has_rest = true if type == :rest
+        end
+
+        if (curried_arity < min_args) ||
+           (!has_rest && (curried_arity > max_args))
+          if has_rest
+            raise ArgumentError, "Wrong number of arguments " +
+                                 "(given #{curried_arity}, expected #{min_args}+)"
+          else
+            raise ArgumentError, "Wrong number of arguments " +
+                                 "(given #{curried_arity}, expected #{min_args}..#{max_args})"
+          end
+        end
       end
     end
 

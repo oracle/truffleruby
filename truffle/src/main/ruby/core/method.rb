@@ -18,6 +18,10 @@ class Method
     end
   end
 
+  def curry(curried_arity = nil)
+    self.to_proc.curry(curried_arity)
+  end
+  
   alias_method :to_s, :inspect
 
 end
