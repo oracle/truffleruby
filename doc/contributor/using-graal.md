@@ -1,4 +1,4 @@
-# Using TruffleRuby with GraalVM for Contributors
+# Using TruffleRuby with Graal for Contributors
 
 The easiest way for end-users to get the Graal compiler and a compatible JVM is
 with the GraalVM. We recommend that they use the version of TruffleRuby which is
