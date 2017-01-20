@@ -42,6 +42,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
+import java.time.zone.ZoneRulesException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -660,7 +661,7 @@ public abstract class TimeNodes {
 
                 try {
                     return new TimeZoneAndName(ZoneId.of(zone), null);
-                } catch (IllegalArgumentException e) {
+                } catch (IllegalArgumentException | ZoneRulesException e) {
                     return new TimeZoneAndName(UTC, null);
                 }
             }
