@@ -44,6 +44,7 @@ module Rubinius
         when ::String then Rubinius::Mirror::String
         when ::Range then Rubinius::Mirror::Range
         when ::Process then Rubinius::Mirror::Process
+        when ::Proc then Rubinius::Mirror::Proc
         else
           begin
             Rubinius::Mirror.const_get(obj.class.name.to_sym, false)

@@ -1722,6 +1722,7 @@ public class CoreLibrary {
             "/core/string_mirror.rb",
             "/core/module.rb",
             "/core/proc.rb",
+            "/core/proc_mirror.rb",
             "/core/enumerable_helper.rb",
             "/core/enumerable.rb",
             "/core/enumerator.rb",
