@@ -41,6 +41,8 @@ stubs = {
         class Engine  
           def self.__bc_salt
           end 
+          def self.__bc_crypt
+          end 
         end
       end
       require 'bcrypt'
