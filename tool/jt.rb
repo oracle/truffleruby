@@ -1338,16 +1338,9 @@ module Commands
   end
 
   def check_dsl_usage
-    clean
-    # modify pom to add -parameters for javac
-    pom = "#{JRUBY_DIR}/truffle/pom.rb"
-    contents = File.read(pom)
-    contents.sub!(/^(\s+)('-J-Dfile.encoding=UTF-8')(.+\n)(?!\1'-parameters')/) do
-      "#{$1}#{$2},\n#{$1}'-parameters'#{$3}"
-    end
-    File.write pom, contents
-
-    build
+    mx(JRUBY_DIR, 'clean')
+    # We need to build with -parameters to get parameter names
+    mx(JRUBY_DIR, 'build', '-A-parameters')
     run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-e', 'exit')
   end
 
