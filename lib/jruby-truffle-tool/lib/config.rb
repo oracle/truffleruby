@@ -37,6 +37,12 @@ stubs = {
     RUBY
 
     bcrypt: dedent(<<-RUBY),
+      module BCrypt
+        class Engine  
+          def self.__bc_salt
+          end 
+        end
+      end
       require 'bcrypt'
 
       module BCrypt
@@ -63,9 +69,6 @@ stubs = {
             else
               raise Errors::InvalidCost.new("cost must be numeric and > 0")
             end
-          end
-
-          def self.__bc_salt
           end
         end
       end
