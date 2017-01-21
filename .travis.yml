@@ -36,6 +36,7 @@ install:
 - git clone https://github.com/graalvm/mx
 - export PATH=$PWD/mx:$PATH
 - echo MX_BINARY_SUITES=truffle >> mx.jruby/env
+- echo JAVA_HOME=$JAVA_HOME >> mx.jruby/env
 - if [ -z "$SKIP_BUILD" ]; then mx build; fi
 - $COMMAND
 script:
