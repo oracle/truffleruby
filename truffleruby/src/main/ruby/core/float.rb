@@ -63,7 +63,7 @@ class Float < Numeric
   # Floats are also immediate values for us, they are primitive double
   include ImmediateValue
 
-  NAN        = 0.0 / 0.0
+  NAN        = -(0.0 / 0.0)
   INFINITY   = 1.0 / 0.0
   EPSILON    = 2.2204460492503131e-16
   RADIX      = 2
@@ -187,9 +187,6 @@ class Float < Numeric
 
   alias_method :quo, :/
   alias_method :fdiv, :/
-
-  INFINITY = 1.0 / 0.0
-  NAN = 0.0 / 0.0
 
   alias_method :modulo, :%
 
