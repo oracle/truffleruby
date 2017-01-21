@@ -16,7 +16,7 @@ class MSpecScript
 
   JRUBY_DIR = File.expand_path('../../..', __FILE__)
 
-  set :target, "#{JRUBY_DIR}/bin/jruby#{windows? ? '.bat' : ''}"
+  set :target, "#{JRUBY_DIR}/bin/truffleruby}"
 
   if ARGV[-2..-1] != %w[-t ruby] # No flags for MRI
     flags = %w[

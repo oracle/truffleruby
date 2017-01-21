@@ -16,7 +16,8 @@ import javax.annotation.Generated;
 @Generated("tool/truffle/generate-options.rb")
 public class OptionsCatalog {
 
-    public static final OptionDescription<String> HOME = new StringOptionDescription("home", "Home", null);
+    public static final OptionDescription<String> HOME = new StringOptionDescription("home", "The location of the TruffleRuby installation files", null);
+    public static final OptionDescription<String> LAUNCHER = new StringOptionDescription("launcher", "The location of the TruffleRuby launcher program", null);
     public static final OptionDescription<String[]> LOAD_PATHS = new StringArrayOptionDescription("load_paths", "Load paths", new String[]{});
     public static final OptionDescription<String[]> REQUIRED_LIBRARIES = new StringArrayOptionDescription("required_libraries", "Required libraries", new String[]{});
     public static final OptionDescription<byte[]> INLINE_SCRIPT = new ByteStringOptionDescription("inline_script", "Inline script", null);
@@ -115,6 +116,8 @@ public class OptionsCatalog {
         switch (name) {
             case "home":
                 return HOME;
+            case "launcher":
+                return LAUNCHER;
             case "load_paths":
                 return LOAD_PATHS;
             case "required_libraries":
@@ -309,6 +312,7 @@ public class OptionsCatalog {
     public static OptionDescription<?>[] allDescriptions() {
         return new OptionDescription<?>[] {
             HOME,
+            LAUNCHER,
             LOAD_PATHS,
             REQUIRED_LIBRARIES,
             INLINE_SCRIPT,

@@ -44,11 +44,26 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject ruby_home() {
+        public DynamicObject rubyHome() {
             if (getContext().getRubyHome() == null) {
                 return nil();
             } else {
                 return createString(StringOperations.encodeRope(getContext().getRubyHome(), UTF8Encoding.INSTANCE));
+            }
+        }
+
+    }
+
+    @CoreMethod(names = "ruby_launcher", onSingleton = true)
+    public abstract static class RubyLauncherNode extends CoreMethodNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject rubyLauncher() {
+            if (getContext().getOptions().LAUNCHER == null) {
+                return nil();
+            } else {
+                return createString(StringOperations.encodeRope(getContext().getOptions().LAUNCHER, UTF8Encoding.INSTANCE));
             }
         }
 
