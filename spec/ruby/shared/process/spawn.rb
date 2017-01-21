@@ -194,57 +194,52 @@ describe :process_spawn, shared: true do
   end
 
   it "sets environment variables in the child environment" do
-    lambda do
-      Process.wait @object.spawn({"FOO" => "BAR"}, ruby_cmd(fixture(__FILE__, "env.rb")))
-    end.should output_to_fd("BAR")
+    Process.wait @object.spawn({"FOO" => "BAR"}, ruby_cmd(fixture(__FILE__, "env.rb"), args: @name))
+    File.read(@name).should == "BAR"
   end
 
   it "unsets environment variables whose value is nil" do
     ENV["FOO"] = "BAR"
-    lambda do
-      Process.wait @object.spawn({"FOO" => nil}, ruby_cmd(fixture(__FILE__, "env.rb")))
-    end.should output_to_fd("")
+    Process.wait @object.spawn({"FOO" => nil}, ruby_cmd(fixture(__FILE__, "env.rb"), args: @name))
+    File.read(@name).should == ""
   end
 
   it "calls #to_hash to convert the environment" do
     o = mock("to_hash")
     o.should_receive(:to_hash).and_return({"FOO" => "BAR"})
-    lambda do
-      Process.wait @object.spawn(o, ruby_cmd(fixture(__FILE__, "env.rb")))
-    end.should output_to_fd("BAR")
+    Process.wait @object.spawn(o, ruby_cmd(fixture(__FILE__, "env.rb"), args: @name))
+    File.read(@name).should == "BAR"
   end
 
   it "calls #to_str to convert the environment keys" do
     o = mock("to_str")
     o.should_receive(:to_str).and_return("FOO")
-    lambda do
-      Process.wait @object.spawn({o => "BAR"}, ruby_cmd(fixture(__FILE__, "env.rb")))
-    end.should output_to_fd("BAR")
+    Process.wait @object.spawn({o => "BAR"}, ruby_cmd(fixture(__FILE__, "env.rb"), args: @name))
+    File.read(@name).should == "BAR"
   end
 
   it "calls #to_str to convert the environment values" do
     o = mock("to_str")
     o.should_receive(:to_str).and_return("BAR")
-    lambda do
-      Process.wait @object.spawn({"FOO" => o}, ruby_cmd(fixture(__FILE__, "env.rb")))
-    end.should output_to_fd("BAR")
+    Process.wait @object.spawn({"FOO" => o}, ruby_cmd(fixture(__FILE__, "env.rb"), args: @name))
+    File.read(@name).should == "BAR"
   end
 
   it "raises an ArgumentError if an environment key includes an equals sign" do
     lambda do
-      @object.spawn({"FOO=" => "BAR"}, ruby_cmd(fixture(__FILE__, "env.rb")))
+      @object.spawn({"FOO=" => "BAR"}, ruby_cmd(fixture(__FILE__, "env.rb"), args: @name))
     end.should raise_error(ArgumentError)
   end
 
   it "raises an ArgumentError if an environment key includes a null byte" do
     lambda do
-      @object.spawn({"\000" => "BAR"}, ruby_cmd(fixture(__FILE__, "env.rb")))
+      @object.spawn({"\000" => "BAR"}, ruby_cmd(fixture(__FILE__, "env.rb"), args: @name))
     end.should raise_error(ArgumentError)
   end
 
   it "raises an ArgumentError if an environment value includes a null byte" do
     lambda do
-      @object.spawn({"FOO" => "\000"}, ruby_cmd(fixture(__FILE__, "env.rb")))
+      @object.spawn({"FOO" => "\000"}, ruby_cmd(fixture(__FILE__, "env.rb"), args: @name))
     end.should raise_error(ArgumentError)
   end
 
@@ -255,49 +250,45 @@ describe :process_spawn, shared: true do
       "PATH" => ENV["PATH"],
       "HOME" => ENV["HOME"]
     }
+    @common_env_spawn_args = [@minimal_env, ruby_cmd(fixture(__FILE__, "env.rb"), options: "--disable-gems", args: @name)]
   end
 
   platform_is_not :windows do
     it "unsets other environment variables when given a true :unsetenv_others option" do
       ENV["FOO"] = "BAR"
-      lambda do
-        Process.wait @object.spawn(@minimal_env, ruby_cmd(fixture(__FILE__, "env.rb"), options: "--disable-gems"), unsetenv_others: true)
-        $?.success?.should be_true
-      end.should output_to_fd("")
+      Process.wait @object.spawn(*@common_env_spawn_args, unsetenv_others: true)
+      $?.success?.should be_true
+      File.read(@name).should == ""
     end
 
     it "unsets other environment variables when given a non-false :unsetenv_others option" do
       ENV["FOO"] = "BAR"
-      lambda do
-        Process.wait @object.spawn(@minimal_env, ruby_cmd(fixture(__FILE__, "env.rb"), options: "--disable-gems"), unsetenv_others: :true)
-        $?.success?.should be_true
-      end.should output_to_fd("")
+      Process.wait @object.spawn(*@common_env_spawn_args, unsetenv_others: :true)
+      $?.success?.should be_true
+      File.read(@name).should == ""
     end
   end
 
   it "does not unset other environment variables when given a false :unsetenv_others option" do
     ENV["FOO"] = "BAR"
-    lambda do
-      Process.wait @object.spawn(ruby_cmd(fixture(__FILE__, "env.rb")), unsetenv_others: false)
-      $?.success?.should be_true
-    end.should output_to_fd("BAR")
+    Process.wait @object.spawn(*@common_env_spawn_args, unsetenv_others: false)
+    $?.success?.should be_true
+    File.read(@name).should == "BAR"
   end
 
   it "does not unset other environment variables when given a nil :unsetenv_others option" do
     ENV["FOO"] = "BAR"
-    lambda do
-      Process.wait @object.spawn(ruby_cmd(fixture(__FILE__, "env.rb")), unsetenv_others: nil)
-      $?.success?.should be_true
-    end.should output_to_fd("BAR")
+    Process.wait @object.spawn(*@common_env_spawn_args, unsetenv_others: nil)
+    $?.success?.should be_true
+    File.read(@name).should == "BAR"
   end
 
   platform_is_not :windows do
     it "does not unset environment variables included in the environment hash" do
-      lambda do
-        env = @minimal_env.merge({"FOO" => "BAR"})
-        Process.wait @object.spawn(env, ruby_cmd(fixture(__FILE__, "env.rb"), options: "--disable-gems"), unsetenv_others: true)
-        $?.success?.should be_true
-      end.should output_to_fd("BAR")
+      env = @minimal_env.merge({"FOO" => "BAR"})
+      Process.wait @object.spawn(env, ruby_cmd(fixture(__FILE__, "env.rb"), options: "--disable-gems", args: @name), unsetenv_others: true)
+      $?.success?.should be_true
+      File.read(@name).should == "BAR"
     end
   end
 
