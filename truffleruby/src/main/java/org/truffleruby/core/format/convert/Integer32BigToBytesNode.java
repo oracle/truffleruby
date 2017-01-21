@@ -21,6 +21,14 @@ public abstract class Integer32BigToBytesNode extends FormatNode {
 
     @Specialization
     public byte[] encode(long value) {
+        if(value == 0x7fc00000 || value == 0x7ff8000000000000L){
+            return new byte[]{
+                (byte) 0x000000ff,
+                (byte) 0x000000c0,
+                (byte) 0x00000000,
+                (byte) 0x00000000
+            };
+        }
         return new byte[]{
                 (byte) (value >>> 24),
                 (byte) (value >>> 16),

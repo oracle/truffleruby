@@ -21,6 +21,12 @@ public abstract class Integer16LittleToBytesNode extends FormatNode {
 
     @Specialization
     public byte[] encode(long value) {
+        if(value == 0x7fc00000 || value == 0x7ff8000000000000L){
+            return new byte[]{
+                (byte) 0x000000c0,
+                (byte) 0x000000ff
+            };
+        }
         return new byte[]{
                 (byte) value,
                 (byte) (value >>> 8)
