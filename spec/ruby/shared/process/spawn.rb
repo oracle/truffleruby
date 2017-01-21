@@ -260,25 +260,11 @@ describe :process_spawn, shared: true do
       $?.success?.should be_true
       File.read(@name).should == ""
     end
-
-    it "unsets other environment variables when given a non-false :unsetenv_others option" do
-      ENV["FOO"] = "BAR"
-      Process.wait @object.spawn(*@common_env_spawn_args, unsetenv_others: :true)
-      $?.success?.should be_true
-      File.read(@name).should == ""
-    end
   end
 
   it "does not unset other environment variables when given a false :unsetenv_others option" do
     ENV["FOO"] = "BAR"
     Process.wait @object.spawn(*@common_env_spawn_args, unsetenv_others: false)
-    $?.success?.should be_true
-    File.read(@name).should == "BAR"
-  end
-
-  it "does not unset other environment variables when given a nil :unsetenv_others option" do
-    ENV["FOO"] = "BAR"
-    Process.wait @object.spawn(*@common_env_spawn_args, unsetenv_others: nil)
     $?.success?.should be_true
     File.read(@name).should == "BAR"
   end
