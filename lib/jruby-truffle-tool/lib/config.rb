@@ -64,6 +64,9 @@ stubs = {
               raise Errors::InvalidCost.new("cost must be numeric and > 0")
             end
           end
+
+          def self.__bc_salt
+          end
         end
       end
     RUBY
