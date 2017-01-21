@@ -19,6 +19,7 @@ import javax.annotation.Generated;
 public class Options {
 
     public final String HOME;
+    public final String LAUNCHER;
     @CompilationFinal(dimensions=1) public final String[] LOAD_PATHS;
     @CompilationFinal(dimensions=1) public final String[] REQUIRED_LIBRARIES;
     @CompilationFinal(dimensions=1) public final byte[] INLINE_SCRIPT;
@@ -117,6 +118,7 @@ public class Options {
     
     Options(OptionsBuilder builder) {
         HOME = builder.getOrDefault(OptionsCatalog.HOME);
+        LAUNCHER = builder.getOrDefault(OptionsCatalog.LAUNCHER);
         LOAD_PATHS = builder.getOrDefault(OptionsCatalog.LOAD_PATHS);
         REQUIRED_LIBRARIES = builder.getOrDefault(OptionsCatalog.REQUIRED_LIBRARIES);
         INLINE_SCRIPT = builder.getOrDefault(OptionsCatalog.INLINE_SCRIPT);
@@ -218,6 +220,8 @@ public class Options {
         switch (description.getName()) {
             case "home":
                 return HOME;
+            case "launcher":
+                return LAUNCHER;
             case "load_paths":
                 return LOAD_PATHS;
             case "required_libraries":

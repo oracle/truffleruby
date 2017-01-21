@@ -37,16 +37,16 @@ module RbConfig
   host_os = Truffle::System.host_os
   host_cpu = Truffle::System.host_cpu
 
+  ruby_install_name = 'truffleruby'
+
   CONFIG = {
     'arch' => "#{host_cpu}-#{host_os}",
     'exeext' => '',
     'EXEEXT' => '',
     'host_os' => host_os,
     'host_cpu' => host_cpu,
-    'ruby_install_name' => 'jruby-truffle',
-    'RUBY_INSTALL_NAME' => 'jruby-truffle',
-    # 'ruby_install_name' => 'jruby',
-    # 'RUBY_INSTALL_NAME' => 'jruby',
+    'ruby_install_name' => ruby_install_name,
+    'RUBY_INSTALL_NAME' => ruby_install_name,
     'ruby_version' => '2.2.0',
     'OBJEXT' => 'll',
     'DLEXT' => 'su',
@@ -72,29 +72,26 @@ module RbConfig
       'LIBRUBY_A' => '',
       'LIBRUBYARG' => '',
       'prefix' => '',
-      'ruby_install_name' => 'jruby-truffle',
+      'ruby_install_name' => ruby_install_name,
       'RUBY_SO_NAME' => '$(RUBY_BASE_NAME)'
   }
-  
+
   ruby_home = Truffle::Boot.ruby_home
 
   if ruby_home
-    bindir = if ruby_home.end_with?('/mxbuild/ruby-zip-extracted')
-               File.expand_path('../../bin', ruby_home)
-             else
-               "#{ruby_home}/bin"
-             end
-    
+    libdir = "#{ruby_home}/lib/ruby/truffle"
+    bindir = "#{libdir}/bin"
+
     CONFIG.merge!({
       'bindir' => bindir,
-      'libdir' => "#{ruby_home}/lib/ruby/truffle",
+      'libdir' => libdir,
       "sitelibdir"=>"#{ruby_home}/lib/ruby/2.3/site_ruby", # TODO BJF Oct 21, 2016 Need to review these values
       "sitearchdir"=>"#{ruby_home}/lib/ruby/2.3/site_ruby",
-      'rubyhdrdir' => "#{ruby_home}/lib/ruby/truffle/cext",
-      'topdir' => "#{ruby_home}/lib/ruby/stdlib",
-      "rubyarchhdrdir"=>"#{ruby_home}/lib/ruby/truffle/cext",
+      'rubyhdrdir' => "#{libdir}/cext",
+      'topdir' => "#{ruby_home}/lib/ruby/stdlib", # TODO CS 21-Jan-17 this doesn't exist any more
+      "rubyarchhdrdir"=>"#{libdir}/cext",
     })
-    
+
     MAKEFILE_CONFIG.merge!({
       'hdrdir' => "#{ruby_home}/lib/ruby/truffle/cext",
       'bindir' => bindir
@@ -106,7 +103,7 @@ module RbConfig
     opt = ENV['JT_OPT'] || 'opt'
     cc = "#{clang} -I#{ENV['SULONG_HOME']}/include"
     cpp = cc
-    
+
     MAKEFILE_CONFIG.merge!({
         'CC' => cc,
         'CPP' => cpp,
@@ -115,7 +112,7 @@ module RbConfig
         'LINK_SO' => "mx -v -p #{ENV['SULONG_HOME']} su-link -o $@ $(OBJS) $(LIBS)",
         'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{ENV['SULONG_HOME']}/include $(LIBS)"
     })
-    
+
     CONFIG.merge!({
         'CC' => cc,
         'CPP' => cpp
@@ -123,10 +120,9 @@ module RbConfig
   end
 
   def self.ruby
-    raise unless CONFIG['bindir']
-    # TODO (eregon, 30 Sep 2016): should be the one used by the launcher!
-    jruby_truffle = CONFIG['ruby_install_name'] + CONFIG['exeext']
-    File.join CONFIG['bindir'], jruby_truffle
+    ruby = Truffle::Boot.ruby_launcher
+    raise "we can't find the TruffleRuby launcher - set -Xlauncher=, or your launcher should be doing this for you" unless ruby
+    ruby
   end
 
   def RbConfig.expand(val, config = CONFIG)

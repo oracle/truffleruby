@@ -128,7 +128,7 @@ def ruby_command(args):
         '-cp', ':'.join(classpath),
         'org.truffleruby.Main'
     ]
-    allArgs = vmArgs + rubyArgs
+    allArgs = vmArgs + ['-Xlauncher=' + join(_suite.dir, 'bin', 'truffleruby')] + rubyArgs
 
     env = setup_jruby_home()
 

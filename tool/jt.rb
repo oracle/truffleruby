@@ -171,10 +171,8 @@ module Utilities
   def self.find_jruby
     if ENV['RUBY_BIN']
       ENV['RUBY_BIN']
-    elsif mx?
-      "#{JRUBY_DIR}/tool/jruby_mx"
     else
-      "#{JRUBY_DIR}/bin/jruby"
+      "#{JRUBY_DIR}/bin/truffleruby"
     end
   end
 
@@ -496,7 +494,7 @@ module Commands
 
       recognised environment variables:
 
-        RUBY_BIN                                     The JRuby+Truffle executable to use (normally just bin/jruby)
+        RUBY_BIN                                     The JRuby+Truffle executable to use (normally just bin/truffleruby)
         GRAALVM_BIN                                  GraalVM executable (java command)
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled (so JDK 9 EA build) java command (aslo set JVMCI_GRAAL_HOME)
