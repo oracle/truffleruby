@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-# Copyright (c) 2015, 2016 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved.
 # This code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -369,7 +369,7 @@ module ShellUtils
 
     args = ['-q', *args] unless VERBOSE
 
-    sh *options, './mvnw', *args
+    sh *options, 'mvn', *args
   end
 
   def mx(dir, *args)
