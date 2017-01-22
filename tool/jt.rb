@@ -163,12 +163,12 @@ module Utilities
       if version.start_with?("2.")
         "ruby"
       else
-        find_jruby
+        find_launcher
       end
     end
   end
 
-  def self.find_jruby
+  def self.find_launcher
     if ENV['RUBY_BIN']
       ENV['RUBY_BIN']
     else
@@ -655,7 +655,7 @@ module Commands
       options[:use_exec] = true
     end
 
-    raw_sh env_vars, Utilities.find_jruby, *jruby_args, *args, options
+    raw_sh env_vars, Utilities.find_launcher, *jruby_args, *args, options
   end
 
   # Same as #run but uses exec()
