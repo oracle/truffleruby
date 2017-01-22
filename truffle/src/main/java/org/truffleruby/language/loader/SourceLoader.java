@@ -80,7 +80,7 @@ public class SourceLoader {
     }
 
     @TruffleBoundary
-    private Source loadResource(String path) throws IOException {
+    public static Source loadResource(String path) throws IOException {
         if (TruffleOptions.AOT) {
             if (!path.startsWith(SourceLoader.TRUFFLE_SCHEME)) {
                 throw new UnsupportedOperationException();

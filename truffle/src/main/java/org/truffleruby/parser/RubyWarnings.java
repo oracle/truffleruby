@@ -125,7 +125,7 @@ public class RubyWarnings implements WarnCallback {
     }
 
     public boolean isVerbose() {
-        return runtime.isVerbose();
+        return runtime != null && runtime.isVerbose();
     }
 
     /**
