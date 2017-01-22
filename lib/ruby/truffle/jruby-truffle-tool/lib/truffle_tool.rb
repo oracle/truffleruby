@@ -226,7 +226,7 @@ class TruffleTool
   LOCAL_CONFIG_FILE = '.jruby-truffle-tool.yaml'
   ROOT              = Pathname(__FILE__).dirname.parent.expand_path
   TRUFFLERUBY_PATH  = ROOT.join('../../../..').expand_path
-  TRUFFLERUBY_BIN   = TRUFFLERUBY_PATH.join('bin', 'jruby-truffle')
+  TRUFFLERUBY_BIN   = TRUFFLERUBY_PATH.join('bin', 'truffleruby')
 
   module OptionBlocks
     STORE_NEW_VALUE         = -> (new, old, _) { new }

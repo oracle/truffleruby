@@ -15,5 +15,5 @@ export VERIFY_JRUBY=1
 export JAVA_OPTS="-javaagent:$JACOCO_AGENT=destfile=$JACOCO_LOG"
 
 rm -f jacoco.exec
-bin/jruby tool/jt.rb test
+tool/jt.rb test
 ant -f tool/truffle/java-coverage/build.xml

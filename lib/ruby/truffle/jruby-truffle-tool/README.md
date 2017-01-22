@@ -72,7 +72,7 @@ activesupport's configuration file follows:
 ---
 :global:
   # default ../jruby/bin/ruby won't work since activesupport is one more dir deeper
-  :jruby_truffle_path: '../../jruby/bin/jruby'
+  :jruby_truffle_path: '../../truffleruby/bin/truffleruby'
   :graal_path: '../../graalvm-jdk1.8.0/bin/java'
 :setup:
   :file:
