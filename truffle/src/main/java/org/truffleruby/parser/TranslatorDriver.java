@@ -47,6 +47,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.aot.ParserCache;
 import org.truffleruby.core.LoadRequiredLibrariesNode;
 import org.truffleruby.language.DataNode;
 import org.truffleruby.language.LexicalScope;
@@ -151,7 +152,15 @@ public class TranslatorDriver {
 
         // Parse to the JRuby AST
 
-        RootParseNode node = parse(source, dynamicScope, parserConfiguration);
+        RootParseNode node = null;
+
+        if (ParserCache.INSTANCE != null) {
+            node = ParserCache.INSTANCE.lookup(source.getName());
+        }
+
+        if (node == null) {
+            node = parse(source, dynamicScope, parserConfiguration);
+        }
 
         final SourceSection sourceSection = source.createSection(0, source.getCode().length());
         final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());
