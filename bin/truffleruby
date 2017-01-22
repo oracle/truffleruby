@@ -24,10 +24,6 @@ else
     mvn_jar="$root"/lib/jruby-truffle.jar
     mx_time=$(mtime "$mx_jar")
     mvn_time=$(mtime "$mvn_jar")
-
-    if [ "$mx_time" -gt "$mvn_time" ]; then
-      exec mx -p "$root" ruby "$@"
-    fi
 fi
 
 if [ -z "$JAVACMD" ]
@@ -42,7 +38,18 @@ fi
 
 declare -a java_args
 declare -a ruby_args
+
 print_command=""
+CP=""
+boot_cp_jar="$root/lib/jruby-truffle.jar"
+
+if [ "$mx_time" -gt "$mvn_time" ]; then
+    # This hash is Truffle's JLINE sha1
+    CP="$CP:$HOME/.mx/cache/JLINE_9504d5e2da5d78237239c5226e8200ec21182040.jar"
+    CP="$CP:$root/mx.imports/binary/truffle/mxbuild/dists/truffle-debug.jar"
+    CP="$CP:$root/mxbuild/dists/ruby.jar"
+    boot_cp_jar="$root/mx.imports/binary/truffle/mxbuild/dists/truffle-api.jar"
+fi
 
 # Split out any -J argument for passing to the JVM.
 # Scanning for args is aborted by '--'.
@@ -84,8 +91,13 @@ done
 # Append the rest of the arguments
 ruby_args=("${ruby_args[@]}" "$@")
 
+if [ -n "$CP" ]; then
+    # Add classpath to java_args without leading :
+    java_args=("-cp" "${CP:1}" "${java_args[@]}")
+fi
+
 declare -a full_command
-full_command=("$JAVACMD" $JAVA_OPTS "${java_args[@]}" "-Xbootclasspath/a:$root/lib/jruby-truffle.jar" org.truffleruby.Main "-Xhome=$root" "-Xlauncher=$root/bin/truffleruby" "${ruby_args[@]}")
+full_command=("$JAVACMD" $JAVA_OPTS "-Xbootclasspath/a:$boot_cp_jar" "${java_args[@]}" org.truffleruby.Main "-Xhome=$root" "-Xlauncher=$root/bin/truffleruby" "${ruby_args[@]}")
 
 if [ -n "$print_command" ]; then
     echo "${full_command[@]}"
