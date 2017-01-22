@@ -1030,26 +1030,8 @@ public class CoreLibrary {
     public DynamicObject getMetaClass(Object object) {
         if (object instanceof DynamicObject) {
             return Layouts.BASIC_OBJECT.getMetaClass(((DynamicObject) object));
-        } else if (object instanceof Boolean) {
-            if ((boolean) object) {
-                return trueClass;
-            } else {
-                return falseClass;
-            }
-        } else if (object instanceof Byte) {
-            return fixnumClass;
-        } else if (object instanceof Short) {
-            return fixnumClass;
-        } else if (object instanceof Integer) {
-            return fixnumClass;
-        } else if (object instanceof Long) {
-            return fixnumClass;
-        } else if (object instanceof Float) {
-            return floatClass;
-        } else if (object instanceof Double) {
-            return floatClass;
         } else {
-            return interopForeignClass;
+            return getLogicalClass(object);
         }
     }
 
