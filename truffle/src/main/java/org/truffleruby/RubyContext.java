@@ -232,22 +232,11 @@ public class RubyContext extends ExecutionContext {
                 final File jar = new File(codeSource.getLocation().getFile());
                 final File jarDir = jar.getParentFile();
 
-                if (jarDir.getName().equals("lib")) {
-                    // Conventional build or distribution
-                    return jarDir.getParentFile().getAbsolutePath();
-                } else if (jarDir.getName().equals("ruby") && new File(jarDir, "lib").exists()) {
+                if (jarDir.getName().equals("ruby") && new File(jarDir, "lib").exists()) {
                     // GraalVM build or distribution
                     return jarDir.getAbsolutePath();
                 }
             }
-        }
-
-        // Just for now, use jruby.home as the launcher sets that
-
-        final String jrubyHome = System.getProperty("jruby.home");
-
-        if (jrubyHome != null) {
-            return new File(jrubyHome).getAbsolutePath();
         }
 
         Log.LOGGER.config("home not explicitly set, and couldn't determine it from the source of the Java classfiles or the JRuby launcher");
