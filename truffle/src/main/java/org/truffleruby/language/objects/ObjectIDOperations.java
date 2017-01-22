@@ -121,7 +121,7 @@ public abstract class ObjectIDOperations {
 
         final long objectID = context.getObjectSpaceManager().getNextObjectID();
 
-        if (SharedObjects.isShared(object)) {
+        if (SharedObjects.isShared(context, object)) {
             synchronized (object) {
                 // no need for a write barrier here, objectID is a long.
                 object.define(Layouts.OBJECT_ID_IDENTIFIER, objectID);

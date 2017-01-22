@@ -356,7 +356,7 @@ public abstract class ModuleOperations {
         assert RubyGuards.isRubyModule(module);
         ModuleFields moduleFields = Layouts.MODULE.getFields(module);
         moduleFields.checkFrozen(context, currentNode);
-        SharedObjects.propagate(module, value);
+        SharedObjects.propagate(context, module, value);
 
         // if the cvar is not already defined we need to take lock and ensure there is only one
         // defined in the class tree

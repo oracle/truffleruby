@@ -95,7 +95,7 @@ public class ThreadManager {
 
     public static void initialize(final DynamicObject thread, RubyContext context, Node currentNode, final Object[] arguments, final DynamicObject block) {
         if (context.getOptions().SHARED_OBJECTS_ENABLED) {
-            SharedObjects.shareDeclarationFrame(block);
+            SharedObjects.shareDeclarationFrame(context, block);
         }
 
         final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
@@ -125,7 +125,7 @@ public class ThreadManager {
         try {
             task.run();
         } catch (ThreadExitException e) {
-            setThreadValue(thread, context.getCoreLibrary().getNilObject());
+            setThreadValue(context, thread, context.getCoreLibrary().getNilObject());
             return;
         } catch (RaiseException e) {
             setException(context, thread, e.getException(), currentNode);
@@ -137,9 +137,9 @@ public class ThreadManager {
         }
     }
 
-    private static void setThreadValue(final DynamicObject thread, final Object value) {
+    private static void setThreadValue(RubyContext context, DynamicObject thread, final Object value) {
         // A Thread is always shared (Thread.list)
-        SharedObjects.propagate(thread, value);
+        SharedObjects.propagate(context, thread, value);
         Layouts.THREAD.setValue(thread, value);
     }
 
@@ -149,7 +149,7 @@ public class ThreadManager {
         if (thread != mainThread && (isSystemExit || Layouts.THREAD.getAbortOnException(thread))) {
             ThreadNodes.ThreadRaisePrimitiveNode.raiseInThread(context, mainThread, exception, currentNode);
         }
-        SharedObjects.propagate(thread, exception);
+        SharedObjects.propagate(context, thread, exception);
         Layouts.THREAD.setException(thread, exception);
     }
 
@@ -334,7 +334,7 @@ public class ThreadManager {
 
         if (context.getOptions().SHARED_OBJECTS_ENABLED && runningRubyThreads.size() > 1) {
             context.getSharedObjects().startSharing();
-            SharedObjects.writeBarrier(thread);
+            SharedObjects.writeBarrier(context, thread);
         }
     }
 

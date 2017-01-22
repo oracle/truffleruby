@@ -15,10 +15,11 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 @ImportStatic(ShapeCachingGuards.class)
-public abstract class IsSharedNode extends Node {
+public abstract class IsSharedNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;
 
@@ -41,11 +42,11 @@ public abstract class IsSharedNode extends Node {
 
     @Specialization(contains = { "isShareCached", "updateShapeAndIsShared" })
     protected boolean isSharedUncached(DynamicObject object) {
-        return SharedObjects.isShared(object);
+        return SharedObjects.isShared(getContext(), object);
     }
 
     protected boolean isShared(Shape shape) {
-        return SharedObjects.isShared(shape);
+        return SharedObjects.isShared(getContext(), shape);
     }
 
 }

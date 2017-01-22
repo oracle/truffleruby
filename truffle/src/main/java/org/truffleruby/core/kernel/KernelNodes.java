@@ -853,7 +853,7 @@ public abstract class KernelNodes {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             final Object value = ReadObjectFieldNode.read(object, ivar, nil());
 
-            if (SharedObjects.isShared(object)) {
+            if (SharedObjects.isShared(getContext(), object)) {
                 synchronized (object) {
                     removeField(object, name);
                 }

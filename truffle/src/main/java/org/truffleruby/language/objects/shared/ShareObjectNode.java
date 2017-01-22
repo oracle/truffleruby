@@ -19,6 +19,8 @@ import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
@@ -30,7 +32,7 @@ import java.util.List;
  * (see {@link ObjectGraph#getAdjacentObjects(DynamicObject)}.
  */
 @ImportStatic(ShapeCachingGuards.class)
-public abstract class ShareObjectNode extends Node {
+public abstract class ShareObjectNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;
 
@@ -48,11 +50,11 @@ public abstract class ShareObjectNode extends Node {
             limit = "CACHE_LIMIT")
     @ExplodeLoop
     protected void shareCached(DynamicObject object,
-            @Cached("ensureSharedClasses(object.getShape())") Shape cachedShape,
+            @Cached("ensureSharedClasses(getContext(), object.getShape())") Shape cachedShape,
             @Cached("createShareInternalFieldsNode()") ShareInternalFieldsNode shareInternalFieldsNode,
             @Cached("createReadAndShareFieldNodes(getObjectProperties(cachedShape))") ReadAndShareFieldNode[] readAndShareFieldNodes,
             @Cached("createSharedShape(object)") Shape sharedShape) {
-        assert !SharedObjects.isShared(cachedShape);
+        assert !SharedObjects.isShared(getContext(), cachedShape);
 
         // Mark the object as shared first to avoid recursion
         object.setShapeAndGrow(cachedShape, sharedShape);
@@ -71,13 +73,13 @@ public abstract class ShareObjectNode extends Node {
 
     @Specialization(contains = { "shareCached", "updateShapeAndShare" })
     protected void shareUncached(DynamicObject object) {
-        SharedObjects.writeBarrier(object);
+        SharedObjects.writeBarrier(getContext(), object);
     }
 
-    protected static Shape ensureSharedClasses(Shape shape) {
+    protected static Shape ensureSharedClasses(RubyContext context, Shape shape) {
         final ObjectType objectType = shape.getObjectType();
-        SharedObjects.writeBarrier(Layouts.BASIC_OBJECT.getLogicalClass(objectType));
-        SharedObjects.writeBarrier(Layouts.BASIC_OBJECT.getMetaClass(objectType));
+        SharedObjects.writeBarrier(context, Layouts.BASIC_OBJECT.getLogicalClass(objectType));
+        SharedObjects.writeBarrier(context, Layouts.BASIC_OBJECT.getMetaClass(objectType));
         return shape;
     }
 

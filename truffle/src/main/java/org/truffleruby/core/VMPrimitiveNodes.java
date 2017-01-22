@@ -656,7 +656,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "isRubyClass(newClass)")
         public DynamicObject setClass(DynamicObject object, DynamicObject newClass) {
-            SharedObjects.propagate(object, newClass);
+            SharedObjects.propagate(getContext(), object, newClass);
             synchronized (object) {
                 Layouts.BASIC_OBJECT.setLogicalClass(object, newClass);
                 Layouts.BASIC_OBJECT.setMetaClass(object, newClass);

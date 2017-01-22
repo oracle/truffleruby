@@ -216,7 +216,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             throw new RaiseException(context.getCoreExceptions().argumentError("cyclic include detected", currentNode));
         }
 
-        SharedObjects.propagate(rubyModuleObject, module);
+        SharedObjects.propagate(context, rubyModuleObject, module);
 
         // We need to include the module ancestors in reverse order for a given inclusionPoint
         ModuleChain inclusionPoint = this;
@@ -278,7 +278,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             throw new RaiseException(context.getCoreExceptions().argumentError("cyclic prepend detected", currentNode));
         }
 
-        SharedObjects.propagate(rubyModuleObject, module);
+        SharedObjects.propagate(context, rubyModuleObject, module);
 
         ModuleChain mod = Layouts.MODULE.getFields(module).start;
         ModuleChain cur = start;
@@ -327,7 +327,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         // TODO(CS): warn when redefining a constant
         // TODO (nirvdrum 18-Feb-15): But don't warn when redefining an autoloaded constant.
 
-        SharedObjects.propagate(rubyModuleObject, value);
+        SharedObjects.propagate(context, rubyModuleObject, value);
 
         while (true) {
             final RubyConstant previous = constants.get(name);
@@ -368,9 +368,9 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
         checkFrozen(context, currentNode);
 
-        if (SharedObjects.isShared(rubyModuleObject)) {
+        if (SharedObjects.isShared(context, rubyModuleObject)) {
             for (DynamicObject object : method.getAdjacentObjects()) {
-                SharedObjects.writeBarrier(object);
+                SharedObjects.writeBarrier(context, object);
             }
         }
 
