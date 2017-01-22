@@ -161,11 +161,8 @@ public abstract class HashNodes {
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode callDefaultNode = DispatchHeadNodeFactory.createMethodCall();
-        @Child private LookupEntryNode lookupEntryNode = new LookupEntryNode();
-        @Child private HashNode hashNode = new HashNode();
-        @Child private CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
 
-        @CompilationFinal private Object undefinedValue;
+        @CompilationFinal protected Object undefinedValue;
 
         public abstract Object executeGet(VirtualFrame frame, DynamicObject hash, Object key);
 
@@ -178,95 +175,21 @@ public abstract class HashNodes {
             }
         }
 
-        @Specialization(guards = {
-                        "isPackedHash(hash)",
-                        "isCompareByIdentity(hash) == cachedByIdentity",
-                        "cachedIndex >= 0",
-                        "cachedIndex < getSize(hash)",
-                        "compareKeysAtIndex(frame, hash, key, cachedIndex, cachedByIdentity)"
-        }, limit = "1")
-        public Object getConstantIndexPackedArray(VirtualFrame frame, DynamicObject hash, Object key,
-                        @Cached("index(frame, hash, key)") int cachedIndex,
-                        @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity) {
-            final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
-            return PackedArrayStrategy.getValue(store, cachedIndex);
-        }
-
-        protected int index(VirtualFrame frame, DynamicObject hash, Object key) {
-            if (!HashGuards.isPackedHash(hash)) {
-                return -1;
-            }
-
-            boolean compareByIdentity = Layouts.HASH.getCompareByIdentity(hash);
-            int hashed = hashNode.hash(frame, key, compareByIdentity);
-
-            final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
-            final int size = Layouts.HASH.getSize(hash);
-
-            for (int n = 0; n < size; n++) {
-                final int otherHashed = PackedArrayStrategy.getHashed(store, n);
-                final Object otherKey = PackedArrayStrategy.getKey(store, n);
-                if (equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed)) {
-                    return n;
-                }
-            }
-
-            return -1;
-        }
-
-        protected boolean compareKeysAtIndex(VirtualFrame frame, DynamicObject hash, Object key, int cachedIndex, boolean cachedByIdentity) {
-            final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
-            Object other = PackedArrayStrategy.getKey(store, cachedIndex);
-            int otherHashed = PackedArrayStrategy.getHashed(store, cachedIndex);
-            int hashed = hashNode.hash(frame, key, cachedByIdentity);
-            return equalKeys(frame, cachedByIdentity, key, hashed, other, otherHashed);
-        }
-
-        protected int getSize(DynamicObject hash) {
-            return Layouts.HASH.getSize(hash);
-        }
-
-        protected boolean equalKeys(VirtualFrame frame, boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {
-            return compareHashKeysNode.equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed);
-        }
-
-        @ExplodeLoop
-        @Specialization(guards = "isPackedHash(hash)", contains = "getConstantIndexPackedArray")
+        @Specialization(guards = "isPackedHash(hash)")
         public Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key,
-                        @Cached("create()") BranchProfile notInHashProfile,
-                        @Cached("create()") BranchProfile useDefaultProfile,
-                        @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+                @Cached("create(undefinedValue)") LookupPackedEntryNode lookupPackedEntryNode,
+                @Cached("new()") HashNode hashNode,
+                @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
-            final int hashed = hashNode.hash(frame, key, compareByIdentity);
-
-            final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
-            final int size = Layouts.HASH.getSize(hash);
-
-            for (int n = 0; n < getContext().getOptions().HASH_PACKED_ARRAY_MAX; n++) {
-                if (n < size) {
-                    final int otherHashed = PackedArrayStrategy.getHashed(store, n);
-                    final Object otherKey = PackedArrayStrategy.getKey(store, n);
-                    if (equalKeys(frame, compareByIdentity, key, hashed, otherKey, otherHashed)) {
-                        return PackedArrayStrategy.getValue(store, n);
-                    }
-                }
-            }
-
-            notInHashProfile.enter();
-
-            if (undefinedValue != null) {
-                return undefinedValue;
-            }
-
-            useDefaultProfile.enter();
-            return callDefaultNode.call(frame, hash, "default", key);
-
+            int hashed = hashNode.hash(frame, key, compareByIdentity); // Call key.hash only once
+            return lookupPackedEntryNode.executePackedLookup(frame, hash, key, hashed);
         }
 
         @Specialization(guards = "isBucketHash(hash)")
         public Object getBuckets(VirtualFrame frame, DynamicObject hash, Object key,
-                        @Cached("create()") BranchProfile notInHashProfile,
-                        @Cached("create()") BranchProfile useDefaultProfile) {
+                @Cached("new()") LookupEntryNode lookupEntryNode,
+                @Cached("create()") BranchProfile notInHashProfile,
+                @Cached("create()") BranchProfile useDefaultProfile) {
             final HashLookupResult hashLookupResult = lookupEntryNode.lookup(frame, hash, key);
 
             if (hashLookupResult.getEntry() != null) {
