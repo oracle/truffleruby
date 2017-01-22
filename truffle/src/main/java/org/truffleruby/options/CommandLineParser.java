@@ -411,7 +411,7 @@ public class CommandLineParser {
                             extendedOption = extendedOption.substring(0, equals);
                         }
 
-                        System.setProperty(OptionsBuilder.PREFIX + extendedOption, value);
+                        config.getOptions().put(extendedOption, value);
                     }
                     break FOR;
                 case '-':

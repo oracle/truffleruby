@@ -56,13 +56,14 @@ TruffleRuby:
   -Xname=value    set a TruffleRuby option (omit value to set to true)
 ```
 
-TruffleRuby options can be set like this at the command line or using JVM system
-properties (prefix the name with `org.truffleruby`, such as
-`org.truffleruby.inline_js=true`) either with a `-J` switch, in `JAVA_OPTS` or
-set by any other JVM mechanism for setting system properties.
+As well as being set at the command line, options can be set as JVM system
+properties, where they have a prefix `truffleruby.`. For example
+`-J-Dtruffleruby.inline_js=true`, or via any other way of setting JVM system
+properties. Finally, options can be set as `PolyglotEngine` configuration
+options.
 
-TruffleRuby options set on the command line (or set in `PolyglotEngine` when
-TruffleRuby is embedded) take priority over those set in system properties.
+The priority for options is the command line first, `PolyglotEngine`, then JVM
+system properties last (so the command line overrides system properties).
 
 The logging level is not a TruffleRuby option like the others and so cannot be
 set with a JVM system property. This is because the logger is once per VM,

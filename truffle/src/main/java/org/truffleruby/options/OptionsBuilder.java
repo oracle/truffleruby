@@ -11,6 +11,8 @@ package org.truffleruby.options;
 
 import org.truffleruby.Log;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -20,13 +22,18 @@ public class OptionsBuilder {
 
     public static final String PREFIX = "truffleruby.";
 
+    public static final Collection<String> ignoredProperties = Arrays.asList(
+            PREFIX + "metrics.memory_used_on_exit",
+            PREFIX + "metrics.time"
+    );
+
     private final Map<OptionDescription, Object> options = new HashMap<>();
 
     public void set(Properties properties) {
         for (Map.Entry<Object, Object> property : properties.entrySet()) {
             final String name = (String) property.getKey();
 
-            if (name.startsWith(PREFIX)) {
+            if (name.startsWith(PREFIX) && !ignoredProperties.contains(name)) {
                 set(name.substring(PREFIX.length()), property.getValue());
             }
         }
@@ -78,16 +85,6 @@ public class OptionsBuilder {
         } else {
             return value;
         }
-    }
-
-    public static <T> T readSystemProperty(OptionDescription<T> description) {
-        final Object value = System.getProperty(PREFIX + description.getName());
-
-        if (value == null) {
-            return description.getDefaultValue();
-        }
-
-        return description.checkValue(value);
     }
 
 }

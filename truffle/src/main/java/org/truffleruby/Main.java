@@ -62,6 +62,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.util.Map;
 
 public class Main {
 
@@ -98,19 +99,25 @@ public class Main {
         if (config.getShouldRunInterpreter()) {
             final String filename = displayedFileName(config);
 
-            final PolyglotEngine engine = PolyglotEngine.newBuilder()
-                    .config(RubyLanguage.MIME_TYPE, OptionsCatalog.LOAD_PATHS.getName(), config.getLoadPaths().toArray(new String[]{}))
-                    .config(RubyLanguage.MIME_TYPE, OptionsCatalog.REQUIRED_LIBRARIES.getName(), config.getRequiredLibraries().toArray(new String[]{}))
-                    .config(RubyLanguage.MIME_TYPE, OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript())
-                    .config(RubyLanguage.MIME_TYPE, OptionsCatalog.ARGUMENTS.getName(), config.getArgv())
-                    .config(RubyLanguage.MIME_TYPE, OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename)
-                    .config(RubyLanguage.MIME_TYPE, OptionsCatalog.DEBUG.getName(), config.isDebug())
-                    .config(RubyLanguage.MIME_TYPE, OptionsCatalog.VERBOSITY.getName(), config.getVerbosity().ordinal())
-                    .config(RubyLanguage.MIME_TYPE, OptionsCatalog.FROZEN_STRING_LITERALS.getName(), config.isFrozenStringLiteral())
-                    .config(RubyLanguage.MIME_TYPE, OptionsCatalog.DISABLE_GEMS.getName(), config.isDisableGems())
-                    .config(RubyLanguage.MIME_TYPE, OptionsCatalog.INTERNAL_ENCODING.getName(), config.getInternalEncoding())
-                    .config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXTERNAL_ENCODING.getName(), config.getExternalEncoding())
-                    .build();
+            final PolyglotEngine.Builder builder = PolyglotEngine.newBuilder();
+
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.LOAD_PATHS.getName(), config.getLoadPaths().toArray(new String[]{}));
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.REQUIRED_LIBRARIES.getName(), config.getRequiredLibraries().toArray(new String[]{}));
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.ARGUMENTS.getName(), config.getArgv());
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.DEBUG.getName(), config.isDebug());
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.VERBOSITY.getName(), config.getVerbosity().ordinal());
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.FROZEN_STRING_LITERALS.getName(), config.isFrozenStringLiteral());
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.DISABLE_GEMS.getName(), config.isDisableGems());
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.INTERNAL_ENCODING.getName(), config.getInternalEncoding());
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXTERNAL_ENCODING.getName(), config.getExternalEncoding());
+
+            for (Map.Entry<String, Object> option : config.getOptions().entrySet()) {
+                builder.config(RubyLanguage.MIME_TYPE, option.getKey(), option.getValue());
+            }
+
+            final PolyglotEngine engine = builder.build();
 
             Main.printTruffleTimeMetric("before-load-context");
             final RubyContext context = engine.eval(loadSource("Truffle::Boot.context", "context")).as(RubyContext.class);

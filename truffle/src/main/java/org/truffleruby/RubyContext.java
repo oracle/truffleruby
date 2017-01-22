@@ -117,8 +117,8 @@ public class RubyContext extends ExecutionContext {
             this.env = env;
 
             final OptionsBuilder optionsBuilder = new OptionsBuilder();
-            optionsBuilder.set(env.getConfig());
             optionsBuilder.set(System.getProperties());
+            optionsBuilder.set(env.getConfig());
             options = optionsBuilder.build();
 
             rubyHome = findRubyHome();

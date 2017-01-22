@@ -36,8 +36,11 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class RubyInstanceConfig {
+
+    private Map<String, Object> options = new HashMap<>();
 
     private boolean xFlag;
     private String currentDirectory = System.getProperty("user.dir", "/");
@@ -66,6 +69,10 @@ public class RubyInstanceConfig {
     private boolean frozenStringLiteral;
     private KCode kcode;
     private boolean forceStdin;
+
+    public Map<String, Object> getOptions() {
+        return options;
+    }
 
     public byte[] inlineScript() {
         return inlineScript.toString().getBytes();
