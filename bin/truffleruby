@@ -41,13 +41,13 @@ declare -a ruby_args
 
 print_command=""
 CP=""
-boot_cp_jar="$root/lib/jruby-truffle.jar"
+boot_cp_jar="$mvn_jar"
 
 if [ "$mx_time" -gt "$mvn_time" ]; then
     # This hash is Truffle's JLINE sha1
     CP="$CP:$HOME/.mx/cache/JLINE_9504d5e2da5d78237239c5226e8200ec21182040.jar"
     CP="$CP:$root/mx.imports/binary/truffle/mxbuild/dists/truffle-debug.jar"
-    CP="$CP:$root/mxbuild/dists/ruby.jar"
+    CP="$CP:$mx_jar"
     boot_cp_jar="$root/mx.imports/binary/truffle/mxbuild/dists/truffle-api.jar"
 fi
 
