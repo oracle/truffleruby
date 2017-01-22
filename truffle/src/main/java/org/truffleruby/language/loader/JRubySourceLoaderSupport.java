@@ -42,8 +42,6 @@ public final class JRubySourceLoaderSupport {
         String tmpPath = path;
         if (path.startsWith(SourceLoader.TRUFFLE_SCHEME)) {
             tmpPath = path.substring(SourceLoader.TRUFFLE_SCHEME.length());
-        } else if (path.startsWith(SourceLoader.JRUBY_SCHEME)) {
-            tmpPath = path.substring(SourceLoader.JRUBY_SCHEME.length());
         } else if (tmpPath.startsWith("core:/")) {
             tmpPath = tmpPath.substring("core:/".length());
         } else if (tmpPath.startsWith("uri:classloader:/")) {
