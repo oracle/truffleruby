@@ -48,7 +48,7 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
             writeBarrierNode.executeWriteBarrier(value);
         }
         storage.setValueInternal(value);
-        storage.updateAssumeConstant();
+        storage.updateAssumeConstant(getContext());
         return value;
     }
 

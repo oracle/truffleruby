@@ -14,12 +14,11 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
+import org.truffleruby.RubyContext;
 import org.truffleruby.options.OptionsBuilder;
 import org.truffleruby.options.OptionsCatalog;
 
 public class GlobalVariableStorage {
-
-    private static final int GLOBAL_VARIABLE_MAX_INVALIDATIONS = OptionsBuilder.readSystemProperty(OptionsCatalog.GLOBAL_VARIABLE_MAX_INVALIDATIONS);
 
     private final CyclicAssumption unchangedAssumption = new CyclicAssumption("global variable unchanged");
     private int changes = 0;
@@ -50,14 +49,14 @@ public class GlobalVariableStorage {
     }
 
     @TruffleBoundary
-    public void updateAssumeConstant() {
+    public void updateAssumeConstant(RubyContext context) {
         synchronized (this) {
             if (!assumeConstant) {
                 // Compiled code didn't see that we do not assumeConstant anymore
                 return;
             }
 
-            if (changes <= GLOBAL_VARIABLE_MAX_INVALIDATIONS) {
+            if (changes <= context.getOptions().GLOBAL_VARIABLE_MAX_INVALIDATIONS) {
                 changes++;
                 unchangedAssumption.invalidate();
             } else {
