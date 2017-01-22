@@ -80,7 +80,7 @@ do
             CP="$CP:$2"
             shift
         else
-            java_args=("${java_args[@]}" "${1:2}")
+            java_args=("${java_args[@]}" "$val")
         fi
         ;;
     -J*)
@@ -92,7 +92,7 @@ do
             CP="$CP:$2"
             shift
         else
-            java_args=("${java_args[@]}" "${1:2}")
+            java_args=("${java_args[@]}" "$val")
         fi
         ;;
      # Match switches that take an argument
