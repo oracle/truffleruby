@@ -42,6 +42,7 @@ fi
 
 declare -a java_args
 declare -a ruby_args
+print_command=""
 
 # Split out any -J argument for passing to the JVM.
 # Scanning for args is aborted by '--'.
@@ -49,6 +50,9 @@ set -- $JRUBY_OPTS "$@"
 while [ $# -gt 0 ]
 do
     case "$1" in
+    -J-cmd)
+        print_command="true"
+        ;;
     -J:*)
         val=-${1:2}
         if [ "${val}" = "-classpath" ]; then
@@ -90,4 +94,11 @@ done
 # Append the rest of the arguments
 ruby_args=("${ruby_args[@]}" "$@")
 
-exec "$JAVACMD" $JAVA_OPTS "${java_args[@]}" "-Xbootclasspath/a:$JRUBY_HOME/lib/jruby-truffle.jar" org.truffleruby.Main "-Xhome=$root" "-Xlauncher=$%" "${ruby_args[@]}"
+declare -a full_command
+full_command=("$JAVACMD" $JAVA_OPTS "${java_args[@]}" "-Xbootclasspath/a:$JRUBY_HOME/lib/jruby-truffle.jar" org.truffleruby.Main "-Xhome=$root" "-Xlauncher=$%" "${ruby_args[@]}")
+
+if [ -n "$print_command" ]; then
+    echo "${full_command[@]}"
+fi
+
+exec "${full_command[@]}"
