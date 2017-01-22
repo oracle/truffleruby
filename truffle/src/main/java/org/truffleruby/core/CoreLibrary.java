@@ -882,10 +882,6 @@ public class CoreLibrary {
         return defineModule(null, lexicalParent, name);
     }
 
-    private DynamicObject defineModule(SourceSection sourceSection, String name) {
-        return defineModule(sourceSection, objectClass, name);
-    }
-
     private DynamicObject defineModule(SourceSection sourceSection, DynamicObject lexicalParent, String name) {
         assert RubyGuards.isRubyModule(lexicalParent);
         return ModuleNodes.createModule(context, sourceSection, moduleClass, lexicalParent, name, node);
