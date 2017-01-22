@@ -691,7 +691,7 @@ public class CoreLibrary {
         final CoreMethodNodeManager coreMethodNodeManager =
                 new CoreMethodNodeManager(context, node.getSingletonClassNode(), primitiveManager);
 
-        for (List<? extends NodeFactory<? extends RubyNode>> factory : coreNodeFactories) {
+        for (List<? extends NodeFactory<? extends RubyNode>> factory : CORE_NODE_FACTORIES) {
             coreMethodNodeManager.addCoreMethodNodes(factory);
         }
 
@@ -892,9 +892,9 @@ public class CoreLibrary {
             state = State.LOADING_RUBY_CORE;
 
             try {
-                for (int n = 0; n < coreFiles.length; n++) {
+                for (int n = 0; n < CORE_FILES.length; n++) {
                     final RubyRootNode rootNode = context.getCodeLoader().parse(
-                            context.getSourceLoader().load(getCoreLoadPath() + coreFiles[n]),
+                            context.getSourceLoader().load(getCoreLoadPath() + CORE_FILES[n]),
                             UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
 
                     final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
@@ -1476,7 +1476,7 @@ public class CoreLibrary {
     }
 
     // Sorted alphabetically to avoid duplicates
-    private static final List<List<? extends NodeFactory<? extends RubyNode>>> coreNodeFactories = Arrays.asList(
+    private static final List<List<? extends NodeFactory<? extends RubyNode>>> CORE_NODE_FACTORIES = Arrays.asList(
             ArrayNodesFactory.getFactories(),
             AtomicReferenceNodesFactory.getFactories(),
             BasicObjectNodesFactory.getFactories(),
@@ -1558,7 +1558,7 @@ public class CoreLibrary {
             VMPrimitiveNodesFactory.getFactories(),
             WeakRefPrimitiveNodesFactory.getFactories());
 
-    private static final String[] coreFiles = {
+    public static final String[] CORE_FILES = {
             "/core/pre.rb",
             "/core/basic_object.rb",
             "/core/array.rb",
