@@ -76,7 +76,9 @@ def extractArguments(cli_args):
     for args in [jruby_opts, cli_args]:
         while args:
             arg = args.pop(0)
-            if arg == '-J-cp' or arg == '-J-classpath':
+            if arg == '-J-cmd':
+                print_command = True
+            elif arg == '-J-cp' or arg == '-J-classpath':
                 cp = args.pop(0)
                 if cp[:2] == '-J':
                     cp = cp[2:]
