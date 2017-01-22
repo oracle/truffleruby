@@ -162,7 +162,11 @@ public abstract class HashNodes {
 
         @Child private CallDispatchHeadNode callDefaultNode = DispatchHeadNodeFactory.createMethodCall();
 
-        @CompilationFinal protected Object undefinedValue;
+        @CompilationFinal protected Object undefinedValue = null;
+
+        public void setUndefinedValue(Object undefinedValue) {
+            this.undefinedValue = undefinedValue;
+        }
 
         public abstract Object executeGet(VirtualFrame frame, DynamicObject hash, Object key);
 
@@ -204,10 +208,6 @@ public abstract class HashNodes {
 
             useDefaultProfile.enter();
             return callDefaultNode.call(frame, hash, "default", key);
-        }
-
-        public void setUndefinedValue(Object undefinedValue) {
-            this.undefinedValue = undefinedValue;
         }
 
     }
