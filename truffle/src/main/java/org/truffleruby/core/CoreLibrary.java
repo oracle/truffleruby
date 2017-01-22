@@ -142,15 +142,10 @@ import org.truffleruby.stdlib.readline.ReadlineNodesFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Future;
 
 public class CoreLibrary {
 
@@ -779,40 +774,10 @@ public class CoreLibrary {
                 UnboundMethodNodesFactory.getFactories(),
                 UndefinedPrimitiveNodesFactory.getFactories(),
                 VMPrimitiveNodesFactory.getFactories(),
-                WeakRefPrimitiveNodesFactory.getFactories()
-                );
+                WeakRefPrimitiveNodesFactory.getFactories());
 
-        if (context.getOptions().CORE_PARALLEL_LOAD) {
-            int nFactories = factories.size();
-            int threads = 8;
-            int chunk = nFactories / threads;
-
-            List<Callable<Void>> tasks = new ArrayList<>(threads);
-            for (int t = 0; t < threads; t++) {
-                final int nb = t;
-                tasks.add(() -> {
-                    int start = nb * chunk;
-                    int end = nb == threads - 1 ? nFactories : (nb + 1) * chunk;
-                    for (int i = start; i < end; i++) {
-                        coreMethodNodeManager.addCoreMethodNodes(factories.get(i));
-                    }
-                    return null;
-                });
-            }
-
-            for (Future<Void> future : ForkJoinPool.commonPool().invokeAll(tasks)) {
-                try {
-                    future.get();
-                } catch (InterruptedException e) {
-                    throw new JavaException(e);
-                } catch (ExecutionException e) {
-                    throw new JavaException(e.getCause());
-                }
-            }
-        } else {
-            for (List<? extends NodeFactory<? extends RubyNode>> factory : factories) {
-                coreMethodNodeManager.addCoreMethodNodes(factory);
-            }
+        for (List<? extends NodeFactory<? extends RubyNode>> factory : factories) {
+            coreMethodNodeManager.addCoreMethodNodes(factory);
         }
 
         coreMethodNodeManager.allMethodInstalled();
@@ -1018,54 +983,23 @@ public class CoreLibrary {
             Main.printTruffleTimeMetric("before-load-core");
             state = State.LOADING_RUBY_CORE;
 
-            final List<Future<RubyRootNode>> coreFileFutures = new ArrayList<>();
+            try {
+                for (int n = 0; n < coreFiles.length; n++) {
+                    final RubyRootNode rootNode = context.getCodeLoader().parse(
+                            context.getSourceLoader().load(getCoreLoadPath() + coreFiles[n]),
+                            UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
 
-            if (TruffleOptions.AOT || !context.getOptions().CORE_PARALLEL_LOAD) {
-                try {
-                    for (int n = 0; n < coreFiles.length; n++) {
-                        final RubyRootNode rootNode = context.getCodeLoader().parse(
-                                context.getSourceLoader().load(getCoreLoadPath() + coreFiles[n]),
-                                UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
+                    final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
+                            ParserContext.TOP_LEVEL,
+                            DeclarationContext.TOP_LEVEL,
+                            rootNode,
+                            null,
+                            context.getCoreLibrary().getMainObject());
 
-                        final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
-                                ParserContext.TOP_LEVEL,
-                                DeclarationContext.TOP_LEVEL,
-                                rootNode,
-                                null,
-                                context.getCoreLibrary().getMainObject());
-
-                        deferredCall.callWithoutCallNode();
-                    }
-                } catch (IOException e) {
-                    throw new JavaException(e);
+                    deferredCall.callWithoutCallNode();
                 }
-            } else {
-                try {
-                    for (int n = 0; n < coreFiles.length; n++) {
-                        final int finalN = n;
-
-                        coreFileFutures.add(ForkJoinPool.commonPool().submit(() ->
-                                context.getCodeLoader().parse(
-                                        context.getSourceLoader().load(getCoreLoadPath() + coreFiles[finalN]),
-                                        UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node)
-                        ));
-                    }
-
-                    for (int n = 0; n < coreFiles.length; n++) {
-                        final RubyRootNode rootNode = coreFileFutures.get(n).get();
-
-                        final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
-                                ParserContext.TOP_LEVEL,
-                                DeclarationContext.TOP_LEVEL,
-                                rootNode,
-                                null,
-                                context.getCoreLibrary().getMainObject());
-
-                        deferredCall.callWithoutCallNode();
-                    }
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new JavaException(e);
-                }
+            } catch (IOException e) {
+                throw new JavaException(e);
             }
 
             Main.printTruffleTimeMetric("after-load-core");
