@@ -50,9 +50,6 @@ set -- $JRUBY_OPTS "$@"
 while [ $# -gt 0 ]
 do
     case "$1" in
-    -J-cmd)
-        print_command="true"
-        ;;
     -J*)
         val=${1:2}
         if [ "${val:0:1}" = ":" ]; then # -J:
@@ -64,6 +61,8 @@ do
         elif [ "${val}" = "-cp" ]; then
             CP="$CP:$2"
             shift
+        elif [ "${val}" = "-cmd" ]; then
+            print_command="true"
         else
             java_args=("${java_args[@]}" "$val")
         fi
