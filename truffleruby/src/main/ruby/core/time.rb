@@ -426,12 +426,10 @@ class Time
 
     if zone && zone.ascii_only?
       zone.encode Encoding::US_ASCII
+    elsif zone && Encoding.default_internal
+      zone.encode Encoding.default_internal
     else
-      if zone && Encoding.default_internal
-        zone.encode Encoding.default_internal
-      else
-        zone
-      end
+      zone
     end
   end
 
