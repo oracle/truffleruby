@@ -12,6 +12,7 @@ package org.truffleruby.language.loader;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringUtils;
@@ -54,6 +55,10 @@ public class SourceLoader {
 
     @TruffleBoundary
     public Source load(String canonicalPath) throws IOException {
+        if (context.getOptions().LOG_LOAD) {
+            Log.LOGGER.info("loading " + canonicalPath);
+        }
+
         if (canonicalPath.startsWith(TRUFFLE_SCHEME)) {
             return loadResource(canonicalPath);
         } else {
