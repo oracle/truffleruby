@@ -17,8 +17,8 @@ function mtime {
     fi
 }
 
-if [ -n "${RUBY_BIN}" ]; then
-    ${RUBY_BIN}
+if [ -n "$RUBY_BIN" ]; then
+    exec "$RUBY_BIN" "$@"
 else
     mx_jar="$root"/mxbuild/dists/ruby.jar
     mvn_jar="$root"/lib/jruby-truffle.jar
