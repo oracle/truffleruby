@@ -76,7 +76,7 @@ public class LazyRubyRootNode extends RootNode implements InternalRootNode {
                 parserContext = ParserContext.TOP_LEVEL;
             }
 
-            final RubyRootNode rootNode = translator.parse(context, source, UTF8Encoding.INSTANCE,
+            final RubyRootNode rootNode = translator.parse(source, UTF8Encoding.INSTANCE,
                     parserContext, argumentNames.toArray(new String[argumentNames.size()]), null, null, true, null);
 
             final CallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);

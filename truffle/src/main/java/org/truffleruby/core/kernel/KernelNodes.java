@@ -107,7 +107,6 @@ import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.RequireNode;
-import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
@@ -600,7 +599,7 @@ public abstract class KernelNodes {
 
             final TranslatorDriver translator = new TranslatorDriver(getContext());
 
-            return new RootNodeWrapper(translator.parse(getContext(), source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
+            return new RootNodeWrapper(translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
         }
 
         protected boolean parseDependsOnDeclarationFrame(RootNodeWrapper rootNode) {

@@ -47,7 +47,7 @@ public class CodeLoader {
                               boolean ownScopeForAssignments,
                               Node currentNode) {
         final TranslatorDriver translator = new TranslatorDriver(context);
-        return translator.parse(context, source, defaultEncoding, parserContext, null, frameDescriptor, parentFrame,
+        return translator.parse(source, defaultEncoding, parserContext, null, frameDescriptor, parentFrame,
                 ownScopeForAssignments, currentNode);
     }
 
