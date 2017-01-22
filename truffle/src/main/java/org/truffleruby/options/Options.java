@@ -100,8 +100,6 @@ public class Options {
     public final int BACKTRACES_LIMIT;
     public final boolean BACKTRACES_OMIT_UNUSED;
     public final boolean BASICOPS_INLINE;
-    public final boolean METRICS_TIME;
-    public final boolean METRICS_MEMORY_USED_ON_EXIT;
     public final boolean CALL_GRAPH;
     public final String CALL_GRAPH_WRITE;
     public final boolean CHAOS;
@@ -198,8 +196,6 @@ public class Options {
         BACKTRACES_LIMIT = builder.getOrDefault(OptionsCatalog.BACKTRACES_LIMIT);
         BACKTRACES_OMIT_UNUSED = builder.getOrDefault(OptionsCatalog.BACKTRACES_OMIT_UNUSED);
         BASICOPS_INLINE = builder.getOrDefault(OptionsCatalog.BASICOPS_INLINE);
-        METRICS_TIME = builder.getOrDefault(OptionsCatalog.METRICS_TIME);
-        METRICS_MEMORY_USED_ON_EXIT = builder.getOrDefault(OptionsCatalog.METRICS_MEMORY_USED_ON_EXIT);
         CALL_GRAPH = builder.getOrDefault(OptionsCatalog.CALL_GRAPH);
         CALL_GRAPH_WRITE = builder.getOrDefault(OptionsCatalog.CALL_GRAPH_WRITE);
         CHAOS = builder.getOrDefault(OptionsCatalog.CHAOS);
@@ -380,10 +376,6 @@ public class Options {
                 return BACKTRACES_OMIT_UNUSED;
             case "basic_ops.inline":
                 return BASICOPS_INLINE;
-            case "metrics.time":
-                return METRICS_TIME;
-            case "metrics.memory_used_on_exit":
-                return METRICS_MEMORY_USED_ON_EXIT;
             case "callgraph":
                 return CALL_GRAPH;
             case "callgraph.write":

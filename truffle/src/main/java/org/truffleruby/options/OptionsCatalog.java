@@ -98,8 +98,6 @@ public class OptionsCatalog {
     public static final OptionDescription<Integer> BACKTRACES_LIMIT = new IntegerOptionDescription("backtraces.limit", "Limit the size of Ruby backtraces", 9999);
     public static final OptionDescription<Boolean> BACKTRACES_OMIT_UNUSED = new BooleanOptionDescription("backtraces.omit_unused", "Omit backtraces that should be unused as they have pure rescue expressions", true);
     public static final OptionDescription<Boolean> BASICOPS_INLINE = new BooleanOptionDescription("basic_ops.inline", "Inline basic operations (like Fixnum operators) in the AST without a call", true);
-    public static final OptionDescription<Boolean> METRICS_TIME = new BooleanOptionDescription("metrics.time", "Print the time at various stages of VM operation", false);
-    public static final OptionDescription<Boolean> METRICS_MEMORY_USED_ON_EXIT = new BooleanOptionDescription("metrics.memory_used_on_exit", "Print the size of heap memory in use on exit", false);
     public static final OptionDescription<Boolean> CALL_GRAPH = new BooleanOptionDescription("callgraph", "Maintain a call graph", false);
     public static final OptionDescription<String> CALL_GRAPH_WRITE = new StringOptionDescription("callgraph.write", "File to write the call graph to on exit", null);
     public static final OptionDescription<Boolean> CHAOS = new BooleanOptionDescription("chaos", "Randomly modify the representation of objects", false);
@@ -279,10 +277,6 @@ public class OptionsCatalog {
                 return BACKTRACES_OMIT_UNUSED;
             case "basic_ops.inline":
                 return BASICOPS_INLINE;
-            case "metrics.time":
-                return METRICS_TIME;
-            case "metrics.memory_used_on_exit":
-                return METRICS_MEMORY_USED_ON_EXIT;
             case "callgraph":
                 return CALL_GRAPH;
             case "callgraph.write":
@@ -396,8 +390,6 @@ public class OptionsCatalog {
             BACKTRACES_LIMIT,
             BACKTRACES_OMIT_UNUSED,
             BASICOPS_INLINE,
-            METRICS_TIME,
-            METRICS_MEMORY_USED_ON_EXIT,
             CALL_GRAPH,
             CALL_GRAPH_WRITE,
             CHAOS,

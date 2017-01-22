@@ -95,8 +95,6 @@ BACKTRACES_LIMIT: [backtraces.limit, integer, 9999, Limit the size of Ruby backt
 BACKTRACES_OMIT_UNUSED: [backtraces.omit_unused, boolean, true, Omit backtraces that should be unused as they have pure rescue expressions]
 BASICOPS_INLINE: [basic_ops.inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
 
-METRICS_TIME: [metrics.time, boolean, false, Print the time at various stages of VM operation]
-METRICS_MEMORY_USED_ON_EXIT: [metrics.memory_used_on_exit, boolean, false, Print the size of heap memory in use on exit]
 CALL_GRAPH: [callgraph, boolean, false, Maintain a call graph]
 CALL_GRAPH_WRITE: [callgraph.write, string, null, File to write the call graph to on exit]
 CHAOS: [chaos, boolean, false, Randomly modify the representation of objects]

@@ -65,8 +65,8 @@ import java.lang.management.ManagementFactory;
 
 public class Main {
 
-    private static final boolean METRICS_TIME = OptionsBuilder.readSystemProperty(OptionsCatalog.METRICS_TIME);
-    private static final boolean METRICS_MEMORY_USED_ON_EXIT = OptionsBuilder.readSystemProperty(OptionsCatalog.METRICS_MEMORY_USED_ON_EXIT);
+    private static final boolean METRICS_TIME = Boolean.getBoolean(OptionsBuilder.PREFIX + "metrics.time");
+    private static final boolean METRICS_MEMORY_USED_ON_EXIT = Boolean.getBoolean(OptionsBuilder.PREFIX + "metrics.memory_used_on_exit");
 
     public static void main(String[] args) {
         printTruffleTimeMetric("before-main");
