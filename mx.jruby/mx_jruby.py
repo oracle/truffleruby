@@ -110,6 +110,8 @@ def setup_ruby_home():
 def log(msg):
     print >> sys.stderr, msg
 
+# This launcher runs similarly to GraalVM,
+# with a home only containing files extracted from RUBY-ZIP.
 def ruby_command(args):
     """runs Ruby"""
     java_home = os.getenv('JAVA_HOME', '/usr')
