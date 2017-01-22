@@ -95,7 +95,7 @@ def extractArguments(cli_args):
                 rubyArgs.append(arg)
     return vmArgs, rubyArgs, classpath, print_command
 
-def setup_jruby_home():
+def setup_ruby_home():
     rubyZip = mx.distribution('RUBY-ZIP').path
     assert exists(rubyZip)
     extractPath = join(_suite.dir, 'mxbuild', 'ruby-zip-extracted')
@@ -104,9 +104,7 @@ def setup_jruby_home():
             shutil.rmtree(extractPath)
         with tarfile.open(rubyZip, 'r:') as tf:
             tf.extractall(extractPath)
-    env = os.environ.copy()
-    env['JRUBY_HOME'] = extractPath
-    return env
+    return extractPath
 
 # Print to stderr, mx.log() outputs to stdout
 def log(msg):
@@ -130,21 +128,23 @@ def ruby_command(args):
         '-cp', ':'.join(classpath),
         'org.truffleruby.Main'
     ]
-    allArgs = vmArgs + ['-Xlauncher=' + join(_suite.dir, 'bin', 'truffleruby')] + rubyArgs
-
-    env = setup_jruby_home()
+    ruby_home = setup_ruby_home()
+    rubyArgs = [
+        '-Xhome=' + ruby_home,
+        '-Xlauncher=' + join(_suite.dir, 'bin', 'truffleruby')
+    ] + rubyArgs
+    allArgs = vmArgs + rubyArgs
 
     if print_command:
         if mx.get_opts().verbose:
             log('Environment variables:')
+            env = os.environ
             for key in sorted(env.keys()):
                 log(key + '=' + env[key])
         log(java + ' ' + ' '.join(map(pipes.quote, allArgs)))
-    return os.execve(java, [argv0] + allArgs, env)
+    return os.execv(java, [argv0] + allArgs)
 
 def ruby_tck(args):
-    env = setup_jruby_home()
-    os.environ["JRUBY_HOME"] = env["JRUBY_HOME"]
     mx_unittest.unittest(['--verbose', '--suite', 'jruby'])
 
 mx.update_commands(_suite, {

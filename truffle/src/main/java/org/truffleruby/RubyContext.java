@@ -230,16 +230,14 @@ public class RubyContext extends ExecutionContext {
 
             if (codeSource != null && codeSource.getLocation().getProtocol().equals("file")) {
                 final File jar = new File(codeSource.getLocation().getFile());
+                final File jarDir = jar.getParentFile();
 
-                if (jar.getParentFile().getName().equals("lib")) {
+                if (jarDir.getName().equals("lib")) {
                     // Conventional build or distribution
-                    return jar.getParentFile().getParentFile().getAbsolutePath();
-                } else if (jar.getParentFile().getName().equals("ruby") && new File(jar.getParentFile(), "lib").exists()) {
+                    return jarDir.getParentFile().getAbsolutePath();
+                } else if (jarDir.getName().equals("ruby") && new File(jarDir, "lib").exists()) {
                     // GraalVM build or distribution
-                    return jar.getParentFile().getAbsolutePath();
-                } else if (jar.getParentFile().getName().equals("dists") && jar.getParentFile().getParentFile().getName().equals("mxbuild")) {
-                    // mx build
-                    return new File(jar.getParentFile().getParentFile(), "ruby-zip-extracted").getAbsolutePath();
+                    return jarDir.getAbsolutePath();
                 }
             }
         }
