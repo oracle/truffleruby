@@ -406,10 +406,6 @@ module ShellUtils
       command, *args = args
     end
 
-    if Utilities.mx?
-      args.unshift "-ttool/jruby_mx"
-    end
-
     sh env_vars, Utilities.find_ruby, 'spec/mspec/bin/mspec', command, '--config', 'spec/truffle/truffle.mspec', *args
   end
 
