@@ -94,7 +94,7 @@ public class ThreadManager {
     }
 
     public static void initialize(final DynamicObject thread, RubyContext context, Node currentNode, final Object[] arguments, final DynamicObject block) {
-        if (SharedObjects.ENABLED) {
+        if (context.getOptions().SHARED_OBJECTS_ENABLED) {
             SharedObjects.shareDeclarationFrame(block);
         }
 
@@ -332,7 +332,7 @@ public class ThreadManager {
         initializeCurrentThread(thread);
         runningRubyThreads.add(thread);
 
-        if (SharedObjects.ENABLED && runningRubyThreads.size() > 1) {
+        if (context.getOptions().SHARED_OBJECTS_ENABLED && runningRubyThreads.size() > 1) {
             context.getSharedObjects().startSharing();
             SharedObjects.writeBarrier(thread);
         }
