@@ -179,7 +179,7 @@ public class RubyContext extends ExecutionContext {
             // Load the nodes
 
             Main.printTruffleTimeMetric("before-load-nodes");
-            coreLibrary.addCoreMethods(primitiveManager);
+            coreLibrary.loadCoreNodes(primitiveManager);
             Main.printTruffleTimeMetric("after-load-nodes");
 
             // Capture known builtin methods
@@ -191,7 +191,9 @@ public class RubyContext extends ExecutionContext {
 
             // Load the reset of the core library
 
+            Main.printTruffleTimeMetric("before-load-core");
             coreLibrary.loadRubyCore();
+            Main.printTruffleTimeMetric("after-load-core");
 
             // Load other subsystems
 

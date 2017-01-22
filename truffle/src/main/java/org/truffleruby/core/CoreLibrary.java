@@ -206,7 +206,6 @@ public class CoreLibrary {
     private final DynamicObjectFactory intRangeFactory;
     private final DynamicObjectFactory longRangeFactory;
     private final DynamicObject rangeErrorClass;
-    private final DynamicObject rationalClass;
     private final DynamicObject regexpClass;
     private final DynamicObjectFactory regexpFactory;
     private final DynamicObject regexpErrorClass;
@@ -229,7 +228,6 @@ public class CoreLibrary {
     private final DynamicObjectFactory threadBacktraceLocationFactory;
     private final DynamicObject timeClass;
     private final DynamicObjectFactory timeFactory;
-    private final DynamicObject transcodingClass;
     private final DynamicObject trueClass;
     private final DynamicObject typeErrorClass;
     private final DynamicObject zeroDivisionErrorClass;
@@ -475,7 +473,7 @@ public class CoreLibrary {
         bignumClass = defineClass(integerClass, "Bignum");
         bignumFactory = alwaysFrozen(Layouts.BIGNUM.createBignumShape(bignumClass, bignumClass));
         Layouts.CLASS.setInstanceFactoryUnsafe(bignumClass, bignumFactory);
-        rationalClass = defineClass(numericClass, "Rational");
+        defineClass(numericClass, "Rational");
 
         // Classes defined in Object
 
@@ -633,7 +631,7 @@ public class CoreLibrary {
         byteArrayFactory = Layouts.BYTE_ARRAY.createByteArrayShape(byteArrayClass, byteArrayClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(byteArrayClass, byteArrayFactory);
         defineClass(rubiniusModule, objectClass, "StringData");
-        transcodingClass = defineClass(encodingClass, objectClass, "Transcoding");
+        defineClass(encodingClass, objectClass, "Transcoding");
         randomizerClass = defineClass(rubiniusModule, objectClass, "Randomizer");
         atomicReferenceClass = defineClass(rubiniusModule, objectClass, "AtomicReference");
         Layouts.CLASS.setInstanceFactoryUnsafe(atomicReferenceClass,
@@ -689,7 +687,7 @@ public class CoreLibrary {
         initializeSignalConstants();
     }
 
-    public void addCoreMethods(PrimitiveManager primitiveManager) {
+    public void loadCoreNodes(PrimitiveManager primitiveManager) {
         final CoreMethodNodeManager coreMethodNodeManager =
                 new CoreMethodNodeManager(context, node.getSingletonClassNode(), primitiveManager);
 
@@ -894,10 +892,7 @@ public class CoreLibrary {
     }
 
     public void loadRubyCore() {
-        // Load Ruby core
-
         try {
-            Main.printTruffleTimeMetric("before-load-core");
             state = State.LOADING_RUBY_CORE;
 
             try {
@@ -918,8 +913,6 @@ public class CoreLibrary {
             } catch (IOException e) {
                 throw new JavaException(e);
             }
-
-            Main.printTruffleTimeMetric("after-load-core");
         } catch (RaiseException e) {
             final DynamicObject rubyException = e.getException();
             BacktraceFormatter.createDefaultFormatter(getContext()).printBacktrace(context, rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
@@ -1186,10 +1179,6 @@ public class CoreLibrary {
         return loadErrorClass;
     }
 
-    public DynamicObject getMatchDataClass() {
-        return matchDataClass;
-    }
-
     public DynamicObjectFactory getMatchDataFactory() {
         return matchDataFactory;
     }
@@ -1236,14 +1225,6 @@ public class CoreLibrary {
 
     public DynamicObject getRangeClass() {
         return rangeClass;
-    }
-
-    public DynamicObject getRationalClass() {
-        return rationalClass;
-    }
-
-    public DynamicObject getRegexpClass() {
-        return regexpClass;
     }
 
     public DynamicObjectFactory getRegexpFactory() {
@@ -1330,18 +1311,6 @@ public class CoreLibrary {
         return statFactory;
     }
 
-    public DynamicObject getTranscodingClass() {
-        return transcodingClass;
-    }
-
-    public DynamicObject getRubiniusFFIPointerClass() {
-        return rubiniusFFIPointerClass;
-    }
-
-    public Object getRubiniusUndefined() {
-        return rubiniusUndefined;
-    }
-
     @TruffleBoundary
     public DynamicObject getErrnoClass(Errno errno) {
         return errnoClasses.get(errno);
@@ -1353,10 +1322,6 @@ public class CoreLibrary {
 
     public DynamicObjectFactory getSymbolFactory() {
         return symbolFactory;
-    }
-
-    public DynamicObject getThreadBacktraceLocationClass() {
-        return threadBacktraceLocationClass;
     }
 
     public DynamicObjectFactory getThreadBacktraceLocationFactory() {
@@ -1400,10 +1365,6 @@ public class CoreLibrary {
         return longRangeFactory;
     }
 
-    public DynamicObject getDigestClass() {
-        return digestClass;
-    }
-
     public DynamicObjectFactory getDigestFactory() {
         return digestFactory;
     }
@@ -1438,10 +1399,6 @@ public class CoreLibrary {
 
     public DynamicObjectFactory getRandomizerFactory() {
         return randomizerFactory;
-    }
-
-    public DynamicObjectFactory getTimeFactory() {
-        return timeFactory;
     }
 
     public DynamicObject getSystemExitClass() {
