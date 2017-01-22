@@ -8,9 +8,9 @@ set -e
 function mtime {
     uname_str=$(uname)
     if [ "$uname_str" = 'Linux' ]; then
-        stat -c '%Y' "$1" 2> /dev/null || echo 0
+        stat -c '%Y' "$1" 2>/dev/null || echo 0
     elif [ "$uname_str" = 'Darwin' ]; then
-        stat -f '%m' "$1" 2> /dev/null || echo 0
+        stat -f '%m' "$1" 2>/dev/null || echo 0
     else
         echo "unknown platform $uname_str"
         exit 1
@@ -19,17 +19,15 @@ function mtime {
 
 if [ -n "$RUBY_BIN" ]; then
     exec "$RUBY_BIN" "$@"
-else
-    mx_jar="$root"/mxbuild/dists/ruby.jar
-    mvn_jar="$root"/lib/jruby-truffle.jar
-    mx_time=$(mtime "$mx_jar")
-    mvn_time=$(mtime "$mvn_jar")
 fi
 
-if [ -z "$JAVACMD" ]
-then
-  if [ -z "$JAVA_HOME" ]
-  then
+mx_jar="$root/mxbuild/dists/ruby.jar"
+mvn_jar="$root/lib/jruby-truffle.jar"
+mx_time=$(mtime "$mx_jar")
+mvn_time=$(mtime "$mvn_jar")
+
+if [ -z "$JAVACMD" ]; then
+  if [ -z "$JAVA_HOME" ]; then
     JAVACMD='java'
   else
     JAVACMD="$JAVA_HOME/bin/java"
