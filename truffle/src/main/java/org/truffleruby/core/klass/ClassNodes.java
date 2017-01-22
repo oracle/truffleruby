@@ -241,7 +241,7 @@ public abstract class ClassNodes {
 
         String name = StringUtils.format("#<Class:%s>", Layouts.MODULE.getFields(rubyClass).getName());
         DynamicObject metaClass = ClassNodes.createRubyClass(context, Layouts.MODULE.getFields(rubyClass).getSourceSection(), Layouts.BASIC_OBJECT.getLogicalClass(rubyClass), null, singletonSuperclass, name, true, rubyClass, true);
-        SharedObjects.propagate(rubyClass, metaClass);
+        SharedObjects.propagate(context, rubyClass, metaClass);
         Layouts.BASIC_OBJECT.setMetaClass(rubyClass, metaClass);
 
         return Layouts.BASIC_OBJECT.getMetaClass(rubyClass);

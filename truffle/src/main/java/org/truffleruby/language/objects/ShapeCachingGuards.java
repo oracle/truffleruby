@@ -15,6 +15,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 public abstract class ShapeCachingGuards {
@@ -23,7 +24,7 @@ public abstract class ShapeCachingGuards {
         CompilerDirectives.transferToInterpreter();
         boolean updated = object.updateShape();
         if (updated) {
-            assert !SharedObjects.isShared(object);
+            assert !SharedObjects.isShared(RubyContext.getInstance(), object);
         }
         return updated;
     }

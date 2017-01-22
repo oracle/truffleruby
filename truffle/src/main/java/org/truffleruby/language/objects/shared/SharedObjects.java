@@ -61,16 +61,16 @@ public class SharedObjects {
         }
 
         long t0 = System.currentTimeMillis();
-        shareObjects(stack);
+        shareObjects(context, stack);
         if (context.getOptions().SHARED_OBJECTS_DEBUG) {
             Log.LOGGER.info("sharing roots took " + (System.currentTimeMillis() - t0) + " ms");
         }
     }
 
-    public static void shareDeclarationFrame(DynamicObject block) {
+    public static void shareDeclarationFrame(RubyContext context, DynamicObject block) {
         final Deque<DynamicObject> stack = new ArrayDeque<>();
 
-        if (RubyContext.getInstance().getOptions().SHARED_OBJECTS_DEBUG) {
+        if (context.getOptions().SHARED_OBJECTS_DEBUG) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
             Log.LOGGER.info("sharing decl frame of " + RubyLanguage.fileLine(sourceSection));
         }
@@ -78,48 +78,48 @@ public class SharedObjects {
         final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(block);
         stack.addAll(ObjectGraph.getObjectsInFrame(declarationFrame));
 
-        shareObjects(stack);
+        shareObjects(context, stack);
     }
 
-    private static void shareObjects(Deque<DynamicObject> stack) {
+    private static void shareObjects(RubyContext context, Deque<DynamicObject> stack) {
         while (!stack.isEmpty()) {
             final DynamicObject object = stack.pop();
 
-            if (share(object)) {
+            if (share(context, object)) {
                 stack.addAll(ObjectGraph.getAdjacentObjects(object));
             }
         }
     }
 
     @TruffleBoundary
-    private static void shareObject(Object value) {
+    private static void shareObject(RubyContext context, Object value) {
         final Deque<DynamicObject> stack = new ArrayDeque<>();
         stack.add((DynamicObject) value);
-        shareObjects(stack);
+        shareObjects(context, stack);
     }
 
-    public static boolean isShared(DynamicObject object) {
-        return isShared(object.getShape());
+    public static boolean isShared(RubyContext context, DynamicObject object) {
+        return isShared(context, object.getShape());
     }
 
-    public static boolean isShared(Shape shape) {
-        return RubyContext.getInstance().getOptions().SHARED_OBJECTS_ENABLED && (RubyContext.getInstance().getOptions().SHARED_OBJECTS_SHARE_ALL || shape.isShared());
+    public static boolean isShared(RubyContext context, Shape shape) {
+        return context.getOptions().SHARED_OBJECTS_ENABLED && (context.getOptions().SHARED_OBJECTS_SHARE_ALL || shape.isShared());
     }
 
-    public static void writeBarrier(Object value) {
-        if (RubyContext.getInstance().getOptions().SHARED_OBJECTS_ENABLED && value instanceof DynamicObject && !isShared((DynamicObject) value)) {
-            shareObject(value);
+    public static void writeBarrier(RubyContext context, Object value) {
+        if (context.getOptions().SHARED_OBJECTS_ENABLED && value instanceof DynamicObject && !isShared(context, (DynamicObject) value)) {
+            shareObject(context, value);
         }
     }
 
-    public static void propagate(DynamicObject source, Object value) {
-        if (isShared(source)) {
-            writeBarrier(value);
+    public static void propagate(RubyContext context, DynamicObject source, Object value) {
+        if (isShared(context, source)) {
+            writeBarrier(context, value);
         }
     }
 
-    private static boolean share(DynamicObject object) {
-        if (isShared(object)) {
+    private static boolean share(RubyContext context, DynamicObject object) {
+        if (isShared(context, object)) {
             return false;
         }
 

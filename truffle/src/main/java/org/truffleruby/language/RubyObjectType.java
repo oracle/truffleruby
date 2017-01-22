@@ -15,6 +15,7 @@ import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -26,8 +27,6 @@ public class RubyObjectType extends ObjectType {
     @Override
     @TruffleBoundary
     public String toString(DynamicObject object) {
-        CompilerAsserts.neverPartOfCompilation();
-
         if (RubyGuards.isRubyString(object)) {
             return RopeOperations.decodeRope(StringOperations.rope(object));
         } else if (RubyGuards.isRubySymbol(object)) {
@@ -38,7 +37,7 @@ public class RubyObjectType extends ObjectType {
             return Layouts.MODULE.getFields(object).getName();
         } else {
             final String className = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(object)).getName();
-            final Object isShared = SharedObjects.isShared(object) ? "(shared)" : "";
+            final Object isShared = SharedObjects.isShared(RubyContext.getInstance(), object) ? "(shared)" : "";
             return StringUtils.format("DynamicObject@%x<%s>%s", System.identityHashCode(object), className, isShared);
         }
     }

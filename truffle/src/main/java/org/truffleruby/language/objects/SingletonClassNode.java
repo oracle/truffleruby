@@ -152,7 +152,7 @@ public abstract class SingletonClassNode extends RubyNode {
                 freeze(singletonClass);
             }
 
-            SharedObjects.propagate(object, singletonClass);
+            SharedObjects.propagate(getContext(), object, singletonClass);
 
             Layouts.BASIC_OBJECT.setMetaClass(object, singletonClass);
             return singletonClass;

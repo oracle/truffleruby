@@ -21,6 +21,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.queue.UnsizedQueue;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import java.util.Arrays;
@@ -30,7 +31,7 @@ import java.util.Collection;
  * Share the internal field of an object, accessible by its Layout
  */
 @ImportStatic({ ShapeCachingGuards.class, ArrayGuards.class })
-public abstract class ShareInternalFieldsNode extends Node {
+public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;
 
@@ -98,7 +99,7 @@ public abstract class ShareInternalFieldsNode extends Node {
 
     @Specialization(contains = { "shareCachedObjectArray", "shareCachedOtherArray", "shareCachedQueue", "shareCachedBasicObject", "updateShapeAndShare" })
     protected void shareUncached(DynamicObject object) {
-        SharedObjects.writeBarrier(object);
+        SharedObjects.writeBarrier(getContext(), object);
     }
 
     protected WriteBarrierNode createWriteBarrierNode() {

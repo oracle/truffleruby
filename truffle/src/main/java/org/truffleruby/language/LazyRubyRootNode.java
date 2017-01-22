@@ -102,7 +102,7 @@ public class LazyRubyRootNode extends RootNode implements InternalRootNode {
 
         // The return value will be leaked to Java, share it.
         if (context.getOptions().SHARED_OBJECTS_ENABLED) {
-            SharedObjects.writeBarrier(value);
+            SharedObjects.writeBarrier(context, value);
         }
 
         return value;

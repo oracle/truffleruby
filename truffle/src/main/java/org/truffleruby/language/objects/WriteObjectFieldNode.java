@@ -125,9 +125,9 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
     @TruffleBoundary
     @Specialization(contains = { "writeExistingField", "writeNewField", "updateShapeAndWrite" })
     public void writeUncached(DynamicObject object, Object value) {
-        final boolean shared = SharedObjects.isShared(object);
+        final boolean shared = SharedObjects.isShared(getContext(), object);
         if (shared) {
-            SharedObjects.writeBarrier(value);
+            SharedObjects.writeBarrier(getContext(), value);
             synchronized (object) {
                 Shape shape = object.getShape();
                 Shape newShape = defineProperty(shape, value);
@@ -173,7 +173,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
     }
 
     protected boolean isShared(Shape shape) {
-        return SharedObjects.isShared(shape);
+        return SharedObjects.isShared(getContext(), shape);
     }
 
     protected WriteBarrierNode createWriteBarrierNode(boolean shared) {

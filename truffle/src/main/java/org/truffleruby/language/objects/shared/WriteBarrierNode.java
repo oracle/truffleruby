@@ -15,10 +15,11 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 @ImportStatic(ShapeCachingGuards.class)
-public abstract class WriteBarrierNode extends Node {
+public abstract class WriteBarrierNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;
     protected static final int MAX_DEPTH = 3;
@@ -55,7 +56,7 @@ public abstract class WriteBarrierNode extends Node {
 
     @Specialization(contains = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
     protected void writeBarrierUncached(DynamicObject value) {
-        SharedObjects.writeBarrier(value);
+        SharedObjects.writeBarrier(getContext(), value);
     }
 
     @Specialization(guards = "!isDynamicObject(value)")
@@ -70,8 +71,8 @@ public abstract class WriteBarrierNode extends Node {
         return value instanceof DynamicObject;
     }
 
-    protected static boolean isShared(Shape shape) {
-        return SharedObjects.isShared(shape);
+    protected boolean isShared(Shape shape) {
+        return SharedObjects.isShared(getContext(), shape);
     }
 
     protected ShareObjectNode createShareObjectNode(boolean alreadyShared) {
