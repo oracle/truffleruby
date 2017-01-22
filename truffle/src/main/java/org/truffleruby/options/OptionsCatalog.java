@@ -44,6 +44,7 @@ public class OptionsCatalog {
     public static final OptionDescription<Boolean> COVERAGE_GLOBAL = new BooleanOptionDescription("coverage.global", "Run coverage for all code and print results on exit", false);
     public static final OptionDescription<Boolean> INLINE_JS = new BooleanOptionDescription("inline_js", "Allow inline JavaScript", false);
     public static final OptionDescription<String> CORE_LOAD_PATH = new StringOptionDescription("core.load_path", "Location to load the Truffle core library from", "truffle:/jruby-truffle");
+    public static final OptionDescription<Boolean> USE_PARSER_CACHE = new BooleanOptionDescription("core.use_parser_cache", "Use the cached parse trees of the core library if they're available", true);
     public static final OptionDescription<Boolean> LAZY_TRANSLATION = new BooleanOptionDescription("lazy_translation", "Lazily translate from the parser AST to the Truffle AST", false);
     public static final OptionDescription<Boolean> LAZY_TRANSLATION_LOG = new BooleanOptionDescription("lazy_translation.log", "Log lazy translations from the parser AST to the Truffle AST", false);
     public static final OptionDescription<Integer> ARRAY_UNINITIALIZED_SIZE = new IntegerOptionDescription("array.uninitialized_size", "How large an Array to allocate when we have no other information to go on", 32);
@@ -170,6 +171,8 @@ public class OptionsCatalog {
                 return INLINE_JS;
             case "core.load_path":
                 return CORE_LOAD_PATH;
+            case "core.use_parser_cache":
+                return USE_PARSER_CACHE;
             case "lazy_translation":
                 return LAZY_TRANSLATION;
             case "lazy_translation.log":
@@ -339,6 +342,7 @@ public class OptionsCatalog {
             COVERAGE_GLOBAL,
             INLINE_JS,
             CORE_LOAD_PATH,
+            USE_PARSER_CACHE,
             LAZY_TRANSLATION,
             LAZY_TRANSLATION_LOG,
             ARRAY_UNINITIALIZED_SIZE,

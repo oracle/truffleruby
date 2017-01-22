@@ -575,6 +575,7 @@ module Commands
 
     unless args.delete('--no-core-load-path')
       jruby_args << "-Xcore.load_path=#{JRUBY_DIR}/truffle/src/main/ruby"
+      jruby_args << "-J-Dtruffleruby.core.build_parser_cache=false"
     end
 
     if args.delete('--graal')

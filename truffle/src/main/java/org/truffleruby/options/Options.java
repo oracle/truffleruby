@@ -46,6 +46,7 @@ public class Options {
     public final boolean COVERAGE_GLOBAL;
     public final boolean INLINE_JS;
     public final String CORE_LOAD_PATH;
+    public final boolean USE_PARSER_CACHE;
     public final boolean LAZY_TRANSLATION;
     public final boolean LAZY_TRANSLATION_LOG;
     public final int ARRAY_UNINITIALIZED_SIZE;
@@ -143,6 +144,7 @@ public class Options {
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
         INLINE_JS = builder.getOrDefault(OptionsCatalog.INLINE_JS);
         CORE_LOAD_PATH = builder.getOrDefault(OptionsCatalog.CORE_LOAD_PATH);
+        USE_PARSER_CACHE = builder.getOrDefault(OptionsCatalog.USE_PARSER_CACHE);
         LAZY_TRANSLATION = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION);
         LAZY_TRANSLATION_LOG = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_LOG);
         ARRAY_UNINITIALIZED_SIZE = builder.getOrDefault(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE);
@@ -270,6 +272,8 @@ public class Options {
                 return INLINE_JS;
             case "core.load_path":
                 return CORE_LOAD_PATH;
+            case "core.use_parser_cache":
+                return USE_PARSER_CACHE;
             case "lazy_translation":
                 return LAZY_TRANSLATION;
             case "lazy_translation.log":

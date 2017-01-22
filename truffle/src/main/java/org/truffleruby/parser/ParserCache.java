@@ -14,6 +14,7 @@ import com.oracle.truffle.api.source.Source;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.loader.SourceLoader;
+import org.truffleruby.options.OptionsBuilder;
 import org.truffleruby.options.OptionsCatalog;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.parser.ParserConfiguration;
@@ -37,15 +38,17 @@ public class ParserCache {
     public static final ParserCache INSTANCE = new ParserCache();
 
     static {
-        /*
-         * Speculatively cache the files in the default core load path - if people have set it to something else then
-         * it'll be wasted work, but it's probably a developer and it doesn't matter too much.
-         */
+        if (Boolean.parseBoolean(System.getProperty(OptionsBuilder.PREFIX + "core.build_parser_cache", Boolean.TRUE.toString()))) {
+            /*
+             * Speculatively cache the files in the default core load path - if people have set it to something else then
+             * it'll be wasted work, but it's probably a developer and it doesn't matter too much.
+             */
 
-        final String defaultCoreLibraryPath = OptionsCatalog.CORE_LOAD_PATH.getDefaultValue();
+            final String defaultCoreLibraryPath = OptionsCatalog.CORE_LOAD_PATH.getDefaultValue();
 
-        for (String coreFile : CoreLibrary.CORE_FILES) {
-            INSTANCE.add(defaultCoreLibraryPath + coreFile);
+            for (String coreFile : CoreLibrary.CORE_FILES) {
+                INSTANCE.add(defaultCoreLibraryPath + coreFile);
+            }
         }
     }
 
