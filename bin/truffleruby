@@ -53,20 +53,11 @@ do
     -J-cmd)
         print_command="true"
         ;;
-    -J:*)
-        val=-${1:2}
-        if [ "${val}" = "-classpath" ]; then
-            CP="$CP:$2"
-            shift
-        elif [ "${val}" = "-cp" ]; then
-            CP="$CP:$2"
-            shift
-        else
-            java_args=("${java_args[@]}" "$val")
-        fi
-        ;;
     -J*)
         val=${1:2}
+        if [ "${val:0:1}" = ":" ]; then # -J:
+            val=-${val:1}
+        fi
         if [ "${val}" = "-classpath" ]; then
             CP="$CP:$2"
             shift
