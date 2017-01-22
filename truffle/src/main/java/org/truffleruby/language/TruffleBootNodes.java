@@ -218,7 +218,7 @@ public abstract class TruffleBootNodes {
 
             final TranslatorDriver translator = new TranslatorDriver(getContext());
 
-            translator.parse(getContext(), source, UTF8Encoding.INSTANCE,
+            translator.parse(source, UTF8Encoding.INSTANCE,
                     ParserContext.TOP_LEVEL, new String[]{}, null, null, true, null);
 
             return nil();

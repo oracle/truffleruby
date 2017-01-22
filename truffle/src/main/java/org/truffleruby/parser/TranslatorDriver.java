@@ -92,7 +92,7 @@ public class TranslatorDriver {
         parseEnvironment = new ParseEnvironment(context);
     }
 
-    public RubyRootNode parse(RubyContext context, Source source, Encoding defaultEncoding, ParserContext parserContext, String[] argumentNames, FrameDescriptor frameDescriptor, MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
+    public RubyRootNode parse(Source source, Encoding defaultEncoding, ParserContext parserContext, String[] argumentNames, FrameDescriptor frameDescriptor, MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
 
         /*
@@ -260,8 +260,7 @@ public class TranslatorDriver {
         return new RubyRootNode(context, sourceIndexLength.toSourceSection(source), environment.getFrameDescriptor(), sharedMethodInfo, truffleNode, environment.needsDeclarationFrame());
     }
 
-    public RootParseNode parse(Source source, DynamicScope blockScope,
-                           ParserConfiguration configuration) {
+    public RootParseNode parse(Source source, DynamicScope blockScope, ParserConfiguration configuration) {
         LexerSource ByteListLexerSource = new LexerSource(source, configuration.getLineNumber(), configuration.getDefaultEncoding());
         // We only need to pass in current scope if we are evaluating as a block (which
         // is only done for evals).  We need to pass this in so that we can appropriately scope
