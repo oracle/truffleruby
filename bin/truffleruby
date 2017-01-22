@@ -85,7 +85,7 @@ done
 ruby_args=("${ruby_args[@]}" "$@")
 
 declare -a full_command
-full_command=("$JAVACMD" $JAVA_OPTS "${java_args[@]}" "-Xbootclasspath/a:$JRUBY_HOME/lib/jruby-truffle.jar" org.truffleruby.Main "-Xhome=$root" "-Xlauncher=$%" "${ruby_args[@]}")
+full_command=("$JAVACMD" $JAVA_OPTS "${java_args[@]}" "-Xbootclasspath/a:$root/lib/jruby-truffle.jar" org.truffleruby.Main "-Xhome=$root" "-Xlauncher=$root/bin/truffleruby" "${ruby_args[@]}")
 
 if [ -n "$print_command" ]; then
     echo "${full_command[@]}"
