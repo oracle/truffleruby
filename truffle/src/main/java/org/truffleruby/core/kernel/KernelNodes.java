@@ -1303,7 +1303,7 @@ public abstract class KernelNodes {
         private String getFullPath(final String featureString) {
             final String featurePath;
 
-            if (featureString.startsWith(SourceLoader.TRUFFLE_SCHEME) || new File(featureString).isAbsolute()) {
+            if (new File(featureString).isAbsolute()) {
                 featurePath = featureString;
             } else {
                 final Source source = getContext().getCallStack().getCallerFrameIgnoringSend().getCallNode().getEncapsulatingSourceSection().getSource();
@@ -1320,6 +1320,7 @@ public abstract class KernelNodes {
 
                 featurePath = dirname(sourcePath) + "/" + featureString;
             }
+
             return featurePath;
         }
 
