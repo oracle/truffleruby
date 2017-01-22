@@ -86,7 +86,7 @@ def extractArguments(cli_args):
             elif arg.startswith('-J-'):
                 vmArgs.append(arg[2:])
             elif arg.startswith('-J:'):
-                vmArgs.append('-' + arg[2:])
+                vmArgs.append('-' + arg[3:])
             elif arg == '--':
                 rubyArgs.append(arg)
                 rubyArgs.extend(args)
