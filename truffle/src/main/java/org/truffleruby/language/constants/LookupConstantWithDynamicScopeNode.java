@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.constants;
 
-import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -18,6 +17,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
+import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
@@ -47,19 +47,19 @@ public abstract class LookupConstantWithDynamicScopeNode extends RubyNode implem
     }
 
     @Specialization(guards = "getLexicalScope(frame) == lexicalScope",
-                    assumptions = "getUnmodifiedAssumption(lexicalScope.getLiveModule())",
+                    assumptions = "constant.getAssumptions()",
                     limit = "getCacheLimit()")
     protected RubyConstant lookupConstant(VirtualFrame frame,
                     @Cached("getLexicalScope(frame)") LexicalScope lexicalScope,
-                    @Cached("doLookup(lexicalScope)") RubyConstant constant,
+                    @Cached("doLookup(lexicalScope)") ConstantLookupResult constant,
                     @Cached("isVisible(lexicalScope, constant)") boolean isVisible) {
         if (!isVisible) {
-            throw new RaiseException(coreExceptions().nameErrorPrivateConstant(constant.getDeclaringModule(), name, this));
+            throw new RaiseException(coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
         }
-        if (constant != null && constant.isDeprecated()) {
+        if (constant.isDeprecated()) {
             warnDeprecatedConstant(frame, name);
         }
-        return constant;
+        return constant.getConstant();
     }
 
     @Specialization
@@ -67,28 +67,24 @@ public abstract class LookupConstantWithDynamicScopeNode extends RubyNode implem
             @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile,
             @Cached("createBinaryProfile()") ConditionProfile isDeprecatedProfile) {
         final LexicalScope lexicalScope = getLexicalScope(frame);
-        final RubyConstant constant = doLookup(lexicalScope);
+        final ConstantLookupResult constant = doLookup(lexicalScope);
         if (isVisibleProfile.profile(!isVisible(lexicalScope, constant))) {
-            throw new RaiseException(coreExceptions().nameErrorPrivateConstant(constant.getDeclaringModule(), name, this));
+            throw new RaiseException(coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
         }
-        if (isDeprecatedProfile.profile(constant != null && constant.isDeprecated())) {
+        if (isDeprecatedProfile.profile(constant.isDeprecated())) {
             warnDeprecatedConstant(frame, name);
         }
-        return constant;
-    }
-
-    protected Assumption getUnmodifiedAssumption(DynamicObject module) {
-        return Layouts.MODULE.getFields(module).getUnmodifiedAssumption();
+        return constant.getConstant();
     }
 
     @TruffleBoundary
-    protected RubyConstant doLookup(LexicalScope lexicalScope) {
+    protected ConstantLookupResult doLookup(LexicalScope lexicalScope) {
         return ModuleOperations.lookupConstantWithLexicalScope(getContext(), lexicalScope, name);
     }
 
     @TruffleBoundary
-    protected boolean isVisible(LexicalScope lexicalScope, RubyConstant constant) {
-        return constant == null || constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule());
+    protected boolean isVisible(LexicalScope lexicalScope, ConstantLookupResult constant) {
+        return constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule());
     }
 
     private void warnDeprecatedConstant(VirtualFrame frame, String name) {

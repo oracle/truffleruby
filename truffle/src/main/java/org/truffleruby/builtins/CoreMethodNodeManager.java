@@ -22,6 +22,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.TaintResultNode;
+import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.string.StringUtils;
@@ -97,13 +98,13 @@ public class CoreMethodNodeManager {
             module = context.getCoreLibrary().getObjectClass();
 
             for (String moduleName : fullName.split("::")) {
-                final RubyConstant constant = ModuleOperations.lookupConstant(context, module, moduleName);
+                final ConstantLookupResult constant = ModuleOperations.lookupConstant(context, module, moduleName);
 
-                if (constant == null) {
+                if (!constant.isFound()) {
                     throw new RuntimeException(StringUtils.format("Module %s not found when adding core library", moduleName));
                 }
 
-                module = (DynamicObject) constant.getValue();
+                module = (DynamicObject) constant.getConstant().getValue();
             }
         }
 
