@@ -152,8 +152,10 @@ public class Main {
         } else {
             if (config.getShouldPrintUsage()) {
                 CommandLineParser.printHelp(System.out);
+                exitCode = 1;
+            } else {
+                exitCode = 0;
             }
-            exitCode = 1;
         }
 
         printTruffleTimeMetric("after-main");
