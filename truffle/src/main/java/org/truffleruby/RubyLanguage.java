@@ -49,7 +49,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String RUBY_VERSION = "2.3.1";
     public static final int    RUBY_REVISION = 54768;
     public static final String COMPILE_DATE = "2016-12-03";
-    public static final String VERSION = "9.1.7.0-SNAPSHOT";
+    public static final String VERSION = "9.1.7.0";
     // TODO (pitr-ch 11-Jan-2017): use our value when we are recognized by rubygems
     public static final String ENGINE = "ruby";
 
@@ -153,17 +153,14 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static String getVersionString() {
         return String.format(
-                "jruby%s %s (%s) %s %s %s %s on %s%s%s [%s-%s]",
-                "+truffle",
+                "truffleruby %s (%s) %s %s %s %s on %s [%s-%s]",
                 RubyLanguage.VERSION,
                 RubyLanguage.RUBY_VERSION,
                 RubyLanguage.COMPILE_DATE,
-                "unknown",
+                "(unknown commit)",
                 System.getProperty("java.vm.name", "Unknown JVM"),
                 System.getProperty("java.vm.version", "Unknown JVM version"),
                 System.getProperty("java.runtime.version", System.getProperty("java.version", "Unknown version")),
-                "",
-                "",
                 Platform.getOSName(),
                 Platform.getArchitecture()
         );
