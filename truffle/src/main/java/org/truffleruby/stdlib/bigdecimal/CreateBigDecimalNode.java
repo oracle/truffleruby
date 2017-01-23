@@ -81,9 +81,13 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             int digits,
             @Cached("createBigDecimalCastNode()") BigDecimalCastNode bigDecimalCastNode) {
         Layouts.BIG_DECIMAL.setValue(self,
-                bigDecimalCastNode.executeBigDecimal(frame, value, getRoundMode(frame))
-                        .round(new MathContext(digits, getRoundMode(frame))));
+                round(bigDecimalCastNode.executeBigDecimal(frame, value, getRoundMode(frame)), new MathContext(digits, getRoundMode(frame))));
         return self;
+    }
+
+    @TruffleBoundary
+    public BigDecimal round(BigDecimal bigDecimal, MathContext context) {
+        return bigDecimal.round(context);
     }
 
     @Specialization
