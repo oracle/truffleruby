@@ -73,24 +73,35 @@ loading the TruffleRuby instance before options are loaded.
 TruffleRuby-specific options, as well as conventional Ruby options, can also
 bet set in the `TRUFFLERUBYOPT` environment variable.
 
+`--` or the first non-option argument both stop processing of Truffle-specific
+arguments in the same was it stops processing of Ruby arguments.
+
 ## JVM- and SVM-specific arguments
 
 If you are running TruffleRuby on a JVM or the GraalVM, we additionally support
 passing options to the JVM using either a `-J-` or `-J:` prefix. For example
-`-J-ea` or `-J:ea`.
+`-J-ea` or `-J:ea`. `-J-classpath` and `-J-cp` (or the `-J:` variants) also
+implicitly take the following argument to be passed to the JVM. `-J-cmd` or
+`-J:cmd` print the Java command that will be executed, for debugging.
 
 ```
 JVM:
   -J-arg, -J:arg   pass arg to the JVM
 ```
 
+`--` or the first non-option argument both stop processing of JVM-specific
+arguments in the same was it stops processing of Ruby arguments.
+
 TruffleRuby also supports the `JAVA_HOME`, `JAVACMD` and `JAVA_OPTS` environment
 variables when running on a JVM using the `truffleruby` launcher script.
 
-The SVM supports `-D` for setting system properties and `-XX:arg` for SVM
-options.
-
 For backwards compatibility, TruffleRuby temporarily also supports `JRUBY_OPTS`.
+
+## SVM-specific arguments
+
+The SVM supports `-D` for setting system properties and `-XX:arg` for SVM
+options. Unlike with the standard Ruby command-line, these options are always
+taken by the SVM, wherever they appear in the arguments (such as after a `--`).
 
 ```
 SVM:

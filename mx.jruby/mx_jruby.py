@@ -76,23 +76,28 @@ def extractArguments(cli_args):
     for args in [jruby_opts, cli_args]:
         while args:
             arg = args.pop(0)
-            if arg == '-J-cmd':
-                print_command = True
-            elif arg == '-J-cp' or arg == '-J-classpath':
-                cp = args.pop(0)
-                if cp[:2] == '-J':
-                    cp = cp[2:]
-                classpath.append(cp)
-            elif arg.startswith('-J-'):
-                vmArgs.append(arg[2:])
-            elif arg.startswith('-J:'):
-                vmArgs.append('-' + arg[3:])
+            if arg.startswith('-J') or arg.startswith('-J:'):
+                if arg.startswith('-J-'):
+                    arg = arg[2:]
+                elif arg.startswith('-J:'):
+                    arg = '-' + arg[3:]
+                if arg == '-cmd':
+                    print_command = True
+                elif arg == '-cp' or arg == '-classpath':
+                    cp = args.pop(0)
+                    classpath.append(cp)
+                else:
+                    vmArgs.append(arg)
             elif arg == '--':
                 rubyArgs.append(arg)
                 rubyArgs.extend(args)
                 break
+            elif arg[0] == '-':
+                rubyArgs.append(arg)
             else:
                 rubyArgs.append(arg)
+                rubyArgs.extend(args)
+                break
     return vmArgs, rubyArgs, classpath, print_command
 
 def setup_ruby_home():

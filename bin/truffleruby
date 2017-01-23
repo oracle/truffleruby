@@ -84,8 +84,6 @@ do
         ;;
      # Match switches that take an argument
      -C|-e|-I|-S) ruby_args=("${ruby_args[@]}" "$1" "$2"); shift ;;
-     # Match same switches with argument stuck together
-     -e*|-I*|-S*) ruby_args=("${ruby_args[@]}" "$1" ) ;;
      # Abort processing on the double dash
      --) break ;;
      # Other opts go to ruby
