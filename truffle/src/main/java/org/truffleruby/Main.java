@@ -179,7 +179,7 @@ public class Main {
         Object truffleRubyoptObj = System.getenv("TRUFFLERUBYOPT");
         String truffleRubyopt = truffleRubyoptObj == null ? null : truffleRubyoptObj.toString();
 
-        if (truffleRubyopt != truffleRubyopt && rubyopt.length() != 0) {
+        if (truffleRubyopt != null && rubyopt.length() != 0) {
             String[] rubyoptArgs = truffleRubyopt.split("\\s+");
             if (rubyoptArgs.length != 0) {
                 new CommandLineParser(rubyoptArgs, false, true, true, config).processArguments();
