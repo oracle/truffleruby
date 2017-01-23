@@ -44,7 +44,7 @@ public class OptionsCatalog {
     public static final OptionDescription<Boolean> COVERAGE_GLOBAL = new BooleanOptionDescription("coverage.global", "Run coverage for all code and print results on exit", false);
     public static final OptionDescription<Boolean> INLINE_JS = new BooleanOptionDescription("inline_js", "Allow inline JavaScript", false);
     public static final OptionDescription<String> CORE_LOAD_PATH = new StringOptionDescription("core.load_path", "Location to load the Truffle core library from", "truffle:/jruby-truffle");
-    public static final OptionDescription<Boolean> CORE_PARALLEL_LOAD = new BooleanOptionDescription("core.parallel_load", "Load the Truffle core library in parallel", false);
+    public static final OptionDescription<Boolean> USE_PARSER_CACHE = new BooleanOptionDescription("core.use_parser_cache", "Use the cached parse trees of the core library if they're available", true);
     public static final OptionDescription<Boolean> LAZY_TRANSLATION = new BooleanOptionDescription("lazy_translation", "Lazily translate from the parser AST to the Truffle AST", false);
     public static final OptionDescription<Boolean> LAZY_TRANSLATION_LOG = new BooleanOptionDescription("lazy_translation.log", "Log lazy translations from the parser AST to the Truffle AST", false);
     public static final OptionDescription<Integer> ARRAY_UNINITIALIZED_SIZE = new IntegerOptionDescription("array.uninitialized_size", "How large an Array to allocate when we have no other information to go on", 32);
@@ -110,6 +110,7 @@ public class OptionsCatalog {
     public static final OptionDescription<Boolean> CEXTS_LOG_LOAD = new BooleanOptionDescription("cexts.log.load", "Log loading of cexts", false);
     public static final OptionDescription<Boolean> LOG_DYNAMIC_CONSTANT_LOOKUP = new BooleanOptionDescription("constant.dynamic_lookup.log", "Log source code positions where dynamic constant lookup is performed", false);
     public static final OptionDescription<Boolean> OPTIONS_LOG = new BooleanOptionDescription("options.log", "Log the final value of all options", false);
+    public static final OptionDescription<Boolean> LOG_LOAD = new BooleanOptionDescription("log.load", "Log loading files", false);
     public static final OptionDescription<Boolean> LOG_FEATURE_LOCATION = new BooleanOptionDescription("log.feature_location", "Log the process of finding features", false);
     
     public static OptionDescription<?> fromName(String name) {
@@ -170,8 +171,8 @@ public class OptionsCatalog {
                 return INLINE_JS;
             case "core.load_path":
                 return CORE_LOAD_PATH;
-            case "core.parallel_load":
-                return CORE_PARALLEL_LOAD;
+            case "core.use_parser_cache":
+                return USE_PARSER_CACHE;
             case "lazy_translation":
                 return LAZY_TRANSLATION;
             case "lazy_translation.log":
@@ -302,6 +303,8 @@ public class OptionsCatalog {
                 return LOG_DYNAMIC_CONSTANT_LOOKUP;
             case "options.log":
                 return OPTIONS_LOG;
+            case "log.load":
+                return LOG_LOAD;
             case "log.feature_location":
                 return LOG_FEATURE_LOCATION;
             default:
@@ -339,7 +342,7 @@ public class OptionsCatalog {
             COVERAGE_GLOBAL,
             INLINE_JS,
             CORE_LOAD_PATH,
-            CORE_PARALLEL_LOAD,
+            USE_PARSER_CACHE,
             LAZY_TRANSLATION,
             LAZY_TRANSLATION_LOG,
             ARRAY_UNINITIALIZED_SIZE,
@@ -405,6 +408,7 @@ public class OptionsCatalog {
             CEXTS_LOG_LOAD,
             LOG_DYNAMIC_CONSTANT_LOOKUP,
             OPTIONS_LOG,
+            LOG_LOAD,
             LOG_FEATURE_LOCATION,
         };
     }

@@ -142,15 +142,10 @@ import org.truffleruby.stdlib.readline.ReadlineNodesFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Future;
 
 public class CoreLibrary {
 
@@ -211,7 +206,6 @@ public class CoreLibrary {
     private final DynamicObjectFactory intRangeFactory;
     private final DynamicObjectFactory longRangeFactory;
     private final DynamicObject rangeErrorClass;
-    private final DynamicObject rationalClass;
     private final DynamicObject regexpClass;
     private final DynamicObjectFactory regexpFactory;
     private final DynamicObject regexpErrorClass;
@@ -234,7 +228,6 @@ public class CoreLibrary {
     private final DynamicObjectFactory threadBacktraceLocationFactory;
     private final DynamicObject timeClass;
     private final DynamicObjectFactory timeFactory;
-    private final DynamicObject transcodingClass;
     private final DynamicObject trueClass;
     private final DynamicObject typeErrorClass;
     private final DynamicObject zeroDivisionErrorClass;
@@ -480,7 +473,7 @@ public class CoreLibrary {
         bignumClass = defineClass(integerClass, "Bignum");
         bignumFactory = alwaysFrozen(Layouts.BIGNUM.createBignumShape(bignumClass, bignumClass));
         Layouts.CLASS.setInstanceFactoryUnsafe(bignumClass, bignumFactory);
-        rationalClass = defineClass(numericClass, "Rational");
+        defineClass(numericClass, "Rational");
 
         // Classes defined in Object
 
@@ -638,7 +631,7 @@ public class CoreLibrary {
         byteArrayFactory = Layouts.BYTE_ARRAY.createByteArrayShape(byteArrayClass, byteArrayClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(byteArrayClass, byteArrayFactory);
         defineClass(rubiniusModule, objectClass, "StringData");
-        transcodingClass = defineClass(encodingClass, objectClass, "Transcoding");
+        defineClass(encodingClass, objectClass, "Transcoding");
         randomizerClass = defineClass(rubiniusModule, objectClass, "Randomizer");
         atomicReferenceClass = defineClass(rubiniusModule, objectClass, "AtomicReference");
         Layouts.CLASS.setInstanceFactoryUnsafe(atomicReferenceClass,
@@ -694,125 +687,12 @@ public class CoreLibrary {
         initializeSignalConstants();
     }
 
-    public void addCoreMethods(PrimitiveManager primitiveManager) {
+    public void loadCoreNodes(PrimitiveManager primitiveManager) {
         final CoreMethodNodeManager coreMethodNodeManager =
                 new CoreMethodNodeManager(context, node.getSingletonClassNode(), primitiveManager);
 
-        // Sorted alphabetically to avoid duplicates
-        List<List<? extends NodeFactory<? extends RubyNode>>> factories = Arrays.asList(
-                ArrayNodesFactory.getFactories(),
-                AtomicReferenceNodesFactory.getFactories(),
-                BasicObjectNodesFactory.getFactories(),
-                BCryptNodesFactory.getFactories(),
-                BigDecimalNodesFactory.getFactories(),
-                BignumNodesFactory.getFactories(),
-                BindingNodesFactory.getFactories(),
-                ByteArrayNodesFactory.getFactories(),
-                CExtNodesFactory.getFactories(),
-                ClassNodesFactory.getFactories(),
-                CoverageNodesFactory.getFactories(),
-                DigestNodesFactory.getFactories(),
-                DirNodesFactory.getFactories(),
-                EncodingConverterNodesFactory.getFactories(),
-                EncodingNodesFactory.getFactories(),
-                EtcNodesFactory.getFactories(),
-                ExceptionNodesFactory.getFactories(),
-                FalseClassNodesFactory.getFactories(),
-                FiberNodesFactory.getFactories(),
-                FixnumNodesFactory.getFactories(),
-                FloatNodesFactory.getFactories(),
-                HashNodesFactory.getFactories(),
-                IntegerNodesFactory.getFactories(),
-                InteropNodesFactory.getFactories(),
-                IOBufferPrimitiveNodesFactory.getFactories(),
-                IOPrimitiveNodesFactory.getFactories(),
-                KernelNodesFactory.getFactories(),
-                MainNodesFactory.getFactories(),
-                MatchDataNodesFactory.getFactories(),
-                MathNodesFactory.getFactories(),
-                MethodNodesFactory.getFactories(),
-                ModuleNodesFactory.getFactories(),
-                MutexNodesFactory.getFactories(),
-                NameErrorNodesFactory.getFactories(),
-                NativeFunctionPrimitiveNodesFactory.getFactories(),
-                NoMethodErrorNodesFactory.getFactories(),
-                ObjectNodesFactory.getFactories(),
-                ObjectSpaceNodesFactory.getFactories(),
-                ObjSpaceNodesFactory.getFactories(),
-                PointerPrimitiveNodesFactory.getFactories(),
-                ProcessNodesFactory.getFactories(),
-                ProcNodesFactory.getFactories(),
-                PsychEmitterNodesFactory.getFactories(),
-                PsychParserNodesFactory.getFactories(),
-                QueueNodesFactory.getFactories(),
-                RandomizerPrimitiveNodesFactory.getFactories(),
-                RangeNodesFactory.getFactories(),
-                ReadlineNodesFactory.getFactories(),
-                ReadlineHistoryNodesFactory.getFactories(),
-                RegexpNodesFactory.getFactories(),
-                RubiniusTypeNodesFactory.getFactories(),
-                SizedQueueNodesFactory.getFactories(),
-                StatPrimitiveNodesFactory.getFactories(),
-                StringNodesFactory.getFactories(),
-                SymbolNodesFactory.getFactories(),
-                SystemCallErrorNodesFactory.getFactories(),
-                ThreadBacktraceLocationNodesFactory.getFactories(),
-                ThreadNodesFactory.getFactories(),
-                TimeNodesFactory.getFactories(),
-                TracePointNodesFactory.getFactories(),
-                TrueClassNodesFactory.getFactories(),
-                TruffleArrayNodesFactory.getFactories(),
-                TruffleBindingNodesFactory.getFactories(),
-                TruffleBootNodesFactory.getFactories(),
-                TruffleDebugNodesFactory.getFactories(),
-                TruffleEncodingNodesFactory.getFactories(),
-                TruffleFixnumNodesFactory.getFactories(),
-                TruffleGCNodesFactory.getFactories(),
-                TruffleGraalNodesFactory.getFactories(),
-                TruffleKernelNodesFactory.getFactories(),
-                TrufflePosixNodesFactory.getFactories(),
-                TruffleProcessNodesFactory.getFactories(),
-                TruffleRopesNodesFactory.getFactories(),
-                TruffleSafeNodesFactory.getFactories(),
-                TruffleStringNodesFactory.getFactories(),
-                TruffleSystemNodesFactory.getFactories(),
-                UnboundMethodNodesFactory.getFactories(),
-                UndefinedPrimitiveNodesFactory.getFactories(),
-                VMPrimitiveNodesFactory.getFactories(),
-                WeakRefPrimitiveNodesFactory.getFactories()
-                );
-
-        if (context.getOptions().CORE_PARALLEL_LOAD) {
-            int nFactories = factories.size();
-            int threads = 8;
-            int chunk = nFactories / threads;
-
-            List<Callable<Void>> tasks = new ArrayList<>(threads);
-            for (int t = 0; t < threads; t++) {
-                final int nb = t;
-                tasks.add(() -> {
-                    int start = nb * chunk;
-                    int end = nb == threads - 1 ? nFactories : (nb + 1) * chunk;
-                    for (int i = start; i < end; i++) {
-                        coreMethodNodeManager.addCoreMethodNodes(factories.get(i));
-                    }
-                    return null;
-                });
-            }
-
-            for (Future<Void> future : ForkJoinPool.commonPool().invokeAll(tasks)) {
-                try {
-                    future.get();
-                } catch (InterruptedException e) {
-                    throw new JavaException(e);
-                } catch (ExecutionException e) {
-                    throw new JavaException(e.getCause());
-                }
-            }
-        } else {
-            for (List<? extends NodeFactory<? extends RubyNode>> factory : factories) {
-                coreMethodNodeManager.addCoreMethodNodes(factory);
-            }
+        for (List<? extends NodeFactory<? extends RubyNode>> factory : CORE_NODE_FACTORIES) {
+            coreMethodNodeManager.addCoreMethodNodes(factory);
         }
 
         coreMethodNodeManager.allMethodInstalled();
@@ -1002,73 +882,33 @@ public class CoreLibrary {
         return defineModule(null, lexicalParent, name);
     }
 
-    private DynamicObject defineModule(SourceSection sourceSection, String name) {
-        return defineModule(sourceSection, objectClass, name);
-    }
-
     private DynamicObject defineModule(SourceSection sourceSection, DynamicObject lexicalParent, String name) {
         assert RubyGuards.isRubyModule(lexicalParent);
         return ModuleNodes.createModule(context, sourceSection, moduleClass, lexicalParent, name, node);
     }
 
     public void loadRubyCore() {
-        // Load Ruby core
-
         try {
-            Main.printTruffleTimeMetric("before-load-core");
             state = State.LOADING_RUBY_CORE;
 
-            final List<Future<RubyRootNode>> coreFileFutures = new ArrayList<>();
+            try {
+                for (int n = 0; n < CORE_FILES.length; n++) {
+                    final RubyRootNode rootNode = context.getCodeLoader().parse(
+                            context.getSourceLoader().load(getCoreLoadPath() + CORE_FILES[n]),
+                            UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
 
-            if (TruffleOptions.AOT || !context.getOptions().CORE_PARALLEL_LOAD) {
-                try {
-                    for (int n = 0; n < coreFiles.length; n++) {
-                        final RubyRootNode rootNode = context.getCodeLoader().parse(
-                                context.getSourceLoader().load(getCoreLoadPath() + coreFiles[n]),
-                                UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
+                    final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
+                            ParserContext.TOP_LEVEL,
+                            DeclarationContext.TOP_LEVEL,
+                            rootNode,
+                            null,
+                            context.getCoreLibrary().getMainObject());
 
-                        final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
-                                ParserContext.TOP_LEVEL,
-                                DeclarationContext.TOP_LEVEL,
-                                rootNode,
-                                null,
-                                context.getCoreLibrary().getMainObject());
-
-                        deferredCall.callWithoutCallNode();
-                    }
-                } catch (IOException e) {
-                    throw new JavaException(e);
+                    deferredCall.callWithoutCallNode();
                 }
-            } else {
-                try {
-                    for (int n = 0; n < coreFiles.length; n++) {
-                        final int finalN = n;
-
-                        coreFileFutures.add(ForkJoinPool.commonPool().submit(() ->
-                                context.getCodeLoader().parse(
-                                        context.getSourceLoader().load(getCoreLoadPath() + coreFiles[finalN]),
-                                        UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node)
-                        ));
-                    }
-
-                    for (int n = 0; n < coreFiles.length; n++) {
-                        final RubyRootNode rootNode = coreFileFutures.get(n).get();
-
-                        final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
-                                ParserContext.TOP_LEVEL,
-                                DeclarationContext.TOP_LEVEL,
-                                rootNode,
-                                null,
-                                context.getCoreLibrary().getMainObject());
-
-                        deferredCall.callWithoutCallNode();
-                    }
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new JavaException(e);
-                }
+            } catch (IOException e) {
+                throw new JavaException(e);
             }
-
-            Main.printTruffleTimeMetric("after-load-core");
         } catch (RaiseException e) {
             final DynamicObject rubyException = e.getException();
             BacktraceFormatter.createDefaultFormatter(getContext()).printBacktrace(context, rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
@@ -1186,26 +1026,8 @@ public class CoreLibrary {
     public DynamicObject getMetaClass(Object object) {
         if (object instanceof DynamicObject) {
             return Layouts.BASIC_OBJECT.getMetaClass(((DynamicObject) object));
-        } else if (object instanceof Boolean) {
-            if ((boolean) object) {
-                return trueClass;
-            } else {
-                return falseClass;
-            }
-        } else if (object instanceof Byte) {
-            return fixnumClass;
-        } else if (object instanceof Short) {
-            return fixnumClass;
-        } else if (object instanceof Integer) {
-            return fixnumClass;
-        } else if (object instanceof Long) {
-            return fixnumClass;
-        } else if (object instanceof Float) {
-            return floatClass;
-        } else if (object instanceof Double) {
-            return floatClass;
         } else {
-            return interopForeignClass;
+            return getLogicalClass(object);
         }
     }
 
@@ -1335,10 +1157,6 @@ public class CoreLibrary {
         return loadErrorClass;
     }
 
-    public DynamicObject getMatchDataClass() {
-        return matchDataClass;
-    }
-
     public DynamicObjectFactory getMatchDataFactory() {
         return matchDataFactory;
     }
@@ -1385,14 +1203,6 @@ public class CoreLibrary {
 
     public DynamicObject getRangeClass() {
         return rangeClass;
-    }
-
-    public DynamicObject getRationalClass() {
-        return rationalClass;
-    }
-
-    public DynamicObject getRegexpClass() {
-        return regexpClass;
     }
 
     public DynamicObjectFactory getRegexpFactory() {
@@ -1479,18 +1289,6 @@ public class CoreLibrary {
         return statFactory;
     }
 
-    public DynamicObject getTranscodingClass() {
-        return transcodingClass;
-    }
-
-    public DynamicObject getRubiniusFFIPointerClass() {
-        return rubiniusFFIPointerClass;
-    }
-
-    public Object getRubiniusUndefined() {
-        return rubiniusUndefined;
-    }
-
     @TruffleBoundary
     public DynamicObject getErrnoClass(Errno errno) {
         return errnoClasses.get(errno);
@@ -1502,10 +1300,6 @@ public class CoreLibrary {
 
     public DynamicObjectFactory getSymbolFactory() {
         return symbolFactory;
-    }
-
-    public DynamicObject getThreadBacktraceLocationClass() {
-        return threadBacktraceLocationClass;
     }
 
     public DynamicObjectFactory getThreadBacktraceLocationFactory() {
@@ -1549,10 +1343,6 @@ public class CoreLibrary {
         return longRangeFactory;
     }
 
-    public DynamicObject getDigestClass() {
-        return digestClass;
-    }
-
     public DynamicObjectFactory getDigestFactory() {
         return digestFactory;
     }
@@ -1587,10 +1377,6 @@ public class CoreLibrary {
 
     public DynamicObjectFactory getRandomizerFactory() {
         return randomizerFactory;
-    }
-
-    public DynamicObjectFactory getTimeFactory() {
-        return timeFactory;
     }
 
     public DynamicObject getSystemExitClass() {
@@ -1689,7 +1475,90 @@ public class CoreLibrary {
         return truffleKernelModule;
     }
 
-    private static final String[] coreFiles = {
+    // Sorted alphabetically to avoid duplicates
+    private static final List<List<? extends NodeFactory<? extends RubyNode>>> CORE_NODE_FACTORIES = Arrays.asList(
+            ArrayNodesFactory.getFactories(),
+            AtomicReferenceNodesFactory.getFactories(),
+            BasicObjectNodesFactory.getFactories(),
+            BCryptNodesFactory.getFactories(),
+            BigDecimalNodesFactory.getFactories(),
+            BignumNodesFactory.getFactories(),
+            BindingNodesFactory.getFactories(),
+            ByteArrayNodesFactory.getFactories(),
+            CExtNodesFactory.getFactories(),
+            ClassNodesFactory.getFactories(),
+            CoverageNodesFactory.getFactories(),
+            DigestNodesFactory.getFactories(),
+            DirNodesFactory.getFactories(),
+            EncodingConverterNodesFactory.getFactories(),
+            EncodingNodesFactory.getFactories(),
+            EtcNodesFactory.getFactories(),
+            ExceptionNodesFactory.getFactories(),
+            FalseClassNodesFactory.getFactories(),
+            FiberNodesFactory.getFactories(),
+            FixnumNodesFactory.getFactories(),
+            FloatNodesFactory.getFactories(),
+            HashNodesFactory.getFactories(),
+            IntegerNodesFactory.getFactories(),
+            InteropNodesFactory.getFactories(),
+            IOBufferPrimitiveNodesFactory.getFactories(),
+            IOPrimitiveNodesFactory.getFactories(),
+            KernelNodesFactory.getFactories(),
+            MainNodesFactory.getFactories(),
+            MatchDataNodesFactory.getFactories(),
+            MathNodesFactory.getFactories(),
+            MethodNodesFactory.getFactories(),
+            ModuleNodesFactory.getFactories(),
+            MutexNodesFactory.getFactories(),
+            NameErrorNodesFactory.getFactories(),
+            NativeFunctionPrimitiveNodesFactory.getFactories(),
+            NoMethodErrorNodesFactory.getFactories(),
+            ObjectNodesFactory.getFactories(),
+            ObjectSpaceNodesFactory.getFactories(),
+            ObjSpaceNodesFactory.getFactories(),
+            PointerPrimitiveNodesFactory.getFactories(),
+            ProcessNodesFactory.getFactories(),
+            ProcNodesFactory.getFactories(),
+            PsychEmitterNodesFactory.getFactories(),
+            PsychParserNodesFactory.getFactories(),
+            QueueNodesFactory.getFactories(),
+            RandomizerPrimitiveNodesFactory.getFactories(),
+            RangeNodesFactory.getFactories(),
+            ReadlineNodesFactory.getFactories(),
+            ReadlineHistoryNodesFactory.getFactories(),
+            RegexpNodesFactory.getFactories(),
+            RubiniusTypeNodesFactory.getFactories(),
+            SizedQueueNodesFactory.getFactories(),
+            StatPrimitiveNodesFactory.getFactories(),
+            StringNodesFactory.getFactories(),
+            SymbolNodesFactory.getFactories(),
+            SystemCallErrorNodesFactory.getFactories(),
+            ThreadBacktraceLocationNodesFactory.getFactories(),
+            ThreadNodesFactory.getFactories(),
+            TimeNodesFactory.getFactories(),
+            TracePointNodesFactory.getFactories(),
+            TrueClassNodesFactory.getFactories(),
+            TruffleArrayNodesFactory.getFactories(),
+            TruffleBindingNodesFactory.getFactories(),
+            TruffleBootNodesFactory.getFactories(),
+            TruffleDebugNodesFactory.getFactories(),
+            TruffleEncodingNodesFactory.getFactories(),
+            TruffleFixnumNodesFactory.getFactories(),
+            TruffleGCNodesFactory.getFactories(),
+            TruffleGraalNodesFactory.getFactories(),
+            TruffleKernelNodesFactory.getFactories(),
+            TrufflePosixNodesFactory.getFactories(),
+            TruffleProcessNodesFactory.getFactories(),
+            TruffleRopesNodesFactory.getFactories(),
+            TruffleSafeNodesFactory.getFactories(),
+            TruffleStringNodesFactory.getFactories(),
+            TruffleSystemNodesFactory.getFactories(),
+            UnboundMethodNodesFactory.getFactories(),
+            UndefinedPrimitiveNodesFactory.getFactories(),
+            VMPrimitiveNodesFactory.getFactories(),
+            WeakRefPrimitiveNodesFactory.getFactories());
+
+    public static final String[] CORE_FILES = {
             "/core/pre.rb",
             "/core/basic_object.rb",
             "/core/array.rb",

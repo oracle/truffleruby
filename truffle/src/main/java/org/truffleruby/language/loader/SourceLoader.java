@@ -12,6 +12,7 @@ package org.truffleruby.language.loader;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.source.Source;
+import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringUtils;
@@ -30,7 +31,6 @@ import java.util.Locale;
 public class SourceLoader {
 
     public static final String TRUFFLE_SCHEME = "truffle:";
-    public static final String JRUBY_SCHEME = "jruby:";
 
     private final RubyContext context;
 
@@ -55,7 +55,11 @@ public class SourceLoader {
 
     @TruffleBoundary
     public Source load(String canonicalPath) throws IOException {
-        if (canonicalPath.startsWith(TRUFFLE_SCHEME) || canonicalPath.startsWith(JRUBY_SCHEME)) {
+        if (context.getOptions().LOG_LOAD) {
+            Log.LOGGER.info("loading " + canonicalPath);
+        }
+
+        if (canonicalPath.startsWith(TRUFFLE_SCHEME)) {
             return loadResource(canonicalPath);
         } else {
             final File file = new File(canonicalPath).getCanonicalFile();
@@ -76,9 +80,9 @@ public class SourceLoader {
     }
 
     @TruffleBoundary
-    private Source loadResource(String path) throws IOException {
+    public static Source loadResource(String path) throws IOException {
         if (TruffleOptions.AOT) {
-            if (!(path.startsWith(SourceLoader.TRUFFLE_SCHEME) || path.startsWith(SourceLoader.JRUBY_SCHEME))) {
+            if (!path.startsWith(SourceLoader.TRUFFLE_SCHEME)) {
                 throw new UnsupportedOperationException();
             }
 
@@ -100,9 +104,6 @@ public class SourceLoader {
             if (path.startsWith(TRUFFLE_SCHEME)) {
                 relativeClass = RubyContext.class;
                 relativePath = FileSystems.getDefault().getPath(path.substring(TRUFFLE_SCHEME.length()));
-            } else if (path.startsWith(JRUBY_SCHEME)) {
-                relativeClass = jrubySchemeRelativeClass();
-                relativePath = FileSystems.getDefault().getPath(path.substring(JRUBY_SCHEME.length()));
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -115,16 +116,6 @@ public class SourceLoader {
             }
 
             return Source.newBuilder(new InputStreamReader(stream, StandardCharsets.UTF_8)).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
-        }
-    }
-
-    private static Class<?> jrubySchemeRelativeClass() {
-        // TODO CS 3-Dec-16 AOT?
-
-        try {
-            return Class.forName("org.jruby.Ruby");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
         }
     }
 

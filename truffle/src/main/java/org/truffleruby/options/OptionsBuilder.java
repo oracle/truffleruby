@@ -24,7 +24,8 @@ public class OptionsBuilder {
 
     public static final Collection<String> ignoredProperties = Arrays.asList(
             PREFIX + "metrics.memory_used_on_exit",
-            PREFIX + "metrics.time"
+            PREFIX + "metrics.time",
+            PREFIX + "core.build_parser_cache"
     );
 
     private final Map<OptionDescription, Object> options = new HashMap<>();

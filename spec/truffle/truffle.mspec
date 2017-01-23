@@ -28,6 +28,7 @@ class MSpecScript
     core_path = "#{JRUBY_DIR}/truffle/src/main/ruby"
     if File.directory?(core_path)
       flags << "-Xcore.load_path=#{core_path}"
+      flags << "-J-Dtruffleruby.core.build_parser_cache=false"
       flags << "-Xbacktraces.hide_core_files=false"
     end
     set :flags, flags

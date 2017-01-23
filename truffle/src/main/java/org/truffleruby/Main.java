@@ -53,6 +53,7 @@ import org.truffleruby.options.MainExitException;
 import org.truffleruby.options.OptionsBuilder;
 import org.truffleruby.options.OptionsCatalog;
 import org.truffleruby.options.RubyInstanceConfig;
+import org.truffleruby.parser.ParserCache;
 import org.truffleruby.platform.graal.Graal;
 
 import java.io.ByteArrayInputStream;
@@ -71,6 +72,10 @@ public class Main {
 
     public static void main(String[] args) {
         printTruffleTimeMetric("before-main");
+
+        Main.printTruffleTimeMetric("before-cache");
+        ParserCache.INSTANCE.hashCode();
+        Main.printTruffleTimeMetric("end-cache");
 
         final RubyInstanceConfig config = new RubyInstanceConfig();
 

@@ -46,6 +46,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
+import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.LoadRequiredLibrariesNode;
 import org.truffleruby.language.DataNode;
@@ -92,7 +93,7 @@ public class TranslatorDriver {
         parseEnvironment = new ParseEnvironment(context);
     }
 
-    public RubyRootNode parse(RubyContext context, Source source, Encoding defaultEncoding, ParserContext parserContext, String[] argumentNames, FrameDescriptor frameDescriptor, MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
+    public RubyRootNode parse(Source source, Encoding defaultEncoding, ParserContext parserContext, String[] argumentNames, FrameDescriptor frameDescriptor, MaterializedFrame parentFrame, boolean ownScopeForAssignments, Node currentNode) {
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
 
         /*
@@ -151,7 +152,11 @@ public class TranslatorDriver {
 
         // Parse to the JRuby AST
 
-        RootParseNode node = parse(source, dynamicScope, parserConfiguration);
+        RootParseNode node = ParserCache.INSTANCE.lookup(source.getName());
+
+        if (node == null) {
+            node = parse(source, dynamicScope, parserConfiguration);
+        }
 
         final SourceSection sourceSection = source.createSection(0, source.getCode().length());
         final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());
@@ -260,8 +265,7 @@ public class TranslatorDriver {
         return new RubyRootNode(context, sourceIndexLength.toSourceSection(source), environment.getFrameDescriptor(), sharedMethodInfo, truffleNode, environment.needsDeclarationFrame());
     }
 
-    public RootParseNode parse(Source source, DynamicScope blockScope,
-                           ParserConfiguration configuration) {
+    public RootParseNode parse(Source source, DynamicScope blockScope, ParserConfiguration configuration) {
         LexerSource ByteListLexerSource = new LexerSource(source, configuration.getLineNumber(), configuration.getDefaultEncoding());
         // We only need to pass in current scope if we are evaluating as a block (which
         // is only done for evals).  We need to pass this in so that we can appropriately scope

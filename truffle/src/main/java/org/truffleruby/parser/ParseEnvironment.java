@@ -26,7 +26,11 @@ public class ParseEnvironment {
     private final String corePath;
 
     public ParseEnvironment(RubyContext context) {
-        this.corePath = context.getCoreLibrary().getCoreLoadPath() + File.separator + "core" + File.separator;
+        if (context != null) {
+            corePath = context.getCoreLibrary().getCoreLoadPath() + File.separator + "core" + File.separator;
+        } else {
+            corePath = null;
+        }
     }
 
     public String getCorePath() {

@@ -1502,7 +1502,7 @@ public class RubyLexer {
 
         tempVal = tempVal.intern();
 
-        if (tempVal.equals("function") && parserSupport.getContext().getOptions().INLINE_JS) {
+        if (tempVal.equals("function") && parserSupport.getContext() != null && parserSupport.getContext().getOptions().INLINE_JS) {
             return javaScript(tempVal);
         }
 

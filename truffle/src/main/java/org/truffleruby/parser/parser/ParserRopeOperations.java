@@ -10,34 +10,46 @@
 package org.truffleruby.parser.parser;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.jcodings.Encoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyNode;
+
+import java.util.Arrays;
 
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 
 public class ParserRopeOperations {
 
     public Rope withEncoding(Rope rope, Encoding encoding) {
-        final Rope newRope = RopeNode.getWithEncodingNode().executeWithEncoding(rope, encoding, CR_UNKNOWN);
+        if (TruffleOptions.AOT) {
+            return RopeOperations.create(rope.getBytes(), encoding, rope.getCodeRange());
+        } else {
+            final Rope newRope = ropeNode.getWithEncodingNode().executeWithEncoding(rope, encoding, CR_UNKNOWN);
 
-        if (newRope == rope) {
-            return rope;
+            if (newRope == rope) {
+                return rope;
+            }
+
+            return newRope;
         }
-
-        return newRope;
     }
 
     public Rope makeShared(Rope rope, int sharedStart, int sharedLength) {
-        final Rope newRope = RopeNode.getMakeSubstringNode().executeMake(rope, sharedStart, sharedLength);
+        if (TruffleOptions.AOT) {
+            return RopeOperations.create(Arrays.copyOfRange(rope.getBytes(), sharedStart, sharedStart + sharedLength), rope.getEncoding(), rope.getCodeRange());
+        } else {
+            final Rope newRope = ropeNode.getMakeSubstringNode().executeMake(rope, sharedStart, sharedLength);
 
-        if (newRope == rope) {
-            return rope;
+            if (newRope == rope) {
+                return rope;
+            }
+
+            return newRope;
         }
-
-        return newRope;
     }
 
     private static class RopeNode extends RubyNode {
@@ -70,6 +82,6 @@ public class ParserRopeOperations {
 
     }
 
-    private final RopeNode RopeNode = new RopeNode();
+    private final RopeNode ropeNode = TruffleOptions.AOT ? null : new RopeNode();
 
 }
