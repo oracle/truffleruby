@@ -259,8 +259,12 @@ public class CommandLineParser {
                     break FOR;
                 case 'I':
                     String s = grabValue(getArgumentError("-I must be followed by a directory name to add to lib path"));
-                    String[] ls = s.split(File.pathSeparator);
-                    config.getLoadPaths().addAll(Arrays.asList(ls));
+                    for (String path : s.split(File.pathSeparator)) {
+                        if (path.startsWith("~" + File.separator)) {
+                            path = System.getProperty("user.home") + File.separator + path.substring(2);
+                        }
+                        config.getLoadPaths().add(path);
+                    }
                     break FOR;
                 case 'y':
                     disallowedInRubyOpts(argument);
