@@ -526,13 +526,13 @@ public abstract class ModuleNodes {
         }
 
         private Object autoloadQuery(DynamicObject module, String name) {
-            final RubyConstant constant = ModuleOperations.lookupConstant(getContext(), module, name);
+            final ConstantLookupResult constant = ModuleOperations.lookupConstant(getContext(), module, name);
 
-            if ((constant == null) || ! constant.isAutoload()) {
+            if (!constant.isFound() || !constant.getConstant().isAutoload()) {
                 return nil();
             }
 
-            return constant.getValue();
+            return constant.getConstant().getValue();
         }
     }
 
@@ -787,7 +787,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         public boolean isConstDefined(DynamicObject module, String fullName, boolean inherit) {
-            return ModuleOperations.lookupScopedConstant(getContext(), module, fullName, inherit, this) != null;
+            return ModuleOperations.lookupScopedConstant(getContext(), module, fullName, inherit, this).isFound();
         }
 
     }
@@ -848,27 +848,27 @@ public abstract class ModuleNodes {
         }
 
         private Object getConstantNoInherit(VirtualFrame frame, DynamicObject module, String name, Node currentNode) {
-            RubyConstant constant = ModuleOperations.lookupConstantWithInherit(getContext(), module, name, false, currentNode);
-            if (constant == null) {
+            ConstantLookupResult constant = ModuleOperations.lookupConstantWithInherit(getContext(), module, name, false, currentNode);
+            if (!constant.isFound()) {
                 // Call const_missing
                 return getConstantNode.executeGetConstant(frame, module, name, null, lookupConstantNode);
             } else {
-                if (constant.isAutoload()) {
+                if (constant.getConstant().isAutoload()) {
                     loadAutoloadedConstant(frame, constant);
                     constant = ModuleOperations.lookupConstantWithInherit(getContext(), module, name, false, currentNode);
                 }
 
-                return constant.getValue();
+                return constant.getConstant().getValue();
             }
         }
 
         @TruffleBoundary
         private Object getConstantScoped(DynamicObject module, String fullName, boolean inherit) {
-            RubyConstant constant = ModuleOperations.lookupScopedConstant(getContext(), module, fullName, inherit, this);
-            if (constant == null) {
+            ConstantLookupResult constant = ModuleOperations.lookupScopedConstant(getContext(), module, fullName, inherit, this);
+            if (!constant.isFound()) {
                 throw new RaiseException(coreExceptions().nameErrorUninitializedConstant(module, fullName, this));
             } else {
-                return constant.getValue();
+                return constant.getConstant().getValue();
             }
         }
 
@@ -879,13 +879,13 @@ public abstract class ModuleNodes {
             return name.toString().contains("::");
         }
 
-        private void loadAutoloadedConstant(VirtualFrame frame, RubyConstant constant) {
+        private void loadAutoloadedConstant(VirtualFrame frame, ConstantLookupResult constant) {
             if (requireNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 requireNode = insert(RequireNode.create());
             }
 
-            final String feature = StringOperations.getString((DynamicObject) constant.getValue());
+            final String feature = StringOperations.getString((DynamicObject) constant.getConstant().getValue());
             requireNode.executeRequire(frame, feature);
         }
 

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.module;
 
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
@@ -25,6 +26,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.Identifiers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -87,80 +89,92 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static RubyConstant lookupConstant(RubyContext context, DynamicObject module, String name) {
+    public static ConstantLookupResult lookupConstant(RubyContext context, DynamicObject module, String name) {
+        return lookupConstant(context, module, name, new ArrayList<>());
+    }
+
+    private static ConstantLookupResult lookupConstant(RubyContext context, DynamicObject module, String name, ArrayList<Assumption> assumptions) {
         CompilerAsserts.neverPartOfCompilation();
         assert RubyGuards.isRubyModule(module);
 
         // Look in the current module
-        RubyConstant constant = Layouts.MODULE.getFields(module).getConstant(name);
+        ModuleFields fields = Layouts.MODULE.getFields(module);
+        RubyConstant constant = fields.getConstant(name);
+        assumptions.add(fields.getUnmodifiedAssumption());
         if (constant != null) {
-            return constant;
+            return new ConstantLookupResult(constant, assumptions);
         }
 
         // Look in ancestors
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).parentAncestors()) {
-            constant = Layouts.MODULE.getFields(ancestor).getConstant(name);
+            fields = Layouts.MODULE.getFields(ancestor);
+            constant = fields.getConstant(name);
+            assumptions.add(fields.getUnmodifiedAssumption());
             if (constant != null) {
-                return constant;
+                return new ConstantLookupResult(constant, assumptions);
             }
         }
 
         // Nothing found
-        return null;
+        return new ConstantLookupResult(null, assumptions);
     }
 
-    private static RubyConstant lookupConstantInObject(RubyContext context, DynamicObject module, String name) {
+    private static ConstantLookupResult lookupConstantInObject(RubyContext context, DynamicObject module, String name, ArrayList<Assumption> assumptions) {
         // Look in Object and its included modules for modules (not for classes)
         if (!RubyGuards.isRubyClass(module)) {
             final DynamicObject objectClass = context.getCoreLibrary().getObjectClass();
 
-            RubyConstant constant = Layouts.MODULE.getFields(objectClass).getConstant(name);
+            ModuleFields fields = Layouts.MODULE.getFields(objectClass);
+            RubyConstant constant = fields.getConstant(name);
+            assumptions.add(fields.getUnmodifiedAssumption());
             if (constant != null) {
-                return constant;
+                return new ConstantLookupResult(constant, assumptions);
             }
 
+
             for (DynamicObject ancestor : Layouts.MODULE.getFields(objectClass).prependedAndIncludedModules()) {
-                constant = Layouts.MODULE.getFields(ancestor).getConstant(name);
+                fields = Layouts.MODULE.getFields(ancestor);
+                constant = fields.getConstant(name);
+                assumptions.add(fields.getUnmodifiedAssumption());
                 if (constant != null) {
-                    return constant;
+                    return new ConstantLookupResult(constant, assumptions);
                 }
             }
         }
 
-        return null;
+        return new ConstantLookupResult(null, assumptions);
     }
 
-    public static RubyConstant lookupConstantAndObject(RubyContext context, DynamicObject module, String name) {
-        final RubyConstant constant = lookupConstant(context, module, name);
-        if (constant != null) {
+    public static ConstantLookupResult lookupConstantAndObject(RubyContext context, DynamicObject module, String name, ArrayList<Assumption> assumptions) {
+        final ConstantLookupResult constant = lookupConstant(context, module, name, assumptions);
+        if (constant.isFound()) {
             return constant;
         }
 
-        return lookupConstantInObject(context, module, name);
+        return lookupConstantInObject(context, module, name, assumptions);
     }
 
     @TruffleBoundary
-    public static RubyConstant lookupConstantWithLexicalScope(RubyContext context, LexicalScope lexicalScope, String name) {
-        CompilerAsserts.neverPartOfCompilation();
-
+    public static ConstantLookupResult lookupConstantWithLexicalScope(RubyContext context, LexicalScope lexicalScope, String name) {
         final DynamicObject module = lexicalScope.getLiveModule();
-
-        RubyConstant constant = null;
+        final ArrayList<Assumption> assumptions = new ArrayList<>();
 
         // Look in lexical scope
         while (lexicalScope != context.getRootLexicalScope()) {
-            constant = Layouts.MODULE.getFields(lexicalScope.getLiveModule()).getConstant(name);
+            ModuleFields fields = Layouts.MODULE.getFields(lexicalScope.getLiveModule());
+            RubyConstant constant = fields.getConstant(name);
+            assumptions.add(fields.getUnmodifiedAssumption());
             if (constant != null) {
-                return constant;
+                return new ConstantLookupResult(constant, assumptions);
             }
 
             lexicalScope = lexicalScope.getParent();
         }
 
-        return lookupConstantAndObject(context, module, name);
+        return lookupConstantAndObject(context, module, name, assumptions);
     }
 
-    public static RubyConstant lookupScopedConstant(RubyContext context, DynamicObject module, String fullName, boolean inherit, Node currentNode) {
+    public static ConstantLookupResult lookupScopedConstant(RubyContext context, DynamicObject module, String fullName, boolean inherit, Node currentNode) {
         CompilerAsserts.neverPartOfCompilation();
 
         int start = 0, next;
@@ -171,11 +185,11 @@ public abstract class ModuleOperations {
 
         while ((next = fullName.indexOf("::", start)) != -1) {
             final String segment = fullName.substring(start, next);
-            final RubyConstant constant = lookupConstantWithInherit(context, module, segment, inherit, currentNode);
-            if (constant == null) {
-                return null;
-            } else if (RubyGuards.isRubyModule(constant.getValue())) {
-                module = (DynamicObject) constant.getValue();
+            final ConstantLookupResult constant = lookupConstantWithInherit(context, module, segment, inherit, currentNode);
+            if (!constant.isFound()) {
+                return constant;
+            } else if (RubyGuards.isRubyModule(constant.getConstant().getValue())) {
+                module = (DynamicObject) constant.getConstant().getValue();
             } else {
                 throw new RaiseException(context.getCoreExceptions().typeError(fullName.substring(0, next) + " does not refer to class/module", currentNode));
             }
@@ -191,7 +205,7 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary(throwsControlFlowException = true)
-    public static RubyConstant lookupConstantWithInherit(RubyContext context, DynamicObject module, String name, boolean inherit, Node currentNode) {
+    public static ConstantLookupResult lookupConstantWithInherit(RubyContext context, DynamicObject module, String name, boolean inherit, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
 
         if (!Identifiers.isValidConstantName19(name)) {
@@ -199,9 +213,11 @@ public abstract class ModuleOperations {
         }
 
         if (inherit) {
-            return ModuleOperations.lookupConstantAndObject(context, module, name);
+            return ModuleOperations.lookupConstantAndObject(context, module, name, new ArrayList<>());
         } else {
-            return Layouts.MODULE.getFields(module).getConstant(name);
+            final ModuleFields fields = Layouts.MODULE.getFields(module);
+            final RubyConstant constant = fields.getConstant(name);
+            return new ConstantLookupResult(constant, fields.getUnmodifiedAssumption());
         }
     }
 
