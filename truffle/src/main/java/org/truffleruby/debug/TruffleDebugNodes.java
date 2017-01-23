@@ -12,7 +12,6 @@ package org.truffleruby.debug;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
@@ -37,7 +36,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.UnsafeGroup;
-import org.truffleruby.tools.simpleshell.SimpleShell;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,18 +93,6 @@ public abstract class TruffleDebugNodes {
         @Specialization
         public DynamicObject javaClassOf(Object value) {
             return createString(StringOperations.encodeRope(value.getClass().getSimpleName(), UTF8Encoding.INSTANCE));
-        }
-
-    }
-
-    @CoreMethod(names = "simple_shell", onSingleton = true, unsafe = UnsafeGroup.IO)
-    public abstract static class SimpleShellNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject simpleShell() {
-            new SimpleShell(getContext()).run(getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.MATERIALIZE, true).materialize(), this);
-            return nil();
         }
 
     }

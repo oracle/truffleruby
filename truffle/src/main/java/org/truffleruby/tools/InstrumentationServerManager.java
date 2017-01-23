@@ -9,14 +9,11 @@
  */
 package org.truffleruby.tools;
 
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.string.StringUtils;
@@ -24,7 +21,6 @@ import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.JavaException;
-import org.truffleruby.tools.simpleshell.SimpleShell;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -111,27 +107,6 @@ public class InstrumentationServerManager {
                 }
             }
 
-        });
-
-        server.createContext("/break", httpExchange -> {
-            try {
-                final Thread mainThread = Layouts.FIBER.getThread(
-                        Layouts.THREAD.getFiberManager(context.getThreadManager().getRootThread())
-                                .getCurrentFiber());
-
-                context.getSafepointManager().pauseThreadAndExecuteLaterFromNonRubyThread(mainThread, (thread, currentNode) -> new SimpleShell(context).run(Truffle.getRuntime().getCurrentFrame()
-                        .getFrame(FrameInstance.FrameAccess.MATERIALIZE, true).materialize(), currentNode));
-
-                httpExchange.getResponseHeaders().set("Content-Type", "text/plain");
-                httpExchange.sendResponseHeaders(200, 0);
-                httpExchange.getResponseBody().close();
-            } catch (IOException e) {
-                if (shuttingDown) {
-                    return;
-                }
-
-                e.printStackTrace();
-            }
         });
 
         server.start();
