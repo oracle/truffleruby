@@ -6,9 +6,9 @@ TruffleRuby currently cannot run `gem install` out of the box because of incompl
 support for openssl and Nokogiri. However there is a workaround which can be used
 to get both `gem install` and `bundler install` working.
  
-    ruby -r bundler-workarounds.rb -S gem install
-    ruby -r bundler-workarounds.rb -S bundle install
-    ruby -r bundler-workarounds.rb -S bundle update
+    ruby -r bundler-workarounds -S gem install bundler
+    ruby -r bundler-workarounds -S bundle install
+    ruby -r bundler-workarounds -S bundle update
     
 `bundle exec` does not need the `bundler-workarounds.rb` loaded. 
     
