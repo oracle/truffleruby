@@ -33,6 +33,7 @@ public class SharedMethodInfo {
     private final boolean alwaysClone;
     private final boolean alwaysInline;
     private final boolean needsCallerFrame;
+    private String descriptiveNameAndSource;
 
     public SharedMethodInfo(
             SourceSection sourceSection,
@@ -142,11 +143,15 @@ public class SharedMethodInfo {
     }
 
     public String getDescriptiveNameAndSource() {
-        if (sourceSection == null || !sourceSection.isAvailable()) {
-            return getDescriptiveName();
-        } else {
-            return getDescriptiveName() + " " + RubyLanguage.fileLine(sourceSection);
+        if (descriptiveNameAndSource == null) {
+            if (sourceSection == null || !sourceSection.isAvailable()) {
+                descriptiveNameAndSource = getDescriptiveName();
+            } else {
+                descriptiveNameAndSource = getDescriptiveName() + " " + RubyLanguage.fileLine(sourceSection);
+            }
         }
+
+        return descriptiveNameAndSource;
     }
 
 }
