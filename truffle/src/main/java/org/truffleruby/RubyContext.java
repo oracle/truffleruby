@@ -360,10 +360,16 @@ public class RubyContext extends ExecutionContext {
     }
 
     public static RubyContext getInstance() {
+        final RubyContext ret = contextsBeingCreated.get();
+
+        if (ret != null) {
+            return ret;
+        }
+
         try {
             return RubyLanguage.INSTANCE.unprotectedFindContext(RubyLanguage.INSTANCE.unprotectedCreateFindContextNode());
         } catch (IllegalStateException e) {
-            return contextsBeingCreated.get();
+            return null;
         }
     }
 
