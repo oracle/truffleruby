@@ -72,7 +72,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             final Source source = section.getSource();
 
             if (section.isAvailable()) {
-                return String.format("%s:%d", source.getName(), section.getStartLine());
+                return source.getName() + ":" + section.getStartLine();
             } else {
                 return source.getName();
             }
