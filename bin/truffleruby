@@ -22,7 +22,7 @@ if [ -n "$RUBY_BIN" ]; then
 fi
 
 mx_jar="$root/mxbuild/dists/ruby.jar"
-mvn_jar="$root/lib/jruby-truffle.jar"
+mvn_jar="$root/lib/truffleruby.jar"
 mx_time=$(mtime "$mx_jar")
 mvn_time=$(mtime "$mvn_jar")
 

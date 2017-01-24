@@ -149,7 +149,7 @@ module Utilities
 
   def self.mx?
     mx_jar = "#{JRUBY_DIR}/mxbuild/dists/ruby.jar"
-    mvn_jar = "#{JRUBY_DIR}/lib/jruby-truffle.jar"
+    mvn_jar = "#{JRUBY_DIR}/lib/truffleruby.jar"
     mx_time = File.exist?(mx_jar) ? File.mtime(mx_jar) : Time.at(0)
     mvn_time = File.exist?(mvn_jar) ? File.mtime(mvn_jar) : Time.at(0)
     mx_time > mvn_time

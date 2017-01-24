@@ -48,7 +48,7 @@ jruby-complete.jar
 jruby-findbugs.html
 latest_source_cache
 lib/jni
-lib/jruby*.jar
+lib/*.jar
 lib/native
 lib/ruby/cext/
 lib/ruby/gems

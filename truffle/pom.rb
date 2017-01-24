@@ -4,7 +4,7 @@ project 'JRuby Truffle' do
 
   model_version '4.0.0'
   inherit 'org.jruby:jruby-parent', version
-  id 'org.jruby:jruby-truffle'
+  id 'org.jruby:truffleruby'
 
   properties( 'polyglot.dump.pom' => 'pom.xml',
               'polyglot.dump.readonly' => true,
@@ -62,9 +62,9 @@ project 'JRuby Truffle' do
 
   plugin :shade do
     execute_goals( 'shade',
-                   :id => 'create lib/jruby-truffle.jar',
+                   :id => 'create lib/truffleruby.jar',
                    :phase => 'package',
-                   'outputFile' => '${jruby.basedir}/lib/jruby-truffle.jar' )
+                   'outputFile' => '${jruby.basedir}/lib/truffleruby.jar' )
   end
 
   plugin( :surefire,

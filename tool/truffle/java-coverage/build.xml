@@ -17,7 +17,7 @@
       <structure name="jacoco">
         <classfiles>
           <fileset file="../../../lib/jruby.jar" />
-          <fileset file="../../../lib/jruby-truffle.jar" />
+          <fileset file="../../../lib/truffleruby.jar" />
         </classfiles>
         <sourcefiles encoding="UTF-8">
           <fileset dir="../../../core/src/main/java" />
