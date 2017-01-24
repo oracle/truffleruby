@@ -83,8 +83,7 @@ public final class JRubySourceLoaderSupport {
                     if (reader != null) {
                         Source source = Source.newBuilder(reader).name(name).mimeType(RubyLanguage.MIME_TYPE).build();
 
-                        byte[] code = source.getCode().getBytes(StandardCharsets.UTF_8);
-                        coreLibrary.put(name, new CoreLibraryFile(code, null));
+                        coreLibrary.put(name, new CoreLibraryFile(source.getCode(), null));
                     } else {
                         throw new Error("Unable to load ruby core library file " + name);
                     }
@@ -99,10 +98,10 @@ public final class JRubySourceLoaderSupport {
     }
 
     public static class CoreLibraryFile {
-        public final byte[] code;
+        public final String code;
         public final Map<Integer, CoreLibraryMethod> methods;
 
-        public CoreLibraryFile(byte[] code, Map<Integer, CoreLibraryMethod> methods) {
+        public CoreLibraryFile(String code, Map<Integer, CoreLibraryMethod> methods) {
             this.code = code;
             this.methods = methods;
         }

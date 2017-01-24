@@ -92,7 +92,7 @@ public class SourceLoader {
                 throw new FileNotFoundException(path);
             }
 
-            return Source.newBuilder(new InputStreamReader(new ByteArrayInputStream(coreFile.code), StandardCharsets.UTF_8)).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
+            return Source.newBuilder(coreFile.code).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
         } else {
             if (!path.toLowerCase(Locale.ENGLISH).endsWith(".rb")) {
                 throw new FileNotFoundException(path);
