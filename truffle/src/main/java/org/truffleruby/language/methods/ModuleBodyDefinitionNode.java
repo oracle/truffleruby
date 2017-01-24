@@ -14,7 +14,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.Instrumentable;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
@@ -70,7 +69,6 @@ public class ModuleBodyDefinitionNode extends RubyNode {
     @TruffleBoundary
     private LexicalScope prepareLexicalScope(LexicalScope staticLexicalScope, LexicalScope parentLexicalScope, DynamicObject module) {
         staticLexicalScope.unsafeSetLiveModule(module);
-        Layouts.MODULE.getFields(staticLexicalScope.getParent().getLiveModule()).addLexicalDependent(module);
         if (!dynamicLexicalScope) {
             return staticLexicalScope;
         } else {
