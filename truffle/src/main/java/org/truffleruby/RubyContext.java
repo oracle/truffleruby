@@ -102,7 +102,7 @@ public class RubyContext extends ExecutionContext {
     private final InstrumentationServerManager instrumentationServerManager;
     private final CallGraph callGraph;
     private final CoverageManager coverageManager;
-    private final ConsoleHolder consoleHolder;
+    private ConsoleHolder consoleHolder;
 
     private final Object classVariableDefinitionLock = new Object();
 
@@ -206,8 +206,6 @@ public class RubyContext extends ExecutionContext {
             }
 
             coreLibrary.initializePostBoot();
-
-            consoleHolder = new ConsoleHolder();
 
             // Share once everything is loaded
             if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {
@@ -470,6 +468,10 @@ public class RubyContext extends ExecutionContext {
     }
 
     public ConsoleHolder getConsoleHolder() {
+        if (consoleHolder == null) {
+            consoleHolder = new ConsoleHolder();
+        }
+
         return consoleHolder;
     }
 
