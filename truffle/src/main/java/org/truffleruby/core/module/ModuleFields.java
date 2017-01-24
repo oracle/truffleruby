@@ -83,6 +83,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     private final ConcurrentMap<String, Object> classVariables = new ConcurrentHashMap<>();
 
     private final CyclicAssumption unmodifiedAssumption;
+    private final CyclicAssumption constantsUnmodifiedAssumption;
 
     /**
      * Keep track of other modules that depend on the configuration of this module in some way. The
@@ -96,7 +97,8 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         this.sourceSection = sourceSection;
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
-        this.unmodifiedAssumption = new CyclicAssumption(String.valueOf(givenBaseName) + " is unmodified");
+        this.unmodifiedAssumption = new CyclicAssumption(String.valueOf(givenBaseName) + " methods are unmodified");
+        this.constantsUnmodifiedAssumption = new CyclicAssumption(String.valueOf(givenBaseName) + " constants are unmodified");
         start = new PrependMarker(this);
     }
 
@@ -238,7 +240,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
         performIncludes(inclusionPoint, modulesToInclude);
 
-        newVersion();
+        newHierarchyVersion();
     }
 
     public void performIncludes(ModuleChain inclusionPoint, Deque<DynamicObject> moduleAncestors) {
@@ -288,7 +290,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             mod = mod.getParentModule();
         }
 
-        newVersion();
+        newHierarchyVersion();
     }
 
     /**
@@ -331,7 +333,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             final RubyConstant newValue = new RubyConstant(rubyModuleObject, value, isPrivate, autoload, isDeprecated);
 
             if ((previous == null) ? (constants.putIfAbsent(name, newValue) == null) : constants.replace(name, previous, newValue)) {
-                newLexicalVersion();
+                newConstantsVersion();
                 break;
             }
         }
@@ -341,7 +343,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     public RubyConstant removeConstant(RubyContext context, Node currentNode, String name) {
         checkFrozen(context, currentNode);
         RubyConstant oldConstant = constants.remove(name);
-        newLexicalVersion();
+        newConstantsVersion();
         return oldConstant;
     }
 
@@ -372,7 +374,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         methods.put(method.getName(), method);
 
         if (!context.getCoreLibrary().isInitializing()) {
-            newVersion();
+            newMethodsVersion();
         }
 
         if (context.getCoreLibrary().isLoaded() && !method.isUndefined()) {
@@ -396,7 +398,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     @TruffleBoundary
     public void removeMethod(String methodName) {
         methods.remove(methodName);
-        newVersion();
+        newMethodsVersion();
     }
 
     @TruffleBoundary
@@ -470,7 +472,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             }
 
             if (constants.replace(name, previous, previous.withPrivate(isPrivate))) {
-                newLexicalVersion();
+                newConstantsVersion();
                 break;
             }
         }
@@ -486,7 +488,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             }
 
             if (constants.replace(name, previous, previous.withDeprecated())) {
-                newLexicalVersion();
+                newConstantsVersion();
                 break;
             }
         }
@@ -538,15 +540,20 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         return super.toString() + "(" + getName() + ")";
     }
 
-    public void newVersion() {
+    private void newConstantsVersion() {
+        constantsUnmodifiedAssumption.invalidate();
+    }
+
+    public void newHierarchyVersion() {
+        newConstantsVersion();
+        newMethodsVersion();
+    }
+
+    public void newMethodsVersion() {
         newVersion(new HashSet<>());
     }
 
-    public void newLexicalVersion() {
-        newVersion(new HashSet<>());
-    }
-
-    public void newVersion(Set<DynamicObject> alreadyInvalidated) {
+    private void newVersion(Set<DynamicObject> alreadyInvalidated) {
         if (alreadyInvalidated.contains(rubyModuleObject)) {
             return;
         }
@@ -563,6 +570,10 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     public void addDependent(DynamicObject dependent) {
         RubyGuards.isRubyModule(dependent);
         dependents.add(dependent);
+    }
+
+    public Assumption getConstantsUnmodifiedAssumption() {
+        return constantsUnmodifiedAssumption.getAssumption();
     }
 
     public Assumption getUnmodifiedAssumption() {

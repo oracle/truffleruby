@@ -377,7 +377,7 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(classClass).parentModule = Layouts.MODULE.getFields(moduleClass).start;
         Layouts.MODULE.getFields(moduleClass).addDependent(classClass);
         Layouts.CLASS.setSuperclass(classClass, moduleClass);
-        Layouts.MODULE.getFields(classClass).newVersion();
+        Layouts.MODULE.getFields(classClass).newHierarchyVersion();
 
         // Set constants in Object and lexical parents
         Layouts.MODULE.getFields(classClass).getAdoptedByLexicalParent(context, objectClass, "Class", node);
