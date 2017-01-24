@@ -22,9 +22,8 @@ import org.truffleruby.parser.scope.DynamicScope;
 import org.truffleruby.parser.scope.StaticScope;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ForkJoinPool;
 
 public class ParserCache {
 
@@ -44,7 +43,7 @@ public class ParserCache {
         }
     }
 
-    private final Map<String, RootParseNode> cache = new ConcurrentHashMap<>();
+    private final Map<String, RootParseNode> cache = new HashMap<>();
 
     public void add(String canonicalPath) {
         cache.put(canonicalPath, load(canonicalPath));
