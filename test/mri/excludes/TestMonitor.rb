@@ -1,1 +1,0 @@
-exclude :test_killed_thread_in_synchronize, ''
