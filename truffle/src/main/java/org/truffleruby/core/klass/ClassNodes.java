@@ -103,7 +103,7 @@ public abstract class ClassNodes {
             Layouts.MODULE.getFields(superclass).addDependent(rubyClass);
             Layouts.CLASS.setSuperclass(rubyClass, superclass);
 
-            fields.newVersion();
+            fields.newHierarchyVersion();
         }
 
         return rubyClass;
@@ -163,7 +163,7 @@ public abstract class ClassNodes {
             fields.parentModule = Layouts.MODULE.getFields(superclass).start;
             Layouts.MODULE.getFields(superclass).addDependent(rubyClass);
 
-            fields.newVersion();
+            fields.newHierarchyVersion();
         }
 
         // Singleton classes cannot be instantiated
@@ -182,7 +182,7 @@ public abstract class ClassNodes {
         Layouts.MODULE.getFields(rubyClass).parentModule = Layouts.MODULE.getFields(superclass).start;
         Layouts.MODULE.getFields(superclass).addDependent(rubyClass);
 
-        Layouts.MODULE.getFields(rubyClass).newVersion();
+        Layouts.MODULE.getFields(rubyClass).newHierarchyVersion();
         ensureItHasSingletonClassCreated(context, rubyClass);
 
         setInstanceFactory(rubyClass, superclass);
