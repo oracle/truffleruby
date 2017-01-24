@@ -89,10 +89,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
      * include subclasses and modules that include this module.
      */
     private final Set<DynamicObject> dependents = Collections.newSetFromMap(new WeakHashMap<DynamicObject, Boolean>());
-    /**
-     * Lexical dependent modules, to take care of changes to a module constants.
-     */
-    private final Set<DynamicObject> lexicalDependents = Collections.newSetFromMap(new WeakHashMap<DynamicObject, Boolean>());
 
     public ModuleFields(RubyContext context, SourceSection sourceSection, DynamicObject lexicalParent, String givenBaseName) {
         assert lexicalParent == null || RubyGuards.isRubyModule(lexicalParent);
@@ -117,7 +113,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
                 name,
                 rubyModuleObject,
                 false);
-        Layouts.MODULE.getFields(lexicalParent).addLexicalDependent(rubyModuleObject);
 
         if (!hasFullName()) {
             // Tricky, we need to compare with the Object class, but we only have a Class at hand.
@@ -544,14 +539,14 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     }
 
     public void newVersion() {
-        newVersion(new HashSet<>(), false);
+        newVersion(new HashSet<>());
     }
 
     public void newLexicalVersion() {
-        newVersion(new HashSet<>(), true);
+        newVersion(new HashSet<>());
     }
 
-    public void newVersion(Set<DynamicObject> alreadyInvalidated, boolean considerLexicalDependents) {
+    public void newVersion(Set<DynamicObject> alreadyInvalidated) {
         if (alreadyInvalidated.contains(rubyModuleObject)) {
             return;
         }
@@ -561,26 +556,13 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
         // Make dependents new versions
         for (DynamicObject dependent : dependents) {
-            Layouts.MODULE.getFields(dependent).newVersion(alreadyInvalidated, considerLexicalDependents);
-        }
-
-        if (considerLexicalDependents) {
-            for (DynamicObject dependent : lexicalDependents) {
-                Layouts.MODULE.getFields(dependent).newVersion(alreadyInvalidated, considerLexicalDependents);
-            }
+            Layouts.MODULE.getFields(dependent).newVersion(alreadyInvalidated);
         }
     }
 
     public void addDependent(DynamicObject dependent) {
         RubyGuards.isRubyModule(dependent);
         dependents.add(dependent);
-    }
-
-    public void addLexicalDependent(DynamicObject lexicalChild) {
-        assert RubyGuards.isRubyModule(lexicalChild);
-        if (lexicalChild != rubyModuleObject) {
-            lexicalDependents.add(lexicalChild);
-        }
     }
 
     public Assumption getUnmodifiedAssumption() {
