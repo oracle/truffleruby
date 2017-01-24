@@ -424,7 +424,6 @@ module Commands
       jt bootstrap [options]                         run the build system\'s bootstrap phase
       jt build [options]                             build
       jt rebuild [options]                           clean and build
-          truffle                                    build only the Truffle part, assumes the rest is up-to-date
           cexts [--no-openssl]                       build the cext backend (set SULONG_HOME)
           parser                                     build the parser
           options                                    build the options
@@ -517,8 +516,6 @@ module Commands
     project = options.first
     env = VERBOSE ? {} : {'JRUBY_BUILD_MORE_QUIET' => 'true'}
     case project
-    when 'truffle'
-      mvn env, '-pl', 'truffle', 'package'
     when 'cexts'
       no_openssl = options.delete('--no-openssl')
       build_ruby_su
@@ -1356,7 +1353,7 @@ class JT
       send(args.shift)
     when "build"
       command = [args.shift]
-      while ['truffle', 'cexts', 'parser', 'options', '--no-openssl'].include?(args.first)
+      while ['cexts', 'parser', 'options', '--no-openssl'].include?(args.first)
         command << args.shift
       end
       send(*command)
