@@ -22,8 +22,9 @@ BSD licence `ruby-bsdl.txt`, or a custom licence `ruby-licence.txt`.
 
 ## JRuby
 
-TruffleRuby contains code from JRuby, including Java implementation code, build
-system, shell script launchers, standard library modified from MRI, and so on.
+TruffleRuby contains code from JRuby 9.1.7.0, including Java implementation
+code, build system, shell script launchers, standard library modified from MRI,
+and so on.
 
 Where original files had JRuby licence headers we have copied them over. In
 general this code is available under these licences:
@@ -34,6 +35,12 @@ general this code is available under these licences:
 * Common Public License 1.0 (only in some files)
 
 See `epl-1.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`, `cpl-1.0.txt`.
+
+Note that the JRuby project object model file declares the licenses as GPL 3 and
+LGPL 3. This is an error, documented in
+https://github.com/jruby/jruby/issues/4454 and fixed by the maintainers in
+https://github.com/jruby/jruby/commit/cb165f2a903158a11e015ddaeb500fb95cb017b2
+after the release of 9.1.7.0.
 
 ## In progress
 
