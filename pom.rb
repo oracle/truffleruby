@@ -19,12 +19,6 @@ project 'JRuby', 'https://github.com/jruby/jruby' do
     end
   end
 
-  issue_management 'https://github.com/jruby/jruby/issues', 'GitHub'
-
-  mailing_list "jruby" do
-    archives "https://github.com/jruby/jruby/wiki/MailingLists"
-  end
-
   license 'GPL 3', 'http://www.gnu.org/licenses/gpl-3.0-standalone.html'
   license 'LGPL 3', 'http://www.gnu.org/licenses/lgpl-3.0-standalone.html'
   license 'EPL', 'http://www.eclipse.org/legal/epl-v10.html'
@@ -38,16 +32,6 @@ project 'JRuby', 'https://github.com/jruby/jruby' do
               :id => 'sonatype' ) do
     releases 'false'
     snapshots 'true'
-  end
-
-  source_control( :url => 'https://github.com/jruby/jruby',
-                  :connection => 'scm:git:git@jruby.org:jruby.git',
-                  :developer_connection => 'scm:git:ssh://git@jruby.org/jruby.git' )
-
-  distribution do
-    site( :url => 'https://github.com/jruby/jruby',
-          :id => 'gh-pages',
-          :name => 'JRuby Site' )
   end
 
   properties( 'its.j2ee' => 'j2ee*/pom.xml',
@@ -132,41 +116,7 @@ project 'JRuby', 'https://github.com/jruby/jruby' do
     plugin :shade, '2.4.3'
     plugin :surefire, '2.15'
     plugin :plugin, '3.2'
-    plugin( :invoker, '1.8',
-            'properties' => { 'jruby.version' => '${project.version}',
-                              'jruby.plugins.version' => '${jruby.plugins.version}' },
-            'pomIncludes' => [ '*/pom.xml' ],
-            'pomExcludes' => [ 'extended/pom.xml', '${its.j2ee}', '${its.osgi}' ],
-            'projectsDirectory' =>  'src/it',
-            'cloneProjectsTo' =>  '${project.build.directory}/it',
-            'preBuildHookScript' =>  'setup.bsh',
-            'postBuildHookScript' =>  'verify.bsh',
-            'goals' => [:install],
-            'streamLogs' =>  'true' ) do
-      execute_goals( 'install', 'run',
-                     :id => 'integration-test' )
-    end
 
-    plugin 'org.eclipse.m2e:lifecycle-mapping:1.0.0'
-    plugin :'scm-publish', '1.0-beta-2'
-  end
-
-  plugin( :site,
-          'port' =>  '9000',
-          'tempWebappDirectory' =>  '${basedir}/target/site/tempdir' ) do
-    execute_goals( 'stage',
-                   :id => 'stage-for-scm-publish',
-                   :phase => 'post-site',
-                   'skipDeploy' =>  'false' )
-  end
-
-  plugin( :'scm-publish', '1.0-beta-2',
-          'scmBranch' =>  'gh-pages',
-          'pubScmUrl' =>  'scm:git:git@github.com:jruby/jruby.git',
-          'tryUpdate' =>  'true' ) do
-    execute_goals( 'publish-scm',
-                   :id => 'scm-publish',
-                   :phase => 'site-deploy' )
   end
 
   modules [ 'truffle' ]
@@ -180,142 +130,6 @@ project 'JRuby', 'https://github.com/jruby/jruby' do
     modules [ 'test' ]
   end
 
-  [ 'rake', 'exec' ].each do |name|
-    profile name do
-
-      modules [ 'test' ]
-
-      build do
-        default_goal 'package'
-      end
-    end
-  end
-
-  [ 'bootstrap', 'bootstrap-no-launcher' ].each do |name|
-    profile name do
-
-      modules [ 'test' ]
-
-    end
-  end
-
   all_modules = [ 'truffle', 'test' ]
 
-  profile 'all' do
-
-    modules all_modules
-
-    build do
-      default_goal 'install'
-    end
-  end
-
-  profile 'clean' do
-
-    modules all_modules
-
-    build do
-      default_goal 'clean'
-    end
-  end
-
-  profile 'release' do
-    modules [ 'truffle', 'test' ]
-    properties 'invoker.skip' => true
-  end
-
-  profile 'snapshots' do
-
-    modules [ 'truffle' ]
-
-    distribution_management do
-      repository( :url => "file:${project.build.directory}/maven", :id => 'local releases' )
-      snapshot_repository( :url => "file:${project.build.directory}/maven",
-                           :id => 'local snapshots' )
-    end
-    build do
-      default_goal :deploy
-    end
-
-    plugin(:source) do
-      execute_goals('jar-no-fork', :id => 'attach-sources')
-    end
-    plugin(:javadoc) do
-      execute_goals('jar', :id => 'attach-javadocs')
-    end
-  end
-
-  profile 'single invoker test' do
-    activation do
-      property :name => 'invoker.test'
-    end
-    properties 'invoker.skip' => false
-  end
-
-  profile 'jdk8' do
-    activation do
-      jdk '1.8'
-    end
-    plugin :javadoc, :additionalparam => '-Xdoclint:none'
-  end
-
-  reporting do
-    plugin( :'project-info-reports', '2.4',
-            'dependencyLocationsEnabled' =>  'false',
-            'dependencyDetailsEnabled' =>  'false' )
-    plugin :changelog, '2.2'
-    plugin( :checkstyle, '2.9.1',
-            'configLocation' =>  '${main.basedir}/docs/style_checks.xml',
-            'propertyExpansion' =>  'cacheFile=${project.build.directory}/checkstyle-cachefile' ) do
-      report_set( 'checkstyle',
-                  :inherited => 'false' )
-    end
-
-    plugin( 'org.codehaus.mojo:cobertura-maven-plugin:2.5.1',
-            'aggregate' =>  'true' )
-    plugin :dependency, '2.8' do
-      report_set 'analyze-report'
-    end
-
-    plugin 'org.codehaus.mojo:findbugs-maven-plugin:2.5'
-    plugin( :javadoc, '2.9',
-            'quiet' =>  'true',
-            'aggregate' =>  'true',
-            'failOnError' =>  'false',
-            'detectOfflineLinks' =>  'false',
-            'show' =>  'package',
-            'level' =>  'package',
-            'maxmemory' =>  '1g' ) do
-      report_set( 'javadoc',
-                  'quiet' =>  'true',
-                  'failOnError' =>  'false',
-                  'detectOfflineLinks' =>  'false' )
-    end
-
-    plugin( :pmd, '2.7.1',
-            'linkXRef' =>  'true',
-            'sourceEncoding' =>  'utf-8',
-            'minimumTokens' =>  '100',
-            'targetJdk' =>  '${base.javac.version}' )
-    plugin( :jxr, '2.3',
-            'linkJavadoc' =>  'true',
-            'aggregate' =>  'true' )
-    plugin :'surefire-report', '2.14.1'
-    plugin( 'org.codehaus.mojo:taglist-maven-plugin:2.4',
-            'tagListOptions' => {
-              'tagClasses' => {
-                'tagClass' => {
-                  'tags' => [ { 'matchString' =>  'todo',
-                                'matchType' =>  'ignoreCase' },
-                              { 'matchString' =>  'FIXME',
-                                'matchType' =>  'ignoreCase' },
-                              { 'matchString' =>  'deprecated',
-                                'matchType' =>  'ignoreCase' } ]
-                }
-              }
-            } )
-    plugin 'org.codehaus.mojo:versions-maven-plugin:2.1' do
-      report_set 'dependency-updates-report', 'plugin-updates-report', 'property-updates-report'
-    end
-  end
 end

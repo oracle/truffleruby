@@ -86,26 +86,6 @@ project 'JRuby Truffle' do
       directory 'src/main/java'
       includes 'META-INF/**/*'
     end
-
-    resource do
-      directory '${project.basedir}/..'
-      includes [ 'BSDL', 'COPYING', 'LEGAL', 'LICENSE.RUBY' ]
-      target_path '${project.build.outputDirectory}/META-INF/'
-    end
-  end
-
-  [ :dist, :'jruby-jars', :all, :release ].each do |name|
-    profile name do
-      plugin :shade do
-        execute_goals( 'shade',
-                       :id => 'pack jruby-truffle-complete.jar',
-                       :phase => 'verify',
-                       :artifactSet => { :includes => [
-                          'com.oracle:truffle',
-                          'com.oracle:truffle-interop' ] },
-                       :outputFile => '${project.build.directory}/jruby-truffle-${project.version}-complete.jar' )
-      end
-    end
   end
 
   profile 'tck' do
