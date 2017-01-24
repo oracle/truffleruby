@@ -36,41 +36,6 @@
   <modules>
     <module>truffle</module>
   </modules>
-  <properties>
-    <rspec-core.version>3.4.4</rspec-core.version>
-    <polyglot.dump.readonly>true</polyglot.dump.readonly>
-    <racc.version>1.4.14</racc.version>
-    <its.j2ee>j2ee*/pom.xml</its.j2ee>
-    <jruby.basedir>${project.basedir}</jruby.basedir>
-    <minitest.version>5.4.1</minitest.version>
-    <ant.version>1.9.2</ant.version>
-    <diff-lcs.version>1.1.3</diff-lcs.version>
-    <jffi.version>1.2.14</jffi.version>
-    <rake.version>10.4.2</rake.version>
-    <jruby-launcher.version>1.1.1</jruby-launcher.version>
-    <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
-    <asm.version>5.0.4</asm.version>
-    <rspec-expectations.version>3.4.0</rspec-expectations.version>
-    <its.osgi>osgi*/pom.xml</its.osgi>
-    <base.javac.version>1.7</base.javac.version>
-    <test-unit.version>3.1.1</test-unit.version>
-    <rdoc.version>4.2.0</rdoc.version>
-    <rspec.version>3.4.0</rspec.version>
-    <base.java.version>1.7</base.java.version>
-    <rspec-mocks.version>3.4.1</rspec-mocks.version>
-    <jruby.plugins.version>1.0.10</jruby.plugins.version>
-    <invoker.skip>true</invoker.skip>
-    <json.version>1.8.3</json.version>
-    <jar-dependencies.version>0.3.9</jar-dependencies.version>
-    <power_assert.version>0.2.3</power_assert.version>
-    <version.jruby>${project.version}</version.jruby>
-    <bouncy-castle.version>1.47</bouncy-castle.version>
-    <main.basedir>${project.basedir}</main.basedir>
-    <github.global.server>github</github.global.server>
-    <joda.time.version>2.8.2</joda.time.version>
-    <rspec-support.version>3.4.1</rspec-support.version>
-    <polyglot.dump.pom>pom.xml</polyglot.dump.pom>
-  </properties>
   <dependencyManagement>
     <dependencies>
       <dependency>
