@@ -33,43 +33,6 @@
       <url>http://www.eclipse.org/legal/epl-v10.html</url>
     </license>
   </licenses>
-  <developers>
-    <developer>
-      <id>headius</id>
-      <name>headius</name>
-      <roles>
-        <role>developer</role>
-      </roles>
-    </developer>
-    <developer>
-      <id>enebo</id>
-      <name>enebo</name>
-      <roles>
-        <role>developer</role>
-      </roles>
-    </developer>
-    <developer>
-      <id>wmeissner</id>
-      <name>wmeissner</name>
-      <roles>
-        <role>developer</role>
-      </roles>
-    </developer>
-    <developer>
-      <id>BanzaiMan</id>
-      <name>BanzaiMan</name>
-      <roles>
-        <role>developer</role>
-      </roles>
-    </developer>
-    <developer>
-      <id>mkristian</id>
-      <name>mkristian</name>
-      <roles>
-        <role>developer</role>
-      </roles>
-    </developer>
-  </developers>
   <modules>
     <module>truffle</module>
   </modules>
