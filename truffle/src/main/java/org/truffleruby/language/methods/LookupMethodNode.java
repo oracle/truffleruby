@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -20,7 +19,6 @@ import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
@@ -53,17 +51,13 @@ public abstract class LookupMethodNode extends RubyNode {
                     "metaClass(self) == selfMetaClass",
                     "name == cachedName"
             },
-            assumptions = "getUnmodifiedAssumption(selfMetaClass)",
+            assumptions = "method.getAssumptions()",
             limit = "getCacheLimit()")
     protected InternalMethod lookupMethodCached(VirtualFrame frame, Object self, String name,
             @Cached("metaClass(self)") DynamicObject selfMetaClass,
             @Cached("name") String cachedName,
             @Cached("doLookup(frame, self, name)") MethodLookupResult method) {
         return method.getMethod();
-    }
-
-    protected Assumption getUnmodifiedAssumption(DynamicObject module) {
-        return Layouts.MODULE.getFields(module).getMethodsUnmodifiedAssumption();
     }
 
     @Specialization

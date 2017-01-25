@@ -11,22 +11,25 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.methods.InternalMethod;
 
 public class CachedBooleanDispatchNode extends CachedDispatchNode {
 
-    private final Assumption falseUnmodifiedAssumption;
+    @CompilationFinal private final Assumption[] falseAssumptions;
     private final InternalMethod falseMethod;
     private final BranchProfile falseProfile = BranchProfile.create();
 
     @Child private DirectCallNode falseCallDirect;
 
-    private final Assumption trueUnmodifiedAssumption;
+    @CompilationFinal private final Assumption[] trueAssumptions;
     private final InternalMethod trueMethod;
     private final BranchProfile trueProfile = BranchProfile.create();
 
@@ -35,25 +38,23 @@ public class CachedBooleanDispatchNode extends CachedDispatchNode {
     public CachedBooleanDispatchNode(
             Object cachedName,
             DispatchNode next,
-            Assumption falseUnmodifiedAssumption,
-            InternalMethod falseMethod,
-            Assumption trueUnmodifiedAssumption,
-            InternalMethod trueMethod,
+            MethodLookupResult falseMethodLookup,
+            MethodLookupResult trueMethodLookup,
             DispatchAction dispatchAction) {
         super(cachedName, next, dispatchAction);
 
-        this.falseUnmodifiedAssumption = falseUnmodifiedAssumption;
-        this.falseMethod = falseMethod;
+        this.falseAssumptions = falseMethodLookup.getAssumptions();
+        this.falseMethod = falseMethodLookup.getMethod();
 
-        if (falseMethod != null) {
+        if (falseMethodLookup.isDefined()) {
             this.falseCallDirect = Truffle.getRuntime().createDirectCallNode(falseMethod.getCallTarget());
             applySplittingInliningStrategy(falseCallDirect, falseMethod);
         }
 
-        this.trueUnmodifiedAssumption = trueUnmodifiedAssumption;
-        this.trueMethod = trueMethod;
+        this.trueAssumptions = trueMethodLookup.getAssumptions();
+        this.trueMethod = trueMethodLookup.getMethod();
 
-        if (trueMethod != null) {
+        if (trueMethodLookup.isDefined()) {
             this.trueCallDirect = Truffle.getRuntime().createDirectCallNode(trueMethod.getCallTarget());
             applySplittingInliningStrategy(trueCallDirect, trueMethod);
         }
@@ -72,8 +73,8 @@ public class CachedBooleanDispatchNode extends CachedDispatchNode {
             DynamicObject blockObject,
             Object[] argumentsObjects) {
         try {
-            trueUnmodifiedAssumption.check();
-            falseUnmodifiedAssumption.check();
+            checkAssumptions(trueAssumptions);
+            checkAssumptions(falseAssumptions);
         } catch (InvalidAssumptionException e) {
             return resetAndDispatch(
                     frame,

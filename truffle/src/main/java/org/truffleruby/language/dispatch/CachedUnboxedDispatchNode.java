@@ -10,17 +10,20 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.methods.InternalMethod;
 
 public class CachedUnboxedDispatchNode extends CachedDispatchNode {
 
     private final Class<?> expectedClass;
-    private final Assumption unmodifiedAssumption;
+    @CompilationFinal private final Assumption[] assumptions;
 
     private final InternalMethod method;
     @Child private DirectCallNode callNode;
@@ -29,14 +32,13 @@ public class CachedUnboxedDispatchNode extends CachedDispatchNode {
             Object cachedName,
             DispatchNode next,
             Class<?> expectedClass,
-            Assumption unmodifiedAssumption,
-            InternalMethod method,
+            MethodLookupResult methodLookup,
             DispatchAction dispatchAction) {
         super(cachedName, next, dispatchAction);
 
         this.expectedClass = expectedClass;
-        this.unmodifiedAssumption = unmodifiedAssumption;
-        this.method = method;
+        this.assumptions = methodLookup.getAssumptions();
+        this.method = methodLookup.getMethod();
         this.callNode = Truffle.getRuntime().createDirectCallNode(method.getCallTarget());
         applySplittingInliningStrategy(callNode, method);
     }
@@ -56,7 +58,7 @@ public class CachedUnboxedDispatchNode extends CachedDispatchNode {
             DynamicObject blockObject,
             Object[] argumentsObjects) {
         try {
-            unmodifiedAssumption.check();
+            checkAssumptions(assumptions);
         } catch (InvalidAssumptionException e) {
             return resetAndDispatch(
                     frame,

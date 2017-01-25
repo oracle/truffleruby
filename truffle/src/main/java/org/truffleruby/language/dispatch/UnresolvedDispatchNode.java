@@ -9,16 +9,15 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.methods.InternalMethod;
 
 public final class UnresolvedDispatchNode extends DispatchNode {
 
@@ -104,29 +103,25 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             Object methodName) {
 
         final String methodNameString = toString(methodName);
-        final InternalMethod method = lookup(frame, receiverObject, methodNameString, ignoreVisibility);
+        final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility);
 
-        if (method == null) {
-            return createMethodMissingNode(first, methodName, receiverObject);
+        if (!method.isDefined()) {
+            return createMethodMissingNode(first, methodName, receiverObject, method);
         }
 
         if (receiverObject instanceof Boolean) {
-            final Assumption falseUnmodifiedAssumption = Layouts.MODULE.getFields(coreLibrary().getFalseClass()).getMethodsUnmodifiedAssumption();
-            final InternalMethod falseMethod = lookup(frame, false, methodNameString, ignoreVisibility);
-
-            final Assumption trueUnmodifiedAssumption = Layouts.MODULE.getFields(coreLibrary().getTrueClass()).getMethodsUnmodifiedAssumption();
-            final InternalMethod trueMethod = lookup(frame, true, methodNameString, ignoreVisibility);
-            assert falseMethod != null || trueMethod != null;
+            final MethodLookupResult falseMethodLookup = lookup(frame, false, methodNameString, ignoreVisibility);
+            final MethodLookupResult trueMethodLookup = lookup(frame, true, methodNameString, ignoreVisibility);
+            assert falseMethodLookup.isDefined() || trueMethodLookup.isDefined();
 
             return new CachedBooleanDispatchNode(
                     methodName, first,
-                    falseUnmodifiedAssumption, falseMethod,
-                    trueUnmodifiedAssumption, trueMethod,
+                    falseMethodLookup, trueMethodLookup,
                     getDispatchAction());
         } else {
             return new CachedUnboxedDispatchNode(
                     methodName, first, receiverObject.getClass(),
-                    Layouts.MODULE.getFields(coreLibrary().getLogicalClass(receiverObject)).getMethodsUnmodifiedAssumption(), method, getDispatchAction());
+                    method, getDispatchAction());
         }
     }
 
@@ -138,21 +133,20 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             Object[] argumentsObjects) {
 
         String methodNameString = toString(methodName);
-        final InternalMethod method = lookup(frame, receiverObject, methodNameString, ignoreVisibility);
+        final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility);
 
-        if (method == null) {
-            return createMethodMissingNode(first, methodName, receiverObject);
+        if (!method.isDefined()) {
+            return createMethodMissingNode(first, methodName, receiverObject, method);
         }
 
-        final DynamicObject receiverMetaClass = coreLibrary().getMetaClass(receiverObject);
         if (RubyGuards.isRubySymbol(receiverObject)) {
             return new CachedBoxedSymbolDispatchNode(getContext(), methodName, first, method, getDispatchAction());
-        } else if (Layouts.CLASS.getIsSingleton(receiverMetaClass)) {
+        } else if (Layouts.CLASS.getIsSingleton(coreLibrary().getMetaClass(receiverObject))) {
             return new CachedSingletonDispatchNode(methodName, first, ((DynamicObject) receiverObject),
-                    receiverMetaClass, method, getDispatchAction());
+                    method, getDispatchAction());
         } else {
             return new CachedBoxedDispatchNode(getContext(), methodName, first, ((DynamicObject) receiverObject).getShape(),
-                    receiverMetaClass, method, getDispatchAction());
+                    method, getDispatchAction());
         }
     }
 
@@ -171,23 +165,24 @@ public final class UnresolvedDispatchNode extends DispatchNode {
     private DispatchNode createMethodMissingNode(
             DispatchNode first,
             Object methodName,
-            Object receiverObject) {
+            Object receiverObject,
+            MethodLookupResult methodLookup) {
         switch (missingBehavior) {
             case RETURN_MISSING: {
-                return new CachedReturnMissingDispatchNode(methodName, first, coreLibrary().getMetaClass(receiverObject),
+                return new CachedReturnMissingDispatchNode(methodName, first, methodLookup, coreLibrary().getMetaClass(receiverObject),
                         getDispatchAction());
             }
 
             case CALL_METHOD_MISSING: {
-                final InternalMethod method = lookup(null, receiverObject, "method_missing", true);
+                final MethodLookupResult methodMissing = lookup(null, receiverObject, "method_missing", true);
 
-                if (method == null) {
+                if (!methodMissing.isDefined()) {
                     throw new RaiseException(coreExceptions().runtimeError(
                             receiverObject.toString() + " didn't have a #method_missing", this));
                 }
 
                 return new CachedMethodMissingDispatchNode(methodName, first, coreLibrary().getMetaClass(receiverObject),
-                        method, getDispatchAction());
+                        methodLookup, methodMissing, getDispatchAction());
             }
 
             default: {

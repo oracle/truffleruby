@@ -13,6 +13,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
@@ -44,13 +46,13 @@ public abstract class DispatchNode extends RubyNode {
             DynamicObject blockObject,
             Object[] argumentsObjects);
 
-    protected InternalMethod lookup(
+    protected MethodLookupResult lookup(
             VirtualFrame frame,
             Object receiver,
             String name,
             boolean ignoreVisibility) {
         return LookupMethodNode.lookupMethodWithVisibility(getContext(), frame, receiver, name,
-                ignoreVisibility, getHeadNode().onlyCallPublic).getMethod();
+                ignoreVisibility, getHeadNode().onlyCallPublic);
     }
 
     protected Object resetAndDispatch(

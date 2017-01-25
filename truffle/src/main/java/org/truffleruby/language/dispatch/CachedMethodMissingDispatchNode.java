@@ -10,13 +10,14 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
@@ -24,8 +25,9 @@ import org.truffleruby.language.objects.MetaClassNodeGen;
 public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
 
     private final DynamicObject expectedClass;
-    private final Assumption unmodifiedAssumption;
-    private final InternalMethod method;
+    @CompilationFinal private final Assumption[] originalMethodAssumptions;
+    @CompilationFinal private final Assumption[] methodMissingAssumptions;
+    private final InternalMethod methodMissing;
 
     @Child private MetaClassNode metaClassNode;
     @Child private DirectCallNode callNode;
@@ -34,15 +36,17 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
             Object cachedName,
             DispatchNode next,
             DynamicObject expectedClass,
-            InternalMethod method,
+            MethodLookupResult originalMethodLookup,
+            MethodLookupResult methodMissingLookup,
             DispatchAction dispatchAction) {
         super(cachedName, next, dispatchAction);
 
         this.expectedClass = expectedClass;
-        this.unmodifiedAssumption = Layouts.MODULE.getFields(expectedClass).getMethodsUnmodifiedAssumption();
-        this.method = method;
+        this.originalMethodAssumptions = originalMethodLookup.getAssumptions();
+        this.methodMissingAssumptions = methodMissingLookup.getAssumptions();
+        this.methodMissing = methodMissingLookup.getMethod();
         this.metaClassNode = MetaClassNodeGen.create(null);
-        this.callNode = Truffle.getRuntime().createDirectCallNode(method.getCallTarget());
+        this.callNode = Truffle.getRuntime().createDirectCallNode(methodMissing.getCallTarget());
 
         /*
          * The way that #method_missing is used is usually as an indirection to call some other method, and
@@ -51,7 +55,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
          */
 
         if (callNode.isCallTargetCloningAllowed()
-                && (getContext().getOptions().METHODMISSING_ALWAYS_CLONE || method.getSharedMethodInfo().shouldAlwaysClone())) {
+                && (getContext().getOptions().METHODMISSING_ALWAYS_CLONE || methodMissing.getSharedMethodInfo().shouldAlwaysClone())) {
             insert(callNode);
             callNode.cloneCallTarget();
         }
@@ -76,7 +80,8 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
             DynamicObject blockObject,
             Object[] argumentsObjects) {
         try {
-            unmodifiedAssumption.check();
+            checkAssumptions(originalMethodAssumptions);
+            checkAssumptions(methodMissingAssumptions);
         } catch (InvalidAssumptionException e) {
             return resetAndDispatch(
                     frame,
@@ -101,7 +106,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
                 // When calling #method_missing we need to prepend the symbol
                 final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(argumentsObjects, getCachedNameAsSymbol());
 
-                return call(callNode, frame, method, receiverObject, blockObject, modifiedArgumentsObjects);
+                return call(callNode, frame, methodMissing, receiverObject, blockObject, modifiedArgumentsObjects);
 
             case RESPOND_TO_METHOD:
                 return false;
