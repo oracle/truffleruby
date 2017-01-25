@@ -63,7 +63,7 @@ public abstract class LookupSuperMethodNode extends RubyNode {
     }
 
     public Assumption getUnmodifiedAssumption(DynamicObject module) {
-        return Layouts.MODULE.getFields(module).getUnmodifiedAssumption();
+        return Layouts.MODULE.getFields(module).getMethodsUnmodifiedAssumption();
     }
 
     protected InternalMethod getCurrentMethod(VirtualFrame frame) {

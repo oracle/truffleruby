@@ -32,7 +32,7 @@ public class CachedReturnMissingDispatchNode extends CachedDispatchNode {
         super(cachedName, next, dispatchAction);
 
         this.expectedClass = expectedClass;
-        this.unmodifiedAssumption = Layouts.MODULE.getFields(expectedClass).getUnmodifiedAssumption();
+        this.unmodifiedAssumption = Layouts.MODULE.getFields(expectedClass).getMethodsUnmodifiedAssumption();
         this.metaClassNode = MetaClassNodeGen.create(null);
     }
 

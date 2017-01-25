@@ -42,7 +42,7 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
 
         this.expectedShape = expectedShape;
         this.validShape = expectedShape.getValidAssumption();
-        this.unmodifiedAssumption = Layouts.MODULE.getFields(expectedClass).getUnmodifiedAssumption();
+        this.unmodifiedAssumption = Layouts.MODULE.getFields(expectedClass).getMethodsUnmodifiedAssumption();
         this.next = next;
         this.method = method;
         this.callNode = Truffle.getRuntime().createDirectCallNode(method.getCallTarget());

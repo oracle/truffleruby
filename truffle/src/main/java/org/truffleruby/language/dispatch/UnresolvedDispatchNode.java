@@ -111,10 +111,10 @@ public final class UnresolvedDispatchNode extends DispatchNode {
         }
 
         if (receiverObject instanceof Boolean) {
-            final Assumption falseUnmodifiedAssumption = Layouts.MODULE.getFields(coreLibrary().getFalseClass()).getUnmodifiedAssumption();
+            final Assumption falseUnmodifiedAssumption = Layouts.MODULE.getFields(coreLibrary().getFalseClass()).getMethodsUnmodifiedAssumption();
             final InternalMethod falseMethod = lookup(frame, false, methodNameString, ignoreVisibility);
 
-            final Assumption trueUnmodifiedAssumption = Layouts.MODULE.getFields(coreLibrary().getTrueClass()).getUnmodifiedAssumption();
+            final Assumption trueUnmodifiedAssumption = Layouts.MODULE.getFields(coreLibrary().getTrueClass()).getMethodsUnmodifiedAssumption();
             final InternalMethod trueMethod = lookup(frame, true, methodNameString, ignoreVisibility);
             assert falseMethod != null || trueMethod != null;
 
@@ -126,7 +126,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
         } else {
             return new CachedUnboxedDispatchNode(
                     methodName, first, receiverObject.getClass(),
-                    Layouts.MODULE.getFields(coreLibrary().getLogicalClass(receiverObject)).getUnmodifiedAssumption(), method, getDispatchAction());
+                    Layouts.MODULE.getFields(coreLibrary().getLogicalClass(receiverObject)).getMethodsUnmodifiedAssumption(), method, getDispatchAction());
         }
     }
 

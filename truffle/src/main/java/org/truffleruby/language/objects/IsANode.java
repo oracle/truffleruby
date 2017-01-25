@@ -49,7 +49,7 @@ public abstract class IsANode extends RubyNode {
     }
 
     public Assumption getUnmodifiedAssumption(DynamicObject module) {
-        return Layouts.MODULE.getFields(module).getUnmodifiedAssumption();
+        return Layouts.MODULE.getFields(module).getMethodsUnmodifiedAssumption();
     }
 
     @Specialization(guards = "isRubyModule(module)", contains = "isACached")

@@ -41,7 +41,7 @@ public class CachedSingletonDispatchNode extends CachedDispatchNode {
         super(cachedName, next, dispatchAction);
 
         this.expectedReceiver = expectedReceiver;
-        this.unmodifiedAssumption = Layouts.MODULE.getFields(expectedClass).getUnmodifiedAssumption();
+        this.unmodifiedAssumption = Layouts.MODULE.getFields(expectedClass).getMethodsUnmodifiedAssumption();
         this.next = next;
         this.method = method;
         this.callNode = Truffle.getRuntime().createDirectCallNode(method.getCallTarget());
