@@ -44,7 +44,7 @@ import org.truffleruby.platform.RubiniusConfiguration;
 public class DarwinRubiniusConfiguration extends DefaultRubiniusConfiguration {
 
     public static void load(RubiniusConfiguration configuration, RubyContext context) {
-        // Generated from tool/truffle/translate_rubinius_config.rb < ../rubinius/runtime/platform.conf
+        // Generated from tool/translate_rubinius_config.rb < ../rubinius/runtime/platform.conf
         configuration.config("rbx.platform.addrinfo.sizeof", 48);
         configuration.config("rbx.platform.addrinfo.ai_flags.offset", 0);
         configuration.config("rbx.platform.addrinfo.ai_flags.size", 4);

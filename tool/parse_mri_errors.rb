@@ -9,7 +9,7 @@ contents = file.read
 ## E.g.
 # Create txt file with MRI test output into the file and set the path above
 # cd test/mri
-# ruby ../../tool/truffle/parse_mri_errors.rb
+# ruby ../../tool/parse_mri_errors.rb
 
 load_error_output = "0 tests, 0 assertions, 0 failures, 0 errors, 0 skips"
 

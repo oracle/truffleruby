@@ -15,7 +15,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
 import javax.annotation.Generated;
 
-@Generated("tool/truffle/generate-options.rb")
+@Generated("tool/generate-options.rb")
 public class Options {
 
     public final String HOME;
