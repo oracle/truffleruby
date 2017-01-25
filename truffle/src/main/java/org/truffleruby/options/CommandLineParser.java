@@ -236,7 +236,7 @@ public class CommandLineParser {
                     throw new UnsupportedOperationException();
                 case 'h':
                     disallowedInRubyOpts(argument);
-                    config.setShouldPrintUsage(true);
+                    config.setShouldPrintShortUsage(true);
                     config.setShouldRunInterpreter(false);
                     break;
                 case 'i':
@@ -257,9 +257,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'y':
                     disallowedInRubyOpts(argument);
-                    if (!rubyOpts) {
-                        throw new UnsupportedOperationException();
-                    }
+                    Log.LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
                     break FOR;
                 case 'J':
                     String js = grabOptionalValue();
@@ -346,10 +344,11 @@ public class CommandLineParser {
                     throw new UnsupportedOperationException();
                 case 'X':
                     disallowedInRubyOpts(argument);
-                    String extendedOption = grabOptionalValue();
-                    if (extendedOption == null) {
-                        throw new MainExitException(0, "no extended options in Truffle");
-                    } else if (extendedOption.equals("options")) {
+                    String extendedOption = grabValue("-X must be followed by an option");
+                    if (new File(extendedOption).isDirectory()) {
+                        Log.LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
+                    }
+                    if (extendedOption.equals("options")) {
                         System.out.println("TruffleRuby options and their default values:");
                         for (OptionDescription option : OptionsCatalog.allDescriptions()) {
                             final String nameValue = String.format("-X%s=%s", option.getName(), option.toString(option.getDefaultValue()));
@@ -397,9 +396,7 @@ public class CommandLineParser {
                         throw new UnsupportedOperationException();
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
-                        if (!rubyOpts) {
-                            throw new UnsupportedOperationException();
-                        }
+                        Log.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
                     } else if (argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
                         config.setShouldPrintUsage(true);
@@ -443,6 +440,9 @@ public class CommandLineParser {
                         throw new UnsupportedOperationException();
                     } else if (argument.equals("--verbose")) {
                         config.setVerbosity(Verbosity.TRUE);
+                        break FOR;
+                    } else if (argument.startsWith("--dump=")) {
+                        Log.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
                         break FOR;
                     } else {
                         if (argument.equals("--")) {
@@ -575,20 +575,46 @@ public class CommandLineParser {
         out.println("  rubyopt         RUBYOPT environment variable (default: enabled)");
         out.println("  frozen-string-literal");
         out.println("                  freeze all string literals (default: disabled)");
-        out.println("TruffleRuby:");
+        out.println("TruffleRuby switches:");
         out.println("  -Xlog=severe,warning,performance,info,config,fine,finer,finest");
         out.println("                  set the TruffleRuby logging level");
         out.println("  -Xoptions       print available TrufleRuby options");
         out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
 
         if (TruffleOptions.AOT) {
-            out.println("SVM:");
+            out.println("SVM switches:");
             out.println("  -XX:arg         pass arg to the SVM");
             out.println("  -Dname=value    set a system property");
         } else {
-            out.println("JVM:");
+            out.println("JVM switches:");
             out.println("  -J-arg, -J:arg  pass arg to the JVM");
         }
+    }
+
+    public static void printShortHelp(PrintStream out) {
+        out.println("Usage: ruby [switches] [--] [programfile] [arguments]");
+        out.println("  -0[octal]       specify record separator (\0, if no argument)");
+        out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
+        out.println("  -c              check syntax only");
+        out.println("  -Cdirectory     cd to directory before executing your script");
+        out.println("  -d              set debugging flags (set $DEBUG to true)");
+        out.println("  -e 'command'    one line of script. Several -e's allowed. Omit [programfile]");
+        out.println("  -Eex[:in]       specify the default external and internal character encodings");
+        out.println("  -Fpattern       split() pattern for autosplit (-a)");
+        out.println("  -i[extension]   edit ARGV files in place (make backup if extension supplied)");
+        out.println("  -Idirectory     specify $LOAD_PATH directory (may be used more than once)");
+        out.println("  -l              enable line ending processing");
+        out.println("  -n              assume 'while gets(); ... end' loop around your script");
+        out.println("  -p              assume loop like -n but print line also like sed");
+        out.println("  -rlibrary       require the library before executing your script");
+        out.println("  -s              enable some switch parsing for switches after script name");
+        out.println("  -S              look for the script using PATH environment variable");
+        out.println("  -T[level=1]     turn on tainting checks");
+        out.println("  -v              print version number, then turn on verbose mode");
+        out.println("  -w              turn warnings on for your script");
+        out.println("  -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose");
+        out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
+        out.println("  -h              show this message, --help for more info");
     }
 
     private static final Map<String, BiFunction<CommandLineParser, Boolean, Boolean>> FEATURES;

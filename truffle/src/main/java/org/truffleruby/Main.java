@@ -150,12 +150,12 @@ public class Main {
                 engine.dispose();
             }
         } else {
-            if (config.getShouldPrintUsage()) {
+            if (config.getShouldPrintShortUsage()) {
+                CommandLineParser.printShortHelp(System.out);
+            } else if (config.getShouldPrintUsage()) {
                 CommandLineParser.printHelp(System.out);
-                exitCode = 1;
-            } else {
-                exitCode = 0;
             }
+            exitCode = 0;
         }
 
         printTruffleTimeMetric("after-main");

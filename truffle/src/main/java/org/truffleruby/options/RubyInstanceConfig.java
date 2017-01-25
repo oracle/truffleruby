@@ -68,6 +68,7 @@ public class RubyInstanceConfig {
     private boolean frozenStringLiteral;
     private KCode kcode;
     private boolean forceStdin;
+    private boolean shouldPrintShortUsage;
 
     public Map<String, Object> getOptions() {
         return options;
@@ -278,4 +279,11 @@ public class RubyInstanceConfig {
         return usePathScript;
     }
 
+    public void setShouldPrintShortUsage(boolean shouldPrintShortUsage) {
+        this.shouldPrintShortUsage = shouldPrintShortUsage;
+    }
+
+    public boolean getShouldPrintShortUsage() {
+        return shouldPrintShortUsage;
+    }
 }
