@@ -375,7 +375,6 @@ public class CoreLibrary {
         // Close the cycles
         // Set superclass of Class to Module
         Layouts.MODULE.getFields(classClass).parentModule = Layouts.MODULE.getFields(moduleClass).start;
-        Layouts.MODULE.getFields(moduleClass).addDependent(classClass);
         Layouts.CLASS.setSuperclass(classClass, moduleClass);
         Layouts.MODULE.getFields(classClass).newHierarchyVersion();
 

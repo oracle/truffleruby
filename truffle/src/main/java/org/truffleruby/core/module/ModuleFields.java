@@ -85,12 +85,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     private final CyclicAssumption methodsUnmodifiedAssumption;
     private final CyclicAssumption constantsUnmodifiedAssumption;
 
-    /**
-     * Keep track of other modules that depend on the configuration of this module in some way. The
-     * include subclasses and modules that include this module.
-     */
-    private final Set<DynamicObject> dependents = Collections.newSetFromMap(new WeakHashMap<DynamicObject, Boolean>());
-
     public ModuleFields(RubyContext context, SourceSection sourceSection, DynamicObject lexicalParent, String givenBaseName) {
         assert lexicalParent == null || RubyGuards.isRubyModule(lexicalParent);
         this.context = context;
@@ -177,10 +171,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             this.parentModule = fromFields.parentModule;
         }
 
-        for (DynamicObject ancestor : fromFields.parentAncestors()) {
-            Layouts.MODULE.getFields(ancestor).addDependent(rubyModuleObject);
-        }
-
         if (Layouts.CLASS.isClass(rubyModuleObject)) {
             // Singleton classes cannot be instantiated
             if (!Layouts.CLASS.getIsSingleton(from)) {
@@ -248,7 +238,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             DynamicObject mod = moduleAncestors.pop();
             assert RubyGuards.isRubyModule(mod);
             inclusionPoint.insertAfter(mod);
-            Layouts.MODULE.getFields(mod).addDependent(rubyModuleObject);
         }
     }
 
@@ -284,7 +273,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             if (!(mod instanceof PrependMarker)) {
                 if (!ModuleOperations.includesModule(rubyModuleObject, mod.getActualModule())) {
                     cur.insertAfter(mod.getActualModule());
-                    Layouts.MODULE.getFields(mod.getActualModule()).addDependent(rubyModuleObject);
                     cur = cur.getParentModule();
                 }
             }
@@ -557,11 +545,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
     public void newMethodsVersion() {
         methodsUnmodifiedAssumption.invalidate();
-    }
-
-    public void addDependent(DynamicObject dependent) {
-        RubyGuards.isRubyModule(dependent);
-        dependents.add(dependent);
     }
 
     public Assumption getConstantsUnmodifiedAssumption() {
