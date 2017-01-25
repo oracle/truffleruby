@@ -427,10 +427,6 @@ public class RubyContext extends ExecutionContext {
         return currentDirectory;
     }
 
-    public void setCurrentDirectory(String currentDirectory) {
-        this.currentDirectory = currentDirectory;
-    }
-
     public void setOriginalInputFile(String originalInputFile) {
         this.originalInputFile = originalInputFile;
     }

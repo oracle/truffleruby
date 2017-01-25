@@ -365,15 +365,7 @@ public abstract class TrufflePosixNodes {
         @Specialization(guards = "isRubyString(path)")
         public int chdir(DynamicObject path) {
             final String pathString = decodeUTF8(path);
-
-            final int result = posix().chdir(pathString);
-
-            if (result == 0) {
-                final String cwd = posix().getcwd();
-                getContext().setCurrentDirectory(cwd);
-            }
-
-            return result;
+            return posix().chdir(pathString);
         }
 
     }
@@ -573,9 +565,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject getcwd() {
-            final String cwd = posix().getcwd();
-            final String path = getContext().getCurrentDirectory();
-            assert path.equals(cwd);
+            final String path = posix().getcwd();
 
             // TODO (nirvdrum 12-Sept-16) The rope table always returns UTF-8, but this call should be based on Encoding.default_external and reflect updates to that value.
             return StringOperations.createString(getContext(), getContext().getRopeTable().getRope(path));

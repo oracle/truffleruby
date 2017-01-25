@@ -43,7 +43,6 @@ public class RubyInstanceConfig {
     private Map<String, Object> options = new HashMap<>();
 
     private boolean xFlag;
-    private String currentDirectory = System.getProperty("user.dir", "/");
     private String[] argv = {};
     private String internalEncoding;
     private String externalEncoding;
@@ -76,14 +75,6 @@ public class RubyInstanceConfig {
 
     public byte[] inlineScript() {
         return inlineScript.toString().getBytes();
-    }
-
-    public void setCurrentDirectory(String newCurrentDirectory) {
-        currentDirectory = newCurrentDirectory;
-    }
-
-    public String getCurrentDirectory() {
-        return currentDirectory;
     }
 
     public String[] getArgv() {

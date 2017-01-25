@@ -35,10 +35,13 @@
 package org.truffleruby.options;
 
 import com.oracle.truffle.api.TruffleOptions;
+import jnr.posix.POSIXFactory;
 import org.truffleruby.Log;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.platform.NativePlatform;
+import org.truffleruby.platform.NativePlatformFactory;
 import org.truffleruby.platform.Platform;
 
 import java.io.File;
@@ -211,24 +214,10 @@ public class CommandLineParser {
                     break;
                 case 'C':
                     disallowedInRubyOpts(argument);
-                    try {
-                        String saved = grabValue(getArgumentError(" -C must be followed by a directory expression"));
-                        File base = new File(config.getCurrentDirectory());
-                        File newDir = new File(saved);
-                        if (saved.startsWith("uri:classloader:")) {
-                            config.setCurrentDirectory(saved);
-                        } else if (newDir.isAbsolute()) {
-                            config.setCurrentDirectory(newDir.getCanonicalPath());
-                        } else {
-                            config.setCurrentDirectory(new File(base, newDir.getPath()).getCanonicalPath());
-                        }
-                        if (!(new File(config.getCurrentDirectory()).isDirectory()) && !config.getCurrentDirectory().startsWith("uri:classloader:")) {
-                            throw new MainExitException(1, "jruby: Can't chdir to " + saved + " (fatal)");
-                        }
-                    } catch (IOException e) {
-                        throw new MainExitException(1, getArgumentError(" -C must be followed by a valid directory"));
-                    }
-                    break FOR;
+                    final String dir = grabValue(getArgumentError(" -C must be followed by a directory expression"));
+                    // We haven't created the context yet, so we don't have a POSIX from there
+                    POSIXFactory.getNativePOSIX(null).chdir(dir);
+                    break;
                 case 'd':
                     config.setDebug(true);
                     config.setVerbosity(Verbosity.TRUE);
@@ -354,27 +343,7 @@ public class CommandLineParser {
                     }
                 case 'x':
                     disallowedInRubyOpts(argument);
-                    try {
-                        String saved = grabOptionalValue();
-                        if (saved != null) {
-                            File base = new File(config.getCurrentDirectory());
-                            File newDir = new File(saved);
-                            if (saved.startsWith("uri:classloader:")) {
-                                config.setCurrentDirectory(saved);
-                            } else if (newDir.isAbsolute()) {
-                                config.setCurrentDirectory(newDir.getCanonicalPath());
-                            } else {
-                                config.setCurrentDirectory(new File(base, newDir.getPath()).getCanonicalPath());
-                            }
-                            if (!(new File(config.getCurrentDirectory()).isDirectory()) && !config.getCurrentDirectory().startsWith("uri:classloader:")) {
-                                throw new MainExitException(1, "jruby: Can't chdir to " + saved + " (fatal)");
-                            }
-                        }
-                        config.setXFlag(true);
-                    } catch (IOException e) {
-                        throw new MainExitException(1, getArgumentError(" -x must be followed by a valid directory"));
-                    }
-                    break FOR;
+                    throw new UnsupportedOperationException();
                 case 'X':
                     disallowedInRubyOpts(argument);
                     String extendedOption = grabOptionalValue();
