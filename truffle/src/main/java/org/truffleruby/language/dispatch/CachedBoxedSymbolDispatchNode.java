@@ -35,7 +35,7 @@ public class CachedBoxedSymbolDispatchNode extends CachedDispatchNode {
             DispatchAction dispatchAction) {
         super(cachedName, next, dispatchAction);
 
-        this.unmodifiedAssumption = Layouts.MODULE.getFields(context.getCoreLibrary().getSymbolClass()).getUnmodifiedAssumption();
+        this.unmodifiedAssumption = Layouts.MODULE.getFields(context.getCoreLibrary().getSymbolClass()).getMethodsUnmodifiedAssumption();
         this.method = method;
         this.callNode = Truffle.getRuntime().createDirectCallNode(method.getCallTarget());
         applySplittingInliningStrategy(callNode, method);

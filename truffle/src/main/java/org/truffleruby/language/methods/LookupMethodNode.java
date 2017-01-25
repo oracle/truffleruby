@@ -61,7 +61,7 @@ public abstract class LookupMethodNode extends RubyNode {
     }
 
     protected Assumption getUnmodifiedAssumption(DynamicObject module) {
-        return Layouts.MODULE.getFields(module).getUnmodifiedAssumption();
+        return Layouts.MODULE.getFields(module).getMethodsUnmodifiedAssumption();
     }
 
     @Specialization

@@ -82,7 +82,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     private final ConcurrentMap<String, RubyConstant> constants = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Object> classVariables = new ConcurrentHashMap<>();
 
-    private final CyclicAssumption unmodifiedAssumption;
+    private final CyclicAssumption methodsUnmodifiedAssumption;
     private final CyclicAssumption constantsUnmodifiedAssumption;
 
     /**
@@ -97,7 +97,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         this.sourceSection = sourceSection;
         this.lexicalParent = lexicalParent;
         this.givenBaseName = givenBaseName;
-        this.unmodifiedAssumption = new CyclicAssumption(String.valueOf(givenBaseName) + " methods are unmodified");
+        this.methodsUnmodifiedAssumption = new CyclicAssumption(String.valueOf(givenBaseName) + " methods are unmodified");
         this.constantsUnmodifiedAssumption = new CyclicAssumption(String.valueOf(givenBaseName) + " constants are unmodified");
         start = new PrependMarker(this);
     }
@@ -558,7 +558,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             return;
         }
 
-        unmodifiedAssumption.invalidate();
+        methodsUnmodifiedAssumption.invalidate();
         alreadyInvalidated.add(rubyModuleObject);
 
         // Make dependents new versions
@@ -576,8 +576,8 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         return constantsUnmodifiedAssumption.getAssumption();
     }
 
-    public Assumption getUnmodifiedAssumption() {
-        return unmodifiedAssumption.getAssumption();
+    public Assumption getMethodsUnmodifiedAssumption() {
+        return methodsUnmodifiedAssumption.getAssumption();
     }
 
     public Iterable<Entry<String, RubyConstant>> getConstants() {
