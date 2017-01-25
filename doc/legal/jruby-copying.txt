@@ -35,7 +35,7 @@ The Truffle component also distributes:
   3-clause BSD license.
 
   Some parts of the RubySL implementations of the stdlib in
-  lib/ruby/truffle/rubysl are copyright (c) 2013 Brian Shirai and are licensed
+  lib/rubysl are copyright (c) 2013 Brian Shirai and are licensed
   under the 3-clause BSD license.
 
   pr-zlib is copyright Park Heesob and Daniel Berger. "This library is covered

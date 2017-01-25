@@ -255,7 +255,7 @@ public class BacktraceFormatter {
             return false;
         }
 
-        return path.indexOf("/lib/ruby/stdlib/rubygems") == -1;
+        return path.indexOf("/lib/stdlib/rubygems") == -1;
     }
 
     private String formatForeign(Node callNode) {

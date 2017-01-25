@@ -205,8 +205,8 @@ suite = {
 
         "jruby-lib-ruby": {
             "class": "ArchiveProject",
-            "outputDir": "lib/ruby",
-            "prefix": "lib/ruby",
+            "outputDir": "lib",
+            "prefix": "lib",
             "license": [ "EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib" ],
         },
 

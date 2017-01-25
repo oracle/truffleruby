@@ -5,5 +5,5 @@ root="$(dirname "$bin")"
 
 exec ${bin}/jruby-truffle \
      -Xbacktraces.hide_core_files=false \
-     ${root}/lib/ruby/truffle/jruby-truffle-tool/bin/jruby-truffle-tool \
+     ${root}/lib/jruby-truffle-tool/bin/jruby-truffle-tool \
      "$@"
