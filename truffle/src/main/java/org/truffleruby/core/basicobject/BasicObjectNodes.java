@@ -33,6 +33,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
@@ -365,8 +366,8 @@ public abstract class BasicObjectNodes {
          * The only way to fail if method is not null and not undefined is visibility.
          */
         private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name) {
-            final InternalMethod method = ModuleOperations.lookupMethod(coreLibrary().getMetaClass(self), name);
-            if (method != null && !method.isUndefined()) {
+            final MethodLookupResult method = ModuleOperations.lookupMethod(coreLibrary().getMetaClass(self), name);
+            if (method.isDefined()) {
                 assert method.getVisibility().isPrivate() || method.getVisibility().isProtected();
                 return method.getVisibility();
             }

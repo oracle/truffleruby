@@ -24,6 +24,7 @@ import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.rope.RopeTable;
@@ -249,7 +250,7 @@ public class RubyContext extends ExecutionContext {
 
         assert block == null || RubyGuards.isRubyProc(block);
 
-        final InternalMethod method = ModuleOperations.lookupMethod(coreLibrary.getMetaClass(object), methodName);
+        final InternalMethod method = ModuleOperations.lookupMethod(coreLibrary.getMetaClass(object), methodName).getMethod();
 
         if (method == null || method.isUndefined()) {
             return null;

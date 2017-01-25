@@ -157,7 +157,7 @@ public class RubyCallNode extends RubyNode {
 
         // TODO(CS): this lookup should be cached
 
-        final InternalMethod method = ModuleOperations.lookupMethod(coreLibrary().getMetaClass(receiverObject), methodName);
+        final InternalMethod method = ModuleOperations.lookupMethod(coreLibrary().getMetaClass(receiverObject), methodName).getMethod();
 
         final Object self = RubyArguments.getSelf(frame);
 

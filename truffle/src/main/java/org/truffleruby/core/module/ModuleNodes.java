@@ -1196,7 +1196,7 @@ public abstract class ModuleNodes {
         public boolean isMethodDefined(DynamicObject module, String name, boolean inherit) {
             final InternalMethod method;
             if (inherit) {
-                method = ModuleOperations.lookupMethod(module, name);
+                method = ModuleOperations.lookupMethod(module, name).getMethod();
             } else {
                 method = Layouts.MODULE.getFields(module).getMethod(name);
             }
@@ -1363,9 +1363,9 @@ public abstract class ModuleNodes {
         public DynamicObject publicInstanceMethod(DynamicObject module, String name,
                 @Cached("create()") BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
-            final InternalMethod method = ModuleOperations.lookupMethod(module, name);
+            final MethodLookupResult method = ModuleOperations.lookupMethod(module, name);
 
-            if (method == null || method.isUndefined()) {
+            if (!method.isDefined()) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().nameErrorUndefinedMethod(name, module, this));
             } else if (method.getVisibility() != Visibility.PUBLIC) {
@@ -1373,7 +1373,7 @@ public abstract class ModuleNodes {
                 throw new RaiseException(coreExceptions().nameErrorPrivateMethod(name, module, this));
             }
 
-            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method);
+            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method.getMethod());
         }
 
     }
@@ -1519,14 +1519,14 @@ public abstract class ModuleNodes {
         public DynamicObject instanceMethod(DynamicObject module, String name,
                 @Cached("create()") BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
-            final InternalMethod method = ModuleOperations.lookupMethod(module, name);
+            final MethodLookupResult method = ModuleOperations.lookupMethod(module, name);
 
-            if (method == null || method.isUndefined()) {
+            if (!method.isDefined()) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().nameErrorUndefinedMethod(name, module, this));
             }
 
-            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method);
+            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method.getMethod());
         }
 
     }
