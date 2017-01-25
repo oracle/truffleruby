@@ -586,6 +586,11 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         return methodsUnmodifiedAssumption.getAssumption();
     }
 
+    public Assumption getHierarchyUnmodifiedAssumption() {
+        // Both assumptions are invalidated on hierarchy changes, just pick one of them.
+        return getMethodsUnmodifiedAssumption();
+    }
+
     public Iterable<Entry<String, RubyConstant>> getConstants() {
         return constants.entrySet();
     }

@@ -39,7 +39,7 @@ public abstract class IsANode extends RubyNode {
                     "getMetaClass(self) == cachedMetaClass",
                     "module == cachedModule"
             },
-            assumptions = "getUnmodifiedAssumption(cachedModule)")
+            assumptions = "getHierarchyUnmodifiedAssumption(cachedModule)")
     public boolean isACached(Object self,
             DynamicObject module,
             @Cached("getMetaClass(self)") DynamicObject cachedMetaClass,
@@ -48,8 +48,8 @@ public abstract class IsANode extends RubyNode {
         return result;
     }
 
-    public Assumption getUnmodifiedAssumption(DynamicObject module) {
-        return Layouts.MODULE.getFields(module).getMethodsUnmodifiedAssumption();
+    public Assumption getHierarchyUnmodifiedAssumption(DynamicObject module) {
+        return Layouts.MODULE.getFields(module).getHierarchyUnmodifiedAssumption();
     }
 
     @Specialization(guards = "isRubyModule(module)", contains = "isACached")
