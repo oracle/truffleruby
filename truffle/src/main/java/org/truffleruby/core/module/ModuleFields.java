@@ -556,21 +556,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     }
 
     public void newMethodsVersion() {
-        newVersion(new HashSet<>());
-    }
-
-    private void newVersion(Set<DynamicObject> alreadyInvalidated) {
-        if (alreadyInvalidated.contains(rubyModuleObject)) {
-            return;
-        }
-
         methodsUnmodifiedAssumption.invalidate();
-        alreadyInvalidated.add(rubyModuleObject);
-
-        // Make dependents new versions
-        for (DynamicObject dependent : dependents) {
-            Layouts.MODULE.getFields(dependent).newVersion(alreadyInvalidated);
-        }
     }
 
     public void addDependent(DynamicObject dependent) {
