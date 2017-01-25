@@ -278,6 +278,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         SharedObjects.propagate(context, rubyModuleObject, module);
 
         ModuleChain mod = Layouts.MODULE.getFields(module).start;
+        final ModuleChain topPrependedModule = start.getParentModule();
         ModuleChain cur = start;
         while (mod != null && !(mod instanceof ModuleFields && RubyGuards.isRubyClass(((ModuleFields) mod).rubyModuleObject))) {
             if (!(mod instanceof PrependMarker)) {
@@ -290,7 +291,12 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             mod = mod.getParentModule();
         }
 
-        newHierarchyVersion();
+        // If there were already prepended modules, invalidate the first of them
+        if (topPrependedModule != this) {
+            Layouts.MODULE.getFields(topPrependedModule.getActualModule()).newHierarchyVersion();
+        } else {
+            this.newHierarchyVersion();
+        }
     }
 
     /**
