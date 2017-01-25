@@ -102,7 +102,7 @@ public abstract class ModuleOperations {
         RubyConstant constant = fields.getConstant(name);
         assumptions.add(fields.getConstantsUnmodifiedAssumption());
         if (constant != null) {
-            return new ConstantLookupResult(constant, assumptions);
+            return new ConstantLookupResult(constant, toArray(assumptions));
         }
 
         // Look in ancestors
@@ -111,12 +111,12 @@ public abstract class ModuleOperations {
             constant = fields.getConstant(name);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
             if (constant != null) {
-                return new ConstantLookupResult(constant, assumptions);
+                return new ConstantLookupResult(constant, toArray(assumptions));
             }
         }
 
         // Nothing found
-        return new ConstantLookupResult(null, assumptions);
+        return new ConstantLookupResult(null, toArray(assumptions));
     }
 
     private static ConstantLookupResult lookupConstantInObject(RubyContext context, DynamicObject module, String name, ArrayList<Assumption> assumptions) {
@@ -128,7 +128,7 @@ public abstract class ModuleOperations {
             RubyConstant constant = fields.getConstant(name);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
             if (constant != null) {
-                return new ConstantLookupResult(constant, assumptions);
+                return new ConstantLookupResult(constant, toArray(assumptions));
             }
 
 
@@ -137,12 +137,12 @@ public abstract class ModuleOperations {
                 constant = fields.getConstant(name);
                 assumptions.add(fields.getConstantsUnmodifiedAssumption());
                 if (constant != null) {
-                    return new ConstantLookupResult(constant, assumptions);
+                    return new ConstantLookupResult(constant, toArray(assumptions));
                 }
             }
         }
 
-        return new ConstantLookupResult(null, assumptions);
+        return new ConstantLookupResult(null, toArray(assumptions));
     }
 
     public static ConstantLookupResult lookupConstantAndObject(RubyContext context, DynamicObject module, String name, ArrayList<Assumption> assumptions) {
@@ -165,7 +165,7 @@ public abstract class ModuleOperations {
             RubyConstant constant = fields.getConstant(name);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
             if (constant != null) {
-                return new ConstantLookupResult(constant, assumptions);
+                return new ConstantLookupResult(constant, toArray(assumptions));
             }
 
             lexicalScope = lexicalScope.getParent();
@@ -307,12 +307,12 @@ public abstract class ModuleOperations {
             assumptions.add(fields.getMethodsUnmodifiedAssumption());
 
             if (method != null) {
-                return new MethodLookupResult(method, assumptions);
+                return new MethodLookupResult(method, toArray(assumptions));
             }
         }
 
         // Nothing found
-        return new MethodLookupResult(null, assumptions);
+        return new MethodLookupResult(null, toArray(assumptions));
     }
 
     public static MethodLookupResult lookupMethod(DynamicObject module, String name, Visibility visibility) {
@@ -342,12 +342,16 @@ public abstract class ModuleOperations {
                 assumptions.add(fields.getMethodsUnmodifiedAssumption());
 
                 if (method != null) {
-                    return new MethodLookupResult(method, assumptions);
+                    return new MethodLookupResult(method, toArray(assumptions));
                 }
             }
         }
 
-        return new MethodLookupResult(null, assumptions);
+        return new MethodLookupResult(null, toArray(assumptions));
+    }
+
+    private static Assumption[] toArray(ArrayList<Assumption> assumptions) {
+        return assumptions.toArray(new Assumption[assumptions.size()]);
     }
 
     @TruffleBoundary
