@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.module;
 
-import java.util.ArrayList;
-
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -21,17 +19,9 @@ public class MethodLookupResult {
     private final InternalMethod method;
     private final Assumption[] assumptions;
 
-    private MethodLookupResult(InternalMethod method, Assumption[] assumptions) {
+    public MethodLookupResult(InternalMethod method, Assumption... assumptions) {
         this.method = method;
         this.assumptions = assumptions;
-    }
-
-    public MethodLookupResult(InternalMethod method, Assumption assumption) {
-        this(method, new Assumption[]{ assumption });
-    }
-
-    public MethodLookupResult(InternalMethod method, ArrayList<Assumption> assumptions) {
-        this(method, assumptions.toArray(new Assumption[assumptions.size()]));
     }
 
     public MethodLookupResult withNoMethod() {

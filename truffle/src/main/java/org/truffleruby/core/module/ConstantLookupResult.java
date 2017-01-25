@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.module;
 
-import java.util.ArrayList;
-
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
@@ -23,14 +21,9 @@ public class ConstantLookupResult {
     private final RubyConstant constant;
     private final Assumption[] assumptions;
 
-    public ConstantLookupResult(RubyConstant constant, Assumption assumption) {
+    public ConstantLookupResult(RubyConstant constant, Assumption... assumptions) {
         this.constant = constant;
-        this.assumptions = new Assumption[]{ assumption };
-    }
-
-    public ConstantLookupResult(RubyConstant constant, ArrayList<Assumption> assumptions) {
-        this.constant = constant;
-        this.assumptions = assumptions.toArray(new Assumption[assumptions.size()]);
+        this.assumptions = assumptions;
     }
 
     public boolean isFound() {
