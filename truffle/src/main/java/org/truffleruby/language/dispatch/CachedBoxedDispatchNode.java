@@ -105,11 +105,4 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
                 method == null ? "null" : method.toString());
     }
 
-    public InternalMethod getMethod() {
-        return method;
-    }
-
-    public Assumption getUnmodifiedAssumption() {
-        return unmodifiedAssumption;
-    }
 }
