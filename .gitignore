@@ -51,7 +51,7 @@ lib/jni
 lib/*.jar
 lib/native
 lib/ruby/cext/
-lib/ruby/gems
+lib/ruby/gems/shared/gems
 lib/ruby/stdlib/*.jar
 lib/ruby/stdlib/did_you_mean*
 lib/ruby/stdlib/gauntlet_rdoc.rb
