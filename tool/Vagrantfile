@@ -10,7 +10,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "hashicorp/precise64"
   
   # Bootstrap with a script
-  config.vm.provision :shell, :path => 'tool/truffle/vagrant_bootstrap.sh'
+  config.vm.provision :shell, :path => 'tool/vagrant_bootstrap.sh'
 
   # Remote debug port
   config.vm.network "forwarded_port", guest: 5005, host: 5005

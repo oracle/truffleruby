@@ -8,7 +8,7 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-puts "        // Generated from tool/truffle/translate_rubinius_config.rb < ../rubinius/runtime/platform.conf"
+puts "        // Generated from tool/translate_rubinius_config.rb < ../rubinius/runtime/platform.conf"
 
 ARGF.each do |line|
   next unless /^(?<var>rbx(\.\w+)*) = (?<value>.*)$/ =~ line

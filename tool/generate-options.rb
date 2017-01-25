@@ -12,7 +12,7 @@ require 'ostruct'
 require 'yaml'
 require 'erb'
 
-options = YAML.load_file('tool/truffle/options.yml')
+options = YAML.load_file('tool/options.yml')
 
 options = options.map do |constant, (name, type, default, description)|
   case type
@@ -94,7 +94,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
 import javax.annotation.Generated;
 
-@Generated("tool/truffle/generate-options.rb")
+@Generated("tool/generate-options.rb")
 public class Options {
 
     <% options.each do |o| %><% if o.type.end_with?('[]') %>@CompilationFinal(dimensions=1) <% end %>public final <%= o.type %> <%= o.constant %>;
@@ -130,7 +130,7 @@ package org.truffleruby.options;
 
 import javax.annotation.Generated;
 
-@Generated("tool/truffle/generate-options.rb")
+@Generated("tool/generate-options.rb")
 public class OptionsCatalog {
 
     <% options.each do |o| %>public static final OptionDescription<<%= o.boxed_type %>> <%= o.constant %> = new <%= o.type_cons %>("<%= o.name %>", "<%= o.description %>", <%= o.reference_default ? o.default + '.getDefaultValue()' : o.default %>);

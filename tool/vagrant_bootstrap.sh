@@ -6,29 +6,29 @@
 # Install vagrant from: https://www.vagrantup.com/
 #
 # Run this command from the Jruby project home, which will import the vm and run this script
-# VAGRANT_VAGRANTFILE=tool/truffle/Vagrantfile vagrant up
+# VAGRANT_VAGRANTFILE=tool/Vagrantfile vagrant up
 #
 # Then to ssh to vagrant vm:
-# VAGRANT_VAGRANTFILE=tool/truffle/Vagrantfile vagrant ssh
+# VAGRANT_VAGRANTFILE=tool/Vagrantfile vagrant ssh
 # You should now be inside the jruby project directory on but on the vm at /vagrant
 # The usual build commands should work from here.
 #
 # When not is use, suspend the vm, vagrant suspend
-# VAGRANT_VAGRANTFILE=tool/truffle/Vagrantfile vagrant suspend
+# VAGRANT_VAGRANTFILE=tool/Vagrantfile vagrant suspend
 #
 # And resume, vagrant resume
-# VAGRANT_VAGRANTFILE=tool/truffle/Vagrantfile vagrant resume
+# VAGRANT_VAGRANTFILE=tool/Vagrantfile vagrant resume
 #
 # If you want to test making updates to this script, after `vagrant up` run:
-# VAGRANT_VAGRANTFILE=tool/truffle/Vagrantfile vagrant provision
+# VAGRANT_VAGRANTFILE=tool/Vagrantfile vagrant provision
 # which will run the script again on the running vm
 # 
 # If you need to make an update to this script, run:
-# VAGRANT_VAGRANTFILE=tool/truffle/Vagrantfile vagrant reload
+# VAGRANT_VAGRANTFILE=tool/Vagrantfile vagrant reload
 # This is like running vagrant halt, vagrant up
 #
 # Delete the vm
-# VAGRANT_VAGRANTFILE=tool/truffle/Vagrantfile vagrant destroy
+# VAGRANT_VAGRANTFILE=tool/Vagrantfile vagrant destroy
 #
 
 # Install jdk-7

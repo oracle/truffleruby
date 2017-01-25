@@ -13,7 +13,7 @@ package org.truffleruby.options;
 
 import javax.annotation.Generated;
 
-@Generated("tool/truffle/generate-options.rb")
+@Generated("tool/generate-options.rb")
 public class OptionsCatalog {
 
     public static final OptionDescription<String> HOME = new StringOptionDescription("home", "The location of the TruffleRuby installation files", null);
