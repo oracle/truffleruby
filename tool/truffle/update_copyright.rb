@@ -51,7 +51,7 @@ OTHER_COPYRIGHTS = [
 truffle_paths = %w[
   truffle/src
   test/truffle
-  spec/truffle
+  spec/
 ] + [__FILE__]
 
 excludes = %w[

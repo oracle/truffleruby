@@ -70,7 +70,7 @@ files.each_with_index do |file, index|
       Process.wait(test_pid)
       puts "process '#{test_command}' finished in time"
       if $? != 0
-        tag_file = "spec/truffle/tags/core/#{file.split('/')[-2]}/#{specname}_tags.txt"
+        tag_file = "spec/tags/core/#{file.split('/')[-2]}/#{specname}_tags.txt"
         print "\a"
         puts "resetting with command 'git checkout #{tag_file}"
         output = system("git checkout #{tag_file}")
