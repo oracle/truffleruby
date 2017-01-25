@@ -100,7 +100,6 @@ public abstract class ClassNodes {
             assert RubyGuards.isRubyClass(rubyClass);
 
             fields.parentModule = Layouts.MODULE.getFields(superclass).start;
-            Layouts.MODULE.getFields(superclass).addDependent(rubyClass);
             Layouts.CLASS.setSuperclass(rubyClass, superclass);
 
             fields.newHierarchyVersion();
@@ -161,8 +160,6 @@ public abstract class ClassNodes {
 
         if (superclass != null) {
             fields.parentModule = Layouts.MODULE.getFields(superclass).start;
-            Layouts.MODULE.getFields(superclass).addDependent(rubyClass);
-
             fields.newHierarchyVersion();
         }
 
@@ -180,8 +177,6 @@ public abstract class ClassNodes {
         assert !Layouts.CLASS.getIsSingleton(rubyClass) : "Singleton classes can only be created internally";
 
         Layouts.MODULE.getFields(rubyClass).parentModule = Layouts.MODULE.getFields(superclass).start;
-        Layouts.MODULE.getFields(superclass).addDependent(rubyClass);
-
         Layouts.MODULE.getFields(rubyClass).newHierarchyVersion();
         ensureItHasSingletonClassCreated(context, rubyClass);
 
