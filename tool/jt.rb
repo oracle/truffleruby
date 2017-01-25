@@ -674,8 +674,8 @@ module Commands
     # Ensure ruby.su is up-to-date
     ruby_cext_api = "#{JRUBY_DIR}/truffle/src/main/c/cext"
     ruby_c = "#{JRUBY_DIR}/truffle/src/main/c/cext/ruby.c"
-    ruby_h = "#{JRUBY_DIR}/lib/ruby/truffle/cext/ruby.h"
-    ruby_su = "#{JRUBY_DIR}/lib/ruby/truffle/cext/ruby.su"
+    ruby_h = "#{JRUBY_DIR}/lib/cext/ruby.h"
+    ruby_su = "#{JRUBY_DIR}/lib/cext/ruby.su"
     if cext_dir != ruby_cext_api and (newer?(ruby_h, ruby_su) or newer?(ruby_c, ruby_su))
       puts "Compiling outdated ruby.su"
       cextc ruby_cext_api
@@ -703,7 +703,7 @@ module Commands
                 cext_dir + "/ext/#{gem_name}/"
               end
     copy_target = if is_ruby
-                    "#{JRUBY_DIR}/lib/ruby/truffle/cext/ruby.su"
+                    "#{JRUBY_DIR}/lib/cext/ruby.su"
                   elsif cext_dir == "#{JRUBY_DIR}/truffle/src/main/c/openssl"
                     "#{JRUBY_DIR}/truffle/src/main/c/openssl/openssl.su"
                   else

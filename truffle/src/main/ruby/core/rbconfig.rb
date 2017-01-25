@@ -79,21 +79,21 @@ module RbConfig
   ruby_home = Truffle::Boot.ruby_home
 
   if ruby_home
-    libdir = "#{ruby_home}/lib/ruby/truffle"
+    libdir = "#{ruby_home}/lib"
     bindir = "#{libdir}/bin"
 
     CONFIG.merge!({
       'bindir' => bindir,
       'libdir' => libdir,
-      "sitelibdir"=>"#{ruby_home}/lib/ruby/2.3/site_ruby", # TODO BJF Oct 21, 2016 Need to review these values
-      "sitearchdir"=>"#{ruby_home}/lib/ruby/2.3/site_ruby",
+      "sitelibdir"=>"#{ruby_home}/lib/2.3/site_ruby", # TODO BJF Oct 21, 2016 Need to review these values
+      "sitearchdir"=>"#{ruby_home}/lib/2.3/site_ruby",
       'rubyhdrdir' => "#{libdir}/cext",
-      'topdir' => "#{ruby_home}/lib/ruby/stdlib", # TODO CS 21-Jan-17 this doesn't exist any more
+      'topdir' => "#{ruby_home}/lib/stdlib", # TODO CS 21-Jan-17 this doesn't exist any more
       "rubyarchhdrdir"=>"#{libdir}/cext",
     })
 
     MAKEFILE_CONFIG.merge!({
-      'hdrdir' => "#{ruby_home}/lib/ruby/truffle/cext",
+      'hdrdir' => "#{ruby_home}/lib/cext",
       'bindir' => bindir
     })
   end

@@ -1729,7 +1729,7 @@ public class BodyTranslator extends Translator {
             rhs = new CheckOutputSeparatorVariableTypeNode(rhs);
             rhs.unsafeSetSourceSection(sourceSection);
         } else if (name.equals("$_")) {
-            if (getSourcePath(sourceSection).endsWith(buildPartialPath("truffle", "rubysl", "rubysl-stringio", "lib", "rubysl", "stringio", "stringio.rb"))) {
+            if (getSourcePath(sourceSection).endsWith(buildPartialPath("rubysl", "rubysl-stringio", "lib", "rubysl", "stringio", "stringio.rb"))) {
                 rhs = RubiniusLastStringWriteNodeGen.create(rhs);
             } else {
                 rhs = WrapInThreadLocalNodeGen.create(rhs);

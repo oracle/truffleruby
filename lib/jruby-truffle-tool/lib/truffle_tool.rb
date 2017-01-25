@@ -225,7 +225,7 @@ class TruffleTool
   BRANDING          = EXECUTABLE.include?('jruby') ? 'JRuby+Truffle' : 'RubyTruffle'
   LOCAL_CONFIG_FILE = '.jruby-truffle-tool.yaml'
   ROOT              = Pathname(__FILE__).dirname.parent.expand_path
-  TRUFFLERUBY_PATH  = ROOT.join('../../../..').expand_path
+  TRUFFLERUBY_PATH  = ROOT.join('../..').expand_path
   TRUFFLERUBY_BIN   = TRUFFLERUBY_PATH.join('bin', 'truffleruby')
 
   module OptionBlocks

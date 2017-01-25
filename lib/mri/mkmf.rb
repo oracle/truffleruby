@@ -244,7 +244,7 @@ module MakeMakefile
     $topdir = $hdrdir
     $top_srcdir = $hdrdir
     $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"]
-  elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir + "/lib/ruby/truffle/cext") + "/include")  + "/ruby.h") # Modified for truffle dir structur
+  elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir + "/lib/cext") + "/include")  + "/ruby.h") # Modified for truffle dir structur
     $topdir ||= RbConfig::CONFIG["topdir"]
     # $arch_hdrdir = "$(extout)/include/$(arch)"
     $arch_hdrdir = $top_srcdir # MODIFIED unsure of truffle arch dir
