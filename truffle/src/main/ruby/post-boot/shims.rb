@@ -10,7 +10,7 @@ if Truffle::Boot.rubygems_enabled?
   module Gem
     # Update the default_dir to match JRuby's.
     def self.default_dir
-      File.expand_path(File.join(ConfigMap[:libdir], '..', '..', 'ruby', 'gems', 'shared'))
+      File.expand_path(File.join(ConfigMap[:libdir], 'ruby', 'gems', 'shared'))
     end
   end
 end
