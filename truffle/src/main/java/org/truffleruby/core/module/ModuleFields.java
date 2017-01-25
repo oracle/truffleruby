@@ -78,7 +78,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     private boolean hasFullName = false;
     private String name = null;
 
-    private final Map<String, InternalMethod> methods = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, InternalMethod> methods = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, RubyConstant> constants = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Object> classVariables = new ConcurrentHashMap<>();
 
