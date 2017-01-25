@@ -19,6 +19,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNodeGen;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -59,11 +60,11 @@ public class UncachedDispatchNode extends DispatchNode {
             Object[] argumentsObjects) {
         final DispatchAction dispatchAction = getDispatchAction();
 
-        final InternalMethod method = lookup(frame, receiverObject, toJavaStringNode.executeToJavaString(frame, name), ignoreVisibility);
+        final MethodLookupResult method = lookup(frame, receiverObject, toJavaStringNode.executeToJavaString(frame, name), ignoreVisibility);
 
-        if (method != null) {
+        if (method.isDefined()) {
             if (dispatchAction == DispatchAction.CALL_METHOD) {
-                return call(frame, method, receiverObject, blockObject, argumentsObjects);
+                return call(frame, method.getMethod(), receiverObject, blockObject, argumentsObjects);
             } else if (dispatchAction == DispatchAction.RESPOND_TO_METHOD) {
                 return true;
             } else {
@@ -77,9 +78,9 @@ public class UncachedDispatchNode extends DispatchNode {
 
         methodMissingProfile.enter();
 
-        final InternalMethod missingMethod = lookup(frame, receiverObject, "method_missing", true);
+        final MethodLookupResult methodMissing = lookup(frame, receiverObject, "method_missing", true);
 
-        if (missingMethod == null) {
+        if (!methodMissing.isDefined()) {
             if (dispatchAction == DispatchAction.RESPOND_TO_METHOD) {
                 return false;
             } else {
@@ -92,7 +93,7 @@ public class UncachedDispatchNode extends DispatchNode {
             final DynamicObject nameSymbol = toSymbolNode.executeRubySymbol(frame, name);
             final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(argumentsObjects, nameSymbol);
 
-            return call(frame, missingMethod, receiverObject, blockObject, modifiedArgumentsObjects);
+            return call(frame, methodMissing.getMethod(), receiverObject, blockObject, modifiedArgumentsObjects);
         } else if (dispatchAction == DispatchAction.RESPOND_TO_METHOD) {
             return false;
         } else {

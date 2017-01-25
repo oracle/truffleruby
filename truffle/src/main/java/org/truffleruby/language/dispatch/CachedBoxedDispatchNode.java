@@ -11,13 +11,14 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -25,7 +26,7 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
 
     private final Shape expectedShape;
     private final Assumption validShape;
-    private final Assumption unmodifiedAssumption;
+    @CompilationFinal private final Assumption[] assumptions;
 
     private final InternalMethod method;
     @Child private DirectCallNode callNode;
@@ -35,16 +36,15 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
             Object cachedName,
             DispatchNode next,
             Shape expectedShape,
-            DynamicObject expectedClass,
-            InternalMethod method,
+            MethodLookupResult methodLookup,
             DispatchAction dispatchAction) {
         super(cachedName, next, dispatchAction);
 
         this.expectedShape = expectedShape;
         this.validShape = expectedShape.getValidAssumption();
-        this.unmodifiedAssumption = Layouts.MODULE.getFields(expectedClass).getMethodsUnmodifiedAssumption();
+        this.assumptions = methodLookup.getAssumptions();
         this.next = next;
-        this.method = method;
+        this.method = methodLookup.getMethod();
         this.callNode = Truffle.getRuntime().createDirectCallNode(method.getCallTarget());
         applySplittingInliningStrategy(callNode, method);
     }
@@ -65,7 +65,7 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
             Object[] argumentsObjects) {
         try {
             validShape.check();
-            unmodifiedAssumption.check();
+            checkAssumptions(assumptions);
         } catch (InvalidAssumptionException e) {
             return resetAndDispatch(
                     frame,

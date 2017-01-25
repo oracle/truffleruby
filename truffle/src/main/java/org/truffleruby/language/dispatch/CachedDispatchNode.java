@@ -9,10 +9,13 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.string.StringOperations;
@@ -55,6 +58,14 @@ public abstract class CachedDispatchNode extends DispatchNode {
     @Override
     protected DispatchNode getNext() {
         return next;
+    }
+
+    @ExplodeLoop
+    protected static void checkAssumptions(Assumption[] assumptions) throws InvalidAssumptionException {
+        for (Assumption assumption : assumptions) {
+            CompilerAsserts.compilationConstant(assumption);
+            assumption.check();
+        }
     }
 
     protected final boolean guardName(Object methodName) {

@@ -10,29 +10,31 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
 
 public class CachedReturnMissingDispatchNode extends CachedDispatchNode {
 
     private final DynamicObject expectedClass;
-    private final Assumption unmodifiedAssumption;
+    @CompilationFinal private final Assumption[] assumptions;
 
     @Child private MetaClassNode metaClassNode;
 
     public CachedReturnMissingDispatchNode(
             Object cachedName,
             DispatchNode next,
+            MethodLookupResult methodLookup,
             DynamicObject expectedClass,
             DispatchAction dispatchAction) {
         super(cachedName, next, dispatchAction);
 
         this.expectedClass = expectedClass;
-        this.unmodifiedAssumption = Layouts.MODULE.getFields(expectedClass).getMethodsUnmodifiedAssumption();
+        this.assumptions = methodLookup.getAssumptions();
         this.metaClassNode = MetaClassNodeGen.create(null);
     }
 
@@ -50,7 +52,7 @@ public class CachedReturnMissingDispatchNode extends CachedDispatchNode {
             DynamicObject blockObject,
             Object[] argumentsObjects) {
         try {
-            unmodifiedAssumption.check();
+            checkAssumptions(assumptions);
         } catch (InvalidAssumptionException e) {
             return resetAndDispatch(
                     frame,

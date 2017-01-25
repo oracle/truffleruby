@@ -10,12 +10,13 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -26,7 +27,7 @@ import org.truffleruby.language.methods.InternalMethod;
 public class CachedSingletonDispatchNode extends CachedDispatchNode {
 
     private final DynamicObject expectedReceiver;
-    private final Assumption unmodifiedAssumption;
+    @CompilationFinal private final Assumption[] assumptions;
 
     private final InternalMethod method;
     @Child private DirectCallNode callNode;
@@ -35,15 +36,14 @@ public class CachedSingletonDispatchNode extends CachedDispatchNode {
             Object cachedName,
             DispatchNode next,
             DynamicObject expectedReceiver,
-            DynamicObject expectedClass,
-            InternalMethod method,
+            MethodLookupResult methodLookup,
             DispatchAction dispatchAction) {
         super(cachedName, next, dispatchAction);
 
         this.expectedReceiver = expectedReceiver;
-        this.unmodifiedAssumption = Layouts.MODULE.getFields(expectedClass).getMethodsUnmodifiedAssumption();
+        this.assumptions = methodLookup.getAssumptions();
         this.next = next;
-        this.method = method;
+        this.method = methodLookup.getMethod();
         this.callNode = Truffle.getRuntime().createDirectCallNode(method.getCallTarget());
         applySplittingInliningStrategy(callNode, method);
     }
@@ -62,7 +62,7 @@ public class CachedSingletonDispatchNode extends CachedDispatchNode {
             DynamicObject blockObject,
             Object[] argumentsObjects) {
         try {
-            unmodifiedAssumption.check();
+            checkAssumptions(assumptions);
         } catch (InvalidAssumptionException e) {
             return resetAndDispatch(
                     frame,
