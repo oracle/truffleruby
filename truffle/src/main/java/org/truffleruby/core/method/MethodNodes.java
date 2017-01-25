@@ -28,6 +28,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
@@ -174,11 +175,11 @@ public abstract class MethodNodes {
             Object receiver = Layouts.METHOD.getReceiver(method);
             InternalMethod internalMethod = Layouts.METHOD.getMethod(method);
             DynamicObject selfMetaClass = metaClassNode.executeMetaClass(receiver);
-            InternalMethod superMethod = ModuleOperations.lookupSuperMethod(internalMethod, selfMetaClass);
-            if (superMethod == null || superMethod.isUndefined()) {
+            MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, selfMetaClass);
+            if (!superMethod.isDefined()) {
                 return nil();
             } else {
-                return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), receiver, superMethod);
+                return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), receiver, superMethod.getMethod());
             }
         }
 

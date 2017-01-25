@@ -22,6 +22,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
@@ -182,12 +183,12 @@ public abstract class UnboundMethodNodes {
         public DynamicObject superMethod(DynamicObject unboundMethod) {
             InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(unboundMethod);
             DynamicObject origin = Layouts.UNBOUND_METHOD.getOrigin(unboundMethod);
-            InternalMethod superMethod = ModuleOperations.lookupSuperMethod(internalMethod, origin);
-            if (superMethod == null || superMethod.isUndefined()) {
+            MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, origin);
+            if (!superMethod.isDefined()) {
                 return nil();
             } else {
                 return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(),
-                        superMethod.getDeclaringModule(), superMethod);
+                        superMethod.getMethod().getDeclaringModule(), superMethod.getMethod());
             }
         }
 

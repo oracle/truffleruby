@@ -320,31 +320,34 @@ public abstract class ModuleOperations {
         return (method.isDefined() && method.getMethod().getVisibility() == visibility) ? method : null;
     }
 
-    public static InternalMethod lookupSuperMethod(InternalMethod currentMethod, DynamicObject objectMetaClass) {
+    public static MethodLookupResult lookupSuperMethod(InternalMethod currentMethod, DynamicObject objectMetaClass) {
         assert RubyGuards.isRubyModule(objectMetaClass);
         final String name = currentMethod.getSharedMethodInfo().getName(); // use the original name
         return lookupSuperMethod(currentMethod.getDeclaringModule(), name, objectMetaClass);
     }
 
     @TruffleBoundary
-    private static InternalMethod lookupSuperMethod(DynamicObject declaringModule, String name, DynamicObject objectMetaClass) {
+    private static MethodLookupResult lookupSuperMethod(DynamicObject declaringModule, String name, DynamicObject objectMetaClass) {
         assert RubyGuards.isRubyModule(declaringModule);
         assert RubyGuards.isRubyModule(objectMetaClass);
 
+        final ArrayList<Assumption> assumptions = new ArrayList<>();
         boolean foundDeclaringModule = false;
         for (DynamicObject module : Layouts.MODULE.getFields(objectMetaClass).ancestors()) {
             if (module == declaringModule) {
                 foundDeclaringModule = true;
             } else if (foundDeclaringModule) {
-                InternalMethod method = Layouts.MODULE.getFields(module).getMethod(name);
+                ModuleFields fields = Layouts.MODULE.getFields(module);
+                InternalMethod method = fields.getMethod(name);
+                assumptions.add(fields.getMethodsUnmodifiedAssumption());
 
                 if (method != null) {
-                    return method;
+                    return new MethodLookupResult(method, assumptions);
                 }
             }
         }
 
-        return null;
+        return new MethodLookupResult(null, assumptions);
     }
 
     @TruffleBoundary
