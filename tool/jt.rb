@@ -406,7 +406,7 @@ module ShellUtils
       command, *args = args
     end
 
-    sh env_vars, Utilities.find_ruby, 'spec/mspec/bin/mspec', command, '--config', 'spec/truffle/truffle.mspec', *args
+    sh env_vars, Utilities.find_ruby, 'spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec', *args
   end
 
   def newer?(input, output)
@@ -869,7 +869,7 @@ module Commands
 
   def test_report(component)
     test 'specs', '--truffle-formatter', component
-    sh 'ant', '-f', 'spec/truffle/buildTestReports.xml'
+    sh 'ant', '-f', 'spec/buildTestReports.xml'
   end
   private :test_cexts
 
@@ -1033,7 +1033,7 @@ module Commands
     end
 
     if args.delete('--truffle-formatter')
-      options += %w[--format spec/truffle/truffle_formatter.rb]
+      options += %w[--format spec/truffle_formatter.rb]
     end
 
     if ENV['CI']
@@ -1325,7 +1325,7 @@ module Commands
   end
 
   def next(*args)
-    puts `cat spec/truffle/tags/core/**/**.txt | grep 'fails:'`.lines.sample
+    puts `cat spec/tags/core/**/**.txt | grep 'fails:'`.lines.sample
   end
 
   def check_dsl_usage
