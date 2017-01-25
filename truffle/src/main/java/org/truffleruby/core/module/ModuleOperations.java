@@ -294,27 +294,30 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static InternalMethod lookupMethod(DynamicObject module, String name) {
+    public static MethodLookupResult lookupMethod(DynamicObject module, String name) {
         CompilerAsserts.neverPartOfCompilation();
-
         assert RubyGuards.isRubyModule(module);
+
+        final ArrayList<Assumption> assumptions = new ArrayList<>();
 
         // Look in ancestors
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
-            InternalMethod method = Layouts.MODULE.getFields(ancestor).getMethod(name);
+            ModuleFields fields = Layouts.MODULE.getFields(ancestor);
+            InternalMethod method = fields.getMethod(name);
+            assumptions.add(fields.getMethodsUnmodifiedAssumption());
 
             if (method != null) {
-                return method;
+                return new MethodLookupResult(method, assumptions);
             }
         }
 
         // Nothing found
-        return null;
+        return new MethodLookupResult(null, assumptions);
     }
 
-    public static InternalMethod lookupMethod(DynamicObject module, String name, Visibility visibility) {
-        InternalMethod method = lookupMethod(module, name);
-        return (method != null && method.getVisibility() == visibility) ? method : null;
+    public static MethodLookupResult lookupMethod(DynamicObject module, String name, Visibility visibility) {
+        MethodLookupResult method = lookupMethod(module, name);
+        return (method.isDefined() && method.getMethod().getVisibility() == visibility) ? method : null;
     }
 
     public static InternalMethod lookupSuperMethod(InternalMethod currentMethod, DynamicObject objectMetaClass) {
