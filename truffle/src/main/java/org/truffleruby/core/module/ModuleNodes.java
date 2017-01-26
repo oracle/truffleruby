@@ -1194,14 +1194,14 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         public boolean isMethodDefined(DynamicObject module, String name, boolean inherit) {
-            final InternalMethod method;
+            final MethodLookupResult method;
             if (inherit) {
-                method = ModuleOperations.lookupMethod(module, name).getMethod();
+                method = ModuleOperations.lookupMethod(module, name);
             } else {
-                method = Layouts.MODULE.getFields(module).getMethod(name);
+                method = new MethodLookupResult(Layouts.MODULE.getFields(module).getMethod(name));
             }
 
-            return method != null && !method.getVisibility().isPrivate() && !method.isUndefined();
+            return method.isDefined() && !method.getVisibility().isPrivate();
         }
 
     }

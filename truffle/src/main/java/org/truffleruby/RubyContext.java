@@ -250,14 +250,14 @@ public class RubyContext extends ExecutionContext {
 
         assert block == null || RubyGuards.isRubyProc(block);
 
-        final InternalMethod method = ModuleOperations.lookupMethod(coreLibrary.getMetaClass(object), methodName).getMethod();
+        final MethodLookupResult method = ModuleOperations.lookupMethod(coreLibrary.getMetaClass(object), methodName);
 
-        if (method == null || method.isUndefined()) {
+        if (!method.isDefined()) {
             return null;
         }
 
-        return method.getCallTarget().call(
-                RubyArguments.pack(null, null, method, DeclarationContext.METHOD, null, object, block, arguments));
+        return method.getMethod().getCallTarget().call(
+                RubyArguments.pack(null, null, method.getMethod(), DeclarationContext.METHOD, null, object, block, arguments));
     }
 
     public void shutdown() {
