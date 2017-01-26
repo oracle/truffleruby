@@ -155,11 +155,9 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         final String version = System.getProperty("graalvm.version", "SNAPSHOT");
 
         return String.format(
-                "truffleruby %s, like %s (%s revision %s) <%s %s %s> [%s-%s]",
+                "truffleruby %s, like %s <%s %s %s> [%s-%s]",
                 version,
                 RUBY_VERSION,
-                COMPILE_DATE,
-                RUBY_REVISION,
                 System.getProperty("java.vm.name", "unknown JVM"),
                 System.getProperty("java.runtime.version", System.getProperty("java.version", "unknown runtime version")),
                 Graal.isGraal() ? "with Graal" : "without Graal",
