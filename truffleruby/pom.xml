@@ -133,9 +133,6 @@
               <goal>compile</goal>
             </goals>
             <configuration>
-              <!--
-              <fork>true</fork>
-              -->
               <annotationProcessors>
                 <annotationProcessor>com.oracle.truffle.object.dsl.processor.LayoutProcessor</annotationProcessor>
                 <annotationProcessor>com.oracle.truffle.dsl.processor.InstrumentableProcessor</annotationProcessor>
@@ -144,26 +141,10 @@
                 <annotationProcessor>com.oracle.truffle.dsl.processor.verify.VerifyTruffleProcessor</annotationProcessor>
                 <annotationProcessor>com.oracle.truffle.dsl.processor.LanguageRegistrationProcessor</annotationProcessor>
               </annotationProcessors>
-              <!--
-              <generatedSourcesDirectory>target/generated-sources</generatedSourcesDirectory>
-              <compilerArgs>
-                <compilerArg>-XDignore.symbol.file=true</compilerArg>
-                <compilerArg>-J-Duser.language=en</compilerArg>
-                <compilerArg>-J-Dfile.encoding=UTF-8</compilerArg>
-                <compilerArg>-J-ea</compilerArg>
-              </compilerArgs>
-              -->
             </configuration>
           </execution>
         </executions>
         <configuration>
-          <!--
-          <encoding>utf-8</encoding>
-          <debug>true</debug>
-          <verbose>false</verbose>
-          <showWarnings>true</showWarnings>
-          <showDeprecation>true</showDeprecation>
-          -->
           <source>1.8</source>
           <target>1.8</target>
           <useIncrementalCompilation>false</useIncrementalCompilation>
