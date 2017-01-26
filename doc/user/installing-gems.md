@@ -10,6 +10,6 @@ to get both `gem install` and `bundler install` working.
     ruby -r bundler-workarounds -S bundle install
     ruby -r bundler-workarounds -S bundle update
     
-`bundle exec` does not need the `bundler-workarounds.rb` loaded. 
+`bundle exec` does not need the `bundler-workarounds` loaded. 
     
     ruby -S bundle exec bin/rails server
