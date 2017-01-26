@@ -592,42 +592,32 @@ public class CommandLineParser {
         out.println("  -h              show this message, --help for more info");
     }
 
-    private static final Map<String, BiFunction<CommandLineParser, Boolean, Boolean>> FEATURES;
+    private static final Map<String, BiFunction<CommandLineParser, Boolean, Boolean>> FEATURES = new HashMap<>();
 
     static {
-        Map<String, BiFunction<CommandLineParser, Boolean, Boolean>> features = new HashMap<>(12, 1);
-        BiFunction<CommandLineParser, Boolean, Boolean> function2;
-
-        features.put("all", new BiFunction<CommandLineParser, Boolean, Boolean>() {
-            public Boolean apply(CommandLineParser processor, Boolean enable) {
-                // disable all features
-                for (Map.Entry<String, BiFunction<CommandLineParser, Boolean, Boolean>> entry : FEATURES.entrySet()) {
-                    if (entry.getKey().equals("all")) continue; // skip self
-                    entry.getValue().apply(processor, enable);
+        FEATURES.put("all", (processor, enable) -> {
+            for (Map.Entry<String, BiFunction<CommandLineParser, Boolean, Boolean>> feature : FEATURES.entrySet()) {
+                if (!feature.getKey().equals("all")) {
+                    feature.getValue().apply(processor, enable);
                 }
-                return true;
             }
+            return true;
         });
-        features.put("gem", new BiFunction<CommandLineParser, Boolean, Boolean>() {
-            public Boolean apply(CommandLineParser processor, Boolean enable) {
-                processor.config.getOptions().put(OptionsCatalog.RUBYGEMS.getName(), enable);
-                return true;
-            }
-        });
-        features.put("gems", new BiFunction<CommandLineParser, Boolean, Boolean>() {
-            public Boolean apply(CommandLineParser processor, Boolean enable) {
-                processor.config.getOptions().put(OptionsCatalog.RUBYGEMS.getName(), enable);
-                return true;
-            }
-        });
-        features.put("frozen-string-literal", function2 = new BiFunction<CommandLineParser, Boolean, Boolean>() {
-            public Boolean apply(CommandLineParser processor, Boolean enable) {
-                processor.config.getOptions().put(OptionsCatalog.FROZEN_STRING_LITERALS.getName(), enable);
-                return true;
-            }
-        });
-        features.put("frozen_string_literal", function2); // alias
 
-        FEATURES = features;
+        FEATURES.put("gem", (processor, enable) -> {
+            processor.config.getOptions().put(OptionsCatalog.RUBYGEMS.getName(), enable);
+            return true;
+        });
+
+
+        FEATURES.put("gems", FEATURES.get("gem"));
+
+        FEATURES.put("frozen-string-literal", (processor, enable) -> {
+            processor.config.getOptions().put(OptionsCatalog.FROZEN_STRING_LITERALS.getName(), enable);
+            return true;
+        });
+
+        FEATURES.put("frozen_string_literal", FEATURES.get("frozen-string-literal"));
     }
+
 }
