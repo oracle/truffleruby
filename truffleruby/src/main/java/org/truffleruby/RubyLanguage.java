@@ -25,6 +25,7 @@ import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.platform.Platform;
+import org.truffleruby.platform.graal.Graal;
 import org.truffleruby.stdlib.CoverageManager;
 
 import java.io.IOException;
@@ -154,14 +155,14 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         final String version = System.getProperty("graalvm.version", "SNAPSHOT");
 
         return String.format(
-                "truffleruby %s, like %s (%s revision %s) <%s %s, %s> [%s-%s]",
+                "truffleruby %s, like %s (%s revision %s) <%s %s %s> [%s-%s]",
                 version,
                 RUBY_VERSION,
                 COMPILE_DATE,
                 RUBY_REVISION,
                 System.getProperty("java.vm.name", "unknown JVM"),
                 System.getProperty("java.runtime.version", System.getProperty("java.version", "unknown runtime version")),
-                Truffle.getRuntime().getName(),
+                Graal.isGraal() ? "with Graal" : "without Graal",
                 Platform.getOSName(),
                 Platform.getArchitecture()
         );
