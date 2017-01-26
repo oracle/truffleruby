@@ -466,7 +466,11 @@ public class RubyContext extends ExecutionContext {
 
     public ConsoleHolder getConsoleHolder() {
         if (consoleHolder == null) {
-            consoleHolder = new ConsoleHolder();
+            synchronized (this) {
+                if (consoleHolder == null) {
+                    consoleHolder = new ConsoleHolder();
+                }
+            }
         }
 
         return consoleHolder;
