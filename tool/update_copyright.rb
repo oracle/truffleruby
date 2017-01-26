@@ -49,7 +49,7 @@ OTHER_COPYRIGHTS = [
 ]
 
 truffle_paths = %w[
-  truffle/src
+  truffleruby/src
   test/truffle
   spec/
 ] + [__FILE__]
@@ -57,11 +57,11 @@ truffle_paths = %w[
 excludes = %w[
   test/truffle/pack-real-usage.rb
   test/truffle/cexts
-  truffle/src/main/c/openssl
+  truffleruby/src/main/c/openssl
 ]
 
 # Until those all have copyright headers
-excludes << "truffle/src/main/java/org/jruby/truffle/parser"
+excludes << "truffleruby/src/main/java/org/jruby/truffle/parser"
 
 truffle_paths.each do |path|
   puts "WARNING: incorrect path #{path}" unless File.exist? path

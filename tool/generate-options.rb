@@ -76,7 +76,7 @@ options = options.map do |constant, (name, type, default, description)|
   )
 end
 
-File.write('truffle/src/main/java/org/truffleruby/options/Options.java', ERB.new(<<JAVA).result)
+File.write('truffleruby/src/main/java/org/truffleruby/options/Options.java', ERB.new(<<JAVA).result)
 /*
  * Copyright (c) 2016 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -114,7 +114,7 @@ public class Options {
 }
 JAVA
 
-File.write('truffle/src/main/java/org/truffleruby/options/OptionsCatalog.java', ERB.new(<<JAVA).result)
+File.write('truffleruby/src/main/java/org/truffleruby/options/OptionsCatalog.java', ERB.new(<<JAVA).result)
 /*
  * Copyright (c) 2016 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,

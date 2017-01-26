@@ -657,7 +657,7 @@ class TruffleTool
       end
     end
 
-    core_load_path = jruby_path.join 'truffle/src/main/ruby'
+    core_load_path = jruby_path.join 'truffleruby/src/main/ruby'
 
     missing_core_load_path = !File.exists?(core_load_path)
     log "Core load path: #{core_load_path} does not exist, fallbacking to --no-use-fs-core" if missing_core_load_path

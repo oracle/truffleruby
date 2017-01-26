@@ -153,7 +153,7 @@ suite = {
         # ------------- Projects -------------
 
         "jruby-truffle": {
-            "dir": "truffle/src/main",
+            "dir": "truffleruby/src/main",
             "sourceDirs": [ "java" ],
             "dependencies": [
                 "truffle:TRUFFLE_API",
@@ -178,13 +178,13 @@ suite = {
 
         "jruby-truffle-ruby": {
             "class": "ArchiveProject",
-            "outputDir": "truffle/src/main/ruby",
+            "outputDir": "truffleruby/src/main/ruby",
             "prefix": "jruby-truffle",
             "license": [ "EPL-1.0", "BSD-new" ],
         },
 
         "jruby-truffle-test": {
-            "dir": "truffle/src/test",
+            "dir": "truffleruby/src/test",
             "sourceDirs": ["java"],
             "dependencies": [
                 "jruby-truffle",
@@ -198,7 +198,7 @@ suite = {
 
         "jruby-truffle-ruby-test": {
             "class": "ArchiveProject",
-            "outputDir": "truffle/src/test/ruby",
+            "outputDir": "truffleruby/src/test/ruby",
             "prefix": "src/test/ruby",
             "license": "EPL-1.0",
         },

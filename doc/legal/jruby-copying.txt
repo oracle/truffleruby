@@ -22,11 +22,11 @@ The Truffle component also distributes:
   truffle-api and truffle-debug (Copyright Oracle and/or its affiliates, GPL
   v2, with classpath exception)
 
-  Parts of the core library implementation in truffle/src/main/ruby/core
+  Parts of the core library implementation in truffleruby/src/main/ruby/core
   are copyright (c) 2011, Evan Phoenix, and released under the 3-clause BSD
   license.
   
-  Parts of the core library implementation in truffle/src/main/ruby/core 
+  Parts of the core library implementation in truffleruby/src/main/ruby/core 
   are copyright (c) 2007-2015, Evan Phoenix and contributors, and released under
   the 3-clause BSD license.
 

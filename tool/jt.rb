@@ -520,13 +520,13 @@ module Commands
       no_openssl = options.delete('--no-openssl')
       build_ruby_su
       unless no_openssl
-        cextc "#{JRUBY_DIR}/truffle/src/main/c/openssl"
+        cextc "#{JRUBY_DIR}/truffleruby/src/main/c/openssl"
       end
     when 'parser'
       jay = Utilities.find_repo('jay')
       ENV['PATH'] = "#{jay}/src:#{ENV['PATH']}"
       sh 'sh', 'tool/generate_parser'
-      yytables = 'truffle/src/main/java/org/jruby/truffle/parser/parser/YyTables.java'
+      yytables = 'truffleruby/src/main/java/org/jruby/truffle/parser/parser/YyTables.java'
       File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.truffleruby.parser.parser;'))
     when 'options'
       sh 'tool/generate-options.rb'
@@ -567,7 +567,7 @@ module Commands
     end
 
     unless args.delete('--no-core-load-path')
-      jruby_args << "-Xcore.load_path=#{JRUBY_DIR}/truffle/src/main/ruby"
+      jruby_args << "-Xcore.load_path=#{JRUBY_DIR}/truffleruby/src/main/ruby"
     end
 
     if args.delete('--graal')
@@ -672,8 +672,8 @@ module Commands
     abort "You need to set SULONG_HOME" unless SULONG_HOME
 
     # Ensure ruby.su is up-to-date
-    ruby_cext_api = "#{JRUBY_DIR}/truffle/src/main/c/cext"
-    ruby_c = "#{JRUBY_DIR}/truffle/src/main/c/cext/ruby.c"
+    ruby_cext_api = "#{JRUBY_DIR}/truffleruby/src/main/c/cext"
+    ruby_c = "#{JRUBY_DIR}/truffleruby/src/main/c/cext/ruby.c"
     ruby_h = "#{JRUBY_DIR}/lib/cext/ruby.h"
     ruby_su = "#{JRUBY_DIR}/lib/cext/ruby.su"
     if cext_dir != ruby_cext_api and (newer?(ruby_h, ruby_su) or newer?(ruby_c, ruby_su))
@@ -686,14 +686,14 @@ module Commands
   def cextc(cext_dir, test_gem=false, *clang_opts)
     build_ruby_su(cext_dir)
 
-    is_ruby = cext_dir == "#{JRUBY_DIR}/truffle/src/main/c/cext"
+    is_ruby = cext_dir == "#{JRUBY_DIR}/truffleruby/src/main/c/cext"
     gem_name = if is_ruby
                  "ruby"
                else
                  File.basename(cext_dir)
                end
 
-    gem_dir = if cext_dir.start_with?("#{JRUBY_DIR}/truffle/src/main/c")
+    gem_dir = if cext_dir.start_with?("#{JRUBY_DIR}/truffleruby/src/main/c")
                 cext_dir
               elsif test_gem
                 "#{JRUBY_DIR}/test/truffle/cexts/#{gem_name}/ext/#{gem_name}/"
@@ -704,8 +704,8 @@ module Commands
               end
     copy_target = if is_ruby
                     "#{JRUBY_DIR}/lib/cext/ruby.su"
-                  elsif cext_dir == "#{JRUBY_DIR}/truffle/src/main/c/openssl"
-                    "#{JRUBY_DIR}/truffle/src/main/c/openssl/openssl.su"
+                  elsif cext_dir == "#{JRUBY_DIR}/truffleruby/src/main/c/openssl"
+                    "#{JRUBY_DIR}/truffleruby/src/main/c/openssl/openssl.su"
                   else
                     "#{JRUBY_DIR}/test/truffle/cexts/#{gem_name}/lib/#{gem_name}/#{gem_name}.su"
                   end

@@ -9,7 +9,7 @@
 failures = false
 
 Dir.glob('truffle/**/*').each do |file|
-  next if file.start_with? 'truffle/target/generated-sources'
+  next if file.start_with? 'truffleruby/target/generated-sources'
   next if file == 'truffle/pom.rb'
   if file =~ /.*\.(rb|java)/
     lines = IO.readlines(file)

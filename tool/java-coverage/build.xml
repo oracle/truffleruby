@@ -21,7 +21,7 @@
         </classfiles>
         <sourcefiles encoding="UTF-8">
           <fileset dir="../../../core/src/main/java" />
-          <fileset dir="../../../truffle/src/main/java" />
+          <fileset dir="../../../truffleruby/src/main/java" />
         </sourcefiles>
       </structure>
       <html destdir="../../../jacoco" />
