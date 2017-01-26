@@ -46,7 +46,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
 public class CommandLineParser {
@@ -435,12 +435,12 @@ public class CommandLineParser {
     }
 
     private void enableDisableFeature(String name, boolean enable) {
-        BiFunction<CommandLineParser, Boolean, Boolean> feature = FEATURES.get(name);
+        final BiConsumer<CommandLineParser, Boolean> feature = FEATURES.get(name);
 
         if (feature == null) {
             System.err.println("warning: unknown argument for --" + (enable ? "enable" : "disable") + ": `" + name + "'");
         } else {
-            feature.apply(this, enable);
+            feature.accept(this, enable);
         }
     }
 
@@ -592,37 +592,31 @@ public class CommandLineParser {
         out.println("  -h              show this message, --help for more info");
     }
 
-    private static final Map<String, BiFunction<CommandLineParser, Boolean, Boolean>> FEATURES = new HashMap<>();
+    private static final Map<String, BiConsumer<CommandLineParser, Boolean>> FEATURES = new HashMap<>();
 
     static {
         FEATURES.put("all", (processor, enable) -> {
-            for (Map.Entry<String, BiFunction<CommandLineParser, Boolean, Boolean>> feature : FEATURES.entrySet()) {
+            for (Map.Entry<String, BiConsumer<CommandLineParser, Boolean>> feature : FEATURES.entrySet()) {
                 if (!feature.getKey().equals("all")) {
-                    feature.getValue().apply(processor, enable);
+                    feature.getValue().accept(processor, enable);
                 }
             }
-            return true;
         });
 
-        FEATURES.put("gem", (processor, enable) -> {
-            processor.config.getOptions().put(OptionsCatalog.RUBYGEMS.getName(), enable);
-            return true;
-        });
+        FEATURES.put("gem", (processor, enable) ->
+                processor.config.getOptions().put(OptionsCatalog.RUBYGEMS.getName(), enable));
 
+        FEATURES.put("gems",
+                FEATURES.get("gem"));
 
-        FEATURES.put("gems", FEATURES.get("gem"));
+        FEATURES.put("frozen-string-literal", (processor, enable) ->
+                processor.config.getOptions().put(OptionsCatalog.FROZEN_STRING_LITERALS.getName(), enable));
 
-        FEATURES.put("frozen-string-literal", (processor, enable) -> {
-            processor.config.getOptions().put(OptionsCatalog.FROZEN_STRING_LITERALS.getName(), enable);
-            return true;
-        });
+        FEATURES.put("frozen_string_literal",
+                FEATURES.get("frozen-string-literal"));
 
-        FEATURES.put("frozen_string_literal", FEATURES.get("frozen-string-literal"));
-
-        FEATURES.put("rubyopt", (processor, enable) -> {
-            processor.config.setReadRubyOpt(false);
-            return true;
-        });
+        FEATURES.put("rubyopt", (processor, enable) ->
+                processor.config.setReadRubyOpt(false));
     }
 
 }
