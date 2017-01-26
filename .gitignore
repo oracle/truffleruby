@@ -115,6 +115,7 @@ nbproject/private
 # Eclipse files
 /.metadata
 /.recommenders
+/workingsets.xml
 .classpath
 .project
 .settings
