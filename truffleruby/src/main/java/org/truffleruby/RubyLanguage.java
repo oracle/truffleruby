@@ -155,7 +155,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         final String version = System.getProperty("graalvm.version", "SNAPSHOT");
 
         return String.format(
-                "truffleruby %s, like %s <%s %s %s> [%s-%s]",
+                "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",
                 version,
                 RUBY_VERSION,
                 System.getProperty("java.vm.name", "unknown JVM"),
