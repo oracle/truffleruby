@@ -49,7 +49,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String RUBY_VERSION = "2.3.1";
     public static final int    RUBY_REVISION = 54768;
     public static final String COMPILE_DATE = "2016-12-03";
-    public static final String VERSION = "9.1.7.0";
     // TODO (pitr-ch 11-Jan-2017): use our value when we are recognized by rubygems
     public static final String ENGINE = "ruby";
 
@@ -152,9 +151,11 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public static String getVersionString() {
+        final String version = System.getProperty("graalvm.version", "SNAPSHOT");
+
         return String.format(
                 "truffleruby %s (%s) %s %s %s %s on %s [%s-%s]",
-                RubyLanguage.VERSION,
+                version,
                 RubyLanguage.RUBY_VERSION,
                 RubyLanguage.COMPILE_DATE,
                 "(unknown commit)",
