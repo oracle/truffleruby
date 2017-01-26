@@ -154,7 +154,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         final String version = System.getProperty("graalvm.version", "SNAPSHOT");
 
         return String.format(
-                "truffleruby %s, like %s (%s revision %s) <%s, %s, %s> [%s-%s]",
+                "truffleruby %s, like %s (%s revision %s) <%s, %s, %s, %s> [%s-%s]",
                 version,
                 RUBY_VERSION,
                 COMPILE_DATE,
@@ -162,6 +162,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
                 System.getProperty("java.vm.name", "unknown JVM"),
                 System.getProperty("java.vm.version", "unknown JVM version"),
                 System.getProperty("java.runtime.version", System.getProperty("java.version", "unknown runtime version")),
+                Truffle.getRuntime().getName(),
                 Platform.getOSName(),
                 Platform.getArchitecture()
         );
