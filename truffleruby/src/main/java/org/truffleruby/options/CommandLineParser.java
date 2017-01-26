@@ -539,7 +539,7 @@ public class CommandLineParser {
     }
 
     public static void printHelp(PrintStream out) {
-        out.println("Usage: ruby [switches] [--] [programfile] [arguments]");
+        out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
         out.println("  -0[octal]       specify record separator (\0, if no argument)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
@@ -592,7 +592,7 @@ public class CommandLineParser {
     }
 
     public static void printShortHelp(PrintStream out) {
-        out.println("Usage: ruby [switches] [--] [programfile] [arguments]");
+        out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
         out.println("  -0[octal]       specify record separator (\0, if no argument)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
