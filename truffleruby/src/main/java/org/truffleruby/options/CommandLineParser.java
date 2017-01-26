@@ -90,8 +90,6 @@ public class CommandLineParser {
     private boolean endOfArguments = false;
     private int characterIndex = 0;
 
-    private static final Pattern VERSION_FLAG = Pattern.compile("^--[12]\\.[89012]$");
-
     public CommandLineParser(String[] arguments, RubyInstanceConfig config) {
         this(arguments, true, false, false, config);
     }
@@ -396,9 +394,6 @@ public class CommandLineParser {
                         break FOR;
                     } else if (argument.startsWith("--profile")) {
                         throw new UnsupportedOperationException();
-                    } else if (VERSION_FLAG.matcher(argument).matches()) {
-                        System.err.println("warning: " + argument + " ignored");
-                        break FOR;
                     } else if (argument.equals("--debug-frozen-string-literal")) {
                         throw new UnsupportedOperationException();
                     } else if (argument.startsWith("--disable")) {
