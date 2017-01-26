@@ -130,7 +130,7 @@ public abstract class Translator extends org.truffleruby.parser.ast.visitor.Abst
         return flattened;
     }
 
-    protected RubyNode nilNode(Source source, SourceIndexLength sourceSection) {
+    protected RubyNode nilNode(SourceIndexLength sourceSection) {
         final RubyNode literal = new NilLiteralNode(false);
         literal.unsafeSetSourceSection(sourceSection);
         return literal;
@@ -139,7 +139,7 @@ public abstract class Translator extends org.truffleruby.parser.ast.visitor.Abst
     protected RubyNode translateNodeOrNil(SourceIndexLength sourceSection, ParseNode node) {
         final RubyNode rubyNode;
         if (node == null || node instanceof NilImplicitParseNode) {
-            rubyNode = nilNode(source, sourceSection);
+            rubyNode = nilNode(sourceSection);
         } else {
             rubyNode = node.accept(this);
         }

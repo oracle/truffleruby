@@ -10,7 +10,7 @@
 
 package org.truffleruby.parser;
 
-import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.source.Source;
 
 /**
  * Some 3rd party code make assumptions about the JRuby runtime based upon the values in some constants.  Where the
@@ -19,11 +19,11 @@ import com.oracle.truffle.api.source.SourceSection;
  */
 public class ConstantReplacer {
 
-    public static String replacementName(SourceSection sourceSection, String name) {
+    public static String replacementName(Source source, String name) {
         // The thread_safe gem checks if JRUBY_VERSION is defined and then uses RUBY_VERSION as
         // a fallback.  We rename the constant being looked for to one that doesn't exist so the defined?
         // lookup fails.
-        if (sourceSection.getSource().getName().endsWith("thread_safe.rb")) {
+        if (source.getName().endsWith("thread_safe.rb")) {
             // TODO (pitr-ch 13-Jan-2017): we end up in a branch where Array = ::Array which is not threadsafe
             if (name.equals("RUBY_VERSION")) {
                 return name + "_NONEXISTENT";
@@ -33,7 +33,7 @@ public class ConstantReplacer {
         // The method_source gem checks if RUBY_ENGINE is defined and regexp matches 'jruby'. If it does,
         // it uses Java interop to get source locations for JRuby. We rename the constant being looked for
         // to one that doesn't exist so the defined? lookup fails.
-        if (sourceSection.getSource().getName().endsWith("source_location.rb")) {
+        if (source.getName().endsWith("source_location.rb")) {
             if (name.equals("RUBY_ENGINE")) {
                 return name + "_NONEXISTENT";
             }

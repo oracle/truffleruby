@@ -11,9 +11,9 @@ package org.truffleruby.parser;
 
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.language.RubyNode;
@@ -88,10 +88,8 @@ public class ReloadArgumentsTranslator extends Translator {
             sequence.add(node.getRestArgNode().accept(this));
         }
 
-        final SourceSection sourceSectionX = sourceSection.toSourceSection(source);
-
         if (node.getPostCount() > 0) {
-            Log.LOGGER.warning(String.format("post args in zsuper not yet implemented at %s:%d%n", sourceSectionX.getSource().getName(), sourceSectionX.getStartLine()));
+            Log.LOGGER.warning(String.format("post args in zsuper not yet implemented at %s%n", RubyLanguage.fileLine(sourceSection.toSourceSection(source))));
         }
 
         RubyNode kwArgsNode = null;
@@ -169,7 +167,7 @@ public class ReloadArgumentsTranslator extends Translator {
     @Override
     protected RubyNode defaultVisit(ParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        return nilNode(source, sourceSection);
+        return nilNode(sourceSection);
     }
 
 }

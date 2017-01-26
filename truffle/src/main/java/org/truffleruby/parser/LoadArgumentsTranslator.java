@@ -12,7 +12,6 @@ package org.truffleruby.parser;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.array.ArrayLiteralNode;
@@ -284,7 +283,6 @@ public class LoadArgumentsTranslator extends Translator {
     @Override
     public RubyNode visitKeywordArgNode(KeywordArgParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         final AssignableParseNode asgnNode = node.getAssignable();
         final String name = ((INameNode) asgnNode).getName();
@@ -310,7 +308,6 @@ public class LoadArgumentsTranslator extends Translator {
     @Override
     public RubyNode visitArgumentNode(ArgumentParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         final RubyNode readNode = readArgument(sourceSection);
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
@@ -468,7 +465,6 @@ public class LoadArgumentsTranslator extends Translator {
     @Override
     public RubyNode visitMultipleAsgnNode(MultipleAsgnParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         // (MultipleAsgn19Node 0, (ArrayParseNode 0, (LocalAsgnParseNode:a 0, ), (LocalAsgnParseNode:b 0, )), null, null))
 
@@ -584,7 +580,7 @@ public class LoadArgumentsTranslator extends Translator {
         }
 
         for (String parameterToClear : parametersToClearCollector.getParameters()) {
-            nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(parameterToClear, source, sourceSection).makeWriteNode(nilNode(source, sourceSection)));
+            nilSequence.add(methodBodyTranslator.getEnvironment().findOrAddLocalVarNodeDangerous(parameterToClear, source, sourceSection).makeWriteNode(nilNode(sourceSection)));
         }
 
         if (!childNodes.isEmpty()) {

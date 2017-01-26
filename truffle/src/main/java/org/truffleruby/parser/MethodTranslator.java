@@ -89,8 +89,6 @@ public class MethodTranslator extends BodyTranslator {
     }
 
     public BlockDefinitionNode compileBlockNode(SourceIndexLength sourceSection, String methodName, ParseNode bodyNode, SharedMethodInfo sharedMethodInfo, ProcType type, String[] variables) {
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
-
         declareArguments();
         final Arity arity = getArity(argsNode);
         final Arity arityForCheck;
@@ -368,7 +366,6 @@ public class MethodTranslator extends BodyTranslator {
     @Override
     public RubyNode visitSuperNode(SuperParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(sourceSection, node.getIterNode(), node.getArgsNode(), environment.getNamedMethodName());
 
@@ -380,7 +377,6 @@ public class MethodTranslator extends BodyTranslator {
     @Override
     public RubyNode visitZSuperNode(ZSuperParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         if (environment.isBlock()) {
             // We need the declaration frame to get the arguments to use

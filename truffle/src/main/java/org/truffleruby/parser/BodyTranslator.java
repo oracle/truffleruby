@@ -327,7 +327,7 @@ public class BodyTranslator extends Translator {
          */
 
         if (newName.toString().equals("allocate") && source.getName().endsWith("/ostruct.rb")) {
-            return nilNode(source, sourceSection);
+            return nilNode(sourceSection);
         }
 
         final RubyNode newNameNode = new ObjectLiteralNode(newName);
@@ -449,7 +449,6 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitBignumNode(BignumParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         // These aren't always Bignums!
 
@@ -513,7 +512,6 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitCallNode(CallParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
         final ParseNode receiver = node.getReceiverNode();
         final String methodName = node.getName();
 
@@ -534,12 +532,12 @@ public class BodyTranslator extends Translator {
             // Truffle.<method>
 
             if (methodName.equals("primitive")) {
-                throw new AssertionError("Invalid usage of Truffle.primitive at " + RubyLanguage.fileLine(fullSourceSection));
+                throw new AssertionError("Invalid usage of Truffle.primitive at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
             } else if (methodName.equals("invoke_primitive")) {
                 final RubyNode ret = translateRubiniusInvokePrimitive(sourceSection, node);
                 return addNewlineIfNeeded(node, ret);
             } else if (methodName.equals("privately")) {
-                final RubyNode ret = translateRubiniusPrivately(fullSourceSection, node);
+                final RubyNode ret = translateRubiniusPrivately(node);
                 return addNewlineIfNeeded(node, ret);
             } else if (methodName.equals("single_block_arg")) {
                 final RubyNode ret = translateSingleBlockArg(sourceSection, node);
@@ -647,7 +645,7 @@ public class BodyTranslator extends Translator {
         return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments.toArray(new RubyNode[arguments.size()]));
     }
 
-    private RubyNode translateRubiniusPrivately(SourceSection sourceSection, CallParseNode node) {
+    private RubyNode translateRubiniusPrivately(CallParseNode node) {
         /*
          * Translates something that looks like
          *
@@ -856,7 +854,6 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitCaseNode(CaseParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         RubyNode elseNode = translateNodeOrNil(sourceSection, node.getElseNode());
 
@@ -1068,7 +1065,6 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitClassNode(ClassParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         final String name = node.getCPath().getName();
 
@@ -1107,8 +1103,7 @@ public class BodyTranslator extends Translator {
         }
 
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
-        final String name = ConstantReplacer.replacementName(fullSourceSection, node.getName());
+        final String name = ConstantReplacer.replacementName(source, node.getName());
 
         final RubyNode lhs = node.getLeftNode().accept(this);
 
@@ -1122,8 +1117,7 @@ public class BodyTranslator extends Translator {
         // Root namespace constant access, as in ::Foo
 
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
-        final String name = ConstantReplacer.replacementName(fullSourceSection, node.getName());
+        final String name = ConstantReplacer.replacementName(source, node.getName());
 
         final ObjectLiteralNode root = new ObjectLiteralNode(context.getCoreLibrary().getObjectClass());
         root.unsafeSetSourceSection(sourceSection);
@@ -1244,7 +1238,6 @@ public class BodyTranslator extends Translator {
     public RubyNode visitConstNode(ConstParseNode node) {
         // Unqualified constant access, as in CONST
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         /*
          * Constants of the form Rubinius::Foo in the Rubinius kernel code always seem to get resolved, even if
@@ -1253,7 +1246,7 @@ public class BodyTranslator extends Translator {
          * we will because we'll translate that to ::Rubinius. But it is a simpler translation.
          */
 
-        final String name = ConstantReplacer.replacementName(fullSourceSection, node.getName());
+        final String name = ConstantReplacer.replacementName(source, node.getName());
 
         if (name.equals("Rubinius") && getSourcePath(sourceSection).startsWith(corePath())) {
             final RubyNode ret = new Colon3ParseNode(node.getPosition(), name).accept(this);
@@ -1270,7 +1263,7 @@ public class BodyTranslator extends Translator {
         final RubyNode ret;
         if (environment.isDynamicConstantLookup()) {
             if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                Log.LOGGER.info(() -> "dynamic constant lookup at " + RubyLanguage.fileLine(fullSourceSection));
+                Log.LOGGER.info(() -> "dynamic constant lookup at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
             }
             ret = new ReadConstantWithDynamicScopeNode(name);
         } else {
@@ -1820,7 +1813,6 @@ public class BodyTranslator extends Translator {
         }
 
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
         final RubyNode ret;
 
         if (FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
@@ -1883,7 +1875,7 @@ public class BodyTranslator extends Translator {
                 keyValues.add(pair.getKey().accept(this));
 
                 if (pair.getValue() == null) {
-                    keyValues.add(nilNode(source, sourceSection));
+                    keyValues.add(nilNode(sourceSection));
                 } else {
                     keyValues.add(pair.getValue().accept(this));
                 }
@@ -2580,7 +2572,7 @@ public class BodyTranslator extends Translator {
         }
 
         SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode ret = nilNode(source, sourceSection);
+        final RubyNode ret = nilNode(sourceSection);
 
         return addNewlineIfNeeded(node, ret);
     }
@@ -2610,7 +2602,6 @@ public class BodyTranslator extends Translator {
          */
 
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         final RubyNode andNode = new AndNode(lhs, rhs);
         andNode.unsafeSetSourceSection(sourceSection);
@@ -2668,7 +2659,6 @@ public class BodyTranslator extends Translator {
                     node.getValueNode()), null);
 
             final SourceIndexLength sourceSection = pos;
-            final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
             RubyNode lhs = readMethod.accept(this);
             RubyNode rhs = writeMethod.accept(this);
@@ -2708,7 +2698,6 @@ public class BodyTranslator extends Translator {
         RubyNode body = writeMethod.accept(this);
 
         final SourceIndexLength sourceSection = pos;
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         if (node.isLazy()) {
             ReadLocalNode readLocal = environment.findLocalVarNode(temp, source, sourceSection);
@@ -2939,12 +2928,11 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitRescueNode(RescueParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         RubyNode tryPart;
 
         if (node.getBodyNode() == null || node.getBodyNode().getPosition() == null) {
-            tryPart = nilNode(source, sourceSection);
+            tryPart = nilNode(sourceSection);
         } else {
             tryPart = node.getBodyNode().accept(this);
         }
@@ -2965,7 +2953,7 @@ public class BodyTranslator extends Translator {
             RubyNode bodyNode;
 
             if (rescueBody.getBodyNode() == null || rescueBody.getBodyNode().getPosition() == null) {
-                bodyNode = nilNode(source, sourceSection);
+                bodyNode = nilNode(sourceSection);
             } else {
                 bodyNode = rescueBody.getBodyNode().accept(this);
             }
@@ -2982,10 +2970,10 @@ public class BodyTranslator extends Translator {
                         final ParseNode exceptionNode = exceptionNodes.pop();
 
                         if (exceptionNode instanceof ArrayParseNode) {
-                            final RescueNode rescueNode = translateRescueArrayParseNode((ArrayParseNode) exceptionNode, rescueBody, sourceSection, fullSourceSection);
+                            final RescueNode rescueNode = translateRescueArrayParseNode((ArrayParseNode) exceptionNode, rescueBody, sourceSection);
                             rescueNodes.add(rescueNode);
                         } else if (exceptionNode instanceof SplatParseNode) {
-                            final RescueNode rescueNode = translateRescueSplatParseNode((SplatParseNode) exceptionNode, rescueBody, sourceSection, fullSourceSection);
+                            final RescueNode rescueNode = translateRescueSplatParseNode((SplatParseNode) exceptionNode, rescueBody, sourceSection);
                             rescueNodes.add(rescueNode);
                         } else if (exceptionNode instanceof ArgsCatParseNode) {
                             final ArgsCatParseNode argsCat = (ArgsCatParseNode) exceptionNode;
@@ -3003,7 +2991,7 @@ public class BodyTranslator extends Translator {
                     RubyNode bodyNode;
 
                     if (rescueBody.getBodyNode() == null || rescueBody.getBodyNode().getPosition() == null) {
-                        bodyNode = nilNode(source, sourceSection);
+                        bodyNode = nilNode(sourceSection);
                     } else {
                         bodyNode = rescueBody.getBodyNode().accept(this);
                     }
@@ -3031,7 +3019,7 @@ public class BodyTranslator extends Translator {
         return addNewlineIfNeeded(node, ret);
     }
 
-    private RescueNode translateRescueArrayParseNode(ArrayParseNode arrayParse, RescueBodyParseNode rescueBody, SourceIndexLength sourceSection, SourceSection fullSourceSection) {
+    private RescueNode translateRescueArrayParseNode(ArrayParseNode arrayParse, RescueBodyParseNode rescueBody, SourceIndexLength sourceSection) {
         final ParseNode[] exceptionNodes = arrayParse.children();
 
         final RubyNode[] handlingClasses = new RubyNode[exceptionNodes.length];
@@ -3043,7 +3031,7 @@ public class BodyTranslator extends Translator {
         RubyNode translatedBody;
 
         if (rescueBody.getBodyNode() == null || rescueBody.getBodyNode().getPosition() == null) {
-            translatedBody = nilNode(source, sourceSection);
+            translatedBody = nilNode(sourceSection);
         } else {
             translatedBody = rescueBody.getBodyNode().accept(this);
         }
@@ -3051,13 +3039,13 @@ public class BodyTranslator extends Translator {
         return withSourceSection(sourceSection, new RescueClassesNode(handlingClasses, translatedBody));
     }
 
-    private RescueNode translateRescueSplatParseNode(SplatParseNode splat, RescueBodyParseNode rescueBody, SourceIndexLength sourceSection, SourceSection fullSourceSection) {
+    private RescueNode translateRescueSplatParseNode(SplatParseNode splat, RescueBodyParseNode rescueBody, SourceIndexLength sourceSection) {
         final RubyNode splatTranslated = translateNodeOrNil(sourceSection, splat.getValue());
 
         RubyNode rescueBodyTranslated;
 
         if (rescueBody.getBodyNode() == null || rescueBody.getBodyNode().getPosition() == null) {
-            rescueBodyTranslated = nilNode(source, sourceSection);
+            rescueBodyTranslated = nilNode(sourceSection);
         } else {
             rescueBodyTranslated = rescueBody.getBodyNode().accept(this);
         }
@@ -3086,7 +3074,6 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitSClassNode(SClassParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
         final RubyNode receiverNode = node.getReceiverNode().accept(this);
         final SingletonClassNode singletonClassNode = SingletonClassNodeGen.create(receiverNode);
@@ -3101,7 +3088,7 @@ public class BodyTranslator extends Translator {
                 // Switch to dynamic constant lookup
                 environment.getParseEnvironment().setDynamicConstantLookup(true);
                 if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                    Log.LOGGER.info(() -> "start dynamic constant lookup at " + RubyLanguage.fileLine(fullSourceSection));
+                    Log.LOGGER.info(() -> "start dynamic constant lookup at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
                 }
             }
         }
@@ -3342,7 +3329,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitStarNode(StarParseNode star) {
-        return nilNode(source, star.getPosition());
+        return nilNode(star.getPosition());
     }
 
     protected RubyNode initFlipFlopStates(SourceIndexLength sourceSection) {
