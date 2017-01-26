@@ -169,7 +169,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public static String getCopyrightString() {
-        return "JRuby - Copyright (C) 2001-2017 The JRuby Community (and contribs)";
+        return "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
     }
 
 }
