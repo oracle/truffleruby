@@ -33,6 +33,11 @@ And others.
 The best way to get in touch with us is to join us in `#jruby` on Freenode, but 
 you can also Tweet to @chrisgseaton, or email chris.seaton@oracle.com.
 
+## Mailing list
+
+Announcements about GraalVM, including TruffleRuby, are made on the
+[graalvm-dev](https://oss.oracle.com/mailman/listinfo/graalvm-dev) mailing list.
+
 ## Current Status
 
 TruffleRuby is progressing fast but is currently probably not ready for you to
