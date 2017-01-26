@@ -155,23 +155,25 @@ public class Main {
     public static void processArguments(CommandLineOptions config, String[] arguments) {
         new CommandLineParser(arguments, config).processArguments();
 
-        Object rubyoptObj = System.getenv("RUBYOPT");
-        String rubyopt = rubyoptObj == null ? null : rubyoptObj.toString();
+        if (config.getReadRubyOpt()) {
+            Object rubyoptObj = System.getenv("RUBYOPT");
+            String rubyopt = rubyoptObj == null ? null : rubyoptObj.toString();
 
-        if (rubyopt != null && rubyopt.length() != 0) {
-            String[] rubyoptArgs = rubyopt.split("\\s+");
-            if (rubyoptArgs.length != 0) {
-                new CommandLineParser(rubyoptArgs, false, true, true, config).processArguments();
+            if (rubyopt != null && rubyopt.length() != 0) {
+                String[] rubyoptArgs = rubyopt.split("\\s+");
+                if (rubyoptArgs.length != 0) {
+                    new CommandLineParser(rubyoptArgs, false, true, true, config).processArguments();
+                }
             }
-        }
 
-        Object truffleRubyoptObj = System.getenv("TRUFFLERUBYOPT");
-        String truffleRubyopt = truffleRubyoptObj == null ? null : truffleRubyoptObj.toString();
+            Object truffleRubyoptObj = System.getenv("TRUFFLERUBYOPT");
+            String truffleRubyopt = truffleRubyoptObj == null ? null : truffleRubyoptObj.toString();
 
-        if (truffleRubyopt != null && rubyopt.length() != 0) {
-            String[] rubyoptArgs = truffleRubyopt.split("\\s+");
-            if (rubyoptArgs.length != 0) {
-                new CommandLineParser(rubyoptArgs, false, true, true, config).processArguments();
+            if (truffleRubyopt != null && rubyopt.length() != 0) {
+                String[] rubyoptArgs = truffleRubyopt.split("\\s+");
+                if (rubyoptArgs.length != 0) {
+                    new CommandLineParser(rubyoptArgs, false, true, true, config).processArguments();
+                }
             }
         }
 

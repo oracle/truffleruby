@@ -618,6 +618,11 @@ public class CommandLineParser {
         });
 
         FEATURES.put("frozen_string_literal", FEATURES.get("frozen-string-literal"));
+
+        FEATURES.put("rubyopt", (processor, enable) -> {
+            processor.config.setReadRubyOpt(false);
+            return true;
+        });
     }
 
 }

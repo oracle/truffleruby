@@ -57,6 +57,7 @@ public class CommandLineOptions {
     private boolean hasScriptArgv;
     private boolean forceStdin;
     private boolean shouldPrintShortUsage;
+    private boolean readRubyOpt = true;
 
     public Map<String, Object> getOptions() {
         return options;
@@ -192,4 +193,13 @@ public class CommandLineOptions {
     public boolean getShouldPrintShortUsage() {
         return shouldPrintShortUsage;
     }
+
+    public void setReadRubyOpt(boolean readRubyOpt) {
+        this.readRubyOpt = readRubyOpt;
+    }
+
+    public boolean getReadRubyOpt() {
+        return readRubyOpt;
+    }
+
 }
