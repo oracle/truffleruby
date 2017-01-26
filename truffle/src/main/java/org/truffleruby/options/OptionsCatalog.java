@@ -44,7 +44,7 @@ public class OptionsCatalog {
     public static final OptionDescription<Boolean> COVERAGE_GLOBAL = new BooleanOptionDescription("coverage.global", "Run coverage for all code and print results on exit", false);
     public static final OptionDescription<Boolean> INLINE_JS = new BooleanOptionDescription("inline_js", "Allow inline JavaScript", false);
     public static final OptionDescription<String> CORE_LOAD_PATH = new StringOptionDescription("core.load_path", "Location to load the Truffle core library from", "truffle:/jruby-truffle");
-    public static final OptionDescription<Boolean> LAZY_TRANSLATION_CORE = new BooleanOptionDescription("lazy_translation.core", "Lazily translation of core source files", false);
+    public static final OptionDescription<Boolean> LAZY_TRANSLATION_CORE = new BooleanOptionDescription("lazy_translation.core", "Lazily translation of core source files", true);
     public static final OptionDescription<Boolean> LAZY_TRANSLATION_USER = new BooleanOptionDescription("lazy_translation.user", "Lazily translation of stdlib", false);
     public static final OptionDescription<Boolean> LAZY_TRANSLATION_LOG = new BooleanOptionDescription("lazy_translation.log", "Log lazy translations from the parser AST to the Truffle AST", false);
     public static final OptionDescription<Integer> ARRAY_UNINITIALIZED_SIZE = new IntegerOptionDescription("array.uninitialized_size", "How large an Array to allocate when we have no other information to go on", 32);
