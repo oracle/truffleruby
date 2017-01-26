@@ -46,7 +46,8 @@ public class Options {
     public final boolean COVERAGE_GLOBAL;
     public final boolean INLINE_JS;
     public final String CORE_LOAD_PATH;
-    public final boolean LAZY_TRANSLATION;
+    public final boolean LAZY_TRANSLATION_CORE;
+    public final boolean LAZY_TRANSLATION_USER;
     public final boolean LAZY_TRANSLATION_LOG;
     public final int ARRAY_UNINITIALIZED_SIZE;
     public final int ARRAY_SMALL;
@@ -143,7 +144,8 @@ public class Options {
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
         INLINE_JS = builder.getOrDefault(OptionsCatalog.INLINE_JS);
         CORE_LOAD_PATH = builder.getOrDefault(OptionsCatalog.CORE_LOAD_PATH);
-        LAZY_TRANSLATION = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION);
+        LAZY_TRANSLATION_CORE = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_CORE);
+        LAZY_TRANSLATION_USER = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_USER);
         LAZY_TRANSLATION_LOG = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_LOG);
         ARRAY_UNINITIALIZED_SIZE = builder.getOrDefault(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE);
         ARRAY_SMALL = builder.getOrDefault(OptionsCatalog.ARRAY_SMALL);
@@ -270,8 +272,10 @@ public class Options {
                 return INLINE_JS;
             case "core.load_path":
                 return CORE_LOAD_PATH;
-            case "lazy_translation":
-                return LAZY_TRANSLATION;
+            case "lazy_translation.core":
+                return LAZY_TRANSLATION_CORE;
+            case "lazy_translation.user":
+                return LAZY_TRANSLATION_USER;
             case "lazy_translation.log":
                 return LAZY_TRANSLATION_LOG;
             case "array.uninitialized_size":

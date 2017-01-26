@@ -72,11 +72,20 @@ public class MethodTranslator extends BodyTranslator {
 
     private final ArgsParseNode argsNode;
     private boolean isBlock;
+    private final boolean shouldLazyTranslate;
 
     public MethodTranslator(Node currentNode, RubyContext context, BodyTranslator parent, TranslatorEnvironment environment, boolean isBlock, Source source, ParserContext parserContext, ArgsParseNode argsNode) {
         super(currentNode, context, parent, environment, source, parserContext, false);
         this.isBlock = isBlock;
         this.argsNode = argsNode;
+
+        if (parserContext == ParserContext.EVAL || context.getCoverageManager().isEnabled()) {
+            shouldLazyTranslate = false;
+        } else if (source.getPath() != null && source.getPath().startsWith(context.getCoreLibrary().getCoreLoadPath())) {
+            shouldLazyTranslate = context.getOptions().LAZY_TRANSLATION_CORE;
+        } else {
+            shouldLazyTranslate = context.getOptions().LAZY_TRANSLATION_USER;
+        }
     }
 
     public BlockDefinitionNode compileBlockNode(SourceIndexLength sourceSection, String methodName, ParseNode bodyNode, SharedMethodInfo sharedMethodInfo, ProcType type, String[] variables) {
@@ -287,7 +296,7 @@ public class MethodTranslator extends BodyTranslator {
 
         final RubyNode body;
 
-        if (context.getOptions().LAZY_TRANSLATION && parserContext != ParserContext.EVAL && !context.getCoverageManager().isEnabled()) {
+        if (shouldLazyTranslate) {
             final TranslatorState state = getCurrentState();
 
             body = new LazyRubyNode(() -> {

@@ -32,7 +32,9 @@ COVERAGE_GLOBAL: [coverage.global, boolean, false, Run coverage for all code and
 INLINE_JS: [inline_js, boolean, false, Allow inline JavaScript]
 
 CORE_LOAD_PATH: [core.load_path, string, 'truffle:/jruby-truffle', Location to load the Truffle core library from]
-LAZY_TRANSLATION: [lazy_translation, boolean, false, Lazily translate from the parser AST to the Truffle AST]
+
+LAZY_TRANSLATION_CORE: [lazy_translation.core, boolean, false, Lazily translation of core source files]
+LAZY_TRANSLATION_USER: [lazy_translation.user, boolean, false, Lazily translation of stdlib, gem and user source files]
 LAZY_TRANSLATION_LOG: [lazy_translation.log, boolean, false, Log lazy translations from the parser AST to the Truffle AST]
 
 ARRAY_UNINITIALIZED_SIZE: [array.uninitialized_size, integer, 32, How large an Array to allocate when we have no other information to go on]

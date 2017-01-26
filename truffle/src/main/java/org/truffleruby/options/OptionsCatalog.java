@@ -44,7 +44,8 @@ public class OptionsCatalog {
     public static final OptionDescription<Boolean> COVERAGE_GLOBAL = new BooleanOptionDescription("coverage.global", "Run coverage for all code and print results on exit", false);
     public static final OptionDescription<Boolean> INLINE_JS = new BooleanOptionDescription("inline_js", "Allow inline JavaScript", false);
     public static final OptionDescription<String> CORE_LOAD_PATH = new StringOptionDescription("core.load_path", "Location to load the Truffle core library from", "truffle:/jruby-truffle");
-    public static final OptionDescription<Boolean> LAZY_TRANSLATION = new BooleanOptionDescription("lazy_translation", "Lazily translate from the parser AST to the Truffle AST", false);
+    public static final OptionDescription<Boolean> LAZY_TRANSLATION_CORE = new BooleanOptionDescription("lazy_translation.core", "Lazily translation of core source files", false);
+    public static final OptionDescription<Boolean> LAZY_TRANSLATION_USER = new BooleanOptionDescription("lazy_translation.user", "Lazily translation of stdlib", false);
     public static final OptionDescription<Boolean> LAZY_TRANSLATION_LOG = new BooleanOptionDescription("lazy_translation.log", "Log lazy translations from the parser AST to the Truffle AST", false);
     public static final OptionDescription<Integer> ARRAY_UNINITIALIZED_SIZE = new IntegerOptionDescription("array.uninitialized_size", "How large an Array to allocate when we have no other information to go on", 32);
     public static final OptionDescription<Integer> ARRAY_SMALL = new IntegerOptionDescription("array.small", "Maximum size of an Array to consider small for optimisations", 3);
@@ -170,8 +171,10 @@ public class OptionsCatalog {
                 return INLINE_JS;
             case "core.load_path":
                 return CORE_LOAD_PATH;
-            case "lazy_translation":
-                return LAZY_TRANSLATION;
+            case "lazy_translation.core":
+                return LAZY_TRANSLATION_CORE;
+            case "lazy_translation.user":
+                return LAZY_TRANSLATION_USER;
             case "lazy_translation.log":
                 return LAZY_TRANSLATION_LOG;
             case "array.uninitialized_size":
@@ -339,7 +342,8 @@ public class OptionsCatalog {
             COVERAGE_GLOBAL,
             INLINE_JS,
             CORE_LOAD_PATH,
-            LAZY_TRANSLATION,
+            LAZY_TRANSLATION_CORE,
+            LAZY_TRANSLATION_USER,
             LAZY_TRANSLATION_LOG,
             ARRAY_UNINITIALIZED_SIZE,
             ARRAY_SMALL,
