@@ -52,7 +52,7 @@ import org.truffleruby.options.CommandLineParser;
 import org.truffleruby.options.MainExitException;
 import org.truffleruby.options.OptionsBuilder;
 import org.truffleruby.options.OptionsCatalog;
-import org.truffleruby.options.RubyInstanceConfig;
+import org.truffleruby.options.CommandLineOptions;
 import org.truffleruby.platform.graal.Graal;
 
 import java.io.ByteArrayInputStream;
@@ -72,7 +72,7 @@ public class Main {
     public static void main(String[] args) {
         printTruffleTimeMetric("before-main");
 
-        final RubyInstanceConfig config = new RubyInstanceConfig();
+        final CommandLineOptions config = new CommandLineOptions();
 
         try {
             processArguments(config, args);
@@ -152,7 +152,7 @@ public class Main {
         System.exit(exitCode);
     }
 
-    public static void processArguments(RubyInstanceConfig config, String[] arguments) {
+    public static void processArguments(CommandLineOptions config, String[] arguments) {
         new CommandLineParser(arguments, config).processArguments();
 
         Object rubyoptObj = System.getenv("RUBYOPT");
@@ -180,7 +180,7 @@ public class Main {
         }
     }
 
-    public static InputStream getScriptSource(RubyInstanceConfig config) {
+    public static InputStream getScriptSource(CommandLineOptions config) {
         try {
             if (config.isInlineScript()) {
                 return new ByteArrayInputStream(config.inlineScript());
@@ -195,7 +195,7 @@ public class Main {
         }
     }
 
-    public static String displayedFileName(RubyInstanceConfig config) {
+    public static String displayedFileName(CommandLineOptions config) {
         if (config.isInlineScript()) {
             if (config.getScriptFileName() != null) {
                 return config.getScriptFileName();

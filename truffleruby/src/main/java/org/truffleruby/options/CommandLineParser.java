@@ -37,15 +37,9 @@ package org.truffleruby.options;
 import com.oracle.truffle.api.TruffleOptions;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.Log;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.string.KCode;
 import org.truffleruby.core.string.StringSupport;
-import org.truffleruby.platform.NativePlatform;
-import org.truffleruby.platform.NativePlatformFactory;
-import org.truffleruby.platform.Platform;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
-import java.util.regex.Pattern;
 
 public class CommandLineParser {
 
@@ -86,15 +79,15 @@ public class CommandLineParser {
     private int argumentIndex = 0;
     private boolean processArgv;
     private final boolean rubyOpts;
-    final RubyInstanceConfig config;
+    final CommandLineOptions config;
     private boolean endOfArguments = false;
     private int characterIndex = 0;
 
-    public CommandLineParser(String[] arguments, RubyInstanceConfig config) {
+    public CommandLineParser(String[] arguments, CommandLineOptions config) {
         this(arguments, true, false, false, config);
     }
 
-    public CommandLineParser(String[] arguments, boolean processArgv, boolean dashed, boolean rubyOpts, RubyInstanceConfig config) {
+    public CommandLineParser(String[] arguments, boolean processArgv, boolean dashed, boolean rubyOpts, CommandLineOptions config) {
         this.config = config;
         if (arguments != null && arguments.length > 0) {
             this.arguments = new ArrayList<>(arguments.length);
