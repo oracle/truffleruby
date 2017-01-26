@@ -133,7 +133,7 @@ import javax.annotation.Generated;
 @Generated("tool/generate-options.rb")
 public class OptionsCatalog {
 
-    <% options.each do |o| %>public static final OptionDescription<<%= o.boxed_type %>> <%= o.constant %> = new <%= o.type_cons %>("<%= o.name %>", "<%= o.description %>", <%= o.reference_default ? o.default + '.getDefaultValue()' : o.default %>);
+    <% options.each do |o| %>public static final <%= o.type_cons %> <%= o.constant %> = new <%= o.type_cons %>("<%= o.name %>", "<%= o.description %>", <%= o.reference_default ? o.default + '.getDefaultValue()' : o.default %>);
     <% end %>
     public static OptionDescription<?> fromName(String name) {
         switch (name) {

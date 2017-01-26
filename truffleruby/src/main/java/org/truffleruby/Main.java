@@ -104,14 +104,7 @@ public class Main {
             builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.LOAD_PATHS.getName(), config.getLoadPaths().toArray(new String[]{}));
             builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.REQUIRED_LIBRARIES.getName(), config.getRequiredLibraries().toArray(new String[]{}));
             builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.ARGUMENTS.getName(), config.getArgv());
             builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.DEBUG.getName(), config.isDebug());
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.VERBOSITY.getName(), config.getVerbosity().ordinal());
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.FROZEN_STRING_LITERALS.getName(), config.isFrozenStringLiteral());
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.DISABLE_GEMS.getName(), config.isDisableGems());
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.INTERNAL_ENCODING.getName(), config.getInternalEncoding());
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXTERNAL_ENCODING.getName(), config.getExternalEncoding());
 
             for (Map.Entry<String, Object> option : config.getOptions().entrySet()) {
                 builder.config(RubyLanguage.MIME_TYPE, option.getKey(), option.getValue());
@@ -125,11 +118,7 @@ public class Main {
 
             printTruffleTimeMetric("before-run");
             try {
-                if (config.isXFlag()) {
-                    // no shebang was found and x option is set
-                    System.err.println("jruby: no Ruby script found in input (LoadError)");
-                    exitCode = 1;
-                } else if (config.getShouldCheckSyntax()) {
+                if (config.getShouldCheckSyntax()) {
                     // check syntax only and exit
                     exitCode = checkSyntax(engine, context, getScriptSource(config), filename);
                 } else {

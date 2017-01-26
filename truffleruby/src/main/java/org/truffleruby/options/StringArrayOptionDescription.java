@@ -29,7 +29,9 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
 
     @Override
     public String[] checkValue(Object value) {
-        if (value instanceof String[]) {
+        if (value == null) {
+            return new String[]{};
+        } else if (value instanceof String[]) {
             return (String[]) value;
         } else if (value instanceof Collection<?>) {
             final Collection<?> collection = (Collection<?>) value;

@@ -42,10 +42,6 @@ public class RubyInstanceConfig {
 
     private Map<String, Object> options = new HashMap<>();
 
-    private boolean xFlag;
-    private String[] argv = {};
-    private String internalEncoding;
-    private String externalEncoding;
     private List<String> loadPaths = new ArrayList<>();
     private StringBuffer inlineScript = new StringBuffer();
     private boolean hasInlineScript;
@@ -55,18 +51,13 @@ public class RubyInstanceConfig {
     private boolean argvGlobalsOn;
     private Map<String, String> optionGlobals = new HashMap<>();
     private boolean split;
-    private Verbosity verbosity = Verbosity.FALSE;
-    private boolean debug;
     private boolean showVersion;
     private boolean showCopyright;
     private boolean shouldRunInterpreter = true;
     private boolean shouldPrintUsage;
     private boolean shouldCheckSyntax;
     private String inPlaceBackupExtension;
-    private boolean disableGems;
     private boolean hasScriptArgv;
-    private boolean frozenStringLiteral;
-    private KCode kcode;
     private boolean forceStdin;
     private boolean shouldPrintShortUsage;
 
@@ -76,14 +67,6 @@ public class RubyInstanceConfig {
 
     public byte[] inlineScript() {
         return inlineScript.toString().getBytes();
-    }
-
-    public String[] getArgv() {
-        return argv;
-    }
-
-    public void setArgv(String[] argv) {
-        this.argv = argv;
     }
 
     public StringBuffer getInlineScript() {
@@ -115,16 +98,10 @@ public class RubyInstanceConfig {
         return hasInlineScript;
     }
 
-    /**
-     * True if we are only using source from stdin and not from a -e or file argument.
-     */
     public boolean isForceStdin() {
         return forceStdin;
     }
 
-    /**
-     * Set whether we should only look at stdin for source.
-     */
     public void setForceStdin(boolean forceStdin) {
         this.forceStdin = forceStdin;
     }
@@ -144,22 +121,6 @@ public class RubyInstanceConfig {
 
     public boolean isSplit() {
         return split;
-    }
-
-    public void setVerbosity(Verbosity verbosity) {
-        this.verbosity = verbosity;
-    }
-
-    public boolean isVerbose() {
-        return verbosity == Verbosity.TRUE;
-    }
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
     }
 
     public void setShowVersion(boolean showVersion) {
@@ -194,22 +155,6 @@ public class RubyInstanceConfig {
         return shouldCheckSyntax;
     }
 
-    public void setInternalEncoding(String internalEncoding) {
-        this.internalEncoding = internalEncoding;
-    }
-
-    public String getInternalEncoding() {
-        return internalEncoding;
-    }
-
-    public void setExternalEncoding(String externalEncoding) {
-        this.externalEncoding = externalEncoding;
-    }
-
-    public String getExternalEncoding() {
-        return externalEncoding;
-    }
-
     public void setInPlaceBackupExtension(String inPlaceBackupExtension) {
         this.inPlaceBackupExtension = inPlaceBackupExtension;
     }
@@ -230,44 +175,8 @@ public class RubyInstanceConfig {
         this.argvGlobalsOn = argvGlobalsOn;
     }
 
-    public boolean isDisableGems() {
-        return disableGems;
-    }
-
-    public void setDisableGems(boolean dg) {
-        this.disableGems = dg;
-    }
-
-    public void setXFlag(boolean xFlag) {
-        this.xFlag = xFlag;
-    }
-
-    public boolean isXFlag() {
-        return xFlag;
-    }
-
-    public boolean isFrozenStringLiteral() {
-        return frozenStringLiteral;
-    }
-
-    public void setFrozenStringLiteral(boolean frozenStringLiteral) {
-        this.frozenStringLiteral = frozenStringLiteral;
-    }
-
     public boolean doesHaveScriptArgv() {
         return hasScriptArgv;
-    }
-
-    public Verbosity getVerbosity() {
-        return verbosity;
-    }
-
-    public void setKCode(KCode kcode) {
-        this.kcode = kcode;
-    }
-
-    public KCode getKCode() {
-        return kcode;
     }
 
     public void setUsePathScript(String name) {

@@ -28,7 +28,7 @@ public class Options {
     public final boolean DEBUG;
     public final Verbosity VERBOSITY;
     public final boolean FROZEN_STRING_LITERALS;
-    public final boolean DISABLE_GEMS;
+    public final boolean RUBYGEMS;
     public final String INTERNAL_ENCODING;
     public final String EXTERNAL_ENCODING;
     public final boolean PLATFORM_SAFE;
@@ -126,7 +126,7 @@ public class Options {
         DEBUG = builder.getOrDefault(OptionsCatalog.DEBUG);
         VERBOSITY = builder.getOrDefault(OptionsCatalog.VERBOSITY);
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
-        DISABLE_GEMS = builder.getOrDefault(OptionsCatalog.DISABLE_GEMS);
+        RUBYGEMS = builder.getOrDefault(OptionsCatalog.RUBYGEMS);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
         PLATFORM_SAFE = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE);
@@ -236,8 +236,8 @@ public class Options {
                 return VERBOSITY;
             case "frozen_string_literals":
                 return FROZEN_STRING_LITERALS;
-            case "disable_gems":
-                return DISABLE_GEMS;
+            case "rubygems":
+                return RUBYGEMS;
             case "internal_encoding":
                 return INTERNAL_ENCODING;
             case "external_encoding":

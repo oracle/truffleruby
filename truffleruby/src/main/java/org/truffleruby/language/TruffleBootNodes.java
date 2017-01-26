@@ -168,7 +168,7 @@ public abstract class TruffleBootNodes {
 
         @Specialization
         public boolean isRubygemsEnabled() {
-            return !getContext().getOptions().DISABLE_GEMS;
+            return getContext().getOptions().RUBYGEMS;
         }
 
     }

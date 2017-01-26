@@ -153,8 +153,8 @@ public class CommandLineParser {
             }
         }
         // Remaining arguments are for the script itself
-        arglist.addAll(Arrays.asList(config.getArgv()));
-        config.setArgv(arglist.toArray(new String[arglist.size()]));
+        arglist.addAll(Arrays.asList(OptionsCatalog.ARGUMENTS.checkValue(config.getOptions().get(OptionsCatalog.ARGUMENTS))));
+        config.getOptions().put(OptionsCatalog.ARGUMENTS.getName(), arglist.toArray(new String[arglist.size()]));
     }
 
     private boolean isInterpreterArgument(String argument) {
@@ -219,8 +219,8 @@ public class CommandLineParser {
                     POSIXFactory.getNativePOSIX(null).chdir(dir);
                     break;
                 case 'd':
-                    config.setDebug(true);
-                    config.setVerbosity(Verbosity.TRUE);
+                    config.getOptions().put(OptionsCatalog.DEBUG.getName(), true);
+                    config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), true);
                     break;
                 case 'e':
                     disallowedInRubyOpts(argument);
@@ -268,20 +268,7 @@ public class CommandLineParser {
                     }
                     break FOR;
                 case 'K':
-                    String eArg = grabValue(getArgumentError("provide a value for -K"));
-
-                    config.setKCode(KCode.create(eArg));
-
-                    // TODO CS 6-Jan-17
-                    //config.setSourceEncoding(config.getKCode().getEncoding().toString());
-
-                    // set external encoding if not already specified
-                    if (config.getExternalEncoding() == null) {
-                        config.setExternalEncoding(config.getKCode().getEncoding().toString());
-                    }
-
-                    break;
-
+                    throw new UnsupportedOperationException();
                 case 'l':
                     disallowedInRubyOpts(argument);
                     throw new UnsupportedOperationException();
@@ -310,27 +297,27 @@ public class CommandLineParser {
                         break FOR;
                     }
                 case 'U':
-                    config.setInternalEncoding("UTF-8");
+                    config.getOptions().put(OptionsCatalog.INTERNAL_ENCODING.getName(), "UTF-8");
                     break;
                 case 'v':
-                    config.setVerbosity(Verbosity.TRUE);
+                    config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), true);
                     config.setShowVersion(true);
                     break;
                 case 'w':
-                    config.setVerbosity(Verbosity.TRUE);
+                    config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), true);
                     break;
                 case 'W':
                     {
                         String temp = grabOptionalValue();
                         if (temp == null) {
-                            config.setVerbosity(Verbosity.TRUE);
+                            config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), true);
                         } else {
                             if (temp.equals("0")) {
-                                config.setVerbosity(Verbosity.NIL);
+                                config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), 0);
                             } else if (temp.equals("1")) {
-                                config.setVerbosity(Verbosity.FALSE);
+                                config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), 1);
                             } else if (temp.equals("2")) {
-                                config.setVerbosity(Verbosity.TRUE);
+                                config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), 2);
                             } else {
                                 MainExitException mee = new MainExitException(1, getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"));
                                 mee.setUsageError(true);
@@ -439,7 +426,7 @@ public class CommandLineParser {
                     } else if (argument.equals("--gemfile")) {
                         throw new UnsupportedOperationException();
                     } else if (argument.equals("--verbose")) {
-                        config.setVerbosity(Verbosity.TRUE);
+                        config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), true);
                         break FOR;
                     } else if (argument.startsWith("--dump=")) {
                         Log.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
@@ -498,9 +485,9 @@ public class CommandLineParser {
             case 3:
                 throw new MainExitException(1, "extra argument for -E: " + encodings.get(2));
             case 2:
-                config.setInternalEncoding(encodings.get(1));
+                config.getOptions().put(OptionsCatalog.INTERNAL_ENCODING.getName(), encodings.get(1));
             case 1:
-                config.setExternalEncoding(encodings.get(0));
+                config.getOptions().put(OptionsCatalog.EXTERNAL_ENCODING.getName(), encodings.get(1));
             // Zero is impossible
         }
     }
@@ -635,19 +622,19 @@ public class CommandLineParser {
         });
         features.put("gem", new BiFunction<CommandLineParser, Boolean, Boolean>() {
             public Boolean apply(CommandLineParser processor, Boolean enable) {
-                processor.config.setDisableGems(!enable);
+                processor.config.getOptions().put(OptionsCatalog.RUBYGEMS.getName(), enable);
                 return true;
             }
         });
         features.put("gems", new BiFunction<CommandLineParser, Boolean, Boolean>() {
             public Boolean apply(CommandLineParser processor, Boolean enable) {
-                processor.config.setDisableGems(!enable);
+                processor.config.getOptions().put(OptionsCatalog.RUBYGEMS.getName(), enable);
                 return true;
             }
         });
         features.put("frozen-string-literal", function2 = new BiFunction<CommandLineParser, Boolean, Boolean>() {
             public Boolean apply(CommandLineParser processor, Boolean enable) {
-                processor.config.setFrozenStringLiteral(enable);
+                processor.config.getOptions().put(OptionsCatalog.FROZEN_STRING_LITERALS.getName(), enable);
                 return true;
             }
         });
