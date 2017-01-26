@@ -9,18 +9,23 @@
  */
 package org.truffleruby.platform.java;
 
+import com.oracle.truffle.api.TruffleOptions;
 import org.truffleruby.platform.ProcessName;
 
 public class JavaProcessName implements ProcessName {
 
     @Override
     public boolean canSet() {
-        return false;
+        return TruffleOptions.AOT;
     }
 
     @Override
     public void set(String name) {
-        throw new UnsupportedOperationException();
+        if (TruffleOptions.AOT) {
+            Compiler.command(new Object[] { "com.oracle.svm.core.JavaMainWrapper.setCRuntimeArgument0(String)boolean", name });
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
 }

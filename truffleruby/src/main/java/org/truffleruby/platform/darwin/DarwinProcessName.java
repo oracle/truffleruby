@@ -39,13 +39,17 @@ public class DarwinProcessName implements ProcessName {
 
     @Override
     public boolean canSet() {
-        return !TruffleOptions.AOT;
+        return true;
     }
 
     @Override
     public void set(String name) {
-        final Pointer programNameAddress = crtExterns._NSGetArgv().getPointer(0).getPointer(0);
-        programNameAddress.putString(0, name, MAX_PROGRAM_NAME_LENGTH, StandardCharsets.UTF_8);
+        if (TruffleOptions.AOT) {
+            Compiler.command(new Object[] { "com.oracle.svm.core.JavaMainWrapper.setCRuntimeArgument0(String)boolean", name });
+        } else {
+            final Pointer programNameAddress = crtExterns._NSGetArgv().getPointer(0).getPointer(0);
+            programNameAddress.putString(0, name, MAX_PROGRAM_NAME_LENGTH, StandardCharsets.UTF_8);
+        }
     }
 
 }
