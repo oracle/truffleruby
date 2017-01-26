@@ -47,8 +47,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final String PLATFORM = "java";
     public static final String RUBY_VERSION = "2.3.1";
-    public static final int    RUBY_REVISION = 54768;
-    public static final String COMPILE_DATE = "2016-12-03";
+    public static final int    RUBY_REVISION = 0;
+    public static final String COMPILE_DATE = "2017";
     // TODO (pitr-ch 11-Jan-2017): use our value when we are recognized by rubygems
     public static final String ENGINE = "ruby";
 
