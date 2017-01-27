@@ -1020,7 +1020,7 @@ module Commands
     end
 
     if args.delete('--aot')
-      if !File.exist?(ENV['AOT_BIN'])
+      if !File.exist?(ENV['AOT_BIN'].to_s)
         raise "AOT_BIN must point at an AOT build of TruffleRuby"
       end
 
