@@ -111,9 +111,9 @@ suite = {
           "Apache-2.0"),
 
         "JNR_FFI": mavenLib(
-          "com.github.jnr:jnr-ffi:2.1.1",
-          "ea33aabb52fa201adcf12cddd2f07260bc11e895",
-          "3243e30dd85d29758901c26d86aea434497cd696",
+          "com.github.jnr:jnr-ffi:2.1.3",
+          "eae1dd4a7454ddbf000bb95f5c1912894221f5e1",
+          "fcd823ddc2d1d17dca8ea63ba680d6c50f388e0b",
           "Apache-2.0"),
 
         "JFFI": mavenLib(
