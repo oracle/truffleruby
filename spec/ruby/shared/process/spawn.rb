@@ -9,21 +9,21 @@ describe :process_spawn_does_not_close_std_streams, shared: true do
       code = "STDOUT.puts STDIN.read(0).inspect"
       cmd = "Process.wait spawn(#{ruby_cmd(code).inspect}, #{@options.inspect})"
       ruby_exe(cmd, args: "> #{@output}")
-      @output.should have_data(%[""#{newline}])
+      File.binread(@output).should == %[""#{newline}]
     end
 
     it "does not close STDOUT" do
       code = "STDOUT.puts 'hello'"
       cmd = "Process.wait spawn(#{ruby_cmd(code).inspect}, #{@options.inspect})"
       ruby_exe(cmd, args: "> #{@output}")
-      @output.should have_data("hello#{newline}")
+      File.binread(@output).should == "hello#{newline}"
     end
 
     it "does not close STDERR" do
       code = "STDERR.puts 'hello'"
       cmd = "Process.wait spawn(#{ruby_cmd(code).inspect}, #{@options.inspect})"
       ruby_exe(cmd, args: "2> #{@output}")
-      @output.should have_data("hello#{newline}")
+      File.binread(@output).should == "hello#{newline}"
     end
   end
 end
@@ -413,12 +413,12 @@ describe :process_spawn, shared: true do
 
   it "redirects STDOUT to the given file if out: String" do
     Process.wait @object.spawn(ruby_cmd(fixture(__FILE__, "print.rb")), out: @name)
-    @name.should have_data("glark")
+    File.read(@name).should == "glark"
   end
 
   it "redirects STDOUT to the given file if out: [String name, String mode]" do
     Process.wait @object.spawn(ruby_cmd(fixture(__FILE__, "print.rb")), out: [@name, 'w'])
-    @name.should have_data("glark")
+    File.read(@name).should == "glark"
   end
 
   it "redirects STDERR to the given file descriptior if err: Fixnum" do
@@ -439,7 +439,7 @@ describe :process_spawn, shared: true do
 
   it "redirects STDERR to the given file if err: String" do
     Process.wait @object.spawn(ruby_cmd("STDERR.print :glark"), err: @name)
-    @name.should have_data("glark")
+    File.read(@name).should == "glark"
   end
 
   it "redirects STDERR to child STDOUT if :err => [:child, :out]" do
@@ -468,12 +468,12 @@ describe :process_spawn, shared: true do
     end
   end
 
-  it "does NOT redirect both STDERR and STDOUT at the time to the given name" do
-    # this behavior is not guaranteed; it may be changed after 1.9.3 or later.  [ruby-dev:41433]
-    touch @name
-    Process.wait @object.spawn(ruby_cmd("print(:glark); STDOUT.flush; STDERR.print(:bang)"),
-                               [:out, :err] => @name)
-    @name.should have_data("")
+  ruby_version_is "2.2" do
+    it "redirects both STDERR and STDOUT at the time to the given name" do
+      touch @name
+      Process.wait @object.spawn(ruby_cmd("print(:glark); STDOUT.flush; STDERR.print(:bang)"), [:out, :err] => @name)
+      File.read(@name).should == "glarkbang"
+    end
   end
 
   context "when passed close_others: true" do

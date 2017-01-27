@@ -451,6 +451,7 @@ module Commands
       jt test                                        run all mri tests, specs and integration tests (set SULONG_HOME)
       jt test tck [--jdebug]                         run the Truffle Compatibility Kit tests
       jt test mri                                    run mri tests
+          --aot           use AOT TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME)
       jt test specs                                  run all specs
       jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
@@ -1016,6 +1017,16 @@ module Commands
     if args.first == 'fast'
       args.shift
       options += %w[--excl-tag slow]
+    end
+
+    if args.delete('--aot')
+      if !File.exist?(ENV['AOT_BIN'])
+        raise "AOT_BIN must point at an AOT build of TruffleRuby"
+      end
+
+      options << '-t' << ENV['AOT_BIN']
+      options << '-T-XX:OldGenerationSize=2G'
+      options << "-T-Xhome=#{JRUBY_DIR}"
     end
 
     if args.delete('--graal')

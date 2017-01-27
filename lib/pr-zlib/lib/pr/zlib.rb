@@ -1270,8 +1270,9 @@ module Zlib
     end
 
     def each_byte()
+      return to_enum(:each_byte) unless block_given?
       while (c = getc)
-        yield(c)
+        yield(c.ord)
       end
       nil
     end
@@ -1292,6 +1293,7 @@ module Zlib
     end
 
     def each(rs=$/)
+      return to_enum(:each, rs) unless block_given?
       while (str = gzreader_gets(rs))
         yield(str)
       end

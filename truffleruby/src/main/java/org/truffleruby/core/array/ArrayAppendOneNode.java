@@ -45,7 +45,8 @@ public abstract class ArrayAppendOneNode extends RubyNode {
         final int newSize = oldSize + 1;
 
         if (extendProfile.profile(newSize > storeMirror.getLength())) {
-            final ArrayMirror newStoreMirror = storeMirror.copyArrayAndMirror(ArrayUtils.capacityForOneMore(getContext(), storeMirror.getLength()));
+            final int capacity = ArrayUtils.capacityForOneMore(getContext(), storeMirror.getLength());
+            final ArrayMirror newStoreMirror = storeMirror.copyArrayAndMirror(capacity);
             newStoreMirror.set(oldSize, value);
             strategy.setStore(array, newStoreMirror.getArray());
             setSize(array, newSize);

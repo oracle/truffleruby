@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
@@ -158,8 +159,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
                 "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",
                 version,
                 RUBY_VERSION,
-                System.getProperty("java.vm.name", "unknown JVM"),
-                System.getProperty("java.runtime.version", System.getProperty("java.version", "unknown runtime version")),
+                TruffleOptions.AOT ? "AOT" : System.getProperty("java.vm.name", "unknown JVM"),
+                TruffleOptions.AOT ? "build" : System.getProperty("java.runtime.version", System.getProperty("java.version", "unknown runtime version")),
                 Graal.isGraal() ? "with Graal" : "without Graal",
                 Platform.getOSName(),
                 Platform.getArchitecture()

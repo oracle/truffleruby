@@ -87,3 +87,5 @@ slow:Kernel#spawn with a command array calls #to_str to convert the first elemen
 slow:Kernel#spawn with a command array calls #to_str to convert the second element to a String
 slow:Kernel#spawn with a command array raises an ArgumentError if the Array does not have exactly two elements
 slow:Kernel#spawn with a command array raises a TypeError if an element in the Array does not respond to #to_str
+slow:Kernel#spawn redirects both STDERR and STDOUT at the time to the given name
+fails:Kernel#spawn redirects both STDERR and STDOUT at the time to the given name

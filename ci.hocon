@@ -175,6 +175,11 @@ gate-caps: {
   targets: [gate, post-push]
 }
 
+gate-caps-darwin: {
+  capabilities: [darwin, amd64]
+  targets: [gate, post-push]
+}
+
 gate-caps-solaris: {
   capabilities: [solaris, sparcv9]
   targets: [gate, post-push]

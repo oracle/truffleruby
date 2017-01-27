@@ -39,7 +39,7 @@ class ObjectArrayMirror extends BasicArrayMirror {
 
     @Override
     public ArrayMirror copyArrayAndMirror(int newLength) {
-        return new ObjectArrayMirror(ArrayUtils.copyOf(array, newLength));
+        return new ObjectArrayMirror(ArrayUtils.grow(array, newLength));
     }
 
     @Override

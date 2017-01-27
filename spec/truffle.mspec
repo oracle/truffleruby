@@ -18,7 +18,7 @@ class MSpecScript
 
   set :target, "#{JRUBY_DIR}/bin/truffleruby"
 
-  if ARGV[-2..-1] != %w[-t ruby] # No flags for MRI
+  unless ARGV.include?('-t')  # No flags set if Ruby binary specified via -t. 
     flags = %w[
       -J-ea
       -J-esa
