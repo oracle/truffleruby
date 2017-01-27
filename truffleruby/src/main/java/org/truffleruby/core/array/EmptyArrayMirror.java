@@ -40,16 +40,12 @@ public class EmptyArrayMirror extends BasicArrayMirror {
 
     @Override
     public void copyTo(ArrayMirror destination, int sourceStart, int destinationStart, int count) {
-        if (sourceStart > 0 || count > 0) {
-            throw new IndexOutOfBoundsException();
-        }
+        assert sourceStart == 0 && count == 0;
     }
 
     @Override
     public void copyTo(Object[] destination, int sourceStart, int destinationStart, int count) {
-        if (sourceStart > 0 || count > 0) {
-            throw new IndexOutOfBoundsException();
-        }
+        assert sourceStart == 0 && count == 0;
     }
 
     @Override
