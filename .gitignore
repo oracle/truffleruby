@@ -48,10 +48,10 @@ jruby-complete.jar
 jruby-findbugs.html
 latest_source_cache
 lib/jni
-lib/jruby*.jar
+lib/*.jar
 lib/native
 lib/ruby/cext/
-lib/ruby/gems
+lib/ruby/gems/shared/gems
 lib/ruby/stdlib/*.jar
 lib/ruby/stdlib/did_you_mean*
 lib/ruby/stdlib/gauntlet_rdoc.rb
@@ -115,6 +115,7 @@ nbproject/private
 # Eclipse files
 /.metadata
 /.recommenders
+/workingsets.xml
 .classpath
 .project
 .settings

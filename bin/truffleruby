@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+
+bin="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+root="$(dirname "$bin")"
+
+set -e
+
+function mtime {
+    uname_str=$(uname)
+    if [ "$uname_str" = 'Linux' ]; then
+        stat -c '%Y' "$1" 2>/dev/null || echo 0
+    elif [ "$uname_str" = 'Darwin' ]; then
+        stat -f '%m' "$1" 2>/dev/null || echo 0
+    else
+        echo "unknown platform $uname_str"
+        exit 1
+    fi
+}
+
+if [ -n "$RUBY_BIN" ]; then
+    exec "$RUBY_BIN" "$@"
+fi
+
+mx_jar="$root/mxbuild/dists/ruby.jar"
+mvn_jar="$root/lib/truffleruby.jar"
+mx_time=$(mtime "$mx_jar")
+mvn_time=$(mtime "$mvn_jar")
+
+if [ -z "$JAVACMD" ]; then
+  if [ -z "$JAVA_HOME" ]; then
+    JAVACMD='java'
+  else
+    JAVACMD="$JAVA_HOME/bin/java"
+  fi
+fi
+
+declare -a java_args
+declare -a ruby_args
+
+print_command=""
+CP=""
+boot_cp_jar="$mvn_jar"
+
+if [ "$mx_time" -gt "$mvn_time" ]; then
+    # This hash is Truffle's JLINE sha1
+    CP="$CP:$HOME/.mx/cache/JLINE_9504d5e2da5d78237239c5226e8200ec21182040.jar"
+    binary_truffle_dist="$root/mx.imports/binary/truffle/mxbuild/dists"
+    source_truffle_dist="$(dirname "$root")/truffle/mxbuild/dists"
+    if [ -f "$binary_truffle_dist/truffle-api.jar" ]; then # Binary Truffle suite
+        boot_cp_jar="$binary_truffle_dist/truffle-api.jar"
+        CP="$CP:$binary_truffle_dist/truffle-debug.jar"
+    elif [ -f "$source_truffle_dist/truffle-api.jar" ]; then # Source Truffle suite
+        boot_cp_jar="$source_truffle_dist/truffle-api.jar"
+        CP="$CP:$source_truffle_dist/truffle-debug.jar"
+    else
+        echo "Could not find Truffle jars"
+        exit 1
+    fi
+    CP="$CP:$mx_jar"
+fi
+
+# Split out any -J argument for passing to the JVM.
+# Scanning for args is aborted by '--'.
+set -- $JRUBY_OPTS "$@"
+while [ $# -gt 0 ]
+do
+    case "$1" in
+    -J*)
+        val=${1:2}
+        if [ "${val:0:1}" = ":" ]; then # -J:
+            val=-${val:1}
+        fi
+        if [ "${val}" = "-classpath" ]; then
+            CP="$CP:$2"
+            shift
+        elif [ "${val}" = "-cp" ]; then
+            CP="$CP:$2"
+            shift
+        elif [ "${val}" = "-cmd" ]; then
+            print_command="true"
+        else
+            java_args=("${java_args[@]}" "$val")
+        fi
+        ;;
+     # Match switches that take an argument
+     -C|-e|-I|-S) ruby_args=("${ruby_args[@]}" "$1" "$2"); shift ;;
+     # Abort processing on the double dash
+     --) break ;;
+     # Other opts go to ruby
+     -*) ruby_args=("${ruby_args[@]}" "$1") ;;
+     # Abort processing on first non-opt arg
+     *) break ;;
+    esac
+    shift
+done
+
+# Append the rest of the arguments
+ruby_args=("${ruby_args[@]}" "$@")
+
+if [ -n "$CP" ]; then
+    # Add classpath to java_args without leading :
+    java_args=("-cp" "${CP:1}" "${java_args[@]}")
+fi
+
+declare -a full_command
+full_command=("$JAVACMD" $JAVA_OPTS "-Xbootclasspath/a:$boot_cp_jar" "${java_args[@]}" org.truffleruby.Main "-Xhome=$root" "-Xlauncher=$root/bin/truffleruby" "${ruby_args[@]}")
+
+if [ -n "$print_command" ]; then
+    echo "${full_command[@]}"
+fi
+
+exec "${full_command[@]}"

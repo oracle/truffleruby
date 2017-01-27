@@ -76,24 +76,31 @@ def extractArguments(cli_args):
     for args in [jruby_opts, cli_args]:
         while args:
             arg = args.pop(0)
-            if arg == '-J-cp' or arg == '-J-classpath':
-                cp = args.pop(0)
-                if cp[:2] == '-J':
-                    cp = cp[2:]
-                classpath.append(cp)
-            elif arg.startswith('-J-'):
-                vmArgs.append(arg[2:])
-            elif arg.startswith('-J:'):
-                vmArgs.append('-' + arg[2:])
+            if arg.startswith('-J') or arg.startswith('-J:'):
+                if arg.startswith('-J-'):
+                    arg = arg[2:]
+                elif arg.startswith('-J:'):
+                    arg = '-' + arg[3:]
+                if arg == '-cmd':
+                    print_command = True
+                elif arg == '-cp' or arg == '-classpath':
+                    cp = args.pop(0)
+                    classpath.append(cp)
+                else:
+                    vmArgs.append(arg)
             elif arg == '--':
                 rubyArgs.append(arg)
                 rubyArgs.extend(args)
                 break
+            elif arg[0] == '-':
+                rubyArgs.append(arg)
             else:
                 rubyArgs.append(arg)
+                rubyArgs.extend(args)
+                break
     return vmArgs, rubyArgs, classpath, print_command
 
-def setup_jruby_home():
+def setup_ruby_home():
     rubyZip = mx.distribution('RUBY-ZIP').path
     assert exists(rubyZip)
     extractPath = join(_suite.dir, 'mxbuild', 'ruby-zip-extracted')
@@ -102,14 +109,14 @@ def setup_jruby_home():
             shutil.rmtree(extractPath)
         with tarfile.open(rubyZip, 'r:') as tf:
             tf.extractall(extractPath)
-    env = os.environ.copy()
-    env['JRUBY_HOME'] = extractPath
-    return env
+    return extractPath
 
 # Print to stderr, mx.log() outputs to stdout
 def log(msg):
     print >> sys.stderr, msg
 
+# This launcher runs similarly to GraalVM,
+# with a home only containing files extracted from RUBY-ZIP.
 def ruby_command(args):
     """runs Ruby"""
     java_home = os.getenv('JAVA_HOME', '/usr')
@@ -128,21 +135,23 @@ def ruby_command(args):
         '-cp', ':'.join(classpath),
         'org.truffleruby.Main'
     ]
+    ruby_home = setup_ruby_home()
+    rubyArgs = [
+        '-Xhome=' + ruby_home,
+        '-Xlauncher=' + join(_suite.dir, 'bin', 'truffleruby')
+    ] + rubyArgs
     allArgs = vmArgs + rubyArgs
-
-    env = setup_jruby_home()
 
     if print_command:
         if mx.get_opts().verbose:
             log('Environment variables:')
+            env = os.environ
             for key in sorted(env.keys()):
                 log(key + '=' + env[key])
         log(java + ' ' + ' '.join(map(pipes.quote, allArgs)))
-    return os.execve(java, [argv0] + allArgs, env)
+    return os.execv(java, [argv0] + allArgs)
 
 def ruby_tck(args):
-    env = setup_jruby_home()
-    os.environ["JRUBY_HOME"] = env["JRUBY_HOME"]
     mx_unittest.unittest(['--verbose', '--suite', 'jruby'])
 
 mx.update_commands(_suite, {

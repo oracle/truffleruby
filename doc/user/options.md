@@ -3,7 +3,7 @@
 TruffleRuby has the same command line interface as MRI 2.3.3.
 
 ```
-Usage: ruby [switches] [--] [programfile] [arguments]
+Usage: truffleruby [switches] [--] [programfile] [arguments]
   -0[octal]       specify record separator (\0, if no argument)
   -a              autosplit mode with -n or -p (splits $_ into $F)
   -c              check syntax only
@@ -43,26 +43,39 @@ Features:
 
 TruffleRuby also reads the `RUBYOPT` environment variable.
 
+## Unlisted Ruby switches
+
+MRI has some extra Ruby switches which are aren't normally listed.
+
+```
+  -U              set the internal encoding to UTF-8
+  -KEeSsUuNnAa    sets the source and external encoding
+  -y, --ydebug    debug the parser
+  -Xdirectory     the same as -Cdirectory
+  --dump=insns    print disassembled instructions
+```
+
 ## TruffleRuby-specific switches
 
 Beyond the standard Ruby command line switches we support some additional
 switches specific to TruffleRuby.
 
 ```
-TruffleRuby:
+TruffleRuby switches:
   -Xlog=severe,warning,performance,info,config,fine,finer,finest
                   set the TruffleRuby logging level
   -Xoptions       print available TrufleRuby options
   -Xname=value    set a TruffleRuby option (omit value to set to true)
 ```
 
-TruffleRuby options can be set like this at the command line or using JVM system
-properties (prefix the name with `org.truffleruby`, such as
-`org.truffleruby.inline_js=true`) either with a `-J` switch, in `JAVA_OPTS` or
-set by any other JVM mechanism for setting system properties.
+As well as being set at the command line, options can be set as JVM system
+properties, where they have a prefix `truffleruby.`. For example
+`-J-Dtruffleruby.inline_js=true`, or via any other way of setting JVM system
+properties. Finally, options can be set as `PolyglotEngine` configuration
+options.
 
-TruffleRuby options set on the command line (or set in `PolyglotEngine` when
-TruffleRuby is embedded) take priority over those set in system properties.
+The priority for options is the command line first, `PolyglotEngine`, then JVM
+system properties last (so the command line overrides system properties).
 
 The logging level is not a TruffleRuby option like the others and so cannot be
 set with a JVM system property. This is because the logger is once per VM,
@@ -72,27 +85,38 @@ loading the TruffleRuby instance before options are loaded.
 TruffleRuby-specific options, as well as conventional Ruby options, can also
 bet set in the `TRUFFLERUBYOPT` environment variable.
 
-## JVM- and SVM-specific arguments
+`--` or the first non-option argument both stop processing of Truffle-specific
+arguments in the same was it stops processing of Ruby arguments.
+
+## JVM- and SVM-specific switches
 
 If you are running TruffleRuby on a JVM or the GraalVM, we additionally support
 passing options to the JVM using either a `-J-` or `-J:` prefix. For example
-`-J-ea` or `-J:ea`.
+`-J-ea` or `-J:ea`. `-J-classpath` and `-J-cp` (or the `-J:` variants) also
+implicitly take the following argument to be passed to the JVM. `-J-cmd` or
+`-J:cmd` print the Java command that will be executed, for debugging.
 
 ```
-JVM:
+JVM switches:
   -J-arg, -J:arg   pass arg to the JVM
 ```
 
-TruffleRuby also supports the `JAVA_HOME`, `JAVACMD` and `JAVA_OPTS` environment
-variables when running on a JVM using the `truffleruby` launcher script.
+`--` or the first non-option argument both stop processing of JVM-specific
+arguments in the same was it stops processing of Ruby arguments.
 
-The SVM supports `-D` for setting system properties and `-XX:arg` for SVM
-options.
+TruffleRuby also supports the `JAVA_HOME`, `JAVACMD` and `JAVA_OPTS` environment
+variables when running on a JVM, except for the GraalVM.
 
 For backwards compatibility, TruffleRuby temporarily also supports `JRUBY_OPTS`.
 
+## SVM-specific switches
+
+The SVM supports `-D` for setting system properties and `-XX:arg` for SVM
+options. Unlike with the standard Ruby command-line, these options are always
+taken by the SVM, wherever they appear in the arguments (such as after a `--`).
+
 ```
-SVM:
+SVM switches:
   -Dname=value     set a system property
   -XX:arg          pass arg to the SVM
 ```

@@ -60,11 +60,17 @@ soon.
 
 https://youtu.be/FJY96_6Y3a4?t=10023
 
-#### Running on a standard JVM
+#### Can TruffleRuby run on a standard JVM?
 
 It is possible to run today on an unmodified JDK 9 EA build, but at the moment
 this requires building Graal yourself and we don't recommend end-users try it.
 It will be supported when Java 9 is released.
+
+#### How do I install gems?
+
+TruffleRuby cannot install gems out of the box yet, however there are 
+[temporary workarounds](https://github.com/graalvm/truffleruby/tree/truffle-head/doc/user/installing-gems.md) 
+which can be used to get it working. 
 
 ## Getting Started
 

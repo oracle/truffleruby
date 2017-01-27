@@ -65,6 +65,15 @@ so, but this isn't always the case. For example `RubyVM` is not available.
 The range of `Fixnum` is slightly larger than it is in MRI. This won't be an
 issue when we support Ruby 2.4, as `Integer` is unified there.
 
+#### Command line switches
+
+`-y`, `--yydebug`, `--dump=` are ignored with a warning as they are internal
+development tools.
+
+`-X` is an undocumented synonym for `-C` and we (and other alternative
+implementations of Ruby) have repurposed it for extended options. We warn if
+your `-X` options looks like it was actually intended to be as in MRI.
+
 ## Features with very low performance
 
 #### Keyword arguments

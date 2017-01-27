@@ -99,9 +99,9 @@ suite = {
           "BSD-new"),
 
         "JNR_POSIX": mavenLib(
-          "com.github.jnr:jnr-posix:3.0.33",
-          "86dd65d4c33c4a6c8c260ee256bfcfecd8c45bee",
-          "79b1c4d62dd5ffd138d0771111fec86afb1d19b5",
+          "com.github.jnr:jnr-posix:3.0.34",
+          "65744f1fc0b4520472f566b2a6e5f464246147d3",
+          "673fb5780296a6328dcc014e734ee7be254b3020",
           "EPL-1.0"),
 
         "JNR_CONSTANTS": mavenLib(
@@ -153,7 +153,7 @@ suite = {
         # ------------- Projects -------------
 
         "jruby-truffle": {
-            "dir": "truffle/src/main",
+            "dir": "truffleruby/src/main",
             "sourceDirs": [ "java" ],
             "dependencies": [
                 "truffle:TRUFFLE_API",
@@ -178,13 +178,13 @@ suite = {
 
         "jruby-truffle-ruby": {
             "class": "ArchiveProject",
-            "outputDir": "truffle/src/main/ruby",
+            "outputDir": "truffleruby/src/main/ruby",
             "prefix": "jruby-truffle",
             "license": [ "EPL-1.0", "BSD-new" ],
         },
 
         "jruby-truffle-test": {
-            "dir": "truffle/src/test",
+            "dir": "truffleruby/src/test",
             "sourceDirs": ["java"],
             "dependencies": [
                 "jruby-truffle",
@@ -198,15 +198,15 @@ suite = {
 
         "jruby-truffle-ruby-test": {
             "class": "ArchiveProject",
-            "outputDir": "truffle/src/test/ruby",
+            "outputDir": "truffleruby/src/test/ruby",
             "prefix": "src/test/ruby",
             "license": "EPL-1.0",
         },
 
         "jruby-lib-ruby": {
             "class": "ArchiveProject",
-            "outputDir": "lib/ruby",
-            "prefix": "lib/ruby",
+            "outputDir": "lib",
+            "prefix": "lib",
             "license": [ "EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib" ],
         },
 

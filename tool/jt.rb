@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-# Copyright (c) 2015, 2016 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved.
 # This code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -20,8 +20,6 @@ require 'json'
 require 'timeout'
 require 'yaml'
 require 'open3'
-
-GRAALVM_VERSION = '0.19' # also change ci.hocon
 
 JRUBY_DIR = File.expand_path('../..', __FILE__)
 M2_REPO = File.expand_path('~/.m2/repository')
@@ -151,7 +149,7 @@ module Utilities
 
   def self.mx?
     mx_jar = "#{JRUBY_DIR}/mxbuild/dists/ruby.jar"
-    mvn_jar = "#{JRUBY_DIR}/lib/jruby-truffle.jar"
+    mvn_jar = "#{JRUBY_DIR}/lib/truffleruby.jar"
     mx_time = File.exist?(mx_jar) ? File.mtime(mx_jar) : Time.at(0)
     mvn_time = File.exist?(mvn_jar) ? File.mtime(mvn_jar) : Time.at(0)
     mx_time > mvn_time
@@ -165,18 +163,16 @@ module Utilities
       if version.start_with?("2.")
         "ruby"
       else
-        find_jruby
+        find_launcher
       end
     end
   end
 
-  def self.find_jruby
+  def self.find_launcher
     if ENV['RUBY_BIN']
       ENV['RUBY_BIN']
-    elsif mx?
-      "#{JRUBY_DIR}/tool/jruby_mx"
     else
-      "#{JRUBY_DIR}/bin/jruby"
+      "#{JRUBY_DIR}/bin/truffleruby"
     end
   end
 
@@ -371,7 +367,7 @@ module ShellUtils
 
     args = ['-q', *args] unless VERBOSE
 
-    sh *options, './mvnw', *args
+    sh *options, 'mvn', *args
   end
 
   def mx(dir, *args)
@@ -410,11 +406,7 @@ module ShellUtils
       command, *args = args
     end
 
-    if Utilities.mx?
-      args.unshift "-ttool/jruby_mx"
-    end
-
-    sh env_vars, Utilities.find_ruby, 'spec/mspec/bin/mspec', command, '--config', 'spec/truffle/truffle.mspec', *args
+    sh env_vars, Utilities.find_ruby, 'spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec', *args
   end
 
   def newer?(input, output)
@@ -432,7 +424,6 @@ module Commands
       jt bootstrap [options]                         run the build system\'s bootstrap phase
       jt build [options]                             build
       jt rebuild [options]                           clean and build
-          truffle                                    build only the Truffle part, assumes the rest is up-to-date
           cexts [--no-openssl]                       build the cext backend (set SULONG_HOME)
           parser                                     build the parser
           options                                    build the options
@@ -498,7 +489,7 @@ module Commands
 
       recognised environment variables:
 
-        RUBY_BIN                                     The JRuby+Truffle executable to use (normally just bin/jruby)
+        RUBY_BIN                                     The JRuby+Truffle executable to use (normally just bin/truffleruby)
         GRAALVM_BIN                                  GraalVM executable (java command)
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled (so JDK 9 EA build) java command (aslo set JVMCI_GRAAL_HOME)
@@ -525,22 +516,20 @@ module Commands
     project = options.first
     env = VERBOSE ? {} : {'JRUBY_BUILD_MORE_QUIET' => 'true'}
     case project
-    when 'truffle'
-      mvn env, '-pl', 'truffle', 'package'
     when 'cexts'
       no_openssl = options.delete('--no-openssl')
       build_ruby_su
       unless no_openssl
-        cextc "#{JRUBY_DIR}/truffle/src/main/c/openssl"
+        cextc "#{JRUBY_DIR}/truffleruby/src/main/c/openssl"
       end
     when 'parser'
       jay = Utilities.find_repo('jay')
       ENV['PATH'] = "#{jay}/src:#{ENV['PATH']}"
-      sh 'sh', 'tool/truffle/generate_parser'
-      yytables = 'truffle/src/main/java/org/jruby/truffle/parser/parser/YyTables.java'
+      sh 'sh', 'tool/generate_parser'
+      yytables = 'truffleruby/src/main/java/org/jruby/truffle/parser/parser/YyTables.java'
       File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.truffleruby.parser.parser;'))
     when 'options'
-      sh 'tool/truffle/generate-options.rb'
+      sh 'tool/generate-options.rb'
     when nil
       mvn env, 'package'
     else
@@ -578,7 +567,7 @@ module Commands
     end
 
     unless args.delete('--no-core-load-path')
-      jruby_args << "-Xcore.load_path=#{JRUBY_DIR}/truffle/src/main/ruby"
+      jruby_args << "-Xcore.load_path=#{JRUBY_DIR}/truffleruby/src/main/ruby"
     end
 
     if args.delete('--graal')
@@ -659,7 +648,7 @@ module Commands
       options[:use_exec] = true
     end
 
-    raw_sh env_vars, Utilities.find_jruby, *jruby_args, *args, options
+    raw_sh env_vars, Utilities.find_launcher, *jruby_args, *args, options
   end
 
   # Same as #run but uses exec()
@@ -683,10 +672,10 @@ module Commands
     abort "You need to set SULONG_HOME" unless SULONG_HOME
 
     # Ensure ruby.su is up-to-date
-    ruby_cext_api = "#{JRUBY_DIR}/truffle/src/main/c/cext"
-    ruby_c = "#{JRUBY_DIR}/truffle/src/main/c/cext/ruby.c"
-    ruby_h = "#{JRUBY_DIR}/lib/ruby/truffle/cext/ruby.h"
-    ruby_su = "#{JRUBY_DIR}/lib/ruby/truffle/cext/ruby.su"
+    ruby_cext_api = "#{JRUBY_DIR}/truffleruby/src/main/c/cext"
+    ruby_c = "#{JRUBY_DIR}/truffleruby/src/main/c/cext/ruby.c"
+    ruby_h = "#{JRUBY_DIR}/lib/cext/ruby.h"
+    ruby_su = "#{JRUBY_DIR}/lib/cext/ruby.su"
     if cext_dir != ruby_cext_api and (newer?(ruby_h, ruby_su) or newer?(ruby_c, ruby_su))
       puts "Compiling outdated ruby.su"
       cextc ruby_cext_api
@@ -697,14 +686,14 @@ module Commands
   def cextc(cext_dir, test_gem=false, *clang_opts)
     build_ruby_su(cext_dir)
 
-    is_ruby = cext_dir == "#{JRUBY_DIR}/truffle/src/main/c/cext"
+    is_ruby = cext_dir == "#{JRUBY_DIR}/truffleruby/src/main/c/cext"
     gem_name = if is_ruby
                  "ruby"
                else
                  File.basename(cext_dir)
                end
 
-    gem_dir = if cext_dir.start_with?("#{JRUBY_DIR}/truffle/src/main/c")
+    gem_dir = if cext_dir.start_with?("#{JRUBY_DIR}/truffleruby/src/main/c")
                 cext_dir
               elsif test_gem
                 "#{JRUBY_DIR}/test/truffle/cexts/#{gem_name}/ext/#{gem_name}/"
@@ -714,9 +703,9 @@ module Commands
                 cext_dir + "/ext/#{gem_name}/"
               end
     copy_target = if is_ruby
-                    "#{JRUBY_DIR}/lib/ruby/truffle/cext/ruby.su"
-                  elsif cext_dir == "#{JRUBY_DIR}/truffle/src/main/c/openssl"
-                    "#{JRUBY_DIR}/truffle/src/main/c/openssl/openssl.su"
+                    "#{JRUBY_DIR}/lib/cext/ruby.su"
+                  elsif cext_dir == "#{JRUBY_DIR}/truffleruby/src/main/c/openssl"
+                    "#{JRUBY_DIR}/truffleruby/src/main/c/openssl/openssl.su"
                   else
                     "#{JRUBY_DIR}/test/truffle/cexts/#{gem_name}/lib/#{gem_name}/#{gem_name}.su"
                   end
@@ -770,7 +759,7 @@ module Commands
     env_vars = {
       "EXCLUDES" => "test/mri/excludes_truffle"
     }
-    jruby_args = %w[-J-Xmx2G --jexceptions]
+    jruby_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
 
     if args.count { |arg| !arg.start_with?('-') } == 0
       args += File.readlines("#{JRUBY_DIR}/test/mri_truffle.index").grep(/^[^#]\w+/).map(&:chomp)
@@ -880,7 +869,7 @@ module Commands
 
   def test_report(component)
     test 'specs', '--truffle-formatter', component
-    sh 'ant', '-f', 'spec/truffle/buildTestReports.xml'
+    sh 'ant', '-f', 'spec/buildTestReports.xml'
   end
   private :test_cexts
 
@@ -1044,7 +1033,7 @@ module Commands
     end
 
     if args.delete('--truffle-formatter')
-      options += %w[--format spec/truffle/truffle_formatter.rb]
+      options += %w[--format spec/truffle_formatter.rb]
     end
 
     if ENV['CI']
@@ -1101,7 +1090,7 @@ module Commands
     samples = []
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
-      out, err = run '-Xmetrics.memory_used_on_exit=true', '-J-verbose:gc', *args, {capture: true, no_print_cmd: true}
+      out, err = run '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, {capture: true, no_print_cmd: true}
       samples.push memory_allocated(out+err)
     end
     Utilities.log "\n", nil
@@ -1184,7 +1173,7 @@ module Commands
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now
-      out, err = run '-Xmetrics.time=true', *args, {capture: true, no_print_cmd: true}
+      out, err = run '-J-Dtruffleruby.metrics.time=true', *args, {capture: true, no_print_cmd: true}
       finish = Time.now
       samples.push get_times(err, finish - start)
     end
@@ -1336,20 +1325,13 @@ module Commands
   end
 
   def next(*args)
-    puts `cat spec/truffle/tags/core/**/**.txt | grep 'fails:'`.lines.sample
+    puts `cat spec/tags/core/**/**.txt | grep 'fails:'`.lines.sample
   end
 
   def check_dsl_usage
-    clean
-    # modify pom to add -parameters for javac
-    pom = "#{JRUBY_DIR}/truffle/pom.rb"
-    contents = File.read(pom)
-    contents.sub!(/^(\s+)('-J-Dfile.encoding=UTF-8')(.+\n)(?!\1'-parameters')/) do
-      "#{$1}#{$2},\n#{$1}'-parameters'#{$3}"
-    end
-    File.write pom, contents
-
-    build
+    mx(JRUBY_DIR, 'clean')
+    # We need to build with -parameters to get parameter names
+    mx(JRUBY_DIR, 'build', '-A-parameters')
     run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-e', 'exit')
   end
 
@@ -1371,7 +1353,7 @@ class JT
       send(args.shift)
     when "build"
       command = [args.shift]
-      while ['truffle', 'cexts', 'parser', 'options', '--no-openssl'].include?(args.first)
+      while ['cexts', 'parser', 'options', '--no-openssl'].include?(args.first)
         command << args.shift
       end
       send(*command)
