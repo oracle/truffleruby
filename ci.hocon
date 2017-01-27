@@ -1,12 +1,6 @@
 jt: [ruby, tool/jt.rb]
 
-common: {
-  packages: {
-    git:        ">=1.8.3"
-    mercurial:  ">=3.2.4"
-    ruby:       ">=2.1.0"
-  }
-
+common-base: {
   downloads : {
     JAVA_HOME : {name : oraclejdk, version : "8u60", platformspecific: true}
     MAVEN_HOME : {name : maven, version : "3.3.9"}
@@ -26,6 +20,22 @@ common: {
   ]
 
   timelimit: "01:00:00"
+}
+
+common: ${common-base} {
+  packages: {
+    git:        ">=1.8.3"
+    mercurial:  ">=3.2.4"
+    ruby:       ">=2.1.0"
+  }
+}
+
+common-darwin: ${common-base} {
+  packages: {
+    # Homebrew doesn't support versions.
+    mercurial:  ""
+    ruby:       ""
+  }
 }
 
 no-graal: {
