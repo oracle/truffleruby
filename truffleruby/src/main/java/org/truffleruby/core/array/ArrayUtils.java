@@ -413,6 +413,27 @@ public abstract class ArrayUtils {
         return copy;
     }
 
+    public static int[] grow(int[] array, int newLength) {
+        assert newLength >= array.length;
+        final int[] copy = new int[newLength];
+        System.arraycopy(array, 0, copy, 0, array.length);
+        return copy;
+    }
+
+    public static long[] grow(long[] array, int newLength) {
+        assert newLength >= array.length;
+        final long[] copy = new long[newLength];
+        System.arraycopy(array, 0, copy, 0, array.length);
+        return copy;
+    }
+
+    public static double[] grow(double[] array, int newLength) {
+        assert newLength >= array.length;
+        final double[] copy = new double[newLength];
+        System.arraycopy(array, 0, copy, 0, array.length);
+        return copy;
+    }
+
     public static Object[] grow(Object[] array, int newLength) {
         assert newLength >= array.length;
         final Object[] copy = new Object[newLength];

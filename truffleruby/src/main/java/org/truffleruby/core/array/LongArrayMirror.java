@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import java.util.Arrays;
-
 class LongArrayMirror extends BasicArrayMirror {
 
     private final long[] array;
@@ -45,7 +43,7 @@ class LongArrayMirror extends BasicArrayMirror {
 
     @Override
     public ArrayMirror copyArrayAndMirror(int newLength) {
-        return new LongArrayMirror(Arrays.copyOf(array, newLength));
+        return new LongArrayMirror(ArrayUtils.grow(array, newLength));
     }
 
     @Override
