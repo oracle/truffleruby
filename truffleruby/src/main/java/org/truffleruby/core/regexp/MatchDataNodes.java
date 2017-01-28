@@ -34,6 +34,8 @@ import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringGuards;
+import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodesFactory;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
@@ -44,9 +46,12 @@ import org.truffleruby.language.control.RaiseException;
 
 import java.util.Arrays;
 
+import static org.truffleruby.core.string.StringOperations.rope;
+
 @CoreClass("MatchData")
 public abstract class MatchDataNodes {
 
+    @CompilerDirectives.TruffleBoundary
     public static Object[] getCaptures(DynamicObject matchData) {
         assert RubyGuards.isRubyMatchData(matchData);
         // There should always be at least one value because the entire matched string must be in the values array.
@@ -282,12 +287,19 @@ public abstract class MatchDataNodes {
     @CoreMethod(names = "captures")
     public abstract static class CapturesNode extends CoreMethodArrayArgumentsNode {
 
-        @CompilerDirectives.TruffleBoundary
+        @Child private StringNodes.StringSubstringPrimitiveNode substringNode = StringNodesFactory.StringSubstringPrimitiveNodeFactory.create(null);
+
         @Specialization
-        public DynamicObject toA(DynamicObject matchData) {
+        public DynamicObject toA(VirtualFrame frame, DynamicObject matchData) {
             Object[] objects = getCaptures(matchData);
+            for (int i = 0; i < objects.length; i++) {
+                if (objects[i] != nil()) {
+                    objects[i] = substringNode.execute(frame, (DynamicObject) objects[i], 0, rope((DynamicObject) objects[i]).characterLength());
+                }
+            }
             return createArray(objects, objects.length);
         }
+
     }
 
     @CoreMethod(names = "end", required = 1, lowerFixnum = 1)
