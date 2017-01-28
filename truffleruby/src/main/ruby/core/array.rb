@@ -167,7 +167,7 @@ class Array
       when Bignum
         raise RangeError, "bignum too big to convert into `long'"
       else
-        send(method_name, arg.to_int)
+        send(method_name, Rubinius::Type.rb_num2long(arg))
       end
     else
       start_index = start.to_int

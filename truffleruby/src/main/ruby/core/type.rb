@@ -236,10 +236,17 @@ module Rubinius
         check_long(fval)
         return fval
       elsif object_kind_of?(val, Bignum)
-        raise TypeError, "rb_num2long Bignum conversion not yet implemented"
+        return rb_big2long(val)
       else
-         return rb_num2long(rb_to_int(val))
+        return rb_num2long(rb_to_int(val))
       end
+    end
+
+    def self.rb_big2long(val)
+        if val > Fixnum::MAX || val < Fixnum::MIN
+          raise RangeError, "bignum too big to convert into `long'"
+        end
+        val.to_int
     end
 
     def self.rb_to_int(val)
