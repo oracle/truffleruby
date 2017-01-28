@@ -243,10 +243,7 @@ module Rubinius
     end
 
     def self.rb_big2long(val)
-        if val > Fixnum::MAX || val < Fixnum::MIN
-          raise RangeError, "bignum too big to convert into `long'"
-        end
-        val.to_int
+      raise RangeError, "bignum too big to convert into `long'"
     end
 
     def self.rb_to_int(val)
