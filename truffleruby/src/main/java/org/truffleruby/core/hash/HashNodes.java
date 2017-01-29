@@ -629,11 +629,9 @@ public abstract class HashNodes {
 
     }
 
-    @CoreMethod(names = {"map", "collect"}, needsBlock = true)
+    @CoreMethod(names = {"map", "collect"}, needsBlock = true, enumeratorSize = "size")
     @ImportStatic(HashGuards.class)
     public abstract static class MapNode extends YieldingCoreMethodNode {
-
-        @Child private CallDispatchHeadNode toEnumNode;
 
         @Specialization(guards = "isNullHash(hash)")
         public DynamicObject mapNull(VirtualFrame frame, DynamicObject hash, DynamicObject block) {
@@ -692,18 +690,6 @@ public abstract class HashNodes {
             }
 
             return createArray(arrayBuilderNode.finish(store, length), length);
-        }
-
-
-        @Specialization
-        public Object mapNoBlock(VirtualFrame frame, DynamicObject hash, NotProvided block) {
-            if (toEnumNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEnumNode = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
-            }
-
-            InternalMethod method = RubyArguments.getMethod(frame);
-            return toEnumNode.call(frame, hash, "to_enum", getSymbol(method.getName()));
         }
 
         private Object yieldPair(VirtualFrame frame, DynamicObject block, Object key, Object value) {
