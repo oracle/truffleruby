@@ -174,6 +174,17 @@ public abstract class TruffleBootNodes {
 
     }
 
+    @CoreMethod(names = "did_you_mean_enabled?", onSingleton = true)
+    public abstract static class DidYouMeanEnabledNode extends CoreMethodNode {
+
+        @Specialization
+        public boolean isDidYouMeanEnabled() {
+            return getContext().getOptions().DID_YOU_MEAN;
+        }
+
+    }
+
+
     @CoreMethod(names = "source_of_caller", isModuleFunction = true)
     public abstract static class SourceOfCallerNode extends CoreMethodArrayArgumentsNode {
 

@@ -27,6 +27,7 @@ public class OptionsCatalog {
     public static final VerbosityOptionDescription VERBOSITY = new VerbosityOptionDescription("verbosity", "Verbosity", Verbosity.FALSE);
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription("frozen_string_literals", "Use frozen string literals", false);
     public static final BooleanOptionDescription RUBYGEMS = new BooleanOptionDescription("rubygems", "Use RubyGems", true);
+    public static final BooleanOptionDescription DID_YOU_MEAN = new BooleanOptionDescription("did_you_mean", "Use did_you_mean", true);
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription("internal_encoding", "Internal encoding", null);
     public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription("external_encoding", "External encoding", null);
     public static final BooleanOptionDescription PLATFORM_SAFE = new BooleanOptionDescription("platform.safe", "Default value for the safety of all operations", true);
@@ -137,6 +138,8 @@ public class OptionsCatalog {
                 return FROZEN_STRING_LITERALS;
             case "rubygems":
                 return RUBYGEMS;
+            case "did_you_mean":
+                return DID_YOU_MEAN;
             case "internal_encoding":
                 return INTERNAL_ENCODING;
             case "external_encoding":
@@ -325,6 +328,7 @@ public class OptionsCatalog {
             VERBOSITY,
             FROZEN_STRING_LITERALS,
             RUBYGEMS,
+            DID_YOU_MEAN,
             INTERNAL_ENCODING,
             EXTERNAL_ENCODING,
             PLATFORM_SAFE,

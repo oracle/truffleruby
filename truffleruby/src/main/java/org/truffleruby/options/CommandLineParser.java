@@ -603,6 +603,12 @@ public class CommandLineParser {
             }
         });
 
+        FEATURES.put("did_you_mean", (processor, enable) ->
+            processor.config.getOptions().put(OptionsCatalog.DID_YOU_MEAN.getName(), enable));
+
+        FEATURES.put("did-you-mean",
+            FEATURES.get("did_you_mean"));
+
         FEATURES.put("gem", (processor, enable) ->
                 processor.config.getOptions().put(OptionsCatalog.RUBYGEMS.getName(), enable));
 
