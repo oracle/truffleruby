@@ -153,7 +153,7 @@ public abstract class ByteArrayNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-        private static final byte[] ZERO_BYTES = new byte[] {(byte)'0'};
+        private static final byte[] ZERO_BYTES = new byte[0];
 
         @TruffleBoundary
         @Specialization
