@@ -42,12 +42,12 @@ public abstract class BooleanCastNode extends RubyNode {
     }
 
     @Specialization
-    public boolean doIntegerFixnum(int value) {
+    public boolean doInt(int value) {
         return true;
     }
 
     @Specialization
-    public boolean doLongFixnum(long value) {
+    public boolean doLong(long value) {
         return true;
     }
 

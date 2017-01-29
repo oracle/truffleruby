@@ -37,17 +37,17 @@ public abstract class ArrayAttributeCastNode extends RubyNode {
     }
 
     @Specialization
-    public int doIntegerFixnum(int value) {
+    public int doInt(int value) {
         return value;
     }
 
     @Specialization(guards = "inBounds(value)")
-    public int doLongFixnum(long value) {
+    public int doLong(long value) {
         return (int) value;
     }
 
     @Specialization(guards = "!inBounds(value)")
-    public int doLongFixnumOutOfBounds(long value) {
+    public int doLongOutOfBounds(long value) {
         throw new RaiseException(coreExceptions().argumentError(formatOutOfRangeErrorMessage(), this));
     }
 

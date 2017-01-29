@@ -30,12 +30,12 @@ public abstract class IntegerCastNode extends RubyNode {
     public abstract int executeInteger(VirtualFrame frame);
 
     @Specialization
-    public int doIntegerFixnum(int value) {
+    public int doInt(int value) {
         return value;
     }
 
     @Specialization(guards = {"value >= MIN_VALUE", "value <= MAX_VALUE"})
-    public int doLongFixnum(long value) {
+    public int doLong(long value) {
         return (int) value;
     }
 
