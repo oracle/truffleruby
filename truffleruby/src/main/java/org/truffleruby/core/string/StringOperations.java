@@ -144,4 +144,14 @@ public abstract class StringOperations {
         }
         return bytes;
     }
+
+    public static boolean isASCIIOnly(String string) {
+        for (int i = 0; i < string.length(); i++) {
+            int c = string.charAt(i);
+            if (!Encoding.isAscii(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

@@ -13,9 +13,12 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
+
 import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
@@ -69,13 +72,13 @@ public class SymbolTable {
                 return symbol;
             }
 
-            for (int i = 0; i < stringKey.length(); i++) {
-                int c = stringKey.charAt(i);
-                assert c >= 0 && c < 128;
+            final Rope rope;
+            if (StringOperations.isASCIIOnly(stringKey)) {
+                rope = StringOperations.encodeRope(stringKey, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+            } else {
+                rope = StringOperations.encodeRope(stringKey, UTF8Encoding.INSTANCE);
             }
-            // TODO (eregon, 8 Nov. 2016): This doesn't sound right,
-            // maybe it should become UTF-8 if it's not 7-bit?
-            final Rope rope = StringOperations.encodeRope(stringKey, USASCIIEncoding.INSTANCE);
+
             symbol = getDeduplicatedSymbol(rope);
 
             stringSymbolMap.put(stringKey, new WeakReference<>(symbol));
