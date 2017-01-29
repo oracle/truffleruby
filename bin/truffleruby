@@ -59,9 +59,6 @@ if [ "$mx_time" -gt "$mvn_time" ]; then
     CP="$CP:$mx_jar"
 fi
 
-# Split out any -J argument for passing to the JVM.
-# Scanning for args is aborted by '--'.
-set -- $JRUBY_OPTS "$@"
 while [ $# -gt 0 ]
 do
     case "$1" in
