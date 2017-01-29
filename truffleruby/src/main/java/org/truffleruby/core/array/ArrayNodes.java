@@ -1426,28 +1426,9 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "delete_if", needsBlock = true, enumeratorSize = "size", raiseIfFrozenSelf = true)
-    @ImportStatic(ArrayGuards.class)
-    public abstract static class DeleteIfNode extends YieldingCoreMethodNode {
-
-        @Specialization
-        public Object deleteIf(VirtualFrame frame, DynamicObject array, DynamicObject block,
-                @Cached("createRejectInPlaceNode()") RejectInPlaceNode rejectInPlaceNode) {
-            rejectInPlaceNode.executeRejectInPlace(frame, array, block);
-            return array;
-        }
-
-        protected RejectInPlaceNode createRejectInPlaceNode() {
-            return RejectInPlaceNodeFactory.create(null);
-        }
-
-    }
-
     @CoreMethod(names = "reject!", needsBlock = true, enumeratorSize = "size", raiseIfFrozenSelf = true)
     @ImportStatic(ArrayGuards.class)
     public abstract static class RejectInPlaceNode extends YieldingCoreMethodNode {
-
-        public abstract Object executeRejectInPlace(VirtualFrame frame, DynamicObject array, DynamicObject block);
 
         @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
         public Object rejectInPlaceOther(VirtualFrame frame, DynamicObject array, DynamicObject block,

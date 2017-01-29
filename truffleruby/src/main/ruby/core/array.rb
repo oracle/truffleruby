@@ -315,6 +315,12 @@ class Array
     nil
   end
 
+  def delete_if(&block)
+    return to_enum(:delete_if) { size } unless block_given?
+    reject!(&block)
+    self
+  end
+
   def dig(idx, *more)
      result = self.at(idx)
      if result.nil? || more.empty?
