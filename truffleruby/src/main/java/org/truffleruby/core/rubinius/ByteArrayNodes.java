@@ -25,6 +25,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.AllocateObjectNode;
 
 @CoreClass("Rubinius::ByteArray")
 public abstract class ByteArrayNodes {
@@ -150,10 +151,14 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "allocate", constructor = true)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+
+        private static final byte[] ZERO_BYTES = new byte[] {(byte)'0'};
+
         @TruffleBoundary
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            throw new RaiseException(coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
+            return allocateObjectNode.allocate(rubyClass, RopeBuilder.createRopeBuilder(ZERO_BYTES));
         }
 
     }
