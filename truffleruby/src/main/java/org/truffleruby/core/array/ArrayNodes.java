@@ -1751,7 +1751,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = {
                 "isRubyArray(other)", "aStrategy.matches(array)", "bStrategy.matches(other)", "others.length == 0"
         }, limit = "ARRAY_STRATEGIES")
-        public DynamicObject zipObjectIntegerFixnum(DynamicObject array, DynamicObject other, Object[] others, NotProvided block,
+        public DynamicObject zipToPairs(DynamicObject array, DynamicObject other, Object[] others, NotProvided block,
                 @Cached("of(array)") ArrayStrategy aStrategy,
                 @Cached("of(other)") ArrayStrategy bStrategy,
                 @Cached("aStrategy.generalizeNew(bStrategy)") ArrayStrategy generalized,
@@ -1778,12 +1778,12 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "isRubyArray(other)", "others.length > 0" })
-        public Object zipObjectObjectNotSingleObject(VirtualFrame frame, DynamicObject array, DynamicObject other, Object[] others, NotProvided block) {
+        public Object zipMany(VirtualFrame frame, DynamicObject array, DynamicObject other, Object[] others, NotProvided block) {
             return zipRuby(frame, array, null);
         }
 
         @Specialization(guards = { "!isRubyArray(other)" })
-        public Object zipObjectObjectNotArray(VirtualFrame frame, DynamicObject array, DynamicObject other, Object[] others, NotProvided block) {
+        public Object zipNotArray(VirtualFrame frame, DynamicObject array, DynamicObject other, Object[] others, NotProvided block) {
             return zipRuby(frame, array, null);
         }
 
