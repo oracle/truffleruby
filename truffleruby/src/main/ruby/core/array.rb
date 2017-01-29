@@ -1180,7 +1180,11 @@ class Array
     out
   end
 
-  def zip_internal(*others)
+  def zip(*others)
+    if !block_given? and others.size == 1 and Array === others[0]
+      return Truffle.invoke_primitive :array_zip, self, others[0]
+    end
+
     out = Array.new(size) { [] }
     others = others.map do |other|
       if other.respond_to?(:to_ary)

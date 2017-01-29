@@ -1743,15 +1743,14 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "zip", rest = true, required = 1, needsBlock = true)
-    public abstract static class ZipNode extends ArrayCoreMethodNode {
-
-        @Child private CallDispatchHeadNode zipInternalCall;
+    @Primitive(name = "array_zip")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class ZipNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = {
-                "isRubyArray(other)", "aStrategy.matches(array)", "bStrategy.matches(other)", "others.length == 0"
+                "isRubyArray(other)", "aStrategy.matches(array)", "bStrategy.matches(other)"
         }, limit = "ARRAY_STRATEGIES")
-        public DynamicObject zipToPairs(DynamicObject array, DynamicObject other, Object[] others, NotProvided block,
+        public DynamicObject zipToPairs(DynamicObject array, DynamicObject other,
                 @Cached("of(array)") ArrayStrategy aStrategy,
                 @Cached("of(other)") ArrayStrategy bStrategy,
                 @Cached("aStrategy.generalizeNew(bStrategy)") ArrayStrategy generalized,
@@ -1775,31 +1774,6 @@ public abstract class ArrayNodes {
             }
 
             return createArray(zipped, zippedLength);
-        }
-
-        @Specialization(guards = { "isRubyArray(other)", "others.length > 0" })
-        public Object zipMany(VirtualFrame frame, DynamicObject array, DynamicObject other, Object[] others, NotProvided block) {
-            return zipRuby(frame, array, null);
-        }
-
-        @Specialization(guards = { "!isRubyArray(other)" })
-        public Object zipNotArray(VirtualFrame frame, DynamicObject array, DynamicObject other, Object[] others, NotProvided block) {
-            return zipRuby(frame, array, null);
-        }
-
-        @Specialization
-        public Object zipBlock(VirtualFrame frame, DynamicObject array, DynamicObject other, Object[] others, DynamicObject block) {
-            return zipRuby(frame, array, block);
-        }
-
-        private Object zipRuby(VirtualFrame frame, DynamicObject array, DynamicObject block) {
-            if (zipInternalCall == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                zipInternalCall = insert(DispatchHeadNodeFactory.createMethodCall());
-            }
-
-            final Object[] others = RubyArguments.getArguments(frame);
-            return zipInternalCall.callWithBlock(frame, array, "zip_internal", block, others);
         }
 
     }
