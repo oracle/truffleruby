@@ -1185,7 +1185,8 @@ class Array
       return Truffle.invoke_primitive :array_zip, self, others[0]
     end
 
-    out = Array.new(size) { [] }
+    out = Array.new(size) unless block_given?
+
     others = others.map do |other|
       if other.respond_to?(:to_ary)
         other.to_ary
@@ -1195,28 +1196,32 @@ class Array
     end
 
     size.times do |i|
-      slot = out.at(i)
-      slot << at(i)
+      tuple = [at(i)]
       others.each do |other|
-        slot << case other
-                when Array
-                  other.at i
-                else
-                  begin
-                    other.next
-                  rescue StopIteration
-                    nil
-                  end
-                end
+        tuple << case other
+        when Array
+          other.at(i)
+        else
+          begin
+            other.next
+          rescue StopIteration
+            nil
+          end
+        end
+      end
+
+      if block_given?
+        yield tuple
+      else
+        out[i] = tuple
       end
     end
 
     if block_given?
-      out.each { |ary| yield ary }
-      return nil
+      nil
+    else
+      out
     end
-
-    out
   end
 
   # Helper to recurse through flattening since the method
