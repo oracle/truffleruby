@@ -234,7 +234,7 @@ module MakeMakefile
   until (dir = File.dirname(path)) == path
     if File.identical?(dir, topdir)
       # $extmk = true if %r"\A(?:ext|enc|tool|test)\z" =~ File.basename(path)
-      $extmk = true if %r"\A(?:ext|enc|tool|test|truffle)\z" =~ File.basename(path) # MODIFED add truffle
+      $extmk = true if %r"\A(?:ext|enc|tool|test|truffleruby)\z" =~ File.basename(path) # MODIFED add truffle
       break
     end
     path = dir
@@ -2603,7 +2603,10 @@ MESSAGE
     RbConfig::CONFIG["topdir"] = curdir
   end
   $configure_args["--topdir"] ||= $curdir
-  $ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
+
+  # Modified for Truffle - RbConfig.ruby provides the correct launcher
+  # $ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
+  $ruby = arg_config("--ruby", RbConfig.ruby)
 
   RbConfig.expand(CONFIG["RUBY_SO_NAME"])
 
