@@ -117,7 +117,6 @@ module Utilities
         vm_args << '-cp'
         vm_args << [nfi_classes, sulong_dependencies, *sulong_jars].join(':')
         vm_args << '-XX:-UseJVMCIClassLoader'
-        vm_args << "-Dsulong.DynamicBitcodeLibraries=#{Dir.glob("#{graal_home}/mxbuild/projects/com.oracle.truffle.llvm.libraries/bin/*.bc").join(':')}"
       end
       options = []
     else
@@ -392,7 +391,7 @@ module ShellUtils
   end
 
   def sulong_run(*args)
-    mx_sulong 'su-run', *args
+    mx_sulong 'su-run', '-Dsulong.LLVM=3.2', *args
   end
 
   def sulong_link(*args)

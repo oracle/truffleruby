@@ -1,6 +1,7 @@
 # TruffleRuby, Sulong and C extensions
 
 TruffleRuby runs C extension using Sulong. You should build Sulong from source.
+Set `SULONG_VERSION=3.2` when building.
 
 https://github.com/graalvm/sulong
 
