@@ -169,10 +169,10 @@ public class Main {
             Object truffleRubyoptObj = System.getenv("TRUFFLERUBYOPT");
             String truffleRubyopt = truffleRubyoptObj == null ? null : truffleRubyoptObj.toString();
 
-            if (truffleRubyopt != null && rubyopt.length() != 0) {
-                String[] rubyoptArgs = truffleRubyopt.split("\\s+");
-                if (rubyoptArgs.length != 0) {
-                    new CommandLineParser(rubyoptArgs, false, true, true, config).processArguments();
+            if (truffleRubyopt != null && truffleRubyopt.length() != 0) {
+                String[] truffleRubyoptArgs = truffleRubyopt.split("\\s+");
+                if (truffleRubyoptArgs.length != 0) {
+                    new CommandLineParser(truffleRubyoptArgs, false, true, false, config).processArguments();
                 }
             }
         }
