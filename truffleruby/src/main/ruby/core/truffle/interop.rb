@@ -65,7 +65,6 @@ module Truffle
     class Foreign
 
     end
-
   end
 
 end
