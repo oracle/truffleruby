@@ -10,7 +10,10 @@
   <version>0-SNAPSHOT</version>
   <properties>
     <maven.test.skip>true</maven.test.skip>
-    <truffle.version>d983383f353a16950f42771d51b6c7586b6de3b6-SNAPSHOT</truffle.version>
+    
+    <!-- Must be the same as in mx.jruby/suite.py (except for the -SNAPSHOT part only in pom.rb, and there we can use a release name) -->
+    <truffle.version>16e66aa3231ee95b9dfe2f0cc8a32cfb63d86025-SNAPSHOT</truffle.version>
+  
   </properties>
   <repositories>
     <repository>

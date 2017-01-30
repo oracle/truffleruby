@@ -223,31 +223,31 @@ export def is_executable_of_foreign(object)
 end
 
 
-export def value_with_source(object)
+export def value_with_source
   -> {}
 end
 
 
-export def meta_objects_int(object)
+export def meta_objects_int
   42
 end
 
-export def meta_objects_int_metaclass(object)
-  Fixnum
+export def meta_objects_int_metaclass
+  Truffle::Interop.to_java_string('Fixnum')
 end
 
-export def meta_objects_str(object)
-  "Hello Meta"
+export def meta_objects_str
+  'Hello Meta'
 end
 
-export def meta_objects_str_metaclass(object)
-  String
+export def meta_objects_str_metaclass
+  Truffle::Interop.to_java_string('String')
 end
 
-export def meta_objects_proc(object)
+export def meta_objects_proc
   -> {}
 end
 
-export def meta_objects_proc_metaclass(object)
-  Proc
+export def meta_objects_proc_metaclass
+  Truffle::Interop.to_java_string('Proc')
 end
