@@ -105,6 +105,7 @@ import org.truffleruby.extra.TruffleGraalNodesFactory;
 import org.truffleruby.extra.TrufflePosixNodesFactory;
 import org.truffleruby.extra.ffi.PointerPrimitiveNodesFactory;
 import org.truffleruby.gem.bcrypt.BCryptNodesFactory;
+import org.truffleruby.interop.java.JavaUtilitiesNodesFactory;
 import org.truffleruby.interop.InteropNodesFactory;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -242,6 +243,7 @@ public class CoreLibrary {
     private final DynamicObject truffleModule;
     private final DynamicObject truffleBootModule;
     private final DynamicObject truffleInteropModule;
+    private final DynamicObject truffleInteropJavaModule;
     private final DynamicObject truffleKernelModule;
     private final DynamicObject bigDecimalClass;
     private final DynamicObject encodingCompatibilityErrorClass;
@@ -574,6 +576,7 @@ public class CoreLibrary {
 
         truffleModule = defineModule("Truffle");
         truffleInteropModule = defineModule(truffleModule, "Interop");
+        truffleInteropJavaModule = defineModule(truffleInteropModule, "Java");
         defineModule(truffleModule, "CExt");
         defineModule(truffleModule, "Debug");
         defineModule(truffleModule, "Digest");
@@ -1481,6 +1484,10 @@ public class CoreLibrary {
         return truffleInteropModule;
     }
 
+    public Object getTruffleInteropJavaModule() {
+        return truffleInteropJavaModule;
+    }
+
     public Object getTruffleKernelModule() {
         return truffleKernelModule;
     }
@@ -1508,6 +1515,7 @@ public class CoreLibrary {
             FiberNodesFactory.getFactories(),
             FixnumNodesFactory.getFactories(),
             FloatNodesFactory.getFactories(),
+            JavaUtilitiesNodesFactory.getFactories(),
             HashNodesFactory.getFactories(),
             IntegerNodesFactory.getFactories(),
             InteropNodesFactory.getFactories(),
