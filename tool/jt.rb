@@ -515,7 +515,6 @@ module Commands
 
   def build(*options)
     project = options.first
-    env = VERBOSE ? {} : {'JRUBY_BUILD_MORE_QUIET' => 'true'}
     case project
     when 'cexts'
       no_openssl = options.delete('--no-openssl')
@@ -532,7 +531,7 @@ module Commands
     when 'options'
       sh 'tool/generate-options.rb'
     when nil
-      mvn env, 'package'
+      mvn 'package'
     else
       raise ArgumentError, project
     end
@@ -1058,8 +1057,7 @@ module Commands
 
   def test_tck(*args)
     raw_sh 'mx', 'rubytck', use_exec: true if Utilities.mx?
-    env = {'JRUBY_BUILD_MORE_QUIET' => 'true'}
-    mvn env, *args, '-Ptck'
+    mvn *args, '-Ptck'
   end
   private :test_tck
 
