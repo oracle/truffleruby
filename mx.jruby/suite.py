@@ -44,8 +44,8 @@ suite = {
         "suites": [
             {
                 "name": "truffle",
-                # Must be the same as in truffle/pom.rb (except for the -SNAPSHOT part only in pom.rb, and there we can use a release name)
-                "version": "16e66aa3231ee95b9dfe2f0cc8a32cfb63d86025",
+                # Must be the same as in truffleruby/pom.xml (except for the -SNAPSHOT part only in pom.xml, and there we can use a release name)
+                "version": "6d434dcbf2e5cebb027276830d249f02f8e254ca",
                 "urls": [
                     {"url": "https://github.com/graalvm/truffle.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
