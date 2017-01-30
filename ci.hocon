@@ -114,11 +114,25 @@ graal-enterprise-no-om: {
 }
 
 sulong: ${labsjdk8} {
-  packages: {
-    llvm: "==3.2"
+  downloads: {
+    LIBGMP: {
+      name: libgmp,
+      version: "6.1.0",
+      platformspecific: true
+    }
+    
+    LLVM: {
+      name: "clang+llvm",
+      version: "3.2",
+      platformspecific: true
+    }
   }
 
   environment: {
+    CPPFLAGS: "-I$LIBGMP/include",
+    LD_LIBRARY_PATH: "$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH",
+    PATH: "$LLVM/bin:$PATH",
+    SULONG_VERSION: "3.2",
     GRAAL_HOME: "$PWD/../sulong",
     SULONG_HOME: "$PWD/../sulong",
     SULONG_NO_LIBRARY: "true",
