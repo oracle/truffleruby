@@ -7,7 +7,7 @@ set -e
 
 function mtime {
     uname_str=$(uname)
-    if [ "$uname_str" = 'Linux' ]; then
+    if [ "$uname_str" = 'Linux' ] || [ "$uname_str" = 'SunOS' ]; then
         stat -c '%Y' "$1" 2>/dev/null || echo 0
     elif [ "$uname_str" = 'Darwin' ]; then
         stat -f '%m' "$1" 2>/dev/null || echo 0
