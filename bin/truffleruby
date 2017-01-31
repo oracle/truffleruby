@@ -12,7 +12,7 @@ function mtime {
     elif [ "$uname_str" = 'Darwin' ]; then
         stat -f '%m' "$1" 2>/dev/null || echo 0
     else
-        echo "unknown platform $uname_str"
+        echo "unknown platform $uname_str" 1>&2
         exit 1
     fi
 }
@@ -53,7 +53,7 @@ if [ "$mx_time" -gt "$mvn_time" ]; then
         boot_cp_jar="$source_truffle_dist/truffle-api.jar"
         CP="$CP:$source_truffle_dist/truffle-debug.jar"
     else
-        echo "Could not find Truffle jars"
+        echo "Could not find Truffle jars" 1>&2
         exit 1
     fi
     CP="$CP:$mx_jar"
