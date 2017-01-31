@@ -382,7 +382,11 @@ public class RubyLexer {
         if (tokline != null && ruby_sourceline == ruby_sourceline_when_tokline_created) {
             return tokline;
         }
+        assert sourceSectionsMatch();
+        return new SourceIndexLength(ruby_sourceline_char_offset, ruby_sourceline_char_length);
+    }
 
+    private boolean sourceSectionsMatch() {
         int line = ruby_sourceline;
 
         if (line == 0) {
@@ -390,16 +394,16 @@ public class RubyLexer {
             line = 1;
         }
 
+        final SourceSection sectionFromOffsets = src.getSource().createSection(ruby_sourceline_char_offset, ruby_sourceline_char_length);
+
         final SourceSection sectionFromLine = src.getSource().createSection(line);
         assert sectionFromLine.getStartLine() == line;
 
-        final SourceSection sectionFromOffsets = src.getSource().createSection(ruby_sourceline_char_offset, ruby_sourceline_char_length);
-        assert sectionFromOffsets.getStartLine() == line : String.format("%d %d %s:%d %d %d", sectionFromOffsets.getStartLine(), line, src.getSource().getPath(), line, ruby_sourceline_char_offset, ruby_sourceline_char_length);
+        assert sectionFromOffsets.getStartLine() == line;
+        assert sectionFromLine.getCharIndex() == sectionFromOffsets.getCharIndex();
+        assert sectionFromLine.getCharLength() == sectionFromOffsets.getCharLength();
 
-        assert sectionFromLine.getCharIndex() == sectionFromOffsets.getCharIndex() : String.format("%d %d %s:%d %d %d", sectionFromLine.getCharIndex(), sectionFromOffsets.getCharIndex(), src.getSource().getPath(), line, ruby_sourceline_char_offset, ruby_sourceline_char_length);
-        assert sectionFromLine.getCharLength() == sectionFromOffsets.getCharLength() : String.format("%d %d %s:%d %d %d", sectionFromLine.getCharLength(), sectionFromOffsets.getCharLength(), src.getSource().getPath(), line, ruby_sourceline_char_offset, ruby_sourceline_char_length);
-
-        return new SourceIndexLength(sectionFromLine.getCharIndex(), sectionFromLine.getCharLength());
+        return true;
     }
 
     private void updateLineOffset() {
