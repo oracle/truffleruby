@@ -267,7 +267,7 @@ public class RubyLexer {
     public void reset() {
         superReset();
         lex_strterm = null;
-        ruby_sourceline = src.getLineStartOffset();
+        ruby_sourceline = 1 + src.getLineStartOffset();
         updateLineOffset();
 
         // nextc will increment for the first character on the first line
@@ -316,7 +316,7 @@ public class RubyLexer {
                 c = '\n';
             } else if (ruby_sourceline > last_cr_line) {
                 last_cr_line = ruby_sourceline;
-                warnings.warn(RubyWarnings.ID.VOID_VALUE_EXPRESSION, getFile(), ruby_sourceline + 1, "encountered \\r in middle of line, treated as a mere space");
+                warnings.warn(RubyWarnings.ID.VOID_VALUE_EXPRESSION, getFile(), ruby_sourceline, "encountered \\r in middle of line, treated as a mere space");
                 c = ' ';
             }
         }
@@ -351,13 +351,13 @@ public class RubyLexer {
     }
 
     public void compile_error(String message) {
-        throw new SyntaxException(SyntaxException.PID.BAD_HEX_NUMBER, getFile(), ruby_sourceline + 1, RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, lexb), message);
+        throw new SyntaxException(SyntaxException.PID.BAD_HEX_NUMBER, getFile(), ruby_sourceline, RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, lexb), message);
     }
 
     // FIXME: How does lexb.toString() vs getCurrentLine() differ.
     public void compile_error(SyntaxException.PID pid, String message) {
         String src = RopeOperations.decodeRope(lex_lastline);
-        throw new SyntaxException(pid, getFile(), ruby_sourceline + 1, src, message);
+        throw new SyntaxException(pid, getFile(), ruby_sourceline, src, message);
     }
 
     public void heredoc_restore(HeredocTerm here) {
@@ -368,7 +368,7 @@ public class RubyLexer {
         lex_p = lex_pbeg + here.nth;
         lexb = line;
         heredoc_end = ruby_sourceline;
-        ruby_sourceline = here.line - 1;
+        ruby_sourceline = here.line;
         updateLineOffset();
         flush();
     }
@@ -383,7 +383,7 @@ public class RubyLexer {
             return tokline;
         }
 
-        int line = ruby_sourceline + 1;
+        int line = ruby_sourceline;
 
         if (line == 0) {
             // Reading the position before nextc has run for the first time
@@ -403,9 +403,9 @@ public class RubyLexer {
     }
 
     private void updateLineOffset() {
-        if (ruby_sourceline != -1) {
-            ruby_sourceline_char_offset = src.getSource().getLineStartOffset(ruby_sourceline + 1);
-            ruby_sourceline_char_length = src.getSource().getLineLength(ruby_sourceline + 1);
+        if (ruby_sourceline != 0) {
+            ruby_sourceline_char_offset = src.getSource().getLineStartOffset(ruby_sourceline);
+            ruby_sourceline_char_length = src.getSource().getLineLength(ruby_sourceline);
         }
     }
 
@@ -720,7 +720,7 @@ public class RubyLexer {
 
         int len = lex_p - lex_pbeg;
         lex_goto_eol();
-        lex_strterm = new HeredocTerm(markerValue, func, len, ruby_sourceline + 1, lex_lastline);
+        lex_strterm = new HeredocTerm(markerValue, func, len, ruby_sourceline, lex_lastline);
 
         if (term == '`') {
             yaccValue = "`";
@@ -2496,7 +2496,7 @@ public class RubyLexer {
     protected int line_count = 0;
     protected int line_offset = 0;
     protected int parenNest = 0;
-    protected int ruby_sourceline = 0;
+    protected int ruby_sourceline = 1;
     protected int ruby_sourceline_char_offset = 0;
     protected int ruby_sourceline_char_length = 0;
     protected LexerSource src;                // Stream of data that yylex() examines.
@@ -2774,8 +2774,8 @@ public class RubyLexer {
         heredoc_line_indent = 0;
         last_cr_line = -1;
         parenNest = 0;
-        ruby_sourceline = 0;
-        // No updateLineOffset becuase it's about to be done anyway in the only caller of this method
+        ruby_sourceline = 1;
+        // No updateLineOffset because it's about to be done anyway in the only caller of this method
         token = 0;
         tokenSeen = false;
         tokp = 0;
