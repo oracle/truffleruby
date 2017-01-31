@@ -267,9 +267,11 @@ public class RubyLexer {
     public void reset() {
         superReset();
         lex_strterm = null;
-        // FIXME: ripper offsets correctly but we need to subtract one?
-        ruby_sourceline = src.getLineStartOffset() - 1;
+        ruby_sourceline = src.getLineStartOffset();
         updateLineOffset();
+
+        // nextc will increment for the first character on the first line
+        ruby_sourceline--;
 
         parser_prepare();
     }
@@ -381,14 +383,21 @@ public class RubyLexer {
             return tokline;
         }
 
-        final SourceSection sectionFromLine = src.getSource().createSection(ruby_sourceline + 1);
-        assert sectionFromLine.getStartLine() == ruby_sourceline + 1;
+        int line = ruby_sourceline + 1;
+
+        if (line == 0) {
+            // Reading the position before nextc has run for the first time
+            line = 1;
+        }
+
+        final SourceSection sectionFromLine = src.getSource().createSection(line);
+        assert sectionFromLine.getStartLine() == line;
 
         final SourceSection sectionFromOffsets = src.getSource().createSection(ruby_sourceline_char_offset, ruby_sourceline_char_length);
-        assert sectionFromOffsets.getStartLine() == ruby_sourceline + 1 : String.format("%d %d %s:%d %d %d", sectionFromOffsets.getStartLine(), ruby_sourceline + 1, src.getSource().getPath(), ruby_sourceline + 1, ruby_sourceline_char_offset, ruby_sourceline_char_length);
+        assert sectionFromOffsets.getStartLine() == line : String.format("%d %d %s:%d %d %d", sectionFromOffsets.getStartLine(), line, src.getSource().getPath(), line, ruby_sourceline_char_offset, ruby_sourceline_char_length);
 
-        assert sectionFromLine.getCharIndex() == sectionFromOffsets.getCharIndex() : String.format("%d %d %s:%d %d %d", sectionFromLine.getCharIndex(), sectionFromOffsets.getCharIndex(), src.getSource().getPath(), ruby_sourceline + 1, ruby_sourceline_char_offset, ruby_sourceline_char_length);
-        assert sectionFromLine.getCharLength() == sectionFromOffsets.getCharLength() : String.format("%d %d %s:%d %d %d", sectionFromLine.getCharLength(), sectionFromOffsets.getCharLength(), src.getSource().getPath(), ruby_sourceline + 1, ruby_sourceline_char_offset, ruby_sourceline_char_length);
+        assert sectionFromLine.getCharIndex() == sectionFromOffsets.getCharIndex() : String.format("%d %d %s:%d %d %d", sectionFromLine.getCharIndex(), sectionFromOffsets.getCharIndex(), src.getSource().getPath(), line, ruby_sourceline_char_offset, ruby_sourceline_char_length);
+        assert sectionFromLine.getCharLength() == sectionFromOffsets.getCharLength() : String.format("%d %d %s:%d %d %d", sectionFromLine.getCharLength(), sectionFromOffsets.getCharLength(), src.getSource().getPath(), line, ruby_sourceline_char_offset, ruby_sourceline_char_length);
 
         return new SourceIndexLength(sectionFromLine.getCharIndex(), sectionFromLine.getCharLength());
     }
