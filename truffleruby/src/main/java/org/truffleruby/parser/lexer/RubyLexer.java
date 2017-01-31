@@ -368,7 +368,7 @@ public class RubyLexer {
         lex_p = lex_pbeg + here.nth;
         lexb = line;
         heredoc_end = ruby_sourceline;
-        ruby_sourceline = here.line;
+        ruby_sourceline = here.line - 1;
         updateLineOffset();
         flush();
     }
@@ -720,7 +720,7 @@ public class RubyLexer {
 
         int len = lex_p - lex_pbeg;
         lex_goto_eol();
-        lex_strterm = new HeredocTerm(markerValue, func, len, ruby_sourceline, lex_lastline);
+        lex_strterm = new HeredocTerm(markerValue, func, len, ruby_sourceline + 1, lex_lastline);
 
         if (term == '`') {
             yaccValue = "`";
