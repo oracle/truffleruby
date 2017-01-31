@@ -316,7 +316,7 @@ public class RubyLexer {
                 c = '\n';
             } else if (ruby_sourceline > last_cr_line) {
                 last_cr_line = ruby_sourceline;
-                warnings.warn(RubyWarnings.ID.VOID_VALUE_EXPRESSION, getFile(), ruby_sourceline, "encountered \\r in middle of line, treated as a mere space");
+                warnings.warn(RubyWarnings.ID.VOID_VALUE_EXPRESSION, getFile(), ruby_sourceline + 1, "encountered \\r in middle of line, treated as a mere space");
                 c = ' ';
             }
         }
