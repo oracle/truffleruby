@@ -294,7 +294,7 @@ public class TranslatorDriver {
                 default:
                     StringBuilder buffer = new StringBuilder(100);
                     buffer.append(e.getFile()).append(':');
-                    buffer.append(e.getLine() + 1).append(": ");
+                    buffer.append(e.getLine()).append(": ");
                     buffer.append(e.getMessage());
 
                     throw new RaiseException(context.getCoreExceptions().syntaxError(buffer.toString(), null));

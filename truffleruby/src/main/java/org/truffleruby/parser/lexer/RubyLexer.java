@@ -351,13 +351,13 @@ public class RubyLexer {
     }
 
     public void compile_error(String message) {
-        throw new SyntaxException(SyntaxException.PID.BAD_HEX_NUMBER, getFile(), ruby_sourceline, RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, lexb), message);
+        throw new SyntaxException(SyntaxException.PID.BAD_HEX_NUMBER, getFile(), ruby_sourceline + 1, RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, lexb), message);
     }
 
     // FIXME: How does lexb.toString() vs getCurrentLine() differ.
     public void compile_error(SyntaxException.PID pid, String message) {
         String src = RopeOperations.decodeRope(lex_lastline);
-        throw new SyntaxException(pid, getFile(), ruby_sourceline, src, message);
+        throw new SyntaxException(pid, getFile(), ruby_sourceline + 1, src, message);
     }
 
     public void heredoc_restore(HeredocTerm here) {
