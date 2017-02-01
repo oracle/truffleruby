@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-exec "$(dirname $0)/jruby" -Sirb "$@"
+exec "$(dirname $0)/truffleruby" -Sirb "$@"
