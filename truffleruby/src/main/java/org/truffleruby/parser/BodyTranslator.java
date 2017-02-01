@@ -1404,10 +1404,8 @@ public class BodyTranslator extends Translator {
         return addNewlineIfNeeded(node, ret);
     }
 
-    protected RubyNode translateMethodDefinition(SourceIndexLength sourceSection, RubyNode classNode, String methodName, ArgsParseNode argsNode, MethodDefParseNode defNode, ParseNode bodyNode,
-                                                 boolean isDefs) {
-        final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
-
+    protected RubyNode translateMethodDefinition(SourceIndexLength sourceSection, RubyNode classNode, String methodName,
+            ArgsParseNode argsNode, MethodDefParseNode defNode, ParseNode bodyNode, boolean isDefs) {
         final Arity arity = MethodTranslator.getArity(argsNode);
         final ArgumentDescriptor[] argumentDescriptors = Helpers.argsNodeToArgumentDescriptors(argsNode);
 
@@ -3157,7 +3155,6 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitTrueNode(TrueParseNode node) {
-        final SourceIndexLength sourceSection = node.getPosition();
         final RubyNode ret = new BooleanLiteralNode(true);
         ret.unsafeSetSourceSection(node.getPosition());
 

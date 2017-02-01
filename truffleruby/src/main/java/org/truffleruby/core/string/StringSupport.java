@@ -149,8 +149,6 @@ public final class StringSupport {
         return -1;
     }
 
-    private static final int LONG_SIZE = 8;
-
     // MRI: rb_enc_strlen
     public static int strLength(Encoding enc, byte[]bytes, int p, int end) {
         return strLength(enc, bytes, p, end, CR_UNKNOWN);

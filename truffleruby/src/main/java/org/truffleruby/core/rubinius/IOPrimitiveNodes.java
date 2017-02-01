@@ -126,8 +126,6 @@ public abstract class IOPrimitiveNodes {
         }
     }
 
-    private static final int STDOUT = 1;
-
     @Primitive(name = "io_allocate", unsafe = UnsafeGroup.IO)
     public static abstract class IOAllocatePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 

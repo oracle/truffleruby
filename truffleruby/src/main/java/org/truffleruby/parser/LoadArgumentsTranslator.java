@@ -272,8 +272,6 @@ public class LoadArgumentsTranslator extends Translator {
 
     @Override
     public RubyNode visitKeywordRestArgNode(KeywordRestArgParseNode node) {
-        final SourceIndexLength sourceSection = node.getPosition();
-
         final RubyNode readNode = new ReadKeywordRestArgumentNode(required, excludedKeywords.toArray(new String[excludedKeywords.size()]));
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findOrAddFrameSlot(node.getName());
 
@@ -352,8 +350,6 @@ public class LoadArgumentsTranslator extends Translator {
 
     @Override
     public RubyNode visitBlockArgNode(BlockArgParseNode node) {
-        final SourceIndexLength sourceSection = node.getPosition();
-
         final RubyNode readNode = new ReadBlockNode(context.getCoreLibrary().getNilObject());
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
         return WriteLocalVariableNode.createWriteLocalVariableNode(context, slot, readNode);

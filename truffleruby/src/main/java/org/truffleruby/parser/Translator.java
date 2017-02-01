@@ -164,7 +164,6 @@ public abstract class Translator extends org.truffleruby.parser.ast.visitor.Abst
 
     public static RubyNode loadSelf(RubyContext context, TranslatorEnvironment environment) {
         final FrameSlot slot = environment.getFrameDescriptor().findOrAddFrameSlot(SelfNode.SELF_IDENTIFIER);
-        SourceIndexLength sourceSection = null;
         return WriteLocalVariableNode.createWriteLocalVariableNode(context, slot, new ProfileArgumentNode(new ReadSelfNode()));
     }
 
