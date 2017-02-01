@@ -27,7 +27,7 @@ public class OptionsBuilder {
             PREFIX + "metrics.time"
     );
 
-    private final Map<OptionDescription, Object> options = new HashMap<>();
+    private final Map<OptionDescription<?>, Object> options = new HashMap<>();
 
     public void set(Properties properties) {
         for (Map.Entry<Object, Object> property : properties.entrySet()) {
@@ -46,7 +46,7 @@ public class OptionsBuilder {
     }
 
     private void set(String name, Object value) {
-        final OptionDescription description = OptionsCatalog.fromName(name);
+        final OptionDescription<?> description = OptionsCatalog.fromName(name);
 
         if (description == null) {
             throw new UnknownOptionException(name);
@@ -59,7 +59,7 @@ public class OptionsBuilder {
         final Options options = new Options(this);
 
         if (options.OPTIONS_LOG && Log.LOGGER.isLoggable(Level.CONFIG)) {
-            for (OptionDescription option : OptionsCatalog.allDescriptions()) {
+            for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
                 Log.LOGGER.config("option " + option.getName() + "=" + option.toString(options.fromDescription(option)));
             }
         }

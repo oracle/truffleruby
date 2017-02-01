@@ -36,7 +36,7 @@ public abstract class OptionDescription<T> {
         return (T) value;
     }
 
-    public String toString(T value) {
+    public String toString(Object value) {
         if (value == null) {
             return "null";
         } else {

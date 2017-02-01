@@ -110,8 +110,8 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
     }
 
     @Override
-    public String toString(String[] value) {
-        return String.join(",", value);
+    public String toString(Object value) {
+        return String.join(",", (String[]) value);
     }
 
 }

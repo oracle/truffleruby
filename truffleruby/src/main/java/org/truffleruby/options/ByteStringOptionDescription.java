@@ -40,11 +40,11 @@ public class ByteStringOptionDescription extends OptionDescription<byte[]> {
     }
 
     @Override
-    public String toString(byte[] value) {
+    public String toString(Object value) {
         if (value == null) {
             return "null";
         } else {
-            return new String(value, Charset.defaultCharset());
+            return new String((byte[]) value, Charset.defaultCharset());
         }
     }
 
