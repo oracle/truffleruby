@@ -40,6 +40,17 @@ import java.io.InputStreamReader;
 @CoreClass("Truffle::Boot")
 public abstract class TruffleBootNodes {
 
+    @CoreMethod(names = "ruby_version", onSingleton = true)
+    public abstract static class RubyVersionNode extends CoreMethodNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject rubyVersion() {
+            return createString(StringOperations.encodeRope(RubyLanguage.RUBY_VERSION, UTF8Encoding.INSTANCE));
+        }
+
+    }
+
     @CoreMethod(names = "ruby_home", onSingleton = true)
     public abstract static class RubyHomeNode extends CoreMethodNode {
 
