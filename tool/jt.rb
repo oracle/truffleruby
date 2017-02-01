@@ -770,17 +770,14 @@ module Commands
   private :test_mri
 
   def test_compiler(*args)
-    jruby_opts = []
-
+    env = {}
+    
+    env['TRUFFLERUBYOPT'] = '-Xexceptions.print_java=true'
+    
     if ENV['GRAAL_JS_JAR']
-      jruby_opts << '-J-cp'
-      jruby_opts << Utilities.find_graal_js
+      env['JAVA_OPTS'] = "-cp #{Utilities.find_graal_js}"
     end
-
-    jruby_opts << '-Xexceptions.print_java=true'
-
-    env = { "JRUBY_OPTS" => jruby_opts.join(' ') }
-
+    
     Dir["#{JRUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
       if args.empty? or args.include?(File.basename(test_script, ".*"))
         sh env, test_script
@@ -882,42 +879,39 @@ module Commands
   end
 
   def test_integration(env={}, *args)
-    env_vars   = env
-    jruby_opts = []
+    env = env.dup
+    
+    classpath = []
 
     if ENV['GRAAL_JS_JAR']
-      jruby_opts << '-J-cp'
-      jruby_opts << Utilities.find_graal_js
+      classpath << Utilities.find_graal_js
     end
 
     if ENV['SL_JAR']
-      jruby_opts << '-J-cp'
-      jruby_opts << Utilities.find_sl
+      classpath << Utilities.find_sl
     end
 
-    env_vars["JRUBY_OPTS"] = jruby_opts.join(' ')
-
+    unless classpath.empty?
+      env['JAVA_OPTS'] = "-cp #{classpath.join(':')}"
+    end
+    
     tests_path             = "#{JRUBY_DIR}/test/truffle/integration"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
       check_test_port
-      sh env_vars, test_script
+      sh env, test_script
     end
   end
   private :test_integration
 
   def test_gems(env={}, *args)
-    env_vars   = env
-    jruby_opts = []
+    env = env.dup
 
     if ENV['GRAAL_JS_JAR']
-      jruby_opts << '-J-cp'
-      jruby_opts << Utilities.find_graal_js
+      env['JAVA_OPTS'] = "-cp #{Utilities.find_graal_js}"
     end
-
-    env_vars["JRUBY_OPTS"] = jruby_opts.join(' ')
 
     tests_path             = "#{JRUBY_DIR}/test/truffle/gems"
     single_test            = !args.empty?
@@ -926,17 +920,12 @@ module Commands
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
       next if test_script.end_with?('/install-gems.sh')
       check_test_port
-      sh env_vars, test_script
+      sh env, test_script
     end
   end
   private :test_gems
 
   def test_ecosystem(env={}, *args)
-    env_vars   = env
-    jruby_opts = []
-
-    env_vars["JRUBY_OPTS"] = jruby_opts.join(' ')
-
     unless File.exist? "#{JRUBY_DIR}/../jruby-truffle-gem-test-pack/gem-testing"
       raise 'missing ../jruby-truffle-gem-test-pack/gem-testing directory'
     end
@@ -946,7 +935,7 @@ module Commands
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     success = Dir["#{tests_path}/#{test_names}.sh"].sort.all? do |test_script|
-      sh env_vars, test_script, continue_on_failure: true
+      sh env, test_script, continue_on_failure: true
     end
     exit success ? 0 : 1
   end

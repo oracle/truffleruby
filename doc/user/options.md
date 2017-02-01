@@ -107,8 +107,6 @@ arguments in the same was it stops processing of Ruby arguments.
 TruffleRuby also supports the `JAVA_HOME`, `JAVACMD` and `JAVA_OPTS` environment
 variables when running on a JVM, except for the GraalVM.
 
-For backwards compatibility, TruffleRuby temporarily also supports `JRUBY_OPTS`.
-
 ## SVM-specific switches
 
 The SVM supports `-D` for setting system properties and `-XX:arg` for SVM

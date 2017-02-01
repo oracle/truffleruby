@@ -80,9 +80,8 @@ to Ruby exceptions. You can leave off the value to set the option to `true`.
 To see all options run `jt ruby -Xoptions`.
 
 You can also set JVM options in the `JAVA_OPTS` environment variable (don't
-prefix with `-J`), or the `JRUBY_OPTS` variable (do prefix with `-J`). Ruby
-command line options and arguments can also be set in `JRUBY_OPTS` or `RUBYOPT`
-if they aren't TruffleRuby-specific.
+prefix with `-J`) variable. Ruby command line options and arguments can also be
+set in `RUBYOPT`.
 
 ## Running with Graal
 

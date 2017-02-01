@@ -109,7 +109,7 @@ graal-enterprise-no-om: {
     GRAAL_HOME: "$PWD/../graal-enterprise/graal-enterprise",
     HOST_VM: server,
     HOST_VM_CONFIG: graal-enterprise-no-om,
-    JRUBY_OPTS: "-J-Dtruffle.object.LayoutFactory=com.oracle.truffle.object.basic.DefaultLayoutFactory"
+    JAVA_OPTS: "-Dtruffle.object.LayoutFactory=com.oracle.truffle.object.basic.DefaultLayoutFactory"
   }
 }
 
@@ -350,7 +350,7 @@ server-benchmarks: {
 
 cext-benchmarks: ${sulong} {
   environment: {
-    JRUBY_OPTS: "-Xcexts.log.load=true",
+    TRUFFLERUBYOPT: "-Xcexts.log.load=true",
     USE_CEXTS: "true"
   }
 
@@ -394,7 +394,7 @@ test-ecosystem: ${gem-test-pack} {
 
 test-cexts: ${sulong} ${gem-test-pack} {
   environment: {
-    JRUBY_OPTS: "-J-Dgraal.TruffleCompileOnly=nothing",
+    JAVA_OPTS: "-Dgraal.TruffleCompileOnly=nothing",
   }
 
   setup: ${sulong.setup} ${gem-test-pack.setup}
@@ -407,7 +407,7 @@ test-cexts: ${sulong} ${gem-test-pack} {
 
 test-compilation-flags: {
   environment: {
-    JRUBY_OPTS: "-J-Dgraal.TraceTruffleCompilation=true -J-Dgraal.TruffleCompilationExceptionsAreFatal=true"
+    JAVA_OPTS: "-Dgraal.TraceTruffleCompilation=true -Dgraal.TruffleCompilationExceptionsAreFatal=true"
   }
 }
 
