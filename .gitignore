@@ -1,62 +1,17 @@
-!.gitignore
-
-*~
-*.tokens
-*.su
-*.ll
-*.bc
-extconf.h
-mkmf.log
-Makefile
-cext-output.txt
-bench-results.json
-bench-results-processed.json
-failures
-
+# OS
 .DS_Store
-.debug.properties
-.redcar
-/.rbx/
-build
-build.properties
-build_graph.png
-dependency-reduced-pom.xml
-dev_null
-dist
-docs/api
-ext/*/pom-*.gemspec.xml
-gems/*/Manifest.txt
-gems/*/lib/*.jar
-gems/*/lib/jruby-jars/version.rb
-gems/*/pkg
-glob_test
-latest_source_cache
-lib/*.jar
-release.properties
-share
-spaces test
-target
-test/pom.xml
-test/prawn
-test/rails
-test/testapp/testapp
-test/truffle/*.methods
-test/truffle/integration/gem-testing
-reference.txt
-rubyspec_temp
-.polyglot.pom.rb
-test/truffle/cexts/**/Makefile
 
-install/updates.xml
+# Editors
+*~
 
-# IntelliJ project files
+# IntelliJ
 .idea
 *.iml
 
-# NetBeans files
+# NetBeans
 nbproject/private
 
-# Eclipse files
+# Eclipse
 /.metadata
 /.recommenders
 /workingsets.xml
@@ -64,18 +19,48 @@ nbproject/private
 .project
 .settings
 .factorypath
-build.eclipse
+
+# C extensions
+lib/cext/ruby.su
+
+truffleruby/src/main/c/**/Makefile
+truffleruby/src/main/c/**/*.bc
+truffleruby/src/main/c/**/*.su
+truffleruby/src/main/c/**/extconf.h
+truffleruby/src/main/c/**/mkmf.log
+
+test/truffle/cexts/**/Makefile
+test/truffle/cexts/**/*.bc
+test/truffle/cexts/**/*.su
+test/truffle/cexts/**/extconf.h
+test/truffle/cexts/**/mkmf.log
+
+# Maven
+lib/*.jar
 
 # mx
-/mx.jruby/*pyc
+/mx.jruby/*.pyc
 /mx.jruby/env
-/mx.jruby/eclipse-launches/
+/mx.jruby/eclipse-launches
 /mxbuild
 /mx.imports
 /RUBY.dist
 /RUBY-TEST.dist
 
-# Truffle findbugs
+# ruby/spec
+/rubyspec_temp
+
+# Tests
+/test/truffle/integration/gem-testing
+
+# Tools: tool/test_methods_parity.rb output
+/tool/*.methods
+
+# Findbugs
 truffle-findbugs-report.html
 findbugs-noUpdateChecks-3.0.0.tar.gz
 findbugs-3.0.0
+
+# Benchmarking
+bench-results.json
+bench-results-processed.json
