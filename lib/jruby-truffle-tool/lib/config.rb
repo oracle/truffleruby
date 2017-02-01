@@ -37,6 +37,14 @@ stubs = {
     RUBY
 
     bcrypt: dedent(<<-RUBY),
+      module BCrypt
+        class Engine  
+          def self.__bc_salt
+          end 
+          def self.__bc_crypt
+          end 
+        end
+      end
       require 'bcrypt'
 
       module BCrypt

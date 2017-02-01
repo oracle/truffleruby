@@ -21,12 +21,12 @@ public abstract class ReinterpretAsLongNode extends FormatNode {
 
     @Specialization
     public long asLong(float object) {
-        return Float.floatToIntBits(object);
+        return Float.floatToRawIntBits(object);
     }
 
     @Specialization
     public long asLong(double object) {
-        return Double.doubleToLongBits(object);
+        return Double.doubleToRawLongBits(object);
     }
 
 }

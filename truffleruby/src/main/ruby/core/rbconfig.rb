@@ -51,6 +51,7 @@ module RbConfig
     'OBJEXT' => 'll',
     'DLEXT' => 'su',
     'includedir' => '',
+    'EXECUTABLE_EXTS' => ''
   }
 
   MAKEFILE_CONFIG = {

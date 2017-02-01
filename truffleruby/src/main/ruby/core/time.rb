@@ -140,6 +140,10 @@ class Time
       now
     elsif utc_offset == nil
       compose(:local, year, month, day, hour, minute, second)
+    elsif utc_offset == :std
+      compose(:local, second, minute, hour, day, month, year, nil, nil, false, nil)
+    elsif utc_offset == :dst
+      compose(:local, second, minute, hour, day, month, year, nil, nil, true, nil)
     else
       compose(Rubinius::Type.coerce_to_utc_offset(utc_offset), year, month, day, hour, minute, second)
     end
@@ -420,7 +424,9 @@ class Time
   def zone
     zone = to_a[9]
 
-    if zone && Encoding.default_internal
+    if zone && zone.ascii_only?
+      zone.encode Encoding::US_ASCII
+    elsif zone && Encoding.default_internal
       zone.encode Encoding.default_internal
     else
       zone
