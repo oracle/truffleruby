@@ -47,5 +47,5 @@ services:
 
 branches:
   only:
-    - truffle-head
+    - master
     - /^try/
