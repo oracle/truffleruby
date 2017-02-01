@@ -288,7 +288,7 @@ public abstract class RandomizerPrimitiveNodes {
             } catch (NoSuchAlgorithmException e) {
                 throw new UnsupportedOperationException(e);
             }
-        };
+        }
 
         @TruffleBoundary
         @Specialization
