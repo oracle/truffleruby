@@ -149,6 +149,10 @@ class Random
   def self.new_seed
     Thread.current.randomizer.generate_seed
   end
+  
+  def self.raw_seed(size)
+    self.new.bytes(size)
+  end
 
   def self.srand(seed=undefined)
     if undefined.equal? seed
