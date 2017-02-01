@@ -25,6 +25,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.collections.Memo;
+import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.loader.CodeLoader;
@@ -126,7 +127,7 @@ public abstract class TruffleBootNodes {
             final Object[] array = new Object[argv.length];
 
             for (int n = 0; n < array.length; n++) {
-                array[n] = StringOperations.createString(getContext(), StringOperations.encodeRope(argv[n], UTF8Encoding.INSTANCE));
+                array[n] = StringOperations.createString(getContext(), StringOperations.encodeRope(argv[n], getContext().getEncodingManager().getDefaultExternalEncoding()));
             }
 
             return createArray(array, array.length);
