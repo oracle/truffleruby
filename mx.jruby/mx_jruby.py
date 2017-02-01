@@ -6,37 +6,16 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-import sys
-import os
-import pipes
-import shutil
-import tarfile
 import glob
-from os.path import join, exists, isdir
+from os.path import join
 
 import mx
 import mx_unittest
 
-TimeStampFile = mx.TimeStampFile
-
 _suite = mx.suite('jruby')
+rubyDists = ['RUBY', 'RUBY-TEST']
 
-rubyDists = [
-    'RUBY',
-    'RUBY-TEST'
-]
-
-def deploy_binary_if_truffle_head(args):
-    """If the active branch is 'truffle-head', deploy binaries for the primary suite to remote maven repository."""
-    primary_branch = 'truffle-head'
-    active_branch = mx.VC.get_vc(_suite.dir).active_branch(_suite.dir)
-    if active_branch == primary_branch:
-        return mx.command_function('deploy-binary')(args)
-    else:
-        mx.log('The active branch is "%s". Binaries are deployed only if the active branch is "%s".' % (active_branch, primary_branch))
-        return 0
-
-# Project and BuildTask classes
+# Project classes
 
 class ArchiveProject(mx.ArchivableProject):
     def __init__(self, suite, name, deps, workingSets, theLicense, **args):
@@ -65,6 +44,16 @@ class TruffleRubyDocsProject(ArchiveProject):
 
 def ruby_tck(args):
     mx_unittest.unittest(['--verbose', '--suite', 'jruby'])
+
+def deploy_binary_if_truffle_head(args):
+    """If the active branch is 'truffle-head', deploy binaries for the primary suite to remote maven repository."""
+    primary_branch = 'truffle-head'
+    active_branch = mx.VC.get_vc(_suite.dir).active_branch(_suite.dir)
+    if active_branch == primary_branch:
+        return mx.command_function('deploy-binary')(args)
+    else:
+        mx.log('The active branch is "%s". Binaries are deployed only if the active branch is "%s".' % (active_branch, primary_branch))
+        return 0
 
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],
