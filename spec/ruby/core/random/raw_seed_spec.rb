@@ -10,6 +10,12 @@ describe "Random.raw_seed" do
     Random.raw_seed(15).length.should == 15
   end
 
+  it "raises an ArgumentError on a negative size" do
+    lambda {
+      Random.raw_seed(-1)
+    }.should raise_error(ArgumentError)
+  end
+
   it "returns an ASCII-8BIT String" do
     Random.raw_seed(15).encoding.should == Encoding::ASCII_8BIT
   end
