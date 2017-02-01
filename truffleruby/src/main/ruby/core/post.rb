@@ -52,10 +52,6 @@ $LOAD_PATH.push *Truffle::Boot.original_load_path
 ruby_home = Truffle::Boot.ruby_home
 
 if ruby_home
-  # Does not exist but it's used by rubygems to determine index where to insert gem lib directories, as a result
-  # paths supplied by -I will stay before gem lib directories.
-  $LOAD_PATH.push "#{ruby_home}/lib/2.3/site_ruby"
-  
   $LOAD_PATH.push "#{ruby_home}/lib/mri"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-strscan/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-stringio/lib"
