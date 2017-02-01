@@ -47,7 +47,7 @@ module RbConfig
     'host_cpu' => host_cpu,
     'ruby_install_name' => ruby_install_name,
     'RUBY_INSTALL_NAME' => ruby_install_name,
-    'ruby_version' => '2.2.0',
+    'ruby_version' => Truffle::Boot.ruby_version,
     'OBJEXT' => 'll',
     'DLEXT' => 'su',
     'includedir' => '',
