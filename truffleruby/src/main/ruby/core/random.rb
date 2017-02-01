@@ -151,6 +151,7 @@ class Random
   end
   
   def self.raw_seed(size)
+    raise ArgumentError, 'negative string size (or size too big)' if size < 0
     self.new.bytes(size)
   end
 
