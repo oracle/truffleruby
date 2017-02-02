@@ -78,6 +78,7 @@ import org.truffleruby.core.queue.SizedQueueNodesFactory;
 import org.truffleruby.core.range.RangeNodesFactory;
 import org.truffleruby.core.regexp.MatchDataNodesFactory;
 import org.truffleruby.core.regexp.RegexpNodesFactory;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.TruffleRopesNodesFactory;
 import org.truffleruby.core.rubinius.AtomicReferenceNodesFactory;
 import org.truffleruby.core.rubinius.ByteArrayNodesFactory;
@@ -215,6 +216,7 @@ public class CoreLibrary {
     private final DynamicObject standardErrorClass;
     private final DynamicObject stringClass;
     private final DynamicObjectFactory stringFactory;
+    private final DynamicObjectFactory frozenStringFactory;
     private final DynamicObject symbolClass;
     private final DynamicObjectFactory symbolFactory;
     private final DynamicObject syntaxErrorClass;
@@ -521,6 +523,7 @@ public class CoreLibrary {
         stringClass = defineClass("String");
         stringFactory = Layouts.STRING.createStringShape(stringClass, stringClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(stringClass, stringFactory);
+        frozenStringFactory = alwaysFrozen(stringFactory);
         symbolClass = defineClass("Symbol");
         symbolFactory = alwaysFrozen(Layouts.SYMBOL.createSymbolShape(symbolClass, symbolClass));
         Layouts.CLASS.setInstanceFactoryUnsafe(symbolClass, symbolFactory);
@@ -853,9 +856,8 @@ public class CoreLibrary {
     }
 
     private DynamicObject frozenUSASCIIString(String string) {
-        DynamicObject rubyString = StringOperations.createString(context, StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE));
-        rubyString.define(Layouts.FROZEN_IDENTIFIER, true);
-        return rubyString;
+        final Rope rope = StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE);
+        return Layouts.STRING.createString(context.getCoreLibrary().getFrozenStringFactory(), rope);
     }
 
     private DynamicObject defineClass(String name) {
@@ -1365,6 +1367,10 @@ public class CoreLibrary {
 
     public DynamicObjectFactory getStringFactory() {
         return stringFactory;
+    }
+
+    public DynamicObjectFactory getFrozenStringFactory() {
+        return frozenStringFactory;
     }
 
     public DynamicObjectFactory getHashFactory() {
