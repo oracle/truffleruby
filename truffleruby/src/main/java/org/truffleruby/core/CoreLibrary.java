@@ -26,6 +26,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import jnr.constants.platform.Errno;
 import org.jcodings.EncodingDB;
+import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.jcodings.transcode.EConvFlags;
 import org.jcodings.util.CaseInsensitiveBytesHash;
@@ -783,14 +784,14 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_ENUM", RubiniusTypes.TYPE_ENUM);
         Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_VARARGS", RubiniusTypes.TYPE_VARARGS);
 
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.RUBY_VERSION, UTF8Encoding.INSTANCE)));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", frozenUSASCIIString(RubyLanguage.RUBY_VERSION));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PATCHLEVEL", 0);
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", RubyLanguage.RUBY_REVISION);
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.ENGINE, UTF8Encoding.INSTANCE)));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PLATFORM", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.PLATFORM, UTF8Encoding.INSTANCE)));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_RELEASE_DATE", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.COMPILE_DATE, UTF8Encoding.INSTANCE)));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.getVersionString(), UTF8Encoding.INSTANCE)));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", StringOperations.createString(context, StringOperations.encodeRope(RubyLanguage.getCopyrightString(), UTF8Encoding.INSTANCE)));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", frozenUSASCIIString(RubyLanguage.ENGINE));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PLATFORM", frozenUSASCIIString(RubyLanguage.PLATFORM));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_RELEASE_DATE", frozenUSASCIIString(RubyLanguage.COMPILE_DATE));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", frozenUSASCIIString(RubyLanguage.getVersionString()));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", frozenUSASCIIString(RubyLanguage.getCopyrightString()));
 
         // BasicObject knows itself
         Layouts.MODULE.getFields(basicObjectClass).setConstant(context, node, "BasicObject", basicObjectClass);
@@ -856,6 +857,12 @@ public class CoreLibrary {
         }
 
         Layouts.MODULE.getFields(signalModule).setConstant(context, node, "SIGNAL_LIST", Layouts.ARRAY.createArray(arrayFactory, signals, signals.length));
+    }
+
+    private DynamicObject frozenUSASCIIString(String string) {
+        DynamicObject rubyString = StringOperations.createString(context, StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE));
+        rubyString.define(Layouts.FROZEN_IDENTIFIER, true);
+        return rubyString;
     }
 
     private DynamicObject defineClass(String name) {
