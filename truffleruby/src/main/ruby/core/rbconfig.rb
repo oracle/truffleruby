@@ -39,6 +39,10 @@ module RbConfig
 
   ruby_install_name = 'truffleruby'
 
+  ruby_api_version = RUBY_VERSION.dup
+  raise ruby_api_version unless ruby_api_version[-2] == '.'
+  ruby_api_version[-1] = '0'
+
   CONFIG = {
     'arch' => "#{host_cpu}-#{host_os}",
     'exeext' => '',
@@ -47,7 +51,7 @@ module RbConfig
     'host_cpu' => host_cpu,
     'ruby_install_name' => ruby_install_name,
     'RUBY_INSTALL_NAME' => ruby_install_name,
-    'ruby_version' => '2.2.0',
+    'ruby_version' => ruby_api_version,
     'OBJEXT' => 'll',
     'DLEXT' => 'su',
     'includedir' => '',
