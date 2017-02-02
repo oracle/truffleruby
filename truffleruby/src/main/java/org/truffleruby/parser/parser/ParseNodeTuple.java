@@ -29,23 +29,25 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  ***** END LICENSE BLOCK *****/
-package org.truffleruby.collections;
+package org.truffleruby.parser.parser;
 
-public class Tuple<K,V> {
+import org.truffleruby.parser.ast.ParseNode;
 
-    private final K key;
-    private final V value;
+public class ParseNodeTuple {
 
-    public Tuple(K key, V value) {
+    private final ParseNode key;
+    private final ParseNode value;
+
+    public ParseNodeTuple(ParseNode key, ParseNode value) {
         this.key = key;
         this.value = value;
     }
 
-    public K getKey() {
+    public ParseNode getKey() {
         return key;
     }
 
-    public V getValue() {
+    public ParseNode getValue() {
         return value;
     }
 

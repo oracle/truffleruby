@@ -38,7 +38,6 @@ package org.truffleruby.parser.parser;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.collections.Tuple;
 import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.CodeRange;
@@ -652,7 +651,7 @@ public class ParserSupport {
     private boolean isStaticContent(ParseNode node) {
         if (node instanceof HashParseNode) {
             HashParseNode hash = (HashParseNode) node;
-            for (Tuple<ParseNode, ParseNode> pair : hash.getPairs()) {
+            for (ParseNodeTuple pair : hash.getPairs()) {
                 if (!isStaticContent(pair.getKey()) || !isStaticContent(pair.getValue())) return false;
             }
             return true;
@@ -1044,10 +1043,10 @@ public class ParserSupport {
         return dstr;
     }
 
-    public Tuple<ParseNode, ParseNode> createKeyValue(ParseNode key, ParseNode value) {
+    public ParseNodeTuple createKeyValue(ParseNode key, ParseNode value) {
         if (key != null && key instanceof StrParseNode) ((StrParseNode) key).setFrozen(true);
 
-        return new Tuple<>(key, value);
+        return new ParseNodeTuple(key, value);
     }
 
     public ParseNode asSymbol(SourceIndexLength position, String value) {
@@ -1216,7 +1215,7 @@ public class ParserSupport {
     public ParseNode remove_duplicate_keys(HashParseNode hash) {
         List<ParseNode> encounteredKeys = new ArrayList<>();
 
-        for (Tuple<ParseNode,ParseNode> pair: hash.getPairs()) {
+        for (ParseNodeTuple pair : hash.getPairs()) {
             ParseNode key = pair.getKey();
             if (key == null) continue;
             int index = encounteredKeys.indexOf(key);

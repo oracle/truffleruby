@@ -37,7 +37,6 @@
 package org.truffleruby.parser.parser;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.collections.Tuple;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.interop.ForeignCodeNode;
@@ -254,7 +253,7 @@ public class RubyParser {
    // ENEBO: missing when_args
 %type <HashParseNode> assoc_list
 %type <HashParseNode> assocs
-%type <Tuple> assoc
+%type <ParseNodeTuple> assoc
 %type <ListParseNode> mlhs_head mlhs_post
 %type <ListParseNode> f_block_optarg
 %type <BlockPassParseNode> opt_block_arg block_arg none_block_pass

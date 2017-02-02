@@ -31,10 +31,10 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-import org.truffleruby.collections.Tuple;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
+import org.truffleruby.parser.parser.ParseNodeTuple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,7 @@ import java.util.List;
  * of default values in a method call.
  */
 public class HashParseNode extends ParseNode implements ILiteralNode {
-    private final List<Tuple<ParseNode,ParseNode>> pairs;
+    private final List<ParseNodeTuple> pairs;
 
     public HashParseNode(SourceIndexLength position) {
         super(position, false);
@@ -52,7 +52,7 @@ public class HashParseNode extends ParseNode implements ILiteralNode {
         pairs = new ArrayList<>();
     }
     
-    public HashParseNode(SourceIndexLength position, Tuple<ParseNode,ParseNode> pair) {
+    public HashParseNode(SourceIndexLength position, ParseNodeTuple pair) {
         this(position);
 
         pairs.add(pair);
@@ -62,7 +62,7 @@ public class HashParseNode extends ParseNode implements ILiteralNode {
         return NodeType.HASHNODE;
     }
 
-    public HashParseNode add(Tuple<ParseNode,ParseNode> pair) {
+    public HashParseNode add(ParseNodeTuple pair) {
         if (pair.getKey() != null && pair.getKey().containsVariableAssignment() ||
                 pair.getValue() != null && pair.getValue().containsVariableAssignment()) {
             containsVariableAssignment = true;
@@ -84,14 +84,14 @@ public class HashParseNode extends ParseNode implements ILiteralNode {
         return pairs.isEmpty();
     }
 
-    public List<Tuple<ParseNode,ParseNode>> getPairs() {
+    public List<ParseNodeTuple> getPairs() {
         return pairs;
     }
 
     public List<ParseNode> childNodes() {
         List<ParseNode> children = new ArrayList<>();
 
-        for (Tuple<ParseNode,ParseNode> pair: pairs) {
+        for (ParseNodeTuple pair : pairs) {
             children.add(pair.getKey());
             children.add(pair.getValue());
         }

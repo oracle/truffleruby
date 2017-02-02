@@ -40,7 +40,6 @@
 package org.truffleruby.parser.parser;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.collections.Tuple;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.interop.ForeignCodeNode;
@@ -156,7 +155,7 @@ public class RubyParser {
         support.setWarnings(warnings);
         lexer.setWarnings(warnings);
     }
-					// line 160 "-"
+					// line 159 "-"
   // %token constants
   public static final int kCLASS = 257;
   public static final int kMODULE = 258;
@@ -4575,13 +4574,13 @@ states[607] = new ParserState() {
 };
 states[608] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
-                    yyVal = new HashParseNode(lexer.getPosition(), ((Tuple)yyVals[0+yyTop]));
+                    yyVal = new HashParseNode(lexer.getPosition(), ((ParseNodeTuple)yyVals[0+yyTop]));
     return yyVal;
   }
 };
 states[609] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
-                    yyVal = ((HashParseNode)yyVals[-2+yyTop]).add(((Tuple)yyVals[0+yyTop]));
+                    yyVal = ((HashParseNode)yyVals[-2+yyTop]).add(((ParseNodeTuple)yyVals[0+yyTop]));
     return yyVal;
   }
 };
@@ -4662,7 +4661,7 @@ states[644] = new ParserState() {
   }
 };
 }
-					// line 2573 "RubyParser.y"
+					// line 2572 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -4677,4 +4676,4 @@ states[644] = new ParserState() {
         return support.getResult();
     }
 }
-					// line 10083 "-"
+					// line 10082 "-"

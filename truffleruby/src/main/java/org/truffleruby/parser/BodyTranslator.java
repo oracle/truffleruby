@@ -23,7 +23,6 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.PrimitiveNodeConstructor;
-import org.truffleruby.collections.Tuple;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.IsNilNode;
 import org.truffleruby.core.IsRubiniusUndefinedNode;
@@ -268,6 +267,7 @@ import org.truffleruby.parser.ast.XStrParseNode;
 import org.truffleruby.parser.ast.YieldParseNode;
 import org.truffleruby.parser.ast.ZArrayParseNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
+import org.truffleruby.parser.parser.ParseNodeTuple;
 import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.graal.AssertConstantNodeGen;
@@ -1861,7 +1861,7 @@ public class BodyTranslator extends Translator {
 
         final List<RubyNode> keyValues = new ArrayList<>();
 
-        for (Tuple<ParseNode, ParseNode> pair: node.getPairs()) {
+        for (ParseNodeTuple pair : node.getPairs()) {
             if (pair.getKey() == null) {
                 // This null case is for splats {a: 1, **{b: 2}, c: 3}
                 final RubyNode hashLiteralSoFar = HashLiteralNode.create(context, keyValues.toArray(new RubyNode[keyValues.size()]));
