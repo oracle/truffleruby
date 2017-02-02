@@ -122,8 +122,6 @@ import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.objects.FreezeNode;
-import org.truffleruby.language.objects.FreezeNodeGen;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.parser.ParserContext;
@@ -326,11 +324,9 @@ public class CoreLibrary {
     private static class CoreLibraryNode extends RubyNode {
 
         @Child SingletonClassNode singletonClassNode;
-        @Child FreezeNode freezeNode;
 
         public CoreLibraryNode() {
             this.singletonClassNode = SingletonClassNodeGen.create(null);
-            this.freezeNode = FreezeNodeGen.create(null);
             adoptChildren();
         }
 
@@ -755,9 +751,7 @@ public class CoreLibrary {
 
         globals.put("$VERBOSE", verbose);
 
-        final DynamicObject defaultRecordSeparator = StringOperations.createString(context, StringOperations.encodeRope(CLI_RECORD_SEPARATOR, UTF8Encoding.INSTANCE));
-        node.freezeNode.executeFreeze(defaultRecordSeparator);
-        globals.put("$/", defaultRecordSeparator);
+        globals.put("$/", frozenUSASCIIString(CLI_RECORD_SEPARATOR));
 
         globals.put("$SAFE", 0);
     }
@@ -851,8 +845,7 @@ public class CoreLibrary {
 
         int i = 0;
         for (Map.Entry<String, Integer> signal : SignalManager.SIGNALS_LIST.entrySet()) {
-            DynamicObject signalName = StringOperations.createString(context, StringOperations.encodeRope(signal.getKey(), UTF8Encoding.INSTANCE));
-            Object[] objects = new Object[]{ signalName, signal.getValue() };
+            Object[] objects = new Object[]{ frozenUSASCIIString(signal.getKey()), signal.getValue() };
             signals[i++] = Layouts.ARRAY.createArray(arrayFactory, objects, objects.length);
         }
 
