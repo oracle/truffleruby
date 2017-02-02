@@ -152,7 +152,7 @@ public abstract class SetNode extends RubyNode {
                 BucketsStrategy.resize(getContext(), hash);
             }
         } else {
-            entry.setKeyValue(result.getHashed(), key, value);
+            entry.setValue(value);
         }
 
         assert HashOperations.verifyStore(getContext(), hash);
