@@ -45,7 +45,12 @@ public abstract class WeakRefPrimitiveNodes {
 
         @Specialization
         public Object weakRefObject(DynamicObject weakRef) {
-            return Layouts.WEAK_REF_LAYOUT.getReference(weakRef).get();
+            final Object object = Layouts.WEAK_REF_LAYOUT.getReference(weakRef).get();
+            if (object == null) {
+                return nil();
+            } else {
+                return object;
+            }
         }
 
     }

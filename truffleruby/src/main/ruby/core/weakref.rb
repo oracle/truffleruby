@@ -46,7 +46,7 @@ class WeakRef < BasicObject
   def __getobj__
     obj = __object__()
     ::Kernel.raise RefError, "Object has been collected as garbage" unless obj
-    return obj
+    obj
   end
 
   def weakref_alive?
