@@ -1,4 +1,4 @@
-# Copyright (c) 2014, 2015 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2014, 2016 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 # 
@@ -7,10 +7,10 @@
 # GNU Lesser General Public License version 2.1
 
 =begin
-Run first with JRuby+Truffle, then with MRI:
+Run first with TruffleRuby, then with MRI:
 
-$ .../jruby test_methods_parity.rb > truffle.methods
-$ .../ruby test_methods_parity.rb truffle.methods > mri.methods
+$ jt ruby tool/test_methods_parity.rb > truffle.methods
+$ ruby tool/test_methods_parity.rb truffle.methods > mri.methods
 Compare with:
 $ git diff -U10 --no-index mri.methods truffle.methods
   Red is what we don't implement yet,

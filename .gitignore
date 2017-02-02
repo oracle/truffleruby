@@ -53,9 +53,6 @@ lib/truffleruby.jar
 # Tests
 /test/truffle/integration/gem-testing
 
-# Tools: tool/test_methods_parity.rb output
-/tool/*.methods
-
 # Findbugs
 truffle-findbugs-report.html
 findbugs-noUpdateChecks-3.0.0.tar.gz
