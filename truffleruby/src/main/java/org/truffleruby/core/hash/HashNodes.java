@@ -1168,7 +1168,7 @@ public abstract class HashNodes {
                 final int newHash = hashNode.hash(frame, entry.getKey(), compareByIdentity);
                 entry.setHashed(newHash);
                 entry.setNextInLookup(null);
-                final int index = BucketsStrategy.getBucketIndex(entry.getHashed(), entries.length);
+                final int index = BucketsStrategy.getBucketIndex(newHash, entries.length);
                 Entry bucketEntry = entries[index];
 
                 if (bucketEntry == null) {
