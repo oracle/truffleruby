@@ -525,7 +525,7 @@ module Commands
       jay = Utilities.find_repo('jay')
       ENV['PATH'] = "#{jay}/src:#{ENV['PATH']}"
       sh 'sh', 'tool/generate_parser'
-      yytables = 'truffleruby/src/main/java/org/jruby/truffle/parser/parser/YyTables.java'
+      yytables = 'truffleruby/src/main/java/org/truffleruby/parser/parser/YyTables.java'
       File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.truffleruby.parser.parser;'))
     when 'options'
       sh 'tool/generate-options.rb'
