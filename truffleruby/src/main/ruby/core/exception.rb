@@ -416,7 +416,7 @@ class SignalException < Exception
       else
         signm = StringValue(signm)
       end
-      signm = signm[3..-1] if signm.prefix? "SIG"
+      signm = signm[3..-1] if signm.start_with? "SIG"
       unless @signo = Signal::Names[signm]
         raise ArgumentError, "invalid signal name #{signm}"
       end

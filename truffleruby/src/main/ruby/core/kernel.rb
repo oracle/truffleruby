@@ -382,7 +382,7 @@ module Kernel
 
     path = Rubinius::Type.coerce_to_path obj
 
-    if path.kind_of? String and path.prefix? '|'
+    if path.kind_of? String and path.start_with? '|'
       return IO.popen(path[1..-1], *rest, &block)
     end
 

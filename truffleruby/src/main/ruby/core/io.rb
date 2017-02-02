@@ -2016,7 +2016,7 @@ class IO
 
         if str
           # Truffle: write the string + record separator (\n) atomically so multithreaded #puts is bearable
-          unless str.suffix?(DEFAULT_RECORD_SEPARATOR)
+          unless str.end_with?(DEFAULT_RECORD_SEPARATOR)
             str += DEFAULT_RECORD_SEPARATOR
           end
           write str

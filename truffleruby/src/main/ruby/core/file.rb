@@ -421,7 +421,7 @@ class File < IO
 
       return "/" if path == "/"
 
-      return path unless path.suffix? slash
+      return path unless path.end_with? slash
 
       # prune any trailing /'s
       idx = last_nonslash(path, pos)
@@ -831,9 +831,9 @@ class File < IO
         value = Rubinius::Type.coerce_to_path(el)
       end
 
-      if value.prefix? sep
+      if value.start_with? sep
         ret.gsub!(/#{SEPARATOR}+$/o, '')
-      elsif not ret.suffix? sep
+      elsif not ret.end_with? sep
         ret << sep
       end
 

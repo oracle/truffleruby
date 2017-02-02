@@ -52,7 +52,7 @@ module Signal
     if sig.kind_of?(String)
       osig = sig
 
-      if sig.prefix? "SIG"
+      if sig.start_with? "SIG"
         sig = sig[3..-1]
       end
 

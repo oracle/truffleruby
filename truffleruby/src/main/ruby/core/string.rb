@@ -422,18 +422,6 @@ class String
   end
   private :subpattern
 
-  def prefix?(other)
-    size = other.size
-    return false if size > bytesize
-    other.compare_substring(self, 0, size) == 0
-  end
-
-  def suffix?(other)
-    size = other.size
-    return false if size > bytesize
-    other.compare_substring(self, -size, size) == 0
-  end
-
   def shorten!(size)
     return if empty?
     Truffle::String.truncate(self, bytesize - size)
