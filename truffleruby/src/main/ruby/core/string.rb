@@ -397,15 +397,6 @@ class String
     raise ArgumentError, "invalid value for Integer"
   end
 
-  def compare_substring(other, start, size)
-    Truffle.primitive :string_compare_substring
-
-    if start > bytesize || start + bytesize < 0
-      raise IndexError, "index #{start} out of string"
-    end
-    raise PrimitiveFailure, "String#compare_substring primitive failed"
-  end
-
   def subpattern(pattern, capture)
     match = pattern.match(self)
 
@@ -933,8 +924,7 @@ class String
       size = sep.size
       return if size > bytesize
 
-      # TODO: Move #compare_substring to mirror.
-      return unless sep.compare_substring(self, -size, size) == 0
+      return unless self.end_with?(sep)
       bytes = bytesize - size
     end
 

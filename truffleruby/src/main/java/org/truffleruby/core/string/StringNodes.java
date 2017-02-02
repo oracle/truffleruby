@@ -2767,53 +2767,6 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_compare_substring")
-    public static abstract class StringCompareSubstringPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
-
-        @Specialization(guards = "isRubyString(other)")
-        public int stringCompareSubstring(VirtualFrame frame, DynamicObject string, DynamicObject other, int start, int size,
-                @Cached("create()") BranchProfile errorProfile) {
-            // Transliterated from Rubinius C++.
-
-            final int stringLength = StringOperations.rope(string).characterLength();
-            final int otherLength = StringOperations.rope(other).characterLength();
-
-            start = normalizeIndexNode.executeNormalize(start, otherLength);
-
-            if (start > otherLength) {
-                errorProfile.enter();
-                throw new RaiseException(coreExceptions().indexError(formatError(start), this));
-            }
-
-            if (start < 0) {
-                errorProfile.enter();
-                throw new RaiseException(coreExceptions().indexError(formatError(start), this));
-            }
-
-            if (start + size > otherLength) {
-                size = otherLength - start;
-            }
-
-            if (size > stringLength) {
-                size = stringLength;
-            }
-
-            final Rope rope = StringOperations.rope(string);
-            final Rope otherRope = StringOperations.rope(other);
-
-            // TODO (nirvdrum 21-Jan-16): Reimplement with something more friendly to rope byte[] layout?
-            return ArrayUtils.memcmp(rope.getBytes(), 0, otherRope.getBytes(), start, size);
-        }
-
-        @TruffleBoundary
-        private String formatError(int start) {
-            return StringUtils.format("index %d out of string", start);
-        }
-
-    }
-
     @ImportStatic(StringGuards.class)
     @NodeChildren({ @NodeChild("first"), @NodeChild("second") })
     public static abstract class StringAreComparableNode extends RubyNode {
