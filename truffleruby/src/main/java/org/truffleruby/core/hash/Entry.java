@@ -16,7 +16,7 @@ package org.truffleruby.core.hash;
 public final class Entry {
 
     private int hashed;
-    private Object key;
+    private final Object key;
     private Object value;
 
     private Entry nextInLookup;
@@ -42,21 +42,11 @@ public final class Entry {
         return key;
     }
 
-    public void setKey(Object key) {
-        this.key = key;
-    }
-
     public Object getValue() {
         return value;
     }
 
     public void setValue(Object value) {
-        this.value = value;
-    }
-
-    public void setKeyValue(int hashed, Object key, Object value) {
-        this.hashed = hashed;
-        this.key = key;
         this.value = value;
     }
 
