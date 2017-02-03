@@ -99,3 +99,37 @@ production application.
 Using `set_trace_func` will temporarily lower the performance of your program.
 As with `ObjectSpace`, we would recommend that you do not use this in the inner
 loop of your production application.
+
+## Compatibility with JRuby
+
+#### Ruby to Java interop
+
+Calling Java code from Ruby (normal Java code, not JRuby's Java extensions which
+are covered below) is in development but not ready for use yet. We aim to
+provide the same interface as JRuby does for this functionality.
+
+#### Java to Ruby interop
+
+Calling Ruby code from Java is supported by the `PolyglotEngine` API of Truffle.
+
+http://lafo.ssw.uni-linz.ac.at/javadoc/truffle/latest/com/oracle/truffle/api/vm/PolyglotEngine.html
+
+In the future we hope to also support the standard JSR 223, Scripting for the
+Java Platform, specification and the `ScriptEngineManager` class, which is also
+supported by JRuby. We are unlikely to ever implement JRuby's own scripting
+interface such as the `Ruby` and `RubyInstanceConfig` classes.
+
+#### Java extensions
+
+Use Java extensions written for JRuby is not supported. We could apply the same
+techniques as we have developed to run C extensions to this problem, but it's
+not clear if this will ever be a priority.
+
+## Compatibility with Rubinius
+
+We do not have any plans at the moment to provide support for Rubinius'
+extensions to Ruby.
+
+In some cases we provide some of the classes available under the `Rubinius`
+module for historical reasons, but these may behave differently or be removed
+in future versions.
