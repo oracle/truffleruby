@@ -38,7 +38,7 @@ other priorities.
 #### C extensions
 
 C extensions are a priority for development, and we have a clear technical way
-ahead to achivement support for them, but they aren't ready for use yet.
+ahead to implement support for them, but they aren't ready for use yet.
 
 ## Features with major differences
 
