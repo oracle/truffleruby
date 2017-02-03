@@ -53,7 +53,7 @@ interpreter.
 #### Fibers do not have the same performance characteristics as in MRI
 
 Most use cases of fibers rely on them being easy and cheap to start up and
-having memory overheads. In TruffleRuby we implement fibers using operating
+having low memory overheads. In TruffleRuby we implement fibers using operating
 system threads, so they have the same performance characteristics as Ruby
 threads.
 
