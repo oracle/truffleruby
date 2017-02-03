@@ -35,6 +35,11 @@ We intend to implement refinements, and don't believe that they pose major
 technical challenge, but the need for them seems relatively low compared to
 other priorities.
 
+#### C extensions
+
+C extensions are a priority for development, and we have a clear technical way
+ahead to achivement support for them, but they aren't ready for use yet.
+
 ## Features with major differences
 
 #### Threads run in parallel
