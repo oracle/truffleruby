@@ -33,8 +33,6 @@ fails:C-API Kernel function rb_rescue executes passed function
 fails:C-API Kernel function rb_rescue executes passed 'raise function' if a StandardError exception is raised
 fails:C-API Kernel function rb_rescue passes the user supplied argument to the 'raise function' if a StandardError exception is raised
 fails:C-API Kernel function rb_rescue passes the raised exception to the 'raise function' if a StandardError exception is raised
-fails:C-API Kernel function rb_rescue raises an exception if passed function raises an exception other than StandardError
-fails:C-API Kernel function rb_rescue raises an exception if any exception is raised inside 'raise function'
 fails:C-API Kernel function rb_rescue makes $! available only during 'raise function' execution
 fails:C-API Kernel function rb_rescue returns the break value if the passed function yields to a block with a break
 fails:C-API Kernel function rb_rescue2 only rescues if one of the passed exceptions is raised
