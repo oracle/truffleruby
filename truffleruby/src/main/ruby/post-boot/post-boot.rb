@@ -15,5 +15,13 @@ if Truffle::Boot.rubygems_enabled?
   begin
     require 'rubygems'
   rescue LoadError
+  else
+    if Truffle::Boot.did_you_mean_enabled?
+      begin
+        gem 'did_you_mean'
+        require 'did_you_mean'
+      rescue Gem::LoadError, LoadError => e
+      end
+    end
   end
 end

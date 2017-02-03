@@ -61,3 +61,19 @@ findbugs-3.0.0
 # Benchmarking
 bench-results.json
 bench-results-processed.json
+
+# Gem dirs
+lib/ruby/gems/2.3.0/*
+!lib/ruby/gems/2.3.0/gems
+lib/ruby/gems/2.3.0/gems/*
+!lib/ruby/gems/2.3.0/gems/did_you_mean-1.0.0
+!lib/ruby/gems/2.3.0/specifications
+lib/ruby/gems/2.3.0/specifications/*
+!lib/ruby/gems/2.3.0/specifications/default
+!lib/ruby/gems/2.3.0/specifications/did_you_mean-1.0.0.gemspec
+
+
+# Lib bin
+lib/bin/**
+!lib/bin/gem
+!lib/bin/irb

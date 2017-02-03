@@ -29,6 +29,7 @@ public class Options {
     public final Verbosity VERBOSITY;
     public final boolean FROZEN_STRING_LITERALS;
     public final boolean RUBYGEMS;
+    public final boolean DID_YOU_MEAN;
     public final String INTERNAL_ENCODING;
     public final String EXTERNAL_ENCODING;
     public final boolean PLATFORM_SAFE;
@@ -127,6 +128,7 @@ public class Options {
         VERBOSITY = builder.getOrDefault(OptionsCatalog.VERBOSITY);
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
         RUBYGEMS = builder.getOrDefault(OptionsCatalog.RUBYGEMS);
+        DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
         PLATFORM_SAFE = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE);
@@ -238,6 +240,8 @@ public class Options {
                 return FROZEN_STRING_LITERALS;
             case "rubygems":
                 return RUBYGEMS;
+            case "did_you_mean":
+                return DID_YOU_MEAN;
             case "internal_encoding":
                 return INTERNAL_ENCODING;
             case "external_encoding":
