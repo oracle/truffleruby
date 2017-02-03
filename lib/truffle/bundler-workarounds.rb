@@ -12,6 +12,20 @@ HEREDOC
 puts workaround_header if $VERBOSE
 
 
+require "rubygems/specification"
+require "rubygems/stub_specification"
+
+class Gem::Specification
+  def extensions
+    []
+  end
+end
+class Gem::StubSpecification
+  def extensions
+    []
+  end
+end
+
 
 have_extensions = <<-HEREDOC
 ==========================================
@@ -512,6 +526,7 @@ if bundler_loaded
     end
   end
 end
+
 
 native_extensions = <<-HEREDOC
 ==========================================
