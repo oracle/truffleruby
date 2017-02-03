@@ -13,7 +13,7 @@
 
 # Recommended: function jt { ruby tool/jt.rb "$@"; }
 
-abort "Do not run #{$0} with JRuby+Truffle itself, use MRI or some other Ruby." if RUBY_ENGINE == "ruby" && defined?(::Truffle)
+abort "Do not run #{$0} with JRuby+Truffle itself, use MRI or some other Ruby." if RUBY_ENGINE == "truffleruby"
 
 require 'fileutils'
 require 'json'
