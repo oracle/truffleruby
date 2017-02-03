@@ -353,11 +353,6 @@ module Zlib
 end
 
 
-bundler_updater = <<-HEREDOC
-==========================================
-Workaround: Shell to gunzip in bundler updater
-HEREDOC
-puts bundler_updater if $VERBOSE
 
 bundler_loaded = begin
   require "bundler"
@@ -366,6 +361,38 @@ bundler_loaded = begin
 rescue LoadError
   false
 end
+
+
+
+ruby_engine_version = <<-HEREDOC
+==========================================
+Workaround: Set RUBY_ENGINE to "ruby" during Bundler::RubyVersion.system
+Error:
+ RUBY_ENGINE value truffleruby is not recognized
+Called here:
+ lib/bundler/ruby_version.rb:116
+HEREDOC
+puts ruby_engine_version if $VERBOSE
+
+if bundler_loaded
+  class << Bundler::RubyVersion
+    alias old_system system
+    def system
+      engine = Object::RUBY_ENGINE
+      Object.const_set(:RUBY_ENGINE, "ruby")
+      old_system
+    ensure
+      Object.const_set(:RUBY_ENGINE, engine)
+    end
+  end
+end
+
+
+bundler_updater = <<-HEREDOC
+==========================================
+Workaround: Shell to gunzip in bundler updater
+HEREDOC
+puts bundler_updater if $VERBOSE
 
 if bundler_loaded
   class Bundler::CompactIndexClient
