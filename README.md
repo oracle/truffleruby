@@ -74,7 +74,7 @@ It will be supported when Java 9 is released.
 #### How do I install gems?
 
 TruffleRuby cannot install gems out of the box yet, however there are 
-[temporary workarounds](https://github.com/graalvm/truffleruby/tree/truffle-head/doc/user/installing-gems.md) 
+[temporary workarounds](https://github.com/graalvm/truffleruby/tree/master/doc/user/installing-gems.md) 
 which can be used to get it working. 
 
 ## Getting Started
@@ -88,9 +88,9 @@ Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby.
 
 ## Documentation
 
-User documentation is in [`doc/user`](https://github.com/graalvm/truffleruby/tree/truffle-head/doc/user).
+User documentation is in [`doc/user`](https://github.com/graalvm/truffleruby/tree/master/doc/user).
 
-Contributor documentation is in [`doc/contributor`](https://github.com/graalvm/truffleruby/tree/truffle-head/doc/contributor).
+Contributor documentation is in [`doc/contributor`](https://github.com/graalvm/truffleruby/tree/master/doc/contributor).
 
 ## Licence
 
