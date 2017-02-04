@@ -149,6 +149,7 @@
 #define HAVE_RB_CSTRING                    1
 #define HAVE_RB_CSTRUCT                    1
 #define HAVE_RB_CSYMBOL                    1
+#define HAVE_RB_CTIME                      1
 #define HAVE_RB_CTHREAD                    1
 #define HAVE_RB_CTRUECLASS                 1
 #define HAVE_RB_CNUMERATOR                 1
