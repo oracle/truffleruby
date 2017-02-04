@@ -1,0 +1,37 @@
+fails:C-API IO function rb_io_addstr calls #to_s to convert the object to a String
+fails:C-API IO function rb_io_addstr writes the String to the IO
+fails:C-API IO function rb_io_addstr returns the io
+fails:C-API IO function rb_io_printf calls #to_str to convert the format object to a String
+fails:C-API IO function rb_io_printf calls #to_s to convert the object to a String
+fails:C-API IO function rb_io_printf writes the Strings to the IO
+fails:C-API IO function rb_io_print calls #to_s to convert the object to a String
+fails:C-API IO function rb_io_print writes the Strings to the IO with no separator
+fails:C-API IO function rb_io_puts calls #to_s to convert the object to a String
+fails:C-API IO function rb_io_puts writes the Strings to the IO separated by newlines
+fails:C-API IO function rb_io_write calls #to_s to convert the object to a String
+fails:C-API IO function rb_io_write writes the String to the IO
+fails:C-API IO function rb_io_close closes an IO object
+fails:C-API IO function rb_io_check_io returns the IO object if it is valid
+fails:C-API IO function rb_io_check_io returns nil for non IO objects
+fails:C-API IO function rb_io_check_closed does not raise an exception if the IO is not closed
+fails:C-API IO function rb_io_check_closed raises an error if the IO is closed
+fails:C-API IO function rb_io_taint_check does not raise an exception if the IO is not frozen
+fails:C-API IO function rb_io_taint_check raises an exception if the IO is frozen
+fails:C-API IO function GetOpenFile allows access to the system fileno
+fails:C-API IO function rb_io_binmode returns self
+fails:C-API IO function rb_io_binmode sets binmode
+fails:C-API IO function rb_io_check_readable does not raise an exception if the IO is opened for reading
+fails:C-API IO function rb_io_check_readable does not raise an exception if the IO is opened for read and write
+fails:C-API IO function rb_io_check_readable raises an IOError if the IO is not opened for reading
+fails:C-API IO function rb_io_check_writable does not raise an exeption if the IO is opened for writing
+fails:C-API IO function rb_io_check_writable does not raise an exception if the IO is opened for read and write
+fails:C-API IO function rb_io_check_writable raises an IOError if the IO is not opened for reading
+fails:C-API IO function rb_io_wait_writeable returns false if there is no error condition
+fails:C-API IO function rb_io_wait_writeable raises an IOError if the IO is closed
+fails:C-API IO function rb_thread_fd_writable waits til an fd is ready for writing
+fails:C-API IO function rb_io_wait_readable returns false if there is no error condition
+fails:C-API IO function rb_io_wait_readable raises and IOError if passed a closed stream
+fails:C-API IO function rb_io_wait_readable blocks until the io is readable and returns true
+fails:C-API IO function rb_thread_wait_fd waits til an fd is ready for reading
+fails:rb_fd_fix_cloexec sets close_on_exec on the IO
+fails:rb_cloexec_open sets close_on_exec on the newly-opened IO

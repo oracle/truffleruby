@@ -18,3 +18,4 @@ fails:CApiBignumSpecs rb_dbl2big returns a Fixnum for a Float input value
 fails:CApiBignumSpecs rb_dbl2big returns a Bignum for a large enough Float input value
 fails:CApiBignumSpecs rb_dbl2big raises FloatDomainError for Infinity values
 fails:CApiBignumSpecs rb_dbl2big raises FloatDomainError for NaN values
+fails:CApiBignumSpecs rb_big_pack packs a Bignum into an unsigned long
