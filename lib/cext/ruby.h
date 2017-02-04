@@ -368,34 +368,62 @@ VALUE rb_require(const char *feature);
 // Object
 
 VALUE rb_obj_dup(VALUE object);
+VALUE rb_any_to_s(VALUE object);
+VALUE rb_obj_instance_variables(VALUE object);
+VALUE rb_check_convert_type(VALUE object, int type, const char *type_name, const char *method);
+VALUE rb_check_to_integer(VALUE object, const char *method);
+VALUE rb_check_string_type(VALUE object);
+VALUE rb_convert_type(VALUE object, int type, const char *type_name, const char *method);
+void rb_extend_object(VALUE object, VALUE module);
+VALUE rb_inspect(VALUE object);
+void rb_obj_call_init(VALUE object, int argc, const VALUE *argv);
+const char *rb_obj_classname(VALUE object);
+VALUE rb_obj_id(VALUE object);
+int rb_obj_method_arity(VALUE object, ID id);
+int rb_obj_respond_to(VALUE object, ID id, int priv);
+VALUE rb_special_const_p(VALUE object);
+int RB_BUILTIN_TYPE(VALUE object);
+VALUE rb_to_int(VALUE object);
+VALUE rb_obj_instance_eval(int argc, const VALUE *argv, VALUE self);
+VALUE rb_ivar_defined(VALUE object, ID id);
+VALUE rb_equal_opt(VALUE a, VALUE b);
+VALUE rb_class_inherited_p(VALUE module, VALUE object);
+VALUE rb_equal(VALUE a, VALUE b);
 
-VALUE rb_jt_obj_taint(VALUE object);
+#define rb_type_p(object, type)         (rb_type(object) == (type))
+#define BUILTIN_TYPE(object)            RB_BUILTIN_TYPE(object)
+
+VALUE rb_obj_taint(VALUE object);
 bool rb_jt_obj_taintable_p(VALUE object);
 bool rb_jt_obj_tainted_p(VALUE object);
+void rb_jt_obj_infect(VALUE a, VALUE b);
 #define RB_OBJ_TAINTABLE(object)        rb_jt_obj_taintable_p(object)
 #define RB_OBJ_TAINTED_RAW(object)      rb_jt_obj_tainted_p(object)
 #define RB_OBJ_TAINTED(object)          rb_jt_obj_tainted_p(object)
-#define RB_OBJ_TAINT_RAW(object)        rb_jt_obj_taint(object)
-#define RB_OBJ_TAINT(object)            rb_jt_obj_taint(object)
+#define RB_OBJ_TAINT_RAW(object)        rb_obj_taint(object)
+#define RB_OBJ_TAINT(object)            rb_obj_taint(object)
 #define RB_OBJ_UNTRUSTED(object)        rb_jt_obj_tainted_p(object)
-#define RB_OBJ_UNTRUST(object)          rb_jt_obj_taint(object)
+#define RB_OBJ_UNTRUST(object)          rb_obj_taint(object)
 #define OBJ_TAINTABLE(object)           rb_jt_obj_taintable_p(object)
 #define OBJ_TAINTED_RAW(object)         rb_jt_obj_tainted_p(object)
 #define OBJ_TAINTED(object)             rb_jt_obj_tainted_p(object)
-#define OBJ_TAINT_RAW(object)           rb_jt_obj_taint(object)
-#define OBJ_TAINT(object)               rb_jt_obj_taint(object)
+#define OBJ_TAINT_RAW(object)           rb_obj_taint(object)
+#define OBJ_TAINT(object)               rb_obj_taint(object)
 #define OBJ_UNTRUSTED(object)           rb_jt_obj_tainted_p(object)
 #define OBJ_UNTRUST(object)             rb_jt_obj_tainted_p(object)
+#define RB_OBJ_INFECT_RAW(a, b)         rb_jt_obj_infect(a, b)
+#define RB_OBJ_INFECT(a, b)             rb_jt_obj_infect(a, b)
+#define OBJ_INFECT(a, b)                rb_jt_obj_infect(a, b)
 
 VALUE rb_obj_freeze(VALUE object);
-bool rb_jt_obj_frozen_p(VALUE object);
+VALUE rb_obj_frozen_p(VALUE object);
 #define rb_obj_freeze_inline(object)    rb_obj_freeze(object)
-#define RB_OBJ_FROZEN_RAW(x)            rb_jt_obj_frozen_p(object)
-#define RB_OBJ_FROZEN(x)                rb_jt_obj_frozen_p(object)
+#define RB_OBJ_FROZEN_RAW(x)            rb_obj_frozen_p(object)
+#define RB_OBJ_FROZEN(x)                rb_obj_frozen_p(object)
 #define RB_OBJ_FREEZE_RAW(object)       rb_obj_freeze(object)
 #define RB_OBJ_FREEZE(x)                rb_obj_freeze((VALUE)x)
-#define OBJ_FROZEN_RAW(object)          rb_jt_obj_frozen_p(object)
-#define OBJ_FROZEN(object)              rb_jt_obj_frozen_p(object)
+#define OBJ_FROZEN_RAW(object)          rb_obj_frozen_p(object)
+#define OBJ_FROZEN(object)              rb_obj_frozen_p(object)
 #define OBJ_FREEZE_RAW(object)          rb_obj_freeze(object)
 #define OBJ_FREEZE(object)              rb_obj_freeze(object)
 
@@ -499,6 +527,7 @@ void rb_str_modify(VALUE string);
 
 // Symbol
 
+ID rb_to_id(VALUE name);
 ID rb_intern(const char *string);
 ID rb_intern2(const char *string, long length);
 #define rb_intern_const(str) rb_intern2((str), strlen(str))

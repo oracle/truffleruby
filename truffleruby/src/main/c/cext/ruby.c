@@ -457,7 +457,112 @@ VALUE rb_obj_dup(VALUE object) {
   return (VALUE) truffle_invoke((void *)object, "dup");
 }
 
-VALUE rb_jt_obj_taint(VALUE object) {
+VALUE rb_any_to_s(VALUE object) {
+  rb_jt_error("rb_any_to_s not implemented");
+  abort();
+}
+
+VALUE rb_obj_instance_variables(VALUE object) {
+  rb_jt_error("rb_obj_instance_variables not implemented");
+  abort();
+}
+
+VALUE rb_check_convert_type(VALUE val, int type, const char *type_name, const char *method) {
+  rb_jt_error("rb_check_convert_type not implemented");
+  abort();
+}
+
+VALUE rb_check_to_integer(VALUE object, const char *method) {
+  rb_jt_error("rb_check_to_integer not implemented");
+  abort();
+}
+
+VALUE rb_check_string_type(VALUE object) {
+  rb_jt_error("rb_check_string_type not implemented");
+  abort();
+}
+
+VALUE rb_convert_type(VALUE object, int type, const char *type_name, const char *method) {
+  rb_jt_error("rb_convert_type not implemented");
+  abort();
+}
+
+void rb_extend_object(VALUE object, VALUE module) {
+  rb_jt_error("rb_extend_object not implemented");
+  abort();
+}
+
+VALUE rb_inspect(VALUE object) {
+  rb_jt_error("rb_inspect not implemented");
+  abort();
+}
+
+void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
+  rb_jt_error("rb_obj_call_init not implemented");
+  abort();
+}
+
+const char *rb_obj_classname(VALUE object) {
+  rb_jt_error("rb_obj_classname not implemented");
+  abort();
+}
+
+VALUE rb_obj_id(VALUE object) {
+  rb_jt_error("rb_obj_id not implemented");
+  abort();
+}
+
+int rb_obj_method_arity(VALUE object, ID id) {
+  rb_jt_error("rb_obj_method_arity not implemented");
+  abort();
+}
+
+int rb_obj_respond_to(VALUE object, ID id, int priv) {
+  rb_jt_error("rb_obj_respond_to not implemented");
+  abort();
+}
+
+VALUE rb_special_const_p(VALUE object) {
+  rb_jt_error("rb_special_const_p not implemented");
+  abort();
+}
+
+VALUE rb_to_int(VALUE object) {
+  rb_jt_error("rb_to_int not implemented");
+  abort();
+}
+
+VALUE rb_obj_instance_eval(int argc, const VALUE *argv, VALUE self) {
+  rb_jt_error("rb_obj_instance_eval not implemented");
+  abort();
+}
+
+VALUE rb_ivar_defined(VALUE object, ID id) {
+  rb_jt_error("rb_ivar_defined not implemented");
+  abort();
+}
+
+VALUE rb_equal_opt(VALUE a, VALUE b) {
+  rb_jt_error("rb_equal_opt not implemented");
+  abort();
+}
+
+VALUE rb_class_inherited_p(VALUE module, VALUE object) {
+  rb_jt_error("rb_class_inherited_p not implemented");
+  abort();
+}
+
+VALUE rb_equal(VALUE a, VALUE b) {
+  rb_jt_error("rb_equal not implemented");
+  abort();
+}
+
+int RB_BUILTIN_TYPE(VALUE object) {
+  rb_jt_error("RB_BUILTIN_TYPE not implemented");
+  abort();
+}
+
+VALUE rb_obj_taint(VALUE object) {
   return (VALUE) truffle_invoke((void *)object, "taint");
 }
 
@@ -469,11 +574,16 @@ bool rb_jt_obj_tainted_p(VALUE object) {
   return truffle_invoke_b((void *)object, "tainted?");
 }
 
+void rb_jt_obj_infect(VALUE a, VALUE b) {
+  rb_jt_error("rb_jt_obj_infect not implemented");
+  abort();
+}
+
 VALUE rb_obj_freeze(VALUE object) {
   return (VALUE) truffle_invoke((void *)object, "freeze");
 }
 
-bool rb_jt_obj_frozen_p(VALUE object) {
+VALUE rb_obj_frozen_p(VALUE object) {
   return truffle_invoke_b((void *)object, "frozen?");
 }
 
@@ -612,6 +722,11 @@ void rb_str_modify(VALUE string) {
 }
 
 // Symbol
+
+ID rb_to_id(VALUE name) {
+  rb_jt_error("rb_to_id not implemented");
+  abort();
+}
 
 ID rb_intern(const char *string) {
   return (ID) truffle_invoke(RUBY_CEXT, "rb_intern", rb_str_new_cstr(string));
