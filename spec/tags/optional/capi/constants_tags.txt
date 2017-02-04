@@ -1,5 +1,0 @@
-fails:C-API constant rb_cData references the Data class
-fails:C-API exception constant rb_eEncCompatError references the Encoding::CompatibilityError
-fails:C-API exception constant rb_eSignal references the SignalException class
-fails:C-API exception constant rb_mWaitReadable references the IO::WaitReadable module
-fails:C-API exception constant rb_mWaitWritable references the IO::WaitWritable module

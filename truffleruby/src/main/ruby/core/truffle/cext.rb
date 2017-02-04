@@ -8,6 +8,10 @@
 
 # TODO CS 3-Feb-17 only load this when people use cexts
 
+class Data
+
+end
+
 module Truffle::CExt
 
   T_NONE     = 0x00
@@ -347,7 +351,7 @@ module Truffle::CExt
   end
 
   def rb_eSignal
-    Signal
+    SignalException
   end
 
   def rb_eStandardError
