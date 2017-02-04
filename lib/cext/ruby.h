@@ -39,6 +39,7 @@ extern "C" {
 
 #define SIZEOF_INT 32
 #define SIZEOF_LONG 64
+#define LONG_LONG long long
 
 #define HAVE_SYS_TIME_H
 
@@ -63,6 +64,9 @@ extern "C" {
 typedef void *VALUE;
 
 typedef VALUE ID;
+
+typedef unsigned long st_data_t;
+typedef st_data_t st_index_t;
 
 // Helpers
 
@@ -458,6 +462,8 @@ double RFLOAT_VALUE(VALUE value);
 
 // String
 
+typedef void rb_encoding;
+
 #define PRI_VALUE_PREFIX        "l"
 #define PRI_LONG_PREFIX         "l"
 #define PRI_64_PREFIX           PRI_LONG_PREFIX
@@ -476,10 +482,53 @@ int rb_str_len(VALUE string);
 VALUE rb_intern_str(VALUE string);
 VALUE rb_str_new(const char *string, long length);
 VALUE rb_str_new_cstr(const char *string);
+VALUE rb_str_new_shared(VALUE string);
+VALUE rb_str_new_frozen(VALUE string);
+VALUE rb_str_new_with_class(VALUE klass, const char *string, long len);
 #define rb_str_new2 rb_str_new_cstr
+#define rb_str_new3 rb_str_new_shared
+#define rb_str_new4 rb_str_new_frozen
+#define rb_str_new5 rb_str_new_with_class
 VALUE rb_str_cat(VALUE string, const char *to_concat, long length);
 VALUE rb_str_cat2(VALUE string, const char *to_concat);
 VALUE rb_str_to_str(VALUE string);
+VALUE rb_cstr2inum(const char *string, int base);
+VALUE rb_str2inum(VALUE string, int base);
+#define rb_str_buf_new2 rb_str_buf_new_cstr
+VALUE rb_str_buf_new_cstr(const char *string);
+int rb_str_cmp(VALUE a, VALUE b);
+VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length);
+rb_encoding *rb_to_encoding(VALUE encoding);
+VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to);
+VALUE rb_str_conv_enc_opts(VALUE string, rb_encoding *from, rb_encoding *to, int ecflags, VALUE ecopts);
+VALUE rb_external_str_new_with_enc(const char *string, long len, rb_encoding *eenc);
+VALUE rb_external_str_with_enc(VALUE string, rb_encoding *eenc);
+VALUE rb_external_str_new(const char *string, long len);
+VALUE rb_external_str_new_cstr(const char *string);
+VALUE rb_locale_str_new(const char *string, long len);
+VALUE rb_locale_str_new_cstr(const char *string);
+VALUE rb_filesystem_str_new(const char *string, long len);
+VALUE rb_filesystem_str_new_cstr(const char *string);
+VALUE rb_str_export(VALUE string);
+VALUE rb_str_export_locale(VALUE string);
+VALUE rb_str_export_to_enc(VALUE string, rb_encoding *enc);
+rb_encoding *rb_default_external_encoding(void);
+rb_encoding *rb_locale_encoding(void);
+rb_encoding *rb_filesystem_encoding(void);
+rb_encoding *get_encoding(VALUE string);
+#define STR_ENC_GET(string) get_encoding(string)
+#define rb_str_dup(string) rb_obj_dup(string)
+#define rb_str_freeze(string) rb_obj_freeze(string)
+#define rb_str_inspect(string) rb_inspect(string)
+VALUE rb_str_intern(VALUE string);
+VALUE rb_str_length(VALUE string);
+VALUE rb_str_plus(VALUE a, VALUE b);
+VALUE rb_str_subseq(VALUE string, long beg, long len);
+VALUE rb_str_substr(VALUE string, long beg, long len);
+st_index_t rb_str_hash(VALUE string);
+void rb_str_update(VALUE string, long beg, long len, VALUE value);
+VALUE rb_str_equal(VALUE a, VALUE b);
+void rb_str_free(VALUE string);
 
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
   VALUE value = *value_pointer;
@@ -517,8 +566,6 @@ VALUE rb_sprintf(const char *format, ...);
 VALUE rb_vsprintf(const char *format, va_list args);
 VALUE rb_str_append(VALUE string, VALUE to_append);
 void rb_str_set_len(VALUE string, long length);
-VALUE rb_str_new_frozen(VALUE value);
-#define rb_str_new4(value) rb_str_new_frozen(value)
 VALUE rb_String(VALUE value);
 VALUE rb_str_resize(VALUE string, long length);
 #define RSTRING_GETMEM(string, data_pointer, length_pointer) ((data_pointer) = RSTRING_PTR(string), (length_pointer) = rb_str_len(string))
@@ -550,7 +597,7 @@ VALUE rb_ary_push(VALUE array, VALUE value);
 VALUE rb_ary_pop(VALUE array);
 void rb_ary_store(VALUE array, long index, VALUE value);
 VALUE rb_ary_entry(VALUE array, long index);
-VALUE rb_ary_dup(VALUE array);
+#define rb_ary_dup(array) rb_obj_dup(array)
 VALUE rb_ary_each(VALUE array);
 VALUE rb_ary_unshift(VALUE array, VALUE value);
 VALUE rb_ary_aref(int n, const VALUE* values, VALUE array);
@@ -567,7 +614,7 @@ VALUE rb_ary_plus(VALUE a, VALUE b);
 VALUE rb_iterate(VALUE (*method)(), VALUE arg1, VALUE (*block)(), VALUE arg2);
 VALUE rb_each(VALUE array);
 void rb_mem_clear(VALUE *mem, long n);
-VALUE rb_ary_freeze(VALUE array);
+#define rb_ary_freeze(array) rb_obj_freeze(array)
 VALUE rb_ary_to_ary(VALUE array);
 VALUE rb_ary_subseq(VALUE array, long start, long length);
 #define rb_assoc_new(a, b) rb_ary_new3(2, a, b)
@@ -582,9 +629,6 @@ VALUE rb_hash_lookup(VALUE hash, VALUE key);
 VALUE rb_hash_lookup2(VALUE hash, VALUE key, VALUE default_value);
 VALUE rb_hash_set_ifnone(VALUE hash, VALUE if_none);
 #define RHASH_SET_IFNONE(hash, if_none) rb_hash_set_ifnone((VALUE) hash, if_none)
-
-typedef unsigned long st_data_t;
-typedef st_data_t st_index_t;
 
 st_index_t rb_memhash(const void *data, long length);
 

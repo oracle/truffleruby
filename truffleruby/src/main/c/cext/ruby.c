@@ -584,7 +584,7 @@ VALUE rb_obj_freeze(VALUE object) {
 }
 
 VALUE rb_obj_frozen_p(VALUE object) {
-  return truffle_invoke_b((void *)object, "frozen?");
+  return truffle_invoke((void *)object, "frozen?");
 }
 
 // Integer
@@ -655,6 +655,16 @@ VALUE rb_str_new_cstr(const char *string) {
   }
 }
 
+VALUE rb_str_new_shared(VALUE string) {
+  rb_jt_error("rb_str_new_shared not implemented");
+  abort();
+}
+
+VALUE rb_str_new_with_class(VALUE klass, const char *string, long len) {
+  rb_jt_error("rb_str_new_with_class not implemented");
+  abort();
+}
+
 VALUE rb_intern_str(VALUE string) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_intern_str", string);
 }
@@ -719,6 +729,156 @@ VALUE rb_str_split(VALUE string, const char *split) {
 
 void rb_str_modify(VALUE string) {
   // Does nothing because writing to the string pointer will cause necessary invalidations anyway
+}
+
+VALUE rb_cstr2inum(const char *string, int base) {
+  rb_jt_error("rb_cstr2inum not implemented");
+  abort();
+}
+
+VALUE rb_str2inum(VALUE string, int base) {
+  rb_jt_error("rb_str2inum not implemented");
+  abort();
+}
+
+VALUE rb_str_buf_new_cstr(const char *string) {
+  rb_jt_error("rb_str_buf_new_cstr not implemented");
+  abort();
+}
+
+int rb_str_cmp(VALUE a, VALUE b) {
+  rb_jt_error("rb_str_cmp not implemented");
+  abort();
+}
+
+VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
+  rb_jt_error("rb_str_buf_cat not implemented");
+  abort();
+}
+
+rb_encoding *rb_to_encoding(VALUE encoding) {
+  rb_jt_error("rb_to_encoding not implemented");
+  abort();
+}
+
+VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to) {
+  return rb_str_conv_enc_opts(string, from, to, 0, Qnil);
+}
+
+VALUE rb_str_conv_enc_opts(VALUE string, rb_encoding *from, rb_encoding *to, int ecflags, VALUE ecopts) {
+  rb_jt_error("rb_str_conv_enc_opts not implemented");
+  abort();
+}
+
+VALUE rb_external_str_new_with_enc(const char *string, long len, rb_encoding *eenc) {
+  rb_jt_error("rb_external_str_with_enc not implemented");
+  abort();
+}
+
+VALUE rb_external_str_with_enc(VALUE string, rb_encoding *eenc) {
+  rb_jt_error("rb_external_str_with_enc not implemented");
+  abort();
+}
+
+VALUE rb_external_str_new(const char *string, long len) {
+  return rb_external_str_new_with_enc(string, len, rb_default_external_encoding());
+}
+
+VALUE rb_external_str_new_cstr(const char *string) {
+  return rb_external_str_new_with_enc(string, strlen(string), rb_default_external_encoding());
+}
+
+VALUE rb_locale_str_new(const char *string, long len) {
+  return rb_external_str_new_with_enc(string, len, rb_locale_encoding());
+}
+
+VALUE rb_locale_str_new_cstr(const char *string) {
+  return rb_external_str_new_with_enc(string, strlen(string), rb_locale_encoding());
+}
+
+VALUE rb_filesystem_str_new(const char *string, long len) {
+  return rb_external_str_new_with_enc(string, len, rb_filesystem_encoding());
+}
+
+VALUE rb_filesystem_str_new_cstr(const char *string) {
+  return rb_external_str_new_with_enc(string, strlen(string), rb_filesystem_encoding());
+}
+
+VALUE rb_str_export(VALUE string) {
+  return rb_str_conv_enc(string, STR_ENC_GET(string), rb_default_external_encoding());
+}
+
+VALUE rb_str_export_locale(VALUE string) {
+  return rb_str_conv_enc(string, STR_ENC_GET(string), rb_locale_encoding());
+}
+
+VALUE rb_str_export_to_enc(VALUE string, rb_encoding *enc) {
+  return rb_str_conv_enc(string, STR_ENC_GET(string), enc);
+}
+
+rb_encoding *rb_default_external_encoding(void) {
+  rb_jt_error("rb_default_external_encoding not implemented");
+  abort();
+}
+
+rb_encoding *rb_locale_encoding(void) {
+  rb_jt_error("rb_locale_encoding not implemented");
+  abort();
+}
+
+rb_encoding *rb_filesystem_encoding(void) {
+  rb_jt_error("rb_filesystem_encoding not implemented");
+  abort();
+}
+
+rb_encoding *get_encoding(VALUE string) {
+  rb_jt_error("get_encoding not implemented");
+  abort();
+}
+
+VALUE rb_str_intern(VALUE string) {
+  rb_jt_error("rb_str_intern not implemented");
+  abort();
+}
+
+VALUE rb_str_length(VALUE string) {
+  rb_jt_error("rb_str_length not implemented");
+  abort();
+}
+
+VALUE rb_str_plus(VALUE a, VALUE b) {
+  rb_jt_error("rb_str_plus not implemented");
+  abort();
+}
+
+VALUE rb_str_subseq(VALUE string, long beg, long len) {
+  rb_jt_error("rb_str_subseq not implemented");
+  abort();
+}
+
+VALUE rb_str_substr(VALUE string, long beg, long len) {
+  rb_jt_error("rb_str_substr not implemented");
+  abort();
+}
+
+st_index_t rb_str_hash(VALUE string) {
+  rb_jt_error("rb_str_hash not implemented");
+  abort();
+}
+
+void rb_str_update(VALUE string, long beg, long len, VALUE value) {
+  rb_jt_error("rb_str_update not implemented");
+  abort();
+}
+
+VALUE rb_str_equal(VALUE a, VALUE b) {
+  rb_jt_error("rb_str_equal not implemented");
+  abort();
+}
+
+void rb_str_free(VALUE string) {
+  rb_jt_error("rb_str_equal not implemented");
+  abort();
 }
 
 // Symbol
@@ -799,10 +959,6 @@ VALUE rb_ary_entry(VALUE array, long index) {
   return truffle_read_idx(array, (int) index);
 }
 
-VALUE rb_ary_dup(VALUE array) {
-  return (VALUE) truffle_invoke((void *)array, "dup");
-}
-
 VALUE rb_ary_each(VALUE array) {
   rb_jt_error("rb_ary_each not implemented");
   abort();
@@ -878,14 +1034,9 @@ VALUE rb_each(VALUE array) {
 }
 
 void rb_mem_clear(VALUE *mem, long n) {
-  for (int i = 0; n < n; i++) {
+  for (int i = 0; i < n; i++) {
     mem[i] = Qnil;
   }
-}
-
-VALUE rb_ary_freeze(VALUE array) {
-  rb_jt_error("rb_ary_freeze not implemented");
-  abort();
 }
 
 VALUE rb_ary_to_ary(VALUE array) {
