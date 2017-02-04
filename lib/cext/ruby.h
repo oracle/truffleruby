@@ -35,8 +35,7 @@ extern "C" {
 
 // Configuration
 
-#define JRUBY_TRUFFLE 1
-#define TRUFFLERUBY   1
+#define TRUFFLERUBY 1
 
 #define SIZEOF_INT 32
 #define SIZEOF_LONG 64
