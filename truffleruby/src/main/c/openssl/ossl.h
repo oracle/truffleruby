@@ -215,7 +215,7 @@ void ossl_debug(const char *, ...);
 #define OSSL_Warn rb_warn
 #endif
 
-#ifdef JRUBY_TRUFFLE
+#ifdef TRUFFLERUBY
 #define WRITE_EX_DATA(data) rb_jt_to_native_handle(data)
 #define READ_EX_DATA(data) rb_jt_from_native_handle(data)
 #else
@@ -223,7 +223,7 @@ void ossl_debug(const char *, ...);
 #define READ_EX_DATA(data) (data)
 #endif
 
-#ifdef JRUBY_TRUFFLE
+#ifdef TRUFFLERUBY
 #define RB_SCAN_ARGS_0_HASH     rb_jt_scan_args_0_HASH
 #define RB_SCAN_ARGS_02         rb_jt_scan_args_02
 #define RB_SCAN_ARGS_11         rb_jt_scan_args_11

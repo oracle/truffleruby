@@ -524,7 +524,7 @@ static unsigned long ossl_thread_id(void)
 }
 #endif
 
-#ifdef JRUBY_TRUFFLE
+#ifdef TRUFFLERUBY
 #define LOCKS_MALLOC truffle_managed_malloc
 #else
 #define LOCKS_MALLOC OPENSSL_malloc

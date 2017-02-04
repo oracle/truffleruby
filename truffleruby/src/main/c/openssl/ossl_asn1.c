@@ -494,7 +494,7 @@ typedef struct {
     VALUE *klass;
 } ossl_asn1_info_t;
 
-#ifdef JRUBY_TRUFFLE
+#ifdef TRUFFLERUBY
 static const ossl_asn1_info_t ossl_asn1_info[] = {
     { "EOC",               NULL,                  },  /*  0 */
     { "BOOLEAN",           NULL,                  },  /*  1 */
@@ -1996,7 +1996,7 @@ do{\
 
     OSSL_ASN1_DEFINE_CLASS(EndOfContent, Data);
 
-#ifdef JRUBY_TRUFFLE
+#ifdef TRUFFLERUBY
     ossl_asn1_info_klasses = (VALUE *)truffle_managed_malloc(ossl_asn1_info_size * sizeof(VALUE));
     ossl_asn1_info_klasses[0]  = cASN1EndOfContent;
     ossl_asn1_info_klasses[1]  = cASN1Boolean;

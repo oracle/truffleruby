@@ -8,12 +8,11 @@
  * GNU Lesser General Public License version 2.1
  *
  * This file contains code that is based on the Ruby API headers,
- * copyright (C) Yukihiro Matsumoto, licensed under the 2-clause BSD licence
- * as described in the file BSDL included with JRuby+Truffle.
+ * copyright (C) Yukihiro Matsumoto, licensed under the 2-clause BSD licence.
  */
 
-#ifndef TRUFFLE_RUBY_H
-#define TRUFFLE_RUBY_H
+#ifndef TRUFFLERUBY_H
+#define TRUFFLERUBY_H
 
 #if defined(__cplusplus)
 extern "C" {
@@ -37,6 +36,7 @@ extern "C" {
 // Configuration
 
 #define JRUBY_TRUFFLE 1
+#define TRUFFLERUBY   1
 
 #define SIZEOF_INT 32
 #define SIZEOF_LONG 64
