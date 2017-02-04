@@ -1,10 +1,12 @@
-# Copyright (c) 2015, 2016 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2015, 2017 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
 # Eclipse Public License version 1.0
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
+
+# TODO CS 3-Feb-17 only load this when people use cexts
 
 module Truffle::CExt
 
@@ -144,76 +146,248 @@ module Truffle::CExt
     nil
   end
 
-  def rb_cObject
-    Object
-  end
-
   def rb_cArray
     Array
   end
 
-  def rb_cHash
-    Hash
+  def rb_cBignum
+    Bignum
   end
 
-  def rb_cProc
-    Proc
-  end
-
-  def rb_cTime
-    Time
-  end
-
-  def rb_mKernel
-    Kernel
-  end
-
-  def rb_mEnumerable
-    Enumerable
-  end
-
-  def rb_mWaitReadable
-    IO::WaitReadable
+  def rb_cClass
+    Class
   end
 
   def rb_mComparable
     Comparable
   end
 
-  def rb_mWaitWritable
-    IO::WaitWritable
+  def rb_cData
+    Data
+  end
+
+  def rb_mEnumerable
+    Enumerable
+  end
+
+  def rb_cFalseClass
+    FalseClass
+  end
+
+  def rb_cFile
+    File
+  end
+
+  def rb_cFixnum
+    Fixnum
+  end
+
+  def rb_cFloat
+    Float
+  end
+
+  def rb_cHash
+    Hash
+  end
+
+  def rb_cInteger
+    Integer
+  end
+
+  def rb_cIO
+    IO
+  end
+
+  def rb_mKernel
+    Kernel
+  end
+
+  def rb_cMatch
+    MatchData
+  end
+
+  def rb_cModule
+    Module
+  end
+
+  def rb_cNilClass
+    NilClass
+  end
+
+  def rb_cNumeric
+    Numeric
+  end
+
+  def rb_cObject
+    Object
+  end
+
+  def rb_cRange
+    Range
+  end
+
+  def rb_cRegexp
+    Regexp
+  end
+
+  def rb_cString
+    String
+  end
+
+  def rb_cStruct
+    Struct
+  end
+
+  def rb_cSymbol
+    Symbol
+  end
+
+  def rb_cThread
+    Thread
+  end
+
+  def rb_cTrueClass
+    TrueClass
+  end
+
+  def rb_cProc
+    Proc
+  end
+
+  def rb_cMethod
+    Method
+  end
+
+  def rb_cDir
+    Dir
+  end
+
+  def rb_eArgError
+    ArgumentError
+  end
+
+  def rb_eEOFError
+    EOFError
+  end
+
+  def rb_mErrno
+    Errno
   end
 
   def rb_eException
     Exception
   end
 
-  def rb_eRuntimeError
-    RuntimeError
+  def rb_eFloatDomainError
+    FloatDomainError
   end
 
-  def rb_eStandardError
-    StandardError
+  def rb_eIndexError
+    IndexError
+  end
+
+  def rb_eInterrupt
+    Interrupt
+  end
+
+  def rb_eIOError
+    IOError
+  end
+
+  def rb_eLoadError
+    LoadError
+  end
+
+  def rb_eLocalJumpError
+    LocalJumpError
+  end
+
+  def rb_eMathDomainError
+    Math::DomainError
+  end
+
+  def rb_eEncCompatError
+    Encoding::CompatibilityError
+  end
+
+  def rb_eNameError
+    NameError
   end
 
   def rb_eNoMemError
-    NoMemError
+    NoMemoryError
   end
 
-  def rb_eTypeError
-    TypeError
+  def rb_eNoMethodError
+    NoMethodError
   end
 
-  def rb_eArgError
-    ArgError
+  def rb_eNotImpError
+    NotImplementedError
   end
 
   def rb_eRangeError
     RangeError
   end
 
-  def rb_eNotImpError
-    NotImplementedError
+  def rb_eRegexpError
+    RegexpError
+  end
+
+  def rb_eRuntimeError
+    RuntimeError
+  end
+
+  def rb_eScriptError
+    ScriptError
+  end
+
+  def rb_eSecurityError
+    SecurityError
+  end
+
+  def rb_eSignal
+    Signal
+  end
+
+  def rb_eStandardError
+    StandardError
+  end
+
+  def rb_eSyntaxError
+    SyntaxError
+  end
+
+  def rb_eSystemCallError
+    SystemCallError
+  end
+
+  def rb_eSystemExit
+    SystemExit
+  end
+
+  def rb_eSysStackError
+    SystemStackError
+  end
+
+  def rb_eTypeError
+    TypeError
+  end
+
+  def rb_eThreadError
+    ThreadError
+  end
+
+  def rb_mWaitReadable
+    IO::WaitReadable
+  end
+
+  def rb_mWaitWritable
+    IO::WaitWritable
+  end
+
+  def rb_eZeroDivError
+    ZeroDivisionError
   end
 
   def rb_fix2int(value)
