@@ -88,3 +88,5 @@ lib/bin/**
 !lib/bin/gem
 !lib/bin/irb
 !lib/bin/rake
+!lib/bin/rdoc
+!lib/bin/ri
