@@ -1,0 +1,1 @@
+slow:WeakRef#__getobj__ raises WeakRef::RefError if the object is no longer reachable
