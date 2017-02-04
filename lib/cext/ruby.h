@@ -217,6 +217,7 @@ VALUE rb_jt_get_cRegexp(void);
 VALUE rb_jt_get_cString(void);
 VALUE rb_jt_get_cStruct(void);
 VALUE rb_jt_get_cSymbol(void);
+VALUE rb_jt_get_cTime(void);
 VALUE rb_jt_get_cThread(void);
 VALUE rb_jt_get_cTrueClass(void);
 VALUE rb_jt_get_cProc(void);
@@ -279,6 +280,7 @@ VALUE rb_jt_get_eZeroDivError(void);
 #define rb_cString rb_jt_get_cString()
 #define rb_cStruct rb_jt_get_cStruct()
 #define rb_cSymbol rb_jt_get_cSymbol()
+#define rb_cTime rb_jt_get_cTime()
 #define rb_cThread rb_jt_get_cThread()
 #define rb_cTrueClass rb_jt_get_cTrueClass()
 #define rb_cProc rb_jt_get_cProc()

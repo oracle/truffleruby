@@ -196,6 +196,10 @@ VALUE rb_jt_get_cSymbol(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cSymbol");
 }
 
+VALUE rb_jt_get_cTime(void) {
+  return (VALUE) truffle_read(RUBY_CEXT, "rb_cTime");
+}
+
 VALUE rb_jt_get_cThread(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cThread");
 }

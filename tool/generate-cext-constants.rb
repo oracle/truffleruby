@@ -33,6 +33,7 @@ constants = [
     String,
     Struct,
     Symbol,
+    Time,
     Thread,
     TrueClass,
     Proc,

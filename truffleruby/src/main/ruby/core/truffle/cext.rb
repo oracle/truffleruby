@@ -246,6 +246,10 @@ module Truffle::CExt
     Symbol
   end
 
+  def rb_cTime
+    Time
+  end
+
   def rb_cThread
     Thread
   end
