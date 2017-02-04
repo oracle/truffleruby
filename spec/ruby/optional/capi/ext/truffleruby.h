@@ -8,8 +8,8 @@
  * GNU Lesser General Public License version 2.1
  */
 
-#ifndef RUBYSPEC_CAPI_JRUBY_TRUFFLE_H
-#undef RUBYSPEC_CAPI_JRUBY_TRUFFLE_H
+#ifndef RUBYSPEC_CAPI_TRUFFLERUBY_H
+#undef RUBYSPEC_CAPI_TRUFFLERUBY_H
 
 /* Array */
 #undef HAVE_RARRAY_PTR
