@@ -67,13 +67,24 @@ lib/ruby/gems/2.3.0/*
 !lib/ruby/gems/2.3.0/gems
 lib/ruby/gems/2.3.0/gems/*
 !lib/ruby/gems/2.3.0/gems/did_you_mean-1.0.0
+!lib/ruby/gems/2.3.0/gems/rake-10.4.2
+!lib/ruby/gems/2.3.0/gems/minitest-5.8.5
+!lib/ruby/gems/2.3.0/gems/power_assert-0.2.6
+!lib/ruby/gems/2.3.0/gems/test-unit-3.1.5
+!lib/ruby/gems/2.3.0/gems/net-telnet-0.1.1
+
 !lib/ruby/gems/2.3.0/specifications
 lib/ruby/gems/2.3.0/specifications/*
 !lib/ruby/gems/2.3.0/specifications/default
 !lib/ruby/gems/2.3.0/specifications/did_you_mean-1.0.0.gemspec
-
+!lib/ruby/gems/2.3.0/specifications/rake-10.4.2.gemspec
+!lib/ruby/gems/2.3.0/specifications/minitest-5.8.5.gemspec
+!lib/ruby/gems/2.3.0/specifications/power_assert-0.2.6.gemspec
+!lib/ruby/gems/2.3.0/specifications/test-unit-3.1.5.gemspec
+!lib/ruby/gems/2.3.0/specifications/net-telnet-0.1.1.gemspec
 
 # Lib bin
 lib/bin/**
 !lib/bin/gem
 !lib/bin/irb
+!lib/bin/rake
