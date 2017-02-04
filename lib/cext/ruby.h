@@ -522,6 +522,23 @@ VALUE rb_ary_entry(VALUE array, long index);
 VALUE rb_ary_dup(VALUE array);
 VALUE rb_ary_each(VALUE array);
 VALUE rb_ary_unshift(VALUE array, VALUE value);
+VALUE rb_ary_aref(int n, const VALUE* values, VALUE array);
+VALUE rb_ary_clear(VALUE array);
+VALUE rb_ary_delete(VALUE array, VALUE value);
+VALUE rb_ary_delete_at(VALUE array, long n);
+VALUE rb_ary_includes(VALUE array, VALUE value);
+VALUE rb_ary_join(VALUE array, VALUE sep);
+VALUE rb_ary_to_s(VALUE array);
+VALUE rb_ary_reverse(VALUE array);
+VALUE rb_ary_shift(VALUE array);
+VALUE rb_ary_concat(VALUE a, VALUE b);
+VALUE rb_ary_plus(VALUE a, VALUE b);
+VALUE rb_iterate(VALUE (*method)(), VALUE arg1, VALUE (*block)(), VALUE arg2);
+VALUE rb_each(VALUE array);
+void rb_mem_clear(VALUE *mem, long n);
+VALUE rb_ary_freeze(VALUE array);
+VALUE rb_ary_to_ary(VALUE array);
+VALUE rb_ary_subseq(VALUE array, long start, long length);
 #define rb_assoc_new(a, b) rb_ary_new3(2, a, b)
 VALUE rb_check_array_type(VALUE array);
 

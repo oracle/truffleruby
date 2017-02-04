@@ -693,6 +693,92 @@ VALUE rb_ary_unshift(VALUE array, VALUE value) {
   return (VALUE) truffle_invoke((void *)array, "unshift", value);
 }
 
+VALUE rb_ary_aref(int n, const VALUE* values, VALUE array) {
+  rb_jt_error("rb_ary_aref not implemented");
+  abort();
+}
+
+VALUE rb_ary_clear(VALUE array) {
+  rb_jt_error("rb_ary_clear not implemented");
+  abort();
+}
+
+VALUE rb_ary_delete(VALUE array, VALUE value) {
+  rb_jt_error("rb_ary_clear not implemented");
+  abort();
+}
+
+VALUE rb_ary_delete_at(VALUE array, long n) {
+  rb_jt_error("rb_ary_delete_at not implemented");
+  abort();
+}
+
+VALUE rb_ary_includes(VALUE array, VALUE value) {
+  rb_jt_error("rb_ary_includes not implemented");
+  abort();
+}
+
+VALUE rb_ary_join(VALUE array, VALUE sep) {
+  rb_jt_error("rb_ary_join not implemented");
+  abort();
+}
+
+VALUE rb_ary_to_s(VALUE array) {
+  rb_jt_error("rb_ary_to_s not implemented");
+  abort();
+}
+
+VALUE rb_ary_reverse(VALUE array) {
+  rb_jt_error("rb_ary_reverse not implemented");
+  abort();
+}
+
+VALUE rb_ary_shift(VALUE array) {
+  rb_jt_error("rb_ary_shift not implemented");
+  abort();
+}
+
+VALUE rb_ary_concat(VALUE a, VALUE b) {
+  rb_jt_error("rb_ary_concat not implemented");
+  abort();
+}
+
+VALUE rb_ary_plus(VALUE a, VALUE b) {
+  rb_jt_error("rb_ary_plus not implemented");
+  abort();
+}
+
+VALUE rb_iterate(VALUE (*method)(), VALUE arg1, VALUE (*block)(), VALUE arg2) {
+  rb_jt_error("rb_iterate not implemented");
+  abort();
+}
+
+VALUE rb_each(VALUE array) {
+  rb_jt_error("rb_each not implemented");
+  abort();
+}
+
+void rb_mem_clear(VALUE *mem, long n) {
+  for (int i = 0; n < n; i++) {
+    mem[i] = Qnil;
+  }
+}
+
+VALUE rb_ary_freeze(VALUE array) {
+  rb_jt_error("rb_ary_freeze not implemented");
+  abort();
+}
+
+VALUE rb_ary_to_ary(VALUE array) {
+  rb_jt_error("rb_ary_to_ary not implemented");
+  abort();
+}
+
+VALUE rb_ary_subseq(VALUE array, long start, long length) {
+  rb_jt_error("rb_ary_subseq not implemented");
+  abort();
+}
+
 VALUE rb_check_array_type(VALUE array) {
   rb_jt_error("rb_check_array_type not implemented");
   abort();
