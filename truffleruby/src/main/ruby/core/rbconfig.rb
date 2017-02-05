@@ -44,30 +44,21 @@ module RbConfig
   ruby_api_version[-1] = '0'
 
   CONFIG = {
-    'arch' => "#{host_cpu}-#{host_os}",
-    'exeext' => '',
-    'EXEEXT' => '',
-    'host_os' => host_os,
-    'host_cpu' => host_cpu,
-    'ruby_install_name' => ruby_install_name,
-    'RUBY_INSTALL_NAME' => ruby_install_name,
-    'ruby_version' => ruby_api_version,
-    'OBJEXT' => 'll',
-    'DLEXT' => 'su',
-    'includedir' => '',
-    'EXECUTABLE_EXTS' => ''
-  }
-
-  MAKEFILE_CONFIG = {
+      'arch' => "#{host_cpu}-#{host_os}",
       'configure_args' => ' ',
       'ARCH_FLAG' => '',
       'CPPFLAGS' => '',
       'LDFLAGS' => '',
       'DLDFLAGS' => '',
       'DLEXT' => 'su',
+      'host_os' => host_os,
+      'host_cpu' => host_cpu,
       'LIBEXT' => 'c',
       'OBJEXT' => 'bc',
+      'exeext' => '',
       'EXEEXT' => '',
+      'EXECUTABLE_EXTS' => '',
+      'includedir' => '',
       'LIBS' => '',
       'DLDLIBS' => '',
       'LIBRUBYARG_STATIC' => '',
@@ -78,6 +69,9 @@ module RbConfig
       'LIBRUBYARG' => '',
       'prefix' => '',
       'ruby_install_name' => ruby_install_name,
+      'RUBY_INSTALL_NAME' => ruby_install_name,
+      'ruby_version' => ruby_api_version,
+      'RUBY_BASE_NAME' => 'ruby',
       'RUBY_SO_NAME' => '$(RUBY_BASE_NAME)'
   }
 
@@ -88,18 +82,22 @@ module RbConfig
     bindir = "#{libdir}/bin"
 
     CONFIG.merge!({
+      'prefix'   => ruby_home,
+      'exec_prefix' => '$(prefix)',
+      'libdir'       =>  '$(exec_prefix)/lib',
+      'rubylibprefix' => '$(libdir)/$(RUBY_BASE_NAME)',
+      'rubylibdir' => '$(rubylibprefix)/$(ruby_version)',
+      'rubyarchdir' => '$(rubylibdir)/$(arch)',
+      'archdir' => '$(rubyarchdir)',
       'bindir' => bindir,
-      'libdir' => libdir,
-      "sitelibdir"=>"#{ruby_home}/lib/2.3/site_ruby", # TODO BJF Oct 21, 2016 Need to review these values
-      "sitearchdir"=>"#{ruby_home}/lib/2.3/site_ruby",
-      'rubyhdrdir' => "#{libdir}/cext",
-      'topdir' => "#{ruby_home}/lib/stdlib", # TODO CS 21-Jan-17 this doesn't exist any more
-      "rubyarchhdrdir"=>"#{libdir}/cext",
-    })
-
-    MAKEFILE_CONFIG.merge!({
       'hdrdir' => "#{ruby_home}/lib/cext",
-      'bindir' => bindir
+      'sitearch' => '$(arch)',
+      'sitedir' => '$(rubylibprefix)/site_ruby',
+      'sitelibdir' => '$(sitedir)/$(ruby_version)',
+      'sitearchdir' => '$(sitelibdir)/$(sitearch)',
+      'rubyhdrdir' => "#{libdir}/cext",
+      'topdir' => '$(archdir)',
+      'rubyarchhdrdir' =>"#{libdir}/cext",
     })
   end
 
@@ -109,7 +107,7 @@ module RbConfig
     cc = "#{clang} -I#{ENV['SULONG_HOME']}/include"
     cpp = cc
 
-    MAKEFILE_CONFIG.merge!({
+    CONFIG.merge!({
         'CC' => cc,
         'CPP' => cpp,
         'COMPILE_C' => "$(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$< -o $@ && #{opt} -always-inline -mem2reg $@ -o $@",
@@ -117,12 +115,10 @@ module RbConfig
         'LINK_SO' => "mx -v -p #{ENV['SULONG_HOME']} su-link -o $@ $(OBJS) $(LIBS)",
         'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{ENV['SULONG_HOME']}/include $(LIBS)"
     })
-
-    CONFIG.merge!({
-        'CC' => cc,
-        'CPP' => cpp
-    })
   end
+
+  MAKEFILE_CONFIG = {}
+  CONFIG.each { |k, v| MAKEFILE_CONFIG[k] = v.dup }
 
   def self.ruby
     ruby = Truffle::Boot.ruby_launcher
@@ -148,6 +144,11 @@ module RbConfig
     val.replace(newval) unless newval == val
     val
   end
+
+  CONFIG.each_value do |val|
+    RbConfig::expand(val)
+  end
+
 end
 
 CROSS_COMPILING = nil
