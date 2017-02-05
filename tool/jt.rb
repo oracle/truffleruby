@@ -741,7 +741,8 @@ module Commands
 
   def test_mri(*args)
     env_vars = {
-      "EXCLUDES" => "test/mri/excludes_truffle"
+      "EXCLUDES" => "test/mri/excludes_truffle",
+      "RUBYOPT" => '--disable-gems'
     }
     jruby_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
 
