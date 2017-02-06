@@ -34,7 +34,6 @@ common-darwin: ${common-base} {
   packages: {
     # Homebrew doesn't support versions.
     mercurial:  ""
-    ruby:       ""
   }
 }
 
