@@ -83,29 +83,8 @@ class MSpecScript
 
   set :capi, [
     "spec/ruby/optional/capi",
-
-    # Global variables
-    "^spec/ruby/optional/capi/gc_spec.rb",
-
-    # Fixnum boundaries do not match
-    "^spec/ruby/optional/capi/bignum_spec.rb",
-
-    # Requires 'ruby/encoding.h'
     "^spec/ruby/optional/capi/encoding_spec.rb",
-
-    # Requires 'ruby/io.h'
-    "^spec/ruby/optional/capi/io_spec.rb",
-
-    # Requires 'ruby/re.h'
     "^spec/ruby/optional/capi/regexp_spec.rb",
-
-    # Requires 'ruby/intern.h'
-    "^spec/ruby/optional/capi/struct_spec.rb",
-
-    # Requires 'ruby/thread.h'
-    "^spec/ruby/optional/capi/thread_spec.rb",
-
-    # Missing symbol @Init_typed_data_spec.
     "^spec/ruby/optional/capi/typed_data_spec.rb"
   ]
 
