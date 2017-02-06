@@ -351,17 +351,18 @@ class MatchData
   alias_method :eql?, :==
 
   def string
-    @source.dup.freeze
+    Truffle.invoke_primitive(:match_data_get_source, self).dup.freeze
   end
 
   def names
-    @regexp.names
+    regexp.names
   end
 
   def pre_match_from(idx)
-    return @source.byteslice(0, 0) if self.byte_begin(0) == 0
+    source = Truffle.invoke_primitive(:match_data_get_source, self)
+    return source.byteslice(0, 0) if self.byte_begin(0) == 0
     nd = self.byte_begin(0) - 1
-    @source.byteslice(idx, nd-idx+1)
+    source.byteslice(idx, nd-idx+1)
   end
 
   def collapsing?

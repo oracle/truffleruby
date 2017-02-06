@@ -12,7 +12,6 @@ package org.truffleruby.core.regexp;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -27,6 +26,8 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
@@ -41,7 +42,6 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import java.util.Arrays;
@@ -434,12 +434,11 @@ public abstract class MatchDataNodes {
 
     }
 
-    @NonStandard
-    @NodeChild(value = "self")
-    public abstract static class RubiniusSourceNode extends RubyNode {
+    @Primitive(name = "match_data_get_source")
+    public abstract static class GetSourceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject rubiniusSource(DynamicObject matchData) {
+        public DynamicObject getSource(DynamicObject matchData) {
             return Layouts.MATCH_DATA.getSource(matchData);
         }
     }

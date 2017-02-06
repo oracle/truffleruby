@@ -45,14 +45,12 @@ import org.truffleruby.core.cast.ToSNodeGen;
 import org.truffleruby.core.hash.ConcatHashLiteralNode;
 import org.truffleruby.core.hash.EnsureSymbolKeysNode;
 import org.truffleruby.core.hash.HashLiteralNode;
-import org.truffleruby.core.hash.HashNodesFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.range.RangeNodesFactory;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
-import org.truffleruby.core.regexp.MatchDataNodesFactory;
 import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.CodeRange;
@@ -1980,22 +1978,7 @@ public class BodyTranslator extends Translator {
         // About every case will use a SelfParseNode, just don't it use more than once.
         final SelfNode self = new SelfNode(environment.getFrameDescriptor());
 
-        final String path = getSourcePath(sourceSection);
-        final String corePath = corePath();
-        final RubyNode ret;
-        if (path.equals(corePath + "regexp.rb")) {
-            if (name.equals("@source")) {
-                ret = MatchDataNodesFactory.RubiniusSourceNodeGen.create(self);
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            } else if (name.equals("@regexp")) {
-                ret = MatchDataNodesFactory.RegexpNodeFactory.create(new RubyNode[]{ self });
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            }
-        }
-
-        ret = new ReadInstanceVariableNode(name, self);
+        final RubyNode ret = new ReadInstanceVariableNode(name, self);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
