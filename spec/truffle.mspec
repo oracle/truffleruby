@@ -112,15 +112,6 @@ class MSpecScript
     "^spec/ruby/optional/capi/typed_data_spec.rb"
   ]
 
-  # A subset of the C-API with passing specs for development
-  set :capi_dev, [
-    "spec/ruby/optional/capi/array_spec.rb",
-    "spec/ruby/optional/capi/class_spec.rb",
-    "spec/ruby/optional/capi/module_spec.rb",
-    "spec/ruby/optional/capi/proc_spec.rb",
-    "spec/ruby/optional/capi/string_spec.rb",
-  ]
-
   set :truffle, [
     "spec/truffle"
   ]
