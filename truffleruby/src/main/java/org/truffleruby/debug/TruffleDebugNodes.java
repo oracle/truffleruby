@@ -11,6 +11,8 @@ package org.truffleruby.debug;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventBinding;
@@ -19,6 +21,8 @@ import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
+
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -187,11 +191,24 @@ public abstract class TruffleDebugNodes {
     }
 
     @CoreMethod(names = "shared?", onSingleton = true, required = 1)
+    @ImportStatic(SharedObjects.class)
     public abstract static class IsSharedNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(guards = "object.getShape() == cachedShape",
+                assumptions = "cachedShape.getValidAssumption()", limit = "getCacheLimit()")
+        public boolean isSharedCached(DynamicObject object,
+                @Cached("object.getShape()") Shape cachedShape,
+                @Cached("isShared(getContext(), cachedShape)") boolean shared) {
+            return shared;
+        }
+
+        @Specialization(contains = "isSharedCached")
         public boolean isShared(DynamicObject object) {
             return SharedObjects.isShared(getContext(), object);
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().INSTANCE_VARIABLE_CACHE;
         }
 
     }
