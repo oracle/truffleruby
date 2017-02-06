@@ -505,7 +505,7 @@ public class CoreLibrary {
         final DynamicObject mutexClass = defineClass("Mutex");
         Layouts.CLASS.setInstanceFactoryUnsafe(mutexClass, Layouts.MUTEX.createMutexShape(mutexClass, mutexClass));
         nilClass = defineClass("NilClass");
-        final DynamicObjectFactory nilFactory = alwaysFrozen(Layouts.CLASS.getInstanceFactory(nilClass));
+        final DynamicObjectFactory nilFactory = alwaysShared(alwaysFrozen(Layouts.CLASS.getInstanceFactory(nilClass)));
         Layouts.CLASS.setInstanceFactoryUnsafe(nilClass, nilFactory);
         procClass = defineClass("Proc");
         procFactory = Layouts.PROC.createProcShape(procClass, procClass);
@@ -525,9 +525,9 @@ public class CoreLibrary {
         stringClass = defineClass("String");
         stringFactory = Layouts.STRING.createStringShape(stringClass, stringClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(stringClass, stringFactory);
-        frozenStringFactory = alwaysFrozen(stringFactory);
+        frozenStringFactory = alwaysShared(alwaysFrozen(stringFactory));
         symbolClass = defineClass("Symbol");
-        symbolFactory = alwaysFrozen(Layouts.SYMBOL.createSymbolShape(symbolClass, symbolClass));
+        symbolFactory = alwaysShared(alwaysFrozen(Layouts.SYMBOL.createSymbolShape(symbolClass, symbolClass)));
         Layouts.CLASS.setInstanceFactoryUnsafe(symbolClass, symbolFactory);
 
         threadClass = defineClass("Thread");
@@ -667,6 +667,10 @@ public class CoreLibrary {
 
     private static DynamicObjectFactory alwaysFrozen(DynamicObjectFactory factory) {
         return factory.getShape().addProperty(ALWAYS_FROZEN_PROPERTY).createFactory();
+    }
+
+    private static DynamicObjectFactory alwaysShared(DynamicObjectFactory factory) {
+        return factory.getShape().makeSharedShape().createFactory();
     }
 
     private void includeModules(DynamicObject comparableModule) {
