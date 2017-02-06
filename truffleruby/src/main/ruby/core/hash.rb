@@ -187,7 +187,7 @@ class Hash
     if default_proc and !undefined.equal?(key)
       default_proc.call(self, key)
     else
-      internal_default_value
+      Truffle.invoke_primitive :hash_default_value, self
     end
   end
 
@@ -202,8 +202,7 @@ class Hash
       end
     end
 
-    @default = nil
-    @default_proc = prc
+    Truffle.invoke_primitive :hash_set_default_proc, self, prc
   end
 
   def dig(key, *more)

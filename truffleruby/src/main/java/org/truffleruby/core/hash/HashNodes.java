@@ -15,7 +15,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -28,11 +27,10 @@ import org.truffleruby.Log;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
-import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
-import org.truffleruby.core.hash.HashNodesFactory.DefaultValueNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.GetIndexNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
 import org.truffleruby.language.NotProvided;
@@ -309,6 +307,22 @@ public abstract class HashNodes {
             }
         }
 
+    }
+
+    @Primitive(name = "hash_default_value")
+    public abstract static class DefaultValueNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public Object defaultValue(DynamicObject hash,
+                @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
+            final Object value = Layouts.HASH.getDefaultValue(hash);
+
+            if (nullValueProfile.profile(value == null)) {
+                return nil();
+            } else {
+                return value;
+            }
+        }
     }
 
     @CoreMethod(names = "delete", required = 1, needsBlock = true, raiseIfFrozenSelf = true)
@@ -984,8 +998,27 @@ public abstract class HashNodes {
 
     }
 
+    @Primitive(name = "hash_set_default_proc")
+    public abstract static class SetDefaultProcNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyProc(defaultProc)")
+        public DynamicObject setDefaultProc(DynamicObject hash, DynamicObject defaultProc) {
+            Layouts.HASH.setDefaultValue(hash, null);
+            Layouts.HASH.setDefaultBlock(hash, defaultProc);
+            return defaultProc;
+        }
+
+        @Specialization(guards = "isNil(nil)")
+        public DynamicObject setDefaultProc(DynamicObject hash, Object nil) {
+            Layouts.HASH.setDefaultValue(hash, null);
+            Layouts.HASH.setDefaultBlock(hash, null);
+            return nil();
+        }
+
+    }
+
     @CoreMethod(names = "default=", required = 1, raiseIfFrozenSelf = true)
-    public abstract static class SetDefaultNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class SetDefaultValueNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public Object setDefault(DynamicObject hash, Object defaultValue) {
@@ -1204,76 +1237,6 @@ public abstract class HashNodes {
         public DynamicObject rehashNotIdentity(VirtualFrame frame, DynamicObject hash,
                 @Cached("create()") InternalRehashNode internalRehashNode) {
             return internalRehashNode.executeRehash(frame, hash);
-        }
-
-    }
-
-    @NonStandard
-    @CoreMethod(names = "internal_default_value")
-    public abstract static class InternalDefaultValueNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private DefaultValueNode defaultValueNode = DefaultValueNodeFactory.create(null);
-
-        @Specialization
-        public Object internalDefaultValue(DynamicObject hash) {
-            return defaultValueNode.executeDefaultValue(hash);
-        }
-
-    }
-
-    @NonStandard
-    @NodeChild(type = RubyNode.class, value = "self")
-    public abstract static class DefaultValueNode extends CoreMethodNode {
-
-        public abstract Object executeDefaultValue(DynamicObject hash);
-
-        @Specialization
-        public Object defaultValue(DynamicObject hash,
-                        @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
-            final Object value = Layouts.HASH.getDefaultValue(hash);
-
-            if (nullValueProfile.profile(value == null)) {
-                return nil();
-            } else {
-                return value;
-            }
-        }
-    }
-
-    @NonStandard
-    @NodeChildren({
-                    @NodeChild(type = RubyNode.class, value = "self"),
-                    @NodeChild(type = RubyNode.class, value = "defaultValue")
-    })
-    public abstract static class SetDefaultValueNode extends CoreMethodNode {
-
-        @Specialization
-        public Object setDefaultValue(DynamicObject hash, Object defaultValue) {
-            Layouts.HASH.setDefaultValue(hash, defaultValue);
-            return defaultValue;
-        }
-
-    }
-
-    @NonStandard
-    @NodeChildren({
-                    @NodeChild(type = RubyNode.class, value = "self"),
-                    @NodeChild(type = RubyNode.class, value = "defaultProc")
-    })
-    public abstract static class SetDefaultProcNode extends CoreMethodNode {
-
-        @Specialization(guards = "isRubyProc(defaultProc)")
-        public DynamicObject setDefaultProc(DynamicObject hash, DynamicObject defaultProc) {
-            Layouts.HASH.setDefaultValue(hash, null);
-            Layouts.HASH.setDefaultBlock(hash, defaultProc);
-            return defaultProc;
-        }
-
-        @Specialization(guards = "isNil(nil)")
-        public DynamicObject setDefaultProc(DynamicObject hash, Object nil) {
-            Layouts.HASH.setDefaultValue(hash, null);
-            Layouts.HASH.setDefaultBlock(hash, null);
-            return nil();
         }
 
     }

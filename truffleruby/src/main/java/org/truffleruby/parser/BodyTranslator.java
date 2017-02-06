@@ -1944,17 +1944,7 @@ public class BodyTranslator extends Translator {
         final String path = getSourcePath(sourceSection);
         final String corePath = corePath();
         final RubyNode ret;
-        if (path.equals(corePath + "hash.rb")) {
-            if (name.equals("@default")) {
-                ret = HashNodesFactory.SetDefaultValueNodeFactory.create(self, rhs);
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            } else if (name.equals("@default_proc")) {
-                ret = HashNodesFactory.SetDefaultProcNodeFactory.create(self, rhs);
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            }
-        } else if (path.equals(corePath + "range.rb")) {
+        if (path.equals(corePath + "range.rb")) {
             if (name.equals("@begin")) {
                 ret = RangeNodesFactory.InternalSetBeginNodeGen.create(self, rhs);
                 ret.unsafeSetSourceSection(sourceSection);
