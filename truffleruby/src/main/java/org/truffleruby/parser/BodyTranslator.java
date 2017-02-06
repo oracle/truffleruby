@@ -35,7 +35,6 @@ import org.truffleruby.core.array.ArrayGetTailNodeGen;
 import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.array.PrimitiveArrayNodeFactory;
 import org.truffleruby.core.cast.HashCastNodeGen;
-import org.truffleruby.core.cast.IntegerCastNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.core.cast.StringToSymbolNodeGen;
@@ -1935,23 +1934,9 @@ public class BodyTranslator extends Translator {
             rhs = node.getValueNode().accept(this);
         }
 
-        // Every case will use a SelfParseNode, just don't it use more than once.
-        // Also note the check for frozen.
-        final RubyNode self = new RaiseIfFrozenNode(new SelfNode(environment.getFrameDescriptor()));
-
-        final String path = getSourcePath(sourceSection);
-        final String corePath = corePath();
-        final RubyNode ret;
-        if (path.equals(corePath + "io.rb")) {
-            // TODO (pitr 08-Aug-2015): values of predefined OM properties should be casted to defined types automatically
-            if (name.equals("@used") || name.equals("@total") || name.equals("@lineno")) {
-                // Cast int-fitting longs back to int
-                ret = new WriteInstanceVariableNode(name, self, IntegerCastNodeGen.create(rhs));
-                return addNewlineIfNeeded(node, ret);
-            }
-        }
-
-        ret = new WriteInstanceVariableNode(name, self, rhs);
+        RubyNode self = new SelfNode(environment.getFrameDescriptor());
+        self = new RaiseIfFrozenNode(self);
+        final RubyNode ret = new WriteInstanceVariableNode(name, self, rhs);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }

@@ -227,6 +227,8 @@ class IO
   # buffer.
   class InternalBuffer
 
+    attr_reader :used
+
     def self.allocate
       Truffle.primitive :iobuffer_allocate
       raise PrimitiveFailure, "IO::Buffer.allocate primitive failed"
@@ -237,6 +239,10 @@ class IO
       @write_synced = true
       @start = 0
       @eof = false
+    end
+
+    def used= value
+      @used = Truffle::Fixnum.lower(value)
     end
 
     ##
@@ -258,7 +264,7 @@ class IO
     def unshift(str, start_pos)
       @write_synced = false
       written = Truffle.invoke_primitive :iobuffer_unshift, self, str, start_pos, @used
-      @used += written
+      self.used += written
       written
     end
 
@@ -444,7 +450,7 @@ class IO
         @storage = @storage.prepend(chr.chr)
         @start = 0
         @total = @storage.size
-        @used += 1
+        self.used += 1
       end
     end
 
@@ -1890,7 +1896,7 @@ class IO
 
     raise TypeError if line_number.nil?
 
-    @lineno = Integer(line_number)
+    @lineno = Truffle::Fixnum.lower Integer(line_number)
   end
 
   ##
