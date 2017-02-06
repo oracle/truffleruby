@@ -90,9 +90,6 @@ class MSpecScript
     # Fixnum boundaries do not match
     "^spec/ruby/optional/capi/bignum_spec.rb",
 
-    # Incorrect C code for spec?
-    "^spec/ruby/optional/capi/data_spec.rb",
-
     # Requires 'ruby/encoding.h'
     "^spec/ruby/optional/capi/encoding_spec.rb",
 
