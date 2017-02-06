@@ -27,6 +27,8 @@
 class Range
   include Enumerable
 
+  # Only used if called directly with allocate + #initialize.
+  # Range.new is defined in Java.
   def initialize(first, last, exclude_end = false)
     raise NameError, "`initialize' called twice" if self.begin
 
@@ -38,9 +40,7 @@ class Range
       end
     end
 
-    @begin = first
-    @end = last
-    @excl = exclude_end
+    Truffle.invoke_primitive :range_initialize, self, first, last, exclude_end
   end
   private :initialize
 

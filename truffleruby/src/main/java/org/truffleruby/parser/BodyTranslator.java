@@ -1942,21 +1942,7 @@ public class BodyTranslator extends Translator {
         final String path = getSourcePath(sourceSection);
         final String corePath = corePath();
         final RubyNode ret;
-        if (path.equals(corePath + "range.rb")) {
-            if (name.equals("@begin")) {
-                ret = RangeNodesFactory.InternalSetBeginNodeGen.create(self, rhs);
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            } else if (name.equals("@end")) {
-                ret = RangeNodesFactory.InternalSetEndNodeGen.create(self, rhs);
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            } else if (name.equals("@excl")) {
-                ret = RangeNodesFactory.InternalSetExcludeEndNodeGen.create(self, rhs);
-                ret.unsafeSetSourceSection(sourceSection);
-                return addNewlineIfNeeded(node, ret);
-            }
-        } else if (path.equals(corePath + "io.rb")) {
+        if (path.equals(corePath + "io.rb")) {
             // TODO (pitr 08-Aug-2015): values of predefined OM properties should be casted to defined types automatically
             if (name.equals("@used") || name.equals("@total") || name.equals("@lineno")) {
                 // Cast int-fitting longs back to int

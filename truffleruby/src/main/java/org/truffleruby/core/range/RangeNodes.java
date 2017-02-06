@@ -23,12 +23,12 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
-import org.truffleruby.builtins.NonStandard;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayBuilderNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -441,49 +441,13 @@ public abstract class RangeNodes {
 
     }
 
-    // These 3 nodes replace ivar assignment in the common/range.rb Range#initialize
-    @NonStandard
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "self"),
-            @NodeChild(type = RubyNode.class, value = "begin")
-    })
-    public abstract static class InternalSetBeginNode extends RubyNode {
+    @Primitive(name = "range_initialize")
+    public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isObjectRange(range)")
-        public Object setBegin(DynamicObject range, Object begin) {
+        public boolean setExcludeEnd(DynamicObject range, Object begin, Object end, boolean excludeEnd) {
             Layouts.OBJECT_RANGE.setBegin(range, begin);
-            return begin;
-        }
-    }
-
-    @NonStandard
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "self"),
-            @NodeChild(type = RubyNode.class, value = "end")
-    })
-    public abstract static class InternalSetEndNode extends RubyNode {
-
-        @Specialization(guards = "isObjectRange(range)")
-        public Object setEnd(DynamicObject range, Object end) {
             Layouts.OBJECT_RANGE.setEnd(range, end);
-            return end;
-        }
-    }
-
-    @NonStandard
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "self"),
-            @NodeChild(type = RubyNode.class, value = "excludeEnd")
-    })
-    public abstract static class InternalSetExcludeEndNode extends RubyNode {
-
-        @CreateCast("excludeEnd")
-        public RubyNode castToBoolean(RubyNode excludeEnd) {
-            return BooleanCastNodeGen.create(excludeEnd);
-        }
-
-        @Specialization(guards = "isObjectRange(range)")
-        public boolean setExcludeEnd(DynamicObject range, boolean excludeEnd) {
             Layouts.OBJECT_RANGE.setExcludedEnd(range, excludeEnd);
             return excludeEnd;
         }
