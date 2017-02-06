@@ -209,11 +209,14 @@ module JavaUtilities
 
     a_proxy.java_class = a_class
 
-    add_interfaces(a_proxy)
-    add_static_fields(a_proxy)
-    add_static_methods(a_proxy)
-    add_instance_fields(a_proxy)
-    add_instance_methods(a_proxy)
+    JavaProxyBuilder.new(a_proxy, a_class).
+      add_interfaces.
+      add_static_fields.
+      add_static_methods.
+      add_instance_fields.
+      add_instance_methods.
+      build
+    
     existing_proxy = PROXIES.put_if_absent(a_class, a_proxy)
 
     if existing_proxy == nil

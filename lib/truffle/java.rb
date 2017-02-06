@@ -37,6 +37,8 @@ require_relative 'java/core_ext.rb'
 require_relative 'java/java_ext.rb'
 require_relative 'java/java.rb'
 
+require_relative 'java/proxy_builder.rb'
+require_relative 'java/java_dispatcher.rb'
 require_relative 'java/java_utilities.rb'
 require_relative 'java/class_cache.rb'
 require_relative 'java/java_proxy_methods.rb'
