@@ -160,7 +160,6 @@ public abstract class ThreadNodes {
 
     }
 
-    @NonStandard
     @CoreMethod(names = "handle_interrupt", required = 2, needsBlock = true, visibility = Visibility.PRIVATE, unsafe = UnsafeGroup.THREADS)
     public abstract static class HandleInterruptNode extends YieldingCoreMethodNode {
 
