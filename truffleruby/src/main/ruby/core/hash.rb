@@ -191,18 +191,17 @@ class Hash
     end
   end
 
-  # Sets the default proc to be executed on each key lookup
-  def default_proc=(prc)
+  def default_proc=(proc)
     Truffle.check_frozen
-    unless prc.nil?
-      prc = Rubinius::Type.coerce_to prc, Proc, :to_proc
+    unless proc.nil?
+      proc = Rubinius::Type.coerce_to proc, Proc, :to_proc
 
-      if prc.lambda? and prc.arity != 2
+      if proc.lambda? and proc.arity != 2
         raise TypeError, "default proc must have arity 2"
       end
     end
 
-    Truffle.invoke_primitive :hash_set_default_proc, self, prc
+    Truffle.invoke_primitive :hash_set_default_proc, self, proc
   end
 
   def dig(key, *more)
