@@ -1236,19 +1236,7 @@ public class BodyTranslator extends Translator {
         // Unqualified constant access, as in CONST
         final SourceIndexLength sourceSection = node.getPosition();
 
-        /*
-         * Constants of the form Rubinius::Foo in the Rubinius kernel code always seem to get resolved, even if
-         * Rubinius is not defined, such as in BasicObject. We get around this by translating Rubinius to be
-         * ::Rubinius. Note that this isn't quite what Rubinius does, as they say that Rubinius isn't defined, but
-         * we will because we'll translate that to ::Rubinius. But it is a simpler translation.
-         */
-
         final String name = ConstantReplacer.replacementName(source, node.getName());
-
-        if (name.equals("Rubinius") && getSourcePath(sourceSection).startsWith(corePath())) {
-            final RubyNode ret = new Colon3ParseNode(node.getPosition(), name).accept(this);
-            return addNewlineIfNeeded(node, ret);
-        }
 
         // TODO (pitr 01-Dec-2015): remove when RUBY_PLATFORM is set to "truffle"
         if (name.equals("RUBY_PLATFORM") && getSourcePath(sourceSection).contains(buildPartialPath("test", "xml_mini", "jdom_engine_test.rb"))) {

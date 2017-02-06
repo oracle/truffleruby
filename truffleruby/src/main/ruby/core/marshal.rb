@@ -36,8 +36,8 @@ class BasicObject
   def __marshal__(ms, strip_ivars = false)
     out = ms.serialize_extended_object self
     out << "o"
-    cls = Rubinius::Type.object_class self
-    name = Rubinius::Type.module_inspect cls
+    cls = ::Rubinius::Type.object_class self
+    name = ::Rubinius::Type.module_inspect cls
     out << ms.serialize(name.to_sym)
     out << ms.serialize_instance_variables_suffix(self, true, strip_ivars)
   end
