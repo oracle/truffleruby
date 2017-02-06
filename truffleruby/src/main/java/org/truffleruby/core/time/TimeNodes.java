@@ -11,7 +11,6 @@ package org.truffleruby.core.time;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -21,8 +20,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
-import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.string.StringOperations;
@@ -67,33 +64,6 @@ public abstract class TimeNodes {
             return self;
         }
 
-    }
-
-    // Not a core method, used to simulate Rubinius @is_gmt.
-    @NodeChild(type = RubyNode.class, value = "self")
-    public abstract static class InternalGMTNode extends CoreMethodNode {
-
-        @Specialization
-        public boolean internalGMT(DynamicObject time) {
-            return Layouts.TIME.getIsUtc(time);
-        }
-    }
-
-    // Not a core method, used to simulate Rubinius @offset.
-    @NodeChild(type = RubyNode.class, value = "self")
-    public abstract static class InternalOffsetNode extends CoreMethodNode {
-
-        @TruffleBoundary
-        @Specialization
-        public Object internalOffset(DynamicObject time) {
-            final Object offset = Layouts.TIME.getOffset(time);
-            if (offset == nil()) {
-                final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
-                return dateTime.getOffset().getTotalSeconds();
-            } else {
-                return offset;
-            }
-        }
     }
 
     @CoreMethod(names = "localtime_internal", optional = 1)
@@ -204,24 +174,9 @@ public abstract class TimeNodes {
     @CoreMethod(names = "gmt?")
     public abstract static class GmtNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private InternalGMTNode internalGMTNode = TimeNodesFactory.InternalGMTNodeFactory.create(null);
-
         @Specialization
         public boolean allocate(DynamicObject time) {
-            return internalGMTNode.internalGMT(time);
-        }
-
-    }
-
-    @NonStandard
-    @CoreMethod(names = "internal_offset")
-    public abstract static class InternalOffsetCoreNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private InternalOffsetNode internalOffsetNode = TimeNodesFactory.InternalOffsetNodeFactory.create(null);
-
-        @Specialization
-        public Object allocate(DynamicObject time) {
-            return internalOffsetNode.internalOffset(time);
+            return Layouts.TIME.getIsUtc(time);
         }
 
     }
