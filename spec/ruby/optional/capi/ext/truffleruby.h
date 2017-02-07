@@ -141,10 +141,6 @@
 #undef HAVE_RB_SET_END_PROC
 #undef HAVE_RB_WARN
 
-/* Marshal */
-#undef HAVE_RB_MARSHAL_DUMP
-#undef HAVE_RB_MARSHAL_LOAD
-
 /* Numeric */
 #undef HAVE_NUM2CHR
 #undef HAVE_RB_CMPINT
