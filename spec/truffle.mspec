@@ -83,8 +83,7 @@ class MSpecScript
 
   set :capi, [
     "spec/ruby/optional/capi",
-    "^spec/ruby/optional/capi/encoding_spec.rb",
-    "^spec/ruby/optional/capi/typed_data_spec.rb"
+    "^spec/ruby/optional/capi/encoding_spec.rb"
   ]
 
   set :truffle, [

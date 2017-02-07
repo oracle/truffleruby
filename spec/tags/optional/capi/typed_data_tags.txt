@@ -1,0 +1,7 @@
+fails:CApiAllocTypedSpecs (a class with an alloc func defined) calls the alloc func
+fails:CApiWrappedTypedStruct wraps and unwraps data
+fails:CApiWrappedTypedStruct throws an exception for a wrong type
+fails:CApiWrappedTypedStruct allows for using NULL as the klass for Data_Wrap_Struct
+fails:CApiWrappedTypedStruct RTYPEDATA returns the struct data
+fails:CApiWrappedTypedStruct RTYPEDATA can be used to change the wrapped struct
+fails:CApiWrappedTypedStruct DATA_PTR returns the struct data
