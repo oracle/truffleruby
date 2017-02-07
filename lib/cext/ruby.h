@@ -476,7 +476,16 @@ double RFLOAT_VALUE(VALUE value);
 
 // String
 
-typedef void rb_encoding;
+typedef struct {
+  char *name;
+} rb_encoding;
+
+enum ruby_coderange_type {
+    RUBY_ENC_CODERANGE_UNKNOWN	= 0,
+    RUBY_ENC_CODERANGE_7BIT	    = 1,
+    RUBY_ENC_CODERANGE_VALID    = 2,
+    RUBY_ENC_CODERANGE_BROKEN	  = 4
+};
 
 #define PRI_VALUE_PREFIX        "l"
 #define PRI_LONG_PREFIX         "l"
@@ -527,8 +536,11 @@ VALUE rb_str_export(VALUE string);
 VALUE rb_str_export_locale(VALUE string);
 VALUE rb_str_export_to_enc(VALUE string, rb_encoding *enc);
 rb_encoding *rb_default_external_encoding(void);
+rb_encoding *rb_default_internal_encoding(void);
 rb_encoding *rb_locale_encoding(void);
+int rb_locale_encindex(void);
 rb_encoding *rb_filesystem_encoding(void);
+int rb_filesystem_encindex(void);
 rb_encoding *get_encoding(VALUE string);
 #define STR_ENC_GET(string) get_encoding(string)
 #define rb_str_dup(string) rb_obj_dup(string)
@@ -545,6 +557,35 @@ VALUE rb_str_equal(VALUE a, VALUE b);
 void rb_str_free(VALUE string);
 unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_encoding *encoding);
 rb_encoding *rb_enc_get(VALUE object);
+#define RB_ENCODING_GET(obj) rb_enc_get(obj)
+#define ENCODING_GET(obj) RB_ENCODING_GET(obj)
+void rb_enc_set_index(VALUE obj, int idx);
+#define RB_ENCODING_SET(obj,i) rb_enc_set_index((obj), (i))
+#define ENCODING_SET(obj,i) RB_ENCODING_SET(obj,i)
+rb_encoding *rb_ascii8bit_encoding(void);
+int rb_ascii8bit_encindex(void);
+rb_encoding *rb_usascii_encoding(void);
+int rb_usascii_encindex(void);
+rb_encoding *rb_utf8_encoding(void);
+int rb_utf8_encindex(void);
+#define StringValue(value) rb_string_value(&(value))
+#define SafeStringValue StringValue
+#define StringValuePtr(string) rb_string_value_ptr(&(string))
+#define StringValueCStr(string) rb_string_value_cstr(&(string))
+VALUE rb_str_buf_new(long capacity);
+VALUE rb_sprintf(const char *format, ...);
+VALUE rb_vsprintf(const char *format, va_list args);
+VALUE rb_str_append(VALUE string, VALUE to_append);
+void rb_str_set_len(VALUE string, long length);
+VALUE rb_String(VALUE value);
+VALUE rb_str_resize(VALUE string, long length);
+#define RSTRING_GETMEM(string, data_pointer, length_pointer) ((data_pointer) = RSTRING_PTR(string), (length_pointer) = rb_str_len(string))
+VALUE rb_str_split(VALUE string, const char *split);
+void rb_str_modify(VALUE string);
+#define ENC_CODERANGE_7BIT	RUBY_ENC_CODERANGE_7BIT
+enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj);
+#define RB_ENC_CODERANGE_ASCIIONLY(obj) (RB_ENC_CODERANGE(obj) == RUBY_ENC_CODERANGE_7BIT)
+#define ENC_CODERANGE_ASCIIONLY(obj) RB_ENC_CODERANGE_ASCIIONLY(obj)
 
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
   VALUE value = *value_pointer;
@@ -573,26 +614,12 @@ MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer) {
   return RSTRING_PTR(string);
 }
 
-#define StringValue(value) rb_string_value(&(value))
-#define SafeStringValue StringValue
-#define StringValuePtr(string) rb_string_value_ptr(&(string))
-#define StringValueCStr(string) rb_string_value_cstr(&(string))
-VALUE rb_str_buf_new(long capacity);
-VALUE rb_sprintf(const char *format, ...);
-VALUE rb_vsprintf(const char *format, va_list args);
-VALUE rb_str_append(VALUE string, VALUE to_append);
-void rb_str_set_len(VALUE string, long length);
-VALUE rb_String(VALUE value);
-VALUE rb_str_resize(VALUE string, long length);
-#define RSTRING_GETMEM(string, data_pointer, length_pointer) ((data_pointer) = RSTRING_PTR(string), (length_pointer) = rb_str_len(string))
-VALUE rb_str_split(VALUE string, const char *split);
-void rb_str_modify(VALUE string);
-
 // Symbol
 
 ID rb_to_id(VALUE name);
 ID rb_intern(const char *string);
 ID rb_intern2(const char *string, long length);
+ID rb_intern3(const char *name, long len, rb_encoding *enc);
 #define rb_intern_const(str) rb_intern2((str), strlen(str))
 VALUE rb_sym2str(VALUE string);
 const char *rb_id2name(ID id);

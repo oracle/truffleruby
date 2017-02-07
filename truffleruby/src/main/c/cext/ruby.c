@@ -861,13 +861,28 @@ rb_encoding *rb_default_external_encoding(void) {
   abort();
 }
 
+rb_encoding *rb_default_internal_encoding(void) {
+  rb_jt_error("rb_default_internal_encoding not implemented");
+  abort();
+}
+
 rb_encoding *rb_locale_encoding(void) {
   rb_jt_error("rb_locale_encoding not implemented");
   abort();
 }
 
+int rb_locale_encindex(void) {
+  rb_jt_error("rb_locale_encindex not implemented");
+  abort();
+}
+
 rb_encoding *rb_filesystem_encoding(void) {
   rb_jt_error("rb_filesystem_encoding not implemented");
+  abort();
+}
+
+int rb_filesystem_encindex(void) {
+  rb_jt_error("rb_filesystem_encindex not implemented");
   abort();
 }
 
@@ -930,6 +945,46 @@ rb_encoding *rb_enc_get(VALUE object) {
   return (rb_encoding *)truffle_invoke((void *)object, "encoding");
 }
 
+void rb_enc_set_index(VALUE obj, int idx) {
+  rb_jt_error("rb_enc_set_index not implemented");
+  abort();
+}
+
+rb_encoding *rb_ascii8bit_encoding(void) {
+  rb_jt_error("rb_ascii8bit_encoding not implemented");
+  abort();
+}
+
+int rb_ascii8bit_encindex(void) {
+  rb_jt_error("rb_ascii8bit_encindex not implemented");
+  abort();
+}
+
+rb_encoding *rb_usascii_encoding(void) {
+  rb_jt_error("rb_usascii_encoding not implemented");
+  abort();
+}
+
+int rb_usascii_encindex(void) {
+  rb_jt_error("rb_usascii_encindex not implemented");
+  abort();
+}
+
+rb_encoding *rb_utf8_encoding(void) {
+  rb_jt_error("rb_utf8_encoding not implemented");
+  abort();
+}
+
+int rb_utf8_encindex(void) {
+  rb_jt_error("rb_utf8_encindex not implemented");
+  abort();
+}
+
+enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj) {
+  rb_jt_error("RB_ENC_CODERANGE not implemented");
+  abort();
+}
+
 // Symbol
 
 ID rb_to_id(VALUE name) {
@@ -939,6 +994,16 @@ ID rb_to_id(VALUE name) {
 
 ID rb_intern(const char *string) {
   return (ID) truffle_invoke(RUBY_CEXT, "rb_intern", rb_str_new_cstr(string));
+}
+
+ID rb_intern2(const char *string, long length) {
+  rb_jt_error("rb_intern2 not implemented");
+  abort();
+}
+
+ID rb_intern3(const char *name, long len, rb_encoding *enc) {
+  rb_jt_error("rb_intern3 not implemented");
+  abort();
 }
 
 VALUE rb_sym2str(VALUE string) {
