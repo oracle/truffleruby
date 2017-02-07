@@ -2176,6 +2176,23 @@ int rb_cloexec_open(const char *pathname, int flags, mode_t mode) {
   abort();
 }
 
+VALUE rb_file_open(const char *fname, const char *modestr) {
+  rb_jt_error("rb_file_open not implemented");
+  abort();
+}
+
+VALUE rb_file_open_str(VALUE fname, const char *modestr) {
+  rb_jt_error("rb_file_open_str not implemented");
+  abort();
+}
+
+VALUE rb_get_path(VALUE object) {
+  rb_jt_error("rb_get_path not implemented");
+  abort();
+}
+
+#define FilePathValue(v) (RB_GC_GUARD(v) = rb_get_path(v))
+
 // Structs
 
 VALUE rb_struct_aref(VALUE s, VALUE idx) {

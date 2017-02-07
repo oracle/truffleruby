@@ -1007,6 +1007,10 @@ VALUE rb_io_write(VALUE io, VALUE str);
 VALUE rb_io_binmode(VALUE io);
 int rb_thread_fd_writable(int fd);
 int rb_cloexec_open(const char *pathname, int flags, mode_t mode);
+VALUE rb_file_open(const char *fname, const char *modestr);
+VALUE rb_file_open_str(VALUE fname, const char *modestr);
+VALUE rb_get_path(VALUE object);
+#define FilePathValue(v) (RB_GC_GUARD(v) = rb_get_path(v))
 
 // Structs
 
