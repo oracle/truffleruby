@@ -4,9 +4,10 @@ set -e
 set -x
 
 truffle_ruby=$(pwd)
-JTR=${truffle_ruby}/bin/jruby-truffle-tool
+JTR="${truffle_ruby}/bin/truffleruby ${truffle_ruby}/lib/truffleruby-tool/bin/truffleruby-tool"
+rails_app="${truffle_ruby}/../jruby-truffle-gem-test-pack/gem-testing/rails-app"
 
-cd ${truffle_ruby}/../jruby-truffle-gem-test-pack/gem-testing/rails-app
+cd "${rails_app}"
 
 if [ -n "$CI" -a -z "$HAS_REDIS" ]
 then
@@ -21,9 +22,9 @@ else
     fi
 
     ${JTR} setup --offline
-    ${JTR} run --offline -- -S bundle exec ./bin/rails server &
+    ${JTR} run --offline -- -S bundle exec bin/rails server &
     serverpid=$!
-    url=http://localhost:3000
+    url="http://localhost:3000"
 
     set +x
     while ! curl -s "$url/people.json";
