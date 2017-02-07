@@ -2145,6 +2145,11 @@ VALUE rb_struct_getmember(VALUE obj, ID id) {
 
 // Data
 
+VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
+  rb_jt_error("rb_data_object_wrap not implemented");
+  abort();
+}
+
 struct RData *rb_jt_adapt_rdata(VALUE value) {
   return (struct RData *)truffle_invoke(RUBY_CEXT, "rb_jt_adapt_rdata", value);
 }

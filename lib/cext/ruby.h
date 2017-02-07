@@ -1009,18 +1009,27 @@ struct RBasic {
 
 // Data
 
+typedef void (*RUBY_DATA_FUNC)(void *);
+
 struct RData {
   struct RBasic basic;
-  void (*dmark)(void *data);
-  void (*dfree)(void *data);
+  RUBY_DATA_FUNC dmark;
+  RUBY_DATA_FUNC dfree;
   void *data;
 };
 
+VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree);
+
+#define Data_Wrap_Struct(klass,mark,free,sval)\
+    rb_data_object_wrap((klass),(sval),(RUBY_DATA_FUNC)(mark),(RUBY_DATA_FUNC)(free))
+
+#define Data_Get_Struct(obj,type,sval) \
+    ((sval) = (type *)rb_data_object_get(obj))
+
 struct RData *rb_jt_adapt_rdata(VALUE value);
-
 #define RDATA(value) rb_jt_adapt_rdata(value)
-
 #define DATA_PTR(value) (RDATA(value)->data)
+#define rb_data_object_get DATA_PTR
 
 // Typed data
 
@@ -1029,8 +1038,8 @@ typedef struct rb_data_type_struct rb_data_type_t;
 struct rb_data_type_struct {
   const char *wrap_struct_name;
   struct {
-    void (*dmark)(void *data);
-    void (*dfree)(void *data);
+    RUBY_DATA_FUNC dmark;
+    RUBY_DATA_FUNC dfree;
     size_t (*dsize)(const void *data);
     void *reserved[2];
   } function;
