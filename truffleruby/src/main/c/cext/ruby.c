@@ -1713,6 +1713,38 @@ VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
   abort();
 }
 
+// Regexp
+
+VALUE rb_backref_get(void) {
+  rb_jt_error("rb_backref_get not implemented");
+  abort();
+}
+
+VALUE rb_reg_match_pre(VALUE match) {
+  rb_jt_error("rb_reg_match_pre not implemented");
+  abort();
+}
+
+VALUE rb_reg_new_str(VALUE s, int options) {
+  rb_jt_error("rb_reg_new_str not implemented");
+  abort();
+}
+
+VALUE rb_reg_nth_match(int nth, VALUE match) {
+  rb_jt_error("rb_reg_nth_match not implemented");
+  abort();
+}
+
+VALUE rb_reg_options(VALUE re) {
+  rb_jt_error("rb_reg_options not implemented");
+  abort();
+}
+
+VALUE rb_reg_regcomp(VALUE str) {
+  rb_jt_error("rb_reg_regcomp not implemented");
+  abort();
+}
+
 // Mutexes
 
 VALUE rb_mutex_new(void) {

@@ -889,6 +889,15 @@ struct timeval rb_time_timeval(VALUE time);
 struct timespec rb_time_timespec(VALUE time);
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset);
 
+// Regexp
+
+VALUE rb_backref_get(void);
+VALUE rb_reg_match_pre(VALUE match);
+VALUE rb_reg_new_str(VALUE s, int options);
+VALUE rb_reg_nth_match(int nth, VALUE match);
+VALUE rb_reg_options(VALUE re);
+VALUE rb_reg_regcomp(VALUE str);
+
 // GC
 
 #define RB_GC_GUARD(v) \
