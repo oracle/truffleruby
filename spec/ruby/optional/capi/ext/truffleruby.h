@@ -301,7 +301,4 @@
 #undef HAVE_RB_TIME_TIMESPEC_NEW
 #endif
 
-/* Util */
-#undef HAVE_RUBY_SETENV
-
 #endif
