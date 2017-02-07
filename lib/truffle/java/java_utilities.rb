@@ -308,6 +308,7 @@ module JavaUtilities
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT, LOOKUP, a_method)
     rescue Exception => exception
+      nil
     end
   end
 
@@ -315,6 +316,7 @@ module JavaUtilities
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT_GETTER, LOOKUP, a_field)
     rescue Exception
+      nil
     end
   end
 
@@ -365,105 +367,6 @@ module JavaUtilities
     a_proxy.__send__(:define_method, "size", size)
   end
 
-  def self.add_static_fields(a_proxy)
-    fields = Java.invoke_java_method(CLASS_GET_DECLARED_FIELDS, a_proxy.java_class)
-    # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
-    fields_size = java_array_size(fields)
-    (0...fields_size).each do |i; f|
-      f = java_array_get(fields, i)
-      mh = unreflect_getter(f)
-      if mh != nil
-        if constant_field?(f)
-          val = wrap_java_value(Java.invoke_java_method(mh))
-          begin
-            a_proxy.const_set(Hava.to_ruby_string(
-                                Java.invoke_java_method(FIELD_GET_NAME, f)),
-                              val)
-          rescue NameError
-          end
-        end
-        if static_field?(f)
-          a_proxy.__send__(:define_singleton_method,
-                           Java.to_ruby_string(
-                             Java.invoke_java_method(FIELD_GET_NAME, f))) do
-            ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh))
-          end
-        end
-      end
-    end
-    a_proxy
-  end
-
-  def self.add_static_methods(a_proxy)
-    methods = Java.invoke_java_method(CLASS_GET_DECLARED_METHODS, a_proxy.java_class)
-    # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
-    methods_size = java_array_size(methods)
-    (0...methods_size).each do |i; m|
-      m = java_array_get(methods, i)
-      if static_method?(m)
-        mh = unreflect_method(m)
-        if mh != nil
-          a_proxy.__send__(:define_singleton_method,
-                           Java.to_ruby_string(Java.invoke_java_method(METHOD_GET_NAME, m))) do |*args|
-            args = args.map do |x|
-              ::JavaUtilities.unwrap_java_value(x)
-            end
-            ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, *args))
-          end
-        end
-      end
-    end
-    a_proxy
-  end
-
-  def self.add_instance_fields(a_proxy)
-    fields = Java.invoke_java_method(CLASS_GET_DECLARED_FIELDS, a_proxy.java_class)
-    # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
-    fields_size = java_array_size(fields)
-    (0...fields_size).each do |i; f|
-      f = java_array_get(fields, i)
-      if !static_field?(f)
-        mh = unreflect_getter(f)
-        if mh != nil
-          a_proxy.__send__(:define_method,
-                           Java.to_ruby_string(Java.invoke_java_method(FIELD_GET_NAME, f))) do
-            ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, java_object))
-          end
-          if !final_field?(f)
-            mh = unreflect_setter(f)
-            a_proxy.__send__(:define_method,
-                             Java.to_ruby_string(Java.invoke_java_method(FIELD_GET_NAME, f)) + "=") do |v|
-              ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, java_object, v))
-            end
-          end
-        end
-      end
-    end
-    a_proxy
-  end
-
-  def self.add_instance_methods(a_proxy)
-    methods = Java.invoke_java_method(CLASS_GET_DECLARED_METHODS, a_proxy.java_class)
-    # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
-    methods_size = java_array_size(methods)
-    (0...methods_size).each do |i; m|
-      m = java_array_get(methods, i)
-      if !static_method?(m)
-        mh = unreflect_method(m)
-        if mh != nil
-          a_proxy.__send__(:define_method,
-                           Java.to_ruby_string(Java.invoke_java_method(METHOD_GET_NAME, m))) do |*args|
-            args = args.map do |x|
-              ::JavaUtilities.unwrap_java_value(x)
-            end
-            ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, self.java_object, *args))
-          end
-        end
-      end
-    end
-    a_proxy
-  end
-
   def self.constant_field?(a_field)
     modifiers = Java.invoke_java_method(FIELD_GET_MODIFIERS, a_field)
     constant = Modifiers::FINAL | Modifiers::PUBLIC | Modifiers::STATIC
@@ -492,16 +395,5 @@ module JavaUtilities
                     make_proxy(Java.invoke_java_method(CLASS_GET_SUPER_CLASS, a_class))
                   end
     a_proxy = Class.new(super_class)
-  end
-
-  def self.add_interfaces(a_proxy)
-    interfaces = Java.invoke_java_method(CLASS_GET_INTERFACES, a_proxy.java_class)
-    # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
-    interfaces_size = java_array_size(interfaces)
-    (0...interfaces_size).each do |i|
-      interface_proxy = make_proxy(java_array_get(interfaces, i))
-      a_proxy.include(interface_proxy) unless a_proxy.ancestors.include?(interface_proxy)
-    end
-    a_proxy
   end
 end

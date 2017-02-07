@@ -160,9 +160,11 @@ module JavaUtilities
   end
   
   class Method
+    attr_reader :dispatcher
+    
     def initialize(name, a_method)
       @name = name
-      @method = JavaDispatcher.new(a_method)
+      @dispatcher = JavaDispatcher.new(a_method)
     end
     
     def precedence
@@ -175,7 +177,7 @@ module JavaUtilities
                 else
                   :define_method
                 end
-      method = @method.method_for_dispatch
+      method = @dispatcher.method_for_dispatch
       wrapped = if static
                   lambda { |*args| method[*args] }
                 else 
@@ -185,7 +187,7 @@ module JavaUtilities
     end
 
     def combine_with(a_method)
-      @method.add_method(a_method)
+      @dispatcher.combine_with(a_method.dispatcher)
     end
   end
 end
