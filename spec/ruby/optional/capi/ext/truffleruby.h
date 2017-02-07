@@ -50,13 +50,6 @@
 /* Enumerable */
 #undef HAVE_RB_ENUMERATORIZE
 
-/* Exception */
-#undef HAVE_RB_EXC_NEW
-#undef HAVE_RB_EXC_NEW2
-#undef HAVE_RB_EXC_NEW3
-#undef HAVE_RB_EXC_RAISE
-#undef HAVE_RB_SET_ERRINFO
-
 /* File */
 #undef HAVE_RB_FILE_OPEN
 #undef HAVE_RB_FILE_OPEN_STR
