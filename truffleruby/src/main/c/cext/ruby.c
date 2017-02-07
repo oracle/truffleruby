@@ -1357,6 +1357,56 @@ VALUE rb_path2class(const char *string) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_path2class", rb_str_new_cstr(string));
 }
 
+VALUE rb_class_name(VALUE klass) {
+  rb_jt_error("rb_class_path not implemented");
+  abort();
+}
+
+VALUE rb_class_new(VALUE super) {
+  rb_jt_error("rb_class_new not implemented");
+  abort();
+}
+
+VALUE rb_class_new_instance(int argc, const VALUE *argv, VALUE klass) {
+  rb_jt_error("rb_class_new_instance not implemented");
+  abort();
+}
+
+VALUE rb_cvar_defined(VALUE klass, ID id) {
+  rb_jt_error("rb_cvar_defined not implemented");
+  abort();
+}
+
+VALUE rb_cvar_get(VALUE klass, ID id) {
+  rb_jt_error("rb_cvar_get not implemented");
+  abort();
+}
+
+void rb_cvar_set(VALUE klass, ID id, VALUE val) {
+  rb_jt_error("rb_cvar_set not implemented");
+  abort();
+}
+
+VALUE rb_cv_get(VALUE klass, const char *name) {
+  rb_jt_error("rb_cv_get not implemented");
+  abort();
+}
+
+void rb_cv_set(VALUE klass, const char *name, VALUE val) {
+  rb_jt_error("rb_cv_set not implemented");
+  abort();
+}
+
+void rb_define_attr(VALUE klass, const char *name, int read, int write) {
+  rb_jt_error("rb_define_attr not implemented");
+  abort();
+}
+
+void rb_define_class_variable(VALUE klass, const char *name, VALUE val) {
+  rb_jt_error("rb_define_class_variable not implemented");
+  abort();
+}
+
 // Proc
 
 VALUE rb_proc_new(void *function, VALUE value) {

@@ -704,6 +704,16 @@ VALUE CLASS_OF(VALUE object);
 VALUE rb_obj_alloc(VALUE ruby_class);
 VALUE rb_class_path(VALUE ruby_class);
 VALUE rb_path2class(const char *string);
+VALUE rb_class_name(VALUE klass);
+VALUE rb_class_new(VALUE super);
+VALUE rb_class_new_instance(int argc, const VALUE *argv, VALUE klass);
+VALUE rb_cvar_defined(VALUE klass, ID id);
+VALUE rb_cvar_get(VALUE klass, ID id);
+void rb_cvar_set(VALUE klass, ID id, VALUE val);
+VALUE rb_cv_get(VALUE klass, const char *name);
+void rb_cv_set(VALUE klass, const char *name, VALUE val);
+void rb_define_attr(VALUE klass, const char *name, int read, int write);
+void rb_define_class_variable(VALUE klass, const char *name, VALUE val);
 
 // Proc
 
@@ -774,10 +784,8 @@ VALUE rb_yield_values(int n, ...);
 
 VALUE rb_iv_get(VALUE object, const char *name);
 VALUE rb_iv_set(VALUE object, const char *name, VALUE value);
-
 VALUE rb_ivar_get(VALUE object, ID name);
 VALUE rb_ivar_set(VALUE object, ID name, VALUE value);
-
 VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
 VALUE rb_attr_get(VALUE object, const char *name);
 
@@ -785,11 +793,9 @@ VALUE rb_attr_get(VALUE object, const char *name);
 
 int rb_const_defined(VALUE module, ID name);
 int rb_const_defined_at(VALUE module, ID name);
-
 VALUE rb_const_get(VALUE module, ID name);
 VALUE rb_const_get_at(VALUE module, ID name);
 VALUE rb_const_get_from(VALUE module, ID name);
-
 VALUE rb_const_set(VALUE module, ID name, VALUE value);
 VALUE rb_define_const(VALUE module, const char *name, VALUE value);
 void rb_define_global_const(const char *name, VALUE value);
@@ -821,22 +827,17 @@ VALUE rb_define_class_id_under(VALUE module, ID name, VALUE superclass);
 VALUE rb_define_module(const char *name);
 VALUE rb_define_module_under(VALUE module, const char *name);
 void rb_include_module(VALUE module, VALUE to_include);
-
 void rb_define_method(VALUE module, const char *name, void *function, int argc);
 void rb_define_private_method(VALUE module, const char *name, void *function, int argc);
 void rb_define_protected_method(VALUE module, const char *name, void *function, int argc);
 void rb_define_module_function(VALUE module, const char *name, void *function, int argc);
 void rb_define_global_function(const char *name, void *function, int argc);
 void rb_define_singleton_method(VALUE object, const char *name, void *function, int argc);
-
 void rb_define_alias(VALUE module, const char *new_name, const char *old_name);
 void rb_alias(VALUE module, ID new_name, ID old_name);
-
 void rb_undef_method(VALUE module, const char *name);
 void rb_undef(VALUE module, ID name);
-
 void rb_attr(VALUE ruby_class, ID name, int read, int write, int ex);
-
 typedef VALUE (*rb_alloc_func_t)(VALUE ruby_class);
 void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function);
 
