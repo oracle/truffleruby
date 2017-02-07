@@ -874,6 +874,11 @@ VALUE rb_complex_polar(VALUE r, VALUE theta);
 VALUE rb_complex_set_real(VALUE complex, VALUE real);
 VALUE rb_complex_set_imag(VALUE complex, VALUE imag);
 
+// Range
+
+VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end);
+int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp);
+
 // GC
 
 #define RB_GC_GUARD(v) \

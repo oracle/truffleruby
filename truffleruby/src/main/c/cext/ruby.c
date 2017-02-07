@@ -1664,6 +1664,18 @@ VALUE rb_complex_set_imag(VALUE complex, VALUE imag) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_complex_set_imag", complex, imag);
 }
 
+// Range
+
+VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end) {
+  rb_jt_error("rb_range_new not implemented");
+  abort();
+}
+
+int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
+  rb_jt_error("rb_range_values not implemented");
+  abort();
+}
+
 // Mutexes
 
 VALUE rb_mutex_new(void) {
