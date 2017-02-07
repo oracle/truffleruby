@@ -69,6 +69,7 @@ extern "C" {
 // Basic types
 
 typedef void *VALUE;
+typedef VALUE SIGNED_VALUE;
 
 typedef VALUE ID;
 
@@ -333,34 +334,40 @@ VALUE rb_jt_get_eZeroDivError(void);
 // Conversions
 
 VALUE CHR2FIX(char ch);
-
 int NUM2INT(VALUE value);
 unsigned int NUM2UINT(VALUE value);
 long NUM2LONG(VALUE value);
 unsigned long NUM2ULONG(VALUE value);
 double NUM2DBL(VALUE value);
-
 int FIX2INT(VALUE value);
 unsigned int FIX2UINT(VALUE value);
 long FIX2LONG(VALUE value);
-
 VALUE INT2NUM(long value);
 VALUE INT2FIX(long value);
 VALUE UINT2NUM(unsigned int value);
-
 VALUE LONG2NUM(long value);
 VALUE ULONG2NUM(long value);
 VALUE LONG2FIX(long value);
-
 int rb_fix2int(VALUE value);
 unsigned long rb_fix2uint(VALUE value);
 int rb_long2int(long value);
-
 ID SYM2ID(VALUE value);
 VALUE ID2SYM(ID value);
-
 #define NUM2TIMET(value) NUM2LONG(value)
 #define TIMET2NUM(value) LONG2NUM(value)
+char RB_NUM2CHR(VALUE x);
+#define NUM2CHR(x) RB_NUM2CHR(x)
+int rb_cmpint(VALUE val, VALUE a, VALUE b);
+VALUE rb_int2inum(SIGNED_VALUE n);
+VALUE rb_ll2inum(LONG_LONG n);
+double rb_num2dbl(VALUE val);
+long rb_num2int(VALUE val);
+unsigned long rb_num2uint(VALUE val);
+long rb_num2long(VALUE val);
+VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func);
+VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func);
+VALUE rb_num_coerce_relop(VALUE x, VALUE y, ID func);
+void rb_num_zerodiv(void);
 
 // Type checks
 

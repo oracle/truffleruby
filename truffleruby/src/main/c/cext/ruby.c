@@ -431,6 +431,65 @@ VALUE ID2SYM(ID value) {
   return (VALUE) value;
 }
 
+char RB_NUM2CHR(VALUE x) {
+  rb_jt_error("RB_NUM2CHR not implemented");
+  abort();
+}
+
+int rb_cmpint(VALUE val, VALUE a, VALUE b) {
+  rb_jt_error("rb_cmpint not implemented");
+  abort();
+}
+
+VALUE rb_int2inum(SIGNED_VALUE n) {
+  rb_jt_error("rb_int2inum not implemented");
+  abort();
+}
+
+VALUE rb_ll2inum(LONG_LONG n) {
+  rb_jt_error("rb_ll2inum not implemented");
+  abort();
+}
+
+double rb_num2dbl(VALUE val) {
+  rb_jt_error("rb_num2dbl not implemented");
+  abort();
+}
+
+long rb_num2int(VALUE val) {
+  rb_jt_error("rb_num2int not implemented");
+  abort();
+}
+
+unsigned long rb_num2uint(VALUE val) {
+  rb_jt_error("rb_num2uint not implemented");
+  abort();
+}
+
+long rb_num2long(VALUE val) {
+  rb_jt_error("rb_num2long not implemented");
+  abort();
+}
+
+VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func) {
+  rb_jt_error("rb_num_coerce_bin not implemented");
+  abort();
+}
+
+VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func) {
+  rb_jt_error("rb_num_coerce_cmp not implemented");
+  abort();
+}
+
+VALUE rb_num_coerce_relop(VALUE x, VALUE y, ID func) {
+  rb_jt_error("rb_num_coerce_relop not implemented");
+  abort();
+}
+
+void rb_num_zerodiv(void) {
+  rb_raise(rb_eZeroDivError, "divided by 0");
+}
+
 // Type checks
 
 int RB_NIL_P(VALUE value) {
