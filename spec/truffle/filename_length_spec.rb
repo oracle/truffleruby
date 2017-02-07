@@ -14,7 +14,7 @@ describe "Truffle source files" do
     max_length = 143
 
     root = Dir.pwd
-    File.directory?("#{root}/.git").should be_true # Make sure we are at the root
+    File.exist?("#{root}/.git").should be_true # Make sure we are at the root
 
     too_long = []
     Dir.chdir(root) do
