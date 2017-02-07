@@ -1130,6 +1130,11 @@ VALUE rb_check_array_type(VALUE array) {
 
 // Hash
 
+VALUE rb_hash(VALUE obj) {
+  rb_jt_error("rb_hash not implemented");
+  abort();
+}
+
 VALUE rb_hash_new() {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_hash_new");
 }
@@ -1165,6 +1170,28 @@ st_index_t rb_memhash(const void *data, long length) {
   }
 
   return (st_index_t) hash;
+}
+
+VALUE rb_hash_clear(VALUE hash) {
+  return (VALUE) truffle_invoke((void *)hash, "clear");
+}
+
+VALUE rb_hash_delete(VALUE hash, VALUE key) {
+  return (VALUE) truffle_invoke((void *)hash, "delete", key);
+}
+
+VALUE rb_hash_delete_if(VALUE hash) {
+  rb_jt_error("rb_hash_delete_if not implemented");
+  abort();
+}
+
+void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
+  rb_jt_error("rb_hash_foreach not implemented");
+  abort();
+}
+
+VALUE rb_hash_size(VALUE hash) {
+  return (VALUE) truffle_invoke((void *)hash, "size");
 }
 
 // Class

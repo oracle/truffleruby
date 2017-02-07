@@ -59,6 +59,12 @@ extern "C" {
 #define UNREACHABLE ((void)0)
 #define _(x) x
 
+#ifdef __cplusplus
+#define ANYARGS ...
+#else
+#define ANYARGS
+#endif
+
 // Basic types
 
 typedef void *VALUE;
@@ -636,6 +642,7 @@ VALUE rb_check_array_type(VALUE array);
 
 // Hash
 
+VALUE rb_hash(VALUE obj);
 VALUE rb_hash_new(void);
 VALUE rb_hash_aref(VALUE hash, VALUE key);
 VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE value);
@@ -643,8 +650,13 @@ VALUE rb_hash_lookup(VALUE hash, VALUE key);
 VALUE rb_hash_lookup2(VALUE hash, VALUE key, VALUE default_value);
 VALUE rb_hash_set_ifnone(VALUE hash, VALUE if_none);
 #define RHASH_SET_IFNONE(hash, if_none) rb_hash_set_ifnone((VALUE) hash, if_none)
-
 st_index_t rb_memhash(const void *data, long length);
+#define rb_hash_freeze(array) rb_obj_freeze(array)
+VALUE rb_hash_clear(VALUE hash);
+VALUE rb_hash_delete(VALUE hash, VALUE key);
+VALUE rb_hash_delete_if(VALUE hash);
+void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg);
+VALUE rb_hash_size(VALUE hash);
 
 // Class
 
