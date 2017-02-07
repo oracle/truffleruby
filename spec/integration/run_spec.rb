@@ -9,11 +9,10 @@ describe "Running mspec" do
     cmd << " -B #{fixtures}/config.mspec"
     cmd << " #{fixtures}/a_spec.rb"
     out = `#{cmd}`
-    out = out.lines.reject { |line|
-      line.chomp == RUBY_DESCRIPTION
-    }.join
+    out = out.sub(RUBY_DESCRIPTION, "RUBY_DESCRIPTION")
     out = out.gsub(/\d\.\d{6}/, "D.DDDDDD")
     out.should == <<EOS
+RUBY_DESCRIPTION
 .FE
 
 1)
