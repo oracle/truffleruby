@@ -1579,6 +1579,33 @@ NORETURN(void rb_eof_error(void)) {
   abort();
 }
 
+// Structs
+
+VALUE rb_struct_aref(VALUE s, VALUE idx) {
+  rb_jt_error("rb_struct_aref not implemented");
+  abort();
+}
+
+VALUE rb_struct_aset(VALUE s, VALUE idx, VALUE val) {
+  rb_jt_error("rb_struct_aset not implemented");
+  abort();
+}
+
+VALUE rb_struct_define(const char *name, ...) {
+  rb_jt_error("rb_struct_define not implemented");
+  abort();
+}
+
+VALUE rb_struct_new(VALUE klass, ...) {
+  rb_jt_error("rb_struct_new not implemented");
+  abort();
+}
+
+VALUE rb_struct_getmember(VALUE obj, ID id) {
+  rb_jt_error("rb_struct_getmember not implemented");
+  abort();
+}
+
 // Data
 
 struct RData *rb_jt_adapt_rdata(VALUE value) {

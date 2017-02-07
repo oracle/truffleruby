@@ -871,6 +871,14 @@ void rb_thread_wait_fd(int fd);
 
 NORETURN(void rb_eof_error(void));
 
+// Structs
+
+VALUE rb_struct_aref(VALUE s, VALUE idx);
+VALUE rb_struct_aset(VALUE s, VALUE idx, VALUE val);
+VALUE rb_struct_define(const char *name, ...);
+VALUE rb_struct_new(VALUE klass, ...);
+VALUE rb_struct_getmember(VALUE obj, ID id);
+
 // Objects
 
 struct RBasic {
