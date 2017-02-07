@@ -613,6 +613,46 @@ VALUE rb_cstr_to_inum(const char* string, int base, int raise) {
   abort();
 }
 
+double rb_big2dbl(VALUE x) {
+  rb_jt_error("rb_big2dbl not implemented");
+  abort();
+}
+
+VALUE rb_dbl2big(double d) {
+  rb_jt_error("rb_dbl2big not implemented");
+  abort();
+}
+
+LONG_LONG rb_big2ll(VALUE x) {
+  rb_jt_error("rb_big2ll not implemented");
+  abort();
+}
+
+long rb_big2long(VALUE x) {
+  rb_jt_error("rb_big2long not implemented");
+  abort();
+}
+
+VALUE rb_big2str(VALUE x, int base) {
+  rb_jt_error("rb_big2str not implemented");
+  abort();
+}
+
+unsigned long rb_big2ulong(VALUE x) {
+  rb_jt_error("rb_big2ulong not implemented");
+  abort();
+}
+
+VALUE rb_big_cmp(VALUE x, VALUE y) {
+  rb_jt_error("rb_big_cmp not implemented");
+  abort();
+}
+
+void rb_big_pack(VALUE val, unsigned long *buf, long num_longs) {
+  rb_jt_error("rb_big_pack not implemented");
+  abort();
+}
+
 // Float
 
 VALUE rb_float_new(double value) {

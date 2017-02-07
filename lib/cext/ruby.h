@@ -449,10 +449,17 @@ VALUE rb_Integer(VALUE value);
 
 int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, size_t nails, int flags);
 VALUE rb_integer_unpack(const void *words, size_t numwords, size_t wordsize, size_t nails, int flags);
-
 size_t rb_absint_size(VALUE value, int *nlz_bits_ret);
-
 VALUE rb_cstr_to_inum(const char* string, int base, int raise);
+
+double rb_big2dbl(VALUE x);
+VALUE rb_dbl2big(double d);
+LONG_LONG rb_big2ll(VALUE x);
+long rb_big2long(VALUE x);
+VALUE rb_big2str(VALUE x, int base);
+unsigned long rb_big2ulong(VALUE x);
+VALUE rb_big_cmp(VALUE x, VALUE y);
+void rb_big_pack(VALUE val, unsigned long *buf, long num_longs);
 
 // Float
 
