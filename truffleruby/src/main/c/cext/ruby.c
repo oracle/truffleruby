@@ -1308,6 +1308,21 @@ VALUE rb_yield(VALUE value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_yield", value);
 }
 
+VALUE rb_funcall_with_block(VALUE recv, ID mid, int argc, const VALUE *argv, VALUE pass_procval) {
+  rb_jt_error("rb_funcall_with_block not implemented");
+  abort();
+}
+
+VALUE rb_yield_splat(VALUE values) {
+  rb_jt_error("rb_yield_splat not implemented");
+  abort();
+}
+
+VALUE rb_yield_values(int n, ...) {
+  rb_jt_error("rb_yield_values not implemented");
+  abort();
+}
+
 // Instance variables
 
 VALUE rb_iv_get(VALUE object, const char *name) {
@@ -1411,6 +1426,46 @@ void rb_syserr_fail(int errno, const char *message) {
 
 void rb_sys_fail(const char *message) {
   rb_jt_error(message);
+  abort();
+}
+
+VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2) {
+  rb_jt_error("rb_ensure not implemented");
+  abort();
+}
+
+VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2) {
+  rb_jt_error("rb_rescue not implemented");
+  abort();
+}
+
+VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...) {
+  rb_jt_error("rb_rescue2 not implemented");
+  abort();
+}
+
+VALUE rb_make_backtrace(void) {
+  rb_jt_error("rb_make_backtrace not implemented");
+  abort();
+}
+
+void rb_throw_obj(VALUE tag, VALUE value) {
+  rb_jt_error("rb_throw_obj not implemented");
+  abort();
+}
+
+void rb_throw(const char *tag, VALUE val) {
+  rb_jt_error("rb_throw not implemented");
+  abort();
+}
+
+VALUE rb_catch(const char *tag, VALUE (*func)(), VALUE data) {
+  rb_jt_error("rb_catch not implemented");
+  abort();
+}
+
+VALUE rb_catch_obj(VALUE t, VALUE (*func)(), VALUE data) {
+  rb_jt_error("rb_catch_obj not implemented");
   abort();
 }
 
@@ -1601,6 +1656,41 @@ void *rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_func
 void *rb_thread_call_without_gvl2(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
   // TODO do we need to do anyhting with the unblock_function?
   return function(data1);
+}
+
+int rb_thread_alone(void) {
+  rb_jt_error("rb_thread_alone not implemented");
+  abort();
+}
+
+VALUE rb_thread_current(void) {
+  rb_jt_error("rb_thread_current not implemented");
+  abort();
+}
+
+VALUE rb_thread_local_aref(VALUE thread, ID id) {
+  rb_jt_error("rb_thread_local_aref not implemented");
+  abort();
+}
+
+VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE val) {
+  rb_jt_error("rb_thread_local_aset not implemented");
+  abort();
+}
+
+void rb_thread_wait_for(struct timeval time) {
+  rb_jt_error("rb_thread_wait_for not implemented");
+  abort();
+}
+
+VALUE rb_thread_wakeup(VALUE thread) {
+  rb_jt_error("rb_thread_wakeup not implemented");
+  abort();
+}
+
+VALUE rb_thread_create(VALUE (*fn)(ANYARGS), void *arg) {
+  rb_jt_error("rb_thread_create not implemented");
+  abort();
 }
 
 rb_nativethread_id_t rb_nativethread_self() {

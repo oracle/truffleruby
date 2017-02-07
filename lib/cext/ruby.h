@@ -25,6 +25,7 @@ extern "C" {
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
+#include <sys/time.h>
 
 #include <truffle.h>
 
@@ -716,25 +717,24 @@ int rb_scan_args(int argc, VALUE *argv, const char *format, ...);
 // Calls
 
 int rb_respond_to(VALUE object, ID name);
-
 #define rb_funcall(object, name, ...) truffle_invoke(RUBY_CEXT, "rb_funcall", (void *)object, name, __VA_ARGS__)
 VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args);
 VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *args);
 #define rb_funcall2 rb_funcallv
 #define rb_funcall3 rb_funcallv_public
 VALUE rb_apply(VALUE object, ID name, VALUE args);
-
 #define RUBY_BLOCK_CALL_FUNC_TAKES_BLOCKARG 1
 #define RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg) VALUE yielded_arg, VALUE callback_arg, int __args_count, const VALUE *__args, VALUE __block_arg
 typedef VALUE rb_block_call_func(RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg));
 typedef rb_block_call_func *rb_block_call_func_t;
 VALUE rb_block_call(VALUE object, ID name, int args_count, const VALUE *args, rb_block_call_func_t block_call_func, VALUE data);
-
 VALUE rb_call_super(int args_count, const VALUE *args);
-
 int rb_block_given_p();
 VALUE rb_block_proc(void);
 VALUE rb_yield(VALUE value);
+VALUE rb_funcall_with_block(VALUE recv, ID mid, int argc, const VALUE *argv, VALUE pass_procval);
+VALUE rb_yield_splat(VALUE values);
+VALUE rb_yield_values(int n, ...);
 
 // Instance variables
 
@@ -763,17 +763,21 @@ void rb_define_global_const(const char *name, VALUE value);
 // Exceptions
 
 VALUE rb_exc_new3(VALUE exception_class, VALUE message);
-
 NORETURN(void rb_exc_raise(VALUE exception));
 NORETURN(void rb_raise(VALUE exception, const char *format, ...));
-
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status);
 void rb_jump_tag(int status);
-
 void rb_set_errinfo(VALUE error);
-
 void rb_syserr_fail(int errno, const char *message);
 void rb_sys_fail(const char *message);
+VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2);
+VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2);
+VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...);
+VALUE rb_make_backtrace(void);
+void rb_throw_obj(VALUE tag, VALUE value);
+void rb_throw(const char *tag, VALUE val);
+VALUE rb_catch(const char *tag, VALUE (*func)(), VALUE data);
+VALUE rb_catch_obj(VALUE t, VALUE (*func)(), VALUE data);
 
 // Defining classes, modules and methods
 
@@ -857,10 +861,19 @@ VALUE rb_gc_disable();
 
 typedef void *(*gvl_call)(void *);
 typedef void rb_unblock_function_t(void *);
+#define RUBY_UBF_IO ((rb_unblock_function_t *)-1)
+#define RUBY_UBF_PROCESS ((rb_unblock_function_t *)-1)
 
 void *rb_thread_call_with_gvl(gvl_call function, void *data1);
 void *rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2);
 void *rb_thread_call_without_gvl2(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2);
+int rb_thread_alone(void);
+VALUE rb_thread_current(void);
+VALUE rb_thread_local_aref(VALUE thread, ID id);
+VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE val);
+void rb_thread_wait_for(struct timeval time);
+VALUE rb_thread_wakeup(VALUE thread);
+VALUE rb_thread_create(VALUE (*fn)(ANYARGS), void *arg);
 
 typedef void *rb_nativethread_id_t;
 typedef void *rb_nativethread_lock_t;
