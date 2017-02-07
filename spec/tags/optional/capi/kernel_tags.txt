@@ -58,3 +58,5 @@ fails:C-API Kernel function rb_funcall3 calls a public method
 fails:C-API Kernel function rb_funcall3 does not call a private method
 fails:C-API Kernel function rb_funcall_with_block calls a method with block
 fails:C-API Kernel function rb_funcall_with_block does not call a private method
+fails:C-API Kernel function rb_rescue raises an exception if any exception is raised inside 'raise function'
+fails:C-API Kernel function rb_rescue raises an exception if passed function raises an exception other than StandardError
