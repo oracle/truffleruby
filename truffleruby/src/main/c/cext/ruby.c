@@ -1676,6 +1676,43 @@ int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
   abort();
 }
 
+// Time
+
+VALUE rb_time_new(time_t sec, long usec) {
+  rb_jt_error("rb_time_new not implemented");
+  abort();
+}
+
+VALUE rb_time_nano_new(time_t sec, long nsec) {
+  rb_jt_error("rb_time_nano_new not implemented");
+  abort();
+}
+
+VALUE rb_time_num_new(VALUE timev, VALUE off) {
+  rb_jt_error("rb_time_num_new not implemented");
+  abort();
+}
+
+struct timeval rb_time_interval(VALUE num) {
+  rb_jt_error("rb_time_interval not implemented");
+  abort();
+}
+
+struct timeval rb_time_timeval(VALUE time) {
+  rb_jt_error("rb_time_timeval not implemented");
+  abort();
+}
+
+struct timespec rb_time_timespec(VALUE time) {
+  rb_jt_error("rb_time_timespec not implemented");
+  abort();
+}
+
+VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
+  rb_jt_error("rb_time_timespec_new not implemented");
+  abort();
+}
+
 // Mutexes
 
 VALUE rb_mutex_new(void) {

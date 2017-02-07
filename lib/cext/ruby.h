@@ -879,6 +879,16 @@ VALUE rb_complex_set_imag(VALUE complex, VALUE imag);
 VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end);
 int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp);
 
+// Time
+
+VALUE rb_time_new(time_t sec, long usec);
+VALUE rb_time_nano_new(time_t sec, long nsec);
+VALUE rb_time_num_new(VALUE timev, VALUE off);
+struct timeval rb_time_interval(VALUE num);
+struct timeval rb_time_timeval(VALUE time);
+struct timespec rb_time_timespec(VALUE time);
+VALUE rb_time_timespec_new(const struct timespec *ts, int offset);
+
 // GC
 
 #define RB_GC_GUARD(v) \
