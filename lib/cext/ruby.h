@@ -397,6 +397,15 @@ int RTEST(VALUE value);
 // Kernel
 
 VALUE rb_require(const char *feature);
+VALUE rb_eval_string(const char *str);
+VALUE rb_exec_recursive(VALUE (*func) (VALUE, VALUE, int), VALUE obj, VALUE arg);
+VALUE rb_f_sprintf(int argc, const VALUE *argv);
+void rb_need_block(void);
+void rb_set_end_proc(void (*func)(VALUE), VALUE data);
+void rb_iter_break(void);
+const char *rb_sourcefile(void);
+int rb_sourceline(void);
+int rb_method_boundp(VALUE klass, ID id, int ex);
 
 // Object
 
@@ -772,6 +781,8 @@ MUST_INLINE int rb_jt_scan_args_12(int argc, VALUE *argv, const char *format, VA
 }
 
 int rb_scan_args(int argc, VALUE *argv, const char *format, ...);
+
+VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
 
 // Calls
 

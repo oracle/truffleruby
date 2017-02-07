@@ -538,6 +538,51 @@ VALUE rb_require(const char *feature) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_require", rb_str_new_cstr(feature));
 }
 
+VALUE rb_eval_string(const char *str) {
+  rb_jt_error("rb_eval_string not implemented");
+  abort();
+}
+
+VALUE rb_exec_recursive(VALUE (*func) (VALUE, VALUE, int), VALUE obj, VALUE arg) {
+  rb_jt_error("rb_exec_recursive not implemented");
+  abort();
+}
+
+VALUE rb_f_sprintf(int argc, const VALUE *argv) {
+  rb_jt_error("rb_f_sprintf not implemented");
+  abort();
+}
+
+void rb_need_block(void) {
+  rb_jt_error("rb_need_block not implemented");
+  abort();
+}
+
+void rb_set_end_proc(void (*func)(VALUE), VALUE data) {
+  rb_jt_error("rb_set_end_proc not implemented");
+  abort();
+}
+
+void rb_iter_break(void) {
+  rb_jt_error("rb_iter_break not implemented");
+  abort();
+}
+
+const char *rb_sourcefile(void) {
+  rb_jt_error("rb_sourcefile not implemented");
+  abort();
+}
+
+int rb_sourceline(void) {
+  rb_jt_error("rb_sourceline not implemented");
+  abort();
+}
+
+int rb_method_boundp(VALUE klass, ID id, int ex) {
+  rb_jt_error("rb_method_boundp not implemented");
+  abort();
+}
+
 // Object
 
 VALUE rb_obj_dup(VALUE object) {
@@ -1463,6 +1508,11 @@ void rb_warning(const char *format, ...) {
 
 int rb_scan_args(int argc, VALUE *argv, const char *format, ...) {
   rb_jt_error("generic rb_scan_args not implemented - use a specialisation such as rb_jt_scan_args_02");
+  abort();
+}
+
+VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
+  rb_jt_error("rb_funrb_enumeratorizecallv not implemented");
   abort();
 }
 
