@@ -25,6 +25,6 @@ describe "Truffle source files" do
       end
     end
 
-    too_long.should == []
+    too_long.should be_empty
   end
 end
