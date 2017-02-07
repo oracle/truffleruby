@@ -1,0 +1,7 @@
+fails:C-API Regexp function allows matching in C, properly setting the back references
+fails:C-API Regexp function rb_reg_new returns a new valid Regexp
+fails:C-API Regexp function rb_reg_nth_match returns a the appropriate match data entry
+fails:C-API Regexp function rb_reg_options returns the options used to create the regexp
+fails:C-API Regexp function rb_reg_regcomp creates a valid regexp from a string
+fails:C-API Regexp function rb_reg_match returns the matched position or nil
+fails:C-API Regexp function rb_backref_get returns the last MatchData
