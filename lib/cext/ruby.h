@@ -518,6 +518,11 @@ enum ruby_coderange_type {
     RUBY_ENC_CODERANGE_BROKEN	  = 4
 };
 
+#define ENC_CODERANGE_UNKNOWN   RUBY_ENC_CODERANGE_UNKNOWN
+#define ENC_CODERANGE_7BIT      RUBY_ENC_CODERANGE_7BIT
+#define ENC_CODERANGE_VALID     RUBY_ENC_CODERANGE_VALID
+#define ENC_CODERANGE_BROKEN    RUBY_ENC_CODERANGE_BROKEN
+
 #define PRI_VALUE_PREFIX        "l"
 #define PRI_LONG_PREFIX         "l"
 #define PRI_64_PREFIX           PRI_LONG_PREFIX
@@ -617,6 +622,24 @@ void rb_str_modify(VALUE string);
 enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj);
 #define RB_ENC_CODERANGE_ASCIIONLY(obj) (RB_ENC_CODERANGE(obj) == RUBY_ENC_CODERANGE_7BIT)
 #define ENC_CODERANGE_ASCIIONLY(obj) RB_ENC_CODERANGE_ASCIIONLY(obj)
+int rb_encdb_alias(const char *alias, const char *orig);
+VALUE rb_enc_associate(VALUE obj, rb_encoding *enc);
+VALUE rb_enc_associate_index(VALUE obj, int idx);
+rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2);
+void rb_enc_copy(VALUE obj1, VALUE obj2);
+int rb_enc_find_index(const char *name);
+rb_encoding *rb_enc_find(const char *name);
+VALUE rb_enc_from_encoding(rb_encoding *encoding);
+rb_encoding *rb_enc_from_index(int index);
+int rb_enc_str_coderange(VALUE str);
+VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc);
+int rb_enc_to_index(rb_encoding *enc);
+VALUE rb_obj_encoding(VALUE obj);
+VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts);
+VALUE rb_usascii_str_new(const char *ptr, long len);
+VALUE rb_usascii_str_new_cstr(const char *ptr);
+int rb_to_encoding_index(VALUE enc);
+char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc);
 
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
   VALUE value = *value_pointer;

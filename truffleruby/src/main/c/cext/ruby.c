@@ -1117,6 +1117,96 @@ enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj) {
   abort();
 }
 
+int rb_encdb_alias(const char *alias, const char *orig) {
+  rb_jt_error("rb_encdb_alias not implemented");
+  abort();
+}
+
+VALUE rb_enc_associate(VALUE obj, rb_encoding *enc) {
+  rb_jt_error("rb_enc_associate not implemented");
+  abort();
+}
+
+VALUE rb_enc_associate_index(VALUE obj, int idx) {
+  rb_jt_error("rb_enc_associate_index not implemented");
+  abort();
+}
+
+rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
+  rb_jt_error("rb_enc_compatible not implemented");
+  abort();
+}
+
+void rb_enc_copy(VALUE obj1, VALUE obj2) {
+  rb_jt_error("rb_enc_copy not implemented");
+  abort();
+}
+
+int rb_enc_find_index(const char *name) {
+  rb_jt_error("rb_enc_find_index not implemented");
+  abort();
+}
+
+rb_encoding *rb_enc_find(const char *name) {
+  rb_jt_error("rb_enc_find not implemented");
+  abort();
+}
+
+VALUE rb_enc_from_encoding(rb_encoding *encoding) {
+  rb_jt_error("rb_enc_from_encoding not implemented");
+  abort();
+}
+
+rb_encoding *rb_enc_from_index(int index) {
+  rb_jt_error("rb_enc_from_index not implemented");
+  abort();
+}
+
+int rb_enc_str_coderange(VALUE str) {
+  rb_jt_error("rb_enc_str_coderange not implemented");
+  abort();
+}
+
+VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
+  rb_jt_error("rb_enc_str_new not implemented");
+  abort();
+}
+
+int rb_enc_to_index(rb_encoding *enc) {
+  rb_jt_error("rb_enc_to_index not implemented");
+  abort();
+}
+
+VALUE rb_obj_encoding(VALUE obj) {
+  rb_jt_error("rb_obj_encoding not implemented");
+  abort();
+}
+
+VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {
+  rb_jt_error("rb_str_encode not implemented");
+  abort();
+}
+
+VALUE rb_usascii_str_new(const char *ptr, long len) {
+  rb_jt_error("rb_usascii_str_new not implemented");
+  abort();
+}
+
+VALUE rb_usascii_str_new_cstr(const char *ptr) {
+  rb_jt_error("rb_usascii_str_new_cstr not implemented");
+  abort();
+}
+
+int rb_to_encoding_index(VALUE enc) {
+  rb_jt_error("rb_to_encoding_index not implemented");
+  abort();
+}
+
+char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc) {
+  rb_jt_error("rb_enc_nth not implemented");
+  abort();
+}
+
 // Symbol
 
 ID rb_to_id(VALUE name) {
