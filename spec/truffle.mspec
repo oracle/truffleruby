@@ -83,6 +83,8 @@ class MSpecScript
 
   set :capi, [
     "spec/ruby/optional/capi",
+    
+    # Tags are read as ASCII but contain UTF codepoints
     "^spec/ruby/optional/capi/encoding_spec.rb"
   ]
 
