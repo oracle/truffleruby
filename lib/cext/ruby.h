@@ -817,7 +817,11 @@ void rb_define_global_const(const char *name, VALUE value);
 
 // Exceptions
 
-VALUE rb_exc_new3(VALUE exception_class, VALUE message);
+VALUE rb_exc_new(VALUE etype, const char *ptr, long len);
+VALUE rb_exc_new_cstr(VALUE exception_class, const char *message);
+VALUE rb_exc_new_str(VALUE exception_class, VALUE message);
+#define rb_exc_new2 rb_exc_new_cstr
+#define rb_exc_new3 rb_exc_new_str
 NORETURN(void rb_exc_raise(VALUE exception));
 NORETURN(void rb_raise(VALUE exception, const char *format, ...));
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status);

@@ -1589,7 +1589,17 @@ void rb_define_global_const(const char *name, VALUE value) {
 
 // Raising exceptions
 
-VALUE rb_exc_new3(VALUE exception_class, VALUE message) {
+VALUE rb_exc_new(VALUE etype, const char *ptr, long len) {
+  rb_jt_error("rb_exc_new not implemented");
+  abort();
+}
+
+VALUE rb_exc_new_cstr(VALUE exception_class, const char *message) {
+  rb_jt_error("rb_exc_new_cstr not implemented");
+  abort();
+}
+
+VALUE rb_exc_new_str(VALUE exception_class, VALUE message) {
   return (VALUE) truffle_invoke((void *)exception_class, "new", message);
 }
 
