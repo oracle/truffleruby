@@ -881,6 +881,15 @@ void rb_str_free(VALUE string) {
   abort();
 }
 
+unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_encoding *encoding) {
+  rb_jt_error("rb_enc_codepoint_len not implemented");
+  abort();
+}
+
+rb_encoding *rb_enc_get(VALUE object) {
+  return (rb_encoding *)truffle_invoke((void *)object, "encoding");
+}
+
 // Symbol
 
 ID rb_to_id(VALUE name) {

@@ -529,6 +529,8 @@ st_index_t rb_str_hash(VALUE string);
 void rb_str_update(VALUE string, long beg, long len, VALUE value);
 VALUE rb_str_equal(VALUE a, VALUE b);
 void rb_str_free(VALUE string);
+unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_encoding *encoding);
+rb_encoding *rb_enc_get(VALUE object);
 
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
   VALUE value = *value_pointer;
