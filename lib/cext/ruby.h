@@ -947,22 +947,28 @@ typedef struct rb_io_t {
 } rb_io_t;
 
 #define rb_update_max_fd(fd) {}
-
 void rb_io_check_writable(rb_io_t *io);
 void rb_io_check_readable(rb_io_t *io);
-
 int rb_cloexec_dup(int oldfd);
 void rb_fd_fix_cloexec(int fd);
-
 int rb_jt_io_handle(VALUE file);
-
 #define GetOpenFile(file, pointer) ((pointer) = truffle_managed_malloc(sizeof(rb_io_t)), (pointer)->fd = rb_jt_io_handle(file))
-
 int rb_io_wait_readable(int fd);
 int rb_io_wait_writable(int fd);
 void rb_thread_wait_fd(int fd);
-
 NORETURN(void rb_eof_error(void));
+VALUE rb_io_addstr(VALUE io, VALUE str);
+VALUE rb_io_check_io(VALUE io);
+void rb_io_check_closed(rb_io_t *fptr);
+VALUE rb_io_taint_check(VALUE io);
+VALUE rb_io_close(VALUE io);
+VALUE rb_io_print(int argc, const VALUE *argv, VALUE out);
+VALUE rb_io_printf(int argc, const VALUE *argv, VALUE out);
+VALUE rb_io_puts(int argc, const VALUE *argv, VALUE out);
+VALUE rb_io_write(VALUE io, VALUE str);
+VALUE rb_io_binmode(VALUE io);
+int rb_thread_fd_writable(int fd);
+int rb_cloexec_open(const char *pathname, int flags, mode_t mode);
 
 // Structs
 

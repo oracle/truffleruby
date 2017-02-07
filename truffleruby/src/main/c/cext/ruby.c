@@ -1919,6 +1919,66 @@ NORETURN(void rb_eof_error(void)) {
   abort();
 }
 
+VALUE rb_io_addstr(VALUE io, VALUE str) {
+  rb_jt_error("rb_io_addstr not implemented");
+  abort();
+}
+
+VALUE rb_io_check_io(VALUE io) {
+  rb_jt_error("rb_io_check_io not implemented");
+  abort();
+}
+
+void rb_io_check_closed(rb_io_t *fptr) {
+  rb_jt_error("rb_io_check_closed not implemented");
+  abort();
+}
+
+VALUE rb_io_taint_check(VALUE io) {
+  rb_jt_error("rb_io_taint_check not implemented");
+  abort();
+}
+
+VALUE rb_io_close(VALUE io) {
+  rb_jt_error("rb_io_close not implemented");
+  abort();
+}
+
+VALUE rb_io_print(int argc, const VALUE *argv, VALUE out) {
+  rb_jt_error("rb_io_print not implemented");
+  abort();
+}
+
+VALUE rb_io_printf(int argc, const VALUE *argv, VALUE out) {
+  rb_jt_error("rb_io_printf not implemented");
+  abort();
+}
+
+VALUE rb_io_puts(int argc, const VALUE *argv, VALUE out) {
+  rb_jt_error("rb_io_puts not implemented");
+  abort();
+}
+
+VALUE rb_io_write(VALUE io, VALUE str) {
+  rb_jt_error("rb_io_write not implemented");
+  abort();
+}
+
+VALUE rb_io_binmode(VALUE io) {
+  rb_jt_error("rb_io_binmode not implemented");
+  abort();
+}
+
+int rb_thread_fd_writable(int fd) {
+  rb_jt_error("rb_thread_fd_writable not implemented");
+  abort();
+}
+
+int rb_cloexec_open(const char *pathname, int flags, mode_t mode) {
+  rb_jt_error("rb_cloexec_open not implemented");
+  abort();
+}
+
 // Structs
 
 VALUE rb_struct_aref(VALUE s, VALUE idx) {
