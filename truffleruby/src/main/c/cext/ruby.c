@@ -1637,6 +1637,52 @@ void rb_define_global_const(const char *name, VALUE value) {
   rb_define_const(rb_cObject, name, value);
 }
 
+// Global variables
+
+void rb_define_hooked_variable(
+    const char *name,
+    VALUE *var,
+    VALUE (*getter)(ANYARGS),
+    void  (*setter)(ANYARGS)) {
+  rb_jt_error("rb_exc_new not implemented");
+  abort();
+}
+
+void rb_define_readonly_variable(const char *name, const VALUE *var) {
+  rb_jt_error("rb_define_readonly_variable not implemented");
+  abort();
+}
+
+void rb_define_variable(const char *name, VALUE *var) {
+  rb_jt_error("rb_define_variable not implemented");
+  abort();
+}
+
+VALUE rb_f_global_variables(void) {
+  rb_jt_error("rb_f_global_variables not implemented");
+  abort();
+}
+
+VALUE rb_gv_set(const char *name, VALUE val) {
+  rb_jt_error("rb_gv_set not implemented");
+  abort();
+}
+
+VALUE rb_gv_get(const char *name) {
+  rb_jt_error("rb_gv_get not implemented");
+  abort();
+}
+
+VALUE rb_lastline_get(void) {
+  rb_jt_error("rb_lastline_get not implemented");
+  abort();
+}
+
+void rb_lastline_set(VALUE val) {
+  rb_jt_error("rb_lastline_set not implemented");
+  abort();
+}
+
 // Raising exceptions
 
 VALUE rb_exc_new(VALUE etype, const char *ptr, long len) {

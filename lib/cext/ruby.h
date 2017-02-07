@@ -826,6 +826,22 @@ VALUE rb_const_set(VALUE module, ID name, VALUE value);
 VALUE rb_define_const(VALUE module, const char *name, VALUE value);
 void rb_define_global_const(const char *name, VALUE value);
 
+// Global variables
+
+void rb_define_hooked_variable(
+    const char *name,
+    VALUE *var,
+    VALUE (*getter)(ANYARGS),
+    void  (*setter)(ANYARGS));
+
+void rb_define_readonly_variable(const char *name, const VALUE *var);
+void rb_define_variable(const char *name, VALUE *var);
+VALUE rb_f_global_variables(void);
+VALUE rb_gv_set(const char *name, VALUE val);
+VALUE rb_gv_get(const char *name);
+VALUE rb_lastline_get(void);
+void rb_lastline_set(VALUE val);
+
 // Exceptions
 
 VALUE rb_exc_new(VALUE etype, const char *ptr, long len);
