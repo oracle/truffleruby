@@ -195,141 +195,140 @@ bool SYMBOL_P(VALUE value);
 
 // Constants
 
-VALUE rb_jt_get_Qundef(void);
-VALUE rb_jt_get_Qfalse(void);
-VALUE rb_jt_get_Qtrue(void);
-VALUE rb_jt_get_Qnil(void);
+VALUE rb_jt_get_undef(void);
+#define Qundef rb_jt_get_undef()
 
-#define Qundef  rb_jt_get_Qundef()
-#define Qfalse  rb_jt_get_Qfalse()
-#define Qtrue   rb_jt_get_Qtrue()
-#define Qnil    rb_jt_get_Qnil()
+VALUE rb_jt_get_true(void);
+VALUE rb_jt_get_false(void);
+VALUE rb_jt_get_nil(void);
+VALUE rb_jt_get_Array(void);
+VALUE rb_jt_get_Bignum(void);
+VALUE rb_jt_get_Class(void);
+VALUE rb_jt_get_Comparable(void);
+VALUE rb_jt_get_Data(void);
+VALUE rb_jt_get_Enumerable(void);
+VALUE rb_jt_get_FalseClass(void);
+VALUE rb_jt_get_File(void);
+VALUE rb_jt_get_Fixnum(void);
+VALUE rb_jt_get_Float(void);
+VALUE rb_jt_get_Hash(void);
+VALUE rb_jt_get_Integer(void);
+VALUE rb_jt_get_IO(void);
+VALUE rb_jt_get_Kernel(void);
+VALUE rb_jt_get_Match(void);
+VALUE rb_jt_get_Module(void);
+VALUE rb_jt_get_NilClass(void);
+VALUE rb_jt_get_Numeric(void);
+VALUE rb_jt_get_Object(void);
+VALUE rb_jt_get_Range(void);
+VALUE rb_jt_get_Regexp(void);
+VALUE rb_jt_get_String(void);
+VALUE rb_jt_get_Struct(void);
+VALUE rb_jt_get_Symbol(void);
+VALUE rb_jt_get_Time(void);
+VALUE rb_jt_get_Thread(void);
+VALUE rb_jt_get_TrueClass(void);
+VALUE rb_jt_get_Proc(void);
+VALUE rb_jt_get_Method(void);
+VALUE rb_jt_get_Dir(void);
+VALUE rb_jt_get_ArgError(void);
+VALUE rb_jt_get_EOFError(void);
+VALUE rb_jt_get_Errno(void);
+VALUE rb_jt_get_Exception(void);
+VALUE rb_jt_get_FloatDomainError(void);
+VALUE rb_jt_get_IndexError(void);
+VALUE rb_jt_get_Interrupt(void);
+VALUE rb_jt_get_IOError(void);
+VALUE rb_jt_get_LoadError(void);
+VALUE rb_jt_get_LocalJumpError(void);
+VALUE rb_jt_get_MathDomainError(void);
+VALUE rb_jt_get_EncCompatError(void);
+VALUE rb_jt_get_NameError(void);
+VALUE rb_jt_get_NoMemError(void);
+VALUE rb_jt_get_NoMethodError(void);
+VALUE rb_jt_get_NotImpError(void);
+VALUE rb_jt_get_RangeError(void);
+VALUE rb_jt_get_RegexpError(void);
+VALUE rb_jt_get_RuntimeError(void);
+VALUE rb_jt_get_ScriptError(void);
+VALUE rb_jt_get_SecurityError(void);
+VALUE rb_jt_get_Signal(void);
+VALUE rb_jt_get_StandardError(void);
+VALUE rb_jt_get_SyntaxError(void);
+VALUE rb_jt_get_SystemCallError(void);
+VALUE rb_jt_get_SystemExit(void);
+VALUE rb_jt_get_SysStackError(void);
+VALUE rb_jt_get_TypeError(void);
+VALUE rb_jt_get_ThreadError(void);
+VALUE rb_jt_get_WaitReadable(void);
+VALUE rb_jt_get_WaitWritable(void);
+VALUE rb_jt_get_ZeroDivError(void);
 
-VALUE rb_jt_get_cArray(void);
-VALUE rb_jt_get_cBignum(void);
-VALUE rb_jt_get_cClass(void);
-VALUE rb_jt_get_mComparable(void);
-VALUE rb_jt_get_cData(void);
-VALUE rb_jt_get_mEnumerable(void);
-VALUE rb_jt_get_cFalseClass(void);
-VALUE rb_jt_get_cFile(void);
-VALUE rb_jt_get_cFixnum(void);
-VALUE rb_jt_get_cFloat(void);
-VALUE rb_jt_get_cHash(void);
-VALUE rb_jt_get_cInteger(void);
-VALUE rb_jt_get_cIO(void);
-VALUE rb_jt_get_mKernel(void);
-VALUE rb_jt_get_cMatch(void);
-VALUE rb_jt_get_cModule(void);
-VALUE rb_jt_get_cNilClass(void);
-VALUE rb_jt_get_cNumeric(void);
-VALUE rb_jt_get_cObject(void);
-VALUE rb_jt_get_cRange(void);
-VALUE rb_jt_get_cRegexp(void);
-VALUE rb_jt_get_cString(void);
-VALUE rb_jt_get_cStruct(void);
-VALUE rb_jt_get_cSymbol(void);
-VALUE rb_jt_get_cTime(void);
-VALUE rb_jt_get_cThread(void);
-VALUE rb_jt_get_cTrueClass(void);
-VALUE rb_jt_get_cProc(void);
-VALUE rb_jt_get_cMethod(void);
-VALUE rb_jt_get_cDir(void);
-VALUE rb_jt_get_eArgError(void);
-VALUE rb_jt_get_eEOFError(void);
-VALUE rb_jt_get_mErrno(void);
-VALUE rb_jt_get_eException(void);
-VALUE rb_jt_get_eFloatDomainError(void);
-VALUE rb_jt_get_eIndexError(void);
-VALUE rb_jt_get_eInterrupt(void);
-VALUE rb_jt_get_eIOError(void);
-VALUE rb_jt_get_eLoadError(void);
-VALUE rb_jt_get_eLocalJumpError(void);
-VALUE rb_jt_get_eMathDomainError(void);
-VALUE rb_jt_get_eEncCompatError(void);
-VALUE rb_jt_get_eNameError(void);
-VALUE rb_jt_get_eNoMemError(void);
-VALUE rb_jt_get_eNoMethodError(void);
-VALUE rb_jt_get_eNotImpError(void);
-VALUE rb_jt_get_eRangeError(void);
-VALUE rb_jt_get_eRegexpError(void);
-VALUE rb_jt_get_eRuntimeError(void);
-VALUE rb_jt_get_eScriptError(void);
-VALUE rb_jt_get_eSecurityError(void);
-VALUE rb_jt_get_eSignal(void);
-VALUE rb_jt_get_eStandardError(void);
-VALUE rb_jt_get_eSyntaxError(void);
-VALUE rb_jt_get_eSystemCallError(void);
-VALUE rb_jt_get_eSystemExit(void);
-VALUE rb_jt_get_eSysStackError(void);
-VALUE rb_jt_get_eTypeError(void);
-VALUE rb_jt_get_eThreadError(void);
-VALUE rb_jt_get_mWaitReadable(void);
-VALUE rb_jt_get_mWaitWritable(void);
-VALUE rb_jt_get_eZeroDivError(void);
-
-#define rb_cArray rb_jt_get_cArray()
-#define rb_cBignum rb_jt_get_cBignum()
-#define rb_cClass rb_jt_get_cClass()
-#define rb_mComparable rb_jt_get_mComparable()
-#define rb_cData rb_jt_get_cData()
-#define rb_mEnumerable rb_jt_get_mEnumerable()
-#define rb_cFalseClass rb_jt_get_cFalseClass()
-#define rb_cFile rb_jt_get_cFile()
-#define rb_cFixnum rb_jt_get_cFixnum()
-#define rb_cFloat rb_jt_get_cFloat()
-#define rb_cHash rb_jt_get_cHash()
-#define rb_cInteger rb_jt_get_cInteger()
-#define rb_cIO rb_jt_get_cIO()
-#define rb_mKernel rb_jt_get_mKernel()
-#define rb_cMatch rb_jt_get_cMatch()
-#define rb_cModule rb_jt_get_cModule()
-#define rb_cNilClass rb_jt_get_cNilClass()
-#define rb_cNumeric rb_jt_get_cNumeric()
-#define rb_cObject rb_jt_get_cObject()
-#define rb_cRange rb_jt_get_cRange()
-#define rb_cRegexp rb_jt_get_cRegexp()
-#define rb_cString rb_jt_get_cString()
-#define rb_cStruct rb_jt_get_cStruct()
-#define rb_cSymbol rb_jt_get_cSymbol()
-#define rb_cTime rb_jt_get_cTime()
-#define rb_cThread rb_jt_get_cThread()
-#define rb_cTrueClass rb_jt_get_cTrueClass()
-#define rb_cProc rb_jt_get_cProc()
-#define rb_cMethod rb_jt_get_cMethod()
-#define rb_cDir rb_jt_get_cDir()
-#define rb_eArgError rb_jt_get_eArgError()
-#define rb_eEOFError rb_jt_get_eEOFError()
-#define rb_mErrno rb_jt_get_mErrno()
-#define rb_eException rb_jt_get_eException()
-#define rb_eFloatDomainError rb_jt_get_eFloatDomainError()
-#define rb_eIndexError rb_jt_get_eIndexError()
-#define rb_eInterrupt rb_jt_get_eInterrupt()
-#define rb_eIOError rb_jt_get_eIOError()
-#define rb_eLoadError rb_jt_get_eLoadError()
-#define rb_eLocalJumpError rb_jt_get_eLocalJumpError()
-#define rb_eMathDomainError rb_jt_get_eMathDomainError()
-#define rb_eEncCompatError rb_jt_get_eEncCompatError()
-#define rb_eNameError rb_jt_get_eNameError()
-#define rb_eNoMemError rb_jt_get_eNoMemError()
-#define rb_eNoMethodError rb_jt_get_eNoMethodError()
-#define rb_eNotImpError rb_jt_get_eNotImpError()
-#define rb_eRangeError rb_jt_get_eRangeError()
-#define rb_eRegexpError rb_jt_get_eRegexpError()
-#define rb_eRuntimeError rb_jt_get_eRuntimeError()
-#define rb_eScriptError rb_jt_get_eScriptError()
-#define rb_eSecurityError rb_jt_get_eSecurityError()
-#define rb_eSignal rb_jt_get_eSignal()
-#define rb_eStandardError rb_jt_get_eStandardError()
-#define rb_eSyntaxError rb_jt_get_eSyntaxError()
-#define rb_eSystemCallError rb_jt_get_eSystemCallError()
-#define rb_eSystemExit rb_jt_get_eSystemExit()
-#define rb_eSysStackError rb_jt_get_eSysStackError()
-#define rb_eTypeError rb_jt_get_eTypeError()
-#define rb_eThreadError rb_jt_get_eThreadError()
-#define rb_mWaitReadable rb_jt_get_mWaitReadable()
-#define rb_mWaitWritable rb_jt_get_mWaitWritable()
-#define rb_eZeroDivError rb_jt_get_eZeroDivError()
+#define Qtrue rb_jt_get_true()
+#define Qfalse rb_jt_get_false()
+#define Qnil rb_jt_get_nil()
+#define rb_cArray rb_jt_get_Array()
+#define rb_cBignum rb_jt_get_Bignum()
+#define rb_cClass rb_jt_get_Class()
+#define rb_mComparable rb_jt_get_Comparable()
+#define rb_cData rb_jt_get_Data()
+#define rb_mEnumerable rb_jt_get_Enumerable()
+#define rb_cFalseClass rb_jt_get_FalseClass()
+#define rb_cFile rb_jt_get_File()
+#define rb_cFixnum rb_jt_get_Fixnum()
+#define rb_cFloat rb_jt_get_Float()
+#define rb_cHash rb_jt_get_Hash()
+#define rb_cInteger rb_jt_get_Integer()
+#define rb_cIO rb_jt_get_IO()
+#define rb_mKernel rb_jt_get_Kernel()
+#define rb_cMatch rb_jt_get_Match()
+#define rb_cModule rb_jt_get_Module()
+#define rb_cNilClass rb_jt_get_NilClass()
+#define rb_cNumeric rb_jt_get_Numeric()
+#define rb_cObject rb_jt_get_Object()
+#define rb_cRange rb_jt_get_Range()
+#define rb_cRegexp rb_jt_get_Regexp()
+#define rb_cString rb_jt_get_String()
+#define rb_cStruct rb_jt_get_Struct()
+#define rb_cSymbol rb_jt_get_Symbol()
+#define rb_cTime rb_jt_get_Time()
+#define rb_cThread rb_jt_get_Thread()
+#define rb_cTrueClass rb_jt_get_TrueClass()
+#define rb_cProc rb_jt_get_Proc()
+#define rb_cMethod rb_jt_get_Method()
+#define rb_cDir rb_jt_get_Dir()
+#define rb_eArgError rb_jt_get_ArgError()
+#define rb_eEOFError rb_jt_get_EOFError()
+#define rb_mErrno rb_jt_get_Errno()
+#define rb_eException rb_jt_get_Exception()
+#define rb_eFloatDomainError rb_jt_get_FloatDomainError()
+#define rb_eIndexError rb_jt_get_IndexError()
+#define rb_eInterrupt rb_jt_get_Interrupt()
+#define rb_eIOError rb_jt_get_IOError()
+#define rb_eLoadError rb_jt_get_LoadError()
+#define rb_eLocalJumpError rb_jt_get_LocalJumpError()
+#define rb_eMathDomainError rb_jt_get_MathDomainError()
+#define rb_eEncCompatError rb_jt_get_EncCompatError()
+#define rb_eNameError rb_jt_get_NameError()
+#define rb_eNoMemError rb_jt_get_NoMemError()
+#define rb_eNoMethodError rb_jt_get_NoMethodError()
+#define rb_eNotImpError rb_jt_get_NotImpError()
+#define rb_eRangeError rb_jt_get_RangeError()
+#define rb_eRegexpError rb_jt_get_RegexpError()
+#define rb_eRuntimeError rb_jt_get_RuntimeError()
+#define rb_eScriptError rb_jt_get_ScriptError()
+#define rb_eSecurityError rb_jt_get_SecurityError()
+#define rb_eSignal rb_jt_get_Signal()
+#define rb_eStandardError rb_jt_get_StandardError()
+#define rb_eSyntaxError rb_jt_get_SyntaxError()
+#define rb_eSystemCallError rb_jt_get_SystemCallError()
+#define rb_eSystemExit rb_jt_get_SystemExit()
+#define rb_eSysStackError rb_jt_get_SysStackError()
+#define rb_eTypeError rb_jt_get_TypeError()
+#define rb_eThreadError rb_jt_get_ThreadError()
+#define rb_mWaitReadable rb_jt_get_WaitReadable()
+#define rb_mWaitWritable rb_jt_get_WaitWritable()
+#define rb_eZeroDivError rb_jt_get_ZeroDivError()
 
 // Conversions
 

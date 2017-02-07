@@ -138,12 +138,12 @@ module Truffle::CExt
     Rubinius::UNDEFINED
   end
 
-  def Qfalse
-    false
-  end
-
   def Qtrue
     true
+  end
+
+  def Qfalse
+    false
   end
 
   def Qnil

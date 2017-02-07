@@ -84,267 +84,267 @@ bool SYMBOL_P(VALUE value) {
 
 // Constants
 
-VALUE rb_jt_get_Qundef(void) {
+VALUE rb_jt_get_undef(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "Qundef");
 }
 
-VALUE rb_jt_get_Qfalse(void) {
-  return (VALUE) truffle_read(RUBY_CEXT, "Qfalse");
-}
-
-VALUE rb_jt_get_Qtrue(void) {
+VALUE rb_jt_get_true(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "Qtrue");
 }
 
-VALUE rb_jt_get_Qnil(void) {
+VALUE rb_jt_get_false(void) {
+  return (VALUE) truffle_read(RUBY_CEXT, "Qfalse");
+}
+
+VALUE rb_jt_get_nil(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "Qnil");
 }
 
-VALUE rb_jt_get_cArray(void) {
+VALUE rb_jt_get_Array(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cArray");
 }
 
-VALUE rb_jt_get_cBignum(void) {
+VALUE rb_jt_get_Bignum(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cBignum");
 }
 
-VALUE rb_jt_get_cClass(void) {
+VALUE rb_jt_get_Class(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cClass");
 }
 
-VALUE rb_jt_get_mComparable(void) {
+VALUE rb_jt_get_Comparable(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_mComparable");
 }
 
-VALUE rb_jt_get_cData(void) {
+VALUE rb_jt_get_Data(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cData");
 }
 
-VALUE rb_jt_get_mEnumerable(void) {
+VALUE rb_jt_get_Enumerable(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_mEnumerable");
 }
 
-VALUE rb_jt_get_cFalseClass(void) {
+VALUE rb_jt_get_FalseClass(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cFalseClass");
 }
 
-VALUE rb_jt_get_cFile(void) {
+VALUE rb_jt_get_File(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cFile");
 }
 
-VALUE rb_jt_get_cFixnum(void) {
+VALUE rb_jt_get_Fixnum(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cFixnum");
 }
 
-VALUE rb_jt_get_cFloat(void) {
+VALUE rb_jt_get_Float(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cFloat");
 }
 
-VALUE rb_jt_get_cHash(void) {
+VALUE rb_jt_get_Hash(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cHash");
 }
 
-VALUE rb_jt_get_cInteger(void) {
+VALUE rb_jt_get_Integer(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cInteger");
 }
 
-VALUE rb_jt_get_cIO(void) {
+VALUE rb_jt_get_IO(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cIO");
 }
 
-VALUE rb_jt_get_mKernel(void) {
+VALUE rb_jt_get_Kernel(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_mKernel");
 }
 
-VALUE rb_jt_get_cMatch(void) {
+VALUE rb_jt_get_Match(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cMatch");
 }
 
-VALUE rb_jt_get_cModule(void) {
+VALUE rb_jt_get_Module(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cModule");
 }
 
-VALUE rb_jt_get_cNilClass(void) {
+VALUE rb_jt_get_NilClass(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cNilClass");
 }
 
-VALUE rb_jt_get_cNumeric(void) {
+VALUE rb_jt_get_Numeric(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cNumeric");
 }
 
-VALUE rb_jt_get_cObject(void) {
+VALUE rb_jt_get_Object(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cObject");
 }
 
-VALUE rb_jt_get_cRange(void) {
+VALUE rb_jt_get_Range(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cRange");
 }
 
-VALUE rb_jt_get_cRegexp(void) {
+VALUE rb_jt_get_Regexp(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cRegexp");
 }
 
-VALUE rb_jt_get_cString(void) {
+VALUE rb_jt_get_String(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cString");
 }
 
-VALUE rb_jt_get_cStruct(void) {
+VALUE rb_jt_get_Struct(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cStruct");
 }
 
-VALUE rb_jt_get_cSymbol(void) {
+VALUE rb_jt_get_Symbol(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cSymbol");
 }
 
-VALUE rb_jt_get_cTime(void) {
+VALUE rb_jt_get_Time(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cTime");
 }
 
-VALUE rb_jt_get_cThread(void) {
+VALUE rb_jt_get_Thread(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cThread");
 }
 
-VALUE rb_jt_get_cTrueClass(void) {
+VALUE rb_jt_get_TrueClass(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cTrueClass");
 }
 
-VALUE rb_jt_get_cProc(void) {
+VALUE rb_jt_get_Proc(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cProc");
 }
 
-VALUE rb_jt_get_cMethod(void) {
+VALUE rb_jt_get_Method(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cMethod");
 }
 
-VALUE rb_jt_get_cDir(void) {
+VALUE rb_jt_get_Dir(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cDir");
 }
 
-VALUE rb_jt_get_eArgError(void) {
+VALUE rb_jt_get_ArgError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eArgError");
 }
 
-VALUE rb_jt_get_eEOFError(void) {
+VALUE rb_jt_get_EOFError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eEOFError");
 }
 
-VALUE rb_jt_get_mErrno(void) {
+VALUE rb_jt_get_Errno(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_mErrno");
 }
 
-VALUE rb_jt_get_eException(void) {
+VALUE rb_jt_get_Exception(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eException");
 }
 
-VALUE rb_jt_get_eFloatDomainError(void) {
+VALUE rb_jt_get_FloatDomainError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eFloatDomainError");
 }
 
-VALUE rb_jt_get_eIndexError(void) {
+VALUE rb_jt_get_IndexError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eIndexError");
 }
 
-VALUE rb_jt_get_eInterrupt(void) {
+VALUE rb_jt_get_Interrupt(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eInterrupt");
 }
 
-VALUE rb_jt_get_eIOError(void) {
+VALUE rb_jt_get_IOError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eIOError");
 }
 
-VALUE rb_jt_get_eLoadError(void) {
+VALUE rb_jt_get_LoadError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eLoadError");
 }
 
-VALUE rb_jt_get_eLocalJumpError(void) {
+VALUE rb_jt_get_LocalJumpError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eLocalJumpError");
 }
 
-VALUE rb_jt_get_eMathDomainError(void) {
+VALUE rb_jt_get_MathDomainError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eMathDomainError");
 }
 
-VALUE rb_jt_get_eEncCompatError(void) {
+VALUE rb_jt_get_EncCompatError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eEncCompatError");
 }
 
-VALUE rb_jt_get_eNameError(void) {
+VALUE rb_jt_get_NameError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eNameError");
 }
 
-VALUE rb_jt_get_eNoMemError(void) {
+VALUE rb_jt_get_NoMemError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eNoMemError");
 }
 
-VALUE rb_jt_get_eNoMethodError(void) {
+VALUE rb_jt_get_NoMethodError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eNoMethodError");
 }
 
-VALUE rb_jt_get_eNotImpError(void) {
+VALUE rb_jt_get_NotImpError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eNotImpError");
 }
 
-VALUE rb_jt_get_eRangeError(void) {
+VALUE rb_jt_get_RangeError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eRangeError");
 }
 
-VALUE rb_jt_get_eRegexpError(void) {
+VALUE rb_jt_get_RegexpError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eRegexpError");
 }
 
-VALUE rb_jt_get_eRuntimeError(void) {
+VALUE rb_jt_get_RuntimeError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eRuntimeError");
 }
 
-VALUE rb_jt_get_eScriptError(void) {
+VALUE rb_jt_get_ScriptError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eScriptError");
 }
 
-VALUE rb_jt_get_eSecurityError(void) {
+VALUE rb_jt_get_SecurityError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eSecurityError");
 }
 
-VALUE rb_jt_get_eSignal(void) {
+VALUE rb_jt_get_Signal(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eSignal");
 }
 
-VALUE rb_jt_get_eStandardError(void) {
+VALUE rb_jt_get_StandardError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eStandardError");
 }
 
-VALUE rb_jt_get_eSyntaxError(void) {
+VALUE rb_jt_get_SyntaxError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eSyntaxError");
 }
 
-VALUE rb_jt_get_eSystemCallError(void) {
+VALUE rb_jt_get_SystemCallError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eSystemCallError");
 }
 
-VALUE rb_jt_get_eSystemExit(void) {
+VALUE rb_jt_get_SystemExit(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eSystemExit");
 }
 
-VALUE rb_jt_get_eSysStackError(void) {
+VALUE rb_jt_get_SysStackError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eSysStackError");
 }
 
-VALUE rb_jt_get_eTypeError(void) {
+VALUE rb_jt_get_TypeError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eTypeError");
 }
 
-VALUE rb_jt_get_eThreadError(void) {
+VALUE rb_jt_get_ThreadError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eThreadError");
 }
 
-VALUE rb_jt_get_mWaitReadable(void) {
+VALUE rb_jt_get_WaitReadable(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_mWaitReadable");
 }
 
-VALUE rb_jt_get_mWaitWritable(void) {
+VALUE rb_jt_get_WaitWritable(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_mWaitWritable");
 }
 
-VALUE rb_jt_get_eZeroDivError(void) {
+VALUE rb_jt_get_ZeroDivError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eZeroDivError");
 }
 
