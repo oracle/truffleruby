@@ -40,8 +40,6 @@
 #undef HAVE_RSTRING_LENINT
 #undef HAVE_TIMET2NUM
 
-#undef HAVE_RB_LONG2INT
-
 #undef HAVE_RB_ITER_BREAK
 #undef HAVE_RB_SOURCEFILE
 #undef HAVE_RB_SOURCELINE
@@ -64,9 +62,6 @@
 #undef HAVE_RB_GV_SET
 #undef HAVE_RB_LASTLINE_SET
 #undef HAVE_RB_LASTLINE_GET
-
-/* Integer */
-#undef HAVE_RB_INTEGER_PACK
 
 /* Kernel */
 #undef HAVE_RB_EVAL_STRING
