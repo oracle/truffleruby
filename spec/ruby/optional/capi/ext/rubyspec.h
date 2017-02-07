@@ -610,7 +610,6 @@
 /* Util */
 #define HAVE_RB_SCAN_ARGS                  1
 #define HAVE_RUBY_SETENV                   1
-#define HAVE_RUBY_STRDUP                   1
 
 /* Now, create the differential set. The format of the preprocessor directives
  * is significant. The alternative implementations should define RUBY because

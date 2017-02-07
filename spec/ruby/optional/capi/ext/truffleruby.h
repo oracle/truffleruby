@@ -303,6 +303,5 @@
 
 /* Util */
 #undef HAVE_RUBY_SETENV
-#undef HAVE_RUBY_STRDUP
 
 #endif
