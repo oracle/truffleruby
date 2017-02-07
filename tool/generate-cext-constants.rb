@@ -73,7 +73,14 @@ constants = [
     ThreadError,
     IO::WaitReadable,
     IO::WaitWritable,
-    [ZeroDivisionError, 'ZeroDivError']
+    [ZeroDivisionError, 'ZeroDivError'],
+    ['STDIN', 'stdin'],
+    ['STDOUT', 'stdout'],
+    ['STDERR', 'stderr'],
+    ['$,', 'output_fs'],
+    ['$/', 'rs'],
+    ['$\\', 'output_rs'],
+    ['$;', 'default_rs']
 ].map do |const|
   if const.is_a?(Array)
     value, name = const
@@ -97,14 +104,14 @@ constants = [
   
   if [true, false, nil].include?(value)
     tag = 'Q'
-  elsif value < Exception || value == Exception
+  elsif value.is_a?(Class) && (value < Exception || value == Exception)
     tag = 'rb_e'
   elsif value.is_a?(Class)
     tag = 'rb_c'
   elsif value.is_a?(Module)
     tag = 'rb_m'
   else
-    raise 'unknown constant type'
+    tag = 'rb_'
   end
   
   macro_name = "#{tag}#{name}"

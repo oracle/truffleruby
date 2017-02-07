@@ -398,6 +398,34 @@ module Truffle::CExt
     ZeroDivisionError
   end
 
+  def rb_stdin
+    STDIN
+  end
+
+  def rb_stdout
+    STDOUT
+  end
+
+  def rb_stderr
+    STDERR
+  end
+
+  def rb_output_fs
+    $,
+  end
+
+  def rb_rs
+    $/
+  end
+
+  def rb_output_rs
+    $\
+  end
+
+  def rb_default_rs
+    $;
+  end
+
   def rb_fix2int(value)
     if value.nil?
       raise TypeError

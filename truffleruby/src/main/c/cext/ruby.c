@@ -348,6 +348,34 @@ VALUE rb_jt_get_ZeroDivError(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_eZeroDivError");
 }
 
+VALUE rb_jt_get_stdin(void) {
+  return (VALUE) truffle_read(RUBY_CEXT, "rb_stdin");
+}
+
+VALUE rb_jt_get_stdout(void) {
+  return (VALUE) truffle_read(RUBY_CEXT, "rb_stdout");
+}
+
+VALUE rb_jt_get_stderr(void) {
+  return (VALUE) truffle_read(RUBY_CEXT, "rb_stderr");
+}
+
+VALUE rb_jt_get_output_fs(void) {
+  return (VALUE) truffle_read(RUBY_CEXT, "rb_output_fs");
+}
+
+VALUE rb_jt_get_rs(void) {
+  return (VALUE) truffle_read(RUBY_CEXT, "rb_rs");
+}
+
+VALUE rb_jt_get_output_rs(void) {
+  return (VALUE) truffle_read(RUBY_CEXT, "rb_output_rs");
+}
+
+VALUE rb_jt_get_default_rs(void) {
+  return (VALUE) truffle_read(RUBY_CEXT, "rb_default_rs");
+}
+
 // Conversions
 
 VALUE CHR2FIX(char ch) {

@@ -263,6 +263,13 @@ VALUE rb_jt_get_ThreadError(void);
 VALUE rb_jt_get_WaitReadable(void);
 VALUE rb_jt_get_WaitWritable(void);
 VALUE rb_jt_get_ZeroDivError(void);
+VALUE rb_jt_get_stdin(void);
+VALUE rb_jt_get_stdout(void);
+VALUE rb_jt_get_stderr(void);
+VALUE rb_jt_get_output_fs(void);
+VALUE rb_jt_get_rs(void);
+VALUE rb_jt_get_output_rs(void);
+VALUE rb_jt_get_default_rs(void);
 
 #define Qtrue rb_jt_get_true()
 #define Qfalse rb_jt_get_false()
@@ -329,6 +336,15 @@ VALUE rb_jt_get_ZeroDivError(void);
 #define rb_mWaitReadable rb_jt_get_WaitReadable()
 #define rb_mWaitWritable rb_jt_get_WaitWritable()
 #define rb_eZeroDivError rb_jt_get_ZeroDivError()
+#define rb_stdin rb_jt_get_stdin()
+#define rb_stdout rb_jt_get_stdout()
+#define rb_stderr rb_jt_get_stderr()
+#define rb_output_fs rb_jt_get_output_fs()
+#define rb_rs rb_jt_get_rs()
+#define rb_output_rs rb_jt_get_output_rs()
+#define rb_default_rs rb_jt_get_default_rs()
+
+#define rb_defout rb_stdout
 
 // Conversions
 
