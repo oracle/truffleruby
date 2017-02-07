@@ -898,6 +898,11 @@ VALUE rb_reg_nth_match(int nth, VALUE match);
 VALUE rb_reg_options(VALUE re);
 VALUE rb_reg_regcomp(VALUE str);
 
+// Marshal
+
+VALUE rb_marshal_dump(VALUE obj, VALUE port);
+VALUE rb_marshal_load(VALUE port);
+
 // GC
 
 #define RB_GC_GUARD(v) \

@@ -1745,6 +1745,18 @@ VALUE rb_reg_regcomp(VALUE str) {
   abort();
 }
 
+// Marshal
+
+VALUE rb_marshal_dump(VALUE obj, VALUE port) {
+  rb_jt_error("rb_marshal_dump not implemented");
+  abort();
+}
+
+VALUE rb_marshal_load(VALUE port) {
+  rb_jt_error("rb_marshal_load not implemented");
+  abort();
+}
+
 // Mutexes
 
 VALUE rb_mutex_new(void) {
