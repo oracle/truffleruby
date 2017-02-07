@@ -945,6 +945,31 @@ VALUE rb_sym2str(VALUE string) {
   return (VALUE) truffle_invoke((void *)string, "to_str");
 }
 
+const char *rb_id2name(ID id) {
+  rb_jt_error("rb_id2name not implemented");
+  abort();
+}
+
+VALUE rb_id2str(ID id) {
+  rb_jt_error("rb_id2str not implemented");
+  abort();
+}
+
+int rb_is_class_id(ID id) {
+  rb_jt_error("rb_is_class_id not implemented");
+  abort();
+}
+
+int rb_is_const_id(ID id) {
+  rb_jt_error("rb_is_const_id not implemented");
+  abort();
+}
+
+int rb_is_instance_id(ID id) {
+  rb_jt_error("rb_is_instance_id not implemented");
+  abort();
+}
+
 // Array
 
 int RARRAY_LEN(VALUE array) {

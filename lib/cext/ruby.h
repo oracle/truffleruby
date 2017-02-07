@@ -588,6 +588,11 @@ ID rb_intern(const char *string);
 ID rb_intern2(const char *string, long length);
 #define rb_intern_const(str) rb_intern2((str), strlen(str))
 VALUE rb_sym2str(VALUE string);
+const char *rb_id2name(ID id);
+VALUE rb_id2str(ID id);
+int rb_is_class_id(ID id);
+int rb_is_const_id(ID id);
+int rb_is_instance_id(ID id);
 
 // Array
 
