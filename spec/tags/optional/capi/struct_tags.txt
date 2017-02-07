@@ -12,3 +12,6 @@ fails:C-API Struct function rb_struct_aset sets the value of a struct member wit
 fails:C-API Struct function rb_struct_aset sets the value of a struct member with a string key
 fails:C-API Struct function rb_struct_aset sets the value of a struct member by index
 fails:C-API Struct function rb_struct_new creates a new instance of a struct
+fails:C-API Struct function rb_struct_aref raises a NameError if the struct member does not exist
+fails:C-API Struct function rb_struct_getmember raises a NameError if the struct member does not exist
+fails:C-API Struct function rb_struct_aset raises a NameError if the struct member does not exist
