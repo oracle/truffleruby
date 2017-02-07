@@ -162,10 +162,6 @@
 #undef HAVE_RB_NUM_COERCE_RELOP
 #undef HAVE_RB_NUM_ZERODIV
 
-/* Range */
-#undef HAVE_RB_RANGE_NEW
-#undef HAVE_RB_RANGE_VALUES
-
 /* Regexp */
 #undef HAVE_RB_BACKREF_GET
 #undef HAVE_RB_REG_MATCH
