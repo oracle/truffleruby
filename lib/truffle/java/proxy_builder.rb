@@ -46,7 +46,7 @@ module JavaUtilities
           next if !is_static
           name = Java.to_ruby_string(Java.invoke_java_method(FIELD_GET_NAME, f))
           is_const = JavaUtilities.constant_field?(f)
-          cpmst_val = ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) if is_const
+          const_val = ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) if is_const
           getter = lambda { ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) }
           if !JavaUtilities.final_field?(f)
             mh = JavaUtilities.unreflect_getter(f)
@@ -162,7 +162,7 @@ module JavaUtilities
     def add_to_proxy(a_proxy, static)
       if @is_const
         begin
-          a_proxy.const_set(Java.to_ruby_string(Java.invoke_java_method(FIELD_GET_NAME, f)), val)
+          a_proxy.const_set(@name, @const_val)
         rescue NameError
         end
       end
