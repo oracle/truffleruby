@@ -275,9 +275,8 @@ class Gem::Dependency
   end
 
   def matching_specs platform_only = false
-    env_req = Gem.env_requirement(name)
     matches = Gem::Specification.stubs_for(name).find_all { |spec|
-      requirement.satisfied_by?(spec.version) && env_req.satisfied_by?(spec.version)
+      requirement.satisfied_by? spec.version
     }.map(&:to_spec)
 
     if platform_only
@@ -286,7 +285,7 @@ class Gem::Dependency
       }
     end
 
-    matches
+    matches.sort_by { |s| s.sort_obj } # HACK: shouldn't be needed
   end
 
   ##
@@ -302,13 +301,22 @@ class Gem::Dependency
     # TODO: check Gem.activated_spec[self.name] in case matches falls outside
 
     if matches.empty? then
-      specs = Gem::Specification.stubs_for name
+      specs = Gem::Specification.find_all { |s|
+                s.name == name
+              }.map { |x| x.full_name }
 
       if specs.empty?
-        raise Gem::MissingSpecError.new name, requirement
+        total = Gem::Specification.to_a.size
+        msg   = "Could not find '#{name}' (#{requirement}) among #{total} total gem(s)\n".dup
       else
-        raise Gem::MissingSpecVersionError.new name, requirement, specs
+        msg   = "Could not find '#{name}' (#{requirement}) - did find: [#{specs.join ','}]\n".dup
       end
+      msg << "Checked in 'GEM_PATH=#{Gem.path.join(File::PATH_SEPARATOR)}', execute `gem env` for more information"
+
+      error = Gem::LoadError.new(msg)
+      error.name        = self.name
+      error.requirement = self.requirement
+      raise error
     end
 
     # TODO: any other resolver validations should go here
@@ -317,17 +325,14 @@ class Gem::Dependency
   end
 
   def to_spec
-    matches = self.to_specs.compact
+    matches = self.to_specs
 
-    active = matches.find { |spec| spec.activated? }
+    active = matches.find { |spec| spec && spec.activated? }
+
     return active if active
 
-    return matches.first if prerelease?
+    matches.delete_if { |spec| spec.nil? || spec.version.prerelease? } unless prerelease?
 
-    # Move prereleases to the end of the list for >= 0 requirements
-    pre, matches = matches.partition { |spec| spec.version.prerelease? }
-    matches += pre if requirement == Gem::Requirement.default
-
-    matches.first
+    matches.last
   end
 end

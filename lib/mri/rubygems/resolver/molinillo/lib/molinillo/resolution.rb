@@ -52,7 +52,6 @@ module Gem::Resolver::Molinillo
         @base = base
         @states = []
         @iteration_counter = 0
-        @parent_of = {}
       end
 
       # Resolves the {#original_requested} dependencies into a full dependency
@@ -68,12 +67,7 @@ module Gem::Resolver::Molinillo
           indicate_progress
           if state.respond_to?(:pop_possibility_state) # DependencyState
             debug(depth) { "Creating possibility state for #{requirement} (#{possibilities.count} remaining)" }
-            state.pop_possibility_state.tap do |s|
-              if s
-                states.push(s)
-                activated.tag(s)
-              end
-            end
+            state.pop_possibility_state.tap { |s| states.push(s) if s }
           end
           process_topmost_state
         end
@@ -124,11 +118,27 @@ module Gem::Resolver::Molinillo
       require 'rubygems/resolver/molinillo/lib/molinillo/state'
       require 'rubygems/resolver/molinillo/lib/molinillo/modules/specification_provider'
 
-      require 'rubygems/resolver/molinillo/lib/molinillo/delegates/resolution_state'
-      require 'rubygems/resolver/molinillo/lib/molinillo/delegates/specification_provider'
+      ResolutionState.new.members.each do |member|
+        define_method member do |*args, &block|
+          current_state = state || ResolutionState.empty
+          current_state.send(member, *args, &block)
+        end
+      end
 
-      include Gem::Resolver::Molinillo::Delegates::ResolutionState
-      include Gem::Resolver::Molinillo::Delegates::SpecificationProvider
+      SpecificationProvider.instance_methods(false).each do |instance_method|
+        define_method instance_method do |*args, &block|
+          begin
+            specification_provider.send(instance_method, *args, &block)
+          rescue NoSuchDependencyError => error
+            if state
+              vertex = activated.vertex_named(name_for error.dependency)
+              error.required_by += vertex.incoming_edges.map { |e| e.origin.name }
+              error.required_by << name_for_explicit_dependency_source unless vertex.explicit_requirements.empty?
+            end
+            raise
+          end
+        end
+      end
 
       # Processes the topmost available {RequirementState} on the stack
       # @return [void]
@@ -159,7 +169,6 @@ module Gem::Resolver::Molinillo
       def initial_state
         graph = DependencyGraph.new.tap do |dg|
           original_requested.each { |r| dg.add_vertex(name_for(r), nil, true).tap { |v| v.explicit_requirements << r } }
-          dg.tag(:initial_state)
         end
 
         requirements = sort_dependencies(original_requested, graph, {})
@@ -180,12 +189,9 @@ module Gem::Resolver::Molinillo
       def unwind_for_conflict
         debug(depth) { "Unwinding for conflict: #{requirement}" }
         conflicts.tap do |c|
-          sliced_states = states.slice!((state_index_for_unwind + 1)..-1)
+          states.slice!((state_index_for_unwind + 1)..-1)
           raise VersionConflict.new(c) unless state
-          activated.rewind_to(sliced_states.first || :initial_state) if sliced_states
           state.conflicts = c
-          index = states.size - 1
-          @parent_of.reject! { |_, i| i >= index }
         end
       end
 
@@ -211,17 +217,20 @@ module Gem::Resolver::Molinillo
       # @return [Object] the requirement that led to `requirement` being added
       #   to the list of requirements.
       def parent_of(requirement)
-        return unless requirement
-        return unless index = @parent_of[requirement]
-        return unless parent_state = @states[index]
-        parent_state.requirement
+        return nil unless requirement
+        seen = false
+        state = states.reverse_each.find do |s|
+          seen ||= s.requirement == requirement || s.requirements.include?(requirement)
+          seen && s.requirement != requirement && !s.requirements.include?(requirement)
+        end
+        state && state.requirement
       end
 
       # @return [Object] the requirement that led to a version of a possibility
       #   with the given name being activated.
       def requirement_for_existing_name(name)
         return nil unless activated.vertex_named(name).payload
-        states.find { |s| s.name == name }.requirement
+        states.reverse_each.find { |s| !s.activated.vertex_named(name).payload }.requirement
       end
 
       # @return [ResolutionState] the state whose `requirement` is the given
@@ -241,25 +250,19 @@ module Gem::Resolver::Molinillo
       #   the {#possibility} in conjunction with the current {#state}
       def create_conflict
         vertex = activated.vertex_named(name)
-        locked_requirement = locked_requirement_named(name)
-
-        requirements = {}
-        unless vertex.explicit_requirements.empty?
-          requirements[name_for_explicit_dependency_source] = vertex.explicit_requirements
-        end
-        requirements[name_for_locking_dependency_source] = [locked_requirement] if locked_requirement
+        requirements = {
+          name_for_explicit_dependency_source => vertex.explicit_requirements,
+          name_for_locking_dependency_source => Array(locked_requirement_named(name)),
+        }
         vertex.incoming_edges.each { |edge| (requirements[edge.origin.payload] ||= []).unshift(edge.requirement) }
-
-        activated_by_name = {}
-        activated.each { |v| activated_by_name[v.name] = v.payload if v.payload }
         conflicts[name] = Conflict.new(
           requirement,
-          requirements,
+          Hash[requirements.select { |_, r| !r.empty? }],
           vertex.payload,
           possibility,
-          locked_requirement,
+          locked_requirement_named(name),
           requirement_trees,
-          activated_by_name
+          Hash[activated.map { |v| [v.name, v.payload] }.select(&:last)]
         )
       end
 
@@ -338,70 +341,32 @@ module Gem::Resolver::Molinillo
       # spec with the given name
       # @return [Boolean] Whether the possibility was swapped into {#activated}
       def attempt_to_swap_possibility
-        activated.tag(:swap)
-        vertex = activated.vertex_named(name)
-        activated.set_payload(name, possibility)
-        if !vertex.requirements.
-           all? { |r| requirement_satisfied_by?(r, activated, possibility) } ||
-            !new_spec_satisfied?
-          activated.rewind_to(:swap)
-          return
-        end
-        fixup_swapped_children(vertex)
-        activate_spec
-      end
-
-      # Ensures there are no orphaned successors to the given {vertex}.
-      # @param [DependencyGraph::Vertex] vertex the vertex to fix up.
-      # @return [void]
-      def fixup_swapped_children(vertex)
-        payload = vertex.payload
-        deps = dependencies_for(payload).group_by(&method(:name_for))
-        vertex.outgoing_edges.each do |outgoing_edge|
-          @parent_of[outgoing_edge.requirement] = states.size - 1
-          succ = outgoing_edge.destination
-          matching_deps = Array(deps[succ.name])
-          if matching_deps.empty? && !succ.root? && succ.predecessors.to_a == [vertex]
-            debug(depth) { "Removing orphaned spec #{succ.name} after swapping #{name}" }
-            succ.requirements.each { |r| @parent_of.delete(r) }
-            activated.detach_vertex_named(succ.name)
-
-            all_successor_names = succ.recursive_successors.map(&:name)
-
-            requirements.delete_if do |requirement|
-              requirement_name = name_for(requirement)
-              (requirement_name == succ.name) || all_successor_names.include?(requirement_name)
-            end
-          elsif !matching_deps.include?(outgoing_edge.requirement)
-            activated.delete_edge(outgoing_edge)
-            requirements.delete(outgoing_edge.requirement)
-          end
-          matching_deps.delete(outgoing_edge.requirement)
-        end
+        swapped = activated.dup
+        swapped.vertex_named(name).payload = possibility
+        return unless swapped.vertex_named(name).requirements.
+            all? { |r| requirement_satisfied_by?(r, swapped, possibility) }
+        attempt_to_activate_new_spec
       end
 
       # Attempts to activate the current {#possibility} (given that it hasn't
       # already been activated)
       # @return [void]
       def attempt_to_activate_new_spec
-        if new_spec_satisfied?
+        satisfied = begin
+          locked_requirement = locked_requirement_named(name)
+          requested_spec_satisfied = requirement_satisfied_by?(requirement, activated, possibility)
+          locked_spec_satisfied = !locked_requirement ||
+            requirement_satisfied_by?(locked_requirement, activated, possibility)
+          debug(depth) { 'Unsatisfied by requested spec' } unless requested_spec_satisfied
+          debug(depth) { 'Unsatisfied by locked spec' } unless locked_spec_satisfied
+          requested_spec_satisfied && locked_spec_satisfied
+        end
+        if satisfied
           activate_spec
         else
           create_conflict
           unwind_for_conflict
         end
-      end
-
-      # @return [Boolean] whether the current spec is satisfied as a new
-      # possibility.
-      def new_spec_satisfied?
-        locked_requirement = locked_requirement_named(name)
-        requested_spec_satisfied = requirement_satisfied_by?(requirement, activated, possibility)
-        locked_spec_satisfied = !locked_requirement ||
-          requirement_satisfied_by?(locked_requirement, activated, possibility)
-        debug(depth) { 'Unsatisfied by requested spec' } unless requested_spec_satisfied
-        debug(depth) { 'Unsatisfied by locked spec' } unless locked_spec_satisfied
-        requested_spec_satisfied && locked_spec_satisfied
       end
 
       # @param [String] requirement_name the spec name to search for
@@ -418,7 +383,8 @@ module Gem::Resolver::Molinillo
       def activate_spec
         conflicts.delete(name)
         debug(depth) { 'Activated ' + name + ' at ' + possibility.to_s }
-        activated.set_payload(name, possibility)
+        vertex = activated.vertex_named(name)
+        vertex.payload = possibility
         require_nested_dependencies_for(possibility)
       end
 
@@ -428,24 +394,20 @@ module Gem::Resolver::Molinillo
       # @return [void]
       def require_nested_dependencies_for(activated_spec)
         nested_dependencies = dependencies_for(activated_spec)
-        debug(depth) { "Requiring nested dependencies (#{nested_dependencies.join(', ')})" }
-        nested_dependencies.each do |d|
-          activated.add_child_vertex(name_for(d), nil, [name_for(activated_spec)], d)
-          parent_index = states.size - 1
-          @parent_of[d] ||= parent_index
-        end
+        debug(depth) { "Requiring nested dependencies (#{nested_dependencies.map(&:to_s).join(', ')})" }
+        nested_dependencies.each { |d| activated.add_child_vertex(name_for(d), nil, [name_for(activated_spec)], d) }
 
-        push_state_for_requirements(requirements + nested_dependencies, !nested_dependencies.empty?)
+        push_state_for_requirements(requirements + nested_dependencies, nested_dependencies.size > 0)
       end
 
       # Pushes a new {DependencyState} that encapsulates both existing and new
       # requirements
       # @param [Array] new_requirements
       # @return [void]
-      def push_state_for_requirements(new_requirements, requires_sort = true, new_activated = activated)
+      def push_state_for_requirements(new_requirements, requires_sort = true, new_activated = activated.dup)
         new_requirements = sort_dependencies(new_requirements.uniq, new_activated, conflicts) if requires_sort
         new_requirement = new_requirements.shift
-        new_name = new_requirement ? name_for(new_requirement) : ''.freeze
+        new_name = new_requirement ? name_for(new_requirement) : ''
         possibilities = new_requirement ? search_for(new_requirement) : []
         handle_missing_or_push_dependency_state DependencyState.new(
           new_name, new_requirements, new_activated,
@@ -466,7 +428,7 @@ module Gem::Resolver::Molinillo
           state.activated.detach_vertex_named(state.name)
           push_state_for_requirements(state.requirements.dup, false, state.activated)
         else
-          states.push(state).tap { activated.tag(state) }
+          states.push state
         end
       end
     end

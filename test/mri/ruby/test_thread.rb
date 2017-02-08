@@ -420,7 +420,7 @@ class TestThread < Test::Unit::TestCase
     assert_equal(false, t.key?(:qux))
     assert_equal(false, t.key?("qux"))
 
-    assert_equal([:foo, :bar, :baz].sort, t.keys.sort)
+    assert_equal([:foo, :bar, :baz], t.keys)
 
   ensure
     t.kill if t
@@ -728,7 +728,7 @@ class TestThread < Test::Unit::TestCase
   end
 
   def test_thread_timer_and_ensure
-    assert_normal_exit(<<_eom, 'r36492', timeout: 10)
+    assert_normal_exit(<<_eom, 'r36492', timeout: 3)
     flag = false
     t = Thread.new do
       begin
@@ -748,9 +748,24 @@ _eom
   end
 
   def test_uninitialized
-    c = Class.new(Thread)
-    c.class_eval { def initialize; end }
+    c = Class.new(Thread) {def initialize; end}
     assert_raise(ThreadError) { c.new.start }
+
+    bug11959 = '[ruby-core:72732] [Bug #11959]'
+
+    c = Class.new(Thread) {def initialize; exit; end}
+    assert_raise(ThreadError, bug11959) { c.new }
+
+    c = Class.new(Thread) {def initialize; raise; end}
+    assert_raise(ThreadError, bug11959) { c.new }
+
+    c = Class.new(Thread) {
+      def initialize
+        pending = pending_interrupt?
+        super {pending}
+      end
+    }
+    assert_equal(false, c.new.value, bug11959)
   end
 
   def test_backtrace

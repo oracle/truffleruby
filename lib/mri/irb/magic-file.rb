@@ -11,11 +11,7 @@ module IRB
       encoding = detect_encoding(line)
       internal_encoding = encoding
       encoding ||= default_src_encoding
-      begin
-        io.rewind
-      rescue Errno::EPIPE
-        # ignore unseekable streams
-      end
+      io.rewind
       io.set_encoding(encoding, internal_encoding)
 
       if block_given?

@@ -76,3 +76,4 @@ class String
     UnicodeNormalize.normalized?(self, form)
   end
 end
+

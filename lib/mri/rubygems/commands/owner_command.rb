@@ -66,7 +66,7 @@ permission to.
 
       say "Owners for gem: #{name}"
       owners.each do |owner|
-        say "- #{owner['email'] || owner['handle'] || owner['id']}"
+        say "- #{owner['email']}"
       end
     end
   end
@@ -97,3 +97,4 @@ permission to.
   end
 
 end
+

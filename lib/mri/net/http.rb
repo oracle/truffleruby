@@ -370,7 +370,6 @@ module Net   #:nodoc:
   #   HTTPPreconditionRequired::            428
   #   HTTPTooManyRequests::                 429
   #   HTTPRequestHeaderFieldsTooLarge::     431
-  #   HTTPUnavailableForLegalReasons::      451
   # HTTPServerError::                    5xx
   #   HTTPInternalServerError::             500
   #   HTTPNotImplemented::                  501
@@ -607,10 +606,6 @@ module Net   #:nodoc:
     # address of the proxy host, +p_port+ the port to use to access the proxy,
     # and +p_user+ and +p_pass+ the username and password if authorization is
     # required to use the proxy.
-    #
-    # In JRuby, this will default to the JSE proxy settings provided in the
-    # 'http.proxyHost' and 'http.proxyPort' Java system properties, if they
-    # are set, falling back on environment variables otherwise.
     #
     def HTTP.new(address, port = nil, p_addr = :ENV, p_port = nil, p_user = nil, p_pass = nil)
       http = super address, port
@@ -948,8 +943,7 @@ module Net   #:nodoc:
           if @ssl_context.verify_mode != OpenSSL::SSL::VERIFY_NONE
             s.post_connection_check(@address)
           end
-          # OpenSSL::SSL::Session somehow works but SSLSocket#session= does nothing with JRuby-OpenSSL
-          #@ssl_session = s.session
+          @ssl_session = s.session
         rescue => exception
           D "Conn close because of connect error #{exception}"
           @socket.close if @socket and not @socket.closed?
@@ -997,11 +991,6 @@ module Net   #:nodoc:
     #
     # This class is obsolete.  You may pass these same parameters directly to
     # Net::HTTP.new.  See Net::HTTP.new for details of the arguments.
-    #
-    # In JRuby, this will default to the JSE proxy settings provided in the
-    # 'http.proxyHost' and 'http.proxyPort' Java system properties, if they
-    # are set, falling back on environment variables otherwise.
-    #
     def HTTP.Proxy(p_addr = :ENV, p_port = nil, p_user = nil, p_pass = nil)
       return self unless p_addr
 
@@ -1447,7 +1436,7 @@ module Net   #:nodoc:
           begin
             res = HTTPResponse.read_new(@socket)
             res.decode_content = req.decode_content
-          end while res.kind_of?(HTTPContinue)
+          end while res.kind_of?(HTTPInformation)
 
           res.uri = req.uri
 
