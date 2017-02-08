@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -77,7 +77,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         }
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     private Collection<Object> getQueueContents(UnsizedQueue queue) {
         return queue.getContents();
     }
