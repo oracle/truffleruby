@@ -24,7 +24,6 @@ module JavaUtilities
         simple_arities = Hash.new { |h, k| h[k] = [] }
         varargs_arities = Hash.new { |h, k| h[k] = [] }
         @methods.each do |m|
-          p m
           varargs = method_is_varargs(m)
           dest = if varargs
                    varargs_arities

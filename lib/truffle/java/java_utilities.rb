@@ -87,6 +87,8 @@ module JavaUtilities
   # Classes we'll need to bootstrap things.
   JAVA_CLASS_CLASS = Java.java_class_by_name("java.lang.Class")
   JAVA_CLASS_ARRAY = Java.java_class_by_name("[Ljava.lang.Class;")
+  JAVA_CONSTRUCTOR_CLASS = Java.java_class_by_name("java.lang.reflect.Constructor")
+  JAVA_CONSTRUCTOR_ARRAY = Java.java_class_by_name("[Ljava.lang.reflect.Constructor;")
   JAVA_FIELD_CLASS = Java.java_class_by_name("java.lang.reflect.Field")
   JAVA_FIELD_ARRAY = Java.java_class_by_name("[Ljava.lang.reflect.Field;")
   JAVA_METHOD_CLASS = Java.java_class_by_name("java.lang.reflect.Method")
@@ -138,6 +140,8 @@ module JavaUtilities
   end
 
   # Methods we'll need to bootstrap stuff.
+  CLASS_GET_CONSTRUCTORS = Java.get_java_method(
+    JAVA_CLASS_CLASS, "getConstructors", false, JAVA_CONSTRUCTOR_ARRAY)
   CLASS_GET_DECLARED_FIELDS = Java.get_java_method(
     JAVA_CLASS_CLASS, "getDeclaredFields", false, JAVA_FIELD_ARRAY)
   CLASS_GET_DECLARED_METHODS = Java.get_java_method(
@@ -209,13 +213,7 @@ module JavaUtilities
 
     a_proxy.java_class = a_class
 
-    JavaProxyBuilder.new(a_proxy, a_class).
-      add_interfaces.
-      add_static_fields.
-      add_static_methods.
-      add_instance_fields.
-      add_instance_methods.
-      build
+    JavaProxyBuilder.new(a_proxy, a_class).build
     
     existing_proxy = PROXIES.put_if_absent(a_class, a_proxy)
 
@@ -296,6 +294,8 @@ module JavaUtilities
 
   LOOKUP_UNREFLECT = Java.get_java_method(
     JAVA_LOOKUP_CLASS, "unreflect", false, JAVA_METHODHANDLE_CLASS, JAVA_METHOD_CLASS)
+  LOOKUP_UNREFLECT_CONSTRUCTOR = Java.get_java_method(
+    JAVA_LOOKUP_CLASS, "unreflectConstructor", false, JAVA_METHODHANDLE_CLASS, JAVA_CONSTRUCTOR_CLASS)
   LOOKUP_UNREFLECT_GETTER = Java.get_java_method(
     JAVA_LOOKUP_CLASS, "unreflectGetter", false, JAVA_METHODHANDLE_CLASS, JAVA_FIELD_CLASS)
   LOOKUP_UNREFLECT_SETTER = Java.get_java_method(
@@ -307,6 +307,14 @@ module JavaUtilities
   def self.unreflect_method(a_method)
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT, LOOKUP, a_method)
+    rescue Exception => exception
+      nil
+    end
+  end
+
+  def self.unreflect_constructor(a_constructor)
+    begin
+      Java.invoke_java_method(LOOKUP_UNREFLECT_CONSTRUCTOR, LOOKUP, a_constructor)
     rescue Exception => exception
       nil
     end

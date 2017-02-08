@@ -11,7 +11,7 @@ module JavaUtilities
     def add_to_singleton(name, thing)
       add_to_map(@static_members, name, thing)
     end
-    
+
     def add_to_instance(name, thing)
       add_to_map(@instance_members, name, thing)
     end
@@ -98,7 +98,7 @@ module JavaUtilities
         end
       end
       self
-    end    
+    end
 
     def add_instance_methods
       methods = Java.invoke_java_method(CLASS_GET_DECLARED_METHODS, @proxy.java_class)
@@ -117,7 +117,28 @@ module JavaUtilities
       self
     end
 
+    def add_constructors
+      constructors = Java.invoke_java_method(CLASS_GET_CONSTRUCTORS, @proxy.java_class)
+      # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
+      constructors_size = JavaUtilities.java_array_size(constructors)
+      (0...constructors_size).each do |i; m|
+        c = JavaUtilities.java_array_get(constructors, i)
+        mh = JavaUtilities.unreflect_constructor(c)
+        if mh != nil
+          add_to_singleton("new", Method.new("new", mh))
+        end
+      end
+      self
+    end
+
     def build
+      self.add_interfaces.
+        add_static_fields.
+        add_static_methods.
+        add_instance_fields.
+        add_instance_methods.
+        add_constructors
+
       @static_members.values.each do |m|
         m.add_to_proxy( @proxy, true )
       end
@@ -133,7 +154,7 @@ module JavaUtilities
       @name, @getter, @setter, @is_const, @const_val =
           name, getter, setter, is_const, const_val
     end
-    
+
     def precedence
       2
     end
@@ -158,15 +179,15 @@ module JavaUtilities
       raise Exception, "We should never see overloaded fields."
     end
   end
-  
+
   class Method
     attr_reader :dispatcher
-    
+
     def initialize(name, a_method)
       @name = name
       @dispatcher = JavaDispatcher.new(a_method)
     end
-    
+
     def precedence
       1
     end
@@ -180,7 +201,7 @@ module JavaUtilities
       method = @dispatcher.method_for_dispatch
       wrapped = if static
                   lambda { |*args| method[*args] }
-                else 
+                else
                   lambda { |*args| method[self, *args] }
                 end
       a_proxy.__send__(message, @name, wrapped)
