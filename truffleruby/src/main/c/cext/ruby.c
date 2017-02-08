@@ -1350,8 +1350,7 @@ VALUE rb_ary_aref(int n, const VALUE* values, VALUE array) {
 }
 
 VALUE rb_ary_clear(VALUE array) {
-  rb_jt_error("rb_ary_clear not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)array, "clear");
 }
 
 VALUE rb_ary_delete(VALUE array, VALUE value) {
