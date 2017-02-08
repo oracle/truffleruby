@@ -45,9 +45,10 @@ You should set `-Xhome=` when running an SVM build of TruffleRuby - it can't yet
 work out where its libraries are located otherwise.
 
 The SVM version of TruffleRuby has better startup performance and lower memory
-footprint than TruffleRuby or JRuby on the JVM. We expect these numbers to
-improve significantly in the future as we ahead-of-time compile more of the Ruby
-startup process.
+footprint than TruffleRuby or JRuby on the JVM, and better startup performance
+than Rubinius. We expect these numbers to improve significantly in the future as
+we ahead-of-time compile more of the Ruby startup process, and aim to meet or
+beat MRI's startup time.
 
 ```
 $ /usr/bin/time -l ./ruby -Xhome=language/ruby -e "puts 'hello'"  # TruffleRuby on the SVM
@@ -69,6 +70,11 @@ $ /usr/bin/time -l 2.4.0/bin/ruby -e "puts 'hello'"
 hello
         0.03 real         0.02 user         0.00 sys
    8773632  maximum resident set size
+
+$ /usr/bin/time -l rbx-3.60/bin/ruby -e "puts 'hello'"
+hello
+       0.61 real         0.32 user         0.20 sys
+  66744320  maximum resident set size
 ```
 
 (`real` is the number of actual seconds which have elapsed while the command runs, `resident set size` is the total memory occupied while the command runs)
