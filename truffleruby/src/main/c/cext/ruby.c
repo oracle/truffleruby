@@ -394,6 +394,11 @@ long NUM2LONG(VALUE value) {
   return truffle_invoke_l(RUBY_CEXT, "NUM2LONG", value);
 }
 
+unsigned long rb_num2ulong(VALUE val) {
+  rb_jt_error("rb_num2ulong not implemented");
+  abort();
+}
+
 unsigned long NUM2ULONG(VALUE value) {
   // TODO CS 24-Jul-16 _invoke_l but what about the unsigned part?
   return truffle_invoke_l(RUBY_CEXT, "NUM2ULONG", value);
@@ -516,6 +521,11 @@ VALUE rb_num_coerce_relop(VALUE x, VALUE y, ID func) {
 
 void rb_num_zerodiv(void) {
   rb_raise(rb_eZeroDivError, "divided by 0");
+}
+
+VALUE LL2NUM(LONG_LONG n) {
+  rb_jt_error("LL2NUM not implemented");
+  abort();
 }
 
 // Type checks
@@ -1207,6 +1217,11 @@ char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc) {
   abort();
 }
 
+int rb_enc_get_index(VALUE obj) {
+  rb_jt_error("rb_enc_get_index not implemented");
+  abort();
+}
+
 // Symbol
 
 ID rb_to_id(VALUE name) {
@@ -1518,6 +1533,11 @@ VALUE rb_class_path(VALUE ruby_class) {
 
 VALUE rb_path2class(const char *string) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_path2class", rb_str_new_cstr(string));
+}
+
+VALUE rb_path_to_class(VALUE pathname) {
+  rb_jt_error("rb_path_to_class not implemented");
+  abort();
 }
 
 VALUE rb_class_name(VALUE klass) {
@@ -1941,6 +1961,11 @@ void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function) {
   truffle_invoke(RUBY_CEXT, "rb_define_alloc_func", ruby_class, truffle_address_to_function(alloc_function));
 }
 
+VALUE rb_obj_method(VALUE obj, VALUE vid) {
+  rb_jt_error("rb_obj_method not implemented");
+  abort();
+}
+
 // Rational
 
 VALUE rb_Rational(VALUE num, VALUE den) {
@@ -2046,6 +2071,11 @@ VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
   abort();
 }
 
+void rb_timespec_now(struct timespec *ts) {
+  rb_jt_error("rb_timespec_now not implemented");
+  abort();
+}
+
 // Regexp
 
 VALUE rb_backref_get(void) {
@@ -2055,6 +2085,11 @@ VALUE rb_backref_get(void) {
 
 VALUE rb_reg_match_pre(VALUE match) {
   rb_jt_error("rb_reg_match_pre not implemented");
+  abort();
+}
+
+VALUE rb_reg_new(const char *s, long len, int options) {
+  rb_jt_error("rb_reg_new not implemented");
   abort();
 }
 
@@ -2075,6 +2110,11 @@ VALUE rb_reg_options(VALUE re) {
 
 VALUE rb_reg_regcomp(VALUE str) {
   rb_jt_error("rb_reg_regcomp not implemented");
+  abort();
+}
+
+VALUE rb_reg_match(VALUE re, VALUE str) {
+  rb_jt_error("rb_reg_match not implemented");
   abort();
 }
 

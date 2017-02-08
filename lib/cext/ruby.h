@@ -379,10 +379,12 @@ double rb_num2dbl(VALUE val);
 long rb_num2int(VALUE val);
 unsigned long rb_num2uint(VALUE val);
 long rb_num2long(VALUE val);
+unsigned long rb_num2ulong(VALUE val);
 VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func);
 VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func);
 VALUE rb_num_coerce_relop(VALUE x, VALUE y, ID func);
 void rb_num_zerodiv(void);
+VALUE LL2NUM(LONG_LONG n);
 
 // Type checks
 
@@ -640,6 +642,8 @@ VALUE rb_usascii_str_new(const char *ptr, long len);
 VALUE rb_usascii_str_new_cstr(const char *ptr);
 int rb_to_encoding_index(VALUE enc);
 char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc);
+#define rb_enc_name(enc) ((enc)->name)
+int rb_enc_get_index(VALUE obj);
 
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
   VALUE value = *value_pointer;
@@ -739,6 +743,7 @@ VALUE rb_hash_delete(VALUE hash, VALUE key);
 VALUE rb_hash_delete_if(VALUE hash);
 void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg);
 VALUE rb_hash_size(VALUE hash);
+#define rb_hash_dup(array) rb_obj_dup(array)
 
 // Class
 
@@ -751,6 +756,7 @@ VALUE CLASS_OF(VALUE object);
 VALUE rb_obj_alloc(VALUE ruby_class);
 VALUE rb_class_path(VALUE ruby_class);
 VALUE rb_path2class(const char *string);
+VALUE b_path_to_class(VALUE pathname);
 VALUE rb_class_name(VALUE klass);
 VALUE rb_class_new(VALUE super);
 VALUE rb_class_new_instance(int argc, const VALUE *argv, VALUE klass);
@@ -909,6 +915,7 @@ void rb_undef(VALUE module, ID name);
 void rb_attr(VALUE ruby_class, ID name, int read, int write, int ex);
 typedef VALUE (*rb_alloc_func_t)(VALUE ruby_class);
 void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function);
+VALUE rb_obj_method(VALUE obj, VALUE vid);
 
 // Mutexes
 
@@ -965,15 +972,18 @@ struct timeval rb_time_interval(VALUE num);
 struct timeval rb_time_timeval(VALUE time);
 struct timespec rb_time_timespec(VALUE time);
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset);
+void rb_timespec_now(struct timespec *ts);
 
 // Regexp
 
 VALUE rb_backref_get(void);
 VALUE rb_reg_match_pre(VALUE match);
+VALUE rb_reg_new(const char *s, long len, int options);
 VALUE rb_reg_new_str(VALUE s, int options);
 VALUE rb_reg_nth_match(int nth, VALUE match);
 VALUE rb_reg_options(VALUE re);
 VALUE rb_reg_regcomp(VALUE str);
+VALUE rb_reg_match(VALUE re, VALUE str);
 
 // Marshal
 
