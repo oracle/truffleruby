@@ -756,7 +756,7 @@ VALUE CLASS_OF(VALUE object);
 VALUE rb_obj_alloc(VALUE ruby_class);
 VALUE rb_class_path(VALUE ruby_class);
 VALUE rb_path2class(const char *string);
-VALUE b_path_to_class(VALUE pathname);
+VALUE rb_path_to_class(VALUE pathname);
 VALUE rb_class_name(VALUE klass);
 VALUE rb_class_new(VALUE super);
 VALUE rb_class_new_instance(int argc, const VALUE *argv, VALUE klass);
