@@ -57,13 +57,15 @@ real Rails applications at the moment.
 
 #### What is happening with AOT, startup time, and the SubstrateVM?
 
-Ahead-of-time compilation of the TruffleRuby interpreter, along with the Graal
-compiler, is our proposed solution to the problem of startup time of a language
-implemented in Java. The technology we are using to do this is called the
-SubstrateVM. We hope to make the SubstrateVM available publicly at some point
-soon.
+You don't need a JVM to run TruffleRuby. With the
+[SubstrateVM](https://github.com/graalvm/truffleruby/tree/master/doc/user/svm.md)
+it is possible to produce a single, statically linked native binary executable
+version of TruffleRuby, which doesn't need any JVM to run.
 
-https://youtu.be/FJY96_6Y3a4?t=10023
+This SubstrateVM version of TruffleRuby has startup performance and memory
+footprint more similar to MRI than TruffleRuby on the JVM or JRuby. There are
+[instructions](https://github.com/graalvm/truffleruby/tree/master/doc/user/svm.md)
+for using it as part of GraalVM.
 
 #### Can TruffleRuby run on a standard JVM?
 
