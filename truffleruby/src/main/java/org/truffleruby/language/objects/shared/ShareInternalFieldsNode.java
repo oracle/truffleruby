@@ -26,7 +26,7 @@ import org.truffleruby.language.objects.ShapeCachingGuards;
 import java.util.Collection;
 
 /**
- * Share the internal field of an object, accessible by its Layout
+ * Share the internal fields of an object, accessible by its Layout
  */
 @ImportStatic({ ShapeCachingGuards.class, ArrayGuards.class })
 public abstract class ShareInternalFieldsNode extends RubyBaseNode {
@@ -90,12 +90,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         /* No internal fields */
     }
 
-    @Specialization(guards = "updateShape(object)")
-    public void updateShapeAndShare(DynamicObject object) {
-        executeShare(object);
-    }
-
-    @Specialization(contains = { "shareCachedObjectArray", "shareCachedOtherArray", "shareCachedQueue", "shareCachedBasicObject", "updateShapeAndShare" })
+    @Specialization(contains = { "shareCachedObjectArray", "shareCachedOtherArray", "shareCachedQueue", "shareCachedBasicObject" })
     protected void shareUncached(DynamicObject object) {
         SharedObjects.shareInternalFields(getContext(), object);
     }
