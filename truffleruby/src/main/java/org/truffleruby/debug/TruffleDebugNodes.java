@@ -190,6 +190,18 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "hash_storage", onSingleton = true, required = 1)
+    public abstract static class HashStorageNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyHash(hash)")
+        public DynamicObject hashStorage(DynamicObject hash) {
+            Object store = Layouts.HASH.getStore(hash);
+            String storage = store == null ? "null" : store.getClass().toString();
+            return StringOperations.createString(getContext(), StringOperations.encodeRope(storage, USASCIIEncoding.INSTANCE));
+        }
+
+    }
+
     @CoreMethod(names = "shared?", onSingleton = true, required = 1)
     @ImportStatic(SharedObjects.class)
     public abstract static class IsSharedNode extends CoreMethodArrayArgumentsNode {
