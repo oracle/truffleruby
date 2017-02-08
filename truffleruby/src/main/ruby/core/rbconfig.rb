@@ -113,7 +113,7 @@ module RbConfig
         'CC' => cc,
         'CPP' => cpp,
         'COMPILE_C' => "$(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$< -o $@ && #{opt} -always-inline -mem2reg $@ -o $@",
-        'CFLAGS' => "-c -emit-llvm",
+        'CFLAGS' => "-Werror=implicit-function-declaration -c -emit-llvm",
         'LINK_SO' => "mx -v -p #{ENV['SULONG_HOME']} su-link -o $@ $(OBJS) $(LIBS)",
         'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{ENV['SULONG_HOME']}/include $(LIBS)"
     })
