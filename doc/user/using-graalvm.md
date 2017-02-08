@@ -4,8 +4,8 @@ RubyTruffle is designed to be run with a JVM that has the Graal compiler.
 
 The easiest way to get a JVM with Graal is via the GraalVM, available from the
 Oracle Technology Network. This includes the JVM, the Graal compiler, and
-TruffleRuby, all in one package with compatible versions. You can get either the
-runtime environment (RE) or development kit (DK).
+TruffleRuby, all in one package with compatible versions. You normally want
+the version that includes the Labs JDK.
 
 http://www.oracle.com/technetwork/oracle-labs/program-languages/
 
