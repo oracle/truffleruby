@@ -7,10 +7,9 @@ Using the SVM it is possible to ahead-of-time compile TruffleRuby and the Graal
 dynamic compiler to a single, statically linked native binary executable, that
 has no dependency on a JVM, and does not link to any JVM libraries. The
 technique is more sophisticated than just appending a JAR as a resource in a
-copy of the JVM - only parts of the JVM which are needed are included - and
-there is no Java bytecode - only compiled native machine code and compiler
-graphs for dynamic compilation. And only parts of the JVM and JRE which are
-needed and included, specialised for how TruffleRuby uses them.
+copy of the JVM - only parts of the JVM which are needed are included and they
+are specialised for how TruffleRuby uses them. There is no Java bytecode - only
+compiled native machine code and compiler graphs for dynamic compilation.
 
 Note that a common confusion is that the SVM is an ahead-of-time compiler for
 the Java code that implements the TruffleRuby interpreter and the Graal
