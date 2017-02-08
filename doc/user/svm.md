@@ -50,6 +50,14 @@ than Rubinius. We expect these numbers to improve significantly in the future as
 we ahead-of-time compile more of the Ruby startup process, and aim to meet or
 beat MRI's startup time.
 
+| Implementation | Real Time (s) | Max RSS (MB) |
+| -------------- | ------------: | -----------: |
+| TruffleRuby SVM | 0.40 | 139 |
+| TruffleRuby JVM | 5.03 | 442 |
+| JRuby 9.1.7.0 | 2.25 | 191 |
+| MRI 2.4.0 | 0.03 | 8 |
+| Rubinius 3.60 | 0.61 | 64 |
+
 ```
 $ /usr/bin/time -l ./ruby -Xhome=language/ruby -e "puts 'hello'"  # TruffleRuby on the SVM
 hello
