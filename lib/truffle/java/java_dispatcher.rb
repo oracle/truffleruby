@@ -30,22 +30,23 @@ module JavaUtilities
                  else
                    simple_arities
                  end
-          types = method_arg_types(m)
-          min_ariyy = ::JavaUtilities.java_array_size(types)
-          min_ariyy -= 1 if varargs
-          bucket = dest[min_ariyy]
+          bucket = dest[min_method_arity(m)]
           bucket << m
         end
         lambda do |*args|
-          args = args.map do |x|
-            ::JavaUtilities.unwrap_java_value(x)
-          end
+          java_args = args.map { |x| ::JavaUtilities.unwrap_java_value(x) }
           targets = []
           targets.push(*simple_arities[args.size])
-          if targets.size == 1
-            ::JavaUtilities.wrap_java_value(Java.invoke_java_method(targets[0], *args))
+          start_size = targets.size
+          targets = targets.select { |m| types_compatible( method_types(m), arg_types(java_args)) }
+          filter_size = targets.size
+          case targets.size
+          when 0
+            raise TypeError, "No java method found that accepts #{args}."
+          when 1
+            ::JavaUtilities.wrap_java_value(Java.invoke_java_method(targets[0], *java_args))
           else
-            raise Exception, "Can't dispatch yet."
+            raise TypeError, "Can't dispatch ambiguous cases yet."
           end
         end
       end
@@ -64,13 +65,31 @@ module JavaUtilities
       JAVA_METHODTYPE_CLASS, "parameterCount", false, JAVA_PRIM_INT_CLASS)
     METHODTYPE_RETURN_TYPE = Java.get_java_method(
       JAVA_METHODTYPE_CLASS, "returnType", false, JAVA_CLASS_CLASS)
+    CLASS_IS_ASSIGNABLE_FROM = Java.get_java_method(
+      JAVA_CLASS_CLASS, "isAssignableFrom", false, JAVA_PRIM_BOOLEAN_CLASS, JAVA_CLASS_CLASS)
     
-    def method_arg_types(m)
-      Java.invoke_java_method(
+    def method_types(m)
+      types_java = Java.invoke_java_method(
         METHODTYPE_PARAMETERS,
         Java.invoke_java_method(METHODHANDLE_TYPE, m))
+      types_size = JavaUtilities.java_array_size(types_java)
+      types_array = Array.new(types_size)
+      (0...types_size).each { |i| types_array[i] = JavaUtilities.java_array_get(types_java, i) }
+      types_array
     end
 
+    def min_method_arity(m)
+      arity = Java.invoke_java_method(
+        METHODTYPE_PARAM_COUNT,
+        Java.invoke_java_method(METHODHANDLE_TYPE, m))
+      arity -= 1 if method_is_varargs(m)
+      arity
+    end
+      
+    def arg_types(args)
+      args.map { |x| JavaUtilities.get_java_class(x) }
+    end
+                 
     def method_is_varargs(m)
       Java.invoke_java_method(METHODHANDLE_VARARGS, m)
     end
@@ -80,6 +99,17 @@ module JavaUtilities
         METHODTYPE_RETURN_TYPE,
         JAVA.invoke_java_method(METHODHANDLE_TYPE, m))
     end
-    
+
+    def java_type_compatible(method_type, arg_type)
+      Java.invoke_java_method(
+        CLASS_IS_ASSIGNABLE_FROM, method_type, arg_type)
+    end
+
+    def types_compatible(method_types, arg_types)
+      arg_types.zip(method_types).reduce(true) do |res, x|
+        res && java_type_compatible(x[1], x[0])
+      end        
+    end
   end
 end
+
