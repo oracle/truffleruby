@@ -28,7 +28,10 @@ $ graalvm-0.20/bin/aot-image --ruby
 ```
 
 This gives you a native binary that implements Ruby, similar to the MRI or
-Rubinius executables. It doesn't need a JVM.
+Rubinius executables. This binary is subject to the same OTN licence as
+the GraalVM distribution.
+
+The binary doesn't need a JVM:
 
 ```
 $ otool -L ruby 
