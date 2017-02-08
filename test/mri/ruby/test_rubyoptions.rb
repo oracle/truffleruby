@@ -83,20 +83,9 @@ class TestRubyOptions < Test::Unit::TestCase
                       "", %w(true), [])
   end
 
-  q = Regexp.method(:quote)
-  VERSION_PATTERN =
-    case RUBY_ENGINE
-    when 'jruby'
-      /^jruby #{q[RUBY_ENGINE_VERSION]} \(#{q[RUBY_VERSION]}\).*? \[#{
-        q[RbConfig::CONFIG["host_os"]]}-#{q[RbConfig::CONFIG["host_cpu"]]}\]$/
-    else
-      /^ruby #{q[RUBY_VERSION]}(?:[p ]|dev|rc).*? \[#{q[RUBY_PLATFORM]}\]$/
-    end
-  private_constant :VERSION_PATTERN
-
   def test_verbose
     assert_in_out_err(["-vve", ""]) do |r, e|
-      assert_match(VERSION_PATTERN, r[0])
+      assert_match(/^ruby #{RUBY_VERSION}(?:[p ]|dev|rc).*? \[#{RUBY_PLATFORM}\]$/, r[0])
       assert_equal(RUBY_DESCRIPTION, r[0])
       assert_equal([], e)
     end
@@ -150,7 +139,7 @@ class TestRubyOptions < Test::Unit::TestCase
 
   def test_version
     assert_in_out_err(%w(--version)) do |r, e|
-      assert_match(VERSION_PATTERN, r[0])
+      assert_match(/^ruby #{RUBY_VERSION}(?:[p ]|dev|rc).*? \[#{RUBY_PLATFORM}\]$/, r[0])
       assert_equal(RUBY_DESCRIPTION, r[0])
       assert_equal([], e)
     end

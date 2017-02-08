@@ -169,3 +169,5 @@ module Exception2MessageMapper
                      :ErrNotRegisteredException,
                      "not registered exception(%s)")
 end
+
+

@@ -5,8 +5,6 @@
 # See LICENSE.txt for permissions.
 #++
 
-require 'rubygems/util'
-
 begin
   require 'io/console'
 rescue LoadError
@@ -678,8 +676,13 @@ class Gem::SilentUI < Gem::StreamUI
   def initialize
     reader, writer = nil, nil
 
-    reader = File.open(Gem::Util::NULL_DEVICE, 'r')
-    writer = File.open(Gem::Util::NULL_DEVICE, 'w')
+    begin
+      reader = File.open('/dev/null', 'r')
+      writer = File.open('/dev/null', 'w')
+    rescue Errno::ENOENT
+      reader = File.open('nul', 'r')
+      writer = File.open('nul', 'w')
+    end
 
     super reader, writer, writer, false
   end
@@ -698,3 +701,4 @@ class Gem::SilentUI < Gem::StreamUI
     SilentProgressReporter.new(@outs, *args)
   end
 end
+

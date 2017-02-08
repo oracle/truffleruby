@@ -55,8 +55,8 @@ if ruby_home
   # Does not exist but it's used by rubygems to determine index where to insert gem lib directories, as a result
   # paths supplied by -I will stay before gem lib directories.
   $LOAD_PATH.push "#{ruby_home}/lib/2.3/site_ruby"
-  
-  $LOAD_PATH.push "#{ruby_home}/lib/mri"
+
+  $LOAD_PATH.push "#{ruby_home}/lib/truffle"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-strscan/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-stringio/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-complex/lib"
@@ -67,8 +67,10 @@ if ruby_home
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-securerandom/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-timeout/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-webrick/lib"
+  $LOAD_PATH.push "#{ruby_home}/lib/mri"
+  $LOAD_PATH.push "#{ruby_home}/lib/ext"
+  $LOAD_PATH.push "#{ruby_home}/lib/json/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/openssl"
-  $LOAD_PATH.push "#{ruby_home}/lib/truffle"
 end
 
 # We defined Psych at the top level because several things depend on its name.

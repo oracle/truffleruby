@@ -451,7 +451,7 @@ class TestModule < Test::Unit::TestCase
   end
 
   def test_instance_methods
-    assert_equal([:user, :user2], User.instance_methods(false).sort)
+    assert_equal([:user, :user2], User.instance_methods(false))
     assert_equal([:user, :user2, :mixin].sort, User.instance_methods(true).sort)
     assert_equal([:mixin], Mixin.instance_methods)
     assert_equal([:mixin], Mixin.instance_methods(true))
@@ -603,6 +603,8 @@ class TestModule < Test::Unit::TestCase
       const_set(:X, 123)
     end
     assert_equal(false, klass.class_eval { Module.constants }.include?(:X))
+
+    assert_equal(false, Complex.constants(false).include?(:compatible))
   end
 
   module M1
@@ -1360,6 +1362,9 @@ class TestModule < Test::Unit::TestCase
     c.const_set(:FOO, "foo")
     $VERBOSE = verbose
     assert_raise(NameError) { c::FOO }
+    assert_raise_with_message(NameError, /#{c}::FOO/) do
+      Class.new(c)::FOO
+    end
   end
 
   def test_private_constant2
@@ -1417,10 +1422,15 @@ class TestModule < Test::Unit::TestCase
     c.const_set(:FOO, "foo")
     c.deprecate_constant(:FOO)
     assert_warn(/deprecated/) {c::FOO}
+    assert_warn(/#{c}::FOO is deprecated/) {Class.new(c)::FOO}
+    bug12382 = '[ruby-core:75505] [Bug #12382]'
+    assert_warn(/deprecated/, bug12382) {c.class_eval "FOO"}
   end
 
   def test_constants_with_private_constant
     assert_not_include(::TestModule.constants, :PrivateClass)
+    assert_not_include(::TestModule.constants(true), :PrivateClass)
+    assert_not_include(::TestModule.constants(false), :PrivateClass)
   end
 
   def test_toplevel_private_constant

@@ -104,7 +104,7 @@ module Kernel
 
       # Ok, now find a gem that has no conflicts, starting
       # at the highest version.
-      valid = found_specs.reject { |s| s.has_conflicts? }.first
+      valid = found_specs.reject { |s| s.has_conflicts? }.last
 
       unless valid then
         le = Gem::LoadError.new "unable to find a version of '#{names.first}' to activate"
@@ -121,16 +121,13 @@ module Kernel
   rescue LoadError => load_error
     RUBYGEMS_ACTIVATION_MONITOR.enter
 
-    begin
-      if load_error.message.start_with?("Could not find") or
-          (load_error.message.end_with?(path) and Gem.try_activate(path)) then
-        require_again = true
-      end
-    ensure
+    if load_error.message.start_with?("Could not find") or
+        (load_error.message.end_with?(path) and Gem.try_activate(path)) then
+      RUBYGEMS_ACTIVATION_MONITOR.exit
+      return gem_original_require(path)
+    else
       RUBYGEMS_ACTIVATION_MONITOR.exit
     end
-
-    return gem_original_require(path) if require_again
 
     raise load_error
   end

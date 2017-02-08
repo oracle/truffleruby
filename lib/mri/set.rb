@@ -1,4 +1,5 @@
 #--
+# frozen_string_literal: true
 #
 # set.rb - defines the Set class
 #++

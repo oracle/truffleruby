@@ -181,7 +181,11 @@ class TestProcess < Test::Unit::TestCase
     io.close
 
     assert_raise(ArgumentError) { system(*TRUECOMMAND, :pgroup=>-1) }
-    assert_raise(Errno::EPERM) { Process.wait spawn(*TRUECOMMAND, :pgroup=>2) }
+    IO.popen([RUBY, '-egets'], 'w') do |f|
+      assert_raise(Errno::EPERM) {
+        Process.wait spawn(*TRUECOMMAND, :pgroup=>f.pid)
+      }
+    end
 
     io1 = IO.popen([RUBY, "-e", "print Process.getpgrp", :pgroup=>true])
     io2 = IO.popen([RUBY, "-e", "print Process.getpgrp", :pgroup=>io1.pid])
@@ -2255,5 +2259,23 @@ EOS
       GC.stress = true
       system(bin, "--disable=gems", "-w", "-e", "puts ARGV", *args)
     end;
+  end
+
+  def test_to_hash_on_arguments
+    all_assertions do |a|
+      %w[Array String].each do |type|
+        a.for(type) do
+          assert_separately(['-', EnvUtil.rubybin], <<~"END;")
+          class #{type}
+            def to_hash
+              raise "[Bug-12355]: #{type}#to_hash is called"
+            end
+          end
+          ex = ARGV[0]
+          assert_equal(true, system([ex, ex], "-e", ""))
+          END;
+        end
+      end
+    end
   end
 end

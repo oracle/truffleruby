@@ -526,7 +526,7 @@ module FileUtils
         end
         begin
           File.rename s, d
-        rescue *MV_RESCUES
+        rescue Errno::EXDEV
           copy_entry s, d, true
           if options[:secure]
             remove_entry_secure s, options[:force]
@@ -540,15 +540,6 @@ module FileUtils
     end
   end
   module_function :mv
-
-  # JRuby raises EACCES because JDK reports errors differently
-  MV_RESCUES = begin
-    if RUBY_ENGINE == 'jruby'
-      [Errno::EXDEV, Errno::EACCES]
-    else
-      [Errno::EXDEV]
-    end
-  end
 
   alias move mv
   module_function :move
@@ -727,15 +718,14 @@ module FileUtils
     end
     # freeze tree root
     euid = Process.euid
-    dot_file = fullpath + "/."
-    File.lstat(dot_file).tap {|fstat|
-      unless fu_stat_identical_entry?(st, fstat)
+    File.open(fullpath + '/.') {|f|
+      unless fu_stat_identical_entry?(st, f.stat)
         # symlink (TOC-to-TOU attack?)
         File.unlink fullpath
         return
       end
-      File.chown euid, -1, dot_file
-      File.chmod 0700, dot_file
+      f.chown euid, -1
+      f.chmod 0700
       unless fu_stat_identical_entry?(st, File.lstat(fullpath))
         # TOC-to-TOU attack?
         File.unlink fullpath

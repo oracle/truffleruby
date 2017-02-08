@@ -170,9 +170,6 @@ module IRB
           # func1.func2
           candidates = []
           ObjectSpace.each_object(Module){|m|
-            # JRuby specific (JRUBY-2186)
-            next if RUBY_ENGINE == 'jruby' && !m.respond_to?(:instance_methods)
-
             begin
               name = m.name
             rescue Exception

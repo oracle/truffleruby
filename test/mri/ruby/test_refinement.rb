@@ -783,6 +783,9 @@ class TestRefinement < Test::Unit::TestCase
   eval PrependAfterRefine_CODE
 
   def test_prepend_after_refine_wb_miss
+    if /\A(arm|mips)/ =~ RUBY_PLATFORM
+      skip "too slow cpu"
+    end
     assert_normal_exit %Q{
       GC.stress = true
       10.times{
@@ -1618,6 +1621,20 @@ class TestRefinement < Test::Unit::TestCase
     assert_raise(NoMethodError) do
       MethodMissing.call_undefined_method
     end
+  end
+
+  def test_refine_with_prepend
+    assert_separately([], "#{<<-"begin;"}\n#{<<-"end;"}")
+    begin;
+      bug = '[ruby-core:78073] [Bug #12920]'
+      Fixnum.prepend(Module.new)
+      Module.new do
+        refine Fixnum do
+          define_method(:+) {}
+        end
+      end
+      assert_kind_of(Time, Time.now, bug)
+    end;
   end
 
   private
