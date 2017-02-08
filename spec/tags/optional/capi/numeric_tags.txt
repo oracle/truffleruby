@@ -37,7 +37,6 @@ fails:CApiNumericSpecs rb_num2ulong converts -1 to an unsigned number
 fails:CApiNumericSpecs rb_num2ulong converts a negative Bignum into an unsigned number
 fails:CApiNumericSpecs rb_num2ulong raises a RangeError if the value is more than 64bits
 fails:CApiNumericSpecs rb_num2ulong calls #to_int to coerce the value
-fails:CApiNumericSpecs rb_Integer creates a new Integer from a String
 fails:CApiNumericSpecs rb_ll2inum creates a new Fixnum from a small signed long long
 fails:CApiNumericSpecs rb_int2inum creates a new Fixnum from a long
 fails:CApiNumericSpecs rb_num2dbl raises a TypeError if passed nil

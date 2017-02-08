@@ -20,8 +20,6 @@ fails:C-API Kernel function rb_sys_fail raises an exception from the value of er
 fails:C-API Kernel function rb_sys_fail can take a NULL message
 fails:C-API Kernel function rb_syserr_fail raises an exception from the given error
 fails:C-API Kernel function rb_syserr_fail can take a NULL message
-fails:C-API Kernel function rb_yield yields passed argument
-fails:C-API Kernel function rb_yield returns the result from block evaluation
 fails:C-API Kernel function rb_yield raises LocalJumpError when no block is given
 fails:C-API Kernel function rb_yield_values yields passed arguments
 fails:C-API Kernel function rb_yield_values returns the result from block evaluation
@@ -59,4 +57,3 @@ fails:C-API Kernel function rb_funcall3 does not call a private method
 fails:C-API Kernel function rb_funcall_with_block calls a method with block
 fails:C-API Kernel function rb_funcall_with_block does not call a private method
 fails:C-API Kernel function rb_rescue raises an exception if any exception is raised inside 'raise function'
-fails:C-API Kernel function rb_rescue raises an exception if passed function raises an exception other than StandardError

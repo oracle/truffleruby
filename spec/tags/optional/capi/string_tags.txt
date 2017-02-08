@@ -41,7 +41,6 @@ fails:C-API String function rb_cstr_to_inum converts a C string to a Fixnum stri
 fails:C-API String function rb_str_subseq returns a byte-indexed substring
 fails:C-API String function rb_str_substr returns a substring
 fails:C-API String function rb_str_to_str raises a TypeError if coercion fails
-fails:C-API String function RSTRING_LENINT returns the size of a string
 fails:C-API String function StringValue does not call #to_s on non-String objects
 fails:C-API String function rb_str_resize reduces the size of the string
 fails:C-API String function rb_str_resize updates the string's attributes visible in C code

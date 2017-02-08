@@ -17,14 +17,9 @@ fails:C-API IO function rb_io_check_closed does not raise an exception if the IO
 fails:C-API IO function rb_io_check_closed raises an error if the IO is closed
 fails:C-API IO function rb_io_taint_check does not raise an exception if the IO is not frozen
 fails:C-API IO function rb_io_taint_check raises an exception if the IO is frozen
-fails:C-API IO function GetOpenFile allows access to the system fileno
 fails:C-API IO function rb_io_binmode returns self
 fails:C-API IO function rb_io_binmode sets binmode
-fails:C-API IO function rb_io_check_readable does not raise an exception if the IO is opened for reading
-fails:C-API IO function rb_io_check_readable does not raise an exception if the IO is opened for read and write
 fails:C-API IO function rb_io_check_readable raises an IOError if the IO is not opened for reading
-fails:C-API IO function rb_io_check_writable does not raise an exeption if the IO is opened for writing
-fails:C-API IO function rb_io_check_writable does not raise an exception if the IO is opened for read and write
 fails:C-API IO function rb_io_check_writable raises an IOError if the IO is not opened for reading
 fails:C-API IO function rb_io_wait_writeable returns false if there is no error condition
 fails:C-API IO function rb_io_wait_writeable raises an IOError if the IO is closed

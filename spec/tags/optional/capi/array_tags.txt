@@ -23,7 +23,6 @@ fails:C-API Array function rb_iterate calls a function which can yield into the 
 fails:C-API Array function rb_ary_delete removes an element from an array and returns it
 fails:C-API Array function rb_ary_delete returns nil if the element is not in the array
 fails:C-API Array function rb_mem_clear sets elements of a C array to nil
-fails:C-API Array function rb_ary_freeze freezes the object exactly like Kernel#freeze
 fails:C-API Array function rb_ary_delete_at removes an element from an array at a positive index
 fails:C-API Array function rb_ary_delete_at removes an element from an array at a negative index
 fails:C-API Array function rb_ary_delete_at returns nil if the index is out of bounds
