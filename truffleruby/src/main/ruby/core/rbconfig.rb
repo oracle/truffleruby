@@ -90,8 +90,8 @@ module RbConfig
     CONFIG.merge!({
       'bindir' => bindir,
       'libdir' => libdir,
-      "sitelibdir"=>"#{ruby_home}/lib/2.3/site_ruby", # TODO BJF Oct 21, 2016 Need to review these values
-      "sitearchdir"=>"#{ruby_home}/lib/2.3/site_ruby",
+      "sitelibdir"  => libdir,
+      "sitearchdir" =>libdir,
       'rubyhdrdir' => "#{libdir}/cext",
       'topdir' => "#{ruby_home}/lib/stdlib", # TODO CS 21-Jan-17 this doesn't exist any more
       "rubyarchhdrdir"=>"#{libdir}/cext",
