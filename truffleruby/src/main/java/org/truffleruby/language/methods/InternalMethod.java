@@ -252,9 +252,7 @@ public class InternalMethod implements ObjectGraphNode {
     }
 
     @Override
-    public Set<DynamicObject> getAdjacentObjects() {
-        final Set<DynamicObject> adjacent = new HashSet<>();
-
+    public void getAdjacentObjects(Set<DynamicObject> adjacent) {
         if (declaringModule != null) {
             adjacent.add(declaringModule);
         }
@@ -262,8 +260,6 @@ public class InternalMethod implements ObjectGraphNode {
         if (proc != null) {
             adjacent.add(proc);
         }
-
-        return adjacent;
     }
 
     public DynamicObject getCapturedBlock() {

@@ -148,7 +148,7 @@ public abstract class ObjectGraph {
             } else if (propertyValue instanceof Frame) {
                 reachable.addAll(getObjectsInFrame((Frame) propertyValue));
             } else if (propertyValue instanceof ObjectGraphNode) {
-                reachable.addAll(((ObjectGraphNode) propertyValue).getAdjacentObjects());
+                ((ObjectGraphNode) propertyValue).getAdjacentObjects(reachable);
             }
         }
 

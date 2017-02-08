@@ -15,6 +15,6 @@ import java.util.Set;
 
 public interface ObjectGraphNode {
 
-    Set<DynamicObject> getAdjacentObjects();
+    void getAdjacentObjects(Set<DynamicObject> reachable);
 
 }
