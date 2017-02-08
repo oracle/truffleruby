@@ -45,7 +45,7 @@ $ du -h ruby
 ```
 
 You should set `-Xhome=` when running an SVM build of TruffleRuby - it can't yet
-work out where its libraries are located otherwise.
+work out where the standard library is located otherwise.
 
 The SVM version of TruffleRuby has better startup performance and lower memory
 footprint than TruffleRuby or JRuby on the JVM, and better startup performance
