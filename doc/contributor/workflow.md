@@ -89,14 +89,14 @@ To run with a GraalVM binary tarball, set the `GRAALVM_BIN` environment variable
 and run with the `--graal` option.
 
 ```
-$ export GRAALVM_BIN=.../graalvm-0.19-re/bin/java
+$ export GRAALVM_BIN=.../graalvm-0.20-re/bin/java
 $ jt ruby --graal ...
 ```
 
 You can check this is working by printing the value of `Truffle::Graal.graal?`.
 
 ```
-$ export GRAALVM_BIN=.../graalvm-0.19-re/bin/java
+$ export GRAALVM_BIN=.../graalvm-0.20-re/bin/java
 $ jt ruby --graal -e 'p Truffle::Graal.graal?'
 ```
 
