@@ -43,11 +43,19 @@ module RbConfig
   raise ruby_api_version unless ruby_api_version[-2] == '.'
   ruby_api_version[-1] = '0'
 
-  CONFIG = {
-      'arch' => "#{host_cpu}-#{host_os}",
+  ruby_base_name = 'ruby'
+  ruby_version = ruby_api_version
+
+  arch = "#{host_cpu}-#{host_os}"
+  cppflags = ''
+  libs = ''
+  ruby_so_name = ruby_base_name
+
+  MAKEFILE_CONFIG = {
+      'arch' => arch,
       'configure_args' => ' ',
       'ARCH_FLAG' => '',
-      'CPPFLAGS' => '',
+      'CPPFLAGS' => cppflags,
       'LDFLAGS' => '',
       'DLDFLAGS' => '',
       'DLEXT' => 'su',
@@ -59,7 +67,40 @@ module RbConfig
       'EXEEXT' => '',
       'EXECUTABLE_EXTS' => '',
       'includedir' => '',
-      'LIBS' => '',
+      'LIBS' => libs,
+      'DLDLIBS' => '',
+      'LIBRUBYARG_STATIC' => '',
+      'LIBRUBYARG_SHARED' => '',
+      'libdirname' => 'libdir',
+      'LIBRUBY' => '',
+      'LIBRUBY_A' => '',
+      'LIBRUBYARG' => '',
+      'prefix' => '',
+      'ruby_install_name' => ruby_install_name,
+      'RUBY_INSTALL_NAME' => ruby_install_name,
+      'ruby_version' => ruby_version,
+      'RUBY_BASE_NAME' => ruby_base_name,
+      'RUBY_SO_NAME' => '$(RUBY_BASE_NAME)'
+  }
+
+
+  CONFIG = {
+      'arch' => arch,
+      'configure_args' => ' ',
+      'ARCH_FLAG' => '',
+      'CPPFLAGS' => cppflags,
+      'LDFLAGS' => '',
+      'DLDFLAGS' => '',
+      'DLEXT' => 'su',
+      'host_os' => host_os,
+      'host_cpu' => host_cpu,
+      'LIBEXT' => 'c',
+      'OBJEXT' => 'bc',
+      'exeext' => '',
+      'EXEEXT' => '',
+      'EXECUTABLE_EXTS' => '',
+      'includedir' => '',
+      'LIBS' => libs,
       'DLDLIBS' => '',
       'LIBRUBYARG_STATIC' => '',
       'LIBRUBYARG_SHARED' => '',
@@ -71,8 +112,8 @@ module RbConfig
       'ruby_install_name' => ruby_install_name,
       'RUBY_INSTALL_NAME' => ruby_install_name,
       'ruby_version' => ruby_api_version,
-      'RUBY_BASE_NAME' => 'ruby',
-      'RUBY_SO_NAME' => '$(RUBY_BASE_NAME)'
+      'RUBY_BASE_NAME' => ruby_base_name,
+      'RUBY_SO_NAME' => ruby_so_name
   }
 
   ruby_home = Truffle::Boot.ruby_home
@@ -80,25 +121,55 @@ module RbConfig
   if ruby_home
     libdir = "#{ruby_home}/lib"
     bindir = "#{libdir}/bin"
+    prefix = ruby_home
+    exec_prefix = prefix
+    libdir =  "#{exec_prefix}/lib"
+    rubylibprefix = "#{libdir}/#{ruby_base_name}"
+    rubylibdir = "#{rubylibprefix}/#{ruby_version}"
+    rubyarchdir = "#{rubylibdir}/#{arch}"
+    archdir = rubyarchdir
+    sitearch = arch
+    sitedir = "#{rubylibprefix}/site_ruby"
+    sitelibdir = "#{sitedir}/#{ruby_version}"
+    sitearchdir = "#{sitelibdir}/#{sitearch}"
+    topdir = archdir
 
     CONFIG.merge!({
-      'prefix'   => ruby_home,
-      'exec_prefix' => '$(prefix)',
-      'libdir'       =>  '$(exec_prefix)/lib',
-      'rubylibprefix' => '$(libdir)/$(RUBY_BASE_NAME)',
-      'rubylibdir' => '$(rubylibprefix)/$(ruby_version)',
-      'rubyarchdir' => '$(rubylibdir)/$(arch)',
-      'archdir' => '$(rubyarchdir)',
+      'prefix'   => prefix,
+      'exec_prefix' => exec_prefix,
+      'libdir'       =>  libdir,
+      'rubylibprefix' => rubylibprefix,
+      'rubylibdir' => rubylibdir,
+      'rubyarchdir' => rubyarchdir,
+      'archdir' => archdir,
       'bindir' => bindir,
       'hdrdir' => "#{ruby_home}/lib/cext",
-      'sitearch' => '$(arch)',
-      'sitedir' => '$(rubylibprefix)/site_ruby',
-      'sitelibdir' => '$(sitedir)/$(ruby_version)',
-      'sitearchdir' => '$(sitelibdir)/$(sitearch)',
+      'sitearch' => sitearch,
+      'sitedir' => sitedir,
+      'sitelibdir' => sitelibdir,
+      'sitearchdir' => sitearchdir,
       'rubyhdrdir' => "#{libdir}/cext",
-      'topdir' => '$(archdir)',
+      'topdir' => topdir,
       'rubyarchhdrdir' =>"#{libdir}/cext",
     })
+    MAKEFILE_CONFIG.merge!({
+          'prefix'   => ruby_home,
+          'exec_prefix' => '$(prefix)',
+          'libdir'       =>  '$(exec_prefix)/lib',
+          'rubylibprefix' => '$(libdir)/$(RUBY_BASE_NAME)',
+          'rubylibdir' => '$(rubylibprefix)/$(ruby_version)',
+          'rubyarchdir' => '$(rubylibdir)/$(arch)',
+          'archdir' => '$(rubyarchdir)',
+          'bindir' => bindir,
+          'hdrdir' => "#{ruby_home}/lib/cext",
+          'sitearch' => '$(arch)',
+          'sitedir' => '$(rubylibprefix)/site_ruby',
+          'sitelibdir' => '$(sitedir)/$(ruby_version)',
+          'sitearchdir' => '$(sitelibdir)/$(sitearch)',
+          'rubyhdrdir' => "#{libdir}/cext",
+          'topdir' => '$(archdir)',
+          'rubyarchhdrdir' =>"#{libdir}/cext",
+      })
   end
 
   if Truffle::Safe.memory_safe? && Truffle::Safe.processes_safe?
@@ -106,19 +177,25 @@ module RbConfig
     opt = ENV['JT_OPT'] || 'opt'
     cc = "#{clang} -I#{ENV['SULONG_HOME']}/include"
     cpp = cc
+    cflags = '-Werror=implicit-function-declaration -c -emit-llvm'
 
     CONFIG.merge!({
         'CC' => cc,
         'CPP' => cpp,
+        'COMPILE_C' => "#{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG)$< -o $@ && #{opt} -always-inline -mem2reg $@ -o $@",
+        'CFLAGS' => cflags,
+        'LINK_SO' => "mx -v -p #{ENV['SULONG_HOME']} su-link -o $@ $(OBJS) #{libs}",
+        'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) #{cflags} -I#{ENV['SULONG_HOME']}/include #{libs}"
+    })
+    MAKEFILE_CONFIG.merge!({
+        'CC' => cc,
+        'CPP' => cpp,
         'COMPILE_C' => "$(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$< -o $@ && #{opt} -always-inline -mem2reg $@ -o $@",
-        'CFLAGS' => "-Werror=implicit-function-declaration -c -emit-llvm",
+        'CFLAGS' => cflags,
         'LINK_SO' => "mx -v -p #{ENV['SULONG_HOME']} su-link -o $@ $(OBJS) $(LIBS)",
         'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{ENV['SULONG_HOME']}/include $(LIBS)"
     })
   end
-
-  MAKEFILE_CONFIG = {}
-  CONFIG.each { |k, v| MAKEFILE_CONFIG[k] = v.dup }
 
   def self.ruby
     ruby = Truffle::Boot.ruby_launcher
@@ -143,10 +220,6 @@ module RbConfig
     }
     val.replace(newval) unless newval == val
     val
-  end
-
-  CONFIG.each_value do |val|
-    RbConfig::expand(val)
   end
 
 end
