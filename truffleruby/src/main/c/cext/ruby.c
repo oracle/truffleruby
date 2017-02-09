@@ -1374,8 +1374,7 @@ VALUE rb_ary_join(VALUE array, VALUE sep) {
 }
 
 VALUE rb_ary_to_s(VALUE array) {
-  rb_jt_error("rb_ary_to_s not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)array, "to_s");
 }
 
 VALUE rb_ary_reverse(VALUE array) {

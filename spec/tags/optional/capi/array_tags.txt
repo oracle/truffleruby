@@ -1,6 +1,5 @@
 fails:C-API Array function rb_ary_new4 returns returns an array with the passed values
 fails:C-API Array function rb_ary_join joins elements of an array with a string
-fails:C-API Array function rb_ary_to_s creates an Array literal representation as a String
 fails:C-API Array function rb_ary_reverse reverses the order of elements in the array
 fails:C-API Array function rb_ary_reverse returns the original array
 fails:C-API Array function rb_ary_shift removes and returns the first element
