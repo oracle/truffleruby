@@ -223,7 +223,7 @@ class TruffleTool
 
   EXECUTABLE        = File.basename($PROGRAM_NAME)
   BRANDING          = EXECUTABLE.include?('jruby') ? 'JRuby+Truffle' : 'RubyTruffle'
-  LOCAL_CONFIG_FILE = '.jruby-truffle-tool.yaml'
+  LOCAL_CONFIG_FILE = '.truffleruby-tool.yaml'
   ROOT              = Pathname(__FILE__).dirname.parent.expand_path
   TRUFFLERUBY_PATH  = ROOT.join('../..').expand_path
   TRUFFLERUBY_BIN   = TRUFFLERUBY_PATH.join('bin', 'truffleruby')
@@ -268,7 +268,7 @@ class TruffleTool
                   debug_port:          ['--debug-port PORT', 'Debug port', STORE_NEW_VALUE, '51819'],
                   debug_option:        ['--debug-option OPTION', 'Debug JVM option', STORE_NEW_VALUE,
                                         '-J-agentlib:jdwp=transport=dt_socket,server=y,address=%d,suspend=y'],
-                  truffle_bundle_path: ['--truffle-bundle-path NAME', 'Bundle path', STORE_NEW_VALUE, '.jruby-truffle-tool_bundle'],
+                  truffle_bundle_path: ['--truffle-bundle-path NAME', 'Bundle path', STORE_NEW_VALUE, '.truffleruby-tool_bundle'],
                   graal_path:          ['--graal-path PATH', 'Path to Graal', STORE_NEW_VALUE, (TRUFFLERUBY_PATH + '../GraalVM-0.10/jre/bin/javao').to_s],
                   mock_load_path:      ['--mock-load-path PATH',
                                         'Path of mocks & monkey-patches (prepended in $:, relative to --truffle_bundle_path)',
@@ -688,7 +688,7 @@ class TruffleTool
                   { 'GEM_HOME' => @options[:run][:offline_gem_path].to_s,
                     'GEM_PATH' => @options[:run][:offline_gem_path].to_s } :
                   {}).
-        merge({'NO_FORK' => 'true'})
+        merge({ 'NO_FORK' => 'true' })
 
     env.each { |k, v| env[k] = v.to_s }
 
@@ -869,8 +869,8 @@ class TruffleTool
       TRUFFLERUBY_PATH
     end
 
-    def jruby_truffle_path
-      jruby_path.join 'bin', 'jruby-truffle-tool'
+    def truffle_tool_path
+      jruby_path.join 'lib', 'truffleruby-tool', 'bin', 'truffleruby-tool'
     end
 
     def option(key)

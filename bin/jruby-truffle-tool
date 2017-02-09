@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-bin="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-root="$(dirname "$bin")"
-
-exec ${bin}/truffleruby \
-     -Xbacktraces.hide_core_files=false \
-     ${root}/lib/jruby-truffle-tool/bin/jruby-truffle-tool \
-     "$@"
