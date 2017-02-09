@@ -9,12 +9,10 @@ rm lib/mri/racc/rdoc/grammar.en.rdoc
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
 rm -rf lib/mri/webrick*
-
-rm -rf lib/ext/*
-cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/ext
-cp -r ../ruby/ext/psych/lib/psych lib/ext
-cp -r ../ruby/ext/psych/lib/*.rb lib/ext
-cp -r ../ruby/ext/pty/lib/*.rb lib/ext
+cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
+cp -r ../ruby/ext/psych/lib/psych lib/mri
+cp -r ../ruby/ext/psych/lib/*.rb lib/mri
+cp -r ../ruby/ext/pty/lib/*.rb lib/mri
 
 rm -rf test/mri
 cp -r ../ruby/test test/mri

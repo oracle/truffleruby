@@ -1259,7 +1259,7 @@ public abstract class KernelNodes {
             String feature = StringOperations.getString(featureString);
 
             // Pysch loads either the jar or the so - we need to intercept
-            if (feature.equals("psych.so") && callerIs("ext/psych.rb")) {
+            if (feature.equals("psych.so") && callerIs("mri/psych.rb")) {
                 feature = "truffle/psych.rb";
             }
 

@@ -5,7 +5,7 @@ First, check with Chris Seaton for clearance.
 From MRI copy and paste over our versions of:
 
 * `lib` to `lib/mri`
-* `ext/{bigdecimal,psych,pty}/lib` to `lib/ext`
+* `ext/{bigdecimal,psych,pty}/lib` to `lib/mri`
 * `test/mri`
 * `doc/legal/ruby-bsdl.txt` and `doc/legal/ruby-licence.txt`
 
