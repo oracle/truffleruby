@@ -1,3 +1,4 @@
+HTTP_PROXY_HEADER="HTTP/1.0 200 Connection established\r\n\r\n"
 
 workaround_header = <<-HEREDOC
 ==========================================
@@ -207,7 +208,8 @@ class Gem::Request
     if @uri.scheme == "https"
       resp = CurlResponse.new("1.1", 200, "OK")
       resp_raw = `curl -i -s #{@uri}`
-      blank_line_idx = resp_raw.index("\r\n\r\n")
+      index_offset = resp_raw.start_with?(HTTP_PROXY_HEADER) ? HTTP_PROXY_HEADER.size : 0
+      blank_line_idx = resp_raw.index("\r\n\r\n", index_offset)
       header = resp_raw[0, blank_line_idx]
       resp.body = resp_raw[(blank_line_idx+4)..-1]
       if m = /ETag: (\"[[:alnum:]]*\")/.match(header)
@@ -443,7 +445,8 @@ if bundler_loaded
           response = if uri.scheme == "https"
                        resp = CurlResponse.new("1.1", 200, "OK")
                        resp_raw = `curl -i -s #{uri}`
-                       blank_line_idx = resp_raw.index("\r\n\r\n")
+                       index_offset = resp_raw.start_with?(HTTP_PROXY_HEADER) ? HTTP_PROXY_HEADER.size : 0
+                       blank_line_idx = resp_raw.index("\r\n\r\n", index_offset)
                        header = resp_raw[0, blank_line_idx]
                        resp.body = resp_raw[(blank_line_idx+4)..-1]
                        if m = /ETag: (\"[[:alnum:]]*\")/.match(header)
