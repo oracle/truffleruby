@@ -64,7 +64,7 @@ module JavaUtilities
     self.get_package_or_class("#{outer_name}$#{inner_name}", true)
   end
 
-  def self.get_package_or_class(name, probably_class)
+  def self.get_package_or_class(name, probably_class, must_be_class=false)
     a_class = begin
                 Java.java_class_by_name(name)
               rescue Exception
@@ -74,7 +74,7 @@ module JavaUtilities
       # Probably not true, but somebody may have been silly in their class names.
       return make_proxy(a_class) if a_class != nil
 
-      return ::Java::JavaPackage.new(*name.split("."))
+      return ::Java::JavaPackage.new(*name.split(".")) unless must_be_class
     else
       if a_class == nil
         raise NameError, "Missing class name ('#{name}')"

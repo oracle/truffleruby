@@ -92,6 +92,7 @@ module Java
 
     def self.new(*name_parts)
       const_name = name_parts.reduce("") { |memo, obj| memo + obj.capitalize }
+      const_name = "Default" if const_name == ""
       return ::Java.const_get(const_name) if ::Java.const_defined?(const_name, false)
       super(*name_parts)
     end
@@ -101,10 +102,14 @@ module Java
       java_name = name_parts.join(".")
       @package_name = java_name
       @children = {}
-      ::Java.const_set(ruby_name, self)
+      ::Java.const_set(ruby_name, self) if ruby_name != ""
       parent = JavaPackage.new(*name_parts.first(name_parts.size - 1)) unless name_parts.size <= 1
       parent.add_child(name_parts.last, self) unless parent == nil
       super()
+    end
+
+    def ===(another)
+      self.equal?(another) || another.kind_of?(self)
     end
 
     def self.capitalised_name(name)
@@ -122,6 +127,10 @@ module Java
       super.to_s
     end
 
+    def const_get(name, inherit=true)
+      super.const_get(name, inherit) rescue method_missing(name)
+    end
+
     def const_missing(name)
       method_missing(name)
     end
@@ -132,7 +141,7 @@ module Java
 
     def method_missing(name, *args)
       if args.size != 0
-        raise ArgumentError, "#{self} does not have a method #{name} with #{args.size} arguments."
+        raise ArgumentError, "Java package '#{self}' does not have a method `#{name}' with #{args.size} argument"
       end
 
       val = @children[name]
@@ -147,6 +156,7 @@ module Java
       end
       val
     end
+
   end
 
   class JavaProxy
@@ -155,7 +165,7 @@ module Java
   @packages = {}
 
   def self.const_missing name
-    JavaPackage.new(name.to_s)
+    JavaPackage.new(*name.to_s.split(/(?=[[:upper:]])/).map { |s| s.downcase } )
   end
 
   def self.method_missing(name, *args)
@@ -186,4 +196,5 @@ module Java
   def self.new_proxy_instance2 wrapper, interfaces
   end
 
+  Default = JavaPackage.new()
 end
