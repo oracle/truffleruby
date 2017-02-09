@@ -27,8 +27,12 @@ Then:
 
 * Update version information in `RubyLanguage`
 * Update `doc/user/compatibility.md`
+* Update `doc/user/legal.md`
+
+Check again with everyone for clerance.
 
 ## Updating bundled gems
+
 The current list of bundled gems their versions are found here:
 https://github.com/ruby/ruby/blob/ruby_2_3/gems/bundled_gems
 
