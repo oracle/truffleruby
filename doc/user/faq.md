@@ -37,7 +37,7 @@ Oracle Technology Network. This includes the JVM, the Graal compiler, and
 TruffleRuby, all in one package with compatible versions. You can get either the
 runtime environment (RE) or development kit (DK).
 
-See `doc/user/using-graalvm.md`.
+See [Using GraalVM](using-graalvm.md).
 
 ### Why is TruffleRuby slow on a standard JVM?
 
@@ -87,7 +87,7 @@ end
 ```
 
 As well as the instructions for running with GraalVM that are described in
-`doc/user/using-graalvm.md`, we'll also use the `-J-G:+TraceTruffleCompilation`
+[Using GraalVM](using-graalvm.md), we'll also use the `-J-G:+TraceTruffleCompilation`
 to ask Truffle to tell us when it compiles something.
 
 ```

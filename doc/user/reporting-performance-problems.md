@@ -1,7 +1,7 @@
 # Reporting Performance Problems
 
 We are interested to hear from you if performance of TruffleRuby is lower than
-other implementations of Ruby for code that you care about. `compatibility.md`
+other implementations of Ruby for code that you care about. [Compatibility](compatibility.md)
 lists some features which we know are slow and are unlikely to get faster.
 
 TruffleRuby uses extremely sophisticated techniques to optimise your Ruby

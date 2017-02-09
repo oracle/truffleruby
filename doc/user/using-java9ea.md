@@ -11,7 +11,7 @@ https://jdk9.java.net/download/
 
 You will also need a copy of the Graal and Truffle JARs, and these also need to
 be built using JDK 9. Follow the instructions for contributors building Graal in
-`doc/contributor/building-graal.md`.
+[Building Graal](../contributor/building-graal.md).
 
 Then set the JAVACMD environment variable and pass other command line options to
 configure Java to use Graal.
