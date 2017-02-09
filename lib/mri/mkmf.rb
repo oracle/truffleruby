@@ -2606,7 +2606,9 @@ MESSAGE
     RbConfig::CONFIG["topdir"] = curdir
   end
   $configure_args["--topdir"] ||= $curdir
-  $ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
+  # Modified for TruffleRuby
+  #$ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
+  $ruby = arg_config("--ruby", RbConfig.ruby)
 
   RbConfig.expand(CONFIG["RUBY_SO_NAME"])
 
