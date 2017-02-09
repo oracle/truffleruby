@@ -704,7 +704,7 @@ module Commands
     copy_target = if is_ruby
                     "#{JRUBY_DIR}/lib/cext/ruby.su"
                   elsif cext_dir == "#{JRUBY_DIR}/truffleruby/src/main/c/openssl"
-                    "#{JRUBY_DIR}/truffleruby/src/main/c/openssl/openssl.su"
+                    "#{JRUBY_DIR}/lib/mri/openssl.su"
                   else
                     "#{JRUBY_DIR}/test/truffle/cexts/#{gem_name}/lib/#{gem_name}/#{gem_name}.su"
                   end
