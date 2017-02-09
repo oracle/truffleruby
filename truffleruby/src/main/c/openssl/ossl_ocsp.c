@@ -271,12 +271,17 @@ static VALUE
 ossl_ocspreq_add_certid(VALUE self, VALUE certid)
 {
     OCSP_REQUEST *req;
-    OCSP_CERTID *id;
+    OCSP_CERTID *id, *id_new;
 
     GetOCSPReq(self, req);
     GetOCSPCertId(certid, id);
-    if(!OCSP_request_add0_id(req, OCSP_CERTID_dup(id)))
-	ossl_raise(eOCSPError, NULL);
+
+    if (!(id_new = OCSP_CERTID_dup(id)))
+	ossl_raise(eOCSPError, "OCSP_CERTID_dup");
+    if (!OCSP_request_add0_id(req, id_new)) {
+	OCSP_CERTID_free(id_new);
+	ossl_raise(eOCSPError, "OCSP_request_add0_id");
+    }
 
     return self;
 }
@@ -340,7 +345,7 @@ ossl_ocspreq_sign(int argc, VALUE *argv, VALUE self)
     flg = NIL_P(flags) ? 0 : NUM2INT(flags);
     if(NIL_P(certs)){
 	x509s = sk_X509_new_null();
-	flg |= OCSP_NOCERTS;
+	flags |= OCSP_NOCERTS;
     }
     else x509s = ossl_x509_ary2sk(certs);
     GetOCSPReq(self, req);

@@ -14,8 +14,9 @@ See `epl-1.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
 ## MRI
 
 The standard implementation of Ruby is MRI. TruffleRuby contains code from MRI
-version 2.3.3, including the standard library in `lib/mri`, and the Ruby C
-extension API in `lib/cext`.
+version 2.3.3, including the standard library in `lib/mri`, Ruby C extension API
+in `lib/cext` and `truffleruby/src/main/c/cext`, and OpenSSL in
+`truffleruby/src/main/c/openssl`.
 
 MRI is copyright Yukihiro Matsumoto. It is made available under the terms of the
 BSD licence `ruby-bsdl.txt`, or a custom licence `ruby-licence.txt`.

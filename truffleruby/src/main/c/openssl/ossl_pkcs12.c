@@ -104,7 +104,6 @@ ossl_pkcs12_s_create(int argc, VALUE *argv, VALUE self)
     friendlyname = NIL_P(name) ? NULL : StringValuePtr(name);
     key = GetPKeyPtr(pkey);
     x509 = GetX509CertPtr(cert);
-    x509s = NIL_P(ca) ? NULL : ossl_x509_ary2sk(ca);
 /* TODO: make a VALUE to nid function */
     if (!NIL_P(key_nid)) {
         if ((nkey = OBJ_txt2nid(StringValuePtr(key_nid))) == NID_undef)
@@ -122,6 +121,7 @@ ossl_pkcs12_s_create(int argc, VALUE *argv, VALUE self)
         ktype = NUM2INT(keytype);
 
     obj = NewPKCS12(cPKCS12);
+    x509s = NIL_P(ca) ? NULL : ossl_x509_ary2sk(ca);
     p12 = PKCS12_create(passphrase, friendlyname, key, x509, x509s,
                         nkey, ncert, kiter, miter, ktype);
     sk_X509_pop_free(x509s, X509_free);
@@ -165,8 +165,12 @@ ossl_pkcs12_initialize(int argc, VALUE *argv, VALUE self)
     BIO_free(in);
 
     pkey = cert = ca = Qnil;
+    /* OpenSSL's bug; PKCS12_parse() puts errors even if it succeeds.
+     * Fixed in OpenSSL 1.0.0t, 1.0.1p, 1.0.2d */
+    ERR_set_mark();
     if(!PKCS12_parse(pkcs, passphrase, &key, &x509, &x509s))
 	ossl_raise(ePKCS12Error, "PKCS12_parse");
+    ERR_pop_to_mark();
     pkey = rb_protect((VALUE(*)_((VALUE)))ossl_pkey_new, (VALUE)key,
 		      &st); /* NO DUP */
     if(st) goto err;

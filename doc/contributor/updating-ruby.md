@@ -6,6 +6,8 @@ From MRI copy and paste over our versions of:
 
 * `lib` to `lib/mri`
 * `ext/{bigdecimal,psych,pty}/lib` to `lib/mri`
+* `ext/openssl/*.{c,h}` to `truffleruby/src/main/c/openssl`
+* `ext/openssl/lib` to `lib/mri`
 * `test/mri`
 * `doc/legal/ruby-bsdl.txt` and `doc/legal/ruby-licence.txt`
 
@@ -14,9 +16,9 @@ version of MRI you want checked out in `../ruby`. You should be able to commit
 changes from this script without modification. If you can't, you need to update
 the script or these instructions.
 
-Look at `mkmf.rb` to restore the modifications we have made there, and in
-general check for changes that we need to match in some way in other code, or
-legal questions.
+Look at `mkmf.rb` and `truffleruby/src/main/c/openssl` to restore the
+modifications we have made there, and in general check for changes that we need
+to match in some way in other code, or legal questions.
 
 Then copy and paste:
 

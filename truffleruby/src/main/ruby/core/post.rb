@@ -69,7 +69,6 @@ if ruby_home
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-webrick/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/mri"
   $LOAD_PATH.push "#{ruby_home}/lib/json/lib"
-  $LOAD_PATH.push "#{ruby_home}/lib/openssl"
 end
 
 # We defined Psych at the top level because several things depend on its name.

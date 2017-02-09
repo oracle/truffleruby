@@ -167,7 +167,8 @@ VALUE ossl_exc_new(VALUE, const char *, ...);
 /*
  * Verify callback
  */
-extern int ossl_verify_cb_idx;
+extern int ossl_store_ctx_ex_verify_cb_idx;
+extern int ossl_store_ex_verify_cb_idx;
 
 struct ossl_verify_cb_args {
     VALUE proc;
@@ -213,24 +214,6 @@ void ossl_debug(const char *, ...);
 #define OSSL_Debug ossl_debug
 #define OSSL_Warning rb_warning
 #define OSSL_Warn rb_warn
-#endif
-
-#ifdef TRUFFLERUBY
-#define WRITE_EX_DATA(data) rb_jt_to_native_handle(data)
-#define READ_EX_DATA(data) rb_jt_from_native_handle(data)
-#else
-#define WRITE_EX_DATA(data) ((void *)(data))
-#define READ_EX_DATA(data) (data)
-#endif
-
-#ifdef TRUFFLERUBY
-#define RB_SCAN_ARGS_0_HASH     rb_jt_scan_args_0_HASH
-#define RB_SCAN_ARGS_02         rb_jt_scan_args_02
-#define RB_SCAN_ARGS_11         rb_jt_scan_args_11
-#else
-#define RB_SCAN_ARGS_0_HASH     rb_scan_args
-#define RB_SCAN_ARGS_02         rb_scan_args
-#define RB_SCAN_ARGS_11         rb_scan_args
 #endif
 
 /*

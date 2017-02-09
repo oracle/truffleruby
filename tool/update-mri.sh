@@ -3,12 +3,15 @@
 set -x
 set -e
 
-rm -rf lib/mri
+rm -r lib/mri
 cp -r ../ruby/lib lib/mri
 rm lib/mri/racc/rdoc/grammar.en.rdoc
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
-rm -rf lib/mri/webrick*
+rm -r lib/mri/webrick*
+rm truffleruby/src/main/c/openssl/*.{c,h}
+cp ../ruby/ext/openssl/*.{c,h} truffleruby/src/main/c/openssl
+cp -r ../ruby/ext/openssl/lib/* lib/mri
 cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
 cp -r ../ruby/ext/psych/lib/psych lib/mri
 cp -r ../ruby/ext/psych/lib/*.rb lib/mri
