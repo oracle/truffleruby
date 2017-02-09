@@ -1414,8 +1414,7 @@ void rb_mem_clear(VALUE *mem, long n) {
 }
 
 VALUE rb_ary_to_ary(VALUE array) {
-  rb_jt_error("rb_ary_to_ary not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)array, "to_ary");
 }
 
 VALUE rb_ary_subseq(VALUE array, long start, long length) {

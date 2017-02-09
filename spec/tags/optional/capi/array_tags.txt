@@ -25,8 +25,6 @@ fails:C-API Array function rb_ary_delete_at removes an element from an array at 
 fails:C-API Array function rb_ary_delete_at removes an element from an array at a negative index
 fails:C-API Array function rb_ary_delete_at returns nil if the index is out of bounds
 fails:C-API Array function rb_ary_delete_at returns nil if the negative index is out of bounds
-fails:C-API Array function rb_ary_to_ary with an array returns the given array
-fails:C-API Array function rb_ary_to_ary with an object that responds to to_ary calls to_ary on the object
 fails:C-API Array function rb_ary_to_ary with an object that responds to to_a returns the original object in an array
 fails:C-API Array function rb_ary_to_ary with an object that doesn't respond to to_ary returns the original object in an array
 fails:C-API Array function rb_ary_subseq returns a subsequence of the given array
