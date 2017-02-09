@@ -77,6 +77,8 @@ public abstract class ArrayStrategy {
 
         if (other instanceof NullArrayStrategy) {
             return this;
+        } else if (this instanceof NullArrayStrategy) {
+            return other;
         }
 
         for (ArrayStrategy generalized : TYPE_STRATEGIES) {
@@ -439,11 +441,6 @@ public abstract class ArrayStrategy {
         @Override
         protected ArrayMirror newMirrorFromStore(Object store) {
             return EmptyArrayMirror.INSTANCE;
-        }
-
-        @Override
-        public ArrayStrategy generalize(ArrayStrategy other) {
-            return other;
         }
 
         @Override
