@@ -163,19 +163,19 @@ module MakeMakefile
   end
 
   INSTALL_DIRS = [
-      [dir_re('commondir'), "$(RUBYCOMMONDIR)"],
-      [dir_re('sitedir'), "$(RUBYCOMMONDIR)"],
-      [dir_re('vendordir'), "$(RUBYCOMMONDIR)"],
-      [dir_re('rubylibdir'), "$(RUBYLIBDIR)"],
-      [dir_re('archdir'), "$(RUBYARCHDIR)"],
-      [dir_re('sitelibdir'), "$(RUBYLIBDIR)"],
-      [dir_re('vendorlibdir'), "$(RUBYLIBDIR)"],
-      [dir_re('sitearchdir'), "$(RUBYARCHDIR)"],
-      [dir_re('vendorarchdir'), "$(RUBYARCHDIR)"],
-      [dir_re('rubyhdrdir'), "$(RUBYHDRDIR)"],
-      [dir_re('sitehdrdir'), "$(SITEHDRDIR)"],
-      [dir_re('vendorhdrdir'), "$(VENDORHDRDIR)"],
-      [dir_re('bindir'), "$(BINDIR)"],
+    [dir_re('commondir'), "$(RUBYCOMMONDIR)"],
+    [dir_re('sitedir'), "$(RUBYCOMMONDIR)"],
+    [dir_re('vendordir'), "$(RUBYCOMMONDIR)"],
+    [dir_re('rubylibdir'), "$(RUBYLIBDIR)"],
+    [dir_re('archdir'), "$(RUBYARCHDIR)"],
+    [dir_re('sitelibdir'), "$(RUBYLIBDIR)"],
+    [dir_re('vendorlibdir'), "$(RUBYLIBDIR)"],
+    [dir_re('sitearchdir'), "$(RUBYARCHDIR)"],
+    [dir_re('vendorarchdir'), "$(RUBYARCHDIR)"],
+    [dir_re('rubyhdrdir'), "$(RUBYHDRDIR)"],
+    [dir_re('sitehdrdir'), "$(SITEHDRDIR)"],
+    [dir_re('vendorhdrdir'), "$(VENDORHDRDIR)"],
+    [dir_re('bindir'), "$(BINDIR)"],
   ]
 
   def install_dirs(target_prefix = nil)
