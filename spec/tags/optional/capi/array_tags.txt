@@ -1,5 +1,4 @@
 fails:C-API Array function rb_ary_new4 returns returns an array with the passed values
-fails:C-API Array function rb_ary_plus adds two arrays together
 fails:C-API Array function RARRAY_PTR allows assigning to the elements of the C array
 fails:C-API Array function rb_ary_aref returns the element at the given index
 fails:C-API Array function rb_ary_aref returns nil for an out of range index
