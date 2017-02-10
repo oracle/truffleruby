@@ -19,9 +19,6 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.objects.ObjectGraph;
-import org.truffleruby.options.OptionsBuilder;
-import org.truffleruby.options.OptionsCatalog;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -127,7 +124,20 @@ public class SharedObjects {
         final Shape oldShape = object.getShape();
         final Shape newShape = oldShape.makeSharedShape();
         object.setShapeAndGrow(oldShape, newShape);
+
+        onShareHook(object);
         return true;
+    }
+
+    public static void onShareHook(DynamicObject object) {
+    }
+
+    public static void shareInternalFields(RubyContext context, DynamicObject object) {
+        onShareHook(object);
+        final Deque<DynamicObject> stack = new ArrayDeque<>();
+        // This will also share user fields, but that's OK
+        stack.addAll(ObjectGraph.getAdjacentObjects(object));
+        shareObjects(context, stack);
     }
 
 }

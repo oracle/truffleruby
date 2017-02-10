@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -24,7 +23,6 @@ import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -99,7 +97,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
 
     @Specialization(contains = { "shareCachedObjectArray", "shareCachedOtherArray", "shareCachedQueue", "shareCachedBasicObject", "updateShapeAndShare" })
     protected void shareUncached(DynamicObject object) {
-        SharedObjects.writeBarrier(getContext(), object);
+        SharedObjects.shareInternalFields(getContext(), object);
     }
 
     protected WriteBarrierNode createWriteBarrierNode() {
