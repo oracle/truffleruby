@@ -1367,8 +1367,7 @@ VALUE rb_ary_includes(VALUE array, VALUE value) {
 }
 
 VALUE rb_ary_join(VALUE array, VALUE sep) {
-  rb_jt_error("rb_ary_join not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)array, "join", sep);
 }
 
 VALUE rb_ary_to_s(VALUE array) {
