@@ -213,11 +213,12 @@ module JavaUtilities
 
     a_proxy.java_class = a_class
 
-    JavaProxyBuilder.new(a_proxy, a_class).build
-    
     existing_proxy = PROXIES.put_if_absent(a_class, a_proxy)
 
     if existing_proxy == nil
+
+      JavaProxyBuilder.new(a_proxy, a_class).build
+
       # Not all proxies can be added as constants.
       begin
         parent.const_set(

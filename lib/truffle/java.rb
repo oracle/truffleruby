@@ -45,6 +45,8 @@ require_relative 'java/java_proxy_methods.rb'
 require_relative 'java/java_proxy.rb'
 require_relative 'java/concrete_java_proxy.rb'
 require_relative 'java/array_java_proxy.rb'
+require_relative 'java/env_java.rb'
+require_relative 'java/classpath.rb'
 
 # TODO: Add jruby streams support back in - DMM 2017-02-03
 # require_relative 'java/java_8.rb'
