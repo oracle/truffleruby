@@ -44,6 +44,10 @@ module JavaUtilities
     end
   end
 
+  def self.get_proxy_class(name)
+    get_package_or_class(name, true, true)
+  end
+
   def self.get_package_module_dot_format(name)
     get_package_or_class(name, false)
   end
@@ -99,7 +103,7 @@ module JavaUtilities
   JAVA_PACKAGE_CLASS = Java.java_class_by_name("java.lang.Package")
   JAVA_STRING_CLASS = Java.java_class_by_name("java.lang.String")
 
-  # We'll also need the primitive classes for int and boolean, but can't get those by name.
+  # We'll also need the primitive numeric classes, but can't get those by name.
   CLASS_GET_FIELD = Java.get_java_method(
     JAVA_CLASS_CLASS, "getField", false, JAVA_FIELD_CLASS, JAVA_STRING_CLASS)
   FIELD_GET = Java.get_java_method(
@@ -109,10 +113,23 @@ module JavaUtilities
     FIELD_GET, Java.invoke_java_method(
       CLASS_GET_FIELD, JAVA_BOOLEAN_CLASS, Java.to_java_string("TYPE")),
     nil)
+
   JAVA_INTEGER_CLASS = Java.java_class_by_name("java.lang.Integer")
   JAVA_PRIM_INT_CLASS = Java.invoke_java_method(
     FIELD_GET, Java.invoke_java_method(
       CLASS_GET_FIELD, JAVA_INTEGER_CLASS, Java.to_java_string("TYPE")),
+    nil)
+
+  JAVA_LONG_CLASS = Java.java_class_by_name("java.lang.Long")
+  JAVA_PRIM_LONG_CLASS = Java.invoke_java_method(
+    FIELD_GET, Java.invoke_java_method(
+      CLASS_GET_FIELD, JAVA_LONG_CLASS, Java.to_java_string("TYPE")),
+    nil)
+
+  JAVA_DOUBLE_CLASS = Java.java_class_by_name("java.lang.Double")
+  JAVA_PRIM_DBL_CLASS = Java.invoke_java_method(
+    FIELD_GET, Java.invoke_java_method(
+      CLASS_GET_FIELD, JAVA_DOUBLE_CLASS, Java.to_java_string("TYPE")),
     nil)
 
   # We'll also want the modifiers for methods and fields.

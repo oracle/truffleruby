@@ -12,7 +12,10 @@ class JavaProxy
   attr_accessor :java_object
 
   class << self
-    attr_accessor :java_class
+    attr_writer :java_class
+    def java_class
+      JavaUtilities::wrap_java_value(@java_class)
+    end
   end
 
   def self.const_missing(name)

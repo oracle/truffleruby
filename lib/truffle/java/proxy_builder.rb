@@ -122,7 +122,7 @@ module JavaUtilities
     end
 
     def add_instance_methods
-      methods = Java.invoke_java_method(CLASS_GET_DECLARED_METHODS, @proxy.java_class)
+      methods = Java.invoke_java_method(CLASS_GET_DECLARED_METHODS, @java_class)
       # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
       methods_size = JavaUtilities.java_array_size(methods)
       (0...methods_size).each do |i; m|
@@ -141,7 +141,7 @@ module JavaUtilities
     end
 
     def add_constructors
-      constructors = Java.invoke_java_method(CLASS_GET_CONSTRUCTORS, @proxy.java_class)
+      constructors = Java.invoke_java_method(CLASS_GET_CONSTRUCTORS, @java_class)
       # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
       constructors_size = JavaUtilities.java_array_size(constructors)
       (0...constructors_size).each do |i; m|

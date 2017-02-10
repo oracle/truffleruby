@@ -1,6 +1,8 @@
 module JavaUtilities
   class JavaDispatcher
 
+    include Truffle::Interop::Java
+
     attr_reader :methods
 
     def initialize(a_method)
@@ -97,7 +99,16 @@ module JavaUtilities
     end
 
     def arg_types(args)
-      args.map { |x| JavaUtilities.get_java_class(x) }
+      args.map do |x|
+        case x
+        when Fixnum
+          :fixnum
+        when Float
+          :float
+        else
+          JavaUtilities.get_java_class(x)
+        end
+      end
     end
 
     def method_is_varargs(m)
@@ -110,9 +121,24 @@ module JavaUtilities
         JAVA.invoke_java_method(METHODHANDLE_TYPE, m))
     end
 
+    # Primitive and boxes types needed for checking compatibility
+
+    JAVA_INTEGER_CLASS = Java.java_class_by_name("java.lang.Integer")
+    JAVA_DOUBLE_CLASS = Java.java_class_by_name("java.lang.Double")
+
     def java_type_compatible(method_type, arg_type)
-      Java.invoke_java_method(
-        CLASS_IS_ASSIGNABLE_FROM, method_type, arg_type)
+      if :fixnum == arg_type
+        java_refs_equal?(method_type, JavaUtilities::JAVA_INTEGER_CLASS) ||
+          java_refs_equal?(method_type, JavaUtilities::JAVA_LONG_CLASS) ||
+          java_refs_equal?(method_type, JavaUtilities::JAVA_PRIM_INT_CLASS) ||
+          java_refs_equal?(method_type, JavaUtilities::JAVA_PRIM_LONG_CLASS)
+      elsif :float == arg_type
+        java_refs_equal?(method_type, JavaUtilities::JAVA_DOUBLE_CLASS) ||
+          java_refs_equal?(method_type, JavaUtilities::JAVA_DBL_CLASS)
+      else
+        Java.invoke_java_method(
+          CLASS_IS_ASSIGNABLE_FROM, method_type, arg_type)
+      end
     end
 
     def types_compatible(method_types, arg_types)
