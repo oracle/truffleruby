@@ -1409,8 +1409,7 @@ VALUE rb_ary_to_ary(VALUE array) {
 }
 
 VALUE rb_ary_subseq(VALUE array, long start, long length) {
-  rb_jt_error("rb_ary_subseq not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)array, "[]", start, length);
 }
 
 VALUE rb_check_array_type(VALUE array) {

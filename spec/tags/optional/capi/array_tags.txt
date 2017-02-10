@@ -12,8 +12,3 @@ fails:C-API Array function rb_iterate calls a function which can yield into the 
 fails:C-API Array function rb_mem_clear sets elements of a C array to nil
 fails:C-API Array function rb_ary_to_ary with an object that responds to to_a returns the original object in an array
 fails:C-API Array function rb_ary_to_ary with an object that doesn't respond to to_ary returns the original object in an array
-fails:C-API Array function rb_ary_subseq returns a subsequence of the given array
-fails:C-API Array function rb_ary_subseq returns an empty array for a subsequence of 0 elements
-fails:C-API Array function rb_ary_subseq returns nil if the begin index is out of bound
-fails:C-API Array function rb_ary_subseq returns the existing subsequence of the length is out of bounds
-fails:C-API Array function rb_ary_subseq returns nil if the size is negative
