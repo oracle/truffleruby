@@ -1359,8 +1359,7 @@ VALUE rb_ary_delete(VALUE array, VALUE value) {
 }
 
 VALUE rb_ary_delete_at(VALUE array, long n) {
-  rb_jt_error("rb_ary_delete_at not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)array, "delete_at", n);
 }
 
 VALUE rb_ary_includes(VALUE array, VALUE value) {
