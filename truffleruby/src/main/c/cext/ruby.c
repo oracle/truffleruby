@@ -1354,8 +1354,7 @@ VALUE rb_ary_clear(VALUE array) {
 }
 
 VALUE rb_ary_delete(VALUE array, VALUE value) {
-  rb_jt_error("rb_ary_clear not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)array, "delete", value);
 }
 
 VALUE rb_ary_delete_at(VALUE array, long n) {
