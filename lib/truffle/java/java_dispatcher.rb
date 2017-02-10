@@ -2,7 +2,7 @@ module JavaUtilities
   class JavaDispatcher
 
     attr_reader :methods
-    
+
     def initialize(a_method)
       @methods = [a_method]
     end
@@ -52,6 +52,16 @@ module JavaUtilities
       end
     end
 
+    def basic_arity
+      raise Exception, "Can only give basic arity for single Java target." if @methods.size != 1
+      m = @methods[0]
+      arity = Java.invoke_java_method(
+        METHODTYPE_PARAM_COUNT,
+        Java.invoke_java_method(METHODHANDLE_TYPE, m))
+      arity = -arity if method_is_varargs(m)
+      arity
+    end
+
     private
 
     JAVA_METHODTYPE_CLASS = Java.java_class_by_name("java.lang.invoke.MethodType")
@@ -67,7 +77,7 @@ module JavaUtilities
       JAVA_METHODTYPE_CLASS, "returnType", false, JAVA_CLASS_CLASS)
     CLASS_IS_ASSIGNABLE_FROM = Java.get_java_method(
       JAVA_CLASS_CLASS, "isAssignableFrom", false, JAVA_PRIM_BOOLEAN_CLASS, JAVA_CLASS_CLASS)
-    
+
     def method_types(m)
       types_java = Java.invoke_java_method(
         METHODTYPE_PARAMETERS,
@@ -85,15 +95,15 @@ module JavaUtilities
       arity -= 1 if method_is_varargs(m)
       arity
     end
-      
+
     def arg_types(args)
       args.map { |x| JavaUtilities.get_java_class(x) }
     end
-                 
+
     def method_is_varargs(m)
       Java.invoke_java_method(METHODHANDLE_VARARGS, m)
     end
-    
+
     def method_return_type(m)
       Java.invoke_java_method(
         METHODTYPE_RETURN_TYPE,
@@ -108,8 +118,7 @@ module JavaUtilities
     def types_compatible(method_types, arg_types)
       arg_types.zip(method_types).reduce(true) do |res, x|
         res && java_type_compatible(x[1], x[0])
-      end        
+      end
     end
   end
 end
-

@@ -8,15 +8,34 @@ module JavaUtilities
       @instance_members = {}
     end
 
-    def add_to_singleton(name, thing)
-      add_to_map(@static_members, name, thing)
+    def add_to_singleton(name, thing, maybe_getter=false, maybe_setter=false)
+      add_to_map(@static_members, name, thing, maybe_getter, maybe_setter)
     end
 
-    def add_to_instance(name, thing)
-      add_to_map(@instance_members, name, thing)
+    def add_to_instance(name, thing, maybe_getter=false, maybe_setter=false)
+      add_to_map(@instance_members, name, thing, maybe_getter, maybe_setter)
     end
 
-    def add_to_map(a_map, name, thing)
+    def add_to_map(a_map, name, thing, maybe_getter, maybe_setter)
+      add_to_map_internal(a_map, name, thing)
+      alias_names(name, maybe_getter, maybe_setter) do |a|
+        add_to_map_internal(a_map, a, Alias.new(a, name))
+      end
+    end
+
+    def alias_names(name, maybe_getter, maybe_setter)
+      return if name.upcase == name
+      parts = name.split(/(?=[[:upper:]])/).map { |v| v.downcase }
+      return if parts.size == 1
+      getter = maybe_getter & (parts[0] == "get")
+      setter = maybe_setter & (parts[0] == "set")
+      yield parts.join("_")
+      yield parts[1..-1].join("_") + "?" if parts[0] == "is"
+      yield parts[1..-1].join("_") if getter
+      yield parts[1..-1].join("_") + "=" if setter
+    end
+
+    def add_to_map_internal(a_map, name, thing)
       return a_map[name] = thing if ! a_map.has_key?(name)
       return a_map[name] = thing if a_map[name].precedence < thing.precedence
       return a_map[name].combine_with(thing) if a_map[name].precedence == thing.precedence
@@ -93,7 +112,9 @@ module JavaUtilities
           mh = JavaUtilities.unreflect_method(m)
           if mh != nil
             name = Java.to_ruby_string(Java.invoke_java_method(METHOD_GET_NAME, m))
-            add_to_singleton(name, Method.new(name, mh))
+            a_method = Method.new(name, mh)
+            arity = a_method.arity
+            add_to_singleton(name, a_method, arity == 0, arity == 1)
           end
         end
       end
@@ -110,7 +131,9 @@ module JavaUtilities
           mh = JavaUtilities.unreflect_method(m)
           if mh != nil
             name = Java.to_ruby_string(Java.invoke_java_method(METHOD_GET_NAME, m))
-            add_to_instance(name, Method.new(name, mh))
+            a_method = Method.new(name, mh)
+            arity = a_method.arity
+            add_to_instance(name, a_method, arity == 1, arity == 2)
           end
         end
       end
@@ -209,6 +232,39 @@ module JavaUtilities
 
     def combine_with(a_method)
       @dispatcher.combine_with(a_method.dispatcher)
+    end
+
+    def arity
+      @dispatcher.basic_arity
+    end
+  end
+
+  class Alias
+
+    attr_reader :name
+    attr_reader :target
+
+    def initialize(name, target)
+      @name = name
+      @target = target
+    end
+
+    def precedence
+      3
+    end
+
+    def combine_with(an_alias)
+      if self.target != an_alias.target
+        raise NameError, "Clash on alias #{name} between #{target} and #{an_alias.target}"
+      end
+    end
+
+    def add_to_proxy(a_proxy, static)
+      if static
+        a_proxy.__send__(:define_singleton_method, @name, a_proxy.method(@target) )
+      else
+        a_proxy.__send__(:define_method, @name, a_proxy.instance_method(@target) )
+      end
     end
   end
 end
