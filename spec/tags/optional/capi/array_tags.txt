@@ -1,8 +1,6 @@
 fails:C-API Array function rb_ary_new4 returns returns an array with the passed values
 fails:C-API Array function rb_ary_reverse reverses the order of elements in the array
 fails:C-API Array function rb_ary_reverse returns the original array
-fails:C-API Array function rb_ary_shift removes and returns the first element
-fails:C-API Array function rb_ary_shift returns nil when the array is empty
 fails:C-API Array function rb_ary_concat concats two arrays
 fails:C-API Array function rb_ary_plus adds two arrays together
 fails:C-API Array function RARRAY_PTR allows assigning to the elements of the C array

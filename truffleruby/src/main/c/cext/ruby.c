@@ -1380,8 +1380,7 @@ VALUE rb_ary_reverse(VALUE array) {
 }
 
 VALUE rb_ary_shift(VALUE array) {
-  rb_jt_error("rb_ary_shift not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)array, "shift");
 }
 
 VALUE rb_ary_concat(VALUE a, VALUE b) {
