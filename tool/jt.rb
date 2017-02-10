@@ -450,6 +450,7 @@ module Commands
       jt test                                        run all mri tests, specs and integration tests (set SULONG_HOME)
       jt test tck [--jdebug]                         run the Truffle Compatibility Kit tests
       jt test mri                                    run mri tests
+            openssl       runs openssl.index         use with --graal
           --aot           use AOT TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME)
       jt test specs                                  run all specs
@@ -760,7 +761,9 @@ module Commands
     }
     jruby_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
 
-    if args.count { |arg| !arg.start_with?('-') } == 0
+    if args.count { |arg| !arg.start_with?('-') } == 1 && args[0] == "openssl"
+      args += File.readlines("#{JRUBY_DIR}/test/openssl.index").grep(/^[^#]\w+/).map(&:chomp)
+    elsif args.count { |arg| !arg.start_with?('-') } == 0
       args += File.readlines("#{JRUBY_DIR}/test/mri_truffle.index").grep(/^[^#]\w+/).map(&:chomp)
     end
 
