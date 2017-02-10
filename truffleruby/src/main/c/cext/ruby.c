@@ -1363,8 +1363,7 @@ VALUE rb_ary_delete_at(VALUE array, long n) {
 }
 
 VALUE rb_ary_includes(VALUE array, VALUE value) {
-  rb_jt_error("rb_ary_includes not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)array, "include?", value);
 }
 
 VALUE rb_ary_join(VALUE array, VALUE sep) {

@@ -7,8 +7,6 @@ fails:C-API Array function rb_ary_shift returns nil when the array is empty
 fails:C-API Array function rb_ary_concat concats two arrays
 fails:C-API Array function rb_ary_plus adds two arrays together
 fails:C-API Array function RARRAY_PTR allows assigning to the elements of the C array
-fails:C-API Array function rb_ary_includes returns true if the array includes the element
-fails:C-API Array function rb_ary_includes returns false if the array does not include the element
 fails:C-API Array function rb_ary_aref returns the element at the given index
 fails:C-API Array function rb_ary_aref returns nil for an out of range index
 fails:C-API Array function rb_ary_aref returns a new array where the first argument is the index and the second is the length
