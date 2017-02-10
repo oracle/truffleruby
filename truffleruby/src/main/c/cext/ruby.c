@@ -1375,8 +1375,7 @@ VALUE rb_ary_to_s(VALUE array) {
 }
 
 VALUE rb_ary_reverse(VALUE array) {
-  rb_jt_error("rb_ary_reverse not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)array, "reverse!");
 }
 
 VALUE rb_ary_shift(VALUE array) {
