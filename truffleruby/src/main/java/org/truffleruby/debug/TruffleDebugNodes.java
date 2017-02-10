@@ -182,6 +182,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "array_storage", onSingleton = true, required = 1)
     public abstract static class ArrayStorageNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyArray(array)")
         public DynamicObject arrayStorage(DynamicObject array) {
             String storage = ArrayStrategy.of(array).toString();
@@ -193,6 +194,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "hash_storage", onSingleton = true, required = 1)
     public abstract static class HashStorageNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyHash(hash)")
         public DynamicObject hashStorage(DynamicObject hash) {
             Object store = Layouts.HASH.getStore(hash);
