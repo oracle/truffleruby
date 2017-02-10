@@ -1383,8 +1383,7 @@ VALUE rb_ary_shift(VALUE array) {
 }
 
 VALUE rb_ary_concat(VALUE a, VALUE b) {
-  rb_jt_error("rb_ary_concat not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)a, "concat", b);
 }
 
 VALUE rb_ary_plus(VALUE a, VALUE b) {
