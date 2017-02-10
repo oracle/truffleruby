@@ -1069,8 +1069,7 @@ void rb_str_update(VALUE string, long beg, long len, VALUE value) {
 }
 
 VALUE rb_str_equal(VALUE a, VALUE b) {
-  rb_jt_error("rb_str_equal not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)a, "==", b);
 }
 
 void rb_str_free(VALUE string) {
