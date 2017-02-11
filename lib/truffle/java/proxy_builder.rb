@@ -6,6 +6,15 @@ module JavaUtilities
       @proxy = a_proxy
       @static_members = {}
       @instance_members = {}
+      reserve_names()
+    end
+
+    def reserve_names()
+      both = ["__id__", "__send__", "instance_of?"]
+      instance = ["class", "initialize"]
+      static = ["new"]
+      (both + instance).map { |name| add_to_instance(name, Reserved.new) }
+      (both + static).map { |name| add_to_singleton(name, Reserved.new) }
     end
 
     def add_to_singleton(name, thing, maybe_getter=false, maybe_setter=false)
@@ -37,7 +46,7 @@ module JavaUtilities
 
     def add_to_map_internal(a_map, name, thing)
       return a_map[name] = thing if ! a_map.has_key?(name)
-      return a_map[name] = thing if a_map[name].precedence < thing.precedence
+      return a_map[name] = thing if a_map[name].precedence > thing.precedence
       return a_map[name].combine_with(thing) if a_map[name].precedence == thing.precedence
       return a_map[name]
     end
@@ -148,19 +157,19 @@ module JavaUtilities
         c = JavaUtilities.java_array_get(constructors, i)
         mh = JavaUtilities.unreflect_constructor(c)
         if mh != nil
-          add_to_singleton("new", Method.new("new", mh))
+          add_to_singleton("new", Constructor.new(mh))
         end
       end
       self
     end
 
     def build
-      self.add_interfaces.
-        add_static_fields.
-        add_static_methods.
-        add_instance_fields.
-        add_instance_methods.
-        add_constructors
+      self.add_interfaces().
+        add_static_fields().
+        add_static_methods().
+        add_instance_fields().
+        add_instance_methods().
+        add_constructors()
 
       @static_members.values.each do |m|
         m.add_to_proxy( @proxy, true )
@@ -239,6 +248,16 @@ module JavaUtilities
     end
   end
 
+  class Constructor < Method
+    def initialize(a_method)
+      super("new", a_method)
+    end
+
+    def precedence
+      -1
+    end
+  end
+
   class Alias
 
     attr_reader :name
@@ -265,6 +284,19 @@ module JavaUtilities
       else
         a_proxy.__send__(:define_method, @name, a_proxy.instance_method(@target) )
       end
+    end
+  end
+
+  class Reserved
+    def precedence
+      0
+    end
+
+    def combine_with(reserved)
+      self
+    end
+
+    def add_to_proxy(a_proxy, static)
     end
   end
 end

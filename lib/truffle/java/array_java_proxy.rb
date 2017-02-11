@@ -21,4 +21,20 @@ class ArrayJavaProxy < java.lang.Object
       x.to_s
     end.join(", ") + "]"
   end
+
+  def to_ary
+    ary = Array.new(size)
+    (0...size).each do |i|
+      ary[i] = self[i]
+    end
+    ary
+  end
+
+  def empty?
+    size == 0
+  end
+
+  def length
+    size
+  end
 end
