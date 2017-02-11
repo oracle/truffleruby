@@ -3,6 +3,6 @@
 set -e
 set -x
 
-revision=a46c9157cf7a016e5b488587438e60f9cd0dd791
+revision=09136b220896616f1867ce9e4b09a64f140329fc
 
 git -C ../jruby-truffle-gem-test-pack checkout ${revision}
