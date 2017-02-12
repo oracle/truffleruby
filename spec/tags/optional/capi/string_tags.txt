@@ -22,7 +22,6 @@ fails:C-API String function rb_str_new5 returns a new string with the same class
 fails:C-API String function rb_str_append appends a string to another string
 fails:C-API String function rb_str_append raises a TypeError trying to append non-String-like object
 fails:C-API String function rb_str_append changes Encoding if a string is appended to an empty string
-fails:C-API String function rb_str_plus returns a new string from concatenating two other strings
 fails:C-API String function rb_str_buf_cat concatenates a C string to a ruby string
 fails:C-API String function rb_str_cmp returns 0 if two strings are identical
 fails:C-API String function rb_str_cmp returns -1 if the first string is shorter than the second

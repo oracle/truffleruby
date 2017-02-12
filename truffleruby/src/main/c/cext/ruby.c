@@ -1043,8 +1043,7 @@ VALUE rb_str_length(VALUE string) {
 }
 
 VALUE rb_str_plus(VALUE a, VALUE b) {
-  rb_jt_error("rb_str_plus not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)a, "+", b);
 }
 
 VALUE rb_str_subseq(VALUE string, long beg, long len) {
