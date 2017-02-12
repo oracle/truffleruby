@@ -1053,8 +1053,7 @@ VALUE rb_str_subseq(VALUE string, long beg, long len) {
 }
 
 VALUE rb_str_substr(VALUE string, long beg, long len) {
-  rb_jt_error("rb_str_substr not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)string, "[]", beg, len);
 }
 
 st_index_t rb_str_hash(VALUE string) {
