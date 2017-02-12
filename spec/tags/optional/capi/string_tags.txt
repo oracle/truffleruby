@@ -52,8 +52,6 @@ fails:C-API String function rb_str_intern returns a symbol even if the passed st
 fails:C-API String function rb_str_hash hashes the string into a number
 fails:C-API String function rb_str_update splices the replacement string into the original at the given location
 fails:rb_str_free indicates data for a string might be freed
-fails:C-API String function rb_str_length returns the string's length
-fails:C-API String function rb_str_length counts characters in multi byte encodings
 fails:C-API String function rb_external_str_new returns a String in the default external encoding
 fails:C-API String function rb_external_str_new returns an ASCII-8BIT encoded string if any non-ascii bytes are present and default external is US-ASCII
 fails:C-API String function rb_external_str_new returns a tainted String

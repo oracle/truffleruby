@@ -1039,8 +1039,7 @@ VALUE rb_str_intern(VALUE string) {
 }
 
 VALUE rb_str_length(VALUE string) {
-  rb_jt_error("rb_str_length not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)string, "length");
 }
 
 VALUE rb_str_plus(VALUE a, VALUE b) {
