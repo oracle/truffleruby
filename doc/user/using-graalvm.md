@@ -1,6 +1,6 @@
 # Using TruffleRuby with GraalVM
 
-RubyTruffle is designed to be run with a JVM that has the Graal compiler.
+TruffleRuby is designed to be run with a JVM that has the Graal compiler.
 
 The easiest way to get a JVM with Graal is via the GraalVM, available from the
 Oracle Technology Network. This includes the JVM, the Graal compiler, and
