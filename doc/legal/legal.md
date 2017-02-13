@@ -132,6 +132,7 @@ by the JRuby team and are licensed as:
 * jnr-constants (Apache 2.0 `apache-2.0.txt`)
 * jnr-ffi (Apache 2.0 `apache-2.0.txt` or LGPL 3.0 `lgpl-3.0.txt`)
 * jffi (Apache 2.0 `apache-2.0.txt` or LGPL 3.0 `lgpl-3.0.txt`, some native parts MIT `mit.txt`)
+* jnr-x86asm (MIT `mit.txt`)
 * asm (copyright 2000-2011 INRIA, 3-clause BSD `bsd.txt`)
 * asm-commons (as above)
 * asm-analysis (as above)
