@@ -26,6 +26,8 @@
 
 # Extensions to Java classes
 
+require_relative 'java_ext/java_lang_throwable.rb'
+
 # TODO: Recreate this JRuby functionality - DMM 2017-02-06
 # require_relative 'java_ext/java.lang.rb'
 # require_relative 'java_ext/java.util.rb'

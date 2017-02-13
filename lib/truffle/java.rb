@@ -34,9 +34,9 @@
 ###### END LICENSE BLOCK ######
 
 require_relative 'java/core_ext.rb'
-require_relative 'java/java_ext.rb'
 require_relative 'java/java.rb'
 
+require_relative 'java/java_exception.rb'
 require_relative 'java/proxy_builder.rb'
 require_relative 'java/java_utilities.rb'
 require_relative 'java/class_cache.rb'
@@ -47,6 +47,8 @@ require_relative 'java/concrete_java_proxy.rb'
 require_relative 'java/array_java_proxy.rb'
 require_relative 'java/env_java.rb'
 require_relative 'java/classpath.rb'
+
+require_relative 'java/java_ext.rb'
 
 # TODO: Add jruby streams support back in - DMM 2017-02-03
 # require_relative 'java/java_8.rb'

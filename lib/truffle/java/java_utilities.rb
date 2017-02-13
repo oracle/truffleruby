@@ -29,6 +29,15 @@ module JavaUtilities
 
   Java = ::Truffle::Interop::Java
 
+  module ::Truffle::Interop::Java
+    def self.invoke_java_method(method, *args)
+      e = catch :java do
+        return invoke_with_catch(method, :java, *args)
+      end
+      raise JavaException.new(JavaUtilities.wrap_java_value(e))
+    end
+  end
+
   def self.extend_proxy(java_class_name, &block)
     java_class = JavaUtilities.get_proxy_class(java_class_name)
     java_class.class_eval(&block)
@@ -102,6 +111,7 @@ module JavaUtilities
   JAVA_OBJECT_ARRAY = Java.java_class_by_name("[Ljava.lang.Object;")
   JAVA_PACKAGE_CLASS = Java.java_class_by_name("java.lang.Package")
   JAVA_STRING_CLASS = Java.java_class_by_name("java.lang.String")
+  JAVA_THROWABLE_CLASS = Java.java_class_by_name("java.lang.Throwable")
 
   # We'll also need the primitive numeric classes, but can't get those by name.
   CLASS_GET_FIELD = Java.get_java_method(

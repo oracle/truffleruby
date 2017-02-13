@@ -31,6 +31,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.ThrowException;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -146,17 +147,17 @@ public class JavaUtilitiesNodes {
         }
     }
 
-    @CoreMethod(names = "invoke_java_method", required = 1, rest = true, isModuleFunction = true)
+    @CoreMethod(names = "invoke_with_catch", required = 2, rest = true, isModuleFunction = true)
     public static abstract class JavaInvokeMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object invokeJavaMethod(MethodHandle method, Object[] rest) {
+        public Object invokeJavaMethod(MethodHandle method, Object tag, Object[] rest) {
             if (!TruffleOptions.AOT) {
                 try {
                     Object res = method.invokeWithArguments(rest);
                     return res == null ? nil() : res;
                 } catch (Throwable e) {
-                    throw new JavaException(e);
+                    throw new ThrowException(tag, e);
                 }
             } else {
                 throw new RaiseException(coreExceptions().runtimeError("Not available on SVM.", this));
