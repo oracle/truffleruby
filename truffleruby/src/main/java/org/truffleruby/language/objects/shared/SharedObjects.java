@@ -132,6 +132,7 @@ public class SharedObjects {
     public static void onShareHook(DynamicObject object) {
     }
 
+    @TruffleBoundary
     public static void shareInternalFields(RubyContext context, DynamicObject object) {
         onShareHook(object);
         final Deque<DynamicObject> stack = new ArrayDeque<>();
