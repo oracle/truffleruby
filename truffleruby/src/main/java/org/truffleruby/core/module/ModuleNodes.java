@@ -563,7 +563,7 @@ public abstract class ModuleNodes {
         @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
         public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file, int line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, file.toString(), line);
-            return deferredCall.call(frame, callNode);
+            return deferredCall.call(callNode);
         }
 
         @Specialization(guards = "wasProvided(code)")
@@ -578,7 +578,7 @@ public abstract class ModuleNodes {
 
         private Object classEvalSource(VirtualFrame frame, DynamicObject module, DynamicObject code, String file, @Cached("create()") IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, file, 1);
-            return deferredCall.call(frame, callNode);
+            return deferredCall.call(callNode);
         }
 
         @TruffleBoundary

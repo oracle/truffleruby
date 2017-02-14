@@ -494,7 +494,7 @@ public abstract class KernelNodes {
             final MaterializedFrame topFrame = Layouts.BINDING.getFrame(binding);
             RubyArguments.setSelf(topFrame, RubyArguments.getSelf(frame));
             final CodeLoader.DeferredCall deferredCall = doEvalX(source, binding, "(eval)", 1, true);
-            return deferredCall.call(frame, callNode);
+            return deferredCall.call(callNode);
 
         }
 
@@ -515,7 +515,7 @@ public abstract class KernelNodes {
         public Object evalBinding(VirtualFrame frame, DynamicObject source, DynamicObject binding, NotProvided filename,
                                   NotProvided lineNumber, @Cached("create()") IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(source, binding, "(eval)", 1, false);
-            return deferredCall.call(frame, callNode);
+            return deferredCall.call(callNode);
         }
 
         @Specialization(guards = {
@@ -554,7 +554,7 @@ public abstract class KernelNodes {
         public Object evalBindingFilenameLine(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject filename,
                                               int lineNumber, @Cached("create()") IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(source, binding, filename.toString(), lineNumber, false);
-            return deferredCall.call(frame, callNode);
+            return deferredCall.call(callNode);
         }
 
         @TruffleBoundary
@@ -1579,7 +1579,7 @@ public abstract class KernelNodes {
             final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);
 
             try {
-                result = (BytesResult) callPackNode.call(frame, compileFormat(format, arguments, isDebug),
+                result = (BytesResult) callPackNode.call(compileFormat(format, arguments, isDebug),
                         new Object[]{ arguments, arguments.length });
             } catch (FormatException e) {
                 exceptionProfile.enter();

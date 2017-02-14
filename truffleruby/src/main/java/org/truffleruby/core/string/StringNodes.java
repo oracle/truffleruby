@@ -2303,7 +2303,6 @@ public abstract class StringNodes {
 
         @Specialization(contains = "unpackCached", guards = "isRubyString(format)")
         public DynamicObject unpackUncached(
-                VirtualFrame frame,
                 DynamicObject string,
                 DynamicObject format,
                 @Cached("create()") IndirectCallNode callUnpackNode) {
@@ -2312,7 +2311,7 @@ public abstract class StringNodes {
             final ArrayResult result;
 
             try {
-                result = (ArrayResult) callUnpackNode.call(frame, compileFormat(format),
+                result = (ArrayResult) callUnpackNode.call(compileFormat(format),
                         new Object[]{ rope.getBytes(), rope.byteLength() });
             } catch (FormatException e) {
                 exceptionProfile.enter();

@@ -59,14 +59,13 @@ public abstract class CallBlockNode extends RubyNode {
 
     @Specialization(contains = "callBlockCached")
     protected Object callBlockUncached(
-            VirtualFrame frame,
             DynamicObject block,
             Object self,
             Object blockArgument,
             Object[] arguments,
             @Cached("create()") IndirectCallNode callNode) {
         final Object[] frameArguments = packArguments(block, self, blockArgument, arguments);
-        return callNode.call(frame, getBlockCallTarget(block), frameArguments);
+        return callNode.call(getBlockCallTarget(block), frameArguments);
     }
 
     private Object[] packArguments(DynamicObject block, Object self, Object blockArgument, Object[] arguments) {

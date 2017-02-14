@@ -14,7 +14,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -116,8 +115,8 @@ public class CodeLoader {
             this.arguments = arguments;
         }
 
-        public Object call(VirtualFrame frame, IndirectCallNode callNode) {
-            return callNode.call(frame, callTarget, arguments);
+        public Object call(IndirectCallNode callNode) {
+            return callNode.call(callTarget, arguments);
         }
 
         public Object callWithoutCallNode() {

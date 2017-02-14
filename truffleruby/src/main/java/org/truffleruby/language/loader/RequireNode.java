@@ -125,16 +125,16 @@ public abstract class RequireNode extends RubyNode {
                             null,
                             coreLibrary().getMainObject());
 
-                    deferredCall.call(frame, callNode);
+                    deferredCall.call(callNode);
                 } else if (RubyLanguage.CEXT_MIME_TYPE.equals(mimeType)) {
-                    featureLoader.ensureCExtImplementationLoaded(frame, feature, callNode);
+                    featureLoader.ensureCExtImplementationLoaded(feature, callNode);
 
                     if (getContext().getOptions().CEXTS_LOG_LOAD) {
                         Log.info("loading cext module %s", expandedPath);
                     }
 
                     final CallTarget callTarget = featureLoader.parseSource(source);
-                    callNode.call(frame, callTarget, new Object[] {});
+                    callNode.call(callTarget, new Object[] {});
 
                     final TruffleObject initFunction = getInitFunction(expandedPath);
 

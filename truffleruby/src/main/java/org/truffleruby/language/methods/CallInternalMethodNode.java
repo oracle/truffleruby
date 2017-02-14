@@ -38,9 +38,9 @@ public abstract class CallInternalMethodNode extends RubyNode {
     }
 
     @Specialization
-    protected Object callMethodUncached(VirtualFrame frame, InternalMethod method, Object[] frameArguments,
+    protected Object callMethodUncached(InternalMethod method, Object[] frameArguments,
             @Cached("create()") IndirectCallNode indirectCallNode) {
-        return indirectCallNode.call(frame, method.getCallTarget(), frameArguments);
+        return indirectCallNode.call(method.getCallTarget(), frameArguments);
     }
 
     protected int getCacheLimit() {

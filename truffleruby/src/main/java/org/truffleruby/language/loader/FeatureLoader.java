@@ -11,7 +11,6 @@ package org.truffleruby.language.loader;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
@@ -182,7 +181,7 @@ public class FeatureLoader {
         return context.getEnv().isMimeTypeSupported(RubyLanguage.CEXT_MIME_TYPE);
     }
 
-    public void ensureCExtImplementationLoaded(VirtualFrame frame, String feature, IndirectCallNode callNode) {
+    public void ensureCExtImplementationLoaded(String feature, IndirectCallNode callNode) {
         synchronized (cextImplementationLock) {
             if (cextImplementationLoaded) {
                 return;
@@ -195,7 +194,7 @@ public class FeatureLoader {
             System.setProperty("sulong.LLVM", "3.2");
 
             final CallTarget callTarget = getCExtLibRuby(feature);
-            callNode.call(frame, callTarget, new Object[] {});
+            callNode.call(callTarget, new Object[] {});
 
             cextImplementationLoaded = true;
         }

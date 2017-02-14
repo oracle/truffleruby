@@ -1174,14 +1174,13 @@ public abstract class ArrayNodes {
 
         @Specialization(contains = "packCached", guards = "isRubyString(format)")
         public DynamicObject packUncached(
-                VirtualFrame frame,
                 DynamicObject array,
                 DynamicObject format,
                 @Cached("create()") IndirectCallNode callPackNode) {
             final BytesResult result;
 
             try {
-                result = (BytesResult) callPackNode.call(frame, compileFormat(format),
+                result = (BytesResult) callPackNode.call(compileFormat(format),
                         new Object[] { getStore(array), getSize(array) });
             } catch (FormatException e) {
                 exceptionProfile.enter();

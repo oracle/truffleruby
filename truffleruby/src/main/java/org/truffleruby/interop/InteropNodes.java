@@ -662,8 +662,8 @@ public abstract class InteropNodes {
         }
 
         @Specialization(guards = {"isRubyString(mimeType)", "isRubyString(source)"}, contains = "evalCached")
-        public Object evalUncached(VirtualFrame frame, DynamicObject mimeType, DynamicObject source, @Cached("create()")IndirectCallNode callNode) {
-            return callNode.call(frame, parse(mimeType, source), new Object[]{});
+        public Object evalUncached(DynamicObject mimeType, DynamicObject source, @Cached("create()") IndirectCallNode callNode) {
+            return callNode.call(parse(mimeType, source), new Object[]{});
         }
 
         @TruffleBoundary

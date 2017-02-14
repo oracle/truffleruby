@@ -50,7 +50,6 @@ import org.truffleruby.language.dispatch.MissingBehavior;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.PropertyFlags;
@@ -180,7 +179,7 @@ public abstract class BasicObjectNodes {
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, code.getEncoding(), ParserContext.EVAL, null, true, this);
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(ParserContext.EVAL, DeclarationContext.INSTANCE_EVAL, rootNode, null, receiver);
-            return deferredCall.call(frame, callNode);
+            return deferredCall.call(callNode);
         }
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })

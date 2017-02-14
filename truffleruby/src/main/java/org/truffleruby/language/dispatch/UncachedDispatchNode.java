@@ -64,7 +64,7 @@ public class UncachedDispatchNode extends DispatchNode {
 
         if (method.isDefined()) {
             if (dispatchAction == DispatchAction.CALL_METHOD) {
-                return call(frame, method.getMethod(), receiverObject, blockObject, argumentsObjects);
+                return call(method.getMethod(), receiverObject, blockObject, argumentsObjects);
             } else if (dispatchAction == DispatchAction.RESPOND_TO_METHOD) {
                 return true;
             } else {
@@ -93,7 +93,7 @@ public class UncachedDispatchNode extends DispatchNode {
             final DynamicObject nameSymbol = toSymbolNode.executeRubySymbol(frame, name);
             final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(argumentsObjects, nameSymbol);
 
-            return call(frame, methodMissing.getMethod(), receiverObject, blockObject, modifiedArgumentsObjects);
+            return call(methodMissing.getMethod(), receiverObject, blockObject, modifiedArgumentsObjects);
         } else if (dispatchAction == DispatchAction.RESPOND_TO_METHOD) {
             return false;
         } else {
@@ -101,9 +101,8 @@ public class UncachedDispatchNode extends DispatchNode {
         }
     }
 
-    private Object call(VirtualFrame frame, InternalMethod method, Object receiverObject, DynamicObject blockObject, Object[] argumentsObjects) {
+    private Object call(InternalMethod method, Object receiverObject, DynamicObject blockObject, Object[] argumentsObjects) {
         return indirectCallNode.call(
-                frame,
                 method.getCallTarget(),
                 RubyArguments.pack(null, null, method, DeclarationContext.METHOD, null, receiverObject, blockObject, argumentsObjects));
     }

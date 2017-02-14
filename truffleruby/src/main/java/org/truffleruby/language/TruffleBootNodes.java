@@ -25,7 +25,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.collections.Memo;
-import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.loader.CodeLoader;
@@ -103,7 +102,7 @@ public abstract class TruffleBootNodes {
                     null,
                     coreLibrary().getMainObject());
 
-            return deferredCall.call(frame, callNode);
+            return deferredCall.call(callNode);
         }
 
         @TruffleBoundary
