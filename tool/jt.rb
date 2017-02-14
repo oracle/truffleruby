@@ -867,7 +867,7 @@ module Commands
     test 'specs', '--truffle-formatter', component
     sh 'ant', '-f', 'spec/buildTestReports.xml'
   end
-  private :test_cexts
+  private :test_report
 
   def check_test_port
     lsof = `lsof -i :14873`
