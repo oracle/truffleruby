@@ -71,7 +71,7 @@ public class IntHashMap<V> {
         this(initialCapacity, 0.75f);
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public IntHashMap(int initialCapacity, float loadFactor) {
         super();
         if (initialCapacity < 0) {
@@ -132,7 +132,7 @@ public class IntHashMap<V> {
         Entry<V>[] oldMap = table;
 
         int newCapacity = oldCapacity * 2 + 1;
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "rawtypes"})
         Entry<V>[] newMap = new Entry[newCapacity];
 
         threshold = (int) (newCapacity * loadFactor);
