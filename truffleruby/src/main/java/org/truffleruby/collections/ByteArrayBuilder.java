@@ -92,17 +92,17 @@ public class ByteArrayBuilder {
         return charset.decode(ByteBuffer.wrap(getBytes())).toString();
     }
 
-    @Deprecated
+    // TODO CS 14-Feb-17 review all uses of this method
     public byte[] getUnsafeBytes() {
         return bytes;
     }
 
-    @Deprecated
+    // TODO CS 14-Feb-17 review all uses of this method
     public void setLength(int length) {
         this.length = length;
     }
 
-    @Deprecated
+    // TODO CS 14-Feb-17 review all uses of this method
     public void unsafeEnsureSpace(int space) {
         ensureSpace(space);
     }
