@@ -125,7 +125,7 @@ public class CallStackManager {
     }
 
     private InternalMethod getMethod(FrameInstance frame) {
-        return RubyArguments.tryGetMethod(frame.getFrame(FrameInstance.FrameAccess.READ_ONLY, true));
+        return RubyArguments.tryGetMethod(frame.getFrame(FrameInstance.FrameAccess.READ_ONLY));
     }
 
     public Backtrace getBacktrace(Node currentNode, Throwable javaThrowable) {
@@ -171,7 +171,7 @@ public class CallStackManager {
 
         if (omit == 0 && currentNode != null && Truffle.getRuntime().getCurrentFrame() != null) {
             final InternalMethod method = RubyArguments.tryGetMethod(Truffle.getRuntime().getCurrentFrame()
-                    .getFrame(FrameInstance.FrameAccess.READ_ONLY, true));
+                    .getFrame(FrameInstance.FrameAccess.READ_ONLY));
 
             activations.add(new Activation(currentNode, method));
         }
@@ -196,7 +196,7 @@ public class CallStackManager {
                 if (!ignoreFrame(frameInstance) && depth >= omit) {
                     if (!(filterNullSourceSection && hasNullSourceSection(frameInstance))) {
                         final InternalMethod method = RubyArguments.tryGetMethod(frameInstance
-                                .getFrame(FrameInstance.FrameAccess.READ_ONLY, true));
+                                .getFrame(FrameInstance.FrameAccess.READ_ONLY));
 
                         Node callNode = getCallNode(frameInstance, method);
                         if (callNode != null) {

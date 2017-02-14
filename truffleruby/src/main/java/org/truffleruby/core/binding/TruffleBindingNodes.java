@@ -38,7 +38,7 @@ public abstract class TruffleBindingNodes {
 
             final MaterializedFrame frame = Truffle.getRuntime().iterateFrames(frameInstance -> {
                 if (frameCount.get() == 2) {
-                    return frameInstance.getFrame(FrameInstance.FrameAccess.READ_WRITE, false).materialize();
+                    return frameInstance.getFrame(FrameInstance.FrameAccess.READ_WRITE).materialize();
                 } else {
                     frameCount.set(frameCount.get() + 1);
                     return null;

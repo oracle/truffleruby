@@ -240,7 +240,7 @@ public abstract class KernelNodes {
         public DynamicObject binding() {
             // Materialize the caller's frame - false means don't use a slow path to get it - we want to optimize it
             final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
-                    .getFrame(FrameInstance.FrameAccess.MATERIALIZE, false).materialize();
+                    .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
 
             return BindingNodes.createBinding(getContext(), callerFrame);
         }
@@ -258,7 +258,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         public boolean blockGiven(NotProvided noCallerFrame) {
-            return RubyArguments.getBlock(Truffle.getRuntime().getCallerFrame().getFrame(FrameInstance.FrameAccess.READ_ONLY, false)) != null;
+            return RubyArguments.getBlock(Truffle.getRuntime().getCallerFrame().getFrame(FrameInstance.FrameAccess.READ_ONLY)) != null;
         }
 
     }
@@ -664,7 +664,7 @@ public abstract class KernelNodes {
 
             // Set the local variable $_ in the caller
 
-            final Frame caller = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE, true);
+            final Frame caller = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);
 
             final FrameSlot slot = caller.getFrameDescriptor().findFrameSlot("$_");
 
@@ -911,7 +911,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject lambda(NotProvided block) {
-            final Frame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(0).getFrame(FrameAccess.READ_ONLY, true);
+            final Frame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend(0).getFrame(FrameAccess.READ_ONLY);
             final DynamicObject parentBlock = RubyArguments.getBlock(parentFrame);
 
             if (parentBlock == null) {
@@ -984,7 +984,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject localVariables() {
-            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_ONLY, true);
+            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_ONLY);
             return BindingNodes.LocalVariablesNode.listLocalVariables(getContext(), frame);
         }
 

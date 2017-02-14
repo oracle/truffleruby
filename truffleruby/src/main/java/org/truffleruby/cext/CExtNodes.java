@@ -293,7 +293,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         public int blockGiven(NotProvided noCallerFrame) {
-            return RubyArguments.getBlock(Truffle.getRuntime().getCallerFrame().getFrame(FrameInstance.FrameAccess.READ_ONLY, false)) != null ? 1 : 0;
+            return RubyArguments.getBlock(Truffle.getRuntime().getCallerFrame().getFrame(FrameInstance.FrameAccess.READ_ONLY)) != null ? 1 : 0;
         }
 
     }
@@ -305,7 +305,7 @@ public class CExtNodes {
         @Specialization
         public DynamicObject getBlock() {
             return Truffle.getRuntime().iterateFrames(frameInstance -> {
-                Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY, true);
+                Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
                 return RubyArguments.tryGetBlock(frame);
             });
         }
@@ -364,7 +364,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(visibility)")
         public boolean toRubyString(DynamicObject visibility) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.MATERIALIZE, true);
+            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.MATERIALIZE);
             final Visibility callerVisibility = DeclarationContext.findVisibility(callerFrame);
 
             switch (visibility.toString()) {

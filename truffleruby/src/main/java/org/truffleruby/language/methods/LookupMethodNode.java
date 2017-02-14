@@ -108,7 +108,7 @@ public abstract class LookupMethodNode extends RubyNode {
                 return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callingFrame));
             } else {
                 FrameInstance instance = context.getCallStack().getCallerFrameIgnoringSend();
-                Frame callerFrame = instance.getFrame(FrameInstance.FrameAccess.READ_ONLY, true);
+                Frame callerFrame = instance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
                 return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callerFrame));
             }
         }

@@ -52,8 +52,7 @@ public abstract class ObjectGraph {
                 }
 
                 Truffle.getRuntime().iterateFrames(frameInstance -> {
-                    stack.addAll(getObjectsInFrame(frameInstance.getFrame(
-                            FrameInstance.FrameAccess.READ_ONLY, true)));
+                    stack.addAll(getObjectsInFrame(frameInstance.getFrame(FrameInstance.FrameAccess.READ_ONLY)));
                     return null;
                 });
 

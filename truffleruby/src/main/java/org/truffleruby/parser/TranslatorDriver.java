@@ -173,7 +173,7 @@ public class TranslatorDriver {
             lexicalScope = context.getRootLexicalScope();
         }
         if (parserContext == ParserContext.MODULE) {
-            Object module = RubyArguments.getSelf(Truffle.getRuntime().getCurrentFrame().getFrame(FrameAccess.READ_ONLY, true));
+            Object module = RubyArguments.getSelf(Truffle.getRuntime().getCurrentFrame().getFrame(FrameAccess.READ_ONLY));
             lexicalScope = new LexicalScope(lexicalScope, (DynamicObject) module);
         }
         parseEnvironment.resetLexicalScope(lexicalScope);

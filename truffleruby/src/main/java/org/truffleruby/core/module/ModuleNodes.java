@@ -364,7 +364,7 @@ public abstract class ModuleNodes {
             final FrameInstance callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend();
             final SourceSection sourceSection = callerFrame.getCallNode().getEncapsulatingSourceSection();
             final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());
-            final Visibility visibility = DeclarationContext.findVisibility(callerFrame.getFrame(FrameAccess.READ_ONLY, true));
+            final Visibility visibility = DeclarationContext.findVisibility(callerFrame.getFrame(FrameAccess.READ_ONLY));
             final Arity arity = isGetter ? Arity.NO_ARGUMENTS : Arity.ONE_REQUIRED;
             final String ivar = "@" + name;
             final String accessorName = isGetter ? name : name + "=";
@@ -587,7 +587,7 @@ public abstract class ModuleNodes {
             final Rope code = StringOperations.rope(rubySource);
 
             final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
-                    .getFrame(FrameInstance.FrameAccess.MATERIALIZE, true).materialize();
+                    .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
             Encoding encoding = Layouts.STRING.getRope(rubySource).getEncoding();
 
             // TODO (pitr 15-Oct-2015): fix this ugly hack, required for AS, copy-paste
@@ -1041,7 +1041,7 @@ public abstract class ModuleNodes {
         private DynamicObject addMethod(DynamicObject module, String name, InternalMethod method) {
             method = method.withName(name);
 
-            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY, true);
+            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
             final Visibility visibility = GetCurrentVisibilityNode.getVisibilityFromNameAndFrame(name, frame);
             return addMethodNode.executeAddMethod(module, method, visibility);
         }
@@ -1766,7 +1766,7 @@ public abstract class ModuleNodes {
         }
 
         private void setCurrentVisibility(Visibility visibility) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE, true);
+            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);
             DeclarationContext.changeVisibility(callerFrame, visibility);
         }
 

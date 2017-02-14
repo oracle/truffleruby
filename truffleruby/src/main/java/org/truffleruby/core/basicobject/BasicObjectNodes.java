@@ -343,7 +343,7 @@ public abstract class BasicObjectNodes {
                 }
 
                 final SuperCallNode superCallNode = NodeUtil.findParent(callNode, SuperCallNode.class);
-                final Frame frame = frameInstance.getFrame(FrameInstance.FrameAccess.READ_ONLY, true);
+                final Frame frame = frameInstance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
                 final String superMethodName = RubyArguments.getMethod(frame).getName();
 
                 if (superCallNode != null && superMethodName.equals("method_missing")) {

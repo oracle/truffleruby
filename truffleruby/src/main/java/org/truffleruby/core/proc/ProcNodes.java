@@ -65,7 +65,7 @@ public abstract class ProcNodes {
         @Specialization
         public DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block) {
             final Frame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
-                    .getFrame(FrameAccess.READ_ONLY, true);
+                    .getFrame(FrameAccess.READ_ONLY);
 
             final DynamicObject parentBlock = RubyArguments.getBlock(parentFrame);
 

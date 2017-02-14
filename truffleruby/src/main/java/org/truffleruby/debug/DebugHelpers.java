@@ -37,7 +37,7 @@ public abstract class DebugHelpers {
     public static Object eval(RubyContext context, String code, Object... arguments) {
         final FrameInstance currentFrameInstance = Truffle.getRuntime().getCurrentFrame();
 
-        final Frame currentFrame = currentFrameInstance.getFrame(FrameInstance.FrameAccess.MATERIALIZE, true);
+        final Frame currentFrame = currentFrameInstance.getFrame(FrameInstance.FrameAccess.MATERIALIZE);
 
         final Object[] packedArguments = RubyArguments.pack(
                 null,
