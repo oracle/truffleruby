@@ -26,7 +26,15 @@
 
 # Extensions to Java classes
 
+require_relative 'java_ext/java_lang_comparable.rb'
+require_relative 'java_ext/java_lang_iterable.rb'
 require_relative 'java_ext/java_lang_throwable.rb'
+
+require_relative 'java_ext/java_util_collection.rb'
+require_relative 'java_ext/java_util_enumeration.rb'
+require_relative 'java_ext/java_util_iterator.rb'
+require_relative 'java_ext/java_util_list.rb'
+
 
 # TODO: Recreate this JRuby functionality - DMM 2017-02-06
 # require_relative 'java_ext/java.lang.rb'
