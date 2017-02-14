@@ -122,6 +122,7 @@ public class JavaUtilitiesNodes {
                 String methodName = toJavaStringNode.executeToJavaString(frame, name);
                 Class<?> klass = (Class<?>) target;
                 Class<?> returnClass = (Class<?>) returnType;
+                @SuppressWarnings("rawtypes")
                 Class<?>[] args = new Class[rest.length];
                 for (int i = 0; i < rest.length; i++) {
                     args[i] = (Class<?>) rest[i];
