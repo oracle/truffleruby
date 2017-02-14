@@ -19,10 +19,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.utilities.NeverValidAssumption;
-
-import java.util.ArrayList;
-
-import org.truffleruby.Layouts;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
@@ -31,6 +27,8 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
+
+import java.util.ArrayList;
 
 /**
  * Caches {@link ModuleOperations#lookupConstant}

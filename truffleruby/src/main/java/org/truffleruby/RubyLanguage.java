@@ -14,7 +14,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleOptions;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.Node;
@@ -28,8 +27,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.graal.Graal;
 import org.truffleruby.stdlib.CoverageManager;
-
-import java.io.IOException;
 
 @TruffleLanguage.Registration(
         name = "Ruby",

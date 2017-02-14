@@ -9,12 +9,11 @@
  */
 package org.truffleruby.core.module;
 
+import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
-
-import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class ConstantLookupResult {
 

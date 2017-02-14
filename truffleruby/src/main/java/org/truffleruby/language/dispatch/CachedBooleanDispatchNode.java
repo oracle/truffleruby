@@ -10,14 +10,13 @@
 package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.methods.InternalMethod;
 

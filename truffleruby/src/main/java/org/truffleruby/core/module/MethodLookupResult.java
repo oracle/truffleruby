@@ -9,10 +9,9 @@
  */
 package org.truffleruby.core.module;
 
+import com.oracle.truffle.api.Assumption;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.methods.InternalMethod;
-
-import com.oracle.truffle.api.Assumption;
 
 public class MethodLookupResult {
 

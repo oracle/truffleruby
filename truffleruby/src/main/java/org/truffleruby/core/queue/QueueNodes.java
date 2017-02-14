@@ -30,8 +30,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
-import java.util.concurrent.TimeUnit;
-
 @CoreClass("Queue")
 public abstract class QueueNodes {
 

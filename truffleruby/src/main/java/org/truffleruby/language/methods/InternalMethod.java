@@ -18,7 +18,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**

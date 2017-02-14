@@ -48,11 +48,11 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.options.CommandLineOptions;
 import org.truffleruby.options.CommandLineParser;
 import org.truffleruby.options.MainExitException;
 import org.truffleruby.options.OptionsBuilder;
 import org.truffleruby.options.OptionsCatalog;
-import org.truffleruby.options.CommandLineOptions;
 import org.truffleruby.platform.graal.Graal;
 
 import java.io.ByteArrayInputStream;

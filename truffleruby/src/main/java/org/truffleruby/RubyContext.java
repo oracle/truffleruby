@@ -42,7 +42,6 @@ import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.options.Options;
 import org.truffleruby.options.OptionsBuilder;

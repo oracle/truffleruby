@@ -15,8 +15,6 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.RubyContext;
-import org.truffleruby.options.OptionsBuilder;
-import org.truffleruby.options.OptionsCatalog;
 
 public class GlobalVariableStorage {
 

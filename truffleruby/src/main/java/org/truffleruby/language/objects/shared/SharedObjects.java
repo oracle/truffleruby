@@ -19,6 +19,7 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.objects.ObjectGraph;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 

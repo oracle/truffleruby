@@ -28,7 +28,6 @@ import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
