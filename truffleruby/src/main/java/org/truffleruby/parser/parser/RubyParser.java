@@ -2739,7 +2739,7 @@ states[313] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
                     if (((ParseNode)yyVals[-1+yyTop]) != null) {
                         /* compstmt position includes both parens around it*/
-                        ((ParseNode) ((ParseNode)yyVals[-1+yyTop])).setPosition(((SourceIndexLength)yyVals[-2+yyTop]));
+                        ((ParseNode)yyVals[-1+yyTop]).setPosition(((SourceIndexLength)yyVals[-2+yyTop]));
                         yyVal = ((ParseNode)yyVals[-1+yyTop]);
                     } else {
                         yyVal = new NilParseNode(((SourceIndexLength)yyVals[-2+yyTop]));

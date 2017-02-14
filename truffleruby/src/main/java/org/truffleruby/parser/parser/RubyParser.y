@@ -1365,7 +1365,7 @@ primary         : literal
                 | tLPAREN compstmt tRPAREN {
                     if ($2 != null) {
                         // compstmt position includes both parens around it
-                        ((ParseNode) $2).setPosition($1);
+                        $2.setPosition($1);
                         $$ = $2;
                     } else {
                         $$ = new NilParseNode($1);
