@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-bin="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bin="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 root="$(dirname "$bin")"
 
 set -e
