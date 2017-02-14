@@ -41,7 +41,7 @@ public class RopeBuffer extends LeafRope {
 
     @Override
     public byte getByteSlow(int index) {
-        return (byte) byteList.get(index);
+        return byteList.get(index);
     }
 
     public RopeBuilder getByteList() {
