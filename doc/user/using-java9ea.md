@@ -1,6 +1,6 @@
 # Using TruffleRuby with JDK 9 EA
 
-RubyTruffle is designed to be run with a JVM that has the Graal compiler. The
+TruffleRuby is designed to be run with a JVM that has the Graal compiler. The
 easiest way to do this is to use the GraalVM, which includes a JDK, the Graal
 compiler, and TruffleRuby, all in one package.
 
