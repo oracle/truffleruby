@@ -180,6 +180,11 @@ class Array
   end
   private :element_reference_fallback
 
+  def []=(index, length, value = undefined)
+    Truffle.primitive :array_aset
+    raise PrimitiveFailure, "Array#[]= primitive failed"
+  end
+
   def assoc(obj)
     each do |x|
       if x.kind_of? Array and x.first == obj

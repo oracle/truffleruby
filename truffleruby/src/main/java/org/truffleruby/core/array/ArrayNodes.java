@@ -242,8 +242,9 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = "[]=", required = 2, optional = 1, lowerFixnum = { 1, 2 }, raiseIfFrozenSelf = true)
-    public abstract static class IndexSetNode extends ArrayCoreMethodNode {
+    @Primitive(name = "array_aset", lowerFixnum = { 1, 2 }, raiseIfFrozenSelf = true)
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class IndexSetNode extends PrimitiveArrayArgumentsNode {
 
         @Child private ArrayReadNormalizedNode readNode;
         @Child private ArrayWriteNormalizedNode writeNode;
