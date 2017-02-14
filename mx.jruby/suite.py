@@ -6,7 +6,7 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-def mavenLib(mavenDep, sha1, sourceSha1, license):
+def mavenLib(mavenDep, sha1, sourceSha1, mavenLibLicense):
     components = mavenDep.split(':')
     if len(components) == 3:
         groupId, artifactId, version = components
@@ -22,17 +22,17 @@ def mavenLib(mavenDep, sha1, sourceSha1, license):
     url = base + ".jar"
     sourceUrl = base + '-sources.jar'
     description = {
-        "urls": [ url ],
+        "urls": [url],
         "sha1": sha1,
         "maven": {
             "groupId": groupId,
             "artifactId": artifactId,
             "version": version,
         },
-        "license": license
+        "license": mavenLibLicense
     }
     if sourceSha1:
-        description["sourceUrls"] = [ sourceUrl ]
+        description["sourceUrls"] = [sourceUrl]
         description["sourceSha1"] = sourceSha1
     return description
 
@@ -126,8 +126,8 @@ suite = {
           "com.github.jnr:jffi:1.2.13:native",
           "c4b81ddacd1e94a73780aa6e4e8b9d2945d5eb4c",
           None,
-          [ "Apache-2.0", "MIT" ]),
-        
+          ["Apache-2.0", "MIT"]),
+
         "SNAKEYAML": mavenLib(
             "org.yaml:snakeyaml:1.14",
             "c2df91929ed06a25001939929bff5120e0ea3fd4",
@@ -154,7 +154,7 @@ suite = {
 
         "jruby-truffle": {
             "dir": "truffleruby/src/main",
-            "sourceDirs": [ "java" ],
+            "sourceDirs": ["java"],
             "dependencies": [
                 "truffle:TRUFFLE_API",
                 "truffle:TRUFFLE_DEBUG",
@@ -173,14 +173,14 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "JRubyTruffle",
             "checkPackagePrefix": "false",
-            "license": [ "EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0" ],
+            "license": ["EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0"],
         },
 
         "jruby-truffle-ruby": {
             "class": "ArchiveProject",
             "outputDir": "truffleruby/src/main/ruby",
             "prefix": "jruby-truffle",
-            "license": [ "EPL-1.0", "BSD-new" ],
+            "license": ["EPL-1.0", "BSD-new"],
         },
 
         "jruby-truffle-test": {
@@ -207,7 +207,7 @@ suite = {
             "class": "ArchiveProject",
             "outputDir": "lib",
             "prefix": "lib",
-            "license": [ "EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib" ],
+            "license": ["EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib"],
         },
 
         "jruby-docs": {
@@ -232,7 +232,7 @@ suite = {
                 "truffle:TRUFFLE_DEBUG",
             ],
             "description": "JRuby+Truffle",
-            "license": [ "EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0" ],
+            "license": ["EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0"],
         },
 
         # Set of extra files to extract to run Ruby
@@ -247,7 +247,7 @@ suite = {
                 "RUBY",
             ],
             "description": "JRuby+Truffle Native Libs",
-            "license": [ "EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib" ],
+            "license": ["EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib"],
         },
 
         "RUBY-TEST": {
