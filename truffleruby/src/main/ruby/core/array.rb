@@ -182,7 +182,26 @@ class Array
 
   def []=(index, length, value = undefined)
     Truffle.primitive :array_aset
-    raise PrimitiveFailure, "Array#[]= primitive failed"
+    if undefined.equal?(value)
+      value = length
+      if Range === index
+        converted = Array.try_convert(value)
+        converted = [value] unless converted
+        self[index] = converted
+      else
+        index = Rubinius::Type.rb_num2long(index)
+        self[index] = value
+      end
+    else
+      index = Rubinius::Type.rb_num2long(index)
+      length = Rubinius::Type.rb_num2long(length)
+      converted = value
+      unless Array === value
+        converted = Array.try_convert(value)
+        converted = [value] unless converted
+      end
+      self[index, length] = converted
+    end
   end
 
   def assoc(obj)

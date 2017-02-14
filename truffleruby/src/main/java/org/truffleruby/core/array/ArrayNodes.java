@@ -249,7 +249,6 @@ public abstract class ArrayNodes {
         @Child private ArrayReadNormalizedNode readNode;
         @Child private ArrayWriteNormalizedNode writeNode;
         @Child private ArrayReadSliceNormalizedNode readSliceNode;
-        @Child private ToIntNode toIntNode;
 
         private final BranchProfile negativeIndexProfile = BranchProfile.create();
         private final BranchProfile negativeLengthProfile = BranchProfile.create();
@@ -269,37 +268,15 @@ public abstract class ArrayNodes {
         // array[index] = object with non-int index
 
         @Specialization(guards = { "!isInteger(indexObject)", "!isRubyRange(indexObject)" })
-        public Object set(VirtualFrame frame, DynamicObject array, Object indexObject, Object value, NotProvided unused) {
-            final int index = toInt(frame, indexObject);
-            return executeSet(frame, array, index, value, unused);
+        public Object set(DynamicObject array, Object indexObject, Object value, NotProvided unused) {
+            return FAILURE;
         }
 
         // array[start, length] = object
 
-        @Specialization(guards = { "!isRubyArray(value)", "wasProvided(value)", "strategy.specializesFor(value)" }, limit = "ARRAY_STRATEGIES")
-        public Object setObject(VirtualFrame frame, DynamicObject array, int start, int length, Object value,
-                @Cached("forValue(value)") ArrayStrategy strategy,
-                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
-                @Cached("new()") SnippetNode snippetNode) {
-            checkLengthPositive(length);
-
-            final int size = getSize(array);
-            final int begin = ArrayOperations.normalizeIndex(size, start, negativeIndexProfile);
-            checkIndex(array, start, begin);
-
-            final DynamicObject ary;
-
-            final Object maybeAry = snippetNode.execute(frame, "Array.try_convert(value)", "value", value);
-            if (maybeAry != nil()) {
-                ary = (DynamicObject) maybeAry;
-            } else {
-                // Passing a non-array as value is the same as assigning a single-element array
-                ArrayMirror mirror = strategy.newArray(1);
-                mirror.set(0, value);
-                ary = createArray(mirror.getArray(), 1);
-            }
-
-            return executeSet(frame, array, start, length, ary);
+        @Specialization(guards = { "!isRubyArray(value)", "wasProvided(value)" })
+        public Object setObject(DynamicObject array, int start, int length, Object value) {
+            return FAILURE;
         }
 
         // array[start, length] = other_array, with length == other_array.size
@@ -387,11 +364,8 @@ public abstract class ArrayNodes {
         // array[start, length] = object_or_array with non-int start or length
 
         @Specialization(guards = { "!isInteger(startObject) || !isInteger(lengthObject)", "wasProvided(value)" })
-        public Object setStartLengthNotInt(VirtualFrame frame, DynamicObject array, Object startObject, Object lengthObject, Object value,
-                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
-            int start = toInt(frame, startObject);
-            int length = toInt(frame, lengthObject);
-            return executeSet(frame, array, start, length, value);
+        public Object setStartLengthNotInt(DynamicObject array, Object startObject, Object lengthObject, Object value) {
+            return FAILURE;
         }
 
         // array[start..end] = object_or_array
@@ -467,14 +441,6 @@ public abstract class ArrayNodes {
                 readSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create(null, null, null));
             }
             return readSliceNode.executeReadSlice(array, start, length);
-        }
-
-        private int toInt(VirtualFrame frame, Object indexObject) {
-            if (toIntNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(ToIntNode.create());
-            }
-            return toIntNode.doInt(frame, indexObject);
         }
 
     }
