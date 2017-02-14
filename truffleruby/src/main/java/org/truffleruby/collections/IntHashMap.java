@@ -39,7 +39,6 @@ public class IntHashMap<V> {
     private Entry<V>[] table;
     private int count;
 
-    transient volatile Set<Integer> keySet = null;
 	transient volatile Collection<V> values = null;
 
     private int threshold;
@@ -66,10 +65,6 @@ public class IntHashMap<V> {
         public V getValue() {
             return value;
         }
-    }
-
-    public IntHashMap() {
-        this(20, 0.75f);
     }
 
     public IntHashMap(int initialCapacity) {
@@ -118,18 +113,6 @@ public class IntHashMap<V> {
 
     public boolean containsValue(Object value) {
         return contains(value);
-    }
-
-    public boolean containsKey(int key) {
-        Entry<V>[] tab = table;
-        int hash = key;
-        int index = (hash & 0x7FFFFFFF) % tab.length;
-        for (Entry<V> e = tab[index]; e != null; e = e.next) {
-            if (e.hash == hash) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public V get(int key) {
@@ -286,22 +269,11 @@ public class IntHashMap<V> {
 		}
 	}
 
-	private class KeyIterator extends HashIterator<Integer> {
-        @Override
-        public Integer next() {
-			return nextEntry().key;
-		}
-	}
-
 	private class EntryIterator extends HashIterator<Entry<V>> {
         @Override
         public Entry<V> next() {
 			return nextEntry();
 		}
-	}
-
-    Iterator<Integer> newKeyIterator() {
-		return new KeyIterator();
 	}
 
 	Iterator<V> newValueIterator() {
@@ -313,42 +285,6 @@ public class IntHashMap<V> {
 	}
 
 	private transient Set<Entry<V>> entrySet = null;
-
-	public Set<Integer> keySet() {
-		Set<Integer> ks = keySet;
-		return (ks != null ? ks : (keySet = new KeySet()));
-	}
-
-	private class KeySet extends AbstractSet<Integer> {
-
-        @Override
-        public Iterator<Integer> iterator() {
-			return newKeyIterator();
-		}
-
-        @Override
-        public int size() {
-			return IntHashMap.this.count;
-		}
-
-        @Override
-		public boolean contains(Object o) {
-			if(o instanceof Number) {
-				return containsKey(((Number)o).intValue());
-			}
-			return false;
-		}
-
-        @Override
-		public boolean remove(Object o) {
-            throw new UnsupportedOperationException();
-		}
-
-        @Override
-		public void clear() {
-			IntHashMap.this.clear();
-		}
-	}
 
 	public Collection<V> values() {
 		Collection<V> vs = values;
@@ -446,48 +382,6 @@ public class IntHashMap<V> {
             }
         }
         return newMap;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <U> IntHashMap<U> nullMap() { return NullMap.INSTANCE; }
-
-    private static final class NullMap<U> extends IntHashMap<U> {
-
-        @SuppressWarnings("rawtypes")
-        static final NullMap INSTANCE = new NullMap();
-
-        private NullMap() { super(0); }
-
-        @Override
-        public boolean contains(Object value) {
-            return false;
-        }
-
-        @Override
-        public boolean containsKey(int key) {
-            return false;
-        }
-
-        @Override
-        public U get(int key) {
-            return null;
-        }
-
-        @Override
-        public U put(int key, U value) {
-            return null;
-        }
-
-        @Override
-        public U remove(int key) {
-            return null;
-        }
-
-        @Override
-        protected void rehash() {
-            // NO-OP
-        }
-
     }
 
 }
