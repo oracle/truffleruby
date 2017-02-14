@@ -259,7 +259,7 @@ public abstract class MethodNodes {
         @Override
         public Object execute(VirtualFrame frame) {
             RubyArguments.setSelf(frame, receiver);
-            return methodCallNode.call(frame, frame.getArguments());
+            return methodCallNode.call(frame.getArguments());
         }
 
     }

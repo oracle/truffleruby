@@ -2281,7 +2281,6 @@ public abstract class StringNodes {
                 },
                 limit = "getCacheLimit()")
         public DynamicObject unpackCached(
-                VirtualFrame frame,
                 DynamicObject string,
                 DynamicObject format,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
@@ -2291,7 +2290,7 @@ public abstract class StringNodes {
             final ArrayResult result;
 
             try {
-                result = (ArrayResult) callUnpackNode.call(frame,
+                result = (ArrayResult) callUnpackNode.call(
                         new Object[]{ rope.getBytes(), rope.byteLength() });
             } catch (FormatException e) {
                 exceptionProfile.enter();

@@ -1153,7 +1153,6 @@ public abstract class ArrayNodes {
                 "ropesEqual(format, cachedFormat)"
         }, limit = "getCacheLimit()")
         public DynamicObject packCached(
-                VirtualFrame frame,
                 DynamicObject array,
                 DynamicObject format,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
@@ -1162,7 +1161,7 @@ public abstract class ArrayNodes {
             final BytesResult result;
 
             try {
-                result = (BytesResult) callPackNode.call(frame,
+                result = (BytesResult) callPackNode.call(
                         new Object[] { getStore(array), getSize(array) });
             } catch (FormatException e) {
                 exceptionProfile.enter();

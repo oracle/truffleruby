@@ -98,7 +98,7 @@ public class LazyRubyRootNode extends RootNode implements InternalRootNode {
                 mainObject,
                 null,
                 frame.getArguments());
-        final Object value = callNode.call(frame, arguments);
+        final Object value = callNode.call(arguments);
 
         // The return value will be leaked to Java, share it.
         if (context.getOptions().SHARED_OBJECTS_ENABLED) {

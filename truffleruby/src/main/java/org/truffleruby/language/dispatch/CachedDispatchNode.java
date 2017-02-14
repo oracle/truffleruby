@@ -104,10 +104,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
     protected static Object call(DirectCallNode callNode, VirtualFrame frame, InternalMethod method, Object receiver, DynamicObject block, Object[] arguments) {
         CompilerAsserts.compilationConstant(method.getSharedMethodInfo().needsCallerFrame());
-
         MaterializedFrame callerFrame = method.getSharedMethodInfo().needsCallerFrame() ? frame.materialize() : null;
-        return callNode.call(
-                frame,
-                RubyArguments.pack(null, callerFrame, method, DeclarationContext.METHOD, null, receiver, block, arguments));
+        return callNode.call(RubyArguments.pack(null, callerFrame, method, DeclarationContext.METHOD, null, receiver, block, arguments));
     }
 }

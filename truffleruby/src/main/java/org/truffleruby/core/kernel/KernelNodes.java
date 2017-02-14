@@ -482,7 +482,7 @@ public abstract class KernelNodes {
                     Visibility.PUBLIC,
                     cachedCallTarget);
 
-            return callNode.call(frame, RubyArguments.pack(parentFrame, null, method, RubyArguments.getDeclarationContext(parentFrame), null, callerSelf, null, new Object[]{}));
+            return callNode.call(RubyArguments.pack(parentFrame, null, method, RubyArguments.getDeclarationContext(parentFrame), null, callerSelf, null, new Object[]{}));
         }
 
         @Specialization(guards = {
@@ -1558,7 +1558,7 @@ public abstract class KernelNodes {
             final BytesResult result;
 
             try {
-                result = (BytesResult) callPackNode.call(frame,
+                result = (BytesResult) callPackNode.call(
                         new Object[]{ arguments, arguments.length });
             } catch (FormatException e) {
                 exceptionProfile.enter();

@@ -31,10 +31,10 @@ public abstract class CallInternalMethodNode extends RubyNode {
             guards = "method.getCallTarget() == cachedCallTarget",
             // TODO(eregon, 12 June 2015) we should maybe check an Assumption here to remove the cache entry when the lookup changes (redefined method, hierarchy changes)
             limit = "getCacheLimit()")
-    protected Object callMethodCached(VirtualFrame frame, InternalMethod method, Object[] frameArguments,
+    protected Object callMethodCached(InternalMethod method, Object[] frameArguments,
             @Cached("method.getCallTarget()") CallTarget cachedCallTarget,
             @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
-        return callNode.call(frame, frameArguments);
+        return callNode.call(frameArguments);
     }
 
     @Specialization

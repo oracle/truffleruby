@@ -91,7 +91,7 @@ public class SnippetNode extends RubyBaseNode {
                 null,
                 new Object[]{});
 
-        return directCallNode.call(frame, callArguments);
+        return directCallNode.call(callArguments);
     }
 
     private boolean ensureConstantExpressionParameters(String expression, Object[] arguments) {

@@ -46,7 +46,6 @@ public abstract class CallBlockNode extends RubyNode {
             guards = "getBlockCallTarget(block) == cachedCallTarget",
             limit = "getCacheLimit()")
     protected Object callBlockCached(
-            VirtualFrame frame,
             DynamicObject block,
             Object self,
             Object blockArgument,
@@ -54,7 +53,7 @@ public abstract class CallBlockNode extends RubyNode {
             @Cached("getBlockCallTarget(block)") CallTarget cachedCallTarget,
             @Cached("createBlockCallNode(cachedCallTarget)") DirectCallNode callNode) {
         final Object[] frameArguments = packArguments(block, self, blockArgument, arguments);
-        return callNode.call(frame, frameArguments);
+        return callNode.call(frameArguments);
     }
 
     @Specialization(contains = "callBlockCached")

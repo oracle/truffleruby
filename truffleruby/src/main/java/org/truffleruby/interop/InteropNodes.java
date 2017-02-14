@@ -651,14 +651,13 @@ public abstract class InteropNodes {
                 "ropesEqual(source, cachedSource)"
         }, limit = "getCacheLimit()")
         public Object evalCached(
-                VirtualFrame frame,
                 DynamicObject mimeType,
                 DynamicObject source,
                 @Cached("privatizeRope(mimeType)") Rope cachedMimeType,
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("create(parse(mimeType, source))") DirectCallNode callNode
         ) {
-            return callNode.call(frame, new Object[]{});
+            return callNode.call(new Object[]{});
         }
 
         @Specialization(guards = {"isRubyString(mimeType)", "isRubyString(source)"}, contains = "evalCached")
