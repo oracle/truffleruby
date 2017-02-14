@@ -7,10 +7,12 @@
 # GNU Lesser General Public License version 2.1
 
 import glob
+import os
 from os.path import join
 
 import mx
 import mx_unittest
+import subprocess
 
 _suite = mx.suite('jruby')
 rubyDists = ['RUBY', 'RUBY-TEST']
@@ -55,7 +57,15 @@ def deploy_binary_if_truffle_head(args):
         mx.log('The active branch is "%s". Binaries are deployed only if the active branch is "%s".' % (active_branch, primary_branch))
         return 0
 
+def ruby_testdownstream(args):
+    os.environ['CI'] = 'true'
+
+    mx.command_function('build')([])
+    mx.run(['ruby', 'tool/jt.rb', 'test', 'fast'])
+
+
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],
     'deploy-binary-if-truffle-head': [deploy_binary_if_truffle_head, ''],
+    'ruby_testdownstream': [ruby_testdownstream, '']
 })
