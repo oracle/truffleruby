@@ -419,15 +419,12 @@ module Commands
 
   def help
     puts <<-TXT.gsub(/^#{' '*6}/, '')
-      jt checkout name                               checkout a different Git branch and rebuild
-      jt bootstrap [options]                         run the build system\'s bootstrap phase
       jt build [options]                             build
       jt rebuild [options]                           clean and build
           cexts [--no-openssl]                       build the cext backend (set SULONG_HOME)
           parser                                     build the parser
           options                                    build the options
       jt clean                                       clean
-      jt irb                                         irb
       jt rebuild                                     clean and build
       jt run [options] args...                       run JRuby with args
           --graal         use Graal (set either GRAALVM_BIN or GRAAL_HOME)
@@ -503,15 +500,6 @@ module Commands
     TXT
   end
 
-  def checkout(branch)
-    sh 'git', 'checkout', branch
-    rebuild
-  end
-
-  def bootstrap(*options)
-    mvn *options, '-Pbootstrap-no-launcher'
-  end
-
   def build(*options)
     project = options.first
     case project
@@ -539,10 +527,6 @@ module Commands
   def clean
     mx(JRUBY_DIR, 'clean') if Utilities.mx?
     mvn 'clean'
-  end
-
-  def irb(*args)
-    run(*%w[-S irb], *args)
   end
 
   def rebuild
