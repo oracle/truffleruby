@@ -13,13 +13,15 @@ module JavaUtilities
       @methods.push(*(a_dispatcher.methods))
     end
 
-    def method_for_dispatch
+    def method_for_dispatch(replacer)
       if @methods.size == 1
-        lambda { |*args|
-          args = args.map do |x|
-            ::JavaUtilities.unwrap_java_value(x)
-          end
-          ::JavaUtilities.wrap_java_value(Java.invoke_java_method(@methods[0], *args)) }
+        replacer.call(
+          lambda { |*args|
+            args = args.map do |x|
+              ::JavaUtilities.unwrap_java_value(x)
+            end
+            ::JavaUtilities.wrap_java_value(Java.invoke_java_method(@methods[0], *args)) }
+        )
       else
         # Let's start building a dispatcher...
         # First sort the methods by arity and varargs.
@@ -35,7 +37,7 @@ module JavaUtilities
           bucket = dest[min_method_arity(m)]
           bucket << m
         end
-        lambda do |*args|
+        method = lambda do |*args|
           java_args = args.map { |x| ::JavaUtilities.unwrap_java_value(x) }
           targets = []
           targets.push(*simple_arities[args.size])
@@ -51,6 +53,7 @@ module JavaUtilities
             raise TypeError, "Can't dispatch ambiguous cases yet."
           end
         end
+        replacer.call(method)
       end
     end
 
@@ -128,12 +131,14 @@ module JavaUtilities
 
     def java_type_compatible(method_type, arg_type)
       if :fixnum == arg_type
-        java_refs_equal?(method_type, JavaUtilities::JAVA_INTEGER_CLASS) ||
+        java_refs_equal?(method_type, JavaUtilities::JAVA_OBJECT_CLASS) ||
+          java_refs_equal?(method_type, JavaUtilities::JAVA_INTEGER_CLASS) ||
           java_refs_equal?(method_type, JavaUtilities::JAVA_LONG_CLASS) ||
           java_refs_equal?(method_type, JavaUtilities::JAVA_PRIM_INT_CLASS) ||
           java_refs_equal?(method_type, JavaUtilities::JAVA_PRIM_LONG_CLASS)
       elsif :float == arg_type
-        java_refs_equal?(method_type, JavaUtilities::JAVA_DOUBLE_CLASS) ||
+        java_refs_equal?(method_type, JavaUtilities::JAVA_OBJECT_CLASS) ||
+          java_refs_equal?(method_type, JavaUtilities::JAVA_DOUBLE_CLASS) ||
           java_refs_equal?(method_type, JavaUtilities::JAVA_DBL_CLASS)
       else
         Java.invoke_java_method(
@@ -146,5 +151,6 @@ module JavaUtilities
         res && java_type_compatible(x[1], x[0])
       end
     end
+
   end
 end

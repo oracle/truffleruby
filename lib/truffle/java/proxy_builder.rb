@@ -230,13 +230,14 @@ module JavaUtilities
                 else
                   :define_method
                 end
-      method = @dispatcher.method_for_dispatch
-      wrapped = if static
-                  lambda { |*args| method[*args] }
-                else
-                  lambda { |*args| method[self, *args] }
-                end
-      a_proxy.__send__(message, @name, wrapped)
+      @dispatcher.method_for_dispatch lambda { |method|
+        wrapped = if static
+                    lambda { |*args| method[*args] }
+                  else
+                    lambda { |*args| method[self, *args] }
+                  end
+        a_proxy.__send__(message, @name, wrapped)
+      }
     end
 
     def combine_with(a_method)
