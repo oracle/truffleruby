@@ -14,6 +14,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.RaiseIfFrozenNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.language.RubyNode;
@@ -99,6 +100,8 @@ public class PrimitiveNodeConstructor {
     private RubyNode transformArgument(RubyNode argument, int n) {
         if (ArrayUtils.contains(annotation.lowerFixnum(), n)) {
             return FixnumLowerNodeGen.create(argument);
+        } else if (n == 0 && annotation.raiseIfFrozenSelf()) {
+            return new RaiseIfFrozenNode(argument);
         } else {
             return argument;
         }

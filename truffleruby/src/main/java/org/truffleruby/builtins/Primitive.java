@@ -30,6 +30,11 @@ public @interface Primitive {
      */
     int[] lowerFixnum() default {};
 
+    /**
+     * Raise an error if self is frozen.
+     */
+    boolean raiseIfFrozenSelf() default false;
+
     UnsafeGroup[] unsafe() default {};
 
 }
