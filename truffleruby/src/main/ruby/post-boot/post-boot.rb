@@ -16,6 +16,7 @@ if Truffle::Boot.rubygems_enabled?
     require 'rubygems'
   rescue LoadError
   else
+    # TODO (pitr-ch 17-Feb-2017): remove the warning when we can integrate with ruby managers
     unless Gem.dir.include?(Truffle::Boot.ruby_home)
       bad_gem_home = false
 

@@ -52,19 +52,19 @@ gems and smaller applications.
 #### Do you run Rails?
 
 We do run Rails, and pass the majority of the Rails test suite. But we are
-missing support for OpenSSL and Nokogiri which makes it not practical to run
-real Rails applications at the moment.
+missing support for OpenSSL, Nokogiri, and ActiveRecord database drivers
+which makes it not practical to run real Rails applications at the moment.
 
 #### What is happening with AOT, startup time, and the SubstrateVM?
 
 You don't need a JVM to run TruffleRuby. With the
-[SubstrateVM](https://github.com/graalvm/truffleruby/tree/master/doc/user/svm.md)
+[SubstrateVM](doc/user/svm.md)
 it is possible to produce a single, statically linked native binary executable
 version of TruffleRuby, which doesn't need any JVM to run.
 
 This SubstrateVM version of TruffleRuby has startup performance and memory
 footprint more similar to MRI than TruffleRuby on the JVM or JRuby. There are
-[instructions](https://github.com/graalvm/truffleruby/tree/master/doc/user/svm.md)
+[instructions](doc/user/svm.md)
 for using it as part of GraalVM.
 
 #### Can TruffleRuby run on a standard JVM?
@@ -76,7 +76,7 @@ It will be supported when Java 9 is released.
 #### How do I install gems?
 
 TruffleRuby cannot install gems out of the box yet, however there are 
-[temporary workarounds](https://github.com/graalvm/truffleruby/tree/master/doc/user/installing-gems.md) 
+[temporary workarounds](doc/user/installing-gems.md) 
 which can be used to get it working. 
 
 ## Getting Started
@@ -87,6 +87,8 @@ compatible versions of everything you need as well as TruffleRuby.
 http://www.oracle.com/technetwork/oracle-labs/program-languages/
 
 Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby.
+See [Using TruffleRuby with GraalVM](doc/user/using-graalvm.md)
+instructions.
 
 ## Documentation
 

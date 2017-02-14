@@ -47,7 +47,7 @@ There should be now 4 projects in your workspace:
 
 ### Running from the Eclipse files directly
 
-The [jt workflow tool](https://github.com/graalvm/truffleruby/blob/truffle-head/doc/contributor/workflow.md)
+The [jt workflow tool](workflow.md)
 automatically picks up the version compiled by mx and Eclipse oven Maven-compiled files.
 
 ```bash
