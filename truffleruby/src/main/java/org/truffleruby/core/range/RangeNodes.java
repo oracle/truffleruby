@@ -30,6 +30,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -437,6 +438,42 @@ public abstract class RangeNodes {
             }
 
             return toAInternalCall.call(frame, range, "to_a_internal");
+        }
+
+    }
+
+    @Primitive(name = "range_to_int_range")
+    public abstract static class ToIntRangeNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private ToIntNode toIntNode;
+
+        @Specialization(guards = "isIntRange(range)")
+        public DynamicObject intRange(DynamicObject range) {
+            return range;
+        }
+
+        @Specialization(guards = "isLongRange(range)")
+        public DynamicObject longRange(VirtualFrame frame, DynamicObject range) {
+            int begin = toInt(frame, Layouts.LONG_RANGE.getBegin(range));
+            int end = toInt(frame, Layouts.LONG_RANGE.getEnd(range));
+            boolean excludedEnd = Layouts.LONG_RANGE.getExcludedEnd(range);
+            return Layouts.INT_RANGE.createIntRange(coreLibrary().getIntRangeFactory(), excludedEnd, begin, end);
+        }
+
+        @Specialization(guards = "isObjectRange(range)")
+        public DynamicObject objectRange(VirtualFrame frame, DynamicObject range) {
+            int begin = toInt(frame, Layouts.OBJECT_RANGE.getBegin(range));
+            int end = toInt(frame, Layouts.OBJECT_RANGE.getEnd(range));
+            boolean excludedEnd = Layouts.OBJECT_RANGE.getExcludedEnd(range);
+            return Layouts.INT_RANGE.createIntRange(coreLibrary().getIntRangeFactory(), excludedEnd, begin, end);
+        }
+
+        private int toInt(VirtualFrame frame, Object indexObject) {
+            if (toIntNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                toIntNode = insert(ToIntNode.create());
+            }
+            return toIntNode.doInt(frame, indexObject);
         }
 
     }

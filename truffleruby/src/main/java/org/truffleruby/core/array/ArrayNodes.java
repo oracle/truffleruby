@@ -40,7 +40,6 @@ import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.cast.ToAryNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
-import org.truffleruby.core.cast.ToIntRangeNode;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
@@ -253,7 +252,7 @@ public abstract class ArrayNodes {
         private final BranchProfile negativeIndexProfile = BranchProfile.create();
         private final BranchProfile negativeLengthProfile = BranchProfile.create();
 
-        public abstract Object executeSet(VirtualFrame frame, DynamicObject array, Object index, Object length, Object value);
+        public abstract Object executeSet(DynamicObject array, Object index, Object length, Object value);
 
         // array[index] = object
 
@@ -302,7 +301,7 @@ public abstract class ArrayNodes {
                 "isRubyArray(replacement)",
                 "length != getArraySize(replacement)"
         })
-        public Object setOtherArray(VirtualFrame frame, DynamicObject array, int rawStart, int length, DynamicObject replacement,
+        public Object setOtherArray(DynamicObject array, int rawStart, int length, DynamicObject replacement,
                 @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
                 @Cached("createBinaryProfile()") ConditionProfile needCopy,
                 @Cached("createBinaryProfile()") ConditionProfile recursive,
@@ -319,7 +318,7 @@ public abstract class ArrayNodes {
 
             if (recursive.profile(array == replacement)) {
                 final DynamicObject copy = readSlice(array, 0, arraySize);
-                return executeSet(frame, array, start, length, copy);
+                return executeSet(array, start, length, copy);
             }
 
             // Make a copy of what's after "end", as it might be erased or at least needs to be moved
@@ -371,7 +370,7 @@ public abstract class ArrayNodes {
         // array[start..end] = object_or_array
 
         @Specialization(guards = "isIntRange(range)")
-        public Object setRange(VirtualFrame frame, DynamicObject array, DynamicObject range, Object value, NotProvided unused,
+        public Object setRange(DynamicObject array, DynamicObject range, Object value, NotProvided unused,
                 @Cached("createBinaryProfile()") ConditionProfile negativeBeginProfile,
                 @Cached("createBinaryProfile()") ConditionProfile negativeEndProfile,
                 @Cached("create()") BranchProfile errorProfile) {
@@ -389,14 +388,12 @@ public abstract class ArrayNodes {
             }
             final int length = inclusiveEnd - start + 1;
             final int normalizeLength = length > -1 ? length : 0;
-            return executeSet(frame, array, start, normalizeLength, value);
+            return executeSet(array, start, normalizeLength, value);
         }
 
         @Specialization(guards = { "!isIntRange(range)", "isRubyRange(range)" })
-        public Object setOtherRange(VirtualFrame frame, DynamicObject array, DynamicObject range, Object value, NotProvided unused,
-                @Cached("create()") ToIntRangeNode toIntRangeNode) {
-            DynamicObject intRange = toIntRangeNode.executeToIntRange(frame, range);
-            return executeSet(frame, array, intRange, value, unused);
+        public Object setOtherRange(DynamicObject array, DynamicObject range, Object value, NotProvided unused) {
+            return FAILURE;
         }
 
         // Helpers

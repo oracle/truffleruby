@@ -185,6 +185,7 @@ class Array
     if undefined.equal?(value)
       value = length
       if Range === index
+        index = Truffle.invoke_primitive(:range_to_int_range, index)
         converted = Array.try_convert(value)
         converted = [value] unless converted
         self[index] = converted
