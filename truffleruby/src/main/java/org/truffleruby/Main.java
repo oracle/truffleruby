@@ -156,8 +156,7 @@ public class Main {
         new CommandLineParser(arguments, config).processArguments();
 
         if (config.getReadRubyOpt()) {
-            Object rubyoptObj = System.getenv("RUBYOPT");
-            String rubyopt = rubyoptObj == null ? null : rubyoptObj.toString();
+            String rubyopt = System.getenv("RUBYOPT");
 
             if (rubyopt != null && rubyopt.length() != 0) {
                 String[] rubyoptArgs = rubyopt.split("\\s+");
@@ -166,8 +165,7 @@ public class Main {
                 }
             }
 
-            Object truffleRubyoptObj = System.getenv("TRUFFLERUBYOPT");
-            String truffleRubyopt = truffleRubyoptObj == null ? null : truffleRubyoptObj.toString();
+            String truffleRubyopt = System.getenv("TRUFFLERUBYOPT");
 
             if (truffleRubyopt != null && truffleRubyopt.length() != 0) {
                 String[] truffleRubyoptArgs = truffleRubyopt.split("\\s+");
