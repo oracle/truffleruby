@@ -12,7 +12,6 @@ from os.path import join
 
 import mx
 import mx_unittest
-import subprocess
 
 _suite = mx.suite('jruby')
 rubyDists = ['RUBY', 'RUBY-TEST']
