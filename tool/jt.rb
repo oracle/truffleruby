@@ -33,13 +33,11 @@ METRICS_REPS = 10
 
 VERBOSE = ENV.include? 'V'
 
-MAC = `uname -a`.include?('Darwin')
+uname = `uname`.chomp
+MAC = uname == 'Darwin'
+LINUX = uname == 'Linux'
 
-if MAC
-  SO = 'dylib'
-else
-  SO = 'so'
-end
+SO = MAC ? 'dylib' : 'so'
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
@@ -1266,7 +1264,7 @@ module Commands
   end
 
   def install_graal_core
-    raise "Pre-built JDK only available on Linux currently" unless `uname`.include? 'Linux'
+    raise "Pre-built JDK only available on Linux currently" unless LINUX
 
     dir = "#{JRUBY_DIR}/graal"
     Dir.mkdir(dir) unless File.directory?(dir)
