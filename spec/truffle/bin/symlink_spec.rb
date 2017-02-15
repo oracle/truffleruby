@@ -16,7 +16,7 @@ describe "bin/ruby" do
     Dir.mktmpdir do |path|
       Dir.chdir(path) do
         `ln -s #{Truffle::Boot.ruby_home}/bin/ruby linktoruby`
-        `./linktoruby --version`.include?("truffleruby").should == true
+        `./linktoruby --version`.should include("truffleruby")
       end
     end
   end
