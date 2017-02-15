@@ -745,12 +745,14 @@ module Commands
       "RUBYOPT" => '--disable-gems'
     }
     jruby_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
+    non_options_args = args.reject { |arg| arg.start_with?('-') }
 
-    if args.count { |arg| !arg.start_with?('-') } == 1 && args[0] == "openssl"
-      args += File.readlines("#{JRUBY_DIR}/test/openssl.index").grep(/^[^#]\w+/).map(&:chomp)
-    elsif args.count { |arg| !arg.start_with?('-') } == 0
-      args += File.readlines("#{JRUBY_DIR}/test/mri_truffle.index").grep(/^[^#]\w+/).map(&:chomp)
+    index = if non_options_args == ["openssl"]
+      "#{JRUBY_DIR}/test/openssl.index"
+    elsif non_options_args.empty?
+      "#{JRUBY_DIR}/test/mri_truffle.index"
     end
+    args += File.readlines(index).grep(/^[^#]\w+/).map(&:chomp) if index
 
     command = %w[test/mri/runner.rb -v --color=never --tty=no -q]
     run(env_vars, *jruby_args, *command, *args)
