@@ -1264,7 +1264,7 @@ module Commands
   end
 
   def install_graal_core
-    raise "Pre-built JDK only available on Linux currently" unless LINUX
+    raise "Installing graal-core is only available on Linux and macOS currently" unless LINUX || MAC
 
     dir = "#{JRUBY_DIR}/graal"
     Dir.mkdir(dir) unless File.directory?(dir)
@@ -1279,15 +1279,33 @@ module Commands
         raw_sh "git", "clone", "https://github.com/graalvm/graal-core.git"
       end
 
-      puts "Downloading JDK8 with JVMCI"
-      if Dir["#{dir}/jdk1.8.0*"].empty?
-        jvmci_releases = "https://github.com/dougxc/openjdk8-jvmci-builder/releases/download"
-        jvmci_version = "jvmci-0.23"
-        raw_sh "wget", "#{jvmci_releases}/#{jvmci_version}/jdk1.8.0_111-#{jvmci_version}-linux-amd64.tar.gz", "-O", "jvmci.tar.gz"
-        raw_sh *%w[tar xf jvmci.tar.gz]
+      if !LINUX
+        puts "Downloading JDK8 with JVMCI"
+        if Dir["#{dir}/jdk1.8.0*"].empty?
+          jvmci_releases = "https://github.com/dougxc/openjdk8-jvmci-builder/releases/download"
+          jvmci_version = "jvmci-0.23"
+          raw_sh "wget", "#{jvmci_releases}/#{jvmci_version}/jdk1.8.0_111-#{jvmci_version}-linux-amd64.tar.gz", "-O", "jvmci.tar.gz"
+          raw_sh "tar", "xf", "jvmci.tar.gz"
+          java_home = Dir["#{dir}/jdk1.8.0*"].sort.first
+        end
+      elsif !MAC
+        jvmci_version = "jvmci-0.24"
+        puts "You need to download manually the latest JVMCI-enabled JDK at"
+        puts "http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html"
+        puts "Download the file named labsjdk-8u121-#{jvmci_version}-darwin-amd64.tar.gz"
+        puts "And move it to the directory #{dir}"
+        puts "When done, enter 'done':"
+        begin
+          print "> "
+          done = STDIN.gets
+        end until done.chomp == "done"
+        archive = Dir["#{dir}/labsjdk-*darwin*.tar.gz"].sort.first
+        abort "Could not find the JVMCI-enabled JDK" unless archive
+        raw_sh "tar", "xf", archive
+        java_home = Dir["#{dir}/labsjdk1.8.0*"].sort.first
       end
 
-      java_home = Dir["#{dir}/jdk1.8.0*"].sort.first
+      abort "Could not find the extracted JDK" unless java_home
       java_home = File.expand_path(java_home)
 
       puts "Testing JDK"
