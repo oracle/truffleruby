@@ -80,7 +80,8 @@ module RbConfig
       'RUBY_INSTALL_NAME' => ruby_install_name,
       'ruby_version' => ruby_version,
       'RUBY_BASE_NAME' => ruby_base_name,
-      'RUBY_SO_NAME' => '$(RUBY_BASE_NAME)'
+      'RUBY_SO_NAME' => '$(RUBY_BASE_NAME)',
+      'target_cpu' => host_cpu
   }
 
 
@@ -113,7 +114,8 @@ module RbConfig
       'RUBY_INSTALL_NAME' => ruby_install_name,
       'ruby_version' => ruby_api_version,
       'RUBY_BASE_NAME' => ruby_base_name,
-      'RUBY_SO_NAME' => ruby_so_name
+      'RUBY_SO_NAME' => ruby_so_name,
+      'target_cpu' => host_cpu
   }
 
   ruby_home = Truffle::Boot.ruby_home
