@@ -6,5 +6,17 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-# TODO: This should be a proper class loading mechanism. - DMM 2017-02-09
-$CLASSPATH = []
+class RubyClassLoader
+  @@loader = java.lang.ClassLoader.get_system_class_loader
+
+
+  def self.<<(a_string)
+    urls = java.net.URL[1].new
+    urls[0] = java.net.URL.new("file:" + a_string)
+    @@loader = java.net.URLClassLoader.new(urls, @@loader)
+    ::Truffle::Interop::Java.loader = JavaUtilities.unwrap_java_value(@@loader)
+    self
+  end
+end
+
+$CLASSPATH = RubyClassLoader

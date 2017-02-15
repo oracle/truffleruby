@@ -30,11 +30,26 @@ module JavaUtilities
   Java = ::Truffle::Interop::Java
 
   module ::Truffle::Interop::Java
+
+    @@loader = nil
+
+    def self.loader
+      @@loader
+    end
+
+    def self.loader= a_loader
+      @@loader = a_loader
+    end
+
     def self.invoke_java_method(method, *args)
       e = catch :java do
         return invoke_with_catch(method, :java, *args)
       end
       raise JavaException.new(JavaUtilities.wrap_java_value(e))
+    end
+
+    def self.java_class_by_name(a_name)
+      java_class_by_name_and_loader(a_name, loader)
     end
   end
 

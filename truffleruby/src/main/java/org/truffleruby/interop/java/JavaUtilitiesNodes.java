@@ -52,8 +52,11 @@ public class JavaUtilitiesNodes {
         }
     }
 
-    @CoreMethod(names = "java_class_by_name", isModuleFunction = true, required = 1)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @CoreMethod(names = "java_class_by_name_and_loader", isModuleFunction = true, required = 2)
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "name"),
+            @NodeChild(type = RubyNode.class, value = "loader")
+    })
     public abstract static class JavaClassByNameNode extends CoreMethodNode {
         @CreateCast("name")
         public RubyNode coercetNameToString(RubyNode newName) {
@@ -61,11 +64,14 @@ public class JavaUtilitiesNodes {
         }
 
         @Specialization
-        public Object javaClassByName(String name,
+        public Object javaClassByName(String name, Object classLoader,
                                       @Cached("create()") BranchProfile errorProfile) {
             if (!TruffleOptions.AOT) {
                 try {
-                    Class<?> klass =  Class.forName(name);
+                    if (nil().equals(classLoader)) {
+                        classLoader = null;
+                    }
+                    Class<?> klass =  Class.forName(name, true, (ClassLoader)classLoader);
                     return klass;
                 } catch (Exception e) {
                     errorProfile.enter();
