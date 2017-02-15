@@ -8,7 +8,7 @@
 
 class ArrayJavaProxy < java.lang.Object
   include Enumerable
-  
+
   def each
     (0...size).each do |i|
       yield(self[i])
@@ -37,4 +37,29 @@ class ArrayJavaProxy < java.lang.Object
   def length
     size
   end
+end
+
+class ArrayJavaProxyCreator
+  attr_reader :type
+  attr_reader :dims
+
+  def initialize(type, *dimensions)
+    @type = type
+    @dims = []
+    self[*dimensions]
+  end
+
+  def [](*dimensions)
+    dimensions.each do |d|
+      raise TypeError, "Array dimension must be an integer" unless d.kind_of?(Fixnum)
+      dims << d
+    end
+    self
+  end
+
+  def new
+    java.lang.reflect.Array.new_instance(type, *dims)
+  end
+
+  alias :new_instance :new
 end

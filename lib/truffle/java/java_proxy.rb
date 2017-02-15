@@ -28,5 +28,9 @@ class JavaProxy
 
   def eql?(another)
   end
-  
+
+  def self.[](*dims)
+    ArrayJavaProxyCreator.new(java_class, *dims )
+  end
+
 end
