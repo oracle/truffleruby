@@ -1279,7 +1279,7 @@ module Commands
         raw_sh "git", "clone", "https://github.com/graalvm/graal-core.git"
       end
 
-      if !LINUX
+      if LINUX
         puts "Downloading JDK8 with JVMCI"
         if Dir["#{dir}/jdk1.8.0*"].empty?
           jvmci_releases = "https://github.com/dougxc/openjdk8-jvmci-builder/releases/download"
@@ -1288,7 +1288,7 @@ module Commands
           raw_sh "tar", "xf", "jvmci.tar.gz"
           java_home = Dir["#{dir}/jdk1.8.0*"].sort.first
         end
-      elsif !MAC
+      elsif MAC
         jvmci_version = "jvmci-0.24"
         puts "You need to download manually the latest JVMCI-enabled JDK at"
         puts "http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html"
