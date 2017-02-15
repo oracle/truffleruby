@@ -51,6 +51,6 @@ The [jt workflow tool](https://github.com/graalvm/truffleruby/blob/truffle-head/
 automatically picks up the version compiled by mx and Eclipse oven Maven-compiled files.
 
 ```bash
-$ tool/jt.rb ruby -e 'p RUBY_ENGINE'
-"truffleruby"
+$ tool/jt.rb ruby -e 'p Truffle'
+Truffle
 ```
