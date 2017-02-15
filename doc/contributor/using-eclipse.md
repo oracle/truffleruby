@@ -35,7 +35,7 @@ Create a new workspace in Eclipse (>= Luna).
 We can now import the projects:
 * From the main menu bar, select `File` > `Import...`
 * Select `General` > `Existing Projects into Workspace`
-* Select the `truffleruby` directory as root directory
+* Select this repository as root directory
 * Click `Finish`
 
 You shall be set!
