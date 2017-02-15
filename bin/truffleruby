@@ -1,7 +1,31 @@
 #!/usr/bin/env bash
+# Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 1.0
+# GNU General Public License version 2
+# GNU Lesser General Public License version 2.1
+#
+# Contains code modified from JRuby's jruby.bash and licensed under the same EPL1.0/GPL 2.0/LGPL 2.1
+# used throughout.
+#
 
-bin="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-root="$(dirname "$bin")"
+# get the absolute path of the executable
+SELF_PATH=$(builtin cd -P -- "$(dirname -- "$0")" >/dev/null && pwd -P) && SELF_PATH=$SELF_PATH/$(basename -- "$0")
+
+# resolve symlinks
+while [ -h "$SELF_PATH" ]; do
+    # 1) cd to directory of the symlink
+    # 2) cd to the directory of where the symlink points
+    # 3) get the pwd
+    # 4) append the basename
+    DIR=$(dirname -- "$SELF_PATH")
+    SYM=$(readlink "$SELF_PATH")
+    SELF_PATH=$(cd "$DIR" && cd $(dirname -- "$SYM") && pwd)/$(basename -- "$SYM")
+done
+
+root="$(dirname -- $(dirname -- "$SELF_PATH"))"
 
 set -e
 
