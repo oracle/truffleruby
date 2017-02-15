@@ -51,6 +51,9 @@ lib/truffleruby.jar
 # ruby/spec
 /rubyspec_temp
 
+# jt install graal-core
+/graal
+
 # Tests
 /test/truffle/integration/gem-testing
 
