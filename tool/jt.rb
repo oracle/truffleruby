@@ -709,7 +709,7 @@ module Commands
     when nil
       test_tck
       test_specs('run')
-      # test_mri # TODO (pitr-ch 29-Mar-2016): temporarily disabled since it uses refinements
+      test_mri
       test_integration
       test_gems
       test_ecosystem 'HAS_REDIS' => 'true'
