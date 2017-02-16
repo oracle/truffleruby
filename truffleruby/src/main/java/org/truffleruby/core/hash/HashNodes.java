@@ -1094,33 +1094,23 @@ public abstract class HashNodes {
                 Layouts.HASH.setLastInSequence(hash, null);
             }
 
-            /*
-             * TODO CS 7-Mar-15 this isn't great - we need to remove from the lookup sequence for
-             * which we need the previous entry in the bucket. However we normally get that from the
-             * search result, and we haven't done a search here - we've just taken the first result.
-             * For the moment we'll just do a manual search.
-             */
-
             final Entry[] store = (Entry[]) Layouts.HASH.getStore(hash);
+            final int index = BucketsStrategy.getBucketIndex(first.getHashed(), store.length);
 
-            bucketLoop: for (int n = 0; n < store.length; n++) {
-                Entry previous = null;
-                Entry entry = store[n];
-
-                while (entry != null) {
-                    if (entry == first) {
-                        if (previous == null) {
-                            store[n] = first.getNextInLookup();
-                        } else {
-                            previous.setNextInLookup(first.getNextInLookup());
-                        }
-
-                        break bucketLoop;
+            Entry previous = null;
+            Entry entry = store[index];
+            while (entry != null) {
+                if (entry == first) {
+                    if (previous == null) {
+                        store[index] = first.getNextInLookup();
+                    } else {
+                        previous.setNextInLookup(first.getNextInLookup());
                     }
-
-                    previous = entry;
-                    entry = entry.getNextInLookup();
+                    break;
                 }
+
+                previous = entry;
+                entry = entry.getNextInLookup();
             }
 
             Layouts.HASH.setSize(hash, Layouts.HASH.getSize(hash) - 1);
