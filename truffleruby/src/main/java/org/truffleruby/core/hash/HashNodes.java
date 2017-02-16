@@ -1032,26 +1032,11 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private YieldNode yieldNode;
+        @Child private CallDispatchHeadNode callDefaultNode = DispatchHeadNodeFactory.createMethodCall();
 
-        @Specialization(guards = {"isEmptyHash(hash)", "!hasDefaultValue(hash)", "!hasDefaultBlock(hash)"})
-        public DynamicObject shiftEmpty(DynamicObject hash) {
-            return nil();
-        }
-
-        @Specialization(guards = {"isEmptyHash(hash)", "hasDefaultValue(hash)", "!hasDefaultBlock(hash)"})
-        public Object shiftEmpyDefaultValue(DynamicObject hash) {
-            return Layouts.HASH.getDefaultValue(hash);
-        }
-
-        @Specialization(guards = {"isEmptyHash(hash)", "!hasDefaultValue(hash)", "hasDefaultBlock(hash)"})
-        public Object shiftEmptyDefaultProc(VirtualFrame frame, DynamicObject hash) {
-            if (yieldNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                yieldNode = insert(new YieldNode());
-            }
-
-            return yieldNode.dispatch(frame, Layouts.HASH.getDefaultBlock(hash), hash, nil());
+        @Specialization(guards = "isEmptyHash(hash)")
+        public Object shiftEmpty(VirtualFrame frame, DynamicObject hash) {
+            return callDefaultNode.call(frame, hash, "default", nil());
         }
 
         @Specialization(guards = {"!isEmptyHash(hash)", "isPackedHash(hash)"})
