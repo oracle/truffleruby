@@ -11,7 +11,6 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.interop.OutgoingForeignCallNode;
 import org.truffleruby.interop.OutgoingForeignCallNodeGen;
