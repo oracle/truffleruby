@@ -138,13 +138,13 @@ public abstract class RequireNode extends RubyNode {
 
                     final TruffleObject initFunction = getInitFunction(expandedPath);
 
-                    if (!ForeignAccess.sendIsExecutable(isExecutableNode, frame, initFunction)) {
+                    if (!ForeignAccess.sendIsExecutable(isExecutableNode, initFunction)) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
                         throw new UnsupportedOperationException();
                     }
 
                     try {
-                        ForeignAccess.sendExecute(executeNode, frame, initFunction);
+                        ForeignAccess.sendExecute(executeNode, initFunction);
                     } catch (InteropException e) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
                         throw new JavaException(e);
