@@ -596,8 +596,6 @@ module Commands
     end
 
     if args.delete('--sulong')
-      puts Utilities.find_sulong_options
-      raise 'todo'
       jruby_args.push *Utilities.find_sulong_options
     end
 
@@ -1041,7 +1039,7 @@ module Commands
     end
 
     if args.delete('--sulong')
-      raise 'todo'
+      options.push *Utilities.find_sulong_options.map { |o| "-T#{o}" }
     end
 
     if args.delete('--jdebug')
@@ -1263,7 +1261,7 @@ module Commands
     run_args = []
     
     if args.delete('--sulong')
-      raise 'todo'
+      run_args.push '--sulong'
     end
 
     unless benchmark_ruby
