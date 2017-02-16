@@ -16,6 +16,15 @@ describe "Hash#shift" do
     h.should == {}
   end
 
+  it "calls #default with nil if the Hash is empty" do
+    h = {}
+    def h.default(key)
+      key.should == nil
+      :foo
+    end
+    h.shift.should == :foo
+  end
+
   it "returns nil from an empty hash" do
     {}.shift.should == nil
   end
