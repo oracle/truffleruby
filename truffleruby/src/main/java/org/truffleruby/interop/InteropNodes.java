@@ -328,7 +328,7 @@ public abstract class InteropNodes {
                 return ForeignAccess.sendUnbox(unboxNode, receiver);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
-                throw new JavaException(e);
+                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this, e));
             }
         }
 

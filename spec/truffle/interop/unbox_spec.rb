@@ -27,7 +27,7 @@ describe "Truffle::Interop.unbox" do
   end
   
   it "doesn't work on empty strings" do
-    lambda { Truffle::Interop.unbox('') }.should raise_error(RubyTruffleError)
+    lambda { Truffle::Interop.unbox('') }.should raise_error(ArgumentError)
   end
     
   it "returns the first byte on strings with one byte" do
