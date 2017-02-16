@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.interop.OutgoingForeignCallNode;
 import org.truffleruby.interop.OutgoingForeignCallNodeGen;
@@ -29,7 +30,7 @@ public final class CachedForeignDispatchNode extends CachedDispatchNode {
 
     @Override
     protected boolean guard(Object methodName, Object receiver) {
-        return guardName(methodName) && (receiver instanceof TruffleObject);
+        return guardName(methodName) && !(receiver instanceof DynamicObject) && (receiver instanceof TruffleObject);
     }
 
     @Override
@@ -39,7 +40,11 @@ public final class CachedForeignDispatchNode extends CachedDispatchNode {
             Object methodName,
             DynamicObject blockObject,
             Object[] argumentsObjects) {
-        return doDispatch(frame, (TruffleObject) receiverObject, argumentsObjects);
+        if (guard(methodName, receiverObject)) {
+            return doDispatch(frame, (TruffleObject) receiverObject, argumentsObjects);
+        } else {
+            return next.executeDispatch( frame, receiverObject, methodName, blockObject, argumentsObjects);
+        }
     }
 
     private Object doDispatch(VirtualFrame frame, TruffleObject receiverObject, Object[] arguments) {
