@@ -26,6 +26,10 @@ To use the SVM you need a release of GraalVM, as described in
 $ graalvm-0.20/bin/aot-image --ruby
 ```
 
+This command will take a few minutes to run, and it requires about 6 GB of
+memory so don't run it in an instance or machine with less than 8 GB
+of RAM.
+
 This gives you a native binary that implements Ruby, similar to the MRI or
 Rubinius executables. This binary is subject to the same OTN licence as
 the GraalVM distribution.
