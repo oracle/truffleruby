@@ -399,7 +399,7 @@ test-cexts: ${sulong} ${gem-test-pack} {
   setup: ${sulong.setup} ${gem-test-pack.setup}
 
   run: [
-    ${jt} [test, specs, --graal, ":capi"],
+    ${jt} [test, specs, --sulong, ":capi"],
     ${jt} [test, cexts]
   ]
 }
