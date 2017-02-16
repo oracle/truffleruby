@@ -1,0 +1,1 @@
+slow:Kernel#gem returns true for included gems
