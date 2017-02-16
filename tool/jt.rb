@@ -108,14 +108,6 @@ module Utilities
       vm_args = command_line.split
       vm_args.pop # Drop "-version"
       javacmd = vm_args.shift
-      if Dir.exist?("#{graal_home}/mx.sulong")
-        sulong_dependencies = "#{graal_home}/lib/*"
-        sulong_jars = ["#{graal_home}/build/sulong.jar", "#{graal_home}/build/sulong_options.jar"]
-        nfi_classes = File.expand_path('../graal-core/mxbuild/graal/com.oracle.nfi/bin', graal_home)
-        vm_args << '-cp'
-        vm_args << [nfi_classes, sulong_dependencies, *sulong_jars].join(':')
-        vm_args << '-XX:-UseJVMCIClassLoader'
-      end
       options = []
     else
       raise 'set one of GRAALVM_BIN or GRAAL_HOME in order to use Graal'
@@ -136,6 +128,36 @@ module Utilities
     jar = ENV['GRAAL_JS_JAR']
     return jar if jar
     raise "couldn't find trufflejs.jar - download GraalVM as described in https://github.com/jruby/jruby/wiki/Downloading-GraalVM and find it in there"
+  end
+  
+  def self.find_sulong_options
+    sulong_home = ENV['SULONG_HOME']
+    raise 'set $SULONG_HOME to a built checkout of the Sulong repository' unless sulong_home
+    sulong_home = File.expand_path(sulong_home)
+    mx = find_mx(sulong_home)
+    output = `#{mx} -v -p #{sulong_home} su-run 2>&1`.lines.to_a
+    command_line = output.select { |line| line.include? 'DynamicNativeLibraryPath' }
+    if command_line.size == 1
+      command_line = command_line[0]
+    else
+      $stderr.puts "Error in mx for setting up Sulong:"
+      $stderr.puts output
+      abort
+    end
+    sulong_options = command_line.split
+    options = []
+    until sulong_options.empty?
+      option = sulong_options.shift
+      if option.start_with?('-') && option != '-d64' && !option.start_with?('-Dgraal.')
+        options.push "-J#{option}"
+        if option == '-cp'
+          cp = sulong_options.shift.split(File::PATH_SEPARATOR)
+          cp.delete_if { |p| p.end_with?('truffle-api.jar') }
+          options.push cp.join(File::PATH_SEPARATOR)
+        end
+      end
+    end
+    options
   end
 
   def self.find_sl
@@ -428,6 +450,7 @@ module Commands
           --graal         use Graal (set either GRAALVM_BIN or GRAAL_HOME)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --js            add Graal.js to the classpath (set GRAAL_JS_JAR)
+          --sulong
           --asm           show assembly (implies --graal)
           --server        run an instrumentation server on port 8080
           --igv           make sure IGV is running and dump Graal graphs after partial escape (implies --graal)
@@ -459,7 +482,7 @@ module Commands
       jt test gems                                   tests using gems
       jt test ecosystem [TESTS]                      tests using the wider ecosystem such as bundler, Rails, etc
       jt test cexts [--no-libxml --no-openssl]       run C extension tests
-                                                         (implies --graal, where Graal needs to include Sulong, set SULONG_HOME to a built checkout of Sulong, and set GEM_HOME)
+                                                         (implies --sulong, set SULONG_HOME to a built checkout of Sulong, and set GEM_HOME)
       jt test report :language                       build a report on language specs
                      :core                               (results go into test/target/mspec-html-report)
                      :library
@@ -474,6 +497,7 @@ module Commands
       jt metrics time ...                            how long does it take to run a command, broken down into different phases
       jt benchmark [options] args...                 run benchmark-interface (implies --graal)
           --no-graal              don't imply --graal
+          --sulong
           JT_BENCHMARK_RUBY=ruby  benchmark some other Ruby, like MRI
           note that to run most MRI benchmarks, you should translate them first with normal Ruby and cache the result, such as
               benchmark bench/mri/bm_vm1_not.rb --cache
@@ -490,7 +514,7 @@ module Commands
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled (so JDK 9 EA build) java command (aslo set JVMCI_GRAAL_HOME)
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
-        SULONG_HOME                                  The Sulong source repository, if you want to run cextc
+        SULONG_HOME                                  The Sulong source repository, if you want to run cexts
         GRAAL_JS_JAR                                 The location of trufflejs.jar
         SL_JAR                                       The location of truffle-sl.jar
         LIBXML_HOME, LIBXML_INCLUDE, LIBXML_LIB      The location of libxml2 (the directory containing include etc), and the direct include directory and library file
@@ -569,6 +593,12 @@ module Commands
       jruby_args << '-J-Dgraal.TruffleCompileImmediately=true'
       jruby_args << '-J-Dgraal.TruffleBackgroundCompilation=false'
       jruby_args << '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
+    end
+
+    if args.delete('--sulong')
+      puts Utilities.find_sulong_options
+      raise 'todo'
+      jruby_args.push *Utilities.find_sulong_options
     end
 
     if args.delete('--js')
@@ -817,7 +847,7 @@ module Commands
         cextc dir, true
         name = File.basename(dir)
         next if gem_name == 'globals' # globals is excluded just for running
-        run '--graal', "-I#{dir}/lib", "#{dir}/bin/#{name}", :out => output_file
+        run '--sulong', "-I#{dir}/lib", "#{dir}/bin/#{name}", :out => output_file
         unless File.read(output_file) == File.read("#{dir}/expected.txt")
           abort "c extension #{dir} didn't work as expected"
         end
@@ -842,7 +872,7 @@ module Commands
         cextc gem_root, false, '-Werror=implicit-function-declaration'
 
         next if gem_name == 'psd_native' # psd_native is excluded just for running
-        run '--graal',
+        run '--sulong',
           *dependencies.map { |d| "-I#{ENV['GEM_HOME']}/gems/#{d}/lib" },
           *libs.map { |l| "-I#{JRUBY_DIR}/test/truffle/cexts/#{l}/lib" },
           "#{JRUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root
@@ -1008,6 +1038,10 @@ module Commands
       javacmd, javacmd_options = Utilities.find_graal_javacmd_and_options
       env_vars["JAVACMD"] = javacmd
       options.concat javacmd_options.map { |o| "-T#{o}" }
+    end
+
+    if args.delete('--sulong')
+      raise 'todo'
     end
 
     if args.delete('--jdebug')
@@ -1227,6 +1261,10 @@ module Commands
     benchmark_ruby = ENV['JT_BENCHMARK_RUBY']
 
     run_args = []
+    
+    if args.delete('--sulong')
+      raise 'todo'
+    end
 
     unless benchmark_ruby
       run_args.push '--graal' unless args.delete('--no-graal') || args.include?('list')

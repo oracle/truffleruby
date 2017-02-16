@@ -5,16 +5,16 @@ Set `SULONG_VERSION=3.2` when building.
 
 https://github.com/graalvm/sulong
 
-Then set `SULONG_HOME` and `GRAAL_HOME` environment variables to the Sulong
-repository.
+Then set `SULONG_HOME` environment variables to the Sulong repository.
 
 ```
 $ export SULONG_HOME=.../sulong
-$ export GRAAL_HOME=$SULONG_HOME
 ```
 
-You need LLVM installed. Version 3.3 seems to work best. You can set `JT_CLANG`
-and `JT_OPT` to those binaries if you need to use a non-system version.
+You need LLVM installed. Version 3.3 seems to work best (3.2, which is the
+compatibility we've set, isn't available easily on macOS). You can set
+`JT_CLANG` and `JT_OPT` to those binaries if you need to use a non-system
+version.
 
 You can now build the C extension support. Building the OpenSSL C extension is
 incomplete, so most people probably want to disable that.
