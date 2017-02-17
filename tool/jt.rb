@@ -520,6 +520,7 @@ module Commands
         LIBXML_HOME, LIBXML_INCLUDE, LIBXML_LIB      The location of libxml2 (the directory containing include etc), and the direct include directory and library file
         OPENSSL_HOME, OPENSSL_INCLUDE, OPENSSL_LIB               ... OpenSSL ...
         JT_CLANG, JT_OPT                             LLVM binaries to use
+        AOT_BIN                                      TruffleRuby/SVM executable
     TXT
   end
 
