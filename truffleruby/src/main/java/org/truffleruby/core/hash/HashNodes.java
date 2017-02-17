@@ -450,8 +450,11 @@ public abstract class HashNodes {
         @Specialization(guards = "isPackedHash(hash)")
         public DynamicObject eachPackedArray(VirtualFrame frame, DynamicObject hash, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
+            final Object[] originalStore = (Object[]) Layouts.HASH.getStore(hash);
 
-            final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
+            // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
+            final int size = Layouts.HASH.getSize(hash);
+            final Object[] store = PackedArrayStrategy.copyStore(getContext(), originalStore);
 
             int count = 0;
 
@@ -461,7 +464,7 @@ public abstract class HashNodes {
                         count++;
                     }
 
-                    if (n < Layouts.HASH.getSize(hash)) {
+                    if (n < size) {
                         yieldPair(frame, block, PackedArrayStrategy.getKey(store, n), PackedArrayStrategy.getValue(store, n));
                     }
                 }
