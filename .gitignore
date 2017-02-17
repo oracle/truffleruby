@@ -87,10 +87,13 @@ lib/ruby/gems/2.3.0/specifications/*
 !lib/ruby/gems/2.3.0/specifications/test-unit-3.1.5.gemspec
 !lib/ruby/gems/2.3.0/specifications/net-telnet-0.1.1.gemspec
 
-# Lib bin
-lib/bin/**
-!lib/bin/gem
-!lib/bin/irb
-!lib/bin/rake
-!lib/bin/rdoc
-!lib/bin/ri
+# Bin directory
+bin/*
+!bin/gem
+!bin/irb
+!bin/rake
+!bin/rdoc
+!bin/ri
+!bin/ruby
+!bin/truffleruby
+!bin/testrb

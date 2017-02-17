@@ -33,7 +33,7 @@
 #
 
 module RbConfig
-  
+
   host_os = Truffle::System.host_os
   host_cpu = Truffle::System.host_cpu
 
@@ -122,7 +122,7 @@ module RbConfig
 
   if ruby_home
     libdir = "#{ruby_home}/lib"
-    bindir = "#{libdir}/bin"
+    bindir = "#{ruby_home}/bin"
     prefix = ruby_home
     exec_prefix = prefix
     libdir =  "#{exec_prefix}/lib"

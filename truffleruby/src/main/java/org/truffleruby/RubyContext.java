@@ -239,7 +239,7 @@ public class RubyContext extends ExecutionContext {
             }
         }
 
-        Log.LOGGER.config("home not explicitly set, and couldn't determine it from the source of the Java classfiles or the JRuby launcher");
+        Log.LOGGER.config("home not explicitly set, and couldn't determine it from the source of the Java classfiles or the TruffleRuby launcher");
 
         return null;
     }

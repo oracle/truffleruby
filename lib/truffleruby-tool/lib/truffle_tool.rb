@@ -610,7 +610,8 @@ class TruffleTool
 
     if @options[:setup][:bundler]
       execute_cmd([*([{ 'GEM_HOME' => @options[:setup][:offline_gem_path].to_s,
-                        'GEM_PATH' => @options[:setup][:offline_gem_path].to_s }] if offline),
+                        'GEM_PATH' => @options[:setup][:offline_gem_path].to_s,
+                        'PATH'     => [@options[:setup][:offline_gem_path].join('bin'), ENV['PATH']].join(':') }] if offline),
                    TRUFFLERUBY_BIN.to_s,
                    '-r', 'bundler-workarounds',
                    *%w[-S bundle],
