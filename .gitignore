@@ -40,9 +40,9 @@ test/truffle/cexts/**/mkmf.log
 lib/truffleruby.jar
 
 # mx
-/mx.jruby/*.pyc
-/mx.jruby/env
-/mx.jruby/eclipse-launches
+/mx.truffleruby/*.pyc
+/mx.truffleruby/env
+/mx.truffleruby/eclipse-launches
 /mxbuild
 /mx.imports
 /RUBY.dist

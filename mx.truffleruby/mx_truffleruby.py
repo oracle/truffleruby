@@ -13,7 +13,7 @@ from os.path import join
 import mx
 import mx_unittest
 
-_suite = mx.suite('jruby')
+_suite = mx.suite('truffleruby')
 rubyDists = ['RUBY', 'RUBY-TEST']
 
 # Project classes
@@ -44,7 +44,7 @@ class TruffleRubyDocsProject(ArchiveProject):
 # Commands
 
 def ruby_tck(args):
-    mx_unittest.unittest(['--verbose', '--suite', 'jruby'])
+    mx_unittest.unittest(['--verbose', '--suite', 'truffleruby'])
 
 def deploy_binary_if_truffle_head(args):
     """If the active branch is 'truffle-head', deploy binaries for the primary suite to remote maven repository."""
