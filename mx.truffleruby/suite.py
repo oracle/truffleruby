@@ -38,13 +38,13 @@ def mavenLib(mavenDep, sha1, sourceSha1, mavenLibLicense):
 
 suite = {
     "mxversion": "5.59.0",
-    "name": "jrubytruffle",
+    "name": "truffleruby",
 
     "imports": {
         "suites": [
             {
                 "name": "truffle",
-                # Must be the same as in truffle/pom.rb (except for the -SNAPSHOT part only in pom.rb, and there we can use a release name)
+                # Must be the same as in truffle/pom.xml (except for the -SNAPSHOT part only in pom.xml, and there we can use a release name)
                 "version": "c02973969fb144b533ae0e53187674cb04c2aacc",
                 "urls": [
                     {"url": "https://github.com/graalvm/truffle.git", "kind": "git"},
