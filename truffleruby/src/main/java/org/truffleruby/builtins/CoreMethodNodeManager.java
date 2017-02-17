@@ -203,15 +203,11 @@ public class CoreMethodNodeManager {
         if (!isSafe(context, method.unsafe())) {
             node = new UnsafeNode();
         } else {
-            node = transformResult(method, methodNode);
+            node = transformResult(context, method, methodNode);
             node = Translator.sequence(sourceIndexLength, Arrays.asList(checkArity, node));
         }
 
-        RubyNode bodyNode = new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
-
-        if (context.getOptions().CHAOS) {
-            bodyNode = ChaosNodeGen.create(bodyNode);
-        }
+        final RubyNode bodyNode = new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
 
         final RubyRootNode rootNode = new RubyRootNode(context, sourceSection, null, sharedMethodInfo, bodyNode, false);
 
@@ -314,7 +310,7 @@ public class CoreMethodNodeManager {
         return argument;
     }
 
-    private static RubyNode transformResult(CoreMethod method, RubyNode node) {
+    private static RubyNode transformResult(RubyContext context, CoreMethod method, RubyNode node) {
         if (!method.enumeratorSize().isEmpty()) {
             assert !method.returnsEnumeratorIfNoBlock(): "Only one of enumeratorSize or returnsEnumeratorIfNoBlock can be specified";
             // TODO BF 6-27-2015 Handle multiple method names correctly
@@ -328,6 +324,10 @@ public class CoreMethodNodeManager {
             final boolean taintFromSelf = method.taintFrom() == 0;
             final int taintFromArg = taintFromSelf ? -1 : method.taintFrom() - 1;
             node = new TaintResultNode(taintFromSelf, taintFromArg, node);
+        }
+
+        if (context.getOptions().CHAOS) {
+            node = ChaosNodeGen.create(node);
         }
 
         return node;
