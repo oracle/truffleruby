@@ -228,7 +228,7 @@ suite = {
 
         # ------------- Distributions -------------
 
-        "RUBY": {
+        "TRUFFLERUBY": {
             "mainClass": "org.truffleruby.Main",
             "dependencies": [
                 "truffleruby",
@@ -243,7 +243,7 @@ suite = {
         },
 
         # Set of extra files to extract to run Ruby
-        "RUBY-ZIP": {
+        "TRUFFLERUBY-ZIP": {
             "native": True, # Not Java
             "relpath": True,
             "dependencies": [
@@ -252,13 +252,13 @@ suite = {
                 "truffleruby-doc",
             ],
             "overlaps": [
-                "RUBY",
+                "TRUFFLERUBY",
             ],
             "description": "TruffleRuby libraries",
             "license": ["EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib"],
         },
 
-        "RUBY-TEST": {
+        "TRUFFLERUBY-TEST": {
             "dependencies": [
                 "truffleruby-test",
                 "truffleruby-test-ruby",
@@ -268,7 +268,7 @@ suite = {
                 "mx:JUNIT"
             ],
             "distDependencies": [
-                "RUBY",
+                "TRUFFLERUBY",
                 "truffle:TRUFFLE_TCK"
             ],
             "license": "EPL-1.0",

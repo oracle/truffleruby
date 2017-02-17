@@ -72,7 +72,7 @@ CP=""
 
 if [ $on_graalvm = false ]; then
 
-    mx_jar="$root/mxbuild/dists/ruby.jar"
+    mx_jar="$root/mxbuild/dists/truffleruby.jar"
     mvn_jar="$root/lib/truffleruby.jar"
     mx_time=$(mtime "$mx_jar")
     mvn_time=$(mtime "$mvn_jar")
