@@ -203,8 +203,8 @@ public class CoreMethodNodeManager {
         if (!isSafe(context, method.unsafe())) {
             node = new UnsafeNode();
         } else {
-            node = Translator.sequence(sourceIndexLength, Arrays.asList(checkArity, methodNode));
-            node = transformResult(method, node);
+            node = transformResult(method, methodNode);
+            node = Translator.sequence(sourceIndexLength, Arrays.asList(checkArity, node));
         }
 
         RubyNode bodyNode = new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
