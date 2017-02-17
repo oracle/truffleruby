@@ -45,8 +45,8 @@ lib/truffleruby.jar
 /mx.truffleruby/eclipse-launches
 /mxbuild
 /mx.imports
-/RUBY.dist
-/RUBY-TEST.dist
+/TRUFFLERUBY.dist
+/TRUFFLERUBY-TEST.dist
 
 # ruby/spec
 /rubyspec_temp

@@ -147,7 +147,7 @@ sulong: ${labsjdk8} {
     [mx, build],
     [cd, ../main],
     ${jt} [build, cexts],
-    [mx, build], # copy compiled libraries to RUBY-ZIP
+    [mx, build], # copy compiled libraries to TRUFFLERUBY-ZIP
   ]
 }
 

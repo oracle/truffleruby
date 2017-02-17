@@ -14,7 +14,7 @@ import mx
 import mx_unittest
 
 _suite = mx.suite('truffleruby')
-rubyDists = ['RUBY', 'RUBY-TEST']
+rubyDists = ['TRUFFLERUBY', 'TRUFFLERUBY-TEST']
 
 # Project classes
 
