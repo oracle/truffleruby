@@ -32,5 +32,5 @@ From the IntelliJ launcher, select `Open` and navigate to this repository root.
 
 You shall be set!
 There should be now 2 projects in your workspace:
-* `jruby-truffle`
-* `jruby-truffle-test`
+* `truffleruby`
+* `truffleruby-test`
