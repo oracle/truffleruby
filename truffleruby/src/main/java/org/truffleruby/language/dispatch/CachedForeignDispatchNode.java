@@ -9,11 +9,14 @@
  */
 package org.truffleruby.language.dispatch;
 
+import static org.truffleruby.language.RubyGuards.isForeignObject;
+
+import org.truffleruby.interop.OutgoingForeignCallNode;
+import org.truffleruby.interop.OutgoingForeignCallNodeGen;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.interop.OutgoingForeignCallNode;
-import org.truffleruby.interop.OutgoingForeignCallNodeGen;
 
 public final class CachedForeignDispatchNode extends CachedDispatchNode {
 
@@ -29,7 +32,7 @@ public final class CachedForeignDispatchNode extends CachedDispatchNode {
 
     @Override
     protected boolean guard(Object methodName, Object receiver) {
-        return guardName(methodName) && !(receiver instanceof DynamicObject) && (receiver instanceof TruffleObject);
+        return guardName(methodName) && isForeignObject(receiver);
     }
 
     @Override
@@ -42,7 +45,7 @@ public final class CachedForeignDispatchNode extends CachedDispatchNode {
         if (guard(methodName, receiverObject)) {
             return doDispatch(frame, (TruffleObject) receiverObject, argumentsObjects);
         } else {
-            return next.executeDispatch( frame, receiverObject, methodName, blockObject, argumentsObjects);
+            return next.executeDispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
         }
     }
 
