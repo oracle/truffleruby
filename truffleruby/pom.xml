@@ -12,8 +12,7 @@
     <maven.test.skip>true</maven.test.skip>
     
     <!-- Must be the same as in mx.jruby/suite.py (except for the -SNAPSHOT part only in pom.rb, and there we can use a release name) -->
-    <!-- This version of Truffle isn't on Maven due to a bug - you'll have to build and install it (mx maven-install) yourself, and it doesn't have a -SNAPSHOT suffix -->
-    <truffle.version>bedd07ffe41330aaf4cb50c2a8a38b0af95545b4</truffle.version>
+    <truffle.version>16e66aa3231ee95b9dfe2f0cc8a32cfb63d86025-SNAPSHOT</truffle.version>
   
   </properties>
   <repositories>
@@ -85,11 +84,6 @@
       <groupId>org.jruby.jcodings</groupId>
       <artifactId>jcodings</artifactId>
       <version>1.0.18</version>
-    </dependency>
-    <dependency>
-      <groupId>jline</groupId>
-      <artifactId>jline</artifactId>
-      <version>2.11</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
