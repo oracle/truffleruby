@@ -152,7 +152,7 @@ suite = {
 
         # ------------- Projects -------------
 
-        "jruby-truffle": {
+        "truffleruby": {
             "dir": "truffleruby/src/main",
             "sourceDirs": ["java"],
             "dependencies": [
@@ -171,23 +171,23 @@ suite = {
             ],
             "annotationProcessors": ["truffle:TRUFFLE_DSL_PROCESSOR"],
             "javaCompliance": "1.8",
-            "workingSets": "JRubyTruffle",
+            "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
             "license": ["EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0"],
         },
 
-        "jruby-truffle-ruby": {
+        "truffleruby-core": {
             "class": "ArchiveProject",
             "outputDir": "truffleruby/src/main/ruby",
             "prefix": "truffleruby",
             "license": ["EPL-1.0", "BSD-new"],
         },
 
-        "jruby-truffle-test": {
+        "truffleruby-test": {
             "dir": "truffleruby/src/test",
             "sourceDirs": ["java"],
             "dependencies": [
-                "jruby-truffle",
+                "truffleruby",
                 "truffle:TRUFFLE_TCK",
                 "mx:JUNIT",
             ],
@@ -196,28 +196,28 @@ suite = {
             "license": "EPL-1.0",
         },
 
-        "jruby-truffle-ruby-test": {
+        "truffleruby-test-ruby": {
             "class": "ArchiveProject",
             "outputDir": "truffleruby/src/test/ruby",
             "prefix": "src/test/ruby",
             "license": "EPL-1.0",
         },
 
-        "jruby-lib-ruby": {
+        "truffleruby-lib": {
             "class": "ArchiveProject",
             "outputDir": "lib",
             "prefix": "lib",
             "license": ["EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib"],
         },
 
-        "jruby-bin-ruby": {
+        "truffleruby-bin": {
             "class": "ArchiveProject",
             "outputDir": "bin",
             "prefix": "bin",
             "license": ["EPL-1.0", "GPLv2", "LGPLv21"],
         },
 
-        "jruby-docs": {
+        "truffleruby-doc": {
             "class": "TruffleRubyDocsProject",
             "outputDir": "",
             "prefix": "",
@@ -229,16 +229,16 @@ suite = {
         # ------------- Distributions -------------
 
         "RUBY": {
-            "mainClass": "org.jruby.Main",
+            "mainClass": "org.truffleruby.Main",
             "dependencies": [
-                "jruby-truffle",
-                "jruby-truffle-ruby",
+                "truffleruby",
+                "truffleruby-core",
             ],
             "distDependencies": [
                 "truffle:TRUFFLE_API",
                 "truffle:TRUFFLE_DEBUG",
             ],
-            "description": "JRuby+Truffle",
+            "description": "TruffleRuby",
             "license": ["EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0"],
         },
 
@@ -247,21 +247,21 @@ suite = {
             "native": True, # Not Java
             "relpath": True,
             "dependencies": [
-                "jruby-bin-ruby",
-                "jruby-lib-ruby",
-                "jruby-docs",
+                "truffleruby-bin",
+                "truffleruby-lib",
+                "truffleruby-doc",
             ],
             "overlaps": [
                 "RUBY",
             ],
-            "description": "JRuby+Truffle Native Libs",
+            "description": "TruffleRuby libraries",
             "license": ["EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib"],
         },
 
         "RUBY-TEST": {
             "dependencies": [
-                "jruby-truffle-test",
-                "jruby-truffle-ruby-test",
+                "truffleruby-test",
+                "truffleruby-test-ruby",
             ],
             "exclude" : [
                 "mx:HAMCREST",

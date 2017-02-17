@@ -40,8 +40,8 @@ We can now import the projects:
 
 You shall be set!
 There should be now 4 projects in your workspace:
-* `jruby-truffle`
-* `jruby-truffle-test`
+* `truffleruby`
+* `truffleruby-test`
 * `RUBY-TEST.dist`
 * `RUBY.dist`
 
