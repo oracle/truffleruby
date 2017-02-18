@@ -131,5 +131,5 @@ We do not have any plans at the moment to provide support for Rubinius'
 extensions to Ruby.
 
 In some cases we provide some of the classes available under the `Rubinius`
-module for historical reasons, but these may behave differently or be removed
-in future versions.
+module for historical reasons and for compatibility with the RubySL gems,
+but these may behave differently or be removed in future versions.
