@@ -611,10 +611,9 @@ class TruffleTool
     if @options[:setup][:bundler]
       execute_cmd([*([{ 'GEM_HOME' => @options[:setup][:offline_gem_path].to_s,
                         'GEM_PATH' => @options[:setup][:offline_gem_path].to_s,
-                        'PATH'     => [@options[:setup][:offline_gem_path].join('bin'), ENV['PATH']].join(':') }] if offline),
+                      }] if offline),
                    TRUFFLERUBY_BIN.to_s,
-                   '-r', 'bundler-workarounds',
-                   *%w[-S bundle],
+                   *(offline ? @options[:setup][:offline_gem_path].join('bin', 'bundle').to_s : %w[-S bundle]),
                    *bundle_options,
                    'install',
                    *(%w(--local --no-prune) if offline),
@@ -687,7 +686,9 @@ class TruffleTool
                   {}).
         merge(@options[:run][:offline] ?
                   { 'GEM_HOME' => @options[:run][:offline_gem_path].to_s,
-                    'GEM_PATH' => @options[:run][:offline_gem_path].to_s } :
+                    'GEM_PATH' => @options[:run][:offline_gem_path].to_s,
+                    'PATH'     => [@options[:run][:offline_gem_path].join('bin').to_s, ENV['PATH']].join(':')
+                  } :
                   {}).
         merge({ 'NO_FORK' => 'true' })
 

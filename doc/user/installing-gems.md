@@ -10,19 +10,19 @@ Ensure you have ruby managers configured properly, see
 
 Now install Bundler:
 
-> **Note:** Bundler `1.14.x` is not yet supported by bundler-workarounds, 
+> **Note:** Bundler `1.14.x` is not yet supported, 
 > please use 1.13 in the meanwhile.
 
-    ruby -r bundler-workarounds -S gem install bundler -v 1.13.7
+    gem install bundler -v 1.13.7
 
-You can run bundle `install` and `update` like this:
+You can run bundle `install` and `update`:
 
-    ruby -r bundler-workarounds -S bundle install
-    ruby -r bundler-workarounds -S bundle update
+    bundle install
+    bundle update
     
-`bundle exec` does not need the `bundler-workarounds` loaded. 
+and `bundle exec`: 
     
-    ruby -S bundle exec bin/rails server
+    bundle exec bin/rails server
 
 Next step: [Playing Optcarrot](optcarrot.md),
 [Compatibility with Rails](README.md#do-you-run-rails)

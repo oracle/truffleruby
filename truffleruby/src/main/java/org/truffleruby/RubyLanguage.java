@@ -148,8 +148,12 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         return super.findContext(node);
     }
 
+    public static String getTruffleRubyVersion() {
+        return System.getProperty("graalvm.version", "0.SNAPSHOT");
+    }
+
     public static String getVersionString() {
-        final String version = System.getProperty("graalvm.version", "SNAPSHOT");
+        final String version = getTruffleRubyVersion();
 
         return String.format(
                 "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",

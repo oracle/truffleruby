@@ -211,7 +211,7 @@ end
 rails_basic = { setup: { without: %w(db job) },
                 run:   { environment: { 'N' => 1 } } }
 
-use_bundler_environment = { run: { require: %w(bundler-workarounds bundler/setup) } }
+use_bundler_environment = { run: { require: %w(bundler/setup) } }
 
 class TruffleTool::CIEnvironment
   def rails_ci(has_exclusions: false, exclusion_pattern: nil, require_pattern: 'test/**/*_test.rb')

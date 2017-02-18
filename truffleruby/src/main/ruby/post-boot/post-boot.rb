@@ -38,6 +38,8 @@ if Truffle::Boot.rubygems_enabled?
       end
     end
 
+    require 'truffle/patching'
+
     if Truffle::Boot.did_you_mean_enabled?
       begin
         gem 'did_you_mean'
