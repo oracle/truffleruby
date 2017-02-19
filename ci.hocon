@@ -297,14 +297,14 @@ chunky-benchmarks: {
   run: ${bench.setup} [
     ${bench.cmd} [chunky]
   ] ${post-process-and-upload-results}
-  timelimit: "00:40:00"
+  timelimit: "01:00:00"
 }
 
 psd-benchmarks: {
   run: ${bench.setup} [
     ${bench.cmd} [psd]
   ] ${post-process-and-upload-results}
-  timelimit: "01:15:00"
+  timelimit: "02:00:00"
 }
 
 asciidoctor-benchmarks: {
