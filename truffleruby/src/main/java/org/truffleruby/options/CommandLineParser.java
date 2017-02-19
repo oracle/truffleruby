@@ -466,17 +466,19 @@ public class CommandLineParser {
         throw mee;
     }
 
-    @SuppressWarnings("fallthrough")
     private void processEncodingOption(String value) {
         List<String> encodings = StringSupport.split(value, ':', 3);
-        switch (encodings.size()) {
-            case 3:
-                throw new MainExitException(1, "extra argument for -E: " + encodings.get(2));
-            case 2:
-                config.getOptions().put(OptionsCatalog.INTERNAL_ENCODING.getName(), encodings.get(1));
-            case 1:
-                config.getOptions().put(OptionsCatalog.EXTERNAL_ENCODING.getName(), encodings.get(1));
-            // Zero is impossible
+
+        if (encodings.size() >= 3) {
+            throw new MainExitException(1, "extra argument for -E: " + encodings.get(2));
+        }
+
+        if (encodings.size() >= 2) {
+            config.getOptions().put(OptionsCatalog.INTERNAL_ENCODING.getName(), encodings.get(1));
+        }
+
+        if (encodings.size() >= 1) {
+            config.getOptions().put(OptionsCatalog.EXTERNAL_ENCODING.getName(), encodings.get(1));
         }
     }
 
