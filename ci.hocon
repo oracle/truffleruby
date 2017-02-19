@@ -434,7 +434,7 @@ builds: [
   {name: ruby-test-specs-language-java9} ${common} ${labsjdk9} ${gate-caps} {run: [[bash, -c, "JAVA_HOME=$JAVA9_HOME PATH=$JAVA9_HOME/bin:$PATH ruby tool/jt.rb test fast"]]},
 
   {name: ruby-test-compiler-graal-core} ${common} ${graal-core} ${gate-caps} {run: [${jt} [test, compiler]]},
-  {//name: ruby-test-compiler-graal-enterprise} ${common} ${graal-enterprise} ${gate-caps} {run: [${jt} [test, compiler]]},
+  //{name: ruby-test-compiler-graal-enterprise} ${common} ${graal-enterprise} ${gate-caps} {run: [${jt} [test, compiler]]},
   {name: ruby-test-compiler-graal-vm-snapshot} ${common} ${graal-vm-snapshot} ${gate-caps} {run: [${jt} [test, compiler]]},
 
   {name: ruby-metrics-truffle} ${common} ${no-graal} ${bench-caps} ${truffleruby} ${metrics},
