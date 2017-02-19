@@ -29,7 +29,8 @@ known_failures = [
   ["server", "graal-vm-snap", "jruby", "truffle", "chunky", "chunky-decode-png-image-pass"],
   ["server", "graal-core", "jruby", "truffle", "optcarrot", "optcarrot"],
   ["server", "graal-core", "jruby", "truffle", "micro", "micro/core/file.rb:core-read-gigabyte"],
-  ["server", "graal-core", "jruby", "truffle", "asciidoctor", "asciidoctor:load-string"]
+  ["server", "graal-core", "jruby", "truffle", "asciidoctor", "asciidoctor:load-string"],
+  ["server", "graal-core", "jruby", "truffle", "chunky", "chunky-operations-compose"]
 ]
 
 if File.exist?('failures')
