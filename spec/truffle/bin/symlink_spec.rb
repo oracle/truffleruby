@@ -15,7 +15,7 @@ describe "bin/ruby" do
     require "tmpdir"
     Dir.mktmpdir do |path|
       Dir.chdir(path) do
-        `ln -s #{Truffle::Boot.ruby_home}/bin/ruby linktoruby`
+        `ln -s #{RbConfig.ruby} linktoruby`
         `./linktoruby --version`.should include("truffleruby")
       end
     end
