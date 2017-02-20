@@ -18,4 +18,5 @@ if ARGV.first
   end
 end
 
-load Gem.activate_bin_path('rdoc', 'ri', version)
+gem 'rdoc', version
+load Gem.bin_path('rdoc', 'rdoc', version)

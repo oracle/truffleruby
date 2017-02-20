@@ -18,4 +18,5 @@ if ARGV.first
   end
 end
 
-load Gem.activate_bin_path('rake', 'rake', version)
+gem 'rake', version
+load Gem.bin_path('rake', 'rake', version)
