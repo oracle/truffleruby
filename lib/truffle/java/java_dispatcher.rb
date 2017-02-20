@@ -86,13 +86,27 @@ module JavaUtilities
     METHODHANDLE_TYPE = Java.get_java_method(
       JAVA_METHODHANDLE_CLASS, "type", false, JAVA_METHODTYPE_CLASS);
     METHODHANDLE_VARARGS = Java.get_java_method(
-      JAVA_METHODHANDLE_CLASS, "isVarargsCollector", false, JAVA_PRIM_BOOLEAN_CLASS);
+      JAVA_METHODHANDLE_CLASS, "isVarargsCollector", false, JAVA_PRIM_BOOLEAN_CLASS)
+    METHODHANDLE_AS_VARARGS = Java.get_java_method(
+      JAVA_METHODHANDLE_CLASS, "asVarargsCollector", false, JAVA_METHODHANDLE_CLASS, JAVA_CLASS_CLASS)
+    METHODHANDLE_AS_TYPE = Java.get_java_method(
+        JAVA_METHODHANDLE_CLASS, "asType", false, JAVA_METHODHANDLE_CLASS, JAVA_METHODTYPE_CLASS)
+    METHODHANDLES_CAST_ARGS = Java.get_java_method(
+      JAVA_METHODHANDLES_CLASS, "explicitCastArguments", true,
+      JAVA_METHODHANDLE_CLASS, JAVA_METHODHANDLE_CLASS, JAVA_METHODTYPE_CLASS)
+    METHODTYPE_METHODTYPE = Java.invoke_java_method(
+      METHODHANDLE_AS_VARARGS,
+      Java.get_java_method(
+        JAVA_METHODTYPE_CLASS, "methodType", true, JAVA_METHODTYPE_CLASS, JAVA_CLASS_CLASS, JAVA_CLASS_ARRAY),
+      JAVA_CLASS_ARRAY)
     METHODTYPE_PARAMETERS = Java.get_java_method(
       JAVA_METHODTYPE_CLASS, "parameterArray", false, JAVA_CLASS_ARRAY)
     METHODTYPE_PARAM_COUNT = Java.get_java_method(
       JAVA_METHODTYPE_CLASS, "parameterCount", false, JAVA_PRIM_INT_CLASS)
     METHODTYPE_RETURN_TYPE = Java.get_java_method(
       JAVA_METHODTYPE_CLASS, "returnType", false, JAVA_CLASS_CLASS)
+    METHODTYPE_UNWRAP = Java.get_java_method(
+      JAVA_METHODTYPE_CLASS, "unwrap", false, JAVA_METHODTYPE_CLASS)
     CLASS_IS_ASSIGNABLE_FROM = Java.get_java_method(
       JAVA_CLASS_CLASS, "isAssignableFrom", false, JAVA_PRIM_BOOLEAN_CLASS, JAVA_CLASS_CLASS)
 
@@ -124,40 +138,33 @@ module JavaUtilities
     def self.method_return_type(m)
       Java.invoke_java_method(
         METHODTYPE_RETURN_TYPE,
-        JAVA.invoke_java_method(METHODHANDLE_TYPE, m))
+        Java.invoke_java_method(METHODHANDLE_TYPE, m))
     end
 
-    # Primitive and boxes types needed for checking compatibility
+    def self.method_exact_cast(m, return_type, param_types)
+      Java.invoke_java_method()
+    end
 
-    JAVA_INTEGER_CLASS = Java.java_class_by_name("java.lang.Integer")
-    JAVA_DOUBLE_CLASS = Java.java_class_by_name("java.lang.Double")
-
-    def self.java_type_compatible(method_type, arg_type)
-      if :fixnum == arg_type
-        Java.java_refs_equal?(method_type, JavaUtilities::JAVA_OBJECT_CLASS) ||
-          Java.java_refs_equal?(method_type, JavaUtilities::JAVA_INTEGER_CLASS) ||
-          Java.java_refs_equal?(method_type, JavaUtilities::JAVA_LONG_CLASS) ||
-          Java.java_refs_equal?(method_type, JavaUtilities::JAVA_PRIM_INT_CLASS) ||
-          Java.java_refs_equal?(method_type, JavaUtilities::JAVA_PRIM_LONG_CLASS)
-      elsif :float == arg_type
-        Java.java_refs_equal?(method_type, JavaUtilities::JAVA_OBJECT_CLASS) ||
-          Java.java_refs_equal?(method_type, JavaUtilities::JAVA_DOUBLE_CLASS) ||
-          Java.java_refs_equal?(method_type, JavaUtilities::JAVA_DBL_CLASS)
-      elsif :boolean == arg_type
-        Java.java_refs_equal?(method_type, JavaUtilities::JAVA_OBJECT_CLASS) ||
-          Java.java_refs_equal?(method_type, JavaUtilities::JAVA_BOOLEAN_CLASS) ||
-          Java.java_refs_equal?(method_type, JavaUtilities::JAVA_PRIM_BOOLEAN_CLASS)        
-      else
-        Java.invoke_java_method(
-          CLASS_IS_ASSIGNABLE_FROM, method_type, arg_type)
+    def self.widen_method(m)
+      return_type = JavaDispatcher::method_return_type(m)
+      mt = Java.invoke_java_method(METHODHANDLE_TYPE, m)
+      uwmt = Java.invoke_java_method(METHODTYPE_UNWRAP, mt)
+      m = Java.invoke_java_method(METHODHANDLE_AS_TYPE, m, uwmt)
+      params = Java.invoke_java_method(METHODTYPE_PARAMETERS, uwmt)
+      rt = Java.invoke_java_method(METHODTYPE_RETURN_TYPE, uwmt)
+      params_size = JavaUtilities.java_array_size(params)
+      new_params = Array.new(params_size)
+      (0...params_size).each do |i|
+        p = JavaUtilities.java_array_get(params, i)
+        wt = WideningType::PrimitiveTypes[p]
+        if wt != nil
+          new_params[i] = wt.wide_type.value_class
+        else
+          new_params[i] = p
+        end
       end
+      new_mt = Java.invoke_java_method(METHODTYPE_METHODTYPE, rt, *new_params)
+      Java.invoke_java_method(METHODHANDLES_CAST_ARGS, m, new_mt)
     end
-
-    def self.types_compatible(method_types, arg_types)
-      arg_types.zip(method_types).reduce(true) do |res, x|
-        res && java_type_compatible(x[1], x[0])
-      end
-    end
-
   end
 end

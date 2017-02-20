@@ -151,13 +151,53 @@ module JavaUtilities
     end
   end
 
+  class WideningType
+    attr_reader :value_class
+    attr_reader :boxed_class
+    attr_reader :wide_type
+
+    def initialize(value_class, boxed_class, wide_type=nil)
+      @value_class = value_class
+      @boxed_class = boxed_class
+      if wide_type != nil
+        @wide_type = wide_type
+      else
+        @wide_type = self
+      end
+    end
+
+    PrimitiveTypes = ClassCache.new
+  end
+
+  begin
+    types = { "java.lang.Integer" => "java.lang.Integer",
+              "java.lang.Byte" => "java.lang.Integer",
+              "java.lang.Character" => "java.lang.Integer",
+              "java.lang.Short" => "java.lang.Integer",
+              "java.lang.Double" => "java.lang.Double",
+              "java.lang.Float" => "java.lang.Double" }
+    temp_hash = {}
+    types.each do |t, w|
+      java_type = Java.java_class_by_name(t)
+      prim_type = Java.invoke_java_method(
+        FIELD_GET, Java.invoke_java_method(
+          CLASS_GET_FIELD, java_type, Java.to_java_string("TYPE")),
+        nil)
+      wide_type = temp_hash[w]
+      p "Will widen #{t} to #{w}" if wide_type != nil
+      widening_type = WideningType.new(prim_type, java_type, wide_type)
+      temp_hash[t] = widening_type
+      WideningType::PrimitiveTypes.put_if_absent(prim_type,  widening_type)
+    end
+  end
+
   # We'll want to populate the common primitive and boxed types
   begin
-    integer_types = { "java.lang.Byte" => -2**7...2**7,
-                      "java.lang.Character" => 0...2**16,
-                      "java.lang.Short" => -2**15...2**15,
+    integer_types = { "java.lang.Long" => -2**63...2**63,
                       "java.lang.Integer" => -2**31...2**31,
-                      "java.lang.Long" => -2**63...2**63 }
+                      "java.lang.Byte" => -2**7...2**7,
+                      "java.lang.Character" => 0...2**16,
+                      "java.lang.Short" => -2**15...2**15 }
     integer_types.each do |t|
       java_type = Java.java_class_by_name(t[0])
       prim_type = Java.invoke_java_method(
@@ -200,29 +240,29 @@ module JavaUtilities
 
   end
 
+  class Parameters
+    def initialize( params, var_args)
+      @params = params.map { |t| Parameter.for_type(t) }
+      @var_args
+    end
+
+    def [](index)
+      if ! @var_args || index < @params.size - 1
+        @params[index]
+      else
+        @params.last
+      end
+    end
+  end
+
   class Callable
     attr_reader :mh
     attr_reader :params
 
-    class Parameters
-      def initialize( params, var_args)
-        @params = params.map { |t| Parameter.for_type(t) }
-        @var_args
-      end
-
-      def [](index)
-        if ! @var_args || index < @params.size - 1
-          @params[index]
-        else
-          @params.last
-        end
-      end
-    end
-
     def initialize(mh)
-      @mh = mh
       @params = Parameters.new(JavaDispatcher.method_types(mh),
                                JavaDispatcher.method_is_varargs(mh))
+      @mh = widen_mh(mh)
     end
 
     def more_specific(another, args)
@@ -233,6 +273,12 @@ module JavaUtilities
       else
         self
       end
+    end
+
+    private
+
+    def widen_mh(mh)
+      JavaDispatcher.widen_method(mh)
     end
   end
 
@@ -280,7 +326,7 @@ module JavaUtilities
         return candidates[0].mh
       else
         # raise TypeError, "Can't dispatch ambiguous cases yet."
-        return narrow_to_specific_callable( candidates, args)
+        return narrow_to_specific_callable( candidates, args).mh
       end
     end
 
