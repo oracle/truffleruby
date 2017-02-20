@@ -34,6 +34,7 @@ require_relative 'java_ext/java_util_collection.rb'
 require_relative 'java_ext/java_util_enumeration.rb'
 require_relative 'java_ext/java_util_iterator.rb'
 require_relative 'java_ext/java_util_list.rb'
+require_relative 'java_ext/java_util_map.rb'
 
 
 # TODO: Recreate this JRuby functionality - DMM 2017-02-06

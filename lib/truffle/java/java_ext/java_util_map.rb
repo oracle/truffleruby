@@ -36,7 +36,7 @@ module ::Java::JavaUtil::Map
     end
   end
 
-  alias :to_hash, :to_h
+  alias :to_hash :to_h
 
   def to_proc
     h = self
@@ -50,7 +50,7 @@ module ::Java::JavaUtil::Map
     self.put(key, val)
   end
 
-  alias :store, :[]
+  alias :store :[]=
 
   def [](key)
     self.get(key)
@@ -94,19 +94,104 @@ module ::Java::JavaUtil::Map
     contains_key(key)
   end
 
+  alias :key? :has_key?
+  alias :include? :has_key?
+  alias :member :has_key?
+
   def has_value?(val)
     contains_value(val)
   end
 
+  alias :value :has_value?
+
   def each
-    entries = b.entry_set
+    entries = self.entry_set.iterator
     while entries.has_next
       e = entries.next
       yield [ e.key, e.value ]
     end
   end
 
-  alias :each_pair, :each
+  alias :each_pair :each
 
+  def each_key
+    keys = self.key_set.iterator
+    while keys.has_next
+      yield keys.next
+    end
+  end
+
+  def each_value
+    values = self.values
+    while values.has_next
+      yield values.next
+    end
+  end
+
+  def keep_if
+    return to_enum(:keep_if) { size } unless block_given?
+
+    entries = self.entry_set.iterator
+    while (entries.has_next)
+      e = entries.next
+      entries.remove unless yield(e.key, e.value)
+    end
+    self
+  end
+
+  def select!
+    return to_enum(:select!) { size } unless block_given?
+
+    entries = self.entry_set.iterator
+    deleted = false
+    while (entries.has_next)
+      e = entries.next
+      unless yield(e.key, e.value)
+        entries.remove
+        deleted = true
+      end
+    end
+    return nil unless deleted
+    self
+  end
+
+  def index(value)
+    each_pair do |k,v|
+      return k if v == value
+    end
+    nil
+  end
+
+  alias_method :key, :index
+
+  def keys
+    ary = []
+    keys = self.key_set.iterator
+    while (keys.has_next)
+      ary << keys.next
+    end
+    ary
+  end
+
+  def shift
+    entries = self.entry_set.iterator
+    if entries.has_next
+      e = entries.next
+      entries.remove
+      [e.key, e.value]
+    else
+      nil
+    end
+  end
+
+  def delete(a_key)
+    if has_key?(a_key)
+      remove(a_key)
+    elsif block_given?
+      yield(a_key)
+    else
+      nil
+    end
+  end
 
 end
