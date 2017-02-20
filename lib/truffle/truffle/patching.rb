@@ -17,7 +17,7 @@ module Kernel
 
     if required && Truffle::Patching::TRUFFLE_PATCHES[path]
       puts "[ruby] PATCH applying #{path}"
-      load "#{Truffle::Patching::TRUFFLE_PATCHES_DIRECTORY}/#{path}.rb"
+      require_without_truffle_patching "#{Truffle::Patching::TRUFFLE_PATCHES_DIRECTORY}/#{path}.rb"
     end
     required
   end
