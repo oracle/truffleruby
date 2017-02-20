@@ -454,7 +454,7 @@ public abstract class HashNodes {
 
             // Iterate on a copy to allow Hash#delete while iterating, MRI explicitly allows this behavior
             final int size = Layouts.HASH.getSize(hash);
-            final Object[] store = PackedArrayStrategy.copyStore(getContext(), originalStore);
+            final Object[] storeCopy = PackedArrayStrategy.copyStore(getContext(), originalStore);
 
             int count = 0;
 
@@ -465,7 +465,7 @@ public abstract class HashNodes {
                     }
 
                     if (n < size) {
-                        yieldPair(frame, block, PackedArrayStrategy.getKey(store, n), PackedArrayStrategy.getValue(store, n));
+                        yieldPair(frame, block, PackedArrayStrategy.getKey(storeCopy, n), PackedArrayStrategy.getValue(storeCopy, n));
                     }
                 }
             } finally {
