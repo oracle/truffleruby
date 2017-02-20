@@ -789,6 +789,7 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_VARARGS", RubiniusTypes.TYPE_VARARGS);
 
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", frozenUSASCIIString(RubyLanguage.RUBY_VERSION));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "TRUFFLERUBY_VERSION", frozenUSASCIIString(RubyLanguage.getTruffleRubyVersion()));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PATCHLEVEL", 0);
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", RubyLanguage.RUBY_REVISION);
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", frozenUSASCIIString(RubyLanguage.ENGINE));

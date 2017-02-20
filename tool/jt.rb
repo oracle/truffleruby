@@ -13,7 +13,7 @@
 
 # Recommended: function jt { ruby tool/jt.rb "$@"; }
 
-abort "Do not run #{$0} with JRuby+Truffle itself, use MRI or some other Ruby." if RUBY_ENGINE == "ruby" && defined?(::Truffle)
+abort "Do not run #{$0} with JRuby+Truffle itself, use MRI or some other Ruby." if RUBY_ENGINE == "truffleruby"
 
 require 'fileutils'
 require 'json'
@@ -983,11 +983,11 @@ module Commands
           if gem.has_key?(:commit)
             raw_sh(*['git', 'checkout', gem[:commit]])
           end
-          run({'GEM_HOME' => gem_home}, *["-rbundler-workarounds", "-S", "gem", "install", "bundler", "-v","1.13.5"])
-          run({'GEM_HOME' => gem_home}, *["-rbundler-workarounds", "-S", "bundle", "install"])
+          run({'GEM_HOME' => gem_home}, *["-S", "gem", "install", "bundler", "-v","1.13.5"])
+          run({'GEM_HOME' => gem_home}, *["-S", "bundle", "install"])
           # Need to workaround ruby_install name `jruby-truffle` in the gems binstubs (command can't be found )
           # or figure out how to get it on the path to get `bundle exec rake` working
-          #run({'GEM_HOME' => gem_home}, *["-rbundler-workarounds", "-S", "bundle", "exec", "rake"])
+          #run({'GEM_HOME' => gem_home}, *["-S", "bundle", "exec", "rake"])
         end
       ensure
         FileUtils.remove_entry temp_dir
