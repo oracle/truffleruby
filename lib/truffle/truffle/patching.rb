@@ -18,8 +18,8 @@ module Kernel
 
   def require(path)
     if Truffle::Patching::TRUFFLE_BEFORE_PATCHES[path]
-      puts "[ruby] PATCH applying (before) #{path}"
-      load "#{Truffle::Patching::TRUFFLE_PATCHES_DIRECTORY}/before/#{path}.rb"
+      patch_applied = require_without_truffle_patching "#{Truffle::Patching::TRUFFLE_PATCHES_DIRECTORY}/before/#{path}.rb"
+      puts "[ruby] PATCH applied (before) #{path}" if patch_applied
     end
 
     required = require_without_truffle_patching path
