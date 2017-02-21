@@ -1270,9 +1270,8 @@ module Commands
       run_args.push '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
     end
 
-    run_args.push "-I#{Utilities.find_gem('deep-bench')}/lib" rescue nil
     run_args.push "-I#{Utilities.find_gem('benchmark-ips')}/lib" rescue nil
-    run_args.push "#{Utilities.find_gem('benchmark-interface')}/bin/benchmark"
+    run_args.push "#{Utilities.find_benchmark('benchmark-interface')}/bin/benchmark"
     run_args.push *args
 
     if benchmark_ruby
