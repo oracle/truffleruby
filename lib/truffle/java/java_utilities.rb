@@ -223,58 +223,65 @@ module JavaUtilities
     JAVA_PACKAGE_CLASS, "getName", false, JAVA_STRING_CLASS)
 
   def self.make_proxy(a_class)
-    a_proxy = PROXIES[a_class]
+    was_in_make_proxy = Thread.current[:MAKE_PROXY]
+    begin
+      Thread.current[:MAKE_PROXY] = true
 
-    return a_proxy if a_proxy != nil
+      a_proxy = PROXIES[a_class]
 
-    parent = ensure_owner(a_class)
+      return a_proxy if a_proxy != nil
 
-    a_proxy = if Java.invoke_java_method(CLASS_IS_INTERFACE, a_class)
-                make_interface_proxy(a_class)
-              elsif Java.invoke_java_method(CLASS_IS_ARRAY, a_class)
-                make_array_proxy(a_class)
-              else
-                make_object_proxy(a_class)
-              end
+      parent = ensure_owner(a_class)
 
-    # Setting up the parent classes may have caused the child to be
-    # bootstrapped. Consider class A with a static public final field
-    # of B and class B which extends A. To create the proxy for B we
-    # must first create the parent A, but it then must create the
-    # proxy for B to wrap its constant value. This situation is
-    # resolved as follows
-    #
-    # 1. Start to create proxy for B (proxy 1).
-    # 2. Start to create proxy for A (proxy 2).
-    # 3. Add A's proxy to PROXIES.
-    # 4. Add static fields to A.
-    # 5. Start to create proxy for B (proxy 3).
-    # 6. Add B's proxy to PROXIES
-    # 7. Finish creating proxy for B.(proxy 3).
-    # 8. Finish creating proxy for A.(proxy 2).
-    # 9. Don't set const since PROXIES now contains a case for B (proxy 3).
+      a_proxy = if Java.invoke_java_method(CLASS_IS_INTERFACE, a_class)
+                  make_interface_proxy(a_class)
+                elsif Java.invoke_java_method(CLASS_IS_ARRAY, a_class)
+                  make_array_proxy(a_class)
+                else
+                  make_object_proxy(a_class)
+                end
 
-    a_proxy.java_class = a_class
+      # Setting up the parent classes may have caused the child to be
+      # bootstrapped. Consider class A with a static public final field
+      # of B and class B which extends A. To create the proxy for B we
+      # must first create the parent A, but it then must create the
+      # proxy for B to wrap its constant value. This situation is
+      # resolved as follows
+      #
+      # 1. Start to create proxy for B (proxy 1).
+      # 2. Start to create proxy for A (proxy 2).
+      # 3. Add A's proxy to PROXIES.
+      # 4. Add static fields to A.
+      # 5. Start to create proxy for B (proxy 3).
+      # 6. Add B's proxy to PROXIES
+      # 7. Finish creating proxy for B.(proxy 3).
+      # 8. Finish creating proxy for A.(proxy 2).
+      # 9. Don't set const since PROXIES now contains a case for B (proxy 3).
 
-    existing_proxy = PROXIES.put_if_absent(a_class, a_proxy)
+      a_proxy.java_class = a_class
 
-    if existing_proxy == nil
+      existing_proxy = PROXIES.put_if_absent(a_class, a_proxy)
 
-      JavaProxyBuilder.new(a_proxy, a_class).build
+      if existing_proxy == nil
 
-      # Not all proxies can be added as constants.
-      begin
-        parent.const_set(
-          Interop.from_java_string(
-            Java.invoke_java_method(CLASS_GET_SIMPLE_NAME, a_class)),
-          a_proxy) unless parent == nil
-      rescue
+        JavaProxyBuilder.new(a_proxy, a_class).build
+
+        # Not all proxies can be added as constants.
+        begin
+          parent.const_set(
+            Interop.from_java_string(
+              Java.invoke_java_method(CLASS_GET_SIMPLE_NAME, a_class)),
+            a_proxy) unless parent == nil
+        rescue
+        end
+      else
+        a_proxy = existing_proxy
       end
-    else
-      a_proxy = existing_proxy
-    end
 
-    a_proxy
+      a_proxy
+    ensure
+      Thread.current[:MAKE_PROXY] = was_in_make_proxy
+    end
   end
 
   def self.ensure_owner(a_class)
@@ -300,7 +307,16 @@ module JavaUtilities
   end
 
   def self.make_interface_proxy(a_class)
-    a_proxy = Module.new do
+    included_method = lambda { |thing|
+      unless Thread.current[:MAKE_PROXY]
+        p "Including #{self} in #{thing} outside standard make_proxy mechanism."
+        if thing.kind_of?(Module)
+          thing.__send__(:define_method, :included, included_method)
+        end
+      end }
+
+    a_proxy = Module.new() do
+      define_singleton_method(:included, included_method)
       class << self
         attr_accessor :java_class
         def java_class
@@ -449,5 +465,18 @@ module JavaUtilities
                     make_proxy(Java.invoke_java_method(CLASS_GET_SUPER_CLASS, a_class))
                   end
     a_proxy = Class.new(super_class)
+  end
+
+  def self.make_java_proxy_invoker(a_proc, *modules)
+    java_interfaces = modules.map { |m| unwrap_java_value(m.java_class) }
+    wrap_java_value(Java.proxy_class(a_proc, Java.loader, *java_interfaces))
+  end
+
+  def self.invoker_proc(owner)
+    lambda{ |m, *args|
+      args = args.map { |a| JavaUtilities::wrap_java_value(a) }
+      m = JavaUtilities::wrap_java_value(m)
+      owner.__send__(m.name, *args)
+    }
   end
 end

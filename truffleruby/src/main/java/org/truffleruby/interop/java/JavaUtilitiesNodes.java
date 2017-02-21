@@ -160,16 +160,21 @@ public class JavaUtilitiesNodes {
     public static abstract class JavaProxyClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object createJavaProxy(DynamicObject aProc, ClassLoader loader, Object...rest) {
+        public Object createJavaProxy(DynamicObject aProc, ClassLoader loader, Object[]rest) {
             Class<?>[] interfaces = new Class<?>[rest.length];
             for (int i=0; i < rest.length; i++) {
                 interfaces[i] = (Class<?>)rest[i];
             }
             InvocationHandler handler = new InvocationHandler() {
                     public Object invoke(Object aProxy, Method method, Object[] args) {
-                        Object[] rubyArgs = new Object[args.length + 1];
+                        Object[] rubyArgs;
+                        if (args != null) {
+                            rubyArgs = new Object[args.length + 1];
+                            System.arraycopy(args, 0, rubyArgs, 1, args.length);
+                        } else {
+                            rubyArgs = new Object[1];
+                        }
                         rubyArgs[0] = method;
-                        System.arraycopy(args, 0, rubyArgs, 1, args.length);
                         return ProcOperations.rootCall(aProc, rubyArgs);
                     }
                 };

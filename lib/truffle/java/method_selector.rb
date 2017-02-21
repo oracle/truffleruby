@@ -304,7 +304,7 @@ module JavaUtilities
         end
         if retained.empty?
           methods.each do |c|
-            p = c.parame[i]
+            p = c.params[i]
             if p.can_accept_duck_type?(a) # p is na interface, t is not a subtype of p, and t is a ruby object.
               retained << c
             end

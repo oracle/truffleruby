@@ -33,4 +33,11 @@ class JavaProxy
     ArrayJavaProxyCreator.new(java_class, *dims )
   end
 
+  def self.inherited(thing)
+    thing.__send__(:define_singleton_method, :inherited, method(:inherited))
+    unless Thread.current[:MAKE_PROXY]
+      p "Creating #{thing} inherited from #{self} outside the normal make_proxy mechanism."
+    end
+    thing
+  end
 end

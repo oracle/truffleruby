@@ -6,9 +6,14 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-class ConcreteJavaProxy < JavaProxy
+begin
+  Thread.current[:MAKE_PROXY] = true # Disable inheritance hooks
+  class ConcreteJavaProxy < JavaProxy
 
-  def to_s
-    self.toString
+    def to_s
+      self.toString
+    end
   end
+ensure
+  Thread.current[:MAKE_PROXY] = false
 end
