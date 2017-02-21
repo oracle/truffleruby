@@ -96,7 +96,7 @@
     <defaultGoal>package</defaultGoal>
     <resources>
       <resource>
-        <targetPath>${project.build.directory}/classes/jruby-truffle</targetPath>
+        <targetPath>${project.build.directory}/classes/truffleruby</targetPath>
         <directory>src/main/ruby</directory>
         <includes>
           <include>**/*rb</include>
