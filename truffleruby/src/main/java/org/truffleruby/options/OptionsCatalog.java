@@ -44,7 +44,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription TRACE_CALLS = new BooleanOptionDescription("trace.calls", "Support tracing (set_trace_func", true);
     public static final BooleanOptionDescription COVERAGE_GLOBAL = new BooleanOptionDescription("coverage.global", "Run coverage for all code and print results on exit", false);
     public static final BooleanOptionDescription INLINE_JS = new BooleanOptionDescription("inline_js", "Allow inline JavaScript", false);
-    public static final StringOptionDescription CORE_LOAD_PATH = new StringOptionDescription("core.load_path", "Location to load the Truffle core library from", "truffle:/jruby-truffle");
+    public static final StringOptionDescription CORE_LOAD_PATH = new StringOptionDescription("core.load_path", "Location to load the Truffle core library from", "resource:/jruby-truffle");
     public static final BooleanOptionDescription LAZY_TRANSLATION_CORE = new BooleanOptionDescription("lazy_translation.core", "Lazily translation of core source files", true);
     public static final BooleanOptionDescription LAZY_TRANSLATION_USER = new BooleanOptionDescription("lazy_translation.user", "Lazily translation of stdlib", false);
     public static final BooleanOptionDescription LAZY_TRANSLATION_LOG = new BooleanOptionDescription("lazy_translation.log", "Log lazy translations from the parser AST to the Truffle AST", false);

@@ -94,7 +94,7 @@ to ask Truffle to tell us when it compiles something.
 $ JAVACMD=graalvm/bin/java jruby -J-G:+TraceTruffleCompilation test.rb
 [truffle] opt done         + core <opt> <split-1947596f>                               |ASTSize       6/    6 |Time    95(  92+3   )ms |DirectCallNodes I    0/D    0 |GraalNodes    35/   28 |CodeSize          147 |Source           core 
 [truffle] opt done         block in block in <main> /Users/chrisseaton/Documents/ruby/test.rb:1 <opt> <split-44b29496>|ASTSize      10/   16 |Time   124( 122+2   )ms |DirectCallNodes I    1/D    0 |GraalNodes    24/    3 |CodeSize           69 |Source /Users/chrisseaton/Documents/ruby/test.rb:1 
-[truffle] opt done         truffle:/jruby-truffle/core/kernel.rb:331<OSR> <opt>        |ASTSize       8/   24 |Time    77(  74+4   )ms |DirectCallNodes I    2/D    0 |GraalNodes    89/  124 |CodeSize          341 |Source            n/a 
+[truffle] opt done         resource:/jruby-truffle/core/kernel.rb:331<OSR> <opt>        |ASTSize       8/   24 |Time    77(  74+4   )ms |DirectCallNodes I    2/D    0 |GraalNodes    89/  124 |CodeSize          341 |Source            n/a 
 ```
 
 Here you can see that Truffle has decided to use Graal to compile the body of

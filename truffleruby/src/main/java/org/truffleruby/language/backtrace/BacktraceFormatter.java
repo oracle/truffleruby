@@ -233,12 +233,12 @@ public class BacktraceFormatter {
 
         final String path = source.getPath();
         if (path != null) {
-            return path.startsWith(SourceLoader.TRUFFLE_SCHEME);
+            return path.startsWith(SourceLoader.RESOURCE_SCHEME);
         }
 
         final String name = source.getName();
         if (name != null) {
-            return name.startsWith(SourceLoader.TRUFFLE_SCHEME);
+            return name.startsWith(SourceLoader.RESOURCE_SCHEME);
         }
 
         return true;

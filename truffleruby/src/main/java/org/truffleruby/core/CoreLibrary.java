@@ -306,7 +306,7 @@ public class CoreLibrary {
             path = path.substring(0, path.length() - 1);
         }
 
-        if (path.startsWith(SourceLoader.TRUFFLE_SCHEME)) {
+        if (path.startsWith(SourceLoader.RESOURCE_SCHEME)) {
             return path;
         }
 

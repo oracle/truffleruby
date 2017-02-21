@@ -39,8 +39,8 @@ public final class JRubySourceLoaderSupport {
 
     public static String canonicalizeResourcePath(String path) {
         String tmpPath = path;
-        if (path.startsWith(SourceLoader.TRUFFLE_SCHEME)) {
-            tmpPath = path.substring(SourceLoader.TRUFFLE_SCHEME.length());
+        if (path.startsWith(SourceLoader.RESOURCE_SCHEME)) {
+            tmpPath = path.substring(SourceLoader.RESOURCE_SCHEME.length());
         }
 
         if (tmpPath.startsWith("/")) {

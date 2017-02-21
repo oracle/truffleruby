@@ -29,7 +29,7 @@ import java.util.Locale;
 
 public class SourceLoader {
 
-    public static final String TRUFFLE_SCHEME = "truffle:";
+    public static final String RESOURCE_SCHEME = "resource:";
 
     private final RubyContext context;
 
@@ -58,7 +58,7 @@ public class SourceLoader {
             Log.LOGGER.info("loading " + canonicalPath);
         }
 
-        if (canonicalPath.startsWith(TRUFFLE_SCHEME)) {
+        if (canonicalPath.startsWith(RESOURCE_SCHEME)) {
             return loadResource(canonicalPath);
         } else {
             final File file = new File(canonicalPath).getCanonicalFile();
@@ -81,7 +81,7 @@ public class SourceLoader {
     @TruffleBoundary
     public static Source loadResource(String path) throws IOException {
         if (TruffleOptions.AOT) {
-            if (!path.startsWith(SourceLoader.TRUFFLE_SCHEME)) {
+            if (!path.startsWith(SourceLoader.RESOURCE_SCHEME)) {
                 throw new UnsupportedOperationException();
             }
 
@@ -100,9 +100,9 @@ public class SourceLoader {
             final Class<?> relativeClass;
             final Path relativePath;
 
-            if (path.startsWith(TRUFFLE_SCHEME)) {
+            if (path.startsWith(RESOURCE_SCHEME)) {
                 relativeClass = RubyContext.class;
-                relativePath = FileSystems.getDefault().getPath(path.substring(TRUFFLE_SCHEME.length()));
+                relativePath = FileSystems.getDefault().getPath(path.substring(RESOURCE_SCHEME.length()));
             } else {
                 throw new UnsupportedOperationException();
             }

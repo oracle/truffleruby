@@ -86,7 +86,7 @@ public class FeatureLoader {
 
         String found = null;
 
-        if (feature.startsWith(SourceLoader.TRUFFLE_SCHEME)
+        if (feature.startsWith(SourceLoader.RESOURCE_SCHEME)
                 || new File(feature).isAbsolute()) {
             found = findFeatureWithAndWithoutExtension(feature);
         } else {
@@ -153,7 +153,7 @@ public class FeatureLoader {
             Log.LOGGER.info(String.format("trying %s...", path));
         }
 
-        if (path.startsWith(SourceLoader.TRUFFLE_SCHEME)) {
+        if (path.startsWith(SourceLoader.RESOURCE_SCHEME)) {
             return path;
         }
 

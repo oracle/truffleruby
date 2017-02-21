@@ -35,7 +35,7 @@ module CG
         ['(eval)']
       elsif file == '(snippet)'
         ['(snippet)']
-      elsif file.start_with?('truffle:')
+      elsif file.start_with?('resource:')
         ['(core)']
       else
         File.readlines(file)[line_start - 1, line_end - line_start + 1].map(&:rstrip)
