@@ -73,8 +73,18 @@ public class SourceLoader {
                 mimeType = RubyLanguage.MIME_TYPE;
             }
 
-            return Source.newBuilder(file).name(file.getPath()).mimeType(mimeType).build();
+            Source.Builder<IOException, RuntimeException, RuntimeException> builder = Source.newBuilder(file).name(file.getPath()).mimeType(mimeType);
+
+            if (isInternal(canonicalPath)) {
+                builder = builder.internal();
+            }
+
+            return builder.build();
         }
+    }
+
+    private boolean isInternal(String canonicalPath) {
+        return canonicalPath.startsWith(context.getCoreLibrary().getCoreLoadPath());
     }
 
     @TruffleBoundary
