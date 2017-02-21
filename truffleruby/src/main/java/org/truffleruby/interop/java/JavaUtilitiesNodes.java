@@ -46,18 +46,6 @@ import java.lang.reflect.Proxy;
 @CoreClass("Truffle::Interop::Java")
 public class JavaUtilitiesNodes {
 
-    @CoreMethod(names = "to_ruby_string", required = 1, isModuleFunction = true)
-    public static abstract class ToRubyStringNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        public DynamicObject toRubyString(String target) {
-            return createString(getRope(target));
-        }
-
-        protected Rope getRope(String value) {
-            return StringOperations.encodeRope(value, UTF8Encoding.INSTANCE);
-        }
-    }
-
     @CoreMethod(names = "java_class_by_name_and_loader", isModuleFunction = true, required = 2)
     @NodeChildren({
             @NodeChild(type = RubyNode.class, value = "name"),
@@ -86,15 +74,6 @@ public class JavaUtilitiesNodes {
             } else {
                 throw new RaiseException(coreExceptions().runtimeError("Not available on SVM.", this));
             }
-        }
-    }
-
-    @CoreMethod(names = "to_java_string", required = 1, isModuleFunction = true)
-    public static abstract class ToJavaStringNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        public String toJavaString(VirtualFrame frame, DynamicObject string,
-                                   @Cached("create()") NameToJavaStringNode toJavaStringNode) {
-            return toJavaStringNode.executeToJavaString(frame, string);
         }
     }
 

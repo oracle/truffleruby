@@ -28,6 +28,7 @@
 module JavaUtilities
 
   Java = ::Truffle::Interop::Java
+  Interop = ::Truffle::Interop
 
   module ::Truffle::Interop::Java
 
@@ -87,7 +88,7 @@ module JavaUtilities
   end
 
   def self.get_inner_class(a_class, inner_name)
-    outer_name = Java.to_ruby_string(
+    outer_name = Interop.from_java_string(
       Java.invoke_java_method(CLASS_GET_NAME, unwrap_java_value(a_class)))
     self.get_package_or_class("#{outer_name}$#{inner_name}", true)
   end
@@ -136,25 +137,25 @@ module JavaUtilities
   JAVA_BOOLEAN_CLASS = Java.java_class_by_name("java.lang.Boolean")
   JAVA_PRIM_BOOLEAN_CLASS = Java.invoke_java_method(
     FIELD_GET, Java.invoke_java_method(
-      CLASS_GET_FIELD, JAVA_BOOLEAN_CLASS, Java.to_java_string("TYPE")),
+      CLASS_GET_FIELD, JAVA_BOOLEAN_CLASS, Interop.to_java_string("TYPE")),
     nil)
 
   JAVA_INTEGER_CLASS = Java.java_class_by_name("java.lang.Integer")
   JAVA_PRIM_INT_CLASS = Java.invoke_java_method(
     FIELD_GET, Java.invoke_java_method(
-      CLASS_GET_FIELD, JAVA_INTEGER_CLASS, Java.to_java_string("TYPE")),
+      CLASS_GET_FIELD, JAVA_INTEGER_CLASS, Interop.to_java_string("TYPE")),
     nil)
 
   JAVA_LONG_CLASS = Java.java_class_by_name("java.lang.Long")
   JAVA_PRIM_LONG_CLASS = Java.invoke_java_method(
     FIELD_GET, Java.invoke_java_method(
-      CLASS_GET_FIELD, JAVA_LONG_CLASS, Java.to_java_string("TYPE")),
+      CLASS_GET_FIELD, JAVA_LONG_CLASS, Interop.to_java_string("TYPE")),
     nil)
 
   JAVA_DOUBLE_CLASS = Java.java_class_by_name("java.lang.Double")
   JAVA_PRIM_DBL_CLASS = Java.invoke_java_method(
     FIELD_GET, Java.invoke_java_method(
-      CLASS_GET_FIELD, JAVA_DOUBLE_CLASS, Java.to_java_string("TYPE")),
+      CLASS_GET_FIELD, JAVA_DOUBLE_CLASS, Interop.to_java_string("TYPE")),
     nil)
 
   # We'll also want the modifiers for methods and fields.
@@ -172,7 +173,7 @@ module JavaUtilities
              "TRANSIENT",
              "VOLATILE" ]
     names.each do |s|
-      js = Java.to_java_string(s)
+      js = Interop.to_java_string(s)
       val = Java.invoke_java_method(
         FIELD_GET,
         Java.invoke_java_method(
@@ -264,7 +265,7 @@ module JavaUtilities
       # Not all proxies can be added as constants.
       begin
         parent.const_set(
-          Java.to_ruby_string(
+          Interop.from_java_string(
             Java.invoke_java_method(CLASS_GET_SIMPLE_NAME, a_class)),
           a_proxy) unless parent == nil
       rescue
@@ -282,7 +283,7 @@ module JavaUtilities
     else
       package = Java.invoke_java_method(CLASS_GET_PACKAGE, a_class)
       if package != nil
-        name = Java.to_ruby_string(
+        name = Interop.from_java_string(
           Java.invoke_java_method(PACKAGE_GET_NAME, package))
         ::Java::JavaPackage.new(*name.split("."))
       else
@@ -314,7 +315,7 @@ module JavaUtilities
     if val.kind_of?(Truffle::Interop::Foreign)
       a_class = get_java_class(val)
       if Java.java_refs_equal?(a_class, JAVA_STRING_CLASS)
-        return Java.to_ruby_string(val)
+        return Interop.from_java_string(val)
       end
       wrapped_val = make_proxy(a_class).allocate
       wrapped_val.java_object = val
@@ -325,7 +326,7 @@ module JavaUtilities
 
   def self.unwrap_java_value(val)
     if val.kind_of?(String)
-      Java.to_java_string(val)
+      Interop.to_java_string(val)
     elsif val.kind_of?(JavaProxy)
       val.java_object
     else

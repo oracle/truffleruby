@@ -181,10 +181,9 @@ module JavaUtilities
       java_type = Java.java_class_by_name(t)
       prim_type = Java.invoke_java_method(
         FIELD_GET, Java.invoke_java_method(
-          CLASS_GET_FIELD, java_type, Java.to_java_string("TYPE")),
+          CLASS_GET_FIELD, java_type, Interop.to_java_string("TYPE")),
         nil)
       wide_type = temp_hash[w]
-      p "Will widen #{t} to #{w}" if wide_type != nil
       widening_type = WideningType.new(prim_type, java_type, wide_type)
       temp_hash[t] = widening_type
       WideningType::PrimitiveTypes.put_if_absent(prim_type,  widening_type)
@@ -202,7 +201,7 @@ module JavaUtilities
       java_type = Java.java_class_by_name(t[0])
       prim_type = Java.invoke_java_method(
         FIELD_GET, Java.invoke_java_method(
-          CLASS_GET_FIELD, java_type, Java.to_java_string("TYPE")),
+          CLASS_GET_FIELD, java_type, Interop.to_java_string("TYPE")),
         nil)
       boxed_param = BoxedIntegerParameter.new(t[1], java_type)
       prim_param = PrimitiveIntegerParameter.new(t[1], prim_type)
@@ -216,7 +215,7 @@ module JavaUtilities
       java_type = Java.java_class_by_name(t)
       prim_type = Java.invoke_java_method(
         FIELD_GET, Java.invoke_java_method(
-          CLASS_GET_FIELD, java_type, Java.to_java_string("TYPE")),
+          CLASS_GET_FIELD, java_type, Interop.to_java_string("TYPE")),
         nil)
       boxed_param = FloatParameter.new(true, java_type)
       prim_param = FloatParameter.new(false, prim_type)
@@ -227,7 +226,7 @@ module JavaUtilities
     java_type = Java.java_class_by_name("java.lang.Boolean")
     prim_type = Java.invoke_java_method(
       FIELD_GET, Java.invoke_java_method(
-        CLASS_GET_FIELD, java_type, Java.to_java_string("TYPE")),
+        CLASS_GET_FIELD, java_type, Interop.to_java_string("TYPE")),
       nil)
     boxed_param = BooleanParameter.new(true, java_type)
     prim_param = BooleanParameter.new(false, prim_type)

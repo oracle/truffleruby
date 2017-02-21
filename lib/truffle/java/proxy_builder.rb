@@ -80,7 +80,7 @@ module JavaUtilities
         if mh != nil
           is_static = JavaUtilities.static_field?(f)
           next if !is_static
-          name = Java.to_ruby_string(Java.invoke_java_method(FIELD_GET_NAME, f))
+          name = Interop.from_java_string(Java.invoke_java_method(FIELD_GET_NAME, f))
           is_const = JavaUtilities.constant_field?(f)
           const_val = ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) if is_const
           getter = lambda { ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) }
@@ -105,7 +105,7 @@ module JavaUtilities
         if mh != nil
           is_static = JavaUtilities.static_field?(f)
           next if is_static
-          name = Java.to_ruby_string(Java.invoke_java_method(FIELD_GET_NAME, f))
+          name = Interop.from_java_string(Java.invoke_java_method(FIELD_GET_NAME, f))
           getter = lambda {
             ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, java_object)) }
           if !JavaUtilities.final_field?(f)
@@ -128,7 +128,7 @@ module JavaUtilities
         if JavaUtilities.static_method?(m)
           mh = JavaUtilities.unreflect_method(m)
           if mh != nil
-            name = Java.to_ruby_string(Java.invoke_java_method(METHOD_GET_NAME, m))
+            name = Interop.from_java_string(Java.invoke_java_method(METHOD_GET_NAME, m))
             a_method = Method.new(name, mh)
             arity = a_method.arity
             add_to_singleton(name, a_method, arity == 0, arity == 1)
@@ -147,7 +147,7 @@ module JavaUtilities
         if !JavaUtilities.static_method?(m)
           mh = JavaUtilities.unreflect_method(m)
           if mh != nil
-            name = Java.to_ruby_string(Java.invoke_java_method(METHOD_GET_NAME, m))
+            name = Interop.from_java_string(Java.invoke_java_method(METHOD_GET_NAME, m))
             a_method = Method.new(name, mh)
             arity = a_method.arity
             add_to_instance(name, a_method, arity == 1, arity == 2)
