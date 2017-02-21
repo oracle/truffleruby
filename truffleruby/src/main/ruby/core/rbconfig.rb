@@ -47,7 +47,7 @@ module RbConfig
   ruby_version = ruby_api_version
 
   arch = "#{host_cpu}-#{host_os}"
-  cppflags = ''
+  cppflags = '-Wno-int-conversion -Wno-int-to-pointer-cast'
   libs = ''
   ruby_so_name = ruby_base_name
 
