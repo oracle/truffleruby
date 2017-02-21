@@ -86,7 +86,7 @@ public class SourceLoader {
                 throw new FileNotFoundException(path);
             }
 
-            return Source.newBuilder(coreFile.code).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
+            return Source.newBuilder(coreFile.code).name(path).mimeType(RubyLanguage.MIME_TYPE).internal().build();
         } else {
             if (!path.toLowerCase(Locale.ENGLISH).endsWith(".rb")) {
                 throw new FileNotFoundException(path);
@@ -109,7 +109,7 @@ public class SourceLoader {
                 throw new FileNotFoundException(path);
             }
 
-            return Source.newBuilder(new InputStreamReader(stream, StandardCharsets.UTF_8)).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
+            return Source.newBuilder(new InputStreamReader(stream, StandardCharsets.UTF_8)).name(path).mimeType(RubyLanguage.MIME_TYPE).internal().build();
         }
     }
 

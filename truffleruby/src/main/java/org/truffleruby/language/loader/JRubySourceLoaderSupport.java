@@ -80,7 +80,7 @@ public final class JRubySourceLoaderSupport {
                 Path filePath = jarFileSystem.getPath("/" + name);
                 try (Reader reader = Files.newBufferedReader(filePath)) {
                     if (reader != null) {
-                        Source source = Source.newBuilder(reader).name(name).mimeType(RubyLanguage.MIME_TYPE).build();
+                        Source source = Source.newBuilder(reader).name(name).mimeType(RubyLanguage.MIME_TYPE).internal().build();
 
                         coreLibrary.put(name, new CoreLibraryFile(source.getCode(), null));
                     } else {
