@@ -64,12 +64,16 @@ public class SourceLoader {
             final File file = new File(canonicalPath).getCanonicalFile();
             ensureReadable(canonicalPath, file);
 
-            if (canonicalPath.toLowerCase().endsWith(".su")) {
-                return Source.newBuilder(file).name(file.getPath()).mimeType(RubyLanguage.CEXT_MIME_TYPE).build();
+            final String mimeType;
+
+            if (canonicalPath.toLowerCase().endsWith(RubyLanguage.CEXT_EXTENSION)) {
+                mimeType = RubyLanguage.CEXT_MIME_TYPE;
             } else {
                 // We need to assume all other files are Ruby, so the file type detection isn't enough
-                return Source.newBuilder(file).name(file.getPath()).mimeType(RubyLanguage.MIME_TYPE).build();
+                mimeType = RubyLanguage.MIME_TYPE;
             }
+
+            return Source.newBuilder(file).name(file.getPath()).mimeType(mimeType).build();
         }
     }
 
