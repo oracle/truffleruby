@@ -26,6 +26,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -37,6 +38,10 @@ import org.truffleruby.language.control.ThrowException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 @CoreClass("Truffle::Interop::Java")
 public class JavaUtilitiesNodes {
@@ -169,6 +174,27 @@ public class JavaUtilitiesNodes {
             } else {
                 throw new RaiseException(coreExceptions().runtimeError("Not available on SVM.", this));
             }
+        }
+    }
+
+    @CoreMethod(names = "proxy_class", required = 2, rest = true, isModuleFunction = true)
+    public static abstract class JavaProxyClassNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object createJavaProxy(DynamicObject aProc, ClassLoader loader, Object...rest) {
+            Class<?>[] interfaces = new Class<?>[rest.length];
+            for (int i=0; i < rest.length; i++) {
+                interfaces[i] = (Class<?>)rest[i];
+            }
+            InvocationHandler handler = new InvocationHandler() {
+                    public Object invoke(Object aProxy, Method method, Object[] args) {
+                        Object[] rubyArgs = new Object[args.length + 1];
+                        rubyArgs[0] = method;
+                        System.arraycopy(args, 0, rubyArgs, 1, args.length);
+                        return ProcOperations.rootCall(aProc, rubyArgs);
+                    }
+                };
+            return Proxy.newProxyInstance(loader, interfaces, handler);
         }
     }
 }
