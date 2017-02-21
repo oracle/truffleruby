@@ -1,12 +1,14 @@
 module Truffle::Patching
   TRUFFLE_PATCHES_DIRECTORY = "#{Truffle::Boot.ruby_home}/lib/patches"
-  TRUFFLE_BEFORE_PATCHES           = Dir.glob("#{TRUFFLE_PATCHES_DIRECTORY}/before/**/*.rb").
+  before_prefix = "#{TRUFFLE_PATCHES_DIRECTORY}/before/"
+  TRUFFLE_BEFORE_PATCHES           = Dir.glob("#{before_prefix}**/*.rb").
       select { |path| File.file? path }.
-      map { |path| [path[(TRUFFLE_PATCHES_DIRECTORY.size + 7 + 1)..-4], true] }.
+      map { |path| [path[before_prefix.size...-3], true] }.
       to_h
-  TRUFFLE_AFTER_PATCHES           = Dir.glob("#{TRUFFLE_PATCHES_DIRECTORY}/after/**/*.rb").
+  after_prefix = "#{TRUFFLE_PATCHES_DIRECTORY}/after/"
+  TRUFFLE_AFTER_PATCHES           = Dir.glob("#{after_prefix}**/*.rb").
       select { |path| File.file? path }.
-      map { |path| [path[(TRUFFLE_PATCHES_DIRECTORY.size + 6 + 1)..-4], true] }.
+      map { |path| [path[after_prefix.size...-3], true] }.
       to_h
 end
 

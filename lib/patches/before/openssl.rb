@@ -1,1 +1,1 @@
-require "openssl-stubs" unless ENV['TRUFFLERUBY_OPENSSL_ENABLED']
+require "openssl-stubs" if ENV['TRUFFLERUBY_OPENSSL_DISABLED']
