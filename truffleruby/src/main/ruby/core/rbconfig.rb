@@ -47,7 +47,8 @@ module RbConfig
   ruby_version = ruby_api_version
 
   arch = "#{host_cpu}-#{host_os}"
-  cppflags = '-Wno-int-conversion -Wno-int-to-pointer-cast'
+  cppflags = ''
+  cflags = '-Werror=implicit-function-declaration -Wno-int-conversion -Wno-int-to-pointer-cast -c -emit-llvm'
   libs = ''
   ruby_so_name = ruby_base_name
 
@@ -179,7 +180,6 @@ module RbConfig
     opt = ENV['JT_OPT'] || 'opt'
     cc = "#{clang} -I#{ENV['SULONG_HOME']}/include"
     cpp = cc
-    cflags = '-Werror=implicit-function-declaration -c -emit-llvm'
 
     CONFIG.merge!({
         'CC' => cc,
