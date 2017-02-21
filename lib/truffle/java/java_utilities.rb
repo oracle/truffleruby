@@ -88,7 +88,7 @@ module JavaUtilities
 
   def self.get_inner_class(a_class, inner_name)
     outer_name = Java.to_ruby_string(
-      Java.invoke_java_method(CLASS_GET_NAME, a_class))
+      Java.invoke_java_method(CLASS_GET_NAME, unwrap_java_value(a_class)))
     self.get_package_or_class("#{outer_name}$#{inner_name}", true)
   end
 
@@ -302,9 +302,11 @@ module JavaUtilities
     a_proxy = Module.new do
       class << self
         attr_accessor :java_class
+        def java_class
+          JavaUtilities::wrap_java_value(@java_class)
+        end
       end
     end
-
     a_proxy
   end
 
