@@ -179,7 +179,7 @@ suite = {
         "jruby-truffle-ruby": {
             "class": "ArchiveProject",
             "outputDir": "truffleruby/src/main/ruby",
-            "prefix": "jruby-truffle",
+            "prefix": "truffleruby",
             "license": ["EPL-1.0", "BSD-new"],
         },
 
