@@ -47,6 +47,7 @@ public class Options {
     public final boolean COVERAGE_GLOBAL;
     public final boolean INLINE_JS;
     public final String CORE_LOAD_PATH;
+    public final boolean STDLIB_AS_INTERNAL;
     public final boolean LAZY_TRANSLATION_CORE;
     public final boolean LAZY_TRANSLATION_USER;
     public final boolean LAZY_TRANSLATION_LOG;
@@ -146,6 +147,7 @@ public class Options {
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
         INLINE_JS = builder.getOrDefault(OptionsCatalog.INLINE_JS);
         CORE_LOAD_PATH = builder.getOrDefault(OptionsCatalog.CORE_LOAD_PATH);
+        STDLIB_AS_INTERNAL = builder.getOrDefault(OptionsCatalog.STDLIB_AS_INTERNAL);
         LAZY_TRANSLATION_CORE = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_CORE);
         LAZY_TRANSLATION_USER = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_USER);
         LAZY_TRANSLATION_LOG = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_LOG);
@@ -276,6 +278,8 @@ public class Options {
                 return INLINE_JS;
             case "core.load_path":
                 return CORE_LOAD_PATH;
+            case "stdlib_as_internal":
+                return STDLIB_AS_INTERNAL;
             case "lazy_translation.core":
                 return LAZY_TRANSLATION_CORE;
             case "lazy_translation.user":

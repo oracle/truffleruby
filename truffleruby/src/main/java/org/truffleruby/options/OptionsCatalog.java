@@ -44,7 +44,8 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription TRACE_CALLS = new BooleanOptionDescription("trace.calls", "Support tracing (set_trace_func", true);
     public static final BooleanOptionDescription COVERAGE_GLOBAL = new BooleanOptionDescription("coverage.global", "Run coverage for all code and print results on exit", false);
     public static final BooleanOptionDescription INLINE_JS = new BooleanOptionDescription("inline_js", "Allow inline JavaScript", false);
-    public static final StringOptionDescription CORE_LOAD_PATH = new StringOptionDescription("core.load_path", "Location to load the Truffle core library from", "resource:/jruby-truffle");
+    public static final StringOptionDescription CORE_LOAD_PATH = new StringOptionDescription("core.load_path", "Location to load the Truffle core library from", "resource:/truffleruby");
+    public static final BooleanOptionDescription STDLIB_AS_INTERNAL = new BooleanOptionDescription("stdlib_as_internal", "Mark stdlib sources (really", true);
     public static final BooleanOptionDescription LAZY_TRANSLATION_CORE = new BooleanOptionDescription("lazy_translation.core", "Lazily translation of core source files", true);
     public static final BooleanOptionDescription LAZY_TRANSLATION_USER = new BooleanOptionDescription("lazy_translation.user", "Lazily translation of stdlib", false);
     public static final BooleanOptionDescription LAZY_TRANSLATION_LOG = new BooleanOptionDescription("lazy_translation.log", "Log lazy translations from the parser AST to the Truffle AST", false);
@@ -174,6 +175,8 @@ public class OptionsCatalog {
                 return INLINE_JS;
             case "core.load_path":
                 return CORE_LOAD_PATH;
+            case "stdlib_as_internal":
+                return STDLIB_AS_INTERNAL;
             case "lazy_translation.core":
                 return LAZY_TRANSLATION_CORE;
             case "lazy_translation.user":
@@ -346,6 +349,7 @@ public class OptionsCatalog {
             COVERAGE_GLOBAL,
             INLINE_JS,
             CORE_LOAD_PATH,
+            STDLIB_AS_INTERNAL,
             LAZY_TRANSLATION_CORE,
             LAZY_TRANSLATION_USER,
             LAZY_TRANSLATION_LOG,

@@ -84,7 +84,15 @@ public class SourceLoader {
     }
 
     private boolean isInternal(String canonicalPath) {
-        return canonicalPath.startsWith(context.getCoreLibrary().getCoreLoadPath());
+        if (canonicalPath.startsWith(context.getCoreLibrary().getCoreLoadPath())) {
+            return true;
+        }
+
+        if (canonicalPath.startsWith(context.getRubyHome())) {
+            return true;
+        }
+
+        return false;
     }
 
     @TruffleBoundary
