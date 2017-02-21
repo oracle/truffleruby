@@ -43,7 +43,7 @@ def compile_extension(name)
   elsif RUBY_NAME == "maglev"
     require 'mkmf'
     hdrdir = $hdrdir
-  elsif RUBY_NAME =~ /^ruby/ && defined?(::Truffle) # TruffleRuby
+  elsif RUBY_NAME == 'truffleruby'
     return compile_truffleruby_extconf_make(name, path, objdir)
   else
     raise "Don't know how to build C extensions with #{RUBY_NAME}"
