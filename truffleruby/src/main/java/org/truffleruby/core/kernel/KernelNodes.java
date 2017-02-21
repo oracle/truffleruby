@@ -40,6 +40,7 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -578,7 +579,7 @@ public abstract class KernelNodes {
             final String s = new String(new char[Math.max(line - 1, 0)]);
             final String space = StringUtils.replace(s, "\0", "\n");
             // TODO CS 14-Apr-15 concat space + code as a rope, otherwise the string will be copied after the rope is converted
-            final Source source = getContext().getSourceLoader().loadFragment(space + RopeOperations.decodeRope(code), filename);
+            final Source source = Source.newBuilder(space + RopeOperations.decodeRope(code)).name(filename).mimeType(RubyLanguage.MIME_TYPE).build();
 
             final MaterializedFrame frame = Layouts.BINDING.getFrame(binding);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
@@ -595,7 +596,7 @@ public abstract class KernelNodes {
             final MaterializedFrame parentFrame = Layouts.BINDING.getFrame(callerBinding);
 
             final Encoding encoding = Layouts.STRING.getRope(sourceText).getEncoding();
-            final Source source = getContext().getSourceLoader().loadFragment(sourceText.toString(), "(eval)");
+            final Source source = Source.newBuilder(sourceText.toString()).name("(eval)").mimeType(RubyLanguage.MIME_TYPE).build();
 
             final TranslatorDriver translator = new TranslatorDriver(getContext());
 

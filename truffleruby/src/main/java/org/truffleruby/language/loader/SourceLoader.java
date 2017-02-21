@@ -40,7 +40,7 @@ public class SourceLoader {
     @TruffleBoundary
     public Source loadMain(String path) throws IOException {
         if (path.equals("-e")) {
-            return loadFragment(new String(context.getOptions().INLINE_SCRIPT, StandardCharsets.UTF_8), "-e");
+            return Source.newBuilder(new String(context.getOptions().INLINE_SCRIPT, StandardCharsets.UTF_8)).name("-e").mimeType(RubyLanguage.MIME_TYPE).build();
         } else if (path.equals("-")) {
             return Source.newBuilder(new InputStreamReader(System.in)).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
         } else {
@@ -71,11 +71,6 @@ public class SourceLoader {
                 return Source.newBuilder(file).name(file.getPath()).mimeType(RubyLanguage.MIME_TYPE).build();
             }
         }
-    }
-
-    @TruffleBoundary
-    public Source loadFragment(String fragment, String name) {
-        return Source.newBuilder(fragment).name(name).mimeType(RubyLanguage.MIME_TYPE).build();
     }
 
     @TruffleBoundary

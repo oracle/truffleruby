@@ -20,6 +20,7 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
@@ -54,7 +55,7 @@ public class SnippetNode extends RubyBaseNode {
                 parameterFrameSlots[n] = frameDescriptor.findOrAddFrameSlot(parameters[n]);
             }
 
-            final Source source = getContext().getSourceLoader().loadFragment(this.expression, "(snippet)");
+            final Source source = Source.newBuilder(this.expression).name("(snippet)").mimeType(RubyLanguage.MIME_TYPE).build();
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,

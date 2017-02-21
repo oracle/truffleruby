@@ -26,6 +26,7 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.ASCIIEncoding;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -206,7 +207,7 @@ public abstract class BasicObjectNodes {
 
         @TruffleBoundary
         private Source loadFragment(String fragment, String name) {
-            return getContext().getSourceLoader().loadFragment(fragment, name);
+            return Source.newBuilder(fragment).name(name).mimeType(RubyLanguage.MIME_TYPE).build();
         }
 
     }

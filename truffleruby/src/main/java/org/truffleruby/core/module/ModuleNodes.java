@@ -36,6 +36,7 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -593,7 +594,7 @@ public abstract class ModuleNodes {
             // TODO (pitr 15-Oct-2015): fix this ugly hack, required for AS, copy-paste
             final String s = new String(new char[Math.max(line - 1, 0)]);
             final String space = StringUtils.replace(s, "\0", "\n");
-            Source source = getContext().getSourceLoader().loadFragment(space + code, file);
+            Source source = Source.newBuilder(space + code).name(file).mimeType(RubyLanguage.MIME_TYPE).build();
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, encoding, ParserContext.MODULE, callerFrame, true, this);
             return getContext().getCodeLoader().prepareExecute(ParserContext.MODULE, DeclarationContext.CLASS_EVAL, rootNode, callerFrame, module);
