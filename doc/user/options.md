@@ -105,7 +105,7 @@ JVM switches:
 arguments in the same was it stops processing of Ruby arguments.
 
 TruffleRuby also supports the `JAVA_HOME`, `JAVACMD` and `JAVA_OPTS` environment
-variables when running on a JVM, except for the GraalVM.
+variables when running on a JVM (except for `JAVACMD` on the GraalVM).
 
 ## SVM-specific switches
 
