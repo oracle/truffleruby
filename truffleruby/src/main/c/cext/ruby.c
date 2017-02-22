@@ -1341,8 +1341,8 @@ VALUE rb_ary_unshift(VALUE array, VALUE value) {
 }
 
 VALUE rb_ary_aref(int n, const VALUE* values, VALUE array) {
-  rb_jt_error("rb_ary_aref not implemented");
-  abort();
+  // TODO CS 21-Feb-17 if values is an RARRAY_PTR, go back to the array directly
+  return (VALUE) truffle_invoke(RUBY_CEXT, "send_splatted", array, rb_str_new_cstr("[]"), rb_ary_new4(n, values));
 }
 
 VALUE rb_ary_clear(VALUE array) {

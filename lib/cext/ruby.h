@@ -777,7 +777,7 @@ VALUE rb_proc_new(void *function, VALUE value);
 void rb_warn(const char *fmt, ...);
 void rb_warning(const char *fmt, ...);
 
-MUST_INLINE int rb_jt_scan_args_0_HASH(int argc, VALUE *argv, const char *format, VALUE *v1) {
+MUST_INLINE int rb_jt_scan_args_0_hash(int argc, VALUE *argv, const char *format, VALUE *v1) {
   if (argc >= 1) *v1 = argv[0];
   return argc;
 }
@@ -806,6 +806,21 @@ MUST_INLINE int rb_jt_scan_args_12(int argc, VALUE *argv, const char *format, VA
   *v1 = argv[0];
   if (argc >= 2) *v2 = argv[1];
   if (argc >= 3) *v3 = argv[2];
+  return argc - 1;
+}
+
+MUST_INLINE int rb_jt_scan_args_1_star(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
+  if (argc < 1) {
+    rb_jt_error("rb_jt_scan_args_1_star error case not implemented");
+    abort();
+  }
+  *v1 = argv[0];
+  if (argc >= 2) {
+    *v2 = rb_ary_new();
+    for (int n = 1; n < argc; n++) {
+      rb_ary_push(*v2, argv[n]);
+    }
+  }
   return argc - 1;
 }
 
