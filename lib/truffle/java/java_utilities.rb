@@ -310,8 +310,45 @@ module JavaUtilities
     included_method = lambda { |thing|
       unless Thread.current[:MAKE_PROXY]
         p "Including #{self} in #{thing} outside standard make_proxy mechanism."
-        if thing.kind_of?(Module)
-          thing.__send__(:define_method, :included, included_method)
+        case thing
+        when Class
+          p "Defining ways to cook stuff up."
+          unless thing.instance_variable_defined?(:@java_interfaces)
+            thing.instance_variable_set(:@java_interfaces, [])
+          end
+
+          thing.instance_variable_get(:@java_interfaces) << self
+
+          thing.class_eval do
+            include JavaProxyMethods unless ancestors.include?(JavaProxyMethods)
+            attr_accessor :java_object
+
+            def self.new(*rest)
+              res = self.allocate
+              res.instance_variable_set(
+                :@java_object,
+                JavaUtilities.make_java_proxy_invoker(
+                  JavaUtilities.invoker_proc(res),
+                  *@java_interfaces))
+              res.__send__(:initialize, *rest)
+              res
+            end
+
+
+            def hashCode
+              hash
+            end unless method_defined?(:hashCode)
+
+            def toString
+              to_s
+            end unless method_defined?(:toString)
+
+          end
+        when Module
+          p "And thing in this case is a module."
+          thing.__send__(:define_singleton_method, :included, included_method)
+        else
+          p "#{self} unexpectedly included in #{thing}."
         end
       end }
 
@@ -343,7 +380,7 @@ module JavaUtilities
   def self.unwrap_java_value(val)
     if val.kind_of?(String)
       Interop.to_java_string(val)
-    elsif val.kind_of?(JavaProxy)
+    elsif val.kind_of?(JavaProxyMethods)
       val.java_object
     else
       val
@@ -469,7 +506,7 @@ module JavaUtilities
 
   def self.make_java_proxy_invoker(a_proc, *modules)
     java_interfaces = modules.map { |m| unwrap_java_value(m.java_class) }
-    wrap_java_value(Java.proxy_class(a_proc, Java.loader, *java_interfaces))
+    Java.proxy_class(a_proc, Java.loader, *java_interfaces)
   end
 
   def self.invoker_proc(owner)

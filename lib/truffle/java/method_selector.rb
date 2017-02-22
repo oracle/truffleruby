@@ -20,7 +20,7 @@ module JavaUtilities
     end
 
     def can_accept?(a)
-      if a.kind_of?(JavaProxy)
+      if a.kind_of?(JavaProxyMethods)
         begin
           return Java.invoke_java_method(
                    JavaUtilities::JavaDispatcher::CLASS_IS_ASSIGNABLE_FROM, @type,
