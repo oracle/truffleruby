@@ -184,15 +184,16 @@ module RbConfig
     CONFIG.merge!({
         'CC' => cc,
         'CPP' => cpp,
-        'COMPILE_C' => "#{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG)$< -o $@ && #{opt} -always-inline -mem2reg $@ -o $@",
+        'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{opt} -always-inline -mem2reg $@ -o $@",
         'CFLAGS' => cflags,
         'LINK_SO' => "mx -v -p #{ENV['SULONG_HOME']} su-link -o $@ $(OBJS) #{libs}",
         'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) #{cflags} -I#{ENV['SULONG_HOME']}/include #{libs}"
     })
+
     MAKEFILE_CONFIG.merge!({
         'CC' => cc,
         'CPP' => cpp,
-        'COMPILE_C' => "$(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$< -o $@ && #{opt} -always-inline -mem2reg $@ -o $@",
+        'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} -always-inline -mem2reg $@ -o $@",
         'CFLAGS' => cflags,
         'LINK_SO' => "mx -v -p #{ENV['SULONG_HOME']} su-link -o $@ $(OBJS) $(LIBS)",
         'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{ENV['SULONG_HOME']}/include $(LIBS)"

@@ -833,6 +833,10 @@ module Truffle::CExt
     raise RubyTruffleError.new(message)
   end
 
+  def send_splatted(object, method, args)
+    object.send(method, *args)
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
