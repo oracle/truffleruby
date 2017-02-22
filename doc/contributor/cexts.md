@@ -38,7 +38,13 @@ If you want to test `libxml`, remove that flag and set either `LIBXML_HOME` or
 `LIBXML_INCLUDE` and `LIBXML_LIB`. Try the same with `OPENSSL_` if you are
 adventurous.
 
-To run C extension bechmarks, you first need to compile them.
+You can also runs specs:
+
+```
+$ jt test --sulong :capi
+```
+
+To run C extension benchmarks, you first need to compile them.
 
 ```
 $ jt cextc .../all-ruby-benchmarks/chunky_png/oily_png/
