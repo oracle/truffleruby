@@ -79,7 +79,7 @@ public abstract class InteropNodes {
                 VirtualFrame frame,
                 TruffleObject receiver,
                 @Cached("createIsExecutableNode()") Node isExecutableNode) {
-            return ForeignAccess.sendIsExecutable(isExecutableNode, frame, receiver);
+            return ForeignAccess.sendIsExecutable(isExecutableNode, receiver);
         }
 
         protected Node createIsExecutableNode() {
@@ -106,7 +106,7 @@ public abstract class InteropNodes {
                 @Cached("createExecuteNode(cachedArgsLength)") Node executeNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendExecute(executeNode, frame, receiver, args);
+                return ForeignAccess.sendExecute(executeNode, receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -123,7 +123,7 @@ public abstract class InteropNodes {
             final Node executeNode = createExecuteNode(args.length);
 
             try {
-                return ForeignAccess.sendExecute(executeNode, frame, receiver, args);
+                return ForeignAccess.sendExecute(executeNode, receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 throw new JavaException(e);
             }
@@ -162,7 +162,6 @@ public abstract class InteropNodes {
             try {
                 return ForeignAccess.sendInvoke(
                         invokeNode,
-                        frame,
                         receiver,
                         toJavaStringNode.executeToJavaString(frame, identifier),
                         args);
@@ -189,7 +188,7 @@ public abstract class InteropNodes {
             final Node invokeNode = createInvokeNode(args.length);
 
             try {
-                return ForeignAccess.sendInvoke(invokeNode, frame, receiver, identifier.toString(), args);
+                return ForeignAccess.sendInvoke(invokeNode, receiver, identifier.toString(), args);
             } catch (UnsupportedTypeException
                     | ArityException
                     | UnsupportedMessageException
@@ -217,7 +216,7 @@ public abstract class InteropNodes {
                 VirtualFrame frame,
                 TruffleObject receiver,
                 @Cached("createHasSizeNode()") Node hasSizeNode) {
-            return ForeignAccess.sendHasSize(hasSizeNode, frame, receiver);
+            return ForeignAccess.sendHasSize(hasSizeNode, receiver);
         }
 
         protected Node createHasSizeNode() {
@@ -241,7 +240,7 @@ public abstract class InteropNodes {
                 @Cached("createGetSizeNode()") Node getSizeNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendGetSize(getSizeNode, frame, receiver);
+                return ForeignAccess.sendGetSize(getSizeNode, receiver);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -303,7 +302,7 @@ public abstract class InteropNodes {
                 TruffleObject receiver,
                 @Cached("createIsBoxedNode()") Node isBoxedNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
-            return ForeignAccess.sendIsBoxed(isBoxedNode, frame, receiver);
+            return ForeignAccess.sendIsBoxed(isBoxedNode, receiver);
         }
 
         protected Node createIsBoxedNode() {
@@ -334,7 +333,7 @@ public abstract class InteropNodes {
                 @Cached("createUnboxNode()") Node unboxNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendUnbox(unboxNode, frame, receiver);
+                return ForeignAccess.sendUnbox(unboxNode, receiver);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this, e));
@@ -360,7 +359,7 @@ public abstract class InteropNodes {
                 VirtualFrame frame,
                 TruffleObject receiver,
                 @Cached("createIsNullNode()") Node isNullNode) {
-            return ForeignAccess.sendIsNull(isNullNode, frame, receiver);
+            return ForeignAccess.sendIsNull(isNullNode, receiver);
         }
 
         protected Node createIsNullNode() {
@@ -386,7 +385,7 @@ public abstract class InteropNodes {
                 @Cached("createReadNode()") Node readNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendRead(readNode, frame, receiver, identifier);
+                return ForeignAccess.sendRead(readNode, receiver, identifier);
             } catch (UnknownIdentifierException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -403,7 +402,7 @@ public abstract class InteropNodes {
                 @Cached("createReadNode()") Node readNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendRead(readNode, frame, receiver, identifierString);
+                return ForeignAccess.sendRead(readNode, receiver, identifierString);
             } catch (UnknownIdentifierException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -426,7 +425,7 @@ public abstract class InteropNodes {
                 @Cached("createReadNode()") Node readNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendRead(readNode, frame, receiver, identifierString);
+                return ForeignAccess.sendRead(readNode, receiver, identifierString);
             } catch (UnknownIdentifierException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -444,7 +443,7 @@ public abstract class InteropNodes {
                 @Cached("createReadNode()") Node readNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendRead(readNode, frame, receiver, objectToString(identifier));
+                return ForeignAccess.sendRead(readNode, receiver, objectToString(identifier));
             } catch (UnknownIdentifierException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -479,7 +478,7 @@ public abstract class InteropNodes {
                 @Cached("createWriteNode()") Node writeNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendWrite(writeNode, frame, receiver, identifier, value);
+                return ForeignAccess.sendWrite(writeNode, receiver, identifier, value);
             } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -497,7 +496,7 @@ public abstract class InteropNodes {
                 @Cached("createWriteNode()") Node writeNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendWrite(writeNode, frame, receiver, identifierString, value);
+                return ForeignAccess.sendWrite(writeNode, receiver, identifierString, value);
             } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -521,7 +520,7 @@ public abstract class InteropNodes {
                 @Cached("createWriteNode()") Node writeNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendWrite(writeNode, frame, receiver, identifierString, value);
+                return ForeignAccess.sendWrite(writeNode, receiver, identifierString, value);
             } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -540,7 +539,7 @@ public abstract class InteropNodes {
                 @Cached("createWriteNode()") Node writeNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendWrite(writeNode, frame, receiver, objectToString(identifier), value);
+                return ForeignAccess.sendWrite(writeNode, receiver, objectToString(identifier), value);
             } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -575,7 +574,7 @@ public abstract class InteropNodes {
             try {
                 return snippetNode.execute(frame,
                         "Truffle::Interop.enumerable(keys).map { |key| Truffle::Interop.from_java_string(key) }",
-                        "keys", ForeignAccess.sendKeys(keysNode, frame, receiver));
+                        "keys", ForeignAccess.sendKeys(keysNode, receiver));
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
