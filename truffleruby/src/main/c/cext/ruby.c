@@ -1417,8 +1417,7 @@ VALUE rb_check_array_type(VALUE array) {
 // Hash
 
 VALUE rb_hash(VALUE obj) {
-  rb_jt_error("rb_hash not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)obj, "hash");
 }
 
 VALUE rb_hash_new() {
