@@ -8,7 +8,7 @@
 
 ARGF.each do |line|
   if line.include?('rb_scan_args')
-    puts line.gsub(/\srb_scan_args\((\w+), (\w+), \"(.*)\", /) {
+    puts line.gsub(/\brb_scan_args\((\w+), (\w+), \"(.*)\", /) {
       argc = $1
       argv = $2
       arity = $3
