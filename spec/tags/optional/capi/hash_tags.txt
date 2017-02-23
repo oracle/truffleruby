@@ -9,4 +9,3 @@ fails:C-API Hash function rb_hash_delete_if returns an Enumerator when no block 
 fails:C-API Hash function rb_hash_foreach iterates over the hash
 fails:C-API Hash function rb_hash_foreach stops via the callback
 fails:C-API Hash function rb_hash_foreach deletes via the callback
-fails:C-API Hash function rb_hash_lookup does not return the default value if it exists

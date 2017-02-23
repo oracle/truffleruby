@@ -1434,7 +1434,7 @@ VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE value) {
 }
 
 VALUE rb_hash_lookup(VALUE hash, VALUE key) {
-  return (VALUE) truffle_invoke((void *)hash, "[]", key);
+  return rb_hash_lookup2(hash, key, Qnil);
 }
 
 VALUE rb_hash_lookup2(VALUE hash, VALUE key, VALUE default_value) {
