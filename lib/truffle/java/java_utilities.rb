@@ -308,10 +308,8 @@ module JavaUtilities
   def self.make_interface_proxy(a_class)
     included_method = lambda { |thing|
       unless Thread.current[:MAKE_PROXY]
-        p "Including #{self} in #{thing} outside standard make_proxy mechanism."
         case thing
         when Class
-          p "Defining ways to cook stuff up."
           unless thing.instance_variable_defined?(:@java_interfaces)
             interfaces = thing.instance_variable_set(:@java_interfaces, [])
           else
@@ -357,10 +355,9 @@ module JavaUtilities
 
           end
         when Module
-          p "And thing in this case is a module."
           thing.__send__(:define_singleton_method, :included, included_method)
         else
-          p "#{self} unexpectedly included in #{thing}."
+          raise TypeError, "#{self} unexpectedly included in #{thing}."
         end
       end }
 
