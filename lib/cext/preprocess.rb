@@ -9,6 +9,11 @@
 ARGF.each do |line|
   if line.include?('rb_scan_args')
     puts line.gsub(/\brb_scan_args\((\w+), (\w+), \"(.*)\", /) {
+      # Translate
+      #   rb_scan_args(argc, argv, "11", &v1, &v2)
+      # into
+      #   rb_jt_scan_args_11(argc, argv, "11", &v1, &v2)
+
       argc = $1
       argv = $2
       arity = $3
@@ -30,6 +35,36 @@ ARGF.each do |line|
 
       "#{shim}(#{argc}, #{argv}, \"#{arity}\", "
     }
+  elsif line =~ /^(\s+)VALUE((\s+\w+\s*(\[\s*\d+\s*\]\s*)?,?)+);\s*$/
+    # Translate
+    #   VALUE args[6], failed, a1, a2, a3, a4, a5, a6;
+    #  into
+    #   VALUE failed, a1, a2, a3, a4, a5, a6; VALUE *args = truffle_managed_malloc(6 * sizeof(VALUE));
+
+    simple = []
+    arrays = []
+
+    line = $1
+
+    $2.split(', ').each do |local|
+      local.strip!
+      if local.end_with?(']')
+        local =~ /(\w+)\s*\[\s*(\d+)\s*\]/
+        arrays.push [$1, $2.to_i]
+      else
+        simple.push local
+      end
+    end
+
+    unless simple.empty?
+      line += "VALUE #{simple.join(', ')};"
+    end
+
+    arrays.each do |name, size|
+      line += " VALUE *#{name} = truffle_managed_malloc(#{size} * sizeof(VALUE));"
+    end
+
+    puts line
   else
     puts line
   end
