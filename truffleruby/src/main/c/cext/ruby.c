@@ -649,8 +649,7 @@ const char *rb_obj_classname(VALUE object) {
 }
 
 VALUE rb_obj_id(VALUE object) {
-  rb_jt_error("rb_obj_id not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)object, "object_id");
 }
 
 int rb_obj_method_arity(VALUE object, ID id) {
@@ -694,8 +693,7 @@ VALUE rb_class_inherited_p(VALUE module, VALUE object) {
 }
 
 VALUE rb_equal(VALUE a, VALUE b) {
-  rb_jt_error("rb_equal not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)a, "===", b);
 }
 
 int RB_BUILTIN_TYPE(VALUE object) {

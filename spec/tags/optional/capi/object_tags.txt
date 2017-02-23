@@ -65,8 +65,6 @@ fails:CApiObject rb_to_int raises a TypeError if called with nil
 fails:CApiObject rb_to_int raises a TypeError if called with true
 fails:CApiObject rb_to_int raises a TypeError if called with false
 fails:CApiObject rb_to_int raises a TypeError if called with a String
-fails:CApiObject rb_equal returns true if the arguments are the same exact object
-fails:CApiObject rb_equal calls == to check equality and coerces to true/false
 fails:CApiObject rb_class_inherited_p returns true if mod equals arg
 fails:CApiObject rb_class_inherited_p returns true if mod is a subclass of arg
 fails:CApiObject rb_class_inherited_p returns nil if mod is not a subclass of arg
