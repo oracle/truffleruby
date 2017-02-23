@@ -6,6 +6,10 @@ class String
     ba
   end
 
+  def to_java_string
+    JavaUtilities.wrap_java_value(::Truffle::Interop.to_java_string(self))
+  end
+
   def self.from_java_bytes(ba)
     a = Array.new(ba.size)
     ba.each_with_index { |b, i| a[i] = b }

@@ -156,7 +156,7 @@ module JavaUtilities
 
   class StringParameter < Parameter
     def can_accept?(a)
-      a == nil || a.class == String || a.class == Symbol
+      a == nil || a.class == String || a.class == Symbol || super(a)
     end
   end
 
