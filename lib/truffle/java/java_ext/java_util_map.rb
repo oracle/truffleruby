@@ -139,6 +139,20 @@ module ::Java::JavaUtil::Map
     self
   end
 
+  def select
+    return to_enum(:select) { size } unless block_given?
+
+    selected = Hash.allocate
+
+    each_pair do |key,value|
+      if yield(key, value)
+        selected[key] = value
+      end
+    end
+
+    selected
+  end
+
   def select!
     return to_enum(:select!) { size } unless block_given?
 
