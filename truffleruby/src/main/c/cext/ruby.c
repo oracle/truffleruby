@@ -1600,11 +1600,6 @@ void rb_warning(const char *format, ...) {
   }
 }
 
-int rb_scan_args(int argc, VALUE *argv, const char *format, ...) {
-  rb_jt_error("generic rb_scan_args not implemented - use a specialisation such as rb_jt_scan_args_02");
-  abort();
-}
-
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
   rb_jt_error("rb_funrb_enumeratorizecallv not implemented");
   abort();

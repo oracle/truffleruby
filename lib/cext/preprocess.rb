@@ -8,7 +8,7 @@
 
 ARGF.each do |line|
   if line.include?('rb_scan_args')
-    puts line.gsub(/rb_scan_args\((\w+), (\w+), \"(.*)\", /) {
+    puts line.gsub(/\srb_scan_args\((\w+), (\w+), \"(.*)\", /) {
       argc = $1
       argv = $2
       arity = $3
@@ -25,7 +25,7 @@ ARGF.each do |line|
         when '1*'
           shim = 'rb_jt_scan_args_1_star'
         else
-          shim = 'rb_scan_args' # let it fail at runtime
+          shim = 'rb_scan_args' # use the macro
       end
 
       "#{shim}(#{argc}, #{argv}, \"#{arity}\", "

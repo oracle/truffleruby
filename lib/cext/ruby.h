@@ -824,9 +824,66 @@ MUST_INLINE int rb_jt_scan_args_1_star(int argc, VALUE *argv, const char *format
   return argc - 1;
 }
 
-int rb_scan_args(int argc, VALUE *argv, const char *format, ...);
+MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
+  switch (format[0]) {
+    case '0':
+      switch (format[1]) {
+        case ':':
+          switch (format[2]) {
+            case '\0':
+              return rb_jt_scan_args_0_hash(argc, argv, format, v1);
+          }
+          break;
+        case '2':
+          switch (format[2]) {
+            case '\0':
+              return rb_jt_scan_args_02(argc, argv, format, v1, v2);
+          }
+          break;
+      }
+      break;
+    case '1':
+      switch (format[1]) {
+        case '1':
+          switch (format[2]) {
+            case '\0':
+              return rb_jt_scan_args_11(argc, argv, format, v1, v2);
+          }
+          break;
+        case '2':
+          switch (format[2]) {
+            case '\0':
+              return rb_jt_scan_args_12(argc, argv, format, v1, v2, v3);
+          }
+          break;
+        case '*':
+          switch (format[2]) {
+            case '\0':
+              return rb_jt_scan_args_1_star(argc, argv, format, v1, v2);
+          }
+          break;
+      }
+      break;
+  }
+
+  rb_jt_error("rb_jt_scan_args case not implemented");
+  abort();
+}
 
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
+#define rb_jt_scan_args_1(ARGC, ARGV, FORMAT, V1) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_jt_scan_args_2(ARGC, ARGV, FORMAT, V1, V2) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_jt_scan_args_3(ARGC, ARGV, FORMAT, V1, V2, V3) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_jt_scan_args_4(ARGC, ARGV, FORMAT, V1, V2, V3, V4) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_jt_scan_args_5(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, NULL, NULL, NULL, NULL, NULL)
+#define rb_jt_scan_args_6(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, NULL, NULL, NULL, NULL)
+#define rb_jt_scan_args_7(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, NULL, NULL, NULL)
+#define rb_jt_scan_args_8(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, NULL, NULL)
+#define rb_jt_scan_args_9(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, NULL)
+#define rb_jt_scan_args_10(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10)
+
+#define SCAN_ARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
+#define rb_scan_args(ARGC, ARGV, FORMAT, ...) SCAN_ARGS_IMPL(__VA_ARGS__, rb_jt_scan_args_10, rb_jt_scan_args_9, rb_jt_scan_args_8, rb_jt_scan_args_7, rb_jt_scan_args_6, rb_jt_scan_args_5, rb_jt_scan_args_4, rb_jt_scan_args_3, rb_jt_scan_args_2, rb_jt_scan_args_1)(ARGC, ARGV, FORMAT, __VA_ARGS__)
 
 // Calls
 
