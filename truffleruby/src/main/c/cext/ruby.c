@@ -564,8 +564,7 @@ VALUE rb_f_sprintf(int argc, const VALUE *argv) {
 }
 
 void rb_need_block(void) {
-  rb_jt_error("rb_need_block not implemented");
-  abort();
+  truffle_invoke(RUBY_CEXT, "rb_need_block");
 }
 
 void rb_set_end_proc(void (*func)(VALUE), VALUE data) {

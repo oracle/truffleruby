@@ -592,6 +592,12 @@ module Truffle::CExt
     $VERBOSE
   end
 
+  def rb_need_block
+    if rb_block_given_p == 0
+      raise LocalJumpError, "no block given"
+    end
+  end
+
   def rb_yield(value)
     block = get_block
     block.call(value)

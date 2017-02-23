@@ -287,13 +287,13 @@ public class CExtNodes {
         @Specialization
         public int blockGiven(MaterializedFrame callerFrame,
                                   @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
-            return blockProfile.profile(RubyArguments.getBlock(callerFrame) != null) ? 1 : 0;
+            return blockProfile.profile(RubyArguments.tryGetBlock(callerFrame) != null) ? 1 : 0;
         }
 
         @TruffleBoundary
         @Specialization
         public int blockGiven(NotProvided noCallerFrame) {
-            return RubyArguments.getBlock(Truffle.getRuntime().getCallerFrame().getFrame(FrameInstance.FrameAccess.READ_ONLY)) != null ? 1 : 0;
+            return RubyArguments.tryGetBlock(Truffle.getRuntime().getCallerFrame().getFrame(FrameInstance.FrameAccess.READ_ONLY)) != null ? 1 : 0;
         }
 
     }

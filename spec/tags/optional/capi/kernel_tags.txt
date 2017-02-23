@@ -1,6 +1,4 @@
-fails:C-API Kernel function rb_block_given_p returns false if no block is passed
 fails:C-API Kernel function rb_block_given_p returns true if a block is passed
-fails:C-API Kernel function rb_need_block raises a LocalJumpError if no block is given
 fails:C-API Kernel function rb_need_block does not raise a LocalJumpError if a block is given
 fails:C-API Kernel function rb_block_call calls the block with a single argument
 fails:C-API Kernel function rb_block_call calls the block with multiple arguments in argc / argv
