@@ -829,39 +829,19 @@ MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE
     case '0':
       switch (format[1]) {
         case ':':
-          switch (format[2]) {
-            case '\0':
-              return rb_jt_scan_args_0_hash(argc, argv, format, v1);
-          }
-          break;
+          return rb_jt_scan_args_0_hash(argc, argv, format, v1);
         case '2':
-          switch (format[2]) {
-            case '\0':
-              return rb_jt_scan_args_02(argc, argv, format, v1, v2);
-          }
-          break;
+          return rb_jt_scan_args_02(argc, argv, format, v1, v2);
       }
       break;
     case '1':
       switch (format[1]) {
         case '1':
-          switch (format[2]) {
-            case '\0':
-              return rb_jt_scan_args_11(argc, argv, format, v1, v2);
-          }
-          break;
+          return rb_jt_scan_args_11(argc, argv, format, v1, v2);
         case '2':
-          switch (format[2]) {
-            case '\0':
-              return rb_jt_scan_args_12(argc, argv, format, v1, v2, v3);
-          }
-          break;
+          return rb_jt_scan_args_12(argc, argv, format, v1, v2, v3);
         case '*':
-          switch (format[2]) {
-            case '\0':
-              return rb_jt_scan_args_1_star(argc, argv, format, v1, v2);
-          }
-          break;
+          return rb_jt_scan_args_1_star(argc, argv, format, v1, v2);
       }
       break;
   }
