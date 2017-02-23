@@ -178,13 +178,16 @@ module RbConfig
   if Truffle::Safe.memory_safe? && Truffle::Safe.processes_safe?
     clang = ENV['JT_CLANG'] || 'clang'
     opt = ENV['JT_OPT'] || 'opt'
+    
+    # Sulong's passes, plus -always-inline
+    opt_passes = ['-always-inline', '-mem2reg', '-globalopt', '-simplifycfg', '-constprop', '-instcombine', '-dse', '-loop-simplify', '-reassociate', '-licm', '-gvn']
     cc = "#{clang} -I#{ENV['SULONG_HOME']}/include"
     cpp = cc
 
     CONFIG.merge!({
         'CC' => cc,
         'CPP' => cpp,
-        'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{opt} -always-inline -mem2reg $@ -o $@",
+        'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes.join(' ')} $@ -o $@",
         'CFLAGS' => cflags,
         'LINK_SO' => "mx -v -p #{ENV['SULONG_HOME']} su-link -o $@ $(OBJS) #{libs}",
         'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) #{cflags} -I#{ENV['SULONG_HOME']}/include #{libs}"
@@ -193,7 +196,7 @@ module RbConfig
     MAKEFILE_CONFIG.merge!({
         'CC' => cc,
         'CPP' => cpp,
-        'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} -always-inline -mem2reg $@ -o $@",
+        'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes.join(' ')} $@ -o $@",
         'CFLAGS' => cflags,
         'LINK_SO' => "mx -v -p #{ENV['SULONG_HOME']} su-link -o $@ $(OBJS) $(LIBS)",
         'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{ENV['SULONG_HOME']}/include $(LIBS)"
