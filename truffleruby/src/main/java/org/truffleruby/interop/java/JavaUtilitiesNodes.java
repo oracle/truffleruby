@@ -145,6 +145,11 @@ public class JavaUtilitiesNodes {
         public Object invokeJavaMethod(MethodHandle method, Object tag, Object[] rest) {
             if (!TruffleOptions.AOT) {
                 try {
+                    for (int i = 0; i < rest.length; i++) {
+                        if (rest[i] == nil()) {
+                            rest[i] = null;
+                        }
+                    }
                     Object res = method.invokeWithArguments(rest);
                     return res == null ? nil() : res;
                 } catch (Throwable e) {
@@ -156,15 +161,32 @@ public class JavaUtilitiesNodes {
         }
     }
 
-    @CoreMethod(names = "proxy_class", required = 2, rest = true, isModuleFunction = true)
+    @CoreMethod(names = "proxy_class", required = 1, rest = true, isModuleFunction = true)
     public static abstract class JavaProxyClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object createJavaProxy(DynamicObject aProc, ClassLoader loader, Object[]rest) {
+        public Object createJavaProxyClass(Object loader, Object[]rest) {
             Class<?>[] interfaces = new Class<?>[rest.length];
             for (int i=0; i < rest.length; i++) {
                 interfaces[i] = (Class<?>)rest[i];
             }
+            ClassLoader cl;
+            if (loader instanceof ClassLoader) {
+                cl = (ClassLoader)loader;
+            } else if (loader == nil()) {
+                cl = null;
+            } else {
+                throw new RaiseException(coreExceptions().typeError("loader must be a java class loader or null", this));
+            }
+            return Proxy.getProxyClass(cl, interfaces);
+        }
+    }
+
+    @CoreMethod(names = "invocation_handler", required = 1, isModuleFunction = true)
+    public static abstract class InvocationHandlerNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object createHandler(DynamicObject aProc) {
             InvocationHandler handler = new InvocationHandler() {
                     public Object invoke(Object aProxy, Method method, Object[] args) {
                         Object[] rubyArgs;
@@ -178,7 +200,7 @@ public class JavaUtilitiesNodes {
                         return ProcOperations.rootCall(aProc, rubyArgs);
                     }
                 };
-            return Proxy.newProxyInstance(loader, interfaces, handler);
+            return handler;
         }
     }
 }

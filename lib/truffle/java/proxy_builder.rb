@@ -157,6 +157,20 @@ module JavaUtilities
       self
     end
 
+    def add_array_accessors
+      return self unless Java.invoke_java_method(JavaUtilities::CLASS_IS_ARRAY, @java_class)
+      array_getter = Java.invoke_java_method(JavaUtilities::ARRAY_GETTER_GETTER, @java_class)
+      array_setter = Java.invoke_java_method(JavaUtilities::ARRAY_SETTER_GETTER, @java_class)
+      array_length = JavaUtilities::REFLECT_ARRAY_LENGTH
+      ms = {"[]" => array_getter, "[]=" => array_setter, "size" => array_length}
+      ms.each do |name, mh|
+        a_method = Method.new(name, mh)
+        arity = a_method.arity
+        add_to_instance(name, a_method, arity == 1, arity == 2)
+      end
+      self
+    end
+
     def add_constructors
       constructors = Java.invoke_java_method(CLASS_GET_CONSTRUCTORS, @java_class)
       # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
@@ -177,6 +191,7 @@ module JavaUtilities
         add_static_methods().
         add_instance_fields().
         add_instance_methods().
+        add_array_accessors().
         add_constructors()
 
       @static_members.values.each do |m|

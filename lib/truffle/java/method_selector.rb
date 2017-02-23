@@ -20,7 +20,9 @@ module JavaUtilities
     end
 
     def can_accept?(a)
-      if a.kind_of?(JavaProxyMethods)
+      if a == nil
+        true
+      elsif a.kind_of?(JavaProxyMethods)
         begin
           return Java.invoke_java_method(
                    JavaUtilities::JavaDispatcher::CLASS_IS_ASSIGNABLE_FROM, @type,
@@ -79,7 +81,7 @@ module JavaUtilities
     end
 
     def can_accept?(a)
-      in_range?(a) rescue false
+      (in_range?(a) rescue false) || super(a)
     end
 
     def in_range?(a)
@@ -120,7 +122,7 @@ module JavaUtilities
     end
 
     def can_accept?(a)
-      a.class == Float
+      a.class == Float || super(a)
     end
   end
 
@@ -141,13 +143,26 @@ module JavaUtilities
     end
   end
 
-  class StringParameter < Parameter
-    def initialize(type)
-      super(type)
-    end
-
+  class MapParameter < Parameter
     def can_accept?(a)
-      a.class == String || a.class == Symbol
+      case a
+      when Hash
+        true
+      else
+        super(a)
+      end
+    end
+  end
+
+  class StringParameter < Parameter
+    def can_accept?(a)
+      a == nil || a.class == String || a.class == Symbol
+    end
+  end
+
+  class ObjectParameter < Parameter
+    def can_accept?(a)
+      true
     end
   end
 
@@ -237,6 +252,15 @@ module JavaUtilities
     param = StringParameter.new(java_type)
     Parameter::ParameterCache.put_if_absent(java_type, param)
 
+    java_type = Java.java_class_by_name("java.lang.Object")
+    param = ObjectParameter.new(java_type)
+    Parameter::ParameterCache.put_if_absent(java_type, param)
+  end
+
+  # Common interface types can accept some standard Ruby objects
+  begin
+    java_class = Java.java_class_by_name("java.util.Map")
+    Parameter::ParameterCache.put_if_absent(java_class, MapParameter.new(java_class))
   end
 
   class Parameters

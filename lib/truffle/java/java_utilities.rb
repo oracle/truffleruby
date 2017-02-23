@@ -302,7 +302,6 @@ module JavaUtilities
   def self.make_array_proxy(a_class)
     a_proxy = Class.new(ArrayJavaProxy)
     # This is done here to break the circle in bootstrapping.
-    add_array_accessors(a_proxy, a_class)
     a_proxy
   end
 
@@ -314,34 +313,47 @@ module JavaUtilities
         when Class
           p "Defining ways to cook stuff up."
           unless thing.instance_variable_defined?(:@java_interfaces)
-            thing.instance_variable_set(:@java_interfaces, [])
+            interfaces = thing.instance_variable_set(:@java_interfaces, [])
+          else
+            interfaces = thing.instance_variable_get(:@java_interfaces)
           end
 
-          thing.instance_variable_get(:@java_interfaces) << self
+          interfaces << self
+          java_class = thing.instance_variable_set(
+            :@java_class, JavaUtilities.make_java_proxy_class(*interfaces))
+
+          # We know a proxy will have a public constructor.
+          con = JavaUtilities::unreflect_constructor(
+            JavaUtilities::java_array_get(Java.invoke_java_method(CLASS_GET_CONSTRUCTORS, java_class), 0))
+
+          constructor = lambda { Java.invoke_java_method(con, JavaUtilities::invocation_handler(self)) }
 
           thing.class_eval do
             include JavaProxyMethods unless ancestors.include?(JavaProxyMethods)
             attr_accessor :java_object
 
+            define_method(:__build_java_proxy__, constructor)
+
+            def self.java_class
+              @java_class
+            end
+
             def self.new(*rest)
               res = self.allocate
               res.instance_variable_set(
                 :@java_object,
-                JavaUtilities.make_java_proxy_invoker(
-                  JavaUtilities.invoker_proc(res),
-                  *@java_interfaces))
+                res.__build_java_proxy__)
               res.__send__(:initialize, *rest)
               res
             end
 
-
             def hashCode
               hash
-            end unless method_defined?(:hashCode)
+            end
 
             def toString
               to_s
-            end unless method_defined?(:toString)
+            end
 
           end
         when Module
@@ -358,6 +370,10 @@ module JavaUtilities
         attr_accessor :java_class
         def java_class
           JavaUtilities::wrap_java_value(@java_class)
+        end
+
+        def const_missing(name)
+          JavaUtilities.get_inner_class(self.java_class, name)
         end
       end
     end
@@ -378,9 +394,12 @@ module JavaUtilities
   end
 
   def self.unwrap_java_value(val)
-    if val.kind_of?(String)
+    case val
+    when String
       Interop.to_java_string(val)
-    elsif val.kind_of?(JavaProxyMethods)
+    when Hash
+      HashProxy.new(val).java_object
+    when JavaProxyMethods
       val.java_object
     else
       val
@@ -457,23 +476,6 @@ module JavaUtilities
     Java.invoke_java_method(OBJECT_GET_CLASS, obj)
   end
 
-  def self.add_array_accessors(a_proxy, a_class)
-    array_getter = Java.invoke_java_method(ARRAY_GETTER_GETTER, a_class)
-    array_setter = Java.invoke_java_method(ARRAY_SETTER_GETTER, a_class)
-
-    getter = lambda { |i| ::JavaUtilities.wrap_java_value(
-                        Java.invoke_java_method(
-                          array_getter, self.java_object, i)) }
-    setter = lambda { |i,v| Java.invoke_java_method(
-                        array_setter, self.java_object, i,
-                        ::JavaUtilities.unwrap_java_value(v)) }
-    size = lambda { Java.invoke_java_method(REFLECT_ARRAY_LENGTH, self.java_object) }
-
-    a_proxy.__send__(:define_method, "[]", getter)
-    a_proxy.__send__(:define_method, "[]=", setter)
-    a_proxy.__send__(:define_method, "size", size)
-  end
-
   def self.constant_field?(a_field)
     modifiers = Java.invoke_java_method(FIELD_GET_MODIFIERS, a_field)
     constant = Modifiers::FINAL | Modifiers::PUBLIC | Modifiers::STATIC
@@ -504,9 +506,13 @@ module JavaUtilities
     a_proxy = Class.new(super_class)
   end
 
-  def self.make_java_proxy_invoker(a_proc, *modules)
+  def self.make_java_proxy_class(*modules)
     java_interfaces = modules.map { |m| unwrap_java_value(m.java_class) }
-    Java.proxy_class(a_proc, Java.loader, *java_interfaces)
+    Java.proxy_class(Java.loader, *java_interfaces)
+  end
+
+  def self.invocation_handler(owner)
+    Java.invocation_handler(invoker_proc(owner))
   end
 
   def self.invoker_proc(owner)

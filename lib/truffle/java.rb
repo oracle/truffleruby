@@ -48,6 +48,8 @@ require_relative 'java/concrete_java_proxy.rb'
 require_relative 'java/array_java_proxy.rb'
 require_relative 'java/env_java.rb'
 require_relative 'java/classpath.rb'
+require_relative 'java/hash_proxy.rb'
+require_relative 'java/string_ext.rb'
 
 require_relative 'java/java_ext.rb'
 

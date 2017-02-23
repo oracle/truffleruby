@@ -22,38 +22,28 @@ module JavaUtilities
     end
 
     def method_for_dispatch(replacer)
-      if @methods.size == 1
-        replacer.call(
-          lambda { |*args|
-            args = args.map do |x|
-              ::JavaUtilities.unwrap_java_value(x)
-            end
-            ::JavaUtilities.wrap_java_value(Java.invoke_java_method(@methods[0], *args)) }
-        )
-      else
-        # Let's start building a dispatcher...
-        # First sort the methods by arity and varargs.
-        simple_arities = Hash.new { |h, k| h[k] = [] }
-        varargs_arities = Hash.new { |h, k| h[k] = [] }
-        @methods.each do |m|
-          varargs = JavaDispatcher.method_is_varargs(m)
-          dest = if varargs
-                   varargs_arities
-                 else
-                   simple_arities
-                 end
-          bucket = dest[min_method_arity(m)]
-          bucket << m
-        end
-        simple_arities = simple_arities.map { |k, methods| [k, CallableSelector.new(methods)] }.to_h
-        method = lambda do |*args|
-          cs = simple_arities[args.size]
-          target = cs.find_matching_callable_for_args( args )
-          java_args = args.map { |x| ::JavaUtilities.unwrap_java_value(x) }
-          ::JavaUtilities.wrap_java_value(Java.invoke_java_method(target, *java_args))
-        end
-        replacer.call(method)
+      # Let's start building a dispatcher...
+      # First sort the methods by arity and varargs.
+      simple_arities = Hash.new { |h, k| h[k] = [] }
+      varargs_arities = Hash.new { |h, k| h[k] = [] }
+      @methods.each do |m|
+        varargs = JavaDispatcher.method_is_varargs(m)
+        dest = if varargs
+                 varargs_arities
+               else
+                 simple_arities
+               end
+        bucket = dest[min_method_arity(m)]
+        bucket << m
       end
+      simple_arities = simple_arities.map { |k, methods| [k, CallableSelector.new(methods)] }.to_h
+      method = lambda do |*args|
+        cs = simple_arities[args.size]
+        target = cs.find_matching_callable_for_args( args )
+        java_args = args.map { |x| ::JavaUtilities.unwrap_java_value(x) }
+        ::JavaUtilities.wrap_java_value(Java.invoke_java_method(target, *java_args))
+      end
+      replacer.call(method)
     end
 
     def basic_arity
@@ -107,6 +97,8 @@ module JavaUtilities
       JAVA_METHODTYPE_CLASS, "returnType", false, JAVA_CLASS_CLASS)
     METHODTYPE_UNWRAP = Java.get_java_method(
       JAVA_METHODTYPE_CLASS, "unwrap", false, JAVA_METHODTYPE_CLASS)
+    METHODTYPE_WRAP = Java.get_java_method(
+      JAVA_METHODTYPE_CLASS, "wrap", false, JAVA_METHODTYPE_CLASS)
     CLASS_IS_ASSIGNABLE_FROM = Java.get_java_method(
       JAVA_CLASS_CLASS, "isAssignableFrom", false, JAVA_PRIM_BOOLEAN_CLASS, JAVA_CLASS_CLASS)
 
@@ -164,7 +156,10 @@ module JavaUtilities
         end
       end
       new_mt = Java.invoke_java_method(METHODTYPE_METHODTYPE, rt, *new_params)
-      Java.invoke_java_method(METHODHANDLES_CAST_ARGS, m, new_mt)
+      m = Java.invoke_java_method(METHODHANDLES_CAST_ARGS, m, new_mt)
+      # Re=wrap everything as JRuby allows nil to be cast to a zero.
+      wmt = Java.invoke_java_method(METHODTYPE_WRAP, new_mt)
+      Java.invoke_java_method(METHODHANDLES_CAST_ARGS, m, wmt)
     end
   end
 end
