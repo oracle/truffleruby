@@ -179,8 +179,7 @@ module RbConfig
     clang = ENV['JT_CLANG'] || 'clang'
     opt = ENV['JT_OPT'] || 'opt'
     
-    # Sulong's passes, plus -always-inline
-    opt_passes = ['-always-inline', '-mem2reg', '-globalopt', '-simplifycfg', '-constprop', '-instcombine', '-dse', '-loop-simplify', '-reassociate', '-licm', '-gvn']
+    opt_passes = ['-always-inline', '-mem2reg', '-constprop']
     cc = "#{clang} -I#{ENV['SULONG_HOME']}/include"
     cpp = cc
 
