@@ -807,6 +807,10 @@ module Commands
     no_libxml = args.delete('--no-libxml')
     no_openssl = args.delete('--no-openssl')
 
+    # Test tools
+
+    sh RbConfig.ruby, 'test/truffle/cexts/test-preprocess.rb'
+
     # Test that we can compile and run some basic C code that uses libxml and openssl
 
     unless no_libxml
