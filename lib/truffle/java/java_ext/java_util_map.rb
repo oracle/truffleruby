@@ -9,6 +9,8 @@
 java.util.Map
 
 module ::Java::JavaUtil::Map
+  include Enumerable
+
   attr_accessor :default
   attr_accessor :default_proc
 

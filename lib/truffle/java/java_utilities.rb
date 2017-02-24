@@ -516,7 +516,7 @@ module JavaUtilities
     lambda{ |m, *args|
       args = args.map { |a| JavaUtilities::wrap_java_value(a) }
       m = JavaUtilities::wrap_java_value(m)
-      owner.__send__(m.name, *args)
+      JavaUtilities.unwrap_java_value(owner.__send__(m.name, *args))
     }
   end
 end
