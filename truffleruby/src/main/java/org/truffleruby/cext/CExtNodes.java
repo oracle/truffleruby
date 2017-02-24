@@ -40,6 +40,8 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantNode;
+import org.truffleruby.language.control.BreakException;
+import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -429,6 +431,16 @@ public class CExtNodes {
 
                 return object;
             }
+        }
+
+    }
+
+    @CoreMethod(names = "rb_iter_break", isModuleFunction = true)
+    public abstract static class IterBreakNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object iterBreak() {
+            throw new BreakException(BreakID.ANY, nil());
         }
 
     }

@@ -573,8 +573,7 @@ void rb_set_end_proc(void (*func)(VALUE), VALUE data) {
 }
 
 void rb_iter_break(void) {
-  rb_jt_error("rb_iter_break not implemented");
-  abort();
+  truffle_invoke(RUBY_CEXT, "rb_iter_break");
 }
 
 const char *rb_sourcefile(void) {

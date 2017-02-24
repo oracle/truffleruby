@@ -11,4 +11,6 @@ package org.truffleruby.language.control;
 
 public class BreakID {
 
+    public static final BreakID ANY = new BreakID();
+
 }

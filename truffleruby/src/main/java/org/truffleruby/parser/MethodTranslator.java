@@ -164,13 +164,22 @@ public class MethodTranslator extends BodyTranslator {
                 bodyProc, environment.needsDeclarationFrame());
 
         // Lambdas
-        final RubyNode composed = composeBody(sourceSection, preludeLambda, body /* no copy, last usage */);
-        final RubyNode bodyLambda = new CatchForLambdaNode(environment.getReturnID(), composed);
+        RubyNode composed = composeBody(sourceSection, preludeLambda, body /* no copy, last usage */);
+
+        /*
+         * Truffle::CExt.rb_define_method is where C extension methods are defined. We don't want to catch break
+         * in this one lambda, as it lambdas normally catch all breaks, and that would prevent rb_iter_break from
+         * working.
+         */
+
+        if (!"rb_define_method".equals(parent.environment.getNamedMethodName())) {
+            composed = new CatchForLambdaNode(environment.getReturnID(), composed);
+        }
 
         final RubyRootNode newRootNodeForLambdas = new RubyRootNode(
                 context, translateSourceSection(source, sourceSection),
                 environment.getFrameDescriptor(), environment.getSharedMethodInfo(),
-                bodyLambda,
+                composed,
                 environment.needsDeclarationFrame());
 
         // TODO CS 23-Nov-15 only the second one will get instrumented properly!

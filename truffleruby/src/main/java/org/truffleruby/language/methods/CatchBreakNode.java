@@ -33,7 +33,7 @@ public class CatchBreakNode extends RubyNode {
         try {
             return body.execute(frame);
         } catch (BreakException e) {
-            if (matchingBreakProfile.profile(e.getBreakID() == breakID)) {
+            if (matchingBreakProfile.profile(e.getBreakID() == breakID || e.getBreakID() == BreakID.ANY)) {
                 return e.getResult();
             } else {
                 throw e;
