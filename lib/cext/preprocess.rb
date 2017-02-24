@@ -6,9 +6,9 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-ARGF.each do |line|
+def preprocess(line)
   if line.include?('rb_scan_args')
-    puts line.gsub(/\brb_scan_args\((\w+), (\w+), \"(.*)\", /) {
+    line.gsub(/\brb_scan_args\((\w+), (\w+), \"(.*)\", /) {
       # Translate
       #   rb_scan_args(argc, argv, "11", &v1, &v2)
       # into
@@ -64,8 +64,15 @@ ARGF.each do |line|
       line += " VALUE *#{name} = truffle_managed_malloc(#{size} * sizeof(VALUE));"
     end
 
-    puts line
+    line
   else
-    puts line
+    line
   end
 end
+
+if __FILE__ == $0
+  ARGF.each do |line|
+    puts preprocess(line)
+  end
+end
+
