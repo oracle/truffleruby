@@ -426,6 +426,10 @@ module Truffle::CExt
     $;
   end
 
+  def rb_to_int(val)
+    Rubinius::Type.rb_to_int(val)
+  end
+
   def rb_fix2int(value)
     if value.nil?
       raise TypeError

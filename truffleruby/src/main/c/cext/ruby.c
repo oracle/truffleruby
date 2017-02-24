@@ -667,8 +667,7 @@ VALUE rb_special_const_p(VALUE object) {
 }
 
 VALUE rb_to_int(VALUE object) {
-  rb_jt_error("rb_to_int not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_to_int", object);
 }
 
 VALUE rb_obj_instance_eval(int argc, const VALUE *argv, VALUE self) {
