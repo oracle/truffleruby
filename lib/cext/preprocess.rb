@@ -46,10 +46,10 @@ ARGF.each do |line|
 
     line = $1
 
-    $2.split(', ').each do |local|
+    $2.split(',').each do |local|
       local.strip!
       if local.end_with?(']')
-        local =~ /(\w+)\s*\[\s*(\d+)\s*\]/
+        raise unless local =~ /(\w+)\s*\[\s*(\d+)\s*\]/
         arrays.push [$1, $2.to_i]
       else
         simple.push local
