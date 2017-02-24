@@ -44,7 +44,19 @@ module JavaUtilities
 
     def fast_checker(a)
       a_class = a.class
-      lambda { |x| x.class == a_class }
+      if a != nil
+        lambda { |x| x.class == a_class }
+      else
+        lambda { |x| x == nil }
+      end
+    end
+
+    def fast_converter(a)
+      if a.kind_of?(JavaProxyMethods)
+        lambda { |x| x.java_object }
+      else
+        lambda { |x| x }
+      end
     end
 
     def <=>(another)
@@ -89,7 +101,19 @@ module JavaUtilities
     end
 
     def fast_checker(a)
-      return checker
+      if a.class == Fixnum
+        checker
+      else
+        super(a)
+      end
+    end
+
+    def fast_converter(a)
+      if a == nil
+        lambda { |z| 0 }
+      else
+        lambda { |x| x }
+      end
     end
   end
 
@@ -124,6 +148,22 @@ module JavaUtilities
     def can_accept?(a)
       a.class == Float || super(a)
     end
+
+    def fast_checker(a)
+      if a.class == Float
+        checker
+      else
+        super(a)
+      end
+    end
+
+    def fast_converter(a)
+      if a == nil
+        lambda { |x| 0.0 }
+      else
+        lambda { |x| x }
+      end
+    end
   end
 
   class BooleanParameter < Parameter
@@ -141,6 +181,14 @@ module JavaUtilities
     def box_of?(a)
       @boxed
     end
+
+    def fast_converter(a)
+      if a
+        lambda { |x| true }
+      else
+        lambda { |x| false }
+      end
+    end
   end
 
   class MapParameter < Parameter
@@ -152,11 +200,31 @@ module JavaUtilities
         super(a)
       end
     end
+
+    def fast_converter(a)
+      case a
+      when Hash
+        lambda { |x| HashProxy.new(x).java_object }
+      else
+        super(a)
+      end
+    end
   end
 
   class StringParameter < Parameter
     def can_accept?(a)
-      a == nil || a.class == String || a.class == Symbol || super(a)
+      a.class == String || a.class == Symbol || super(a)
+    end
+
+    def fast_converter(a)
+      case a
+      when String
+        lambda { |x| ::Truffle::Interop.to_java_string(x) }
+      when Symbol
+        lambda { |x| ::Truffle::Interop.to_java_string(x.to_s) }
+      else
+        super(a)
+      end
     end
   end
 
@@ -298,6 +366,23 @@ module JavaUtilities
       end
     end
 
+    def checker(args)
+      a_size = args.size
+      checkers = Array.new(a_size)
+      (0...a_size).each { |i| checkers[i] = params[i].fast_checker(args[i]) }
+      lambda { |a|
+        r = true
+        (0...a_size).each { |i| r = r && checkers[i][a[i]] }
+        r }
+    end
+
+    def converter(args)
+      a_size = args.size
+      converters = Array.new(a_size)
+      (0...a_size).each { |i| converters[i] = params[i].fast_converter(args[i]) }
+      lambda { |a| (0...a_size).each { |i| a[i] = converters[i][a[i]] }; a }
+    end
+
     private
 
     def widen_mh(mh)
@@ -346,10 +431,10 @@ module JavaUtilities
         raise TypeError, "No java method found that accepts #{args}."
       # Try via some other way
       when 1
-        return candidates[0].mh
+        return candidates[0]
       else
         # raise TypeError, "Can't dispatch ambiguous cases yet."
-        return narrow_to_specific_callable( candidates, args).mh
+        return narrow_to_specific_callable( candidates, args)
       end
     end
 

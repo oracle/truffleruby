@@ -40,8 +40,12 @@ module JavaUtilities
       method = lambda do |*args|
         cs = simple_arities[args.size]
         target = cs.find_matching_callable_for_args( args )
-        java_args = args.map { |x| ::JavaUtilities.unwrap_java_value(x) }
-        ::JavaUtilities.wrap_java_value(Java.invoke_java_method(target, *java_args))
+        check = target.checker(args)
+        conn = target.converter(args)
+        check[args]
+        conn[args]
+
+        ::JavaUtilities.wrap_java_value(Java.invoke_java_method(target.mh, *args))
       end
       replacer.call(method)
     end
@@ -156,10 +160,7 @@ module JavaUtilities
         end
       end
       new_mt = Java.invoke_java_method(METHODTYPE_METHODTYPE, rt, *new_params)
-      m = Java.invoke_java_method(METHODHANDLES_CAST_ARGS, m, new_mt)
-      # Re=wrap everything as JRuby allows nil to be cast to a zero.
-      wmt = Java.invoke_java_method(METHODTYPE_WRAP, new_mt)
-      Java.invoke_java_method(METHODHANDLES_CAST_ARGS, m, wmt)
+      Java.invoke_java_method(METHODHANDLES_CAST_ARGS, m, new_mt)
     end
   end
 end
