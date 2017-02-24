@@ -35,7 +35,7 @@ def preprocess(line)
 
       "#{shim}(#{argc}, #{argv}, \"#{arity}\", "
     }
-  elsif line =~ /^(\s+)VALUE((?:\s+\w+\s*(?:\[\s*\d+\s*\]\s*)?,?)+);\s*$/
+  elsif line =~ /^(\s+)VALUE\s+((?:\s*\w+\s*(?:\[\s*\d+\s*\]\s*)?,?)+);\s*$/
     # Translate
     #   VALUE args[6], failed, a1, a2, a3, a4, a5, a6;
     #  into
