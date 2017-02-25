@@ -487,8 +487,7 @@ double rb_num2dbl(VALUE val) {
 }
 
 long rb_num2int(VALUE val) {
-  rb_jt_error("rb_num2int not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_num2int", val);
 }
 
 unsigned long rb_num2uint(VALUE val) {
