@@ -19,6 +19,7 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Layout;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.Encoding;
@@ -416,6 +417,18 @@ public abstract class EncodingNodes {
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
             throw new RaiseException(coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
+        }
+
+    }
+
+    @Primitive(name = "encoding_enc_find_index", needsSelf = false)
+    public static abstract class EncodingFindIndexNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(nameObject)")
+        public int encodingFindIndex(DynamicObject nameObject) {
+            final String name = StringOperations.getString(nameObject);
+            final DynamicObject encodingObject = getContext().getEncodingManager().getRubyEncoding(name);
+            return encodingObject != null ? Layouts.ENCODING.getEncoding(encodingObject).getIndex() : -1;
         }
 
     }

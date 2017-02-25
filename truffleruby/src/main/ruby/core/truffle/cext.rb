@@ -495,6 +495,10 @@ module Truffle::CExt
     value
   end
 
+  def rb_enc_find_index(name)
+    Truffle.invoke_primitive :encoding_enc_find_index, name
+  end
+
   def rb_str_new_frozen(value)
     if value.frozen?
       value

@@ -1,9 +1,6 @@
 fails:C-API Encoding function rb_encdb_alias creates an alias for an existing Encoding
 fails:C-API Encoding function rb_enc_find returns the encoding of an Encoding
 fails:C-API Encoding function rb_enc_find returns the encoding of an Encoding specified with lower case
-fails:C-API Encoding function rb_enc_find_index returns the index of an Encoding
-fails:C-API Encoding function rb_enc_find_index returns the index of an Encoding specified with lower case
-fails:C-API Encoding function rb_enc_find_index returns -1 for an non existing encoding
 fails:C-API Encoding function rb_enc_from_index returns an Encoding
 fails:C-API Encoding function rb_usascii_encoding returns the encoding for Encoding::US_ASCII
 fails:C-API Encoding function rb_ascii8bit_encoding returns the encoding for Encoding::ASCII_8BIT

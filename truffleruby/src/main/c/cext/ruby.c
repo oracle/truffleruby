@@ -1140,8 +1140,7 @@ void rb_enc_copy(VALUE obj1, VALUE obj2) {
 }
 
 int rb_enc_find_index(const char *name) {
-  rb_jt_error("rb_enc_find_index not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_enc_find_index", rb_str_new_cstr(name));
 }
 
 rb_encoding *rb_enc_find(const char *name) {
