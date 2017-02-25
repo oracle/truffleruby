@@ -425,7 +425,7 @@ module ShellUtils
       command, *args = args
     end
 
-    sh env_vars, Utilities.find_ruby, 'spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec', *args
+    sh env_vars, Utilities.find_ruby, 'spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec', '--print-target-cmd', *args
   end
 
   def newer?(input, output)
