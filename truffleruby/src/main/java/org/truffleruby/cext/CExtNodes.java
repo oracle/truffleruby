@@ -44,6 +44,8 @@ import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.objects.IsFrozenNode;
+import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 
 import java.util.HashMap;
@@ -296,6 +298,19 @@ public class CExtNodes {
         @Specialization
         public int blockGiven(NotProvided noCallerFrame) {
             return RubyArguments.tryGetBlock(Truffle.getRuntime().getCallerFrame().getFrame(FrameInstance.FrameAccess.READ_ONLY)) != null ? 1 : 0;
+        }
+
+    }
+
+    @CoreMethod(names = "rb_check_frozen", isModuleFunction = true, required = 1)
+    public abstract static class CheckFrozenNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
+
+        @Specialization
+        public boolean rb_check_frozen(Object object) {
+            isFrozenNode.raiseIfFrozen(object);
+            return true;
         }
 
     }

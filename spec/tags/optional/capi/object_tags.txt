@@ -54,7 +54,6 @@ fails:CApiObject OBJ_INFECT does not untrust the first argument if the second ar
 fails:CApiObject OBJ_INFECT untrusts the first argument if the second argument is untrusted
 fails:CApiObject OBJ_INFECT propagates both taint and distrust
 fails:CApiObject rb_obj_instance_eval evaluates the block in the object context, that includes private methods
-fails:CApiObject rb_check_frozen raises a RuntimeError if the obj is frozen
 fails:CApiObject rb_any_to_s converts obj to string
 fails:CApiObject rb_class_inherited_p returns true if mod equals arg
 fails:CApiObject rb_class_inherited_p returns true if mod is a subclass of arg
