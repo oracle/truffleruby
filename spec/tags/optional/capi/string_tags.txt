@@ -23,11 +23,6 @@ fails:C-API String function rb_str_append appends a string to another string
 fails:C-API String function rb_str_append raises a TypeError trying to append non-String-like object
 fails:C-API String function rb_str_append changes Encoding if a string is appended to an empty string
 fails:C-API String function rb_str_buf_cat concatenates a C string to a ruby string
-fails:C-API String function rb_str_cmp returns 0 if two strings are identical
-fails:C-API String function rb_str_cmp returns -1 if the first string is shorter than the second
-fails:C-API String function rb_str_cmp returns -1 if the first string is lexically less than the second
-fails:C-API String function rb_str_cmp returns 1 if the first string is longer than the second
-fails:C-API String function rb_str_cmp returns 1 if the first string is lexically greater than the second
 fails:C-API String function rb_str2inum converts a string to a number given a base
 fails:C-API String function rb_cstr2inum converts a C string to a Fixnum given a base
 fails:C-API String function rb_cstr2inum converts a C string to a Bignum given a base

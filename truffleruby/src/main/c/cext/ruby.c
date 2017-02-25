@@ -920,8 +920,7 @@ VALUE rb_str_buf_new_cstr(const char *string) {
 }
 
 int rb_str_cmp(VALUE a, VALUE b) {
-  rb_jt_error("rb_str_cmp not implemented");
-  abort();
+  return truffle_invoke_i((void *)a, "<=>", b);
 }
 
 VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
