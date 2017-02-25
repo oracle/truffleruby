@@ -43,10 +43,7 @@ fails:C-API Encoding function rb_to_encoding returns the encoding for the Encodi
 fails:C-API Encoding function rb_to_encoding returns the correct encoding for a replicated encoding
 fails:C-API Encoding function rb_to_encoding returns the encoding when passed a String
 fails:C-API Encoding function rb_to_encoding calls #to_str to convert the argument to a String
-fails:C-API Encoding function rb_to_encoding_index returns the index of the encoding for the Encoding instance passed
-fails:C-API Encoding function rb_to_encoding_index returns the index of the encoding when passed a String
 fails:C-API Encoding function rb_to_encoding_index returns the index of the dummy encoding of an Object
-fails:C-API Encoding function rb_to_encoding_index calls #to_str to convert the argument to a String
 fails:C-API Encoding function rb_enc_compatible returns 0 if the encodings of the Strings are not compatible
 fails:C-API Encoding function rb_enc_compatible returns the same value as Encoding.compatible? if the Strings have a compatible encoding
 fails:C-API Encoding function rb_enc_copy sets the encoding of a String to that of the second argument

@@ -495,6 +495,12 @@ module Truffle::CExt
     value
   end
 
+  def rb_to_encoding_index(enc)
+    enc = Rubinius::Type.coerce_to_encoding(enc)
+    return -1 if enc == false
+    Truffle.invoke_primitive :encoding_enc_find_index, enc.name
+  end
+
   def rb_locale_encindex
     Truffle.invoke_primitive :encoding_enc_find_index, Encoding.find("locale").name
   end

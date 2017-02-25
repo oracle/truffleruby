@@ -1189,8 +1189,7 @@ VALUE rb_usascii_str_new_cstr(const char *ptr) {
 }
 
 int rb_to_encoding_index(VALUE enc) {
-  rb_jt_error("rb_to_encoding_index not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_to_encoding_index", enc);
 }
 
 char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc) {
