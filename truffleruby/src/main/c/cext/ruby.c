@@ -1085,8 +1085,7 @@ rb_encoding *rb_ascii8bit_encoding(void) {
 }
 
 int rb_ascii8bit_encindex(void) {
-  rb_jt_error("rb_ascii8bit_encindex not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_ascii8bit_encindex");
 }
 
 rb_encoding *rb_usascii_encoding(void) {

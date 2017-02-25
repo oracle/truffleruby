@@ -62,7 +62,6 @@ fails:C-API Encoding function rb_enc_associate sets the encoding of a String to 
 fails:C-API Encoding function rb_enc_associate_index sets the encoding of a String to the encoding
 fails:C-API Encoding function rb_enc_associate_index sets the encoding of a Regexp to the encoding
 fails:C-API Encoding function rb_enc_associate_index sets the encoding of a Symbol to the encoding
-fails:C-API Encoding function rb_ascii8bit_encindex returns an index for the ASCII-8BIT encoding
 fails:C-API Encoding function rb_locale_encindex returns an index for the locale encoding
 fails:C-API Encoding function rb_filesystem_encindex returns an index for the filesystem encoding
 fails:C-API Encoding function rb_enc_to_index returns an index for the encoding
