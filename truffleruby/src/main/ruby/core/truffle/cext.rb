@@ -495,6 +495,10 @@ module Truffle::CExt
     value
   end
 
+  def rb_usascii_encoding
+    Truffle.invoke_primitive :encoding_enc_find_index, Encoding::US_ASCII.name
+  end
+
   def rb_enc_find_index(name)
     Truffle.invoke_primitive :encoding_enc_find_index, name
   end
