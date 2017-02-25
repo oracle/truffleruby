@@ -144,6 +144,7 @@ class Object
 
       begin
         platform_is_not :opal do
+          puts "$ #{ruby_cmd(code, opts)}"
           `#{ruby_cmd(code, opts)}`
         end
       ensure
