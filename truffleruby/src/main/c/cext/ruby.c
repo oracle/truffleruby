@@ -1005,8 +1005,7 @@ rb_encoding *rb_locale_encoding(void) {
 }
 
 int rb_locale_encindex(void) {
-  rb_jt_error("rb_locale_encindex not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_locale_encindex");
 }
 
 rb_encoding *rb_filesystem_encoding(void) {
@@ -1015,8 +1014,7 @@ rb_encoding *rb_filesystem_encoding(void) {
 }
 
 int rb_filesystem_encindex(void) {
-  rb_jt_error("rb_filesystem_encindex not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_filesystem_encindex");
 }
 
 rb_encoding *get_encoding(VALUE string) {

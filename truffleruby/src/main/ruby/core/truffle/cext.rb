@@ -495,6 +495,14 @@ module Truffle::CExt
     value
   end
 
+  def rb_locale_encindex
+    Truffle.invoke_primitive :encoding_enc_find_index, Encoding.find("locale").name
+  end
+
+  def rb_filesystem_encindex
+    Truffle.invoke_primitive :encoding_enc_find_index, Encoding.find("filesystem").name
+  end
+
   def rb_ascii8bit_encindex
     Truffle.invoke_primitive :encoding_enc_find_index, Encoding::ASCII_8BIT.name
   end
