@@ -709,8 +709,7 @@ bool rb_jt_obj_tainted_p(VALUE object) {
 }
 
 void rb_jt_obj_infect(VALUE a, VALUE b) {
-  rb_jt_error("rb_jt_obj_infect not implemented");
-  abort();
+  truffle_invoke(RUBY_CEXT, "rb_jt_obj_infect", a, b);
 }
 
 VALUE rb_obj_freeze(VALUE object) {

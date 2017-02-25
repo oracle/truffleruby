@@ -475,6 +475,10 @@ module Truffle::CExt
     end
   end
 
+  def rb_jt_obj_infect(dest, source)
+    Rubinius::Type.infect(dest, source)
+  end
+
   def rb_float_new(value)
     value.to_f
   end

@@ -48,11 +48,6 @@ fails:CApiObject rb_special_const_p returns true if passed a Symbol
 fails:CApiObject rb_special_const_p returns true if passed a Fixnum
 fails:CApiObject rb_special_const_p returns false if passed an Object
 fails:CApiObject rb_extend_object adds the module's instance methods to the object
-fails:CApiObject OBJ_INFECT does not taint the first argument if the second argument is not tainted
-fails:CApiObject OBJ_INFECT taints the first argument if the second argument is tainted
-fails:CApiObject OBJ_INFECT does not untrust the first argument if the second argument is trusted
-fails:CApiObject OBJ_INFECT untrusts the first argument if the second argument is untrusted
-fails:CApiObject OBJ_INFECT propagates both taint and distrust
 fails:CApiObject rb_obj_instance_eval evaluates the block in the object context, that includes private methods
 fails:CApiObject rb_any_to_s converts obj to string
 fails:CApiObject rb_class_inherited_p returns true if mod equals arg
