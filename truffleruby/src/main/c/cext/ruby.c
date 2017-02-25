@@ -1104,8 +1104,7 @@ rb_encoding *rb_utf8_encoding(void) {
 }
 
 int rb_utf8_encindex(void) {
-  rb_jt_error("rb_utf8_encindex not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_utf8_encindex");
 }
 
 enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj) {
