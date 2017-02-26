@@ -12,6 +12,8 @@ package org.truffleruby.core;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import jnr.posix.SpawnAttribute;
 import jnr.posix.SpawnFileAction;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -27,7 +29,6 @@ import org.truffleruby.platform.UnsafeGroup;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 @CoreClass("Truffle::Process")
 public abstract class TruffleProcessNodes {
@@ -46,13 +47,16 @@ public abstract class TruffleProcessNodes {
                          DynamicObject environmentVariables,
                          DynamicObject options) {
 
-            Collection<SpawnFileAction> fileActions = parseOptions(options);
+            Collection<SpawnFileAction> fileActions = new ArrayList<>();
+            Collection<SpawnAttribute> spawnAttributes = new ArrayList<>();
+            parseOptions(options, fileActions, spawnAttributes);
 
             int pid = call(
                     StringOperations.getString(command),
                     toStringArray(arguments),
                     toStringArray(environmentVariables),
-                    fileActions);
+                    fileActions,
+                    spawnAttributes);
 
             if (pid == -1) {
                 // TODO (pitr 07-Sep-2015): needs compatibility improvements
@@ -76,59 +80,60 @@ public abstract class TruffleProcessNodes {
         }
 
         @TruffleBoundary
-        private Collection<SpawnFileAction> parseOptions(DynamicObject options) {
-            if (Layouts.HASH.getSize(options) == 0) {
-                return Collections.emptyList();
-            }
-
-            Collection<SpawnFileAction> actions = new ArrayList<>();
+        private void parseOptions(DynamicObject options, Collection<SpawnFileAction> fileActions, Collection<SpawnAttribute> spawnAttributes) {
             for (KeyValue keyValue : HashOperations.iterableKeyValues(options)) {
                 final Object key = keyValue.getKey();
                 final Object value = keyValue.getValue();
 
-                if (Layouts.SYMBOL.isSymbol(key)) {
-                    if (key == getSymbol("redirect_fd")) {
-                        assert Layouts.ARRAY.isArray(value);
-                        final DynamicObject array = (DynamicObject) value;
-                        final int size = Layouts.ARRAY.getSize(array);
-                        assert size % 2 == 0;
-                        final Object[] store = ArrayOperations.toObjectArray(array);
-                        for (int i = 0; i < size; i += 2) {
-                            int from = (int) store[i];
-                            int to = (int) store[i + 1];
-                            if (to < 0) { // :child fd
-                                to = -to - 1;
-                            }
-                            actions.add(SpawnFileAction.dup(to, from));
-                        }
-                        continue;
-                    } else if (key == getSymbol("assign_fd")) {
-                        assert Layouts.ARRAY.isArray(value);
-                        final DynamicObject array = (DynamicObject) value;
-                        final int size = Layouts.ARRAY.getSize(array);
-                        assert size % 4 == 0;
-                        final Object[] store = ArrayOperations.toObjectArray(array);
-                        for (int i = 0; i < size; i += 4) {
-                            int fd = (int) store[i];
-                            String path = StringOperations.getString((DynamicObject) store[i + 1]);
-                            int flags = (int) store[i + 2];
-                            int perms = (int) store[i + 3];
-                            actions.add(SpawnFileAction.open(path, fd, flags, perms));
-                        }
-                        continue;
-                    }
+                if (!Layouts.SYMBOL.isSymbol(key)) {
+                    throw new UnsupportedOperationException("spawn option key must be a symbol");
                 }
-                throw new UnsupportedOperationException("Unsupported spawn option: " + key + " => " + value);
-            }
 
-            return actions;
+                if (key == getSymbol("redirect_fd")) {
+                    assert Layouts.ARRAY.isArray(value);
+                    final DynamicObject array = (DynamicObject) value;
+                    final int size = Layouts.ARRAY.getSize(array);
+                    assert size % 2 == 0;
+                    final Object[] store = ArrayOperations.toObjectArray(array);
+                    for (int i = 0; i < size; i += 2) {
+                        int from = (int) store[i];
+                        int to = (int) store[i + 1];
+                        if (to < 0) { // :child fd
+                            to = -to - 1;
+                        }
+                        fileActions.add(SpawnFileAction.dup(to, from));
+                    }
+                } else if (key == getSymbol("assign_fd")) {
+                    assert Layouts.ARRAY.isArray(value);
+                    final DynamicObject array = (DynamicObject) value;
+                    final int size = Layouts.ARRAY.getSize(array);
+                    assert size % 4 == 0;
+                    final Object[] store = ArrayOperations.toObjectArray(array);
+                    for (int i = 0; i < size; i += 4) {
+                        int fd = (int) store[i];
+                        String path = StringOperations.getString((DynamicObject) store[i + 1]);
+                        int flags = (int) store[i + 2];
+                        int perms = (int) store[i + 3];
+                        fileActions.add(SpawnFileAction.open(path, fd, flags, perms));
+                    }
+                } else if (key == getSymbol("pgroup")) {
+                    long pgroup = (int) value;
+                    if (pgroup >= 0) {
+                        spawnAttributes.add(SpawnAttribute.flags((short) SpawnAttribute.SETPGROUP));
+                        spawnAttributes.add(SpawnAttribute.pgroup(pgroup));
+                    }
+                } else {
+                    throw new UnsupportedOperationException("Unsupported spawn option: " + key + " => " + value);
+                }
+            }
         }
 
         @TruffleBoundary
-        private int call(String command, String[] arguments, String[] environmentVariables, Collection<SpawnFileAction> fileActions) {
+        private int call(String command, String[] arguments, String[] environmentVariables, Collection<SpawnFileAction> fileActions, Collection<SpawnAttribute> spawnAttributes) {
             return getContext().getNativePlatform().getPosix().posix_spawnp(
                     command,
                     fileActions,
+                    spawnAttributes,
                     Arrays.asList(arguments),
                     Arrays.asList(environmentVariables));
 

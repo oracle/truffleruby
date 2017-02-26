@@ -1,8 +1,3 @@
-fails:Kernel#spawn joins the current process if pgroup: false
-fails:Kernel#spawn joins the current process if pgroup: nil
-fails:Kernel#spawn joins a new process group if pgroup: true
-fails:Kernel#spawn joins a new process group if pgroup: 0
-fails:Kernel#spawn joins the specified process group if pgroup: pgid
 fails:Kernel#spawn sets the umask if given the :umask option
 fails:Kernel#spawn raises an Errno::EACCES when the file does not have execute permissions
 fails:Kernel#spawn raises an Errno::EACCES when passed a directory
@@ -89,3 +84,8 @@ slow:Kernel#spawn with a command array raises an ArgumentError if the Array does
 slow:Kernel#spawn with a command array raises a TypeError if an element in the Array does not respond to #to_str
 slow:Kernel#spawn redirects both STDERR and STDOUT at the time to the given name
 fails:Kernel#spawn redirects both STDERR and STDOUT at the time to the given name
+slow:Kernel#spawn joins the current process if pgroup: false
+slow:Kernel#spawn joins the current process if pgroup: nil
+slow:Kernel#spawn joins a new process group if pgroup: true
+slow:Kernel#spawn joins a new process group if pgroup: 0
+slow:Kernel#spawn joins the specified process group if pgroup: pgid
