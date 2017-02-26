@@ -12,16 +12,7 @@ describe "Running mspec tag" do
 
   it "tags the failing specs" do
     fixtures = "spec/fixtures"
-    cwd = Dir.pwd
-
-    cmd = "bin/mspec tag"
-    cmd << " -B #{fixtures}/config.mspec"
-    cmd << " --add fails --fail"
-    cmd << " #{fixtures}/tagging_spec.rb"
-    out = `#{cmd}`
-    out = out.sub(RUBY_DESCRIPTION, "RUBY_DESCRIPTION")
-    out = out.gsub(/\d\.\d{6}/, "D.DDDDDD")
-
+    out = run_mspec("tag", "--add fails --fail #{fixtures}/tagging_spec.rb")
     out.should == <<EOS
 RUBY_DESCRIPTION
 .FF
@@ -36,18 +27,18 @@ Tag#me errors FAILED
 Expected 1
  to equal 2
 
-#{cwd}/spec/fixtures/tagging_spec.rb:9:in `block (2 levels) in <top (required)>'
-#{cwd}/spec/fixtures/tagging_spec.rb:3:in `<top (required)>'
-#{cwd}/bin/mspec-tag:7:in `<main>'
+CWD/spec/fixtures/tagging_spec.rb:9:in `block (2 levels) in <top (required)>'
+CWD/spec/fixtures/tagging_spec.rb:3:in `<top (required)>'
+CWD/bin/mspec-tag:7:in `<main>'
 
 2)
 Tag#me érròrs in unicode FAILED
 Expected 1
  to equal 2
 
-#{cwd}/spec/fixtures/tagging_spec.rb:13:in `block (2 levels) in <top (required)>'
-#{cwd}/spec/fixtures/tagging_spec.rb:3:in `<top (required)>'
-#{cwd}/bin/mspec-tag:7:in `<main>'
+CWD/spec/fixtures/tagging_spec.rb:13:in `block (2 levels) in <top (required)>'
+CWD/spec/fixtures/tagging_spec.rb:3:in `<top (required)>'
+CWD/bin/mspec-tag:7:in `<main>'
 
 Finished in D.DDDDDD seconds
 
@@ -57,16 +48,7 @@ EOS
 
   it "does not run already tagged specs" do
     fixtures = "spec/fixtures"
-    cwd = Dir.pwd
-
-    cmd = "bin/mspec run"
-    cmd << " -B #{fixtures}/config.mspec"
-    cmd << " --excl-tag fails"
-    cmd << " #{fixtures}/tagging_spec.rb"
-    out = `#{cmd}`
-    out = out.sub(RUBY_DESCRIPTION, "RUBY_DESCRIPTION")
-    out = out.gsub(/\d\.\d{6}/, "D.DDDDDD")
-
+    out = run_mspec("run", "--excl-tag fails #{fixtures}/tagging_spec.rb")
     out.should == <<EOS
 RUBY_DESCRIPTION
 .
