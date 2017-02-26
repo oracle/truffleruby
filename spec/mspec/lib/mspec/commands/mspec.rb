@@ -48,6 +48,10 @@ class MSpecMain < MSpecScript
       config[:multi] = true
       config[:options] << "-fy"
     end
+    
+    options.on("--print-target-cmd", "Print the target Ruby command") do
+      config[:print_target_cmd] = true
+    end
 
     options.version MSpec::VERSION do
       if config[:command]
@@ -157,9 +161,9 @@ class MSpecMain < MSpecScript
       else
         cmd, *rest = config[:target].split(/\s+/)
         argv = rest + argv unless rest.empty?
+        STDERR.puts "$ #{cmd} #{argv.join(' ')}" if config[:print_target_cmd]
         exec cmd, *argv
       end
     end
   end
 end
-
