@@ -128,7 +128,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     // The hard #exit!
-    @Primitive(name = "vm_exit", needsSelf = false, unsafe = UnsafeGroup.EXIT)
+    @Primitive(name = "vm_exit", needsSelf = false, lowerFixnum = 1, unsafe = UnsafeGroup.EXIT)
     public static abstract class VMExitPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -492,7 +492,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_wait_pid", needsSelf = false, unsafe = UnsafeGroup.PROCESSES)
+    @Primitive(name = "vm_wait_pid", needsSelf = false, lowerFixnum = 1, unsafe = UnsafeGroup.PROCESSES)
     public abstract static class VMWaitPidPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
