@@ -166,15 +166,7 @@ public class MethodTranslator extends BodyTranslator {
         // Lambdas
         RubyNode composed = composeBody(sourceSection, preludeLambda, body /* no copy, last usage */);
 
-        /*
-         * Truffle::CExt.rb_define_method is where C extension methods are defined. We don't want to catch break
-         * in this one lambda, as it lambdas normally catch all breaks, and that would prevent rb_iter_break from
-         * working.
-         */
-
-        if (!"rb_define_method".equals(parent.environment.getNamedMethodName())) {
-            composed = new CatchForLambdaNode(environment.getReturnID(), composed);
-        }
+        composed = new CatchForLambdaNode(environment.getReturnID(), environment.getBreakID(), composed);
 
         final RubyRootNode newRootNodeForLambdas = new RubyRootNode(
                 context, translateSourceSection(source, sourceSection),

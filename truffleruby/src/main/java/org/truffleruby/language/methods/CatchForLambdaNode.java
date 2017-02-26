@@ -14,6 +14,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.BreakException;
+import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.NextException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoException;
@@ -24,17 +25,19 @@ import org.truffleruby.language.control.ReturnID;
 public class CatchForLambdaNode extends RubyNode {
 
     private final ReturnID returnID;
+    private final BreakID breakID;
 
     @Child private RubyNode body;
 
     private final ConditionProfile matchingReturnProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile matchingBreakProfile = ConditionProfile.createBinaryProfile();
     private final BranchProfile retryProfile = BranchProfile.create();
     private final BranchProfile redoProfile = BranchProfile.create();
     private final BranchProfile nextProfile = BranchProfile.create();
-    private final BranchProfile breakProfile = BranchProfile.create();
 
-    public CatchForLambdaNode(ReturnID returnID, RubyNode body) {
+    public CatchForLambdaNode(ReturnID returnID, BreakID breakID, RubyNode body) {
         this.returnID = returnID;
+        this.breakID = breakID;
         this.body = body;
     }
 
@@ -60,8 +63,11 @@ public class CatchForLambdaNode extends RubyNode {
                 nextProfile.enter();
                 return e.getResult();
             } catch (BreakException e) {
-                breakProfile.enter();
-                return e.getResult();
+                if (matchingBreakProfile.profile(e.getBreakID() == breakID)) {
+                    return e.getResult();
+                } else {
+                    throw e;
+                }
             }
         }
     }
