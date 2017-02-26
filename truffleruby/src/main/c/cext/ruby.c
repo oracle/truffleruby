@@ -1090,7 +1090,7 @@ rb_encoding *rb_usascii_encoding(void) {
 }
 
 int rb_usascii_encindex(void) {
-  return truffle_invoke_i(RUBY_CEXT, "rb_usascii_encoding");
+  return truffle_invoke_i(RUBY_CEXT, "rb_usascii_encindex");
 }
 
 rb_encoding *rb_utf8_encoding(void) {
