@@ -1,0 +1,2 @@
+fails:IO::EAGAINWaitReadable is the same as IO::EWOULDBLOCKWaitReadable if Errno::EAGAIN is the same as Errno::EWOULDBLOCK
+fails:IO::EAGAINWaitWritable is the same as IO::EWOULDBLOCKWaitWritable if Errno::EAGAIN is the same as Errno::EWOULDBLOCK
