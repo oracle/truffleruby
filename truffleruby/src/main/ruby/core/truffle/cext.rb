@@ -104,7 +104,7 @@ module Truffle::CExt
   def RB_TYPE_P(value, type)
     # TODO CS 23-Jul-16 we could do with making this a kind of specialising case
     # that puts never seen cases behind a transfer
-    
+
     case type
       when T_SYMBOL
         value.is_a?(Symbol)
@@ -502,27 +502,27 @@ module Truffle::CExt
   def rb_to_encoding_index(enc)
     enc = Rubinius::Type.coerce_to_encoding(enc)
     return -1 if enc == false
-    Truffle.invoke_primitive :encoding_enc_find_index, enc.name
+    rb_enc_find_index(enc.name)
   end
 
   def rb_locale_encindex
-    Truffle.invoke_primitive :encoding_enc_find_index, Encoding.find("locale").name
+    rb_enc_find_index Encoding.find("locale").name
   end
 
   def rb_filesystem_encindex
-    Truffle.invoke_primitive :encoding_enc_find_index, Encoding.find("filesystem").name
+    rb_enc_find_index Encoding.find("filesystem").name
   end
 
   def rb_ascii8bit_encindex
-    Truffle.invoke_primitive :encoding_enc_find_index, Encoding::ASCII_8BIT.name
+    rb_enc_find_index Encoding::ASCII_8BIT.name
   end
 
   def rb_usascii_encoding
-    Truffle.invoke_primitive :encoding_enc_find_index, Encoding::US_ASCII.name
+    rb_enc_find_index Encoding::US_ASCII.name
   end
 
   def rb_utf8_encindex
-    Truffle.invoke_primitive :encoding_enc_find_index, Encoding::UTF_8.name
+    rb_enc_find_index Encoding::UTF_8.name
   end
 
   def rb_enc_find_index(name)
