@@ -123,7 +123,7 @@ declare -a full_command
 full_command=("$JAVACMD" $JAVA_OPTS "-Xbootclasspath/a:$boot_cp_jar" "${java_args[@]}" org.truffleruby.Main "-Xhome=$root" "-Xlauncher=$root/bin/truffleruby" "${ruby_args[@]}")
 
 if [ -n "$print_command" ]; then
-    echo "${full_command[@]}"
+    echo "$ ${full_command[@]}"
 fi
 
 exec "${full_command[@]}"
