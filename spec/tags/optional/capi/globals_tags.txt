@@ -1,7 +1,6 @@
 fails:CApiGlobalSpecs correctly gets global values
 fails:CApiGlobalSpecs returns $~
 fails:CApiGlobalSpecs correctly sets global values
-fails:CApiGlobalSpecs lists all global variables
 fails:CApiGlobalSpecs rb_define_readonly_variable should define a new readonly global variable
 fails:CApiGlobalSpecs rb_std streams rb_stdin returns $stdin
 fails:CApiGlobalSpecs rb_std streams rb_stdout returns $stdout

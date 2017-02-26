@@ -503,6 +503,10 @@ module Truffle::CExt
     value
   end
 
+  def rb_f_global_variables
+    Kernel.global_variables
+  end
+
   def rb_to_encoding_index(enc)
     enc = Rubinius::Type.coerce_to_encoding(enc)
     return -1 if enc == false

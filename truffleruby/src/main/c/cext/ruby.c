@@ -1728,8 +1728,7 @@ void rb_define_variable(const char *name, VALUE *var) {
 }
 
 VALUE rb_f_global_variables(void) {
-  rb_jt_error("rb_f_global_variables not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_f_global_variables");
 }
 
 VALUE rb_gv_set(const char *name, VALUE val) {
