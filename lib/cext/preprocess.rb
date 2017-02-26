@@ -50,9 +50,9 @@ def preprocess(line)
       local.strip!
       if local.end_with?(']')
         raise unless local =~ /(\w+)\s*\[\s*(\d+)\s*\]/
-        arrays.push [$1, $2.to_i]
+        arrays << [$1, $2.to_i]
       else
-        simple.push local
+        simple << local
       end
     end
 
