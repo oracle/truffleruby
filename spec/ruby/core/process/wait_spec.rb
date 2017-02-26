@@ -49,28 +49,9 @@ describe "Process.wait" do
 
     # This spec is probably system-dependent.
     it "waits for a child whose process group ID is that of the calling process" do
-      read, write = IO.pipe
-      pid1 = Process.fork {
-        read.close
-        Process.setpgid(0, 0)
-        write << 1
-        write.close
-        Process.exit!
-      }
-      Process.setpgid(0, 0)
-      ppid = Process.pid
-      pid2 = Process.fork {
-        read.close
-        Process.setpgid(0, ppid);
-        write << 2
-        write.close
-        Process.exit!
-      }
+      pid1 = Process.spawn(ruby_cmd('exit'), pgroup: true)
+      pid2 = Process.spawn(ruby_cmd('exit'))
 
-      write.close
-      read.read(1)
-      read.read(1) # to give children a chance to set their process groups
-      read.close
       Process.wait(0).should == pid2
       Process.wait.should == pid1
     end
