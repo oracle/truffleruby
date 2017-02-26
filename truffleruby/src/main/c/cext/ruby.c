@@ -496,8 +496,7 @@ unsigned long rb_num2uint(VALUE val) {
 }
 
 long rb_num2long(VALUE val) {
-  rb_jt_error("rb_num2long not implemented");
-  abort();
+  return truffle_invoke_l(RUBY_CEXT, "rb_num2long", val);
 }
 
 VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func) {

@@ -1,4 +1,3 @@
-fails:CApiNumericSpecs rb_num2int calls #to_int to coerce the value
 fails:CApiNumericSpecs rb_num2uint raises a TypeError if passed nil
 fails:CApiNumericSpecs rb_num2uint converts a Float
 fails:CApiNumericSpecs rb_num2uint converts a Bignum
@@ -9,19 +8,6 @@ fails:CApiNumericSpecs rb_num2uint raises a RangeError if the value is more than
 fails:CApiNumericSpecs rb_num2uint raises a RangeError if the value is less than 32bits negative
 fails:CApiNumericSpecs rb_num2uint raises a RangeError if the value is more than 64bits
 fails:CApiNumericSpecs rb_num2uint calls #to_int to coerce the value
-fails:CApiNumericSpecs rb_num2long raises a TypeError if passed nil
-fails:CApiNumericSpecs rb_num2long converts a Float
-fails:CApiNumericSpecs rb_num2long converts a Bignum
-fails:CApiNumericSpecs rb_num2long converts a Fixnum
-fails:CApiNumericSpecs rb_num2long converts -1 to an signed number
-fails:CApiNumericSpecs rb_num2long converts a negative Bignum into an signed number
-fails:CApiNumericSpecs rb_num2long raises a RangeError if the value is more than 64bits
-fails:CApiNumericSpecs rb_num2long calls #to_int to coerce the value
-fails:CApiNumericSpecs rb_int2num raises a TypeError if passed nil
-fails:CApiNumericSpecs rb_int2num converts a Float
-fails:CApiNumericSpecs rb_int2num raises a RangeError when passed a Bignum
-fails:CApiNumericSpecs rb_int2num converts a Fixnum
-fails:CApiNumericSpecs rb_int2num converts a negative Fixnum
 fails:CApiNumericSpecs rb_num2ulong raises a TypeError if passed nil
 fails:CApiNumericSpecs rb_num2ulong converts a Float
 fails:CApiNumericSpecs rb_num2ulong converts a Bignum

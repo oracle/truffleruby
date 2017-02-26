@@ -486,6 +486,10 @@ module Truffle::CExt
   def rb_num2int(val)
     Rubinius::Type.rb_num2int(val)
   end
+  
+  def rb_num2long(val)
+    Rubinius::Type.rb_num2long(val)
+  end
 
   def rb_Integer(value)
     Integer(value)
