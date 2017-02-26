@@ -5,9 +5,11 @@ require 'mspec/runner/tag'
 module MSpec
 
   @exit    = nil
+  @abort   = nil
   @start   = nil
   @enter   = nil
   @before  = nil
+  @add     = nil
   @after   = nil
   @leave   = nil
   @finish  = nil
