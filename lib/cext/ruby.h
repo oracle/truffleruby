@@ -18,6 +18,7 @@
 extern "C" {
 #endif
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -825,29 +826,85 @@ MUST_INLINE int rb_jt_scan_args_1_star(int argc, VALUE *argv, const char *format
 }
 
 MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
-  switch (format[0]) {
-    case '0':
-      switch (format[1]) {
-        case ':':
-          return rb_jt_scan_args_0_hash(argc, argv, format, v1);
-        case '2':
-          return rb_jt_scan_args_02(argc, argv, format, v1, v2);
-      }
-      break;
-    case '1':
-      switch (format[1]) {
-        case '1':
-          return rb_jt_scan_args_11(argc, argv, format, v1, v2);
-        case '2':
-          return rb_jt_scan_args_12(argc, argv, format, v1, v2, v3);
-        case '*':
-          return rb_jt_scan_args_1_star(argc, argv, format, v1, v2);
-      }
-      break;
+  // Parse the format string
+
+  // TODO CS 7-Feb-17 maybe we could inline cache this part?
+
+  int required;
+  int optional;
+  bool rest;
+
+  // TODO CS 27-Feb-17 can LLVM constant-fold through isdigit?
+
+  if (isdigit(*format)) {
+    required = *format - '0';
+
+    if (isdigit(*format)) {
+      optional = *format - '0';
+    }
   }
 
-  rb_jt_error("rb_jt_scan_args case not implemented");
-  abort();
+  rest = *format == '*';
+
+  int argn = 0;
+  int valuen = 1; // We've numbered the v parameters from 1
+  bool taken_rest = false;
+
+  while (true) {
+    // Get the next argument
+
+    VALUE arg;
+
+    if (required > 0 || optional > 0) {
+      if (argn < argc) {
+        arg = argv[argn];
+        argn++;
+      } else {
+        if (required > 0) {
+          rb_jt_error("not enough arguments for required");
+          abort();
+        } else {
+          arg = Qnil;
+        }
+      }
+
+      if (required > 0) {
+        required--;
+      } else {
+        optional--;
+      }
+    } else if (rest && !taken_rest) {
+      arg = rb_ary_new();
+      while (argn < argc) {
+        rb_ary_push(arg, argv[argn]);
+        argn++;
+      }
+      taken_rest = true;
+    } else {
+      break;
+    }
+
+    // Put the argument into the current value pointer
+
+    // Don't assign the correct v to a temporary VALUE* and then assign arg to it - this doesn't optimise well
+
+    switch (valuen) {
+      case 1: *v1 = arg; break;
+      case 2: *v2 = arg; break;
+      case 3: *v3 = arg; break;
+      case 4: *v4 = arg; break;
+      case 5: *v5 = arg; break;
+      case 6: *v6 = arg; break;
+      case 7: *v7 = arg; break;
+      case 8: *v8 = arg; break;
+      case 9: *v9 = arg; break;
+      case 10: *v10 = arg; break;
+    }
+
+    valuen++;
+  }
+
+  return argc;
 }
 
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
