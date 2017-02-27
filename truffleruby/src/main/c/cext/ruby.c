@@ -603,8 +603,7 @@ VALUE rb_obj_instance_variables(VALUE object) {
 }
 
 VALUE rb_check_convert_type(VALUE val, int type, const char *type_name, const char *method) {
-  rb_jt_error("rb_check_convert_type not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_check_convert_type", val, rb_str_new_cstr(type_name), rb_str_new_cstr(method));
 }
 
 VALUE rb_check_to_integer(VALUE object, const char *method) {

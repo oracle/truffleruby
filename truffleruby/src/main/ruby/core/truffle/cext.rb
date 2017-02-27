@@ -503,6 +503,10 @@ module Truffle::CExt
     value
   end
 
+  def rb_check_convert_type(obj, type_name, method)
+    Rubinius::Type.rb_check_convert_type(obj, Object.const_get(type_name), method.to_sym)
+  end
+
   def rb_f_global_variables
     Kernel.global_variables
   end

@@ -5,10 +5,6 @@ fails:CApiObject rb_method_boundp returns false when the given method is not bou
 fails:CApiObject rb_to_id returns a symbol representation of the object
 fails:CApiObject rb_attr_get gets an instance variable
 fails:CApiObject rb_obj_instance_variables returns an array with instance variable names as symbols
-fails:CApiObject rb_check_convert_type returns the passed object and does not call the converting method if the object is the specified type
-fails:CApiObject rb_check_convert_type returns the passed object and does not call the converting method if the object is a subclass of the specified type
-fails:CApiObject rb_check_convert_type returns nil if the converting method returns nil
-fails:CApiObject rb_check_convert_type raises a TypeError if the converting method returns an object that is not the specified type
 fails:CApiObject rb_convert_type returns the passed object and does not call the converting method if the object is the specified type
 fails:CApiObject rb_convert_type returns the passed object and does not call the converting method if the object is a subclass of the specified type
 fails:CApiObject rb_convert_type raises a TypeError if the converting method returns nil
