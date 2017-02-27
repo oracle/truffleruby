@@ -2053,8 +2053,7 @@ VALUE rb_reg_new_str(VALUE s, int options) {
 }
 
 VALUE rb_reg_nth_match(int nth, VALUE match) {
-  rb_jt_error("rb_reg_nth_match not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_nth_match", nth, match);
 }
 
 VALUE rb_reg_options(VALUE re) {

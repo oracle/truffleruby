@@ -523,6 +523,11 @@ module Truffle::CExt
     match.pre_match
   end
 
+  def rb_reg_nth_match(nth, match)
+    return nil if match.nil?
+    match[nth]
+  end
+
   def rb_reg_options(re)
     re.options
   end
