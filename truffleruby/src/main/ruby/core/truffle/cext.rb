@@ -515,6 +515,10 @@ module Truffle::CExt
     Kernel.global_variables
   end
 
+  def rb_inspect(object)
+    Rubinius::Type.inspect(object)
+  end
+
   def rb_range_new(beg, last, exclude_end)
     Range.new(beg, last, exclude_end != 0)
   end

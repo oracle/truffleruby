@@ -626,8 +626,7 @@ void rb_extend_object(VALUE object, VALUE module) {
 }
 
 VALUE rb_inspect(VALUE object) {
-  rb_jt_error("rb_inspect not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_inspect", object);
 }
 
 void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
