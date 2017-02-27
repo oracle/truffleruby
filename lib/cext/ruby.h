@@ -645,33 +645,9 @@ int rb_to_encoding_index(VALUE enc);
 char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc);
 #define rb_enc_name(enc) ((enc)->name)
 int rb_enc_get_index(VALUE obj);
-
-MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
-  VALUE value = *value_pointer;
-
-  if (!RB_TYPE_P(value, T_STRING)) {
-    value = rb_str_to_str(value);
-    *value_pointer = value;
-  }
-
-  return value;
-}
-
-MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer) {
-  VALUE string = rb_string_value(value_pointer);
-  return RSTRING_PTR(string);
-}
-
-MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer) {
-  VALUE string = rb_string_value(value_pointer);
-
-  if (!truffle_invoke_b(RUBY_CEXT, "rb_string_value_cstr_check", string)) {
-    rb_jt_error("rb_string_value_cstr failure case not implemented");
-    abort();
-  }
-
-  return RSTRING_PTR(string);
-}
+MUST_INLINE VALUE rb_string_value(VALUE *value_pointer);
+MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer);
+MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer);
 
 // Symbol
 
@@ -778,136 +754,13 @@ VALUE rb_proc_new(void *function, VALUE value);
 void rb_warn(const char *fmt, ...);
 void rb_warning(const char *fmt, ...);
 
-MUST_INLINE int rb_jt_scan_args_0_hash(int argc, VALUE *argv, const char *format, VALUE *v1) {
-  if (argc >= 1) *v1 = argv[0];
-  return argc;
-}
+MUST_INLINE int rb_jt_scan_args_0_hash(int argc, VALUE *argv, const char *format, VALUE *v1);
+MUST_INLINE int rb_jt_scan_args_02(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
+MUST_INLINE int rb_jt_scan_args_11(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
+MUST_INLINE int rb_jt_scan_args_12(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3);
+MUST_INLINE int rb_jt_scan_args_1_star(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
+MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10);
 
-MUST_INLINE int rb_jt_scan_args_02(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
-  if (argc >= 1) *v1 = argv[0];
-  if (argc >= 2) *v2 = argv[1];
-  return argc;
-}
-
-MUST_INLINE int rb_jt_scan_args_11(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
-  if (argc < 1) {
-    rb_jt_error("rb_jt_scan_args_11 error case not implemented");
-    abort();
-  }
-  *v1 = argv[0];
-  if (argc >= 2) *v2 = argv[1];
-  return argc - 1;
-}
-
-MUST_INLINE int rb_jt_scan_args_12(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3) {
-  if (argc < 1) {
-    rb_jt_error("rb_jt_scan_args_12 error case not implemented");
-    abort();
-  }
-  *v1 = argv[0];
-  if (argc >= 2) *v2 = argv[1];
-  if (argc >= 3) *v3 = argv[2];
-  return argc - 1;
-}
-
-MUST_INLINE int rb_jt_scan_args_1_star(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
-  if (argc < 1) {
-    rb_jt_error("rb_jt_scan_args_1_star error case not implemented");
-    abort();
-  }
-  *v1 = argv[0];
-  if (argc >= 2) {
-    *v2 = rb_ary_new();
-    for (int n = 1; n < argc; n++) {
-      rb_ary_push(*v2, argv[n]);
-    }
-  }
-  return argc - 1;
-}
-
-MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
-  // Parse the format string
-
-  // TODO CS 7-Feb-17 maybe we could inline cache this part?
-
-  int required;
-  int optional;
-  bool rest;
-
-  // TODO CS 27-Feb-17 can LLVM constant-fold through isdigit?
-
-  if (isdigit(*format)) {
-    required = *format - '0';
-
-    if (isdigit(*format)) {
-      optional = *format - '0';
-    }
-  }
-
-  rest = *format == '*';
-
-  int argn = 0;
-  int valuen = 1; // We've numbered the v parameters from 1
-  bool taken_rest = false;
-
-  while (true) {
-    // Get the next argument
-
-    VALUE arg;
-
-    if (required > 0 || optional > 0) {
-      if (argn < argc) {
-        arg = argv[argn];
-        argn++;
-      } else {
-        if (required > 0) {
-          rb_jt_error("not enough arguments for required");
-          abort();
-        } else {
-          arg = Qnil;
-        }
-      }
-
-      if (required > 0) {
-        required--;
-      } else {
-        optional--;
-      }
-    } else if (rest && !taken_rest) {
-      arg = rb_ary_new();
-      while (argn < argc) {
-        rb_ary_push(arg, argv[argn]);
-        argn++;
-      }
-      taken_rest = true;
-    } else {
-      break;
-    }
-
-    // Put the argument into the current value pointer
-
-    // Don't assign the correct v to a temporary VALUE* and then assign arg to it - this doesn't optimise well
-
-    switch (valuen) {
-      case 1: *v1 = arg; break;
-      case 2: *v2 = arg; break;
-      case 3: *v3 = arg; break;
-      case 4: *v4 = arg; break;
-      case 5: *v5 = arg; break;
-      case 6: *v6 = arg; break;
-      case 7: *v7 = arg; break;
-      case 8: *v8 = arg; break;
-      case 9: *v9 = arg; break;
-      case 10: *v10 = arg; break;
-    }
-
-    valuen++;
-  }
-
-  return argc;
-}
-
-VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
 #define rb_jt_scan_args_1(ARGC, ARGV, FORMAT, V1) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 #define rb_jt_scan_args_2(ARGC, ARGV, FORMAT, V1, V2) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 #define rb_jt_scan_args_3(ARGC, ARGV, FORMAT, V1, V2, V3) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
@@ -921,6 +774,8 @@ VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
 
 #define SCAN_ARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
 #define rb_scan_args(ARGC, ARGV, FORMAT, ...) SCAN_ARGS_IMPL(__VA_ARGS__, rb_jt_scan_args_10, rb_jt_scan_args_9, rb_jt_scan_args_8, rb_jt_scan_args_7, rb_jt_scan_args_6, rb_jt_scan_args_5, rb_jt_scan_args_4, rb_jt_scan_args_3, rb_jt_scan_args_2, rb_jt_scan_args_1)(ARGC, ARGV, FORMAT, __VA_ARGS__)
+
+VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
 
 // Calls
 
@@ -1263,6 +1118,164 @@ VALUE *rb_ruby_verbose_ptr(void);
 
 VALUE *rb_ruby_debug_ptr(void);
 #define ruby_debug (*rb_ruby_debug_ptr())
+
+// Inline implementations
+
+MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
+  VALUE value = *value_pointer;
+
+  if (!RB_TYPE_P(value, T_STRING)) {
+    value = rb_str_to_str(value);
+    *value_pointer = value;
+  }
+
+  return value;
+}
+
+MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer) {
+  VALUE string = rb_string_value(value_pointer);
+  return RSTRING_PTR(string);
+}
+
+MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer) {
+  VALUE string = rb_string_value(value_pointer);
+
+  if (!truffle_invoke_b(RUBY_CEXT, "rb_string_value_cstr_check", string)) {
+    rb_jt_error("rb_string_value_cstr failure case not implemented");
+    abort();
+  }
+
+  return RSTRING_PTR(string);
+}
+
+MUST_INLINE int rb_jt_scan_args_0_hash(int argc, VALUE *argv, const char *format, VALUE *v1) {
+  if (argc >= 1) *v1 = argv[0];
+  return argc;
+}
+
+MUST_INLINE int rb_jt_scan_args_02(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
+  if (argc >= 1) *v1 = argv[0];
+  if (argc >= 2) *v2 = argv[1];
+  return argc;
+}
+
+MUST_INLINE int rb_jt_scan_args_11(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
+  if (argc < 1) {
+    rb_jt_error("rb_jt_scan_args_11 error case not implemented");
+    abort();
+  }
+  *v1 = argv[0];
+  if (argc >= 2) *v2 = argv[1];
+  return argc - 1;
+}
+
+MUST_INLINE int rb_jt_scan_args_12(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3) {
+  if (argc < 1) {
+    rb_jt_error("rb_jt_scan_args_12 error case not implemented");
+    abort();
+  }
+  *v1 = argv[0];
+  if (argc >= 2) *v2 = argv[1];
+  if (argc >= 3) *v3 = argv[2];
+  return argc - 1;
+}
+
+MUST_INLINE int rb_jt_scan_args_1_star(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
+  if (argc < 1) {
+    rb_jt_error("rb_jt_scan_args_1_star error case not implemented");
+    abort();
+  }
+  *v1 = argv[0];
+  if (argc >= 2) {
+    *v2 = rb_ary_new();
+    for (int n = 1; n < argc; n++) {
+      rb_ary_push(*v2, argv[n]);
+    }
+  }
+  return argc - 1;
+}
+
+MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
+  // Parse the format string
+
+  // TODO CS 7-Feb-17 maybe we could inline cache this part?
+
+  int required;
+  int optional;
+  bool rest;
+
+  // TODO CS 27-Feb-17 can LLVM constant-fold through isdigit?
+
+  if (isdigit(*format)) {
+    required = *format - '0';
+
+    if (isdigit(*format)) {
+      optional = *format - '0';
+    }
+  }
+
+  rest = *format == '*';
+
+  int argn = 0;
+  int valuen = 1; // We've numbered the v parameters from 1
+  bool taken_rest = false;
+
+  while (true) {
+    // Get the next argument
+
+    VALUE arg;
+
+    if (required > 0 || optional > 0) {
+      if (argn < argc) {
+        arg = argv[argn];
+        argn++;
+      } else {
+        if (required > 0) {
+          rb_jt_error("not enough arguments for required");
+          abort();
+        } else {
+          arg = Qnil;
+        }
+      }
+
+      if (required > 0) {
+        required--;
+      } else {
+        optional--;
+      }
+    } else if (rest && !taken_rest) {
+      arg = rb_ary_new();
+      while (argn < argc) {
+        rb_ary_push(arg, argv[argn]);
+        argn++;
+      }
+      taken_rest = true;
+    } else {
+      break;
+    }
+
+    // Put the argument into the current value pointer
+
+    // Don't assign the correct v to a temporary VALUE* and then assign arg to it - this doesn't optimise well
+
+    switch (valuen) {
+      case 1: *v1 = arg; break;
+      case 2: *v2 = arg; break;
+      case 3: *v3 = arg; break;
+      case 4: *v4 = arg; break;
+      case 5: *v5 = arg; break;
+      case 6: *v6 = arg; break;
+      case 7: *v7 = arg; break;
+      case 8: *v8 = arg; break;
+      case 9: *v9 = arg; break;
+      case 10: *v10 = arg; break;
+    }
+
+    valuen++;
+  }
+
+  return argc;
+}
 
 #if defined(__cplusplus)
 }
