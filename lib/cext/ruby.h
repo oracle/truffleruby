@@ -1203,6 +1203,7 @@ MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE
   int required;
   int optional;
   bool rest;
+  bool block;
 
   // TODO CS 27-Feb-17 can LLVM constant-fold through isdigit?
 
@@ -1223,6 +1224,13 @@ MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE
     rest = false;
   }
 
+  if (*format == '&') {
+    block = true;
+    format++;
+  } else {
+    block = false;
+  }
+
   if (*format != '\0') {
     rb_jt_error("bad rb_scan_args format");
     abort();
@@ -1231,6 +1239,7 @@ MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE
   int argn = 0;
   int valuen = 1; // We've numbered the v parameters from 1
   bool taken_rest = false;
+  bool taken_block = false;
 
   while (true) {
     // Get the next argument
@@ -1262,6 +1271,13 @@ MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE
         argn++;
       }
       taken_rest = true;
+    } else if (block && !taken_block) {
+      if (rb_block_given_p()) {
+        arg = rb_block_proc();
+      } else {
+        arg = Qnil;
+      }
+      taken_block = true;
     } else {
       break;
     }
