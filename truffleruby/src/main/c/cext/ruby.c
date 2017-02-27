@@ -2072,13 +2072,11 @@ VALUE rb_reg_match(VALUE re, VALUE str) {
 // Marshal
 
 VALUE rb_marshal_dump(VALUE obj, VALUE port) {
-  rb_jt_error("rb_marshal_dump not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_marshal_dump", obj, port);
 }
 
 VALUE rb_marshal_load(VALUE port) {
-  rb_jt_error("rb_marshal_load not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_marshal_load", port);
 }
 
 // Mutexes

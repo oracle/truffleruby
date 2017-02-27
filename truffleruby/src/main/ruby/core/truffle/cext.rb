@@ -519,6 +519,14 @@ module Truffle::CExt
     Regexp.new(str, options)
   end
 
+  def rb_marshal_dump(obj, port)
+    Marshal.dump(obj, port)
+  end
+
+  def rb_marshal_load(port)
+    Marshal.load(port)
+  end
+
   def rb_reg_regcomp(str)
     Regexp.compile(str)
   end
