@@ -29,6 +29,10 @@ public abstract class BooleanCastNode extends RubyNode {
     public BooleanCastNode(BooleanCastNode node) {
     }
 
+    /** Execute with child node */
+    public abstract boolean executeBoolean(VirtualFrame frame);
+
+    /** Execute with given value */
     public abstract boolean executeToBoolean(Object value);
 
     @Specialization(guards = "isNil(nil)")
@@ -60,8 +64,5 @@ public abstract class BooleanCastNode extends RubyNode {
     public boolean doBasicObject(DynamicObject object) {
         return true;
     }
-
-    @Override
-    public abstract boolean executeBoolean(VirtualFrame frame);
 
 }

@@ -25,11 +25,6 @@ public class IntegerFixnumLiteralNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return executeInteger(frame);
-    }
-
-    @Override
-    public int executeInteger(VirtualFrame frame) {
         return value;
     }
 

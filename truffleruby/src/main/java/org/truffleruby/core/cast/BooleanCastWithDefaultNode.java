@@ -11,7 +11,6 @@ package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -27,8 +26,6 @@ public abstract class BooleanCastWithDefaultNode extends RubyNode {
     public BooleanCastWithDefaultNode(boolean defaultValue) {
         this.defaultValue = defaultValue;
     }
-
-    public abstract boolean executeBoolean(VirtualFrame frame, Object value);
 
     @Specialization
     public boolean doDefault(NotProvided value) {
@@ -64,8 +61,5 @@ public abstract class BooleanCastWithDefaultNode extends RubyNode {
     public boolean doBasicObject(DynamicObject object) {
         return true;
     }
-
-    @Override
-    public abstract boolean executeBoolean(VirtualFrame frame);
 
 }

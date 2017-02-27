@@ -13,7 +13,6 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -25,9 +24,6 @@ import org.truffleruby.language.control.RaiseException;
 public abstract class IntegerCastNode extends RubyNode {
 
     public abstract int executeCastInt(Object value);
-
-    @Override
-    public abstract int executeInteger(VirtualFrame frame);
 
     @Specialization
     public int doInt(int value) {

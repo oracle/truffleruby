@@ -23,13 +23,8 @@ public class NotNode extends RubyNode {
     }
 
     @Override
-    public boolean executeBoolean(VirtualFrame frame) {
-        return !child.executeBoolean(frame);
-    }
-
-    @Override
     public Object execute(VirtualFrame frame) {
-        return executeBoolean(frame);
+        return !child.executeBoolean(frame);
     }
 
 }

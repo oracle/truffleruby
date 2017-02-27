@@ -22,13 +22,8 @@ public class IsRubiniusUndefinedNode extends RubyNode {
     }
 
     @Override
-    public boolean executeBoolean(VirtualFrame frame) {
-        return child.execute(frame) == NotProvided.INSTANCE;
-    }
-
-    @Override
     public Object execute(VirtualFrame frame) {
-        return executeBoolean(frame);
+        return child.execute(frame) == NotProvided.INSTANCE;
     }
 
 }

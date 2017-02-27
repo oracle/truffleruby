@@ -12,7 +12,6 @@ package org.truffleruby.core.hash;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
 
@@ -49,12 +48,8 @@ public class ConcatHashLiteralNode extends RubyNode {
     protected DynamicObject[] executeChildren(VirtualFrame frame) {
         DynamicObject[] values = new DynamicObject[children.length];
         for (int i = 0; i < children.length; i++) {
-            try {
-                DynamicObject hash = children[i].executeDynamicObject(frame);
-                values[i] = hash;
-            } catch (UnexpectedResultException e) {
-                throw new UnsupportedOperationException(children[i].getClass() + " " + e.getResult().getClass());
-            }
+            DynamicObject hash = (DynamicObject) children[i].execute(frame);
+            values[i] = hash;
         }
         return values;
     }

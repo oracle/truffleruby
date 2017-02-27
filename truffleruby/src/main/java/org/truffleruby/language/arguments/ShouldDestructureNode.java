@@ -28,7 +28,7 @@ public class ShouldDestructureNode extends RubyNode {
     }
 
     @Override
-    public boolean executeBoolean(VirtualFrame frame) {
+    public Object execute(VirtualFrame frame) {
         if (RubyArguments.getArgumentsCount(frame) != 1) {
             return false;
         }
@@ -44,12 +44,7 @@ public class ShouldDestructureNode extends RubyNode {
             respondToCheck = insert(new RespondToNode(readArrayNode, "to_ary"));
         }
 
-        return respondToCheck.executeBoolean(frame);
-    }
-
-    @Override
-    public Object execute(VirtualFrame frame) {
-        return executeBoolean(frame);
+        return respondToCheck.execute(frame);
     }
 
 }

@@ -25,11 +25,6 @@ public class LongFixnumLiteralNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return executeLong(frame);
-    }
-
-    @Override
-    public long executeLong(VirtualFrame frame) {
         return value;
     }
 

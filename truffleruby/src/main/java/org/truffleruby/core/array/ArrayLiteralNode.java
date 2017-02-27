@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
@@ -118,9 +117,11 @@ public abstract class ArrayLiteralNode extends RubyNode {
             final double[] executedValues = new double[values.length];
 
             for (int n = 0; n < values.length; n++) {
-                try {
-                    executedValues[n] = values[n].executeDouble(frame);
-                } catch (UnexpectedResultException e) {
+                final Object value = values[n].execute(frame);
+                if (value instanceof Double) {
+                    executedValues[n] = (double) value;
+                } else {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
                     return makeGeneric(frame, executedValues, n);
                 }
             }
@@ -152,9 +153,11 @@ public abstract class ArrayLiteralNode extends RubyNode {
             final int[] executedValues = new int[values.length];
 
             for (int n = 0; n < values.length; n++) {
-                try {
-                    executedValues[n] = values[n].executeInteger(frame);
-                } catch (UnexpectedResultException e) {
+                final Object value = values[n].execute(frame);
+                if (value instanceof Integer) {
+                    executedValues[n] = (int) value;
+                } else {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
                     return makeGeneric(frame, executedValues, n);
                 }
             }
@@ -186,9 +189,11 @@ public abstract class ArrayLiteralNode extends RubyNode {
             final long[] executedValues = new long[values.length];
 
             for (int n = 0; n < values.length; n++) {
-                try {
-                    executedValues[n] = values[n].executeLong(frame);
-                } catch (UnexpectedResultException e) {
+                final Object value = values[n].execute(frame);
+                if (value instanceof Long) {
+                    executedValues[n] = (long) value;
+                } else {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
                     return makeGeneric(frame, executedValues, n);
                 }
             }

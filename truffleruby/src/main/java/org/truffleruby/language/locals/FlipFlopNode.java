@@ -31,7 +31,7 @@ public class FlipFlopNode extends RubyNode {
     }
 
     @Override
-    public boolean executeBoolean(VirtualFrame frame) {
+    public Object execute(VirtualFrame frame) {
         if (exclusive) {
             if (stateNode.getState(frame)) {
                 if (end.executeBoolean(frame)) {
@@ -60,11 +60,6 @@ public class FlipFlopNode extends RubyNode {
                 return false;
             }
         }
-    }
-
-    @Override
-    public Object execute(VirtualFrame frame) {
-        return executeBoolean(frame);
     }
 
 }
