@@ -55,7 +55,7 @@ public abstract class EncodingNodes {
             return isAsciiCompatible;
         }
 
-        @Specialization(contains = "isAsciiCompatibleCached")
+        @Specialization(replaces = "isAsciiCompatibleCached")
         public boolean isAsciiCompatibleUncached(DynamicObject encoding) {
             return isAsciiCompatible(encoding);
         }
@@ -86,7 +86,7 @@ public abstract class EncodingNodes {
             return cachedRubyEncoding;
         }
 
-        @Specialization(contains = "getRubyEncodingCached")
+        @Specialization(replaces = "getRubyEncodingCached")
         protected DynamicObject getRubyEncodingUncached(Encoding encoding) {
             if (encoding == null) {
                 throw new UnsupportedOperationException("cannot convert null Java encoding to a Ruby encoding");
@@ -125,7 +125,7 @@ public abstract class EncodingNodes {
             return cachedEncoding;
         }
 
-        @Specialization(guards = "getEncoding(first) == getEncoding(second)", contains = "negotiateSameEncodingCached")
+        @Specialization(guards = "getEncoding(first) == getEncoding(second)", replaces = "negotiateSameEncodingCached")
         protected Encoding negotiateSameEncodingUncached(Object first, Object second) {
             return getEncoding(first);
         }
@@ -156,7 +156,7 @@ public abstract class EncodingNodes {
                 "getEncoding(first) != getEncoding(second)",
                 "isRubyString(first)",
                 "isRubyString(second)",
-        }, contains = "negotiateStringStringCached")
+        }, replaces = "negotiateStringStringCached")
         protected Encoding negotiateStringStringUncached(DynamicObject first, DynamicObject second) {
             return compatibleEncodingForStrings(first, second);
         }
@@ -181,7 +181,7 @@ public abstract class EncodingNodes {
                 "getEncoding(first) != getEncoding(second)",
                 "isRubyString(first)",
                 "!isRubyString(second)"
-        }, contains = "negotiateStringObjectCached")
+        }, replaces = "negotiateStringObjectCached")
         protected Encoding negotiateStringObjectUncached(DynamicObject first, Object second) {
             final Encoding firstEncoding = getEncoding(first);
             final Encoding secondEncoding = getEncoding(second);
@@ -235,7 +235,7 @@ public abstract class EncodingNodes {
                 "getEncoding(first) != getEncoding(second)",
                 "!isRubyString(first)",
                 "!isRubyString(second)"
-        }, contains = "negotiateObjectObjectCached")
+        }, replaces = "negotiateObjectObjectCached")
         protected Encoding negotiateObjectObjectUncached(Object first, Object second) {
             final Encoding firstEncoding = getEncoding(first);
             final Encoding secondEncoding = getEncoding(second);
@@ -384,7 +384,7 @@ public abstract class EncodingNodes {
             return isDummy;
         }
 
-        @Specialization(contains = "isDummyCached")
+        @Specialization(replaces = "isDummyCached")
         public boolean isDummyUncached(DynamicObject encoding) {
             return isDummy(encoding);
         }

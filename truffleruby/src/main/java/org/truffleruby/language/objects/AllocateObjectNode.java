@@ -101,7 +101,7 @@ public abstract class AllocateObjectNode extends RubyNode {
 
     @CompilerDirectives.TruffleBoundary
     @Specialization(
-            contains = "allocateCached",
+            replaces = "allocateCached",
             guards = {"!isSingleton(classToAllocate)", "!isTracing()"},
             assumptions = "getTracingAssumption()")
     public DynamicObject allocateUncached(DynamicObject classToAllocate, Object[] values) {

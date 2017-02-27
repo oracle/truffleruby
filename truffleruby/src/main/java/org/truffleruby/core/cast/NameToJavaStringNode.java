@@ -47,7 +47,7 @@ public abstract class NameToJavaStringNode extends RubyNode {
         return convertedString;
     }
 
-    @Specialization(guards = "isRubyString(value)", contains = "stringCached")
+    @Specialization(guards = "isRubyString(value)", replaces = "stringCached")
     public String stringUncached(DynamicObject value) {
         return StringOperations.getString(value);
     }
@@ -59,7 +59,7 @@ public abstract class NameToJavaStringNode extends RubyNode {
         return convertedString;
     }
 
-    @Specialization(guards = "isRubySymbol(symbol)", contains = "symbolCached")
+    @Specialization(guards = "isRubySymbol(symbol)", replaces = "symbolCached")
     public String symbolUncached(DynamicObject symbol) {
         return symbolToString(symbol);
     }
@@ -70,7 +70,7 @@ public abstract class NameToJavaStringNode extends RubyNode {
         return cachedString;
     }
 
-    @Specialization(contains = "javaStringCached")
+    @Specialization(replaces = "javaStringCached")
     public String javaStringUncached(String value) {
         return value;
     }

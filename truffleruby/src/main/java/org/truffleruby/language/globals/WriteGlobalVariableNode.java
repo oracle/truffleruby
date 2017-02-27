@@ -52,7 +52,7 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
         return value;
     }
 
-    @Specialization(guards = {"workaround()", "!storage.isAssumeConstant()"}, contains = "writeAssumeConstant")
+    @Specialization(guards = {"workaround()", "!storage.isAssumeConstant()"}, replaces = "writeAssumeConstant")
     public Object write(Object value,
                     @Cached("getStorage()") GlobalVariableStorage storage) {
         if (getContext().getSharedObjects().isSharing()) {

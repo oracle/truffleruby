@@ -123,7 +123,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    @Specialization(contains = { "writeExistingField", "writeNewField", "updateShapeAndWrite" })
+    @Specialization(replaces = { "writeExistingField", "writeNewField", "updateShapeAndWrite" })
     public void writeUncached(DynamicObject object, Object value) {
         final boolean shared = SharedObjects.isShared(getContext(), object);
         if (shared) {

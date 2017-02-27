@@ -39,7 +39,7 @@ public abstract class ObjectIVarSetNode extends RubyNode {
     }
 
     @TruffleBoundary
-    @Specialization(contains = "ivarSetCached")
+    @Specialization(replaces = "ivarSetCached")
     public Object ivarSetUncached(DynamicObject object, String name, Object value) {
         if (SharedObjects.isShared(getContext(), object)) {
             SharedObjects.writeBarrier(getContext(), value);

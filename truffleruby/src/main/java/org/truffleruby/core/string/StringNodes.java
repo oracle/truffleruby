@@ -2300,7 +2300,7 @@ public abstract class StringNodes {
             return finishUnpack(result);
         }
 
-        @Specialization(contains = "unpackCached", guards = "isRubyString(format)")
+        @Specialization(replaces = "unpackCached", guards = "isRubyString(format)")
         public DynamicObject unpackUncached(
                 DynamicObject string,
                 DynamicObject format,
@@ -2871,7 +2871,7 @@ public abstract class StringNodes {
                 "!ropeReferenceEqual(string, other)",
                 "!bytesReferenceEqual(string, other)",
                 "byteLength(string) == byteLength(other)"
-        }, contains = "equalCharacters")
+        }, replaces = "equalCharacters")
         public boolean fullEqual(DynamicObject string, DynamicObject other,
                                  @Cached("createBinaryProfile()") ConditionProfile hashCodesCalculatedProfile,
                                  @Cached("createBinaryProfile()") ConditionProfile differentHashCodesProfile,

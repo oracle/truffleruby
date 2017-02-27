@@ -57,7 +57,7 @@ public abstract class FormatCharacterNode extends FormatNode {
         return doFormat(charString, cachedFormatString);
     }
 
-    @Specialization(contains = "formatCached")
+    @Specialization(replaces = "formatCached")
     protected byte[] format(VirtualFrame frame, int width, Object value) {
         final String charString = getCharString(frame, value);
         return doFormat(charString, makeFormatString(width));

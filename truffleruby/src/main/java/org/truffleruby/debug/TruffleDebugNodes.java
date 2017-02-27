@@ -215,7 +215,7 @@ public abstract class TruffleDebugNodes {
             return shared;
         }
 
-        @Specialization(contains = "isSharedCached")
+        @Specialization(replaces = "isSharedCached")
         public boolean isShared(DynamicObject object) {
             return SharedObjects.isShared(getContext(), object);
         }

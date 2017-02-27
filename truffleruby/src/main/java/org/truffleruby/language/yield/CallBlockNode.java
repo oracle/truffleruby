@@ -56,7 +56,7 @@ public abstract class CallBlockNode extends RubyNode {
         return callNode.call(frameArguments);
     }
 
-    @Specialization(contains = "callBlockCached")
+    @Specialization(replaces = "callBlockCached")
     protected Object callBlockUncached(
             DynamicObject block,
             Object self,

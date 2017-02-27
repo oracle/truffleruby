@@ -113,7 +113,7 @@ public abstract class InteropNodes {
             }
         }
 
-        @Specialization(contains = "executeForeignCached")
+        @Specialization(replaces = "executeForeignCached")
         public Object executeForeignUncached(
                 VirtualFrame frame,
                 TruffleObject receiver,
@@ -176,7 +176,7 @@ public abstract class InteropNodes {
 
         @Specialization(
                 guards = "isRubyString(identifier) || isRubySymbol(identifier)",
-                contains = "invokeCached"
+                replaces = "invokeCached"
         )
         public Object invokeUncached(
                 VirtualFrame frame,
@@ -434,7 +434,7 @@ public abstract class InteropNodes {
 
         @Specialization(
                 guards = "isRubyString(identifier)",
-                contains = "readCached"
+                replaces = "readCached"
         )
         public Object readUncached(
                 VirtualFrame frame,
@@ -529,7 +529,7 @@ public abstract class InteropNodes {
 
         @Specialization(
                 guards = "isRubyString(identifier)",
-                contains = "writeCached"
+                replaces = "writeCached"
         )
         public Object writeUncached(
                 VirtualFrame frame,
@@ -658,7 +658,7 @@ public abstract class InteropNodes {
             return callNode.call(new Object[]{});
         }
 
-        @Specialization(guards = {"isRubyString(mimeType)", "isRubyString(source)"}, contains = "evalCached")
+        @Specialization(guards = {"isRubyString(mimeType)", "isRubyString(source)"}, replaces = "evalCached")
         public Object evalUncached(DynamicObject mimeType, DynamicObject source, @Cached("create()") IndirectCallNode callNode) {
             return callNode.call(parse(mimeType, source), new Object[]{});
         }

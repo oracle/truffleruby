@@ -54,7 +54,7 @@ public abstract class WriteFrameSlotNode extends Node {
     }
 
     @Specialization(guards = "checkObjectKind(frame)",
-            contains = { "writeBoolean", "writeInteger", "writeLong", "writeDouble" })
+            replaces = { "writeBoolean", "writeInteger", "writeLong", "writeDouble" })
     public Object writeObject(Frame frame, Object value) {
         frame.setObject(frameSlot, value);
         return value;

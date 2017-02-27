@@ -89,7 +89,7 @@ public abstract class SingletonClassNode extends RubyNode {
 
     @Specialization(
             guards = "isRubyClass(rubyClass)",
-            contains = "singletonClassClassCached"
+            replaces = "singletonClassClassCached"
     )
     protected DynamicObject singletonClassClassUncached(DynamicObject rubyClass) {
         return ClassNodes.getSingletonClass(getContext(), rubyClass);
@@ -118,7 +118,7 @@ public abstract class SingletonClassNode extends RubyNode {
                 "!isRubySymbol(object)",
                 "!isRubyClass(object)"
             },
-            contains = "singletonClassInstanceCached"
+            replaces = "singletonClassInstanceCached"
     )
     protected DynamicObject singletonClassInstanceUncached(DynamicObject object) {
         return getSingletonClassForInstance(object);

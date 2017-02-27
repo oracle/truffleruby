@@ -90,7 +90,7 @@ public abstract class ShareInternalFieldsNode extends RubyBaseNode {
         /* No internal fields */
     }
 
-    @Specialization(contains = { "shareCachedObjectArray", "shareCachedOtherArray", "shareCachedQueue", "shareCachedBasicObject" })
+    @Specialization(replaces = { "shareCachedObjectArray", "shareCachedOtherArray", "shareCachedQueue", "shareCachedBasicObject" })
     protected void shareUncached(DynamicObject object) {
         SharedObjects.shareInternalFields(getContext(), object);
     }

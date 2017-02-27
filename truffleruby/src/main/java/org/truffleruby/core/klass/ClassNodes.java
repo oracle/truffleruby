@@ -399,7 +399,7 @@ public abstract class ClassNodes {
             return cachedSuperclass;
         }
 
-        @Specialization(contains = "getSuperClass")
+        @Specialization(replaces = "getSuperClass")
         DynamicObject getSuperClassUncached(DynamicObject rubyClass,
                 @Cached("create()") BranchProfile errorProfile) {
             final DynamicObject superclass = fastLookUp(rubyClass);

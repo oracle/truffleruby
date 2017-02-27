@@ -32,7 +32,7 @@ public abstract class ThreadLocalObjectNode extends RubyNode {
         return cachedThreadLocals;
     }
 
-    @Specialization(contains = "getThreadLocalObjectCached")
+    @Specialization(replaces = "getThreadLocalObjectCached")
     protected DynamicObject getThreadLocalObjectUncached(VirtualFrame frame) {
         return getThreadLocals(getCurrentThread(frame));
     }

@@ -161,7 +161,7 @@ public abstract class FloatNodes {
             return result;
         }
 
-        @Specialization(contains = "powCached")
+        @Specialization(replaces = "powCached")
         public double pow(double a, long b) {
             return Math.pow(a, b);
         }
@@ -649,7 +649,7 @@ public abstract class FloatNodes {
             return Integer.MIN_VALUE < n && n < Integer.MAX_VALUE;
         }
 
-        @Specialization(guards = { "ndigits == 0", "doubleInLongRange(n)" }, contains = "roundFittingInt")
+        @Specialization(guards = { "ndigits == 0", "doubleInLongRange(n)" }, replaces = "roundFittingInt")
         public long roundFittingLong(double n, int ndigits,
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
             long l = (long) n;
@@ -670,7 +670,7 @@ public abstract class FloatNodes {
             return Long.MIN_VALUE < n && n < Long.MAX_VALUE;
         }
 
-        @Specialization(guards = "ndigits == 0", contains = "roundFittingLong")
+        @Specialization(guards = "ndigits == 0", replaces = "roundFittingLong")
         public Object round(double n, int ndigits,
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile,
                 @Cached("create()") BranchProfile errorProfile,

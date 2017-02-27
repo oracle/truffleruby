@@ -70,7 +70,7 @@ public abstract class ShareObjectNode extends RubyBaseNode {
         executeShare(object);
     }
 
-    @Specialization(contains = { "shareCached", "updateShapeAndShare" })
+    @Specialization(replaces = { "shareCached", "updateShapeAndShare" })
     protected void shareUncached(DynamicObject object) {
         SharedObjects.writeBarrier(getContext(), object);
     }

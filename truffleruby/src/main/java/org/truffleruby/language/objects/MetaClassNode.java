@@ -68,7 +68,7 @@ public abstract class MetaClassNode extends RubyNode {
         return executeMetaClass(object);
     }
 
-    @Specialization(contains = { "metaClassCached", "updateShapeAndMetaClass" })
+    @Specialization(replaces = { "metaClassCached", "updateShapeAndMetaClass" })
     protected DynamicObject metaClassUncached(DynamicObject object) {
         return Layouts.BASIC_OBJECT.getMetaClass(object);
     }

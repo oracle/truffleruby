@@ -1171,7 +1171,7 @@ public abstract class ArrayNodes {
             return finishPack(cachedFormatLength, result);
         }
 
-        @Specialization(contains = "packCached", guards = "isRubyString(format)")
+        @Specialization(replaces = "packCached", guards = "isRubyString(format)")
         public DynamicObject packUncached(
                 DynamicObject array,
                 DynamicObject format,

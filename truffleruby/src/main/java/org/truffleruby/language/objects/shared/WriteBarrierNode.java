@@ -53,7 +53,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
         executeWriteBarrier(value);
     }
 
-    @Specialization(contains = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
+    @Specialization(replaces = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
     protected void writeBarrierUncached(DynamicObject value) {
         SharedObjects.writeBarrier(getContext(), value);
     }

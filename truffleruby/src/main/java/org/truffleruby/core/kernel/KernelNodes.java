@@ -488,7 +488,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = {
                 "isRubyString(source)"
-        }, contains = "evalNoBindingCached")
+        }, replaces = "evalNoBindingCached")
         public Object evalNoBindingUncached(VirtualFrame frame, DynamicObject source, NotProvided noBinding,
                                             NotProvided filename, NotProvided lineNumber, @Cached("create()") IndirectCallNode callNode) {
             final DynamicObject binding = getCallerBinding(frame);
@@ -1569,7 +1569,7 @@ public abstract class KernelNodes {
             return finishFormat(cachedFormatLength, result);
         }
 
-        @Specialization(guards = "isRubyString(format)", contains = "formatCached")
+        @Specialization(guards = "isRubyString(format)", replaces = "formatCached")
         public DynamicObject formatUncached(
                 VirtualFrame frame,
                 DynamicObject format,

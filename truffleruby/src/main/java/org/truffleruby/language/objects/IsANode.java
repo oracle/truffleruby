@@ -52,7 +52,7 @@ public abstract class IsANode extends RubyNode {
         return Layouts.MODULE.getFields(module).getHierarchyUnmodifiedAssumption();
     }
 
-    @Specialization(guards = "isRubyModule(module)", contains = "isACached")
+    @Specialization(guards = "isRubyModule(module)", replaces = "isACached")
     public boolean isAUncached(Object self, DynamicObject module) {
         return isA(getMetaClass(self), module);
     }

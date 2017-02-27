@@ -39,7 +39,7 @@ public abstract class IsSharedNode extends RubyBaseNode {
         return executeIsShared(object);
     }
 
-    @Specialization(contains = { "isShareCached", "updateShapeAndIsShared" })
+    @Specialization(replaces = { "isShareCached", "updateShapeAndIsShared" })
     protected boolean isSharedUncached(DynamicObject object) {
         return SharedObjects.isShared(getContext(), object);
     }

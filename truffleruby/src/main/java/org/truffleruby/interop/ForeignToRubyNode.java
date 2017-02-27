@@ -39,7 +39,7 @@ public abstract class ForeignToRubyNode extends RubyNode {
         return createString(cachedRope);
     }
 
-    @Specialization(contains = "convertStringCached")
+    @Specialization(replaces = "convertStringCached")
     public DynamicObject convertStringUncached(String value) {
         return createString(getRope(value));
     }

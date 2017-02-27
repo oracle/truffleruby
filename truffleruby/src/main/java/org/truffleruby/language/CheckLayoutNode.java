@@ -65,7 +65,7 @@ public class CheckLayoutNode extends RubyBaseNode {
             return executeGetObjectType(object);
         }
 
-        @Specialization(contains = { "cachedLeafShapeGetObjectType", "cachedShapeGetObjectType", "updateShapeAndRetry" })
+        @Specialization(replaces = { "cachedLeafShapeGetObjectType", "cachedShapeGetObjectType", "updateShapeAndRetry" })
         ObjectType uncachedGetObjectType(DynamicObject object) {
             return object.getShape().getObjectType();
         }

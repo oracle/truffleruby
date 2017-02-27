@@ -63,7 +63,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         return toRubyNode.executeConvert(frame, foreignValue);
     }
 
-    @Specialization(contains = "callCached")
+    @Specialization(replaces = "callCached")
     public Object callUncached(
             VirtualFrame frame,
             TruffleObject receiver,

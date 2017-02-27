@@ -54,7 +54,7 @@ public abstract class FixnumNodes {
             return Math.subtractExact(0, value);
         }
 
-        @Specialization(contains = "neg")
+        @Specialization(replaces = "neg")
         public Object negWithOverflow(int value) {
             if (value == Integer.MIN_VALUE) {
                 return -((long) value);
@@ -1014,7 +1014,7 @@ public abstract class FixnumNodes {
             return (n < 0) ? Math.subtractExact(0, n) : n;
         }
 
-        @Specialization(contains = "absIntInBounds")
+        @Specialization(replaces = "absIntInBounds")
         public Object abs(int n) {
             if (n == Integer.MIN_VALUE) {
                 return -((long) n);
@@ -1027,7 +1027,7 @@ public abstract class FixnumNodes {
             return (n < 0) ? Math.subtractExact(0, n) : n;
         }
 
-        @Specialization(contains = "absInBounds")
+        @Specialization(replaces = "absInBounds")
         public Object abs(long n) {
             if (n == Long.MIN_VALUE) {
                 return createBignum(BigInteger.valueOf(n).abs());

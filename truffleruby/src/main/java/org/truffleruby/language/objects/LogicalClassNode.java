@@ -64,7 +64,7 @@ public abstract class LogicalClassNode extends RubyNode {
         return executeLogicalClass(object);
     }
 
-    @Specialization(contains = { "logicalClassCached", "updateShapeAndLogicalClass" })
+    @Specialization(replaces = { "logicalClassCached", "updateShapeAndLogicalClass" })
     protected DynamicObject logicalClassUncached(DynamicObject object) {
         return Layouts.BASIC_OBJECT.getLogicalClass(object);
     }
