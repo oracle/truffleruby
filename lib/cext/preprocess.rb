@@ -6,6 +6,9 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
+LOCAL = /\w+\s*(\[\s*\d+\s*\])?/
+VALUE_LOCALS = /^(\s+)VALUE\s*(#{LOCAL}(\s*,\s*#{LOCAL})*);\s*$/
+
 def preprocess(line)
   if line.include?('rb_scan_args')
     line.gsub(/\brb_scan_args\((\w+), (\w+), \"(.*)\", /) {
@@ -35,7 +38,7 @@ def preprocess(line)
 
       "#{shim}(#{argc}, #{argv}, \"#{arity}\", "
     }
-  elsif line =~ /^(\s+)VALUE\s+((?:\s*\w+\s*(?:\[\s*\d+\s*\]\s*)?,?)+);\s*$/
+  elsif line =~ VALUE_LOCALS
     # Translate
     #   VALUE args[6], failed, a1, a2, a3, a4, a5, a6;
     #  into
