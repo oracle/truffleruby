@@ -302,6 +302,22 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_block_proc", isModuleFunction = true, needsCallerFrame = true)
+    public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject blockProc(MaterializedFrame callerFrame) {
+            return RubyArguments.tryGetBlock(callerFrame);
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject blockProc(NotProvided noCallerFrame) {
+            return RubyArguments.tryGetBlock(Truffle.getRuntime().getCallerFrame().getFrame(FrameInstance.FrameAccess.READ_ONLY));
+        }
+
+    }
+
     @CoreMethod(names = "rb_check_frozen", isModuleFunction = true, required = 1)
     public abstract static class CheckFrozenNode extends CoreMethodArrayArgumentsNode {
 

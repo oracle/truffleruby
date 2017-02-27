@@ -1607,8 +1607,7 @@ int rb_block_given_p() {
 }
 
 VALUE rb_block_proc(void) {
-  rb_jt_error("rb_block_proc not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_block_proc");
 }
 
 VALUE rb_yield(VALUE value) {
