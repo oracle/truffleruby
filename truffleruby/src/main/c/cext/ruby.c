@@ -1390,8 +1390,7 @@ VALUE rb_ary_subseq(VALUE array, long start, long length) {
 }
 
 VALUE rb_check_array_type(VALUE array) {
-  rb_jt_error("rb_check_array_type not implemented");
-  abort();
+  return rb_check_convert_type(array, T_ARRAY, "Array", "to_ary");
 }
 
 // Hash
