@@ -507,6 +507,10 @@ module Truffle::CExt
     object.class.name
   end
 
+  def rb_obj_respond_to(object, id, priv)
+    Rubinius::Type.object_respond_to?(object, id, priv != 0)
+  end
+
   def rb_check_convert_type(obj, type_name, method)
     Rubinius::Type.rb_check_convert_type(obj, Object.const_get(type_name), method.to_sym)
   end

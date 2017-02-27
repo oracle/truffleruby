@@ -647,8 +647,7 @@ int rb_obj_method_arity(VALUE object, ID id) {
 }
 
 int rb_obj_respond_to(VALUE object, ID id, int priv) {
-  rb_jt_error("rb_obj_respond_to not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_obj_respond_to", object, id, priv);
 }
 
 VALUE rb_special_const_p(VALUE object) {
