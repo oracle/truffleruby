@@ -195,10 +195,10 @@ module JavaUtilities
         add_constructors()
 
       @static_members.values.each do |m|
-        m.add_to_proxy( @proxy, true )
+        m.add_to_proxy(@proxy, true)
       end
       @instance_members.values.each do |m|
-        m.add_to_proxy( @proxy, false )
+        m.add_to_proxy(@proxy, false)
       end
     end
     @proxy
@@ -304,9 +304,9 @@ module JavaUtilities
 
     def add_to_proxy(a_proxy, static)
       if static
-        a_proxy.__send__(:define_singleton_method, @name, a_proxy.method(@target) )
+        a_proxy.__send__(:define_singleton_method, @name, a_proxy.method(@target))
       else
-        a_proxy.__send__(:define_method, @name, a_proxy.instance_method(@target) )
+        a_proxy.__send__(:define_method, @name, a_proxy.instance_method(@target))
       end
     end
   end

@@ -72,7 +72,7 @@ module JavaUtilities
 
     ParameterCache = ClassCache.new
 
-    def self.for_type( a_type )
+    def self.for_type(a_type)
       cached = ParameterCache[a_type]
       return cached unless cached == nil
       cached = Parameter.new(a_type)
@@ -86,7 +86,7 @@ module JavaUtilities
     attr_reader :range
     attr_reader :checker
 
-    def initialize( range, type )
+    def initialize(range, type)
       @range = range
       @checker = lambda { |x| x.class == Fixnum && range.include?(x) }
       super(type)
@@ -132,7 +132,7 @@ module JavaUtilities
   class FloatParameter < Parameter
     attr_reader :boxed
 
-    def initialize( is_boxed, type )
+    def initialize(is_boxed, type)
       @boxed = is_boxed
       super(type)
     end
@@ -169,7 +169,7 @@ module JavaUtilities
   class BooleanParameter < Parameter
     attr_reader :boxed
 
-    def initialize( is_boxed, type )
+    def initialize(is_boxed, type)
       @boxed = is_boxed
       super(type)
     end
@@ -332,7 +332,7 @@ module JavaUtilities
   end
 
   class Parameters
-    def initialize( params, var_args)
+    def initialize(params, var_args)
       @params = params.map { |t| Parameter.for_type(t) }
       @var_args
     end
@@ -424,8 +424,8 @@ module JavaUtilities
       return retained
     end
 
-    def find_matching_callable_for_args( args )
-      candidates = find_callable_candidates( args )
+    def find_matching_callable_for_args(args)
+      candidates = find_callable_candidates(args)
       case candidates.size
       when 0
         raise TypeError, "No java method found that accepts #{args}."
@@ -434,11 +434,11 @@ module JavaUtilities
         return candidates[0]
       else
         # raise TypeError, "Can't dispatch ambiguous cases yet."
-        return narrow_to_specific_callable( candidates, args)
+        return narrow_to_specific_callable(candidates, args)
       end
     end
 
-    def narrow_to_specific_callable( candidates, args )
+    def narrow_to_specific_callable(candidates, args)
       # Start with just handling more specific  types.
       c = candidates.first
       candidates.each { |x| c = c.more_specific(x, args) }

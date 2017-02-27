@@ -39,7 +39,7 @@ module JavaUtilities
       simple_arities = simple_arities.map { |k, methods| [k, CallableSelector.new(methods)] }.to_h
       method = lambda do |*args|
         cs = simple_arities[args.size]
-        target = cs.find_matching_callable_for_args( args )
+        target = cs.find_matching_callable_for_args(args)
         check = target.checker(args)
         conn = target.converter(args)
         conn[args]

@@ -30,7 +30,7 @@ class JavaProxy
   end
 
   def self.[](*dims)
-    ArrayJavaProxyCreator.new(java_class, *dims )
+    ArrayJavaProxyCreator.new(java_class, *dims)
   end
 
   def self.inherited(thing)

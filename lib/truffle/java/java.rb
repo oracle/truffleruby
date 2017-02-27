@@ -165,7 +165,7 @@ module Java
   @packages = {}
 
   def self.const_missing name
-    JavaPackage.new(*name.to_s.split(/(?=[[:upper:]])/).map { |s| s.downcase } )
+    JavaPackage.new(*name.to_s.split(/(?=[[:upper:]])/).map { |s| s.downcase })
   end
 
   def self.method_missing(name, *args)
