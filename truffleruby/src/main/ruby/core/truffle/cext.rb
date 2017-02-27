@@ -527,6 +527,10 @@ module Truffle::CExt
     Rubinius::Type.rb_check_to_integer(obj, method.to_sym)
   end
 
+  def rb_obj_method_arity(object, id)
+    object.method(id).arity
+  end
+
   def rb_ivar_defined(object, id)
     object.instance_variable_defined?(id)
   end
