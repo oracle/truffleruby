@@ -141,6 +141,7 @@ public class JavaUtilitiesNodes {
     @CoreMethod(names = "invoke_with_catch", required = 2, rest = true, isModuleFunction = true)
     public static abstract class JavaInvokeMethodNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         public Object invokeJavaMethod(MethodHandle method, Object tag, Object[] rest) {
             if (!TruffleOptions.AOT) {

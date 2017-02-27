@@ -42,9 +42,7 @@ module JavaUtilities
         target = cs.find_matching_callable_for_args( args )
         check = target.checker(args)
         conn = target.converter(args)
-        check[args]
         conn[args]
-
         ::JavaUtilities.wrap_java_value(Java.invoke_java_method(target.mh, *args))
       end
       replacer.call(method)
