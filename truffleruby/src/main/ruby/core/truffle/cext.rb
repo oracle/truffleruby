@@ -510,6 +510,22 @@ module Truffle::CExt
   def rb_range_new(beg, last, exclude_end)
     Range.new(beg, last, exclude_end != 0)
   end
+
+  def rb_reg_new(java_string, options)
+    Regexp.new(String.new(java_string), options)
+  end
+
+  def rb_reg_new_str(str, options)
+    Regexp.new(str, options)
+  end
+
+  def rb_reg_match_pre(match)
+    match.pre_match
+  end
+
+  def rb_reg_options(re)
+    re.options
+  end
   
   def rb_to_encoding_index(enc)
     enc = Rubinius::Type.coerce_to_encoding(enc)

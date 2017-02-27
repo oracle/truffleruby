@@ -2041,18 +2041,15 @@ VALUE rb_backref_get(void) {
 }
 
 VALUE rb_reg_match_pre(VALUE match) {
-  rb_jt_error("rb_reg_match_pre not implemented");
-  abort();
+    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_match_pre", match);
 }
 
 VALUE rb_reg_new(const char *s, long len, int options) {
-  rb_jt_error("rb_reg_new not implemented");
-  abort();
+    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_new", truffle_read_n_string(s, len), options);
 }
 
 VALUE rb_reg_new_str(VALUE s, int options) {
-  rb_jt_error("rb_reg_new_str not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_new_str", s, options);
 }
 
 VALUE rb_reg_nth_match(int nth, VALUE match) {
@@ -2061,8 +2058,7 @@ VALUE rb_reg_nth_match(int nth, VALUE match) {
 }
 
 VALUE rb_reg_options(VALUE re) {
-  rb_jt_error("rb_reg_options not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_options", re);
 }
 
 VALUE rb_reg_regcomp(VALUE str) {
