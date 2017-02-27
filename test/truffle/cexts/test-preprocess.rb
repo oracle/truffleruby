@@ -8,13 +8,14 @@
 
 require_relative '../../../lib/cext/preprocess'
 
-def test(input, expected)
+def test(input, expected=input)
   got = preprocess(input)
   raise "expected #{expected.inspect}, got #{got.inspect}" unless got == expected
 end
 
 test '  rb_scan_args(argc, argv, "11", &v1, &v2);',       '  rb_jt_scan_args_11(argc, argv, "11", &v1, &v2);'
-test '  rb_scan_args(argc, argv, runtime, &v1, &v2);',    '  rb_scan_args(argc, argv, runtime, &v1, &v2);'
+test '  rb_scan_args(argc, argv, runtime, &v1, &v2);'
 test '  VALUE args[6], failed, a1, a2, a3, a4, a5, a6;',  '  VALUE failed, a1, a2, a3, a4, a5, a6; VALUE *args = truffle_managed_malloc(6 * sizeof(VALUE));'
-test '  VALUE args, failed, a1, a2, a3, a4, a5, a6;',     '  VALUE args, failed, a1, a2, a3, a4, a5, a6;'
+test '  VALUE args, failed, a1, a2, a3, a4, a5, a6;'
 test '  VALUE a,b[2],c;',                                 '  VALUE a, c; VALUE *b = truffle_managed_malloc(2 * sizeof(VALUE));'
+test '  VALUEx, b, c;'

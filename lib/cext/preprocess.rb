@@ -7,7 +7,7 @@
 # GNU Lesser General Public License version 2.1
 
 LOCAL = /\w+\s*(\[\s*\d+\s*\])?/
-VALUE_LOCALS = /^(\s+)VALUE\s*(#{LOCAL}(\s*,\s*#{LOCAL})*);\s*$/
+VALUE_LOCALS = /^(\s+)VALUE\s+(#{LOCAL}(\s*,\s*#{LOCAL})*);\s*$/
 
 def preprocess(line)
   if line.include?('rb_scan_args')
