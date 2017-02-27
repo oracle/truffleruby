@@ -2061,8 +2061,7 @@ VALUE rb_reg_options(VALUE re) {
 }
 
 VALUE rb_reg_regcomp(VALUE str) {
-  rb_jt_error("rb_reg_regcomp not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_regcomp", str);
 }
 
 VALUE rb_reg_match(VALUE re, VALUE str) {

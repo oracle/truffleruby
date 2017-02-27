@@ -1,4 +1,3 @@
 fails:C-API Regexp function allows matching in C, properly setting the back references
-fails:C-API Regexp function rb_reg_regcomp creates a valid regexp from a string
 fails:C-API Regexp function rb_reg_match returns the matched position or nil
 fails:C-API Regexp function rb_backref_get returns the last MatchData

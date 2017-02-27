@@ -519,6 +519,10 @@ module Truffle::CExt
     Regexp.new(str, options)
   end
 
+  def rb_reg_regcomp(str)
+    Regexp.compile(str)
+  end
+
   def rb_reg_match_pre(match)
     match.pre_match
   end
