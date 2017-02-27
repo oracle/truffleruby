@@ -606,8 +606,7 @@ VALUE rb_check_convert_type(VALUE val, int type, const char *type_name, const ch
 }
 
 VALUE rb_check_to_integer(VALUE object, const char *method) {
-  rb_jt_error("rb_check_to_integer not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_check_to_integer", object, rb_str_new_cstr(method));
 }
 
 VALUE rb_check_string_type(VALUE object) {

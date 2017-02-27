@@ -5,10 +5,6 @@ fails:CApiObject rb_to_id returns a symbol representation of the object
 fails:CApiObject rb_attr_get gets an instance variable
 fails:CApiObject rb_check_to_integer returns the object when passed a Fixnum
 fails:CApiObject rb_check_to_integer returns the object when passed a Bignum
-fails:CApiObject rb_check_to_integer calls the converting method and returns a Fixnum value
-fails:CApiObject rb_check_to_integer calls the converting method and returns a Bignum value
-fails:CApiObject rb_check_to_integer returns nil when the converting method returns nil
-fails:CApiObject rb_check_to_integer returns nil when the converting method does not return an Integer
 fails:CApiObject rb_type returns the type constant for the object
 fails:CApiObject rb_type_p returns whether object is of the given type
 fails:CApiObject BUILTIN_TYPE returns the type constant for the object

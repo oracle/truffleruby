@@ -275,6 +275,16 @@ module Rubinius
       end
     end
 
+    def self.rb_check_to_integer(val, meth)
+      return obj if object_kind_of?(val, Fixnum)
+      return obj if object_kind_of?(val, Bignum)
+      v = convert_type(val, Integer, meth, false)
+      unless object_kind_of?(v, Integer)
+        return nil
+      end
+      v
+    end
+
     def self.rb_check_convert_type(obj, cls, meth)
       return obj if object_kind_of?(obj, cls)
       v = convert_type(obj, cls, meth, false)

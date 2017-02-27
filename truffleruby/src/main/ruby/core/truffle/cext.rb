@@ -523,6 +523,10 @@ module Truffle::CExt
     Rubinius::Type.rb_convert_type(obj, Object.const_get(type_name), method.to_sym)
   end
 
+  def rb_check_to_integer(obj, method)
+    Rubinius::Type.rb_check_to_integer(obj, method.to_sym)
+  end
+
   def rb_ivar_defined(object, id)
     object.instance_variable_defined?(id)
   end
