@@ -515,6 +515,10 @@ module Truffle::CExt
     Kernel.global_variables
   end
 
+  def rb_obj_instance_variables(object)
+    object.instance_variables
+  end
+
   def rb_inspect(object)
     Rubinius::Type.inspect(object)
   end

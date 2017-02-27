@@ -598,8 +598,7 @@ VALUE rb_any_to_s(VALUE object) {
 }
 
 VALUE rb_obj_instance_variables(VALUE object) {
-  rb_jt_error("rb_obj_instance_variables not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_obj_instance_variables", object);
 }
 
 VALUE rb_check_convert_type(VALUE val, int type, const char *type_name, const char *method) {
