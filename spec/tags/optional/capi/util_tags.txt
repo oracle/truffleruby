@@ -1,7 +1,4 @@
 fails:C-API Util function rb_scan_args raises an ArgumentError if there are insufficient arguments
-fails:C-API Util function rb_scan_args assigns nil for optional arguments that are not present
-fails:C-API Util function rb_scan_args assigns the required and optional arguments and splats the rest
-fails:C-API Util function rb_scan_args assigns the required and optional arguments and and empty Array when there are no arguments to splat
 fails:C-API Util function rb_scan_args assigns required, optional arguments scanned and the passed block
 fails:C-API Util function rb_scan_args assigns required, optional, splatted arguments scanned and the passed block
 fails:C-API Util function rb_scan_args assigns required arguments, nil for missing optional arguments and the passed block
