@@ -25,15 +25,11 @@ fails:C-API Class function rb_cvar_defined returns false when the class variable
 fails:C-API Class function rb_cvar_defined returns true when the class variable is defined
 fails:C-API Class function rb_cvar_defined returns true if the class instance variable is defined
 fails:C-API Class function rb_cv_set sets a class variable
-fails:C-API Class function rb_cv_get returns the value of the class variable
 fails:C-API Class function rb_cvar_set sets a class variable
 fails:C-API Class function rb_define_class_variable sets a class variable
-fails:C-API Class function rb_cvar_get returns the value of the class variable
 fails:C-API Class function rb_class_new returns an new subclass of the superclass
 fails:C-API Class function rb_class_new raises a TypeError if passed Class as the superclass
 fails:C-API Class function rb_class_new raises a TypeError if passed a singleton class as the superclass
 fails:C-API Class function rb_class_real returns the class of an object ignoring the singleton class
 fails:C-API Class function rb_class_real returns the class of an object ignoring included modules
 fails:C-API Class function rb_class_real returns 0 if passed 0
-fails:C-API Class function rb_cv_get raises a NameError if the class variable is not defined
-fails:C-API Class function rb_cvar_get raises a NameError if the class variable is not defined

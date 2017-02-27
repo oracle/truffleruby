@@ -739,6 +739,14 @@ module Truffle::CExt
     end
   end
 
+  def rb_cv_get(cls, name)
+    cls.class_variable_get(name.to_sym)
+  end
+
+  def rb_cvar_get(cls, id)
+    cls.class_variable_get(id)
+  end
+
   def rb_exc_raise(exception)
     raise exception
   end
