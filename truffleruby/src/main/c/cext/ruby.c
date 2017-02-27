@@ -612,8 +612,7 @@ VALUE rb_check_to_integer(VALUE object, const char *method) {
 }
 
 VALUE rb_check_string_type(VALUE object) {
-  rb_jt_error("rb_check_string_type not implemented");
-  abort();
+  return rb_check_convert_type(object, T_STRING, "String", "to_str");
 }
 
 VALUE rb_convert_type(VALUE object, int type, const char *type_name, const char *method) {

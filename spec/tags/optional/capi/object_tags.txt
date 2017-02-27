@@ -9,14 +9,6 @@ fails:CApiObject rb_convert_type returns the passed object and does not call the
 fails:CApiObject rb_convert_type returns the passed object and does not call the converting method if the object is a subclass of the specified type
 fails:CApiObject rb_convert_type raises a TypeError if the converting method returns nil
 fails:CApiObject rb_convert_type raises a TypeError if the converting method returns an object that is not the specified type
-fails:CApiObject rb_check_string_type returns the argument if it's a String
-fails:CApiObject rb_check_string_type returns the argument if it's a kind of String
-fails:CApiObject rb_check_string_type returns nil when the argument does not respond to #to_str
-fails:CApiObject rb_check_string_type sends #to_str to the argument and returns the result if it's nil
-fails:CApiObject rb_check_string_type sends #to_str to the argument and returns the result if it's a String
-fails:CApiObject rb_check_string_type sends #to_str to the argument and returns the result if it's a kind of String
-fails:CApiObject rb_check_string_type sends #to_str to the argument and raises TypeError if it's not a kind of String
-fails:CApiObject rb_check_string_type does not rescue exceptions raised by #to_str
 fails:CApiObject rb_check_to_integer returns the object when passed a Fixnum
 fails:CApiObject rb_check_to_integer returns the object when passed a Bignum
 fails:CApiObject rb_check_to_integer calls the converting method and returns a Fixnum value
