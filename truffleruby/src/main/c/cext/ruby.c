@@ -670,8 +670,7 @@ VALUE rb_obj_instance_eval(int argc, const VALUE *argv, VALUE self) {
 }
 
 VALUE rb_ivar_defined(VALUE object, ID id) {
-  rb_jt_error("rb_ivar_defined not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ivar_defined", object, id);
 }
 
 VALUE rb_equal_opt(VALUE a, VALUE b) {

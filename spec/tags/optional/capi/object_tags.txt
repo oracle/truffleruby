@@ -42,8 +42,6 @@ fails:CApiObject rb_class_inherited_p returns true if mod equals arg
 fails:CApiObject rb_class_inherited_p returns true if mod is a subclass of arg
 fails:CApiObject rb_class_inherited_p returns nil if mod is not a subclass of arg
 fails:CApiObject rb_class_inherited_p raises a TypeError if arg is no class or module
-fails:CApiObject instance variable access rb_ivar_defined returns true if the instance variable is defined
-fails:CApiObject instance variable access rb_ivar_defined returns false if the instance variable is not defined
 fails:CApiObject rb_obj_method_arity returns 0 when the method takes no arguments
 fails:CApiObject rb_obj_method_arity returns 1 when the method takes a single, required argument
 fails:CApiObject rb_obj_method_arity returns -1 when the method takes a variable number of arguments
