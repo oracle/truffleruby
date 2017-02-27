@@ -209,7 +209,7 @@ public class FeatureLoader {
         }
 
         if (!new File(path).exists()) {
-            throw new RaiseException(context.getCoreExceptions().loadError("This JRuby distribution does not have the C extension implementation file ruby.su", feature, null));
+            throw new RaiseException(context.getCoreExceptions().loadError("This TruffleRuby distribution does not have the C extension implementation file ruby.su", feature, null));
         }
 
         try {
