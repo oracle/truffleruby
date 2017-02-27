@@ -13,7 +13,6 @@ package org.truffleruby.core.cast;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ControlFlowException;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyNode;
@@ -59,14 +58,12 @@ public class TaintResultNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final DynamicObject result;
+        final Object result;
 
         try {
-            result = method.executeDynamicObject(frame);
+            result = method.execute(frame);
         } catch (DoNotTaint e) {
             return e.getResult();
-        } catch (UnexpectedResultException e) {
-            throw new UnsupportedOperationException(e);
         }
 
         if (result != nil()) {

@@ -236,6 +236,8 @@ public abstract class KernelNodes {
     @CoreMethod(names = "binding", isModuleFunction = true)
     public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
 
+        public abstract DynamicObject executeBinding();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject binding() {
@@ -434,11 +436,7 @@ public abstract class KernelNodes {
                 bindingNode = insert(KernelNodesFactory.BindingNodeFactory.create(null));
             }
 
-            try {
-                return bindingNode.executeDynamicObject(frame);
-            } catch (UnexpectedResultException e) {
-                throw new UnsupportedOperationException(e);
-            }
+            return bindingNode.executeBinding();
         }
 
         protected static class RootNodeWrapper {

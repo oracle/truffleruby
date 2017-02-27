@@ -15,13 +15,8 @@ import org.truffleruby.language.RubyNode;
 public class ReadAllArgumentsNode extends RubyNode {
 
     @Override
-    public Object[] executeObjectArray(VirtualFrame frame) {
-        return RubyArguments.getArguments(frame);
-    }
-
-    @Override
     public Object execute(VirtualFrame frame) {
-        return executeObjectArray(frame);
+        return RubyArguments.getArguments(frame);
     }
 
 }

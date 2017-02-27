@@ -24,13 +24,8 @@ public class BooleanLiteralNode extends RubyNode {
     }
 
     @Override
-    public boolean executeBoolean(VirtualFrame frame) {
-        return value;
-    }
-
-    @Override
     public Object execute(VirtualFrame frame) {
-        return executeBoolean(frame);
+        return value;
     }
 
     @Override

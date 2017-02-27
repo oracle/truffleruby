@@ -24,19 +24,14 @@ public class RespondToNode extends RubyNode {
         this.child = child;
     }
 
-    @Override
-    public boolean executeBoolean(VirtualFrame frame) {
-        // TODO(cseaton): check this is actually a static "find if there is such method" and not a dynamic call to respond_to?
-        return dispatch.doesRespondTo(frame, methodName, child.execute(frame));
-    }
-
     public boolean executeBoolean(VirtualFrame frame, Object object) {
         return dispatch.doesRespondTo(frame, methodName, object);
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return executeBoolean(frame);
+        // TODO(cseaton): check this is actually a static "find if there is such method" and not a dynamic call to respond_to?
+        return dispatch.doesRespondTo(frame, methodName, child.execute(frame));
     }
 
 }

@@ -23,7 +23,7 @@ public class ReadRemainingArgumentsNode extends RubyNode {
     }
 
     @Override
-    public Object[] executeObjectArray(VirtualFrame frame) {
+    public Object execute(VirtualFrame frame) {
         final int count = RubyArguments.getArgumentsCount(frame);
 
         if (remainingArguments.profile(start < count)) {
@@ -31,11 +31,6 @@ public class ReadRemainingArgumentsNode extends RubyNode {
         } else {
             return new Object[] {};
         }
-    }
-
-    @Override
-    public Object execute(VirtualFrame frame) {
-        return executeObjectArray(frame);
     }
 
 }

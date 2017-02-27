@@ -18,7 +18,6 @@ import org.truffleruby.language.RubyNode;
 
 public abstract class ThreadLocalObjectNode extends RubyNode {
 
-    @Override
     public abstract DynamicObject executeDynamicObject(VirtualFrame frame);
 
     @Specialization(

@@ -26,14 +26,9 @@ public class ArrayIsAtLeastAsLargeAsNode extends RubyNode {
     }
 
     @Override
-    public boolean executeBoolean(VirtualFrame frame) {
+    public Object execute(VirtualFrame frame) {
         final int actualSize = Layouts.ARRAY.getSize((DynamicObject) child.execute(frame));
         return actualSize >= requiredSize;
-    }
-
-    @Override
-    public Object execute(VirtualFrame frame) {
-        return executeBoolean(frame);
     }
 
 }

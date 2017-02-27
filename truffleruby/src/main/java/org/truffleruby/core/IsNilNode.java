@@ -21,13 +21,8 @@ public class IsNilNode extends RubyNode {
     }
 
     @Override
-    public boolean executeBoolean(VirtualFrame frame) {
-        return child.execute(frame) == nil();
-    }
-
-    @Override
     public Object execute(VirtualFrame frame) {
-        return executeBoolean(frame);
+        return child.execute(frame) == nil();
     }
 
 }
