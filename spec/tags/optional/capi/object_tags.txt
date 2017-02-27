@@ -2,7 +2,6 @@ fails:CApiObject rb_obj_call_init sends #initialize
 fails:CApiObject rb_method_boundp returns true when the given method is bound
 fails:CApiObject rb_method_boundp returns false when the given method is not bound
 fails:CApiObject rb_to_id returns a symbol representation of the object
-fails:CApiObject rb_attr_get gets an instance variable
 fails:CApiObject rb_check_to_integer returns the object when passed a Fixnum
 fails:CApiObject rb_check_to_integer returns the object when passed a Bignum
 fails:CApiObject rb_type returns the type constant for the object

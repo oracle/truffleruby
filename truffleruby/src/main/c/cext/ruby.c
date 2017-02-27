@@ -1654,7 +1654,7 @@ VALUE rb_ivar_set(VALUE object, ID name, VALUE value) {
 }
 
 VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ivar_lookup", name, default_value);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ivar_lookup", object, name, default_value);
 }
 
 VALUE rb_attr_get(VALUE object, const char *name) {
