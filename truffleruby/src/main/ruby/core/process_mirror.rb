@@ -90,21 +90,13 @@ module Rubinius
       def self.exec(*args)
         exe = Execute.new(*args)
         exe.spawn_setup(true)
-        exe.exec exe.command, exe.argv, exe.env_array
+        exe.exec(exe.command, exe.argv, exe.env_array)
       end
 
       def self.spawn(*args)
         exe = Execute.new(*args)
         exe.spawn_setup(false)
-
-        begin
-          pid = exe.spawn exe.options, exe.command, exe.argv
-        rescue SystemCallError => error
-          $? = ::Process::Status.new(pid, 127)
-          raise error
-        end
-
-        pid
+        exe.spawn(exe.options, exe.command, exe.argv)
       end
 
       class Execute
@@ -140,8 +132,6 @@ module Rubinius
           end
 
           if args.empty? and cmd = Rubinius::Type.try_convert(command, ::String, :to_str)
-            raise Errno::ENOENT if cmd.empty?
-
             @command = cmd
             @argv = []
           else
@@ -162,47 +152,24 @@ module Rubinius
 
           @command = Rubinius::Type.check_null_safe(StringValue(@command))
 
-          if @argv.empty?
+          if @argv.empty? # A single String for both command and arguments
             if should_use_shell?(@command)
               @command, @argv = '/bin/sh', ['sh', '-c', @command]
             else
-              # If the command contains both the binary to run and the arguments, we need to split them apart. We have
-              # two basic cases here: 1) a fully qualified command; and 2) a simple name expected to be found on the PATH.
-              # Both cases require the split. In the event of a fully qualified command, we exec the command directly,
-              # but the signature for exec requires the command and arguments to all be split. In the other case, where
-              # we have a command to search on the PATH, we must split the command apart from the arguments in order to
-              # perform the search (a poor man's version of shell processing). If we can find it on the PATH, then we
-              # run the whole thing through a shell to get proper shell processing.
-
-              split_command, *split_args = @command.strip.split(' ')
-
-              if should_search_path?(split_command)
-                resolved_command = resolve_in_path(split_command)
-
-                if resolved_command
-                  @command, @argv = '/bin/sh', ['sh', '-c', @command]
-                else
-                  raise Errno::ENOENT.new("No such file or directory - #{@command}")
-                end
+              # No shell processing, and posix_spawnp will do the lookup of the command if needed
+              @command = @command.strip
+              if @command.empty?
+                # Special case for command == "" as split does not work
+                @argv = [@command]
               else
+                split_command, *split_args = @command.split(' ')
                 @command = split_command
                 @argv = [split_command] + split_args
               end
             end
           else
             # If arguments are explicitly passed, the semantics of this method (defined in Ruby) are to run the
-            # command directly. Thus, we must find the full path to the command, if not specified, because we can't
-            # allow the shell to do it for us.
-
-            if should_search_path?(@command)
-              resolved_command = resolve_in_path(@command)
-
-              if resolved_command
-                @command = resolved_command
-              else
-                raise Errno::ENOENT.new("No such file or directory - #{@command}")
-              end
-            end
+            # command directly. posix_spawnp(3) will lookup the full path to the command if needed.
           end
 
           @options = {}
@@ -420,10 +387,28 @@ module Rubinius
         end
 
         def spawn(options, command, arguments)
-          Truffle::Process.spawn command, arguments, env_array, options
+          pid = Truffle::Process.spawn command, arguments, env_array, options
+          # Check if the command exists *after* invoking posix_spawn so we have a pid
+          unless resolve_in_path(command)
+            # the subprocess will fail, just wait for it
+            ::Process.wait(pid) # Sets $? and avoids a zombie process
+            unless $?.exitstatus == 127
+              raise "command #{command} does not exist in PATH but posix_spawnp found it!"
+            end
+            raise Errno::ENOENT.new("No such file or directory - #{command}")
+          end
+          pid
         end
 
         def exec(command, args, env_array)
+          # exec validates the command only if it searches in $PATH
+          if should_search_path?(command)
+            if resolved = resolve_in_path(command)
+              command = resolved
+            else
+              raise Errno::ENOENT.new("No such file or directory - #{command}")
+            end
+          end
           Truffle.invoke_primitive :vm_exec, command, args, env_array
           raise PrimitiveFailure, "Rubinius::Mirror::Process::Execute#exec primitive failed"
         end
@@ -433,16 +418,22 @@ module Rubinius
         end
 
         def should_search_path?(command)
-          ['/', './', '../'].each { |prefix| return false if command.start_with?(prefix) }
-          true
+          ['/', './', '../'].none? { |prefix| command.start_with?(prefix) }
         end
 
         def resolve_in_path(command)
-          ENV['PATH'].split(File::PATH_SEPARATOR).each do |dir|
-            f = File.join(dir, command)
+          unless should_search_path?(command)
+            if File.file?(command) && File.executable?(command)
+              return command
+            else
+              return nil
+            end
+          end
 
-            if File.file?(f) && File.executable?(f)
-              return f
+          ENV['PATH'].split(File::PATH_SEPARATOR).each do |dir|
+            file = File.join(dir, command)
+            if File.file?(file) && File.executable?(file)
+              return file
             end
           end
 
