@@ -634,8 +634,7 @@ void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
 }
 
 const char *rb_obj_classname(VALUE object) {
-  rb_jt_error("rb_obj_classname not implemented");
-  abort();
+  return RSTRING_PTR((VALUE) truffle_invoke(RUBY_CEXT, "rb_obj_classname", object));
 }
 
 VALUE rb_obj_id(VALUE object) {
