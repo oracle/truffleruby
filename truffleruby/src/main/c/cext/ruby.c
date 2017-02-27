@@ -615,8 +615,7 @@ VALUE rb_check_string_type(VALUE object) {
 }
 
 VALUE rb_convert_type(VALUE object, int type, const char *type_name, const char *method) {
-  rb_jt_error("rb_convert_type not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_convert_type", object, rb_str_new_cstr(type_name), rb_str_new_cstr(method));
 }
 
 void rb_extend_object(VALUE object, VALUE module) {

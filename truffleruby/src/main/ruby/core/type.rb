@@ -285,6 +285,15 @@ module Rubinius
       v
     end
 
+    def self.rb_convert_type(obj, cls, meth)
+      return obj if object_kind_of?(obj, cls)
+      v = convert_type(obj, cls, meth, true)
+      unless object_kind_of?(v, cls)
+        raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(v)})"
+      end
+      v
+    end
+
     def self.convert_type(obj, cls, meth, raise_on_error)
       r = check_funcall(obj, meth)
       if undefined.equal?(r)

@@ -3,10 +3,6 @@ fails:CApiObject rb_method_boundp returns true when the given method is bound
 fails:CApiObject rb_method_boundp returns false when the given method is not bound
 fails:CApiObject rb_to_id returns a symbol representation of the object
 fails:CApiObject rb_attr_get gets an instance variable
-fails:CApiObject rb_convert_type returns the passed object and does not call the converting method if the object is the specified type
-fails:CApiObject rb_convert_type returns the passed object and does not call the converting method if the object is a subclass of the specified type
-fails:CApiObject rb_convert_type raises a TypeError if the converting method returns nil
-fails:CApiObject rb_convert_type raises a TypeError if the converting method returns an object that is not the specified type
 fails:CApiObject rb_check_to_integer returns the object when passed a Fixnum
 fails:CApiObject rb_check_to_integer returns the object when passed a Bignum
 fails:CApiObject rb_check_to_integer calls the converting method and returns a Fixnum value
