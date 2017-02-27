@@ -69,8 +69,16 @@ public class StringCharPointerMessageResolution {
 
         @Child private GetByteNode getByteNode;
 
+        private final ConditionProfile beyondEndProfile = ConditionProfile.createBinaryProfile();
+
         protected Object access(StringCharPointerAdapter stringCharPointerAdapter, int index) {
-            return getHelperNode().executeGetByte(rope(stringCharPointerAdapter.getString()), index);
+            final Rope rope = rope(stringCharPointerAdapter.getString());
+
+            if (beyondEndProfile.profile(index >= rope.byteLength())) {
+                return 0;
+            } else {
+                return getHelperNode().executeGetByte(rope, index);
+            }
         }
 
         private GetByteNode getHelperNode() {
