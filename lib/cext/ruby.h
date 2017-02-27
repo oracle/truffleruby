@@ -1208,9 +1208,11 @@ MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE
 
   if (isdigit(*format)) {
     required = *format - '0';
+    format++;
 
     if (isdigit(*format)) {
       optional = *format - '0';
+      format++;
     }
   }
 
