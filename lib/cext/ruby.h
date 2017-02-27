@@ -1216,7 +1216,17 @@ MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE
     }
   }
 
-  rest = *format == '*';
+  if (*format == '*') {
+    rest = true;
+    format++;
+  } else {
+    rest = false;
+  }
+
+  if (*format != '\0') {
+    rb_jt_error("bad rb_scan_args format");
+    abort();
+  }
 
   int argn = 0;
   int valuen = 1; // We've numbered the v parameters from 1
