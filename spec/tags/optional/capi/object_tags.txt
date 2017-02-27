@@ -13,7 +13,6 @@ fails:CApiObject rb_check_to_integer calls the converting method and returns a F
 fails:CApiObject rb_check_to_integer calls the converting method and returns a Bignum value
 fails:CApiObject rb_check_to_integer returns nil when the converting method returns nil
 fails:CApiObject rb_check_to_integer returns nil when the converting method does not return an Integer
-fails:CApiObject rb_class_of returns the class of an object
 fails:CApiObject rb_type returns the type constant for the object
 fails:CApiObject rb_type_p returns whether object is of the given type
 fails:CApiObject BUILTIN_TYPE returns the type constant for the object

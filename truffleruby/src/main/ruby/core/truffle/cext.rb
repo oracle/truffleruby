@@ -507,6 +507,10 @@ module Truffle::CExt
     object.class.name
   end
 
+  def rb_class_of(object)
+    object.class
+  end
+
   def rb_obj_respond_to(object, id, priv)
     Rubinius::Type.object_respond_to?(object, id, priv != 0)
   end

@@ -1475,7 +1475,7 @@ VALUE CLASS_OF(VALUE object) {
 }
 
 VALUE rb_class_of(VALUE object) {
-  return (VALUE) truffle_invoke((void *)object, "class");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_class_of", object);
 }
 
 VALUE rb_obj_alloc(VALUE ruby_class) {
