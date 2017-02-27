@@ -1509,8 +1509,7 @@ VALUE rb_class_new_instance(int argc, const VALUE *argv, VALUE klass) {
 }
 
 VALUE rb_cvar_defined(VALUE klass, ID id) {
-  rb_jt_error("rb_cvar_defined not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_cvar_defined", klass, id);
 }
 
 VALUE rb_cvar_get(VALUE klass, ID id) {

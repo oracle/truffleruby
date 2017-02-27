@@ -739,6 +739,10 @@ module Truffle::CExt
     end
   end
 
+  def rb_cvar_defined(cls, id)
+    cls.class_variable_defined?(id)
+  end
+
   def rb_cv_get(cls, name)
     cls.class_variable_get(name.to_sym)
   end
