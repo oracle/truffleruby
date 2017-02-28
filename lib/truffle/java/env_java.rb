@@ -21,7 +21,7 @@ module Java
 
     def each
       keys = java.lang.System.getProperties.propertyNames
-      while keys.hasMoreElements do
+      while keys.hasMoreElements
         key = keys.nextElement
         yield [key, self[key]]
       end

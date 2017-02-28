@@ -10,7 +10,7 @@ java.util.Enumeration
 
 module ::Java::JavaUtil::Enumeration
   def each
-    while has_more_elements do
+    while has_more_elements
       yield next_element
     end
   end

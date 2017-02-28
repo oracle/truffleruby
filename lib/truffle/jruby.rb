@@ -1,1 +1,1 @@
-# Dummy because random things require jruby
+# Dummy because libraries do: require 'jruby'

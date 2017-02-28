@@ -10,7 +10,7 @@ java.util.Iterator
 
 module ::Java::JavaUtil::Iterator
   def each
-    while (has_next) do
+    while has_next
       yield self.next
     end
   end

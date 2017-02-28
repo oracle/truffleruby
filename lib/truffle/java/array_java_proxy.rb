@@ -13,23 +13,17 @@ begin
 
     def each
       (0...size).each do |i|
-        yield(self[i])
+        yield self[i]
       end
       self
     end
 
     def inspect
-      s = "[" + self.map do |x|
-        x.to_s
-      end.join(", ") + "]"
+      s = "[" + self.map(&:to_s).join(", ") + "]"
     end
 
     def to_ary
-      ary = Array.new(size)
-      (0...size).each do |i|
-        ary[i] = self[i]
-      end
-      ary
+      Array.new(size){ |i| self[i] }
     end
 
     def empty?

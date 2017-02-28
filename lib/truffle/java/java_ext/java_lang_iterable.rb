@@ -14,7 +14,7 @@ module ::Java::JavaLang::Iterable
 
   def each
     iterator = self.iterator
-    while (iterator.has_next) do
+    while iterator.has_next
       yield iterator.next
     end
   end
@@ -22,7 +22,7 @@ module ::Java::JavaLang::Iterable
   def each_with_index
     i = 0
     iterator = self.iterator
-    while (iterator.has_next) do
+    while iterator.has_next
       yield iterator.next, i
       i += 1
     end

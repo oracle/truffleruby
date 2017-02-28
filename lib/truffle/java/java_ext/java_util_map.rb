@@ -21,7 +21,7 @@ module ::Java::JavaUtil::Map
   def to_h
     iter = self.entry_set.iterator
     res = Hash.new
-    while (iter.has_next)
+    while iter.has_next
       entry = iter.next
       res[entry.key] = entry.value
     end
@@ -31,7 +31,7 @@ module ::Java::JavaUtil::Map
     iter = self.entry_set.iterator
     res = Array.new(self.size)
     i = 0
-    while (iter.has_next)
+    while iter.has_next
       entry = iter.next
       res[i] = [entry.key, entry.value]
       i += 1
@@ -60,7 +60,6 @@ module ::Java::JavaUtil::Map
 
   def <(another)
     self.size < another.size && ::Java::JavaUtil::Map.a_contains_b(another, self)
-
   end
 
   def <=(another)
@@ -82,13 +81,14 @@ module ::Java::JavaUtil::Map
       e = entries.next
       res = res & (e.value == a[e.key])
     end
+    res
   end
 
   def fetch(key, default=nil)
     return get(key) if contains_key(key)
     raise KeyError, "key not found: #{key}" unless (default || block_given?)
     default = yield if block_given?
-    old_val = pit_if_absent(key, default)
+    old_val = put_if_absent(key, default)
     old_val || default
   end
 
@@ -134,9 +134,9 @@ module ::Java::JavaUtil::Map
     return to_enum(:keep_if) { size } unless block_given?
 
     entries = self.entry_set.iterator
-    while (entries.has_next)
+    while entries.has_next
       e = entries.next
-      entries.remove unless yield(e.key, e.value)
+      entries.remove unless yield e.key, e.value
     end
     self
   end
@@ -147,7 +147,7 @@ module ::Java::JavaUtil::Map
     selected = Hash.allocate
 
     each_pair do |key,value|
-      if yield(key, value)
+      if yield key, value
         selected[key] = value
       end
     end
@@ -160,9 +160,9 @@ module ::Java::JavaUtil::Map
 
     entries = self.entry_set.iterator
     deleted = false
-    while (entries.has_next)
+    while entries.has_next
       e = entries.next
-      unless yield(e.key, e.value)
+      unless yield e.key, e.value
         entries.remove
         deleted = true
       end
@@ -183,7 +183,7 @@ module ::Java::JavaUtil::Map
   def keys
     ary = []
     keys = self.key_set.iterator
-    while (keys.has_next)
+    while keys.has_next
       ary << keys.next
     end
     ary
@@ -204,7 +204,7 @@ module ::Java::JavaUtil::Map
     if has_key?(a_key)
       remove(a_key)
     elsif block_given?
-      yield(a_key)
+      yield a_key
     else
       nil
     end

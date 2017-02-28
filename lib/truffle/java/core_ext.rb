@@ -27,6 +27,6 @@
 # Extensions to Ruby classes
 
 # These are loads so they don't pollute LOADED_FEATURES
-require_relative 'core_ext/module.rb'
-require_relative 'core_ext/object.rb'
-require_relative 'core_ext/kernel.rb'
+require_relative 'core_ext/module'
+require_relative 'core_ext/object'
+require_relative 'core_ext/kernel'

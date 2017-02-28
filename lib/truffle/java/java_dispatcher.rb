@@ -18,7 +18,7 @@ module JavaUtilities
     end
 
     def combine_with(a_dispatcher)
-      @methods.push(*(a_dispatcher.methods))
+      @methods.push(*a_dispatcher.methods)
     end
 
     def method_for_dispatch(replacer)

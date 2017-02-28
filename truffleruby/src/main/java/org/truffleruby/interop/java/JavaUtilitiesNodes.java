@@ -166,9 +166,9 @@ public class JavaUtilitiesNodes {
     public static abstract class JavaProxyClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object createJavaProxyClass(Object loader, Object[]rest) {
+        public Object createJavaProxyClass(Object loader, Object[] rest) {
             Class<?>[] interfaces = new Class<?>[rest.length];
-            for (int i=0; i < rest.length; i++) {
+            for (int i = 0; i < rest.length; i++) {
                 interfaces[i] = (Class<?>)rest[i];
             }
             ClassLoader cl;

@@ -15,7 +15,7 @@ module ::Java::JavaUtil::List
       first = start.first
       last = start.last
       last += size if last < 0
-      first ++ size if first < 0
+      first += size if first < 0
       return nil if first < 0 || first >= size
       last += 1 unless start.exclude_end?
       sub_list(first, last)
@@ -61,7 +61,7 @@ module ::Java::JavaUtil::List
 
   def first(count=nil)
     if count == nil
-      [0]
+      self[0]
     else
       [0,count].to_a
     end
@@ -84,14 +84,14 @@ module ::Java::JavaUtil::List
 
       i = 0
       iter = self.iterator
-      while iter.has_next do
+      while iter.has_next
         return i if yield iter.next
         i += 1
       end
       nil
     else
       iter = self.iterator
-      while iter.has_next do
+      while iter.has_next
         return i if iter.next == obj
         i += 1
       end
@@ -105,7 +105,7 @@ module ::Java::JavaUtil::List
 
       i = 0
       iter = self.iterator
-      while iter.has_next do
+      while iter.has_next
         return i if yield iter.next
         i += 1
       end
@@ -113,7 +113,7 @@ module ::Java::JavaUtil::List
     else
       i = 0
       iter = self.iterator
-      while iter.has_next do
+      while iter.has_next
         return i if iter.next == obj
         i += 1
       end
@@ -127,7 +127,7 @@ module ::Java::JavaUtil::List
 
       i = size
       iter = self.list_iterator(self.size)
-      while iter.has_previous do
+      while iter.has_previous
         i -= 1
         return i if yield iter.previous
       end
@@ -135,7 +135,7 @@ module ::Java::JavaUtil::List
     else
       i = size
       iter = self.list_iterator(self.size)
-      while iter.has_previous do
+      while iter.has_previous
         i -= 1
         return i if iter.previous == obj
       end

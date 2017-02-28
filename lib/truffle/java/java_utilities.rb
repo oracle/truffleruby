@@ -60,7 +60,7 @@ module JavaUtilities
   end
 
   def self.print_class(java_type, indent="")
-    while (!java_type.nil? && java_type.name != "java.lang.Class")
+    while !java_type.nil? && java_type.name != "java.lang.Class"
       puts "#{indent}Name:  #{java_type.name}, access: #{ JavaUtilities.access(java_type) }  Interfaces: "
       java_type.interfaces.each { |i| print_class(i, "  #{indent}") }
       puts "#{indent}SuperClass: "
@@ -306,18 +306,18 @@ module JavaUtilities
   end
 
   def self.make_interface_proxy(a_class)
-    included_method = lambda { |thing|
+    included_method = lambda { |class_or_module|
       unless Thread.current[:MAKE_PROXY]
-        case thing
+        case class_or_module
         when Class
-          unless thing.instance_variable_defined?(:@java_interfaces)
-            interfaces = thing.instance_variable_set(:@java_interfaces, [])
+          unless class_or_module.instance_variable_defined?(:@java_interfaces)
+            interfaces = class_or_module.instance_variable_set(:@java_interfaces, [])
           else
-            interfaces = thing.instance_variable_get(:@java_interfaces)
+            interfaces = class_or_module.instance_variable_get(:@java_interfaces)
           end
 
           interfaces << self
-          java_class = thing.instance_variable_set(
+          java_class = class_or_module.instance_variable_set(
             :@java_class, JavaUtilities.make_java_proxy_class(*interfaces))
 
           # We know a proxy will have a public constructor.
@@ -326,7 +326,7 @@ module JavaUtilities
 
           constructor = lambda { Java.invoke_java_method(con, JavaUtilities::invocation_handler(self)) }
 
-          thing.class_eval do
+          class_or_module.class_eval do
             include JavaProxyMethods unless ancestors.include?(JavaProxyMethods)
             attr_accessor :java_object
 
@@ -355,13 +355,14 @@ module JavaUtilities
 
           end
         when Module
-          thing.__send__(:define_singleton_method, :included, included_method)
+          class_or_module.__send__(:define_singleton_method, :included, included_method)
         else
-          raise TypeError, "#{self} unexpectedly included in #{thing}."
+          raise TypeError, "#{self} unexpectedly included in #{class_or_module}."
         end
-      end }
+      end
+    }
 
-    a_proxy = Module.new() do
+    a_proxy = Module.new do
       define_singleton_method(:included, included_method)
       class << self
         attr_accessor :java_class
@@ -416,7 +417,7 @@ module JavaUtilities
   LOOKUP_UNREFLECT_SETTER = Java.get_java_method(
     JAVA_LOOKUP_CLASS, "unreflectSetter", false, JAVA_METHODHANDLE_CLASS, JAVA_FIELD_CLASS)
 
-  # We can't use the public lookup because it won't resolve caller sensitive things.
+  # We can't use the public lookup because it won't resolve caller sensitive methods.
   LOOKUP = Java.get_lookup
 
   def self.unreflect_method(a_method)

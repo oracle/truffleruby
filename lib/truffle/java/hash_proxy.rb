@@ -20,21 +20,15 @@ class HashProxy
       @owner = an_owner
     end
 
-    def equals(another)
-      equal?(another)
-    end
+    alias :equals :equal?
 
-    def getKey
-      key
-    end
+    alias :getKey :key
 
     def getValue
       owner[key]
     end
 
-    def hashCode
-      hash
-    end
+    alias :hashCode :hash
 
     def setValue(a_value)
       old = owner[key]

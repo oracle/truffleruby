@@ -33,25 +33,25 @@
 # the terms of any one of the EPL, the GPL or the LGPL.
 ###### END LICENSE BLOCK ######
 
-require_relative 'java/core_ext.rb'
-require_relative 'java/java.rb'
+require_relative 'java/core_ext'
+require_relative 'java/java'
 
-require_relative 'java/java_exception.rb'
-require_relative 'java/proxy_builder.rb'
-require_relative 'java/java_utilities.rb'
-require_relative 'java/class_cache.rb'
-require_relative 'java/java_dispatcher.rb'
-require_relative 'java/method_selector.rb'
-require_relative 'java/java_proxy_methods.rb'
-require_relative 'java/java_proxy.rb'
-require_relative 'java/concrete_java_proxy.rb'
-require_relative 'java/array_java_proxy.rb'
-require_relative 'java/env_java.rb'
-require_relative 'java/classpath.rb'
-require_relative 'java/hash_proxy.rb'
-require_relative 'java/string_ext.rb'
+require_relative 'java/java_exception'
+require_relative 'java/proxy_builder'
+require_relative 'java/java_utilities'
+require_relative 'java/class_cache'
+require_relative 'java/java_dispatcher'
+require_relative 'java/method_selector'
+require_relative 'java/java_proxy_methods'
+require_relative 'java/java_proxy'
+require_relative 'java/concrete_java_proxy'
+require_relative 'java/array_java_proxy'
+require_relative 'java/env_java'
+require_relative 'java/classpath'
+require_relative 'java/hash_proxy'
+require_relative 'java/string_ext'
 
-require_relative 'java/java_ext.rb'
+require_relative 'java/java_ext'
 
 # TODO: Add jruby streams support back in - DMM 2017-02-03
-# require_relative 'java/java_8.rb'
+# require_relative 'java/java_8'

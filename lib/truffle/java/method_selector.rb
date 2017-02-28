@@ -397,8 +397,7 @@ module JavaUtilities
       @callables = methods.map { |m| Callable.new(m) }
     end
 
-    def find_callable_candidates(
-          args)  # list of arguments
+    def find_callable_candidates(args)  # list of arguments
       methods = self.callables
       retained = methods # Need to handle the case where there are no arguments.
       (0...args.size).each do |i|
