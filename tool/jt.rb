@@ -1028,7 +1028,7 @@ module Commands
     end
 
     if args.delete('--aot')
-      if !File.exist?(ENV['AOT_BIN'].to_s)
+      unless File.exist?(ENV['AOT_BIN'].to_s)
         raise "AOT_BIN must point at an AOT build of TruffleRuby"
       end
 
@@ -1267,6 +1267,19 @@ module Commands
     
     if args.delete('--sulong')
       run_args.push '--sulong'
+    end
+
+    if args.delete('--aot')
+      run_args.push '-XX:OldGenerationSize=2G'
+      run_args.push "-Xhome=#{JRUBY_DIR}"
+
+      # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--aot" flag.
+      # Favor JT_BENCHMARK_RUBY to AOT_BIN, but try both.
+      benchmark_ruby ||= ENV['AOT_BIN']
+
+      unless File.exist?(benchmark_ruby.to_s)
+        raise "JT_BENCHMARK_RUBY or AOT_BIN must point at an AOT build of TruffleRuby"
+      end
     end
 
     unless benchmark_ruby
