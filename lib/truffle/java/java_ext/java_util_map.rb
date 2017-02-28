@@ -25,6 +25,7 @@ module ::Java::JavaUtil::Map
       entry = iter.next
       res[entry.key] = entry.value
     end
+    res
   end
 
   def to_a
@@ -36,6 +37,7 @@ module ::Java::JavaUtil::Map
       res[i] = [entry.key, entry.value]
       i += 1
     end
+    res
   end
 
   alias :to_hash :to_h
@@ -79,7 +81,7 @@ module ::Java::JavaUtil::Map
     entries = b.entry_set
     while(res && entries.has_next)
       e = entries.next
-      res = res & (e.value == a[e.key])
+      res = (e.value == a[e.key])
     end
     res
   end
