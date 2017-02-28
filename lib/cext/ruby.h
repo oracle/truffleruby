@@ -83,10 +83,10 @@ NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object
 
 // Non-standard
 
-NORETURN(void rb_jt_error(const char *message));
+NORETURN(void rb_tr_error(const char *message));
 
-void *rb_jt_to_native_handle(VALUE managed);
-VALUE rb_jt_from_native_handle(void *native);
+void *rb_tr_to_native_handle(VALUE managed);
+VALUE rb_tr_from_native_handle(void *native);
 
 // Memory
 
@@ -196,154 +196,154 @@ bool SYMBOL_P(VALUE value);
 
 // Constants
 
-VALUE rb_jt_get_undef(void);
-#define Qundef rb_jt_get_undef()
+VALUE rb_tr_get_undef(void);
+#define Qundef rb_tr_get_undef()
 
-VALUE rb_jt_get_true(void);
-VALUE rb_jt_get_false(void);
-VALUE rb_jt_get_nil(void);
-VALUE rb_jt_get_Array(void);
-VALUE rb_jt_get_Bignum(void);
-VALUE rb_jt_get_Class(void);
-VALUE rb_jt_get_Comparable(void);
-VALUE rb_jt_get_Data(void);
-VALUE rb_jt_get_Enumerable(void);
-VALUE rb_jt_get_FalseClass(void);
-VALUE rb_jt_get_File(void);
-VALUE rb_jt_get_Fixnum(void);
-VALUE rb_jt_get_Float(void);
-VALUE rb_jt_get_Hash(void);
-VALUE rb_jt_get_Integer(void);
-VALUE rb_jt_get_IO(void);
-VALUE rb_jt_get_Kernel(void);
-VALUE rb_jt_get_Match(void);
-VALUE rb_jt_get_Module(void);
-VALUE rb_jt_get_NilClass(void);
-VALUE rb_jt_get_Numeric(void);
-VALUE rb_jt_get_Object(void);
-VALUE rb_jt_get_Range(void);
-VALUE rb_jt_get_Regexp(void);
-VALUE rb_jt_get_String(void);
-VALUE rb_jt_get_Struct(void);
-VALUE rb_jt_get_Symbol(void);
-VALUE rb_jt_get_Time(void);
-VALUE rb_jt_get_Thread(void);
-VALUE rb_jt_get_TrueClass(void);
-VALUE rb_jt_get_Proc(void);
-VALUE rb_jt_get_Method(void);
-VALUE rb_jt_get_Dir(void);
-VALUE rb_jt_get_ArgError(void);
-VALUE rb_jt_get_EOFError(void);
-VALUE rb_jt_get_Errno(void);
-VALUE rb_jt_get_Exception(void);
-VALUE rb_jt_get_FloatDomainError(void);
-VALUE rb_jt_get_IndexError(void);
-VALUE rb_jt_get_Interrupt(void);
-VALUE rb_jt_get_IOError(void);
-VALUE rb_jt_get_LoadError(void);
-VALUE rb_jt_get_LocalJumpError(void);
-VALUE rb_jt_get_MathDomainError(void);
-VALUE rb_jt_get_EncCompatError(void);
-VALUE rb_jt_get_NameError(void);
-VALUE rb_jt_get_NoMemError(void);
-VALUE rb_jt_get_NoMethodError(void);
-VALUE rb_jt_get_NotImpError(void);
-VALUE rb_jt_get_RangeError(void);
-VALUE rb_jt_get_RegexpError(void);
-VALUE rb_jt_get_RuntimeError(void);
-VALUE rb_jt_get_ScriptError(void);
-VALUE rb_jt_get_SecurityError(void);
-VALUE rb_jt_get_Signal(void);
-VALUE rb_jt_get_StandardError(void);
-VALUE rb_jt_get_SyntaxError(void);
-VALUE rb_jt_get_SystemCallError(void);
-VALUE rb_jt_get_SystemExit(void);
-VALUE rb_jt_get_SysStackError(void);
-VALUE rb_jt_get_TypeError(void);
-VALUE rb_jt_get_ThreadError(void);
-VALUE rb_jt_get_WaitReadable(void);
-VALUE rb_jt_get_WaitWritable(void);
-VALUE rb_jt_get_ZeroDivError(void);
-VALUE rb_jt_get_stdin(void);
-VALUE rb_jt_get_stdout(void);
-VALUE rb_jt_get_stderr(void);
-VALUE rb_jt_get_output_fs(void);
-VALUE rb_jt_get_rs(void);
-VALUE rb_jt_get_output_rs(void);
-VALUE rb_jt_get_default_rs(void);
+VALUE rb_tr_get_true(void);
+VALUE rb_tr_get_false(void);
+VALUE rb_tr_get_nil(void);
+VALUE rb_tr_get_Array(void);
+VALUE rb_tr_get_Bignum(void);
+VALUE rb_tr_get_Class(void);
+VALUE rb_tr_get_Comparable(void);
+VALUE rb_tr_get_Data(void);
+VALUE rb_tr_get_Enumerable(void);
+VALUE rb_tr_get_FalseClass(void);
+VALUE rb_tr_get_File(void);
+VALUE rb_tr_get_Fixnum(void);
+VALUE rb_tr_get_Float(void);
+VALUE rb_tr_get_Hash(void);
+VALUE rb_tr_get_Integer(void);
+VALUE rb_tr_get_IO(void);
+VALUE rb_tr_get_Kernel(void);
+VALUE rb_tr_get_Match(void);
+VALUE rb_tr_get_Module(void);
+VALUE rb_tr_get_NilClass(void);
+VALUE rb_tr_get_Numeric(void);
+VALUE rb_tr_get_Object(void);
+VALUE rb_tr_get_Range(void);
+VALUE rb_tr_get_Regexp(void);
+VALUE rb_tr_get_String(void);
+VALUE rb_tr_get_Struct(void);
+VALUE rb_tr_get_Symbol(void);
+VALUE rb_tr_get_Time(void);
+VALUE rb_tr_get_Thread(void);
+VALUE rb_tr_get_TrueClass(void);
+VALUE rb_tr_get_Proc(void);
+VALUE rb_tr_get_Method(void);
+VALUE rb_tr_get_Dir(void);
+VALUE rb_tr_get_ArgError(void);
+VALUE rb_tr_get_EOFError(void);
+VALUE rb_tr_get_Errno(void);
+VALUE rb_tr_get_Exception(void);
+VALUE rb_tr_get_FloatDomainError(void);
+VALUE rb_tr_get_IndexError(void);
+VALUE rb_tr_get_Interrupt(void);
+VALUE rb_tr_get_IOError(void);
+VALUE rb_tr_get_LoadError(void);
+VALUE rb_tr_get_LocalJumpError(void);
+VALUE rb_tr_get_MathDomainError(void);
+VALUE rb_tr_get_EncCompatError(void);
+VALUE rb_tr_get_NameError(void);
+VALUE rb_tr_get_NoMemError(void);
+VALUE rb_tr_get_NoMethodError(void);
+VALUE rb_tr_get_NotImpError(void);
+VALUE rb_tr_get_RangeError(void);
+VALUE rb_tr_get_RegexpError(void);
+VALUE rb_tr_get_RuntimeError(void);
+VALUE rb_tr_get_ScriptError(void);
+VALUE rb_tr_get_SecurityError(void);
+VALUE rb_tr_get_Signal(void);
+VALUE rb_tr_get_StandardError(void);
+VALUE rb_tr_get_SyntaxError(void);
+VALUE rb_tr_get_SystemCallError(void);
+VALUE rb_tr_get_SystemExit(void);
+VALUE rb_tr_get_SysStackError(void);
+VALUE rb_tr_get_TypeError(void);
+VALUE rb_tr_get_ThreadError(void);
+VALUE rb_tr_get_WaitReadable(void);
+VALUE rb_tr_get_WaitWritable(void);
+VALUE rb_tr_get_ZeroDivError(void);
+VALUE rb_tr_get_stdin(void);
+VALUE rb_tr_get_stdout(void);
+VALUE rb_tr_get_stderr(void);
+VALUE rb_tr_get_output_fs(void);
+VALUE rb_tr_get_rs(void);
+VALUE rb_tr_get_output_rs(void);
+VALUE rb_tr_get_default_rs(void);
 
-#define Qtrue rb_jt_get_true()
-#define Qfalse rb_jt_get_false()
-#define Qnil rb_jt_get_nil()
-#define rb_cArray rb_jt_get_Array()
-#define rb_cBignum rb_jt_get_Bignum()
-#define rb_cClass rb_jt_get_Class()
-#define rb_mComparable rb_jt_get_Comparable()
-#define rb_cData rb_jt_get_Data()
-#define rb_mEnumerable rb_jt_get_Enumerable()
-#define rb_cFalseClass rb_jt_get_FalseClass()
-#define rb_cFile rb_jt_get_File()
-#define rb_cFixnum rb_jt_get_Fixnum()
-#define rb_cFloat rb_jt_get_Float()
-#define rb_cHash rb_jt_get_Hash()
-#define rb_cInteger rb_jt_get_Integer()
-#define rb_cIO rb_jt_get_IO()
-#define rb_mKernel rb_jt_get_Kernel()
-#define rb_cMatch rb_jt_get_Match()
-#define rb_cModule rb_jt_get_Module()
-#define rb_cNilClass rb_jt_get_NilClass()
-#define rb_cNumeric rb_jt_get_Numeric()
-#define rb_cObject rb_jt_get_Object()
-#define rb_cRange rb_jt_get_Range()
-#define rb_cRegexp rb_jt_get_Regexp()
-#define rb_cString rb_jt_get_String()
-#define rb_cStruct rb_jt_get_Struct()
-#define rb_cSymbol rb_jt_get_Symbol()
-#define rb_cTime rb_jt_get_Time()
-#define rb_cThread rb_jt_get_Thread()
-#define rb_cTrueClass rb_jt_get_TrueClass()
-#define rb_cProc rb_jt_get_Proc()
-#define rb_cMethod rb_jt_get_Method()
-#define rb_cDir rb_jt_get_Dir()
-#define rb_eArgError rb_jt_get_ArgError()
-#define rb_eEOFError rb_jt_get_EOFError()
-#define rb_mErrno rb_jt_get_Errno()
-#define rb_eException rb_jt_get_Exception()
-#define rb_eFloatDomainError rb_jt_get_FloatDomainError()
-#define rb_eIndexError rb_jt_get_IndexError()
-#define rb_eInterrupt rb_jt_get_Interrupt()
-#define rb_eIOError rb_jt_get_IOError()
-#define rb_eLoadError rb_jt_get_LoadError()
-#define rb_eLocalJumpError rb_jt_get_LocalJumpError()
-#define rb_eMathDomainError rb_jt_get_MathDomainError()
-#define rb_eEncCompatError rb_jt_get_EncCompatError()
-#define rb_eNameError rb_jt_get_NameError()
-#define rb_eNoMemError rb_jt_get_NoMemError()
-#define rb_eNoMethodError rb_jt_get_NoMethodError()
-#define rb_eNotImpError rb_jt_get_NotImpError()
-#define rb_eRangeError rb_jt_get_RangeError()
-#define rb_eRegexpError rb_jt_get_RegexpError()
-#define rb_eRuntimeError rb_jt_get_RuntimeError()
-#define rb_eScriptError rb_jt_get_ScriptError()
-#define rb_eSecurityError rb_jt_get_SecurityError()
-#define rb_eSignal rb_jt_get_Signal()
-#define rb_eStandardError rb_jt_get_StandardError()
-#define rb_eSyntaxError rb_jt_get_SyntaxError()
-#define rb_eSystemCallError rb_jt_get_SystemCallError()
-#define rb_eSystemExit rb_jt_get_SystemExit()
-#define rb_eSysStackError rb_jt_get_SysStackError()
-#define rb_eTypeError rb_jt_get_TypeError()
-#define rb_eThreadError rb_jt_get_ThreadError()
-#define rb_mWaitReadable rb_jt_get_WaitReadable()
-#define rb_mWaitWritable rb_jt_get_WaitWritable()
-#define rb_eZeroDivError rb_jt_get_ZeroDivError()
-#define rb_stdin rb_jt_get_stdin()
-#define rb_stdout rb_jt_get_stdout()
-#define rb_stderr rb_jt_get_stderr()
-#define rb_output_fs rb_jt_get_output_fs()
-#define rb_rs rb_jt_get_rs()
-#define rb_output_rs rb_jt_get_output_rs()
-#define rb_default_rs rb_jt_get_default_rs()
+#define Qtrue rb_tr_get_true()
+#define Qfalse rb_tr_get_false()
+#define Qnil rb_tr_get_nil()
+#define rb_cArray rb_tr_get_Array()
+#define rb_cBignum rb_tr_get_Bignum()
+#define rb_cClass rb_tr_get_Class()
+#define rb_mComparable rb_tr_get_Comparable()
+#define rb_cData rb_tr_get_Data()
+#define rb_mEnumerable rb_tr_get_Enumerable()
+#define rb_cFalseClass rb_tr_get_FalseClass()
+#define rb_cFile rb_tr_get_File()
+#define rb_cFixnum rb_tr_get_Fixnum()
+#define rb_cFloat rb_tr_get_Float()
+#define rb_cHash rb_tr_get_Hash()
+#define rb_cInteger rb_tr_get_Integer()
+#define rb_cIO rb_tr_get_IO()
+#define rb_mKernel rb_tr_get_Kernel()
+#define rb_cMatch rb_tr_get_Match()
+#define rb_cModule rb_tr_get_Module()
+#define rb_cNilClass rb_tr_get_NilClass()
+#define rb_cNumeric rb_tr_get_Numeric()
+#define rb_cObject rb_tr_get_Object()
+#define rb_cRange rb_tr_get_Range()
+#define rb_cRegexp rb_tr_get_Regexp()
+#define rb_cString rb_tr_get_String()
+#define rb_cStruct rb_tr_get_Struct()
+#define rb_cSymbol rb_tr_get_Symbol()
+#define rb_cTime rb_tr_get_Time()
+#define rb_cThread rb_tr_get_Thread()
+#define rb_cTrueClass rb_tr_get_TrueClass()
+#define rb_cProc rb_tr_get_Proc()
+#define rb_cMethod rb_tr_get_Method()
+#define rb_cDir rb_tr_get_Dir()
+#define rb_eArgError rb_tr_get_ArgError()
+#define rb_eEOFError rb_tr_get_EOFError()
+#define rb_mErrno rb_tr_get_Errno()
+#define rb_eException rb_tr_get_Exception()
+#define rb_eFloatDomainError rb_tr_get_FloatDomainError()
+#define rb_eIndexError rb_tr_get_IndexError()
+#define rb_eInterrupt rb_tr_get_Interrupt()
+#define rb_eIOError rb_tr_get_IOError()
+#define rb_eLoadError rb_tr_get_LoadError()
+#define rb_eLocalJumpError rb_tr_get_LocalJumpError()
+#define rb_eMathDomainError rb_tr_get_MathDomainError()
+#define rb_eEncCompatError rb_tr_get_EncCompatError()
+#define rb_eNameError rb_tr_get_NameError()
+#define rb_eNoMemError rb_tr_get_NoMemError()
+#define rb_eNoMethodError rb_tr_get_NoMethodError()
+#define rb_eNotImpError rb_tr_get_NotImpError()
+#define rb_eRangeError rb_tr_get_RangeError()
+#define rb_eRegexpError rb_tr_get_RegexpError()
+#define rb_eRuntimeError rb_tr_get_RuntimeError()
+#define rb_eScriptError rb_tr_get_ScriptError()
+#define rb_eSecurityError rb_tr_get_SecurityError()
+#define rb_eSignal rb_tr_get_Signal()
+#define rb_eStandardError rb_tr_get_StandardError()
+#define rb_eSyntaxError rb_tr_get_SyntaxError()
+#define rb_eSystemCallError rb_tr_get_SystemCallError()
+#define rb_eSystemExit rb_tr_get_SystemExit()
+#define rb_eSysStackError rb_tr_get_SysStackError()
+#define rb_eTypeError rb_tr_get_TypeError()
+#define rb_eThreadError rb_tr_get_ThreadError()
+#define rb_mWaitReadable rb_tr_get_WaitReadable()
+#define rb_mWaitWritable rb_tr_get_WaitWritable()
+#define rb_eZeroDivError rb_tr_get_ZeroDivError()
+#define rb_stdin rb_tr_get_stdin()
+#define rb_stdout rb_tr_get_stdout()
+#define rb_stderr rb_tr_get_stderr()
+#define rb_output_fs rb_tr_get_output_fs()
+#define rb_rs rb_tr_get_rs()
+#define rb_output_rs rb_tr_get_output_rs()
+#define rb_default_rs rb_tr_get_default_rs()
 
 #define rb_defout rb_stdout
 
@@ -439,26 +439,26 @@ VALUE rb_equal(VALUE a, VALUE b);
 #define BUILTIN_TYPE(object)            RB_BUILTIN_TYPE(object)
 
 VALUE rb_obj_taint(VALUE object);
-bool rb_jt_obj_taintable_p(VALUE object);
-bool rb_jt_obj_tainted_p(VALUE object);
-void rb_jt_obj_infect(VALUE a, VALUE b);
-#define RB_OBJ_TAINTABLE(object)        rb_jt_obj_taintable_p(object)
-#define RB_OBJ_TAINTED_RAW(object)      rb_jt_obj_tainted_p(object)
-#define RB_OBJ_TAINTED(object)          rb_jt_obj_tainted_p(object)
+bool rb_tr_obj_taintable_p(VALUE object);
+bool rb_tr_obj_tainted_p(VALUE object);
+void rb_tr_obj_infect(VALUE a, VALUE b);
+#define RB_OBJ_TAINTABLE(object)        rb_tr_obj_taintable_p(object)
+#define RB_OBJ_TAINTED_RAW(object)      rb_tr_obj_tainted_p(object)
+#define RB_OBJ_TAINTED(object)          rb_tr_obj_tainted_p(object)
 #define RB_OBJ_TAINT_RAW(object)        rb_obj_taint(object)
 #define RB_OBJ_TAINT(object)            rb_obj_taint(object)
-#define RB_OBJ_UNTRUSTED(object)        rb_jt_obj_tainted_p(object)
+#define RB_OBJ_UNTRUSTED(object)        rb_tr_obj_tainted_p(object)
 #define RB_OBJ_UNTRUST(object)          rb_obj_taint(object)
-#define OBJ_TAINTABLE(object)           rb_jt_obj_taintable_p(object)
-#define OBJ_TAINTED_RAW(object)         rb_jt_obj_tainted_p(object)
-#define OBJ_TAINTED(object)             rb_jt_obj_tainted_p(object)
+#define OBJ_TAINTABLE(object)           rb_tr_obj_taintable_p(object)
+#define OBJ_TAINTED_RAW(object)         rb_tr_obj_tainted_p(object)
+#define OBJ_TAINTED(object)             rb_tr_obj_tainted_p(object)
 #define OBJ_TAINT_RAW(object)           rb_obj_taint(object)
 #define OBJ_TAINT(object)               rb_obj_taint(object)
-#define OBJ_UNTRUSTED(object)           rb_jt_obj_tainted_p(object)
-#define OBJ_UNTRUST(object)             rb_jt_obj_tainted_p(object)
-#define RB_OBJ_INFECT_RAW(a, b)         rb_jt_obj_infect(a, b)
-#define RB_OBJ_INFECT(a, b)             rb_jt_obj_infect(a, b)
-#define OBJ_INFECT(a, b)                rb_jt_obj_infect(a, b)
+#define OBJ_UNTRUSTED(object)           rb_tr_obj_tainted_p(object)
+#define OBJ_UNTRUST(object)             rb_tr_obj_tainted_p(object)
+#define RB_OBJ_INFECT_RAW(a, b)         rb_tr_obj_infect(a, b)
+#define RB_OBJ_INFECT(a, b)             rb_tr_obj_infect(a, b)
+#define OBJ_INFECT(a, b)                rb_tr_obj_infect(a, b)
 
 VALUE rb_obj_freeze(VALUE object);
 VALUE rb_obj_frozen_p(VALUE object);
@@ -754,26 +754,26 @@ VALUE rb_proc_new(void *function, VALUE value);
 void rb_warn(const char *fmt, ...);
 void rb_warning(const char *fmt, ...);
 
-MUST_INLINE int rb_jt_scan_args_0_hash(int argc, VALUE *argv, const char *format, VALUE *v1);
-MUST_INLINE int rb_jt_scan_args_02(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
-MUST_INLINE int rb_jt_scan_args_11(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
-MUST_INLINE int rb_jt_scan_args_12(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3);
-MUST_INLINE int rb_jt_scan_args_1_star(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
-MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10);
+MUST_INLINE int rb_tr_scan_args_0_hash(int argc, VALUE *argv, const char *format, VALUE *v1);
+MUST_INLINE int rb_tr_scan_args_02(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
+MUST_INLINE int rb_tr_scan_args_11(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
+MUST_INLINE int rb_tr_scan_args_12(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3);
+MUST_INLINE int rb_tr_scan_args_1_star(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
+MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10);
 
-#define rb_jt_scan_args_1(ARGC, ARGV, FORMAT, V1) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
-#define rb_jt_scan_args_2(ARGC, ARGV, FORMAT, V1, V2) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
-#define rb_jt_scan_args_3(ARGC, ARGV, FORMAT, V1, V2, V3) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
-#define rb_jt_scan_args_4(ARGC, ARGV, FORMAT, V1, V2, V3, V4) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, NULL, NULL, NULL, NULL, NULL, NULL)
-#define rb_jt_scan_args_5(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, NULL, NULL, NULL, NULL, NULL)
-#define rb_jt_scan_args_6(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, NULL, NULL, NULL, NULL)
-#define rb_jt_scan_args_7(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, NULL, NULL, NULL)
-#define rb_jt_scan_args_8(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, NULL, NULL)
-#define rb_jt_scan_args_9(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, NULL)
-#define rb_jt_scan_args_10(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10) rb_jt_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10)
+#define rb_tr_scan_args_1(ARGC, ARGV, FORMAT, V1) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_2(ARGC, ARGV, FORMAT, V1, V2) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_3(ARGC, ARGV, FORMAT, V1, V2, V3) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_4(ARGC, ARGV, FORMAT, V1, V2, V3, V4) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, NULL, NULL, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_5(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, NULL, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_6(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, NULL, NULL, NULL, NULL)
+#define rb_tr_scan_args_7(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, NULL, NULL, NULL)
+#define rb_tr_scan_args_8(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, NULL, NULL)
+#define rb_tr_scan_args_9(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, NULL)
+#define rb_tr_scan_args_10(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10)
 
 #define SCAN_ARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
-#define rb_scan_args(ARGC, ARGV, FORMAT, ...) SCAN_ARGS_IMPL(__VA_ARGS__, rb_jt_scan_args_10, rb_jt_scan_args_9, rb_jt_scan_args_8, rb_jt_scan_args_7, rb_jt_scan_args_6, rb_jt_scan_args_5, rb_jt_scan_args_4, rb_jt_scan_args_3, rb_jt_scan_args_2, rb_jt_scan_args_1)(ARGC, ARGV, FORMAT, __VA_ARGS__)
+#define rb_scan_args(ARGC, ARGV, FORMAT, ...) SCAN_ARGS_IMPL(__VA_ARGS__, rb_tr_scan_args_10, rb_tr_scan_args_9, rb_tr_scan_args_8, rb_tr_scan_args_7, rb_tr_scan_args_6, rb_tr_scan_args_5, rb_tr_scan_args_4, rb_tr_scan_args_3, rb_tr_scan_args_2, rb_tr_scan_args_1)(ARGC, ARGV, FORMAT, __VA_ARGS__)
 
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
 
@@ -1002,8 +1002,8 @@ void rb_io_check_writable(rb_io_t *io);
 void rb_io_check_readable(rb_io_t *io);
 int rb_cloexec_dup(int oldfd);
 void rb_fd_fix_cloexec(int fd);
-int rb_jt_io_handle(VALUE file);
-#define GetOpenFile(file, pointer) ((pointer) = truffle_managed_malloc(sizeof(rb_io_t)), (pointer)->fd = rb_jt_io_handle(file))
+int rb_tr_io_handle(VALUE file);
+#define GetOpenFile(file, pointer) ((pointer) = truffle_managed_malloc(sizeof(rb_io_t)), (pointer)->fd = rb_tr_io_handle(file))
 int rb_io_wait_readable(int fd);
 int rb_io_wait_writable(int fd);
 void rb_thread_wait_fd(int fd);
@@ -1058,8 +1058,8 @@ VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_D
 #define Data_Get_Struct(obj,type,sval) \
     ((sval) = (type *)rb_data_object_get(obj))
 
-struct RData *rb_jt_adapt_rdata(VALUE value);
-#define RDATA(value) rb_jt_adapt_rdata(value)
+struct RData *rb_tr_adapt_rdata(VALUE value);
+#define RDATA(value) rb_tr_adapt_rdata(value)
 #define DATA_PTR(value) (RDATA(value)->data)
 #define rb_data_object_get DATA_PTR
 
@@ -1141,27 +1141,27 @@ MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer) {
   VALUE string = rb_string_value(value_pointer);
 
   if (!truffle_invoke_b(RUBY_CEXT, "rb_string_value_cstr_check", string)) {
-    rb_jt_error("rb_string_value_cstr failure case not implemented");
+    rb_tr_error("rb_string_value_cstr failure case not implemented");
     abort();
   }
 
   return RSTRING_PTR(string);
 }
 
-MUST_INLINE int rb_jt_scan_args_0_hash(int argc, VALUE *argv, const char *format, VALUE *v1) {
+MUST_INLINE int rb_tr_scan_args_0_hash(int argc, VALUE *argv, const char *format, VALUE *v1) {
   if (argc >= 1) *v1 = argv[0];
   return argc;
 }
 
-MUST_INLINE int rb_jt_scan_args_02(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
+MUST_INLINE int rb_tr_scan_args_02(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
   if (argc >= 1) *v1 = argv[0];
   if (argc >= 2) *v2 = argv[1];
   return argc;
 }
 
-MUST_INLINE int rb_jt_scan_args_11(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
+MUST_INLINE int rb_tr_scan_args_11(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
   if (argc < 1) {
-    rb_jt_error("rb_jt_scan_args_11 error case not implemented");
+    rb_tr_error("rb_tr_scan_args_11 error case not implemented");
     abort();
   }
   *v1 = argv[0];
@@ -1169,9 +1169,9 @@ MUST_INLINE int rb_jt_scan_args_11(int argc, VALUE *argv, const char *format, VA
   return argc - 1;
 }
 
-MUST_INLINE int rb_jt_scan_args_12(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3) {
+MUST_INLINE int rb_tr_scan_args_12(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3) {
   if (argc < 1) {
-    rb_jt_error("rb_jt_scan_args_12 error case not implemented");
+    rb_tr_error("rb_tr_scan_args_12 error case not implemented");
     abort();
   }
   *v1 = argv[0];
@@ -1180,9 +1180,9 @@ MUST_INLINE int rb_jt_scan_args_12(int argc, VALUE *argv, const char *format, VA
   return argc - 1;
 }
 
-MUST_INLINE int rb_jt_scan_args_1_star(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
+MUST_INLINE int rb_tr_scan_args_1_star(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
   if (argc < 1) {
-    rb_jt_error("rb_jt_scan_args_1_star error case not implemented");
+    rb_tr_error("rb_tr_scan_args_1_star error case not implemented");
     abort();
   }
   *v1 = argv[0];
@@ -1195,7 +1195,7 @@ MUST_INLINE int rb_jt_scan_args_1_star(int argc, VALUE *argv, const char *format
   return argc - 1;
 }
 
-MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
+MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
   // Parse the format string
 
   // TODO CS 7-Feb-17 maybe we could inline cache this part?
@@ -1232,7 +1232,7 @@ MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE
   }
 
   if (*format != '\0') {
-    rb_jt_error("bad rb_scan_args format");
+    rb_tr_error("bad rb_scan_args format");
     abort();
   }
 
@@ -1252,7 +1252,7 @@ MUST_INLINE int rb_jt_scan_args(int argc, VALUE *argv, const char *format, VALUE
         argn++;
       } else {
         if (required > 0) {
-          rb_jt_error("not enough arguments for required");
+          rb_tr_error("not enough arguments for required");
           abort();
         } else {
           arg = Qnil;

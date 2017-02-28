@@ -15,7 +15,7 @@ def preprocess(line)
       # Translate
       #   rb_scan_args(argc, argv, "11", &v1, &v2)
       # into
-      #   rb_jt_scan_args_11(argc, argv, "11", &v1, &v2)
+      #   rb_tr_scan_args_11(argc, argv, "11", &v1, &v2)
 
       argc = $1
       argv = $2
@@ -23,15 +23,15 @@ def preprocess(line)
 
       case arity
         when '0:'
-          shim = 'rb_jt_scan_args_0_hash'
+          shim = 'rb_tr_scan_args_0_hash'
         when '02'
-          shim = 'rb_jt_scan_args_02'
+          shim = 'rb_tr_scan_args_02'
         when '11'
-          shim = 'rb_jt_scan_args_11'
+          shim = 'rb_tr_scan_args_11'
         when '12'
-          shim = 'rb_jt_scan_args_12'
+          shim = 'rb_tr_scan_args_12'
         when '1*'
-          shim = 'rb_jt_scan_args_1_star'
+          shim = 'rb_tr_scan_args_1_star'
         else
           shim = 'rb_scan_args' # use the macro
       end

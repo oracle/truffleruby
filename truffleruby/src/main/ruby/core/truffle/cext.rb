@@ -475,7 +475,7 @@ module Truffle::CExt
     end
   end
 
-  def rb_jt_obj_infect(dest, source)
+  def rb_tr_obj_infect(dest, source)
     Rubinius::Type.infect(dest, source)
   end
 
@@ -974,7 +974,7 @@ module Truffle::CExt
     $DEBUG
   end
 
-  def rb_jt_error(message)
+  def rb_tr_error(message)
     raise RubyTruffleError.new(message)
   end
 

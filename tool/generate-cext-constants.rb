@@ -120,19 +120,19 @@ constants = [
 end
 
 constants.each do |_, name, _|
-  puts "VALUE rb_jt_get_#{name}(void);"
+  puts "VALUE rb_tr_get_#{name}(void);"
 end
 
 puts
 
 constants.each do |macro_name, name, _|
-  puts "#define #{macro_name} rb_jt_get_#{name}()"
+  puts "#define #{macro_name} rb_tr_get_#{name}()"
 end
 
 puts
 
 constants.each do |macro_name, name, _|
-  puts "VALUE rb_jt_get_#{name}(void) {"
+  puts "VALUE rb_tr_get_#{name}(void) {"
   puts "  return (VALUE) truffle_read(RUBY_CEXT, \"#{macro_name}\");"
   puts "}"
   puts

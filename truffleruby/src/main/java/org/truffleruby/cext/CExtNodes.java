@@ -368,7 +368,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_jt_io_handle", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_tr_io_handle", isModuleFunction = true, required = 1)
     public abstract static class IOHandleNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyIO(io)")
@@ -414,7 +414,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_jt_adapt_rdata", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_tr_adapt_rdata", isModuleFunction = true, required = 1)
     public abstract static class AdaptRDataNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -428,7 +428,7 @@ public class CExtNodes {
     protected static final Map<DynamicObject, Long> toNative = new HashMap<>();
     protected static final Map<Long, DynamicObject> toManaged = new HashMap<>();
 
-    @CoreMethod(names = "rb_jt_to_native_handle", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_tr_to_native_handle", isModuleFunction = true, required = 1)
     public abstract static class ToNativeHandleNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -447,7 +447,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_jt_from_native_handle", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_tr_from_native_handle", isModuleFunction = true, required = 1)
     public abstract static class FromNativeHandleNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
