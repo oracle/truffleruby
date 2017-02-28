@@ -59,9 +59,13 @@ module JavaUtilities
       return a_map[name]
     end
 
+    # The following methods for adding fields, methods, constructors
+    # and interfaces cannot use idiomatic Ruby to traverse the Java
+    # arrays as Java interop classes may not have been bootstrapped
+    # sufficiently to allow it.
+
     def add_interfaces
       interfaces = Java.invoke_java_method(CLASS_GET_INTERFACES, @java_class)
-      # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
       interfaces_size = JavaUtilities.java_array_size(interfaces)
       (0...interfaces_size).each do |i|
         interface_proxy = JavaUtilities.make_proxy(JavaUtilities.java_array_get(interfaces, i))
@@ -72,58 +76,57 @@ module JavaUtilities
 
     def add_static_fields
       fields = Java.invoke_java_method(CLASS_GET_DECLARED_FIELDS, @java_class)
-      # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
       fields_size = JavaUtilities.java_array_size(fields)
-      (0...fields_size).each do |i; f, mh, name, getter, setter, is_static, is_const, const_val|
-        f = JavaUtilities.java_array_get(fields, i)
-        mh = JavaUtilities.unreflect_getter(f)
-        if mh != nil
-          is_static = JavaUtilities.static_field?(f)
-          next if !is_static
-          name = Interop.from_java_string(Java.invoke_java_method(FIELD_GET_NAME, f))
-          is_const = JavaUtilities.constant_field?(f)
-          const_val = ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) if is_const
-          getter = lambda { ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) }
-          if !JavaUtilities.final_field?(f)
-            mh = JavaUtilities.unreflect_getter(f)
-            setter = lambda { |v|
-              ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, v)) }
-          end
-          add_to_singleton(name, Field.new(name, getter, setter, is_const, const_val))
-        end
-      end
+      (0...fields_size).each { |i| add_static_field(JavaUtilities.java_array_get(fields, i)) }
       self
+    end
+
+    def add_static_field(f)
+      mh = JavaUtilities.unreflect_getter(f)
+      if mh != nil
+        is_static = JavaUtilities.static_field?(f)
+        return if !is_static
+        name = Interop.from_java_string(Java.invoke_java_method(FIELD_GET_NAME, f))
+        is_const = JavaUtilities.constant_field?(f)
+        const_val = ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) if is_const
+        getter = lambda { ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh)) }
+        if !JavaUtilities.final_field?(f)
+          mh = JavaUtilities.unreflect_getter(f)
+          setter = lambda { |v|
+            ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, v)) }
+        end
+        add_to_singleton(name, Field.new(name, getter, setter, is_const, const_val))
+      end
     end
 
     def add_instance_fields
       fields = Java.invoke_java_method(CLASS_GET_DECLARED_FIELDS, @java_class)
-      # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
       fields_size = JavaUtilities.java_array_size(fields)
-      (0...fields_size).each do |i; f, mh, name, getter, setter, is_static, is_const, const_val|
-        f = JavaUtilities.java_array_get(fields, i)
-        mh = JavaUtilities.unreflect_getter(f)
-        if mh != nil
-          is_static = JavaUtilities.static_field?(f)
-          next if is_static
-          name = Interop.from_java_string(Java.invoke_java_method(FIELD_GET_NAME, f))
-          getter = lambda {
-            ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, java_object)) }
-          if !JavaUtilities.final_field?(f)
-            mh = JavaUtilities.unreflect_getter(f)
-            setter = lambda { |v|
-              ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, java_object, v)) }
-          end
-          add_to_instance(name, Field.new(name, getter, setter))
-        end
-      end
+      (0...fields_size).each { |i| add_instance_field(JavaUtilities.java_array_get(fields, i)) }
       self
+    end
+
+    def add_instance_field(f)
+      mh = JavaUtilities.unreflect_getter(f)
+      if mh != nil
+        is_static = JavaUtilities.static_field?(f)
+        return if is_static
+        name = Interop.from_java_string(Java.invoke_java_method(FIELD_GET_NAME, f))
+        getter = lambda {
+          ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, java_object)) }
+        if !JavaUtilities.final_field?(f)
+          mh = JavaUtilities.unreflect_getter(f)
+          setter = lambda { |v|
+            ::JavaUtilities.wrap_java_value(Java.invoke_java_method(mh, java_object, v)) }
+        end
+        add_to_instance(name, Field.new(name, getter, setter))
+      end
     end
 
     def add_static_methods
       methods = Java.invoke_java_method(CLASS_GET_DECLARED_METHODS, @java_class)
-      # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
       methods_size = JavaUtilities.java_array_size(methods)
-      (0...methods_size).each do |i; m|
+      (0...methods_size).each do |i|
         m = JavaUtilities.java_array_get(methods, i)
         if JavaUtilities.static_method?(m)
           mh = JavaUtilities.unreflect_method(m)
@@ -140,9 +143,8 @@ module JavaUtilities
 
     def add_instance_methods
       methods = Java.invoke_java_method(CLASS_GET_DECLARED_METHODS, @java_class)
-      # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
       methods_size = JavaUtilities.java_array_size(methods)
-      (0...methods_size).each do |i; m|
+      (0...methods_size).each do |i|
         m = JavaUtilities.java_array_get(methods, i)
         if !JavaUtilities.static_method?(m)
           mh = JavaUtilities.unreflect_method(m)
@@ -173,7 +175,6 @@ module JavaUtilities
 
     def add_constructors
       constructors = Java.invoke_java_method(CLASS_GET_CONSTRUCTORS, @java_class)
-      # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.
       constructors_size = JavaUtilities.java_array_size(constructors)
       (0...constructors_size).each do |i; m|
         c = JavaUtilities.java_array_get(constructors, i)
