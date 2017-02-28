@@ -411,7 +411,7 @@ module ShellUtils
   end
 
   def sulong_run(*args)
-    mx_sulong 'su-run', '-Dsulong.LLVM=3.2', *args
+    mx_sulong 'su-run', '-Dsulong.LLVM=3.8', *args
   end
 
   def sulong_link(*args)
