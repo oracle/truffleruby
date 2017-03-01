@@ -223,9 +223,9 @@ module JavaUtilities
     JAVA_PACKAGE_CLASS, "getName", false, JAVA_STRING_CLASS)
 
   def self.make_proxy(a_class)
-    was_in_make_proxy = Thread.current[:MAKE_PROXY]
+    was_in_make_proxy = Thread.current[:MAKING_JAVA_PROXY]
     begin
-      Thread.current[:MAKE_PROXY] = true
+      Thread.current[:MAKING_JAVA_PROXY] = true
 
       a_proxy = PROXIES[a_class]
 
@@ -280,7 +280,7 @@ module JavaUtilities
 
       a_proxy
     ensure
-      Thread.current[:MAKE_PROXY] = was_in_make_proxy
+      Thread.current[:MAKING_JAVA_PROXY] = was_in_make_proxy
     end
   end
 
@@ -307,7 +307,7 @@ module JavaUtilities
 
   def self.make_interface_proxy(a_class)
     included_method = lambda { |class_or_module|
-      unless Thread.current[:MAKE_PROXY]
+      unless Thread.current[:MAKING_JAVA_PROXY]
         case class_or_module
         when Class
           unless class_or_module.instance_variable_defined?(:@java_interfaces)

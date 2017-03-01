@@ -9,15 +9,21 @@
 java.util.List
 
 module ::Java::JavaUtil::List
+
+  def determine_range(a_range)
+      first = a_range.first
+      last = a_range.last
+      last += size if last < 0
+      first += size if first < 0
+      last += 1 unless a_range.exclude_end?
+      [first, last]
+  end
+
   def [](start, length=nil)
     size = self.size
     if start.kind_of?(Range)
-      first = start.first
-      last = start.last
-      last += size if last < 0
-      first += size if first < 0
+      first, last = determine_range(start)
       return nil if first < 0 || first >= size
-      last += 1 unless start.exclude_end?
       sub_list(first, last)
     else
       start += size if start < 0
@@ -36,11 +42,7 @@ module ::Java::JavaUtil::List
   def []=(index, value)
     size = self.size
     if index.kind_of?(Range)
-      first = index.first
-      last = index.last
-      first += size if first < 0
-      last += size if last < 0
-      last += 1 unless index.exclude_end?
+      first, last = determine_range(index)
       if first < size
         (first...[last, size].min).each { |x| remove(first) } # Remove elements in list
       else
