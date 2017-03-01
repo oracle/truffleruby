@@ -210,6 +210,13 @@ suite = {
             "license": ["EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib"],
         },
 
+        "jruby-bin-ruby": {
+            "class": "ArchiveProject",
+            "outputDir": "bin",
+            "prefix": "bin",
+            "license": ["EPL-1.0", "GPLv2", "LGPLv21"],
+        },
+
         "jruby-docs": {
             "class": "TruffleRubyDocsProject",
             "outputDir": "",
@@ -240,6 +247,7 @@ suite = {
             "native": True, # Not Java
             "relpath": True,
             "dependencies": [
+                "jruby-bin-ruby",
                 "jruby-lib-ruby",
                 "jruby-docs",
             ],
