@@ -45,6 +45,7 @@ root=$(dirname "$(dirname "$SELF_PATH")")
 
 root_parent=$(dirname "$root")
 if [ "$(basename "$root")" = ruby ] && [ "$(basename "$root_parent")" = language ]; then
+    graalvm_root="$(dirname "$root_parent")"
     on_graalvm=true
 else
     on_graalvm=false
@@ -143,7 +144,7 @@ if [ $on_graalvm = false ]; then
     )
 else
     full_command=(
-        "$root/../../bin/java"
+        "$graalvm_root/bin/java"
         -noverify
         -polyglot
         $JAVA_OPTS
