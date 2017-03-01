@@ -39,44 +39,58 @@ while [ -h "$SELF_PATH" ]; do
     SYM=$(readlink "$SELF_PATH")
     SELF_PATH=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM")
 done
+
+# this is graalvm/language/ruby on graalvm
 root=$(dirname "$(dirname "$SELF_PATH")")
 
-mx_jar="$root/mxbuild/dists/ruby.jar"
-mvn_jar="$root/lib/truffleruby.jar"
-mx_time=$(mtime "$mx_jar")
-mvn_time=$(mtime "$mvn_jar")
+root_parent=$(dirname "$root")
+if [ "$(basename "$root")" = ruby ] && [ "$(basename "$root_parent")" = language ]; then
+    on_graalvm=true
+else
+    on_graalvm=false
+fi
 
 if [ -z "$JAVACMD" ]; then
-  if [ -z "$JAVA_HOME" ]; then
-    JAVACMD='java'
-  else
-    JAVACMD="$JAVA_HOME/bin/java"
-  fi
+    if [ -z "$JAVA_HOME" ]; then
+        JAVACMD='java'
+    else
+        JAVACMD="$JAVA_HOME/bin/java"
+    fi
 fi
 
 declare -a java_args
 declare -a ruby_args
 
-print_command=""
 CP=""
-boot_cp_jar="$mvn_jar"
+boot_cp_jar=""
 
-if [ "$mx_time" -gt "$mvn_time" ]; then
-    # This hash is Truffle's JLINE sha1
-    CP="$CP:$HOME/.mx/cache/JLINE_9504d5e2da5d78237239c5226e8200ec21182040.jar"
-    binary_truffle_dist="$root/mx.imports/binary/truffle/mxbuild/dists"
-    source_truffle_dist="$(dirname "$root")/truffle/mxbuild/dists"
-    if [ -f "$binary_truffle_dist/truffle-api.jar" ]; then # Binary Truffle suite
-        boot_cp_jar="$binary_truffle_dist/truffle-api.jar"
-        CP="$CP:$binary_truffle_dist/truffle-debug.jar"
-    elif [ -f "$source_truffle_dist/truffle-api.jar" ]; then # Source Truffle suite
-        boot_cp_jar="$source_truffle_dist/truffle-api.jar"
-        CP="$CP:$source_truffle_dist/truffle-debug.jar"
-    else
-        echo "Could not find Truffle jars" 1>&2
-        exit 1
+if [ $on_graalvm = false ]; then
+
+    mx_jar="$root/mxbuild/dists/ruby.jar"
+    mvn_jar="$root/lib/truffleruby.jar"
+    mx_time=$(mtime "$mx_jar")
+    mvn_time=$(mtime "$mvn_jar")
+    print_command=""
+    boot_cp_jar="$mvn_jar"
+
+    if [ "$mx_time" -gt "$mvn_time" ]; then
+        # This hash is Truffle's JLINE sha1
+        CP="$CP:$HOME/.mx/cache/JLINE_9504d5e2da5d78237239c5226e8200ec21182040.jar"
+        binary_truffle_dist="$root/mx.imports/binary/truffle/mxbuild/dists"
+        source_truffle_dist="$(dirname "$root")/truffle/mxbuild/dists"
+        if [ -f "$binary_truffle_dist/truffle-api.jar" ]; then # Binary Truffle suite
+            boot_cp_jar="$binary_truffle_dist/truffle-api.jar"
+            CP="$CP:$binary_truffle_dist/truffle-debug.jar"
+        elif [ -f "$source_truffle_dist/truffle-api.jar" ]; then # Source Truffle suite
+            boot_cp_jar="$source_truffle_dist/truffle-api.jar"
+            CP="$CP:$source_truffle_dist/truffle-debug.jar"
+        else
+            echo "Could not find Truffle jars" 1>&2
+            exit 1
+        fi
+        CP="$CP:$mx_jar"
     fi
-    CP="$CP:$mx_jar"
+
 fi
 
 while [ $# -gt 0 ]
@@ -120,7 +134,29 @@ if [ -n "$CP" ]; then
 fi
 
 declare -a full_command
-full_command=("$JAVACMD" $JAVA_OPTS "-Xbootclasspath/a:$boot_cp_jar" "${java_args[@]}" org.truffleruby.Main "-Xhome=$root" "-Xlauncher=$root/bin/truffleruby" "${ruby_args[@]}")
+if [ $on_graalvm = false ]; then
+    full_command=(
+        "$JAVACMD"
+        $JAVA_OPTS
+        "-Xbootclasspath/a:$boot_cp_jar"
+        "${java_args[@]}"
+    )
+else
+    full_command=(
+        $root/../../bin/java -noverify -polyglot
+        $JAVA_OPTS
+        "${java_args[@]}"
+        com.oracle.graalvm.Main
+    )
+fi
+
+full_command=(
+    ${full_command[@]}
+    org.truffleruby.Main
+    "-Xhome=$root"
+    "-Xlauncher=$root/bin/truffleruby"
+    "${ruby_args[@]}"
+)
 
 if [ -n "$print_command" ]; then
     echo "$ ${full_command[@]}"
