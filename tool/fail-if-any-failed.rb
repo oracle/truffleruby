@@ -40,7 +40,7 @@ else
 end
 
 (result['queries'] || []).any? do |q|
-  if q['extra.error'] == 'failed'
+  if q['error'] == 'failed'
     failures.push [q['host-vm'], q['host-vm-config'], q['guest-vm'], q['guest-vm-config'], q['bench-suite'], q['benchmark']]
   end
 end
