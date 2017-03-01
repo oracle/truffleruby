@@ -143,7 +143,9 @@ if [ $on_graalvm = false ]; then
     )
 else
     full_command=(
-        $root/../../bin/java -noverify -polyglot
+        "$root/../../bin/java"
+        -noverify
+        -polyglot
         $JAVA_OPTS
         "${java_args[@]}"
         com.oracle.graalvm.Main
