@@ -30,7 +30,26 @@ known_failures = [
   ["server", "graal-core", "jruby", "truffle", "optcarrot", "optcarrot"],
   ["server", "graal-core", "jruby", "truffle", "micro", "micro/core/file.rb:core-read-gigabyte"],
   ["server", "graal-core", "jruby", "truffle", "asciidoctor", "asciidoctor:load-string"],
-  ["server", "graal-core", "jruby", "truffle", "chunky", "chunky-operations-compose"]
+  ["server", "graal-core", "jruby", "truffle", "chunky", "chunky-operations-compose"],
+  ["server", "svm", "jruby", "truffle", "asciidoctor", "asciidoctor:file-lines"],
+  ["server", "svm", "jruby", "truffle", "asciidoctor", "asciidoctor:load-string"],
+  ["server", "svm", "jruby", "truffle", "asciidoctor", "asciidoctor:load-file"],
+  ["server", "svm", "jruby", "truffle", "classic", "binary-trees"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-compose-color-burn"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-compose-color-dodge"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-compose-exclusion"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-compose-hard-light"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-compose-lighten"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-compose-linear-burn"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-compose-multiply"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-compose-normal"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-compose-overlay"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-compose-screen"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-compose-vivid-light"],
+  ["server", "svm", "jruby", "truffle", "psd", "psd-renderer-blender-compose"],
+  ["server", "svm", "jruby", "truffle", "savina", "savina-radix-sort"],
+  ["server", "svm", "jruby", "truffle", "server", "tcp-server"],
+  ["server", "svm", "jruby", "truffle", "server", "webrick"]
 ]
 
 if File.exist?('failures')

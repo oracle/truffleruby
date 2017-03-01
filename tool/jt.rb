@@ -1269,7 +1269,8 @@ module Commands
       run_args.push '--sulong'
     end
 
-    if args.delete('--aot')
+    if args.delete('--aot') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == ENV['AOT_BIN']))
+      run_args.push '-XX:YoungGenerationSize=2G'
       run_args.push '-XX:OldGenerationSize=2G'
       run_args.push "-Xhome=#{JRUBY_DIR}"
 
