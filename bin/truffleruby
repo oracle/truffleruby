@@ -12,10 +12,6 @@
 
 set -e
 
-if [ -n "$RUBY_BIN" ]; then
-    exec "$RUBY_BIN" "$@"
-fi
-
 function mtime {
     uname_str=$(uname)
     if [ "$uname_str" = 'Linux' ] || [ "$uname_str" = 'SunOS' ]; then
@@ -49,6 +45,11 @@ if [ "$(basename "$root")" = ruby ] && [ "$(basename "$root_parent")" = language
     on_graalvm=true
 else
     on_graalvm=false
+
+    # TODO (pitr-ch 01-Mar-2017): investigate if we still need it
+    if [ -n "$RUBY_BIN" ]; then
+        exec "$RUBY_BIN" "$@"
+    fi
 fi
 
 if [ -z "$JAVACMD" ]; then
