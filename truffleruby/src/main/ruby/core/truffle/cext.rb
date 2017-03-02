@@ -767,6 +767,10 @@ module Truffle::CExt
     Truffle.invoke_primitive :object_ivar_set, object, name.to_sym, value
   end
 
+  def rb_special_const_p(object)
+     object == nil || object == true || object == false || object.class == Symbol || object.class == Fixnum
+  end
+
   def rb_define_class_under(mod, name, superclass)
     if mod.const_defined?(name, false)
       current_class = mod.const_get(name, false)

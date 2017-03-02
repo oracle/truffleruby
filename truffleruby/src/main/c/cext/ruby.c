@@ -648,8 +648,7 @@ int rb_obj_respond_to(VALUE object, ID id, int priv) {
 }
 
 VALUE rb_special_const_p(VALUE object) {
-  rb_tr_error("rb_special_const_p not implemented");
-  abort();
+  return truffle_invoke(RUBY_CEXT, "rb_special_const_p", object);
 }
 
 VALUE rb_to_int(VALUE object) {

@@ -7,12 +7,6 @@ fails:CApiObject rb_check_to_integer returns the object when passed a Bignum
 fails:CApiObject rb_type returns the type constant for the object
 fails:CApiObject rb_type_p returns whether object is of the given type
 fails:CApiObject BUILTIN_TYPE returns the type constant for the object
-fails:CApiObject rb_special_const_p returns true if passed Qfalse
-fails:CApiObject rb_special_const_p returns true if passed Qtrue
-fails:CApiObject rb_special_const_p returns true if passed Qnil
-fails:CApiObject rb_special_const_p returns true if passed a Symbol
-fails:CApiObject rb_special_const_p returns true if passed a Fixnum
-fails:CApiObject rb_special_const_p returns false if passed an Object
 fails:CApiObject rb_extend_object adds the module's instance methods to the object
 fails:CApiObject rb_obj_instance_eval evaluates the block in the object context, that includes private methods
 fails:CApiObject rb_any_to_s converts obj to string
