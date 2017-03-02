@@ -16,7 +16,4 @@ fails:CApiObject rb_special_const_p returns false if passed an Object
 fails:CApiObject rb_extend_object adds the module's instance methods to the object
 fails:CApiObject rb_obj_instance_eval evaluates the block in the object context, that includes private methods
 fails:CApiObject rb_any_to_s converts obj to string
-fails:CApiObject rb_class_inherited_p returns true if mod equals arg
-fails:CApiObject rb_class_inherited_p returns true if mod is a subclass of arg
-fails:CApiObject rb_class_inherited_p returns nil if mod is not a subclass of arg
 fails:CApiObject rb_class_inherited_p raises a TypeError if arg is no class or module

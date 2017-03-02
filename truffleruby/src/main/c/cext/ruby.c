@@ -671,8 +671,7 @@ VALUE rb_equal_opt(VALUE a, VALUE b) {
 }
 
 VALUE rb_class_inherited_p(VALUE module, VALUE object) {
-  rb_tr_error("rb_class_inherited_p not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)module, "<=", object);
 }
 
 VALUE rb_equal(VALUE a, VALUE b) {
