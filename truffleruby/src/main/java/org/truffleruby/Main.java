@@ -113,7 +113,10 @@ public class Main {
             final PolyglotEngine engine = builder.build();
 
             Main.printTruffleTimeMetric("before-load-context");
-            final RubyContext context = engine.eval(loadBootSource("Truffle::Boot.context", "context")).as(RubyContext.class);
+            final RubyContext context = engine.eval(loadBootSource(
+                    //language=ruby
+                    "Truffle::Boot.context",
+                    "context")).as(RubyContext.class);
             Main.printTruffleTimeMetric("after-load-context");
 
             printTruffleTimeMetric("before-run");
@@ -128,10 +131,16 @@ public class Main {
 
                     if (config.shouldUsePathScript()) {
                         context.setOriginalInputFile(config.getScriptFileName());
-                        exitCode = engine.eval(loadBootSource("Truffle::Boot.main_s", "main")).as(Integer.class);
+                        exitCode = engine.eval(loadBootSource(
+                                //language=ruby
+                                "Truffle::Boot.main_s",
+                                "main")).as(Integer.class);
                     } else {
                         context.setOriginalInputFile(filename);
-                        exitCode = engine.eval(loadBootSource("exit Truffle::Boot.main", "main")).as(Integer.class);
+                        exitCode = engine.eval(loadBootSource(
+                                //language=ruby
+                                "exit Truffle::Boot.main",
+                                "main")).as(Integer.class);
                     }
                 }
             } finally {
@@ -270,7 +279,10 @@ public class Main {
         context.setSyntaxCheckInputStream(in);
         context.setOriginalInputFile(filename);
 
-        return engine.eval(loadBootSource("Truffle::Boot.check_syntax", "check_syntax")).as(Boolean.class);
+        return engine.eval(loadBootSource(
+                //language=ruby
+                "Truffle::Boot.check_syntax",
+                "check_syntax")).as(Boolean.class);
     }
 
 }
