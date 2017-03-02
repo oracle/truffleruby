@@ -1,4 +1,4 @@
-puts '[ruby] PATCH applying openssl-stubs'
+Truffle::System.log :PATCH, 'applying openssl-stubs'
 
 dir = File.join File.dirname(__FILE__),
                 File.basename(__FILE__, '.*')

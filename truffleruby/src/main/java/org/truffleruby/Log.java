@@ -34,6 +34,8 @@ public class Log {
     }
 
     public static final Level PERFORMANCE = new RubyLevel("PERFORMANCE", Level.WARNING);
+    public static final Level PATCH = new RubyLevel("PATCH", Level.WARNING);
+    public static final Level[] LEVELS = new Level[]{PERFORMANCE, PATCH};
 
     public static final Logger LOGGER = createLogger();
 
@@ -70,10 +72,11 @@ public class Log {
     public static final String KWARGS_NOT_OPTIMIZED_YET = "keyword arguments are not yet optimized";
 
     /**
-     * Warn about code that works but is not yet optimized as Truffle code normally would be. Only prints the warning
-     * once, and only if called from compiled code. Don't call this method from behind a boundary, as it will never
-     * print the warning because it will never be called from compiled code. Use {@link #performanceOnce} instead
-     * if you need to warn in code that is never compiled.
+     * Warn about code that works but is not yet optimized as Truffle code normally would be. Only
+     * prints the warning once, and only if called from compiled code. Don't call this method from
+     * behind a boundary, as it will never print the warning because it will never be called from
+     * compiled code. Use {@link #performanceOnce} instead if you need to warn in code that is never
+     * compiled.
      */
     public static void notOptimizedOnce(String message) {
         if (CompilerDirectives.inCompiledCode()) {
@@ -82,7 +85,8 @@ public class Log {
     }
 
     /**
-     * Warn about something that has lower performance than might be expected. Only prints the warning once.
+     * Warn about something that has lower performance than might be expected. Only prints the
+     * warning once.
      */
     @TruffleBoundary
     public static void performanceOnce(String message) {
@@ -94,6 +98,11 @@ public class Log {
     @TruffleBoundary
     public static void info(String format, Object... args) {
         LOGGER.info(String.format(format, args));
+    }
+
+    @TruffleBoundary
+    public static void log(Level level, String message) {
+        LOGGER.log(level, message);
     }
 
 }

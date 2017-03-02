@@ -16,7 +16,7 @@ module Kernel
     required = require_without_truffle_patching path
 
     if required && Truffle::Patching::TRUFFLE_PATCHES[path]
-      puts "[ruby] PATCH applying #{path}"
+      Truffle::System.log :PATCH, "applying #{path}"
       require_without_truffle_patching "#{Truffle::Patching::TRUFFLE_PATCHES_DIRECTORY}/#{path}.rb"
     end
     required

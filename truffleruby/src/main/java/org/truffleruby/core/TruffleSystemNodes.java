@@ -40,20 +40,28 @@ package org.truffleruby.core;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleOptions;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Log;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.SymbolTable;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Set;
+import java.util.logging.Level;
 
 @CoreClass("Truffle::System")
 public abstract class TruffleSystemNodes {
@@ -141,7 +149,33 @@ public abstract class TruffleSystemNodes {
                 }
             }
         }
+    }
 
+    @CoreMethod(names = "log", isModuleFunction = true, required = 2)
+    public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = {"isRubySymbol(level)", "isRubyString(message)", "level == cachedLevel"})
+        public Object log(DynamicObject level, DynamicObject message,
+                        @Cached("level") DynamicObject cachedLevel,
+                        @Cached("getLevel(cachedLevel)") Level javaLevel) {
+            Log.log(javaLevel, StringOperations.getString(message));
+            return nil();
+        }
+
+        protected Level getLevel(DynamicObject level) {
+            assert RubyGuards.isRubySymbol(level);
+            final SymbolTable symbolTable = getContext().getSymbolTable();
+
+            for (Level javaLevel : Log.LEVELS) {
+                if (symbolTable.getSymbol(javaLevel.toString()) == level) {
+                    return javaLevel;
+                }
+            }
+
+            throw new RaiseException(getContext().getCoreExceptions().argumentError(
+                            "Could not find log level for: " + level + " known errors are: " + Arrays.toString(Log.LEVELS),
+                            this));
+        }
     }
 
 }
