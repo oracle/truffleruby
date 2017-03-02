@@ -43,12 +43,11 @@ class Gem::RequestSet::GemDependencyAPI
     :mri_20       => %w[ruby],
     :mri_21       => %w[ruby],
     :rbx          => %w[rbx],
-    :ruby         => %w[ruby rbx maglev truffleruby],
-    :ruby_18      => %w[ruby rbx maglev truffleruby],
-    :ruby_19      => %w[ruby rbx maglev truffleruby],
-    :ruby_20      => %w[ruby rbx maglev truffleruby],
-    :ruby_21      => %w[ruby rbx maglev truffleruby],
-    :truffleruby  => %w[truffleruby]
+    :ruby         => %w[ruby rbx maglev],
+    :ruby_18      => %w[ruby rbx maglev],
+    :ruby_19      => %w[ruby rbx maglev],
+    :ruby_20      => %w[ruby rbx maglev],
+    :ruby_21      => %w[ruby rbx maglev],
   }
 
   mswin     = Gem::Platform.new 'x86-mswin32'
@@ -88,8 +87,7 @@ class Gem::RequestSet::GemDependencyAPI
     :ruby_21      => Gem::Platform::RUBY,
     :x64_mingw    => x64_mingw,
     :x64_mingw_20 => x64_mingw,
-    :x64_mingw_21 => x64_mingw,
-    :truffleruby  => Gem::Platform::RUBY
+    :x64_mingw_21 => x64_mingw
   }
 
   gt_eq_0        = Gem::Requirement.new '>= 0'
