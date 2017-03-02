@@ -129,7 +129,7 @@ module Utilities
     return jar if jar
     raise "couldn't find trufflejs.jar - download GraalVM as described in https://github.com/jruby/jruby/wiki/Downloading-GraalVM and find it in there"
   end
-  
+
   def self.find_sulong_options
     sulong_home = ENV['SULONG_HOME']
     raise 'set $SULONG_HOME to a built checkout of the Sulong repository' unless sulong_home
@@ -788,13 +788,13 @@ module Commands
 
   def test_compiler(*args)
     env = {}
-    
+
     env['TRUFFLERUBYOPT'] = '-Xexceptions.print_java=true'
-    
+
     if ENV['GRAAL_JS_JAR']
       env['JAVA_OPTS'] = "-cp #{Utilities.find_graal_js}"
     end
-    
+
     Dir["#{JRUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
       if args.empty? or args.include?(File.basename(test_script, ".*"))
         sh env, test_script
@@ -901,7 +901,7 @@ module Commands
 
   def test_integration(env={}, *args)
     env = env.dup
-    
+
     classpath = []
 
     if ENV['GRAAL_JS_JAR']
@@ -915,7 +915,7 @@ module Commands
     unless classpath.empty?
       env['JAVA_OPTS'] = "-cp #{classpath.join(':')}"
     end
-    
+
     tests_path             = "#{JRUBY_DIR}/test/truffle/integration"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
@@ -1267,7 +1267,7 @@ module Commands
     benchmark_ruby = ENV['JT_BENCHMARK_RUBY']
 
     run_args = []
-    
+
     if args.delete('--sulong')
       run_args.push '--sulong'
     end
