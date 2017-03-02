@@ -1069,8 +1069,11 @@ module Commands
   private :test_specs
 
   def test_tck(*args)
-    raw_sh 'mx', 'rubytck', use_exec: true if Utilities.mx?
-    mvn *args, '-Ptck'
+    if Utilities.mx?
+      raw_sh 'mx', 'rubytck'
+    else
+      mvn *args, '-Ptck'
+    end
   end
   private :test_tck
 
