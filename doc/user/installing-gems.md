@@ -9,10 +9,10 @@ e.g. `nokogiri`, Active Record drivers, etc).
 
 The patches will be eventually removed.
 
-Ensure you have ruby managers configured properly, see 
-[Ensuring Ruby managers are configured correctly](ruby-managers.md).
-
 Examples:
+
+Use a Ruby manager to switch to TruffleRuby e.g. `rbenv shell truffleruby`, 
+see [Configuring Ruby managers](ruby-managers.md).
 
 **Note:** Bundler `1.14.x` is not yet supported, please use 1.13 in the meanwhile.
 
