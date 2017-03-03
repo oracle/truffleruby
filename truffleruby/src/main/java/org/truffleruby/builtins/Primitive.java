@@ -9,8 +9,6 @@
  */
 package org.truffleruby.builtins;
 
-import org.truffleruby.platform.UnsafeGroup;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -34,7 +32,5 @@ public @interface Primitive {
      * Raise an error if self is frozen.
      */
     boolean raiseIfFrozenSelf() default false;
-
-    UnsafeGroup[] unsafe() default {};
 
 }

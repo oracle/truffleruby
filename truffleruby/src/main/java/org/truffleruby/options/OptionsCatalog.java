@@ -30,16 +30,6 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription DID_YOU_MEAN = new BooleanOptionDescription("did_you_mean", "Use did_you_mean", true);
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription("internal_encoding", "Internal encoding", null);
     public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription("external_encoding", "External encoding", null);
-    public static final BooleanOptionDescription PLATFORM_SAFE = new BooleanOptionDescription("platform.safe", "Default value for the safety of all operations", true);
-    public static final BooleanOptionDescription PLATFORM_SAFE_LOAD = new BooleanOptionDescription("platform.safe.load", "Treat loading", PLATFORM_SAFE.getDefaultValue());
-    public static final BooleanOptionDescription PLATFORM_SAFE_IO = new BooleanOptionDescription("platform.safe.io", "Treat any methods that deal with IO as safe", PLATFORM_SAFE.getDefaultValue());
-    public static final BooleanOptionDescription PLATFORM_SAFE_MEMORY = new BooleanOptionDescription("platform.safe.memory", "Treat any methods that deal with unmanaged memory as safe", PLATFORM_SAFE.getDefaultValue());
-    public static final BooleanOptionDescription PLATFORM_SAFE_THREADS = new BooleanOptionDescription("platform.safe.threads", "Treat any methods that deal with threads as safe", PLATFORM_SAFE.getDefaultValue());
-    public static final BooleanOptionDescription PLATFORM_SAFE_PROCESSES = new BooleanOptionDescription("platform.safe.processes", "Treat any methods that deal with processes as safe", PLATFORM_SAFE.getDefaultValue());
-    public static final BooleanOptionDescription PLATFORM_SAFE_SIGNALS = new BooleanOptionDescription("platform.safe.siganls", "Treat any methods that deal with signals as safe", PLATFORM_SAFE.getDefaultValue());
-    public static final BooleanOptionDescription PLATFORM_SAFE_EXIT = new BooleanOptionDescription("platform.safe.exit", "Treat #exit! (hard exiting the VM) as safe", PLATFORM_SAFE.getDefaultValue());
-    public static final BooleanOptionDescription PLATFORM_SAFE_AT_EXIT = new BooleanOptionDescription("platform.safe.at_exit", "Treat #at_exit as safe", PLATFORM_SAFE.getDefaultValue());
-    public static final BooleanOptionDescription PLATFORM_SAFE_PUTS = new BooleanOptionDescription("platform.safe_puts", "Treat safe_puts as safe", true);
     public static final BooleanOptionDescription PLATFORM_USE_JAVA = new BooleanOptionDescription("platform.use_java", "Use a pure-Java platform", false);
     public static final BooleanOptionDescription TRACE_CALLS = new BooleanOptionDescription("trace.calls", "Support tracing (set_trace_func", true);
     public static final BooleanOptionDescription COVERAGE_GLOBAL = new BooleanOptionDescription("coverage.global", "Run coverage for all code and print results on exit", false);
@@ -145,26 +135,6 @@ public class OptionsCatalog {
                 return INTERNAL_ENCODING;
             case "external_encoding":
                 return EXTERNAL_ENCODING;
-            case "platform.safe":
-                return PLATFORM_SAFE;
-            case "platform.safe.load":
-                return PLATFORM_SAFE_LOAD;
-            case "platform.safe.io":
-                return PLATFORM_SAFE_IO;
-            case "platform.safe.memory":
-                return PLATFORM_SAFE_MEMORY;
-            case "platform.safe.threads":
-                return PLATFORM_SAFE_THREADS;
-            case "platform.safe.processes":
-                return PLATFORM_SAFE_PROCESSES;
-            case "platform.safe.siganls":
-                return PLATFORM_SAFE_SIGNALS;
-            case "platform.safe.exit":
-                return PLATFORM_SAFE_EXIT;
-            case "platform.safe.at_exit":
-                return PLATFORM_SAFE_AT_EXIT;
-            case "platform.safe_puts":
-                return PLATFORM_SAFE_PUTS;
             case "platform.use_java":
                 return PLATFORM_USE_JAVA;
             case "trace.calls":
@@ -334,16 +304,6 @@ public class OptionsCatalog {
             DID_YOU_MEAN,
             INTERNAL_ENCODING,
             EXTERNAL_ENCODING,
-            PLATFORM_SAFE,
-            PLATFORM_SAFE_LOAD,
-            PLATFORM_SAFE_IO,
-            PLATFORM_SAFE_MEMORY,
-            PLATFORM_SAFE_THREADS,
-            PLATFORM_SAFE_PROCESSES,
-            PLATFORM_SAFE_SIGNALS,
-            PLATFORM_SAFE_EXIT,
-            PLATFORM_SAFE_AT_EXIT,
-            PLATFORM_SAFE_PUTS,
             PLATFORM_USE_JAVA,
             TRACE_CALLS,
             COVERAGE_GLOBAL,

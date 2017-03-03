@@ -56,10 +56,6 @@ public class PrimitiveNodeConstructor {
             arguments.add(transformArgument(readArgumentNode, n + 1));
         }
 
-        if (!CoreMethodNodeManager.isSafe(context, annotation.unsafe())) {
-            return new UnsafeNode();
-        }
-
         final RubyNode primitiveNode = CoreMethodNodeManager.createNodeFromFactory(context, source, sourceSection, factory, arguments);
 
         return Translator.withSourceSection(sourceSection, new CallPrimitiveNode(primitiveNode, fallback));
@@ -68,10 +64,6 @@ public class PrimitiveNodeConstructor {
     public RubyNode createInvokePrimitiveNode(RubyContext context, Source source, SourceIndexLength sourceSection, RubyNode[] arguments) {
         if (arguments.length != getPrimitiveArity()) {
             throw new AssertionError("Incorrect number of arguments at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
-        }
-
-        if (!CoreMethodNodeManager.isSafe(context, annotation.unsafe())) {
-            return new UnsafeNode();
         }
 
         for (int n = 0; n < arguments.length; n++) {

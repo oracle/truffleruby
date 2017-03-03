@@ -53,8 +53,6 @@ class << self
   alias_method :inspect, :to_s
 end
 
-if Truffle::Safe.signals_safe?
-  Signal.trap("INT") do
-    raise Interrupt
-  end
+Signal.trap("INT") do
+  raise Interrupt
 end

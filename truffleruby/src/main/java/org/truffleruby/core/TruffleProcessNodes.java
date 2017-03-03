@@ -22,7 +22,6 @@ import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.KeyValue;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.platform.UnsafeGroup;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +31,7 @@ import java.util.Collections;
 @CoreClass("Truffle::Process")
 public abstract class TruffleProcessNodes {
 
-    @CoreMethod(names = "spawn", onSingleton = true, required = 4, unsafe = UnsafeGroup.PROCESSES)
+    @CoreMethod(names = "spawn", onSingleton = true, required = 4)
     public abstract static class SpawnNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

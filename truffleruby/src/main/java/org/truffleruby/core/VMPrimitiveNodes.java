@@ -76,7 +76,6 @@ import org.truffleruby.language.objects.LogicalClassNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Platform;
-import org.truffleruby.platform.UnsafeGroup;
 import org.truffleruby.platform.signal.Signal;
 import org.truffleruby.platform.signal.SignalHandler;
 import org.truffleruby.platform.signal.SignalManager;
@@ -128,7 +127,7 @@ public abstract class VMPrimitiveNodes {
     }
 
     // The hard #exit!
-    @Primitive(name = "vm_exit", needsSelf = false, lowerFixnum = 1, unsafe = UnsafeGroup.EXIT)
+    @Primitive(name = "vm_exit", needsSelf = false, lowerFixnum = 1)
     public static abstract class VMExitPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -178,7 +177,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_get_user_home", needsSelf = false, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "vm_get_user_home", needsSelf = false)
     public abstract static class VMGetUserHomePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -386,7 +385,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_watch_signal", needsSelf = false, unsafe = UnsafeGroup.SIGNALS)
+    @Primitive(name = "vm_watch_signal", needsSelf = false)
     public static abstract class VMWatchSignalPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyString(signalName)", "isRubyString(action)" })
@@ -492,7 +491,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_wait_pid", needsSelf = false, lowerFixnum = 1, unsafe = UnsafeGroup.PROCESSES)
+    @Primitive(name = "vm_wait_pid", needsSelf = false, lowerFixnum = 1)
     public abstract static class VMWaitPidPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary

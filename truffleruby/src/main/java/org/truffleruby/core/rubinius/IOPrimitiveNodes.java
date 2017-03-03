@@ -96,7 +96,6 @@ import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.Platform;
-import org.truffleruby.platform.UnsafeGroup;
 
 import java.nio.ByteBuffer;
 
@@ -126,7 +125,7 @@ public abstract class IOPrimitiveNodes {
         }
     }
 
-    @Primitive(name = "io_allocate", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_allocate")
     public static abstract class IOAllocatePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode newBufferNode = DispatchHeadNodeFactory.createMethodCall();
@@ -140,7 +139,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_connect_pipe", needsSelf = false, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_connect_pipe", needsSelf = false)
     public static abstract class IOConnectPipeNode extends IOPrimitiveArrayArgumentsNode {
 
         @CompilationFinal private int RDONLY = -1;
@@ -194,7 +193,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_open", needsSelf = false, lowerFixnum = {2, 3}, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_open", needsSelf = false, lowerFixnum = {2, 3})
     public static abstract class IOOpenPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(throwsControlFlowException = true)
@@ -210,7 +209,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_truncate", needsSelf = false, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_truncate", needsSelf = false)
     public static abstract class IOTruncatePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(throwsControlFlowException = true)
@@ -221,7 +220,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_ftruncate", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_ftruncate")
     public static abstract class IOFTruncatePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -232,7 +231,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_fnmatch", needsSelf = false, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_fnmatch", needsSelf = false)
     public static abstract class IOFNMatchPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -499,7 +498,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_ensure_open", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_ensure_open")
     public static abstract class IOEnsureOpenPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -520,7 +519,7 @@ public abstract class IOPrimitiveNodes {
     }
 
 
-    @Primitive(name = "io_socket_read", lowerFixnum = {1, 2, 3, 4}, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_socket_read", lowerFixnum = {1, 2, 3, 4})
     public static abstract class IOSocketReadNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(throwsControlFlowException = true)
@@ -541,7 +540,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_read_if_available", lowerFixnum = 1, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_read_if_available", lowerFixnum = 1)
     public static abstract class IOReadIfAvailableNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(throwsControlFlowException = true)
@@ -580,7 +579,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_reopen", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_reopen")
     public static abstract class IOReopenPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode resetBufferingNode = DispatchHeadNodeFactory.createMethodCall();
@@ -607,7 +606,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_reopen_path", lowerFixnum = 2, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_reopen_path", lowerFixnum = 2)
     public static abstract class IOReopenPathPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode resetBufferingNode = DispatchHeadNodeFactory.createMethodCall();
@@ -653,7 +652,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_write", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_write")
     public static abstract class IOWritePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(throwsControlFlowException = true)
@@ -679,7 +678,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_write_nonblock", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_write_nonblock")
     public static abstract class IOWriteNonBlockPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         static class StopWriting extends ControlFlowException {
@@ -755,7 +754,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_close", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_close")
     public static abstract class IOClosePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode ensureOpenNode = DispatchHeadNodeFactory.createMethodCall();
@@ -784,7 +783,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_seek", lowerFixnum = { 1, 2 }, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_seek", lowerFixnum = { 1, 2 })
     public static abstract class IOSeekPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -795,7 +794,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_accept", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_accept")
     public abstract static class AcceptNode extends IOPrimitiveArrayArgumentsNode {
 
         @SuppressWarnings("restriction")
@@ -820,7 +819,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_sysread", unsafe = UnsafeGroup.IO, lowerFixnum = 1)
+    @Primitive(name = "io_sysread", lowerFixnum = 1)
     public static abstract class IOSysReadPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(throwsControlFlowException = true)
@@ -854,7 +853,7 @@ public abstract class IOPrimitiveNodes {
 
     }
 
-    @Primitive(name = "io_select", needsSelf = false, lowerFixnum = 4, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "io_select", needsSelf = false, lowerFixnum = 4)
     public static abstract class IOSelectPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         public abstract Object executeSelect(DynamicObject readables, DynamicObject writables, DynamicObject errorables, Object Timeout);

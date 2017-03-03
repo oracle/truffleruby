@@ -32,16 +32,6 @@ public class Options {
     public final boolean DID_YOU_MEAN;
     public final String INTERNAL_ENCODING;
     public final String EXTERNAL_ENCODING;
-    public final boolean PLATFORM_SAFE;
-    public final boolean PLATFORM_SAFE_LOAD;
-    public final boolean PLATFORM_SAFE_IO;
-    public final boolean PLATFORM_SAFE_MEMORY;
-    public final boolean PLATFORM_SAFE_THREADS;
-    public final boolean PLATFORM_SAFE_PROCESSES;
-    public final boolean PLATFORM_SAFE_SIGNALS;
-    public final boolean PLATFORM_SAFE_EXIT;
-    public final boolean PLATFORM_SAFE_AT_EXIT;
-    public final boolean PLATFORM_SAFE_PUTS;
     public final boolean PLATFORM_USE_JAVA;
     public final boolean TRACE_CALLS;
     public final boolean COVERAGE_GLOBAL;
@@ -132,16 +122,6 @@ public class Options {
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
-        PLATFORM_SAFE = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE);
-        PLATFORM_SAFE_LOAD = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE_LOAD, PLATFORM_SAFE);
-        PLATFORM_SAFE_IO = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE_IO, PLATFORM_SAFE);
-        PLATFORM_SAFE_MEMORY = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE_MEMORY, PLATFORM_SAFE);
-        PLATFORM_SAFE_THREADS = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE_THREADS, PLATFORM_SAFE);
-        PLATFORM_SAFE_PROCESSES = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE_PROCESSES, PLATFORM_SAFE);
-        PLATFORM_SAFE_SIGNALS = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE_SIGNALS, PLATFORM_SAFE);
-        PLATFORM_SAFE_EXIT = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE_EXIT, PLATFORM_SAFE);
-        PLATFORM_SAFE_AT_EXIT = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE_AT_EXIT, PLATFORM_SAFE);
-        PLATFORM_SAFE_PUTS = builder.getOrDefault(OptionsCatalog.PLATFORM_SAFE_PUTS);
         PLATFORM_USE_JAVA = builder.getOrDefault(OptionsCatalog.PLATFORM_USE_JAVA);
         TRACE_CALLS = builder.getOrDefault(OptionsCatalog.TRACE_CALLS);
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
@@ -248,26 +228,6 @@ public class Options {
                 return INTERNAL_ENCODING;
             case "external_encoding":
                 return EXTERNAL_ENCODING;
-            case "platform.safe":
-                return PLATFORM_SAFE;
-            case "platform.safe.load":
-                return PLATFORM_SAFE_LOAD;
-            case "platform.safe.io":
-                return PLATFORM_SAFE_IO;
-            case "platform.safe.memory":
-                return PLATFORM_SAFE_MEMORY;
-            case "platform.safe.threads":
-                return PLATFORM_SAFE_THREADS;
-            case "platform.safe.processes":
-                return PLATFORM_SAFE_PROCESSES;
-            case "platform.safe.siganls":
-                return PLATFORM_SAFE_SIGNALS;
-            case "platform.safe.exit":
-                return PLATFORM_SAFE_EXIT;
-            case "platform.safe.at_exit":
-                return PLATFORM_SAFE_AT_EXIT;
-            case "platform.safe_puts":
-                return PLATFORM_SAFE_PUTS;
             case "platform.use_java":
                 return PLATFORM_USE_JAVA;
             case "trace.calls":

@@ -183,11 +183,7 @@ module FFI
       raise PrimitiveFailure, "FFI::Pointer#autorelease= primitive failed"
     end
 
-    if Truffle::Safe.memory_safe?
-      NULL = Pointer.new(0x0)
-    else
-      NULL = nil
-    end
+    NULL = Pointer.new(0x0)
 
     #
     # Name: short

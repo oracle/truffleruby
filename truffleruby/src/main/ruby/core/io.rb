@@ -1172,13 +1172,7 @@ class IO
   # The +sync+ attribute will also be set.
   #
   def self.setup(io, fd, mode=nil, sync=false)
-    if Truffle::Safe.io_safe?
-      cur_mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
-    else
-      cur_mode = RDONLY if fd == 0
-      cur_mode = WRONLY if fd == 1
-      cur_mode = WRONLY if fd == 2
-    end
+    cur_mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
 
     Errno.handle if cur_mode < 0
 

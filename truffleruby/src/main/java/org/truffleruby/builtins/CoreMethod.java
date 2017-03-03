@@ -11,7 +11,6 @@ package org.truffleruby.builtins;
 
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
-import org.truffleruby.platform.UnsafeGroup;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -77,7 +76,5 @@ public @interface CoreMethod {
     boolean returnsEnumeratorIfNoBlock() default false;
 
     String enumeratorSize() default "";
-
-    UnsafeGroup[] unsafe() default {};
 
 }

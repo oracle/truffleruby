@@ -21,7 +21,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SnippetNode;
-import org.truffleruby.platform.UnsafeGroup;
 
 public abstract class StatPrimitiveNodes {
 
@@ -29,7 +28,7 @@ public abstract class StatPrimitiveNodes {
         return Layouts.STAT.getStat(rubyStat);
     }
 
-    @Primitive(name = "stat_allocate", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_allocate")
     public static abstract class StatAllocatePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -39,7 +38,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_atime", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_atime")
     public static abstract class StatAtimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -53,7 +52,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_ctime", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_ctime")
     public static abstract class StatCtimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -67,7 +66,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_mtime", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_mtime")
     public static abstract class StatMtimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -81,7 +80,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_nlink", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_nlink")
     public static abstract class NlinkPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -92,7 +91,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_rdev", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_rdev")
     public static abstract class RdevPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -103,7 +102,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_blksize", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_blksize")
     public static abstract class StatBlksizePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -114,7 +113,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_blocks", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_blocks")
     public static abstract class StatBlocksPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -125,7 +124,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_dev", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_dev")
     public static abstract class StatDevPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -136,7 +135,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_ino", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_ino")
     public static abstract class StatInoPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -147,7 +146,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_stat", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_stat")
     public static abstract class StatStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -170,7 +169,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_fstat", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_fstat")
     public static abstract class StatFStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -188,7 +187,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_lstat", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_lstat")
     public static abstract class StatLStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -211,7 +210,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_size", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_size")
     public static abstract class StatSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -222,7 +221,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_mode", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_mode")
     public static abstract class StatModePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -233,7 +232,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_gid", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_gid")
     public static abstract class StatGIDPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -244,7 +243,7 @@ public abstract class StatPrimitiveNodes {
 
     }
 
-    @Primitive(name = "stat_uid", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "stat_uid")
     public static abstract class StatUIDPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary

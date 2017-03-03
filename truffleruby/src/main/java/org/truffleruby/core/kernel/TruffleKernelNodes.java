@@ -32,14 +32,13 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
-import org.truffleruby.platform.UnsafeGroup;
 
 import java.io.IOException;
 
 @CoreClass("Truffle::Kernel")
 public abstract class TruffleKernelNodes {
 
-    @CoreMethod(names = "at_exit", isModuleFunction = true, needsBlock = true, required = 1, unsafe = UnsafeGroup.AT_EXIT)
+    @CoreMethod(names = "at_exit", isModuleFunction = true, needsBlock = true, required = 1)
     public abstract static class AtExitSystemNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -54,7 +53,7 @@ public abstract class TruffleKernelNodes {
             @NodeChild(value = "file", type = RubyNode.class),
             @NodeChild(value = "wrap", type = RubyNode.class)
     })
-    @CoreMethod(names = "load", isModuleFunction = true, required = 1, optional = 1, unsafe = UnsafeGroup.LOAD)
+    @CoreMethod(names = "load", isModuleFunction = true, required = 1, optional = 1)
     public abstract static class LoadNode extends CoreMethodNode {
 
         @CreateCast("wrap")

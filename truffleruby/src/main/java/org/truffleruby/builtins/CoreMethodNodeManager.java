@@ -47,7 +47,6 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.options.Options;
 import org.truffleruby.parser.Translator;
-import org.truffleruby.platform.UnsafeGroup;
 import org.truffleruby.tools.ChaosNodeGen;
 
 import java.util.ArrayList;
@@ -200,12 +199,8 @@ public class CoreMethodNodeManager {
         final RubyNode checkArity = Translator.createCheckArityNode(sharedMethodInfo.getArity());
 
         RubyNode node;
-        if (!isSafe(context, method.unsafe())) {
-            node = new UnsafeNode();
-        } else {
-            node = transformResult(context, method, methodNode);
-            node = Translator.sequence(sourceIndexLength, Arrays.asList(checkArity, node));
-        }
+        node = transformResult(context, method, methodNode);
+        node = Translator.sequence(sourceIndexLength, Arrays.asList(checkArity, node));
 
         final RubyNode bodyNode = new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
 
@@ -331,52 +326,6 @@ public class CoreMethodNodeManager {
         }
 
         return node;
-    }
-
-    public static boolean isSafe(RubyContext context, UnsafeGroup[] groups) {
-        final Options options = context.getOptions();
-
-        for (UnsafeGroup group : groups) {
-            final boolean option;
-
-            switch (group) {
-                case LOAD:
-                    option = options.PLATFORM_SAFE_LOAD;
-                    break;
-                case IO:
-                    option = options.PLATFORM_SAFE_IO;
-                    break;
-                case MEMORY:
-                    option = options.PLATFORM_SAFE_MEMORY;
-                    break;
-                case THREADS:
-                    option = options.PLATFORM_SAFE_THREADS;
-                    break;
-                case PROCESSES:
-                    option = options.PLATFORM_SAFE_PROCESSES;
-                    break;
-                case SIGNALS:
-                    option = options.PLATFORM_SAFE_SIGNALS;
-                    break;
-                case EXIT:
-                    option = options.PLATFORM_SAFE_EXIT;
-                    break;
-                case AT_EXIT:
-                    option = options.PLATFORM_SAFE_AT_EXIT;
-                    break;
-                case SAFE_PUTS:
-                    option = options.PLATFORM_SAFE_PUTS;
-                    break;
-                default:
-                    throw new IllegalStateException();
-            }
-
-            if (!option) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public void allMethodInstalled() {

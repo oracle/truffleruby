@@ -71,7 +71,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
-import org.truffleruby.platform.UnsafeGroup;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -83,7 +82,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @CoreClass("Thread")
 public abstract class ThreadNodes {
 
-    @CoreMethod(names = "alive?", unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "alive?")
     public abstract static class AliveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -94,7 +93,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "backtrace", unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "backtrace")
     public abstract static class BacktraceNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -140,7 +139,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = { "kill", "exit", "terminate" }, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = { "kill", "exit", "terminate" })
     public abstract static class KillNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -160,7 +159,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "handle_interrupt", required = 2, needsBlock = true, visibility = Visibility.PRIVATE, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "handle_interrupt", required = 2, needsBlock = true, visibility = Visibility.PRIVATE)
     public abstract static class HandleInterruptNode extends YieldingCoreMethodNode {
 
         @CompilationFinal private DynamicObject immediateSymbol;
@@ -225,7 +224,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "initialize", rest = true, needsBlock = true, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "initialize", rest = true, needsBlock = true)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -237,7 +236,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "join", optional = 1, lowerFixnum = 1, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "join", optional = 1, lowerFixnum = 1)
     public abstract static class JoinNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -319,7 +318,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "pass", onSingleton = true, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "pass", onSingleton = true)
     public abstract static class PassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -330,7 +329,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "status", unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "status")
     public abstract static class StatusNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -349,7 +348,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "stop?", unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "stop?")
     public abstract static class StopNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -360,7 +359,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "value", unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "value")
     public abstract static class ValueNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -371,7 +370,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = { "wakeup", "run" }, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = { "wakeup", "run" })
     public abstract static class WakeupNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -395,7 +394,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "abort_on_exception", unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "abort_on_exception")
     public abstract static class AbortOnExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -405,7 +404,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "abort_on_exception=", required = 1, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "abort_on_exception=", required = 1)
     public abstract static class SetAbortOnExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -417,7 +416,7 @@ public abstract class ThreadNodes {
     }
 
     @NonStandard
-    @CoreMethod(names = "allocate", constructor = true, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "allocate", constructor = true)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -464,7 +463,7 @@ public abstract class ThreadNodes {
         }
     }
 
-    @Primitive(name = "thread_raise", unsafe = UnsafeGroup.THREADS)
+    @Primitive(name = "thread_raise")
     public static abstract class ThreadRaisePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyThread(thread)", "isRubyException(exception)" })
@@ -507,7 +506,7 @@ public abstract class ThreadNodes {
         }
     }
 
-    @Primitive(name = "thread_get_priority", unsafe = UnsafeGroup.THREADS)
+    @Primitive(name = "thread_get_priority")
     public static abstract class ThreadGetPriorityPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyThread(thread)")
@@ -532,7 +531,7 @@ public abstract class ThreadNodes {
         }
     }
 
-    @Primitive(name = "thread_set_priority", unsafe = UnsafeGroup.THREADS)
+    @Primitive(name = "thread_set_priority")
     public static abstract class ThreadSetPriorityPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         static final int RUBY_MIN_THREAD_PRIORITY = -3;
@@ -572,7 +571,7 @@ public abstract class ThreadNodes {
         }
     }
 
-    @Primitive(name = "thread_get_fiber_locals", unsafe = UnsafeGroup.THREADS)
+    @Primitive(name = "thread_get_fiber_locals")
     public static abstract class ThreadGetFiberLocalsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyThread(thread)")

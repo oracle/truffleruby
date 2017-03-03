@@ -97,7 +97,6 @@ import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.Translator;
-import org.truffleruby.platform.UnsafeGroup;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -476,7 +475,7 @@ public abstract class ModuleNodes {
 
     }
 
-    @CoreMethod(names = "autoload", required = 2, unsafe = UnsafeGroup.LOAD)
+    @CoreMethod(names = "autoload", required = 2)
     @NodeChildren({
             @NodeChild(type = RubyNode.class, value = "module"),
             @NodeChild(type = RubyNode.class, value = "name"),

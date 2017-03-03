@@ -37,7 +37,6 @@ import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
-import org.truffleruby.platform.UnsafeGroup;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -234,7 +233,7 @@ public abstract class FiberNodes {
 
     }
 
-    @CoreMethod(names = "initialize", needsBlock = true, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "initialize", needsBlock = true, unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -246,7 +245,7 @@ public abstract class FiberNodes {
 
     }
 
-    @CoreMethod(names = "resume", rest = true, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "resume", rest = true)
     public abstract static class ResumeNode extends CoreMethodArrayArgumentsNode {
 
         @Child private FiberTransferNode fiberTransferNode = FiberNodesFactory.FiberTransferNodeFactory.create(null);
@@ -258,7 +257,7 @@ public abstract class FiberNodes {
 
     }
 
-    @CoreMethod(names = "yield", onSingleton = true, rest = true, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "yield", onSingleton = true, rest = true)
     public abstract static class YieldNode extends CoreMethodArrayArgumentsNode {
 
         @Child private FiberTransferNode fiberTransferNode = FiberNodesFactory.FiberTransferNodeFactory.create(null);
@@ -328,7 +327,7 @@ public abstract class FiberNodes {
         private static final long serialVersionUID = 1522270454305076317L;
     }
 
-    @CoreMethod(names = "alive?", unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "alive?")
     public abstract static class AliveNode extends UnaryCoreMethodNode {
 
         @Specialization
@@ -349,7 +348,7 @@ public abstract class FiberNodes {
 
     }
 
-    @CoreMethod(names = "allocate", constructor = true, unsafe = UnsafeGroup.THREADS)
+    @CoreMethod(names = "allocate", constructor = true)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

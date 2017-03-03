@@ -112,7 +112,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.TruffleBootNodesFactory;
-import org.truffleruby.language.TruffleSafeNodesFactory;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
@@ -591,7 +590,6 @@ public class CoreLibrary {
         defineModule(truffleModule, "String");
         truffleBootModule = defineModule(truffleModule, "Boot");
         defineModule(truffleModule, "Fixnum");
-        defineModule(truffleModule, "Safe");
         defineModule(truffleModule, "System");
         truffleKernelModule = defineModule(truffleModule, "Kernel");
         defineModule(truffleModule, "Process");
@@ -939,28 +937,25 @@ public class CoreLibrary {
     }
 
     public void initializePostBoot() {
-        if (context.getOptions().PLATFORM_SAFE_LOAD) {
-            // Load code that can't be run until everything else is boostrapped, such as pre-loaded Ruby stdlib.
+        // Load code that can't be run until everything else is boostrapped, such as pre-loaded Ruby stdlib.
+
+        try {
+            Main.printTruffleTimeMetric("before-post-boot");
 
             try {
-                Main.printTruffleTimeMetric("before-post-boot");
-
-                try {
-                    final RubyRootNode rootNode = context.getCodeLoader().parse(context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb"), UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
-                    final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(ParserContext.TOP_LEVEL, DeclarationContext.TOP_LEVEL, rootNode, null, context.getCoreLibrary().getMainObject());
-                    deferredCall.callWithoutCallNode();
-                } catch (IOException e) {
-                    throw new JavaException(e);
-                }
-
-                Main.printTruffleTimeMetric("after-post-boot");
-            } catch (RaiseException e) {
-                final DynamicObject rubyException = e.getException();
-                BacktraceFormatter.createDefaultFormatter(getContext()).printBacktrace(context, rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
-                throw new TruffleFatalException("couldn't load the post-boot code", e);
+                final RubyRootNode rootNode = context.getCodeLoader().parse(context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb"), UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
+                final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(ParserContext.TOP_LEVEL, DeclarationContext.TOP_LEVEL, rootNode, null, context.getCoreLibrary().getMainObject());
+                deferredCall.callWithoutCallNode();
+            } catch (IOException e) {
+                throw new JavaException(e);
             }
-        }
 
+            Main.printTruffleTimeMetric("after-post-boot");
+        } catch (RaiseException e) {
+            final DynamicObject rubyException = e.getException();
+            BacktraceFormatter.createDefaultFormatter(getContext()).printBacktrace(context, rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
+            throw new TruffleFatalException("couldn't load the post-boot code", e);
+        }
     }
 
     private void initializeEncodings() {
@@ -1571,7 +1566,6 @@ public class CoreLibrary {
             TrufflePosixNodesFactory.getFactories(),
             TruffleProcessNodesFactory.getFactories(),
             TruffleRopesNodesFactory.getFactories(),
-            TruffleSafeNodesFactory.getFactories(),
             TruffleStringNodesFactory.getFactories(),
             TruffleSystemNodesFactory.getFactories(),
             UnboundMethodNodesFactory.getFactories(),

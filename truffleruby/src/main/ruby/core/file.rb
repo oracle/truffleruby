@@ -1349,15 +1349,9 @@ class File::Stat
   end
 end
 
-if Truffle::Safe.io_safe?
-  STDIN = File.new(0)
-  STDOUT = File.new(1)
-  STDERR = File.new(2)
-else
-  STDIN = nil
-  STDOUT = nil
-  STDERR = nil
-end
+STDIN = File.new(0)
+STDOUT = File.new(1)
+STDERR = File.new(2)
 
 $stdin = STDIN
 $stdout = STDOUT
@@ -1369,20 +1363,18 @@ class << STDIN
   end
 end
 
-if Truffle::Safe.io_safe?
-  if STDOUT.tty?
-    STDOUT.sync = true
-  else
-    Truffle::Kernel.at_exit true do
-      STDOUT.flush
-    end
+if STDOUT.tty?
+  STDOUT.sync = true
+else
+  Truffle::Kernel.at_exit true do
+    STDOUT.flush
   end
+end
 
-  if STDERR.tty?
-    STDERR.sync = true
-  else
-    Truffle::Kernel.at_exit true do
-      STDERR.flush
-    end
+if STDERR.tty?
+  STDERR.sync = true
+else
+  Truffle::Kernel.at_exit true do
+    STDERR.flush
   end
 end

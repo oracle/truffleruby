@@ -48,7 +48,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.platform.UnsafeGroup;
 
 import java.io.File;
 
@@ -66,7 +65,7 @@ public abstract class DirNodes {
 
     }
 
-    @Primitive(name = "dir_open", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "dir_open")
     public static abstract class DirOpenPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -101,7 +100,7 @@ public abstract class DirNodes {
 
     }
 
-    @Primitive(name = "dir_read", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "dir_read")
     public static abstract class DirReadPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -129,7 +128,7 @@ public abstract class DirNodes {
     }
 
 
-    @Primitive(name = "dir_control", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "dir_control")
     public static abstract class DirControlPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
@@ -151,7 +150,7 @@ public abstract class DirNodes {
 
     }
 
-    @Primitive(name = "dir_close", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "dir_close")
     public static abstract class DirClosePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary

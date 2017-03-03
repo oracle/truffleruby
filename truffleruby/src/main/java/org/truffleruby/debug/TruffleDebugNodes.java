@@ -38,7 +38,6 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
-import org.truffleruby.platform.UnsafeGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,7 +99,7 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @CoreMethod(names = "print_backtrace", onSingleton = true, unsafe = UnsafeGroup.IO)
+    @CoreMethod(names = "print_backtrace", onSingleton = true)
     public abstract static class PrintBacktraceNode extends CoreMethodNode {
 
         @TruffleBoundary

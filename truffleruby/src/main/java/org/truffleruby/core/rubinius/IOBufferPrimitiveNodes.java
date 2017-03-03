@@ -55,14 +55,13 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.platform.UnsafeGroup;
 
 public abstract class IOBufferPrimitiveNodes {
 
     private static final int IOBUFFER_SIZE = 32768;
     private static final int STACK_BUF_SZ = 8192;
 
-    @Primitive(name = "iobuffer_allocate", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "iobuffer_allocate")
     public static abstract class IOBufferAllocatePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
@@ -77,7 +76,7 @@ public abstract class IOBufferPrimitiveNodes {
 
     }
 
-    @Primitive(name = "iobuffer_unshift", lowerFixnum = { 2, 3 }, unsafe = UnsafeGroup.IO)
+    @Primitive(name = "iobuffer_unshift", lowerFixnum = { 2, 3 })
     public static abstract class IOBufferUnshiftPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
@@ -113,7 +112,7 @@ public abstract class IOBufferPrimitiveNodes {
 
     }
 
-    @Primitive(name = "iobuffer_fill", unsafe = UnsafeGroup.IO)
+    @Primitive(name = "iobuffer_fill")
     public static abstract class IOBufferFillPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
