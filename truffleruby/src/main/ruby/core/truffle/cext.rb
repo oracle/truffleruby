@@ -126,6 +126,14 @@ module Truffle::CExt
     end
   end
 
+  def rb_method_boundp(klass, id, ex)
+    if ex == 0
+      (klass.method_defined?(id) || klass.private_method_defined?(id) || klass.protected_method_defined?(id)) ? 1 : 0
+    else
+      klass.method_defined?(id) ? 1 : 0
+    end
+  end
+
   def rb_obj_is_instance_of(object, ruby_class)
     object.class == ruby_class
   end

@@ -582,8 +582,7 @@ int rb_sourceline(void) {
 }
 
 int rb_method_boundp(VALUE klass, ID id, int ex) {
-  rb_tr_error("rb_method_boundp not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_method_boundp", klass, id, ex);
 }
 
 // Object
