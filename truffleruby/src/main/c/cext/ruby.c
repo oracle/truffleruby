@@ -618,8 +618,7 @@ VALUE rb_convert_type(VALUE object, int type, const char *type_name, const char 
 }
 
 void rb_extend_object(VALUE object, VALUE module) {
-  rb_tr_error("rb_extend_object not implemented");
-  abort();
+  truffle_invoke((void *)module, "extend_object", object);
 }
 
 VALUE rb_inspect(VALUE object) {
