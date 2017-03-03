@@ -50,7 +50,6 @@ import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.NativePlatformFactory;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
-import org.truffleruby.tools.InstrumentationServerManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -97,7 +96,6 @@ public class RubyContext extends ExecutionContext {
     private final CoreMethods coreMethods;
     private final ThreadManager threadManager;
     private final LexicalScope rootLexicalScope;
-    private final InstrumentationServerManager instrumentationServerManager;
     private final CoverageManager coverageManager;
     private ConsoleHolder consoleHolder;
 
@@ -188,14 +186,6 @@ public class RubyContext extends ExecutionContext {
 
             // Load other subsystems
 
-            // The instrumentation server can't be run with AOT because com.sun.net.httpserver.spi.HttpServerProvider uses runtime class loading.
-            if (!TruffleOptions.AOT && options.INSTRUMENTATION_SERVER_PORT != 0) {
-                instrumentationServerManager = new InstrumentationServerManager(this, options.INSTRUMENTATION_SERVER_PORT);
-                instrumentationServerManager.start();
-            } else {
-                instrumentationServerManager = null;
-            }
-
             coreLibrary.initializePostBoot();
 
             // Share once everything is loaded
@@ -259,10 +249,6 @@ public class RubyContext extends ExecutionContext {
         }
 
         atExitManager.runSystemExitHooks();
-
-        if (instrumentationServerManager != null) {
-            instrumentationServerManager.shutdown();
-        }
 
         threadManager.shutdown();
 

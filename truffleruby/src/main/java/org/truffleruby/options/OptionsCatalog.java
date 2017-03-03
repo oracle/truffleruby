@@ -81,7 +81,6 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription METHODMISSING_ALWAYS_INLINE = new BooleanOptionDescription("method_missing.always_inline", "Always inline #method_missing", INLINE_DEFAULT.getDefaultValue());
     public static final IntegerOptionDescription PACK_UNROLL_LIMIT = new IntegerOptionDescription("pack.unroll", "If a pack or unpack expression has a loop less than this many iterations", 4);
     public static final IntegerOptionDescription PACK_RECOVER_LOOP_MIN = new IntegerOptionDescription("pack.recover", "If a pack or unpack expression is longer than this", 32);
-    public static final IntegerOptionDescription INSTRUMENTATION_SERVER_PORT = new IntegerOptionDescription("instrumentation_server_port", "Port number to run an HTTP server on that provides instrumentation services", 0);
     public static final BooleanOptionDescription EXCEPTIONS_STORE_JAVA = new BooleanOptionDescription("exceptions.store_java", "Store the Java exception with the Ruby backtrace", false);
     public static final BooleanOptionDescription EXCEPTIONS_PRINT_JAVA = new BooleanOptionDescription("exceptions.print_java", "Print Java exceptions at the point of translating them to Ruby exceptions", false);
     public static final BooleanOptionDescription EXCEPTIONS_PRINT_UNCAUGHT_JAVA = new BooleanOptionDescription("exceptions.print_uncaught_java", "Print uncaught Java exceptions at the point of translating them to Ruby exceptions", false);
@@ -235,8 +234,6 @@ public class OptionsCatalog {
                 return PACK_UNROLL_LIMIT;
             case "pack.recover":
                 return PACK_RECOVER_LOOP_MIN;
-            case "instrumentation_server_port":
-                return INSTRUMENTATION_SERVER_PORT;
             case "exceptions.store_java":
                 return EXCEPTIONS_STORE_JAVA;
             case "exceptions.print_java":
@@ -349,7 +346,6 @@ public class OptionsCatalog {
             METHODMISSING_ALWAYS_INLINE,
             PACK_UNROLL_LIMIT,
             PACK_RECOVER_LOOP_MIN,
-            INSTRUMENTATION_SERVER_PORT,
             EXCEPTIONS_STORE_JAVA,
             EXCEPTIONS_PRINT_JAVA,
             EXCEPTIONS_PRINT_UNCAUGHT_JAVA,

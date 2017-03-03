@@ -79,7 +79,6 @@ METHODMISSING_ALWAYS_INLINE: [method_missing.always_inline, boolean, INLINE_DEFA
 PACK_UNROLL_LIMIT: [pack.unroll, integer, 4, If a pack or unpack expression has a loop less than this many iterations, unroll it]
 PACK_RECOVER_LOOP_MIN: [pack.recover, integer, 32, If a pack or unpack expression is longer than this, attempt to recover loops]
 
-INSTRUMENTATION_SERVER_PORT: [instrumentation_server_port, integer, 0, Port number to run an HTTP server on that provides instrumentation services]
 EXCEPTIONS_STORE_JAVA: [exceptions.store_java, boolean, false, Store the Java exception with the Ruby backtrace]
 EXCEPTIONS_PRINT_JAVA: [exceptions.print_java, boolean, false, Print Java exceptions at the point of translating them to Ruby exceptions]
 EXCEPTIONS_PRINT_UNCAUGHT_JAVA: [exceptions.print_uncaught_java, boolean, false, Print uncaught Java exceptions at the point of translating them to Ruby exceptions]

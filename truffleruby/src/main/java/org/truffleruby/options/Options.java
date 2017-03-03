@@ -83,7 +83,6 @@ public class Options {
     public final boolean METHODMISSING_ALWAYS_INLINE;
     public final int PACK_UNROLL_LIMIT;
     public final int PACK_RECOVER_LOOP_MIN;
-    public final int INSTRUMENTATION_SERVER_PORT;
     public final boolean EXCEPTIONS_STORE_JAVA;
     public final boolean EXCEPTIONS_PRINT_JAVA;
     public final boolean EXCEPTIONS_PRINT_UNCAUGHT_JAVA;
@@ -171,7 +170,6 @@ public class Options {
         METHODMISSING_ALWAYS_INLINE = builder.getOrDefault(OptionsCatalog.METHODMISSING_ALWAYS_INLINE, INLINE_DEFAULT);
         PACK_UNROLL_LIMIT = builder.getOrDefault(OptionsCatalog.PACK_UNROLL_LIMIT);
         PACK_RECOVER_LOOP_MIN = builder.getOrDefault(OptionsCatalog.PACK_RECOVER_LOOP_MIN);
-        INSTRUMENTATION_SERVER_PORT = builder.getOrDefault(OptionsCatalog.INSTRUMENTATION_SERVER_PORT);
         EXCEPTIONS_STORE_JAVA = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_STORE_JAVA);
         EXCEPTIONS_PRINT_JAVA = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_PRINT_JAVA);
         EXCEPTIONS_PRINT_UNCAUGHT_JAVA = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_PRINT_UNCAUGHT_JAVA);
@@ -326,8 +324,6 @@ public class Options {
                 return PACK_UNROLL_LIMIT;
             case "pack.recover":
                 return PACK_RECOVER_LOOP_MIN;
-            case "instrumentation_server_port":
-                return INSTRUMENTATION_SERVER_PORT;
             case "exceptions.store_java":
                 return EXCEPTIONS_STORE_JAVA;
             case "exceptions.print_java":
