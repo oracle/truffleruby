@@ -92,7 +92,6 @@ public class Options {
     public final int BACKTRACES_LIMIT;
     public final boolean BACKTRACES_OMIT_UNUSED;
     public final boolean BASICOPS_INLINE;
-    public final boolean CHAOS;
     public final boolean GRAAL_WARNING_UNLESS;
     public final boolean SHARED_OBJECTS_ENABLED;
     public final boolean SHARED_OBJECTS_DEBUG;
@@ -179,7 +178,6 @@ public class Options {
         BACKTRACES_LIMIT = builder.getOrDefault(OptionsCatalog.BACKTRACES_LIMIT);
         BACKTRACES_OMIT_UNUSED = builder.getOrDefault(OptionsCatalog.BACKTRACES_OMIT_UNUSED);
         BASICOPS_INLINE = builder.getOrDefault(OptionsCatalog.BASICOPS_INLINE);
-        CHAOS = builder.getOrDefault(OptionsCatalog.CHAOS);
         GRAAL_WARNING_UNLESS = builder.getOrDefault(OptionsCatalog.GRAAL_WARNING_UNLESS);
         SHARED_OBJECTS_ENABLED = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_ENABLED);
         SHARED_OBJECTS_DEBUG = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_DEBUG);
@@ -342,8 +340,6 @@ public class Options {
                 return BACKTRACES_OMIT_UNUSED;
             case "basic_ops.inline":
                 return BASICOPS_INLINE;
-            case "chaos":
-                return CHAOS;
             case "graal.warn_unless":
                 return GRAAL_WARNING_UNLESS;
             case "shared.objects":

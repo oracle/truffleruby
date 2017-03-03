@@ -64,7 +64,6 @@ import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.SuperParseNode;
 import org.truffleruby.parser.ast.UnnamedRestArgParseNode;
 import org.truffleruby.parser.ast.ZSuperParseNode;
-import org.truffleruby.tools.ChaosNodeGen;
 
 import java.util.Arrays;
 
@@ -151,10 +150,6 @@ public class MethodTranslator extends BodyTranslator {
         }
 
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
-
-        if (context.getOptions().CHAOS) {
-            body = ChaosNodeGen.create(body);
-        }
 
         // Procs
         final RubyNode bodyProc = new CatchForProcNode(composeBody(sourceSection, preludeProc, NodeUtil.cloneNode(body)));
@@ -279,10 +274,6 @@ public class MethodTranslator extends BodyTranslator {
 
         // TODO(CS, 10-Jan-15) why do we only translate exceptions in methods and not blocks?
         body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
-
-        if (context.getOptions().CHAOS) {
-            body = ChaosNodeGen.create(body);
-        }
 
         body.unsafeSetSourceSection(sourceSection);
 

@@ -269,7 +269,6 @@ import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.graal.AssertConstantNodeGen;
 import org.truffleruby.platform.graal.AssertNotCompiledNodeGen;
-import org.truffleruby.tools.ChaosNodeGen;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -1038,10 +1037,6 @@ public class BodyTranslator extends Translator {
 
         final RubyNode writeSelfNode = loadSelf(context, environment);
         body = sequence(sourceSection, Arrays.asList(writeSelfNode, body));
-
-        if (context.getOptions().CHAOS) {
-            body = ChaosNodeGen.create(body);
-        }
 
         final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 

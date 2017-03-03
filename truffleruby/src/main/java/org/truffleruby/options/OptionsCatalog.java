@@ -90,7 +90,6 @@ public class OptionsCatalog {
     public static final IntegerOptionDescription BACKTRACES_LIMIT = new IntegerOptionDescription("backtraces.limit", "Limit the size of Ruby backtraces", 9999);
     public static final BooleanOptionDescription BACKTRACES_OMIT_UNUSED = new BooleanOptionDescription("backtraces.omit_unused", "Omit backtraces that should be unused as they have pure rescue expressions", true);
     public static final BooleanOptionDescription BASICOPS_INLINE = new BooleanOptionDescription("basic_ops.inline", "Inline basic operations (like Fixnum operators) in the AST without a call", true);
-    public static final BooleanOptionDescription CHAOS = new BooleanOptionDescription("chaos", "Randomly modify the representation of objects", false);
     public static final BooleanOptionDescription GRAAL_WARNING_UNLESS = new BooleanOptionDescription("graal.warn_unless", "Warn unless the JVM has the Graal compiler", true);
     public static final BooleanOptionDescription SHARED_OBJECTS_ENABLED = new BooleanOptionDescription("shared.objects", "Enable shared objects", true);
     public static final BooleanOptionDescription SHARED_OBJECTS_DEBUG = new BooleanOptionDescription("shared.objects.debug", "Print information about shared objects", false);
@@ -252,8 +251,6 @@ public class OptionsCatalog {
                 return BACKTRACES_OMIT_UNUSED;
             case "basic_ops.inline":
                 return BASICOPS_INLINE;
-            case "chaos":
-                return CHAOS;
             case "graal.warn_unless":
                 return GRAAL_WARNING_UNLESS;
             case "shared.objects":
@@ -355,7 +352,6 @@ public class OptionsCatalog {
             BACKTRACES_LIMIT,
             BACKTRACES_OMIT_UNUSED,
             BASICOPS_INLINE,
-            CHAOS,
             GRAAL_WARNING_UNLESS,
             SHARED_OBJECTS_ENABLED,
             SHARED_OBJECTS_DEBUG,

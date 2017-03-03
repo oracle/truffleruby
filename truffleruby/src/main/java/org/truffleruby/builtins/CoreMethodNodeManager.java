@@ -45,9 +45,7 @@ import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.options.Options;
 import org.truffleruby.parser.Translator;
-import org.truffleruby.tools.ChaosNodeGen;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -319,10 +317,6 @@ public class CoreMethodNodeManager {
             final boolean taintFromSelf = method.taintFrom() == 0;
             final int taintFromArg = taintFromSelf ? -1 : method.taintFrom() - 1;
             node = new TaintResultNode(taintFromSelf, taintFromArg, node);
-        }
-
-        if (context.getOptions().CHAOS) {
-            node = ChaosNodeGen.create(node);
         }
 
         return node;
