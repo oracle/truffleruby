@@ -85,7 +85,7 @@ public class HeredocTerm extends StrTerm {
         return flags;
     }
 
-    protected int error(RubyLexer lexer, int len, Rope str, Rope eos) {
+    protected int error(RubyLexer lexer, Rope eos) {
         lexer.compile_error("can't find string \"" + RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, eos) + "\" anywhere before EOF");
         return -1;
     }
@@ -101,11 +101,10 @@ public class HeredocTerm extends StrTerm {
     public int parseString(RubyLexer lexer) throws java.io.IOException {
         RopeBuilder str = null;
         Rope eos = nd_lit;
-        int len = nd_lit.byteLength() - 1;
         boolean indent = (flags & STR_FUNC_INDENT) != 0;
         int c = lexer.nextc();
 
-        if (c == EOF) return error(lexer, len, null, eos);
+        if (c == EOF) return error(lexer, eos);
 
         // Found end marker for this heredoc
         if (lexer.was_bol() && lexer.whole_match_p(nd_lit, indent)) {
@@ -154,7 +153,7 @@ public class HeredocTerm extends StrTerm {
                     return Tokens.tSTRING_CONTENT;
                 }
                 // MRI null checks str in this case but it is unconditionally non-null?
-                if (lexer.nextc() == -1) return error(lexer, len, null, eos);
+                if (lexer.nextc() == -1) return error(lexer, eos);
             } while (!lexer.whole_match_p(eos, indent));
         } else {
             RopeBuilder tok = new RopeBuilder();
@@ -180,7 +179,7 @@ public class HeredocTerm extends StrTerm {
                 enc[0] = lexer.getEncoding();
 
                 if ((c = new StringTerm(flags, '\0', '\n').parseStringIntoBuffer(lexer, tok, enc)) == EOF) {
-                    if (lexer.eofp) return error(lexer, len, null, eos);
+                    if (lexer.eofp) return error(lexer, eos);
                     return restore(lexer);
                 }
                 if (c != '\n') {
@@ -195,7 +194,7 @@ public class HeredocTerm extends StrTerm {
                     return Tokens.tSTRING_CONTENT;
                 }
 
-                if ((c = lexer.nextc()) == EOF) return error(lexer, len, null, eos);
+                if ((c = lexer.nextc()) == EOF) return error(lexer, eos);
             } while (!lexer.whole_match_p(eos, indent));
             str = tok;
         }
