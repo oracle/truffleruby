@@ -105,7 +105,7 @@ public class HeredocTerm extends StrTerm {
         boolean indent = (flags & STR_FUNC_INDENT) != 0;
         int c = lexer.nextc();
 
-        if (c == EOF) return error(lexer, len, str.toRope(), eos);
+        if (c == EOF) return error(lexer, len, null, eos);
 
         // Found end marker for this heredoc
         if (lexer.was_bol() && lexer.whole_match_p(nd_lit, indent)) {
@@ -180,7 +180,7 @@ public class HeredocTerm extends StrTerm {
                 enc[0] = lexer.getEncoding();
 
                 if ((c = new StringTerm(flags, '\0', '\n').parseStringIntoBuffer(lexer, tok, enc)) == EOF) {
-                    if (lexer.eofp) return error(lexer, len, str.toRope(), eos);
+                    if (lexer.eofp) return error(lexer, len, null, eos);
                     return restore(lexer);
                 }
                 if (c != '\n') {
@@ -195,7 +195,7 @@ public class HeredocTerm extends StrTerm {
                     return Tokens.tSTRING_CONTENT;
                 }
 
-                if ((c = lexer.nextc()) == EOF) return error(lexer, len, str.toRope(), eos);
+                if ((c = lexer.nextc()) == EOF) return error(lexer, len, null, eos);
             } while (!lexer.whole_match_p(eos, indent));
             str = tok;
         }
