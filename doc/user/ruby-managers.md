@@ -4,7 +4,7 @@ It's recommended to add TruffleRuby to a Ruby manager for ease of use.
 
 ## RVM
 
-RVM has a command for adding precompiled Ruby.
+RVM has a command for adding a precompiled Ruby to the list of available rubies:
 
 ```bash
 rvm mount path/to/graalvm/language/ruby -n truffleruby
@@ -12,8 +12,8 @@ rvm mount path/to/graalvm/language/ruby -n truffleruby
 
 ## rbenv
 
-To add TruffleRuby to rbenv a symbolic link has to be added to the `versions` 
-directory of rbenv.
+To add TruffleRuby to `rbenv` a symbolic link has to be added to the `versions` 
+directory of rbenv:
 
 ```bash
 ln -s path/to/graalvm/language/ruby "$RBENV_ROOT/versions/truffleruby"
@@ -21,16 +21,16 @@ ln -s path/to/graalvm/language/ruby "$RBENV_ROOT/versions/truffleruby"
 
 ## chruby
 
-To add TruffleRuby to chruby a symbolic link has to be added to the `$HOME/.rubies` 
-directory.
+To add TruffleRuby to `chruby` a symbolic link has to be added to the `$HOME/.rubies` 
+directory:
 
 ```bash
 ln -s path/to/graalvm/language/ruby "$HOME/.rubies/truffleruby"
 ```
 
-## Using TruffleRuby without Ruby manager
+## Using TruffleRuby without a Ruby manager
 
-If you are using a Ruby manager like `rvm`, `rbnev`, or `chruby` and wish
+If you are using a Ruby manager like `rvm`, `rbenv`, or `chruby` and wish
 not to add TruffleRuby to one of them 
 make sure that the manager does not set environment variables 
 `GEM_HOME`, `GEM_PATH`, and `GEM_ROOT`. 
