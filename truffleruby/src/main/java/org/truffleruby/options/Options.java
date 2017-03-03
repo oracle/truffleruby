@@ -93,8 +93,6 @@ public class Options {
     public final int BACKTRACES_LIMIT;
     public final boolean BACKTRACES_OMIT_UNUSED;
     public final boolean BASICOPS_INLINE;
-    public final boolean CALL_GRAPH;
-    public final String CALL_GRAPH_WRITE;
     public final boolean CHAOS;
     public final boolean GRAAL_WARNING_UNLESS;
     public final boolean SHARED_OBJECTS_ENABLED;
@@ -183,8 +181,6 @@ public class Options {
         BACKTRACES_LIMIT = builder.getOrDefault(OptionsCatalog.BACKTRACES_LIMIT);
         BACKTRACES_OMIT_UNUSED = builder.getOrDefault(OptionsCatalog.BACKTRACES_OMIT_UNUSED);
         BASICOPS_INLINE = builder.getOrDefault(OptionsCatalog.BASICOPS_INLINE);
-        CALL_GRAPH = builder.getOrDefault(OptionsCatalog.CALL_GRAPH);
-        CALL_GRAPH_WRITE = builder.getOrDefault(OptionsCatalog.CALL_GRAPH_WRITE);
         CHAOS = builder.getOrDefault(OptionsCatalog.CHAOS);
         GRAAL_WARNING_UNLESS = builder.getOrDefault(OptionsCatalog.GRAAL_WARNING_UNLESS);
         SHARED_OBJECTS_ENABLED = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_ENABLED);
@@ -350,10 +346,6 @@ public class Options {
                 return BACKTRACES_OMIT_UNUSED;
             case "basic_ops.inline":
                 return BASICOPS_INLINE;
-            case "callgraph":
-                return CALL_GRAPH;
-            case "callgraph.write":
-                return CALL_GRAPH_WRITE;
             case "chaos":
                 return CHAOS;
             case "graal.warn_unless":

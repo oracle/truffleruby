@@ -90,8 +90,6 @@ BACKTRACES_LIMIT: [backtraces.limit, integer, 9999, Limit the size of Ruby backt
 BACKTRACES_OMIT_UNUSED: [backtraces.omit_unused, boolean, true, Omit backtraces that should be unused as they have pure rescue expressions]
 BASICOPS_INLINE: [basic_ops.inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
 
-CALL_GRAPH: [callgraph, boolean, false, Maintain a call graph]
-CALL_GRAPH_WRITE: [callgraph.write, string, null, File to write the call graph to on exit]
 CHAOS: [chaos, boolean, false, Randomly modify the representation of objects]
 
 GRAAL_WARNING_UNLESS: [graal.warn_unless, boolean, true, Warn unless the JVM has the Graal compiler]

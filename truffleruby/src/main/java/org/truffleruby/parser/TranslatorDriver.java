@@ -224,7 +224,7 @@ public class TranslatorDriver {
                 final String name = argumentNames[n];
                 final RubyNode readNode = new ProfileArgumentNode(new ReadPreArgumentNode(n, MissingArgumentBehavior.NIL));
                 final FrameSlot slot = environment.getFrameDescriptor().findFrameSlot(name);
-                sequence.add(WriteLocalVariableNode.createWriteLocalVariableNode(context, slot, readNode));
+                sequence.add(new WriteLocalVariableNode(slot, readNode));
             }
 
             sequence.add(truffleNode);

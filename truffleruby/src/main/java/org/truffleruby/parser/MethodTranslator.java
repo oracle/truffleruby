@@ -116,7 +116,7 @@ public class MethodTranslator extends BodyTranslator {
             final RubyNode castArrayNode = ArrayCastNodeGen.create(readArrayNode);
 
             final FrameSlot arraySlot = environment.declareVar(environment.allocateLocalTemp("destructure"));
-            final RubyNode writeArrayNode = WriteLocalVariableNode.createWriteLocalVariableNode(context, arraySlot, castArrayNode);
+            final RubyNode writeArrayNode = new WriteLocalVariableNode(arraySlot, castArrayNode);
 
             final LoadArgumentsTranslator destructureArgumentsTranslator = new LoadArgumentsTranslator(currentNode, context, source, parserContext, isProc, this);
             destructureArgumentsTranslator.pushArraySlot(arraySlot);

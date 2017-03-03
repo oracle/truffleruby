@@ -39,10 +39,6 @@ public class RubyRootNode extends RootNode {
 
         body.unsafeSetIsCall();
         body.unsafeSetIsRoot();
-
-        if (context.getCallGraph() != null) {
-            context.getCallGraph().registerRootNode(this);
-        }
     }
 
     @Override
@@ -59,17 +55,6 @@ public class RubyRootNode extends RootNode {
     @Override
     public boolean isCloningAllowed() {
         return true;
-    }
-
-    @Override
-    public Node copy() {
-        final RubyRootNode cloned = (RubyRootNode) super.copy();
-
-        if (context.getCallGraph() != null) {
-            context.getCallGraph().registerRootNode(cloned);
-        }
-
-        return cloned;
     }
 
     @Override

@@ -91,8 +91,6 @@ public class OptionsCatalog {
     public static final IntegerOptionDescription BACKTRACES_LIMIT = new IntegerOptionDescription("backtraces.limit", "Limit the size of Ruby backtraces", 9999);
     public static final BooleanOptionDescription BACKTRACES_OMIT_UNUSED = new BooleanOptionDescription("backtraces.omit_unused", "Omit backtraces that should be unused as they have pure rescue expressions", true);
     public static final BooleanOptionDescription BASICOPS_INLINE = new BooleanOptionDescription("basic_ops.inline", "Inline basic operations (like Fixnum operators) in the AST without a call", true);
-    public static final BooleanOptionDescription CALL_GRAPH = new BooleanOptionDescription("callgraph", "Maintain a call graph", false);
-    public static final StringOptionDescription CALL_GRAPH_WRITE = new StringOptionDescription("callgraph.write", "File to write the call graph to on exit", null);
     public static final BooleanOptionDescription CHAOS = new BooleanOptionDescription("chaos", "Randomly modify the representation of objects", false);
     public static final BooleanOptionDescription GRAAL_WARNING_UNLESS = new BooleanOptionDescription("graal.warn_unless", "Warn unless the JVM has the Graal compiler", true);
     public static final BooleanOptionDescription SHARED_OBJECTS_ENABLED = new BooleanOptionDescription("shared.objects", "Enable shared objects", true);
@@ -257,10 +255,6 @@ public class OptionsCatalog {
                 return BACKTRACES_OMIT_UNUSED;
             case "basic_ops.inline":
                 return BASICOPS_INLINE;
-            case "callgraph":
-                return CALL_GRAPH;
-            case "callgraph.write":
-                return CALL_GRAPH_WRITE;
             case "chaos":
                 return CHAOS;
             case "graal.warn_unless":
@@ -365,8 +359,6 @@ public class OptionsCatalog {
             BACKTRACES_LIMIT,
             BACKTRACES_OMIT_UNUSED,
             BASICOPS_INLINE,
-            CALL_GRAPH,
-            CALL_GRAPH_WRITE,
             CHAOS,
             GRAAL_WARNING_UNLESS,
             SHARED_OBJECTS_ENABLED,

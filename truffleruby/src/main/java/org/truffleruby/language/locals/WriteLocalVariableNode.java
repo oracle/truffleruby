@@ -22,16 +22,7 @@ public class WriteLocalVariableNode extends RubyNode {
     @Child private RubyNode valueNode;
     @Child private WriteFrameSlotNode writeFrameSlotNode;
 
-    public static WriteLocalVariableNode createWriteLocalVariableNode(RubyContext context,
-                                                                      FrameSlot frameSlot, RubyNode valueNode) {
-        if (context.getCallGraph() == null) {
-            return new WriteLocalVariableNode(frameSlot, valueNode);
-        } else {
-            return new InstrumentedWriteLocalVariableNode(frameSlot, valueNode);
-        }
-    }
-
-    protected WriteLocalVariableNode(FrameSlot frameSlot, RubyNode valueNode) {
+    public WriteLocalVariableNode(FrameSlot frameSlot, RubyNode valueNode) {
         this.frameSlot = frameSlot;
         this.valueNode = valueNode;
     }

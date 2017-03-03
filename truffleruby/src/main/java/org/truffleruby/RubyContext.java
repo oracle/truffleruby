@@ -51,8 +51,6 @@ import org.truffleruby.platform.NativePlatformFactory;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 import org.truffleruby.tools.InstrumentationServerManager;
-import org.truffleruby.tools.callgraph.CallGraph;
-import org.truffleruby.tools.callgraph.SimpleWriter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -100,7 +98,6 @@ public class RubyContext extends ExecutionContext {
     private final ThreadManager threadManager;
     private final LexicalScope rootLexicalScope;
     private final InstrumentationServerManager instrumentationServerManager;
-    private final CallGraph callGraph;
     private final CoverageManager coverageManager;
     private ConsoleHolder consoleHolder;
 
@@ -126,12 +123,6 @@ public class RubyContext extends ExecutionContext {
 
             currentDirectory = System.getProperty("user.dir");
             verbose = options.VERBOSITY.equals(Verbosity.TRUE);
-
-            if (options.CALL_GRAPH) {
-                callGraph = new CallGraph();
-            } else {
-                callGraph = null;
-            }
 
             // Stuff that needs to be loaded before we load any code
 
@@ -278,18 +269,6 @@ public class RubyContext extends ExecutionContext {
         if (options.COVERAGE_GLOBAL) {
             coverageManager.print(System.out);
         }
-
-        if (callGraph != null) {
-            callGraph.resolve();
-
-            if (options.CALL_GRAPH_WRITE != null) {
-                try (PrintStream stream = new PrintStream(options.CALL_GRAPH_WRITE, StandardCharsets.UTF_8.name())) {
-                    new SimpleWriter(callGraph, stream).write();
-                } catch (FileNotFoundException | UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
     }
 
     public Options getOptions() {
@@ -381,10 +360,6 @@ public class RubyContext extends ExecutionContext {
 
     public SymbolTable getSymbolTable() {
         return symbolTable;
-    }
-
-    public CallGraph getCallGraph() {
-        return callGraph;
     }
 
     public CodeLoader getCodeLoader() {
