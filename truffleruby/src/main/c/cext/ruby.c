@@ -1188,8 +1188,7 @@ int rb_enc_get_index(VALUE obj) {
 // Symbol
 
 ID rb_to_id(VALUE name) {
-  rb_tr_error("rb_to_id not implemented");
-  abort();
+  return SYM2ID((VALUE) truffle_invoke((void *)name, "to_sym"));
 }
 
 ID rb_intern(const char *string) {
