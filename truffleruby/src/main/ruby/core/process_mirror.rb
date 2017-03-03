@@ -195,8 +195,6 @@ module Rubinius
                 elsif value
                   value = Rubinius::Type.coerce_to value, ::Integer, :to_int
                   raise ArgumentError, "negative process group ID : #{value}" if value < 0
-                else
-                  value = -1
                 end
                 @options[key] = value
               when :chdir

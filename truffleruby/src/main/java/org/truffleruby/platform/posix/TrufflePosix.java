@@ -16,7 +16,6 @@ import jnr.ffi.Pointer;
 import jnr.posix.FileStat;
 import jnr.posix.Passwd;
 import jnr.posix.SignalHandler;
-import jnr.posix.SpawnAttribute;
 import jnr.posix.SpawnFileAction;
 import jnr.posix.Times;
 
@@ -80,8 +79,7 @@ public interface TrufflePosix {
     int chdir(String path);
     long sysconf(Sysconf name);
     Times times();
-    int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends SpawnAttribute> spawnAttributes,
-            Collection<? extends CharSequence> argv, Collection<? extends CharSequence> envp);
+    int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends CharSequence> argv, Collection<? extends CharSequence> envp);
     int flock(int fd, int operation);
     int dup(int fd);
     int dup2(int oldFd, int newFd);

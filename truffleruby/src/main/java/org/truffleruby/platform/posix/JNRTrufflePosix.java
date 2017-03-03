@@ -20,7 +20,6 @@ import jnr.posix.FileStat;
 import jnr.posix.POSIX;
 import jnr.posix.Passwd;
 import jnr.posix.SignalHandler;
-import jnr.posix.SpawnAttribute;
 import jnr.posix.SpawnFileAction;
 import jnr.posix.Times;
 import org.truffleruby.core.CoreLibrary;
@@ -376,9 +375,8 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends SpawnAttribute> spawnAttributes, Collection<? extends CharSequence> argv,
-            Collection<? extends CharSequence> envp) {
-        final long pid = posix.posix_spawnp(path, fileActions, spawnAttributes, argv, envp);
+    public int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends CharSequence> argv, Collection<? extends CharSequence> envp) {
+        final long pid = posix.posix_spawnp(path, fileActions, argv, envp);
         // posix_spawnp() is declared as int return value, but jnr-posix declares as long.
         if (Platform.getPlatform().getOS() == OS.SOLARIS) {
             // Solaris/SPARCv9 has the int value in the wrong half.
