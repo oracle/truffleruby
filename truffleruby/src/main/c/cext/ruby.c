@@ -1512,8 +1512,7 @@ VALUE rb_cvar_get(VALUE klass, ID id) {
 }
 
 void rb_cvar_set(VALUE klass, ID id, VALUE val) {
-  rb_tr_error("rb_cvar_set not implemented");
-  abort();
+  truffle_invoke(RUBY_CEXT, "rb_cvar_set", klass, id, val);
 }
 
 VALUE rb_cv_get(VALUE klass, const char *name) {
@@ -1521,8 +1520,7 @@ VALUE rb_cv_get(VALUE klass, const char *name) {
 }
 
 void rb_cv_set(VALUE klass, const char *name, VALUE val) {
-  rb_tr_error("rb_cv_set not implemented");
-  abort();
+  truffle_invoke(RUBY_CEXT, "rb_cv_set", klass, rb_str_new_cstr(name), val);
 }
 
 void rb_define_attr(VALUE klass, const char *name, int read, int write) {

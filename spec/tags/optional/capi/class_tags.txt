@@ -22,8 +22,6 @@ fails:C-API Class function rb_path_to_class raises an ArgumentError if the final
 fails:C-API Class function rb_path_to_class raises a TypeError if the constant is not a class or module
 fails:C-API Class function rb_path_to_class raises an ArgumentError even if a constant in the path exists on toplevel
 fails:C-API Class function rb_cvar_defined returns true if the class instance variable is defined
-fails:C-API Class function rb_cv_set sets a class variable
-fails:C-API Class function rb_cvar_set sets a class variable
 fails:C-API Class function rb_define_class_variable sets a class variable
 fails:C-API Class function rb_class_new returns an new subclass of the superclass
 fails:C-API Class function rb_class_new raises a TypeError if passed Class as the superclass
