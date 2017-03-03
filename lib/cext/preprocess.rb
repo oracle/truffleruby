@@ -10,35 +10,7 @@ LOCAL = /\w+\s*(\[\s*\d+\s*\])?/
 VALUE_LOCALS = /^(\s+)VALUE\s+(#{LOCAL}(\s*,\s*#{LOCAL})*);\s*$/
 
 def preprocess(line)
-  if line.include?('rb_scan_args')
-    line.gsub(/\brb_scan_args\((\w+), (\w+), \"(.*)\", /) {
-      # Translate
-      #   rb_scan_args(argc, argv, "11", &v1, &v2)
-      # into
-      #   rb_tr_scan_args_11(argc, argv, "11", &v1, &v2)
-
-      argc = $1
-      argv = $2
-      arity = $3
-
-      case arity
-        when '0:'
-          shim = 'rb_tr_scan_args_0_hash'
-        when '02'
-          shim = 'rb_tr_scan_args_02'
-        when '11'
-          shim = 'rb_tr_scan_args_11'
-        when '12'
-          shim = 'rb_tr_scan_args_12'
-        when '1*'
-          shim = 'rb_tr_scan_args_1_star'
-        else
-          shim = 'rb_scan_args' # use the macro
-      end
-
-      "#{shim}(#{argc}, #{argv}, \"#{arity}\", "
-    }
-  elsif line =~ VALUE_LOCALS
+  if line =~ VALUE_LOCALS
     # Translate
     #   VALUE args[6], failed, a1, a2, a3, a4, a5, a6;
     #  into
@@ -78,4 +50,3 @@ if __FILE__ == $0
     puts preprocess(line)
   end
 end
-

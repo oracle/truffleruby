@@ -754,11 +754,6 @@ VALUE rb_proc_new(void *function, VALUE value);
 void rb_warn(const char *fmt, ...);
 void rb_warning(const char *fmt, ...);
 
-MUST_INLINE int rb_tr_scan_args_0_hash(int argc, VALUE *argv, const char *format, VALUE *v1);
-MUST_INLINE int rb_tr_scan_args_02(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
-MUST_INLINE int rb_tr_scan_args_11(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
-MUST_INLINE int rb_tr_scan_args_12(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3);
-MUST_INLINE int rb_tr_scan_args_1_star(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2);
 MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10);
 
 #define rb_tr_scan_args_1(ARGC, ARGV, FORMAT, V1) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
@@ -1146,53 +1141,6 @@ MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer) {
   }
 
   return RSTRING_PTR(string);
-}
-
-MUST_INLINE int rb_tr_scan_args_0_hash(int argc, VALUE *argv, const char *format, VALUE *v1) {
-  if (argc >= 1) *v1 = argv[0];
-  return argc;
-}
-
-MUST_INLINE int rb_tr_scan_args_02(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
-  if (argc >= 1) *v1 = argv[0];
-  if (argc >= 2) *v2 = argv[1];
-  return argc;
-}
-
-MUST_INLINE int rb_tr_scan_args_11(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
-  if (argc < 1) {
-    rb_tr_error("rb_tr_scan_args_11 error case not implemented");
-    abort();
-  }
-  *v1 = argv[0];
-  if (argc >= 2) *v2 = argv[1];
-  return argc - 1;
-}
-
-MUST_INLINE int rb_tr_scan_args_12(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3) {
-  if (argc < 1) {
-    rb_tr_error("rb_tr_scan_args_12 error case not implemented");
-    abort();
-  }
-  *v1 = argv[0];
-  if (argc >= 2) *v2 = argv[1];
-  if (argc >= 3) *v3 = argv[2];
-  return argc - 1;
-}
-
-MUST_INLINE int rb_tr_scan_args_1_star(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2) {
-  if (argc < 1) {
-    rb_tr_error("rb_tr_scan_args_1_star error case not implemented");
-    abort();
-  }
-  *v1 = argv[0];
-  if (argc >= 2) {
-    *v2 = rb_ary_new();
-    for (int n = 1; n < argc; n++) {
-      rb_ary_push(*v2, argv[n]);
-    }
-  }
-  return argc - 1;
 }
 
 MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
