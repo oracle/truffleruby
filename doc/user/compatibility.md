@@ -40,6 +40,13 @@ other priorities.
 C extensions are a priority for development, and we have a clear technical way
 ahead to implement support for them, but they aren't ready for use yet.
 
+#### Standard libraries
+
+Quite a few of the less commonly used  standard libraries are currently not
+supported, such as `fiddle`, `sdbm`, `gdbm`, `tk`. It's quite hard to get an
+understanding of all the standard libraries that should be available, so it's
+hard to give a definitive list of those that are missing.
+
 ## Features with major differences
 
 #### Threads run in parallel
