@@ -1205,8 +1205,7 @@ ID rb_intern(const char *string) {
 }
 
 ID rb_intern2(const char *string, long length) {
-  rb_tr_error("rb_intern2 not implemented");
-  abort();
+  return (ID) SYM2ID(truffle_invoke(RUBY_CEXT, "rb_intern2", rb_str_new_cstr(string), length));
 }
 
 ID rb_intern3(const char *name, long len, rb_encoding *enc) {
@@ -1219,13 +1218,11 @@ VALUE rb_sym2str(VALUE string) {
 }
 
 const char *rb_id2name(ID id) {
-  rb_tr_error("rb_id2name not implemented");
-  abort();
+    return RSTRING_PTR(rb_id2str(id));
 }
 
 VALUE rb_id2str(ID id) {
-  rb_tr_error("rb_id2str not implemented");
-  abort();
+  return truffle_invoke(RUBY_CEXT, "rb_id2str", ID2SYM(id));
 }
 
 int rb_is_class_id(ID id) {

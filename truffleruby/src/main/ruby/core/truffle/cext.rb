@@ -635,6 +635,10 @@ module Truffle::CExt
     str.intern
   end
 
+  def rb_intern2(str, len)
+    str[0, len].intern
+  end
+
   def rb_str_new(string, length)
     to_ruby_string(string)[0, length].b
   end
@@ -784,6 +788,10 @@ module Truffle::CExt
 
   def rb_special_const_p(object)
      object == nil || object == true || object == false || object.class == Symbol || object.class == Fixnum
+  end
+
+  def rb_id2str(sym)
+    sym.to_s
   end
 
   def rb_define_class_under(mod, name, superclass)
