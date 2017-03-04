@@ -1149,7 +1149,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   // TODO CS 7-Feb-17 maybe we could inline cache this part?
 
   const char *formatp = format;
-  int required = 0;
+  int pre = 0;
   int optional = 0;
   bool rest;
   int post = 0;
@@ -1159,7 +1159,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   // TODO CS 27-Feb-17 can LLVM constant-fold through isdigit?
 
   if (isdigit(*formatp)) {
-    required = *formatp - '0';
+    pre = *formatp - '0';
     formatp++;
 
     if (isdigit(*formatp)) {
@@ -1209,6 +1209,13 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     abort();
   }
 
+  // Check we have enough arguments
+
+  if (pre + post > argc) {
+    rb_raise(rb_eArgError, "not enough arguments for required");
+    abort();
+  }
+
   // Read arguments
 
   int argn = 0;
@@ -1221,21 +1228,16 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 
     VALUE arg;
 
-    if (required > 0 || optional > 0) {
+    if (pre > 0 || optional > 0) {
       if (argn < argc) {
         arg = argv[argn];
         argn++;
       } else {
-        if (required > 0) {
-          rb_raise(rb_eArgError, "not enough arguments for required");
-          abort();
-        } else {
-          arg = Qnil;
-        }
+        arg = Qnil;
       }
 
-      if (required > 0) {
-        required--;
+      if (pre > 0) {
+        pre--;
       } else {
         optional--;
       }
