@@ -1,4 +1,3 @@
-fails:C-API Class function rb_class_new_instance allocates and initializes a new object
 fails:C-API Class function rb_class_new_instance passes arguments to the #initialize method
 fails:C-API Class function rb_define_attr defines an attr_reader when passed true, false
 fails:C-API Class function rb_define_attr defines an attr_writer when passed false, true

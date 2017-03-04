@@ -827,6 +827,42 @@ module Truffle::CExt
     end
   end
 
+  def rb_class_new_instance(klass, args)
+    klass.new(*args)
+  end
+
+  def rb_f_sprintf(args)
+    sprintf(*args)
+  end
+
+  def rb_io_printf(out, args)
+    out.printf(*args)
+  end
+
+  def rb_io_print(out, args)
+    out.print(*args)
+  end
+
+  def rb_io_puts(out, args)
+    out.puts(*args)
+  end
+
+  def rb_obj_call_init(obj, args)
+    obj.initialize(*args)
+  end
+
+  def rb_obj_instance_eval(obj, args)
+    obj.instance_eval(*args)
+  end
+
+  def rb_enumeratorize(obj, meth, args)
+     obj.to_enum(meth, *args)
+  end
+
+  def rb_eval_string(str)
+    eval(str)
+  end
+
   def rb_define_private_method(mod, name, function, argc)
     rb_define_method(mod, name, function, argc)
     mod.send :private, name

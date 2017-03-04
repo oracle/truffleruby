@@ -42,11 +42,9 @@ fails:C-API Kernel function rb_ensure executes passed function and returns its v
 fails:C-API Kernel function rb_ensure executes passed 'ensure function' when no exception is raised
 fails:C-API Kernel function rb_ensure executes passed 'ensure function' when an exception is raised
 fails:C-API Kernel function rb_ensure raises the same exception raised inside passed function
-fails:C-API Kernel function rb_eval_string evaluates a string of ruby code
 fails:C-API Kernel function rb_block_proc converts the implicit block into a proc
 fails:C-API Kernel function rb_exec_recursive detects recursive invocations of a method and indicates as such
 fails:C-API Kernel function rb_set_end_proc runs a C function on shutdown
-fails:C-API Kernel function rb_f_sprintf returns a string according to format and arguments
 fails:C-API Kernel function rb_make_backtrace returns a caller backtrace
 fails:C-API Kernel function rb_obj_method returns the method object for a symbol
 fails:C-API Kernel function rb_obj_method returns the method object for a string

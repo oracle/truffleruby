@@ -544,8 +544,7 @@ VALUE rb_require(const char *feature) {
 }
 
 VALUE rb_eval_string(const char *str) {
-  rb_tr_error("rb_eval_string not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_eval_string", rb_str_new_cstr(str));
 }
 
 VALUE rb_exec_recursive(VALUE (*func) (VALUE, VALUE, int), VALUE obj, VALUE arg) {
@@ -554,8 +553,7 @@ VALUE rb_exec_recursive(VALUE (*func) (VALUE, VALUE, int), VALUE obj, VALUE arg)
 }
 
 VALUE rb_f_sprintf(int argc, const VALUE *argv) {
-  rb_tr_error("rb_f_sprintf not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_f_sprintf", rb_ary_new4(argc, argv));
 }
 
 void rb_need_block(void) {
@@ -625,8 +623,7 @@ VALUE rb_inspect(VALUE object) {
 }
 
 void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
-  rb_tr_error("rb_obj_call_init not implemented");
-  abort();
+  truffle_invoke(RUBY_CEXT, "rb_obj_call_init", object, rb_ary_new4(argc, argv));
 }
 
 const char *rb_obj_classname(VALUE object) {
@@ -654,8 +651,7 @@ VALUE rb_to_int(VALUE object) {
 }
 
 VALUE rb_obj_instance_eval(int argc, const VALUE *argv, VALUE self) {
-  rb_tr_error("rb_obj_instance_eval not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_obj_instance_eval", self, rb_ary_new4(argc, argv));
 }
 
 VALUE rb_ivar_defined(VALUE object, ID id) {
@@ -1499,8 +1495,7 @@ VALUE rb_class_new(VALUE super) {
 }
 
 VALUE rb_class_new_instance(int argc, const VALUE *argv, VALUE klass) {
-  rb_tr_error("rb_class_new_instance not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_class_new_instance", klass, rb_ary_new4(argc, argv));
 }
 
 VALUE rb_cvar_defined(VALUE klass, ID id) {
@@ -1560,8 +1555,7 @@ void rb_warning(const char *format, ...) {
 }
 
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
-  rb_tr_error("rb_funrb_enumeratorizecallv not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
 }
 
 // Calls
@@ -2245,18 +2239,15 @@ VALUE rb_io_close(VALUE io) {
 }
 
 VALUE rb_io_print(int argc, const VALUE *argv, VALUE out) {
-  rb_tr_error("rb_io_print not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_io_print", out, rb_ary_new4(argc, argv));
 }
 
 VALUE rb_io_printf(int argc, const VALUE *argv, VALUE out) {
-  rb_tr_error("rb_io_printf not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_io_printf", out, rb_ary_new4(argc, argv));
 }
 
 VALUE rb_io_puts(int argc, const VALUE *argv, VALUE out) {
-  rb_tr_error("rb_io_puts not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_io_puts", out, rb_ary_new4(argc, argv));
 }
 
 VALUE rb_io_write(VALUE io, VALUE str) {
