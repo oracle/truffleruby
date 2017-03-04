@@ -1180,7 +1180,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   }
 
   if (*format != '\0') {
-    rb_tr_error("bad rb_scan_args format");
+    rb_raise(rb_eArgError, "bad rb_scan_args format");
     abort();
   }
 
@@ -1200,7 +1200,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
         argn++;
       } else {
         if (required > 0) {
-          rb_tr_error("not enough arguments for required");
+          rb_raise(rb_eArgError, "not enough arguments for required");
           abort();
         } else {
           arg = Qnil;
