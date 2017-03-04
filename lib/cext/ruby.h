@@ -1153,6 +1153,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   int optional = 0;
   bool rest;
   int post = 0;
+  bool kwargs;
   bool block;
 
   // TODO CS 27-Feb-17 can LLVM constant-fold through isdigit?
@@ -1179,6 +1180,13 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     formatp++;
   }
 
+  if (*formatp == ':') {
+    kwargs = true;
+    formatp++;
+  } else {
+    kwargs = false;
+  }
+
   if (*formatp == '&') {
     block = true;
     formatp++;
@@ -1193,6 +1201,11 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 
   if (post > 0) {
     rb_raise(rb_eArgError, "post not supported in rb_scan_args");
+    abort();
+  }
+
+  if (kwargs) {
+    rb_raise(rb_eArgError, "kwargs not supported in rb_scan_args");
     abort();
   }
 
