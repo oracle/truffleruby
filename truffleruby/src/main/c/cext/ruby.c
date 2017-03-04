@@ -1038,7 +1038,7 @@ VALUE rb_str_equal(VALUE a, VALUE b) {
 }
 
 void rb_str_free(VALUE string) {
-  rb_tr_error("rb_str_equal not implemented");
+  rb_tr_error("rb_str_free not implemented");
   abort();
 }
 
