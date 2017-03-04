@@ -17,12 +17,11 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.builtins.CoreClass;
@@ -33,9 +32,9 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -285,35 +284,28 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_block_given_p", isModuleFunction = true, needsCallerFrame = true)
-    public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int blockGiven(MaterializedFrame callerFrame,
-                                  @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
-            return blockProfile.profile(RubyArguments.tryGetBlock(callerFrame) != null) ? 1 : 0;
-        }
-
-        @TruffleBoundary
-        @Specialization
-        public int blockGiven(NotProvided noCallerFrame) {
-            return RubyArguments.tryGetBlock(Truffle.getRuntime().getCallerFrame().getFrame(FrameInstance.FrameAccess.READ_ONLY)) != null ? 1 : 0;
-        }
-
-    }
-
-    @CoreMethod(names = "rb_block_proc", isModuleFunction = true, needsCallerFrame = true)
+    @CoreMethod(names = "rb_block_proc", isModuleFunction = true)
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public DynamicObject blockProc(MaterializedFrame callerFrame) {
-            return RubyArguments.tryGetBlock(callerFrame);
-        }
-
         @TruffleBoundary
         @Specialization
-        public DynamicObject blockProc(NotProvided noCallerFrame) {
-            return RubyArguments.tryGetBlock(Truffle.getRuntime().getCallerFrame().getFrame(FrameInstance.FrameAccess.READ_ONLY));
+        public DynamicObject blockProc() {
+            // TODO CS 4-Mar-17 couldn't some of this go into CallStackManager?
+
+            return Truffle.getRuntime().iterateFrames(frameInstance -> {
+
+                final Node callNode = frameInstance.getCallNode();
+
+                if (callNode != null) {
+                    final RootNode rootNode = callNode.getRootNode();
+
+                    if (rootNode instanceof RubyRootNode && rootNode.getSourceSection().isAvailable()) {
+                        return RubyArguments.getBlock(frameInstance.getFrame(FrameAccess.READ_ONLY));
+                    }
+                }
+
+                return null;
+            });
         }
 
     }

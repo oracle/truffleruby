@@ -1,4 +1,3 @@
-fails:C-API Kernel function rb_block_given_p returns true if a block is passed
 fails:C-API Kernel function rb_need_block does not raise a LocalJumpError if a block is given
 fails:C-API Kernel function rb_block_call calls the block with a single argument
 fails:C-API Kernel function rb_block_call calls the block with multiple arguments in argc / argv
@@ -40,7 +39,6 @@ fails:C-API Kernel function rb_ensure executes passed function and returns its v
 fails:C-API Kernel function rb_ensure executes passed 'ensure function' when no exception is raised
 fails:C-API Kernel function rb_ensure executes passed 'ensure function' when an exception is raised
 fails:C-API Kernel function rb_ensure raises the same exception raised inside passed function
-fails:C-API Kernel function rb_block_proc converts the implicit block into a proc
 fails:C-API Kernel function rb_exec_recursive detects recursive invocations of a method and indicates as such
 fails:C-API Kernel function rb_set_end_proc runs a C function on shutdown
 fails:C-API Kernel function rb_make_backtrace returns a caller backtrace

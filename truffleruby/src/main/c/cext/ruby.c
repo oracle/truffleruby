@@ -1600,11 +1600,11 @@ VALUE rb_call_super(int args_count, const VALUE *args) {
 }
 
 int rb_block_given_p() {
-  return truffle_invoke_i(RUBY_CEXT, "rb_block_given_p");
+  return !RB_NIL_P(rb_block_proc());
 }
 
 VALUE rb_block_proc(void) {
-  return truffle_invoke_i(RUBY_CEXT, "rb_block_proc");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_block_proc");
 }
 
 VALUE rb_yield(VALUE value) {
