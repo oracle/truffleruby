@@ -121,9 +121,9 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
     protected Object[] argsToForeign(VirtualFrame frame, RubyToForeignNode[] toForeignNodes, Object[] args) {
         assert toForeignNodes.length == args.length;
 
-        final Object[] foreignArgs = new Object[args.length];
+        final Object[] foreignArgs = new Object[toForeignNodes.length];
 
-        for (int n = 0; n < args.length; n++) {
+        for (int n = 0; n < toForeignNodes.length; n++) {
             foreignArgs[n] = toForeignNodes[n].executeConvert(frame, args[n]);
         }
 
