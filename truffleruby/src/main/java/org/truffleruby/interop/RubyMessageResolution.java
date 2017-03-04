@@ -145,6 +145,7 @@ public class RubyMessageResolution {
 
         private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile emptyProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
         protected Object access(DynamicObject object) {
             if (stringProfile.profile(RubyGuards.isRubyString(object))) {
@@ -155,6 +156,8 @@ public class RubyMessageResolution {
                 } else {
                     return rope.get(0);
                 }
+            } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
+                return Layouts.POINTER.getPointer(object).address();
             } else {
                 return object;
             }
