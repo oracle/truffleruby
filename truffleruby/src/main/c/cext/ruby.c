@@ -849,8 +849,20 @@ VALUE rb_sprintf(const char *format, ...) {
 }
 
 VALUE rb_vsprintf(const char *format, va_list args) {
-  rb_tr_error("rb_vsprintf not implemented");
-  abort();
+  va_list args_copy;
+  va_copy(args_copy, args);
+  int length = vsnprintf(NULL, 0, format, args_copy);
+  //va_end(args_copy); CS 4-May-17 why does this crash?
+  if (length < 0) {
+    rb_tr_error("vsnprintf error");
+    abort();
+  }
+  // TODO CS 4-May-17 allocate a native Ruby string in the first place?
+  char *buffer = malloc(length + 1);
+  vsnprintf(buffer, length + 1, format, args);
+  VALUE string = rb_str_new_cstr(buffer);
+  free(buffer);
+  return string;
 }
 
 VALUE rb_str_append(VALUE string, VALUE to_append) {
