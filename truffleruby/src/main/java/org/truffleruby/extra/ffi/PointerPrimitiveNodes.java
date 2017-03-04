@@ -50,12 +50,6 @@ public abstract class PointerPrimitiveNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject malloc(DynamicObject pointerClass, int size) {
-            return malloc(pointerClass, (long) size);
-        }
-
-        @SuppressWarnings("restriction")
-        @Specialization
         public DynamicObject malloc(DynamicObject pointerClass, long size) {
             return allocateObjectNode.allocate(pointerClass, memoryManager().newPointer(getContext().getNativePlatform().getMallocFree().malloc(size)));
         }
@@ -65,7 +59,6 @@ public abstract class PointerPrimitiveNodes {
     @Primitive(name = "pointer_free")
     public static abstract class PointerFreePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @SuppressWarnings("restriction")
         @Specialization
         public DynamicObject free(DynamicObject pointer) {
             getContext().getNativePlatform().getMallocFree().free(Layouts.POINTER.getPointer(pointer).address());
@@ -76,11 +69,6 @@ public abstract class PointerPrimitiveNodes {
 
     @Primitive(name = "pointer_set_address")
     public static abstract class PointerSetAddressPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public long setAddress(DynamicObject pointer, int address) {
-            return setAddress(pointer, (long) address);
-        }
 
         @Specialization
         public long setAddress(DynamicObject pointer, long address) {
@@ -94,11 +82,6 @@ public abstract class PointerPrimitiveNodes {
     public static abstract class PointerAddPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
-        @Specialization
-        public DynamicObject add(DynamicObject a, int b) {
-            return add(a, (long) b);
-        }
 
         @Specialization
         public DynamicObject add(DynamicObject a, long b) {
@@ -204,7 +187,7 @@ public abstract class PointerPrimitiveNodes {
 
     }
 
-    @Primitive(name = "pointer_get_at_offset")
+    @Primitive(name = "pointer_get_at_offset", lowerFixnum = { 1, 2 })
     @ImportStatic(RubiniusTypes.class)
     public static abstract class PointerGetAtOffsetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -274,7 +257,7 @@ public abstract class PointerPrimitiveNodes {
 
     }
 
-    @Primitive(name = "pointer_write_string")
+    @Primitive(name = "pointer_write_string", lowerFixnum = 2)
     public static abstract class PointerWriteStringPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
@@ -313,7 +296,7 @@ public abstract class PointerPrimitiveNodes {
 
     }
 
-    @Primitive(name = "pointer_write_short")
+    @Primitive(name = "pointer_write_short", lowerFixnum = 1)
     public static abstract class PointerWriteShortPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         static final int MIN_SHORT = Short.MIN_VALUE;
@@ -336,7 +319,7 @@ public abstract class PointerPrimitiveNodes {
 
     }
 
-    @Primitive(name = "pointer_write_int")
+    @Primitive(name = "pointer_write_int", lowerFixnum = 1)
     public static abstract class PointerWriteIntPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         static final long MAX_INT = Integer.MAX_VALUE;
