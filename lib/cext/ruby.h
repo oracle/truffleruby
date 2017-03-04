@@ -1148,6 +1148,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 
   // TODO CS 7-Feb-17 maybe we could inline cache this part?
 
+  const char *formatp = format;
   int required;
   int optional;
   bool rest;
@@ -1155,34 +1156,36 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 
   // TODO CS 27-Feb-17 can LLVM constant-fold through isdigit?
 
-  if (isdigit(*format)) {
-    required = *format - '0';
-    format++;
+  if (isdigit(*formatp)) {
+    required = *formatp - '0';
+    formatp++;
 
-    if (isdigit(*format)) {
-      optional = *format - '0';
-      format++;
+    if (isdigit(*formatp)) {
+      optional = *formatp - '0';
+      formatp++;
     }
   }
 
-  if (*format == '*') {
+  if (*formatp == '*') {
     rest = true;
-    format++;
+    formatp++;
   } else {
     rest = false;
   }
 
-  if (*format == '&') {
+  if (*formatp == '&') {
     block = true;
-    format++;
+    formatp++;
   } else {
     block = false;
   }
 
-  if (*format != '\0') {
+  if (*formatp != '\0') {
     rb_raise(rb_eArgError, "bad rb_scan_args format");
     abort();
   }
+
+  // Read arguments
 
   int argn = 0;
   int valuen = 1; // We've numbered the v parameters from 1
