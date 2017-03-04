@@ -557,7 +557,10 @@ VALUE rb_f_sprintf(int argc, const VALUE *argv) {
 }
 
 void rb_need_block(void) {
-  truffle_invoke(RUBY_CEXT, "rb_need_block");
+  if (!rb_block_given_p()) {
+    rb_raise(rb_eLocalJumpError, "no block given");
+    abort();
+  }
 }
 
 void rb_set_end_proc(void (*func)(VALUE), VALUE data) {
@@ -1600,7 +1603,7 @@ VALUE rb_call_super(int args_count, const VALUE *args) {
 }
 
 int rb_block_given_p() {
-  return !RB_NIL_P(rb_block_proc());
+  return rb_block_proc() != Qnil;
 }
 
 VALUE rb_block_proc(void) {

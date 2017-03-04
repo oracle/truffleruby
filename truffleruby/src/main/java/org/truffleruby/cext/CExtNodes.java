@@ -293,14 +293,19 @@ public class CExtNodes {
             // TODO CS 4-Mar-17 couldn't some of this go into CallStackManager?
 
             return Truffle.getRuntime().iterateFrames(frameInstance -> {
-
                 final Node callNode = frameInstance.getCallNode();
 
                 if (callNode != null) {
                     final RootNode rootNode = callNode.getRootNode();
 
                     if (rootNode instanceof RubyRootNode && rootNode.getSourceSection().isAvailable()) {
-                        return RubyArguments.getBlock(frameInstance.getFrame(FrameAccess.READ_ONLY));
+                        final DynamicObject block = RubyArguments.getBlock(frameInstance.getFrame(FrameAccess.READ_ONLY));
+
+                        if (block == null) {
+                            return nil();
+                        } else {
+                            return block;
+                        }
                     }
                 }
 
