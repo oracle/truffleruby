@@ -1199,11 +1199,6 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     abort();
   }
 
-  if (post > 0) {
-    rb_raise(rb_eArgError, "post not supported in rb_scan_args");
-    abort();
-  }
-
   if (kwargs) {
     rb_raise(rb_eArgError, "kwargs not supported in rb_scan_args");
     abort();
@@ -1229,7 +1224,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     VALUE arg;
 
     if (pre > 0 || optional > 0) {
-      if (argn < argc) {
+      if (argn < argc - post) {
         arg = argv[argn];
         argn++;
       } else {
@@ -1243,11 +1238,15 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
       }
     } else if (rest && !taken_rest) {
       arg = rb_ary_new();
-      while (argn < argc) {
+      while (argn < argc - post) {
         rb_ary_push(arg, argv[argn]);
         argn++;
       }
       taken_rest = true;
+    } else if (post > 0) {
+      arg = argv[argn];
+      argn++;
+      post--;
     } else if (block && !taken_block) {
       if (rb_block_given_p()) {
         arg = rb_block_proc();
