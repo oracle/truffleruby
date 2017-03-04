@@ -10,10 +10,11 @@
 package org.truffleruby;
 
 import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleOptions;
+import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.Node;
@@ -61,7 +62,16 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final RubyLanguage INSTANCE = new RubyLanguage();
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
+    public static String fileLine(FrameInstance frameInstance) {
+        if (frameInstance == null || frameInstance.getCallNode() == null) {
+            return "unknown";
+        } else {
+            return fileLine(frameInstance.getCallNode().getEncapsulatingSourceSection());
+        }
+    }
+
+    @TruffleBoundary
     public static String fileLine(SourceSection section) {
         if (section == null) {
             return "unknown";
