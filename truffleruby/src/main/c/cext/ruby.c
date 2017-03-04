@@ -1497,8 +1497,7 @@ VALUE rb_path_to_class(VALUE pathname) {
 }
 
 VALUE rb_class_name(VALUE klass) {
-  rb_tr_error("rb_class_path not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)klass, "name");
 }
 
 VALUE rb_class_new(VALUE super) {
@@ -1536,8 +1535,7 @@ void rb_define_attr(VALUE klass, const char *name, int read, int write) {
 }
 
 void rb_define_class_variable(VALUE klass, const char *name, VALUE val) {
-  rb_tr_error("rb_define_class_variable not implemented");
-  abort();
+  truffle_invoke(RUBY_CEXT, "rb_cv_set", klass, rb_str_new_cstr(name), val);
 }
 
 // Proc
@@ -1619,8 +1617,7 @@ VALUE rb_funcall_with_block(VALUE recv, ID mid, int argc, const VALUE *argv, VAL
 }
 
 VALUE rb_yield_splat(VALUE values) {
-  rb_tr_error("rb_yield_splat not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_yield_splat", values);
 }
 
 VALUE rb_yield_values(int n, ...) {
@@ -1907,8 +1904,7 @@ void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function) {
 }
 
 VALUE rb_obj_method(VALUE obj, VALUE vid) {
-  rb_tr_error("rb_obj_method not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)obj, "method", rb_intern_str(vid));
 }
 
 // Rational

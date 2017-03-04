@@ -737,6 +737,11 @@ module Truffle::CExt
     block = get_block
     block.call(value)
   end
+  
+  def rb_yield_splat(values)
+    block = get_block
+    block.call(*values)
+  end
 
   def rb_ivar_lookup(object, name, default_value)
     # TODO CS 24-Jul-16 races - needs a new primitive or be defined in Java?

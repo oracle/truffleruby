@@ -7,7 +7,6 @@ fails:C-API Class function rb_call_super calls the method in the superclass thro
 fails:C-API Class function rb_class2name returns a string for an anonymous class
 fails:C-API Class function rb_class_path returns a String of a class path with no scope modifiers
 fails:C-API Class function rb_class_path returns a String of a class path with scope modifiers
-fails:C-API Class function rb_class_name returns the class name
 fails:C-API Class function rb_class_name returns a string for an anonymous class
 fails:C-API Class function rb_path2class resolves autoload constants
 fails:C-API Class function rb_path2class raises an ArgumentError if a constant in the path does not exist
@@ -21,7 +20,6 @@ fails:C-API Class function rb_path_to_class raises an ArgumentError if the final
 fails:C-API Class function rb_path_to_class raises a TypeError if the constant is not a class or module
 fails:C-API Class function rb_path_to_class raises an ArgumentError even if a constant in the path exists on toplevel
 fails:C-API Class function rb_cvar_defined returns true if the class instance variable is defined
-fails:C-API Class function rb_define_class_variable sets a class variable
 fails:C-API Class function rb_class_new returns an new subclass of the superclass
 fails:C-API Class function rb_class_new raises a TypeError if passed Class as the superclass
 fails:C-API Class function rb_class_new raises a TypeError if passed a singleton class as the superclass
