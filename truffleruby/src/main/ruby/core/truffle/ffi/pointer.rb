@@ -121,6 +121,7 @@ module FFI
       Truffle.primitive :pointer_read_string
       raise PrimitiveFailure, "FFI::Pointer#read_string_length primitive failed"
     end
+    alias :read_bytes :read_string_length
 
     # Read bytes from the memory pointed to until a NULL is seen, return
     # the bytes as a String
