@@ -39,7 +39,7 @@ module Rubinius
   L64 = true
   CPU = "jvm"
   SIZEOF_LONG = 8
-  WORDSIZE = 8
+  WORDSIZE = 64
 
   # Pretend to be Linux for the purposes of the FFI - doesn't make a difference anyway at this stage
 
