@@ -28,7 +28,7 @@ module FFI
 
       args_types = args_types.map { |type| to_native_type(type) }
       return_type = to_native_type(return_type)
-      
+
       signature = "(#{args_types.join(',')}):#{return_type}"
       function = @library[native_name].bind(Truffle::Interop.to_java_string(signature))
 

@@ -93,13 +93,9 @@ public abstract class PointerPrimitiveNodes {
     @Primitive(name = "pointer_read_int")
     public static abstract class PointerReadIntPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isSigned(signed)")
+        @Specialization(guards = "signed")
         public int readInt(DynamicObject pointer, boolean signed) {
             return Layouts.POINTER.getPointer(pointer).getInt(0);
-        }
-
-        protected boolean isSigned(boolean signed) {
-            return signed;
         }
 
     }
