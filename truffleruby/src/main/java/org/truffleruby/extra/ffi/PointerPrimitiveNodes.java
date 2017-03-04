@@ -316,9 +316,22 @@ public abstract class PointerPrimitiveNodes {
     @Primitive(name = "pointer_write_int")
     public static abstract class PointerWriteIntPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        static final long MAX_INT = Integer.MAX_VALUE;
+
         @Specialization
-        public DynamicObject address(DynamicObject pointer, int value) {
+        public DynamicObject writeInt(DynamicObject pointer, int value) {
             Layouts.POINTER.getPointer(pointer).putInt(0, value);
+            return pointer;
+        }
+
+        // Rubinius also uses this primitive for uint32.
+        // Values from 0 to MAX_INT are encoded the same as a signed int32.
+        // Larger values need to be converted to the corresponding signed negative int.
+        @Specialization(guards = "value > MAX_INT")
+        public DynamicObject writeUnsigned(DynamicObject pointer, long value) {
+            assert value < (1L << Integer.SIZE);
+            int signed = (int) value; // Same as value - 2^32
+            Layouts.POINTER.getPointer(pointer).putInt(0, signed);
             return pointer;
         }
 
