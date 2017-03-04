@@ -313,6 +313,29 @@ public abstract class PointerPrimitiveNodes {
 
     }
 
+    @Primitive(name = "pointer_write_short")
+    public static abstract class PointerWriteShortPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        static final int MIN_SHORT = Short.MIN_VALUE;
+        static final int MAX_SHORT = Short.MAX_VALUE;
+
+        @Specialization(guards = { "MIN_SHORT <= value", "value <= MAX_SHORT" })
+        public DynamicObject writeShort(DynamicObject pointer, int value) {
+            short shortValue = (short) value;
+            Layouts.POINTER.getPointer(pointer).putShort(0, shortValue);
+            return pointer;
+        }
+
+        @Specialization(guards = "value > MAX_SHORT")
+        public DynamicObject writeUnsignedSort(DynamicObject pointer, int value) {
+            assert value < (1L << Short.SIZE);
+            short signed = (short) value; // Same as value - 2^16
+            Layouts.POINTER.getPointer(pointer).putShort(0, signed);
+            return pointer;
+        }
+
+    }
+
     @Primitive(name = "pointer_write_int")
     public static abstract class PointerWriteIntPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
