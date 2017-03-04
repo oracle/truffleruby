@@ -250,3 +250,7 @@ an integer, or anything else
 `value = Truffle::Interop.import(:name)`
 
 `Truffle::Interop.import_method(:name)` (defines `name` in `Object`)
+
+## Interop Eval
+
+`Truffle::Interop.eval(mime_type, source)`
