@@ -346,11 +346,6 @@ public class CommandLineParser {
 
                         Log.LOGGER.setLevel(level);
                     } else {
-                        if (extendedOption.startsWith("truffle.")) {
-                            Log.LOGGER.warning("-Xtruffle. is now just -X - switch your scripts as -Xtruffle. will stop working soon");
-                            extendedOption = extendedOption.substring("truffle.".length());
-                        }
-
                         final String value;
 
                         final int equals = extendedOption.indexOf('=');
