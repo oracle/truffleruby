@@ -1757,8 +1757,11 @@ void rb_exc_raise(VALUE exception) {
 }
 
 void rb_raise(VALUE exception, const char *format, ...) {
-  rb_tr_error("rb_raise not implemented");
-  truffle_invoke(RUBY_CEXT, "rb_raise", format /*, where to get args? */);
+  va_list args;
+  va_start(args, format);
+  VALUE message = rb_vsprintf(format, args);
+  //va_end(args); CS 4-May-17 why does this crash?
+  rb_exc_raise(rb_exc_new_str(exception, message));
   abort();
 }
 
