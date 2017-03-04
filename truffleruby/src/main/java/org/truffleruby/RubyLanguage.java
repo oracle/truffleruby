@@ -69,7 +69,13 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         } else if (frameInstance.getCallNode() == null) {
             return "no call node";
         } else {
-            return fileLine(frameInstance.getCallNode().getEncapsulatingSourceSection());
+            final SourceSection sourceSection = frameInstance.getCallNode().getEncapsulatingSourceSection();
+
+            if (sourceSection == null) {
+                return "no source section (" + frameInstance.getCallNode().getRootNode().getClass() + ")";
+            } else {
+                return fileLine(sourceSection);
+            }
         }
     }
 
