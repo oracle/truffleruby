@@ -64,8 +64,10 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @TruffleBoundary
     public static String fileLine(FrameInstance frameInstance) {
-        if (frameInstance == null || frameInstance.getCallNode() == null) {
-            return "unknown";
+        if (frameInstance == null) {
+            return "no frame";
+        } else if (frameInstance.getCallNode() == null) {
+            return "no call node";
         } else {
             return fileLine(frameInstance.getCallNode().getEncapsulatingSourceSection());
         }
@@ -74,7 +76,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @TruffleBoundary
     public static String fileLine(SourceSection section) {
         if (section == null) {
-            return "unknown";
+            return "no source section";
         } else {
             final Source source = section.getSource();
 
