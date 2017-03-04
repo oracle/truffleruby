@@ -90,7 +90,7 @@ VALUE rb_tr_from_native_handle(void *native);
 
 // Memory
 
-#define xmalloc       malloc
+#define xmalloc       malloc    // TODO CS 4-Mar-17 malloc and all these macros should be a version that throws an exception on failure
 #define xfree         free
 #define ruby_xfree    free
 #define ruby_xcalloc  calloc
