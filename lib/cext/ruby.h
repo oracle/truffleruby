@@ -1149,8 +1149,8 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   // TODO CS 7-Feb-17 maybe we could inline cache this part?
 
   const char *formatp = format;
-  int required;
-  int optional;
+  int required = 0;
+  int optional = 0;
   bool rest;
   bool block;
 
