@@ -335,5 +335,11 @@ module FFI
     end
 
   end
+
+  ##
+  # Represents a C union as ruby class.
+
+  class Union < Struct
+  end
 end
 end
