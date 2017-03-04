@@ -1,7 +1,3 @@
-fails:C-API Util function rb_scan_args assigns required, optional arguments scanned and the passed block
-fails:C-API Util function rb_scan_args assigns required, optional, splatted arguments scanned and the passed block
-fails:C-API Util function rb_scan_args assigns required arguments, nil for missing optional arguments and the passed block
-fails:C-API Util function rb_scan_args assigns required, splatted arguments and the passed block
 fails:C-API Util function rb_scan_args assigns post-splat arguments
 fails:C-API Util function rb_scan_args assigns required, optional, splat and post-splat arguments
 fails:C-API Util function rb_scan_args assigns required, splat, post-splat arguments
