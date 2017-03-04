@@ -22,6 +22,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.builtins.CoreClass;
@@ -32,6 +34,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -290,8 +293,6 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject blockProc() {
-            // TODO CS 4-Mar-17 couldn't some of this go into CallStackManager?
-
             return Truffle.getRuntime().iterateFrames(frameInstance -> {
                 final Node callNode = frameInstance.getCallNode();
 
@@ -469,6 +470,47 @@ public class CExtNodes {
         @Specialization
         public Object iterBreak() {
             throw new BreakException(BreakID.ANY, nil());
+        }
+
+    }
+
+    @CoreMethod(names = "rb_sourcefile", isModuleFunction = true)
+    public abstract static class SourceFileNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject sourceFile() {
+            final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
+            final String file = sourceSection.getSource().getPath();
+            return createString(StringOperations.encodeRope(file, UTF8Encoding.INSTANCE));
+        }
+
+        public static SourceSection getTopUserSourceSection(String methodName) {
+            return Truffle.getRuntime().iterateFrames(frameInstance -> {
+                final Node callNode = frameInstance.getCallNode();
+
+                if (callNode != null) {
+                    final RootNode rootNode = callNode.getRootNode();
+
+                    if (rootNode instanceof RubyRootNode && rootNode.getSourceSection().isAvailable() && !methodName.equals(rootNode.getName())) {
+                        return frameInstance.getCallNode().getEncapsulatingSourceSection();
+                    }
+                }
+
+                return null;
+            });
+        }
+
+    }
+
+    @CoreMethod(names = "rb_sourceline", isModuleFunction = true)
+    public abstract static class SourceLineNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int sourceLine() {
+            final SourceSection sourceSection = SourceFileNode.getTopUserSourceSection("rb_sourceline");
+            return sourceSection.getStartLine();
         }
 
     }

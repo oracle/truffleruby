@@ -573,13 +573,11 @@ void rb_iter_break(void) {
 }
 
 const char *rb_sourcefile(void) {
-  rb_tr_error("rb_sourcefile not implemented");
-  abort();
+  return RSTRING_PTR(truffle_invoke(RUBY_CEXT, "rb_sourcefile"));
 }
 
 int rb_sourceline(void) {
-  rb_tr_error("rb_sourceline not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_sourceline");
 }
 
 int rb_method_boundp(VALUE klass, ID id, int ex) {
