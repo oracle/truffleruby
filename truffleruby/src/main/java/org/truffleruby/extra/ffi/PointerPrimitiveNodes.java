@@ -90,12 +90,32 @@ public abstract class PointerPrimitiveNodes {
 
     }
 
+    @Primitive(name = "pointer_read_char")
+    public static abstract class PointerReadCharPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "signed")
+        public int readCharSigned(DynamicObject pointer, boolean signed) {
+            return Layouts.POINTER.getPointer(pointer).getByte(0);
+        }
+
+        @Specialization(guards = "!signed")
+        public int readCharUnsigned(DynamicObject pointer, boolean signed) {
+            return Byte.toUnsignedInt(Layouts.POINTER.getPointer(pointer).getByte(0));
+        }
+
+    }
+
     @Primitive(name = "pointer_read_int")
     public static abstract class PointerReadIntPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "signed")
-        public int readInt(DynamicObject pointer, boolean signed) {
+        public int readIntSigned(DynamicObject pointer, boolean signed) {
             return Layouts.POINTER.getPointer(pointer).getInt(0);
+        }
+
+        @Specialization(guards = "!signed")
+        public long readIntUnsigned(DynamicObject pointer, boolean signed) {
+            return Integer.toUnsignedLong(Layouts.POINTER.getPointer(pointer).getInt(0));
         }
 
     }
