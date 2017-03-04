@@ -63,8 +63,8 @@ fi
 declare -a java_args
 declare -a ruby_args
 
+print_command=""
 CP=""
-boot_cp_jar=""
 
 if [ $on_graalvm = false ]; then
 
@@ -72,25 +72,25 @@ if [ $on_graalvm = false ]; then
     mvn_jar="$root/lib/truffleruby.jar"
     mx_time=$(mtime "$mx_jar")
     mvn_time=$(mtime "$mvn_jar")
-    print_command=""
-    boot_cp_jar="$mvn_jar"
 
     if [ "$mx_time" -gt "$mvn_time" ]; then
-        # This hash is Truffle's JLINE sha1
-        CP="$CP:$HOME/.mx/cache/JLINE_9504d5e2da5d78237239c5226e8200ec21182040.jar"
-        binary_truffle_dist="$root/mx.imports/binary/truffle/mxbuild/dists"
-        source_truffle_dist="$(dirname "$root")/truffle/mxbuild/dists"
-        if [ -f "$binary_truffle_dist/truffle-api.jar" ]; then # Binary Truffle suite
-            boot_cp_jar="$binary_truffle_dist/truffle-api.jar"
-            CP="$CP:$binary_truffle_dist/truffle-debug.jar"
-        elif [ -f "$source_truffle_dist/truffle-api.jar" ]; then # Source Truffle suite
-            boot_cp_jar="$source_truffle_dist/truffle-api.jar"
-            CP="$CP:$source_truffle_dist/truffle-debug.jar"
+        binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
+        source_truffle="$(dirname "$root")/truffle/mxbuild"
+        if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
+            truffle="$binary_truffle"
+        elif [ -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
+            truffle="$source_truffle"
         else
             echo "Could not find Truffle jars" 1>&2
             exit 1
         fi
-        CP="$CP:$mx_jar"
+        java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar")
+        # This hash is Truffle's JLINE sha1
+        CP="$CP:$HOME/.mx/cache/JLINE_9504d5e2da5d78237239c5226e8200ec21182040.jar"
+        CP="$CP:$truffle/dists/truffle-debug.jar:$truffle/dists/truffle-nfi.jar:$mx_jar"
+        java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.so")
+    else
+        java_args+=("-Xbootclasspath/a:$mvn_jar") # Contains Truffle and TruffleRuby
     fi
 
 fi
@@ -140,7 +140,6 @@ if [ $on_graalvm = false ]; then
     full_command=(
         "$JAVACMD"
         $JAVA_OPTS
-        "-Xbootclasspath/a:$boot_cp_jar"
         "${java_args[@]}"
     )
 else
