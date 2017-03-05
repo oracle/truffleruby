@@ -867,8 +867,7 @@ VALUE rb_vsprintf(const char *format, va_list args) {
 }
 
 VALUE rb_str_append(VALUE string, VALUE to_append) {
-  rb_tr_error("rb_str_append not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_append", string, to_append);
 }
 
 void rb_str_set_len(VALUE string, long length) {
@@ -1015,8 +1014,7 @@ rb_encoding *get_encoding(VALUE string) {
 }
 
 VALUE rb_str_intern(VALUE string) {
-  rb_tr_error("rb_str_intern not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)string, "intern");
 }
 
 VALUE rb_str_length(VALUE string) {
@@ -1037,8 +1035,7 @@ VALUE rb_str_substr(VALUE string, long beg, long len) {
 }
 
 st_index_t rb_str_hash(VALUE string) {
-  rb_tr_error("rb_str_hash not implemented");
-  abort();
+  return (st_index_t) truffle_invoke_l((void *)string, "hash");
 }
 
 void rb_str_update(VALUE string, long beg, long len, VALUE value) {
@@ -1166,8 +1163,7 @@ VALUE rb_obj_encoding(VALUE obj) {
 }
 
 VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {
-  rb_tr_error("rb_str_encode not implemented");
-  abort();
+  return truffle_invoke(RUBY_CEXT, "rb_str_encode", str, to, ecflags, ecopts);
 }
 
 VALUE rb_usascii_str_new(const char *ptr, long len) {

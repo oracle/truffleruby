@@ -655,6 +655,18 @@ module Truffle::CExt
     string.intern
   end
 
+  def rb_str_append(str, to_append)
+    str << StringValue(to_append)
+  end
+
+  def rb_str_encode(str, to, ecflags, ecopts)
+    if ecopts.nil?
+      str.encode(to)
+    else
+      str.encode(to, ecopts)
+    end
+  end
+  
   def rb_make_backtrace
     caller
   end
