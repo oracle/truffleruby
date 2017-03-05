@@ -1083,6 +1083,16 @@ module Truffle::CExt
     raise RubyTruffleError.new(message)
   end
 
+  def test_kwargs(kwargs, raise_error)
+    if kwargs.keys.all? { |k| k.is_a?(Symbol) }
+      true
+    elsif raise_error
+      raise ArgumentError
+    else
+      false
+    end
+  end
+
   def send_splatted(object, method, args)
     object.send(method, *args)
   end

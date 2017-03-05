@@ -1199,11 +1199,6 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     abort();
   }
 
-  if (kwargs) {
-    rb_raise(rb_eArgError, "kwargs not supported in rb_scan_args");
-    abort();
-  }
-
   // Check we have enough arguments
 
   if (pre + post > argc) {
@@ -1217,6 +1212,20 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
   int valuen = 1; // We've numbered the v parameters from 1
   bool taken_rest = false;
   bool taken_block = false;
+  bool taken_kwargs = false;
+  bool erased_kwargs = false;
+  bool found_kwargs = false;
+
+  if (rest && kwargs && !truffle_invoke_b(RUBY_CEXT, "test_kwargs", argv[argc - 1], Qfalse)) {
+    kwargs = false;
+    erased_kwargs = true;
+  }
+
+  int trailing = post;
+
+  if (kwargs) {
+    trailing++;
+  }
 
   while (true) {
     // Get the next argument
@@ -1224,7 +1233,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     VALUE arg;
 
     if (pre > 0 || optional > 0) {
-      if (argn < argc - post) {
+      if (argn < argc - trailing) {
         arg = argv[argn];
         argn++;
       } else {
@@ -1238,7 +1247,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
       }
     } else if (rest && !taken_rest) {
       arg = rb_ary_new();
-      while (argn < argc - post) {
+      while (argn < argc - trailing) {
         rb_ary_push(arg, argv[argn]);
         argn++;
       }
@@ -1247,6 +1256,19 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
       arg = argv[argn];
       argn++;
       post--;
+    } else if (kwargs && !taken_kwargs) {
+       if (argn < argc) {
+        arg = argv[argn];
+        truffle_invoke(RUBY_CEXT, "test_kwargs", argv[argn], Qtrue);
+        argn++;
+        found_kwargs = true;
+      } else {
+        arg = Qnil;
+      }
+      taken_kwargs = true;
+    } else if (erased_kwargs && !taken_kwargs) {
+      arg = Qnil;
+      taken_kwargs = true;
     } else if (block && !taken_block) {
       if (rb_block_given_p()) {
         arg = rb_block_proc();
@@ -1278,7 +1300,11 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     valuen++;
   }
 
-  return argc;
+  if (found_kwargs) {
+    return argc - 1;
+  } else {
+    return argc;
+  }
 }
 
 #if defined(__cplusplus)
