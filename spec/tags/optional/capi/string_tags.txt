@@ -32,7 +32,6 @@ fails:C-API String function rb_str_resize reduces the size of the string
 fails:C-API String function rb_str_resize updates the string's attributes visible in C code
 fails:C-API String function rb_str_resize increases the size of the string
 fails:C-API String function rb_str_hash hashes the string into a number
-fails:C-API String function rb_str_update splices the replacement string into the original at the given location
 fails:rb_str_free indicates data for a string might be freed
 fails:C-API String function rb_external_str_new returns a String in the default external encoding
 fails:C-API String function rb_external_str_new returns an ASCII-8BIT encoded string if any non-ascii bytes are present and default external is US-ASCII

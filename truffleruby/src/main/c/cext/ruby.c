@@ -1039,8 +1039,7 @@ st_index_t rb_str_hash(VALUE string) {
 }
 
 void rb_str_update(VALUE string, long beg, long len, VALUE value) {
-  rb_tr_error("rb_str_update not implemented");
-  abort();
+  truffle_invoke((void *)string, "[]=", beg, len, value);
 }
 
 VALUE rb_str_equal(VALUE a, VALUE b) {
