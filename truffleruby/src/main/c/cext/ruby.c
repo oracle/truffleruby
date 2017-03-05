@@ -1523,8 +1523,7 @@ void rb_cv_set(VALUE klass, const char *name, VALUE val) {
 }
 
 void rb_define_attr(VALUE klass, const char *name, int read, int write) {
-  rb_tr_error("rb_define_attr not implemented");
-  abort();
+  truffle_invoke(RUBY_CEXT, "rb_define_attr", klass, ID2SYM(rb_intern(name)), read, write);
 }
 
 void rb_define_class_variable(VALUE klass, const char *name, VALUE val) {

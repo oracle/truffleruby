@@ -682,6 +682,16 @@ module Truffle::CExt
   def rb_apply(recv, meth, args)
     recv.send(meth, *args)
   end
+
+  def rb_define_attr(klass, name, read, write)
+    if read != 0 && write != 0
+      klass.class_eval { attr_accessor name }
+    elsif read != 0
+      klass.class_eval { attr_reader name }
+    elsif write != 0
+      klass.class_eval { attr_writer name }
+    end
+  end
   
   def rb_make_backtrace
     caller
