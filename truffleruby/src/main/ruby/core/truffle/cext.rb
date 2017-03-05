@@ -655,6 +655,10 @@ module Truffle::CExt
     string.intern
   end
 
+  def rb_make_backtrace
+    caller
+  end
+
   def rb_string_value_cstr_check(string)
     !string.include?("\0")
   end

@@ -1803,8 +1803,7 @@ VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS)
 }
 
 VALUE rb_make_backtrace(void) {
-  rb_tr_error("rb_make_backtrace not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_make_backtrace");
 }
 
 void rb_throw_obj(VALUE tag, VALUE value) {
