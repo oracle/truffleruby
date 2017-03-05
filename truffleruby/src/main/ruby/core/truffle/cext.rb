@@ -631,6 +631,10 @@ module Truffle::CExt
     end
   end
 
+  def rb_thread_alone
+    Thread.list.count == 1 ? 1 : 0
+  end
+
   def rb_intern(str)
     str.intern
   end

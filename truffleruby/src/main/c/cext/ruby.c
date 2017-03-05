@@ -2109,23 +2109,19 @@ void *rb_thread_call_without_gvl2(gvl_call function, void *data1, rb_unblock_fun
 }
 
 int rb_thread_alone(void) {
-  rb_tr_error("rb_thread_alone not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_thread_alone");
 }
 
 VALUE rb_thread_current(void) {
-  rb_tr_error("rb_thread_current not implemented");
-  abort();
+  return (VALUE) truffle_invoke(rb_tr_get_Thread(), "current");
 }
 
 VALUE rb_thread_local_aref(VALUE thread, ID id) {
-  rb_tr_error("rb_thread_local_aref not implemented");
-  abort();
+  return (VALUE) truffle_invoke(thread, "[]", ID2SYM(id));
 }
 
 VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE val) {
-  rb_tr_error("rb_thread_local_aset not implemented");
-  abort();
+  return (VALUE) truffle_invoke(thread, "[]=", ID2SYM(id), val);
 }
 
 void rb_thread_wait_for(struct timeval time) {
@@ -2134,8 +2130,7 @@ void rb_thread_wait_for(struct timeval time) {
 }
 
 VALUE rb_thread_wakeup(VALUE thread) {
-  rb_tr_error("rb_thread_wakeup not implemented");
-  abort();
+  return (VALUE) truffle_invoke(thread, "wakeup");
 }
 
 VALUE rb_thread_create(VALUE (*fn)(ANYARGS), void *arg) {
