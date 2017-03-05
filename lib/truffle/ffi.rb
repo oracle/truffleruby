@@ -34,11 +34,17 @@ module FFI
 
       define_singleton_method(method_name) { |*args|
         args = args.map { |arg| Struct === arg ? arg.to_ptr : arg }
-        function.call(*args)
+        result = function.call(*args)
+        if return_type == :pointer
+          FFI::Pointer.new(Truffle::Interop.unbox(result))
+        else
+          result
+        end
       }
     end
   end
 
+  Pointer = Rubinius::FFI::Pointer
   MemoryPointer = Rubinius::FFI::MemoryPointer
   Struct = Rubinius::FFI::Struct
 
