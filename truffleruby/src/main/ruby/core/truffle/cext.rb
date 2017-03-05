@@ -635,10 +635,6 @@ module Truffle::CExt
     str.intern
   end
 
-  def rb_intern2(str, len)
-    str[0, len].intern
-  end
-
   def rb_str_new(string, length)
     to_ruby_string(string)[0, length].b
   end

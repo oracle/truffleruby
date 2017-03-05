@@ -1200,7 +1200,7 @@ ID rb_intern(const char *string) {
 }
 
 ID rb_intern2(const char *string, long length) {
-  return (ID) SYM2ID(truffle_invoke(RUBY_CEXT, "rb_intern2", rb_str_new_cstr(string), length));
+  return (ID) SYM2ID(truffle_invoke(RUBY_CEXT, "rb_intern", rb_str_new(string, length)));
 }
 
 ID rb_intern3(const char *name, long len, rb_encoding *enc) {
