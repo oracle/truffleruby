@@ -666,6 +666,22 @@ module Truffle::CExt
       str.encode(to, ecopts)
     end
   end
+
+  def rb_funcall_with_block(recv, meth, args, block)
+    recv.public_send(meth, *args, &block)
+  end
+
+  def rb_funcallv_public(recv, meth, args)
+    recv.public_send(meth, *args)
+  end
+
+  def rb_funcallv(recv, meth, args)
+    recv.send(meth, *args)
+  end
+
+  def rb_apply(recv, meth, args)
+    recv.send(meth, *args)
+  end
   
   def rb_make_backtrace
     caller

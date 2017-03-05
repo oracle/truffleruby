@@ -1568,18 +1568,15 @@ int rb_respond_to(VALUE object, ID name) {
 }
 
 VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args) {
-  rb_tr_error("rb_funcallv not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_funcallv", object, ID2SYM(name), rb_ary_new4(args_count, args));
 }
 
 VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *args) {
-  rb_tr_error("rb_funcallv_public not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_funcallv_public", object, ID2SYM(name), rb_ary_new4(args_count, args));
 }
 
 VALUE rb_apply(VALUE object, ID name, VALUE args) {
-  rb_tr_error("rb_apply not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_apply", object, ID2SYM(name), args);
 }
 
 VALUE rb_block_call(VALUE object, ID name, int args_count, const VALUE *args, rb_block_call_func_t block_call_func, VALUE data) {
@@ -1605,8 +1602,7 @@ VALUE rb_yield(VALUE value) {
 }
 
 VALUE rb_funcall_with_block(VALUE recv, ID mid, int argc, const VALUE *argv, VALUE pass_procval) {
-  rb_tr_error("rb_funcall_with_block not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_funcall_with_block", recv, ID2SYM(mid), rb_ary_new4(argc, argv), pass_procval);
 }
 
 VALUE rb_yield_splat(VALUE values) {
