@@ -2264,8 +2264,7 @@ int rb_cloexec_open(const char *pathname, int flags, mode_t mode) {
 }
 
 VALUE rb_file_open(const char *fname, const char *modestr) {
-  rb_tr_error("rb_file_open not implemented");
-  abort();
+  return (VALUE) truffle_invoke(rb_tr_get_File(), "open", rb_str_new_cstr(fname), rb_str_new_cstr(modestr));
 }
 
 VALUE rb_file_open_str(VALUE fname, const char *modestr) {
