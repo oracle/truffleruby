@@ -1,2 +1,1 @@
 fails:CApiWrappedTypedStruct throws an exception for a wrong type
-fails:CApiWrappedTypedStruct allows for using NULL as the klass for Data_Wrap_Struct
