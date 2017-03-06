@@ -2316,7 +2316,7 @@ struct RTypedData *rb_tr_adapt_rtypeddata(VALUE value) {
 }
 
 VALUE rb_data_typed_object_wrap(VALUE ruby_class, void *data, const rb_data_type_t *data_type) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_data_typed_object_wrap", ruby_class == NULL ? rb_cObject : ruby_class, data, data_type);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_data_typed_object_wrap", ruby_class == NULL ? rb_cObject : ruby_class, data, (uintptr_t) data_type);
 }
 
 VALUE rb_data_typed_object_zalloc(VALUE ruby_class, size_t size, const rb_data_type_t *data_type) {
@@ -2331,7 +2331,10 @@ VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, vo
 }
 
 void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
-  // TODO CS 24-Sep-2016 we're supposed to do some error checking here
+  if ((uintptr_t) rb_iv_get(value, "@data_type") != (uintptr_t) data_type) {
+    rb_raise(rb_eTypeError, "wrong argument type");
+    abort();
+  }
   return RTYPEDDATA_DATA(value);
 }
 
