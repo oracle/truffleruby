@@ -41,14 +41,14 @@ module Rubinius
   SIZEOF_LONG = 8
   WORDSIZE = 64
 
-  # Pretend to be Linux for the purposes of the FFI - doesn't make a difference anyway at this stage
+  HOST_OS = Truffle::System.host_os
 
   def self.windows?
     false
   end
 
   def self.darwin?
-    false
+    HOST_OS == 'darwin'
   end
 
   def self.mathn_loaded?

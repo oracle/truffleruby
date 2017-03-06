@@ -259,6 +259,9 @@ module FFI::Platform
     OS = 'linux'
   end
 
+  LIBPREFIX = 'lib'
+  IS_GNU = (OS == 'linux') # TODO (eregon, 6 March 2017): actually check
+
   ARCH = Rubinius::CPU
 
   # ruby-ffi compatible
