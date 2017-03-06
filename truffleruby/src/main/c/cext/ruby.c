@@ -1208,7 +1208,7 @@ ID rb_intern3(const char *name, long len, rb_encoding *enc) {
 }
 
 VALUE rb_sym2str(VALUE string) {
-  return (VALUE) truffle_invoke((void *)string, "to_str");
+  return (VALUE) truffle_invoke((void *)string, "to_s");
 }
 
 const char *rb_id2name(ID id) {
