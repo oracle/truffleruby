@@ -1,5 +1,1 @@
-fails:C-API Symbol function rb_is_class_id returns false given a const-like symbol
-fails:C-API Symbol function rb_is_class_id returns false given an ivar-like symbol
-fails:C-API Symbol function rb_is_class_id returns true given a cvar-like symbol
-fails:C-API Symbol function rb_is_class_id returns false given an undecorated symbol
 fails:C-API Symbol function rb_sym2str converts a Symbol to a String

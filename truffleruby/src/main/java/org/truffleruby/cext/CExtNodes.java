@@ -532,4 +532,12 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "rb_is_class_id", isModuleFunction = true, required = 1)
+    public abstract static class IsClassVariableIdNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(guards = "isRubySymbol(symbol)")
+        public boolean isClassVariableId(DynamicObject symbol) {
+            return Identifiers.isValidClassVariableName(Layouts.SYMBOL.getString(symbol));
+        }
+    }
+
 }

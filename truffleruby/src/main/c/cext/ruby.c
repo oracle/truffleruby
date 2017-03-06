@@ -1220,8 +1220,7 @@ VALUE rb_id2str(ID id) {
 }
 
 int rb_is_class_id(ID id) {
-  rb_tr_error("rb_is_class_id not implemented");
-  abort();
+  return truffle_invoke_b(RUBY_CEXT, "rb_is_class_id", ID2SYM(id));
 }
 
 int rb_is_const_id(ID id) {
