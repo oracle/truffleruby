@@ -47,66 +47,6 @@ public class RubyMessageResolution {
 
     }
 
-    @Resolve(message = "EXECUTE")
-    public static abstract class ForeignExecuteNode extends Node {
-
-        @Child private ForeignExecuteHelperNode executeMethodNode = ForeignExecuteHelperNodeGen.create(null, null);
-
-        protected Object access(VirtualFrame frame, DynamicObject object, Object[] arguments) {
-            return executeMethodNode.executeCall(frame, object, arguments);
-        }
-
-    }
-
-    @Resolve(message = "GET_SIZE")
-    public static abstract class ForeignGetSizeNode extends Node {
-
-        @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
-
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            return dispatchNode.dispatch(frame, object, "size", null, new Object[]{});
-        }
-
-    }
-
-    @Resolve(message = "HAS_SIZE")
-    public static abstract class ForeignHasSizeNode extends Node {
-
-        protected Object access(DynamicObject object) {
-            return RubyGuards.isRubyArray(object) || RubyGuards.isRubyHash(object) || RubyGuards.isRubyString(object);
-        }
-
-    }
-
-    @Resolve(message = "INVOKE")
-    public static abstract class ForeignInvokeNode extends Node {
-
-        @Child private DispatchHeadNode dispatchHeadNode = insert(new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD));
-
-        protected Object access(VirtualFrame frame, DynamicObject receiver, String name, Object[] arguments) {
-            return dispatchHeadNode.dispatch(frame, receiver, name, null, arguments);
-        }
-
-    }
-
-    @Resolve(message = "IS_BOXED")
-    public static abstract class ForeignIsBoxedNode extends Node {
-
-        protected Object access(DynamicObject object) {
-            return RubyGuards.isRubyString(object) && StringOperations.rope(object).byteLength() == 1;
-        }
-
-    }
-
-    @Resolve(message = "IS_EXECUTABLE")
-    public static abstract class ForeignIsExecutableNode extends Node {
-
-        protected Object access(VirtualFrame frame, DynamicObject object) {
-            return RubyGuards.isRubyMethod(object) || RubyGuards.isRubyProc(object);
-        }
-
-    }
-
     @Resolve(message = "IS_NULL")
     public static abstract class ForeignIsNullNode extends Node {
 
@@ -129,13 +69,31 @@ public class RubyMessageResolution {
 
     }
 
-    @Resolve(message = "READ")
-    public static abstract class ForeignReadNode extends Node {
+    @Resolve(message = "HAS_SIZE")
+    public static abstract class ForeignHasSizeNode extends Node {
 
-        @Child private ForeignReadStringCachingHelperNode helperNode = ForeignReadStringCachingHelperNodeGen.create(null, null);
+        protected Object access(DynamicObject object) {
+            return RubyGuards.isRubyArray(object) || RubyGuards.isRubyHash(object) || RubyGuards.isRubyString(object);
+        }
 
-        protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
-            return helperNode.executeStringCachingHelper(frame, object, name);
+    }
+
+    @Resolve(message = "GET_SIZE")
+    public static abstract class ForeignGetSizeNode extends Node {
+
+        @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
+
+        protected Object access(VirtualFrame frame, DynamicObject object) {
+            return dispatchNode.dispatch(frame, object, "size", null, new Object[]{});
+        }
+
+    }
+
+    @Resolve(message = "IS_BOXED")
+    public static abstract class ForeignIsBoxedNode extends Node {
+
+        protected Object access(DynamicObject object) {
+            return RubyGuards.isRubyString(object) && StringOperations.rope(object).byteLength() == 1;
         }
 
     }
@@ -161,6 +119,17 @@ public class RubyMessageResolution {
             } else {
                 return object;
             }
+        }
+
+    }
+
+    @Resolve(message = "READ")
+    public static abstract class ForeignReadNode extends Node {
+
+        @Child private ForeignReadStringCachingHelperNode helperNode = ForeignReadStringCachingHelperNodeGen.create(null, null);
+
+        protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
+            return helperNode.executeStringCachingHelper(frame, object, name);
         }
 
     }
@@ -196,6 +165,37 @@ public class RubyMessageResolution {
             }
 
             return context;
+        }
+
+    }
+
+    @Resolve(message = "IS_EXECUTABLE")
+    public static abstract class ForeignIsExecutableNode extends Node {
+
+        protected Object access(VirtualFrame frame, DynamicObject object) {
+            return RubyGuards.isRubyMethod(object) || RubyGuards.isRubyProc(object);
+        }
+
+    }
+
+    @Resolve(message = "EXECUTE")
+    public static abstract class ForeignExecuteNode extends Node {
+
+        @Child private ForeignExecuteHelperNode executeMethodNode = ForeignExecuteHelperNodeGen.create(null, null);
+
+        protected Object access(VirtualFrame frame, DynamicObject object, Object[] arguments) {
+            return executeMethodNode.executeCall(frame, object, arguments);
+        }
+
+    }
+
+    @Resolve(message = "INVOKE")
+    public static abstract class ForeignInvokeNode extends Node {
+
+        @Child private DispatchHeadNode dispatchHeadNode = insert(new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD));
+
+        protected Object access(VirtualFrame frame, DynamicObject receiver, String name, Object[] arguments) {
+            return dispatchHeadNode.dispatch(frame, receiver, name, null, arguments);
         }
 
     }
