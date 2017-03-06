@@ -1,6 +1,0 @@
-fails:CApiAllocSpecs (a class with an alloc func defined) calls the alloc func
-fails:CApiWrappedStruct wraps with Data_Wrap_Struct and Data_Get_Struct returns data
-fails:CApiWrappedStruct allows for using NULL as the klass for Data_Wrap_Struct
-fails:CApiWrappedStruct RDATA() returns the struct data
-fails:CApiWrappedStruct RDATA() allows changing the wrapped struct
-fails:CApiWrappedStruct DATA_PTR returns the struct data

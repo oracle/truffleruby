@@ -107,6 +107,12 @@ Using `set_trace_func` will temporarily lower the performance of your program.
 As with `ObjectSpace`, we would recommend that you do not use this in the inner
 loop of your production application.
 
+## C Extension Compatibility
+
+#### `RDATA`
+
+The mark function of `RDATA` is never called.
+
 ## Compatibility with JRuby
 
 #### Ruby to Java interop

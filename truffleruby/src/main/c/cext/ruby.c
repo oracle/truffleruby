@@ -2302,8 +2302,7 @@ VALUE rb_struct_getmember(VALUE obj, ID id) {
 // Data
 
 VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  rb_tr_error("rb_data_object_wrap not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_data_object_wrap", klass == NULL ? rb_cObject : klass, datap, dmark, dfree);
 }
 
 struct RData *rb_tr_adapt_rdata(VALUE value) {

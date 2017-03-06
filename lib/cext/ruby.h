@@ -1045,12 +1045,12 @@ struct RData {
   void *data;
 };
 
-VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree);
+VALUE rb_data_object_wrap(VALUE ruby_class, void *data, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC free);
 
-#define Data_Wrap_Struct(klass,mark,free,sval)\
-    rb_data_object_wrap((klass),(sval),(RUBY_DATA_FUNC)(mark),(RUBY_DATA_FUNC)(free))
+#define Data_Wrap_Struct(ruby_class, mark, free, data) \
+    rb_data_object_wrap((ruby_class), (data), (RUBY_DATA_FUNC)(mark), (RUBY_DATA_FUNC)(free))
 
-#define Data_Get_Struct(obj,type,sval) \
+#define Data_Get_Struct(obj, type, sval) \
     ((sval) = (type *)rb_data_object_get(obj))
 
 struct RData *rb_tr_adapt_rdata(VALUE value);

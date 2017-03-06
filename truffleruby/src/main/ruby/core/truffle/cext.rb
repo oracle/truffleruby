@@ -1075,6 +1075,13 @@ module Truffle::CExt
     Mutex.new
   end
 
+  def rb_data_object_wrap(ruby_class, data, mark, free)
+    ruby_class = Object if Truffle::Interop.null?(ruby_class)
+    object = ruby_class.internal_allocate
+    object.instance_variable_set :@data, data
+    object
+  end
+
   def rb_data_typed_object_wrap(ruby_class, data, data_type)
     object = ruby_class.internal_allocate
     object.instance_variable_set :@data_type, data_type
