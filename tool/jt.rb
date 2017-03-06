@@ -1101,6 +1101,55 @@ module Commands
     test_specs('untag', path, *args)
   end
 
+  def build_stats(attribute, *args)
+    use_json = args.delete '--json'
+
+    value = case attribute
+      when 'binary-size'
+        build_stats_aot_binary_size(*args)
+      when 'build-time'
+        build_stats_aot_build_time(*args)
+      when 'runtime-compilable-methods'
+        build_stats_aot_runtime_compilable_methods(*args)
+      else
+        raise ArgumentError, attribute
+      end
+
+    if use_json
+      puts JSON.generate({ attribute => value })
+    else
+      puts "#{attribute}: #{value}"
+    end
+  end
+
+  def build_stats_aot_binary_size(*args)
+    if File.exist?(ENV['AOT_BIN'].to_s)
+      File.size(ENV['AOT_BIN']) / 1024.0 / 1024.0
+    else
+      -1
+    end
+  end
+
+  def build_stats_aot_build_time(*args)
+    if File.exist?('aot-build.log')
+      log = File.read('aot-build.log')
+      log =~ /\[total\]: (?<build_time>.+) ms/m
+      $~[:build_time].gsub(',', '')
+    else
+      -1
+    end
+  end
+
+  def build_stats_aot_runtime_compilable_methods(*args)
+    if File.exist?('aot-build.log')
+      log = File.read('aot-build.log')
+      log =~ /(?<method_count>\d+) method\(s\) included for runtime compilation/m
+      $~[:method_count]
+    else
+      -1
+    end
+  end
+
   def metrics(command, *args)
     trap(:INT) { puts; exit }
     args = args.dup
