@@ -126,7 +126,7 @@ public class RubyMessageResolution {
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return Layouts.POINTER.getPointer(object).address();
             } else {
-                return object;
+                throw UnsupportedMessageException.raise(Message.UNBOX);
             }
         }
 

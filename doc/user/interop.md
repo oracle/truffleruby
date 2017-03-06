@@ -46,7 +46,7 @@ them to be unboxed as a character.
 
 For a `String`, returns the first character. Unboxing empty strings is not
 supported and will cause an `UnsupportedMessageException`. For all other objects
-returns the object.
+throws `UnsupportedMessageException`.
 
 ### `IS_NULL`
 
