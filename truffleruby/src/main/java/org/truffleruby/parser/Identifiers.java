@@ -14,7 +14,7 @@
  *
  * Copyright (C) 2001-2002 Jan Arne Petersen <jpetersen@uni-bonn.de>
  * Copyright (C) 2007 William N Dortch <bill.dortch@gmail.com>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -51,6 +51,10 @@ public final class Identifiers {
 
     public static boolean isInitialCharacter(int c) {
         return Character.isAlphabetic(c) || c == '_';
+    }
+
+    public static boolean isValidInstanceVariableName(String id) {
+        return id.startsWith("@") && id.length() > 1 && Identifiers.isInitialCharacter(id.charAt(1));
     }
 
 

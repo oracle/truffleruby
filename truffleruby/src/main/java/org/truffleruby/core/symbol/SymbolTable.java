@@ -186,7 +186,7 @@ public class SymbolTable {
         // if (!IdUtil.isValidInstanceVariableName(name)) {
 
         // check like Rubinius does for compatibility with their Struct Ruby implementation.
-        if (!(name.startsWith("@") && name.length() > 1 && Identifiers.isInitialCharacter(name.charAt(1)))) {
+        if (!Identifiers.isValidInstanceVariableName(name)) {
             throw new RaiseException(context.getCoreExceptions().nameErrorInstanceNameNotAllowable(
                     name,
                     receiver,

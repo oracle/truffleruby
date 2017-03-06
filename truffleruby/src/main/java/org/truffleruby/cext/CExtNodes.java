@@ -49,6 +49,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
+import org.truffleruby.parser.Identifiers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -513,6 +514,14 @@ public class CExtNodes {
             return sourceSection.getStartLine();
         }
 
+    }
+
+    @CoreMethod(names = "rb_is_instance_id", isModuleFunction = true, required = 1)
+    public abstract static class IsInstanceIdNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(guards = "isRubySymbol(symbol)")
+        public boolean isInstanceId(DynamicObject symbol) {
+            return Identifiers.isValidInstanceVariableName(Layouts.SYMBOL.getString(symbol));
+        }
     }
 
 }

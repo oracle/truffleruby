@@ -2,10 +2,6 @@ fails:C-API Symbol function rb_is_const_id returns true given a const-like symbo
 fails:C-API Symbol function rb_is_const_id returns false given an ivar-like symbol
 fails:C-API Symbol function rb_is_const_id returns false given a cvar-like symbol
 fails:C-API Symbol function rb_is_const_id returns false given an undecorated symbol
-fails:C-API Symbol function rb_is_instance_id returns false given a const-like symbol
-fails:C-API Symbol function rb_is_instance_id returns true given an ivar-like symbol
-fails:C-API Symbol function rb_is_instance_id returns false given a cvar-like symbol
-fails:C-API Symbol function rb_is_instance_id returns false given an undecorated symbol
 fails:C-API Symbol function rb_is_class_id returns false given a const-like symbol
 fails:C-API Symbol function rb_is_class_id returns false given an ivar-like symbol
 fails:C-API Symbol function rb_is_class_id returns true given a cvar-like symbol
