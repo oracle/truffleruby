@@ -2207,13 +2207,11 @@ NORETURN(void rb_eof_error(void)) {
 }
 
 VALUE rb_io_addstr(VALUE io, VALUE str) {
-  rb_tr_error("rb_io_addstr not implemented");
-  abort();
+  return (VALUE) truffle_invoke(io, "<<", str);
 }
 
 VALUE rb_io_check_io(VALUE io) {
-  rb_tr_error("rb_io_check_io not implemented");
-  abort();
+  return rb_check_convert_type(io, T_FILE, "IO", "to_io");
 }
 
 void rb_io_check_closed(rb_io_t *fptr) {
@@ -2222,13 +2220,12 @@ void rb_io_check_closed(rb_io_t *fptr) {
 }
 
 VALUE rb_io_taint_check(VALUE io) {
-  rb_tr_error("rb_io_taint_check not implemented");
-  abort();
+  rb_check_frozen(io);
+  return io;
 }
 
 VALUE rb_io_close(VALUE io) {
-  rb_tr_error("rb_io_close not implemented");
-  abort();
+  return (VALUE) truffle_invoke(io, "close");
 }
 
 VALUE rb_io_print(int argc, const VALUE *argv, VALUE out) {
@@ -2244,8 +2241,7 @@ VALUE rb_io_puts(int argc, const VALUE *argv, VALUE out) {
 }
 
 VALUE rb_io_write(VALUE io, VALUE str) {
-  rb_tr_error("rb_io_write not implemented");
-  abort();
+  return (VALUE) truffle_invoke(io, "write", str);
 }
 
 VALUE rb_io_binmode(VALUE io) {
@@ -2264,17 +2260,15 @@ int rb_cloexec_open(const char *pathname, int flags, mode_t mode) {
 }
 
 VALUE rb_file_open(const char *fname, const char *modestr) {
-  return (VALUE) truffle_invoke(rb_tr_get_File(), "open", rb_str_new_cstr(fname), rb_str_new_cstr(modestr));
+  return (VALUE) truffle_invoke(rb_cFile, "open", rb_str_new_cstr(fname), rb_str_new_cstr(modestr));
 }
 
 VALUE rb_file_open_str(VALUE fname, const char *modestr) {
-  rb_tr_error("rb_file_open_str not implemented");
-  abort();
+  return (VALUE) truffle_invoke(rb_cFile, "open", fname, rb_str_new_cstr(modestr));
 }
 
 VALUE rb_get_path(VALUE object) {
-  rb_tr_error("rb_get_path not implemented");
-  abort();
+  return (VALUE) truffle_invoke(rb_cFile, "path", object);
 }
 
 #define FilePathValue(v) (RB_GC_GUARD(v) = rb_get_path(v))
