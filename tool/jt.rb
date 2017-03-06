@@ -493,6 +493,7 @@ module Commands
       jt untag spec/ruby/language/while_spec.rb      untag passing specs in this file
       jt mspec ...                                   run MSpec with the JRuby+Truffle configuration and custom arguments
       jt metrics alloc [--json] ...                  how much memory is allocated running a program (use -Xclassic to test normal JRuby on this metric and others)
+      jt metrics instructions ...                    how many CPU instructions are used to run a program
       jt metrics minheap ...                         what is the smallest heap you can use to run an application
       jt metrics time ...                            how long does it take to run a command, broken down into different phases
       jt benchmark [options] args...                 run benchmark-interface (implies --graal)
@@ -1102,9 +1103,11 @@ module Commands
     when 'alloc'
       metrics_alloc *args
     when 'minheap'
-        metrics_minheap *args
+      metrics_minheap *args
+    when 'instructions'
+      metrics_aot_instructions *args
     when 'time'
-        metrics_time *args
+      metrics_time *args
     else
       raise ArgumentError, command
     end
@@ -1190,6 +1193,30 @@ module Commands
 
   def can_run_in_heap(heap, *command)
     run("-J-Xmx#{heap}M", *command, {err: '/dev/null', out: '/dev/null', no_print_cmd: true, continue_on_failure: true, timeout: 60})
+  end
+
+  def metrics_aot_instructions(*args)
+    unless File.exist?(ENV['AOT_BIN'].to_s)
+      raise "AOT_BIN must point at an AOT build of TruffleRuby"
+    end
+
+    use_json = args.delete '--json'
+
+    out, err = raw_sh('perf', 'stat', '-e', 'instructions', '--', ENV['AOT_BIN'], *args, {capture: true, no_print_cmd: true})
+
+    err =~ /(?<instruction_count>[\d,]+)\s+instructions/m
+    instruction_count = $~[:instruction_count].gsub(',', '')
+
+    Utilities.log "\n", nil
+    human_readable = "#{instruction_count} instructions"
+    if use_json
+      puts JSON.generate({
+          instructions: instruction_count,
+          human: human_readable
+      })
+    else
+      puts human_readable
+    end
   end
 
   def metrics_time(*args)
