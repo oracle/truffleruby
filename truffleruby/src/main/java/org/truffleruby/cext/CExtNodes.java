@@ -524,4 +524,12 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "rb_is_const_id", isModuleFunction = true, required = 1)
+    public abstract static class IsConstIdNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(guards = "isRubySymbol(symbol)")
+        public boolean isConstId(DynamicObject symbol) {
+            return Identifiers.isValidConstantName19(Layouts.SYMBOL.getString(symbol));
+        }
+    }
+
 }
