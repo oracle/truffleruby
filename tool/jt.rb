@@ -660,7 +660,14 @@ module Commands
       options[:use_exec] = true
     end
 
-    raw_sh env_vars, Utilities.find_launcher, *jruby_args, *args, options
+    ruby_bin = if args.delete('--aot')
+                 verify_aot_bin!
+                 ENV['AOT_BIN']
+               else
+                 Utilities.find_launcher
+               end
+
+    raw_sh env_vars, ruby_bin, *jruby_args, *args, options
   end
 
   # Same as #run but uses exec()
@@ -1029,9 +1036,7 @@ module Commands
     end
 
     if args.delete('--aot')
-      unless File.exist?(ENV['AOT_BIN'].to_s)
-        raise "AOT_BIN must point at an AOT build of TruffleRuby"
-      end
+      verify_aot_bin!
 
       options << '-t' << ENV['AOT_BIN']
       options << '-T-XX:OldGenerationSize=2G'
@@ -1196,9 +1201,7 @@ module Commands
   end
 
   def metrics_aot_instructions(*args)
-    unless File.exist?(ENV['AOT_BIN'].to_s)
-      raise "AOT_BIN must point at an AOT build of TruffleRuby"
-    end
+    verify_aot_bin!
 
     use_json = args.delete '--json'
 
@@ -1274,7 +1277,7 @@ module Commands
         end
       end
     end
-    times[' jvm'] = total - times['  main']
+    times[' jvm'] = total - times['  main'] if times['  main']
     times['total'] = total
     times['unaccounted'] = total - accounted_for if times['    load-core']
     times
@@ -1420,6 +1423,12 @@ module Commands
     # We need to build with -parameters to get parameter names
     mx(JRUBY_DIR, 'build', '-A-parameters')
     run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-e', 'exit')
+  end
+
+  def verify_aot_bin!
+    unless File.exist?(ENV['AOT_BIN'].to_s)
+      raise "AOT_BIN must point at an AOT build of TruffleRuby"
+    end
   end
 
 end
