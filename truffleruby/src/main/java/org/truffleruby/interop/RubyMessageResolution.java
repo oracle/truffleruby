@@ -92,8 +92,17 @@ public class RubyMessageResolution {
     @Resolve(message = "IS_BOXED")
     public static abstract class ForeignIsBoxedNode extends Node {
 
+        private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
+
         protected Object access(DynamicObject object) {
-            return RubyGuards.isRubyString(object) && StringOperations.rope(object).byteLength() == 1;
+            if (stringProfile.profile(RubyGuards.isRubyString(object) && StringOperations.rope(object).byteLength() == 1)) {
+                return true;
+            } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
+                return true;
+            } else {
+                return false;
+            }
         }
 
     }
