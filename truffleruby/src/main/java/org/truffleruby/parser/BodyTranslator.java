@@ -1389,6 +1389,8 @@ public class BodyTranslator extends Translator {
         final Arity arity = MethodTranslator.getArity(argsNode);
         final ArgumentDescriptor[] argumentDescriptors = Helpers.argsNodeToArgumentDescriptors(argsNode);
 
+        final boolean alwaysClone = MethodTranslator.isPrimitive(bodyNode);
+
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection.toSourceSection(source),
                 environment.getLexicalScopeOrNull(),
@@ -1397,7 +1399,7 @@ public class BodyTranslator extends Translator {
                 methodName,
                 null,
                 argumentDescriptors,
-                false,
+                alwaysClone,
                 false,
                 false);
 

@@ -235,18 +235,7 @@ public class MethodTranslator extends BodyTranslator {
         final LoadArgumentsTranslator loadArgumentsTranslator = new LoadArgumentsTranslator(currentNode, context, source, parserContext, false, this);
         final RubyNode loadArguments = argsNode.accept(loadArgumentsTranslator);
         
-        boolean isPrimitive = false;
-        if (bodyNode instanceof BlockParseNode) {
-            ParseNode[] statements = ((BlockParseNode) bodyNode).children();
-            if (statements.length >= 0 && statements[0] instanceof CallParseNode) {
-                CallParseNode callNode = (CallParseNode) statements[0];
-                ParseNode receiver = callNode.getReceiverNode();
-                // Truffle.primitive :name
-                if (callNode.getName().equals("primitive") && receiver instanceof ConstParseNode && ((ConstParseNode) receiver).getName().equals("Truffle")) {
-                    isPrimitive = true;
-                }
-            }
-        }
+        final boolean isPrimitive = isPrimitive(bodyNode);
 
         RubyNode body;
         if (isPrimitive) {
@@ -278,6 +267,21 @@ public class MethodTranslator extends BodyTranslator {
         body.unsafeSetSourceSection(sourceSection);
 
         return body;
+    }
+
+    public static boolean isPrimitive(ParseNode bodyNode) {
+        if (bodyNode instanceof BlockParseNode) {
+            BlockParseNode statements = (BlockParseNode) bodyNode;
+            if (!statements.isEmpty() && statements.get(0) instanceof CallParseNode) {
+                CallParseNode callNode = (CallParseNode) statements.get(0);
+                ParseNode receiver = callNode.getReceiverNode();
+                // Truffle.primitive :name
+                if (callNode.getName().equals("primitive") && receiver instanceof ConstParseNode && ((ConstParseNode) receiver).getName().equals("Truffle")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public MethodDefinitionNode compileMethodNode(SourceIndexLength sourceSection, String methodName, MethodDefParseNode defNode, ParseNode bodyNode, SharedMethodInfo sharedMethodInfo) {
