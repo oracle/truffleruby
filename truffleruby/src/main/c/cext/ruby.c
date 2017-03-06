@@ -467,8 +467,7 @@ char RB_NUM2CHR(VALUE x) {
 }
 
 int rb_cmpint(VALUE val, VALUE a, VALUE b) {
-  rb_tr_error("rb_cmpint not implemented");
-  abort();
+  return truffle_invoke_i(RUBY_CEXT, "rb_cmpint", val, a, b);
 }
 
 VALUE rb_int2inum(SIGNED_VALUE n) {

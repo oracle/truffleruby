@@ -667,6 +667,17 @@ module Truffle::CExt
     end
   end
 
+  def rb_cmpint(val, a, b)
+    raise ArgumentError, "comparison of #{a.class} and #{b.class} failed" if val.nil?
+    if val > 0
+      1
+    elsif val < 0
+      -1
+    else
+      0
+    end
+  end
+
   def rb_funcall_with_block(recv, meth, args, block)
     recv.public_send(meth, *args, &block)
   end
