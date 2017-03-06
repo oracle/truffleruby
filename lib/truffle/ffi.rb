@@ -1,20 +1,35 @@
+# Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 1.0
+# GNU General Public License version 2
+# GNU Lesser General Public License version 2.1
+
+# Minimal support needed to run ffi/library
 module FFI
-  module Library
-    private def resolve_library(name)
-      case name
-      when 'SDL2' then '/usr/lib64/libSDL2.so'
+  Platform = Rubinius::FFI::Platform
+
+  class DynamicLibrary
+    RTLD_LAZY   = Rubinius::Config['rbx.platform.dlopen.RTLD_LAZY']
+    RTLD_NOW    = Rubinius::Config['rbx.platform.dlopen.RTLD_NOW']
+    RTLD_GLOBAL = Rubinius::Config['rbx.platform.dlopen.RTLD_GLOBAL']
+    RTLD_LOCAL  = Rubinius::Config['rbx.platform.dlopen.RTLD_LOCAL']
+
+    def self.open(libname, flags)
+      if libname
+        Truffle::Interop.eval('application/x-native', "load #{libname}")
       else
-        unless File.exist?(name)
-          raise "resolution of library #{name} not yet implemented"
-        end
+        Truffle::Interop.eval('application/x-native', 'default')
       end
     end
+  end
+end
 
-    def ffi_lib(name)
-      name = resolve_library(name)
-      @library = Truffle::Interop.eval('application/x-native', "load #{name}")
-    end
+require_relative 'ffi/library'
 
+module FFI
+  module Library
     TO_NATIVE_TYPE = {
       int: "SINT32",
     }
@@ -29,8 +44,11 @@ module FFI
       args_types = args_types.map { |type| to_native_type(type) }
       return_type = to_native_type(return_type)
 
+      function = @ffi_libs.each { |library|
+        break library[native_name]
+      }
       signature = "(#{args_types.join(',')}):#{return_type}"
-      function = @library[native_name].bind(Truffle::Interop.to_java_string(signature))
+      function = function.bind(Truffle::Interop.to_java_string(signature))
 
       define_singleton_method(method_name) { |*args|
         args = args.map { |arg| Struct === arg ? arg.to_ptr : arg }
