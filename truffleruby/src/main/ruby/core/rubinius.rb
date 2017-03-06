@@ -36,10 +36,11 @@
 
 module Rubinius
 
+  # Used by Rubinius::FFI
   L64 = true
   CPU = "jvm"
-  SIZEOF_LONG = 8
-  WORDSIZE = 64
+  SIZEOF_LONG = 8 # bytes
+  WORDSIZE = 64   # bits
 
   HOST_OS = Truffle::System.host_os
 
