@@ -12,14 +12,14 @@ package org.truffleruby.interop;
 import com.oracle.truffle.api.interop.TruffleObject;
 import org.truffleruby.RubyContext;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InteropManager {
 
     private final RubyContext context;
 
-    private final Map<String, TruffleObject> exported = new HashMap<>();
+    private final Map<String, TruffleObject> exported = new ConcurrentHashMap<>();
 
     public InteropManager(RubyContext context) {
         this.context = context;
