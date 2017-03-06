@@ -38,8 +38,12 @@ describe "Truffle::Interop.unbox" do
     Truffle::Interop.unbox('1').should == '1'.ord
   end
     
-  it "returns nil for nil" do
-    Truffle::Interop.unbox(nil).should be_nil
+  it "is not supported for nil" do
+    lambda { Truffle::Interop.unbox(nil) }.should raise_error(ArgumentError)
+  end
+
+  it "is not supported for objects which cannot be unboxed" do
+    lambda { Truffle::Interop.unbox(Object.new) }.should raise_error(ArgumentError)
   end
 
 end
