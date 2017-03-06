@@ -18,7 +18,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.interop.RubyMessageResolutionAccessor;
+import org.truffleruby.interop.RubyMessageResolutionForeign;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 public class RubyObjectType extends ObjectType {
@@ -43,7 +43,7 @@ public class RubyObjectType extends ObjectType {
 
     @Override
     public ForeignAccess getForeignAccessFactory(DynamicObject object) {
-        return RubyMessageResolutionAccessor.ACCESS;
+        return RubyMessageResolutionForeign.ACCESS;
     }
 
 }
