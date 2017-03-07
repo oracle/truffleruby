@@ -379,7 +379,7 @@ int NUM2INT(VALUE value) {
 }
 
 unsigned int NUM2UINT(VALUE value) {
-  return (unsigned int) truffle_invoke_i(RUBY_CEXT, "NUM2UINT", value);
+  return (unsigned int) truffle_invoke_l(RUBY_CEXT, "NUM2LONG", value);
 }
 
 long NUM2LONG(VALUE value) {
@@ -427,7 +427,7 @@ VALUE LONG2NUM(long value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", value);
 }
 
-VALUE ULONG2NUM(long value) {
+VALUE ULONG2NUM(unsigned long value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "ULONG2NUM", value);
 }
 
@@ -485,7 +485,7 @@ long rb_num2int(VALUE val) {
 }
 
 unsigned long rb_num2uint(VALUE val) {
-  rb_tr_error("rb_num2uint not implemented");
+  return (unsigned long)truffle_invoke_l(RUBY_CEXT, "rb_num2long", val);
 }
 
 long rb_num2long(VALUE val) {
