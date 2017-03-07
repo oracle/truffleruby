@@ -440,6 +440,7 @@ module Commands
   def help
     puts <<-TXT.gsub(/^#{' '*6}/, '')
       jt build [options]                             build
+      jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt rebuild [options]                           clean and build
           cexts [--no-openssl]                       build the cext backend (set SULONG_HOME)
           parser                                     build the parser
