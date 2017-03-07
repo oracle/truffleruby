@@ -2330,7 +2330,7 @@ VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, vo
 
 void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
   // TODO CS 6-Mar-17 work around the issue with LLVM addresses escaping into Ruby by making data_type a uintptr_t
-  if (rb_iv_get(value, "@data_type") != (uintptr_t) data_type) {
+  if ((uintptr_t) rb_iv_get(value, "@data_type") != (uintptr_t) data_type) {
     rb_raise(rb_eTypeError, "wrong argument type");
     abort();
   }
