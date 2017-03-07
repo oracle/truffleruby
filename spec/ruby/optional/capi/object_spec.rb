@@ -656,6 +656,12 @@ describe "CApiObject" do
       i = @o.rb_any_to_s(obj)
       i.should be_kind_of(String)
     end
+
+    it "converts an Object to string" do
+      obj = Object.new
+      i = @o.rb_any_to_s(obj)
+      i.should be_kind_of(String)
+    end
   end
 
   describe "rb_to_int" do

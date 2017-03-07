@@ -593,8 +593,7 @@ VALUE rb_obj_dup(VALUE object) {
 }
 
 VALUE rb_any_to_s(VALUE object) {
-  rb_tr_error("rb_any_to_s not implemented");
-  abort();
+  return (VALUE) truffle_invoke((void *)object, "to_s");
 }
 
 VALUE rb_obj_instance_variables(VALUE object) {
