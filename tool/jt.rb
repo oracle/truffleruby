@@ -1135,7 +1135,7 @@ module Commands
     if File.exist?('aot-build.log')
       log = File.read('aot-build.log')
       log =~ /\[total\]: (?<build_time>.+) ms/m
-      $~[:build_time].gsub(',', '')
+      Float($~[:build_time].gsub(',', ''))
     else
       -1
     end
@@ -1145,7 +1145,7 @@ module Commands
     if File.exist?('aot-build.log')
       log = File.read('aot-build.log')
       log =~ /(?<method_count>\d+) method\(s\) included for runtime compilation/m
-      $~[:method_count]
+      Integer($~[:method_count])
     else
       -1
     end
