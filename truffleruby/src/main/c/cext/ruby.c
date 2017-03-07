@@ -2301,8 +2301,14 @@ VALUE rb_struct_aset(VALUE s, VALUE idx, VALUE val) {
 }
 
 VALUE rb_struct_define(const char *name, ...) {
-  rb_tr_error("rb_struct_define not implemented");
-  abort();
+  VALUE *rb_name = name == NULL ? truffle_read(RUBY_CEXT, "Qnil") : rb_str_new_cstr(name);
+  VALUE *ary = rb_ary_new();
+  int i = 0;
+  char *arg = NULL;
+  while ((arg = (char *)truffle_get_arg(i + 1)) != NULL) {
+    rb_ary_store(ary, i++, rb_str_new_cstr(arg));
+  }
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_define_no_splat", rb_name, ary);
 }
 
 VALUE rb_struct_new(VALUE klass, ...) {

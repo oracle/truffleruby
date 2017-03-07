@@ -1152,6 +1152,9 @@ module Truffle::CExt
     end
   end
 
+  def rb_struct_define_no_splat(name, attrs)
+    Struct.new(name, *attrs)
+  end
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
