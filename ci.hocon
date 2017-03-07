@@ -281,6 +281,21 @@ compiler-metrics: {
   timelimit: "00:50:00"
 }
 
+svm-build-stats: {
+  run: ${bench.setup} [
+    ${bench.cmd} ["build-stats"]
+  ] ${post-process-and-upload-results-wait}
+}
+
+svm-metrics: {
+  run: ${bench.setup} [
+    ${bench.cmd} [instructions]
+  ] ${post-process-and-upload-results-wait} [
+    ${bench.cmd} [time]
+  ] ${post-process-and-upload-results}
+  timelimit: "00:25:00"
+}
+
 classic-benchmarks: {
   run: ${bench.setup} [
     ${bench.cmd} [classic]
@@ -454,6 +469,9 @@ builds: [
   {name: ruby-metrics-compiler-graal-enterprise} ${common} ${graal-enterprise} ${daily-bench-caps} ${truffleruby} ${compiler-metrics},
   {name: ruby-metrics-compiler-graal-enterprise-no-om} ${common} ${graal-enterprise-no-om} ${daily-bench-caps} ${truffleruby} ${compiler-metrics},
   //{name: ruby-metrics-compiler-graal-vm-snapshot} ${common} ${graal-vm-snapshot} ${bench-caps} ${truffleruby} ${compiler-metrics},
+  {name: ruby-build-stats-svm} ${common} ${svm-bench} ${bench-caps} ${truffleruby} ${svm-build-stats},
+  {name: ruby-metrics-svm-with-rubygems} ${common} ${svm-bench} ${bench-caps} ${truffleruby} {environment: {GUEST_VM_CONFIG: default}} ${svm-metrics},
+  {name: ruby-metrics-svm-without-rubygems} ${common} ${svm-bench} ${bench-caps} ${truffleruby} {environment: {GUEST_VM_CONFIG: no-rubygems, TRUFFLERUBYOPT: ''}} ${svm-metrics},
 
   //{name: ruby-benchmarks-classic-mri} ${common} ${weekly-bench-caps} ${mri-benchmark} ${classic-benchmarks},
   //{name: ruby-benchmarks-classic-no-graal} ${common} ${no-graal} ${weekly-bench-caps} ${truffleruby} ${classic-benchmarks},

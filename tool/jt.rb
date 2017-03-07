@@ -440,6 +440,7 @@ module Commands
   def help
     puts <<-TXT.gsub(/^#{' '*6}/, '')
       jt build [options]                             build
+      jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt rebuild [options]                           clean and build
           cexts [--no-openssl]                       build the cext backend (set SULONG_HOME)
           parser                                     build the parser
@@ -1134,7 +1135,7 @@ module Commands
     if File.exist?('aot-build.log')
       log = File.read('aot-build.log')
       log =~ /\[total\]: (?<build_time>.+) ms/m
-      $~[:build_time].gsub(',', '')
+      Float($~[:build_time].gsub(',', ''))
     else
       -1
     end
@@ -1144,7 +1145,7 @@ module Commands
     if File.exist?('aot-build.log')
       log = File.read('aot-build.log')
       log =~ /(?<method_count>\d+) method\(s\) included for runtime compilation/m
-      $~[:method_count]
+      Integer($~[:method_count])
     else
       -1
     end
@@ -1263,7 +1264,7 @@ module Commands
     human_readable = "#{instruction_count} instructions"
     if use_json
       puts JSON.generate({
-          instructions: instruction_count,
+          instructions: Integer(instruction_count),
           human: human_readable
       })
     else
