@@ -1079,7 +1079,14 @@ module Truffle::CExt
     ruby_class = Object if Truffle::Interop.null?(ruby_class)
     object = ruby_class.internal_allocate
     object.instance_variable_set :@data, data
+    ObjectSpace.define_finalizer object, data_finalizer(data, free)
     object
+  end
+
+  def data_finalizer(data, free)
+    proc {
+      #Truffle::Interop.execute(free, data)
+    }
   end
 
   def rb_data_typed_object_wrap(ruby_class, data, data_type)
