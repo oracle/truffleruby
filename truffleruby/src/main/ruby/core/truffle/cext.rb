@@ -555,6 +555,10 @@ module Truffle::CExt
     ary
   end
 
+  def rb_num2uint(val)
+    Rubinius::Type.rb_num2uint(val)
+  end
+
   def rb_Integer(value)
     Integer(value)
   end

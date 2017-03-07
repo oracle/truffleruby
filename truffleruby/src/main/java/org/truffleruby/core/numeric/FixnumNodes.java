@@ -1226,6 +1226,26 @@ public abstract class FixnumNodes {
 
     }
 
+    @Primitive(name = "fixnum_fits_into_uint")
+    public static abstract class FixnumFitsIntoUIntPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public boolean fitsIntoUIntInt(int a) {
+            return true;
+        }
+
+        @Specialization
+        public boolean fitsIntoUIntLong(long a) {
+            return CoreLibrary.fitsIntoUnsignedInteger(a);
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public boolean fitsIntoUIntBignum(DynamicObject b) {
+            return false;
+        }
+
+    }
+
     @Primitive(name = "fixnum_fits_into_long")
     public static abstract class FixnumFitsIntoLongPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
