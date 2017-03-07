@@ -1135,7 +1135,7 @@ module Commands
     if File.exist?('aot-build.log')
       log = File.read('aot-build.log')
       log =~ /\[total\]: (?<build_time>.+) ms/m
-      Float($~[:build_time].gsub(',', ''))
+      Float($~[:build_time].gsub(',', '')) / 1000.0
     else
       -1
     end
