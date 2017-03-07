@@ -1754,15 +1754,6 @@ void rb_exc_raise(VALUE exception) {
   abort();
 }
 
-void rb_raise(VALUE exception, const char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  VALUE message = rb_vsprintf(format, args);
-  //va_end(args); CS 4-May-17 why does this crash?
-  rb_exc_raise(rb_exc_new_str(exception, message));
-  abort();
-}
-
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
   // TODO CS 23-Jul-16
   return function(data);

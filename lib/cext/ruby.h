@@ -842,7 +842,10 @@ VALUE rb_exc_new_str(VALUE exception_class, VALUE message);
 #define rb_exc_new2 rb_exc_new_cstr
 #define rb_exc_new3 rb_exc_new_str
 NORETURN(void rb_exc_raise(VALUE exception));
-NORETURN(void rb_raise(VALUE exception, const char *format, ...));
+
+#define rb_raise(EXCEPTION, FORMAT, ...) \
+    rb_exc_raise(rb_exc_new_str(EXCEPTION, (VALUE) truffle_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)))
+
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status);
 void rb_jump_tag(int status);
 void rb_set_errinfo(VALUE error);

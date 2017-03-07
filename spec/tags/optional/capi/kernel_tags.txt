@@ -1,5 +1,3 @@
-fails:C-API Kernel function rb_raise raises an exception
-fails:C-API Kernel function rb_raise terminates the function at the point it was called
 fails:C-API Kernel function rb_throw sets the return value of the catch block to the specified value
 fails:C-API Kernel function rb_throw terminates the function at the point it was called
 fails:C-API Kernel function rb_throw raises an ArgumentError if there is no catch block for the symbol
