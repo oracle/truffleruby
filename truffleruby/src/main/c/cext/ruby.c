@@ -2291,23 +2291,34 @@ VALUE rb_get_path(VALUE object) {
 // Structs
 
 VALUE rb_struct_aref(VALUE s, VALUE idx) {
-  rb_tr_error("rb_struct_aref not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_aref", s, idx);
 }
 
 VALUE rb_struct_aset(VALUE s, VALUE idx, VALUE val) {
-  rb_tr_error("rb_struct_aset not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_aset", s, idx, val);
 }
 
 VALUE rb_struct_define(const char *name, ...) {
-  rb_tr_error("rb_struct_define not implemented");
-  abort();
+  VALUE *rb_name = name == NULL ? truffle_read(RUBY_CEXT, "Qnil") : rb_str_new_cstr(name);
+  VALUE *ary = rb_ary_new();
+  int i = 0;
+  char *arg = NULL;
+  while ((arg = (char *)truffle_get_arg(i + 1)) != NULL) {
+    rb_ary_store(ary, i++, rb_str_new_cstr(arg));
+  }
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_define_no_splat", rb_name, ary);
 }
 
 VALUE rb_struct_new(VALUE klass, ...) {
-  rb_tr_error("rb_struct_new not implemented");
-  abort();
+  int members = truffle_invoke_i(RUBY_CEXT, "rb_struct_size", klass);
+  VALUE *ary = rb_ary_new();
+  int i = 0;
+  char *arg = NULL;
+  while (i < members) {
+    VALUE arg = truffle_get_arg(i + 1);
+    rb_ary_store(ary, i++, arg);
+  }
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_new_no_splat", klass, ary);  
 }
 
 VALUE rb_struct_getmember(VALUE obj, ID id) {
