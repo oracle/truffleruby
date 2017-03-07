@@ -1807,14 +1807,12 @@ VALUE rb_make_backtrace(void) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_make_backtrace");
 }
 
-void rb_throw_obj(VALUE tag, VALUE value) {
-  rb_tr_error("rb_throw_obj not implemented");
-  abort();
+void rb_throw(const char *tag, VALUE val) {
+  return rb_throw_obj(rb_intern(tag), val);
 }
 
-void rb_throw(const char *tag, VALUE val) {
-  rb_tr_error("rb_throw not implemented");
-  abort();
+void rb_throw_obj(VALUE tag, VALUE value) {
+  truffle_invoke(rb_mKernel, "throw", tag, value == NULL ? Qnil : value);
 }
 
 VALUE rb_catch(const char *tag, VALUE (*func)(), VALUE data) {
