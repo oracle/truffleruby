@@ -1152,6 +1152,20 @@ module Truffle::CExt
     end
   end
 
+  def rb_exec_recursive(func, obj, arg)
+    result = nil
+
+    recursive = Thread.detect_recursion(obj) {
+      result = Truffle::Interop.execute(func, obj, arg, 0)
+    }
+
+    if recursive
+      Truffle::Interop.execute(func, obj, arg, 1)
+    else
+      result
+    end
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

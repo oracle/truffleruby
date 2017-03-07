@@ -551,8 +551,7 @@ VALUE rb_eval_string(const char *str) {
 }
 
 VALUE rb_exec_recursive(VALUE (*func) (VALUE, VALUE, int), VALUE obj, VALUE arg) {
-  rb_tr_error("rb_exec_recursive not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_exec_recursive", func, obj, arg);
 }
 
 VALUE rb_f_sprintf(int argc, const VALUE *argv) {
