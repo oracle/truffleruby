@@ -1166,6 +1166,12 @@ module Truffle::CExt
     end
   end
 
+  def rb_catch_obj(tag, func, data)
+    catch tag do |caught|
+      Truffle::Interop.execute(func, caught, data)
+    end
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

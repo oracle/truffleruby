@@ -1821,13 +1821,11 @@ void rb_throw(const char *tag, VALUE val) {
 }
 
 VALUE rb_catch(const char *tag, VALUE (*func)(), VALUE data) {
-  rb_tr_error("rb_catch not implemented");
-  abort();
+  return rb_catch_obj(rb_intern(tag), func, data);
 }
 
 VALUE rb_catch_obj(VALUE t, VALUE (*func)(), VALUE data) {
-  rb_tr_error("rb_catch_obj not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_catch_obj", t, func, data);
 }
 
 // Defining classes, modules and methods
