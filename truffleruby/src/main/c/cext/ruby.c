@@ -1790,8 +1790,7 @@ VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS),
 }
 
 VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2) {
-  rb_tr_error("rb_rescue not implemented");
-  abort();
+  return truffle_invoke(RUBY_CEXT, "rb_rescue", b_proc, data1, r_proc, data2);
 }
 
 VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...) {

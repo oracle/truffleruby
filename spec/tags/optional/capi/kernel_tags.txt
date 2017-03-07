@@ -17,12 +17,6 @@ fails:C-API Kernel function rb_yield_values yields passed arguments
 fails:C-API Kernel function rb_yield_values returns the result from block evaluation
 fails:C-API Kernel function rb_yield_values raises LocalJumpError when no block is given
 fails:C-API Kernel function rb_yield_splat raises LocalJumpError when no block is given
-fails:C-API Kernel function rb_rescue executes passed function
-fails:C-API Kernel function rb_rescue executes passed 'raise function' if a StandardError exception is raised
-fails:C-API Kernel function rb_rescue passes the user supplied argument to the 'raise function' if a StandardError exception is raised
-fails:C-API Kernel function rb_rescue passes the raised exception to the 'raise function' if a StandardError exception is raised
-fails:C-API Kernel function rb_rescue makes $! available only during 'raise function' execution
-fails:C-API Kernel function rb_rescue returns the break value if the passed function yields to a block with a break
 fails:C-API Kernel function rb_rescue2 only rescues if one of the passed exceptions is raised
 fails:C-API Kernel function rb_catch executes passed function
 fails:C-API Kernel function rb_catch terminates the function at the point it was called
@@ -32,4 +26,3 @@ fails:C-API Kernel function rb_catch_obj terminates the function at the point it
 fails:C-API Kernel function rb_catch_obj raises an ArgumentError if the throw symbol isn't caught
 fails:C-API Kernel function rb_exec_recursive detects recursive invocations of a method and indicates as such
 fails:C-API Kernel function rb_set_end_proc runs a C function on shutdown
-fails:C-API Kernel function rb_rescue raises an exception if any exception is raised inside 'raise function'
