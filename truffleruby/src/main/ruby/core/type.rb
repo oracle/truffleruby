@@ -226,6 +226,12 @@ module Rubinius
       num
     end
 
+    def self.rb_num2uint(val)
+      num = rb_num2long(val)
+      check_uint(num)
+      num
+    end
+
     def self.rb_num2long(val)
       raise TypeError, "no implicit conversion from nil to integer" if val.nil?
 
@@ -266,6 +272,12 @@ module Rubinius
     def self.check_int(val)
       unless Truffle.invoke_primitive(:fixnum_fits_into_int, val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `int"
+      end
+    end
+
+    def self.check_uint(val)
+      unless Truffle.invoke_primitive(:fixnum_fits_into_uint, val)
+        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `uint"
       end
     end
 

@@ -485,7 +485,7 @@ long rb_num2int(VALUE val) {
 }
 
 unsigned long rb_num2uint(VALUE val) {
-  return (unsigned long)truffle_invoke_l(RUBY_CEXT, "rb_num2long", val);
+  return (unsigned long)truffle_invoke_l(RUBY_CEXT, "rb_num2uint", val);
 }
 
 long rb_num2long(VALUE val) {

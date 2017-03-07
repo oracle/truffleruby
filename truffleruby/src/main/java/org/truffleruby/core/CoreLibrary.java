@@ -1099,6 +1099,10 @@ public class CoreLibrary {
         return ((int) value) == value;
     }
 
+    public static boolean fitsIntoUnsignedInteger(long value) {
+        return value == (value & 0xffffffffl) || value < 0 && value >= Integer.MIN_VALUE;
+    }
+
     public static int long2int(long value) {
         assert fitsIntoInteger(value) : value;
         return (int) value;
