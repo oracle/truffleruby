@@ -9,14 +9,22 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.interop.ForeignAccess;
+import com.oracle.truffle.api.interop.TruffleObject;
+
 /**
  * Represents a value that was not provided by the user, such as optional arguments to a core library node.
  */
-public final class NotProvided {
+public final class NotProvided implements TruffleObject {
 
     public static final NotProvided INSTANCE = new NotProvided();
 
     private NotProvided() {
+    }
+
+    @Override
+    public ForeignAccess getForeignAccess() {
+        throw new UnsupportedOperationException();
     }
 
 }
