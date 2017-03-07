@@ -291,7 +291,7 @@ svm-metrics: {
   run: ${bench.setup} [
     ${bench.cmd} [instructions]
   ] ${post-process-and-upload-results-wait} [
-    ${bench.cmd} [time]
+    ${bench.cmd} [time, --, --aot]
   ] ${post-process-and-upload-results}
   timelimit: "00:25:00"
 }
