@@ -651,7 +651,7 @@ describe "CApiObject" do
   end
 
   describe "rb_any_to_s" do
-    it "converts obj to string" do
+    it "converts an Integer to string" do
       obj = 1
       i = @o.rb_any_to_s(obj)
       i.should be_kind_of(String)
