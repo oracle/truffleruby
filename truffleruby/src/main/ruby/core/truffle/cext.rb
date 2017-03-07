@@ -780,10 +780,6 @@ module Truffle::CExt
     end
   end
 
-  def verbose
-    $VERBOSE
-  end
-
   def rb_yield(value)
     block = get_block
     block.call(value)
@@ -1194,6 +1190,28 @@ module Truffle::CExt
 
   def yield_no_block
     raise LocalJumpError
+  end
+
+  def warn?
+    !$VERBOSE.nil?
+  end
+
+  def warning?
+    $VERBOSE
+  end
+
+  def native_sprintf(format, *args)
+    # We use Ruby's sprintf for some uses of what in MRI is the system sprintf. %s usually seems to be
+    # from an RSTRING_PTR, so we just un-adapt in that case. If we encounter real native C strings here
+    # we'll have to convert them to Ruby strings.
+
+    sprintf(format, *args.map { |arg|
+      if adapted_string_pointer?(arg)
+        unadapt_string_pointer(arg)
+      else
+        arg
+      end
+    })
   end
 
 end

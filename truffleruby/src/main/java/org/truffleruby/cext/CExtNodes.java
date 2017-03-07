@@ -273,6 +273,26 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "adapted_string_pointer?", isModuleFunction = true, required = 1)
+    public abstract static class AdapatedStringPointerNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean adaptedStringPointer(Object string) {
+            return string instanceof StringCharPointerAdapter;
+        }
+
+    }
+
+    @CoreMethod(names = "unadapt_string_pointer", isModuleFunction = true, required = 1)
+    public abstract static class UnadapatStringPointerNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject unadaptStringPointer(StringCharPointerAdapter adapter) {
+            return adapter.getString();
+        }
+
+    }
+
     @CoreMethod(names = "to_ruby_string", isModuleFunction = true, required = 1)
     public abstract static class ToRubyStringNode extends CoreMethodArrayArgumentsNode {
 
