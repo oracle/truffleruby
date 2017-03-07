@@ -1,4 +1,3 @@
-fails:C-API Array function rb_ary_new4 returns returns an array with the passed values
 fails:C-API Array function RARRAY_PTR allows assigning to the elements of the C array
 fails:C-API Array function rb_iterate calls an callback function as a block passed to an method
 fails:C-API Array function rb_iterate calls a function with the other function available as a block
