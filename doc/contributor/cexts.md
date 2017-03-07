@@ -1,5 +1,7 @@
 # TruffleRuby, Sulong and C extensions
 
+## Setup
+
 TruffleRuby runs C extension using Sulong. You should build Sulong from source.
 Set `SULONG_VERSION=3.8` when building. Clone from 
 https://github.com/graalvm/sulong
@@ -18,6 +20,8 @@ The 3 environment variables in the following command are needed, `JT_CLANG` and
 SULONG_HOME=/absolute/path/to/sulong JT_OPT=opt-3.8 JT_CLANG=clang-3.8 \
     jt build cexts --no-openssl
 ```
+
+## Testing
 
 Get the `jruby-truffle-gem-test-pack` repository at 
 https://github.com/jruby/jruby-truffle-gem-test-pack
@@ -41,6 +45,8 @@ You can also runs specs:
 ```bash
 jt test --sulong :capi
 ```
+
+## Benchmarking
 
 To run C extension benchmarks, you first need to compile them.
 
