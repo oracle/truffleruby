@@ -109,9 +109,36 @@ loop of your production application.
 
 ## C Extension Compatibility
 
+#### Storing Ruby objects in native structures and arrays
+
+You cannot store a Ruby object in a structure or array that has been native
+allocated, such as on the stack, or in a heap allocated structure or array.
+
+Simple local variables of type `VALUE`, and locals arrays that are defined such
+as `VALUE array[n]` are an exception and are supported, provided their address
+is not taken and passed to a function that is not inlined.
+
+`void *rb_tr_to_native_handle(VALUE managed)` and
+`VALUE rb_tr_from_native_handle(void *native)` may help you work around this
+limitation.
+
+#### Pointers to `VALUE` locals and variadic functions
+
+Pointers to local variables that have the type `VALUE` and hold Ruby objects can
+only be passed as function arguments if the function is inlined. LLVM will never
+inline variadic functions, so pointers to local variables that hold Ruby objects
+cannot be passed as variadic arguments.
+
+`rb_scan_args` is an exception and is supported.
+
+#### `rb_scan_args`
+
+`rb_scan_args` only supports up to ten pointers.
+
 #### `RDATA`
 
-The mark function of `RDATA` is never called.
+The `mark` function of `RDATA` is never called. The `free` function is also
+never called at the moment, but this will be fixed in the future.
 
 ## Compatibility with JRuby
 
