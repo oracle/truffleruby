@@ -1191,6 +1191,11 @@ module Truffle::CExt
   def rb_struct_new_no_splat(klass, args)
     klass.new(*args)
   end
+
+  def yield_no_block
+    raise LocalJumpError
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

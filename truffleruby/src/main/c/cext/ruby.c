@@ -1603,7 +1603,12 @@ VALUE rb_block_proc(void) {
 }
 
 VALUE rb_yield(VALUE value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_yield", value);
+  if (rb_block_given_p()) {
+    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_yield", value);
+  } else {
+    truffle_invoke(RUBY_CEXT, "yield_no_block");
+    abort();
+  }
 }
 
 VALUE rb_funcall_with_block(VALUE recv, ID mid, int argc, const VALUE *argv, VALUE pass_procval) {
@@ -1611,12 +1616,20 @@ VALUE rb_funcall_with_block(VALUE recv, ID mid, int argc, const VALUE *argv, VAL
 }
 
 VALUE rb_yield_splat(VALUE values) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_yield_splat", values);
+  if (rb_block_given_p()) {
+    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_yield_splat", values);
+  } else {
+    truffle_invoke(RUBY_CEXT, "yield_no_block");
+    abort();
+  }
 }
 
 VALUE rb_yield_values(int n, ...) {
-  rb_tr_error("rb_yield_values not implemented");
-  abort();
+  VALUE values = rb_ary_new_capa(n);
+  for (int i = 0; i < n; i++) {
+    rb_ary_store(values, i, (VALUE) truffle_get_arg(1+i));
+  }
+  return rb_yield_splat(values);
 }
 
 // Instance variables
