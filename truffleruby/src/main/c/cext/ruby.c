@@ -842,15 +842,9 @@ VALUE rb_str_buf_new(long capacity) {
   return rb_str_new_cstr("");
 }
 
-VALUE rb_sprintf(const char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  VALUE *string = rb_vsprintf(format, args);
-  va_end(args);
-  return string;
-}
-
 VALUE rb_vsprintf(const char *format, va_list args) {
+  // TODO CS 7-May-17 this needs to use the Ruby sprintf, not C's
+
   va_list args_copy;
   va_copy(args_copy, args);
   int length = vsnprintf(NULL, 0, format, args_copy);
