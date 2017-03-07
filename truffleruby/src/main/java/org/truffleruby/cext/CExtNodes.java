@@ -34,6 +34,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
@@ -50,6 +51,8 @@ import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.parser.Identifiers;
+
+import java.math.BigInteger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -211,9 +214,20 @@ public class CExtNodes {
     public abstract static class ULONG2NUMNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public long ulong2num(long num) {
-            // TODO CS 2-May-16 what to do about the fact it's unsigned?
-            return num;
+        public Object ulong2num(long num) {
+            if (num > 0) {
+                return num;
+            } else {
+                // The l at the end of the constant is crucial,
+                // otherwise the constant will be interpreted as an
+                // int (-1) and then converted to a long (still -1,
+                // 0xffffffffffffffff), and have completely the wrong
+                // effect.
+                BigInteger lsi = BigInteger.valueOf(num & 0xffffffffl);
+                BigInteger msi = BigInteger.valueOf(num >>> 32).shiftLeft(32);
+                BigInteger res = msi.add(lsi);
+                return BignumOperations.createBignum(getContext(), res);
+            }
         }
 
     }

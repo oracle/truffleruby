@@ -362,7 +362,7 @@ VALUE INT2NUM(long value);
 VALUE INT2FIX(long value);
 VALUE UINT2NUM(unsigned int value);
 VALUE LONG2NUM(long value);
-VALUE ULONG2NUM(long value);
+VALUE ULONG2NUM(unsigned long value);
 VALUE LONG2FIX(long value);
 int rb_fix2int(VALUE value);
 unsigned long rb_fix2uint(VALUE value);
