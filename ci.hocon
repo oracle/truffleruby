@@ -469,7 +469,7 @@ builds: [
   {name: ruby-metrics-compiler-graal-enterprise} ${common} ${graal-enterprise} ${daily-bench-caps} ${truffleruby} ${compiler-metrics},
   {name: ruby-metrics-compiler-graal-enterprise-no-om} ${common} ${graal-enterprise-no-om} ${daily-bench-caps} ${truffleruby} ${compiler-metrics},
   //{name: ruby-metrics-compiler-graal-vm-snapshot} ${common} ${graal-vm-snapshot} ${bench-caps} ${truffleruby} ${compiler-metrics},
-  {name: ruby-build-stats-svm} ${common} ${svm-bench} ${bench-caps} ${truffleruby} ${svm-build-stats},
+  {name: ruby-build-stats-svm} ${common} ${svm-bench} ${bench-caps} ${truffleruby} ${truffleruby} {environment: {GUEST_VM_CONFIG: default}} ${svm-build-stats},
   {name: ruby-metrics-svm-with-rubygems} ${common} ${svm-bench} ${bench-caps} ${truffleruby} {environment: {GUEST_VM_CONFIG: default}} ${svm-metrics},
   {name: ruby-metrics-svm-without-rubygems} ${common} ${svm-bench} ${bench-caps} ${truffleruby} {environment: {GUEST_VM_CONFIG: no-rubygems, TRUFFLERUBYOPT: ''}} ${svm-metrics},
 
