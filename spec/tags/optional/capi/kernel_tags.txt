@@ -30,10 +30,6 @@ fails:C-API Kernel function rb_catch raises an ArgumentError if the throw symbol
 fails:C-API Kernel function rb_catch_obj executes passed function
 fails:C-API Kernel function rb_catch_obj terminates the function at the point it was called
 fails:C-API Kernel function rb_catch_obj raises an ArgumentError if the throw symbol isn't caught
-fails:C-API Kernel function rb_ensure executes passed function and returns its value
-fails:C-API Kernel function rb_ensure executes passed 'ensure function' when no exception is raised
-fails:C-API Kernel function rb_ensure executes passed 'ensure function' when an exception is raised
-fails:C-API Kernel function rb_ensure raises the same exception raised inside passed function
 fails:C-API Kernel function rb_exec_recursive detects recursive invocations of a method and indicates as such
 fails:C-API Kernel function rb_set_end_proc runs a C function on shutdown
 fails:C-API Kernel function rb_rescue raises an exception if any exception is raised inside 'raise function'

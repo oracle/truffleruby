@@ -1128,6 +1128,14 @@ module Truffle::CExt
     end
   end
 
+  def rb_ensure(b_proc, data1, e_proc, data2)
+    begin
+      Truffle::Interop.execute(b_proc, data1)
+    ensure
+      Truffle::Interop.execute(e_proc, data2)
+    end
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

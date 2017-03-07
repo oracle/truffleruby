@@ -1786,8 +1786,7 @@ void rb_sys_fail(const char *message) {
 }
 
 VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2) {
-  rb_tr_error("rb_ensure not implemented");
-  abort();
+  return truffle_invoke(RUBY_CEXT, "rb_ensure", b_proc, data1, e_proc, data2);
 }
 
 VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2) {
