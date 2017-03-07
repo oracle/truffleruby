@@ -1581,8 +1581,8 @@ VALUE rb_apply(VALUE object, ID name, VALUE args) {
 
 VALUE rb_block_call(VALUE object, ID name, int args_count, const VALUE *args, rb_block_call_func_t block_call_func, VALUE data) {
   if (rb_block_given_p()) {
-     return rb_funcall_with_block(object, name, args_count, args, rb_block_proc());
-   } else if (block_call_func == NULL) {
+    return rb_funcall_with_block(object, name, args_count, args, rb_block_proc());
+  } else if (block_call_func == NULL) {
     return rb_funcallv(object, name, args_count, args);
   } else {
     return (VALUE) truffle_invoke(RUBY_CEXT, "rb_block_call", object, ID2SYM(name), rb_ary_new4(args_count, args), block_call_func, data);
