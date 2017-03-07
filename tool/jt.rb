@@ -1264,7 +1264,7 @@ module Commands
     human_readable = "#{instruction_count} instructions"
     if use_json
       puts JSON.generate({
-          instructions: instruction_count,
+          instructions: Integer(instruction_count),
           human: human_readable
       })
     else
