@@ -183,9 +183,6 @@ public class SymbolTable {
             String name,
             Object receiver,
             Node currentNode) {
-        // if (!IdUtil.isValidInstanceVariableName(name)) {
-
-        // check like Rubinius does for compatibility with their Struct Ruby implementation.
         if (!Identifiers.isValidInstanceVariableName(name)) {
             throw new RaiseException(context.getCoreExceptions().nameErrorInstanceNameNotAllowable(
                     name,

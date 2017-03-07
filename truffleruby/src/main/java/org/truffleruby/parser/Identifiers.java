@@ -53,6 +53,7 @@ public final class Identifiers {
         return Character.isAlphabetic(c) || c == '_';
     }
 
+    // check like Rubinius does for compatibility with their Struct Ruby implementation.
     public static boolean isValidInstanceVariableName(String id) {
         return id.startsWith("@") && id.length() > 1 && Identifiers.isInitialCharacter(id.charAt(1));
     }
