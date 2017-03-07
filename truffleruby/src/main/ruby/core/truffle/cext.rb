@@ -494,7 +494,7 @@ module Truffle::CExt
   def rb_num2int(val)
     Rubinius::Type.rb_num2int(val)
   end
-  
+
   def rb_num2long(val)
     Rubinius::Type.rb_num2long(val)
   end
@@ -526,7 +526,7 @@ module Truffle::CExt
   def rb_check_convert_type(obj, type_name, method)
     Rubinius::Type.rb_check_convert_type(obj, Object.const_get(type_name), method.to_sym)
   end
-  
+
   def rb_convert_type(obj, type_name, method)
     Rubinius::Type.rb_convert_type(obj, Object.const_get(type_name), method.to_sym)
   end
@@ -591,7 +591,7 @@ module Truffle::CExt
   def rb_reg_options(re)
     re.options
   end
-  
+
   def rb_to_encoding_index(enc)
     enc = Rubinius::Type.coerce_to_encoding(enc)
     return -1 if enc == false
@@ -703,7 +703,7 @@ module Truffle::CExt
       klass.class_eval { attr_writer name }
     end
   end
-  
+
   def rb_make_backtrace
     caller
   end
@@ -788,7 +788,7 @@ module Truffle::CExt
     block = get_block
     block.call(value)
   end
-  
+
   def rb_yield_splat(values)
     block = get_block
     block.call(*values)
