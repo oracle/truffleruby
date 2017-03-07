@@ -1266,6 +1266,40 @@ public abstract class FixnumNodes {
 
     }
 
+    @Primitive(name = "fixnum_fits_into_ulong")
+    public static abstract class FixnumFitsIntoULongPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public boolean fitsIntoULongInt(int a) {
+            return true;
+        }
+
+        @Specialization
+        public boolean fitsIntoULongLong(long a) {
+            return true;
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
+        public boolean fitsIntoULongBignum(DynamicObject b) {
+            BigInteger bi = Layouts.BIGNUM.getValue(b);
+            if (bi.signum() >= 0) {
+                return bi.bitLength() <= 64;
+            } else {
+                return false;
+            }
+        }
+
+    }
+
+    @Primitive(name = "fixnum_ulong_from_bignum")
+    public static abstract class FixnumULongFromBigNumPrimitiveNode extends PrimitiveArrayArgumentsNode {
+        @Specialization(guards = "isRubyBignum(b)")
+        public long uLongFromBignum(DynamicObject b) {
+            return Layouts.BIGNUM.getValue(b).longValue();
+        }
+
+    }
+
     @Primitive(name = "fixnum_pow")
     public abstract static class FixnumPowPrimitiveNode extends BignumNodes.BignumCoreMethodNode {
 

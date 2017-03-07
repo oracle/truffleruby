@@ -559,6 +559,12 @@ module Truffle::CExt
     Rubinius::Type.rb_num2uint(val)
   end
 
+  def rb_num2ulong(val)
+    # We're going to create a signed long here, and rely on the C to
+    # cast it to an unsigned one.
+    Rubinius::Type.rb_num2ulong(val)
+  end
+
   def rb_Integer(value)
     Integer(value)
   end

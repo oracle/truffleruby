@@ -387,7 +387,7 @@ long NUM2LONG(VALUE value) {
 }
 
 unsigned long rb_num2ulong(VALUE val) {
-  rb_tr_error("rb_num2ulong not implemented");
+  return (unsigned long)truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", val);
 }
 
 unsigned long NUM2ULONG(VALUE value) {

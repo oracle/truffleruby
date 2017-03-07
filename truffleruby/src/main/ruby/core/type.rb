@@ -248,8 +248,28 @@ module Rubinius
       end
     end
 
+    def self.rb_num2ulong(val)
+      raise TypeError, "no implicit conversion from nil to integer" if val.nil?
+
+      if object_kind_of?(val, Fixnum)
+        return val
+      elsif object_kind_of?(val, Float)
+        fval = val.to_int
+        return rb_num2ulong(fval)
+      elsif object_kind_of?(val, Bignum)
+        return rb_big2ulong(val)
+      else
+        return rb_num2ulong(rb_to_int(val))
+      end
+    end
+
     def self.rb_big2long(val)
       raise RangeError, "bignum too big to convert into `long'"
+    end
+
+    def self.rb_big2ulong(val)
+      check_ulong(val)
+      Truffle.invoke_primitive(:fixnum_ulong_from_bignum, val)
     end
 
     def self.rb_to_int(val)
@@ -284,6 +304,12 @@ module Rubinius
     def self.check_long(val)
       unless Truffle.invoke_primitive(:fixnum_fits_into_long, val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `long"
+      end
+    end
+
+    def self.check_ulong(val)
+      unless Truffle.invoke_primitive(:fixnum_fits_into_ulong, val)
+        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `ulong"
       end
     end
 
