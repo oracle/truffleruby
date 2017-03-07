@@ -2288,13 +2288,11 @@ VALUE rb_get_path(VALUE object) {
 // Structs
 
 VALUE rb_struct_aref(VALUE s, VALUE idx) {
-  rb_tr_error("rb_struct_aref not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_aref", s, idx);
 }
 
 VALUE rb_struct_aset(VALUE s, VALUE idx, VALUE val) {
-  rb_tr_error("rb_struct_aset not implemented");
-  abort();
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_aset", s, idx, val);
 }
 
 VALUE rb_struct_define(const char *name, ...) {

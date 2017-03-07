@@ -1175,6 +1175,14 @@ module Truffle::CExt
   def rb_struct_define_no_splat(name, attrs)
     Struct.new(name, *attrs)
   end
+
+  def rb_struct_aref(struct, index)
+    struct[index]
+  end
+
+  def rb_struct_aset(struct, index, value)
+    struct[index] = value
+  end
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
