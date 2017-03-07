@@ -9,9 +9,12 @@ the version that includes the Labs JDK.
 
 http://www.oracle.com/technetwork/oracle-labs/program-languages/
 
-Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby.
+Inside the GraalVM is a `language/ruby` directory which has the usual structure
+of a Ruby implementation. It is recommended to add this directory to a Ruby 
+manager, see [Configuring Ruby managers](ruby-managers.md) 
+for more information.  
 
 You can also use GraalVM to run a different version of TruffleRuby than the one
 it packages, but this not advised for end-users.
 
-Next step: [Ensuring Ruby managers are configured correctly](ruby-managers.md).
+Next step: [Configuring Ruby managers](ruby-managers.md).
