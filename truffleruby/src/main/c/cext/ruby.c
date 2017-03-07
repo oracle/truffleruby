@@ -1369,7 +1369,10 @@ void rb_mem_clear(VALUE *mem, long n) {
 }
 
 VALUE rb_ary_to_ary(VALUE array) {
-  return (VALUE) truffle_invoke((void *)array, "to_ary");
+  VALUE tmp = rb_check_array_type(array);
+
+  if (!NIL_P(tmp)) return tmp;
+  return rb_ary_new3(1, array);
 }
 
 VALUE rb_ary_subseq(VALUE array, long start, long length) {
