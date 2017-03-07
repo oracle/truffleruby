@@ -1,9 +1,3 @@
-fails:C-API Struct function rb_struct_define creates accessors for the struct members
-fails:C-API Struct function rb_struct_define has a value of nil for the member of a newly created instance
-fails:C-API Struct function rb_struct_define creates a constant scoped under Struct for the named Struct
-fails:C-API Struct function rb_struct_define returns the member names as Symbols
-fails:C-API Struct function rb_struct_define for an anonymous struct creates accessors for the struct members
-fails:C-API Struct function rb_struct_define for an anonymous struct returns the member names as Symbols
 fails:C-API Struct function rb_struct_aref returns the value of a struct member with a symbol key
 fails:C-API Struct function rb_struct_aref returns the value of a struct member with a string key
 fails:C-API Struct function rb_struct_aref returns the value of a struct member by index
