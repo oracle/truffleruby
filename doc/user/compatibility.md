@@ -122,6 +122,12 @@ is not taken and passed to a function that is not inlined.
 `VALUE rb_tr_from_native_handle(void *native)` may help you work around this
 limitation.
 
+#### Variadic functions
+
+Variadic arguments of type `VALUE` that hold Ruby objects can be used, but they
+cannot be accessed with `va_start` etc. You can use
+`void *truffle_get_arg(int i)` instead.
+
 #### Pointers to `VALUE` locals and variadic functions
 
 Pointers to local variables that have the type `VALUE` and hold Ruby objects can
