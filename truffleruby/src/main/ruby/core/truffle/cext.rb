@@ -1183,6 +1183,14 @@ module Truffle::CExt
   def rb_struct_aset(struct, index, value)
     struct[index] = value
   end
+
+  def rb_struct_size(klass)
+    klass.members.size
+  end
+
+  def rb_struct_new_no_splat(klass, args)
+    klass.new(*args)
+  end
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

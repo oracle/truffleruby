@@ -2307,8 +2307,15 @@ VALUE rb_struct_define(const char *name, ...) {
 }
 
 VALUE rb_struct_new(VALUE klass, ...) {
-  rb_tr_error("rb_struct_new not implemented");
-  abort();
+  int members = truffle_invoke_i(RUBY_CEXT, "rb_struct_size", klass);
+  VALUE *ary = rb_ary_new();
+  int i = 0;
+  char *arg = NULL;
+  while (i < members) {
+    VALUE arg = truffle_get_arg(i + 1);
+    rb_ary_store(ary, i++, arg);
+  }
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_new_no_splat", klass, ary);  
 }
 
 VALUE rb_struct_getmember(VALUE obj, ID id) {
