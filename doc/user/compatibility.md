@@ -111,7 +111,7 @@ loop of your production application.
 
 #### Storing Ruby objects in native structures and arrays
 
-You cannot store a Ruby object in a structure or array that has been native
+You cannot store a Ruby object in a structure or array that has been natively
 allocated, such as on the stack, or in a heap allocated structure or array.
 
 Simple local variables of type `VALUE`, and locals arrays that are defined such

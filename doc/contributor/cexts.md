@@ -97,7 +97,7 @@ as functions, where this makes sense.
 ### Array and string pointers
 
 When a pointer to the storage for an array of a string is taken using
-`RARRAYPTR` or `RSTRINGPTR` a proxy object is created that pretends to be a C
+`RARRAY_PTR` or `RSTRING_PTR` a proxy object is created that pretends to be a C
 pointer but really redirects interop reads and writes from C back to the
 original object. The array pointer cannot be passed to native, but the string
 pointer can be, by permanently converting the rope implementing the string to
