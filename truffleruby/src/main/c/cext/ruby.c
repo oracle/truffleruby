@@ -1533,24 +1533,6 @@ VALUE rb_proc_new(void *function, VALUE value) {
 
 // Utilities
 
-void rb_warn(const char *format, ...) {
-  if (!truffle_invoke_b(truffle_invoke(RUBY_CEXT, "verbose"), "nil?")) {
-    va_list args;
-    va_start(args, format);
-    vfprintf(stderr, format, args);
-    va_end(args);
-  }
-}
-
-void rb_warning(const char *format, ...) {
-  if (truffle_invoke(RUBY_CEXT, "verbose") == Qtrue) {
-    va_list args;
-    va_start(args, format);
-    vfprintf(stderr, format, args);
-    va_end(args);
-  }
-}
-
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
 }

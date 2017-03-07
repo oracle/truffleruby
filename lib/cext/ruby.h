@@ -755,8 +755,17 @@ VALUE rb_proc_new(void *function, VALUE value);
 
 // Utilities
 
-void rb_warn(const char *fmt, ...);
-void rb_warning(const char *fmt, ...);
+#define rb_warn(FORMAT, ...) do { \
+    if (truffle_invoke_b(RUBY_CEXT, "warn?")) { \
+      truffle_invoke(rb_mKernel, "warn", (VALUE) truffle_invoke(RUBY_CEXT, "native_sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
+    } \
+  } while (0);
+
+#define rb_warning(FORMAT, ...) do { \
+    if (truffle_invoke_b(RUBY_CEXT, "warning?")) { \
+      truffle_invoke(rb_mKernel, "warn", (VALUE) truffle_invoke(RUBY_CEXT, "native_sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
+    } \
+  } while (0);
 
 MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10);
 
