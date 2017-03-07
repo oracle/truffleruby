@@ -1,5 +1,1 @@
-fails:C-API Kernel function rb_sys_fail raises an exception from the value of errno
-fails:C-API Kernel function rb_sys_fail can take a NULL message
-fails:C-API Kernel function rb_syserr_fail raises an exception from the given error
-fails:C-API Kernel function rb_syserr_fail can take a NULL message
 fails:C-API Kernel function rb_set_end_proc runs a C function on shutdown

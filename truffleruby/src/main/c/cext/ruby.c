@@ -1754,12 +1754,12 @@ void rb_set_errinfo(VALUE error) {
 }
 
 void rb_syserr_fail(int errno, const char *message) {
-  rb_tr_error(message);
+  truffle_invoke(RUBY_CEXT, "rb_syserr_fail", errno, message == NULL ? Qnil : rb_str_new_cstr(message));
   abort();
 }
 
 void rb_sys_fail(const char *message) {
-  rb_tr_error(message);
+  truffle_invoke(RUBY_CEXT, "rb_sys_fail", message == NULL ? Qnil : rb_str_new_cstr(message));
   abort();
 }
 

@@ -1214,6 +1214,18 @@ module Truffle::CExt
     })
   end
 
+  def rb_syserr_fail(errno, message)
+    raise SystemCallError.new(message, errno)
+  end
+
+  def rb_sys_fail(message)
+    if message.nil?
+      raise Errno::EPERM
+    else
+      raise SystemCallError.new(message)
+    end
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
