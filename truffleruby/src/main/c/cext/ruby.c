@@ -1794,8 +1794,17 @@ VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS),
 }
 
 VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...) {
-  rb_tr_error("rb_rescue2 not implemented");
-  abort();
+  VALUE rescued = rb_ary_new();
+  int n = 4;
+  while (true) {
+    VALUE arg = truffle_get_arg(n);
+    if (arg == NULL) {
+      break;
+    }
+    rb_ary_push(rescued, arg);
+    n++;
+  }
+  return truffle_invoke(RUBY_CEXT, "rb_rescue2", b_proc, data1, r_proc, data2, rescued);
 }
 
 VALUE rb_make_backtrace(void) {

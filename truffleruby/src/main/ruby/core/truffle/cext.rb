@@ -1144,6 +1144,14 @@ module Truffle::CExt
     end
   end
 
+  def rb_rescue2(b_proc, data1, r_proc, data2, rescued)
+    begin
+      Truffle::Interop.execute(b_proc, data1)
+    rescue *rescued => e
+      Truffle::Interop.execute(r_proc, data2, e)
+    end
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

@@ -17,7 +17,6 @@ fails:C-API Kernel function rb_yield_values yields passed arguments
 fails:C-API Kernel function rb_yield_values returns the result from block evaluation
 fails:C-API Kernel function rb_yield_values raises LocalJumpError when no block is given
 fails:C-API Kernel function rb_yield_splat raises LocalJumpError when no block is given
-fails:C-API Kernel function rb_rescue2 only rescues if one of the passed exceptions is raised
 fails:C-API Kernel function rb_catch executes passed function
 fails:C-API Kernel function rb_catch terminates the function at the point it was called
 fails:C-API Kernel function rb_catch raises an ArgumentError if the throw symbol isn't caught
