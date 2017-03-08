@@ -1864,7 +1864,7 @@ VALUE rb_time_nano_new(time_t sec, long nsec) {
 }
 
 VALUE rb_time_num_new(VALUE timev, VALUE off) {
-  rb_tr_error("rb_time_num_new not implemented");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_num_new", timev, off);
 }
 
 struct timeval rb_time_interval(VALUE num) {

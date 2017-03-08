@@ -1286,6 +1286,10 @@ module Truffle::CExt
     Time.at sec, Rational(nsec, 1000)
   end
 
+  def rb_time_num_new(timev, off)
+    Time.at(timev).localtime(off)
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
