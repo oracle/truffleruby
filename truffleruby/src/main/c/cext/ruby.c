@@ -24,24 +24,20 @@
 
 VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object) {
   rb_tr_error("rb_f_notimplement");
-  abort();
 }
 
 // Memory
 
 void *rb_alloc_tmp_buffer(VALUE *buffer_pointer, long length) {
   rb_tr_error("rb_alloc_tmp_buffer not implemented");
-  abort();
 }
 
 void *rb_alloc_tmp_buffer2(VALUE *buffer_pointer, long count, size_t size) {
   rb_tr_error("rb_alloc_tmp_buffer2 not implemented");
-  abort();
 }
 
 void rb_free_tmp_buffer(VALUE *buffer_pointer) {
   rb_tr_error("rb_free_tmp_buffer not implemented");
-  abort();
 }
 
 // Types
@@ -72,7 +68,6 @@ void rb_check_frozen(VALUE object) {
 
 void rb_check_safe_obj(VALUE object) {
   rb_tr_error("rb_check_safe_obj not implemented");
-  abort();
 }
 
 bool SYMBOL_P(VALUE value) {
@@ -393,7 +388,6 @@ long NUM2LONG(VALUE value) {
 
 unsigned long rb_num2ulong(VALUE val) {
   rb_tr_error("rb_num2ulong not implemented");
-  abort();
 }
 
 unsigned long NUM2ULONG(VALUE value) {
@@ -476,17 +470,14 @@ int rb_cmpint(VALUE val, VALUE a, VALUE b) {
 
 VALUE rb_int2inum(SIGNED_VALUE n) {
   rb_tr_error("rb_int2inum not implemented");
-  abort();
 }
 
 VALUE rb_ll2inum(LONG_LONG n) {
   rb_tr_error("rb_ll2inum not implemented");
-  abort();
 }
 
 double rb_num2dbl(VALUE val) {
   rb_tr_error("rb_num2dbl not implemented");
-  abort();
 }
 
 long rb_num2int(VALUE val) {
@@ -495,7 +486,6 @@ long rb_num2int(VALUE val) {
 
 unsigned long rb_num2uint(VALUE val) {
   rb_tr_error("rb_num2uint not implemented");
-  abort();
 }
 
 long rb_num2long(VALUE val) {
@@ -504,17 +494,14 @@ long rb_num2long(VALUE val) {
 
 VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func) {
   rb_tr_error("rb_num_coerce_bin not implemented");
-  abort();
 }
 
 VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func) {
   rb_tr_error("rb_num_coerce_cmp not implemented");
-  abort();
 }
 
 VALUE rb_num_coerce_relop(VALUE x, VALUE y, ID func) {
   rb_tr_error("rb_num_coerce_relop not implemented");
-  abort();
 }
 
 void rb_num_zerodiv(void) {
@@ -523,7 +510,6 @@ void rb_num_zerodiv(void) {
 
 VALUE LL2NUM(LONG_LONG n) {
   rb_tr_error("LL2NUM not implemented");
-  abort();
 }
 
 // Type checks
@@ -561,13 +547,11 @@ VALUE rb_f_sprintf(int argc, const VALUE *argv) {
 void rb_need_block(void) {
   if (!rb_block_given_p()) {
     rb_raise(rb_eLocalJumpError, "no block given");
-    abort();
   }
 }
 
 void rb_set_end_proc(void (*func)(VALUE), VALUE data) {
   rb_tr_error("rb_set_end_proc not implemented");
-  abort();
 }
 
 void rb_iter_break(void) {
@@ -662,7 +646,6 @@ VALUE rb_ivar_defined(VALUE object, ID id) {
 
 VALUE rb_equal_opt(VALUE a, VALUE b) {
   rb_tr_error("rb_equal_opt not implemented");
-  abort();
 }
 
 VALUE rb_class_inherited_p(VALUE module, VALUE object) {
@@ -675,7 +658,6 @@ VALUE rb_equal(VALUE a, VALUE b) {
 
 int RB_BUILTIN_TYPE(VALUE object) {
   rb_tr_error("RB_BUILTIN_TYPE not implemented");
-  abort();
 }
 
 VALUE rb_obj_taint(VALUE object) {
@@ -710,62 +692,50 @@ VALUE rb_Integer(VALUE value) {
 
 int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, size_t nails, int flags) {
   rb_tr_error("rb_integer_pack not implemented");
-  abort();
 }
 
 VALUE rb_integer_unpack(const void *words, size_t numwords, size_t wordsize, size_t nails, int flags) {
   rb_tr_error("rb_integer_unpack not implemented");
-  abort();
 }
 
 size_t rb_absint_size(VALUE value, int *nlz_bits_ret) {
   rb_tr_error("rb_absint_size not implemented");
-  abort();
 }
 
 VALUE rb_cstr_to_inum(const char* string, int base, int raise) {
   rb_tr_error("rb_cstr_to_inum not implemented");
-  abort();
 }
 
 double rb_big2dbl(VALUE x) {
   rb_tr_error("rb_big2dbl not implemented");
-  abort();
 }
 
 VALUE rb_dbl2big(double d) {
   rb_tr_error("rb_dbl2big not implemented");
-  abort();
 }
 
 LONG_LONG rb_big2ll(VALUE x) {
   rb_tr_error("rb_big2ll not implemented");
-  abort();
 }
 
 long rb_big2long(VALUE x) {
   rb_tr_error("rb_big2long not implemented");
-  abort();
 }
 
 VALUE rb_big2str(VALUE x, int base) {
   rb_tr_error("rb_big2str not implemented");
-  abort();
 }
 
 unsigned long rb_big2ulong(VALUE x) {
   rb_tr_error("rb_big2ulong not implemented");
-  abort();
 }
 
 VALUE rb_big_cmp(VALUE x, VALUE y) {
   rb_tr_error("rb_big_cmp not implemented");
-  abort();
 }
 
 void rb_big_pack(VALUE val, unsigned long *buf, long num_longs) {
   rb_tr_error("rb_big_pack not implemented");
-  abort();
 }
 
 // Float
@@ -812,12 +782,10 @@ VALUE rb_str_new_cstr(const char *string) {
 
 VALUE rb_str_new_shared(VALUE string) {
   rb_tr_error("rb_str_new_shared not implemented");
-  abort();
 }
 
 VALUE rb_str_new_with_class(VALUE klass, const char *string, long len) {
   rb_tr_error("rb_str_new_with_class not implemented");
-  abort();
 }
 
 VALUE rb_intern_str(VALUE string) {
@@ -851,7 +819,6 @@ VALUE rb_vsprintf(const char *format, va_list args) {
   //va_end(args_copy); CS 4-May-17 why does this crash?
   if (length < 0) {
     rb_tr_error("vsnprintf error");
-    abort();
   }
   // TODO CS 4-May-17 allocate a native Ruby string in the first place?
   char *buffer = malloc(length + 1);
@@ -867,7 +834,6 @@ VALUE rb_str_append(VALUE string, VALUE to_append) {
 
 void rb_str_set_len(VALUE string, long length) {
   rb_tr_error("rb_str_set_len not implemented");
-  abort();
 }
 
 VALUE rb_str_new_frozen(VALUE value) {
@@ -880,7 +846,6 @@ VALUE rb_String(VALUE value) {
 
 VALUE rb_str_resize(VALUE string, long length) {
   rb_tr_error("rb_str_resize not implemented");
-  abort();
 }
 
 VALUE rb_str_split(VALUE string, const char *split) {
@@ -893,17 +858,14 @@ void rb_str_modify(VALUE string) {
 
 VALUE rb_cstr2inum(const char *string, int base) {
   rb_tr_error("rb_cstr2inum not implemented");
-  abort();
 }
 
 VALUE rb_str2inum(VALUE string, int base) {
   rb_tr_error("rb_str2inum not implemented");
-  abort();
 }
 
 VALUE rb_str_buf_new_cstr(const char *string) {
   rb_tr_error("rb_str_buf_new_cstr not implemented");
-  abort();
 }
 
 int rb_str_cmp(VALUE a, VALUE b) {
@@ -912,12 +874,10 @@ int rb_str_cmp(VALUE a, VALUE b) {
 
 VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
   rb_tr_error("rb_str_buf_cat not implemented");
-  abort();
 }
 
 rb_encoding *rb_to_encoding(VALUE encoding) {
   rb_tr_error("rb_to_encoding not implemented");
-  abort();
 }
 
 VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to) {
@@ -926,17 +886,14 @@ VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to) {
 
 VALUE rb_str_conv_enc_opts(VALUE string, rb_encoding *from, rb_encoding *to, int ecflags, VALUE ecopts) {
   rb_tr_error("rb_str_conv_enc_opts not implemented");
-  abort();
 }
 
 VALUE rb_external_str_new_with_enc(const char *string, long len, rb_encoding *eenc) {
   rb_tr_error("rb_external_str_with_enc not implemented");
-  abort();
 }
 
 VALUE rb_external_str_with_enc(VALUE string, rb_encoding *eenc) {
   rb_tr_error("rb_external_str_with_enc not implemented");
-  abort();
 }
 
 VALUE rb_external_str_new(const char *string, long len) {
@@ -977,17 +934,14 @@ VALUE rb_str_export_to_enc(VALUE string, rb_encoding *enc) {
 
 rb_encoding *rb_default_external_encoding(void) {
   rb_tr_error("rb_default_external_encoding not implemented");
-  abort();
 }
 
 rb_encoding *rb_default_internal_encoding(void) {
   rb_tr_error("rb_default_internal_encoding not implemented");
-  abort();
 }
 
 rb_encoding *rb_locale_encoding(void) {
   rb_tr_error("rb_locale_encoding not implemented");
-  abort();
 }
 
 int rb_locale_encindex(void) {
@@ -996,7 +950,6 @@ int rb_locale_encindex(void) {
 
 rb_encoding *rb_filesystem_encoding(void) {
   rb_tr_error("rb_filesystem_encoding not implemented");
-  abort();
 }
 
 int rb_filesystem_encindex(void) {
@@ -1005,7 +958,6 @@ int rb_filesystem_encindex(void) {
 
 rb_encoding *get_encoding(VALUE string) {
   rb_tr_error("get_encoding not implemented");
-  abort();
 }
 
 VALUE rb_str_intern(VALUE string) {
@@ -1022,7 +974,6 @@ VALUE rb_str_plus(VALUE a, VALUE b) {
 
 VALUE rb_str_subseq(VALUE string, long beg, long len) {
   rb_tr_error("rb_str_subseq not implemented");
-  abort();
 }
 
 VALUE rb_str_substr(VALUE string, long beg, long len) {
@@ -1043,12 +994,10 @@ VALUE rb_str_equal(VALUE a, VALUE b) {
 
 void rb_str_free(VALUE string) {
   rb_tr_error("rb_str_free not implemented");
-  abort();
 }
 
 unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_encoding *encoding) {
   rb_tr_error("rb_enc_codepoint_len not implemented");
-  abort();
 }
 
 rb_encoding *rb_enc_get(VALUE object) {
@@ -1057,12 +1006,10 @@ rb_encoding *rb_enc_get(VALUE object) {
 
 void rb_enc_set_index(VALUE obj, int idx) {
   rb_tr_error("rb_enc_set_index not implemented");
-  abort();
 }
 
 rb_encoding *rb_ascii8bit_encoding(void) {
   rb_tr_error("rb_ascii8bit_encoding not implemented");
-  abort();
 }
 
 int rb_ascii8bit_encindex(void) {
@@ -1071,7 +1018,6 @@ int rb_ascii8bit_encindex(void) {
 
 rb_encoding *rb_usascii_encoding(void) {
   rb_tr_error("rb_usascii_encoding not implemented");
-  abort();
 }
 
 int rb_usascii_encindex(void) {
@@ -1080,7 +1026,6 @@ int rb_usascii_encindex(void) {
 
 rb_encoding *rb_utf8_encoding(void) {
   rb_tr_error("rb_utf8_encoding not implemented");
-  abort();
 }
 
 int rb_utf8_encindex(void) {
@@ -1089,32 +1034,26 @@ int rb_utf8_encindex(void) {
 
 enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj) {
   rb_tr_error("RB_ENC_CODERANGE not implemented");
-  abort();
 }
 
 int rb_encdb_alias(const char *alias, const char *orig) {
   rb_tr_error("rb_encdb_alias not implemented");
-  abort();
 }
 
 VALUE rb_enc_associate(VALUE obj, rb_encoding *enc) {
   rb_tr_error("rb_enc_associate not implemented");
-  abort();
 }
 
 VALUE rb_enc_associate_index(VALUE obj, int idx) {
   rb_tr_error("rb_enc_associate_index not implemented");
-  abort();
 }
 
 rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
   rb_tr_error("rb_enc_compatible not implemented");
-  abort();
 }
 
 void rb_enc_copy(VALUE obj1, VALUE obj2) {
   rb_tr_error("rb_enc_copy not implemented");
-  abort();
 }
 
 int rb_enc_find_index(const char *name) {
@@ -1123,37 +1062,30 @@ int rb_enc_find_index(const char *name) {
 
 rb_encoding *rb_enc_find(const char *name) {
   rb_tr_error("rb_enc_find not implemented");
-  abort();
 }
 
 VALUE rb_enc_from_encoding(rb_encoding *encoding) {
   rb_tr_error("rb_enc_from_encoding not implemented");
-  abort();
 }
 
 rb_encoding *rb_enc_from_index(int index) {
   rb_tr_error("rb_enc_from_index not implemented");
-  abort();
 }
 
 int rb_enc_str_coderange(VALUE str) {
   rb_tr_error("rb_enc_str_coderange not implemented");
-  abort();
 }
 
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
   rb_tr_error("rb_enc_str_new not implemented");
-  abort();
 }
 
 int rb_enc_to_index(rb_encoding *enc) {
   rb_tr_error("rb_enc_to_index not implemented");
-  abort();
 }
 
 VALUE rb_obj_encoding(VALUE obj) {
   rb_tr_error("rb_obj_encoding not implemented");
-  abort();
 }
 
 VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {
@@ -1162,12 +1094,10 @@ VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {
 
 VALUE rb_usascii_str_new(const char *ptr, long len) {
   rb_tr_error("rb_usascii_str_new not implemented");
-  abort();
 }
 
 VALUE rb_usascii_str_new_cstr(const char *ptr) {
   rb_tr_error("rb_usascii_str_new_cstr not implemented");
-  abort();
 }
 
 int rb_to_encoding_index(VALUE enc) {
@@ -1176,12 +1106,10 @@ int rb_to_encoding_index(VALUE enc) {
 
 char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc) {
   rb_tr_error("rb_enc_nth not implemented");
-  abort();
 }
 
 int rb_enc_get_index(VALUE obj) {
   rb_tr_error("rb_enc_get_index not implemented");
-  abort();
 }
 
 // Symbol
@@ -1200,7 +1128,6 @@ ID rb_intern2(const char *string, long length) {
 
 ID rb_intern3(const char *name, long len, rb_encoding *enc) {
   rb_tr_error("rb_intern3 not implemented");
-  abort();
 }
 
 VALUE rb_sym2str(VALUE string) {
@@ -1292,7 +1219,6 @@ VALUE rb_ary_entry(VALUE array, long index) {
 
 VALUE rb_ary_each(VALUE array) {
   rb_tr_error("rb_ary_each not implemented");
-  abort();
 }
 
 VALUE rb_ary_unshift(VALUE array, VALUE value) {
@@ -1346,12 +1272,10 @@ VALUE rb_ary_plus(VALUE a, VALUE b) {
 
 VALUE rb_iterate(VALUE (*method)(), VALUE arg1, VALUE (*block)(), VALUE arg2) {
   rb_tr_error("rb_iterate not implemented");
-  abort();
 }
 
 VALUE rb_each(VALUE array) {
   rb_tr_error("rb_each not implemented");
-  abort();
 }
 
 void rb_mem_clear(VALUE *mem, long n) {
@@ -1428,12 +1352,10 @@ VALUE rb_hash_delete(VALUE hash, VALUE key) {
 
 VALUE rb_hash_delete_if(VALUE hash) {
   rb_tr_error("rb_hash_delete_if not implemented");
-  abort();
 }
 
 void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
   rb_tr_error("rb_hash_foreach not implemented");
-  abort();
 }
 
 VALUE rb_hash_size(VALUE hash) {
@@ -1472,7 +1394,6 @@ VALUE rb_obj_alloc(VALUE ruby_class) {
 
 VALUE rb_class_path(VALUE ruby_class) {
   rb_tr_error("rb_class_path not implemented");
-  abort();
 }
 
 VALUE rb_path2class(const char *string) {
@@ -1481,7 +1402,6 @@ VALUE rb_path2class(const char *string) {
 
 VALUE rb_path_to_class(VALUE pathname) {
   rb_tr_error("rb_path_to_class not implemented");
-  abort();
 }
 
 VALUE rb_class_name(VALUE klass) {
@@ -1567,7 +1487,6 @@ VALUE rb_block_call(VALUE object, ID name, int args_count, const VALUE *args, rb
 
 VALUE rb_call_super(int args_count, const VALUE *args) {
   rb_tr_error("rb_call_super not implemented");
-  abort();
 }
 
 int rb_block_given_p() {
@@ -1582,8 +1501,7 @@ VALUE rb_yield(VALUE value) {
   if (rb_block_given_p()) {
     return (VALUE) truffle_invoke(RUBY_CEXT, "rb_yield", value);
   } else {
-    truffle_invoke(RUBY_CEXT, "yield_no_block");
-    abort();
+    return truffle_invoke(RUBY_CEXT, "yield_no_block");
   }
 }
 
@@ -1595,8 +1513,7 @@ VALUE rb_yield_splat(VALUE values) {
   if (rb_block_given_p()) {
     return (VALUE) truffle_invoke(RUBY_CEXT, "rb_yield_splat", values);
   } else {
-    truffle_invoke(RUBY_CEXT, "yield_no_block");
-    abort();
+    return truffle_invoke(RUBY_CEXT, "yield_no_block");
   }
 }
 
@@ -1678,17 +1595,14 @@ void rb_define_hooked_variable(
     VALUE (*getter)(ANYARGS),
     void  (*setter)(ANYARGS)) {
   rb_tr_error("rb_exc_new not implemented");
-  abort();
 }
 
 void rb_define_readonly_variable(const char *name, const VALUE *var) {
   rb_tr_error("rb_define_readonly_variable not implemented");
-  abort();
 }
 
 void rb_define_variable(const char *name, VALUE *var) {
   rb_tr_error("rb_define_variable not implemented");
-  abort();
 }
 
 VALUE rb_f_global_variables(void) {
@@ -1697,34 +1611,28 @@ VALUE rb_f_global_variables(void) {
 
 VALUE rb_gv_set(const char *name, VALUE val) {
   rb_tr_error("rb_gv_set not implemented");
-  abort();
 }
 
 VALUE rb_gv_get(const char *name) {
   rb_tr_error("rb_gv_get not implemented");
-  abort();
 }
 
 VALUE rb_lastline_get(void) {
   rb_tr_error("rb_lastline_get not implemented");
-  abort();
 }
 
 void rb_lastline_set(VALUE val) {
   rb_tr_error("rb_lastline_set not implemented");
-  abort();
 }
 
 // Raising exceptions
 
 VALUE rb_exc_new(VALUE etype, const char *ptr, long len) {
   rb_tr_error("rb_exc_new not implemented");
-  abort();
 }
 
 VALUE rb_exc_new_cstr(VALUE exception_class, const char *message) {
   rb_tr_error("rb_exc_new_cstr not implemented");
-  abort();
 }
 
 VALUE rb_exc_new_str(VALUE exception_class, VALUE message) {
@@ -1744,23 +1652,19 @@ VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
 void rb_jump_tag(int status) {
   if (status) {
     rb_tr_error("rb_jump_tag not implemented");
-    abort();
   }
 }
 
 void rb_set_errinfo(VALUE error) {
   rb_tr_error("rb_set_errinfo not implemented");
-  abort();
 }
 
 void rb_syserr_fail(int errno, const char *message) {
   truffle_invoke(RUBY_CEXT, "rb_syserr_fail", errno, message == NULL ? Qnil : rb_str_new_cstr(message));
-  abort();
 }
 
 void rb_sys_fail(const char *message) {
   truffle_invoke(RUBY_CEXT, "rb_sys_fail", message == NULL ? Qnil : rb_str_new_cstr(message));
-  abort();
 }
 
 VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2) {
@@ -1947,56 +1851,46 @@ VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end) {
 
 int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
   rb_tr_error("rb_range_values not implemented");
-  abort();
 }
 
 // Time
 
 VALUE rb_time_new(time_t sec, long usec) {
   rb_tr_error("rb_time_new not implemented");
-  abort();
 }
 
 VALUE rb_time_nano_new(time_t sec, long nsec) {
   rb_tr_error("rb_time_nano_new not implemented");
-  abort();
 }
 
 VALUE rb_time_num_new(VALUE timev, VALUE off) {
   rb_tr_error("rb_time_num_new not implemented");
-  abort();
 }
 
 struct timeval rb_time_interval(VALUE num) {
   rb_tr_error("rb_time_interval not implemented");
-  abort();
 }
 
 struct timeval rb_time_timeval(VALUE time) {
   rb_tr_error("rb_time_timeval not implemented");
-  abort();
 }
 
 struct timespec rb_time_timespec(VALUE time) {
   rb_tr_error("rb_time_timespec not implemented");
-  abort();
 }
 
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
   rb_tr_error("rb_time_timespec_new not implemented");
-  abort();
 }
 
 void rb_timespec_now(struct timespec *ts) {
   rb_tr_error("rb_timespec_now not implemented");
-  abort();
 }
 
 // Regexp
 
 VALUE rb_backref_get(void) {
   rb_tr_error("rb_backref_get not implemented");
-  abort();
 }
 
 VALUE rb_reg_match_pre(VALUE match) {
@@ -2025,7 +1919,6 @@ VALUE rb_reg_regcomp(VALUE str) {
 
 VALUE rb_reg_match(VALUE re, VALUE str) {
   rb_tr_error("rb_reg_match not implemented");
-  abort();
 }
 
 // Marshal
@@ -2115,7 +2008,6 @@ VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE val) {
 
 void rb_thread_wait_for(struct timeval time) {
   rb_tr_error("rb_thread_wait_for not implemented");
-  abort();
 }
 
 VALUE rb_thread_wakeup(VALUE thread) {
@@ -2124,7 +2016,6 @@ VALUE rb_thread_wakeup(VALUE thread) {
 
 VALUE rb_thread_create(VALUE (*fn)(ANYARGS), void *arg) {
   rb_tr_error("rb_thread_create not implemented");
-  abort();
 }
 
 rb_nativethread_id_t rb_nativethread_self() {
@@ -2163,12 +2054,10 @@ void rb_io_check_readable(rb_io_t *io) {
 
 int rb_cloexec_dup(int oldfd) {
   rb_tr_error("rb_cloexec_dup not implemented");
-  abort();
 }
 
 void rb_fd_fix_cloexec(int fd) {
   rb_tr_error("rb_fd_fix_cloexec not implemented");
-  abort();
 }
 
 int rb_tr_io_handle(VALUE io) {
@@ -2177,22 +2066,18 @@ int rb_tr_io_handle(VALUE io) {
 
 int rb_io_wait_readable(int fd) {
   rb_tr_error("rb_io_wait_readable not implemented");
-  abort();
 }
 
 int rb_io_wait_writable(int fd) {
   rb_tr_error("rb_io_wait_writable not implemented");
-  abort();
 }
 
 void rb_thread_wait_fd(int fd) {
   rb_tr_error("rb_thread_wait_fd not implemented");
-  abort();
 }
 
 NORETURN(void rb_eof_error(void)) {
   rb_tr_error("rb_eof_error not implemented");
-  abort();
 }
 
 VALUE rb_io_addstr(VALUE io, VALUE str) {
@@ -2205,7 +2090,6 @@ VALUE rb_io_check_io(VALUE io) {
 
 void rb_io_check_closed(rb_io_t *fptr) {
   rb_tr_error("rb_io_check_closed not implemented");
-  abort();
 }
 
 VALUE rb_io_taint_check(VALUE io) {
@@ -2235,17 +2119,14 @@ VALUE rb_io_write(VALUE io, VALUE str) {
 
 VALUE rb_io_binmode(VALUE io) {
   rb_tr_error("rb_io_binmode not implemented");
-  abort();
 }
 
 int rb_thread_fd_writable(int fd) {
   rb_tr_error("rb_thread_fd_writable not implemented");
-  abort();
 }
 
 int rb_cloexec_open(const char *pathname, int flags, mode_t mode) {
   rb_tr_error("rb_cloexec_open not implemented");
-  abort();
 }
 
 VALUE rb_file_open(const char *fname, const char *modestr) {
@@ -2297,7 +2178,6 @@ VALUE rb_struct_new(VALUE klass, ...) {
 
 VALUE rb_struct_getmember(VALUE obj, ID id) {
   rb_tr_error("rb_struct_getmember not implemented");
-  abort();
 }
 
 // Data
@@ -2336,7 +2216,6 @@ void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
   // TODO CS 6-Mar-17 work around the issue with LLVM addresses escaping into Ruby by making data_type a uintptr_t
   if ((uintptr_t) rb_iv_get(value, "@data_type") != (uintptr_t) data_type) {
     rb_raise(rb_eTypeError, "wrong argument type");
-    abort();
   }
   return RTYPEDDATA_DATA(value);
 }

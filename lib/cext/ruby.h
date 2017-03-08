@@ -1153,7 +1153,6 @@ MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer) {
 
   if (!truffle_invoke_b(RUBY_CEXT, "rb_string_value_cstr_check", string)) {
     rb_tr_error("rb_string_value_cstr failure case not implemented");
-    abort();
   }
 
   return RSTRING_PTR(string);
@@ -1212,14 +1211,12 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 
   if (*formatp != '\0') {
     rb_raise(rb_eArgError, "bad rb_scan_args format");
-    abort();
   }
 
   // Check we have enough arguments
 
   if (pre + post > argc) {
     rb_raise(rb_eArgError, "not enough arguments for required");
-    abort();
   }
 
   // Read arguments
