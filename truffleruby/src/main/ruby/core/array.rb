@@ -138,6 +138,11 @@ class Array
 
   def [](start, length = undefined)
     Truffle.primitive :array_aref
+    element_reference_fallback __callee__, start, length
+  end
+  alias :slice :[]
+
+  def element_reference_fallback(method_name, start, length)
     if undefined.equal?(length)
       arg = start
       case arg
@@ -158,11 +163,11 @@ class Array
         else
           range = start_index..end_index
         end
-        send(__callee__, range)
+        send(method_name, range)
       when Bignum
         raise RangeError, "bignum too big to convert into `long'"
       else
-        send(__callee__, Rubinius::Type.rb_num2long(arg))
+        send(method_name, Rubinius::Type.rb_num2long(arg))
       end
     else
       start_index = start.to_int
@@ -170,10 +175,10 @@ class Array
       if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
         raise RangeError, "bignum too big to convert into `long'"
       end
-      send(__callee__, start_index, end_index)
+      send(method_name, start_index, end_index)
     end
   end
-  alias :slice :[]
+  private :element_reference_fallback
 
   def []=(index, length, value = undefined)
     Truffle.primitive :array_aset
