@@ -283,6 +283,10 @@ module Rubinius
       raise RangeError, "bignum too big to convert into `long'"
     end
 
+    def self.rb_big2dbl(val)
+      val.to_f
+    end
+
     def self.rb_big2ulong(val)
       check_ulong(val)
       Truffle.invoke_primitive(:fixnum_ulong_from_bignum, val)
