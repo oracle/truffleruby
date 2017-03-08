@@ -717,31 +717,31 @@ VALUE rb_cstr_to_inum(const char* string, int base, int raise) {
 }
 
 double rb_big2dbl(VALUE x) {
-  rb_tr_error("rb_big2dbl not implemented");
+  return truffle_invoke_d(RUBY_CEXT, "rb_num2dbl", x);
 }
 
 VALUE rb_dbl2big(double d) {
-  rb_tr_error("rb_dbl2big not implemented");
+  return truffle_invoke(RUBY_CEXT, "DBL2BIG", d);
 }
 
 LONG_LONG rb_big2ll(VALUE x) {
-  rb_tr_error("rb_big2ll not implemented");
+  return truffle_invoke_l(RUBY_CEXT, "rb_num2long", x);
 }
 
 long rb_big2long(VALUE x) {
-  rb_tr_error("rb_big2long not implemented");
+  return truffle_invoke_l(RUBY_CEXT, "rb_num2long", x);
 }
 
 VALUE rb_big2str(VALUE x, int base) {
-  rb_tr_error("rb_big2str not implemented");
+  return (VALUE) truffle_invoke((void *)x, "to_s", base);
 }
 
 unsigned long rb_big2ulong(VALUE x) {
-  rb_tr_error("rb_big2ulong not implemented");
+  return truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", x);
 }
 
 VALUE rb_big_cmp(VALUE x, VALUE y) {
-  rb_tr_error("rb_big_cmp not implemented");
+  return (VALUE) truffle_invoke((void *)x, "<=>", y);
 }
 
 void rb_big_pack(VALUE val, unsigned long *buf, long num_longs) {

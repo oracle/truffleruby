@@ -513,6 +513,23 @@ module Truffle::CExt
     Rubinius::Type.rb_num2long(val)
   end
 
+  def rb_big2dbl(val)
+    Rubinius::Type.rb_big2dbl(val)
+  end
+
+  def rb_big2long(val)
+    Rubinius::Type.rb_big2long(val)
+  end
+
+  def rb_big2ulong(val)
+    Rubinius::Type.rb_big2long(val)
+  end
+
+  def rb_dbl2big(val)
+    val.to_i
+  end
+
+
   def rb_num_coerce_bin(x, y, func)
     a, b = do_coerce(x, y, true)
     a.send(func, b)

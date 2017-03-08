@@ -22,6 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -39,6 +40,7 @@ import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
@@ -65,6 +67,7 @@ import org.truffleruby.language.threadlocal.ThreadLocalObject;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.platform.FDSet;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
@@ -134,6 +137,20 @@ public class CExtNodes {
             return num;
         }
 
+        @Specialization
+        public double num2dbl(long num) {
+            return num;
+        }
+
+        @Specialization
+        public double num2dbl(double num) {
+            return num;
+        }
+
+        @Specialization(guards = "isRubyBignum(num)")
+        public double num2dbl(DynamicObject num) {
+            return Layouts.BIGNUM.getValue(num).doubleValue();
+        }
     }
 
     @CoreMethod(names = "FIX2INT", isModuleFunction = true, required = 1, lowerFixnum = 1)
@@ -243,6 +260,30 @@ public class CExtNodes {
                 BigInteger res = msi.add(lsi);
                 return BignumOperations.createBignum(getContext(), res);
             }
+        }
+
+    }
+
+    @CoreMethod(names = "DBL2BIG", isModuleFunction = true, required = 1)
+    public abstract static class DBL2BIGNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
+
+        @Specialization
+        @TruffleBoundary
+        public Object dbl2big(double num,
+                              @Cached("create()") BranchProfile errorProfile) {
+            if (Double.isInfinite(num)) {
+                errorProfile.enter();
+                throw new RaiseException(coreExceptions().floatDomainError("Infinity", this));
+            }
+
+            if (Double.isNaN(num)) {
+                errorProfile.enter();
+                throw new RaiseException(coreExceptions().floatDomainError("NaN", this));
+            }
+
+            return fixnumOrBignum.fixnumOrBignum(num);
         }
 
     }
