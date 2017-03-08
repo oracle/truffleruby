@@ -214,6 +214,7 @@ public class CExtNodes {
     public abstract static class ULONG2NUMNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
+        @TruffleBoundary
         public Object ulong2num(long num) {
             if (num > 0) {
                 return num;
