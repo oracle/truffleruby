@@ -1,8 +1,0 @@
-fails:CApiNumericSpecs rb_ll2inum creates a new Fixnum from a small signed long long
-fails:CApiNumericSpecs rb_int2inum creates a new Fixnum from a long
-fails:CApiNumericSpecs rb_num2dbl raises a TypeError if passed nil
-fails:CApiNumericSpecs rb_num2dbl raises a TypeError if passed a String
-fails:CApiNumericSpecs rb_num2dbl converts a Float
-fails:CApiNumericSpecs rb_num2dbl converts a Bignum
-fails:CApiNumericSpecs rb_num2dbl converts a Fixnum
-fails:CApiNumericSpecs rb_num2dbl calls #to_f to coerce the value

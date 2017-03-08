@@ -70,7 +70,7 @@ extern "C" {
 // Basic types
 
 typedef void *VALUE;
-typedef VALUE SIGNED_VALUE;
+typedef long SIGNED_VALUE;
 
 typedef VALUE ID;
 

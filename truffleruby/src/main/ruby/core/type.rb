@@ -263,6 +263,22 @@ module Rubinius
       end
     end
 
+    def self.rb_num2dbl(val)
+      raise TypeError, "no implicit conversion from nil to float" if val.nil?
+
+      if object_kind_of?(val, Float)
+        return val
+      elsif object_kind_of?(val, Fixnum)
+        return val.to_f
+      elsif object_kind_of?(val, Bignum)
+        return val.to_f
+      elsif object_kind_of?(val, String)
+        raise TypeError, "no implicit conversion from to float from string"
+      else
+        rb_num2dbl(rb_to_f(val))
+      end
+    end
+
     def self.rb_big2long(val)
       raise RangeError, "bignum too big to convert into `long'"
     end
@@ -270,6 +286,10 @@ module Rubinius
     def self.rb_big2ulong(val)
       check_ulong(val)
       Truffle.invoke_primitive(:fixnum_ulong_from_bignum, val)
+    end
+
+    def self.rb_to_f(val)
+      rb_to_float(val, :to_f);
     end
 
     def self.rb_to_int(val)
@@ -281,6 +301,15 @@ module Rubinius
       res = convert_type(val, Integer, meth, true)
       unless object_kind_of?(res, Integer)
         conversion_mismatch(val, Integer, meth, res)
+      end
+      res
+    end
+
+    def self.rb_to_float(val, meth)
+      return val if object_kind_of?(val, Float)
+      res = convert_type(val, Float, meth, true)
+      unless object_kind_of?(res, Float)
+        conversion_mismatch(val, Float, meth, res)
       end
       res
     end
