@@ -182,6 +182,10 @@ class Array
 
   def []=(index, length, value = undefined)
     Truffle.primitive :array_aset
+    element_set_fallback(index, length, value)
+  end
+
+  def element_set_fallback(index, length, value)
     if undefined.equal?(value)
       value = length
       if Range === index
@@ -204,6 +208,7 @@ class Array
       self[index, length] = converted
     end
   end
+  private :element_set_fallback
 
   def assoc(obj)
     each do |x|
