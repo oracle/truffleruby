@@ -456,12 +456,12 @@ VALUE ID2SYM(ID value) {
 }
 
 char RB_NUM2CHR(VALUE x) {
-    if (RB_TYPE_P(x, RUBY_T_STRING) && (RSTRING_LEN(x)>=1)) {
-	  return RSTRING_PTR(x)[0];
-    } else {
-      int a = truffle_invoke_i(RUBY_CEXT, "rb_num2int", x);
-	  return (char)(a & 0xff);
-	}
+  if (RB_TYPE_P(x, RUBY_T_STRING) && RSTRING_LEN(x)>=1) {
+    return RSTRING_PTR(x)[0];
+  } else {
+    int a = truffle_invoke_i(RUBY_CEXT, "rb_num2int", x);
+    return (char)(a & 0xff);
+  }
 }
 
 int rb_cmpint(VALUE val, VALUE a, VALUE b) {
