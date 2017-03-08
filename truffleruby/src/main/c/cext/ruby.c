@@ -1856,7 +1856,7 @@ int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
 // Time
 
 VALUE rb_time_new(time_t sec, long usec) {
-  rb_tr_error("rb_time_new not implemented");
+  return (VALUE) truffle_invoke(rb_cTime, "at", sec, usec);
 }
 
 VALUE rb_time_nano_new(time_t sec, long nsec) {
