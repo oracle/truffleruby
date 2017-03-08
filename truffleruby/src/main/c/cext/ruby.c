@@ -469,15 +469,16 @@ int rb_cmpint(VALUE val, VALUE a, VALUE b) {
 }
 
 VALUE rb_int2inum(SIGNED_VALUE n) {
-  rb_tr_error("rb_int2inum not implemented");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", n);
 }
 
 VALUE rb_ll2inum(LONG_LONG n) {
-  rb_tr_error("rb_ll2inum not implemented");
+  /* Long and long long are both 64-bits with clang x86-64. */
+  return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", n);
 }
 
 double rb_num2dbl(VALUE val) {
-  rb_tr_error("rb_num2dbl not implemented");
+  return truffle_invoke_d(RUBY_CEXT, "rb_num2dbl", val);
 }
 
 long rb_num2int(VALUE val) {
