@@ -1,4 +1,3 @@
-fails:CApiTimeSpecs rb_time_nano_new creates a Time from the sec and usec
 fails:CApiTimeSpecs rb_time_num_new creates a Time in the local zone with only a timestamp
 fails:CApiTimeSpecs rb_time_num_new creates a Time with the given offset
 fails:CApiTimeSpecs rb_time_num_new creates a Time with a Float timestamp

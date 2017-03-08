@@ -1860,7 +1860,7 @@ VALUE rb_time_new(time_t sec, long usec) {
 }
 
 VALUE rb_time_nano_new(time_t sec, long nsec) {
-  rb_tr_error("rb_time_nano_new not implemented");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_nano_new", sec, nsec);
 }
 
 VALUE rb_time_num_new(VALUE timev, VALUE off) {

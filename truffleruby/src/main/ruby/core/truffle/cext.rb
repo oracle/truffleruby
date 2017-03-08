@@ -1282,6 +1282,10 @@ module Truffle::CExt
     end
   end
 
+  def rb_time_nano_new(sec, nsec)
+    Time.at sec, Rational(nsec, 1000)
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
