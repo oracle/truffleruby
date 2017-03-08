@@ -500,12 +500,12 @@ module Truffle::CExt
   end
 
   def rb_num_coerce_bin(x, y, func)
-     a, b = do_coerce(x, y, 1)
+     a, b = do_coerce(x, y, true)
      a.send(func, b)
   end
 
   def rb_num_coerce_cmp(x, y, func)
-    ary = do_coerce(x, y, 0)
+    ary = do_coerce(x, y, false)
     if ary.nil?
       nil
     else
@@ -514,38 +514,37 @@ module Truffle::CExt
   end
 
   def rb_num_coerce_relop(x, y, func)
-    ary = do_coerce(x, y, 0)
-    res = unless ary.nil?
-            ary[0].send(func, ary[1])
-          end
-    if res.nil?
-      raise ArgumentError, "comparison of #{x.class} with #{y.class} failed"
+    ary = do_coerce(x, y, false)
+    unless ary.nil?
+      res = ary[0].send(func, ary[1])
     end
+    raise ArgumentError, "comparison of #{x.class} with #{y.class} failed" if res.nil?
     res
   end
 
-  def do_coerce(x, y, raise_error)
+  private def do_coerce(x, y, raise_error)
     unless y.respond_to?(:coerce)
-      if raise_error != 0
+      if raise_error
         raise TypeError, "#{y.class} can't be coerced to #{x.class}"
+      else
+        return nil
       end
-      return nil
     end
 
     ary = begin
        y.coerce(x)
     rescue
-       if raise_error != 0
-         raise TypeError, "#{y.class} can't be coerced to #{x.class}"
-       else
-         warn "Numerical comparison operators will no more rescue exceptions of #coerce"
-         warn "in the next release. Return nil in #coerce if the coercion is impossible."
-       end
-       return nil
+      if raise_error
+        raise TypeError, "#{y.class} can't be coerced to #{x.class}"
+      else
+        warn "Numerical comparison operators will no more rescue exceptions of #coerce"
+        warn "in the next release. Return nil in #coerce if the coercion is impossible."
+      end
+      return nil
     end
 
     if !ary.is_a?(Array) || ary.size != 2
-      if raise_error != 0
+      if raise_error
         raise TypeError, "coerce must return [x, y]"
       else
         warn "Numerical comparison operators will no more rescue exceptions of #coerce"
