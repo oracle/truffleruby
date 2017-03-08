@@ -3,13 +3,6 @@ fails:CApiTimeSpecs rb_time_interval creates a timeval interval for a Float
 fails:CApiTimeSpecs rb_time_interval creates a timeval interval for a Rational
 fails:CApiTimeSpecs rb_time_interval throws an argument error for a negative value
 fails:CApiTimeSpecs rb_time_interval throws an argument error when given a Time instance
-fails:CApiTimeSpecs rb_time_timeval creates a timeval for a Fixnum
-fails:CApiTimeSpecs rb_time_timeval creates a timeval for a Float
-fails:CApiTimeSpecs rb_time_timeval creates a timeval for a Rational
-fails:CApiTimeSpecs rb_time_timeval creates a timeval for a negative Fixnum
-fails:CApiTimeSpecs rb_time_timeval creates a timeval for a negative Float
-fails:CApiTimeSpecs rb_time_timeval creates a timeval for a negative Rational
-fails:CApiTimeSpecs rb_time_timeval creates a timeval from a Time object
 fails:CApiTimeSpecs rb_time_timespec creates a timespec for a Fixnum
 fails:CApiTimeSpecs rb_time_timespec creates a timespec for a Float
 fails:CApiTimeSpecs rb_time_timespec creates a timespec for a Rational

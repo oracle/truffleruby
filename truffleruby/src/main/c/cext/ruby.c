@@ -1871,8 +1871,15 @@ struct timeval rb_time_interval(VALUE num) {
   rb_tr_error("rb_time_interval not implemented");
 }
 
-struct timeval rb_time_timeval(VALUE time) {
-  rb_tr_error("rb_time_timeval not implemented");
+struct timeval rb_time_timeval(VALUE time_val) {
+  VALUE time = rb_time_num_new(time_val, Qnil);
+  int tv_sec = truffle_invoke_i((void *)time, "tv_sec");
+  int tv_usec = truffle_invoke_i((void *)time, "tv_usec");
+
+  struct timeval result;
+  result.tv_sec = tv_sec;
+  result.tv_usec = tv_usec;
+  return result;
 }
 
 struct timespec rb_time_timespec(VALUE time) {
