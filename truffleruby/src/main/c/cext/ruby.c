@@ -493,15 +493,15 @@ long rb_num2long(VALUE val) {
 }
 
 VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func) {
-  rb_tr_error("rb_num_coerce_bin not implemented");
+  return truffle_invoke(RUBY_CEXT, "rb_num_coerce_bin", x, y, ID2SYM(func));
 }
 
 VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func) {
-  rb_tr_error("rb_num_coerce_cmp not implemented");
+  return truffle_invoke(RUBY_CEXT, "rb_num_coerce_cmp", x, y, ID2SYM(func));
 }
 
 VALUE rb_num_coerce_relop(VALUE x, VALUE y, ID func) {
-  rb_tr_error("rb_num_coerce_relop not implemented");
+  return truffle_invoke(RUBY_CEXT, "rb_num_coerce_relop", x, y, ID2SYM(func));
 }
 
 void rb_num_zerodiv(void) {

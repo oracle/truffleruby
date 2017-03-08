@@ -24,14 +24,3 @@ fails:CApiNumericSpecs rb_num2dbl converts a Float
 fails:CApiNumericSpecs rb_num2dbl converts a Bignum
 fails:CApiNumericSpecs rb_num2dbl converts a Fixnum
 fails:CApiNumericSpecs rb_num2dbl calls #to_f to coerce the value
-fails:CApiNumericSpecs rb_num_coerce_bin calls #coerce on the first argument
-fails:CApiNumericSpecs rb_num_coerce_bin calls the specified method on the first argument returned by #coerce
-fails:CApiNumericSpecs rb_num_coerce_bin raises a TypeError if #coerce does not return an Array
-fails:CApiNumericSpecs rb_num_coerce_cmp calls #coerce on the first argument
-fails:CApiNumericSpecs rb_num_coerce_cmp calls the specified method on the first argument returned by #coerce
-fails:CApiNumericSpecs rb_num_coerce_cmp returns nil if passed nil
-fails:CApiNumericSpecs rb_num_coerce_cmp returns nil if #coerce does not return an Array
-fails:CApiNumericSpecs rb_num_coerce_relop calls #coerce on the first argument
-fails:CApiNumericSpecs rb_num_coerce_relop calls the specified method on the first argument returned by #coerce
-fails:CApiNumericSpecs rb_num_coerce_relop raises an ArgumentError if #<op> returns nil
-fails:CApiNumericSpecs rb_num_coerce_relop raises an ArgumentError if #coerce does not return an Array
