@@ -7,18 +7,29 @@ def ensure_bignum(n)
   n
 end
 
+full_range_longs = (fixnum_max == 2**(0.size * 8 - 1) - 1)
+
 describe "CApiBignumSpecs" do
   before :each do
     @s = CApiBignumSpecs.new
-    @max_long = ensure_bignum(2**(0.size * 8 - 1) - 1)
-    @min_long = ensure_bignum(-@max_long - 1)
-    @max_ulong = ensure_bignum(2**(0.size * 8) - 1)
-  end
+
+    if full_range_longs
+      @max_long = 2**(0.size * 8 - 1) - 1
+      @min_long = -@max_long - 1
+      @max_ulong = ensure_bignum(2**(0.size * 8) - 1)
+    else
+      @max_long = ensure_bignum(2**(0.size * 8 - 1) - 1)
+      @min_long = ensure_bignum(-@max_long - 1)
+      @max_ulong = ensure_bignum(2**(0.size * 8) - 1)
+    end
+end
 
   describe "rb_big2long" do
-    it "converts a Bignum" do
-      @s.rb_big2long(@max_long).should == @max_long
-      @s.rb_big2long(@min_long).should == @min_long
+    unless full_range_longs
+      it "converts a Bignum" do
+        @s.rb_big2long(@max_long).should == @max_long
+        @s.rb_big2long(@min_long).should == @min_long
+      end
     end
 
     it "raises RangeError if passed Bignum overflow long" do
@@ -28,9 +39,11 @@ describe "CApiBignumSpecs" do
   end
 
   describe "rb_big2ll" do
-    it "converts a Bignum" do
-      @s.rb_big2ll(@max_long).should == @max_long
-      @s.rb_big2ll(@min_long).should == @min_long
+    unless full_range_longs
+      it "converts a Bignum" do
+        @s.rb_big2ll(@max_long).should == @max_long
+        @s.rb_big2ll(@min_long).should == @min_long
+      end
     end
 
     it "raises RangeError if passed Bignum overflow long" do
@@ -44,8 +57,10 @@ describe "CApiBignumSpecs" do
       @s.rb_big2ulong(@max_ulong).should == @max_ulong
     end
 
-    it "wraps around if passed a negative bignum" do
-      @s.rb_big2ulong(ensure_bignum(@min_long + 1)).should == -(@min_long - 1)
+    unless full_range_longs
+      it "wraps around if passed a negative bignum" do
+        @s.rb_big2ulong(ensure_bignum(@min_long + 1)).should == -(@min_long - 1)
+      end
     end
 
     it "raises RangeError if passed Bignum overflow long" do
@@ -53,8 +68,10 @@ describe "CApiBignumSpecs" do
       lambda { @s.rb_big2ulong(ensure_bignum(@min_long - 1)) }.should raise_error(RangeError)
     end
 
-    it "wraps around if passed a negative bignum" do
-      @s.rb_big2ulong(ensure_bignum(@min_long)).should == -(@min_long)
+    unless full_range_longs
+      it "wraps around if passed a negative bignum" do
+        @s.rb_big2ulong(ensure_bignum(@min_long)).should == -(@min_long)
+      end
     end
   end
 
@@ -77,11 +94,11 @@ describe "CApiBignumSpecs" do
   describe "rb_big2str" do
 
     it "converts a Bignum to a string with base 10" do
-      @s.rb_big2str(ensure_bignum(4611686018427387904), 10).eql?("4611686018427387904").should == true
+      @s.rb_big2str(ensure_bignum(2**70), 10).eql?("1180591620717411303424").should == true
     end
 
     it "converts a Bignum to a string with a different base" do
-      @s.rb_big2str(ensure_bignum(4611686018427387904), 16).eql?("4000000000000000").should == true
+      @s.rb_big2str(ensure_bignum(2**70), 16).eql?("400000000000000000").should == true
     end
   end
 
