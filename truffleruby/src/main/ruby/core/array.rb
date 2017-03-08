@@ -158,11 +158,7 @@ class Array
         if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
           raise RangeError, "bignum too big to convert into `long'"
         end
-        if arg.exclude_end?
-          range = start_index...end_index
-        else
-          range = start_index..end_index
-        end
+        range = Range.new(start_index, end_index, arg.exclude_end?)
         send(method_name, range)
       when Bignum
         raise RangeError, "bignum too big to convert into `long'"
