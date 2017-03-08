@@ -57,47 +57,47 @@ module Truffle::CExt
     # that puts never seen cases behind a transfer
 
     case value
-      when Module
-        T_MODULE
-      when Class
-        T_CLASS
-      when Float
-        T_FLOAT
-      when String
-        T_STRING
-      when Regexp
-        T_REGEXP
-      when Array
-        T_ARRAY
-      when Hash
-        T_HASH
-      when Struct
-        T_STRUCT
-      when Bignum
-        T_BIGNUM
-      when File
-        T_FILE
-      when Complex
-        T_COMPLEX
-      when Rational
-        T_RATIONAL
+    when Module
+      T_MODULE
+    when Class
+      T_CLASS
+    when Float
+      T_FLOAT
+    when String
+      T_STRING
+    when Regexp
+      T_REGEXP
+    when Array
+      T_ARRAY
+    when Hash
+      T_HASH
+    when Struct
+      T_STRUCT
+    when Bignum
+      T_BIGNUM
+    when File
+      T_FILE
+    when Complex
+      T_COMPLEX
+    when Rational
+      T_RATIONAL
 
-      when NilClass
-        T_NIL
-      when TrueClass
-        T_TRUE
-      when FalseClass
-        T_FALSE
-      when Symbol
-        T_SYMBOL
-      when Fixnum
-        T_FIXNUM
+    when NilClass
+      T_NIL
+    when TrueClass
+      T_TRUE
+    when FalseClass
+      T_FALSE
+    when Symbol
+      T_SYMBOL
+    when Fixnum
+      T_FIXNUM
 
-      when Object
-        T_OBJECT
+    when Object
+      T_OBJECT
 
-      else
-        raise 'unknown type'
+    else
+      raise 'unknown type'
     end
   end
 
@@ -106,16 +106,16 @@ module Truffle::CExt
     # that puts never seen cases behind a transfer
 
     case type
-      when T_SYMBOL
-        value.is_a?(Symbol)
-      when T_STRING
-        value.is_a?(String)
-      when T_ARRAY
-        value.is_a?(Array)
-      when T_FILE
-        value.is_a?(File)
-      else
-        raise 'unknown type'
+    when T_SYMBOL
+      value.is_a?(Symbol)
+    when T_STRING
+      value.is_a?(String)
+    when T_ARRAY
+      value.is_a?(Array)
+    when T_FILE
+      value.is_a?(File)
+    else
+      raise 'unknown type'
     end
   end
 
@@ -476,10 +476,10 @@ module Truffle::CExt
 
   def RB_OBJ_TAINTABLE(object)
     case object
-      when TrueClass, FalseClass, Fixnum, Float, NilClass, Symbol
-        true
-      else
-        false
+    when TrueClass, FalseClass, Fixnum, Float, NilClass, Symbol
+      true
+    else
+      false
     end
   end
 
