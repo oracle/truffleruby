@@ -1070,7 +1070,7 @@ int rb_enc_find_index(const char *name) {
 }
 
 rb_encoding *rb_enc_find(const char *name) {
-  rb_tr_error("rb_enc_find not implemented");
+  return rb_to_encoding(truffle_invoke(rb_cEncoding, "find", rb_str_new_cstr(name)));
 }
 
 VALUE rb_enc_from_encoding(rb_encoding *encoding) {
