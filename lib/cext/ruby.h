@@ -977,8 +977,7 @@ VALUE rb_marshal_load(VALUE port);
 
 // GC
 
-#define RB_GC_GUARD(v) \
-    (*__extension__ ({volatile VALUE *rb_gc_guarded_ptr = &(v); rb_gc_guarded_ptr;}))
+#define RB_GC_GUARD(v) (v)
 
 void rb_gc_register_address(VALUE *address);
 #define rb_global_variable(address) ;
