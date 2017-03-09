@@ -48,7 +48,13 @@ module RbConfig
 
   arch = "#{host_cpu}-#{host_os}"
   cppflags = ''
-  cflags = '-Werror=implicit-function-declaration -Wno-int-conversion -Wno-int-to-pointer-cast -c -emit-llvm'
+  cflags = [
+      '-Werror=implicit-function-declaration',  # To make missing C ext functions very clear
+      '-Wno-int-conversion',                    # MRI has VALUE defined as long while we have it as void*
+      '-Wno-int-to-pointer-cast',               # Same as above
+      '-Wno-macro-redefined',                   # We redefine __DARWIN_ALIAS_C
+      '-c', '-emit-llvm'
+  ].join(' ')
   libs = ''
   ruby_so_name = ruby_base_name
 

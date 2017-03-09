@@ -18,6 +18,11 @@
 extern "C" {
 #endif
 
+// __DARWIN_ALIAS_C on macOS rewrites read, write, etc to be _read, _write etc
+
+#include <sys/cdefs.h>
+#define __DARWIN_ALIAS_C(sym)
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdint.h>
