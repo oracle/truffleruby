@@ -2015,7 +2015,8 @@ VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE val) {
 }
 
 void rb_thread_wait_for(struct timeval time) {
-  rb_tr_error("rb_thread_wait_for not implemented");
+  double seconds = (double)time.tv_sec + (double)time.tv_usec/1000000;
+  truffle_invoke(rb_mKernel, "sleep", seconds);
 }
 
 VALUE rb_thread_wakeup(VALUE thread) {
