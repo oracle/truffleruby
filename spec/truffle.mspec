@@ -22,6 +22,7 @@ class MSpecScript
     flags = %w[
       -J-ea
       -J-esa
+      -J-da:com.oracle.truffle.api.interop.ForeignAccess
       -J-Xmx2G
       -Xgraal.warn_unless=false
     ]
