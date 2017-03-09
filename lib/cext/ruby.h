@@ -946,7 +946,7 @@ VALUE rb_complex_set_imag(VALUE complex, VALUE imag);
 // Range
 
 VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end);
-int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp);
+MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp);
 
 // Time
 
@@ -1141,6 +1141,13 @@ VALUE *rb_ruby_debug_ptr(void);
 #define ruby_debug (*rb_ruby_debug_ptr())
 
 // Inline implementations
+
+MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
+  *begp = (VALUE) truffle_invoke(range, "begin");
+  *endp = (VALUE) truffle_invoke(range, "end");
+  *exclp = truffle_invoke_b(range, "exclude_end?") ? 1 : 0;
+  return 1;
+}
 
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
   VALUE value = *value_pointer;

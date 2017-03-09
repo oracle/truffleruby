@@ -1858,10 +1858,6 @@ VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_range_new", beg, end, exclude_end);
 }
 
-int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
-  rb_tr_error("rb_range_values not implemented");
-}
-
 // Time
 
 VALUE rb_time_new(time_t sec, long usec) {
