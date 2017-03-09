@@ -1901,7 +1901,7 @@ struct timespec rb_time_timespec(VALUE time_val) {
 }
 
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
-  rb_tr_error("rb_time_timespec_new not implemented");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_timespec_new", ts->tv_sec, ts->tv_nsec, offset);
 }
 
 void rb_timespec_now(struct timespec *ts) {

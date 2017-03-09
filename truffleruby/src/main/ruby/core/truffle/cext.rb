@@ -1308,8 +1308,12 @@ module Truffle::CExt
     Time.at sec, Rational(nsec, 1000)
   end
 
+  def rb_time_timespec_new(sec, nsec, offset)
+    rb_time_nano_new(sec, nsec).getlocal(offset)
+  end
+
   def rb_time_num_new(timev, off)
-    Time.at(timev).localtime(off)
+    Time.at(timev).getlocal(off)
   end
 
   def rb_time_interval_acceptable(time_val)
