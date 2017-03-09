@@ -9,6 +9,8 @@
 LOCAL = /\w+\s*(\[\s*\d+\s*\])?/
 VALUE_LOCALS = /^(\s+)VALUE\s+(#{LOCAL}(\s*,\s*#{LOCAL})*);\s*$/
 
+ALLOCA_LOCALS = /^(\s+)VALUE\s*\*\s*([a-z_][a-zA-Z_0-9]*)\s*=\s*(\(\s*VALUE\s*\*\s*\)\s*)?alloca\(/
+
 def preprocess(line)
   if line =~ VALUE_LOCALS
     # Translate
@@ -40,6 +42,13 @@ def preprocess(line)
     end
 
     line
+  elsif line =~ ALLOCA_LOCALS
+    # Translate
+    #   VALUE *argv = alloca(sizeof(VALUE) * argc);
+    # into
+    #   VALUE *argv = (VALUE *)truffle_managed_malloc(sizeof(VALUE) * argc);
+
+    line = "#{$1}VALUE *#{$2} = truffle_managed_malloc(#{$'}"
   else
     line
   end
