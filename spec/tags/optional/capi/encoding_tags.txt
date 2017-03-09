@@ -68,8 +68,6 @@ fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x24 and le
 fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0xA2 and length 2 for character '¢'
 fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x20AC and length 3 for character '€'
 fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x24B62 and length 4 for character '𤭢'
-fails:rb_intern3 converts a multibyte symbol with the encoding
-fails:rb_intern3 converts an ascii compatible symbol with the ascii encoding
 fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0xA2 and length 2 for character '¢'
 fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x20AC and length 3 for character '€'
 fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x24B62 and length 4 for character '𤭢'

@@ -1,0 +1,2 @@
+fails:C-API Symbol function rb_intern3 converts a multibyte symbol with the encoding
+fails:C-API Symbol function rb_intern3 converts an ascii compatible symbol with the ascii encoding
