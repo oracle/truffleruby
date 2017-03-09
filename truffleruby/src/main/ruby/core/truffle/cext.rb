@@ -146,6 +146,8 @@ module Truffle::CExt
     Rubinius::UNDEFINED
   end
 
+  # START from tool/generate-cext-constants.rb
+
   def Qtrue
     true
   end
@@ -176,6 +178,10 @@ module Truffle::CExt
 
   def rb_cData
     Data
+  end
+
+  def rb_cEncoding
+    Encoding
   end
 
   def rb_mEnumerable
@@ -433,6 +439,8 @@ module Truffle::CExt
   def rb_default_rs
     $;
   end
+
+  # END from tool/generate-cext-constants.rb
 
   def rb_to_int(val)
     Rubinius::Type.rb_to_int(val)

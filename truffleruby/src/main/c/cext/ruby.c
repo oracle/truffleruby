@@ -80,6 +80,8 @@ VALUE rb_tr_get_undef(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "Qundef");
 }
 
+// START from tool/generate-cext-constants.rb
+
 VALUE rb_tr_get_true(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "Qtrue");
 }
@@ -110,6 +112,10 @@ VALUE rb_tr_get_Comparable(void) {
 
 VALUE rb_tr_get_Data(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_cData");
+}
+
+VALUE rb_tr_get_Encoding(void) {
+  return (VALUE) truffle_read(RUBY_CEXT, "rb_cEncoding");
 }
 
 VALUE rb_tr_get_Enumerable(void) {
@@ -367,6 +373,8 @@ VALUE rb_tr_get_output_rs(void) {
 VALUE rb_tr_get_default_rs(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "rb_default_rs");
 }
+
+// END from tool/generate-cext-constants.rb
 
 // Conversions
 

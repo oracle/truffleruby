@@ -199,6 +199,8 @@ bool SYMBOL_P(VALUE value);
 VALUE rb_tr_get_undef(void);
 #define Qundef rb_tr_get_undef()
 
+// START from tool/generate-cext-constants.rb
+
 VALUE rb_tr_get_true(void);
 VALUE rb_tr_get_false(void);
 VALUE rb_tr_get_nil(void);
@@ -207,6 +209,7 @@ VALUE rb_tr_get_Bignum(void);
 VALUE rb_tr_get_Class(void);
 VALUE rb_tr_get_Comparable(void);
 VALUE rb_tr_get_Data(void);
+VALUE rb_tr_get_Encoding(void);
 VALUE rb_tr_get_Enumerable(void);
 VALUE rb_tr_get_FalseClass(void);
 VALUE rb_tr_get_File(void);
@@ -280,6 +283,7 @@ VALUE rb_tr_get_default_rs(void);
 #define rb_cClass rb_tr_get_Class()
 #define rb_mComparable rb_tr_get_Comparable()
 #define rb_cData rb_tr_get_Data()
+#define rb_cEncoding rb_tr_get_Encoding()
 #define rb_mEnumerable rb_tr_get_Enumerable()
 #define rb_cFalseClass rb_tr_get_FalseClass()
 #define rb_cFile rb_tr_get_File()
@@ -344,6 +348,8 @@ VALUE rb_tr_get_default_rs(void);
 #define rb_rs rb_tr_get_rs()
 #define rb_output_rs rb_tr_get_output_rs()
 #define rb_default_rs rb_tr_get_default_rs()
+
+// END from tool/generate-cext-constants.rb
 
 #define rb_defout rb_stdout
 
