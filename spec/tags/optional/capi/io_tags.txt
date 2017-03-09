@@ -1,10 +1,3 @@
-fails:C-API IO function rb_io_printf calls #to_str to convert the format object to a String
-fails:C-API IO function rb_io_printf calls #to_s to convert the object to a String
-fails:C-API IO function rb_io_printf writes the Strings to the IO
-fails:C-API IO function rb_io_print calls #to_s to convert the object to a String
-fails:C-API IO function rb_io_print writes the Strings to the IO with no separator
-fails:C-API IO function rb_io_puts calls #to_s to convert the object to a String
-fails:C-API IO function rb_io_puts writes the Strings to the IO separated by newlines
 fails:C-API IO function rb_io_check_closed does not raise an exception if the IO is not closed
 fails:C-API IO function rb_io_check_closed raises an error if the IO is closed
 fails:C-API IO function rb_io_binmode returns self
