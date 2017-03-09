@@ -199,6 +199,8 @@ class Thread
 
   def priority=(priority)
     Kernel.raise TypeError, "priority must be a Fixnum" unless priority.kind_of? Fixnum
+    priority = -3 if priority < -3
+    priority = 3 if priority > 3
     java_priority = PRIORITIES_RUBY_TO_JAVA[priority]
     Truffle.invoke_primitive :thread_set_priority, self, java_priority
     priority

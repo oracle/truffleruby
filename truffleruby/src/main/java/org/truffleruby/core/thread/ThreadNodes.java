@@ -552,12 +552,6 @@ public abstract class ThreadNodes {
 
         @Specialization(guards = "isRubyThread(thread)")
         public int getPriority(DynamicObject thread, int javaPriority) {
-            if (javaPriority < Thread.MIN_PRIORITY) {
-                javaPriority = Thread.MIN_PRIORITY;
-            } else if (javaPriority > Thread.MAX_PRIORITY) {
-                javaPriority = Thread.MAX_PRIORITY;
-            }
-
             final Thread javaThread = Layouts.THREAD.getThread(thread);
             if (javaThread != null) {
                 javaThread.setPriority(javaPriority);
