@@ -730,10 +730,18 @@ module Truffle::CExt
   end
 
   def rb_str_encode(str, to, ecflags, ecopts)
-    if ecopts.nil?
+    opts = {}
+    opts.merge!(ecopts) unless ecopts.nil?
+
+    # TODO BJF 8-Mar-2017 Handle more ecflags
+    if ecflags & Encoding::Converter::INVALID_REPLACE != 0
+      opts.merge!({:invalid => :replace})
+    end
+    
+    if opts.empty?
       str.encode(to)
     else
-      str.encode(to, ecopts)
+      str.encode(to, opts)
     end
   end
 
