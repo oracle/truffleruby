@@ -1044,7 +1044,7 @@ int rb_cloexec_open(const char *pathname, int flags, mode_t mode);
 VALUE rb_file_open(const char *fname, const char *modestr);
 VALUE rb_file_open_str(VALUE fname, const char *modestr);
 VALUE rb_get_path(VALUE object);
-#define FilePathValue(v) (RB_GC_GUARD(v) = rb_get_path(v))
+#define FilePathValue(v) (v = rb_get_path(v))
 
 // Structs
 

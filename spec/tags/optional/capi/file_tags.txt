@@ -1,4 +1,0 @@
-fails:C-API File function FilePathValue returns a String argument unchanged
-fails:C-API File function FilePathValue does not call #to_str on a String
-fails:C-API File function FilePathValue calls #to_path to convert an object to a String
-fails:C-API File function FilePathValue calls #to_str to convert an object to a String if #to_path isn't defined
