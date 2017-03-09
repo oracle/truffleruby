@@ -53,6 +53,7 @@ module RbConfig
       '-Wno-int-conversion',                    # MRI has VALUE defined as long while we have it as void*
       '-Wno-int-to-pointer-cast',               # Same as above
       '-Wno-macro-redefined',                   # We redefine __DARWIN_ALIAS_C
+      '-Wno-unused-value',                         # RB_GC_GUARD leaves
       '-c', '-emit-llvm'
   ].join(' ')
   libs = ''
