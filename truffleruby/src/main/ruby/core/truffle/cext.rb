@@ -1342,6 +1342,12 @@ module Truffle::CExt
     raise ArgumentError, 'cannot be negative' if time_val < 0
   end
 
+  def rb_thread_create(fn, args)
+    Thread.new do
+      Truffle::Interop.execute(fn, args)
+    end
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

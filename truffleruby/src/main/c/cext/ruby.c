@@ -2047,7 +2047,7 @@ VALUE rb_thread_wakeup(VALUE thread) {
 }
 
 VALUE rb_thread_create(VALUE (*fn)(ANYARGS), void *arg) {
-  rb_tr_error("rb_thread_create not implemented");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_thread_create", fn, arg);
 }
 
 rb_nativethread_id_t rb_nativethread_self() {
