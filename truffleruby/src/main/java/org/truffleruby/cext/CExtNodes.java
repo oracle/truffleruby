@@ -34,6 +34,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes;
@@ -247,7 +248,7 @@ public class CExtNodes {
         @Specialization
         @TruffleBoundary
         public Object ulong2num(long num) {
-            if (num > 0) {
+            if (num >= 0) {
                 return num;
             } else {
                 // The l at the end of the constant is crucial,
@@ -262,6 +263,83 @@ public class CExtNodes {
             }
         }
 
+    }
+
+    @CoreMethod(names = "rb_big_pack", isModuleFunction = true, required = 2)
+    public abstract static class BigPackNode extends CoreMethodArrayArgumentsNode {
+
+        // The Ruby MRI API for extracting the contents of a Bignum
+        // fills a provided buffer of longs with a two's complement
+        // representation of the number starting with the least
+        // significant part. If the provided buffer and length are
+        // longer than required for this then the remaining longs will
+        // be filled in so as to preserve the number in two's
+        // complement form.
+        //
+        // Java BigInteger provides an API to extract the two's
+        // complement as a byte array starting with the most
+        // significant byte and continuing until the number is
+        // complete. To convert from this to the Ruby form we must:
+        //
+        // 1. Starting from the end of the byte array pack 8 bytes
+        // into a long (being careful to avoid accidental sign
+        // extension occurring due to widening of primitive types).
+        //
+        // 2. Pack any remaining bytes into a final long and pad it
+        // appropriately to preserve the sign of the number.
+        //
+        // 3. Fill any remaining space in the requested buffer size
+        // with longs (again preserving the sign of the number).
+        //
+        // It is important we correctly fill buffers which are longer
+        // than requested both for compatibility with MRI and to
+        // preserve the returned number.
+
+        @Specialization(guards = "isRubyBignum(num)")
+        public DynamicObject bigPack(DynamicObject num, long length) {
+            BigInteger bi = Layouts.BIGNUM.getValue(num);
+            long[] longs = new long[(int)length];
+            byte[] bytes = bi.toByteArray();
+            int limit = Math.min(longs.length, bytes.length / 8);
+            int fraction = limit == longs.length ? 0 : bytes.length % 8;
+            int blank_start = fraction == 0 ? limit : limit + 1;
+            boolean negative = bi.signum() == -1;
+            for (int i = 0; i < limit; i++) {
+                long x = 0;
+                for (int j = 0; j < 8; j++) {
+                    long a_byte = bytes[bytes.length - 1 - i * 8 - j] & 0xffl;
+                    x = x | (a_byte << (j * 8));
+                }
+                longs[i] = x;
+            }
+            if (fraction != 0) {
+                long x = 0;
+                for (int i = 0; i < fraction; i++) {
+                    long a_byte = bytes[bytes.length - 1 - limit * 8 - i] & 0xffl;
+                    x = x | (a_byte << (i * 8));
+                }
+                if (negative) {
+                    for (int i = fraction; i < 8; i++) {
+                        x = x | (0xffl << (i * 8));
+                    }
+                }
+                longs[limit] = x;
+            }
+            if (negative) {
+                for (int i = blank_start; i < length; i++) {
+                    longs[i] = -1;
+                }
+            }
+            return ArrayHelpers.createArray(getContext(), longs, longs.length);
+        }
+    }
+
+    @CoreMethod(names = "rb_absint_bit_length", isModuleFunction = true, required = 1)
+    public abstract static class BignumBitLengthNode extends CoreMethodArrayArgumentsNode {
+        @Specialization(guards = "isRubyBignum(num)")
+        public int bitLength(DynamicObject num) {
+            return Layouts.BIGNUM.getValue(num).bitLength();
+        }
     }
 
     @CoreMethod(names = "DBL2BIG", isModuleFunction = true, required = 1)

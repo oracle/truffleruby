@@ -709,7 +709,9 @@ VALUE rb_integer_unpack(const void *words, size_t numwords, size_t wordsize, siz
 }
 
 size_t rb_absint_size(VALUE value, int *nlz_bits_ret) {
-  rb_tr_error("rb_absint_size not implemented");
+  int size = truffle_invoke_i(RUBY_CEXT, "rb_absint_bit_length", value);
+  nlz_bits_ret = size % 8;
+  return size / 8;
 }
 
 VALUE rb_cstr_to_inum(const char* string, int base, int raise) {
@@ -741,11 +743,15 @@ unsigned long rb_big2ulong(VALUE x) {
 }
 
 VALUE rb_big_cmp(VALUE x, VALUE y) {
-  return (VALUE) truffle_invoke((void *)x, "<=>", y);
+  return (VALUE) truffle_invoke(x, "<=>", y);
 }
 
 void rb_big_pack(VALUE val, unsigned long *buf, long num_longs) {
-  rb_tr_error("rb_big_pack not implemented");
+  long i;
+  VALUE longs = truffle_invoke(RUBY_CEXT, "rb_big_pack", val, num_longs);
+  for (i = 0; i < num_longs; i++) {
+    buf[i] = (unsigned long)truffle_read_idx_l(longs, i);
+  }
 }
 
 // Float
