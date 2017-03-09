@@ -2164,8 +2164,6 @@ VALUE rb_get_path(VALUE object) {
   return (VALUE) truffle_invoke(rb_cFile, "path", object);
 }
 
-#define FilePathValue(v) (RB_GC_GUARD(v) = rb_get_path(v))
-
 // Structs
 
 VALUE rb_struct_aref(VALUE s, VALUE idx) {
