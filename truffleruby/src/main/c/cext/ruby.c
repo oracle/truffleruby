@@ -76,11 +76,11 @@ bool SYMBOL_P(VALUE value) {
 
 // Constants
 
+// START from tool/generate-cext-constants.rb
+
 VALUE rb_tr_get_undef(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "Qundef");
 }
-
-// START from tool/generate-cext-constants.rb
 
 VALUE rb_tr_get_true(void) {
   return (VALUE) truffle_read(RUBY_CEXT, "Qtrue");

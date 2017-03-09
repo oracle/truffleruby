@@ -142,11 +142,11 @@ module Truffle::CExt
     value.is_a?(Symbol)
   end
 
+  # START from tool/generate-cext-constants.rb
+
   def Qundef
     Rubinius::UNDEFINED
   end
-
-  # START from tool/generate-cext-constants.rb
 
   def Qtrue
     true

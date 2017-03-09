@@ -9,6 +9,7 @@
 # GNU Lesser General Public License version 2.1
 
 constants = [
+    ['Rubinius::UNDEFINED', 'undef'],
     true,
     false,
     nil,
@@ -103,7 +104,7 @@ constants = [
     expr = value.to_s
   end
   
-  if [true, false, nil].include?(value)
+  if [true, false, nil].include?(value) or name == 'undef'
     tag = 'Q'
   elsif value.is_a?(Class) && (value < Exception || value == Exception)
     tag = 'rb_e'

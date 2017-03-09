@@ -196,11 +196,9 @@ bool SYMBOL_P(VALUE value);
 
 // Constants
 
-VALUE rb_tr_get_undef(void);
-#define Qundef rb_tr_get_undef()
-
 // START from tool/generate-cext-constants.rb
 
+VALUE rb_tr_get_undef(void);
 VALUE rb_tr_get_true(void);
 VALUE rb_tr_get_false(void);
 VALUE rb_tr_get_nil(void);
@@ -275,6 +273,7 @@ VALUE rb_tr_get_rs(void);
 VALUE rb_tr_get_output_rs(void);
 VALUE rb_tr_get_default_rs(void);
 
+#define Qundef rb_tr_get_undef()
 #define Qtrue rb_tr_get_true()
 #define Qfalse rb_tr_get_false()
 #define Qnil rb_tr_get_nil()
