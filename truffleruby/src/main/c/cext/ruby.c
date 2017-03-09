@@ -1905,7 +1905,9 @@ VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
 }
 
 void rb_timespec_now(struct timespec *ts) {
-  rb_tr_error("rb_timespec_now not implemented");
+  struct timeval tv = rb_time_timeval((VALUE) truffle_invoke(rb_cTime, "now"));
+  ts->tv_sec = tv.tv_sec;
+  ts->tv_nsec = tv.tv_usec * 1000;
 }
 
 // Regexp
