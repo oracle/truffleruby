@@ -44,8 +44,8 @@ extern "C" {
 
 #define TRUFFLERUBY 1
 
-#define SIZEOF_INT 32
-#define SIZEOF_LONG 64
+#define SIZEOF_INT 4
+#define SIZEOF_LONG 8
 #define LONG_LONG long long
 
 #define HAVE_SYS_TIME_H
