@@ -1868,8 +1868,16 @@ VALUE rb_time_num_new(VALUE timev, VALUE off) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_num_new", timev, off);
 }
 
-struct timeval rb_time_interval(VALUE num) {
-  rb_tr_error("rb_time_interval not implemented");
+struct timeval rb_time_interval(VALUE time_val) {
+  truffle_invoke(RUBY_CEXT, "rb_time_interval_acceptable", time_val);
+
+  struct timeval result;
+
+  VALUE time = rb_time_num_new(time_val, Qnil);
+  result.tv_sec = truffle_invoke_l((void *)time, "tv_sec");
+  result.tv_usec = truffle_invoke_l((void *)time, "tv_usec");
+
+  return result;
 }
 
 struct timeval rb_time_timeval(VALUE time_val) {

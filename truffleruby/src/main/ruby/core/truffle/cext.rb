@@ -1312,6 +1312,12 @@ module Truffle::CExt
     Time.at(timev).localtime(off)
   end
 
+  def rb_time_interval_acceptable(time_val)
+    # TODO (pitr-ch 09-Mar-2017): more precise error messages
+    raise TypeError, 'cannot be Time' if time_val.is_a? Time
+    raise ArgumentError, 'cannot be negative' if time_val < 0
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
