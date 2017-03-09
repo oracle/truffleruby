@@ -323,6 +323,26 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_to_encoding", isModuleFunction = true, required = 1)
+    public abstract static class RbToEncodingPointer extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyEncoding(encoding)")
+        public EncodingPointerAdapter encodingPointer(DynamicObject encoding) {
+            return new EncodingPointerAdapter(encoding);
+        }
+
+    }
+
+    @CoreMethod(names = "rb_enc_from_encoding", isModuleFunction = true, required = 1)
+    public abstract static class RbEncFromEncodingNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject unadaptEncodingPointer(EncodingPointerAdapter adapter) {
+            return adapter.getEncoding();
+        }
+
+    }
+
     @CoreMethod(names = "rb_block_proc", isModuleFunction = true)
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 

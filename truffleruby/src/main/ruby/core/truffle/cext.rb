@@ -662,6 +662,18 @@ module Truffle::CExt
     re.options
   end
 
+  def ascii8bit_encoding
+    Encoding::ASCII_8BIT
+  end
+
+  def usascii_encoding
+    Encoding::US_ASCII
+  end
+
+  def utf8_encoding
+    Encoding::UTF_8
+  end
+
   def rb_to_encoding_index(enc)
     enc = Rubinius::Type.coerce_to_encoding(enc)
     return -1 if enc == false

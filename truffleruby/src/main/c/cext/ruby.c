@@ -878,7 +878,7 @@ VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
 }
 
 rb_encoding *rb_to_encoding(VALUE encoding) {
-  rb_tr_error("rb_to_encoding not implemented");
+  return truffle_invoke(RUBY_CEXT, "rb_to_encoding", encoding);
 }
 
 VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to) {
@@ -1002,7 +1002,7 @@ unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_e
 }
 
 rb_encoding *rb_enc_get(VALUE object) {
-  return (rb_encoding *)truffle_invoke((void *)object, "encoding");
+  return rb_to_encoding(truffle_invoke((void *)object, "encoding"));
 }
 
 void rb_enc_set_index(VALUE obj, int idx) {
@@ -1010,7 +1010,7 @@ void rb_enc_set_index(VALUE obj, int idx) {
 }
 
 rb_encoding *rb_ascii8bit_encoding(void) {
-  rb_tr_error("rb_ascii8bit_encoding not implemented");
+  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "ascii8bit_encoding"));
 }
 
 int rb_ascii8bit_encindex(void) {
@@ -1018,7 +1018,7 @@ int rb_ascii8bit_encindex(void) {
 }
 
 rb_encoding *rb_usascii_encoding(void) {
-  rb_tr_error("rb_usascii_encoding not implemented");
+  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "usascii_encoding"));
 }
 
 int rb_usascii_encindex(void) {
@@ -1026,7 +1026,7 @@ int rb_usascii_encindex(void) {
 }
 
 rb_encoding *rb_utf8_encoding(void) {
-  rb_tr_error("rb_utf8_encoding not implemented");
+  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "utf8_encoding"));
 }
 
 int rb_utf8_encindex(void) {
@@ -1066,7 +1066,7 @@ rb_encoding *rb_enc_find(const char *name) {
 }
 
 VALUE rb_enc_from_encoding(rb_encoding *encoding) {
-  rb_tr_error("rb_enc_from_encoding not implemented");
+  return truffle_invoke(RUBY_CEXT, "rb_enc_from_encoding", encoding);
 }
 
 rb_encoding *rb_enc_from_index(int index) {
@@ -1094,11 +1094,11 @@ VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {
 }
 
 VALUE rb_usascii_str_new(const char *ptr, long len) {
-  rb_tr_error("rb_usascii_str_new not implemented");
+  return truffle_invoke(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
 }
 
 VALUE rb_usascii_str_new_cstr(const char *ptr) {
-  rb_tr_error("rb_usascii_str_new_cstr not implemented");
+  return truffle_invoke(rb_str_new_cstr(ptr), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
 }
 
 int rb_to_encoding_index(VALUE enc) {

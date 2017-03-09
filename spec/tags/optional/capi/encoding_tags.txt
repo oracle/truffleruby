@@ -2,13 +2,9 @@ fails:C-API Encoding function rb_encdb_alias creates an alias for an existing En
 fails:C-API Encoding function rb_enc_find returns the encoding of an Encoding
 fails:C-API Encoding function rb_enc_find returns the encoding of an Encoding specified with lower case
 fails:C-API Encoding function rb_enc_from_index returns an Encoding
-fails:C-API Encoding function rb_usascii_encoding returns the encoding for Encoding::US_ASCII
-fails:C-API Encoding function rb_ascii8bit_encoding returns the encoding for Encoding::ASCII_8BIT
-fails:C-API Encoding function rb_utf8_encoding returns the encoding for Encoding::UTF_8
 fails:C-API Encoding function rb_enc_from_encoding returns an Encoding instance from an encoding data structure
 fails:C-API Encoding function rb_locale_encoding returns the encoding for the current locale
 fails:C-API Encoding function rb_filesystem_encoding returns the encoding for the current filesystem
-fails:C-API Encoding function rb_enc_get returns the encoding ossociated with an object
 fails:C-API Encoding function rb_obj_encoding returns the encoding ossociated with an object
 fails:C-API Encoding function rb_enc_get_index returns the index of the encoding of a String
 fails:C-API Encoding function rb_enc_get_index returns the index of the encoding of a Regexp
@@ -39,8 +35,6 @@ fails:C-API Encoding function ENCODING_SET associates an encoding with a subclas
 fails:C-API Encoding function ENCODING_SET associates an encoding with an object
 fails:C-API Encoding function ENC_CODERANGE_ASCIIONLY returns true if the object encoding is only ASCII
 fails:C-API Encoding function ENC_CODERANGE_ASCIIONLY returns false if the object encoding is not ASCII only
-fails:C-API Encoding function rb_to_encoding returns the encoding for the Encoding instance passed
-fails:C-API Encoding function rb_to_encoding returns the correct encoding for a replicated encoding
 fails:C-API Encoding function rb_to_encoding returns the encoding when passed a String
 fails:C-API Encoding function rb_to_encoding calls #to_str to convert the argument to a String
 fails:C-API Encoding function rb_to_encoding_index returns the index of the dummy encoding of an Object
