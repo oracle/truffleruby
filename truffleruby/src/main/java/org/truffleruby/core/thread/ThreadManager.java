@@ -72,7 +72,7 @@ public class ThreadManager {
                 null,
                 null,
                 new AtomicBoolean(false),
-                0,
+                Thread.NORM_PRIORITY,
                 context.getCoreLibrary().getNilObject(),
                 context.getCoreLibrary().getNilObject());
 

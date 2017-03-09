@@ -438,7 +438,7 @@ public abstract class ThreadNodes {
                     new AtomicReference<>(null),
                     new AtomicReference<>(null),
                     new AtomicBoolean(false),
-                    new AtomicInteger(0),
+                    new AtomicInteger(Thread.NORM_PRIORITY),
                     currentGroup,
                     nil());
 
@@ -513,50 +513,31 @@ public abstract class ThreadNodes {
         public int getPriority(DynamicObject thread) {
             final Thread javaThread = Layouts.THREAD.getThread(thread);
             if (javaThread != null) {
-                int javaPriority = javaThread.getPriority();
-                return javaPriorityToRubyPriority(javaPriority);
+                return javaThread.getPriority();
             } else {
                 return Layouts.THREAD.getPriority(thread);
             }
         }
 
-        /*
-         * helper methods to translate Java thread priority (1-10) to Ruby thread priority (-3 to 3)
-         * using a quadratic polynomial ant its inverse passing by (Ruby,Java): (-3,1), (0,5) and
-         * (3,10) i.e., j = r^2/18 + 3*r/2 + 5 r = 3/2*sqrt(8*j + 41) - 27/2
-         */
-        private static int javaPriorityToRubyPriority(int javaPriority) {
-            double d = 1.5 * Math.sqrt(8.0 * javaPriority + 41) - 13.5;
-            return Math.round((float) d);
-        }
     }
 
     @Primitive(name = "thread_set_priority")
     public static abstract class ThreadSetPriorityPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        static final int RUBY_MIN_THREAD_PRIORITY = -3;
-        static final int RUBY_MAX_THREAD_PRIORITY = 3;
-
         @Specialization(guards = "isRubyThread(thread)")
-        public int getPriority(DynamicObject thread, int rubyPriority) {
-            if (rubyPriority < RUBY_MIN_THREAD_PRIORITY) {
-                rubyPriority = RUBY_MIN_THREAD_PRIORITY;
-            } else if (rubyPriority > RUBY_MAX_THREAD_PRIORITY) {
-                rubyPriority = RUBY_MAX_THREAD_PRIORITY;
+        public int getPriority(DynamicObject thread, int javaPriority) {
+            if (javaPriority < Thread.MIN_PRIORITY) {
+                javaPriority = Thread.MIN_PRIORITY;
+            } else if (javaPriority > Thread.MAX_PRIORITY) {
+                javaPriority = Thread.MAX_PRIORITY;
             }
 
-            int javaPriority = rubyPriorityToJavaPriority(rubyPriority);
             final Thread javaThread = Layouts.THREAD.getThread(thread);
             if (javaThread != null) {
                 javaThread.setPriority(javaPriority);
             }
-            Layouts.THREAD.setPriority(thread, rubyPriority);
-            return rubyPriority;
-        }
-
-        private static int rubyPriorityToJavaPriority(int rubyPriority) {
-            double d = (rubyPriority * rubyPriority) / 18.0 + 1.5 * rubyPriority + 5;
-            return Math.round((float) d);
+            Layouts.THREAD.setPriority(thread, javaPriority);
+            return javaPriority;
         }
 
     }

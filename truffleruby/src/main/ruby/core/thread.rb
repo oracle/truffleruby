@@ -182,15 +182,26 @@ class Thread
   end
   private :raise_prim
 
+  # Java goes from 1 to 10 (default 5), Ruby from -3 to 3 (default 0)
+  PRIORITIES_RUBY_TO_JAVA = {
+    -3 => 1, -2 => 2, -1 => 4, 0 => 5,
+     1 => 7,  2 => 8,  3 => 10
+  }.freeze
+  PRIORITIES_JAVA_TO_RUBY = {
+    1 => -3, 2 => -2, 3 => -1, 4 => -1, 5 => 0,
+    6 => 1,   7 => 1, 8 => 2,  9 => 2, 10 => 3
+  }.freeze
+
   def priority
-    Truffle.primitive :thread_get_priority
-    Kernel.raise ThreadError, "Thread#priority primitive failed"
+    java_priority = Truffle.invoke_primitive :thread_get_priority, self
+    PRIORITIES_JAVA_TO_RUBY[java_priority]
   end
 
-  def priority=(val)
-    Truffle.primitive :thread_set_priority
-    Kernel.raise TypeError, "priority must be a Fixnum" unless val.kind_of? Fixnum
-    Kernel.raise ThreadError, "Thread#priority= primitive failed"
+  def priority=(priority)
+    Kernel.raise TypeError, "priority must be a Fixnum" unless priority.kind_of? Fixnum
+    java_priority = PRIORITIES_RUBY_TO_JAVA[priority]
+    Truffle.invoke_primitive :thread_set_priority, self, java_priority
+    priority
   end
 
   def name
