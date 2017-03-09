@@ -1,5 +1,0 @@
-fails:CApiBignumSpecs rb_big2long converts a Bignum
-fails:CApiBignumSpecs rb_big2ll converts a Bignum
-fails:CApiBignumSpecs rb_big2ulong wraps around if passed a negative bignum
-fails:CApiBignumSpecs rb_big_pack packs a Bignum into a Fixnum
-fails:CApiBignumSpecs rb_big_pack packs a Bignum into an unsigned long
