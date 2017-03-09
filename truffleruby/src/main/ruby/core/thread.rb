@@ -189,7 +189,7 @@ class Thread
   }.freeze
   PRIORITIES_JAVA_TO_RUBY = {
     1 => -3, 2 => -2, 3 => -1, 4 => -1, 5 => 0,
-    6 => 1,   7 => 1, 8 => 2,  9 => 2, 10 => 3
+    6 =>  1, 7 =>  1, 8 =>  2, 9 => 2, 10 => 3
   }.freeze
 
   def priority
