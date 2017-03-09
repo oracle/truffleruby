@@ -1883,8 +1883,14 @@ struct timeval rb_time_timeval(VALUE time_val) {
   return result;
 }
 
-struct timespec rb_time_timespec(VALUE time) {
-  rb_tr_error("rb_time_timespec not implemented");
+struct timespec rb_time_timespec(VALUE time_val) {
+  struct timespec result;
+
+  VALUE time = rb_time_num_new(time_val, Qnil);
+  result.tv_sec = truffle_invoke_l((void *)time, "tv_sec");
+  result.tv_nsec = truffle_invoke_l((void *)time, "tv_nsec");
+
+  return result;
 }
 
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
