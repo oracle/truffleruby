@@ -71,6 +71,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.yield.YieldNode;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -375,9 +376,16 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject wakeup(final DynamicObject thread) {
+        public DynamicObject wakeup(DynamicObject thread,
+                                    @Cached("new()") YieldNode yieldNode) {
             if (Layouts.THREAD.getStatus(thread) == ThreadStatus.DEAD) {
                 throw new RaiseException(coreExceptions().threadErrorKilledThread(this));
+            }
+
+            final DynamicObject unblocker = Layouts.THREAD.getUnblocker(thread);
+
+            if (unblocker != null) {
+                yieldNode.dispatch(null, unblocker);
             }
 
             Layouts.THREAD.getWakeUp(thread).set(true);
@@ -390,6 +398,23 @@ public abstract class ThreadNodes {
             }
 
             return thread;
+        }
+
+    }
+
+    @NonStandard
+    @CoreMethod(names = "unblock", required = 2)
+    public abstract static class UnblockNode extends YieldingCoreMethodNode {
+
+        @Specialization(guards = {"isRubyProc(unblocker)", "isRubyProc(runner)"})
+        public Object unblock(VirtualFrame frame, DynamicObject thread, DynamicObject unblocker, DynamicObject runner) {
+            Layouts.THREAD.setUnblocker(thread, unblocker);
+
+            try {
+                return yield(frame, runner);
+            } finally {
+                Layouts.THREAD.setUnblocker(thread, null);
+            }
         }
 
     }
@@ -440,7 +465,8 @@ public abstract class ThreadNodes {
                     new AtomicBoolean(false),
                     new AtomicInteger(Thread.NORM_PRIORITY),
                     currentGroup,
-                    nil());
+                    nil(),
+                    null);
 
             Layouts.THREAD.setFiberManagerUnsafe(object, new FiberManager(getContext(), object)); // Because it is cyclic
 

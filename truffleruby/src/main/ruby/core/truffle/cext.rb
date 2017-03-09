@@ -1348,6 +1348,18 @@ module Truffle::CExt
     end
   end
 
+  def rb_thread_call_without_gvl(function, data1, unblock, data2)
+    unblocker = proc {
+      Truffle::Interop.execute unblock, data2
+    }
+
+    runner = proc {
+      Truffle::Interop.execute function, data1
+    }
+
+    Thread.current.unblock unblocker, runner
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

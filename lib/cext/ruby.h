@@ -994,7 +994,7 @@ typedef void rb_unblock_function_t(void *);
 
 void *rb_thread_call_with_gvl(gvl_call function, void *data1);
 void *rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2);
-void *rb_thread_call_without_gvl2(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2);
+#define rb_thread_call_without_gvl2 rb_thread_call_without_gvl
 int rb_thread_alone(void);
 VALUE rb_thread_current(void);
 VALUE rb_thread_local_aref(VALUE thread, ID id);

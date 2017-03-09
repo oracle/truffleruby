@@ -2012,13 +2012,8 @@ void *rb_thread_call_with_gvl(gvl_call function, void *data1) {
 }
 
 void *rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
-  // TODO do we need to do anyhting with the unblock_function?
-  return function(data1);
-}
-
-void *rb_thread_call_without_gvl2(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2) {
-  // TODO do we need to do anyhting with the unblock_function?
-  return function(data1);
+  // TODO CS 9-Mar-17 truffle_invoke escapes LLVMAddress into Ruby, which goes wrong when Ruby tries to call the callbacks
+  return truffle_invoke(RUBY_CEXT, "rb_thread_call_without_gvl", function, data1, unblock_function, data2);
 }
 
 int rb_thread_alone(void) {
