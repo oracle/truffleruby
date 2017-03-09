@@ -17,8 +17,8 @@ file = ARGV.shift
 args = ARGV
 
 `ruby lib/cext/preprocess.rb #{file} > explore-pre.c`
-`#{RbConfig::CONFIG['CC']} -E -I#{RbConfig::CONFIG['rubyhdrdir']} #{args.join(' ')} explore-pre.c -o explore-cpp.c`
-`#{RbConfig::CONFIG['CC']} -Werror=implicit-function-declaration -Wno-int-conversion -Wno-int-to-pointer-cast -c -emit-llvm -I#{RbConfig::CONFIG['rubyhdrdir']} #{args.join(' ')} explore-pre.c -o explore-frontend.bc`
+`#{RbConfig::CONFIG['CC']} -Wno-macro-redefined -E -I#{RbConfig::CONFIG['rubyhdrdir']} #{args.join(' ')} explore-pre.c -o explore-cpp.c`
+`#{RbConfig::CONFIG['CC']} -Werror=implicit-function-declaration -Wno-int-conversion -Wno-int-to-pointer-cast -Wno-macro-redefined -c -emit-llvm -I#{RbConfig::CONFIG['rubyhdrdir']} #{args.join(' ')} explore-pre.c -o explore-frontend.bc`
 `llvm-dis-3.8 explore-frontend.bc`
 opt_passes = ['-always-inline', '-mem2reg', '-constprop']
 `#{ENV['JT_OPT'] || 'opt'} #{opt_passes.join(' ')} explore-frontend.bc -o explore-opt.bc`
