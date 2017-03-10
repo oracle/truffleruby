@@ -30,6 +30,8 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
@@ -323,8 +325,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_to_encoding", isModuleFunction = true, required = 1)
-    public abstract static class RbToEncodingPointer extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "rb_to_encoding", needsSelf = false)
+    public abstract static class RbToEncodingPointer extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyEncoding(encoding)")
         public EncodingPointerAdapter encodingPointer(DynamicObject encoding) {

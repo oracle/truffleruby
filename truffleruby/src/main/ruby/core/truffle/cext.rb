@@ -682,6 +682,27 @@ module Truffle::CExt
     Encoding::UTF_8
   end
 
+  def rb_default_external_encoding
+    Encoding.find("external")
+  end
+
+  def rb_default_internal_encoding
+    Encoding.find("internal")
+  end
+
+  def rb_locale_encoding
+    Encoding.find("locale")
+  end
+
+  def rb_filesystem_encoding
+    Encoding.find("filesystem")
+  end
+
+  def rb_to_encoding(enc)
+    enc = Rubinius::Type.coerce_to_encoding(enc)
+    Truffle.invoke_primitive :rb_to_encoding, enc
+  end
+
   def rb_to_encoding_index(enc)
     enc = Rubinius::Type.coerce_to_encoding(enc)
     return -1 if enc == false
@@ -751,6 +772,27 @@ module Truffle::CExt
   
   def rb_enc_str_coderange(str)
     Truffle.invoke_primitive :string_get_coderange, str
+  end
+
+  def rb_enc_get_index(obj)
+    enc = case obj
+          when Symbol
+            obj.to_s.encoding
+          when String
+            obj.encoding
+          when Regexp
+            obj.encoding
+          when File
+            obj.internal_encoding || obj.external_encoding
+          # TODO BJF Mar-9-2017 Handle T_DATA
+          else
+            nil
+          end
+    if enc.nil?
+      -1
+    else
+      rb_enc_find_index(enc.name)
+    end
   end
 
   def rb_intern_str(string)

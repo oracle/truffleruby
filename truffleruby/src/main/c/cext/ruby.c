@@ -942,15 +942,15 @@ VALUE rb_str_export_to_enc(VALUE string, rb_encoding *enc) {
 }
 
 rb_encoding *rb_default_external_encoding(void) {
-  rb_tr_error("rb_default_external_encoding not implemented");
+  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "rb_default_external_encoding"));
 }
 
 rb_encoding *rb_default_internal_encoding(void) {
-  rb_tr_error("rb_default_internal_encoding not implemented");
+  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "rb_default_internal_encoding"));
 }
 
 rb_encoding *rb_locale_encoding(void) {
-  rb_tr_error("rb_locale_encoding not implemented");
+  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "rb_locale_encoding"));
 }
 
 int rb_locale_encindex(void) {
@@ -958,7 +958,7 @@ int rb_locale_encindex(void) {
 }
 
 rb_encoding *rb_filesystem_encoding(void) {
-  rb_tr_error("rb_filesystem_encoding not implemented");
+  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "rb_filesystem_encoding"));
 }
 
 int rb_filesystem_encindex(void) {
@@ -1122,7 +1122,7 @@ char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc) {
 }
 
 int rb_enc_get_index(VALUE obj) {
-  rb_tr_error("rb_enc_get_index not implemented");
+  return truffle_invoke_i(RUBY_CEXT, "rb_enc_get_index", obj);
 }
 
 // Symbol
