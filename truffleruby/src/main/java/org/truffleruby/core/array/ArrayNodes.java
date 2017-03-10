@@ -26,6 +26,7 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.IntValueProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -1583,10 +1584,10 @@ public abstract class ArrayNodes {
     @CoreMethod(names = { "size", "length" })
     public abstract static class SizeNode extends ArrayCoreMethodNode {
 
-        @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
+        @Specialization
         public int size(DynamicObject array,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            return strategy.getSize(array);
+                        @Cached("createIdentityProfile()") IntValueProfile profile) {
+            return profile.profile(Layouts.ARRAY.getSize(array));
         }
 
     }
