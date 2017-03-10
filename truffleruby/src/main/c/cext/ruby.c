@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <limits.h>
 
 #include <truffle.h>
 
@@ -1909,7 +1910,9 @@ struct timespec rb_time_timespec(VALUE time_val) {
 }
 
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_timespec_new", ts->tv_sec, ts->tv_nsec, offset);
+  VALUE utc = offset == INT_MAX-1 ? Qtrue : Qfalse;
+  VALUE local = offset == INT_MAX ? Qtrue : Qfalse;
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_timespec_new", ts->tv_sec, ts->tv_nsec, offset, utc, local);
 }
 
 void rb_timespec_now(struct timespec *ts) {
