@@ -1058,7 +1058,11 @@ VALUE rb_enc_associate_index(VALUE obj, int idx) {
 }
 
 rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
-  rb_tr_error("rb_enc_compatible not implemented");
+  VALUE result = truffle_invoke(rb_cEncoding, "compatible?", str1, str2);
+  if (result != Qnil) {
+    return rb_to_encoding(result);
+  }
+  return 0;
 }
 
 void rb_enc_copy(VALUE obj1, VALUE obj2) {
@@ -1078,7 +1082,7 @@ VALUE rb_enc_from_encoding(rb_encoding *encoding) {
 }
 
 rb_encoding *rb_enc_from_index(int index) {
-  rb_tr_error("rb_enc_from_index not implemented");
+  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "rb_enc_from_index", index));
 }
 
 int rb_enc_str_coderange(VALUE str) {
@@ -1090,11 +1094,11 @@ VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
 }
 
 int rb_enc_to_index(rb_encoding *enc) {
-  rb_tr_error("rb_enc_to_index not implemented");
+  return truffle_invoke_i(RUBY_CEXT, "rb_enc_to_index", rb_enc_from_encoding(enc));
 }
 
 VALUE rb_obj_encoding(VALUE obj) {
-  rb_tr_error("rb_obj_encoding not implemented");
+  return truffle_invoke((void *)obj, "encoding");
 }
 
 VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {

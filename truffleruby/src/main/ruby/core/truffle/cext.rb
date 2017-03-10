@@ -708,8 +708,16 @@ module Truffle::CExt
     rb_enc_find_index Encoding::UTF_8.name
   end
 
+  def rb_enc_from_index(index)
+    Truffle.invoke_primitive :encoding_get_encoding_by_index, index
+  end
+
   def rb_enc_find_index(name)
     Truffle.invoke_primitive :encoding_enc_find_index, name
+  end
+  
+  def rb_enc_to_index(enc)
+    Truffle.invoke_primitive :encoding_enc_find_index, enc.name
   end
 
   def rb_str_new_frozen(value)

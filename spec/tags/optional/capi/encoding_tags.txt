@@ -1,9 +1,6 @@
 fails:C-API Encoding function rb_encdb_alias creates an alias for an existing Encoding
-fails:C-API Encoding function rb_enc_from_index returns an Encoding
-fails:C-API Encoding function rb_enc_from_encoding returns an Encoding instance from an encoding data structure
 fails:C-API Encoding function rb_locale_encoding returns the encoding for the current locale
 fails:C-API Encoding function rb_filesystem_encoding returns the encoding for the current filesystem
-fails:C-API Encoding function rb_obj_encoding returns the encoding ossociated with an object
 fails:C-API Encoding function rb_enc_get_index returns the index of the encoding of a String
 fails:C-API Encoding function rb_enc_get_index returns the index of the encoding of a Regexp
 fails:C-API Encoding function rb_enc_get_index returns the index of the encoding of an Object
@@ -36,8 +33,6 @@ fails:C-API Encoding function ENC_CODERANGE_ASCIIONLY returns false if the objec
 fails:C-API Encoding function rb_to_encoding returns the encoding when passed a String
 fails:C-API Encoding function rb_to_encoding calls #to_str to convert the argument to a String
 fails:C-API Encoding function rb_to_encoding_index returns the index of the dummy encoding of an Object
-fails:C-API Encoding function rb_enc_compatible returns 0 if the encodings of the Strings are not compatible
-fails:C-API Encoding function rb_enc_compatible returns the same value as Encoding.compatible? if the Strings have a compatible encoding
 fails:C-API Encoding function rb_enc_copy sets the encoding of a String to that of the second argument
 fails:C-API Encoding function rb_enc_copy raises a RuntimeError if the second argument is a Symbol
 fails:C-API Encoding function rb_enc_copy sets the encoding of a Regexp to that of the second argument
@@ -51,7 +46,6 @@ fails:C-API Encoding function rb_enc_associate sets the encoding of a String to 
 fails:C-API Encoding function rb_enc_associate_index sets the encoding of a String to the encoding
 fails:C-API Encoding function rb_enc_associate_index sets the encoding of a Regexp to the encoding
 fails:C-API Encoding function rb_enc_associate_index sets the encoding of a Symbol to the encoding
-fails:C-API Encoding function rb_enc_to_index returns an index for the encoding
 fails:C-API Encoding function rb_enc_to_index returns a non-negative int if the encoding is not defined
 fails:C-API Encoding function rb_enc_nth returns the byte index of the given character index
 fails:C-API Encoding function rb_enc_codepoint_len raises ArgumentError if an empty string is given
