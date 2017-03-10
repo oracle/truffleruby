@@ -13,12 +13,7 @@ fails:C-API Encoding function rb_enc_set_index sets the object's encoding to the
 fails:C-API Encoding function rb_enc_set_index associates an encoding with a subclass of String
 fails:C-API Encoding function rb_enc_set_index associates an encoding with an object
 fails:C-API Encoding function rb_enc_str_new returns a String in US-ASCII encoding when high bits are set
-fails:C-API Encoding function rb_enc_str_coderange when the encoding is ASCII-8BIT returns ENC_CODERANGE_7BIT if there are no high bits set
-fails:C-API Encoding function rb_enc_str_coderange when the encoding is ASCII-8BIT returns ENC_CODERANGE_VALID if there are high bits set
-fails:C-API Encoding function rb_enc_str_coderange when the encoding is UTF-8 returns ENC_CODERANGE_7BIT if there are no high bits set
-fails:C-API Encoding function rb_enc_str_coderange when the encoding is UTF-8 returns ENC_CODERANGE_VALID if there are high bits set in a valid string
 fails:C-API Encoding function rb_enc_str_coderange when the encoding is UTF-8 returns ENC_CODERANGE_BROKEN if there are high bits set in an invalid string
-fails:C-API Encoding function rb_enc_str_coderange when the encoding is US-ASCII returns ENC_CODERANGE_7BIT if there are no high bits set
 fails:C-API Encoding function rb_enc_str_coderange when the encoding is US-ASCII returns ENC_CODERANGE_BROKEN if there are high bits set
 fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a String
 fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a Regexp

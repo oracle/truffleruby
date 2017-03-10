@@ -1159,6 +1159,16 @@ public abstract class StringNodes {
 
     }
 
+    @Primitive(name = "string_get_coderange", needsSelf = false)
+    public abstract static class GetCodeRangeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(str)")
+        public int getCodeRange(DynamicObject str) {
+            return Layouts.STRING.getRope(str).getCodeRange().toInt();
+        }
+
+    }
+
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 

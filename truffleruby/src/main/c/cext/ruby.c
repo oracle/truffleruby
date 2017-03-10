@@ -1086,7 +1086,7 @@ rb_encoding *rb_enc_from_index(int index) {
 }
 
 int rb_enc_str_coderange(VALUE str) {
-  rb_tr_error("rb_enc_str_coderange not implemented");
+  return truffle_invoke_i(RUBY_CEXT, "rb_enc_str_coderange", str);
 }
 
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {

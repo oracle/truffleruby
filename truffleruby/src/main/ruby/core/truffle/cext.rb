@@ -748,6 +748,10 @@ module Truffle::CExt
   def rb_str_new_cstr(java_string)
     String.new(java_string)
   end
+  
+  def rb_enc_str_coderange(str)
+    Truffle.invoke_primitive :string_get_coderange, str
+  end
 
   def rb_intern_str(string)
     string.intern
