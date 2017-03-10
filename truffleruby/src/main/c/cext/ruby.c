@@ -21,6 +21,10 @@
 
 #include <ruby.h>
 
+// Private helper macros just for ruby.c
+
+ #define RBOOL(c) ((c) ? Qtrue : Qfalse)
+
 // Helpers
 
 VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object) {
@@ -1910,8 +1914,8 @@ struct timespec rb_time_timespec(VALUE time_val) {
 }
 
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
-  VALUE utc = offset == INT_MAX-1 ? Qtrue : Qfalse;
-  VALUE local = offset == INT_MAX ? Qtrue : Qfalse;
+  VALUE utc = RBOOL(offset == INT_MAX-1);
+  VALUE local = RBOOL(offset == INT_MAX);
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_timespec_new", ts->tv_sec, ts->tv_nsec, offset, utc, local);
 }
 
