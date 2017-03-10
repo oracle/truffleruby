@@ -1002,7 +1002,7 @@ module Truffle::CExt
   end
 
   def rb_obj_call_init(obj, args)
-    obj.initialize(*args)
+    obj.send(:initialize, *args)
   end
 
   def rb_obj_instance_eval(obj, args)
