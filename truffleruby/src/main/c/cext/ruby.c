@@ -1677,7 +1677,7 @@ void rb_jump_tag(int status) {
 }
 
 void rb_set_errinfo(VALUE error) {
-  rb_tr_error("rb_set_errinfo not implemented");
+  truffle_invoke(RUBY_CEXT, "rb_set_errinfo", error);
 }
 
 void rb_syserr_fail(int errno, const char *message) {

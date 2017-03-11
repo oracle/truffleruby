@@ -1,3 +1,0 @@
-fails:C-API Exception function rb_set_errinfo accepts nil
-fails:C-API Exception function rb_set_errinfo accepts an Exception instance
-fails:C-API Exception function rb_set_errinfo raises a TypeError if the object is not nil or an Exception instance

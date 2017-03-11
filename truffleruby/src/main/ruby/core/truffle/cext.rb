@@ -1064,6 +1064,13 @@ module Truffle::CExt
     raise exception
   end
 
+  def rb_set_errinfo(error)
+    if !error.nil? && !error.is_a?(Exception)
+      raise TypeError, "assigning non-exception to ?!"
+    end
+    $! = error
+  end
+
   def rb_raise(object, name)
     raise 'not implemented'
   end
