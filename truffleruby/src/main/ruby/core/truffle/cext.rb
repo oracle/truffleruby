@@ -46,6 +46,11 @@ module Truffle::CExt
 
   T_MASK     = 0x1f
 
+  RUBY_ENC_CODERANGE_UNKNOWN = 0
+  RUBY_ENC_CODERANGE_7BIT = 1
+  RUBY_ENC_CODERANGE_VALID = 2
+  RUBY_ENC_CODERANGE_BROKEN = 4
+
   module_function
 
   def supported?
@@ -769,9 +774,33 @@ module Truffle::CExt
   def rb_str_new_cstr(java_string)
     String.new(java_string)
   end
-  
+
   def rb_enc_str_coderange(str)
-    Truffle.invoke_primitive :string_get_coderange, str
+    cr = Truffle.invoke_primitive :string_get_coderange, str
+    coderange_java_to_rb(cr)
+  end
+
+  def coderange_java_to_rb(cr)
+    case cr
+      when 0
+        RUBY_ENC_CODERANGE_UNKNOWN
+      when 1
+        RUBY_ENC_CODERANGE_7BIT
+      when 2
+        RUBY_ENC_CODERANGE_VALID
+      when 3
+        RUBY_ENC_CODERANGE_BROKEN
+      else
+        raise "Cannot convert coderange #{cr} to rb code range"
+    end
+  end
+
+  def RB_ENC_CODERANGE(obj)
+     if obj.is_a? String
+       rb_enc_str_coderange(obj)
+     else
+       raise "Unknown coderange for obj with class `#{obj.class}`"
+     end
   end
 
   def rb_enc_set_index(obj, idx)

@@ -4,16 +4,12 @@ fails:C-API Encoding function rb_enc_get_index returns the index of the dummy en
 fails:C-API Encoding function rb_enc_get_index returns 0 for an object without an encoding
 fails:C-API Encoding function rb_enc_set_index associates an encoding with an object
 fails:C-API Encoding function rb_enc_str_new returns a String in US-ASCII encoding when high bits are set
-fails:C-API Encoding function rb_enc_str_coderange when the encoding is UTF-8 returns ENC_CODERANGE_BROKEN if there are high bits set in an invalid string
-fails:C-API Encoding function rb_enc_str_coderange when the encoding is US-ASCII returns ENC_CODERANGE_BROKEN if there are high bits set
 fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a String
 fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a Regexp
 fails:C-API Encoding function ENCODING_GET returns the index of the encoding of an Object
 fails:C-API Encoding function ENCODING_GET returns the index of the dummy encoding of an Object
 fails:C-API Encoding function ENCODING_GET returns 0 for an object without an encoding
 fails:C-API Encoding function ENCODING_SET associates an encoding with an object
-fails:C-API Encoding function ENC_CODERANGE_ASCIIONLY returns true if the object encoding is only ASCII
-fails:C-API Encoding function ENC_CODERANGE_ASCIIONLY returns false if the object encoding is not ASCII only
 fails:C-API Encoding function rb_to_encoding_index returns the index of the dummy encoding of an Object
 fails:C-API Encoding function rb_enc_copy sets the encoding of a String to that of the second argument
 fails:C-API Encoding function rb_enc_copy raises a RuntimeError if the second argument is a Symbol

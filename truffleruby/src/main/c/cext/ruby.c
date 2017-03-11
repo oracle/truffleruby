@@ -1047,7 +1047,7 @@ int rb_utf8_encindex(void) {
 }
 
 enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj) {
-  rb_tr_error("RB_ENC_CODERANGE not implemented");
+  return truffle_invoke_i(RUBY_CEXT, "RB_ENC_CODERANGE", obj);
 }
 
 int rb_encdb_alias(const char *alias, const char *orig) {
