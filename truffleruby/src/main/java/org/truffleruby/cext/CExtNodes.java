@@ -39,6 +39,7 @@ import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -575,18 +576,22 @@ public class CExtNodes {
 
     @CoreMethod(names = "rb_is_instance_id", isModuleFunction = true, required = 1)
     public abstract static class IsInstanceIdNode extends CoreMethodArrayArgumentsNode {
+
         @Specialization(guards = "isRubySymbol(symbol)")
         public boolean isInstanceId(DynamicObject symbol) {
             return Identifiers.isValidInstanceVariableName(Layouts.SYMBOL.getString(symbol));
         }
+
     }
 
     @CoreMethod(names = "rb_is_const_id", isModuleFunction = true, required = 1)
     public abstract static class IsConstIdNode extends CoreMethodArrayArgumentsNode {
+
         @Specialization(guards = "isRubySymbol(symbol)")
         public boolean isConstId(DynamicObject symbol) {
             return Identifiers.isValidConstantName19(Layouts.SYMBOL.getString(symbol));
         }
+
     }
 
     @CoreMethod(names = "rb_is_class_id", isModuleFunction = true, required = 1)
@@ -595,6 +600,21 @@ public class CExtNodes {
         public boolean isClassVariableId(DynamicObject symbol) {
             return Identifiers.isValidClassVariableName(Layouts.SYMBOL.getString(symbol));
         }
+    }
+
+    @CoreMethod(names = "ruby_object?", isModuleFunction = true, required = 1)
+    public abstract static class RubyObjectNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isBoxedPrimitive(object)")
+        public boolean rubyObjectPrimitive(Object object) {
+            return true;
+        }
+
+        @Specialization(guards = "!isBoxedPrimitive(object)")
+        public boolean rubyObject(Object object) {
+            return RubyGuards.isRubyBasicObject(object);
+        }
+
     }
 
 }

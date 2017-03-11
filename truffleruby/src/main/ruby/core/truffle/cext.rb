@@ -602,6 +602,16 @@ module Truffle::CExt
     object.class
   end
 
+  def rb_class_real(ruby_class)
+    if ruby_object?(ruby_class)
+      while ruby_class.singleton_class?
+        ruby_class = ruby_class.superclass
+      end
+    end
+
+    ruby_class
+  end
+
   def rb_obj_respond_to(object, id, priv)
     Rubinius::Type.object_respond_to?(object, id, priv != 0)
   end
@@ -988,10 +998,6 @@ module Truffle::CExt
 
   def rb_hash_set_ifnone(hash, value)
     hash.default = value
-  end
-
-  def rb_class_real(ruby_class)
-    raise 'not implemented'
   end
 
   def rb_path2class(path)
