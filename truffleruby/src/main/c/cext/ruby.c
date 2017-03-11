@@ -1391,7 +1391,13 @@ VALUE rb_hash_size(VALUE hash) {
 // Class
 
 const char* rb_class2name(VALUE module) {
-  return RSTRING_PTR(truffle_invoke(module, "name"));
+  VALUE name = truffle_invoke(module, "name");
+
+  if (NIL_P(name)) {
+    return rb_class2name(rb_obj_class(module));
+  } else {
+    return RSTRING_PTR(name);
+  }
 }
 
 VALUE rb_class_real(VALUE ruby_class) {
