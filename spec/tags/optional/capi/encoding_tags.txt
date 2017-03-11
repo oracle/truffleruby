@@ -10,18 +10,12 @@ fails:C-API Encoding function ENCODING_GET returns the index of the encoding of 
 fails:C-API Encoding function ENCODING_GET returns the index of the dummy encoding of an Object
 fails:C-API Encoding function ENCODING_GET returns 0 for an object without an encoding
 fails:C-API Encoding function ENCODING_SET associates an encoding with an object
-fails:C-API Encoding function rb_to_encoding_index returns the index of the dummy encoding of an Object
-fails:C-API Encoding function rb_enc_copy sets the encoding of a String to that of the second argument
-fails:C-API Encoding function rb_enc_copy raises a RuntimeError if the second argument is a Symbol
 fails:C-API Encoding function rb_enc_copy sets the encoding of a Regexp to that of the second argument
 fails:C-API Encoding function rb_default_internal_encoding returns 0 if Encoding.default_internal is nil
 fails:C-API Encoding function rb_enc_associate sets the encoding of a String to the encoding
-fails:C-API Encoding function rb_enc_associate raises a RuntimeError if the argument is Symbol
 fails:C-API Encoding function rb_enc_associate sets the encoding of a Regexp to the encoding
 fails:C-API Encoding function rb_enc_associate sets the encoding of a String to a default when the encoding is NULL
-fails:C-API Encoding function rb_enc_associate_index sets the encoding of a String to the encoding
 fails:C-API Encoding function rb_enc_associate_index sets the encoding of a Regexp to the encoding
-fails:C-API Encoding function rb_enc_associate_index sets the encoding of a Symbol to the encoding
 fails:C-API Encoding function rb_enc_to_index returns a non-negative int if the encoding is not defined
 fails:C-API Encoding function rb_enc_nth returns the byte index of the given character index
 fails:C-API Encoding function rb_enc_codepoint_len raises ArgumentError if an empty string is given

@@ -1055,11 +1055,11 @@ int rb_encdb_alias(const char *alias, const char *orig) {
 }
 
 VALUE rb_enc_associate(VALUE obj, rb_encoding *enc) {
-  rb_tr_error("rb_enc_associate not implemented");
+  return rb_enc_associate_index(obj, rb_enc_to_index(enc));
 }
 
 VALUE rb_enc_associate_index(VALUE obj, int idx) {
-  rb_tr_error("rb_enc_associate_index not implemented");
+  return truffle_invoke(RUBY_CEXT, "rb_enc_associate_index", obj, idx);
 }
 
 rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
@@ -1071,7 +1071,7 @@ rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
 }
 
 void rb_enc_copy(VALUE obj1, VALUE obj2) {
-  rb_tr_error("rb_enc_copy not implemented");
+  rb_enc_associate_index(obj1, rb_enc_get_index(obj2));
 }
 
 int rb_enc_find_index(const char *name) {

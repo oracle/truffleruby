@@ -739,7 +739,13 @@ module Truffle::CExt
   end
 
   def rb_enc_find_index(name)
-    Truffle.invoke_primitive :encoding_enc_find_index, name
+    key = name.upcase.to_sym
+    pair = Encoding::EncodingMap[key]
+    if pair
+      pair.last
+    else
+      -1
+    end
   end
   
   def rb_enc_to_index(enc)
@@ -803,13 +809,23 @@ module Truffle::CExt
      end
   end
 
+  def rb_enc_associate_index(obj, idx)
+    enc = rb_enc_from_index(idx)
+    case obj
+    when String
+      obj.force_encoding(enc)
+    else
+      raise "rb_enc_associate_index not implemented for class `#{obj.class}`"
+    end
+  end
+
   def rb_enc_set_index(obj, idx)
     enc = rb_enc_from_index(idx)
     case obj
-      when String
-        obj.force_encoding(enc)
-      else
-        raise "rb_enc_set_index not implemented for class `#{obj.class}`"
+    when String
+      obj.force_encoding(enc)
+    else
+      raise "rb_enc_set_index not implemented for class `#{obj.class}`"
     end
   end
 
