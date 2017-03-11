@@ -747,7 +747,7 @@ module Truffle::CExt
       -1
     end
   end
-  
+
   def rb_enc_to_index(enc)
     Truffle.invoke_primitive :encoding_enc_find_index, enc.name
   end
@@ -788,16 +788,16 @@ module Truffle::CExt
 
   def coderange_java_to_rb(cr)
     case cr
-      when 0
-        RUBY_ENC_CODERANGE_UNKNOWN
-      when 1
-        RUBY_ENC_CODERANGE_7BIT
-      when 2
-        RUBY_ENC_CODERANGE_VALID
-      when 3
-        RUBY_ENC_CODERANGE_BROKEN
-      else
-        raise "Cannot convert coderange #{cr} to rb code range"
+    when 0
+      RUBY_ENC_CODERANGE_UNKNOWN
+    when 1
+      RUBY_ENC_CODERANGE_7BIT
+    when 2
+      RUBY_ENC_CODERANGE_VALID
+    when 3
+      RUBY_ENC_CODERANGE_BROKEN
+    else
+      raise "Cannot convert coderange #{cr} to rb code range"
     end
   end
 
@@ -831,16 +831,16 @@ module Truffle::CExt
 
   def rb_enc_get(obj)
     case obj
-      when Encoding
-        obj
-      when Symbol
-        obj.encoding
-      when String
-        obj.encoding
-      when Regexp
-        obj.encoding
-      else
-        raise "rb_enc_get not implemented for class `#{obj.class}`"
+    when Encoding
+      obj
+    when Symbol
+      obj.encoding
+    when String
+      obj.encoding
+    when Regexp
+      obj.encoding
+    else
+      raise "rb_enc_get not implemented for class `#{obj.class}`"
     end
   end
 
@@ -868,7 +868,7 @@ module Truffle::CExt
   def rb_intern_str(string)
     string.intern
   end
-  
+
   def rb_intern3(string, enc)
     string.force_encoding(enc).intern
   end
@@ -885,7 +885,7 @@ module Truffle::CExt
     if ecflags & Encoding::Converter::INVALID_REPLACE != 0
       opts.merge!({:invalid => :replace})
     end
-    
+
     if opts.empty?
       str.encode(to)
     else
