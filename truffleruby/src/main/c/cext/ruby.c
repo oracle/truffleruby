@@ -1390,14 +1390,8 @@ VALUE rb_hash_size(VALUE hash) {
 
 // Class
 
-const char* rb_class2name(VALUE module) {
-  VALUE name = truffle_invoke(module, "name");
-
-  if (NIL_P(name)) {
-    return rb_class2name(rb_obj_class(module));
-  } else {
-    return RSTRING_PTR(name);
-  }
+const char* rb_class2name(VALUE ruby_class) {
+  return RSTRING_PTR(rb_class_name(ruby_class));
 }
 
 VALUE rb_class_real(VALUE ruby_class) {
@@ -1436,8 +1430,14 @@ VALUE rb_path_to_class(VALUE pathname) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_path_to_class", pathname);
 }
 
-VALUE rb_class_name(VALUE klass) {
-  return (VALUE) truffle_invoke(klass, "name");
+VALUE rb_class_name(VALUE ruby_class) {
+  VALUE name = truffle_invoke(ruby_class, "name");
+
+  if (NIL_P(name)) {
+    return rb_class_name(rb_obj_class(ruby_class));
+  } else {
+    return name;
+  }
 }
 
 VALUE rb_class_new(VALUE super) {
