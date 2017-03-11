@@ -28,14 +28,11 @@ import org.truffleruby.language.methods.InternalMethod;
 
 public class SuperCallNode extends RubyNode {
 
-    private final ConditionProfile missingProfile = ConditionProfile.createBinaryProfile();
-
     @Child private RubyNode arguments;
     @Child private RubyNode block;
     @Child private ProcOrNullNode procOrNullNode = ProcOrNullNodeGen.create(null);
     @Child private LookupSuperMethodNode lookupSuperMethodNode = LookupSuperMethodNodeGen.create(null);
-    @Child private CallInternalMethodNode callMethodNode = CallInternalMethodNodeGen.create(null, new RubyNode[] {});
-    @Child private CallDispatchHeadNode callMethodMissingNode;
+    @Child private CallSuperMethodNode callSuperMethodNode = CallSuperMethodNodeGen.create(null, null, null);
 
     public SuperCallNode(RubyNode arguments, RubyNode block) {
         this.arguments = arguments;
@@ -54,15 +51,7 @@ public class SuperCallNode extends RubyNode {
 
         final InternalMethod superMethod = lookupSuperMethodNode.executeLookupSuperMethod(frame, self);
 
-        if (missingProfile.profile(superMethod == null)) {
-            final String name = RubyArguments.getMethod(frame).getSharedMethodInfo().getName(); // use the original name
-            final Object[] methodMissingArguments = ArrayUtils.unshift(superArguments, getContext().getSymbolTable().getSymbol(name));
-            return callMethodMissing(frame, self, blockObject, methodMissingArguments);
-        }
-
-        final Object[] frameArguments = RubyArguments.pack(null, null, superMethod, DeclarationContext.METHOD, null, self, blockObject, superArguments);
-
-        return callMethodNode.executeCallMethod(frame, superMethod, frameArguments);
+        return callSuperMethodNode.callSuperMethod(frame, superMethod, superArguments, blockObject);
     }
 
     @Override
@@ -75,14 +64,6 @@ public class SuperCallNode extends RubyNode {
         } else {
             return create7BitString("super", UTF8Encoding.INSTANCE);
         }
-    }
-
-    private Object callMethodMissing(VirtualFrame frame, Object receiver, DynamicObject block, Object[] arguments) {
-        if (callMethodMissingNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            callMethodMissingNode = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
-        }
-        return callMethodMissingNode.callWithBlock(frame, receiver, "method_missing", block, arguments);
     }
 
 }
