@@ -81,12 +81,12 @@ module Process
   #
   def self.exit(code=0)
     case code
-      when true
-        code = 0
-      when false
-        code = 1
-      else
-        code = Rubinius::Type.coerce_to code, Integer, :to_int
+    when true
+      code = 0
+    when false
+      code = 1
+    else
+      code = Rubinius::Type.coerce_to code, Integer, :to_int
     end
 
     raise SystemExit.new(code)
@@ -96,13 +96,14 @@ module Process
     Truffle.primitive :vm_exit
 
     case code
-      when true
-        exit! 0
-      when false
-        exit! 1
-      else
-        exit! Rubinius::Type.coerce_to(code, Integer, :to_int)
+    when true
+      code = 0
+    when false
+      code = 1
+    else
+      code = Rubinius::Type.coerce_to code, Integer, :to_int
     end
+    exit! code
   end
 
   def self.wait_pid_prim(pid, no_hang)

@@ -25,14 +25,14 @@ module Digest
     # Valid bit lengths are 256, 384 and 512.
     def initialize(bitlen = 256)
       case bitlen
-        when 256
-          @sha2 = Digest::SHA256.new
-        when 384
-          @sha2 = Digest::SHA384.new
-        when 512
-          @sha2 = Digest::SHA512.new
-        else
-          raise ArgumentError, "unsupported bit length: %s" % bitlen.inspect
+      when 256
+        @sha2 = Digest::SHA256.new
+      when 384
+        @sha2 = Digest::SHA384.new
+      when 512
+        @sha2 = Digest::SHA512.new
+      else
+        raise ArgumentError, "unsupported bit length: %s" % bitlen.inspect
       end
       @bitlen = bitlen
     end
@@ -111,4 +111,3 @@ module Digest
     end
   end
 end
-

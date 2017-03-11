@@ -84,69 +84,69 @@ module ObjectSpace
 
   def dump(object, output: :string)
     case output
-      when :string
-        json = {
-          address: "0x" + object.object_id.to_s(16),
-          class: "0x" + object.class.object_id.to_s(16),
-          memsize: memsize_of(object),
-          flags: { }
-        }
-        case object
-          when String
-            json.merge!({
-              type: "STRING",
-              bytesize: object.bytesize,
-              value: object,
-              encoding: object.encoding.name
-            })
-          when Array
-            json.merge!({
-              type: "ARRAY",
-              length: object.size
-            })
-          when Hash
-            json.merge!({
-              type: "HASH",
-              size: object.size
-            })
-          else
-            json.merge!({
-              type: "OBJECT",
-              length: object.instance_variables.size
-            })
-        end
-        JSON.generate(json)
-      when :file
-        f = Tempfile.new(['rubyobj', '.json'])
-        f.write dump(object, output: :string)
-        f.close
-        f.path
-      when :stdout
-        puts dump(object, output: :string)
-        nil
+    when :string
+      json = {
+        address: "0x" + object.object_id.to_s(16),
+        class: "0x" + object.class.object_id.to_s(16),
+        memsize: memsize_of(object),
+        flags: { }
+      }
+      case object
+      when String
+        json.merge!({
+          type: "STRING",
+          bytesize: object.bytesize,
+          value: object,
+          encoding: object.encoding.name
+        })
+      when Array
+        json.merge!({
+          type: "ARRAY",
+          length: object.size
+        })
+      when Hash
+        json.merge!({
+          type: "HASH",
+          size: object.size
+        })
+      else
+        json.merge!({
+          type: "OBJECT",
+          length: object.instance_variables.size
+        })
+      end
+      JSON.generate(json)
+    when :file
+      f = Tempfile.new(['rubyobj', '.json'])
+      f.write dump(object, output: :string)
+      f.close
+      f.path
+    when :stdout
+      puts dump(object, output: :string)
+      nil
     end
   end
   module_function :dump
 
   def dump_all(output: :file)
     case output
-      when :string
-        objects = []
-        ObjectSpace.each_object do |object|
-          objects.push dump(object)
-        end
-        objects.join("\n")
-      when :file
-        f = Tempfile.new(['ruby', '.json'])
-        f.write dump_all(output: :string)
-        f.close
-        f.path
-      when :stdout
-        puts dump_all(output: :string)
-        nil
-      when IO
-        output.write dump_all(output: :string)
-        nil
+    when :string
+      objects = []
+      ObjectSpace.each_object do |object|
+        objects.push dump(object)
+      end
+      objects.join("\n")
+    when :file
+      f = Tempfile.new(['ruby', '.json'])
+      f.write dump_all(output: :string)
+      f.close
+      f.path
+    when :stdout
+      puts dump_all(output: :string)
+      nil
+    when IO
+      output.write dump_all(output: :string)
+      nil
     end
   end
   module_function :dump_all

@@ -170,12 +170,12 @@ module Marshal
 
     def serialize_encoding(obj)
       case enc = Rubinius::Type.object_encoding(obj)
-        when Encoding::US_ASCII
-          :E.__marshal__(self) + false.__marshal__(self)
-        when Encoding::UTF_8
-          :E.__marshal__(self) + true.__marshal__(self)
-        else
-          :encoding.__marshal__(self) + serialize_string(enc.name)
+      when Encoding::US_ASCII
+        :E.__marshal__(self) + false.__marshal__(self)
+      when Encoding::UTF_8
+        :E.__marshal__(self) + true.__marshal__(self)
+      else
+        :encoding.__marshal__(self) + serialize_string(enc.name)
       end
     end
 
@@ -1198,10 +1198,10 @@ module Marshal
         value = construct
 
         case ivar
-          when :@begin then range_begin = value
-          when :@end then range_end = value
-          when :@excl then range_exclude_end = value
-          else ivars[ivar] = value
+        when :@begin then range_begin = value
+        when :@end then range_end = value
+        when :@excl then range_exclude_end = value
+        else ivars[ivar] = value
         end
       end
 

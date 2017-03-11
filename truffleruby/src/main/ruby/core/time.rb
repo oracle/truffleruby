@@ -354,16 +354,16 @@ class Time
     y = compose_deal_with_year(y)
 
     case offset
-      when :utc
-        is_dst = -1
-        is_utc = true
-        offset = nil
-      when :local
-        is_utc = false
-        offset = nil
-      else
-        is_dst = -1
-        is_utc = false
+    when :utc
+      is_dst = -1
+      is_utc = true
+      offset = nil
+    when :local
+      is_utc = false
+      offset = nil
+    else
+      is_dst = -1
+      is_utc = false
     end
 
     from_array(sec, min, hr, d, m, y, nsec, is_dst, is_utc, offset)
@@ -484,12 +484,12 @@ class Time
     raise TypeError, 'time + time?' if other.kind_of?(Time)
 
     case other = Rubinius::Type.coerce_to_exact_num(other)
-      when Integer
-        other_sec = other
-        other_nsec = 0
-      else
-        other_sec, nsec_frac = other.divmod(1)
-        other_nsec = (nsec_frac * 1_000_000_000).to_i
+    when Integer
+      other_sec = other
+      other_nsec = 0
+    else
+      other_sec, nsec_frac = other.divmod(1)
+      other_nsec = (nsec_frac * 1_000_000_000).to_i
     end
 
     # Don't use self.class, MRI doesn't honor subclasses here
@@ -502,12 +502,12 @@ class Time
     end
 
     case other = Rubinius::Type.coerce_to_exact_num(other)
-      when Integer
-        other_sec = other
-        other_nsec = 0
-      else
-        other_sec, nsec_frac = other.divmod(1)
-        other_nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
+    when Integer
+      other_sec = other
+      other_nsec = 0
+    else
+      other_sec, nsec_frac = other.divmod(1)
+      other_nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
     end
 
     # Don't use self.class, MRI doesn't honor subclasses here

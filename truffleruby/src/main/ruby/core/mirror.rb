@@ -40,27 +40,27 @@ module Rubinius
 
     def self.module_mirror(obj)
       case obj
-        when ::Numeric then Rubinius::Mirror::Numeric
-        when ::String then Rubinius::Mirror::String
-        when ::Range then Rubinius::Mirror::Range
-        when ::Process then Rubinius::Mirror::Process
-        when ::Proc then Rubinius::Mirror::Proc
-        else
-          begin
-            Rubinius::Mirror.const_get(obj.class.name.to_sym, false)
-          rescue NameError
-            ancestor = obj.class.superclass
+      when ::Numeric then Rubinius::Mirror::Numeric
+      when ::String then Rubinius::Mirror::String
+      when ::Range then Rubinius::Mirror::Range
+      when ::Process then Rubinius::Mirror::Process
+      when ::Proc then Rubinius::Mirror::Proc
+      else
+        begin
+          Rubinius::Mirror.const_get(obj.class.name.to_sym, false)
+        rescue NameError
+          ancestor = obj.class.superclass
 
-            until ancestor.nil?
-              begin
-                return Rubinius::Mirror.const_get(ancestor.name.to_sym, false)
-              rescue NameError
-                ancestor = ancestor.superclass
-              end
+          until ancestor.nil?
+            begin
+              return Rubinius::Mirror.const_get(ancestor.name.to_sym, false)
+            rescue NameError
+              ancestor = ancestor.superclass
             end
-
-            nil
           end
+
+          nil
+        end
       end
     end
 
