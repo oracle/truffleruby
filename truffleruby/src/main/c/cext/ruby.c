@@ -971,7 +971,7 @@ int rb_filesystem_encindex(void) {
 }
 
 rb_encoding *get_encoding(VALUE string) {
-  rb_tr_error("get_encoding not implemented");
+  return rb_to_encoding(truffle_invoke((void *)string, "encoding"));
 }
 
 VALUE rb_str_intern(VALUE string) {
@@ -1015,7 +1015,7 @@ unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_e
 }
 
 rb_encoding *rb_enc_get(VALUE object) {
-  return rb_to_encoding(truffle_invoke((void *)object, "encoding"));
+  return rb_to_encoding(truffle_invoke(RUBY_CEXT, "rb_enc_get", object));
 }
 
 void rb_enc_set_index(VALUE obj, int idx) {
@@ -1145,7 +1145,7 @@ ID rb_intern2(const char *string, long length) {
 }
 
 ID rb_intern3(const char *name, long len, rb_encoding *enc) {
-  rb_tr_error("rb_intern3 not implemented");
+  return (ID) SYM2ID(truffle_invoke(RUBY_CEXT, "rb_intern3", rb_str_new(name, len), rb_enc_from_encoding(enc)));
 }
 
 VALUE rb_sym2str(VALUE string) {

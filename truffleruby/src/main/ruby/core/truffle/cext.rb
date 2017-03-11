@@ -829,6 +829,21 @@ module Truffle::CExt
     end
   end
 
+  def rb_enc_get(obj)
+    case obj
+      when Encoding
+        obj
+      when Symbol
+        obj.encoding
+      when String
+        obj.encoding
+      when Regexp
+        obj.encoding
+      else
+        raise "rb_enc_get not implemented for class `#{obj.class}`"
+    end
+  end
+
   def rb_enc_get_index(obj)
     enc = case obj
           when Symbol
@@ -852,6 +867,10 @@ module Truffle::CExt
 
   def rb_intern_str(string)
     string.intern
+  end
+  
+  def rb_intern3(string, enc)
+    string.force_encoding(enc).intern
   end
 
   def rb_str_append(str, to_append)
