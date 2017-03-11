@@ -767,8 +767,7 @@ module Truffle::CExt
     if value.frozen?
       value
     else
-      # There's more to rb_str_new_frozen than this
-      String(value).freeze
+      value.dup.freeze
     end
   end
 

@@ -791,11 +791,11 @@ VALUE rb_str_new_cstr(const char *string) {
 }
 
 VALUE rb_str_new_shared(VALUE string) {
-  rb_tr_error("rb_str_new_shared not implemented");
+  return truffle_invoke((void *)string, "dup");
 }
 
 VALUE rb_str_new_with_class(VALUE klass, const char *string, long len) {
-  rb_tr_error("rb_str_new_with_class not implemented");
+  return truffle_invoke(truffle_invoke(klass, "class"), "new", rb_str_new(string, len));
 }
 
 VALUE rb_intern_str(VALUE string) {
@@ -875,7 +875,7 @@ VALUE rb_str2inum(VALUE string, int base) {
 }
 
 VALUE rb_str_buf_new_cstr(const char *string) {
-  rb_tr_error("rb_str_buf_new_cstr not implemented");
+  return rb_str_new_cstr(string);
 }
 
 int rb_str_cmp(VALUE a, VALUE b) {
