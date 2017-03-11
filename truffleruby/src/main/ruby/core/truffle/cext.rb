@@ -1030,7 +1030,12 @@ module Truffle::CExt
   end
 
   def rb_cvar_defined(cls, id)
-    cls.class_variable_defined?(id)
+    id_s = id.to_s
+    if id_s.start_with?('@@') || !id_s.start_with?('@')
+      cls.class_variable_defined?(id)
+    else
+      cls.instance_variable_defined?(id)
+    end
   end
 
   def rb_cv_get(cls, name)

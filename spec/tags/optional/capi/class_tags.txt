@@ -15,5 +15,4 @@ fails:C-API Class function rb_path_to_class raises an ArgumentError if a constan
 fails:C-API Class function rb_path_to_class raises an ArgumentError if the final constant does not exist
 fails:C-API Class function rb_path_to_class raises a TypeError if the constant is not a class or module
 fails:C-API Class function rb_path_to_class raises an ArgumentError even if a constant in the path exists on toplevel
-fails:C-API Class function rb_cvar_defined returns true if the class instance variable is defined
 fails(sulong-addresses-escape):C-API Class function rb_class_real returns 0 if passed 0
