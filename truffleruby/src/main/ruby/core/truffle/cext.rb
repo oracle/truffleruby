@@ -774,6 +774,16 @@ module Truffle::CExt
     Truffle.invoke_primitive :string_get_coderange, str
   end
 
+  def rb_enc_set_index(obj, idx)
+    enc = rb_enc_from_index(idx)
+    case obj
+      when String
+        obj.force_encoding(enc)
+      else
+        raise "rb_enc_set_index not implemented for class `#{obj.class}`"
+    end
+  end
+
   def rb_enc_get_index(obj)
     enc = case obj
           when Symbol

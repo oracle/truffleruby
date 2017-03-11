@@ -1019,7 +1019,7 @@ rb_encoding *rb_enc_get(VALUE object) {
 }
 
 void rb_enc_set_index(VALUE obj, int idx) {
-  rb_tr_error("rb_enc_set_index not implemented");
+  truffle_invoke(RUBY_CEXT, "rb_enc_set_index", obj, idx);
 }
 
 rb_encoding *rb_ascii8bit_encoding(void) {
