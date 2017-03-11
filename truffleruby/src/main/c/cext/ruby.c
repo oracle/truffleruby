@@ -1067,7 +1067,7 @@ rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
   if (result != Qnil) {
     return rb_to_encoding(result);
   }
-  return 0;
+  return NULL;
 }
 
 void rb_enc_copy(VALUE obj1, VALUE obj2) {
