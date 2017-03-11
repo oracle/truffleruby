@@ -1,8 +1,3 @@
-fails:Kernel#spawn joins the current process if pgroup: false
-fails:Kernel#spawn joins the current process if pgroup: nil
-fails:Kernel#spawn joins a new process group if pgroup: true
-fails:Kernel#spawn joins a new process group if pgroup: 0
-fails:Kernel#spawn joins the specified process group if pgroup: pgid
 fails:Kernel#spawn sets the umask if given the :umask option
 fails:Kernel#spawn raises an Errno::EACCES when the file does not have execute permissions
 fails:Kernel#spawn raises an Errno::EACCES when passed a directory
