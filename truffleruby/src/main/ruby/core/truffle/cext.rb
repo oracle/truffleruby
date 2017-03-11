@@ -1002,7 +1002,7 @@ module Truffle::CExt
 
   def rb_path_to_class(path)
     begin
-      const = Object.const_get(path)
+      const = Object.const_get(path, false)
     rescue NameError => e
       raise ArgumentError, e.message
     end
