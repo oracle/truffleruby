@@ -1425,7 +1425,7 @@ VALUE rb_obj_alloc(VALUE ruby_class) {
 }
 
 VALUE rb_class_path(VALUE ruby_class) {
-  rb_tr_error("rb_class_path not implemented");
+  return (VALUE) truffle_invoke(ruby_class, "name");
 }
 
 VALUE rb_path2class(const char *string) {
