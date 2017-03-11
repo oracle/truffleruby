@@ -959,15 +959,13 @@ module Truffle::CExt
     end
 
     def [](offset)
-      array[index_from_offset(offset)]
+      # Reads use the byte offset, not the index
+      array[offset / 8]
     end
 
-    def []=(offset, value)
-      array[index_from_offset(offset)] = value
-    end
-
-    def index_from_offset(offset)
-      offset / 8
+    def []=(index, value)
+      # Writes use the index, not the byte offset
+      array[index] = value
     end
 
   end
