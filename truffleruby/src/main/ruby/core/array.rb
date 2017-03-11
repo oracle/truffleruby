@@ -241,19 +241,19 @@ class Array
       return i if x == 0
 
       case x
-        when Numeric
-          if x > 0
-            min = i + 1
-          else
-            max = i - 1
-          end
-        when true
-          last_true = i
-          max = i - 1
-        when false, nil
+      when Numeric
+        if x > 0
           min = i + 1
         else
-          raise TypeError, "wrong argument type (must be numeric, true, false or nil)"
+          max = i - 1
+        end
+      when true
+        last_true = i
+        max = i - 1
+      when false, nil
+        min = i + 1
+      else
+        raise TypeError, "wrong argument type (must be numeric, true, false or nil)"
       end
 
       i = min + (max - min) / 2

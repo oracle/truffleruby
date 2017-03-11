@@ -107,11 +107,11 @@ module Rubinius
 
       if sc
         case sc
-          when Class, Module
-            name = "#<Class:#{module_inspect(sc)}>"
-          else
-            cls = object_class sc
-            name = "#<Class:#<#{module_name(cls)}:0x#{sc.object_id.to_s(16)}>>"
+        when Class, Module
+          name = "#<Class:#{module_inspect(sc)}>"
+        else
+          cls = object_class sc
+          name = "#<Class:#<#{module_name(cls)}:0x#{sc.object_id.to_s(16)}>>"
         end
       else
         name = module_name mod
@@ -131,18 +131,18 @@ module Rubinius
 
     def self.coerce_object_to_float(obj)
       case obj
-        when Float
-          obj
-        when nil
-          raise TypeError, "can't convert nil into Float"
-        when Complex
-          if obj.respond_to?(:imag) && obj.imag.equal?(0)
-            coerce_to obj, Float, :to_f
-          else
-            raise RangeError, "can't convert #{obj} into Float"
-          end
-        else
+      when Float
+        obj
+      when nil
+        raise TypeError, "can't convert nil into Float"
+      when Complex
+        if obj.respond_to?(:imag) && obj.imag.equal?(0)
           coerce_to obj, Float, :to_f
+        else
+          raise RangeError, "can't convert #{obj} into Float"
+        end
+      else
+        coerce_to obj, Float, :to_f
       end
     end
 
