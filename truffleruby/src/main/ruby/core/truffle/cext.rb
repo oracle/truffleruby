@@ -62,10 +62,10 @@ module Truffle::CExt
     # that puts never seen cases behind a transfer
 
     case value
-    when Module
-      T_MODULE
     when Class
       T_CLASS
+    when Module
+      T_MODULE
     when Float
       T_FLOAT
     when String
@@ -86,7 +86,6 @@ module Truffle::CExt
       T_COMPLEX
     when Rational
       T_RATIONAL
-
     when NilClass
       T_NIL
     when TrueClass
@@ -97,10 +96,12 @@ module Truffle::CExt
       T_SYMBOL
     when Fixnum
       T_FIXNUM
-
+    when Time
+      T_DATA
+    when Data
+      T_DATA
     when Object
       T_OBJECT
-
     else
       raise 'unknown type'
     end
