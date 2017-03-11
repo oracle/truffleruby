@@ -695,14 +695,15 @@ module Rubinius
 
     def self.check_arity(arg_count, min, max)
       if arg_count < min || (max != -1 && arg_count > max)
-           error_message = if min == max
-                             "wrong number of arguments (given %d, expected %d)" % [arg_count, min]
-                           elsif max == -1
-                             "wrong number of arguments (given %d, expected %d+)" % [arg_count, min]
-                           else
-                             "wrong number of arguments (given %d, expected %d..%d)" %  [arg_count, min, max]
-                           end
-           raise ArgumentError, error_message
+        error_message = case
+        when min == max
+          "wrong number of arguments (given %d, expected %d)" % [arg_count, min]
+        when max == -1
+          "wrong number of arguments (given %d, expected %d+)" % [arg_count, min]
+        else
+          "wrong number of arguments (given %d, expected %d..%d)" % [arg_count, min, max]
+        end
+        raise ArgumentError, error_message
       end
     end
 

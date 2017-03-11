@@ -36,11 +36,11 @@ module Enumerable
     ::Enumerator.new do |yielder|
       previous = nil
       accumulate = []
-      block = if initial_state.nil?
-        original_block
+      if initial_state.nil?
+        block = original_block
       else
         duplicated_initial_state = initial_state.dup
-        Proc.new{ |val| original_block.yield(val, duplicated_initial_state)}
+        block = Proc.new{ |val| original_block.yield(val, duplicated_initial_state)}
       end
       each do |val|
         key = block.yield(val)
@@ -191,7 +191,7 @@ module Enumerable
   def slice_after(arg = undefined, &block)
     has_arg = !(undefined.equal? arg)
     if block_given?
-        raise ArgumentError, "both pattern and block are given" if has_arg
+      raise ArgumentError, "both pattern and block are given" if has_arg
     else
       raise ArgumentError, "wrong number of arguments (0 for 1)" unless has_arg
       block = Proc.new{ |elem| arg === elem }
@@ -676,7 +676,7 @@ module Enumerable
     self.sort(&block).first(n)
   end
   private :min_n
-  
+
   alias_method :min_internal, :min
 
   def max(n = undefined, &block)
@@ -708,7 +708,7 @@ module Enumerable
     self.sort(&block).reverse.first(n)
   end
   private :max_n
-  
+
   alias_method :max_internal, :max
 
   def max_by

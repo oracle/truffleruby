@@ -514,8 +514,8 @@ module Truffle::CExt
   end
 
   def rb_num_coerce_bin(x, y, func)
-     a, b = do_coerce(x, y, true)
-     a.send(func, b)
+    a, b = do_coerce(x, y, true)
+    a.send(func, b)
   end
 
   def rb_num_coerce_cmp(x, y, func)
@@ -546,7 +546,7 @@ module Truffle::CExt
     end
 
     ary = begin
-       y.coerce(x)
+      y.coerce(x)
     rescue
       if raise_error
         raise TypeError, "#{y.class} can't be coerced to #{x.class}"
@@ -812,11 +812,11 @@ module Truffle::CExt
   end
 
   def RB_ENC_CODERANGE(obj)
-     if obj.is_a? String
-       rb_enc_str_coderange(obj)
-     else
-       raise "Unknown coderange for obj with class `#{obj.class}`"
-     end
+    if obj.is_a? String
+      rb_enc_str_coderange(obj)
+    else
+      raise "Unknown coderange for obj with class `#{obj.class}`"
+    end
   end
 
   def rb_enc_associate_index(obj, idx)
@@ -1099,7 +1099,7 @@ module Truffle::CExt
   end
 
   def rb_special_const_p(object)
-     object == nil || object == true || object == false || object.class == Symbol || object.class == Fixnum
+    object == nil || object == true || object == false || object.class == Symbol || object.class == Fixnum
   end
 
   def rb_id2str(sym)
@@ -1175,7 +1175,7 @@ module Truffle::CExt
   end
 
   def rb_enumeratorize(obj, meth, args)
-     obj.to_enum(meth, *args)
+    obj.to_enum(meth, *args)
   end
 
   def rb_eval_string(str)

@@ -123,7 +123,7 @@ module Java
     end
 
     def const_missing(name)
-       method_missing(name)
+      method_missing(name)
     end
 
     def add_child(package, name)

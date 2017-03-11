@@ -240,7 +240,7 @@ class Numeric
   def bit_coerce(other)
     values = math_coerce(other)
     unless values[0].is_a?(Integer) && values[1].is_a?(Integer)
-         raise TypeError, "#{values[1].class} can't be coerced into #{self.class}"
+      raise TypeError, "#{values[1].class} can't be coerced into #{self.class}"
     end
     values
   end
@@ -337,8 +337,8 @@ class Numeric
   end
 
   def singleton_method_added(name)
-      self.singleton_class.send(:remove_method, name)
-      raise TypeError, "can't define singleton method #{name} for #{self.class}"
+    self.singleton_class.send(:remove_method, name)
+    raise TypeError, "can't define singleton method #{name} for #{self.class}"
   end
 
 end

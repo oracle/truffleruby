@@ -32,15 +32,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius
 module Truffle::POSIX
   #--
   # Internal class for accessing timevals
   #++
-  class TimeVal < FFI::Struct
+  class TimeVal < Rubinius::FFI::Struct
     config 'rbx.platform.timeval', :tv_sec, :tv_usec
   end
-end
 end
 
 class File < IO

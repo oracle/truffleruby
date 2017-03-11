@@ -282,10 +282,10 @@ module Enumerable
         raise ArgumentError, "attempt to take negative size" if n < 0
 
         current_size = enumerator_size
-        set_size = if current_size.kind_of?(Numeric)
-          n < current_size ? n : current_size
+        if current_size.kind_of?(Numeric)
+          set_size = n < current_size ? n : current_size
         else
-          current_size
+          set_size = current_size
         end
 
         return to_enum(:cycle, 0).lazy if n.zero?
@@ -307,10 +307,10 @@ module Enumerable
         raise ArgumentError, "attempt to drop negative size" if n < 0
 
         current_size = enumerator_size
-        set_size = if current_size.kind_of?(Integer)
-          n < current_size ? current_size - n : 0
+        if current_size.kind_of?(Integer)
+          set_size = n < current_size ? current_size - n : 0
         else
-          current_size
+          set_size = current_size
         end
 
         dropped = 0

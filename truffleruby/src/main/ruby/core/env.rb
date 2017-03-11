@@ -294,12 +294,10 @@ module Rubinius
     def set_encoding(value)
       return unless value.kind_of? String
       locale = Encoding.find("locale")
-      value = if Encoding.default_internal && value.ascii_only?
-        value.encode Encoding.default_internal, locale
+      if Encoding.default_internal && value.ascii_only?
+        value = value.encode Encoding.default_internal, locale
       elsif value.encoding != locale
-        value.dup.force_encoding(locale)
-      else
-        value
+        value = value.dup.force_encoding(locale)
       end
       value.taint unless value.tainted?
       value.freeze

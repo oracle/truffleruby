@@ -101,9 +101,9 @@ class Hash
   alias_method :__store__, :[]=
 
   def <(other)
-     other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
-     return false if self.size >= other.size
-     self.class.contains_all_internal(self, other)
+    other = Rubinius::Type.coerce_to(other, Hash, :to_hash)
+    return false if self.size >= other.size
+    self.class.contains_all_internal(self, other)
   end
 
   def <=(other)
