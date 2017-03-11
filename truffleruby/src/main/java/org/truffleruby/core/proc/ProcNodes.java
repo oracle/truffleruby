@@ -67,13 +67,28 @@ public abstract class ProcNodes {
             final Frame parentFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
                     .getFrame(FrameAccess.READ_ONLY);
 
-            final DynamicObject parentBlock = RubyArguments.getBlock(parentFrame);
+            DynamicObject parentBlock = RubyArguments.getBlock(parentFrame);
+
+            if (parentBlock == null) {
+                parentBlock = tryParentBlockForCExts();
+            }
 
             if (parentBlock == null) {
                 throw new RaiseException(coreExceptions().argumentErrorProcWithoutBlock(this));
             }
 
             return executeProcNew(frame, procClass, args, parentBlock);
+        }
+
+        @TruffleBoundary
+        private static DynamicObject tryParentBlockForCExts() {
+            /*
+             * TODO CS 11-Mar-17 to pass the remaining cext proc specs we need to determine here if Proc.new has been
+             * called from a cext from rb_funcall, and then reach down the stack to the Ruby method that originally
+             * went into C and get the block from there.
+             */
+
+            return null;
         }
 
         @Specialization(guards = { "procClass == getProcClass()", "block.getShape() == getProcShape()" })
