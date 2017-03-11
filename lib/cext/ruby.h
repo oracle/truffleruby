@@ -1150,10 +1150,20 @@ VALUE *rb_ruby_debug_ptr(void);
 // Inline implementations
 
 MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
-  *begp = (VALUE) truffle_invoke(range, "begin");
-  *endp = (VALUE) truffle_invoke(range, "end");
-  *exclp = truffle_invoke_b(range, "exclude_end?") ? 1 : 0;
-  return 1;
+  if (rb_obj_is_kind_of(range, rb_cRange)) {
+    *begp = (VALUE) truffle_invoke(range, "begin");
+    *endp = (VALUE) truffle_invoke(range, "end");
+    *exclp = (int) truffle_invoke_b(range, "exclude_end?");
+  }
+  else {
+    if (!truffle_invoke_b(range, "respond_to?", rb_intern("begin"))) return (int)Qfalse;
+    if (!truffle_invoke_b(range, "respond_to?", rb_intern("end"))) return (int)Qfalse;
+
+    *begp = truffle_invoke(range, "begin");
+    *endp = truffle_invoke(range, "end");
+    *exclp = (int) RTEST(truffle_invoke(range, "exclude_end?"));
+  }
+  return (int) Qtrue;
 }
 
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
