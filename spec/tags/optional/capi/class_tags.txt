@@ -5,9 +5,7 @@ fails:C-API Class function rb_class_path returns a String of a class path with n
 fails:C-API Class function rb_class_path returns a String of a class path with scope modifiers
 fails:C-API Class function rb_class_name returns a string for an anonymous class
 fails:C-API Class function rb_path2class resolves autoload constants
-fails:C-API Class function rb_path2class raises a TypeError if the constant is not a class or module
 fails:C-API Class function rb_path2class raises an ArgumentError even if a constant in the path exists on toplevel
 fails:C-API Class function rb_path_to_class resolves autoload constants
-fails:C-API Class function rb_path_to_class raises a TypeError if the constant is not a class or module
 fails:C-API Class function rb_path_to_class raises an ArgumentError even if a constant in the path exists on toplevel
 fails(sulong-addresses-escape):C-API Class function rb_class_real returns 0 if passed 0

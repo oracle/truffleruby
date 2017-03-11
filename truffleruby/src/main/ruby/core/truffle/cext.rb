@@ -1001,9 +1001,13 @@ module Truffle::CExt
   end
 
   def rb_path_to_class(path)
-    Object.const_get(path)
-  rescue NameError => e
-    raise ArgumentError, e.message
+    begin
+      const = Object.const_get(path)
+    rescue NameError => e
+      raise ArgumentError, e.message
+    end
+    raise TypeError unless const.is_a?(Class)
+    const
   end
 
   def rb_proc_new(function, value)
