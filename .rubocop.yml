@@ -17,3 +17,6 @@ AllCops:
 Style/CaseIndentation:
   Enabled: true
   EnforcedStyle: 'end'
+
+Style/IndentationConsistency:
+  Enabled: true
