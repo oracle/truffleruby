@@ -1,4 +1,3 @@
-fails:C-API Class function rb_call_super calls the method in the superclass
 fails:C-API Class function rb_call_super calls the method in the superclass through two native levels
 fails:C-API Class function rb_class2name returns a string for an anonymous class
 fails:C-API Class function rb_class_path returns a String of a class path with no scope modifiers

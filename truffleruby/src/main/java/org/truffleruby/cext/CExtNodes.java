@@ -34,8 +34,10 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyConstant;
@@ -50,9 +52,13 @@ import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
+import org.truffleruby.language.objects.MetaClassNodeGen;
+import org.truffleruby.language.supercall.CallSuperMethodNode;
+import org.truffleruby.language.supercall.CallSuperMethodNodeGen;
 import org.truffleruby.parser.Identifiers;
 
 import java.math.BigInteger;
@@ -613,6 +619,45 @@ public class CExtNodes {
         @Specialization(guards = "!isBoxedPrimitive(object)")
         public boolean rubyObject(Object object) {
             return RubyGuards.isRubyBasicObject(object);
+        }
+
+    }
+
+    @CoreMethod(names = "rb_call_super_splatted", isModuleFunction = true, rest = true)
+    public abstract static class CallSuperNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private CallSuperMethodNode callSuperMethodNode = CallSuperMethodNodeGen.create(null, null, null);
+        @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
+
+        @Specialization
+        public Object callSuper(VirtualFrame frame, Object[] args) {
+            final Frame callingMethodFrame = findCallingMethodFrame();
+            final InternalMethod callingMethod = RubyArguments.getMethod(callingMethodFrame);
+            final Object callingSelf = RubyArguments.getSelf(callingMethodFrame);
+            final DynamicObject callingMetaclass = metaClassNode.executeMetaClass(callingSelf);
+            final MethodLookupResult superMethodLookup = ModuleOperations.lookupSuperMethod(callingMethod, callingMetaclass);
+            final InternalMethod superMethod = superMethodLookup.getMethod();
+            return callSuperMethodNode.callSuperMethod(frame, superMethod, args, null);
+        }
+
+        @TruffleBoundary
+        private static Frame findCallingMethodFrame() {
+            return Truffle.getRuntime().iterateFrames(frameInstance -> {
+                final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
+
+                final InternalMethod method = RubyArguments.tryGetMethod(frame);
+
+                if (method == null) {
+                    return null;
+                } else if (method.getName().equals(/* Truffle::Cext. */ "rb_call_super")
+                        || method.getName().equals(/* Truffle::Interop. */ "execute")
+                        || method.getName().equals(/* Truffle::Cext. */ "rb_call_super_splatted")) {
+                    // TODO CS 11-Mar-17 must have a more precise check to skip these methods
+                    return null;
+                } else {
+                    return frame;
+                }
+            });
         }
 
     }

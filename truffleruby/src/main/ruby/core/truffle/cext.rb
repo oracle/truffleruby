@@ -1523,6 +1523,10 @@ module Truffle::CExt
     Truffle::Interop.execute function, arg
   end
 
+  def rb_call_super(args)
+    rb_call_super_splatted *args
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

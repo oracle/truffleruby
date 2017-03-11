@@ -1511,7 +1511,7 @@ VALUE rb_block_call(VALUE object, ID name, int args_count, const VALUE *args, rb
 }
 
 VALUE rb_call_super(int args_count, const VALUE *args) {
-  rb_tr_error("rb_call_super not implemented");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_call_super", rb_ary_new4(args_count, args));
 }
 
 int rb_block_given_p() {
