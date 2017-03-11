@@ -1615,7 +1615,7 @@ void rb_define_hooked_variable(
     VALUE *var,
     VALUE (*getter)(ANYARGS),
     void  (*setter)(ANYARGS)) {
-  rb_tr_error("rb_exc_new not implemented");
+  rb_tr_error("rb_define_hooked_variable not implemented");
 }
 
 void rb_define_readonly_variable(const char *name, const VALUE *var) {
@@ -1649,11 +1649,11 @@ void rb_lastline_set(VALUE val) {
 // Raising exceptions
 
 VALUE rb_exc_new(VALUE etype, const char *ptr, long len) {
-  rb_tr_error("rb_exc_new not implemented");
+  return (VALUE) truffle_invoke((void *)etype, "new", rb_str_new(ptr, len));
 }
 
 VALUE rb_exc_new_cstr(VALUE exception_class, const char *message) {
-  rb_tr_error("rb_exc_new_cstr not implemented");
+  return (VALUE) truffle_invoke((void *)exception_class, "new", rb_str_new_cstr(message));
 }
 
 VALUE rb_exc_new_str(VALUE exception_class, VALUE message) {
