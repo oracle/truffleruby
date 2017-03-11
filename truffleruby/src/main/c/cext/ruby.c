@@ -663,7 +663,7 @@ VALUE rb_equal_opt(VALUE a, VALUE b) {
 }
 
 VALUE rb_class_inherited_p(VALUE module, VALUE object) {
-  return (VALUE) truffle_invoke(module, "<=", object);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_class_inherited_p", module, object);
 }
 
 VALUE rb_equal(VALUE a, VALUE b) {

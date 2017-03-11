@@ -1532,6 +1532,14 @@ module Truffle::CExt
     object.to_s
   end
 
+  def rb_class_inherited_p(ruby_module, object)
+    if object.is_a?(Module)
+      ruby_module <= object
+    else
+      raise TypeError
+    end
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
