@@ -1,0 +1,19 @@
+AllCops:
+  DisabledByDefault: true
+  Exclude:
+    - 'bin/**/*'
+    - 'lib/bin/**/*'
+    - 'lib/json/**/*'
+    - 'lib/mri/**/*'
+    - 'lib/patches/**/*'
+    - 'lib/pr-zlib/**/*'
+    - 'lib/ruby/**/*'
+    - 'lib/rubysl/**/*'
+    - 'lib/truffleruby-tool/**/*'
+    - 'spec/**/*'
+    - 'test/**/*'
+    - 'tool/**/*'
+
+Style/CaseIndentation:
+  Enabled: true
+  EnforcedStyle: 'end'
