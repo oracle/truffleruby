@@ -708,7 +708,7 @@ VALUE rb_ary_reverse(VALUE array);
 VALUE rb_ary_shift(VALUE array);
 VALUE rb_ary_concat(VALUE a, VALUE b);
 VALUE rb_ary_plus(VALUE a, VALUE b);
-VALUE rb_iterate(VALUE (*method)(), VALUE arg1, VALUE (*block)(), VALUE arg2);
+VALUE rb_iterate(VALUE (*function)(), VALUE arg1, VALUE (*block)(), VALUE arg2);
 VALUE rb_each(VALUE array);
 void rb_mem_clear(VALUE *mem, long n);
 #define rb_ary_freeze(array) rb_obj_freeze(array)

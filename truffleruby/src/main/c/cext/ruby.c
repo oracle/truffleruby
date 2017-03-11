@@ -1288,12 +1288,16 @@ VALUE rb_ary_plus(VALUE a, VALUE b) {
   return (VALUE) truffle_invoke((void *)a, "+", b);
 }
 
-VALUE rb_iterate(VALUE (*method)(), VALUE arg1, VALUE (*block)(), VALUE arg2) {
-  rb_tr_error("rb_iterate not implemented");
+VALUE rb_iterate(VALUE (*function)(), VALUE arg1, VALUE (*block)(), VALUE arg2) {
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_iterate", function, arg1, block, arg2);
 }
 
 VALUE rb_each(VALUE array) {
-  rb_tr_error("rb_each not implemented");
+  if (rb_block_given_p()) {
+    return rb_funcall_with_block(array, rb_intern("each"), 0, NULL, rb_block_proc());
+  } else {
+    return (VALUE) truffle_invoke(array, "each");
+  }
 }
 
 void rb_mem_clear(VALUE *mem, long n) {

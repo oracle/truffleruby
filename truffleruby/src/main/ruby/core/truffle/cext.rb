@@ -1489,6 +1489,16 @@ module Truffle::CExt
     Thread.current.unblock unblocker, runner
   end
 
+  def rb_iterate(function, arg1, block, arg2)
+    call_c_with_block function, arg1 do |block_arg|
+      Truffle::Interop.execute block, block_arg, arg2
+    end
+  end
+
+  def call_c_with_block(function, arg)
+    Truffle::Interop.execute function, arg
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
