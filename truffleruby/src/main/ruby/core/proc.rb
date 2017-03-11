@@ -85,7 +85,9 @@ class Proc
   end
 
   def to_s
-    file, line = source_location
+    sl = source_location
+    return super if sl.nil?
+    file, line = sl
 
     l = " (lambda)" if lambda?
     if file and line

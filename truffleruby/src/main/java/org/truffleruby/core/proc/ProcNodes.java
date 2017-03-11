@@ -239,7 +239,7 @@ public abstract class ProcNodes {
         public Object sourceLocation(DynamicObject proc) {
             SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(proc).getSourceSection();
 
-            if (sourceSection.getSource() == null) {
+            if (sourceSection.getSource() == null || sourceSection.getSource().getName().endsWith("core/truffle/cext.rb")) {
                 return nil();
             } else {
                 final DynamicObject file = createString(StringOperations.encodeRope(

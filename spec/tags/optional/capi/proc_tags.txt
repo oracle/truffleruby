@@ -1,5 +1,3 @@
-fails:C-API Proc function rb_proc_new returns a Proc instance correctly described in #inspect without source location
-fails:C-API Proc function rb_proc_new returns a Proc instance with #source_location == nil
 fails:C-API when calling Proc.new from a C function returns the Proc passed by the Ruby code calling the C function
 fails:C-API when calling Proc.new from a C function returns the Proc passed to the Ruby method when the C function calls other Ruby methods before calling Proc.new
 fails:C-API when calling Proc.new from a C function returns the most recent Proc passed when the Ruby method called the C function
