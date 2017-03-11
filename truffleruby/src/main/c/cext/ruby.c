@@ -64,7 +64,7 @@ VALUE rb_obj_is_instance_of(VALUE object, VALUE ruby_class) {
 }
 
 VALUE rb_obj_is_kind_of(VALUE object, VALUE ruby_class) {
-  return truffle_invoke((void *)object, "kind_of?", ruby_class);
+  return truffle_invoke(object, "kind_of?", ruby_class);
 }
 
 void rb_check_frozen(VALUE object) {
@@ -587,11 +587,11 @@ int rb_method_boundp(VALUE klass, ID id, int ex) {
 // Object
 
 VALUE rb_obj_dup(VALUE object) {
-  return (VALUE) truffle_invoke((void *)object, "dup");
+  return (VALUE) truffle_invoke(object, "dup");
 }
 
 VALUE rb_any_to_s(VALUE object) {
-  return (VALUE) truffle_invoke((void *)object, "to_s");
+  return (VALUE) truffle_invoke(object, "to_s");
 }
 
 VALUE rb_obj_instance_variables(VALUE object) {
@@ -615,7 +615,7 @@ VALUE rb_convert_type(VALUE object, int type, const char *type_name, const char 
 }
 
 void rb_extend_object(VALUE object, VALUE module) {
-  truffle_invoke((void *)module, "extend_object", object);
+  truffle_invoke(module, "extend_object", object);
 }
 
 VALUE rb_inspect(VALUE object) {
@@ -631,7 +631,7 @@ const char *rb_obj_classname(VALUE object) {
 }
 
 VALUE rb_obj_id(VALUE object) {
-  return (VALUE) truffle_invoke((void *)object, "object_id");
+  return (VALUE) truffle_invoke(object, "object_id");
 }
 
 int rb_obj_method_arity(VALUE object, ID id) {
@@ -663,11 +663,11 @@ VALUE rb_equal_opt(VALUE a, VALUE b) {
 }
 
 VALUE rb_class_inherited_p(VALUE module, VALUE object) {
-  return (VALUE) truffle_invoke((void *)module, "<=", object);
+  return (VALUE) truffle_invoke(module, "<=", object);
 }
 
 VALUE rb_equal(VALUE a, VALUE b) {
-  return (VALUE) truffle_invoke((void *)a, "===", b);
+  return (VALUE) truffle_invoke(a, "===", b);
 }
 
 int RB_BUILTIN_TYPE(VALUE object) {
@@ -675,7 +675,7 @@ int RB_BUILTIN_TYPE(VALUE object) {
 }
 
 VALUE rb_obj_taint(VALUE object) {
-  return (VALUE) truffle_invoke((void *)object, "taint");
+  return (VALUE) truffle_invoke(object, "taint");
 }
 
 bool rb_tr_obj_taintable_p(VALUE object) {
@@ -691,11 +691,11 @@ void rb_tr_obj_infect(VALUE a, VALUE b) {
 }
 
 VALUE rb_obj_freeze(VALUE object) {
-  return (VALUE) truffle_invoke((void *)object, "freeze");
+  return (VALUE) truffle_invoke(object, "freeze");
 }
 
 VALUE rb_obj_frozen_p(VALUE object) {
-  return truffle_invoke((void *)object, "frozen?");
+  return truffle_invoke(object, "frozen?");
 }
 
 // Integer
@@ -807,17 +807,17 @@ VALUE rb_intern_str(VALUE string) {
 }
 
 VALUE rb_str_cat(VALUE string, const char *to_concat, long length) {
-  truffle_invoke((void *)string, "concat", rb_str_new(to_concat, length));
+  truffle_invoke(string, "concat", rb_str_new(to_concat, length));
   return string;
 }
 
 VALUE rb_str_cat2(VALUE string, const char *to_concat) {
-  truffle_invoke((void *)string, "concat", rb_str_new_cstr(to_concat));
+  truffle_invoke(string, "concat", rb_str_new_cstr(to_concat));
   return string;
 }
 
 VALUE rb_str_to_str(VALUE string) {
-  return (VALUE) truffle_invoke((void *)string, "to_str");
+  return (VALUE) truffle_invoke(string, "to_str");
 }
 
 VALUE rb_str_buf_new(long capacity) {
@@ -971,19 +971,19 @@ int rb_filesystem_encindex(void) {
 }
 
 rb_encoding *get_encoding(VALUE string) {
-  return rb_to_encoding(truffle_invoke((void *)string, "encoding"));
+  return rb_to_encoding(truffle_invoke(string, "encoding"));
 }
 
 VALUE rb_str_intern(VALUE string) {
-  return (VALUE) truffle_invoke((void *)string, "intern");
+  return (VALUE) truffle_invoke(string, "intern");
 }
 
 VALUE rb_str_length(VALUE string) {
-  return (VALUE) truffle_invoke((void *)string, "length");
+  return (VALUE) truffle_invoke(string, "length");
 }
 
 VALUE rb_str_plus(VALUE a, VALUE b) {
-  return (VALUE) truffle_invoke((void *)a, "+", b);
+  return (VALUE) truffle_invoke(a, "+", b);
 }
 
 VALUE rb_str_subseq(VALUE string, long beg, long len) {
@@ -991,7 +991,7 @@ VALUE rb_str_subseq(VALUE string, long beg, long len) {
 }
 
 VALUE rb_str_substr(VALUE string, long beg, long len) {
-  return (VALUE) truffle_invoke((void *)string, "[]", beg, len);
+  return (VALUE) truffle_invoke(string, "[]", beg, len);
 }
 
 st_index_t rb_str_hash(VALUE string) {
@@ -999,11 +999,11 @@ st_index_t rb_str_hash(VALUE string) {
 }
 
 void rb_str_update(VALUE string, long beg, long len, VALUE value) {
-  truffle_invoke((void *)string, "[]=", beg, len, value);
+  truffle_invoke(string, "[]=", beg, len, value);
 }
 
 VALUE rb_str_equal(VALUE a, VALUE b) {
-  return (VALUE) truffle_invoke((void *)a, "==", b);
+  return (VALUE) truffle_invoke(a, "==", b);
 }
 
 void rb_str_free(VALUE string) {
@@ -1103,7 +1103,7 @@ int rb_enc_to_index(rb_encoding *enc) {
 }
 
 VALUE rb_obj_encoding(VALUE obj) {
-  return truffle_invoke((void *)obj, "encoding");
+  return truffle_invoke(obj, "encoding");
 }
 
 VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {
@@ -1133,7 +1133,7 @@ int rb_enc_get_index(VALUE obj) {
 // Symbol
 
 ID rb_to_id(VALUE name) {
-  return SYM2ID((VALUE) truffle_invoke((void *)name, "to_sym"));
+  return SYM2ID((VALUE) truffle_invoke(name, "to_sym"));
 }
 
 ID rb_intern(const char *string) {
@@ -1149,7 +1149,7 @@ ID rb_intern3(const char *name, long len, rb_encoding *enc) {
 }
 
 VALUE rb_sym2str(VALUE string) {
-  return (VALUE) truffle_invoke((void *)string, "to_s");
+  return (VALUE) truffle_invoke(string, "to_s");
 }
 
 const char *rb_id2name(ID id) {
@@ -1219,12 +1219,12 @@ VALUE rb_ary_new4(long n, const VALUE *values) {
 }
 
 VALUE rb_ary_push(VALUE array, VALUE value) {
-  truffle_invoke((void *)array, "push", value);
+  truffle_invoke(array, "push", value);
   return array;
 }
 
 VALUE rb_ary_pop(VALUE array) {
-  return (VALUE) truffle_invoke((void *)array, "pop");
+  return (VALUE) truffle_invoke(array, "pop");
 }
 
 void rb_ary_store(VALUE array, long index, VALUE value) {
@@ -1240,7 +1240,7 @@ VALUE rb_ary_each(VALUE array) {
 }
 
 VALUE rb_ary_unshift(VALUE array, VALUE value) {
-  return (VALUE) truffle_invoke((void *)array, "unshift", value);
+  return (VALUE) truffle_invoke(array, "unshift", value);
 }
 
 VALUE rb_ary_aref(int n, const VALUE* values, VALUE array) {
@@ -1249,43 +1249,43 @@ VALUE rb_ary_aref(int n, const VALUE* values, VALUE array) {
 }
 
 VALUE rb_ary_clear(VALUE array) {
-  return (VALUE) truffle_invoke((void *)array, "clear");
+  return (VALUE) truffle_invoke(array, "clear");
 }
 
 VALUE rb_ary_delete(VALUE array, VALUE value) {
-  return (VALUE) truffle_invoke((void *)array, "delete", value);
+  return (VALUE) truffle_invoke(array, "delete", value);
 }
 
 VALUE rb_ary_delete_at(VALUE array, long n) {
-  return (VALUE) truffle_invoke((void *)array, "delete_at", n);
+  return (VALUE) truffle_invoke(array, "delete_at", n);
 }
 
 VALUE rb_ary_includes(VALUE array, VALUE value) {
-  return (VALUE) truffle_invoke((void *)array, "include?", value);
+  return (VALUE) truffle_invoke(array, "include?", value);
 }
 
 VALUE rb_ary_join(VALUE array, VALUE sep) {
-  return (VALUE) truffle_invoke((void *)array, "join", sep);
+  return (VALUE) truffle_invoke(array, "join", sep);
 }
 
 VALUE rb_ary_to_s(VALUE array) {
-  return (VALUE) truffle_invoke((void *)array, "to_s");
+  return (VALUE) truffle_invoke(array, "to_s");
 }
 
 VALUE rb_ary_reverse(VALUE array) {
-  return (VALUE) truffle_invoke((void *)array, "reverse!");
+  return (VALUE) truffle_invoke(array, "reverse!");
 }
 
 VALUE rb_ary_shift(VALUE array) {
-  return (VALUE) truffle_invoke((void *)array, "shift");
+  return (VALUE) truffle_invoke(array, "shift");
 }
 
 VALUE rb_ary_concat(VALUE a, VALUE b) {
-  return (VALUE) truffle_invoke((void *)a, "concat", b);
+  return (VALUE) truffle_invoke(a, "concat", b);
 }
 
 VALUE rb_ary_plus(VALUE a, VALUE b) {
-  return (VALUE) truffle_invoke((void *)a, "+", b);
+  return (VALUE) truffle_invoke(a, "+", b);
 }
 
 VALUE rb_iterate(VALUE (*function)(), VALUE arg1, VALUE (*block)(), VALUE arg2) {
@@ -1314,7 +1314,7 @@ VALUE rb_ary_to_ary(VALUE array) {
 }
 
 VALUE rb_ary_subseq(VALUE array, long start, long length) {
-  return (VALUE) truffle_invoke((void *)array, "[]", start, length);
+  return (VALUE) truffle_invoke(array, "[]", start, length);
 }
 
 VALUE rb_check_array_type(VALUE array) {
@@ -1324,7 +1324,7 @@ VALUE rb_check_array_type(VALUE array) {
 // Hash
 
 VALUE rb_hash(VALUE obj) {
-  return (VALUE) truffle_invoke((void *)obj, "hash");
+  return (VALUE) truffle_invoke(obj, "hash");
 }
 
 VALUE rb_hash_new() {
@@ -1336,7 +1336,7 @@ VALUE rb_hash_aref(VALUE hash, VALUE key) {
 }
 
 VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE value) {
-  return (VALUE) truffle_invoke((void *)hash, "[]=", key, value);
+  return (VALUE) truffle_invoke(hash, "[]=", key, value);
   return value;
 }
 
@@ -1345,7 +1345,7 @@ VALUE rb_hash_lookup(VALUE hash, VALUE key) {
 }
 
 VALUE rb_hash_lookup2(VALUE hash, VALUE key, VALUE default_value) {
-  return (VALUE) truffle_invoke((void *)hash, "fetch", key, default_value);
+  return (VALUE) truffle_invoke(hash, "fetch", key, default_value);
 }
 
 VALUE rb_hash_set_ifnone(VALUE hash, VALUE if_none) {
@@ -1365,11 +1365,11 @@ st_index_t rb_memhash(const void *data, long length) {
 }
 
 VALUE rb_hash_clear(VALUE hash) {
-  return (VALUE) truffle_invoke((void *)hash, "clear");
+  return (VALUE) truffle_invoke(hash, "clear");
 }
 
 VALUE rb_hash_delete(VALUE hash, VALUE key) {
-  return (VALUE) truffle_invoke((void *)hash, "delete", key);
+  return (VALUE) truffle_invoke(hash, "delete", key);
 }
 
 VALUE rb_hash_delete_if(VALUE hash) {
@@ -1385,13 +1385,13 @@ void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
 }
 
 VALUE rb_hash_size(VALUE hash) {
-  return (VALUE) truffle_invoke((void *)hash, "size");
+  return (VALUE) truffle_invoke(hash, "size");
 }
 
 // Class
 
 const char* rb_class2name(VALUE module) {
-  return RSTRING_PTR(truffle_invoke((void *)module, "name"));
+  return RSTRING_PTR(truffle_invoke(module, "name"));
 }
 
 VALUE rb_class_real(VALUE ruby_class) {
@@ -1399,7 +1399,7 @@ VALUE rb_class_real(VALUE ruby_class) {
 }
 
 VALUE rb_class_superclass(VALUE ruby_class) {
-  return (VALUE) truffle_invoke((void *)ruby_class, "superclass");
+  return (VALUE) truffle_invoke(ruby_class, "superclass");
 }
 
 VALUE rb_obj_class(VALUE object) {
@@ -1415,7 +1415,7 @@ VALUE rb_class_of(VALUE object) {
 }
 
 VALUE rb_obj_alloc(VALUE ruby_class) {
-  return (VALUE) truffle_invoke((void *)ruby_class, "allocate");
+  return (VALUE) truffle_invoke(ruby_class, "allocate");
 }
 
 VALUE rb_class_path(VALUE ruby_class) {
@@ -1431,7 +1431,7 @@ VALUE rb_path_to_class(VALUE pathname) {
 }
 
 VALUE rb_class_name(VALUE klass) {
-  return (VALUE) truffle_invoke((void *)klass, "name");
+  return (VALUE) truffle_invoke(klass, "name");
 }
 
 VALUE rb_class_new(VALUE super) {
@@ -1589,11 +1589,11 @@ int rb_const_defined_at(VALUE module, ID name) {
 }
 
 VALUE rb_const_get(VALUE module, ID name) {
-  return (VALUE) truffle_invoke((void *)module, "const_get", name);
+  return (VALUE) truffle_invoke(module, "const_get", name);
 }
 
 VALUE rb_const_get_at(VALUE module, ID name) {
-  return (VALUE) truffle_invoke((void *)module, "const_get", name, Qfalse);
+  return (VALUE) truffle_invoke(module, "const_get", name, Qfalse);
 }
 
 VALUE rb_const_get_from(VALUE module, ID name) {
@@ -1601,7 +1601,7 @@ VALUE rb_const_get_from(VALUE module, ID name) {
 }
 
 VALUE rb_const_set(VALUE module, ID name, VALUE value) {
-  return (VALUE) truffle_invoke((void *)module, "const_set", name, value);
+  return (VALUE) truffle_invoke(module, "const_set", name, value);
 }
 
 VALUE rb_define_const(VALUE module, const char *name, VALUE value) {
@@ -1653,15 +1653,15 @@ void rb_lastline_set(VALUE val) {
 // Raising exceptions
 
 VALUE rb_exc_new(VALUE etype, const char *ptr, long len) {
-  return (VALUE) truffle_invoke((void *)etype, "new", rb_str_new(ptr, len));
+  return (VALUE) truffle_invoke(etype, "new", rb_str_new(ptr, len));
 }
 
 VALUE rb_exc_new_cstr(VALUE exception_class, const char *message) {
-  return (VALUE) truffle_invoke((void *)exception_class, "new", rb_str_new_cstr(message));
+  return (VALUE) truffle_invoke(exception_class, "new", rb_str_new_cstr(message));
 }
 
 VALUE rb_exc_new_str(VALUE exception_class, VALUE message) {
-  return (VALUE) truffle_invoke((void *)exception_class, "new", message);
+  return (VALUE) truffle_invoke(exception_class, "new", message);
 }
 
 void rb_exc_raise(VALUE exception) {
@@ -1757,7 +1757,7 @@ VALUE rb_define_module_under(VALUE module, const char *name) {
 }
 
 void rb_include_module(VALUE module, VALUE to_include) {
-  truffle_invoke((void *)module, "include", to_include);
+  truffle_invoke(module, "include", to_include);
 }
 
 void rb_define_method(VALUE module, const char *name, void *function, int argc) {
@@ -1809,7 +1809,7 @@ void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function) {
 }
 
 VALUE rb_obj_method(VALUE obj, VALUE vid) {
-  return (VALUE) truffle_invoke((void *)obj, "method", rb_intern_str(vid));
+  return (VALUE) truffle_invoke(obj, "method", rb_intern_str(vid));
 }
 
 // Rational
@@ -1827,19 +1827,19 @@ VALUE rb_rational_new(VALUE num, VALUE den) {
 }
 
 VALUE rb_rational_num(VALUE rat) {
-  return (VALUE) truffle_invoke((void *)rat, "numerator");
+  return (VALUE) truffle_invoke(rat, "numerator");
 }
 
 VALUE rb_rational_den(VALUE rat) {
-  return (VALUE) truffle_invoke((void *)rat, "denominator");
+  return (VALUE) truffle_invoke(rat, "denominator");
 }
 
 VALUE rb_flt_rationalize_with_prec(VALUE value, VALUE precision) {
-  return (VALUE) truffle_invoke((void *)value, "rationalize", precision);
+  return (VALUE) truffle_invoke(value, "rationalize", precision);
 }
 
 VALUE rb_flt_rationalize(VALUE value) {
-  return (VALUE) truffle_invoke((void *)value, "rationalize");
+  return (VALUE) truffle_invoke(value, "rationalize");
 }
 
 // Complex
@@ -2074,12 +2074,12 @@ int rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock) {
 }
 
 int rb_nativethread_lock_lock(rb_nativethread_lock_t *lock) {
-  truffle_invoke((void *)lock, "lock");
+  truffle_invoke(lock, "lock");
   return 0;
 }
 
 int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
-  truffle_invoke((void *)lock, "unlock");
+  truffle_invoke(lock, "unlock");
   return 0;
 }
 
