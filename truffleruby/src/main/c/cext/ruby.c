@@ -1431,8 +1431,7 @@ VALUE rb_class_name(VALUE klass) {
 }
 
 VALUE rb_class_new(VALUE super) {
-  // TODO (pitr-ch 06-Mar-2017): inherited method is not suppose to be called
-  return truffle_invoke(rb_cClass, "new", super);
+  return truffle_invoke(rb_cClass, "new", super, Qfalse);
 }
 
 VALUE rb_class_new_instance(int argc, const VALUE *argv, VALUE klass) {

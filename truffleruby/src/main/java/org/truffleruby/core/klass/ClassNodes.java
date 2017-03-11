@@ -277,7 +277,7 @@ public abstract class ClassNodes {
         }
     }
 
-    @CoreMethod(names = "initialize", optional = 1, needsBlock = true)
+    @CoreMethod(names = "initialize", optional = 2, needsBlock = true)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ModuleNodes.InitializeNode moduleInitializeNode;
@@ -299,33 +299,41 @@ public abstract class ClassNodes {
             moduleInitializeNode.executeInitialize(frame, rubyClass, block);
         }
 
+        // Added a non-standard second parameter that is a flag to say whether to call inherited or not
+
         @Specialization
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, NotProvided superclass, NotProvided block) {
-            return initializeGeneralWithoutBlock(frame, rubyClass, coreLibrary().getObjectClass(), false);
+        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, NotProvided superclass, NotProvided callInherited, NotProvided block) {
+            return initializeGeneralWithoutBlock(frame, rubyClass, coreLibrary().getObjectClass(), false, true);
         }
 
         @Specialization(guards = "isRubyClass(superclass)")
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, NotProvided block) {
-            return initializeGeneralWithoutBlock(frame, rubyClass, superclass, true);
+        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, NotProvided callInherited, NotProvided block) {
+            return initializeGeneralWithoutBlock(frame, rubyClass, superclass, true, true);
+        }
+
+        @Specialization(guards = "isRubyClass(superclass)")
+        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, boolean callInherited, NotProvided block) {
+            return initializeGeneralWithoutBlock(frame, rubyClass, superclass, true, callInherited);
         }
 
         @Specialization
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, NotProvided superclass, DynamicObject block) {
+        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, NotProvided superclass, NotProvided callInherited, DynamicObject block) {
             return initializeGeneralWithBlock(frame, rubyClass, coreLibrary().getObjectClass(), block, false);
         }
 
         @Specialization(guards = "isRubyClass(superclass)")
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, DynamicObject block) {
+        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, NotProvided callInherited, DynamicObject block) {
             return initializeGeneralWithBlock(frame, rubyClass, superclass, block, true);
         }
 
-        private DynamicObject initializeGeneralWithoutBlock(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, boolean superClassProvided) {
+        private DynamicObject initializeGeneralWithoutBlock(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, boolean superClassProvided, boolean callInherited) {
             assert RubyGuards.isRubyClass(rubyClass);
             assert RubyGuards.isRubyClass(superclass);
 
             if (isInitialized(rubyClass)) {
                 throw new RaiseException(getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
             }
+
             if (superClassProvided) {
                 checkInheritable(superclass);
                 if (!isInitialized(superclass)) {
@@ -334,7 +342,10 @@ public abstract class ClassNodes {
             }
 
             ClassNodes.initialize(getContext(), rubyClass, superclass);
-            triggerInheritedHook(frame, rubyClass, superclass);
+
+            if (callInherited) {
+                triggerInheritedHook(frame, rubyClass, superclass);
+            }
 
             return rubyClass;
         }
