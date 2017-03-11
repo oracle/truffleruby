@@ -1373,7 +1373,11 @@ VALUE rb_hash_delete(VALUE hash, VALUE key) {
 }
 
 VALUE rb_hash_delete_if(VALUE hash) {
-  rb_tr_error("rb_hash_delete_if not implemented");
+  if (rb_block_given_p()) {
+    return rb_funcall_with_block(hash, rb_intern("delete_if"), 0, NULL, rb_block_proc());
+  } else {
+    return (VALUE) truffle_invoke(hash, "delete_if");
+  }
 }
 
 void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
