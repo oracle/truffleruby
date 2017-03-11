@@ -787,7 +787,7 @@ module Truffle::CExt
   def rb_enc_get_index(obj)
     enc = case obj
           when Symbol
-            obj.to_s.encoding
+            obj.encoding
           when String
             obj.encoding
           when Regexp
