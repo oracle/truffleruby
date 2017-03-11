@@ -1000,7 +1000,7 @@ module Truffle::CExt
     hash.default = value
   end
 
-  def rb_path2class(path)
+  def rb_path_to_class(path)
     Object.const_get(path)
   end
 

@@ -9,7 +9,6 @@ fails:C-API Class function rb_path2class raises an ArgumentError if a constant i
 fails:C-API Class function rb_path2class raises an ArgumentError if the final constant does not exist
 fails:C-API Class function rb_path2class raises a TypeError if the constant is not a class or module
 fails:C-API Class function rb_path2class raises an ArgumentError even if a constant in the path exists on toplevel
-fails:C-API Class function rb_path_to_class returns a class or module from a scoped String
 fails:C-API Class function rb_path_to_class resolves autoload constants
 fails:C-API Class function rb_path_to_class raises an ArgumentError if a constant in the path does not exist
 fails:C-API Class function rb_path_to_class raises an ArgumentError if the final constant does not exist

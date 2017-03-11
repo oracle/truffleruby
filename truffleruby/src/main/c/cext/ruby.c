@@ -1419,11 +1419,11 @@ VALUE rb_class_path(VALUE ruby_class) {
 }
 
 VALUE rb_path2class(const char *string) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_path2class", rb_str_new_cstr(string));
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_path_to_class", rb_str_new_cstr(string));
 }
 
 VALUE rb_path_to_class(VALUE pathname) {
-  rb_tr_error("rb_path_to_class not implemented");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_path_to_class", pathname);
 }
 
 VALUE rb_class_name(VALUE klass) {
