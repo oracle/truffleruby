@@ -184,10 +184,9 @@ class Complex < Numeric
         z = x
         n = other - 1
         while n != 0
-          while (div, mod = n.divmod(2)
-           mod == 0)
+          while n.even?
             x = Complex(x.real*x.real - x.imag*x.imag, 2*x.real*x.imag)
-            n = div
+            n /= 2
           end
           z *= x
           n -= 1
