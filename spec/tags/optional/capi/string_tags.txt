@@ -38,20 +38,8 @@ fails:C-API String function rb_external_str_new_with_enc transcodes a String to 
 fails:C-API String function rb_external_str_new_with_enc returns a tainted String
 fails:C-API String function rb_locale_str_new returns a String with 'locale' encoding
 fails:C-API String function rb_locale_str_new_cstr returns a String with 'locale' encoding
-fails:C-API String function rb_str_conv_enc returns the original String when to encoding is not specified
 fails:C-API String function rb_str_conv_enc returns the original String if a transcoding error occurs
-fails:C-API String function rb_str_conv_enc returns a transcoded String
-fails:C-API String function rb_str_conv_enc when the String encoding is equal to the destination encoding returns the original String
-fails:C-API String function rb_str_conv_enc when the String encoding is equal to the destination encoding returns the original String if the destination encoding is ASCII compatible and the String has no high bits set
-fails:C-API String function rb_str_conv_enc when the String encoding is equal to the destination encoding returns the origin String if the destination encoding is ASCII-8BIT
-fails:C-API String function rb_str_conv_enc_opts returns the original String when to encoding is not specified
 fails:C-API String function rb_str_conv_enc_opts returns the original String if a transcoding error occurs
-fails:C-API String function rb_str_conv_enc_opts returns a transcoded String
-fails:C-API String function rb_str_conv_enc_opts when the String encoding is equal to the destination encoding returns the original String
-fails:C-API String function rb_str_conv_enc_opts when the String encoding is equal to the destination encoding returns the original String if the destination encoding is ASCII compatible and the String has no high bits set
-fails:C-API String function rb_str_conv_enc_opts when the String encoding is equal to the destination encoding returns the origin String if the destination encoding is ASCII-8BIT
-fails:C-API String function rb_str_export returns the original String with the external encoding
-fails:C-API String function rb_str_export_locale returns the original String with the locale encoding
 fails:C-API String function rb_sprintf replaces the parts like sprintf
 fails:C-API String function rb_sprintf accepts multiple arguments
 fails:C-API String function rb_vsprintf returns a formatted String from a variable number of arguments

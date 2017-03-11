@@ -894,8 +894,11 @@ VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to) {
   return rb_str_conv_enc_opts(string, from, to, 0, Qnil);
 }
 
-VALUE rb_str_conv_enc_opts(VALUE string, rb_encoding *from, rb_encoding *to, int ecflags, VALUE ecopts) {
-  rb_tr_error("rb_str_conv_enc_opts not implemented");
+VALUE rb_str_conv_enc_opts(VALUE str, rb_encoding *from, rb_encoding *to, int ecflags, VALUE ecopts) {
+  if (!to) return str;
+  if (!from) from = rb_enc_get(str);
+  if (from == to) return str;
+  return truffle_invoke(RUBY_CEXT, "rb_str_conv_enc_opts", str, rb_enc_from_encoding(from), rb_enc_from_encoding(to), ecflags, ecopts);
 }
 
 VALUE rb_external_str_new_with_enc(const char *string, long len, rb_encoding *eenc) {

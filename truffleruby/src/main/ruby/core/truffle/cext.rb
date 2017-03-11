@@ -903,6 +903,17 @@ module Truffle::CExt
     end
   end
 
+  def rb_str_conv_enc_opts(str, from, to, ecflags, ecopts)
+    if (to.ascii_compatible? && str.ascii_only?) || to == Encoding::ASCII_8BIT
+       if str.encoding != to
+         str = str.dup
+         str.force_encoding(to)
+       end 
+       return str
+    end
+    rb_str_encode(str, to, ecflags, ecopts)
+  end
+
   def rb_cmpint(val, a, b)
     raise ArgumentError, "comparison of #{a.class} and #{b.class} failed" if val.nil?
     if val > 0
