@@ -1,1 +1,0 @@
-fails:CApiObject rb_obj_instance_eval evaluates the block in the object context, that includes private methods

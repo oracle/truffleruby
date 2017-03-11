@@ -651,7 +651,7 @@ VALUE rb_to_int(VALUE object) {
 }
 
 VALUE rb_obj_instance_eval(int argc, const VALUE *argv, VALUE self) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_obj_instance_eval", self, rb_ary_new4(argc, argv));
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_obj_instance_eval", self, rb_ary_new4(argc, argv), rb_block_proc());
 }
 
 VALUE rb_ivar_defined(VALUE object, ID id) {

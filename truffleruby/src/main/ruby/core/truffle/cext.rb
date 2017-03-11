@@ -1156,8 +1156,8 @@ module Truffle::CExt
     obj.send(:initialize, *args)
   end
 
-  def rb_obj_instance_eval(obj, args)
-    obj.instance_eval(*args)
+  def rb_obj_instance_eval(obj, args, block)
+    obj.instance_eval(*args, &block)
   end
 
   def rb_enumeratorize(obj, meth, args)
