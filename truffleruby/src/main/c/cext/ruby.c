@@ -2155,7 +2155,7 @@ VALUE rb_io_write(VALUE io, VALUE str) {
 }
 
 VALUE rb_io_binmode(VALUE io) {
-  rb_tr_error("rb_io_binmode not implemented");
+  return (VALUE) truffle_invoke(io, "binmode");
 }
 
 int rb_thread_fd_writable(int fd) {
