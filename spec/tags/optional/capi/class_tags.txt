@@ -17,4 +17,4 @@ fails:C-API Class function rb_path_to_class raises a TypeError if the constant i
 fails:C-API Class function rb_path_to_class raises an ArgumentError even if a constant in the path exists on toplevel
 fails:C-API Class function rb_cvar_defined returns true if the class instance variable is defined
 fails:C-API Class function rb_class_new returns an new subclass of the superclass
-fails:C-API Class function rb_class_real returns 0 if passed 0
+fails(sulong-addresses-escape):C-API Class function rb_class_real returns 0 if passed 0
