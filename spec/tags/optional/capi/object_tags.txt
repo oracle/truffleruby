@@ -1,4 +1,3 @@
-fails:CApiObject BUILTIN_TYPE returns the type constant for the object
 fails:CApiObject rb_obj_instance_eval evaluates the block in the object context, that includes private methods
 fails:CApiObject rb_any_to_s converts an Integer to string
 fails:CApiObject rb_class_inherited_p raises a TypeError if arg is no class or module

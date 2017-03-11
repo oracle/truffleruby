@@ -437,17 +437,15 @@ VALUE rb_obj_id(VALUE object);
 int rb_obj_method_arity(VALUE object, ID id);
 int rb_obj_respond_to(VALUE object, ID id, int priv);
 VALUE rb_special_const_p(VALUE object);
-int RB_BUILTIN_TYPE(VALUE object);
 VALUE rb_to_int(VALUE object);
 VALUE rb_obj_instance_eval(int argc, const VALUE *argv, VALUE self);
 VALUE rb_ivar_defined(VALUE object, ID id);
 VALUE rb_equal_opt(VALUE a, VALUE b);
 VALUE rb_class_inherited_p(VALUE module, VALUE object);
 VALUE rb_equal(VALUE a, VALUE b);
-
+#define RB_BUILTIN_TYPE(OBJECT)         rb_type(OBJECT)
 #define rb_type_p(object, type)         (rb_type(object) == (type))
 #define BUILTIN_TYPE(object)            RB_BUILTIN_TYPE(object)
-
 VALUE rb_obj_taint(VALUE object);
 bool rb_tr_obj_taintable_p(VALUE object);
 bool rb_tr_obj_tainted_p(VALUE object);

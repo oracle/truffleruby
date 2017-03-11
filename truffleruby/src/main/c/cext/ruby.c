@@ -670,10 +670,6 @@ VALUE rb_equal(VALUE a, VALUE b) {
   return (VALUE) truffle_invoke(a, "===", b);
 }
 
-int RB_BUILTIN_TYPE(VALUE object) {
-  rb_tr_error("RB_BUILTIN_TYPE not implemented");
-}
-
 VALUE rb_obj_taint(VALUE object) {
   return (VALUE) truffle_invoke(object, "taint");
 }
