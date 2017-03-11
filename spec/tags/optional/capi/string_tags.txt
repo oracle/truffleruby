@@ -38,8 +38,6 @@ fails:C-API String function rb_external_str_new_with_enc transcodes a String to 
 fails:C-API String function rb_external_str_new_with_enc returns a tainted String
 fails:C-API String function rb_locale_str_new returns a String with 'locale' encoding
 fails:C-API String function rb_locale_str_new_cstr returns a String with 'locale' encoding
-fails:C-API String function rb_str_conv_enc returns the original String if a transcoding error occurs
-fails:C-API String function rb_str_conv_enc_opts returns the original String if a transcoding error occurs
 fails:C-API String function rb_sprintf replaces the parts like sprintf
 fails:C-API String function rb_sprintf accepts multiple arguments
 fails:C-API String function rb_vsprintf returns a formatted String from a variable number of arguments

@@ -911,7 +911,11 @@ module Truffle::CExt
        end 
        return str
     end
-    rb_str_encode(str, to, ecflags, ecopts)
+    begin
+      rb_str_encode(str, to, ecflags, ecopts)
+    rescue Encoding::InvalidByteSequenceError
+      str
+    end
   end
 
   def rb_cmpint(val, a, b)
