@@ -1999,7 +1999,7 @@ VALUE rb_reg_regcomp(VALUE str) {
 }
 
 VALUE rb_reg_match(VALUE re, VALUE str) {
-  rb_tr_error("rb_reg_match not implemented");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_match", re, str);
 }
 
 // Marshal

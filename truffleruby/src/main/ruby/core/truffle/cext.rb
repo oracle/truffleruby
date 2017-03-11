@@ -908,7 +908,7 @@ module Truffle::CExt
        if str.encoding != to
          str = str.dup
          str.force_encoding(to)
-       end 
+       end
        return str
     end
     begin
@@ -1569,6 +1569,10 @@ module Truffle::CExt
   def rb_gv_get(name)
     name = "$#{name}" unless name.to_s.start_with?('$')
     eval("#{name}")
+  end
+
+  def rb_reg_match(re, str)
+    re =~ str
   end
 
 end
