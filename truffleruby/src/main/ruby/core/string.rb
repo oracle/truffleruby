@@ -1205,11 +1205,11 @@ class String
       str
     }
 
-    replace_block = if replace
+    if replace
       replace = validate.call(replace)
-      Proc.new { |broken| replace }
+      replace_block = Proc.new { |broken| replace }
     else
-      Proc.new { |broken|
+      replace_block = Proc.new { |broken|
         validate.call(block.call(broken))
       }
     end

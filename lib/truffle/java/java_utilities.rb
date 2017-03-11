@@ -228,7 +228,7 @@ module JavaUtilities
     else
       a_proxy = existing_proxy
     end
- 
+
     a_proxy
   end
 
@@ -332,7 +332,7 @@ module JavaUtilities
   ARRAY_SETTER_GETTER = Java.get_java_method(
     JAVA_METHODHANDLES_CLASS, "arrayElementSetter", true, JAVA_METHODHANDLE_CLASS, JAVA_CLASS_CLASS)
   ARRAY_GETTER = Java.invoke_java_method(ARRAY_GETTER_GETTER, JAVA_OBJECT_ARRAY)
-  
+
   def self.java_array_size(an_array)
     Java.invoke_java_method(REFLECT_ARRAY_LENGTH, an_array)
   end
@@ -342,9 +342,9 @@ module JavaUtilities
   end
 
   def self.get_java_class(obj)
-      Java.invoke_java_method(OBJECT_GET_CLASS, obj)
+    Java.invoke_java_method(OBJECT_GET_CLASS, obj)
   end
-  
+
   def self.add_array_accessors(a_proxy, a_class)
     array_getter = Java.invoke_java_method(ARRAY_GETTER_GETTER, a_class)
     array_setter = Java.invoke_java_method(ARRAY_SETTER_GETTER, a_class)
@@ -356,12 +356,12 @@ module JavaUtilities
                         array_setter, self.java_object, i,
                         ::JavaUtilities.unwrap_java_value(v)) }
     size = lambda { Java.invoke_java_method(REFLECT_ARRAY_LENGTH, self.java_object) }
-    
+
     a_proxy.__send__(:define_method, "[]", getter)
     a_proxy.__send__(:define_method, "[]=", setter)
     a_proxy.__send__(:define_method, "size", size)
   end
-  
+
   def self.add_static_fields(a_proxy)
     fields = Java.invoke_java_method(CLASS_GET_DECLARED_FIELDS, a_proxy.java_class)
     # Not using idiomatic Ruby here as we might not have bootstrapped that at this point.

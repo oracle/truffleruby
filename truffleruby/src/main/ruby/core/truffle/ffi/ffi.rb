@@ -35,8 +35,9 @@
 ##
 # A Foreign Function Interface used to bind C libraries to ruby.
 
-module Rubinius
-module FFI
+module Rubinius::FFI
+  # Let FFI refer to Rubinius::FFI under Rubinius::FFI
+  FFI = self
 
   #  Specialised error classes
   class TypeError < RuntimeError; end
@@ -62,11 +63,11 @@ module FFI
         raise TypeError, "Unable to resolve type '#{current}'" unless code
       end
 
-      FFI::TypeDefs[add] = code
+      Rubinius::FFI::TypeDefs[add] = code
     end
 
     def find_type(name)
-      code = FFI::TypeDefs[name]
+      code = Rubinius::FFI::TypeDefs[name]
       raise TypeError, "Unable to resolve type '#{name}'" unless code
       return code
     end
@@ -83,7 +84,7 @@ module FFI
         return type_size(find_type(type))
       when Rubinius::NativeFunction
         return type_size(TYPE_PTR)
-      when FFI::Enum
+      when Rubinius::FFI::Enum
         return type_size(TYPE_ENUM)
       end
 
@@ -243,7 +244,7 @@ end
 ##
 # Namespace for holding platform-specific C constants.
 
-module FFI::Platform
+module Rubinius::FFI::Platform
   case
   when Rubinius.windows?
     LIBSUFFIX = "dll"
@@ -267,5 +268,4 @@ module FFI::Platform
   # ruby-ffi compatible
   LONG_SIZE = Rubinius::SIZEOF_LONG * 8
   ADDRESS_SIZE = Rubinius::WORDSIZE
-end
 end

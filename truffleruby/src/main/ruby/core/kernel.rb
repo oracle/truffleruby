@@ -358,7 +358,7 @@ module Kernel
         yield
       end
     rescue StopIteration => si
-       result = si.result
+      result = si.result
     end
     result
   end

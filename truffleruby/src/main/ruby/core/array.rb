@@ -348,13 +348,13 @@ class Array
   end
 
   def dig(idx, *more)
-     result = self.at(idx)
-     if result.nil? || more.empty?
-       result
-     else
-       raise TypeError, "#{result.class} does not have #dig method" unless result.respond_to?(:dig)
-       result.dig(*more)
-     end
+    result = self.at(idx)
+    if result.nil? || more.empty?
+      result
+    else
+      raise TypeError, "#{result.class} does not have #dig method" unless result.respond_to?(:dig)
+      result.dig(*more)
+    end
   end
 
   def each_index

@@ -32,8 +32,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius
-module FFI
+module Rubinius::FFI
 
   ##
   # Pointer is Rubinius's "fat" pointer class. It represents an actual
@@ -1244,5 +1243,4 @@ module FFI
       raise PrimitiveFailure, "FFI::MemoryPointer#free primitive failed"
     end
   end
-end
 end

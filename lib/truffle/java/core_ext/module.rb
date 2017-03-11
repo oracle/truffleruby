@@ -51,13 +51,13 @@ class Module
       last_error = nil
 
       @included_packages.each do |package|
-          begin
-            java_class = JavaUtilities.get_java_class("#{package}.#{real_name}")
-          rescue NameError
-            # we only rescue NameError, since other errors should bubble out
-            last_error = $!
-          end
-          break if java_class
+        begin
+          java_class = JavaUtilities.get_java_class("#{package}.#{real_name}")
+        rescue NameError
+          # we only rescue NameError, since other errors should bubble out
+          last_error = $!
+        end
+        break if java_class
       end
 
       if java_class
