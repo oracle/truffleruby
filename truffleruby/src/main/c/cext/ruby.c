@@ -591,7 +591,7 @@ VALUE rb_obj_dup(VALUE object) {
 }
 
 VALUE rb_any_to_s(VALUE object) {
-  return (VALUE) truffle_invoke(object, "to_s");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_any_to_s", object);
 }
 
 VALUE rb_obj_instance_variables(VALUE object) {

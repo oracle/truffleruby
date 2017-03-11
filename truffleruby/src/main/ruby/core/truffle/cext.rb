@@ -1528,6 +1528,10 @@ module Truffle::CExt
     rb_call_super_splatted *args
   end
 
+  def rb_any_to_s(object)
+    object.to_s
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
