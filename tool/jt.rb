@@ -1475,6 +1475,20 @@ module Commands
     run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-e', 'exit')
   end
 
+  def rubocop
+    begin
+      require 'rubocop'
+    rescue LoadError
+      sh "gem", "install", "rubocop"
+    end
+    sh "rubocop"
+  end
+
+  def lint
+    check_dsl_usage
+    rubocop
+  end
+
   def verify_aot_bin!
     unless File.exist?(ENV['AOT_BIN'].to_s)
       raise "AOT_BIN must point at an AOT build of TruffleRuby"
