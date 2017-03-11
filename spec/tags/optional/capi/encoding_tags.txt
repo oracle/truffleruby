@@ -3,7 +3,6 @@ fails:C-API Encoding function rb_enc_get_index returns the index of the encoding
 fails:C-API Encoding function rb_enc_get_index returns the index of the dummy encoding of an Object
 fails:C-API Encoding function rb_enc_get_index returns 0 for an object without an encoding
 fails:C-API Encoding function rb_enc_set_index associates an encoding with an object
-fails:C-API Encoding function rb_enc_str_new returns a String in US-ASCII encoding when high bits are set
 fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a String
 fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a Regexp
 fails:C-API Encoding function ENCODING_GET returns the index of the encoding of an Object

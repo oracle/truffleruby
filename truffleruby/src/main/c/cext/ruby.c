@@ -1095,7 +1095,7 @@ int rb_enc_str_coderange(VALUE str) {
 }
 
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
-  rb_tr_error("rb_enc_str_new not implemented");
+  return truffle_invoke(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
 }
 
 int rb_enc_to_index(rb_encoding *enc) {
