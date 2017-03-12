@@ -916,7 +916,7 @@ VALUE rb_external_str_new_with_enc(const char *ptr, long len, rb_encoding *eenc)
 }
 
 VALUE rb_external_str_with_enc(VALUE str, rb_encoding *eenc) {
-  if (truffle_invoke_b(rb_enc_from_encoding(eenc),"==",rb_enc_from_encoding(rb_usascii_encoding())) &&
+  if (truffle_invoke_b(rb_enc_from_encoding(eenc), "==", rb_enc_from_encoding(rb_usascii_encoding())) &&
     rb_enc_str_coderange(str) != ENC_CODERANGE_7BIT) {
     rb_enc_associate_index(str, rb_ascii8bit_encindex());
     return str;
