@@ -1,7 +1,2 @@
-fails:C-API IO function rb_io_wait_writeable returns false if there is no error condition
-fails:C-API IO function rb_thread_fd_writable waits til an fd is ready for writing
-fails:C-API IO function rb_io_wait_readable returns false if there is no error condition
-fails:C-API IO function rb_io_wait_readable blocks until the io is readable and returns true
-fails:C-API IO function rb_thread_wait_fd waits til an fd is ready for reading
 fails:rb_fd_fix_cloexec sets close_on_exec on the IO
 fails:rb_cloexec_open sets close_on_exec on the newly-opened IO

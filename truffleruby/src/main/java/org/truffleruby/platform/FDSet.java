@@ -14,9 +14,9 @@ import jnr.ffi.Pointer;
 
 public interface FDSet {
 
-    public void set(int fd);
+    void set(int fd);
 
-    public boolean isSet(int fd);
+    boolean isSet(int fd);
 
-    public Pointer getPointer();
+    Pointer getPointer();
 }

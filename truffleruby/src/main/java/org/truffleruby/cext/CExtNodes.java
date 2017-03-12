@@ -23,6 +23,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+import jnr.posix.DefaultNativeTimeval;
+import jnr.posix.Timeval;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
@@ -40,6 +42,7 @@ import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -60,6 +63,7 @@ import org.truffleruby.language.objects.MetaClassNodeGen;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.language.supercall.CallSuperMethodNodeGen;
 import org.truffleruby.parser.Identifiers;
+import org.truffleruby.platform.FDSet;
 
 import java.math.BigInteger;
 
@@ -592,10 +596,12 @@ public class CExtNodes {
 
     @CoreMethod(names = "rb_is_class_id", isModuleFunction = true, required = 1)
     public abstract static class IsClassVariableIdNode extends CoreMethodArrayArgumentsNode {
+
         @Specialization(guards = "isRubySymbol(symbol)")
         public boolean isClassVariableId(DynamicObject symbol) {
             return Identifiers.isValidClassVariableName(Layouts.SYMBOL.getString(symbol));
         }
+
     }
 
     @CoreMethod(names = "ruby_object?", isModuleFunction = true, required = 1)
@@ -648,6 +654,42 @@ public class CExtNodes {
                     return frame;
                 }
             });
+        }
+
+    }
+
+    @CoreMethod(names = "rb_thread_wait_fd", isModuleFunction = true, required = 1)
+    public abstract static class ThreadWaitFDNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject threadWaitFDNode(int fd) {
+            final FDSet fdSet = getContext().getNativePlatform().createFDSet();
+            fdSet.set(fd);
+
+            nativeSockets().select(fd + 1,
+                    fdSet.getPointer(),
+                    PointerPrimitiveNodes.NULL_POINTER,
+                    PointerPrimitiveNodes.NULL_POINTER,
+                    null);
+
+            return nil();
+        }
+
+    }
+
+    @CoreMethod(names = "rb_thread_fd_writable", isModuleFunction = true, required = 1)
+    public abstract static class ThreadFDWritableNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public int threadFDWritableNode(int fd) {
+            final FDSet fdSet = getContext().getNativePlatform().createFDSet();
+            fdSet.set(fd);
+
+            return nativeSockets().select(fd + 1,
+                    PointerPrimitiveNodes.NULL_POINTER,
+                    fdSet.getPointer(),
+                    PointerPrimitiveNodes.NULL_POINTER,
+                    null);
         }
 
     }

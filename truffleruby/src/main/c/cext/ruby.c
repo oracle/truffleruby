@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <errno.h>
 #include <limits.h>
 
 #include <truffle.h>
@@ -2146,7 +2147,17 @@ int rb_io_wait_readable(int fd) {
     rb_raise(rb_eIOError, "closed stream");
   }
 
-  rb_tr_error("rb_io_wait_readable not implemented");
+  switch (errno) {
+    case EAGAIN:
+  #if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
+    case EWOULDBLOCK:
+  #endif
+      rb_thread_wait_fd(fd);
+      return true;
+
+    default:
+      return false;
+  }
 }
 
 int rb_io_wait_writable(int fd) {
@@ -2154,11 +2165,21 @@ int rb_io_wait_writable(int fd) {
     rb_raise(rb_eIOError, "closed stream");
   }
 
-  rb_tr_error("rb_io_wait_writable not implemented");
+  switch (errno) {
+    case EAGAIN:
+  #if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
+    case EWOULDBLOCK:
+  #endif
+      rb_tr_error("rb_io_wait_writable wait case not implemented");
+      return true;
+
+    default:
+      return false;
+  }
 }
 
 void rb_thread_wait_fd(int fd) {
-  rb_tr_error("rb_thread_wait_fd not implemented");
+  truffle_invoke(RUBY_CEXT, "rb_thread_wait_fd", fd);
 }
 
 NORETURN(void rb_eof_error(void)) {
@@ -2209,7 +2230,7 @@ VALUE rb_io_binmode(VALUE io) {
 }
 
 int rb_thread_fd_writable(int fd) {
-  rb_tr_error("rb_thread_fd_writable not implemented");
+  return truffle_invoke_i(RUBY_CEXT, "rb_thread_fd_writable", fd);
 }
 
 int rb_cloexec_open(const char *pathname, int flags, mode_t mode) {
