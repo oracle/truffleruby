@@ -2142,10 +2142,18 @@ void rb_fd_fix_cloexec(int fd) {
 }
 
 int rb_io_wait_readable(int fd) {
+  if (fd < 0) {
+    rb_raise(rb_eIOError, "closed stream");
+  }
+
   rb_tr_error("rb_io_wait_readable not implemented");
 }
 
 int rb_io_wait_writable(int fd) {
+  if (fd < 0) {
+    rb_raise(rb_eIOError, "closed stream");
+  }
+
   rb_tr_error("rb_io_wait_writable not implemented");
 }
 
