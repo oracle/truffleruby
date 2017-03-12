@@ -23,8 +23,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
-import jnr.posix.DefaultNativeTimeval;
-import jnr.posix.Timeval;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
@@ -41,8 +39,8 @@ import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -63,11 +61,11 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.language.supercall.CallSuperMethodNodeGen;
+import org.truffleruby.language.threadlocal.ThreadLocalObject;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.platform.FDSet;
 
 import java.math.BigInteger;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -709,6 +707,22 @@ public class CExtNodes {
             });
         }
 
+    }
+
+    @CoreMethod(names = "rb_backref_get", isModuleFunction = true)
+    public abstract static class BackRefGet extends CoreMethodNode {
+
+        @Specialization
+        @TruffleBoundary
+        public Object backRefGet() {
+            final ThreadLocalObject storage = RegexpNodes.getMatchDataThreadLocalSearchingStack(getContext());
+
+            if (storage == null) {
+                return nil();
+            } else {
+                return storage.get();
+            }
+        }
     }
 
 }

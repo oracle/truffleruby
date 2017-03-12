@@ -20,6 +20,7 @@ package org.truffleruby.core.regexp;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -27,6 +28,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.FrameInstanceVisitor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -69,6 +71,7 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.threadlocal.ThreadLocalObject;
 
@@ -493,7 +496,7 @@ public abstract class RegexpNodes {
         @TruffleBoundary
         private Object getMatchData() {
             Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
-            ThreadLocalObject lastMatch = getMatchDataThreadLocal(getContext(), frame, false);
+            ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(getContext(), frame, false);
             if (lastMatch == null) {
                 return nil();
             } else {
@@ -517,7 +520,8 @@ public abstract class RegexpNodes {
         @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)")
         public DynamicObject setLastMatchData(DynamicObject matchData) {
             Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);
-            ThreadLocalObject lastMatch = getMatchDataThreadLocal(getContext(), frame, true);
+            ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(
+                    getContext(), frame, true);
             lastMatch.set(matchData);
             return matchData;
         }
@@ -536,20 +540,43 @@ public abstract class RegexpNodes {
                 return matchData;
             }
 
-            ThreadLocalObject lastMatch = getMatchDataThreadLocal(getContext(), declarationFrame, true);
+            ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(
+                    getContext(), declarationFrame, true);
             lastMatch.set(matchData);
             return matchData;
         }
 
     }
 
-    @TruffleBoundary
-    private static ThreadLocalObject getMatchDataThreadLocal(RubyContext context, Frame topFrame, boolean add) {
+    private static Frame getMatchDataFrameSearchingStack() {
+        return Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<Frame>() {
+            @Override
+            public Frame visitFrame(FrameInstance frameInstance) {
+                final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
+                InternalMethod method = RubyArguments.tryGetMethod(frame);
+
+                if (method == null) {
+                    // not a Ruby method, continue
+                    return null;
+                } else {
+                    final Frame frameOfDeclaration = RegexpNodes.
+                            getMatchDataFrameSearchingDeclarations(frame, false);
+                    if (frameOfDeclaration == null) {
+                        // Does not have a $~ slot, continue
+                        return null;
+                    } else {
+                        return frameOfDeclaration;
+                    }
+                }
+            }
+        });
+    }
+
+    private static Frame getMatchDataFrameSearchingDeclarations(Frame topFrame, boolean returnCandidate) {
         Frame frame = topFrame;
-        FrameSlot slot = null;
 
         while (true) {
-            slot = frame.getFrameDescriptor().findFrameSlot("$~");
+            final FrameSlot slot = getMatchDataSlot(frame);
             if (slot != null) {
                 break;
             }
@@ -558,16 +585,47 @@ public abstract class RegexpNodes {
             if (nextFrame != null) {
                 frame = nextFrame;
             } else {
-                if (add) {
-                    slot = frame.getFrameDescriptor().addFrameSlot("$~", FrameSlotKind.Object);
-                    break;
-                } else {
-                    return null;
-                }
+                // where to define when missing
+                return returnCandidate ? frame : null;
             }
         }
 
+        return frame;
+    }
+
+    private static FrameSlot getMatchDataSlot(Frame frame) {
+        return frame.getFrameDescriptor().findFrameSlot("$~");
+    }
+
+    private static ThreadLocalObject getMatchDataThreadLocalSearchingDeclarations(
+            RubyContext context,
+            Frame topFrame,
+            boolean add) {
+
+        final Frame frame = getMatchDataFrameSearchingDeclarations(topFrame, add);
+        return getThreadLocalObject(context, frame, add);
+    }
+
+    @TruffleBoundary
+    public static ThreadLocalObject getMatchDataThreadLocalSearchingStack(RubyContext context) {
+        final Frame frame = getMatchDataFrameSearchingStack();
+        return getThreadLocalObject(context, frame, false);
+    }
+
+    @TruffleBoundary
+    public static ThreadLocalObject getThreadLocalObject(RubyContext context, Frame frame, boolean add) {
+        if (frame == null) {
+            return null;
+        }
+
+        FrameSlot slot = getMatchDataSlot(frame);
+        if (slot == null) {
+            // slot can be null only when add is true
+            slot = frame.getFrameDescriptor().addFrameSlot("$~", FrameSlotKind.Object);
+        }
+
         final Object previousMatchData = frame.getValue(slot);
+
         if (previousMatchData == frame.getFrameDescriptor().getDefaultValue()) { // Never written to
             if (add) {
                 ThreadLocalObject threadLocalObject = new ThreadLocalObject(context);
@@ -577,6 +635,7 @@ public abstract class RegexpNodes {
                 return null;
             }
         }
+
         return (ThreadLocalObject) previousMatchData;
     }
 

@@ -1971,7 +1971,7 @@ void rb_timespec_now(struct timespec *ts) {
 // Regexp
 
 VALUE rb_backref_get(void) {
-  rb_tr_error("rb_backref_get not implemented");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_backref_get");
 }
 
 VALUE rb_reg_match_pre(VALUE match) {
