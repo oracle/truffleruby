@@ -13,6 +13,7 @@ AllCops:
     - 'spec/**/*'
     - 'test/**/*'
     - 'tool/**/*'
+    - 'truffleruby/target/classes/**/*'
 
 Style/IndentationWidth:
   Enabled: true
