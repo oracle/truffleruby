@@ -2233,7 +2233,11 @@ int rb_thread_fd_writable(int fd) {
 }
 
 int rb_cloexec_open(const char *pathname, int flags, mode_t mode) {
-  rb_tr_error("rb_cloexec_open not implemented");
+  int fd = open(pathname, flags, mode);
+  if (fd >= 0) {
+    rb_fd_fix_cloexec(fd);
+  }
+  return fd;
 }
 
 VALUE rb_file_open(const char *fname, const char *modestr) {
