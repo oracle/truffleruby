@@ -12,15 +12,14 @@
  * as described in the file BSDL included with JRuby+Truffle.
  */
 
+#include <ruby.h>
+
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <errno.h>
 #include <limits.h>
-
-#include <truffle.h>
-
-#include <ruby.h>
+#include <fcntl.h>
 
 // Private helper macros just for ruby.c
 
@@ -1721,8 +1720,8 @@ void rb_set_errinfo(VALUE error) {
   truffle_invoke(RUBY_CEXT, "rb_set_errinfo", error);
 }
 
-void rb_syserr_fail(int errno, const char *message) {
-  truffle_invoke(RUBY_CEXT, "rb_syserr_fail", errno, message == NULL ? Qnil : rb_str_new_cstr(message));
+void rb_syserr_fail(int eno, const char *message) {
+  truffle_invoke(RUBY_CEXT, "rb_syserr_fail", eno, message == NULL ? Qnil : rb_str_new_cstr(message));
 }
 
 void rb_sys_fail(const char *message) {
@@ -2139,7 +2138,7 @@ int rb_cloexec_dup(int oldfd) {
 }
 
 void rb_fd_fix_cloexec(int fd) {
-  rb_tr_error("rb_fd_fix_cloexec not implemented");
+  fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
 }
 
 int rb_io_wait_readable(int fd) {

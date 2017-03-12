@@ -868,7 +868,7 @@ NORETURN(void rb_exc_raise(VALUE exception));
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status);
 void rb_jump_tag(int status);
 void rb_set_errinfo(VALUE error);
-void rb_syserr_fail(int errno, const char *message);
+void rb_syserr_fail(int eno, const char *message);
 void rb_sys_fail(const char *message);
 VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2);
 VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2);
