@@ -833,9 +833,9 @@ module Truffle::CExt
     enc = rb_enc_from_index(idx)
     case obj
     when String
-      obj.force_encoding(enc)
+      obj.force_encoding enc
     else
-      raise "rb_enc_set_index not implemented for class `#{obj.class}`"
+      obj.instance_variable_set :@encoding, enc
     end
   end
 
@@ -850,7 +850,7 @@ module Truffle::CExt
     when Regexp
       obj.encoding
     else
-      raise "rb_enc_get not implemented for class `#{obj.class}`"
+      obj.instance_variable_get :@encoding
     end
   end
 
@@ -864,15 +864,14 @@ module Truffle::CExt
             obj.encoding
           when File
             obj.internal_encoding || obj.external_encoding
+          when NilClass, Fixnum, Float, TrueClass, FalseClass
+            -1
           # TODO BJF Mar-9-2017 Handle T_DATA
           else
-            nil
+            0
           end
-    if enc.nil?
-      -1
-    else
-      rb_enc_find_index(enc.name)
-    end
+    enc = rb_enc_find_index(enc.name) if enc.is_a?(Encoding)
+    enc
   end
 
   def rb_intern_str(string)
