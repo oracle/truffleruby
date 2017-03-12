@@ -431,16 +431,6 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_tr_io_handle", isModuleFunction = true, required = 1)
-    public abstract static class IOHandleNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isRubyIO(io)")
-        public int ioHandle(DynamicObject io) {
-            return Layouts.IO.getDescriptor(io);
-        }
-
-    }
-
     @CoreMethod(names = "cext_module_function", isModuleFunction = true, required = 2)
     public abstract static class CextModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 

@@ -1012,6 +1012,7 @@ int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock);
 // IO
 
 typedef struct rb_io_t {
+  int mode;
   int fd;
 } rb_io_t;
 
@@ -1020,8 +1021,6 @@ void rb_io_check_writable(rb_io_t *io);
 void rb_io_check_readable(rb_io_t *io);
 int rb_cloexec_dup(int oldfd);
 void rb_fd_fix_cloexec(int fd);
-int rb_tr_io_handle(VALUE file);
-#define GetOpenFile(file, pointer) ((pointer) = truffle_managed_malloc(sizeof(rb_io_t)), (pointer)->fd = rb_tr_io_handle(file))
 int rb_io_wait_readable(int fd);
 int rb_io_wait_writable(int fd);
 void rb_thread_wait_fd(int fd);
@@ -1041,7 +1040,16 @@ int rb_cloexec_open(const char *pathname, int flags, mode_t mode);
 VALUE rb_file_open(const char *fname, const char *modestr);
 VALUE rb_file_open_str(VALUE fname, const char *modestr);
 VALUE rb_get_path(VALUE object);
+int rb_tr_readable(int mode);
+int rb_tr_writable(int mode);
 #define FilePathValue(v) (v = rb_get_path(v))
+
+// TODO CS 11-Mar-17 This needs to use truffle_managed_malloc so it is garbage collected, but something is getting indicies to bytes or the other way around wrong
+#define GetOpenFile(file, pointer) ( \
+    (pointer) = malloc(sizeof(rb_io_t)), \
+    (pointer)->mode = FIX2INT(rb_iv_get(file, "@mode")), \
+    (pointer)->fd = FIX2INT(rb_iv_get(file, "@descriptor")) \
+)
 
 // Structs
 

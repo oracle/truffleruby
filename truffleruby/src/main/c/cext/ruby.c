@@ -2091,11 +2091,15 @@ int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
 // IO
 
 void rb_io_check_writable(rb_io_t *io) {
-  // TODO
+  if (!rb_tr_writable(io->mode)) {
+    rb_raise(rb_eIOError, "not opened for writing");
+  }
 }
 
 void rb_io_check_readable(rb_io_t *io) {
-  // TODO
+  if (!rb_tr_readable(io->mode)) {
+    rb_raise(rb_eIOError, "not opened for reading");
+  }
 }
 
 int rb_cloexec_dup(int oldfd) {
@@ -2104,10 +2108,6 @@ int rb_cloexec_dup(int oldfd) {
 
 void rb_fd_fix_cloexec(int fd) {
   rb_tr_error("rb_fd_fix_cloexec not implemented");
-}
-
-int rb_tr_io_handle(VALUE io) {
-  return truffle_invoke_i(RUBY_CEXT, "rb_tr_io_handle", io);
 }
 
 int rb_io_wait_readable(int fd) {
@@ -2135,7 +2135,9 @@ VALUE rb_io_check_io(VALUE io) {
 }
 
 void rb_io_check_closed(rb_io_t *fptr) {
-  rb_tr_error("rb_io_check_closed not implemented");
+  if (fptr->fd < 0) {
+    rb_raise(rb_eIOError, "closed stream");
+  }
 }
 
 VALUE rb_io_taint_check(VALUE io) {
@@ -2185,6 +2187,14 @@ VALUE rb_file_open_str(VALUE fname, const char *modestr) {
 
 VALUE rb_get_path(VALUE object) {
   return (VALUE) truffle_invoke(rb_cFile, "path", object);
+}
+
+int rb_tr_readable(int mode) {
+  return truffle_invoke_i(RUBY_CEXT, "rb_tr_readable", mode);
+}
+
+int rb_tr_writable(int mode) {
+  return truffle_invoke_i(RUBY_CEXT, "rb_tr_writable", mode);
 }
 
 // Structs

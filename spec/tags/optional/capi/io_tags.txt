@@ -1,7 +1,3 @@
-fails:C-API IO function rb_io_check_closed does not raise an exception if the IO is not closed
-fails:C-API IO function rb_io_check_closed raises an error if the IO is closed
-fails:C-API IO function rb_io_check_readable raises an IOError if the IO is not opened for reading
-fails:C-API IO function rb_io_check_writable raises an IOError if the IO is not opened for reading
 fails:C-API IO function rb_io_wait_writeable returns false if there is no error condition
 fails:C-API IO function rb_io_wait_writeable raises an IOError if the IO is closed
 fails:C-API IO function rb_thread_fd_writable waits til an fd is ready for writing
