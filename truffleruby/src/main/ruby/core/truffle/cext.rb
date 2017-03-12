@@ -1568,7 +1568,11 @@ module Truffle::CExt
 
   def rb_gv_get(name)
     name = "$#{name}" unless name.to_s.start_with?('$')
-    eval("#{name}")
+    if name == '$~'
+      rb_backref_get
+    else
+      eval("#{name}")
+    end
   end
 
   def rb_reg_match(re, str)
