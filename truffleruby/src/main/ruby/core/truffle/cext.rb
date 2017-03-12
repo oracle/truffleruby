@@ -419,15 +419,15 @@ module Truffle::CExt
   end
 
   def rb_stdin
-    STDIN
+    $stdin
   end
 
   def rb_stdout
-    STDOUT
+    $stdout
   end
 
   def rb_stderr
-    STDERR
+    $stderr
   end
 
   def rb_output_fs

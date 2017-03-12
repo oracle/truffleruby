@@ -2,8 +2,4 @@ fails(finding-right-frame-is-hard):CApiGlobalSpecs returns $~
 fails(sulong-addresses-escape):CApiGlobalSpecs rb_define_variable should define a new global variable
 fails(sulong-addresses-escape):CApiGlobalSpecs rb_define_readonly_variable should define a new readonly global variable
 fails(sulong-addresses-escape):CApiGlobalSpecs rb_define_hooked_variable should define a C hooked global variable
-fails:CApiGlobalSpecs rb_std streams rb_stdin returns $stdin
-fails:CApiGlobalSpecs rb_std streams rb_stdout returns $stdout
-fails:CApiGlobalSpecs rb_std streams rb_stderr returns $stderr
-fails:CApiGlobalSpecs rb_std streams rb_defout returns $stdout
 fails:CApiGlobalSpecs rb_default_rs returns \n
