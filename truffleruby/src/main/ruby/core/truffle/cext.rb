@@ -1562,6 +1562,15 @@ module Truffle::CExt
     mode == File::Constants::WRONLY || mode == File::Constants::RDWR
   end
 
+  def rb_gv_set(name, value)
+    binding.eval("#{name} = value")
+  end
+
+  def rb_gv_get(name)
+    name = "$#{name}" unless name.to_s.start_with?('$')
+    eval("#{name}")
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

@@ -1670,12 +1670,12 @@ VALUE rb_f_global_variables(void) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_f_global_variables");
 }
 
-VALUE rb_gv_set(const char *name, VALUE val) {
-  rb_tr_error("rb_gv_set not implemented");
+VALUE rb_gv_set(const char *name, VALUE value) {
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_gv_set", rb_str_new_cstr(name), value);
 }
 
 VALUE rb_gv_get(const char *name) {
-  rb_tr_error("rb_gv_get not implemented");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_gv_get", rb_str_new_cstr(name));
 }
 
 VALUE rb_lastline_get(void) {

@@ -848,7 +848,7 @@ void rb_define_hooked_variable(
 void rb_define_readonly_variable(const char *name, const VALUE *var);
 void rb_define_variable(const char *name, VALUE *var);
 VALUE rb_f_global_variables(void);
-VALUE rb_gv_set(const char *name, VALUE val);
+VALUE rb_gv_set(const char *name, VALUE value);
 VALUE rb_gv_get(const char *name);
 VALUE rb_lastline_get(void);
 void rb_lastline_set(VALUE val);
