@@ -1,31 +1,25 @@
-fails:C-API Encoding function rb_encdb_alias creates an alias for an existing Encoding
-fails:C-API Encoding function rb_enc_get_index returns the index of the encoding of an Object
-fails:C-API Encoding function rb_enc_get_index returns the index of the dummy encoding of an Object
-fails:C-API Encoding function rb_enc_get_index returns 0 for an object without an encoding
-fails:C-API Encoding function rb_enc_set_index associates an encoding with an object
-fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a String
-fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a Regexp
-fails:C-API Encoding function ENCODING_GET returns the index of the encoding of an Object
-fails:C-API Encoding function ENCODING_GET returns the index of the dummy encoding of an Object
 fails:C-API Encoding function ENCODING_GET returns 0 for an object without an encoding
+fails:C-API Encoding function ENCODING_GET returns the index of the dummy encoding of an Object
+fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a Regexp
+fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a String
+fails:C-API Encoding function ENCODING_GET returns the index of the encoding of an Object
 fails:C-API Encoding function ENCODING_SET associates an encoding with an object
-fails:C-API Encoding function rb_enc_copy sets the encoding of a Regexp to that of the second argument
 fails:C-API Encoding function rb_default_internal_encoding returns 0 if Encoding.default_internal is nil
-fails:C-API Encoding function rb_enc_associate sets the encoding of a String to the encoding
 fails:C-API Encoding function rb_enc_associate sets the encoding of a Regexp to the encoding
 fails:C-API Encoding function rb_enc_associate sets the encoding of a String to a default when the encoding is NULL
+fails:C-API Encoding function rb_enc_associate sets the encoding of a String to the encoding
 fails:C-API Encoding function rb_enc_associate_index sets the encoding of a Regexp to the encoding
-fails:C-API Encoding function rb_enc_to_index returns a non-negative int if the encoding is not defined
-fails:C-API Encoding function rb_enc_nth returns the byte index of the given character index
 fails:C-API Encoding function rb_enc_codepoint_len raises ArgumentError if an empty string is given
 fails:C-API Encoding function rb_enc_codepoint_len raises ArgumentError if an invalid byte sequence is given
+fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x20AC and length 3 for character '€'
 fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x24 and length 1 for character '$'
-fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0xA2 and length 2 for character '¢'
-fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x20AC and length 3 for character '€'
 fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x24B62 and length 4 for character '𤭢'
 fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0xA2 and length 2 for character '¢'
-fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x20AC and length 3 for character '€'
-fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x24B62 and length 4 for character '𤭢'
-fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0xA2 and length 2 for character '¢'
-fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x20AC and length 3 for character '€'
-fails:C-API Encoding function rb_enc_codepoint_len returns codepoint 0x24B62 and length 4 for character '𤭢'
+fails:C-API Encoding function rb_enc_copy sets the encoding of a Regexp to that of the second argument
+fails:C-API Encoding function rb_enc_get_index returns 0 for an object without an encoding
+fails:C-API Encoding function rb_enc_get_index returns the index of the dummy encoding of an Object
+fails:C-API Encoding function rb_enc_get_index returns the index of the encoding of an Object
+fails:C-API Encoding function rb_enc_nth returns the byte index of the given character index
+fails:C-API Encoding function rb_enc_set_index associates an encoding with an object
+fails:C-API Encoding function rb_enc_to_index returns a non-negative int if the encoding is not defined
+fails:C-API Encoding function rb_encdb_alias creates an alias for an existing Encoding
