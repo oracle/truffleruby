@@ -813,7 +813,7 @@ VALUE rb_str_cat2(VALUE string, const char *to_concat) {
 }
 
 VALUE rb_str_to_str(VALUE string) {
-  return (VALUE) truffle_invoke(string, "to_str");
+  return rb_convert_type(string, T_STRING, "String", "to_str");
 }
 
 VALUE rb_str_buf_new(long capacity) {
