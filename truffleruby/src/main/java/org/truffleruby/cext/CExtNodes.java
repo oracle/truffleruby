@@ -657,7 +657,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_thread_wait_fd", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_thread_wait_fd", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class ThreadWaitFDNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -684,7 +684,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_thread_fd_writable", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_thread_fd_writable", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class ThreadFDWritableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
