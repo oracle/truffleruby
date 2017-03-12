@@ -42,6 +42,7 @@ import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -666,11 +667,19 @@ public class CExtNodes {
             final FDSet fdSet = getContext().getNativePlatform().createFDSet();
             fdSet.set(fd);
 
-            nativeSockets().select(fd + 1,
-                    fdSet.getPointer(),
-                    PointerPrimitiveNodes.NULL_POINTER,
-                    PointerPrimitiveNodes.NULL_POINTER,
-                    null);
+            getContext().getThreadManager().runUntilResult(this, () -> {
+                final int result = nativeSockets().select(fd + 1,
+                        fdSet.getPointer(),
+                        PointerPrimitiveNodes.NULL_POINTER,
+                        PointerPrimitiveNodes.NULL_POINTER,
+                        null);
+
+                if (result == 0) {
+                    return null;
+                }
+
+                return result;
+            });
 
             return nil();
         }
@@ -685,11 +694,19 @@ public class CExtNodes {
             final FDSet fdSet = getContext().getNativePlatform().createFDSet();
             fdSet.set(fd);
 
-            return nativeSockets().select(fd + 1,
-                    PointerPrimitiveNodes.NULL_POINTER,
-                    fdSet.getPointer(),
-                    PointerPrimitiveNodes.NULL_POINTER,
-                    null);
+            return getContext().getThreadManager().runUntilResult(this, () -> {
+                final int result = nativeSockets().select(fd + 1,
+                        PointerPrimitiveNodes.NULL_POINTER,
+                        fdSet.getPointer(),
+                        PointerPrimitiveNodes.NULL_POINTER,
+                        null);
+
+                if (result == 0) {
+                    return null;
+                }
+
+                return result;
+            });
         }
 
     }
