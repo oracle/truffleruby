@@ -1,6 +1,3 @@
-fails:C-API Hash function rb_hash converts a Bignum returned by #hash to a Fixnum
-fails:C-API Hash function rb_hash calls #to_int to converts a value returned by #hash to a Fixnum
-fails:C-API Hash function rb_hash raises a TypeError if the object does not implement #to_int
 fails:C-API Hash function rb_hash_aref returns the value associated with the key
 fails:C-API Hash function rb_hash_aref returns the default value if it exists
 fails:C-API Hash function rb_hash_aref returns nil if the key does not exist

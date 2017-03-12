@@ -1355,7 +1355,7 @@ VALUE rb_check_array_type(VALUE array) {
 // Hash
 
 VALUE rb_hash(VALUE obj) {
-  return (VALUE) truffle_invoke(obj, "hash");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_hash", obj);
 }
 
 VALUE rb_hash_new() {
