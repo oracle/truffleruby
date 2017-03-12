@@ -443,7 +443,7 @@ module Truffle::CExt
   end
 
   def rb_default_rs
-    $;
+    "\n"
   end
 
   # END from tool/generate-cext-constants.rb
