@@ -2304,3 +2304,7 @@ void *rb_tr_to_native_handle(VALUE managed) {
 VALUE rb_tr_from_native_handle(void *native) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_tr_from_native_handle", (long) native);
 }
+
+void rb_p(VALUE obj) {
+  truffle_invoke(rb_mKernel, "puts", truffle_invoke(obj, "inspect"));
+}

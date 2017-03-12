@@ -407,6 +407,8 @@ int RB_FIXNUM_P(VALUE value);
 
 int RTEST(VALUE value);
 
+void rb_p(VALUE value);
+
 // Kernel
 
 VALUE rb_require(const char *feature);
