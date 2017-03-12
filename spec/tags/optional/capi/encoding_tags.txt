@@ -4,10 +4,8 @@ fails:C-API Encoding function ENCODING_GET returns the index of the encoding of 
 fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a String
 fails:C-API Encoding function ENCODING_GET returns the index of the encoding of an Object
 fails:C-API Encoding function ENCODING_SET associates an encoding with an object
-fails:C-API Encoding function rb_default_internal_encoding returns 0 if Encoding.default_internal is nil
 fails:C-API Encoding function rb_enc_associate sets the encoding of a Regexp to the encoding
 fails:C-API Encoding function rb_enc_associate sets the encoding of a String to a default when the encoding is NULL
-fails:C-API Encoding function rb_enc_associate sets the encoding of a String to the encoding
 fails:C-API Encoding function rb_enc_associate_index sets the encoding of a Regexp to the encoding
 fails:C-API Encoding function rb_enc_codepoint_len raises ArgumentError if an empty string is given
 fails:C-API Encoding function rb_enc_codepoint_len raises ArgumentError if an invalid byte sequence is given
