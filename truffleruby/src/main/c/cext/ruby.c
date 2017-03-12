@@ -23,7 +23,7 @@
 
 // Private helper macros just for ruby.c
 
- #define RBOOL(c) ((c) ? Qtrue : Qfalse)
+#define rb_boolean(c) ((c) ? Qtrue : Qfalse)
 
 // Helpers
 
@@ -1957,9 +1957,9 @@ struct timespec rb_time_timespec(VALUE time_val) {
 }
 
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
-  VALUE utc = RBOOL(offset == INT_MAX-1);
-  VALUE local = RBOOL(offset == INT_MAX);
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_timespec_new", ts->tv_sec, ts->tv_nsec, offset, utc, local);
+  VALUE is_utc = rb_boolean(offset == INT_MAX-1);
+  VALUE is_local = rb_boolean(offset == INT_MAX);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_time_timespec_new", ts->tv_sec, ts->tv_nsec, offset, is_utc, is_local);
 }
 
 void rb_timespec_now(struct timespec *ts) {
@@ -1975,11 +1975,11 @@ VALUE rb_backref_get(void) {
 }
 
 VALUE rb_reg_match_pre(VALUE match) {
-    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_match_pre", match);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_match_pre", match);
 }
 
 VALUE rb_reg_new(const char *s, long len, int options) {
-    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_new", truffle_read_n_string(s, len), options);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_new", truffle_read_n_string(s, len), options);
 }
 
 VALUE rb_reg_new_str(VALUE s, int options) {
@@ -2290,7 +2290,7 @@ VALUE rb_struct_new(VALUE klass, ...) {
     VALUE arg = truffle_get_arg(i + 1);
     rb_ary_store(ary, i++, arg);
   }
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_new_no_splat", klass, ary);  
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_struct_new_no_splat", klass, ary);
 }
 
 VALUE rb_struct_getmember(VALUE obj, ID id) {
