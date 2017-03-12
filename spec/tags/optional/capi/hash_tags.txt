@@ -1,6 +1,3 @@
-fails:C-API Hash function rb_hash_aref returns the value associated with the key
-fails:C-API Hash function rb_hash_aref returns the default value if it exists
-fails:C-API Hash function rb_hash_aref returns nil if the key does not exist
 fails:C-API Hash function rb_hash_foreach iterates over the hash
 fails:C-API Hash function rb_hash_foreach stops via the callback
 fails:C-API Hash function rb_hash_foreach deletes via the callback

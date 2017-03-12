@@ -1587,6 +1587,10 @@ module Truffle::CExt
     raise TypeError, "#hash returned #{hash}"
   end
 
+  def rb_hash_aref(object, key)
+    object[key]
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

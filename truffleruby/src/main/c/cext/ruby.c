@@ -1363,7 +1363,7 @@ VALUE rb_hash_new() {
 }
 
 VALUE rb_hash_aref(VALUE hash, VALUE key) {
-  return truffle_read(hash, key);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_hash_aref", hash, key);
 }
 
 VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE value) {
