@@ -68,6 +68,8 @@ import org.truffleruby.platform.FDSet;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @CoreClass("Truffle::CExt")
 public class CExtNodes {
@@ -723,6 +725,19 @@ public class CExtNodes {
                 return storage.get();
             }
         }
+
+    }
+
+    @CoreMethod(names = "rb_define_hooked_variable_inner", isModuleFunction = true, required = 3)
+    public abstract static class DefineHookedVariableInnerNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = {"isRubySymbol(name)", "isRubyProc(getter)", "isRubyProc(setter)"})
+        public DynamicObject defineHookedVariableInnerNode(DynamicObject name, DynamicObject getter, DynamicObject setter) {
+            getContext().getCoreLibrary().getGlobalVariables().put(name.toString(), getter, setter);
+            return nil();
+        }
+
     }
 
 }

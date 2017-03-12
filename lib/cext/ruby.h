@@ -839,12 +839,11 @@ void rb_define_global_const(const char *name, VALUE value);
 
 // Global variables
 
-void rb_define_hooked_variable(
-    const char *name,
-    VALUE *var,
-    VALUE (*getter)(ANYARGS),
-    void  (*setter)(ANYARGS));
+struct rb_global_variable {
+  int empty;
+};
 
+void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANYARGS), void (*setter)(ANYARGS));
 void rb_define_readonly_variable(const char *name, const VALUE *var);
 void rb_define_variable(const char *name, VALUE *var);
 VALUE rb_f_global_variables(void);

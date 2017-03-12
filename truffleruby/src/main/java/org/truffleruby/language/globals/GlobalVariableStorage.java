@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-
 package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.RubyContext;
 
@@ -26,12 +26,34 @@ public class GlobalVariableStorage {
 
     private volatile Object value;
 
-    GlobalVariableStorage(Object value) {
+    private final DynamicObject getter;
+    private final DynamicObject setter;
+
+    GlobalVariableStorage(Object value, DynamicObject getter, DynamicObject setter) {
         this.value = value;
+        this.getter = getter;
+        this.setter = setter;
+        assert (getter != null) == (setter != null);
     }
 
     public Object getValue() {
         return value;
+    }
+
+    public boolean isSimple() {
+        return !hasHooks();
+    }
+
+    public boolean hasHooks() {
+        return (getter != null) && (setter != null);
+    }
+
+    public DynamicObject getGetter() {
+        return getter;
+    }
+
+    public DynamicObject getSetter() {
+        return setter;
     }
 
     public Assumption getUnchangedAssumption() {

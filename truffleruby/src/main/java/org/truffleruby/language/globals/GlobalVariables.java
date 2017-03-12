@@ -7,7 +7,6 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-
 package org.truffleruby.language.globals;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -27,19 +26,22 @@ public class GlobalVariables {
         this.defaultValue = defaultValue;
     }
 
-    public Object get(String key) {
-        return getStorage(key).getValue();
-    }
-
     @TruffleBoundary
-    public GlobalVariableStorage getStorage(String key) {
-        return variables.computeIfAbsent(key, k -> new GlobalVariableStorage(defaultValue));
+    public GlobalVariableStorage getStorage(String name) {
+        return variables.computeIfAbsent(name, k -> new GlobalVariableStorage(defaultValue, null, null));
     }
 
-    public GlobalVariableStorage put(String key, Object value) {
-        assert !variables.containsKey(key);
-        final GlobalVariableStorage storage = new GlobalVariableStorage(value);
-        variables.put(key, storage);
+    public GlobalVariableStorage put(String name, Object value) {
+        assert !variables.containsKey(name);
+        final GlobalVariableStorage storage = new GlobalVariableStorage(value, null, null);
+        variables.put(name, storage);
+        return storage;
+    }
+
+    public GlobalVariableStorage put(String name, DynamicObject getter, DynamicObject setter) {
+        assert !variables.containsKey(name);
+        final GlobalVariableStorage storage = new GlobalVariableStorage(null, getter, setter);
+        variables.put(name, storage);
         return storage;
     }
 
@@ -58,9 +60,12 @@ public class GlobalVariables {
         final Collection<GlobalVariableStorage> storages = variables.values();
         final ArrayList<DynamicObject> values = new ArrayList<>(storages.size());
         for (GlobalVariableStorage storage : storages) {
-            final Object value = storage.getValue();
-            if (value instanceof DynamicObject) {
-                values.add((DynamicObject) value);
+            // TODO CS 11-Mar-17 handle hooked global variable storage?
+            if (!storage.hasHooks()) {
+                final Object value = storage.getValue();
+                if (value instanceof DynamicObject) {
+                    values.add((DynamicObject) value);
+                }
             }
         }
         return values;

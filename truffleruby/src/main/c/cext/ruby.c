@@ -1651,20 +1651,36 @@ void rb_define_global_const(const char *name, VALUE value) {
 
 // Global variables
 
-void rb_define_hooked_variable(
-    const char *name,
-    VALUE *var,
-    VALUE (*getter)(ANYARGS),
-    void  (*setter)(ANYARGS)) {
-  rb_tr_error("rb_define_hooked_variable not implemented");
+VALUE rb_gvar_var_getter(ID id, VALUE *var, struct rb_global_variable *gvar) {
+  return *var;
+}
+
+void rb_gvar_var_setter(VALUE val, ID id, VALUE *var, struct rb_global_variable *g) {
+  *var = val;
+}
+
+void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANYARGS), void (*setter)(ANYARGS)) {
+  if (!getter) {
+    getter = rb_gvar_var_getter;
+  }
+
+  if (!setter) {
+    setter = rb_gvar_var_setter;
+  }
+
+  truffle_invoke(RUBY_CEXT, "rb_define_hooked_variable", rb_str_new_cstr(name), var, getter, setter);
+}
+
+void rb_gvar_readonly_setter(VALUE v, ID id, void *d, struct rb_global_variable *g) {
+  rb_raise(rb_eNameError, "read-only variable");
 }
 
 void rb_define_readonly_variable(const char *name, const VALUE *var) {
-  rb_tr_error("rb_define_readonly_variable not implemented");
+  rb_define_hooked_variable(name, (VALUE *)var, NULL, rb_gvar_readonly_setter);
 }
 
 void rb_define_variable(const char *name, VALUE *var) {
-  rb_tr_error("rb_define_variable not implemented");
+  rb_define_hooked_variable(name, var, 0, 0);
 }
 
 VALUE rb_f_global_variables(void) {

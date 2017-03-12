@@ -9,10 +9,12 @@
  */
 package org.truffleruby.language.globals;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.yield.YieldNode;
 
 public abstract class ReadGlobalVariableNode extends RubyNode {
 
@@ -22,16 +24,23 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
         this.name = name;
     }
 
-    @Specialization(assumptions = "storage.getUnchangedAssumption()")
+    @Specialization(guards = "storage.isSimple()", assumptions = "storage.getUnchangedAssumption()")
     public Object readConstant(
             @Cached("getStorage()") GlobalVariableStorage storage,
             @Cached("storage.getValue()") Object value) {
         return value;
     }
 
-    @Specialization
+    @Specialization(guards = "storage.isSimple()")
     public Object read(@Cached("getStorage()") GlobalVariableStorage storage) {
         return storage.getValue();
+    }
+
+    @Specialization(guards = "storage.hasHooks()")
+    public Object readHooks(VirtualFrame frame,
+                            @Cached("getStorage()") GlobalVariableStorage storage,
+                            @Cached("new()") YieldNode yieldNode) {
+        return yieldNode.dispatch(frame, storage.getGetter());
     }
 
     protected GlobalVariableStorage getStorage() {
@@ -40,7 +49,14 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
 
     @Override
     public Object isDefined(VirtualFrame frame) {
-        if (coreLibrary().getGlobalVariables().get(name) != nil()) {
+        final GlobalVariableStorage storage = getStorage();
+
+        if (storage.hasHooks()) {
+            CompilerDirectives.transferToInterpreter();
+            throw new UnsupportedOperationException();
+        }
+
+        if (storage.getValue() != nil()) {
             return coreStrings().GLOBAL_VARIABLE.createInstance();
         } else {
             return nil();

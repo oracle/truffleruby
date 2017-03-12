@@ -16,6 +16,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
+import org.truffleruby.language.yield.YieldNode;
 
 @NodeChild(value = "value")
 public abstract class WriteGlobalVariableNode extends RubyNode {
@@ -29,7 +30,7 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
         this.name = name;
     }
 
-    @Specialization(guards = "referenceEqualNode.executeReferenceEqual(value, previousValue)",
+    @Specialization(guards = {"storage.isSimple()", "referenceEqualNode.executeReferenceEqual(value, previousValue)"},
                     assumptions = "storage.getUnchangedAssumption()")
     public Object writeTryToKeepConstant(Object value,
                     @Cached("getStorage()") GlobalVariableStorage storage,
@@ -40,7 +41,7 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
         return previousValue;
     }
 
-    @Specialization(guards = "storage.isAssumeConstant()",
+    @Specialization(guards = {"storage.isAssumeConstant()", "storage.isSimple()"},
                     assumptions = "storage.getUnchangedAssumption()")
     public Object writeAssumeConstant(Object value,
                     @Cached("getStorage()") GlobalVariableStorage storage) {
@@ -52,13 +53,21 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
         return value;
     }
 
-    @Specialization(guards = {"workaround()", "!storage.isAssumeConstant()"}, replaces = "writeAssumeConstant")
+    @Specialization(guards = {"workaround()", "storage.isSimple()", "!storage.isAssumeConstant()"}, replaces = "writeAssumeConstant")
     public Object write(Object value,
                     @Cached("getStorage()") GlobalVariableStorage storage) {
         if (getContext().getSharedObjects().isSharing()) {
             writeBarrierNode.executeWriteBarrier(value);
         }
         storage.setValueInternal(value);
+        return value;
+    }
+
+    @Specialization(guards = "storage.hasHooks()")
+    public Object writeHooks(VirtualFrame frame, Object value,
+                             @Cached("getStorage()") GlobalVariableStorage storage,
+                             @Cached("new()") YieldNode yieldNode) {
+        yieldNode.dispatch(frame, storage.getSetter(), value);
         return value;
     }
 
