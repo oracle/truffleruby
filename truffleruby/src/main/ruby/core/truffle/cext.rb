@@ -905,11 +905,11 @@ module Truffle::CExt
 
   def rb_str_conv_enc_opts(str, from, to, ecflags, ecopts)
     if (to.ascii_compatible? && str.ascii_only?) || to == Encoding::ASCII_8BIT
-       if str.encoding != to
-         str = str.dup
-         str.force_encoding(to)
-       end
-       return str
+      if str.encoding != to
+        str = str.dup
+        str.force_encoding(to)
+      end
+      return str
     end
     begin
       rb_str_encode(str, to, ecflags, ecopts)
