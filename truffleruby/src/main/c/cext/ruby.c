@@ -916,8 +916,9 @@ VALUE rb_external_str_new_with_enc(const char *ptr, long len, rb_encoding *eenc)
 }
 
 VALUE rb_external_str_with_enc(VALUE str, rb_encoding *eenc) {
-  if (eenc == rb_usascii_encoding() &&
+  if (truffle_invoke_b(rb_enc_from_encoding(eenc),"==",rb_enc_from_encoding(rb_usascii_encoding())) &&
     rb_enc_str_coderange(str) != ENC_CODERANGE_7BIT) {
+    rb_enc_associate_index(str, rb_ascii8bit_encindex());
     return str;
   }
   rb_enc_associate(str, eenc);
@@ -962,7 +963,7 @@ VALUE rb_str_export_to_enc(VALUE string, rb_encoding *enc) {
 
 rb_encoding *rb_default_external_encoding(void) {
   VALUE result = truffle_invoke(RUBY_CEXT, "rb_default_external_encoding");
-  if(result == Qnil) {
+  if (result == Qnil) {
     return NULL;
   }
   return rb_to_encoding(result);
@@ -970,7 +971,7 @@ rb_encoding *rb_default_external_encoding(void) {
 
 rb_encoding *rb_default_internal_encoding(void) {
   VALUE result = truffle_invoke(RUBY_CEXT, "rb_default_internal_encoding");
-  if(result == Qnil) {
+  if (result == Qnil) {
     return NULL;
   }
   return rb_to_encoding(result);
@@ -978,7 +979,7 @@ rb_encoding *rb_default_internal_encoding(void) {
 
 rb_encoding *rb_locale_encoding(void) {
   VALUE result = truffle_invoke(RUBY_CEXT, "rb_locale_encoding");
-  if(result == Qnil) {
+  if (result == Qnil) {
     return NULL;
   }
   return rb_to_encoding(result);
@@ -990,7 +991,7 @@ int rb_locale_encindex(void) {
 
 rb_encoding *rb_filesystem_encoding(void) {
   VALUE result = truffle_invoke(RUBY_CEXT, "rb_filesystem_encoding");
-  if(result == Qnil) {
+  if (result == Qnil) {
     return NULL;
   }
   return rb_to_encoding(result);
