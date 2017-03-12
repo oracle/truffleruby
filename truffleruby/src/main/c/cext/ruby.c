@@ -883,7 +883,7 @@ int rb_str_cmp(VALUE a, VALUE b) {
 }
 
 VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
-  rb_tr_error("rb_str_buf_cat not implemented");
+  return truffle_invoke(string, "<<", rb_str_new(to_concat, length));
 }
 
 rb_encoding *rb_to_encoding(VALUE encoding) {
