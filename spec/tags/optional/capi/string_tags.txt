@@ -24,7 +24,6 @@ fails:C-API String function rb_str_resize reduces the size of the string
 fails:C-API String function rb_str_resize updates the string's attributes visible in C code
 fails:C-API String function rb_str_resize increases the size of the string
 fails:C-API String function rb_str_hash hashes the string into a number
-fails:rb_str_free indicates data for a string might be freed
 fails:C-API String function rb_sprintf replaces the parts like sprintf
 fails:C-API String function rb_sprintf accepts multiple arguments
 fails:C-API String function rb_vsprintf returns a formatted String from a variable number of arguments

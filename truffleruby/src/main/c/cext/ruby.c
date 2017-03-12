@@ -1038,7 +1038,7 @@ VALUE rb_str_equal(VALUE a, VALUE b) {
 }
 
 void rb_str_free(VALUE string) {
-  rb_tr_error("rb_str_free not implemented");
+//  intentional noop here
 }
 
 unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_encoding *encoding) {
