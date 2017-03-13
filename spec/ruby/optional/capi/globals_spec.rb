@@ -175,4 +175,54 @@ describe "CApiGlobalSpecs" do
       @f.rb_output_fs.should == "foo"
     end
   end
+
+  describe "rb_lastline_set" do
+    it "sets the value of $_" do
+      @f.rb_lastline_set("last line")
+      $_.should == "last line"
+    end
+
+    it "sets a Thread-local value" do
+      $_ = nil
+      running = false
+
+      thr = Thread.new do
+        @f.rb_lastline_set("last line")
+        $_.should == "last line"
+        running = true
+      end
+
+      Thread.pass until running
+      $_.should be_nil
+
+      thr.join
+    end
+  end
+
+  describe "rb_lastline_get" do
+    before do
+      @io = StringIO.new("last line")
+    end
+
+    it "gets the value of $_" do
+      @io.gets
+      @f.rb_lastline_get.should == "last line"
+    end
+
+    it "gets a Thread-local value" do
+      $_ = nil
+      running = false
+
+      thr = Thread.new do
+        @io.gets
+        @f.rb_lastline_get.should == "last line"
+        running = true
+      end
+
+      Thread.pass until running
+      $_.should be_nil
+
+      thr.join
+    end
+  end
 end
