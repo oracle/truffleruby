@@ -1595,18 +1595,6 @@ module Truffle::CExt
     re =~ str
   end
 
-  def rb_hash(obj)
-    hash = obj.hash
-    return hash if hash.is_a? Fixnum
-    if hash.respond_to? :to_int
-      hash = hash.to_int
-      return hash if hash.is_a? Fixnum
-      return hash % Fixnum::MAX if hash.is_a? Bignum
-    end
-
-    raise TypeError, "#hash returned #{hash}"
-  end
-
   def rb_hash_aref(object, key)
     object[key]
   end

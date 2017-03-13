@@ -17,6 +17,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.ObjectNodes.ObjectIDPrimitiveNode;
 import org.truffleruby.core.ObjectNodesFactory.ObjectIDPrimitiveNodeFactory;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
@@ -24,10 +25,14 @@ public class HashNode extends RubyBaseNode {
 
     @Child private CallDispatchHeadNode hashNode;
     @Child private ObjectIDPrimitiveNode objectIDNode;
+    @Child private SnippetNode snippetNode;
 
-    private final ConditionProfile isIntegerProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile isLongProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile isBignumProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isIntegerProfile1 = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isLongProfile1 = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isBignumProfile1 = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isIntegerProfile2 = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isLongProfile2 = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isBignumProfile2 = ConditionProfile.createBinaryProfile();
 
     public int hash(VirtualFrame frame, Object key, boolean compareByIdentity) {
         final Object hashedObject;
@@ -37,14 +42,31 @@ public class HashNode extends RubyBaseNode {
             hashedObject = hash(frame, key);
         }
 
-        if (isIntegerProfile.profile(hashedObject instanceof Integer)) {
+        if (isIntegerProfile1.profile(hashedObject instanceof Integer)) {
             return (int) hashedObject;
-        } else if (isLongProfile.profile(hashedObject instanceof Long)) {
+        } else if (isLongProfile1.profile(hashedObject instanceof Long)) {
             return (int) (long) hashedObject;
-        } else if (isBignumProfile.profile(Layouts.BIGNUM.isBignum(hashedObject))) {
+        } else if (isBignumProfile1.profile(Layouts.BIGNUM.isBignum(hashedObject))) {
             return Layouts.BIGNUM.getValue((DynamicObject) hashedObject).hashCode();
         } else {
-            throw new UnsupportedOperationException();
+            if (snippetNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                snippetNode = insert(new SnippetNode());
+            }
+
+            final Object coercedHashedObject = snippetNode.execute(frame,
+                    "Rubinius::Type.coerce_to_int hashedObject",
+                    "hashedObject", hashedObject);
+
+            if (isIntegerProfile2.profile(coercedHashedObject instanceof Integer)) {
+                return (int) coercedHashedObject;
+            } else if (isLongProfile2.profile(coercedHashedObject instanceof Long)) {
+                return (int) (long) coercedHashedObject;
+            } else if (isBignumProfile2.profile(Layouts.BIGNUM.isBignum(coercedHashedObject))) {
+                return Layouts.BIGNUM.getValue((DynamicObject) coercedHashedObject).hashCode();
+            } else {
+                throw new UnsupportedOperationException();
+            }
         }
     }
 

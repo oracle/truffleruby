@@ -9,6 +9,7 @@
  */
 package org.truffleruby.cext;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
@@ -72,8 +73,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 @CoreClass("Truffle::CExt")
 public class CExtNodes {
@@ -857,6 +856,21 @@ public class CExtNodes {
             return nil();
         }
 
+    }
+
+    @CoreMethod(names = "rb_hash", isModuleFunction = true, required = 1)
+    public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
+        @Child private org.truffleruby.core.hash.HashNode hash;
+
+        @Specialization
+        public Object hash(VirtualFrame frame, Object object) {
+            if (hash == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                hash = insert(new org.truffleruby.core.hash.HashNode());
+            }
+
+            return hash.hash(frame, object, false);
+        }
     }
 
 }
