@@ -264,78 +264,121 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_big_pack", isModuleFunction = true, required = 2)
-    public abstract static class BigPackNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "rb_integer_bytes", isModuleFunction = true, lowerFixnum = {2,3}, required = 6)
+    public abstract static class IntegerBytesNode extends CoreMethodArrayArgumentsNode {
 
-        // The Ruby MRI API for extracting the contents of a Bignum
-        // fills a provided buffer of longs with a two's complement
-        // representation of the number starting with the least
-        // significant part. If the provided buffer and length are
-        // longer than required for this then the remaining longs will
-        // be filled in so as to preserve the number in two's
-        // complement form.
+        // The Ruby MRI API for extracting the contents of a integer
+        // fills a provided buffer of words with a representation of
+        // the number in the specified format. This allows the users
+        // to specify the word order in the buffer, the endianness
+        // within the word, and whether to encode the number as a
+        // magnitude or in two's complement.
         //
-        // Java BigInteger provides an API to extract the two's
-        // complement as a byte array starting with the most
-        // significant byte and continuing until the number is
-        // complete. To convert from this to the Ruby form we must:
+        // The API also returns an integer indicating whether the
+        // number was positive or negative and the overflow
+        // status. That part is implemented in C while this Java
+        // method is purely concerned with extracting the bytes into
+        // the buffer and getting them in the right order.
         //
-        // 1. Starting from the end of the byte array pack 8 bytes
-        // into a long (being careful to avoid accidental sign
-        // extension occurring due to widening of primitive types).
+        // If the buffer is too short to hold the entire number then
+        // it will be filled with the least significant bytes of the
+        // number.
         //
-        // 2. Pack any remaining bytes into a final long and pad it
-        // appropriately to preserve the sign of the number.
+        // If the buffer is longer than is required for encoding the
+        // number then the remainder of the buffer must not change the
+        // interpretation of the number. I.e. if we are encoding in
+        // two's complement then it must be filled with 0xff to
+        // preserve the number's sign.
         //
-        // 3. Fill any remaining space in the requested buffer size
-        // with longs (again preserving the sign of the number).
-        //
-        // It is important we correctly fill buffers which are longer
-        // than requested both for compatibility with MRI and to
-        // preserve the returned number.
+        // The API allows the order of words in the buffer to be
+        // specified as well as the order of bytes within those
+        // words. We separate the process into two stages to make the
+        // code easier to understand, first copying the bytes and
+        // adding padding at the start of end, and then reordering the
+        // bytes within each word if required.
 
         @Specialization(guards = "isRubyBignum(num)")
-        public DynamicObject bigPack(DynamicObject num, long length) {
+        @TruffleBoundary
+        public DynamicObject bytes(DynamicObject num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
             BigInteger bi = Layouts.BIGNUM.getValue(num);
-            long[] longs = new long[(int)length];
-            byte[] bytes = bi.toByteArray();
-            int limit = Math.min(longs.length, bytes.length / 8);
-            int fraction = limit == longs.length ? 0 : bytes.length % 8;
-            int blank_start = fraction == 0 ? limit : limit + 1;
-            boolean negative = bi.signum() == -1;
-            for (int i = 0; i < limit; i++) {
-                long x = 0;
-                for (int j = 0; j < 8; j++) {
-                    long a_byte = bytes[bytes.length - 1 - i * 8 - j] & 0xffl;
-                    x = x | (a_byte << (j * 8));
-                }
-                longs[i] = x;
+            return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
+        }
+
+        private DynamicObject bytes(BigInteger bi, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
+            if (!twosComp) {
+                bi = bi.abs();
             }
-            if (fraction != 0) {
-                long x = 0;
-                for (int i = 0; i < fraction; i++) {
-                    long a_byte = bytes[bytes.length - 1 - limit * 8 - i] & 0xffl;
-                    x = x | (a_byte << (i * 8));
+            int num_bytes = num_words * word_length;
+            // We'll put the bytes into ints because we lack a byte array strategy.
+            int[] bytes = new int[num_bytes];
+            byte[] bi_bytes = bi.toByteArray();
+            int bi_length = bi_bytes.length;
+            boolean negative = bi.signum() == -1;
+
+            // If we're not giving a twos comp answer then a leading
+            // zero byte should be discarded.
+            if (!twosComp && bi_bytes[0] == 0) {
+                bi_length--;
+            }
+            int bytes_to_copy = Math.min(bi_length, num_bytes);
+            if (msw_first) {
+                // We must copy the LSBs if the buffer would overflow,
+                // so calculate an offset based on that.
+                int offset = bi_bytes.length - bytes_to_copy;
+
+                for (int i = 0; i < bytes_to_copy; i++) {
+                    bytes[i] = bi_bytes[offset + i];
                 }
                 if (negative) {
-                    for (int i = fraction; i < 8; i++) {
-                        x = x | (0xffl << (i * 8));
+                    for (int i = 0; i < num_bytes - bytes_to_copy; i++) {
+                        bytes[i] = -1;
                     }
                 }
-                longs[limit] = x;
-            }
-            if (negative) {
-                for (int i = blank_start; i < length; i++) {
-                    longs[i] = -1;
+            } else {
+                for (int i = 0; i < bytes_to_copy; i++) {
+                    bytes[i] = bi_bytes[bi_bytes.length - 1 - i];
+                }
+                if (negative) {
+                    for (int i = bytes_to_copy; i < num_bytes; i++) {
+                        bytes[i] = -1;
+                    }
                 }
             }
-            return ArrayHelpers.createArray(getContext(), longs, longs.length);
+
+            // Swap bytes around if they aren't in the right order for
+            // the requested endianness.
+            if (bigEndian ^ msw_first && word_length > 1) {
+                for (int i = 0; i < num_words; i++) {
+                    for (int j = 0; j < word_length / 2; j++) {
+                        int pos_a = i * word_length + j;
+                        int pos_b = (i + 1) * word_length - 1 - j;
+                        int a = bytes[pos_a];
+                        bytes[pos_a] = bytes[pos_b];
+                        bytes[pos_b] = a;
+                    }
+                }
+            }
+            return ArrayHelpers.createArray(getContext(), bytes, bytes.length);
         }
+
+
     }
 
     @CoreMethod(names = "rb_absint_bit_length", isModuleFunction = true, required = 1)
-    public abstract static class BignumBitLengthNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class BignumAbsBitLengthNode extends CoreMethodArrayArgumentsNode {
+
         @Specialization(guards = "isRubyBignum(num)")
+        @TruffleBoundary
+        public int bitLength(DynamicObject num) {
+            return Layouts.BIGNUM.getValue(num).abs().bitLength();
+        }
+    }
+
+    @CoreMethod(names = "rb_2scomp_bit_length", isModuleFunction = true, required = 1)
+    public abstract static class Bignum2sCompBitLengthNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyBignum(num)")
+        @TruffleBoundary
         public int bitLength(DynamicObject num) {
             return Layouts.BIGNUM.getValue(num).bitLength();
         }
