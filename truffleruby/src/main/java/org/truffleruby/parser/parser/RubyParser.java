@@ -41,6 +41,7 @@ package org.truffleruby.parser.parser;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.interop.ForeignCodeNode;
 import org.truffleruby.language.SourceIndexLength;
@@ -155,7 +156,7 @@ public class RubyParser {
         support.setWarnings(warnings);
         lexer.setWarnings(warnings);
     }
-					// line 159 "-"
+					// line 160 "-"
   // %token constants
   public static final int kCLASS = 257;
   public static final int kMODULE = 258;
@@ -3917,7 +3918,7 @@ states[504] = new ParserState() {
                      /* EvStrParseNode :"#{some expression}"*/
                      /* Ruby 1.9 allows empty strings as symbols*/
                      if (((ParseNode)yyVals[-1+yyTop]) == null) {
-                         yyVal = support.asSymbol(lexer.getPosition(), "");
+                         yyVal = support.asSymbol(lexer.getPosition(), RopeConstants.EMPTY_US_ASCII_ROPE);
                      } else if (((ParseNode)yyVals[-1+yyTop]) instanceof DStrParseNode) {
                          yyVal = new DSymbolParseNode(((ParseNode)yyVals[-1+yyTop]).getPosition(), ((DStrParseNode)yyVals[-1+yyTop]));
                      } else if (((ParseNode)yyVals[-1+yyTop]) instanceof StrParseNode) {
@@ -4661,7 +4662,7 @@ states[644] = new ParserState() {
   }
 };
 }
-					// line 2572 "RubyParser.y"
+					// line 2573 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -4676,4 +4677,4 @@ states[644] = new ParserState() {
         return support.getResult();
     }
 }
-					// line 10082 "-"
+					// line 10083 "-"

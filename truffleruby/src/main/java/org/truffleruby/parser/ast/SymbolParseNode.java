@@ -37,6 +37,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.types.INameNode;
@@ -50,7 +51,7 @@ import java.util.List;
  */
 public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNode, SideEffectFree {
     private final String name;
-    private final Encoding encoding;
+    private final Rope rope;
 
     // Interned ident path (e.g. [':', ident]).
     public SymbolParseNode(SourceIndexLength position, String name, Encoding encoding, CodeRange cr) {
@@ -58,10 +59,10 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
         this.name = name;  // Assumed all names are already intern'd by lexer.
 
         if (encoding == USASCIIEncoding.INSTANCE || cr == CodeRange.CR_7BIT) {
-            this.encoding = USASCIIEncoding.INSTANCE;
-        } else {
-            this.encoding = encoding;
+            encoding = USASCIIEncoding.INSTANCE;
         }
+
+        this.rope = StringOperations.encodeRope(name, encoding, cr);
     }
 
     // String path (e.g. [':', str_beg, str_content, str_end])
@@ -69,12 +70,10 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
         super(position, false);
         this.name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, value).intern();
 
-        if (value.getEncoding() != USASCIIEncoding.INSTANCE) {
-            int size = value.byteLength();
-            this.encoding = value.characterLength() == size ?
-                    USASCIIEncoding.INSTANCE : value.getEncoding();
+        if (value.getCodeRange() == CodeRange.CR_7BIT) {
+            rope = RopeOperations.withEncodingVerySlow(value, USASCIIEncoding.INSTANCE);
         } else {
-            this.encoding = USASCIIEncoding.INSTANCE;
+            rope = value;
         }
     }
 
@@ -94,8 +93,8 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
         return name;
     }
 
-    public Encoding getEncoding() {
-        return encoding;
+    public Rope getRope() {
+        return rope;
     }
 
     public List<ParseNode> childNodes() {

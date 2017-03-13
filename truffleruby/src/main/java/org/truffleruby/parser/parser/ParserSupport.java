@@ -1053,6 +1053,10 @@ public class ParserSupport {
         return new SymbolParseNode(position, value, lexer.getEncoding(), lexer.getTokenCR());
     }
 
+    public ParseNode asSymbol(SourceIndexLength position, Rope value) {
+        return new SymbolParseNode(position, value);
+    }
+
     public ParseNode asSymbol(SourceIndexLength position, ParseNode value) {
         return value instanceof StrParseNode ? new SymbolParseNode(position, ((StrParseNode) value).getValue()) :
                 new DSymbolParseNode(position, (DStrParseNode) value);

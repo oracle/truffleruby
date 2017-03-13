@@ -3075,9 +3075,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitSymbolNode(SymbolParseNode node) {
-        final byte[] bytes = StringOperations.plain(node.getName());
-        final Rope rope = RopeOperations.create(bytes, node.getEncoding(), CodeRange.CR_UNKNOWN);
-        final RubyNode ret = new ObjectLiteralNode(context.getSymbolTable().getSymbol(rope));
+        final RubyNode ret = new ObjectLiteralNode(context.getSymbolTable().getSymbol(node.getRope()));
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }

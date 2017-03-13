@@ -38,6 +38,7 @@ package org.truffleruby.parser.parser;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.interop.ForeignCodeNode;
 import org.truffleruby.language.SourceIndexLength;
@@ -2089,7 +2090,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END {
                      // EvStrParseNode :"#{some expression}"
                      // Ruby 1.9 allows empty strings as symbols
                      if ($2 == null) {
-                         $$ = support.asSymbol(lexer.getPosition(), "");
+                         $$ = support.asSymbol(lexer.getPosition(), RopeConstants.EMPTY_US_ASCII_ROPE);
                      } else if ($2 instanceof DStrParseNode) {
                          $$ = new DSymbolParseNode($2.getPosition(), $<DStrParseNode>2);
                      } else if ($2 instanceof StrParseNode) {
