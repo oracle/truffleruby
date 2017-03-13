@@ -700,8 +700,88 @@ VALUE rb_Integer(VALUE value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_Integer", value);
 }
 
+#define INTEGER_PACK_WORDORDER_MASK \
+  (INTEGER_PACK_MSWORD_FIRST | \
+   INTEGER_PACK_LSWORD_FIRST)
+#define INTEGER_PACK_BYTEORDER_MASK \
+  (INTEGER_PACK_MSBYTE_FIRST | \
+   INTEGER_PACK_LSBYTE_FIRST | \
+   INTEGER_PACK_NATIVE_BYTE_ORDER)
+#define INTEGER_PACK_SUPPORTED_FLAG \
+  (INTEGER_PACK_MSWORD_FIRST | \
+   INTEGER_PACK_LSWORD_FIRST | \
+   INTEGER_PACK_MSBYTE_FIRST | \
+   INTEGER_PACK_LSBYTE_FIRST | \
+   INTEGER_PACK_NATIVE_BYTE_ORDER | \
+   INTEGER_PACK_2COMP | \
+   INTEGER_PACK_FORCE_GENERIC_IMPLEMENTATION)
+
+static void
+validate_integer_pack_format(size_t numwords, size_t wordsize, size_t nails, int flags, int supported_flags)
+{
+    int wordorder_bits = flags & INTEGER_PACK_WORDORDER_MASK;
+    int byteorder_bits = flags & INTEGER_PACK_BYTEORDER_MASK;
+
+    if (flags & ~supported_flags) {
+        rb_raise(rb_eArgError, "unsupported flags specified");
+    }
+
+    if (wordorder_bits == 0) {
+        if (1 < numwords)
+            rb_raise(rb_eArgError, "word order not specified");
+    } else if (wordorder_bits != INTEGER_PACK_MSWORD_FIRST &&
+               wordorder_bits != INTEGER_PACK_LSWORD_FIRST) {
+      rb_raise(rb_eArgError, "unexpected word order");
+    }
+    if (byteorder_bits == 0) {
+        rb_raise(rb_eArgError, "byte order not specified");
+    } else if (byteorder_bits != INTEGER_PACK_MSBYTE_FIRST &&
+               byteorder_bits != INTEGER_PACK_LSBYTE_FIRST &&
+               byteorder_bits != INTEGER_PACK_NATIVE_BYTE_ORDER) {
+      rb_raise(rb_eArgError, "unexpected byte order");
+    }
+    if (wordsize == 0) {
+        rb_raise(rb_eArgError, "invalid wordsize: %lu", wordsize);
+    }
+    if (8 < wordsize) {
+      rb_raise(rb_eArgError, "too big wordsize: %lu", wordsize);
+    }
+    if (wordsize <= nails / CHAR_BIT) {
+      rb_raise(rb_eArgError, "too big nails: %lu", nails);
+    }
+    if (INT_MAX / wordsize < numwords) {
+      rb_raise(rb_eArgError, "too big numwords * wordsize: %lu * %lu", numwords, wordsize);
+    }
+}
+
+static int check_msw_first(int flags) {
+  return flags & INTEGER_PACK_MSWORD_FIRST;
+}
+
+static int endian_swap(int flags) {
+  return flags & INTEGER_PACK_MSBYTE_FIRST;
+}
+
 int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, size_t nails, int flags) {
-  rb_tr_error("rb_integer_pack not implemented");
+  long i;
+  long j;
+  VALUE msw_first = rb_boolean(check_msw_first(flags));
+  VALUE twosComp = rb_boolean(((flags & INTEGER_PACK_2COMP) != 0));
+  VALUE swap = rb_boolean(endian_swap(flags));
+  // Test for fixnum and do the right things here.
+  VALUE bytes = truffle_invoke(RUBY_CEXT, "rb_integer_bytes", value, (int)numwords, (int)wordsize, msw_first, twosComp, swap);
+  int sign = truffle_invoke_i(value, "<=>", 0);
+  int size = (twosComp == Qtrue) ? truffle_invoke_i(RUBY_CEXT, "rb_2scomp_bit_length", value)
+                                 : truffle_invoke_i(RUBY_CEXT, "rb_absint_bit_length", value);
+  int bytes_needed = size / 8 + (size % 8 == 0 ? 0 : 1);
+  int words_needed = bytes_needed / wordsize + (bytes_needed % wordsize == 0 ? 0 : 1);
+  int result = (words_needed <= numwords ? 1 : 2) * sign;
+
+  uint8_t *buf = (uint8_t *)words;
+  for (i = 0; i < numwords * wordsize; i++) {
+    buf[i] = (uint8_t)truffle_read_idx_i(bytes, i);
+  }
+  return result;
 }
 
 VALUE rb_integer_unpack(const void *words, size_t numwords, size_t wordsize, size_t nails, int flags) {
@@ -747,11 +827,8 @@ VALUE rb_big_cmp(VALUE x, VALUE y) {
 }
 
 void rb_big_pack(VALUE val, unsigned long *buf, long num_longs) {
-  long i;
-  VALUE longs = truffle_invoke(RUBY_CEXT, "rb_big_pack", val, num_longs);
-  for (i = 0; i < num_longs; i++) {
-    buf[i] = (unsigned long)truffle_read_idx_l(longs, i);
-  }
+  rb_integer_pack(val, buf, num_longs, 8, 0,
+                  INTEGER_PACK_2COMP | INTEGER_PACK_NATIVE_BYTE_ORDER | INTEGER_PACK_LSWORD_FIRST);
 }
 
 // Float
