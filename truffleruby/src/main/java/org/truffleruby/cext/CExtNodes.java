@@ -300,6 +300,20 @@ public class CExtNodes {
         // adding padding at the start of end, and then reordering the
         // bytes within each word if required.
 
+        @Specialization
+        @TruffleBoundary
+        public DynamicObject bytes(int num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
+            BigInteger bi = BigInteger.valueOf(num);
+            return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
+        }
+
+        @Specialization
+        @TruffleBoundary
+        public DynamicObject bytes(long num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
+            BigInteger bi = BigInteger.valueOf(num);
+            return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
+        }
+
         @Specialization(guards = "isRubyBignum(num)")
         @TruffleBoundary
         public DynamicObject bytes(DynamicObject num, int num_words, int word_length, boolean msw_first, boolean twosComp, boolean bigEndian) {
@@ -370,6 +384,18 @@ public class CExtNodes {
     @CoreMethod(names = "rb_absint_bit_length", isModuleFunction = true, required = 1)
     public abstract static class BignumAbsBitLengthNode extends CoreMethodArrayArgumentsNode {
 
+        @Specialization
+        @TruffleBoundary
+        public int bitLength(int num) {
+            return BigInteger.valueOf(num).abs().bitLength();
+        }
+
+        @Specialization
+        @TruffleBoundary
+        public int bitLength(long num) {
+            return BigInteger.valueOf(num).abs().bitLength();
+        }
+
         @Specialization(guards = "isRubyBignum(num)")
         @TruffleBoundary
         public int bitLength(DynamicObject num) {
@@ -379,6 +405,18 @@ public class CExtNodes {
 
     @CoreMethod(names = "rb_2scomp_bit_length", isModuleFunction = true, required = 1)
     public abstract static class Bignum2sCompBitLengthNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        @TruffleBoundary
+        public int bitLength(int num) {
+            return BigInteger.valueOf(num).bitLength();
+        }
+
+        @Specialization
+        @TruffleBoundary
+        public int bitLength(long num) {
+            return BigInteger.valueOf(num).bitLength();
+        }
 
         @Specialization(guards = "isRubyBignum(num)")
         @TruffleBoundary
