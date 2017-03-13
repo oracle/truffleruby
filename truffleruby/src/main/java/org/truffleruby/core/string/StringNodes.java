@@ -4056,7 +4056,7 @@ public abstract class StringNodes {
                     return makeRope(string, searchResult.rope, searchResult.index, length);
                 }
 
-                return stringSubstringMultitByte(string, index, length);
+                return stringSubstringMultiByte(string, index, length);
             }
         }
 
@@ -4099,7 +4099,7 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        private Object stringSubstringMultitByte(DynamicObject string, int beg, int len) {
+        private Object stringSubstringMultiByte(DynamicObject string, int beg, int len) {
             // Taken from org.jruby.RubyString#substr19 & org.jruby.RubyString#multibyteSubstr19.
 
             final Rope rope = rope(string);
