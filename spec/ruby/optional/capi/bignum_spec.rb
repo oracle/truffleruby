@@ -120,7 +120,7 @@ end
 
     ruby_version_is "2.2" do
       platform_is wordsize: 64 do
-        it "packs max_ulong into _two_ ulongs to allow sign bit" do
+        it "packs max_ulong into 2 ulongs to allow sign bit" do
           val = @s.rb_big_pack_length(@max_ulong)
           val.should == 2
           val = @s.rb_big_pack_array(@max_ulong, 2)
@@ -128,7 +128,7 @@ end
           val[1].should == 0
         end
 
-        it "packs A 72-bit positive Bignum into 2 unsigned longs" do
+        it "packs a 72-bit positive Bignum into 2 unsigned longs" do
           num = 2 ** 71
           val = @s.rb_big_pack_length(num)
           val.should == 2
