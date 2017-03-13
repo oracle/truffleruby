@@ -666,7 +666,7 @@ public abstract class StringNodes {
                 return ((RopeBuffer) rope).getByteList().getLength();
             }
 
-            return rope(string).byteLength();
+            return rope.byteLength();
         }
 
     }
