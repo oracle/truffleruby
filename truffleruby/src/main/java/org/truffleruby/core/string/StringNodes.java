@@ -118,6 +118,7 @@ import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
 import org.truffleruby.core.rope.LeafRope;
+import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.RepeatingRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuffer;
@@ -4093,6 +4094,9 @@ public abstract class StringNodes {
                 } else {
                     return new SearchResult(index, repeatingRope);
                 }
+            } else if (base instanceof NativeRope) {
+                final NativeRope nativeRope = (NativeRope) base;
+                return new SearchResult(index, nativeRope.toLeafRope());
             } else {
                 throw new UnsupportedOperationException("Don't know how to traverse rope type: " + base.getClass().getName());
             }

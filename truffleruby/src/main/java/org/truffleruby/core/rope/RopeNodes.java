@@ -147,6 +147,13 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
+        public Rope substringNativeRope(NativeRope base, int offset, int byteLength,
+                                        @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
+                                        @Cached("createBinaryProfile()") ConditionProfile isBinaryStringProfile) {
+            return substringLeafRope(base.toLeafRope(), offset, byteLength, is7BitProfile, isBinaryStringProfile);
+        }
+
+        @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
         public Rope substringConcatRope(ConcatRope base, int offset, int byteLength,
                                       @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
                                       @Cached("createBinaryProfile()") ConditionProfile isBinaryStringProfile,
