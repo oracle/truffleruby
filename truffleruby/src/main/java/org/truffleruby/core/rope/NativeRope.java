@@ -55,4 +55,7 @@ public class NativeRope extends Rope {
         return pointer;
     }
 
+    public LeafRope toLeafRope() {
+        return RopeOperations.create(getBytesSlow(), getEncoding(), CodeRange.CR_UNKNOWN);
+    }
 }

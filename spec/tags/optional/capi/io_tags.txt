@@ -1,1 +1,0 @@
-fails(rope-bug):rb_cloexec_open sets close_on_exec on the newly-opened IO

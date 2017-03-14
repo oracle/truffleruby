@@ -62,7 +62,7 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
             encoding = USASCIIEncoding.INSTANCE;
         }
 
-        this.rope = StringOperations.encodeRope(name, encoding, cr);
+        this.rope = StringOperations.encodeRope(name, encoding, cr == null ? CodeRange.CR_UNKNOWN : cr);
     }
 
     // String path (e.g. [':', str_beg, str_content, str_end])
