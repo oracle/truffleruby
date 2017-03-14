@@ -114,8 +114,14 @@ files.
 
 #### pr-zlib
 
-Truffle users pr-zlib 1.0.3. pr-zlib is copyright Park Heesob and Daniel Berger
-and covered under the same license as zlib itself (see `zlib.txt`).
+TruffleRuby uses pr-zlib 1.0.3. pr-zlib is copyright Park Heesob and Daniel
+Berger and covered under the same license as zlib itself (see `zlib.txt`).
+
+#### FFI
+
+TruffleRuby includes parts of the FFI gem 1.9.18. The FFI gem is copyright
+2008-2010 Wayne Meissner and covered by the three-clause BSD licence (see
+`ffi.txt`).
 
 # Java dependencies
 
