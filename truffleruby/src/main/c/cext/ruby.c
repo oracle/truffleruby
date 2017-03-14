@@ -2475,6 +2475,10 @@ void rb_tr_error(const char *message) {
   abort();
 }
 
+void rb_tr_log_warning(const char *message) {
+  truffle_invoke(RUBY_CEXT, "rb_tr_log_warning", rb_str_new_cstr(message));
+}
+
 void *rb_tr_to_native_handle(VALUE managed) {
   return (void *)truffle_invoke_l(RUBY_CEXT, "rb_tr_to_native_handle", managed);
 }

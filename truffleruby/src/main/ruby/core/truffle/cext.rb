@@ -1615,6 +1615,10 @@ module Truffle::CExt
 
     rb_define_hooked_variable_inner id, getter_proc, setter_proc
   end
+  
+  def rb_tr_log_warning(message)
+    Truffle::Debug.log_warning message
+  end
 
 end
 
