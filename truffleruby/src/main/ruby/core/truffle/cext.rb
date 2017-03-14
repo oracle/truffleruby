@@ -1264,10 +1264,6 @@ module Truffle::CExt
     end
   end
 
-  def rb_funcall(object, name, argc, *args)
-    object.__send__(name, *args)
-  end
-
   def rb_Rational(num, den)
     Rational.new(num, den)
   end
