@@ -12,7 +12,6 @@ package org.truffleruby.language.locals;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyNode;
 
 public class WriteLocalVariableNode extends RubyNode {

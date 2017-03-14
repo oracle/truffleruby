@@ -55,7 +55,6 @@ import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rubinius.RubiniusLastStringReadNode;
 import org.truffleruby.core.rubinius.RubiniusLastStringWriteNodeGen;
 import org.truffleruby.core.string.InterpolatedStringNode;

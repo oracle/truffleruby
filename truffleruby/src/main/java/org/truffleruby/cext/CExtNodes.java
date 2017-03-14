@@ -45,7 +45,6 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.regexp.RegexpNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
@@ -72,7 +71,6 @@ import org.truffleruby.language.threadlocal.ThreadLocalObject;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.platform.FDSet;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
