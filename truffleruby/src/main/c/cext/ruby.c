@@ -1443,7 +1443,7 @@ VALUE rb_ary_plus(VALUE a, VALUE b) {
 }
 
 VALUE rb_iterate(VALUE (*function)(), VALUE arg1, VALUE (*block)(), VALUE arg2) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_iterate", function, arg1, block, arg2);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_iterate", function, arg1, block, arg2, rb_block_proc());
 }
 
 VALUE rb_each(VALUE array) {

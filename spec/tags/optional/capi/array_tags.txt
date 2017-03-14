@@ -1,1 +1,0 @@
-fails:C-API Array function rb_iterate calls a function which can yield into the original block
