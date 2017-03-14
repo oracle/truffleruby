@@ -552,7 +552,7 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding) {
-            final byte[] bytes = Layouts.STRING.getRope(string).getBytes();
+            final byte[] bytes = StringOperations.rope(string).getBytes();
             final Encoding enc = Layouts.ENCODING.getEncoding(encoding);
             final int r = StringSupport.preciseLength(enc, bytes, 0, bytes.length);
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
