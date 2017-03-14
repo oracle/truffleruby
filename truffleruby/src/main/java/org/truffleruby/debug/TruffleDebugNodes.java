@@ -25,12 +25,14 @@ import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.Log;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -232,6 +234,19 @@ public abstract class TruffleDebugNodes {
         @Specialization
         public DynamicObject resolveLazyNodes() {
             LazyRubyNode.resolveAll(getContext());
+            return nil();
+        }
+
+    }
+
+    @CoreMethod(names = "log_warning", isModuleFunction = true, required = 1)
+    public abstract static class LogWarningNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject logWarning(
+                VirtualFrame frame, Object value,
+                @Cached("create()") NameToJavaStringNode toJavaStringNode) {
+            Log.LOGGER.warning(toJavaStringNode.executeToJavaString(frame, value));
             return nil();
         }
 
