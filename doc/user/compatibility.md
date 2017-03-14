@@ -179,3 +179,15 @@ extensions to Ruby.
 In some cases we provide some of the classes available under the `Rubinius`
 module for historical reasons and for compatibility with the RubySL gems,
 but these may behave differently or be removed in future versions.
+
+## Features not yet supported on the SVM
+
+* Signal handlers
+* Finalizers
+* Java native platform fallback (`-Xplatform.use_java`)
+* Setting the process name (for example `$0 =`)
+* Java interop
+
+Most of these features will silently not work, in order to let as much as
+possible work for testing but while potentially missing signals, leaking
+resources, etc.
