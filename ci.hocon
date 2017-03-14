@@ -439,7 +439,7 @@ test-compilation-flags: {
 
 deploy-binaries: {
   run: [
-    [mx, deploy-binary-if-truffle-head, jruby-binary-snapshots]
+    [mx, deploy-binary-if-truffle-head, truffleruby-binary-snapshots]
   ]
   timelimit: "30:00"
 }
