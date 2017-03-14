@@ -289,8 +289,6 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableStorage loadPathStorage;
     @CompilationFinal private GlobalVariableStorage loadedFeaturesStorage;
 
-    private static final Object systemObject = TruffleOptions.AOT ? null : JavaInterop.asTruffleObject(System.class);
-
     private final String coreLoadPath;
 
     @TruffleBoundary
@@ -831,10 +829,6 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(psychParserClass).setConstant(context, node, "UTF8", YAMLEncoding.YAML_UTF8_ENCODING.ordinal());
         Layouts.MODULE.getFields(psychParserClass).setConstant(context, node, "UTF16LE", YAMLEncoding.YAML_UTF16LE_ENCODING.ordinal());
         Layouts.MODULE.getFields(psychParserClass).setConstant(context, node, "UTF16BE", YAMLEncoding.YAML_UTF16BE_ENCODING.ordinal());
-
-        // Java interop
-        final DynamicObject javaModule = defineModule(truffleModule, "Java");
-        Layouts.MODULE.getFields(javaModule).setConstant(context, node, "System", systemObject);
 
         // Errno constants
         for (Map.Entry<Errno, DynamicObject> entry : errnoClasses.entrySet()) {
