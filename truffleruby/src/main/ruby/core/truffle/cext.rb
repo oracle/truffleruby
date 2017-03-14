@@ -1360,7 +1360,9 @@ module Truffle::CExt
 
   def data_finalizer(data, free)
     proc {
-      #Truffle::Interop.execute(free, data)
+      Truffle::Debug.log_warning 'native data finalizer not being called; probably leaking resources'
+      # TODO CS 14-Mar-17 data pointer has escaped
+      # Truffle::Interop.execute(free, data)
     }
   end
 

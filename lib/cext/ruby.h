@@ -1050,6 +1050,7 @@ int rb_tr_writable(int mode);
 // TODO CS 11-Mar-17 This needs to use truffle_managed_malloc so it is garbage collected, but something is getting indicies to bytes or the other way around wrong
 #define GetOpenFile(file, pointer) ( \
     (pointer) = malloc(sizeof(rb_io_t)), \
+    rb_tr_log_warning("GetOpenFile is leaking memory"), \
     (pointer)->mode = FIX2INT(rb_iv_get(file, "@mode")), \
     (pointer)->fd = FIX2INT(rb_iv_get(file, "@descriptor")) \
 )
