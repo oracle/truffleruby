@@ -1048,7 +1048,13 @@ void rb_str_free(VALUE string) {
 }
 
 unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_encoding *encoding) {
-  rb_tr_error("rb_enc_codepoint_len not implemented");
+  int len = e - p;
+  if (len <= 0) {
+    rb_raise(rb_eArgError, "empty string");
+  }
+  VALUE array = truffle_invoke(RUBY_CEXT, "rb_enc_codepoint_len", rb_str_new(p, len), rb_enc_from_encoding(encoding));
+  if (len_p) *len_p = truffle_invoke_i(array, "[]", 0);
+  return (unsigned int)truffle_invoke_i(array, "[]", 1);
 }
 
 rb_encoding *rb_enc_get(VALUE object) {

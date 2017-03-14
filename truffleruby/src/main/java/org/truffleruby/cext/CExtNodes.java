@@ -25,6 +25,7 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
+import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
@@ -44,7 +45,9 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.regexp.RegexpNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -461,6 +464,24 @@ public class CExtNodes {
         @Specialization(guards = "isRubyEncoding(encoding)")
         public EncodingPointerAdapter encodingPointer(DynamicObject encoding) {
             return new EncodingPointerAdapter(encoding);
+        }
+
+    }
+
+    @CoreMethod(names = "rb_enc_codepoint_len", isModuleFunction = true, required = 2)
+    public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding) {
+            final byte[] bytes = Layouts.STRING.getRope(string).getBytes();
+            final Encoding enc = Layouts.ENCODING.getEncoding(encoding);
+            final int r = StringSupport.preciseLength(enc, bytes, 0, bytes.length);
+            if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
+                throw new RaiseException(coreExceptions().argumentError("invalid byte sequence in " + enc, this));
+            }
+            final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
+            final int codePoint = StringSupport.preciseCodePoint(enc, bytes, 0, bytes.length);
+            return createArray(new Object[]{len_p, codePoint}, 2);
         }
 
     }
