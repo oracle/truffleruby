@@ -47,8 +47,8 @@ def ruby_tck(args):
     mx_unittest.unittest(['--verbose', '--suite', 'truffleruby'])
 
 def deploy_binary_if_truffle_head(args):
-    """If the active branch is 'truffle-head', deploy binaries for the primary suite to remote maven repository."""
-    primary_branch = 'truffle-head'
+    """If the active branch is 'master', deploy binaries for the primary suite to remote maven repository."""
+    primary_branch = 'master'
     active_branch = mx.VC.get_vc(_suite.dir).active_branch(_suite.dir)
     if active_branch == primary_branch:
         return mx.command_function('deploy-binary')(args)
