@@ -1649,11 +1649,7 @@ int rb_respond_to(VALUE object, ID name) {
 }
 
 VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args) {
-  if (rb_block_given_p()) {
-    return rb_funcall_with_block(object, name, args_count, args, rb_block_proc());
-  } else {
-    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_funcallv", object, ID2SYM(name), rb_ary_new4(args_count, args));
-  }
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_funcallv", object, ID2SYM(name), rb_ary_new4(args_count, args));
 }
 
 VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *args) {

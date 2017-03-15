@@ -958,7 +958,7 @@ module Truffle::CExt
   end
 
   def rb_funcallv(recv, meth, args)
-    recv.send(meth, *args)
+    rb_funcall(recv, meth, *args)
   end
 
   def rb_funcall(recv, meth, *args)
