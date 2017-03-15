@@ -1208,7 +1208,9 @@ int rb_enc_find_index(const char *name) {
 }
 
 rb_encoding *rb_enc_find(const char *name) {
-  return rb_to_encoding(truffle_invoke(rb_cEncoding, "find", rb_str_new_cstr(name)));
+  int idx = rb_enc_find_index(name);
+  if (idx < 0) idx = 0;
+  return rb_enc_from_index(idx);
 }
 
 VALUE rb_enc_from_encoding(rb_encoding *encoding) {
