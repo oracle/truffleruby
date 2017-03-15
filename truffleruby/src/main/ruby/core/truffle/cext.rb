@@ -800,6 +800,10 @@ module Truffle::CExt
     to_ruby_string(string)[0, length].b
   end
 
+  def rb_cstr_to_inum(string, base, raise)
+    Truffle.invoke_primitive :string_to_inum, string, base, raise != 0
+  end
+
   def rb_str_new_nul(length)
     "\0" * length
   end

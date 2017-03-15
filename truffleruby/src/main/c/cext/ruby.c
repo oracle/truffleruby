@@ -804,7 +804,7 @@ size_t rb_absint_size(VALUE value, int *nlz_bits_ret) {
 }
 
 VALUE rb_cstr_to_inum(const char* string, int base, int raise) {
-  rb_tr_error("rb_cstr_to_inum not implemented");
+  return truffle_invoke(RUBY_CEXT, "rb_cstr_to_inum", rb_str_new_cstr(string), base, raise);
 }
 
 double rb_big2dbl(VALUE x) {
@@ -959,7 +959,7 @@ void rb_str_modify(VALUE string) {
 }
 
 VALUE rb_cstr2inum(const char *string, int base) {
-  rb_tr_error("rb_cstr2inum not implemented");
+  return rb_cstr_to_inum(string, base, base==0);
 }
 
 VALUE rb_str2inum(VALUE string, int base) {

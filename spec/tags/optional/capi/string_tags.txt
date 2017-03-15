@@ -9,14 +9,6 @@ fails:C-API String function rb_str_new_cstr returns a new string object calling 
 fails:C-API String function rb_str_new_cstr encodes the string with ASCII_8BIT
 fails:C-API String function rb_str_encode accepts an encoding options Hash specifying replacement String
 fails:C-API String function rb_str2inum converts a string to a number given a base
-fails:C-API String function rb_cstr2inum converts a C string to a Fixnum given a base
-fails:C-API String function rb_cstr2inum converts a C string to a Bignum given a base
-fails:C-API String function rb_cstr2inum converts a C string to a Fixnum non-strictly if base is not 0
-fails:C-API String function rb_cstr2inum converts a C string to a Fixnum strictly if base is 0
-fails:C-API String function rb_cstr_to_inum converts a C string to a Fixnum given a base
-fails:C-API String function rb_cstr_to_inum converts a C string to a Bignum given a base
-fails:C-API String function rb_cstr_to_inum converts a C string to a Fixnum non-strictly
-fails:C-API String function rb_cstr_to_inum converts a C string to a Fixnum strictly
 fails:C-API String function rb_str_subseq returns a byte-indexed substring
 fails:C-API String function StringValue does not call #to_s on non-String objects
 fails:C-API String function rb_str_hash hashes the string into a number
