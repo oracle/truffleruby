@@ -961,11 +961,18 @@ module Truffle::CExt
     recv.send(meth, *args)
   end
 
-  def rb_funcall(recv, meth, block, *args)
-    if block
-      recv.send(meth, *args, &block)
-    else
-      recv.send(meth, *args)
+  def rb_funcall(recv, meth, *args)
+    old_c_block = Thread.current[:__C_BLOCK__]
+    begin
+      block = Thread.current[:__C_BLOCK__]
+      Thread.current[:__C_BLOCK__] = nil
+      if block
+        recv.send(meth, *args, &block)
+      else
+        recv.send(meth, *args)
+      end
+    ensure
+      Thread.current[:__C_BLOCK__] = old_c_block
     end
   end
 
@@ -1572,8 +1579,14 @@ module Truffle::CExt
     end
   end
 
-  def call_c_with_block(function, arg)
-    Truffle::Interop.execute function, arg
+  def call_c_with_block(function, arg, &block)
+    old_c_block = Thread.current[:__C_BLOCK__]
+    begin
+      Thread.current[:__C_BLOCK__] = block
+      Truffle::Interop.execute function, arg
+    ensure
+      Thread.current[:__C_BLOCK__] = old_c_block
+    end
   end
 
   def rb_call_super(args)
