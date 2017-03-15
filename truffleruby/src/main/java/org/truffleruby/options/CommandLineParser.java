@@ -303,16 +303,20 @@ public class CommandLineParser {
                         if (temp == null) {
                             config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), true);
                         } else {
-                            if (temp.equals("0")) {
-                                config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), 0);
-                            } else if (temp.equals("1")) {
-                                config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), 1);
-                            } else if (temp.equals("2")) {
-                                config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), 2);
-                            } else {
-                                MainExitException mee = new MainExitException(1, getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"));
-                                mee.setUsageError(true);
-                                throw mee;
+                            switch (temp) {
+                                case "0":
+                                    config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), 0);
+                                    break;
+                                case "1":
+                                    config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), 1);
+                                    break;
+                                case "2":
+                                    config.getOptions().put(OptionsCatalog.VERBOSITY.getName(), 2);
+                                    break;
+                                default:
+                                    MainExitException mee = new MainExitException(1, getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"));
+                                    mee.setUsageError(true);
+                                    throw mee;
                             }
                         }
                         break FOR;

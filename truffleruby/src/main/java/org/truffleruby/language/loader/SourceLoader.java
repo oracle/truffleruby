@@ -39,16 +39,17 @@ public class SourceLoader {
 
     @TruffleBoundary
     public Source loadMain(String path) throws IOException {
-        if (path.equals("-e")) {
-            return Source.newBuilder(new String(context.getOptions().INLINE_SCRIPT, StandardCharsets.UTF_8)).name("-e").mimeType(RubyLanguage.MIME_TYPE).build();
-        } else if (path.equals("-")) {
-            return Source.newBuilder(new InputStreamReader(System.in)).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
-        } else {
-            final File file = new File(path).getCanonicalFile();
-            ensureReadable(path, file);
+        switch (path) {
+            case "-e":
+                return Source.newBuilder(new String(context.getOptions().INLINE_SCRIPT, StandardCharsets.UTF_8)).name("-e").mimeType(RubyLanguage.MIME_TYPE).build();
+            case "-":
+                return Source.newBuilder(new InputStreamReader(System.in)).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
+            default:
+                final File file = new File(path).getCanonicalFile();
+                ensureReadable(path, file);
 
-            // The main source file *must* be named as it's given for __FILE__
-            return Source.newBuilder(file).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
+                // The main source file *must* be named as it's given for __FILE__
+                return Source.newBuilder(file).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
         }
     }
 

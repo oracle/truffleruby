@@ -526,20 +526,25 @@ public class BodyTranslator extends Translator {
                 && ((ConstParseNode) receiver).getName().equals("Truffle")) {
             // Truffle.<method>
 
-            if (methodName.equals("primitive")) {
-                throw new AssertionError("Invalid usage of Truffle.primitive at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
-            } else if (methodName.equals("invoke_primitive")) {
-                final RubyNode ret = translateRubiniusInvokePrimitive(sourceSection, node);
-                return addNewlineIfNeeded(node, ret);
-            } else if (methodName.equals("privately")) {
-                final RubyNode ret = translateRubiniusPrivately(node);
-                return addNewlineIfNeeded(node, ret);
-            } else if (methodName.equals("single_block_arg")) {
-                final RubyNode ret = translateSingleBlockArg(sourceSection, node);
-                return addNewlineIfNeeded(node, ret);
-            } else if (methodName.equals("check_frozen")) {
-                final RubyNode ret = translateCheckFrozen(sourceSection);
-                return addNewlineIfNeeded(node, ret);
+            switch (methodName) {
+                case "primitive":
+                    throw new AssertionError("Invalid usage of Truffle.primitive at " + RubyLanguage.fileLine(sourceSection.toSourceSection(source)));
+                case "invoke_primitive": {
+                    final RubyNode ret = translateRubiniusInvokePrimitive(sourceSection, node);
+                    return addNewlineIfNeeded(node, ret);
+                }
+                case "privately": {
+                    final RubyNode ret = translateRubiniusPrivately(node);
+                    return addNewlineIfNeeded(node, ret);
+                }
+                case "single_block_arg": {
+                    final RubyNode ret = translateSingleBlockArg(sourceSection, node);
+                    return addNewlineIfNeeded(node, ret);
+                }
+                case "check_frozen": {
+                    final RubyNode ret = translateCheckFrozen(sourceSection);
+                    return addNewlineIfNeeded(node, ret);
+                }
             }
         } else if (receiver instanceof Colon2ConstParseNode // Truffle::Graal.<method>
                 && ((Colon2ConstParseNode) receiver).getLeftNode() instanceof ConstParseNode
@@ -1686,38 +1691,46 @@ public class BodyTranslator extends Translator {
             name = GLOBAL_VARIABLE_ALIASES.get(name);
         }
 
-        if (name.equals("$~")) {
-            rhs = new CheckMatchVariableTypeNode(rhs);
-            rhs = WrapInThreadLocalNodeGen.create(rhs);
-            rhs.unsafeSetSourceSection(sourceSection);
-            environment.declareVarInMethodScope("$~");
-        } else if (name.equals("$0")) {
-            rhs = new CheckProgramNameVariableTypeNode(rhs);
-            rhs.unsafeSetSourceSection(sourceSection);
-        } else if (name.equals("$/")) {
-            rhs = new CheckRecordSeparatorVariableTypeNode(rhs);
-            rhs.unsafeSetSourceSection(sourceSection);
-        } else if (name.equals("$,")) {
-            rhs = new CheckOutputSeparatorVariableTypeNode(rhs);
-            rhs.unsafeSetSourceSection(sourceSection);
-        } else if (name.equals("$_")) {
-            if (getSourcePath(sourceSection).endsWith(buildPartialPath("rubysl", "rubysl-stringio", "lib", "rubysl", "stringio", "stringio.rb"))) {
-                rhs = RubiniusLastStringWriteNodeGen.create(rhs);
-            } else {
+        switch (name) {
+            case "$~":
+                rhs = new CheckMatchVariableTypeNode(rhs);
                 rhs = WrapInThreadLocalNodeGen.create(rhs);
-            }
-            rhs.unsafeSetSourceSection(sourceSection);
-            environment.declareVar("$_");
-        } else if (name.equals("$stdout")) {
-            rhs = new CheckStdoutVariableTypeNode(rhs);
-            rhs.unsafeSetSourceSection(sourceSection);
-        } else if (name.equals("$VERBOSE")) {
-            rhs = new UpdateVerbosityNode(rhs);
-            rhs.unsafeSetSourceSection(sourceSection);
-        } else if (name.equals("$@")) {
-            // $@ is a special-case and doesn't write directly to an ivar field in the globals object.
-            // Instead, it writes to the backtrace field of the thread-local $! value.
-            return withSourceSection(sourceSection, new UpdateLastBacktraceNode(rhs));
+                rhs.unsafeSetSourceSection(sourceSection);
+                environment.declareVarInMethodScope("$~");
+                break;
+            case "$0":
+                rhs = new CheckProgramNameVariableTypeNode(rhs);
+                rhs.unsafeSetSourceSection(sourceSection);
+                break;
+            case "$/":
+                rhs = new CheckRecordSeparatorVariableTypeNode(rhs);
+                rhs.unsafeSetSourceSection(sourceSection);
+                break;
+            case "$,":
+                rhs = new CheckOutputSeparatorVariableTypeNode(rhs);
+                rhs.unsafeSetSourceSection(sourceSection);
+                break;
+            case "$_":
+                if (getSourcePath(sourceSection).endsWith(buildPartialPath("rubysl", "rubysl-stringio", "lib", "rubysl", "stringio", "stringio.rb"))) {
+                    rhs = RubiniusLastStringWriteNodeGen.create(rhs);
+                } else {
+                    rhs = WrapInThreadLocalNodeGen.create(rhs);
+                }
+                rhs.unsafeSetSourceSection(sourceSection);
+                environment.declareVar("$_");
+                break;
+            case "$stdout":
+                rhs = new CheckStdoutVariableTypeNode(rhs);
+                rhs.unsafeSetSourceSection(sourceSection);
+                break;
+            case "$VERBOSE":
+                rhs = new UpdateVerbosityNode(rhs);
+                rhs.unsafeSetSourceSection(sourceSection);
+                break;
+            case "$@":
+                // $@ is a special-case and doesn't write directly to an ivar field in the globals object.
+                // Instead, it writes to the backtrace field of the thread-local $! value.
+                return withSourceSection(sourceSection, new UpdateLastBacktraceNode(rhs));
         }
 
         final boolean inCore = getSourcePath(node.getValueNode().getPosition()).startsWith(corePath());
@@ -2693,12 +2706,16 @@ public class BodyTranslator extends Translator {
 
         ParseNode operation = null;
 
-        if (op.equals("||")) {
-            operation = new OrParseNode(node.getPosition(), arrayRead, operand);
-        } else if (op.equals("&&")) {
-            operation = new AndParseNode(node.getPosition(), arrayRead, operand);
-        } else {
-            operation = new CallParseNode(node.getPosition(), arrayRead, node.getOperatorName(), buildArrayNode(node.getPosition(), operand), null);
+        switch (op) {
+            case "||":
+                operation = new OrParseNode(node.getPosition(), arrayRead, operand);
+                break;
+            case "&&":
+                operation = new AndParseNode(node.getPosition(), arrayRead, operand);
+                break;
+            default:
+                operation = new CallParseNode(node.getPosition(), arrayRead, node.getOperatorName(), buildArrayNode(node.getPosition(), operand), null);
+                break;
         }
 
         copyNewline(node, operation);
