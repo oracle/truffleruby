@@ -947,7 +947,7 @@ VALUE rb_String(VALUE value) {
 }
 
 VALUE rb_str_resize(VALUE string, long length) {
-  rb_tr_error("rb_str_resize not implemented");
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_resize", string, length);
 }
 
 VALUE rb_str_split(VALUE string, const char *split) {

@@ -45,6 +45,8 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.regexp.RegexpNodes;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
@@ -72,6 +74,7 @@ import org.truffleruby.parser.Identifiers;
 import org.truffleruby.platform.FDSet;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -561,6 +564,25 @@ public class CExtNodes {
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
             final int codePoint = StringSupport.preciseCodePoint(enc, bytes, 0, bytes.length);
             return createArray(new Object[]{len_p, codePoint}, 2);
+        }
+
+    }
+
+
+    @CoreMethod(names = "rb_str_resize", isModuleFunction = true, required = 2)
+    public abstract static class RbStrResizeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject rbStrResize(DynamicObject string, long len) {
+            final Rope rope = StringOperations.rope(string);
+            if (rope.byteLength() == len) {
+                return string;
+            }
+            final byte[] newBytes = new byte[(int) len];
+            final int copyLength = rope.byteLength() < (int) len ? rope.byteLength() : (int) len;
+            System.arraycopy(rope.getBytes(), 0, newBytes, 0, copyLength);
+            Layouts.STRING.setRope(string, RopeOperations.create(newBytes, rope.getEncoding(), rope.getCodeRange()));
+            return string;
         }
 
     }
