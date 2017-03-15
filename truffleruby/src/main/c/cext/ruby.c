@@ -1648,17 +1648,6 @@ int rb_respond_to(VALUE object, ID name) {
   return truffle_invoke_b((void *)object, "respond_to?", name);
 }
 
-VALUE rb_funcall(VALUE object, ID name, int n, ...) {
-  VALUE *args = malloc(n * sizeof(VALUE));
-  int i;
-  for (i = 0; i < n; i++) {
-    args[i] = truffle_get_arg(i + 2);
-  }
-  VALUE result = rb_funcallv(object, name, n, args);
-  free(args);
-  return result;
-}
-
 VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args) {
   if (rb_block_given_p()) {
     return rb_funcall_with_block(object, name, args_count, args, rb_block_proc());

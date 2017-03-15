@@ -801,7 +801,7 @@ VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
 // Calls
 
 int rb_respond_to(VALUE object, ID name);
-VALUE rb_funcall(VALUE object, ID name, int n, ...);
+#define rb_funcall(object, name, n, ...) truffle_invoke(RUBY_CEXT, "rb_funcall", (void *) object, name, rb_block_proc(), ##__VA_ARGS__)
 VALUE rb_funcallv(VALUE object, ID name, int args_count, const VALUE *args);
 VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *args);
 #define rb_funcall2 rb_funcallv

@@ -961,6 +961,14 @@ module Truffle::CExt
     recv.send(meth, *args)
   end
 
+  def rb_funcall(recv, meth, block, *args)
+    if block
+      recv.send(meth, *args, &block)
+    else
+      recv.send(meth, *args)
+    end
+  end
+
   def rb_apply(recv, meth, args)
     recv.send(meth, *args)
   end
