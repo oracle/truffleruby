@@ -6,38 +6,8 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-def mavenLib(mavenDep, sha1, sourceSha1, mavenLibLicense):
-    components = mavenDep.split(':')
-    if len(components) == 3:
-        groupId, artifactId, version = components
-        native = None
-    else:
-        groupId, artifactId, version, native = components
-    if native:
-        args = (groupId.replace('.', '/'), artifactId, version, artifactId, version, native)
-        base = "https://search.maven.org/remotecontent?filepath=%s/%s/%s/%s-%s-%s" % args
-    else:
-        args = (groupId.replace('.', '/'), artifactId, version, artifactId, version)
-        base = "https://search.maven.org/remotecontent?filepath=%s/%s/%s/%s-%s" % args
-    url = base + ".jar"
-    sourceUrl = base + '-sources.jar'
-    description = {
-        "urls": [url],
-        "sha1": sha1,
-        "maven": {
-            "groupId": groupId,
-            "artifactId": artifactId,
-            "version": version,
-        },
-        "license": mavenLibLicense
-    }
-    if sourceSha1:
-        description["sourceUrls"] = [sourceUrl]
-        description["sourceSha1"] = sourceSha1
-    return description
-
 suite = {
-    "mxversion": "5.80.2",
+    "mxversion": "5.82.0",
     "name": "truffleruby",
 
     "imports": {
@@ -92,60 +62,103 @@ suite = {
 
         # ------------- Libraries -------------
 
-        "ASM": mavenLib(
-          "org.ow2.asm:asm:5.0.4",
-          "0da08b8cce7bbf903602a25a3a163ae252435795",
-          None,
-          "BSD-new"),
+        "ASM": {
+            "maven": {
+                "groupId": "org.ow2.asm",
+                "artifactId": "asm",
+                "version": "5.0.4",
+            },
+            "sha1": "0da08b8cce7bbf903602a25a3a163ae252435795",
+            "license": "BSD-new",
+        },
 
-        "JNR_POSIX": mavenLib(
-          "com.github.jnr:jnr-posix:3.0.37",
-          "35a85096ba99b478a92f05693abd236988d47c6d",
-          "7a80c45c80033774e1c3f6816ee68f3f8fca0aa5",
-          "EPL-1.0"),
+        "JNR_POSIX": {
+            "maven": {
+                "groupId": "com.github.jnr",
+                "artifactId": "jnr-posix",
+                "version": "3.0.37"
+            },
+            "sha1": "35a85096ba99b478a92f05693abd236988d47c6d",
+            "sourceSha1": "7a80c45c80033774e1c3f6816ee68f3f8fca0aa5",
+            "licence": "EPL-1.0"
+        },
 
-        "JNR_CONSTANTS": mavenLib(
-          "com.github.jnr:jnr-constants:0.9.6",
-          "84955256aa28919f12b6c7c9437ed65d814a3c0c",
-          "5579ab41c687085e714fc330536ec4dda3350b08",
-          "Apache-2.0"),
+        "JNR_CONSTANTS": {
+            "maven": {
+                "groupId": "com.github.jnr",
+                "artifactId": "jnr-constants",
+                "version": "0.9.6"
+            },
+            "sha1": "84955256aa28919f12b6c7c9437ed65d814a3c0c",
+            "sourceSha1": "5579ab41c687085e714fc330536ec4dda3350b08",
+            "licence": "Apache-2.0"
+        },
 
-        "JNR_FFI": mavenLib(
-          "com.github.jnr:jnr-ffi:2.1.3",
-          "eae1dd4a7454ddbf000bb95f5c1912894221f5e1",
-          "fcd823ddc2d1d17dca8ea63ba680d6c50f388e0b",
-          "Apache-2.0"),
+        "JNR_FFI": {
+            "maven": {
+                "groupId": "com.github.jnr",
+                "artifactId": "jnr-ffi",
+                "version": "2.1.3"
+            },
+            "sha1": "eae1dd4a7454ddbf000bb95f5c1912894221f5e1",
+            "sourceSha1": "fcd823ddc2d1d17dca8ea63ba680d6c50f388e0b",
+            "licence": "Apache-2.0"
+        },
 
-        "JFFI": mavenLib(
-          "com.github.jnr:jffi:1.2.13",
-          "8926bd0b2d0e9a46e7607eb7866356845c7df9a2",
-          "691ec868b9569092687553a8099a28f71f175097",
-          "Apache-2.0"),
+        "JFFI": {
+            "maven": {
+                "groupId": "com.github.jnr",
+                "artifactId": "jffi",
+                "version": "1.2.13"
+            },
+            "sha1": "8926bd0b2d0e9a46e7607eb7866356845c7df9a2",
+            "sourceSha1": "691ec868b9569092687553a8099a28f71f175097",
+            "licence": "Apache-2.0"
+        },
 
-        "JFFI_NATIVE": mavenLib(
-          "com.github.jnr:jffi:1.2.13:native",
-          "c4b81ddacd1e94a73780aa6e4e8b9d2945d5eb4c",
-          None,
-          ["Apache-2.0", "MIT"]),
+        "JFFI_NATIVE": {
+            "maven": {
+                "groupId": "com.github.jnr",
+                "artifactId": "jffi",
+                "version": "1.2.13",
+                "suffix": "native"
+            },
+            "sha1": "c4b81ddacd1e94a73780aa6e4e8b9d2945d5eb4c",
+            "licenses": ["Apache-2.0", "MIT"]
+        },
 
-        "SNAKEYAML": mavenLib(
-            "org.yaml:snakeyaml:1.14",
-            "c2df91929ed06a25001939929bff5120e0ea3fd4",
-            "4c6bcedc3efa772a5ae1c2fd01efee8e4d15edac",
-            "Apache-2.0"),
+        "SNAKEYAML": {
+            "maven": {
+                "groupId": "org.yaml",
+                "artifactId": "snakeyaml",
+                "version": "1.14"
+            },
+            "sha1": "c2df91929ed06a25001939929bff5120e0ea3fd4",
+            "sourceSha1": "4c6bcedc3efa772a5ae1c2fd01efee8e4d15edac",
+            "licence": "Apache-2.0"
+        },
 
-        "JONI": mavenLib(
-            "org.jruby.joni:joni:2.1.11",
-            "655cc3aba1bc9dbdd653f28937bec16f3e9c4cec",
-            "2982d6beb2f8fabe5ac5cc9dec6b4d6a9ffeedb1",
-            "MIT"),
+        "JONI": {
+            "maven": {
+                "groupId": "org.jruby.joni",
+                "artifactId": "joni",
+                "version": "2.1.11"
+            },
+            "sha1": "655cc3aba1bc9dbdd653f28937bec16f3e9c4cec",
+            "sourceSha1": "2982d6beb2f8fabe5ac5cc9dec6b4d6a9ffeedb1",
+            "licence": "MIT"
+        },
 
-        "JCODINGS": mavenLib(
-            "org.jruby.jcodings:jcodings:1.0.18",
-            "e2c76a19f00128bb1806207e2989139bfb45f49d",
-            "201985f0f15af95f03494ab9ef0400e849090d6c",
-            "MIT"),
-
+        "JCODINGS": {
+            "maven": {
+                "groupId": "org.jruby.jcodings",
+                "artifactId": "jcodings",
+                "version": "1.0.18"
+            },
+            "sha1": "e2c76a19f00128bb1806207e2989139bfb45f49d",
+            "sourceSha1": "201985f0f15af95f03494ab9ef0400e849090d6c",
+            "licence": "MIT"
+        },
     },
 
     "projects": {
