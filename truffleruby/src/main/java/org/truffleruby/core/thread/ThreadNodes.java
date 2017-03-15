@@ -409,11 +409,13 @@ public abstract class ThreadNodes {
         @Specialization(guards = {"isRubyProc(unblocker)", "isRubyProc(runner)"})
         public Object unblock(VirtualFrame frame, DynamicObject thread, DynamicObject unblocker, DynamicObject runner) {
             Layouts.THREAD.setUnblocker(thread, unblocker);
+            Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
 
             try {
                 return yield(frame, runner);
             } finally {
                 Layouts.THREAD.setUnblocker(thread, null);
+                Layouts.THREAD.setStatus(thread, ThreadStatus.RUN);
             }
         }
 
