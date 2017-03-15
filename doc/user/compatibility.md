@@ -180,7 +180,7 @@ In some cases we provide some of the classes available under the `Rubinius`
 module for historical reasons and for compatibility with the RubySL gems,
 but these may behave differently or be removed in future versions.
 
-## Features not yet supported on the SVM
+## Features not yet supported on the SVM
 
 * Signal handlers
 * Finalizers
