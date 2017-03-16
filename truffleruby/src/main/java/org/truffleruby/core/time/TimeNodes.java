@@ -212,6 +212,23 @@ public abstract class TimeNodes {
 
     }
 
+    @Primitive(name = "time_s_dup")
+    public static abstract class TimeSDupNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+
+        @Specialization
+        public DynamicObject timeSDup(VirtualFrame frame, DynamicObject timeClass, DynamicObject other) {
+            return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
+                    Layouts.TIME.getDateTime(other),
+                    Layouts.TIME.getZone(other),
+                    Layouts.TIME.getOffset(other),
+                    Layouts.TIME.getRelativeOffset(other),
+                    Layouts.TIME.getIsUtc(other)));
+        }
+
+    }
+
     @Primitive(name = "time_s_specific", lowerFixnum = 2)
     public static abstract class TimeSSpecificPrimitiveNode extends PrimitiveArrayArgumentsNode {
 

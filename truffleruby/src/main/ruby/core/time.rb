@@ -529,7 +529,4 @@ class Time
     dup_internal self.class
   end
 
-  def self.duplicate(other)
-    other.dup
-  end
 end
