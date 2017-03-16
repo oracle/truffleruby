@@ -41,6 +41,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
+import javax.xml.ws.spi.WebServiceFeatureAnnotation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -246,8 +247,13 @@ public abstract class TruffleDebugNodes {
         public DynamicObject logWarning(
                 VirtualFrame frame, Object value,
                 @Cached("create()") NameToJavaStringNode toJavaStringNode) {
-            Log.LOGGER.warning(toJavaStringNode.executeToJavaString(frame, value));
+            logWarning(toJavaStringNode.executeToJavaString(frame, value));
             return nil();
+        }
+
+        @TruffleBoundary
+        private void logWarning(String message) {
+            Log.LOGGER.warning(message);
         }
 
     }
