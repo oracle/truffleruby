@@ -318,14 +318,8 @@ public abstract class StringNodes {
         }
     }
 
-    @CoreMethod(names = "<=>", required = 1)
+    @Primitive(name = "string_cmp")
     public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private CallDispatchHeadNode cmpNode;
-        @Child private CmpIntNode cmpIntNode;
-        @Child private KernelNodes.RespondToNode respondToCmpNode;
-        @Child private KernelNodes.RespondToNode respondToToStrNode;
-        @Child private ToStrNode toStrNode;
 
         @Specialization(guards = "isRubyString(b)")
         public int compare(DynamicObject a, DynamicObject b) {
@@ -345,56 +339,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "!isRubyString(b)")
         public Object compare(VirtualFrame frame, DynamicObject a, Object b) {
-            if (respondToToStrNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToToStrNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
-            }
-
-            if (respondToToStrNode.doesRespondToString(frame, b, create7BitString("to_str", UTF8Encoding.INSTANCE), false)) {
-                if (toStrNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    toStrNode = insert(ToStrNodeGen.create(null));
-                }
-
-                try {
-                    final DynamicObject coerced = toStrNode.executeToStr(frame, b);
-
-                    return compare(a, coerced);
-                } catch (RaiseException e) {
-                    if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getTypeErrorClass()) {
-                        return nil();
-                    } else {
-                        throw e;
-                    }
-                }
-            }
-
-            if (respondToCmpNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToCmpNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
-            }
-
-            if (respondToCmpNode.doesRespondToString(frame, b, create7BitString("<=>", UTF8Encoding.INSTANCE), false)) {
-                if (cmpNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    cmpNode = insert(DispatchHeadNodeFactory.createMethodCall());
-                }
-
-                final Object cmpResult = cmpNode.call(frame, b, "<=>", a);
-
-                if (cmpResult == nil()) {
-                    return nil();
-                }
-
-                if (cmpIntNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    cmpIntNode = insert(CmpIntNodeGen.create(null, null, null));
-                }
-
-                return -(cmpIntNode.executeCmpInt(frame, cmpResult, a, b));
-            }
-
-            return nil();
+            return null;
         }
     }
 

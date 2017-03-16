@@ -1666,4 +1666,21 @@ class String
     Truffle.invoke_primitive :encoding_get_object_encoding, self
   end
 
+  def <=>(other)
+    Truffle.primitive :string_cmp
+
+    Thread.detect_recursion self, other do
+      if other.respond_to?(:<=>) && !other.respond_to?(:to_str)
+        return unless tmp = (other <=> self)
+      elsif other.respond_to?(:to_str)
+        return unless tmp = (other.to_str <=> self)
+      else
+        return
+      end
+      return -tmp # We're not supposed to convert to integer here
+    end
+
+    nil
+  end
+
 end
