@@ -613,6 +613,7 @@ rb_encoding *rb_enc_get(VALUE object);
 void rb_enc_set_index(VALUE obj, int idx);
 #define RB_ENCODING_SET(obj,i) rb_enc_set_index((obj), (i))
 #define ENCODING_SET(obj,i) RB_ENCODING_SET(obj,i)
+void rb_must_asciicompat(VALUE str);
 rb_encoding *rb_ascii8bit_encoding(void);
 int rb_ascii8bit_encindex(void);
 rb_encoding *rb_usascii_encoding(void);

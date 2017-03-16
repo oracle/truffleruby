@@ -962,8 +962,20 @@ VALUE rb_cstr2inum(const char *string, int base) {
   return rb_cstr_to_inum(string, base, base==0);
 }
 
+VALUE rb_str_to_inum(VALUE str, int base, int badcheck) {
+  char *s;
+  StringValue(str);
+  rb_must_asciicompat(str);
+  if (badcheck) {
+    s = StringValueCStr(str);
+  } else {
+    s = RSTRING_PTR(str);
+  }
+  return rb_cstr_to_inum(s, base, badcheck);
+}
+
 VALUE rb_str2inum(VALUE string, int base) {
-  rb_tr_error("rb_str2inum not implemented");
+  return rb_str_to_inum(string, base, base==0);
 }
 
 VALUE rb_str_buf_new_cstr(const char *string) {
@@ -1161,6 +1173,17 @@ int rb_ascii8bit_encindex(void) {
 
 rb_encoding *rb_usascii_encoding(void) {
   return rb_to_encoding(truffle_invoke(RUBY_CEXT, "usascii_encoding"));
+}
+
+int rb_enc_asciicompat(rb_encoding *enc){
+  return truffle_invoke_b(rb_enc_from_encoding(enc), "ascii_compatible?");
+}
+
+void rb_must_asciicompat(VALUE str) {
+  rb_encoding *enc = rb_enc_get(str);
+  if (!rb_enc_asciicompat(enc)) {
+    rb_raise(rb_eEncCompatError, "ASCII incompatible encoding: %s", rb_enc_name(enc));
+  }
 }
 
 int rb_usascii_encindex(void) {
