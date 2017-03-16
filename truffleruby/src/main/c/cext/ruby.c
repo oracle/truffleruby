@@ -876,7 +876,9 @@ VALUE rb_str_new(const char *string, long length) {
 
 VALUE rb_str_new_cstr(const char *string) {
   if (truffle_is_truffle_object((VALUE) string)) {
-    return (VALUE) truffle_invoke(RUBY_CEXT, "to_ruby_string", string);
+    VALUE ruby_string = (VALUE) truffle_invoke(RUBY_CEXT, "to_ruby_string", string);
+    int len = strlen(string);
+    return (VALUE) truffle_invoke(ruby_string, "[]", 0, len);
   } else {
     return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new_cstr", truffle_read_string(string));
   }

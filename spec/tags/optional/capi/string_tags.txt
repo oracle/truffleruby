@@ -1,8 +1,6 @@
 fails:C-API String function rb_str_buf_new returns a string whose bytes can be accessed by RSTRING_PTR
 fails:C-API String function rb_str_buf_new returns a string that can be modified by rb_str_set_len
-fails:C-API String function rb_str_new2 returns a new string object calling strlen on the passed C string
 fails:C-API String function rb_str_new2 encodes the string with ASCII_8BIT
-fails:C-API String function rb_str_new_cstr returns a new string object calling strlen on the passed C string
 fails:C-API String function rb_str_new_cstr encodes the string with ASCII_8BIT
 fails:C-API String function rb_str_encode accepts an encoding options Hash specifying replacement String
 fails:C-API String function rb_str_subseq returns a byte-indexed substring
