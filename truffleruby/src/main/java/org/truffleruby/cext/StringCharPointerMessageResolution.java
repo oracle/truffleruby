@@ -59,7 +59,14 @@ public class StringCharPointerMessageResolution {
     public static abstract class CharPointerGetSizeNode extends Node {
 
         protected Object access(StringCharPointerAdapter stringCharPointerAdapter) {
-            return rope(stringCharPointerAdapter.getString()).byteLength();
+            byte[] bytes = rope(stringCharPointerAdapter.getString()).getBytes();
+            int i = 0;
+            for (;i < bytes.length; i++) {
+                if (bytes[i] == 0) {
+                    break;
+                }
+            }
+            return i;
         }
 
     }
