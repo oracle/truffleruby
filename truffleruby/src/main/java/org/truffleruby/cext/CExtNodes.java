@@ -46,7 +46,9 @@ import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
@@ -74,9 +76,10 @@ import org.truffleruby.parser.Identifiers;
 import org.truffleruby.platform.FDSet;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.truffleruby.core.string.StringOperations.rope;
 
 @CoreClass("Truffle::CExt")
 public class CExtNodes {
@@ -569,22 +572,64 @@ public class CExtNodes {
     }
 
 
-    @CoreMethod(names = "rb_str_resize", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "rb_str_resize", isModuleFunction = true, required = 2, lowerFixnum = 2)
     public abstract static class RbStrResizeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public DynamicObject rbStrResize(DynamicObject string, long len) {
-            final Rope rope = StringOperations.rope(string);
-            if (rope.byteLength() == len) {
-                return string;
-            }
-            final byte[] newBytes = new byte[(int) len];
-            final int copyLength = rope.byteLength() < (int) len ? rope.byteLength() : (int) len;
-            System.arraycopy(rope.getBytes(), 0, newBytes, 0, copyLength);
-            Layouts.STRING.setRope(string, RopeOperations.create(newBytes, rope.getEncoding(), rope.getCodeRange()));
+        @Specialization(guards = "shouldNoop(string, len)")
+        public DynamicObject rbStrResizeSame(DynamicObject string, int len) {
             return string;
         }
 
+        @Specialization(guards = "shouldShrink(string, len)")
+        public DynamicObject rbStrResizeShrink(DynamicObject string, int len,
+                                               @Cached("create()") RopeNodes.MakeSubstringNode makeSubstringNode) {
+            StringOperations.setRope(string, makeSubstringNode.executeMake(rope(string), 0, (int) len));
+            return string;
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = { "!shouldNoop(string, len)", "!shouldShrink(string, len)" })
+        public DynamicObject rbStrResizeGrow(DynamicObject string, int len,
+                                             @Cached("create()") RopeNodes.MakeSubstringNode makeSubstringNode,
+                                             @Cached("create()") RopeNodes.MakeConcatNode makeConcatNode,
+                                             @Cached("create()") RopeNodes.MakeRepeatingNode makeRepeatingNode) {
+            final Rope rope = rope(string);
+
+            if (rope instanceof SubstringRope) {
+                final Rope nullAppended = makeConcatNode.executeMake(rope, RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], rope.getEncoding());
+
+                if (nullAppended.byteLength() == len) {
+                    StringOperations.setRope(string, nullAppended);
+                } else {
+                    final SubstringRope substringRope = (SubstringRope) rope;
+                    final Rope base = substringRope.getChild();
+
+                    final int lenFromBase = base.byteLength() <= len ? len - base.byteLength() : len - nullAppended.byteLength();
+                    final Rope fromBase = makeSubstringNode.executeMake(base, nullAppended.byteLength(), lenFromBase);
+                    final Rope withBase = makeConcatNode.executeMake(nullAppended, fromBase, nullAppended.getEncoding());
+
+                    if (withBase.byteLength() == len) {
+                        StringOperations.setRope(string, withBase);
+                    } else {
+                        final Rope filler = makeRepeatingNode.executeMake(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - withBase.byteLength());
+                        StringOperations.setRope(string, makeConcatNode.executeMake(withBase, filler, rope.getEncoding()));
+                    }
+                }
+            } else {
+                final Rope filler = makeRepeatingNode.executeMake(RopeConstants.UTF8_SINGLE_BYTE_ROPES[0], len - rope.byteLength());
+                StringOperations.setRope(string, makeConcatNode.executeMake(rope, filler, rope.getEncoding()));
+            }
+
+            return string;
+        }
+
+        protected static boolean shouldNoop(DynamicObject string, long len) {
+            return rope(string).byteLength() == len;
+        }
+
+        protected static boolean shouldShrink(DynamicObject string, long len) {
+            return rope(string).byteLength() > len;
+        }
     }
 
     @CoreMethod(names = "rb_enc_from_encoding", isModuleFunction = true, required = 1)

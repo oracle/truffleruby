@@ -1,4 +1,3 @@
-fails:C-API String function rb_str_set_len inserts a NULL byte at the length
 fails:C-API String function rb_str_buf_new returns a string whose bytes can be accessed by RSTRING_PTR
 fails:C-API String function rb_str_buf_new returns a string that can be modified by rb_str_set_len
 fails:C-API String function rb_str_new2 returns a new string object calling strlen on the passed C string
