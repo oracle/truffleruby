@@ -935,7 +935,7 @@ VALUE rb_str_append(VALUE string, VALUE to_append) {
 }
 
 void rb_str_set_len(VALUE string, long length) {
-  rb_tr_error("rb_str_set_len not implemented");
+  rb_str_resize(string, length);
 }
 
 VALUE rb_str_new_frozen(VALUE value) {
