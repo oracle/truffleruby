@@ -80,8 +80,12 @@ class Gem::RemoteFetcher
           remote_gem_path = source_uri + "gems/#{gem_file_name}"
 
           # TruffleRuby: start
-          cmd = "wget -q #{remote_gem_path} -O #{local_gem_path}"
-          `#{cmd}`
+          if (`wget --help` rescue nil)
+            cmd = "wget -q #{remote_gem_path} -O #{local_gem_path}"
+           `#{cmd}`
+          else
+            raise 'wget is missing'
+          end
           # self.cache_update_path remote_gem_path, local_gem_path
           # TruffleRuby: end
         rescue Gem::RemoteFetcher::FetchError

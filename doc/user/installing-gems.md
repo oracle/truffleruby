@@ -7,7 +7,7 @@ install but nothing will be compiled. If the gem does not contain a pure
 Ruby implementation of the C extension the gem will not function properly (
 e.g. `nokogiri`, Active Record drivers, etc).
 
-The patches will be eventually removed.
+The patches require `wget` and `curl` to be installed, The patches will be eventually removed.
 
 Examples:
 

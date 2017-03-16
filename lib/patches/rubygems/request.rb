@@ -32,7 +32,11 @@ class Gem::Request
     # TruffleRuby: start
     if @uri.scheme == "https"
       resp = CurlResponse.new("1.1", 200, "OK")
-      resp_raw = `curl -i -s #{@uri}`
+      resp_raw = if (`curl --help` rescue nil)
+                   `curl -i -s #{@uri}`
+                 else
+                   raise 'curl is missing'
+                 end
       index_offset = resp_raw.start_with?(HTTP_PROXY_HEADER) ? HTTP_PROXY_HEADER.size : 0
       blank_line_idx = resp_raw.index("\r\n\r\n", index_offset)
       header = resp_raw[0, blank_line_idx]
