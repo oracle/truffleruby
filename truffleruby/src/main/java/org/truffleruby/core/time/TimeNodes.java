@@ -218,7 +218,7 @@ public abstract class TimeNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        public DynamicObject timeSDup(VirtualFrame frame, DynamicObject timeClass, DynamicObject other) {
+        public DynamicObject timeSDup(DynamicObject timeClass, DynamicObject other) {
             return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
                     Layouts.TIME.getDateTime(other),
                     Layouts.TIME.getZone(other),
