@@ -19,7 +19,7 @@ module Bundler
         response = if uri.scheme == "https"
                      resp           = CurlResponse.new("1.1", 200, "OK")
                      resp_raw = if (`curl --help` rescue nil)
-                                  `curl -i -s #{@uri}`
+                                  `curl -i -s #{uri}`
                                 else
                                   raise 'curl is missing'
                                 end
