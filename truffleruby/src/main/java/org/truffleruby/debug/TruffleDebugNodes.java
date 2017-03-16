@@ -41,7 +41,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
-import javax.xml.ws.spi.WebServiceFeatureAnnotation;
 import java.util.ArrayList;
 import java.util.List;
 
