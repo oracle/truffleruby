@@ -7,7 +7,7 @@ class OpenStruct
   # retain the original definition, which leaves @table uninitialized.
   def respond_to_missing?(mid, include_private = false)
     mname = mid.to_s.chomp("=").to_sym
-    (@table && @table.key?(mname)) || super
+    @table&.key?(mname) || super
   end
 
 end
