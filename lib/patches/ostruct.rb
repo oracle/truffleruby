@@ -1,7 +1,7 @@
 class OpenStruct
 
   # This is copied from the original OpenStruct definition, but modified to
-  # check if @table is nil before trying to read from it. OpenStrruct aliases
+  # check if @table is nil before trying to read from it. OpenStruct aliases
   # `allocate` to `new`, which normally would ensure @table is initialized.
   # However, we're unable to accurately retarget `allocate` and thus must
   # retain the original definition, which leaves @table uninitialized.
