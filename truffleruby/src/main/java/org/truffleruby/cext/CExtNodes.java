@@ -583,7 +583,7 @@ public class CExtNodes {
         @Specialization(guards = "shouldShrink(string, len)")
         public DynamicObject rbStrResizeShrink(DynamicObject string, int len,
                                                @Cached("create()") RopeNodes.MakeSubstringNode makeSubstringNode) {
-            StringOperations.setRope(string, makeSubstringNode.executeMake(rope(string), 0, (int) len));
+            StringOperations.setRope(string, makeSubstringNode.executeMake(rope(string), 0, len));
             return string;
         }
 
