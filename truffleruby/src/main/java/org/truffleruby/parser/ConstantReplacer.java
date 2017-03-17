@@ -43,7 +43,7 @@ public class ConstantReplacer {
         // whether $SAFE is supported. Since our RUBY_ENGINE value doesn't match either of those values, it is assumed
         // that we support $SAFE, which we do not. In order to properly pass the tests, we pretend that we're JRuby here.
         // We could pretend that we're Rubinius, but the tzinfo tests have other workarounds specific to Rubinius.
-        if (source.getName().endsWith("test_utils.rb")) {
+        if (source.getName().endsWith("tzinfo/test/test_utils.rb")) {
             if (name.equals("RUBY_ENGINE")) {
                 return name + "_FAKE_JRUBY";
             }
