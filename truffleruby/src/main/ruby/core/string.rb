@@ -1680,13 +1680,9 @@ class String
 
       # Normalize the results to be in {-1, 0, 1}. Also, since at this point we've inverted the objects being compared,
       # we must now invert the results.
-      if tmp == 0
-        return 0
-      elsif tmp > 0
-        return -1
-      else
-        return 1
-      end
+      return -1 if tmp > 0
+      return 1  if tmp < 0
+      return 0
     end
 
     nil # Fallback value if recursive calls are detected.
