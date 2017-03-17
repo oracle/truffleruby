@@ -389,7 +389,7 @@ public abstract class TimeNodes {
         @TruffleBoundary
         private DynamicObject buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month, int year,
                 int nsec, int isdst, boolean fromutc, Object utcoffset, TimeZoneAndName envZone, int zoneOffsetMillis) {
-            if (sec < 0 || sec > 59 ||
+            if (sec < 0 || sec > 60 ||
                     min < 0 || min > 59 ||
                     hour < 0 || hour > 23 ||
                     mday < 1 || mday > 31 ||
