@@ -39,6 +39,16 @@ public class ConstantReplacer {
             }
         }
 
+        // The tzinfo gem checks if RUBY_ENGINE is defined and the value is either 'jruby' or 'rbx' to determine
+        // whether $SAFE is supported. Since our RUBY_ENGINE value doesn't match either of those values, it is assumed
+        // that we support $SAFE, which we do not. In order to properly pass the tests, we pretend that we're JRuby here.
+        // We could pretend that we're Rubinius, but the tzinfo tests have other workarounds specific to Rubinius.
+        if (source.getName().endsWith("test_utils.rb")) {
+            if (name.equals("RUBY_ENGINE")) {
+                return name + "_FAKE_JRUBY";
+            }
+        }
+
         return name;
     }
 
