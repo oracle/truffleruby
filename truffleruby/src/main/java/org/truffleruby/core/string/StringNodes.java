@@ -4024,7 +4024,7 @@ public abstract class StringNodes {
                 final Rope left = concatRope.getLeft();
                 final Rope right = concatRope.getRight();
 
-                if (index < left.characterLength()) {
+                if (index + characterLength < left.characterLength()) {
                     return searchForSingleByteOptimizableDescendant(left, index, characterLength);
                 } else if (index >= left.characterLength()) {
                     return searchForSingleByteOptimizableDescendant(right, index - left.characterLength(), characterLength);
