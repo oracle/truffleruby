@@ -12,6 +12,9 @@
 package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -25,10 +28,13 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
@@ -38,10 +44,12 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static org.truffleruby.core.string.StringOperations.rope;
@@ -338,6 +346,58 @@ public abstract class EncodingConverterNodes {
             }
 
             return createArray(ret, ret.length);
+        }
+
+    }
+
+    @CoreMethod(names = "replacement")
+    public abstract static class EncodingConverterReplacementNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject getReplacement(DynamicObject encodingConverter) {
+            final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
+
+            final int ret = ec.makeReplacement();
+            if (ret == -1) {
+                throw new RaiseException(getContext().getCoreExceptions().encodingUndefinedConversionError(this));
+            }
+
+            final byte[] bytes = ArrayUtils.extractRange(ec.replacementString, 0, ec.replacementLength);
+            final String encodingName = new String(ec.replacementEncoding, StandardCharsets.US_ASCII);
+            final DynamicObject encoding = getContext().getEncodingManager().getRubyEncoding(encodingName);
+
+            return createString(bytes, Layouts.ENCODING.getEncoding(encoding));
+        }
+
+    }
+
+    @CoreMethod(names = "replacement=", required = 1)
+    @NodeChildren({
+        @NodeChild(value = "encodingConverter", type = RubyNode.class),
+        @NodeChild(value = "replacement", type = RubyNode.class)
+    })
+    public abstract static class EncodingConverterSetReplacementNode extends CoreMethodNode {
+
+        @CreateCast("replacement")
+        public RubyNode coerceReplacementToString(RubyNode replacement) {
+            return ToStrNodeGen.create(replacement);
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject setReplacement(DynamicObject encodingConverter, DynamicObject replacement) {
+            final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
+            final Rope rope = StringOperations.rope(replacement);
+            final Encoding encoding = rope.getEncoding();
+
+            final int ret = ec.setReplacement(rope.getBytes(), 0, rope.byteLength(), encoding.getName());
+
+            if (ret == -1) {
+                throw new RaiseException(getContext().getCoreExceptions().encodingUndefinedConversionError(this));
+            }
+
+            return replacement;
         }
 
     }

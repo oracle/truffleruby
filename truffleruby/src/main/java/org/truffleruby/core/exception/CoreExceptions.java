@@ -782,7 +782,7 @@ public class CoreExceptions {
                 context.getCallStack().getBacktrace(currentNode));
     }
 
-    // EncodingCompatibilityError
+    // Encoding conversion errors.
 
     @TruffleBoundary
     public DynamicObject encodingCompatibilityErrorIncompatible(Encoding a, Encoding b, Node currentNode) {
@@ -801,6 +801,15 @@ public class CoreExceptions {
                 StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
                 context.getCallStack().getBacktrace(currentNode));
     }
+
+    @TruffleBoundary
+    public DynamicObject encodingUndefinedConversionError(Node currentNode) {
+        return ExceptionOperations.createRubyException(
+                context.getCoreLibrary().getEncodingUndefinedConversionErrorClass(),
+                coreStrings().REPLACEMENT_CHARACTER_SETUP_FAILED.createInstance(),
+                context.getCallStack().getBacktrace(currentNode));
+    }
+
 
     // FiberError
 

@@ -17,7 +17,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.Layout;
@@ -246,6 +245,7 @@ public class CoreLibrary {
     private final DynamicObject truffleKernelModule;
     private final DynamicObject bigDecimalClass;
     private final DynamicObject encodingCompatibilityErrorClass;
+    private final DynamicObject encodingUndefinedConversionErrorClass;
     private final DynamicObject methodClass;
     private final DynamicObjectFactory methodFactory;
     private final DynamicObject unboundMethodClass;
@@ -567,6 +567,7 @@ public class CoreLibrary {
         // The rest
 
         encodingCompatibilityErrorClass = defineClass(encodingClass, encodingErrorClass, "CompatibilityError");
+        encodingUndefinedConversionErrorClass = defineClass(encodingClass, encodingErrorClass, "UndefinedConversionError");
 
         encodingConverterClass = defineClass(encodingClass, objectClass, "Converter");
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingConverterClass, Layouts.ENCODING_CONVERTER.createEncodingConverterShape(encodingConverterClass, encodingConverterClass));
@@ -1446,6 +1447,10 @@ public class CoreLibrary {
 
     public DynamicObject getEncodingCompatibilityErrorClass() {
         return encodingCompatibilityErrorClass;
+    }
+
+    public DynamicObject getEncodingUndefinedConversionErrorClass() {
+        return encodingUndefinedConversionErrorClass;
     }
 
     public DynamicObject getFiberErrorClass() {

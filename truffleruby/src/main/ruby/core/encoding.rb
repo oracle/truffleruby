@@ -143,7 +143,6 @@ class Encoding
   class Converter
     attr_accessor :source_encoding
     attr_accessor :destination_encoding
-    attr_reader :replacement
     attr_reader :options
 
     def self.asciicompat_encoding(string_or_encoding)
@@ -194,7 +193,7 @@ class Encoding
             @options |= XML_ATTR_QUOTE_DECORATOR
           end
 
-          replacement = options[:replace]
+          new_replacement = options[:replace]
         end
       end
 
@@ -211,29 +210,25 @@ class Encoding
         raise ConverterNotFoundError, msg
       end
 
-      if @options & (INVALID_REPLACE | UNDEF_REPLACE | UNDEF_HEX_CHARREF)
-        if replacement.nil?
-          if @destination_encoding == Encoding::UTF_8
-            @replacement = "\xef\xbf\xbd".force_encoding(Encoding::UTF_8)
-          else
-            @replacement = "?".force_encoding(Encoding::US_ASCII)
+      initialize_jruby(*[@source_encoding, @destination_encoding, @options])
+
+      if (@options & (INVALID_REPLACE | UNDEF_REPLACE | UNDEF_HEX_CHARREF))
+        unless new_replacement.nil?
+          new_replacement = Rubinius::Type.coerce_to new_replacement, String, :to_str
+          self.replacement = new_replacement # We can only call `self.replacement=` after the converter has been initialized.
+
+          replacement_encoding_name = new_replacement.encoding.name.upcase
+          @replacement_converters = []
+
+          @convpath.each do |enc|
+            name = enc.to_s.upcase
+            next if name == replacement_encoding_name
+
+            _, converters = TranscodingPath[replacement_encoding_name.to_sym, enc]
+            @replacement_converters << name << converters
           end
-        else
-          @replacement = Rubinius::Type.coerce_to replacement, String, :to_str
-        end
-
-        replacement_encoding_name = @replacement.encoding.name.upcase
-        @replacement_converters = []
-
-        @convpath.each do |enc|
-          name = enc.to_s.upcase
-          next if name == replacement_encoding_name
-
-          _, converters = TranscodingPath[replacement_encoding_name.to_sym, enc]
-          @replacement_converters << name << converters
         end
       end
-      initialize_jruby(*[@source_encoding, @destination_encoding, @options])
     end
 
     def convert(str)
@@ -425,12 +420,6 @@ class Encoding
 
     def inspect
       "#<Encoding::Converter: #{source_encoding.name} to #{destination_encoding.name}>"
-    end
-
-    def replacement=(str)
-      str = StringValue(str)
-
-      @replacement = str.encode(@destination_encoding)
     end
 
     class TranscodingPath

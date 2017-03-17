@@ -35,6 +35,7 @@ public class CoreStrings {
     public final CoreString ONE_HASH_REQUIRED;
     public final CoreString OUT_OF_RANGE;
     public final CoreString PROC_WITHOUT_BLOCK;
+    public final CoreString REPLACEMENT_CHARACTER_SETUP_FAILED;
     public final CoreString RESOURCE_TEMP_UNAVAIL;
     public final CoreString UNKNOWN;
     public final CoreString SELF;
@@ -68,6 +69,7 @@ public class CoreStrings {
         ONE_HASH_REQUIRED = new CoreString(context, "one hash required");
         OUT_OF_RANGE = new CoreString(context, "out of range");
         PROC_WITHOUT_BLOCK = new CoreString(context, "tried to create Proc object without a block");
+        REPLACEMENT_CHARACTER_SETUP_FAILED = new CoreString(context, "replacement character setup failed");
         RESOURCE_TEMP_UNAVAIL = new CoreString(context, "Resource temporarily unavailable");
         UNKNOWN = new CoreString(context, "(unknown)");
         SELF = new CoreString(context, "self");
