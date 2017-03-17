@@ -1671,16 +1671,25 @@ class String
 
     Thread.detect_recursion self, other do
       if other.respond_to?(:<=>) && !other.respond_to?(:to_str)
-        return unless tmp = (other <=> self)
+        return nil unless tmp = (other <=> self)
       elsif other.respond_to?(:to_str)
-        return unless tmp = (other.to_str <=> self)
+        return nil unless tmp = (other.to_str <=> self)
       else
-        return
+        return nil
       end
-      return -tmp # We're not supposed to convert to integer here
+
+      # Normalize the results to be in {-1, 0, 1}. Also, since at this point we've inverted the objects being compared,
+      # we must now invert the results.
+      if tmp == 0
+        return 0
+      elsif tmp > 0
+        return -1
+      else
+        return 1
+      end
     end
 
-    nil
+    nil # Fallback value if recursive calls are detected.
   end
 
 end
