@@ -96,8 +96,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ArrayAttributeCastNodeGen;
-import org.truffleruby.core.cast.CmpIntNode;
-import org.truffleruby.core.cast.CmpIntNodeGen;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -152,6 +150,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
+import static org.truffleruby.core.rope.RopeNodes.MakeConcatNode.commonCodeRange;
 import static org.truffleruby.core.string.StringOperations.encoding;
 import static org.truffleruby.core.string.StringOperations.rope;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_LEN;
@@ -3880,7 +3879,7 @@ public abstract class StringNodes {
             byteList.setEncoding(encoding);
 
             final Rope buffer = new RopeBuffer(byteList,
-                    RopeNodes.MakeConcatNode.commonCodeRange(source.getCodeRange(), insert.getCodeRange(), sameCodeRangeProfile, brokenCodeRangeProfile),
+                    commonCodeRange(source.getCodeRange(), insert.getCodeRange(), sameCodeRangeProfile, brokenCodeRangeProfile),
                     source.isSingleByteOptimizable() && insert.isSingleByteOptimizable(),
                     source.characterLength() + insert.characterLength() - byteCountToReplace);
 
