@@ -35,12 +35,6 @@
 class Dir
   include Enumerable
 
-  # This seems silly, I know. But we do this to make Dir more resistent to people
-  # screwing with ::File later (ie, fakefs)
-  PrivateFile = ::File
-
-  FFI = Rubinius::FFI
-
   attr_reader :path
   alias_method :to_path, :path
 
@@ -95,161 +89,165 @@ class Dir
     "#<#{self.class}:#{object_id.to_s(16)} @path=#{@path}>"
   end
 
-  def self.open(path, options=undefined)
-    dir = new path, options
-    if block_given?
-      begin
-        value = yield dir
-      ensure
-        dir.close
-      end
-
-      return value
-    else
-      return dir
-    end
-  end
-
-  def self.entries(path, options=undefined)
-    ret = []
-
-    open(path, options) do |dir|
-      while s = dir.read
-        ret << s
-      end
-    end
-
-    ret
-  end
-
-  def self.exist?(path)
-    PrivateFile.directory?(path)
-  end
-
   class << self
-    alias_method :exists?, :exist?
-  end
 
-  def self.home(user=nil)
-    PrivateFile.expand_path("~#{user}")
-  end
+    # This seems silly, I know. But we do this to make Dir more resistent to people
+    # screwing with ::File later (ie, fakefs)
+    PrivateFile = ::File
 
-  def self.[](*patterns)
-    if patterns.size == 1
-      pattern = Rubinius::Type.coerce_to_path(patterns[0])
-      return [] if pattern.empty?
-      patterns = glob_split pattern
-    end
+    def open(path, options=undefined)
+      dir = new path, options
+      if block_given?
+        begin
+          value = yield dir
+        ensure
+          dir.close
+        end
 
-    glob patterns
-  end
-
-  def self.glob(pattern, flags=0, &block)
-    if pattern.kind_of? Array
-      patterns = pattern
-    else
-      pattern = Rubinius::Type.coerce_to_path pattern
-
-      return [] if pattern.empty?
-
-      patterns = glob_split pattern
-    end
-
-    matches = []
-    index = 0
-
-    patterns.each do |pat|
-      pat = Rubinius::Type.coerce_to_path pat
-      enc = Rubinius::Type.ascii_compatible_encoding pat
-      Dir::Glob.glob pat, flags, matches
-
-      total = matches.size
-      while index < total
-        Rubinius::Type.encode_string matches[index], enc
-        index += 1
+        return value
+      else
+        return dir
       end
     end
 
-    if block
-      matches.each(&block)
-      return nil
+    def entries(path, options=undefined)
+      ret = []
+
+      open(path, options) do |dir|
+        while s = dir.read
+          ret << s
+        end
+      end
+
+      ret
     end
 
-    return matches
-  end
-
-  def self.glob_split(pattern)
-    result = []
-    start = 0
-    while idx = pattern.find_string("\0", start)
-      result << pattern.byteslice(start, idx)
-      start = idx + 1
+    def exist?(path)
+      PrivateFile.directory?(path)
     end
-    result << pattern.byteslice(start, pattern.bytesize)
-  end
 
-  def self.foreach(path)
-    return to_enum(:foreach, path) unless block_given?
+    class << self
+      alias_method :exists?, :exist?
+    end
 
-    open(path) do |dir|
-      while s = dir.read
-        yield s
+    def home(user=nil)
+      PrivateFile.expand_path("~#{user}")
+    end
+
+    def [](*patterns)
+      if patterns.size == 1
+        pattern = Rubinius::Type.coerce_to_path(patterns[0])
+        return [] if pattern.empty?
+        patterns = glob_split pattern
+      end
+
+      glob patterns
+    end
+
+    def glob(pattern, flags=0, &block)
+      if pattern.kind_of? Array
+        patterns = pattern
+      else
+        pattern = Rubinius::Type.coerce_to_path pattern
+
+        return [] if pattern.empty?
+
+        patterns = glob_split pattern
+      end
+
+      matches = []
+      index = 0
+
+      patterns.each do |pat|
+        pat = Rubinius::Type.coerce_to_path pat
+        enc = Rubinius::Type.ascii_compatible_encoding pat
+        Dir::Glob.glob pat, flags, matches
+
+        total = matches.size
+        while index < total
+          Rubinius::Type.encode_string matches[index], enc
+          index += 1
+        end
+      end
+
+      if block
+        matches.each(&block)
+        return nil
+      end
+
+      return matches
+    end
+
+    def glob_split(pattern)
+      result = []
+      start = 0
+      while idx = pattern.find_string("\0", start)
+        result << pattern.byteslice(start, idx)
+        start = idx + 1
+      end
+      result << pattern.byteslice(start, pattern.bytesize)
+    end
+
+    def foreach(path)
+      return to_enum(:foreach, path) unless block_given?
+
+      open(path) do |dir|
+        while s = dir.read
+          yield s
+        end
+      end
+
+      nil
+    end
+
+    def chdir(path = ENV['HOME'])
+      path = Rubinius::Type.coerce_to_path path
+
+      if block_given?
+        original_path = self.getwd
+        error = Truffle::POSIX.chdir path
+        Errno.handle(path) if error != 0
+
+        begin
+          value = yield path
+        ensure
+          error = Truffle::POSIX.chdir original_path
+          Errno.handle(original_path) if error != 0
+        end
+
+        return value
+      else
+        error = Truffle::POSIX.chdir path
+        Errno.handle path if error != 0
+        error
       end
     end
 
-    nil
-  end
-
-  def self.chdir(path = ENV['HOME'])
-    path = Rubinius::Type.coerce_to_path path
-
-    if block_given?
-      original_path = self.getwd
-      error = Truffle::POSIX.chdir path
-      Errno.handle(path) if error != 0
-
-      begin
-        value = yield path
-      ensure
-        error = Truffle::POSIX.chdir original_path
-        Errno.handle(original_path) if error != 0
-      end
-
-      return value
-    else
-      error = Truffle::POSIX.chdir path
+    def mkdir(path, mode = 0777)
+      error = Truffle::POSIX.mkdir(Rubinius::Type.coerce_to_path(path), mode)
       Errno.handle path if error != 0
       error
     end
-  end
 
-  def self.mkdir(path, mode = 0777)
-    error = Truffle::POSIX.mkdir(Rubinius::Type.coerce_to_path(path), mode)
-    Errno.handle path if error != 0
-    error
-  end
-
-  def self.rmdir(path)
-    error = Truffle::POSIX.rmdir(Rubinius::Type.coerce_to_path(path))
-    Errno.handle path if error != 0
-    error
-  end
-
-  def self.getwd
-    wd = Truffle::POSIX.getcwd
-    Errno.handle unless wd
-    Rubinius::Type.external_string wd
-  end
-
-  def self.chroot(path)
-    ret = Truffle::POSIX.chroot Rubinius::Type.coerce_to_path(path)
-    Errno.handle path if ret != 0
-    ret
-  end
-
-  class << self
-    alias_method :pwd, :getwd
+    def rmdir(path)
+      error = Truffle::POSIX.rmdir(Rubinius::Type.coerce_to_path(path))
+      Errno.handle path if error != 0
+      error
+    end
     alias_method :delete, :rmdir
     alias_method :unlink, :rmdir
+
+    def getwd
+      wd = Truffle::POSIX.getcwd
+      Errno.handle unless wd
+      Rubinius::Type.external_string wd
+    end
+    alias_method :pwd, :getwd
+
+    def chroot(path)
+      ret = Truffle::POSIX.chroot Rubinius::Type.coerce_to_path(path)
+      Errno.handle path if ret != 0
+      ret
+    end
   end
 end
