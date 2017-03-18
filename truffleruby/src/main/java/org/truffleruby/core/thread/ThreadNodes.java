@@ -443,7 +443,7 @@ public abstract class ThreadNodes {
     }
 
     @NonStandard
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

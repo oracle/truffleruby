@@ -17,12 +17,13 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 @CoreClass("SystemCallError")
 public abstract class SystemCallErrorNodes {
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();

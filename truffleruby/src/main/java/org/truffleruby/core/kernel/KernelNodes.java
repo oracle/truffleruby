@@ -329,7 +329,7 @@ public abstract class KernelNodes {
         @Specialization
         public DynamicObject copy(VirtualFrame frame, DynamicObject self) {
             final DynamicObject rubyClass = Layouts.BASIC_OBJECT.getLogicalClass(self);
-            final DynamicObject newObject = (DynamicObject) allocateNode.call(frame, rubyClass, "allocate");
+            final DynamicObject newObject = (DynamicObject) allocateNode.call(frame, rubyClass, "__allocate__");
             copyInstanceVariables(self, newObject);
             return newObject;
         }

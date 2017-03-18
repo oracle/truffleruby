@@ -35,6 +35,7 @@ import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -264,7 +265,7 @@ public abstract class MethodNodes {
 
     }
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary

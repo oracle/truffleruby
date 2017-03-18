@@ -26,6 +26,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
@@ -34,7 +35,7 @@ import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 @CoreClass("Exception")
 public abstract class ExceptionNodes {
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();

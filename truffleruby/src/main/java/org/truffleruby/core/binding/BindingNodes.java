@@ -33,6 +33,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
@@ -374,7 +375,7 @@ public abstract class BindingNodes {
         }
     }
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary

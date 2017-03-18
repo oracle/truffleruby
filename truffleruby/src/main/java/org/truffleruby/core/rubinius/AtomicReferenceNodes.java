@@ -15,6 +15,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @CoreClass("Rubinius::AtomicReference")
 public abstract class AtomicReferenceNodes {
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();

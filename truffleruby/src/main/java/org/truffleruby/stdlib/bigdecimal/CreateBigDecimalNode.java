@@ -64,7 +64,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         return executeInitialize(
                 frame,
                 value,
-                (DynamicObject) allocateNode.call(frame, getBigDecimalClass(), "allocate"),
+                (DynamicObject) allocateNode.call(frame, getBigDecimalClass(), "__allocate__"),
                 NotProvided.INSTANCE);
     }
 

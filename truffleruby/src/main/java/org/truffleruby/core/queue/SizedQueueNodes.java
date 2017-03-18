@@ -37,7 +37,7 @@ import org.truffleruby.language.objects.shared.PropagateSharingNode;
 @CoreClass("SizedQueue")
 public abstract class SizedQueueNodes {
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();

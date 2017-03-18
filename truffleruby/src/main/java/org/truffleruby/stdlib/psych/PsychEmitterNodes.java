@@ -82,7 +82,7 @@ import java.util.Map;
 @CoreClass("Psych::Emitter")
 public abstract class PsychEmitterNodes {
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();

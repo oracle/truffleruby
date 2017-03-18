@@ -39,6 +39,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 
 @CoreClass("Encoding")
@@ -409,7 +410,7 @@ public abstract class EncodingNodes {
 
     }
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary

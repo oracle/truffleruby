@@ -403,7 +403,10 @@ public abstract class BasicObjectNodes {
 
     }
 
-    @CoreMethod(names = "allocate", constructor = true)
+    // MRI names it the "allocator function" and it's associated per class and follows the ancestor
+    // chain. We use a normal Ruby method, different that Class#allocate as Class#allocate
+    // must be able to instantiate any Ruby object and should not be overridden.
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();

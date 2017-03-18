@@ -1569,7 +1569,7 @@ VALUE rb_class_of(VALUE object) {
 }
 
 VALUE rb_obj_alloc(VALUE ruby_class) {
-  return (VALUE) truffle_invoke(ruby_class, "allocate");
+  return (VALUE) truffle_invoke(ruby_class, "__allocate__");
 }
 
 VALUE rb_class_path(VALUE ruby_class) {

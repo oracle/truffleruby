@@ -41,24 +41,29 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.algorithms.Randomizer;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.language.Visibility;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 
+@CoreClass("Rubinius::Randomizer")
 public abstract class RandomizerPrimitiveNodes {
 
-    @Primitive(name = "randomizer_allocate", needsSelf = false)
-    public static abstract class RandomizerAllocatePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public DynamicObject randomizerAllocate() {
+        public DynamicObject randomizerAllocate(DynamicObject randomizerClass) {
             return Layouts.RANDOMIZER.createRandomizer(coreLibrary().getRandomizerFactory(), new Randomizer());
         }
 

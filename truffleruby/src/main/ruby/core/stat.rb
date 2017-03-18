@@ -28,11 +28,6 @@ module Rubinius
   class Stat
     include Comparable
 
-    def self.allocate
-      Truffle.primitive :stat_allocate
-      raise PrimitiveFailure, "Rubinius::Stat.allocate primitive failed"
-    end
-
     def setup(path)
       Truffle.primitive :stat_stat
       path = Rubinius::Type.coerce_to_path(path)

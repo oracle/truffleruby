@@ -16,20 +16,25 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.posix.FileStat;
 import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.Visibility;
 
+@CoreClass("Rubinius::Stat")
 public abstract class StatPrimitiveNodes {
 
     static FileStat getStat(DynamicObject rubyStat) {
         return Layouts.STAT.getStat(rubyStat);
     }
 
-    @Primitive(name = "stat_allocate")
-    public static abstract class StatAllocatePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
         public DynamicObject allocate(DynamicObject classToAllocate) {

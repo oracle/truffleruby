@@ -29,6 +29,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -40,7 +41,7 @@ import org.truffleruby.parser.ArgumentDescriptor;
 @CoreClass("Proc")
 public abstract class ProcNodes {
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization

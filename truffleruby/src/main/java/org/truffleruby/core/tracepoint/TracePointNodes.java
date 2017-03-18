@@ -25,12 +25,13 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 @CoreClass("TracePoint")
 public abstract class TracePointNodes {
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();

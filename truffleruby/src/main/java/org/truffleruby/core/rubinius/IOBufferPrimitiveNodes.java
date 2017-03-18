@@ -46,23 +46,28 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import jnr.constants.platform.Errno;
 import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuffer;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
+@CoreClass("IO::InternalBuffer")
 public abstract class IOBufferPrimitiveNodes {
 
     private static final int IOBUFFER_SIZE = 32768;
     private static final int STACK_BUF_SZ = 8192;
 
-    @Primitive(name = "iobuffer_allocate")
-    public static abstract class IOBufferAllocatePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 

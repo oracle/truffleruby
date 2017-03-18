@@ -37,11 +37,6 @@ class IO
 
   include Enumerable
 
-  def self.allocate
-    Truffle.primitive :io_allocate
-    raise PrimitiveFailure, "IO.allocate primitive failed"
-  end
-
   def self.open_with_mode(path, mode, perm)
     Truffle.primitive :io_open
     raise PrimitiveFailure, "IO.open_with_mode primitive failed"
@@ -228,11 +223,6 @@ class IO
   class InternalBuffer
 
     attr_reader :used
-
-    def self.allocate
-      Truffle.primitive :iobuffer_allocate
-      raise PrimitiveFailure, "IO::Buffer.allocate primitive failed"
-    end
 
     def initialize
       # Truffle: other fields are initialized in Java.

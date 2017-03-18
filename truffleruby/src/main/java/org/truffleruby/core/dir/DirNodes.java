@@ -43,18 +43,23 @@ import com.oracle.truffle.api.object.DynamicObject;
 import jnr.constants.platform.Errno;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.io.File;
 
+@CoreClass("Dir")
 public abstract class DirNodes {
 
-    @Primitive(name = "dir_allocate")
-    public static abstract class DirAllocatePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 

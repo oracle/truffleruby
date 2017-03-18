@@ -75,7 +75,11 @@ public class CoreMethodNodeManager {
 
             if (methodAnnotation != null) {
                 if (module == null) {
-                    moduleName = nodeClass.getEnclosingClass().getAnnotation(CoreClass.class).value();
+                    CoreClass coreClass = nodeClass.getEnclosingClass().getAnnotation(CoreClass.class);
+                    if (coreClass == null) {
+                        throw new Error(nodeClass.getEnclosingClass() + " needs a @CoreClass annotation");
+                    }
+                    moduleName = coreClass.value();
                     module = getModule(moduleName);
                 }
                 addCoreMethod(module, new MethodDetails(moduleName, methodAnnotation, nodeFactory));
@@ -136,6 +140,13 @@ public class CoreMethodNodeManager {
         }
         if (method.onSingleton() && method.constructor()) {
             Log.LOGGER.warning("either onSingleton or constructor for " + methodDetails.getIndicativeName());
+        }
+
+        if (methodDetails.getPrimaryName().equals("allocate") && !methodDetails.getModuleName().equals("Class")) {
+            Log.LOGGER.warning("Do not define #allocate but #__allocate__ for " + methodDetails.getIndicativeName());
+        }
+        if (methodDetails.getPrimaryName().equals("__allocate__") && method.visibility() != Visibility.PRIVATE) {
+            Log.LOGGER.warning(methodDetails.getIndicativeName() + " should be private");
         }
 
         final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, methodDetails);

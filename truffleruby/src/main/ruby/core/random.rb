@@ -25,11 +25,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Rubinius::Randomizer
-  def self.allocate
-    Truffle.primitive :randomizer_allocate
-    raise PrimitiveFailure, "Randomizer.allocate primitive failed"
-  end
-
   def initialize
     self.seed = generate_seed
   end

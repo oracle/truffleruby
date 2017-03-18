@@ -41,11 +41,6 @@ class Dir
 
   FFI = Rubinius::FFI
 
-  def self.allocate
-    Truffle.primitive :dir_allocate
-    raise PrimitiveFailure, "Dir.allocate primitive failed"
-  end
-
   def initialize(path, options=undefined)
     path = Rubinius::Type.coerce_to_path path
 

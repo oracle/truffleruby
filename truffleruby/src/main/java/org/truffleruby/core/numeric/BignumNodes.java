@@ -31,6 +31,7 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.numeric.BignumNodesFactory.DivNodeFactory;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
@@ -673,7 +674,7 @@ public abstract class BignumNodes {
 
     }
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary

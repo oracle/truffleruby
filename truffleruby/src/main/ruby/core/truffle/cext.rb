@@ -1237,8 +1237,11 @@ module Truffle::CExt
   end
 
   def rb_define_alloc_func(ruby_class, function)
-    ruby_class.singleton_class.send(:define_method, :allocate) do
+    ruby_class.singleton_class.send(:define_method, :__allocate__) do
       function.call(self)
+    end
+    class << ruby_class
+      private :__allocate__
     end
   end
 

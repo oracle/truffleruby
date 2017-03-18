@@ -20,20 +20,26 @@ import jnr.ffi.Pointer;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.RubiniusTypes;
 
+@CoreClass("Rubinius::FFI::Pointer")
 public abstract class PointerPrimitiveNodes {
+
     public static final Pointer NULL_POINTER = jnr.ffi.Runtime.getSystemRuntime().getMemoryManager().newOpaquePointer(0);
 
-    @Primitive(name = "pointer_allocate")
-    public static abstract class PointerAllocatePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 

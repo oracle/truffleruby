@@ -26,6 +26,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -33,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @CoreClass("Mutex")
 public abstract class MutexNodes {
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();

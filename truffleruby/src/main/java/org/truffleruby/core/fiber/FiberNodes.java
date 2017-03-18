@@ -33,6 +33,7 @@ import org.truffleruby.core.cast.SingleValueCastNodeGen;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
@@ -348,7 +349,7 @@ public abstract class FiberNodes {
 
     }
 
-    @CoreMethod(names = "allocate", constructor = true)
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

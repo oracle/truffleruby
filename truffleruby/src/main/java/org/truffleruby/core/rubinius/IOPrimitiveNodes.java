@@ -76,8 +76,11 @@ import jnr.constants.platform.OpenFlags;
 import jnr.posix.DefaultNativeTimeval;
 import jnr.posix.Timeval;
 import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
+import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.rope.BytesVisitor;
@@ -90,6 +93,7 @@ import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.ResultWithinTime;
 import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
@@ -101,6 +105,7 @@ import java.nio.ByteBuffer;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
+@CoreClass("IO")
 public abstract class IOPrimitiveNodes {
 
     public static abstract class IOPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
@@ -125,8 +130,8 @@ public abstract class IOPrimitiveNodes {
         }
     }
 
-    @Primitive(name = "io_allocate")
-    public static abstract class IOAllocatePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
         @Child private CallDispatchHeadNode newBufferNode = DispatchHeadNodeFactory.createMethodCall();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
