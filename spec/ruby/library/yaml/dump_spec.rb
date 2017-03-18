@@ -33,4 +33,10 @@ describe "YAML.dump" do
   it "dumps Arrays into YAML collection" do
     YAML.dump(["a", "b", "c"]).should match_yaml("--- \n- a\n- b\n- c\n")
   end
+
+  it "dumps an OpenStruct" do
+    require "ostruct"
+    os = OpenStruct.new("age" => 20, "name" => "John")
+    YAML.dump(os).should match_yaml("--- !ruby/object:OpenStruct\ntable:\n  :age: 20\n  :name: John\n")
+  end
 end
