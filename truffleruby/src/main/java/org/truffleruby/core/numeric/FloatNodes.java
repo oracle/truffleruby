@@ -27,13 +27,14 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
-import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.cast.DefaultValueNodeGen;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
@@ -791,9 +792,9 @@ public abstract class FloatNodes {
 
     }
 
-
-    @Primitive(name = "float_dtoa")
-    public static abstract class FloatDToAPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @NonStandard
+    @CoreMethod(names = "dtoa", visibility = Visibility.PRIVATE)
+    public static abstract class DToANode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
@@ -837,8 +838,8 @@ public abstract class FloatNodes {
 
     }
 
-    @Primitive(name = "float_signbit_p")
-    public static abstract class FloatSignBitNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "signbit?")
+    public static abstract class FloatSignBitNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public boolean floatSignBit(double value) {

@@ -180,11 +180,6 @@ class Float < Numeric
     [Float(other), self]
   end
 
-  def signbit?
-    Truffle.primitive :float_signbit_p
-    raise PrimitiveFailure, "Float#signbit? primitive failed"
-  end
-
   alias_method :quo, :/
   alias_method :fdiv, :/
 
@@ -192,10 +187,5 @@ class Float < Numeric
 
   def finite?
     not (nan? or infinite?)
-  end
-
-  def dtoa
-    Truffle.primitive :float_dtoa
-    raise PrimitiveFailure, "Fload#dtoa primitive failed"
   end
 end
