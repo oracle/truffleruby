@@ -125,10 +125,7 @@ class Dir
     def exist?(path)
       PrivateFile.directory?(path)
     end
-
-    class << self
-      alias_method :exists?, :exist?
-    end
+    alias_method :exists?, :exist?
 
     def home(user=nil)
       PrivateFile.expand_path("~#{user}")
