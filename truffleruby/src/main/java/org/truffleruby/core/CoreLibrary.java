@@ -81,14 +81,14 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.TruffleRopesNodesFactory;
 import org.truffleruby.core.rubinius.AtomicReferenceNodesFactory;
 import org.truffleruby.core.rubinius.ByteArrayNodesFactory;
-import org.truffleruby.core.rubinius.IOBufferPrimitiveNodesFactory;
-import org.truffleruby.core.rubinius.IOPrimitiveNodesFactory;
-import org.truffleruby.core.rubinius.NativeFunctionPrimitiveNodesFactory;
-import org.truffleruby.core.rubinius.RandomizerPrimitiveNodesFactory;
+import org.truffleruby.core.rubinius.IOBufferNodesFactory;
+import org.truffleruby.core.rubinius.IONodesFactory;
+import org.truffleruby.core.rubinius.NativeFunctionNodesFactory;
+import org.truffleruby.core.rubinius.RandomizerNodesFactory;
 import org.truffleruby.core.rubinius.RubiniusTypeNodesFactory;
-import org.truffleruby.core.rubinius.StatPrimitiveNodesFactory;
+import org.truffleruby.core.rubinius.StatNodesFactory;
 import org.truffleruby.core.rubinius.UndefinedPrimitiveNodesFactory;
-import org.truffleruby.core.rubinius.WeakRefPrimitiveNodesFactory;
+import org.truffleruby.core.rubinius.WeakRefNodesFactory;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringNodesFactory;
 import org.truffleruby.core.string.StringOperations;
@@ -102,7 +102,7 @@ import org.truffleruby.core.tracepoint.TracePointNodesFactory;
 import org.truffleruby.debug.TruffleDebugNodesFactory;
 import org.truffleruby.extra.TruffleGraalNodesFactory;
 import org.truffleruby.extra.TrufflePosixNodesFactory;
-import org.truffleruby.extra.ffi.PointerPrimitiveNodesFactory;
+import org.truffleruby.extra.ffi.PointerNodesFactory;
 import org.truffleruby.gem.bcrypt.BCryptNodesFactory;
 import org.truffleruby.interop.InteropNodesFactory;
 import org.truffleruby.interop.java.JavaUtilitiesNodesFactory;
@@ -1520,8 +1520,8 @@ public class CoreLibrary {
             HashNodesFactory.getFactories(),
             IntegerNodesFactory.getFactories(),
             InteropNodesFactory.getFactories(),
-            IOBufferPrimitiveNodesFactory.getFactories(),
-            IOPrimitiveNodesFactory.getFactories(),
+            IOBufferNodesFactory.getFactories(),
+            IONodesFactory.getFactories(),
             KernelNodesFactory.getFactories(),
             MainNodesFactory.getFactories(),
             MatchDataNodesFactory.getFactories(),
@@ -1530,25 +1530,25 @@ public class CoreLibrary {
             ModuleNodesFactory.getFactories(),
             MutexNodesFactory.getFactories(),
             NameErrorNodesFactory.getFactories(),
-            NativeFunctionPrimitiveNodesFactory.getFactories(),
+            NativeFunctionNodesFactory.getFactories(),
             NoMethodErrorNodesFactory.getFactories(),
             ObjectNodesFactory.getFactories(),
             ObjectSpaceNodesFactory.getFactories(),
             ObjSpaceNodesFactory.getFactories(),
-            PointerPrimitiveNodesFactory.getFactories(),
+            PointerNodesFactory.getFactories(),
             ProcessNodesFactory.getFactories(),
             ProcNodesFactory.getFactories(),
             PsychEmitterNodesFactory.getFactories(),
             PsychParserNodesFactory.getFactories(),
             QueueNodesFactory.getFactories(),
-            RandomizerPrimitiveNodesFactory.getFactories(),
+            RandomizerNodesFactory.getFactories(),
             RangeNodesFactory.getFactories(),
             ReadlineNodesFactory.getFactories(),
             ReadlineHistoryNodesFactory.getFactories(),
             RegexpNodesFactory.getFactories(),
             RubiniusTypeNodesFactory.getFactories(),
             SizedQueueNodesFactory.getFactories(),
-            StatPrimitiveNodesFactory.getFactories(),
+            StatNodesFactory.getFactories(),
             StringNodesFactory.getFactories(),
             SymbolNodesFactory.getFactories(),
             SystemCallErrorNodesFactory.getFactories(),
@@ -1574,7 +1574,7 @@ public class CoreLibrary {
             UnboundMethodNodesFactory.getFactories(),
             UndefinedPrimitiveNodesFactory.getFactories(),
             VMPrimitiveNodesFactory.getFactories(),
-            WeakRefPrimitiveNodesFactory.getFactories());
+            WeakRefNodesFactory.getFactories());
 
     public static final String[] CORE_FILES = {
             "/core/pre.rb",

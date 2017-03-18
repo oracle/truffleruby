@@ -91,7 +91,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.ResultWithinTime;
-import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
+import org.truffleruby.extra.ffi.PointerNodes;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -106,7 +106,7 @@ import java.nio.ByteBuffer;
 import static org.truffleruby.core.string.StringOperations.rope;
 
 @CoreClass("IO")
-public abstract class IOPrimitiveNodes {
+public abstract class IONodes {
 
     public static abstract class IOPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
 
@@ -537,7 +537,7 @@ public abstract class IOPrimitiveNodes {
             }
 
             final ByteBuffer buffer = ByteBuffer.allocate(length);
-            final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(nativeSockets().recvfrom(sockfd, buffer, length, flags, PointerPrimitiveNodes.NULL_POINTER, PointerPrimitiveNodes.NULL_POINTER)));
+            final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(nativeSockets().recvfrom(sockfd, buffer, length, flags, PointerNodes.NULL_POINTER, PointerNodes.NULL_POINTER)));
             buffer.position(bytesRead);
 
             return createString(RopeBuilder.createRopeBuilder(buffer.array(), buffer.arrayOffset(), buffer.position()));
@@ -566,7 +566,7 @@ public abstract class IOPrimitiveNodes {
             timeoutObject.setTime(new long[]{ 0, 0 });
 
             final int res = ensureSuccessful(nativeSockets().select(fd + 1, fdSet.getPointer(),
-                    PointerPrimitiveNodes.NULL_POINTER, PointerPrimitiveNodes.NULL_POINTER, timeoutObject));
+                    PointerNodes.NULL_POINTER, PointerNodes.NULL_POINTER, timeoutObject));
 
             if (res == 0) {
                 throw new RaiseException(coreExceptions().eAGAINWaitReadable(this));
@@ -919,9 +919,9 @@ public abstract class IOPrimitiveNodes {
                 private int callSelect(int nfds, FDSet fdSet, Timeval timeoutToUse) {
                     return nativeSockets().select(
                             nfds,
-                            setNb == 1 ? fdSet.getPointer() : PointerPrimitiveNodes.NULL_POINTER,
-                            setNb == 2 ? fdSet.getPointer() : PointerPrimitiveNodes.NULL_POINTER,
-                            setNb == 3 ? fdSet.getPointer() : PointerPrimitiveNodes.NULL_POINTER,
+                            setNb == 1 ? fdSet.getPointer() : PointerNodes.NULL_POINTER,
+                            setNb == 2 ? fdSet.getPointer() : PointerNodes.NULL_POINTER,
+                            setNb == 3 ? fdSet.getPointer() : PointerNodes.NULL_POINTER,
                             timeoutToUse);
                 }
             });

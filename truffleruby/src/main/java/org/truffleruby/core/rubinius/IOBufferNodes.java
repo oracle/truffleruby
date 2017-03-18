@@ -61,7 +61,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 @CoreClass("IO::InternalBuffer")
-public abstract class IOBufferPrimitiveNodes {
+public abstract class IOBufferNodes {
 
     private static final int IOBUFFER_SIZE = 32768;
     private static final int STACK_BUF_SZ = 8192;

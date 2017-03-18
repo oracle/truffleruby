@@ -17,7 +17,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 
 import java.lang.ref.WeakReference;
 
-public abstract class WeakRefPrimitiveNodes {
+public abstract class WeakRefNodes {
 
     @Primitive(name = "weakref_new", needsSelf = false)
     public static abstract class WeakRefNewPrimitiveNode extends PrimitiveArrayArgumentsNode {

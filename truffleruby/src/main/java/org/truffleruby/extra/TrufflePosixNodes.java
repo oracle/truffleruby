@@ -25,7 +25,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.time.GetTimeZoneNode;
-import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
+import org.truffleruby.extra.ffi.PointerNodes;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.signal.Signal;
@@ -760,7 +760,7 @@ public abstract class TrufflePosixNodes {
             return nativeSockets().getnameinfo(
                     Layouts.POINTER.getPointer(sa),
                     salen,
-                    PointerPrimitiveNodes.NULL_POINTER,
+                    PointerNodes.NULL_POINTER,
                     hostlen,
                     Layouts.POINTER.getPointer(serv),
                     servlen,
@@ -778,7 +778,7 @@ public abstract class TrufflePosixNodes {
                     salen,
                     Layouts.POINTER.getPointer(host),
                     hostlen,
-                    PointerPrimitiveNodes.NULL_POINTER,
+                    PointerNodes.NULL_POINTER,
                     servlen,
                     flags);
         }

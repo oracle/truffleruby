@@ -57,7 +57,7 @@ import java.security.SecureRandom;
 import java.util.Random;
 
 @CoreClass("Rubinius::Randomizer")
-public abstract class RandomizerPrimitiveNodes {
+public abstract class RandomizerNodes {
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {

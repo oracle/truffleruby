@@ -27,7 +27,7 @@ import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 
 @CoreClass("Rubinius::Stat")
-public abstract class StatPrimitiveNodes {
+public abstract class StatNodes {
 
     static FileStat getStat(DynamicObject rubyStat) {
         return Layouts.STAT.getStat(rubyStat);

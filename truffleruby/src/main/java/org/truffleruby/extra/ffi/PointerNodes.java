@@ -34,7 +34,7 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.RubiniusTypes;
 
 @CoreClass("Rubinius::FFI::Pointer")
-public abstract class PointerPrimitiveNodes {
+public abstract class PointerNodes {
 
     public static final Pointer NULL_POINTER = jnr.ffi.Runtime.getSystemRuntime().getMemoryManager().newOpaquePointer(0);
 

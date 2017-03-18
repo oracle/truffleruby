@@ -51,7 +51,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
-import org.truffleruby.extra.ffi.PointerPrimitiveNodes;
+import org.truffleruby.extra.ffi.PointerNodes;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -955,8 +955,8 @@ public class CExtNodes {
             getContext().getThreadManager().runUntilResult(this, () -> {
                 final int result = nativeSockets().select(fd + 1,
                         fdSet.getPointer(),
-                        PointerPrimitiveNodes.NULL_POINTER,
-                        PointerPrimitiveNodes.NULL_POINTER,
+                        PointerNodes.NULL_POINTER,
+                        PointerNodes.NULL_POINTER,
                         null);
 
                 if (result == 0) {
@@ -981,9 +981,9 @@ public class CExtNodes {
 
             return getContext().getThreadManager().runUntilResult(this, () -> {
                 final int result = nativeSockets().select(fd + 1,
-                        PointerPrimitiveNodes.NULL_POINTER,
+                        PointerNodes.NULL_POINTER,
                         fdSet.getPointer(),
-                        PointerPrimitiveNodes.NULL_POINTER,
+                        PointerNodes.NULL_POINTER,
                         null);
 
                 if (result == 0) {

@@ -14,7 +14,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.platform.RubiniusTypes;
 
-public abstract class NativeFunctionPrimitiveNodes {
+public abstract class NativeFunctionNodes {
 
     @Primitive(name = "nativefunction_type_size", needsSelf = false)
     public static abstract class NativeFunctionTypeSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
