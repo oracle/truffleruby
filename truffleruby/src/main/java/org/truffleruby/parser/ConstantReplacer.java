@@ -42,7 +42,7 @@ public class ConstantReplacer {
         // detects when running on JRuby and alters its readline tests to avoid some problematic areas. Since we offer
         // the same functionality as JRuby (and suffer from the same pitfalls), we pretend that we're JRuby in order
         // to get the same set of workarounds.
-        if (source.getName().endsWith("lib/highline/terminal.rb")) {
+        if (source.getName().endsWith("/lib/highline/terminal.rb")) {
             if (name.equals("RUBY_ENGINE")) {
                 return name + "_FAKE_JRUBY";
             }
