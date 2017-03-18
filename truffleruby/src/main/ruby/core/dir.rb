@@ -41,6 +41,9 @@ class Dir
 
   FFI = Rubinius::FFI
 
+  attr_reader :path
+  alias_method :to_path, :path
+
   def initialize(path, options=undefined)
     path = Rubinius::Type.coerce_to_path path
 
@@ -55,11 +58,9 @@ class Dir
     Truffle.invoke_primitive :dir_open, self, path, enc
   end
 
-  private :initialize
-
-  def close
-    Truffle.primitive :dir_close
-    raise PrimitiveFailure, "Dir#close primitive failed"
+  def pos=(position)
+    seek(position)
+    position
   end
 
   def closed?
@@ -80,12 +81,19 @@ class Dir
     enc ? entry.encode(enc) : entry
   end
 
-  def control(kind, pos)
-    Truffle.primitive :dir_control
-    raise PrimitiveFailure, "Dir#__control__ primitive failed"
+  def each
+    return to_enum unless block_given?
+
+    while s = read
+      yield s
+    end
+
+    self
   end
 
-  private :control
+  def inspect
+    "#<#{self.class}:#{object_id.to_s(16)} @path=#{@path}>"
+  end
 
   def self.open(path, options=undefined)
     dir = new path, options
@@ -237,52 +245,6 @@ class Dir
     ret = Truffle::POSIX.chroot Rubinius::Type.coerce_to_path(path)
     Errno.handle path if ret != 0
     ret
-  end
-
-  def each
-    return to_enum unless block_given?
-
-    while s = read
-      yield s
-    end
-
-    self
-  end
-
-  attr_reader :path
-
-  alias_method :to_path, :path
-
-  SeekKind = 0
-  RewindKind = 1
-  TellKind = 2
-
-  def pos
-    control TellKind, 0
-  end
-
-  alias_method :tell, :pos
-
-  def pos=(position)
-    seek(position)
-
-    position
-  end
-
-  def seek(position)
-    control SeekKind, position
-
-    self
-  end
-
-  def rewind
-    control RewindKind, 0
-
-    self
-  end
-
-  def inspect
-    "#<#{self.class}:#{object_id.to_s(16)} @path=#{@path}>"
   end
 
   class << self

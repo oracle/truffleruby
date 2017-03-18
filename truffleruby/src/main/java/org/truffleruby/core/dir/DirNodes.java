@@ -45,6 +45,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -132,33 +133,41 @@ public abstract class DirNodes {
 
     }
 
+    @CoreMethod(names = { "pos", "tell" })
+    public static abstract class DirPosNode extends UnaryCoreMethodNode {
 
-    @Primitive(name = "dir_control")
-    public static abstract class DirControlPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
         @Specialization
-        public Object control(DynamicObject dir, int kind, int position) {
-            switch (kind) {
-                case 0:
-                    Layouts.DIR.setPosition(dir, position);
-                    return true;
-                case 1:
-                    Layouts.DIR.setPosition(dir, -2);
-                    return true;
-                case 2:
-                    return Layouts.DIR.getPosition(dir);
-
-            }
-            return nil();
+        public int control(DynamicObject dir) {
+            return Layouts.DIR.getPosition(dir);
         }
 
     }
 
-    @Primitive(name = "dir_close")
-    public static abstract class DirClosePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "seek", required = 1)
+    public static abstract class DirSeekNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
+        @Specialization
+        public DynamicObject seek(DynamicObject dir, int position) {
+            Layouts.DIR.setPosition(dir, position);
+            return dir;
+        }
+
+    }
+
+    @CoreMethod(names = "rewind")
+    public static abstract class DirRewindNode extends UnaryCoreMethodNode {
+
+        @Specialization
+        public DynamicObject rewind(DynamicObject dir) {
+            Layouts.DIR.setPosition(dir, -2);
+            return dir;
+        }
+
+    }
+
+    @CoreMethod(names = "close")
+    public static abstract class DirCloseNode extends UnaryCoreMethodNode {
+
         @Specialization
         public DynamicObject open(DynamicObject dir) {
             return nil();
