@@ -24,7 +24,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius
+class File
   class Stat
     include Comparable
 
@@ -292,6 +292,20 @@ module Rubinius
 
     def symlink?
       mode & S_IFMT == S_IFLNK
+    end
+
+    def world_readable?
+      if mode & S_IROTH == S_IROTH
+        tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
+        return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+      end
+    end
+
+    def world_writable?
+      if mode & S_IWOTH == S_IWOTH
+        tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
+        return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+      end
     end
 
     def writable?

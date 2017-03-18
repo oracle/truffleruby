@@ -26,7 +26,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 
-@CoreClass("Rubinius::Stat")
+@CoreClass("File::Stat")
 public abstract class StatNodes {
 
     static FileStat getStat(DynamicObject rubyStat) {

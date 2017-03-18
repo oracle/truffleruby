@@ -547,6 +547,11 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(ioClass, Layouts.IO.createIOShape(ioClass, ioClass));
         internalBufferClass = defineClass(ioClass, objectClass, "InternalBuffer");
         Layouts.CLASS.setInstanceFactoryUnsafe(internalBufferClass, Layouts.IO_BUFFER.createIOBufferShape(internalBufferClass, internalBufferClass));
+        final DynamicObject fileClass = defineClass(ioClass, "File");
+        final DynamicObject statClass = defineClass(fileClass, objectClass, "Stat");
+        statFactory = Layouts.STAT.createStatShape(statClass, statClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(statClass, statFactory);
+
         weakRefClass = defineClass(basicObjectClass, "WeakRef");
         weakRefFactory = Layouts.WEAK_REF_LAYOUT.createWeakRefShape(weakRefClass, weakRefClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(weakRefClass, weakRefFactory);
@@ -621,10 +626,6 @@ public class CoreLibrary {
 
         defineClass(rubiniusModule, objectClass, "Mirror");
         defineModule(rubiniusModule, "Type");
-
-        DynamicObject statClass = defineClass(rubiniusModule, objectClass, "Stat");
-        statFactory = Layouts.STAT.createStatShape(statClass, statClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(statClass, statFactory);
 
         byteArrayClass = defineClass(rubiniusModule, objectClass, "ByteArray");
         byteArrayFactory = Layouts.BYTE_ARRAY.createByteArrayShape(byteArrayClass, byteArrayClass);
