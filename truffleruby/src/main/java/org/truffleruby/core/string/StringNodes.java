@@ -3933,7 +3933,6 @@ public abstract class StringNodes {
     public static abstract class StringByteAppendPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private RopeNodes.MakeConcatNode makeConcatNode = RopeNodes.MakeConcatNode.create();
-        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
         @Specialization(guards = "isRubyString(other)")
         public DynamicObject stringByteAppend(DynamicObject string, DynamicObject other) {
@@ -3941,17 +3940,9 @@ public abstract class StringNodes {
             final Rope right = rope(other);
 
             // The semantics of this primitive are such that the original string's byte[] should be extended without
-            // any modification to the other properties of the string. This is counter-intuitive because adding bytes
-            // from another string may very well change the code range for the source string. Updating the code range,
-            // however, breaks other things so we can't do it. As an example, StringIO starts with an empty UTF-8
-            // string and then appends ASCII-8BIT bytes, but must retain the original UTF-8 encoding. The binary contents
-            // of the ASCII-8BIT string could give the resulting string a CR_BROKEN code range on UTF-8, but if we do
-            // this, StringIO ceases to work -- the resulting string must retain the original CR_7BIT code range. It's
-            // ugly, but seems to be due to a difference in how Rubinius keeps track of byte optimizable strings.
+            // negotiating the encoding.
 
-            final Rope rightConverted = makeLeafRopeNode.executeMake(right.getBytes(), left.getEncoding(), left.getCodeRange(), NotProvided.INSTANCE);
-
-            StringOperations.setRope(string, makeConcatNode.executeMake(left, rightConverted, left.getEncoding()));
+            StringOperations.setRope(string, makeConcatNode.executeMake(left, right, left.getEncoding()));
 
             return string;
         }
