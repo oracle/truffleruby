@@ -99,14 +99,12 @@ class Dir
       dir = new path, options
       if block_given?
         begin
-          value = yield dir
+          yield dir
         ensure
           dir.close
         end
-
-        return value
       else
-        return dir
+        dir
       end
     end
 
@@ -169,10 +167,10 @@ class Dir
 
       if block
         matches.each(&block)
-        return nil
+        nil
+      else
+        matches
       end
-
-      return matches
     end
 
     def glob_split(pattern)
@@ -202,34 +200,32 @@ class Dir
 
       if block_given?
         original_path = self.getwd
-        error = Truffle::POSIX.chdir path
-        Errno.handle(path) if error != 0
+        ret = Truffle::POSIX.chdir path
+        Errno.handle(path) if ret != 0
 
         begin
-          value = yield path
+          yield path
         ensure
-          error = Truffle::POSIX.chdir original_path
-          Errno.handle(original_path) if error != 0
+          ret = Truffle::POSIX.chdir original_path
+          Errno.handle(original_path) if ret != 0
         end
-
-        return value
       else
-        error = Truffle::POSIX.chdir path
-        Errno.handle path if error != 0
-        error
+        ret = Truffle::POSIX.chdir path
+        Errno.handle path if ret != 0
+        ret
       end
     end
 
     def mkdir(path, mode = 0777)
-      error = Truffle::POSIX.mkdir(Rubinius::Type.coerce_to_path(path), mode)
-      Errno.handle path if error != 0
-      error
+      ret = Truffle::POSIX.mkdir(Rubinius::Type.coerce_to_path(path), mode)
+      Errno.handle path if ret != 0
+      ret
     end
 
     def rmdir(path)
-      error = Truffle::POSIX.rmdir(Rubinius::Type.coerce_to_path(path))
-      Errno.handle path if error != 0
-      error
+      ret = Truffle::POSIX.rmdir(Rubinius::Type.coerce_to_path(path))
+      Errno.handle path if ret != 0
+      ret
     end
     alias_method :delete, :rmdir
     alias_method :unlink, :rmdir
