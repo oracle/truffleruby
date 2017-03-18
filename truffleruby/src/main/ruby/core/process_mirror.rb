@@ -391,13 +391,15 @@ module Rubinius
           # Check if the command exists *after* invoking posix_spawn so we have a pid
           unless resolve_in_path(command)
             if pid < 0
+              # macOS posix_spawnp(3) returns -1 and no pid when the command is not found,
+              # Linux returns 0, sets the pid and let the child do the PATH lookup.
               $? = ::Process::Status.new(pid, 127, nil, nil)
-              Errno.handle
-            end
-            # the subprocess will fail, just wait for it
-            ::Process.wait(pid) # Sets $? and avoids a zombie process
-            unless $?.exitstatus == 127
-              raise "command #{command} does not exist in PATH but posix_spawnp found it!"
+            else
+              # the subprocess will fail, just wait for it
+              ::Process.wait(pid) # Sets $? and avoids a zombie process
+              unless $?.exitstatus == 127
+                raise "command #{command} does not exist in PATH but posix_spawnp found it!"
+              end
             end
             raise Errno::ENOENT.new("No such file or directory - #{command}")
           end
