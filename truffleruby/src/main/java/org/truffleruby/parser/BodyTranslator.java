@@ -314,17 +314,6 @@ public class BodyTranslator extends Translator {
         final DynamicObject oldName = translateNameNodeToSymbol(node.getOldName());
         final DynamicObject newName = translateNameNodeToSymbol(node.getNewName());
 
-        /*
-         * ostruct in the stdlib defines an #allocate method to be the same as #new, but our #new calls
-         * #allocate with full lookup, and so this forms an infinite loop. MRI doesn't do full lookup
-         * for #allocate so doesn't have the same problem. MRI bug #11884 about this is to workaround
-         * a problem Pysch has. We'll fix that when we see it for real. For now this is the easier fix.
-         */
-
-        if (newName.toString().equals("allocate") && source.getName().endsWith("/ostruct.rb")) {
-            return nilNode(sourceSection);
-        }
-
         final RubyNode newNameNode = new ObjectLiteralNode(newName);
         newNameNode.unsafeSetSourceSection(sourceSection);
 
