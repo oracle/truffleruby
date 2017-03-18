@@ -22,11 +22,11 @@ public interface DirLayout extends BasicObjectLayout {
                                         DynamicObject metaClass);
 
     DynamicObject createDir(DynamicObjectFactory factory,
-                            @Nullable Object contents,
+                            @Nullable String[] contents,
                             int position);
 
-    Object getContents(DynamicObject object);
-    void setContents(DynamicObject object, Object value);
+    String[] getContents(DynamicObject object);
+    void setContents(DynamicObject object, String[] value);
 
     int getPosition(DynamicObject object);
     void setPosition(DynamicObject object, int value);

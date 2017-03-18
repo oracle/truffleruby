@@ -121,7 +121,7 @@ public abstract class DirNodes {
             } else if (position == -1) {
                 return create7BitString("..", UTF8Encoding.INSTANCE);
             } else {
-                final String[] contents = (String[]) Layouts.DIR.getContents(dir);
+                final String[] contents = Layouts.DIR.getContents(dir);
 
                 if (position < contents.length) {
                     return createString(StringOperations.encodeRope(contents[position], UTF8Encoding.INSTANCE));
