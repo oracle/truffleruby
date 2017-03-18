@@ -49,6 +49,17 @@ public class ConstantReplacer {
             }
         }
 
+        // The highline gem has special handling for readline, which isn't fully supported in TruffleRuby. Our readline
+        // support matches very closely to JRuby's, since we both use jline as the core of the implementation. Highline
+        // detects when running on JRuby and alters its readline tests to avoid some problematic areas. Since we offer
+        // the same functionality as JRuby (and suffer from the same pitfalls), we pretend that we're JRuby in order
+        // to get the same set of workarounds.
+        if (source.getName().endsWith("lib/highline/terminal.rb")) {
+            if (name.equals("RUBY_ENGINE")) {
+                return name + "_FAKE_JRUBY";
+            }
+        }
+
         return name;
     }
 
