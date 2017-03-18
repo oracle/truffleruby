@@ -137,7 +137,7 @@ public abstract class DirNodes {
     public static abstract class DirPosNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public int control(DynamicObject dir) {
+        public int pos(DynamicObject dir) {
             return Layouts.DIR.getPosition(dir);
         }
 
@@ -169,7 +169,7 @@ public abstract class DirNodes {
     public static abstract class DirCloseNode extends UnaryCoreMethodNode {
 
         @Specialization
-        public DynamicObject open(DynamicObject dir) {
+        public DynamicObject close(DynamicObject dir) {
             return nil();
         }
 
