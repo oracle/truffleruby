@@ -35,14 +35,14 @@ import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringGuards;
-import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringNodesFactory;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 import java.util.Arrays;
 
@@ -287,14 +287,14 @@ public abstract class MatchDataNodes {
     @CoreMethod(names = "captures")
     public abstract static class CapturesNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.StringSubstringPrimitiveNode substringNode = StringNodesFactory.StringSubstringPrimitiveNodeFactory.create(null);
+        @Child private CallDispatchHeadNode dupNode = DispatchHeadNodeFactory.createMethodCall();
 
         @Specialization
         public DynamicObject toA(VirtualFrame frame, DynamicObject matchData) {
             Object[] objects = getCaptures(matchData);
             for (int i = 0; i < objects.length; i++) {
                 if (objects[i] != nil()) {
-                    objects[i] = substringNode.execute(frame, (DynamicObject) objects[i], 0, rope((DynamicObject) objects[i]).characterLength());
+                    objects[i] = dupNode.call(frame, objects[i], "dup");
                 }
             }
             return createArray(objects, objects.length);
