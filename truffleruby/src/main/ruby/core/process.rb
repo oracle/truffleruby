@@ -247,12 +247,12 @@ module Process
     signal = signal.to_s if signal.kind_of?(Symbol)
 
     if signal.kind_of?(String)
-      if signal[0] == ?-
+      if signal.start_with? "-"
         signal = signal[1..-1]
         use_process_group = true
       end
 
-      if signal[0..2] == "SIG"
+      if signal.start_with? "SIG"
         signal = signal[3..-1]
       end
 
@@ -307,10 +307,7 @@ module Process
 
   @maxgroups = 32
   class << self
-    attr_reader :maxgroups
-    def maxgroups=(m)
-      @maxgroups = m
-    end
+    attr_accessor :maxgroups
   end
 
   def self.setpgrp

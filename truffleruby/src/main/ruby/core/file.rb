@@ -1130,7 +1130,6 @@ class File < IO
       mtime[:tv_usec] = 0
 
       paths.each do |path|
-
         n = POSIX.utimes(Rubinius::Type.coerce_to_path(path), ptr)
         Errno.handle unless n == 0
       end
