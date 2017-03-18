@@ -35,19 +35,19 @@ class File
     end
     private :setup
 
-    def fsetup(fd)
-      Truffle.primitive :stat_fstat
-      fd = Rubinius::Type.coerce_to fd, Integer, :to_int
-      fsetup(fd)
-    end
-    private :fsetup
-
     def lsetup(path)
       Truffle.primitive :stat_lstat
       path = Rubinius::Type.coerce_to_path(path)
       lsetup(path)
     end
     private :lsetup
+
+    def fsetup(fd)
+      Truffle.primitive :stat_fstat
+      fd = Rubinius::Type.coerce_to fd, Integer, :to_int
+      fsetup(fd)
+    end
+    private :fsetup
 
     def atime
       Time.at Truffle.invoke_primitive(:stat_atime, self)

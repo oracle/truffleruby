@@ -40,6 +40,70 @@ public abstract class StatNodes {
 
     }
 
+    @Primitive(name = "stat_stat")
+    public static abstract class StatStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(path)")
+        public int stat(DynamicObject rubyStat, DynamicObject path) {
+            final FileStat stat = posix().allocateStat();
+            final int code = posix().stat(StringOperations.decodeUTF8(path), stat);
+
+            if (code == 0) {
+                Layouts.STAT.setStat(rubyStat, stat);
+            }
+
+            return code;
+        }
+
+        @Specialization(guards = "!isRubyString(path)")
+        public Object stat(DynamicObject rubyStat, Object path) {
+            return null;
+        }
+
+    }
+
+    @Primitive(name = "stat_lstat")
+    public static abstract class StatLStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(path)")
+        public int lstat(DynamicObject rubyStat, DynamicObject path) {
+            final FileStat stat = posix().allocateStat();
+            final int code = posix().lstat(RopeOperations.decodeRope(StringOperations.rope(path)), stat);
+
+            if (code == 0) {
+                Layouts.STAT.setStat(rubyStat, stat);
+            }
+
+            return code;
+        }
+
+        @Specialization(guards = "!isRubyString(path)")
+        public Object stat(DynamicObject rubyStat, Object path) {
+            return null;
+        }
+
+    }
+
+    @Primitive(name = "stat_fstat")
+    public static abstract class StatFStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int fstat(DynamicObject rubyStat, int fd) {
+            final FileStat stat = posix().allocateStat();
+            final int code = posix().fstat(fd, stat);
+
+            if (code == 0) {
+                Layouts.STAT.setStat(rubyStat, stat);
+            }
+
+            return code;
+        }
+
+    }
+
     @Primitive(name = "stat_atime")
     public static abstract class StatAtimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -135,70 +199,6 @@ public abstract class StatNodes {
         @Specialization
         public long ino(DynamicObject rubyStat) {
             return getStat(rubyStat).ino();
-        }
-
-    }
-
-    @Primitive(name = "stat_stat")
-    public static abstract class StatStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(path)")
-        public int stat(DynamicObject rubyStat, DynamicObject path) {
-            final FileStat stat = posix().allocateStat();
-            final int code = posix().stat(StringOperations.decodeUTF8(path), stat);
-
-            if (code == 0) {
-                Layouts.STAT.setStat(rubyStat, stat);
-            }
-            
-            return code;
-        }
-
-        @Specialization(guards = "!isRubyString(path)")
-        public Object stat(DynamicObject rubyStat, Object path) {
-            return null;
-        }
-
-    }
-
-    @Primitive(name = "stat_fstat")
-    public static abstract class StatFStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int fstat(DynamicObject rubyStat, int fd) {
-            final FileStat stat = posix().allocateStat();
-            final int code = posix().fstat(fd, stat);
-
-            if (code == 0) {
-                Layouts.STAT.setStat(rubyStat, stat);
-            }
-
-            return code;
-        }
-
-    }
-
-    @Primitive(name = "stat_lstat")
-    public static abstract class StatLStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(path)")
-        public int lstat(DynamicObject rubyStat, DynamicObject path) {
-            final FileStat stat = posix().allocateStat();
-            final int code = posix().lstat(RopeOperations.decodeRope(StringOperations.rope(path)), stat);
-
-            if (code == 0) {
-                Layouts.STAT.setStat(rubyStat, stat);
-            }
-
-            return code;
-        }
-
-        @Specialization(guards = "!isRubyString(path)")
-        public Object stat(DynamicObject rubyStat, Object path) {
-            return null;
         }
 
     }
