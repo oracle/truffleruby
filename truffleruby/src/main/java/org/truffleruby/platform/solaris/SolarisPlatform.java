@@ -50,7 +50,7 @@ public class SolarisPlatform implements NativePlatform {
         processName = new JavaProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("socket").load();
         clockGetTime = LibraryLoader.create(ClockGetTime.class).library("c").library("rt").load();
-        mallocFree = LibraryLoader.create(MallocFree.class).library("c").library("rt").load();
+        mallocFree = LibraryLoader.create(MallocFree.class).library("c").load();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, context);

@@ -48,7 +48,7 @@ public class LinuxPlatform implements NativePlatform {
         processName = new JavaProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("libc.so.6").load();
         clockGetTime = LibraryLoader.create(ClockGetTime.class).library("libc.so.6").library("librt.so.1").load();
-        mallocFree = LibraryLoader.create(MallocFree.class).library("libc.so.6").library("librt.so.1").load();
+        mallocFree = LibraryLoader.create(MallocFree.class).library("libc.so.6").load();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         LinuxRubiniusConfiguration.load(rubiniusConfiguration, context);
