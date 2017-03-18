@@ -28,47 +28,6 @@ class File
   class Stat
     include Comparable
 
-    def setup(path)
-      Truffle.primitive :stat_stat
-      path = Rubinius::Type.coerce_to_path(path)
-      setup(path)
-    end
-    private :setup
-
-    def lsetup(path)
-      Truffle.primitive :stat_lstat
-      path = Rubinius::Type.coerce_to_path(path)
-      lsetup(path)
-    end
-    private :lsetup
-
-    def fsetup(fd)
-      Truffle.primitive :stat_fstat
-      fd = Rubinius::Type.coerce_to fd, Integer, :to_int
-      fsetup(fd)
-    end
-    private :fsetup
-
-    def atime
-      Time.at Truffle.invoke_primitive(:stat_atime, self)
-    end
-
-    def mtime
-      Time.at Truffle.invoke_primitive(:stat_mtime, self)
-    end
-
-    def ctime
-      Time.at Truffle.invoke_primitive(:stat_ctime, self)
-    end
-
-    def inspect
-      "#<#{self.class.name} dev=0x#{self.dev.to_s(16)}, ino=#{self.ino}, " \
-      "mode=#{sprintf("%07d", self.mode.to_s(8).to_i)}, nlink=#{self.nlink}, " \
-      "uid=#{self.uid}, gid=#{self.gid}, rdev=0x#{self.rdev.to_s(16)}, " \
-      "size=#{self.size}, blksize=#{self.blksize}, blocks=#{self.blocks}, " \
-      "atime=#{self.atime}, mtime=#{self.mtime}, ctime=#{self.ctime}>"
-    end
-
     S_IRUSR  = Rubinius::Config['rbx.platform.file.S_IRUSR']
     S_IWUSR  = Rubinius::Config['rbx.platform.file.S_IWUSR']
     S_IXUSR  = Rubinius::Config['rbx.platform.file.S_IXUSR']
@@ -99,29 +58,34 @@ class File
     attr_reader :path
 
     def initialize(path)
-      Errno.handle path unless setup(path) == 0
+      path = Rubinius::Type.coerce_to_path(path)
+      result = Truffle.invoke_primitive(:stat_stat, self, path)
+      Errno.handle path unless result == 0
     end
 
     def self.stat(path)
+      path = Rubinius::Type.coerce_to_path(path)
       stat = allocate
-      if Truffle.privately { stat.setup path } == 0
+      if Truffle.invoke_primitive(:stat_stat, stat, path) == 0
         stat
       else
         nil
       end
     end
 
-    def self.fstat(fd)
+    def self.lstat(path)
+      path = Rubinius::Type.coerce_to_path(path)
       stat = allocate
-      result = Truffle.privately { stat.fsetup fd }
-      Errno.handle "file descriptor #{descriptor}" unless result == 0
+      result = Truffle.invoke_primitive(:stat_lstat, stat, path)
+      Errno.handle path unless result == 0
       stat
     end
 
-    def self.lstat(path)
+    def self.fstat(fd)
+      fd = Rubinius::Type.coerce_to fd, Integer, :to_int
       stat = allocate
-      result = Truffle.privately { stat.lsetup path }
-      Errno.handle path unless result == 0
+      result = Truffle.invoke_primitive(:stat_fstat, stat, fd)
+      Errno.handle "file descriptor #{descriptor}" unless result == 0
       stat
     end
 
@@ -303,6 +267,26 @@ class File
       gid = gid()
       return true if gid == Process.gid || gid == Process.egid
       Process.groups.include?(gid)
+    end
+
+    def atime
+      Time.at Truffle.invoke_primitive(:stat_atime, self)
+    end
+
+    def mtime
+      Time.at Truffle.invoke_primitive(:stat_mtime, self)
+    end
+
+    def ctime
+      Time.at Truffle.invoke_primitive(:stat_ctime, self)
+    end
+
+    def inspect
+      "#<#{self.class.name} dev=0x#{self.dev.to_s(16)}, ino=#{self.ino}, " \
+      "mode=#{sprintf("%07d", self.mode.to_s(8).to_i)}, nlink=#{self.nlink}, " \
+      "uid=#{self.uid}, gid=#{self.gid}, rdev=0x#{self.rdev.to_s(16)}, " \
+      "size=#{self.size}, blksize=#{self.blksize}, blocks=#{self.blocks}, " \
+      "atime=#{self.atime}, mtime=#{self.mtime}, ctime=#{self.ctime}>"
     end
   end
 end

@@ -56,11 +56,6 @@ public abstract class StatNodes {
             return code;
         }
 
-        @Specialization(guards = "!isRubyString(path)")
-        public Object stat(DynamicObject rubyStat, Object path) {
-            return null;
-        }
-
     }
 
     @Primitive(name = "stat_lstat")
@@ -77,11 +72,6 @@ public abstract class StatNodes {
             }
 
             return code;
-        }
-
-        @Specialization(guards = "!isRubyString(path)")
-        public Object stat(DynamicObject rubyStat, Object path) {
-            return null;
         }
 
     }
