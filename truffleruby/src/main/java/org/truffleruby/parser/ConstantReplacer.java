@@ -20,13 +20,10 @@ import com.oracle.truffle.api.source.Source;
 public class ConstantReplacer {
 
     public static String replacementName(Source source, String name) {
-        // The thread_safe gem checks if JRUBY_VERSION is defined and then uses RUBY_VERSION as
-        // a fallback.  We rename the constant being looked for to one that doesn't exist so the defined?
-        // lookup fails.
-        if (source.getName().endsWith("thread_safe.rb")) {
-            // TODO (pitr-ch 13-Jan-2017): we end up in a branch where Array = ::Array which is not threadsafe
-            if (name.equals("RUBY_VERSION")) {
-                return name + "_NONEXISTENT";
+        // We want to use the pure-ruby version, synchronized with monitor, as the RUBY_ENGINE == 'rbx' case.
+        if (source.getName().endsWith("/lib/thread_safe.rb")) {
+            if (name.equals("RUBY_ENGINE")) {
+                return name + "_FAKE_RUBINIUS";
             }
         }
 
