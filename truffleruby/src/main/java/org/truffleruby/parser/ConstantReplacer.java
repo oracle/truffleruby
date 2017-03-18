@@ -13,9 +13,9 @@ package org.truffleruby.parser;
 import com.oracle.truffle.api.source.Source;
 
 /**
- * Some 3rd party code make assumptions about the JRuby runtime based upon the values in some constants.  Where the
- * JRuby+Truffle runtime diverges from the behavior of JRuby, we may need to replace the value of these constants
- * in order to lead the code down a different branch.
+ * Some 3rd party code make assumptions about the Ruby runtime based upon the values in some
+ * constants. Where the TruffleRuby runtime diverges from the behavior of MRI or JRuby, we may need
+ * to replace the value of these constants in order to lead the code down a different branch.
  */
 public class ConstantReplacer {
 
