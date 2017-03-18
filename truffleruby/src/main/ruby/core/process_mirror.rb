@@ -390,6 +390,10 @@ module Rubinius
           pid = Truffle::Process.spawn command, arguments, env_array, options
           # Check if the command exists *after* invoking posix_spawn so we have a pid
           unless resolve_in_path(command)
+            if pid < 0
+              $? = ::Process::Status.new(pid, 127, nil, nil)
+              Errno.handle
+            end
             # the subprocess will fail, just wait for it
             ::Process.wait(pid) # Sets $? and avoids a zombie process
             unless $?.exitstatus == 127

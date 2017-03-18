@@ -56,12 +56,6 @@ public abstract class TruffleProcessNodes {
                     toStringArray(environmentVariables),
                     fileActions,
                     spawnAttributes);
-
-            if (pid == -1) {
-                // TODO (pitr 07-Sep-2015): needs compatibility improvements
-                throw new RaiseException(coreExceptions().errnoError(getContext().getNativePlatform().getPosix().errno(), this));
-            }
-
             return pid;
         }
 
