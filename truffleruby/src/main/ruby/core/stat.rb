@@ -49,69 +49,16 @@ class File
     end
     private :lsetup
 
-    def dev
-      Truffle.primitive :stat_dev
-      raise PrimitiveFailure, "Rubinius::Stat#dev primitive failed"
-    end
-
-    def ino
-      Truffle.primitive :stat_ino
-      raise PrimitiveFailure, "Rubinius::Stat#ino primitive failed"
-    end
-
-    def mode
-      Truffle.primitive :stat_mode
-      raise PrimitiveFailure, "Rubinius::Stat#mode primitive failed"
-    end
-
-    def nlink
-      Truffle.primitive :stat_nlink
-      raise PrimitiveFailure, "Rubinius::Stat#nlink primitive failed"
-    end
-
-    def uid
-      Truffle.primitive :stat_uid
-      raise PrimitiveFailure, "Rubinius::Stat#uid primitive failed"
-    end
-
-    def gid
-      Truffle.primitive :stat_gid
-      raise PrimitiveFailure, "Rubinius::Stat#gid primitive failed"
-    end
-
-    def rdev
-      Truffle.primitive :stat_rdev
-      raise PrimitiveFailure, "Rubinius::Stat#rdev primitive failed"
-    end
-
-    def size
-      Truffle.primitive :stat_size
-      raise PrimitiveFailure, "Rubinius::Stat#size primitive failed"
-    end
-
-    def blksize
-      Truffle.primitive :stat_blksize
-      raise PrimitiveFailure, "Rubinius::Stat#blksize primitive failed"
-    end
-
-    def blocks
-      Truffle.primitive :stat_blocks
-      raise PrimitiveFailure, "Rubinius::Stat#blocks primitive failed"
-    end
-
     def atime
-      Truffle.primitive :stat_atime
-      raise PrimitiveFailure, "Rubinius::Stat#atime primitive failed"
+      Time.at Truffle.invoke_primitive(:stat_atime, self)
     end
 
     def mtime
-      Truffle.primitive :stat_mtime
-      raise PrimitiveFailure, "Rubinius::Stat#mtime primitive failed"
+      Time.at Truffle.invoke_primitive(:stat_mtime, self)
     end
 
     def ctime
-      Truffle.primitive :stat_ctime
-      raise PrimitiveFailure, "Rubinius::Stat#ctime primitive failed"
+      Time.at Truffle.invoke_primitive(:stat_ctime, self)
     end
 
     def inspect

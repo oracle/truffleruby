@@ -10,9 +10,7 @@
 package org.truffleruby.core.rubinius;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.posix.FileStat;
 import org.truffleruby.Layouts;
@@ -23,7 +21,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 
 @CoreClass("File::Stat")
@@ -46,13 +43,10 @@ public abstract class StatNodes {
     @Primitive(name = "stat_atime")
     public static abstract class StatAtimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
-        public Object atime(
-                VirtualFrame frame,
-                DynamicObject rubyStat,
-                @Cached("new()") SnippetNode snippetNode) {
-            final long time = getStat(rubyStat).atime();
-            return snippetNode.execute(frame, "Time.at(time)", "time", time);
+        public long atime(DynamicObject rubyStat) {
+            return getStat(rubyStat).atime();
         }
 
     }
@@ -60,13 +54,10 @@ public abstract class StatNodes {
     @Primitive(name = "stat_ctime")
     public static abstract class StatCtimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
-        public Object ctime(
-                VirtualFrame frame,
-                DynamicObject rubyStat,
-                @Cached("new()") SnippetNode snippetNode) {
-            final long time = getStat(rubyStat).ctime();
-            return snippetNode.execute(frame, "Time.at(time)", "time", time);
+        public long ctime(DynamicObject rubyStat) {
+            return getStat(rubyStat).ctime();
         }
 
     }
@@ -74,19 +65,16 @@ public abstract class StatNodes {
     @Primitive(name = "stat_mtime")
     public static abstract class StatMtimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
-        public Object mtime(
-                VirtualFrame frame,
-                DynamicObject rubyStat,
-                @Cached("new()") SnippetNode snippetNode) {
-            final long time = getStat(rubyStat).mtime();
-            return snippetNode.execute(frame, "Time.at(time)", "time", time);
+        public long mtime(DynamicObject rubyStat) {
+            return getStat(rubyStat).mtime();
         }
 
     }
 
-    @Primitive(name = "stat_nlink")
-    public static abstract class NlinkPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "nlink")
+    public static abstract class NLinkNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary
         @Specialization
@@ -96,8 +84,8 @@ public abstract class StatNodes {
 
     }
 
-    @Primitive(name = "stat_rdev")
-    public static abstract class RdevPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "rdev")
+    public static abstract class RdevNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary
         @Specialization
@@ -107,8 +95,8 @@ public abstract class StatNodes {
 
     }
 
-    @Primitive(name = "stat_blksize")
-    public static abstract class StatBlksizePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "blksize")
+    public static abstract class StatBlksizeNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary
         @Specialization
@@ -118,8 +106,8 @@ public abstract class StatNodes {
 
     }
 
-    @Primitive(name = "stat_blocks")
-    public static abstract class StatBlocksPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "blocks")
+    public static abstract class StatBlocksNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary
         @Specialization
@@ -129,8 +117,8 @@ public abstract class StatNodes {
 
     }
 
-    @Primitive(name = "stat_dev")
-    public static abstract class StatDevPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "dev")
+    public static abstract class StatDevNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary
         @Specialization
@@ -140,8 +128,8 @@ public abstract class StatNodes {
 
     }
 
-    @Primitive(name = "stat_ino")
-    public static abstract class StatInoPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "ino")
+    public static abstract class StatInoNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary
         @Specialization
@@ -215,8 +203,8 @@ public abstract class StatNodes {
 
     }
 
-    @Primitive(name = "stat_size")
-    public static abstract class StatSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "size")
+    public static abstract class StatSizeNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary
         @Specialization
@@ -226,8 +214,8 @@ public abstract class StatNodes {
 
     }
 
-    @Primitive(name = "stat_mode")
-    public static abstract class StatModePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "mode")
+    public static abstract class StatModeNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary
         @Specialization
@@ -237,8 +225,8 @@ public abstract class StatNodes {
 
     }
 
-    @Primitive(name = "stat_gid")
-    public static abstract class StatGIDPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "gid")
+    public static abstract class StatGIDNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary
         @Specialization
@@ -248,8 +236,8 @@ public abstract class StatNodes {
 
     }
 
-    @Primitive(name = "stat_uid")
-    public static abstract class StatUIDPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "uid")
+    public static abstract class StatUIDNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary
         @Specialization
