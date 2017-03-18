@@ -143,7 +143,7 @@ public abstract class DirNodes {
 
     }
 
-    @CoreMethod(names = "seek", required = 1)
+    @CoreMethod(names = "seek", required = 1, lowerFixnum = 1)
     public static abstract class DirSeekNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
