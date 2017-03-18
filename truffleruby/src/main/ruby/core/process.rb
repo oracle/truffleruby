@@ -682,6 +682,14 @@ module Process
         nil
       end
     end
+
+    def to_s
+      "pid #{@pid.inspect} exit #{@status.inspect}"
+    end
+
+    def inspect
+      "#<Process::Status: #{to_s}>"
+    end
   end
 
   module Sys
