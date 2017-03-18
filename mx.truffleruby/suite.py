@@ -95,7 +95,7 @@ suite = {
         "ASM": mavenLib(
           "org.ow2.asm:asm:5.0.4",
           "0da08b8cce7bbf903602a25a3a163ae252435795",
-          "112ff54474f1f04ccf1384c92e39fdc566f0bb5e",
+          None,
           "BSD-new"),
 
         "JNR_POSIX": mavenLib(
