@@ -30,15 +30,6 @@ public class ConstantReplacer {
             }
         }
 
-        // The method_source gem checks if RUBY_ENGINE is defined and regexp matches 'jruby'. If it does,
-        // it uses Java interop to get source locations for JRuby. We rename the constant being looked for
-        // to one that doesn't exist so the defined? lookup fails.
-        if (source.getName().endsWith("source_location.rb")) {
-            if (name.equals("RUBY_ENGINE")) {
-                return name + "_NONEXISTENT";
-            }
-        }
-
         // The tzinfo gem checks if RUBY_ENGINE is defined and the value is either 'jruby' or 'rbx' to determine
         // whether $SAFE is supported. Since our RUBY_ENGINE value doesn't match either of those values, it is assumed
         // that we support $SAFE, which we do not. In order to properly pass the tests, we pretend that we're JRuby here.
