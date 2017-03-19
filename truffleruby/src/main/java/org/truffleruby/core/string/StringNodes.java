@@ -89,6 +89,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
@@ -2504,8 +2505,9 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_append")
-    public static abstract class StringAppendPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @NonStandard
+    @CoreMethod(names = "append", required = 1)
+    public static abstract class StringAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringAppendNode stringAppendNode = StringNodesFactory.StringAppendNodeGen.create(null, null);
 
@@ -2679,9 +2681,10 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_chr_at", lowerFixnum = 1)
+    @NonStandard
+    @CoreMethod(names = "chr_at", required = 1, lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringChrAtPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class StringChrAtPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "indexOutOfBounds(string, byteIndex)")
         public Object stringChrAtOutOfBounds(DynamicObject string, int byteIndex) {
@@ -3019,9 +3022,10 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_find_character", lowerFixnum = 1)
+    @NonStandard
+    @CoreMethod(names = "find_character", required = 1, lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringFindCharacterNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class StringFindCharacterNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
@@ -3089,8 +3093,9 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_from_codepoint", needsSelf = false, lowerFixnum = 1)
-    public static abstract class StringFromCodepointPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @NonStandard
+    @CoreMethod(names = "from_codepoint", onSingleton = true, required = 2, lowerFixnum = 1)
+    public static abstract class StringFromCodepointPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyEncoding(rubyEncoding)", "isSimple(longCode, rubyEncoding)", "isCodepoint(longCode)" })
         public DynamicObject stringFromCodepointSimple(long longCode, DynamicObject rubyEncoding,
@@ -3197,9 +3202,10 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "string_index", lowerFixnum = 2)
+    @NonStandard
+    @CoreMethod(names = "find_string", required = 2, lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringIndexPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class StringIndexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringByteCharacterIndexNode byteIndexToCharIndexNode = StringNodesFactory.StringByteCharacterIndexNodeFactory.create(null);
         @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);
@@ -3673,8 +3679,9 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_rindex", lowerFixnum = 2)
-    public static abstract class StringRindexPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @NonStandard
+    @CoreMethod(names = "find_string_reverse", required = 2, lowerFixnum = 2)
+    public static abstract class StringRindexPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.GetByteNode patternGetByteNode = RopeNodes.GetByteNode.create();
         @Child private RopeNodes.GetByteNode stringGetByteNode = RopeNodes.GetByteNode.create();
@@ -3742,8 +3749,9 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_pattern", lowerFixnum = { 1, 2 })
-    public static abstract class StringPatternPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @NonStandard
+    @CoreMethod(names = "pattern", constructor = true, required = 2, lowerFixnum = { 1, 2 })
+    public static abstract class StringPatternPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
@@ -3949,9 +3957,10 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_substring", lowerFixnum = { 1, 2 })
+    @NonStandard
+    @CoreMethod(names = "substring", lowerFixnum = { 1, 2 }, required = 2)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringSubstringPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class StringSubstringPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateNode;
         @Child private NormalizeIndexNode normalizeIndexNode = StringNodesFactory.NormalizeIndexNodeGen.create(null, null);

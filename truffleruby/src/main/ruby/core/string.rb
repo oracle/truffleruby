@@ -39,41 +39,6 @@ DEFAULT_RECORD_SEPARATOR = "\n"
 class String
   include Comparable
 
-  def self.from_codepoint(code, enc)
-    Truffle.primitive :string_from_codepoint
-    raise PrimitiveFailure, "String.from_codepoint primitive failed"
-  end
-
-  def self.pattern(size, str)
-    Truffle.primitive :string_pattern
-    raise PrimitiveFailure, "String.pattern primitive failed"
-  end
-
-  def substring(start, count)
-    Truffle.primitive :string_substring
-    raise PrimitiveFailure, "String#substring primitive failed"
-  end
-
-  def find_string(pattern, start)
-    Truffle.primitive :string_index
-    raise PrimitiveFailure, "String#find_string primitive failed"
-  end
-
-  def find_string_reverse(pattern, start)
-    Truffle.primitive :string_rindex
-    raise PrimitiveFailure, "String#find_string_reverse primitive failed"
-  end
-
-  def chr_at(byte)
-    Truffle.primitive :string_chr_at
-    raise ArgumentError, "String#chr_at primitive failed"
-  end
-
-  def append(str)
-    Truffle.primitive :string_append
-    raise TypeError, "String#append primitive only accepts Strings"
-  end
-
   def byteslice(index_or_range, length=undefined)
     Truffle.primitive :string_byte_substring
 
@@ -105,11 +70,6 @@ class String
     end
 
     byteslice index, length
-  end
-
-  def find_character(offset)
-    Truffle.primitive :string_find_character
-    raise PrimitiveFailure, "String#find_character primitive failed"
   end
 
   def byte_append(str)
