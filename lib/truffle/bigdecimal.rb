@@ -151,7 +151,7 @@ class Truffle::BigDecimal < Numeric
     else
       rounded = round 0, ROUND_FLOOR
       integer = rounded.to_i
-      return rounded == integer ? integer : rounded
+      rounded == integer ? integer : rounded
     end
   end
 
@@ -162,7 +162,7 @@ class Truffle::BigDecimal < Numeric
       else
         rounded = round 0, ROUND_DOWN
         integer = rounded.to_i
-        return rounded == integer ? integer : rounded
+        rounded == integer ? integer : rounded
       end
     else
       if digit
@@ -179,7 +179,7 @@ class Truffle::BigDecimal < Numeric
     else
       rounded = round 0, ROUND_CEILING
       integer = rounded.to_i
-      return rounded == integer ? integer : rounded
+      rounded == integer ? integer : rounded
     end
   end
 

@@ -537,7 +537,7 @@ module Process
 
   def self.wait(pid=-1, flags=nil)
     pid, status = Process.wait2(pid, flags)
-    return pid
+    pid
   end
 
   class << self
@@ -562,7 +562,7 @@ module Process
       $stderr.reopen io
     end
 
-    return 0
+    0
   end
 
   def self.exec(*args)

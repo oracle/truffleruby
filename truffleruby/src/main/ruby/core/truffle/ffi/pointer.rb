@@ -106,7 +106,7 @@ module Rubinius::FFI
     # Indicates if +self+ and +other+ point to the same address
     def ==(other)
       return false unless other.kind_of? Pointer
-      return address == other.address
+      address == other.address
     end
 
     def network_order(start, size)

@@ -83,7 +83,7 @@ module Rubinius
           raise ArgumentError, "step can't be 0"
         end
 
-        return first, last, step_size
+        [first, last, step_size]
       end
 
       def excl

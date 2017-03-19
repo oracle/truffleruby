@@ -54,7 +54,7 @@ class Numeric
     # MRI doesn't and doing so breaks stuff!
 
     return 0 if self.equal? other
-    return nil
+    nil
   end
 
   def step(limit = undefined, step = undefined, by: undefined, to: undefined)
@@ -133,7 +133,7 @@ class Numeric
       end
     end
 
-    return self
+    self
   end
 
   def truncate
@@ -233,7 +233,7 @@ class Numeric
       raise TypeError, "coerce must return [x, y]"
     end
 
-    return values[1], values[0]
+    [values[1], values[0]]
   end
   private :math_coerce
 
@@ -305,7 +305,7 @@ class Numeric
   alias_method :phase, :arg
 
   def polar
-    return abs, arg
+    [abs, arg]
   end
 
   def conjugate

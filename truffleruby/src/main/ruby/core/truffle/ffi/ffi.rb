@@ -69,7 +69,7 @@ module Rubinius::FFI
     def find_type(name)
       code = Rubinius::FFI::TypeDefs[name]
       raise TypeError, "Unable to resolve type '#{name}'" unless code
-      return code
+      code
     end
 
     ##
@@ -97,7 +97,7 @@ module Rubinius::FFI
       end
 
       # Be like C, use int as the default type size.
-      return :int
+      :int
     end
 
     def config(name)

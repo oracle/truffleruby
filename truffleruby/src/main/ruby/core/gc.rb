@@ -59,8 +59,7 @@ module GC
     # We don't support disable, so sure! enabled!
     ret = !@enabled
     @enabled = true
-
-    return ret
+    ret
   end
 
   # Totally fake.
@@ -68,8 +67,7 @@ module GC
     # Treat this like a request that we don't honor.
     ret = !@enabled
     @enabled = false
-
-    return ret
+    ret
   end
 
   def garbage_collect

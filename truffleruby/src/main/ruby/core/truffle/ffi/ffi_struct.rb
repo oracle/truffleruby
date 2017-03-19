@@ -81,7 +81,7 @@ module Rubinius::FFI
           return str[0, idx]
         end
 
-        return str
+        str
       end
 
       alias_method :to_str, :to_s
@@ -189,7 +189,7 @@ module Rubinius::FFI
 
       @layout = cspec unless self == FFI::Struct
 
-      return cspec
+      cspec
     end
 
     def self.config(base, *fields)
@@ -211,7 +211,7 @@ module Rubinius::FFI
 
       @layout = cspec
 
-      return cspec
+      cspec
     end
 
     def self.size
@@ -297,7 +297,7 @@ module Rubinius::FFI
         @pointer.set_at_offset(offset, type, val)
       end
 
-      return val
+      val
     end
 
     def [](field)

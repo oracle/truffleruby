@@ -561,7 +561,7 @@ module Rubinius
         $stdout = File.open(@filename, "w")
       end
 
-      return true
+      true
     end
     private :advance!
   end

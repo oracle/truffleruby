@@ -422,7 +422,7 @@ class IO
         end
       end
 
-      return flag, io
+      [flag, io]
     end
 
     def read_method(obj)

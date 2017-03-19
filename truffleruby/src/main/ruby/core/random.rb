@@ -116,7 +116,7 @@ class Rubinius::Randomizer
       time = time.to_date
     end
 
-    return time
+    time
   end
 
   ##
@@ -126,7 +126,7 @@ class Rubinius::Randomizer
   # @return [Float]
   #
   def time_to_float(input)
-    return input.respond_to?(:to_time) ? input.to_time.to_f : input.to_f
+    input.respond_to?(:to_time) ? input.to_time.to_f : input.to_f
   end
 
   ##
@@ -136,7 +136,7 @@ class Rubinius::Randomizer
   # @return [TrueClass|FalseClass]
   #
   def time_value?(input)
-    return input.is_a?(Time) || (Object.const_defined?(:Date) && input.is_a?(Date))
+    input.is_a?(Time) || (Object.const_defined?(:Date) && input.is_a?(Date))
   end
 end
 

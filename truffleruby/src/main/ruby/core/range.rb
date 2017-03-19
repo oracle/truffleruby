@@ -187,7 +187,7 @@ class Range
     hash ^= self.end.hash << 9
     hash ^= excl << 24;
     # Are we throwing away too much here for a good hash value distribution?
-    return hash & Fixnum::MAX
+    hash & Fixnum::MAX
   end
 
   def include?(value)

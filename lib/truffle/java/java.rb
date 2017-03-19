@@ -39,7 +39,7 @@ module Java
     end
 
     def eql?(another)
-      return Truffle::Interop::Java.java_eql?(@value, @value)
+      Truffle::Interop::Java.java_eql?(@value, @value)
     end
 
     alias_method :eql?, :==

@@ -822,7 +822,7 @@ module Enumerable
       each { return false if Truffle.single_block_arg }
     end
 
-    return true
+    true
   end
 
   def one?
@@ -857,7 +857,7 @@ module Enumerable
       yield(o) ? left.push(o) : right.push(o)
     end
 
-    return [left, right]
+    [left, right]
   end
 
   def reject

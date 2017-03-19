@@ -161,7 +161,7 @@ module Kernel
       raise TypeError, "#to_s did not return a String"
     end
 
-    return str
+    str
   end
   module_function :String
 
@@ -308,7 +308,7 @@ module Kernel
 
     Rubinius::Type.infect(str, self)
 
-    return str
+    str
   end
 
   alias_method :__instance_variable_get__, :instance_variable_get

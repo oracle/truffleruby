@@ -267,7 +267,7 @@ class Regexp
     end
 
     res = match(line)
-    return res ? res.begin(0) : nil
+    res ? res.begin(0) : nil
   end
 
   def casefold?
@@ -339,7 +339,7 @@ class MatchData
     out = []
     out << self.begin(idx)
     out << self.end(idx)
-    return out
+    out
   end
 
   def ==(other)

@@ -505,7 +505,7 @@ module Enumerable
 
         raise StopIteration, "iteration has ended" if @done
 
-        return val
+        val
       end
 
       def rewind

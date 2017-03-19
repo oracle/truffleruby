@@ -566,7 +566,7 @@ class Array
       end
     end
 
-    return hash_val
+    hash_val
   end
 
   def find_index(obj=undefined)
@@ -831,7 +831,7 @@ class Array
       end
     end
 
-    return self
+    self
   end
 
   def compile_repeated_combinations(combination_size, place, index, depth, &block)
@@ -865,7 +865,7 @@ class Array
       end
     end
 
-    return self
+    self
   end
 
   def repeated_permutation_size(combination_size)
@@ -876,7 +876,7 @@ class Array
 
   def repeated_combination_size(combination_size)
     return 1 if combination_size == 0
-    return binomial_coefficient(combination_size, self.size + combination_size - 1)
+    binomial_coefficient(combination_size, self.size + combination_size - 1)
   end
   private :repeated_combination_size
 
@@ -1498,7 +1498,7 @@ class Array
       i += 1
     end
 
-    return self
+    self
   end
 
   def slice!(start, length=undefined)

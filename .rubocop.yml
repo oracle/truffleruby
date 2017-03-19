@@ -25,3 +25,6 @@ Style/CaseIndentation:
 
 Style/IndentationConsistency:
   Enabled: true
+
+Style/RedundantReturn:
+  Enabled: true

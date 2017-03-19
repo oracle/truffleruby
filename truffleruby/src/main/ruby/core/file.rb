@@ -208,7 +208,7 @@ class File < IO
       end
     end
 
-    return path
+    path
   end
 
   ##
@@ -389,8 +389,7 @@ class File < IO
         return i
       end
     end
-
-    return nil
+    nil
   end
 
   ##
@@ -430,7 +429,7 @@ class File < IO
       return path.byteslice(0, idx - 1)
     end
 
-    return "."
+    "."
   end
 
   ##
@@ -576,7 +575,7 @@ class File < IO
     # last component ends with a .
     return "" if dot_idx == path_size - 1
 
-    return path.byteslice(dot_idx, path_size - dot_idx)
+    path.byteslice(dot_idx, path_size - dot_idx)
   end
 
   ##

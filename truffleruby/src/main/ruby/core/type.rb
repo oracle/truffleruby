@@ -431,7 +431,7 @@ module Rubinius
           end
         end
       end
-      return undefined
+      undefined
     end
 
     def self.basic_obj_respond_to_missing(obj, mid, priv)
@@ -553,11 +553,11 @@ module Rubinius
     def self.coerce_to_encoding(obj)
       case obj
       when Encoding
-        return obj
+        obj
       when String
-        return Encoding.find obj
+        Encoding.find obj
       else
-        return Encoding.find StringValue(obj)
+        Encoding.find StringValue(obj)
       end
     end
 

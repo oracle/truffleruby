@@ -1519,7 +1519,7 @@ module Truffle::CExt
     time = rb_time_nano_new(sec, nsec)
     return time if is_local
     return time.getgm if is_utc
-    return time.getlocal(offset)
+    time.getlocal(offset)
   end
 
   def rb_time_num_new(timev, off)

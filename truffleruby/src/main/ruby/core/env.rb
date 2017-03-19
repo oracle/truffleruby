@@ -120,7 +120,7 @@ module Rubinius
       key = set_encoding key
       value = set_encoding value
 
-      return [key, value]
+      [key, value]
     end
 
     # More efficient than using the one from Enumerable
@@ -146,7 +146,7 @@ module Rubinius
         raise KeyError, "key not found"
       end
 
-      return absent
+      absent
     end
 
     def to_s
@@ -183,7 +183,7 @@ module Rubinius
 
     def has_value?(value)
       each { |k, v| return true if v == value }
-      return false
+      false
     end
 
     alias_method :value?, :has_value?
@@ -221,7 +221,7 @@ module Rubinius
 
     def empty?
       each { return false }
-      return true
+      true
     end
 
     def length

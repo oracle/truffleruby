@@ -194,9 +194,9 @@ class Rational < Numeric
   def coerce(other)
     case other
     when Integer
-      return Rational.new(other, 1), self
+      [Rational.new(other, 1), self]
     when Float
-      return other, self.to_f
+      [other, self.to_f]
     else
       super
     end

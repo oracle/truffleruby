@@ -60,7 +60,7 @@ class Exception
     list = super
     list.delete :@backtrace
     list.delete :@custom_backtrace
-    return list
+    list
   end
 
   # Needed to properly implement #exception, which must clone and call
@@ -364,7 +364,7 @@ class SystemCallError < StandardError
       error = allocate
       Rubinius::Unsafe.set_class error, self
       Truffle.privately { error.initialize(*args) }
-      return error
+      error
     end
   end
 

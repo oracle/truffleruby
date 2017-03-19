@@ -440,13 +440,13 @@ class Encoding
           @paths[key][1] = converters
         end
 
-        return path, converters
+        [path, converters]
       end
 
       def self.search(source, target)
         if entry = TranscodingMap[source]
           if entry[target]
-            return [source, target]
+            [source, target]
           else
             visited = { source => true }
             search = { [source] => entry }

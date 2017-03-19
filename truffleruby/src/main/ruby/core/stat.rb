@@ -115,14 +115,14 @@ class File
       return true if superuser?
       return mode & S_IXUSR != 0 if owned?
       return mode & S_IXGRP != 0 if grpowned?
-      return mode & S_IXOTH != 0
+      mode & S_IXOTH != 0
     end
 
     def executable_real?
       return true if rsuperuser?
       return mode & S_IXUSR != 0 if rowned?
       return mode & S_IXGRP != 0 if rgrpowned?
-      return mode & S_IXOTH != 0
+      mode & S_IXOTH != 0
     end
 
     def file?
@@ -171,14 +171,14 @@ class File
       return true if superuser?
       return mode & S_IRUSR != 0 if owned?
       return mode & S_IRGRP != 0 if grpowned?
-      return mode & S_IROTH != 0
+      mode & S_IROTH != 0
     end
 
     def readable_real?
       return true if rsuperuser?
       return mode & S_IRUSR != 0 if rowned?
       return mode & S_IRGRP != 0 if rgrpowned?
-      return mode & S_IROTH != 0
+      mode & S_IROTH != 0
     end
 
     def setgid?
@@ -208,14 +208,14 @@ class File
     def world_readable?
       if mode & S_IROTH == S_IROTH
         tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
-        return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+        Rubinius::Type.coerce_to tmp, Fixnum, :to_int
       end
     end
 
     def world_writable?
       if mode & S_IWOTH == S_IWOTH
         tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
-        return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+        Rubinius::Type.coerce_to tmp, Fixnum, :to_int
       end
     end
 
@@ -223,14 +223,14 @@ class File
       return true if superuser?
       return mode & S_IWUSR != 0 if owned?
       return mode & S_IWGRP != 0 if grpowned?
-      return mode & S_IWOTH != 0
+      mode & S_IWOTH != 0
     end
 
     def writable_real?
       return true if rsuperuser?
       return mode & S_IWUSR != 0 if rowned?
       return mode & S_IWGRP != 0 if rgrpowned?
-      return mode & S_IWOTH != 0
+      mode & S_IWOTH != 0
     end
 
     def zero?

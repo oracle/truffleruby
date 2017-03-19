@@ -158,7 +158,7 @@ class String
     end
 
     # Nothing worked out, this is the default.
-    return [self, "", ""]
+    [self, "", ""]
   end
 
   def rpartition(pattern)
@@ -179,7 +179,7 @@ class String
       end
 
       # Nothing worked out, this is the default.
-      return ["", "", self]
+      ["", "", self]
     end
   end
 
@@ -227,7 +227,7 @@ class String
     end
 
     Truffle.invoke_primitive(:regexp_set_last_match, last_match)
-    return ret
+    ret
   end
 
   def split(pattern=nil, limit=undefined)
@@ -1163,7 +1163,7 @@ class String
 
   def scrub!(replace = nil, &block)
     replace(scrub(replace, &block))
-    return self
+    self
   end
 
   def []=(index, count_or_replacement, replacement=undefined)
@@ -1290,7 +1290,7 @@ class String
 
     Rubinius::Type.infect self, replacement
 
-    return replacement
+    replacement
   end
 
   def center(width, padding=" ")
@@ -1525,7 +1525,7 @@ class String
       end
     end
 
-    return nil
+    nil
   end
 
   def start_with?(*prefixes)

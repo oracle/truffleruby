@@ -102,7 +102,7 @@ module Signal
     end
 
     return "DEFAULT" unless had_old
-    return old ? old : nil
+    old ? old : nil
   end
 
   def self.list

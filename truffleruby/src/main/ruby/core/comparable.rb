@@ -74,7 +74,7 @@ module Comparable
     # MRI.
     return false if self < min
     return false if self > max
-    return true
+    true
   end
 
   # A version of MRI's rb_cmpint (sort of)
@@ -83,7 +83,7 @@ module Comparable
 
     return 1  if int > 0
     return -1 if int < 0
-    return 0
+    0
   end
 end
 

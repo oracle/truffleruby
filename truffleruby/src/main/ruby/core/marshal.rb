@@ -1248,7 +1248,7 @@ module Marshal
       raise ArgumentError, "marshal data too short" if @consumed >= @stream.bytesize
       data = @byte_array[@consumed]
       @consumed += 1
-      return data
+      data
     end
   end
 
@@ -1278,10 +1278,10 @@ module Marshal
 
     if an_io
       an_io.write(str)
-      return an_io
+      an_io
+    else
+      str
     end
-
-    return str
   end
 
   def self.load(obj, prc = nil)
