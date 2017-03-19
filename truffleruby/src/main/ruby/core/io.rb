@@ -37,13 +37,6 @@ class IO
 
   include Enumerable
 
-  # Instance primitive bindings
-
-  def close
-    ensure_open
-    Truffle.invoke_primitive :io_close, self
-  end
-
   #
   # Close read and/or write stream of a full-duplex descriptor.
   #
@@ -1168,8 +1161,6 @@ class IO
   def initialize_copy(original) # :nodoc:
     @descriptor = Truffle::POSIX.dup(@descriptor)
   end
-
-  alias_method :prim_close, :close
 
   def advise(advice, offset = 0, len = 0)
     raise IOError, "stream is closed" if closed?
@@ -2578,7 +2569,7 @@ class IO
     begin
       flush
     ensure
-      prim_close
+      Truffle.invoke_primitive :io_close, self
     end
 
     if @pid and @pid != 0
