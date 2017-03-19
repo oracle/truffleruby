@@ -1,6 +1,7 @@
 AllCops:
   DisabledByDefault: true
   Exclude:
+    - '*.rb'
     - 'bin/**/*'
     - 'lib/bin/**/*'
     - 'lib/json/**/*'
