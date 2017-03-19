@@ -3937,8 +3937,9 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_byte_append")
-    public static abstract class StringByteAppendPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @NonStandard
+    @CoreMethod(names = "byte_append", required = 1)
+    public static abstract class StringByteAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.MakeConcatNode makeConcatNode = RopeNodes.MakeConcatNode.create();
 
@@ -4194,8 +4195,9 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_from_bytearray", needsSelf = false, lowerFixnum = { 2, 3 })
-    public static abstract class StringFromByteArrayPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @NonStandard
+    @CoreMethod(names = "from_bytearray", onSingleton = true, required = 3, lowerFixnum = { 2, 3 })
+    public static abstract class StringFromByteArrayPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubiniusByteArray(bytes)")
         public DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count) {

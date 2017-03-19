@@ -72,19 +72,6 @@ class String
     byteslice index, length
   end
 
-  def byte_append(str)
-    Truffle.primitive :string_byte_append
-    raise TypeError, "String#byte_append primitive only accepts Strings"
-  end
-
-  ##
-  # Creates a new string from copying _count_ bytes from the
-  # _start_ of _bytes_.
-  def self.from_bytearray(bytes, start, count)
-    Truffle.primitive :string_from_bytearray
-    raise PrimitiveFailure, "String.from_bytearray primitive failed"
-  end
-
   def self.try_convert(obj)
     Rubinius::Type.try_convert obj, String, :to_str
   end
