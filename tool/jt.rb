@@ -1475,13 +1475,13 @@ module Commands
     run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-e', 'exit')
   end
 
-  def rubocop
+  def rubocop(*args)
     begin
       require 'rubocop'
     rescue LoadError
       sh "gem", "install", "rubocop"
     end
-    sh "rubocop"
+    sh "rubocop", *args
   end
 
   def lint
