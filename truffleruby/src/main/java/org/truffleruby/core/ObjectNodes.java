@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -18,7 +17,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
@@ -26,7 +24,6 @@ import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
-import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 
@@ -106,35 +103,6 @@ public abstract class ObjectNodes {
 
         protected WriteObjectFieldNode createWriteObjectIDNode() {
             return WriteObjectFieldNodeGen.create(Layouts.OBJECT_ID_IDENTIFIER);
-        }
-
-    }
-
-    @Primitive(name = "object_infect", needsSelf = false)
-    public static abstract class ObjectInfectPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private IsTaintedNode isTaintedNode;
-        @Child private TaintNode taintNode;
-
-        @Specialization
-        public Object objectInfect(Object host, Object source) {
-            if (isTaintedNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                isTaintedNode = insert(IsTaintedNode.create());
-            }
-
-            if (isTaintedNode.executeIsTainted(source)) {
-                // This lazy node allocation effectively gives us a branch profile
-
-                if (taintNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    taintNode = insert(TaintNode.create());
-                }
-
-                taintNode.executeTaint(host);
-            }
-
-            return host;
         }
 
     }

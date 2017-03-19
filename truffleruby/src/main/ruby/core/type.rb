@@ -61,12 +61,6 @@
 module Rubinius
   module Type
 
-    # Taint host if source is tainted.
-    def self.infect(host, source)
-      Truffle.primitive :object_infect
-      raise PrimitiveFailure, "Object.infect primitive failed"
-    end
-
     def self.object_respond_to?(obj, name, include_private = false)
       Truffle.invoke_primitive :vm_object_respond_to, obj, name, include_private
     end

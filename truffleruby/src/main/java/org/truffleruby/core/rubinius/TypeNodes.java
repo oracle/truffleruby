@@ -18,9 +18,12 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsANodeGen;
+import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.LogicalClassNodeGen;
+import org.truffleruby.language.objects.TaintNode;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -60,6 +63,35 @@ public abstract class TypeNodes {
         public boolean objectEqual(Object a, Object b,
                 @Cached("create()") ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(a, b);
+        }
+
+    }
+
+    @CoreMethod(names = "infect", onSingleton = true, required = 2)
+    public static abstract class InfectNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private IsTaintedNode isTaintedNode;
+        @Child private TaintNode taintNode;
+
+        @Specialization
+        public Object infect(Object host, Object source) {
+            if (isTaintedNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                isTaintedNode = insert(IsTaintedNode.create());
+            }
+
+            if (isTaintedNode.executeIsTainted(source)) {
+                // This lazy node allocation effectively gives us a branch profile
+
+                if (taintNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    taintNode = insert(TaintNode.create());
+                }
+
+                taintNode.executeTaint(host);
+            }
+
+            return host;
         }
 
     }
