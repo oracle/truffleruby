@@ -248,6 +248,16 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "LL2NUM", isModuleFunction = true, required = 1)
+    public abstract static class LL2NUMNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public long longlong2num(long num) {
+            return num;
+        }
+
+    }
+
     @CoreMethod(names = "ULONG2NUM", isModuleFunction = true, required = 1)
     public abstract static class ULONG2NUMNode extends CoreMethodArrayArgumentsNode {
 

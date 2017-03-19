@@ -523,7 +523,7 @@ void rb_num_zerodiv(void) {
 }
 
 VALUE LL2NUM(LONG_LONG n) {
-  rb_tr_error("LL2NUM not implemented");
+  return truffle_invoke(RUBY_CEXT, "LL2NUM", n);
 }
 
 // Type checks
