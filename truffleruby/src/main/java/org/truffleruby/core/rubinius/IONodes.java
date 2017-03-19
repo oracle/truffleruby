@@ -765,12 +765,8 @@ public abstract class IONodes {
     @Primitive(name = "io_close")
     public static abstract class IOClosePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode ensureOpenNode = DispatchHeadNodeFactory.createMethodCall();
-
         @Specialization
-        public int close(VirtualFrame frame, DynamicObject io) {
-            ensureOpenNode.call(frame, io, "ensure_open");
-
+        public int close(DynamicObject io) {
             final int fd = Layouts.IO.getDescriptor(io);
 
             if (fd == -1) {

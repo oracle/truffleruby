@@ -99,8 +99,8 @@ class IO
   end
 
   def close
-    Truffle.primitive :io_close
-    raise PrimitiveFailure, "IO#close primitive failed"
+    ensure_open
+    Truffle.invoke_primitive :io_close, self
   end
 
   #
