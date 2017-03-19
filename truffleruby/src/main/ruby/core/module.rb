@@ -60,12 +60,10 @@ class Module
 
   def extended(name)
   end
-
   private :extended
 
   def method_added(name)
   end
-
   private :method_added
 
   def method_removed(name)
@@ -75,14 +73,7 @@ class Module
 
   def method_undefined(name)
   end
-
   private :method_undefined
-
-  def freeze
-    @method_table.freeze
-    @constant_table.freeze
-    super
-  end
 
   def prepended(mod); end
   private :prepended
