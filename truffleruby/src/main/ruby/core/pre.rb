@@ -46,8 +46,10 @@ class Module
 end
 
 module Kernel
-  alias_method :eql?, :equal? # from BasicObject
-  alias_method :send, :__send__ # from BasicObject
+  # Methods from BasicObject with a different name
+  alias_method :eql?, :equal?
+  alias_method :object_id, :__id__
+  alias_method :send, :__send__
 end
 
 class Symbol

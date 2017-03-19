@@ -27,11 +27,6 @@
 # Only part of Rubinius' basic_object.rb
 
 class BasicObject
-  def __id__
-    Truffle.primitive :object_id
-    raise ::PrimitiveFailure, "BasicObject#__id__ primitive failed"
-  end
-
   def singleton_method_added(name)
   end
   private :singleton_method_added

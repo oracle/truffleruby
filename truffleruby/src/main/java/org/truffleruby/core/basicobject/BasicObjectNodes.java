@@ -24,8 +24,10 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.ASCIIEncoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -53,7 +55,12 @@ import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.PropertyFlags;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.parser.ParserContext;
@@ -151,6 +158,81 @@ public abstract class BasicObjectNodes {
 
         protected boolean isNotIntLong(Object v) {
             return !(v instanceof Integer) && !(v instanceof Long);
+        }
+
+    }
+
+    @CoreMethod(names = "__id__")
+    public abstract static class ObjectIDNode extends CoreMethodArrayArgumentsNode {
+
+        public abstract Object executeObjectID(Object value);
+
+        @Specialization(guards = "isNil(nil)")
+        public long objectIDNil(Object nil) {
+            return ObjectIDOperations.NIL;
+        }
+
+        @Specialization(guards = "value")
+        public long objectIDTrue(boolean value) {
+            return ObjectIDOperations.TRUE;
+        }
+
+        @Specialization(guards = "!value")
+        public long objectIDFalse(boolean value) {
+            return ObjectIDOperations.FALSE;
+        }
+
+        @Specialization
+        public long objectID(int value) {
+            return ObjectIDOperations.smallFixnumToID(value);
+        }
+
+        @Specialization(rewriteOn = ArithmeticException.class)
+        public long objectIDSmallFixnumOverflow(long value) throws ArithmeticException {
+            return ObjectIDOperations.smallFixnumToIDOverflow(value);
+        }
+
+        @Specialization
+        public Object objectID(long value,
+                @Cached("createCountingProfile()") ConditionProfile smallProfile) {
+            if (smallProfile.profile(ObjectIDOperations.isSmallFixnum(value))) {
+                return ObjectIDOperations.smallFixnumToID(value);
+            } else {
+                return ObjectIDOperations.largeFixnumToID(getContext(), value);
+            }
+        }
+
+        @Specialization
+        public Object objectID(double value) {
+            return ObjectIDOperations.floatToID(getContext(), value);
+        }
+
+        @Specialization(guards = "!isNil(object)")
+        public long objectID(DynamicObject object,
+                @Cached("createReadObjectIDNode()") ReadObjectFieldNode readObjectIdNode,
+                @Cached("createWriteObjectIDNode()") WriteObjectFieldNode writeObjectIdNode) {
+            final long id = (long) readObjectIdNode.execute(object);
+
+            if (id == 0) {
+                final long newId = getContext().getObjectSpaceManager().getNextObjectID();
+                writeObjectIdNode.execute(object, newId);
+                return newId;
+            }
+
+            return id;
+        }
+
+        @Fallback
+        public long objectID(Object object) {
+            return Integer.toUnsignedLong(object.hashCode());
+        }
+
+        protected ReadObjectFieldNode createReadObjectIDNode() {
+            return ReadObjectFieldNodeGen.create(Layouts.OBJECT_ID_IDENTIFIER, 0L);
+        }
+
+        protected WriteObjectFieldNode createWriteObjectIDNode() {
+            return WriteObjectFieldNodeGen.create(Layouts.OBJECT_ID_IDENTIFIER);
         }
 
     }

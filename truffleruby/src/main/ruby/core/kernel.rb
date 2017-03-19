@@ -353,11 +353,6 @@ module Kernel
   end
   module_function :loop
 
-  def object_id
-    Truffle.primitive :object_id
-    raise PrimitiveFailure, "Kernel#object_id primitive failed"
-  end
-
   def open(obj, *rest, &block)
     if obj.respond_to?(:to_open)
       obj = obj.to_open(*rest)

@@ -14,8 +14,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.ObjectNodes.ObjectIDPrimitiveNode;
-import org.truffleruby.core.ObjectNodesFactory.ObjectIDPrimitiveNodeFactory;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
+import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -24,7 +24,7 @@ import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 public class HashNode extends RubyBaseNode {
 
     @Child private CallDispatchHeadNode hashNode;
-    @Child private ObjectIDPrimitiveNode objectIDNode;
+    @Child private ObjectIDNode objectIDNode;
     @Child private SnippetNode snippetNode;
 
     private final ConditionProfile isIntegerProfile1 = ConditionProfile.createBinaryProfile();
@@ -81,7 +81,7 @@ public class HashNode extends RubyBaseNode {
     private Object objectID(Object object) {
         if (objectIDNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            objectIDNode = insert(ObjectIDPrimitiveNodeFactory.create(null));
+            objectIDNode = insert(ObjectIDNodeFactory.create(null));
         }
         return objectIDNode.executeObjectID(object);
     }

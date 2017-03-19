@@ -49,12 +49,12 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
-import org.truffleruby.core.ObjectNodes;
-import org.truffleruby.core.ObjectNodesFactory;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodes;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory;
+import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
@@ -74,6 +74,7 @@ import org.truffleruby.core.format.printf.PrintfCompiler;
 import org.truffleruby.core.kernel.KernelNodesFactory.CopyNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
+import org.truffleruby.core.kernel.KernelNodesFactory.ToHexStringNodeFactory;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcNodesFactory.ProcNewNodeFactory;
@@ -1708,9 +1709,9 @@ public abstract class KernelNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Child private LogicalClassNode classNode = LogicalClassNodeGen.create(null);
-        @Child private ObjectNodes.ObjectIDPrimitiveNode objectIDNode = ObjectNodesFactory.ObjectIDPrimitiveNodeFactory.create(null);
+        @Child private ObjectIDNode objectIDNode = ObjectIDNodeFactory.create(null);
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
-        @Child private ToHexStringNode toHexStringNode = KernelNodesFactory.ToHexStringNodeFactory.create(null);
+        @Child private ToHexStringNode toHexStringNode = ToHexStringNodeFactory.create(null);
 
         public abstract DynamicObject executeToS(Object self);
 
