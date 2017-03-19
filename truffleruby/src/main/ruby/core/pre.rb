@@ -33,13 +33,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Module
-
   # :internal:
-  #
-  # Basic version of .include used in kernel code.
-  #
-  # Redefined in kernel/delta/module.rb.
-  #
+  # Basic version of #include used in core
+  # Redefined in core/module.rb
   def include(mod)
     Truffle.privately do
       mod.append_features self
@@ -47,21 +43,15 @@ class Module
     end
     self
   end
-
 end
 
 module Kernel
-
-  alias_method :eql?, :equal?
-
+  alias_method :eql?, :equal? # from BasicObject
   alias_method :send, :__send__ # from BasicObject
-
 end
 
 class Symbol
-
   def to_sym
     self
   end
-
 end
