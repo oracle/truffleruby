@@ -42,11 +42,6 @@ class IO
   #
   # @todo   More documentation. Much more. --rue
   #
-  def shutdown(how)
-    Truffle.primitive :io_shutdown
-    raise PrimitiveFailure, "IO#shutdown primitive failed"
-  end
-
   def socket_recv(bytes, flags, type)
     Truffle.primitive :io_socket_read
     raise PrimitiveFailure, "io_socket_read failed"
