@@ -114,7 +114,7 @@ public abstract class ToStringNode extends FormatNode {
         }
     }
 
-    @Specialization(guards = {"!isRubyString(object)", "!isRubyArray(object)", "isRubyBasicObject(object) || !isTruffleObject(object)", "!isStringCharPointerAdapter(object)"})
+    @Specialization(guards = {"!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)"})
     public byte[] toString(VirtualFrame frame, Object object) {
         if (toStrNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
