@@ -1499,20 +1499,6 @@ module Truffle::CExt
     $VERBOSE
   end
 
-  def native_sprintf(format, *args)
-    # We use Ruby's sprintf for some uses of what in MRI is the system sprintf. %s usually seems to be
-    # from an RSTRING_PTR, so we just un-adapt in that case. If we encounter real native C strings here
-    # we'll have to convert them to Ruby strings.
-
-    sprintf(format, *args.map { |arg|
-      if adapted_string_pointer?(arg)
-        unadapt_string_pointer(arg)
-      else
-        arg
-      end
-    })
-  end
-
   def rb_syserr_fail(errno, message)
     raise SystemCallError.new(message, errno)
   end

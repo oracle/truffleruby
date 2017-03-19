@@ -770,13 +770,13 @@ VALUE rb_proc_new(void *function, VALUE value);
 
 #define rb_warn(FORMAT, ...) do { \
     if (truffle_invoke_b(RUBY_CEXT, "warn?")) { \
-      truffle_invoke(rb_mKernel, "warn", (VALUE) truffle_invoke(RUBY_CEXT, "native_sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
+      truffle_invoke(rb_mKernel, "warn", (VALUE) truffle_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
     } \
   } while (0);
 
 #define rb_warning(FORMAT, ...) do { \
     if (truffle_invoke_b(RUBY_CEXT, "warning?")) { \
-      truffle_invoke(rb_mKernel, "warn", (VALUE) truffle_invoke(RUBY_CEXT, "native_sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
+      truffle_invoke(rb_mKernel, "warn", (VALUE) truffle_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
     } \
   } while (0);
 
