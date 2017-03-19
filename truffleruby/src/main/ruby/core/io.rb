@@ -37,16 +37,6 @@ class IO
 
   include Enumerable
 
-  #
-  # Close read and/or write stream of a full-duplex descriptor.
-  #
-  # @todo   More documentation. Much more. --rue
-  #
-  def socket_recv(bytes, flags, type)
-    Truffle.primitive :io_socket_read
-    raise PrimitiveFailure, "io_socket_read failed"
-  end
-
   module Socketable
     def accept
       Truffle.primitive :io_accept

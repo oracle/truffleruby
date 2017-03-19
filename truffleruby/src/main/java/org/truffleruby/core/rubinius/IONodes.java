@@ -528,7 +528,8 @@ public abstract class IONodes {
     }
 
 
-    @Primitive(name = "io_socket_read", lowerFixnum = {1, 2, 3, 4})
+    @NonStandard
+    @CoreMethod(names = "socket_recv", required = 3, lowerFixnum = { 1, 2, 3 }, visibility = Visibility.PRIVATE)
     public static abstract class IOSocketReadNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(throwsControlFlowException = true)
@@ -541,7 +542,8 @@ public abstract class IONodes {
             }
 
             final ByteBuffer buffer = ByteBuffer.allocate(length);
-            final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(nativeSockets().recvfrom(sockfd, buffer, length, flags, PointerNodes.NULL_POINTER, PointerNodes.NULL_POINTER)));
+            final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(
+                    nativeSockets().recvfrom(sockfd, buffer, length, flags, PointerNodes.NULL_POINTER, PointerNodes.NULL_POINTER)));
             buffer.position(bytesRead);
 
             return createString(RopeBuilder.createRopeBuilder(buffer.array(), buffer.arrayOffset(), buffer.position()));
