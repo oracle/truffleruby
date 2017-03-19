@@ -236,8 +236,8 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_fnmatch", needsSelf = false)
-    public static abstract class IOFNMatchPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
+    @Primitive(name = "file_fnmatch", needsSelf = false)
+    public static abstract class FileFNMatchPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(pattern)", "isRubyString(path)" })

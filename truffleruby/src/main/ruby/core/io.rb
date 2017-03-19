@@ -37,11 +37,6 @@ class IO
 
   include Enumerable
 
-  def self.fnmatch(pattern, path, flags)
-    Truffle.primitive :io_fnmatch
-    raise PrimitiveFailure, "IO#fnmatch primitive failed"
-  end
-
   # Instance primitive bindings
 
   def ensure_open
