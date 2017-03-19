@@ -7,6 +7,4 @@ fails:C-API String function rb_str_new_cstr encodes the string with ASCII_8BIT
 fails:C-API String function rb_str_subseq returns a byte-indexed substring
 fails:C-API String function StringValue does not call #to_s on non-String objects
 fails:C-API String function rb_str_hash hashes the string into a number
-fails:C-API String function rb_sprintf replaces the parts like sprintf
-fails:C-API String function rb_sprintf accepts multiple arguments
 fails:C-API String function rb_vsprintf returns a formatted String from a variable number of arguments
