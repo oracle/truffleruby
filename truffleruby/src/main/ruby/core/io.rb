@@ -39,11 +39,6 @@ class IO
 
   # Instance primitive bindings
 
-  def ensure_open
-    Truffle.primitive :io_ensure_open
-    raise PrimitiveFailure, "IO#ensure_open primitive failed"
-  end
-
   def read_primitive(number_of_bytes)
     Truffle.primitive :io_sysread
     raise PrimitiveFailure, "IO::sysread primitive failed"

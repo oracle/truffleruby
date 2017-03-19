@@ -78,6 +78,8 @@ import jnr.posix.Timeval;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -503,11 +505,12 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_ensure_open")
-    public static abstract class IOEnsureOpenPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
+    @NonStandard
+    @CoreMethod(names = "ensure_open")
+    public static abstract class IOEnsureOpenPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject ensureOpen(VirtualFrame frame, DynamicObject file,
+        public DynamicObject ensureOpen(DynamicObject file,
                 @Cached("create()") BranchProfile errorProfile) {
             // TODO BJF 13-May-2015 Handle nil case
             final int fd = Layouts.IO.getDescriptor(file);
