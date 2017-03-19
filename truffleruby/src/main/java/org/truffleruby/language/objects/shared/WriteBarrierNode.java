@@ -64,7 +64,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
                 value instanceof Integer ||
                 value instanceof Long ||
                 value instanceof Double ||
-                value.getClass().getName().equals("com.oracle.truffle.llvm.runtime.LLVMAddress") // TODO CS 6-Mar-17 LLVMAddresses shouldn't really be escaping to Ruby
+                value.getClass().getName().equals("com.oracle.truffle.llvm.runtime.LLVMTruffleAddress")
                     : value.getClass().getName();
     }
 
