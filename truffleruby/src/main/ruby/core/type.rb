@@ -605,8 +605,7 @@ module Rubinius
 
     # Misc
 
-    # similar to rb_inspect
-    def self.inspect(val)
+    def self.rb_inspect(val)
       str = Rubinius::Type.coerce_to(val.inspect, String, :to_s)
       result_encoding = Encoding.default_internal || Encoding.default_external
       if str.ascii_only? || (result_encoding.ascii_compatible? && str.encoding == result_encoding)

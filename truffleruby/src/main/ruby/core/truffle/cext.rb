@@ -663,7 +663,7 @@ module Truffle::CExt
   end
 
   def rb_inspect(object)
-    Rubinius::Type.inspect(object)
+    Rubinius::Type.rb_inspect(object)
   end
 
   def rb_range_new(beg, last, exclude_end)

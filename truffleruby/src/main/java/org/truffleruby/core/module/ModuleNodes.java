@@ -1692,7 +1692,7 @@ public abstract class ModuleNodes {
                         snippetNode = insert(new SnippetNode());
                     }
                     DynamicObject inspectResult = (DynamicObject) snippetNode.execute(frame,
-                        "Rubinius::Type.inspect(val)", "val", attached);
+                        "Rubinius::Type.rb_inspect(val)", "val", attached);
                     name = StringOperations.getString(inspectResult);
                 } else {
                     name = Layouts.MODULE.getFields(module).getName();
