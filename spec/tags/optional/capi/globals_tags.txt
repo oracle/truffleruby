@@ -1,6 +1,3 @@
-fails(sulong-addresses-escape):CApiGlobalSpecs rb_define_variable should define a new global variable
-fails(sulong-addresses-escape):CApiGlobalSpecs rb_define_readonly_variable should define a new readonly global variable
-fails(sulong-addresses-escape):CApiGlobalSpecs rb_define_hooked_variable should define a C hooked global variable
 fails:CApiGlobalSpecs rb_lastline_set sets the value of $_
 fails:CApiGlobalSpecs rb_lastline_set sets a Thread-local value
 fails:CApiGlobalSpecs rb_lastline_get gets the value of $_
