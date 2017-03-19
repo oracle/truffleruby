@@ -1533,7 +1533,6 @@ public class CoreLibrary {
             NameErrorNodesFactory.getFactories(),
             NativeFunctionNodesFactory.getFactories(),
             NoMethodErrorNodesFactory.getFactories(),
-            ObjectNodesFactory.getFactories(),
             ObjectSpaceNodesFactory.getFactories(),
             ObjSpaceNodesFactory.getFactories(),
             PointerNodesFactory.getFactories(),
