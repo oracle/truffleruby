@@ -52,10 +52,6 @@ end
 
 module Kernel
 
-  def __class__
-    Rubinius::Type.object_class(self)
-  end
-
   alias_method :eql?, :equal?
 
   alias_method :send, :__send__ # from BasicObject

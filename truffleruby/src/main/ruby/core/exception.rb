@@ -35,7 +35,7 @@
 class Exception
 
   def ==(other)
-    other.instance_of?(__class__) &&
+    other.instance_of?(Rubinius::Type.object_class(self)) &&
       message == other.message &&
       backtrace == other.backtrace
   end
