@@ -50,19 +50,12 @@ public abstract class TruffleProcessNodes {
             Collection<SpawnAttribute> spawnAttributes = new ArrayList<>();
             parseOptions(options, fileActions, spawnAttributes);
 
-            int pid = call(
-                    StringOperations.getString(command),
-                    toStringArray(arguments),
-                    toStringArray(environmentVariables),
-                    fileActions,
-                    spawnAttributes);
-
-            if (pid == -1) {
-                // TODO (pitr 07-Sep-2015): needs compatibility improvements
-                throw new RaiseException(coreExceptions().errnoError(getContext().getNativePlatform().getPosix().errno(), this));
-            }
-
-            return pid;
+            return call(
+                StringOperations.getString(command),
+                toStringArray(arguments),
+                toStringArray(environmentVariables),
+                fileActions,
+                spawnAttributes);
         }
 
         private String[] toStringArray(DynamicObject rubyStrings) {
