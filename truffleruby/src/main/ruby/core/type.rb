@@ -72,7 +72,7 @@ module Rubinius
 
     def self.check_funcall_callable(obj, name)
       # TODO BJF Review rb_method_call_status
-      !(Truffle.invoke_primitive :vm_method_lookup, obj, name).nil?
+      Truffle.invoke_primitive :vm_method_lookup, obj, name
     end
 
     def self.object_equal(a, b)
