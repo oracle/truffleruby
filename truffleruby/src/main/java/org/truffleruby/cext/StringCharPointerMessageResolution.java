@@ -111,6 +111,15 @@ public class StringCharPointerMessageResolution {
 
     }
 
+    @Resolve(message = "IS_BOXED")
+    public static abstract class CharPointerIsBoxedNode extends Node {
+
+        protected Object access(StringCharPointerAdapter object) {
+            return true;
+        }
+
+    }
+
     @Resolve(message = "UNBOX")
     public static abstract class CharPointerUnboxNode extends Node {
 
