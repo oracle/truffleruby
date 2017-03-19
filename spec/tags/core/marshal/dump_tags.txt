@@ -1,1 +1,2 @@
 fails:Marshal.dump with a Symbol dumps a binary encoded Symbol
+fails:Marshal.dump with an Object raises if an Object has a singleton class and singleton methods
