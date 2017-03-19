@@ -511,8 +511,10 @@ class IO
     end
 
     def run
-      @from.ensure_open_and_readable if @from.kind_of? IO
-      @to.ensure_open_and_writable if @to.kind_of? IO
+      Truffle.privately do
+        @from.ensure_open_and_readable if @from.kind_of? IO
+        @to.ensure_open_and_writable if @to.kind_of? IO
+      end
 
       if @offset
         if @from_io && !@from.pipe?
@@ -1659,16 +1661,15 @@ class IO
     @ibuffer.fill_from self unless @ibuffer.exhausted?
     @eof and @ibuffer.exhausted?
   end
-
   alias_method :eof, :eof?
 
-  def ensure_open_and_readable
+  private def ensure_open_and_readable
     ensure_open
     write_only = @mode & ACCMODE == WRONLY
     raise IOError, "not opened for reading" if write_only
   end
 
-  def ensure_open_and_writable
+  private def ensure_open_and_writable
     ensure_open
     read_only = @mode & ACCMODE == RDONLY
     raise IOError, "not opened for writing" if read_only
