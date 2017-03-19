@@ -32,11 +32,6 @@ module ImmediateValue
     []
   end
 
-  def public_singleton_methods
-    []
-  end
-  private :public_singleton_methods
-
   def private_singleton_methods
     []
   end

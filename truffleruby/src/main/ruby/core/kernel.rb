@@ -420,23 +420,6 @@ module Kernel
     end
   end
 
-  def public_singleton_methods
-    m = Rubinius::Type.object_singleton_class self
-    methods = m.method_table.public_names
-
-    while m = m.direct_superclass
-      unless Rubinius::Type.object_kind_of?(m, Rubinius::IncludedModule) or
-             Rubinius::Type.singleton_class_object(m)
-        break
-      end
-
-      methods.concat m.method_table.public_names
-    end
-
-    methods
-  end
-  private :public_singleton_methods
-
   def putc(int)
     $stdout.putc(int)
   end
