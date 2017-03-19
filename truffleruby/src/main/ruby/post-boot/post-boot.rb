@@ -6,15 +6,22 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
+# Always provided features: ruby --disable-gems -e 'puts $"'
 begin
+  require 'enumerator'
+  require 'thread'
+  require 'rational'
+  require 'complex'
   require 'unicode_normalize'
-rescue LoadError
+rescue LoadError => e
+  Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
 end
 
 if Truffle::Boot.rubygems_enabled?
   begin
     require 'rubygems'
-  rescue LoadError
+  rescue LoadError => e
+    Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
   else
     # TODO (pitr-ch 17-Feb-2017): remove the warning when we can integrate with ruby managers
     unless Gem.dir.include?(Truffle::Boot.ruby_home)
@@ -45,6 +52,7 @@ if Truffle::Boot.rubygems_enabled?
         gem 'did_you_mean'
         require 'did_you_mean'
       rescue Gem::LoadError, LoadError => e
+        Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
       end
     end
   end
