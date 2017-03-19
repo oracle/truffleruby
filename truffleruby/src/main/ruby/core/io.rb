@@ -186,7 +186,7 @@ class IO
           @eof = true
         end
 
-        return size
+        size
       end
     end
 
@@ -198,7 +198,7 @@ class IO
       Truffle.invoke_primitive :io_write, io, data
       reset!
 
-      return size
+      size
     end
 
     ##
@@ -548,8 +548,7 @@ class IO
       $_ = saved_line
       io.close
     end
-
-    return nil
+    nil
   end
 
   def self.readlines(name, separator=undefined, limit=undefined, options=undefined)
@@ -647,7 +646,7 @@ class IO
       io.close
     end
 
-    return str
+    str
   end
 
   def self.try_convert(obj)
@@ -993,7 +992,7 @@ class IO
       raise ArgumentError, 'timeout must be positive' if timeout < 0
 
       # Microseconds, rounded down
-      timeout = Integer(timeout * 1_000_000)
+      timeout_us = Integer(timeout * 1_000_000)
     end
 
     if readables
@@ -1039,7 +1038,7 @@ class IO
         end
     end
 
-    Truffle.invoke_primitive :io_select, readables, writables, errorables, timeout
+    Truffle.invoke_primitive :io_select, readables, writables, errorables, timeout_us
   end
 
   ##
@@ -1209,7 +1208,7 @@ class IO
 
   def <<(obj)
     write(obj.to_s)
-    return self
+    self
   end
 
   ##
@@ -1500,7 +1499,6 @@ class IO
 
     self
   end
-
   alias_method :each_line, :each
 
   def each_byte
@@ -1510,7 +1508,6 @@ class IO
 
     self
   end
-
   alias_method :bytes, :each_byte
 
   def each_char
@@ -1523,7 +1520,6 @@ class IO
 
     self
   end
-
   alias_method :chars, :each_char
 
   def each_codepoint
@@ -1536,7 +1532,6 @@ class IO
 
     self
   end
-
   alias_method :codepoints, :each_codepoint
 
 
@@ -1670,7 +1665,6 @@ class IO
     ensure_open
     @descriptor
   end
-
   alias_method :to_i, :fileno
 
   ##
@@ -1697,18 +1691,14 @@ class IO
   # that the underlying operating system actually writes it to disk.
   def fsync
     flush
-
     err = Truffle::POSIX.fsync @descriptor
-
     Errno.handle 'fsync(2)' if err < 0
-
     err
   end
 
   def getbyte
     ensure_open
-
-    return @ibuffer.getbyte(self)
+    @ibuffer.getbyte(self)
   end
 
   ##
@@ -1720,8 +1710,7 @@ class IO
   #  f.getc   #=> 104
   def getc
     ensure_open
-
-    return @ibuffer.getchar(self)
+    @ibuffer.getchar(self)
   end
 
   def gets(sep_or_limit=$/, limit=nil)
@@ -1729,7 +1718,6 @@ class IO
       $_ = line if line
       return line
     end
-
     nil
   end
 
@@ -1749,7 +1737,6 @@ class IO
   #  f.lineno   #=> 2
   def lineno
     ensure_open
-
     @lineno
   end
 
@@ -1767,9 +1754,7 @@ class IO
   #  $. # lineno of last read   #=> 1001
   def lineno=(line_number)
     ensure_open
-
     raise TypeError if line_number.nil?
-
     @lineno = Truffle::Fixnum.lower Integer(line_number)
   end
 
@@ -1803,15 +1788,11 @@ class IO
     @pipe
   end
 
-  ##
-  #
   def pos
     flush
     reset_buffering
-
     Truffle.invoke_primitive :io_seek, self, 0, SEEK_CUR
   end
-
   alias_method :tell, :pos
 
   ##
@@ -1857,7 +1838,7 @@ class IO
       write byte.chr
     end
 
-    return obj
+    obj
   end
 
   ##
@@ -2027,7 +2008,7 @@ class IO
   def readline(sep=$/)
     out = gets(sep)
     raise EOFError, "end of file" unless out
-    return out
+    out
   end
 
   ##
@@ -2117,8 +2098,7 @@ class IO
       end
 
       buffer.replace(data)
-
-      return buffer
+      buffer
     else
       return "" if size == 0
 
@@ -2126,7 +2106,7 @@ class IO
         return @ibuffer.shift(size)
       end
 
-      return sysread(size)
+      sysread(size)
     end
   end
 
@@ -2206,7 +2186,7 @@ class IO
   def rewind
     seek 0
     @lineno = 0
-    return 0
+    0
   end
 
   ##
@@ -2230,8 +2210,7 @@ class IO
     @eof = false
 
     Truffle.invoke_primitive :io_seek, self, Integer(amount), whence
-
-    return 0
+    0
   end
 
   def set_encoding(external, internal=nil, options=undefined)
@@ -2298,7 +2277,7 @@ class IO
 
   def read_bom_byte
     read_ios, _, _ = IO.select [self], nil, nil, 0.1
-    return getbyte if read_ios
+    getbyte if read_ios
   end
 
   def strip_bom
@@ -2371,7 +2350,6 @@ class IO
   #  s.atime         #=> Wed Apr 09 08:53:54 CDT 2003
   def stat
     ensure_open
-
     File::Stat.fstat @descriptor
   end
 
@@ -2418,7 +2396,6 @@ class IO
     unless undefined.equal? buffer
       StringValue(buffer).replace str
     end
-
     str
   end
 
@@ -2438,7 +2415,6 @@ class IO
     end
 
     amount = Integer(amount)
-
     Truffle.invoke_primitive :io_seek, self, amount, whence
   end
 
@@ -2455,7 +2431,6 @@ class IO
     ensure_open
     Truffle::POSIX.isatty(@descriptor) == 1
   end
-
   alias_method :isatty, :tty?
 
   def syswrite(data)
@@ -2484,7 +2459,6 @@ class IO
     end
 
     str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
-
     nil
   end
 
@@ -2504,7 +2478,6 @@ class IO
     end
 
     str.bytes.reverse_each { |b| @ibuffer.put_back b }
-
     nil
   end
 
@@ -2565,8 +2538,7 @@ class IO
       end
       @pid = nil
     end
-
-    return nil
+    nil
   end
 
 end
@@ -2592,9 +2564,7 @@ class IO::BidirectionalPipe < IO
   # If ios is opened by IO.popen, close sets $?.
   def close
     @write.close unless @write.closed?
-
     super unless closed?
-
     nil
   end
 
@@ -2604,13 +2574,11 @@ class IO::BidirectionalPipe < IO
 
   def close_read
     raise IOError, 'closed stream' if closed?
-
     close
   end
 
   def close_write
     raise IOError, 'closed stream' if @write.closed?
-
     @write.close
   end
 
