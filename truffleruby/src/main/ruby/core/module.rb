@@ -58,25 +58,20 @@ class Module
     false
   end
 
-  def extended(name)
-  end
-  private :extended
-
-  def method_added(name)
-  end
-  private :method_added
-
-  def method_removed(name)
+  private def extended(name)
   end
 
-  private :method_removed
-
-  def method_undefined(name)
+  private def method_added(name)
   end
-  private :method_undefined
 
-  def prepended(mod); end
-  private :prepended
+  private def method_removed(name)
+  end
+
+  private def method_undefined(name)
+  end
+
+  private def prepended(mod)
+  end
 
   def include(*modules)
     modules.reverse_each do |mod|
