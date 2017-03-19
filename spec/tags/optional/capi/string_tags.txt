@@ -4,4 +4,4 @@ fails:C-API String function rb_str_new2 encodes the string with ASCII_8BIT
 fails:C-API String function rb_str_new_cstr encodes the string with ASCII_8BIT
 fails:C-API String function rb_str_subseq returns a byte-indexed substring
 fails:C-API String function StringValue does not call #to_s on non-String objects
-fails(va-with-managed-objects):C-API String function rb_vsprintf returns a formatted String from a variable number of arguments
+fails(fixed-on-sulong-branch):C-API String function rb_vsprintf returns a formatted String from a variable number of arguments
