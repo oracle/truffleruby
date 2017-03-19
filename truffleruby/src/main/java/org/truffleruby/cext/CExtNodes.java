@@ -84,6 +84,8 @@ import static org.truffleruby.core.string.StringOperations.rope;
 @CoreClass("Truffle::CExt")
 public class CExtNodes {
 
+    // TODO CS 19-Mar-17 many of these builtins could just be identify functions with a cast in C
+
     @CoreMethod(names = "NUM2INT", isModuleFunction = true, required = 1)
     public abstract static class NUM2INTNode extends CoreMethodArrayArgumentsNode {
 
