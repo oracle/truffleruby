@@ -52,10 +52,8 @@ end
 
 module Kernel
 
-  # Rubinius defines this method differently, using the :object_class primitive.  The two primitives are very similar,
-  # so rather than introduce the new one, we'll just delegate to the existing one.
   def __class__
-    Truffle.invoke_primitive :vm_object_class, self
+    Rubinius::Type.object_class(self)
   end
 
   alias_method :eql?, :equal?

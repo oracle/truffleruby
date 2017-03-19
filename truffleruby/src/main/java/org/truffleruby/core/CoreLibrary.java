@@ -87,6 +87,7 @@ import org.truffleruby.core.rubinius.NativeFunctionNodesFactory;
 import org.truffleruby.core.rubinius.RandomizerNodesFactory;
 import org.truffleruby.core.rubinius.RubiniusTypeNodesFactory;
 import org.truffleruby.core.rubinius.StatNodesFactory;
+import org.truffleruby.core.rubinius.TypeNodesFactory;
 import org.truffleruby.core.rubinius.UndefinedPrimitiveNodesFactory;
 import org.truffleruby.core.rubinius.WeakRefNodesFactory;
 import org.truffleruby.core.string.EncodingUtils;
@@ -1572,6 +1573,7 @@ public class CoreLibrary {
             TruffleRopesNodesFactory.getFactories(),
             TruffleStringNodesFactory.getFactories(),
             TruffleSystemNodesFactory.getFactories(),
+            TypeNodesFactory.getFactories(),
             UnboundMethodNodesFactory.getFactories(),
             UndefinedPrimitiveNodesFactory.getFactories(),
             VMPrimitiveNodesFactory.getFactories(),

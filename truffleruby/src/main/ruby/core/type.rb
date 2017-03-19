@@ -61,23 +61,6 @@
 module Rubinius
   module Type
 
-    # Performs a direct kind_of? check on the object bypassing any method
-    # overrides.
-    def self.object_kind_of?(obj, cls)
-      Truffle.primitive :vm_object_kind_of
-      raise PrimitiveFailure, "Rubinius::Type.object_kind_of? primitive failed"
-    end
-
-    def self.object_class(obj)
-      Truffle.primitive :vm_object_class
-      raise PrimitiveFailure, "Rubinius::Type.object_class primitive failed"
-    end
-
-    def self.singleton_class_object(mod)
-      Truffle.primitive :vm_singleton_class_object
-      raise PrimitiveFailure, "Rubinius::Type.singleton_class_object primitive failed"
-    end
-
     def self.object_respond_to?(obj, name, include_private = false)
       Truffle.invoke_primitive :vm_object_respond_to, obj, name, include_private
     end
@@ -103,7 +86,7 @@ module Rubinius
     end
 
     def self.module_inspect(mod)
-      sc = singleton_class_object mod
+      sc = singleton_class_object(mod)
 
       if sc
         case sc

@@ -69,10 +69,6 @@ import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
-import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsANodeGen;
-import org.truffleruby.language.objects.LogicalClassNode;
-import org.truffleruby.language.objects.LogicalClassNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Platform;
@@ -193,18 +189,6 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_object_class", needsSelf = false)
-    public static abstract class VMObjectClassPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private LogicalClassNode classNode = LogicalClassNodeGen.create(null);
-
-        @Specialization
-        public DynamicObject vmObjectClass(VirtualFrame frame, Object object) {
-            return classNode.executeLogicalClass(object);
-        }
-
-    }
-
     @Primitive(name = "vm_object_equal", needsSelf = false)
     public static abstract class VMObjectEqualPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -212,18 +196,6 @@ public abstract class VMPrimitiveNodes {
         public boolean vmObjectEqual(VirtualFrame frame, Object a, Object b,
                 @Cached("create()") ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(a, b);
-        }
-
-    }
-
-    @Primitive(name = "vm_object_kind_of", needsSelf = false)
-    public static abstract class VMObjectKindOfPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private IsANode isANode = IsANodeGen.create(null, null);
-
-        @Specialization
-        public boolean vmObjectKindOf(Object object, DynamicObject rubyClass) {
-            return isANode.executeIsA(object, rubyClass);
         }
 
     }
@@ -302,16 +274,6 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         public Object vmSetModuleName(Object object) {
             throw new UnsupportedOperationException("vm_set_module_name");
-        }
-
-    }
-
-    @Primitive(name = "vm_singleton_class_object", needsSelf = false)
-    public static abstract class VMObjectSingletonClassObjectPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public Object vmSingletonClassObject(Object object) {
-            return RubyGuards.isRubyClass(object) && Layouts.CLASS.getIsSingleton((DynamicObject) object);
         }
 
     }
