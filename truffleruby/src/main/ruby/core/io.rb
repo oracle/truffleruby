@@ -37,16 +37,6 @@ class IO
 
   include Enumerable
 
-  def self.connect_pipe(lhs, rhs)
-    Truffle.primitive :io_connect_pipe
-    raise PrimitiveFailure, "IO.connect_pipe primitive failed"
-  end
-
-  def self.select_primitive(readables, writables, errorables, timeout)
-    Truffle.primitive :io_select
-    raise IOError, "Unable to select on IO set (descriptor too big?)"
-  end
-
   def self.fnmatch(pattern, path, flags)
     Truffle.primitive :io_fnmatch
     raise PrimitiveFailure, "IO#fnmatch primitive failed"
@@ -901,7 +891,7 @@ class IO
     lhs.send :initialize_allocated
     rhs.send :initialize_allocated
 
-    connect_pipe(lhs, rhs)
+    Truffle.invoke_primitive :io_connect_pipe, lhs, rhs
 
     lhs.set_encoding external || Encoding.default_external,
                      internal || Encoding.default_internal, options
@@ -1134,7 +1124,7 @@ class IO
         end
     end
 
-    IO.select_primitive(readables, writables, errorables, timeout)
+    Truffle.invoke_primitive :io_select, readables, writables, errorables, timeout
   end
 
   ##
