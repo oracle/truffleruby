@@ -179,17 +179,6 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_object_equal", needsSelf = false)
-    public static abstract class VMObjectEqualPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public boolean vmObjectEqual(VirtualFrame frame, Object a, Object b,
-                @Cached("create()") ReferenceEqualNode referenceEqualNode) {
-            return referenceEqualNode.executeReferenceEqual(a, b);
-        }
-
-    }
-
     @Primitive(name = "vm_method_is_basic", needsSelf = false)
     public static abstract class VMMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
 

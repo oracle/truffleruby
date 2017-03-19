@@ -14,12 +14,14 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsANodeGen;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.LogicalClassNodeGen;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -51,8 +53,19 @@ public abstract class TypeNodes {
 
     }
 
+    @CoreMethod(names = "object_equal", onSingleton = true, required = 2)
+    public static abstract class ObjectEqualNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean objectEqual(Object a, Object b,
+                @Cached("create()") ReferenceEqualNode referenceEqualNode) {
+            return referenceEqualNode.executeReferenceEqual(a, b);
+        }
+
+    }
+
     @CoreMethod(names = "module_name", onSingleton = true, required = 1)
-    public static abstract class VMGetModuleNamePrimitiveNode extends CoreMethodArrayArgumentsNode {
+    public static abstract class ModuleNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public DynamicObject moduleName(DynamicObject module) {

@@ -75,11 +75,6 @@ module Rubinius
       Truffle.invoke_primitive :vm_method_lookup, obj, name
     end
 
-    def self.object_equal(a, b)
-      Truffle.primitive :vm_object_equal
-      raise PrimitiveFailure, "Rubinius::Type.object_equal primitive failed"
-    end
-
     def self.coerce_string_to_float(string, strict)
       value = Truffle.invoke_primitive :string_to_f, StringValue(string), strict
       raise ArgumentError, "invalid string for Float" if value.nil?
