@@ -85,7 +85,6 @@ import org.truffleruby.core.rubinius.IOBufferNodesFactory;
 import org.truffleruby.core.rubinius.IONodesFactory;
 import org.truffleruby.core.rubinius.NativeFunctionNodesFactory;
 import org.truffleruby.core.rubinius.RandomizerNodesFactory;
-import org.truffleruby.core.rubinius.RubiniusTypeNodesFactory;
 import org.truffleruby.core.rubinius.StatNodesFactory;
 import org.truffleruby.core.rubinius.TypeNodesFactory;
 import org.truffleruby.core.rubinius.UndefinedPrimitiveNodesFactory;
@@ -1548,7 +1547,6 @@ public class CoreLibrary {
             ReadlineNodesFactory.getFactories(),
             ReadlineHistoryNodesFactory.getFactories(),
             RegexpNodesFactory.getFactories(),
-            RubiniusTypeNodesFactory.getFactories(),
             SizedQueueNodesFactory.getFactories(),
             StatNodesFactory.getFactories(),
             StringNodesFactory.getFactories(),

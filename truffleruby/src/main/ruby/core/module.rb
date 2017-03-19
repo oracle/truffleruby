@@ -45,17 +45,13 @@
 #              objects.
 
 class Module
-
   def include?(mod)
     if !mod.kind_of?(Module) or mod.kind_of?(Class)
       raise TypeError, "wrong argument type #{mod.class} (expected Module)"
     end
 
     return false if self.equal?(mod)
-
-    Rubinius::Type.each_ancestor(self) { |m| return true if mod.equal?(m) }
-
-    false
+    ancestors.any? { |m| mod.equal?(m) }
   end
 
   private def extended(name)
