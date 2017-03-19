@@ -79,24 +79,3 @@ Truffle::Psych = Psych
 class Object
   remove_const :Psych
 end
-
-class Module
-
-  # Invokes <code>Module#append_features</code> and
-  # <code>Module#included</code> on each argument, passing in self.
-  #
-  def include(*modules)
-    modules.reverse_each do |mod|
-      if !mod.kind_of?(Module) or mod.kind_of?(Class)
-        raise TypeError, "wrong argument type #{mod.class} (expected Module)"
-      end
-
-      Truffle.privately do
-        mod.append_features self
-        mod.included self
-      end
-    end
-    self
-  end
-
-end
