@@ -86,23 +86,10 @@ module Rubinius
     end
 
     def self.module_inspect(mod)
-      sc = singleton_class_object(mod)
-
-      if sc
-        case sc
-        when Class, Module
-          name = "#<Class:#{module_inspect(sc)}>"
-        else
-          cls = object_class sc
-          name = "#<Class:#<#{module_name(cls)}:0x#{sc.object_id.to_s(16)}>>"
-        end
-      else
-        name = module_name mod
-        if !name or name == ""
-          name = "#<#{object_class(mod)}:0x#{mod.object_id.to_s(16)}>"
-        end
+      name = module_name(mod)
+      if !name or name == ""
+        name = "#<#{object_class(mod)}:0x#{mod.object_id.to_s(16)}>"
       end
-
       name
     end
 

@@ -13,7 +13,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsANodeGen;
 import org.truffleruby.language.objects.LogicalClassNode;
@@ -46,16 +45,6 @@ public abstract class TypeNodes {
         @Specialization
         public DynamicObject objectClass(VirtualFrame frame, Object object) {
             return classNode.executeLogicalClass(object);
-        }
-
-    }
-
-    @CoreMethod(names = "singleton_class_object", onSingleton = true, required = 1)
-    public static abstract class SingletonClassObjectNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public Object singletonClassObject(Object object) {
-            return RubyGuards.isRubyClass(object) && Layouts.CLASS.getIsSingleton((DynamicObject) object);
         }
 
     }
