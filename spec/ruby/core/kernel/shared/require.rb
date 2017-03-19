@@ -290,7 +290,7 @@ describe :kernel_require, shared: true do
     end
   end
 
-  describe "($LOAD_FEATURES)" do
+  describe "($LOADED_FEATURES)" do
     before :each do
       @path = File.expand_path("load_fixture.rb", CODE_LOADING_DIR)
     end
