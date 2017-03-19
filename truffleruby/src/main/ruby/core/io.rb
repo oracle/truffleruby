@@ -1159,21 +1159,15 @@ class IO
     @pipe = false
   end
 
-  private :initialize
-
-  def initialize_allocated
+  private def initialize_allocated
     @eof = false
   end
-
-  private :initialize_allocated
 
   ##
   # Obtains a new duplicate descriptor for the current one.
   def initialize_copy(original) # :nodoc:
     @descriptor = Truffle::POSIX.dup(@descriptor)
   end
-
-  private :initialize_copy
 
   alias_method :prim_close, :close
 
@@ -1985,7 +1979,7 @@ class IO
   ##
   # Reads all input until +#eof?+ is true. Returns the input read.
   # If the buffer is already exhausted, returns +""+.
-  def read_all
+  private def read_all
     str = ""
     until @ibuffer.exhausted?
       @ibuffer.fill_from self
@@ -1994,7 +1988,6 @@ class IO
 
     str
   end
-  private :read_all
 
   ##
   # Reads at most maxlen bytes from ios using read(2) system
