@@ -61,6 +61,12 @@
 module Rubinius
   module Type
 
+    # Taint host if source is tainted.
+    def self.infect(host, source)
+      Truffle.primitive :object_infect
+      raise PrimitiveFailure, "Object.infect primitive failed"
+    end
+
     def self.object_respond_to?(obj, name, include_private = false)
       Truffle.invoke_primitive :vm_object_respond_to, obj, name, include_private
     end
@@ -148,6 +154,8 @@ module Rubinius
       msg = "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(ret)})"
       raise TypeError, msg
     end
+
+    # MRI conversion macros and functions
 
     def self.rb_num2int(val)
       num = rb_num2long(val)
@@ -386,6 +394,8 @@ module Rubinius
       raise TypeError, msg
     end
 
+    # Specific coercion methods
+
     def self.coerce_to_comparison(a, b)
       unless cmp = (a <=> b)
         raise ArgumentError, "comparison of #{a.inspect} with #{b.inspect} failed"
@@ -466,17 +476,6 @@ module Rubinius
 
       pattern = Regexp.quote(pattern) if quote
       Regexp.new(pattern)
-    end
-
-    # Taint host if source is tainted.
-    def self.infect(host, source)
-      Truffle.primitive :object_infect
-      raise PrimitiveFailure, "Object.infect primitive failed"
-    end
-
-    def self.check_null_safe(string)
-      raise ArgumentError, "string contains NULL byte" if string.include? "\0"
-      string
     end
 
     def self.coerce_to_encoding(obj)
@@ -571,6 +570,13 @@ module Rubinius
       coerce_to obj, Integer, :to_int
     end
 
+    # String helpers
+
+    def self.check_null_safe(string)
+      raise ArgumentError, "string contains NULL byte" if string.include? "\0"
+      string
+    end
+
     def self.binary_string(string)
       string.force_encoding Encoding::BINARY
     end
@@ -602,6 +608,8 @@ module Rubinius
 
       enc
     end
+
+    # Misc
 
     # similar to rb_inspect
     def self.inspect(val)
