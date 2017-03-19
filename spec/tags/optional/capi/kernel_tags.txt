@@ -1,1 +1,3 @@
 fails(uses-fork):C-API Kernel function rb_set_end_proc runs a C function on shutdown
+fails:C-API Kernel function rb_raise raises an exception
+fails:C-API Kernel function rb_raise terminates the function at the point it was called
