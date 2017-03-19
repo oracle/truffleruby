@@ -85,14 +85,6 @@ module Rubinius
       raise PrimitiveFailure, "Rubinius::Type.module_name primitive failed"
     end
 
-    def self.module_inspect(mod)
-      name = module_name(mod)
-      if !name or name == ""
-        name = "#<#{object_class(mod)}:0x#{mod.object_id.to_s(16)}>"
-      end
-      name
-    end
-
     def self.coerce_string_to_float(string, strict)
       value = Truffle.invoke_primitive :string_to_f, StringValue(string), strict
       raise ArgumentError, "invalid string for Float" if value.nil?

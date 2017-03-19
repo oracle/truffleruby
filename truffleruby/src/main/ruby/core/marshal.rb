@@ -37,7 +37,7 @@ class BasicObject
     out = ms.serialize_extended_object self
     out << "o"
     cls = ::Rubinius::Type.object_class self
-    name = ::Rubinius::Type.module_inspect cls
+    name = ::Rubinius::Type.module_name cls
     out << ms.serialize(name.to_sym)
     out << ms.serialize_instance_variables_suffix(self, true, strip_ivars)
   end
@@ -104,7 +104,7 @@ class Exception
     out = ms.serialize_extended_object self
     out << "o"
     cls = Rubinius::Type.object_class self
-    name = Rubinius::Type.module_inspect cls
+    name = Rubinius::Type.module_name cls
     out << ms.serialize(name.to_sym)
     out << ms.serialize_fixnum(2)
 
@@ -236,7 +236,7 @@ class Range
     out = ms.serialize_extended_object self
     out << "o"
     cls = Rubinius::Type.object_class self
-    name = Rubinius::Type.module_inspect cls
+    name = Rubinius::Type.module_name cls
     out << ms.serialize(name.to_sym)
     out << ms.serialize_integer(3 + self.instance_variables.size)
     out << ms.serialize(:begin)
@@ -1133,7 +1133,7 @@ module Marshal
       add_non_immediate_object val
 
       cls = Rubinius::Type.object_class obj
-      name = Rubinius::Type.module_inspect cls
+      name = Rubinius::Type.module_name cls
       Rubinius::Type.binary_string("U#{serialize(name.to_sym)}#{val.__marshal__(self)}")
     end
 
