@@ -75,29 +75,6 @@ module Kernel
   end
   module_function :Float
 
-  ##
-  # MRI uses a macro named NUM2DBL which has essentially the same semantics as
-  # Float(), with the difference that it raises a TypeError and not a
-  # ArgumentError. It is only used in a few places (in MRI and Rubinius).
-  #--
-  # If we can, we should probably get rid of this.
-
-  def FloatValue(obj)
-    exception = TypeError.new 'no implicit conversion to float'
-
-    case obj
-    when String
-      raise exception
-    else
-      begin
-        Float(obj)
-      rescue
-        raise exception
-      end
-    end
-  end
-  private :FloatValue
-
   def Hash(obj)
     return {} if obj.nil? || obj == []
 

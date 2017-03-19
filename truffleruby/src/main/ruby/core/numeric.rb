@@ -174,11 +174,11 @@ class Numeric
   end
 
   def floor
-    FloatValue(self).floor
+    Rubinius::Type.rb_num2dbl(self).floor
   end
 
   def ceil
-    FloatValue(self).ceil
+    Rubinius::Type.rb_num2dbl(self).ceil
   end
 
   def remainder(other)

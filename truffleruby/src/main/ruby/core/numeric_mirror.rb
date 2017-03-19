@@ -57,9 +57,7 @@ module Rubinius
 
         if is_float
           # Ported from MRI
-
           step_float_size(value, limit, step, asc)
-
         else
           if (asc && value > limit) || (!asc && value < limit)
             0
@@ -75,12 +73,12 @@ module Rubinius
         value = @object
         asc = step > 0
         if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
-          return FloatValue(value), FloatValue(limit), FloatValue(step), asc, true
+          [Rubinius::Type.rb_num2dbl(value), Rubinius::Type.rb_num2dbl(limit),
+            Rubinius::Type.rb_num2dbl(step), asc, true]
         else
-          return value, limit, step, asc, false
+          [value, limit, step, asc, false]
         end
       end
-
     end
   end
 end
