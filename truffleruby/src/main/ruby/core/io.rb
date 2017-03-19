@@ -39,39 +39,9 @@ class IO
 
   # Instance primitive bindings
 
-  def read_primitive(number_of_bytes)
-    Truffle.primitive :io_sysread
-    raise PrimitiveFailure, "IO::sysread primitive failed"
-  end
-
   def write(str)
     Truffle.primitive :io_write
     raise PrimitiveFailure, "IO#write primitive failed"
-  end
-
-  def read_if_available(size)
-    Truffle.primitive :io_read_if_available
-    raise PrimitiveFailure, "IO#read_if_available primitive failed"
-  end
-
-  def raw_write(str)
-    Truffle.primitive :io_write_nonblock
-    raise PrimitiveFailure, "IO#write_nonblock primitive failed"
-  end
-
-  def reopen_io(other)
-    Truffle.primitive :io_reopen
-    raise ArgumentError, "IO#prim_reopen only accepts an IO object"
-  end
-
-  def reopen_path(string, mode)
-    Truffle.primitive :io_reopen_path
-
-    if mode.kind_of? Bignum
-      raise ArgumentError, "Bignum too big for mode"
-    end
-
-    reopen_path StringValue(string), Integer(mode)
   end
 
   def prim_seek(amount, whence)
@@ -2050,11 +2020,7 @@ class IO
 
     str
   end
-
   private :read_all
-
-  # defined in bootstrap, used here.
-  private :read_if_available
 
   ##
   # Reads at most maxlen bytes from ios using read(2) system
@@ -2071,7 +2037,6 @@ class IO
   # If the read buffer is not empty, read_nonblock reads from the
   # buffer like readpartial. In this case, read(2) is not called.
   def read_nonblock(size, buffer = nil, exception: true)
-
     raise ArgumentError, "illegal read size" if size < 0
     ensure_open
 
@@ -2081,22 +2046,21 @@ class IO
       return @ibuffer.shift(size)
     end
 
-    if str = read_if_available(size)
+    if str = Truffle.invoke_primitive(:io_read_if_available, self, size)
       buffer.replace(str) if buffer
-      return str
+      str
     else
       if exception
         raise EOFError, "stream closed"
       else
-        return nil
+        nil
       end
     end
-
   rescue EAGAINWaitReadable, Errno::EWOULDBLOCK, Errno::EAGAIN
     if exception
       raise EAGAINWaitReadable, "read would block"
     else
-      return :wait_readable
+      :wait_readable
     end
   end
 
@@ -2249,9 +2213,10 @@ class IO
       Truffle.privately do
         io.ensure_open
       end
-      io.reset_buffering
 
-      reopen_io io
+      io.reset_buffering
+      Truffle.invoke_primitive :io_reopen, self, io
+
       Rubinius::Unsafe.set_class self, io.class
       if io.respond_to?(:path)
         @path = io.path
@@ -2271,8 +2236,9 @@ class IO
         mode = IO.parse_mode(mode)
       end
 
+      path = Rubinius::Type.coerce_to_path(other)
       reset_buffering
-      reopen_path Rubinius::Type.coerce_to_path(other), mode
+      Truffle.invoke_primitive :io_reopen_path, self, path, mode
       seek 0, SEEK_SET
     end
 
@@ -2503,7 +2469,7 @@ class IO
     flush
     raise IOError unless @ibuffer.empty?
 
-    str = read_primitive number_of_bytes
+    str = Truffle.invoke_primitive :io_sysread, self, number_of_bytes
     raise EOFError if str.nil?
 
     unless undefined.equal? buffer
@@ -2636,7 +2602,7 @@ class IO
 
     @ibuffer.unseek!(self) unless @sync
 
-    raw_write(data)
+    Truffle.invoke_primitive :io_write_nonblock, self, data
   end
 
   def close

@@ -590,10 +590,9 @@ public abstract class IONodes {
     @Primitive(name = "io_reopen")
     public static abstract class IOReopenPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode resetBufferingNode = DispatchHeadNodeFactory.createMethodCall();
-
         @TruffleBoundary(throwsControlFlowException = true)
-        private void performReopen(DynamicObject self, DynamicObject target) {
+        @Specialization
+        protected DynamicObject reopen(DynamicObject self, DynamicObject target) {
             final int fdSelf = Layouts.IO.getDescriptor(self);
             final int fdTarget = Layouts.IO.getDescriptor(target);
 
@@ -601,15 +600,7 @@ public abstract class IONodes {
 
             final int newSelfMode = ensureSuccessful(posix().fcntl(fdSelf, Fcntl.F_GETFL));
             Layouts.IO.setMode(self, newSelfMode);
-        }
-
-        @Specialization
-        public Object reopen(VirtualFrame frame, DynamicObject file, DynamicObject io) {
-            performReopen(file, io);
-
-            resetBufferingNode.call(frame, io, "reset_buffering");
-
-            return nil();
+            return self;
         }
 
     }
@@ -617,10 +608,9 @@ public abstract class IONodes {
     @Primitive(name = "io_reopen_path", lowerFixnum = 2)
     public static abstract class IOReopenPathPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode resetBufferingNode = DispatchHeadNodeFactory.createMethodCall();
-
         @TruffleBoundary(throwsControlFlowException = true)
-        public void performReopenPath(DynamicObject self, DynamicObject path, int mode) {
+        @Specialization
+        protected DynamicObject reopenPath(DynamicObject self, DynamicObject path, int mode) {
             final int fdSelf = Layouts.IO.getDescriptor(self);
             final int newFdSelf;
             final String targetPathString = StringOperations.getString(path);
@@ -638,7 +628,7 @@ public abstract class IONodes {
                         ensureSuccessful(posix().close(fdTarget));
                     }
                     ensureSuccessful(result, errno, targetPathString); // throws
-                    return;
+                    return self;
                 }
             } else {
                 ensureSuccessful(posix().close(fdTarget));
@@ -647,15 +637,7 @@ public abstract class IONodes {
 
             final int newSelfMode = ensureSuccessful(posix().fcntl(newFdSelf, Fcntl.F_GETFL));
             Layouts.IO.setMode(self, newSelfMode);
-        }
-
-        @Specialization(guards = "isRubyString(path)")
-        public Object reopenPath(VirtualFrame frame, DynamicObject file, DynamicObject path, int mode) {
-            performReopenPath(file, path, mode);
-
-            resetBufferingNode.call(frame, file, "reset_buffering");
-
-            return nil();
+            return self;
         }
 
     }
