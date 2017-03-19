@@ -37,11 +37,6 @@ class IO
 
   include Enumerable
 
-  def self.open_with_mode(path, mode, perm)
-    Truffle.primitive :io_open
-    raise PrimitiveFailure, "IO.open_with_mode primitive failed"
-  end
-
   def self.connect_pipe(lhs, rhs)
     Truffle.primitive :io_connect_pipe
     raise PrimitiveFailure, "IO.connect_pipe primitive failed"
@@ -1150,7 +1145,7 @@ class IO
     mode = parse_mode(mode || "r")
     perm ||= 0666
 
-    open_with_mode path, mode, perm
+    Truffle.invoke_primitive :io_open, path, mode, perm
   end
 
   #

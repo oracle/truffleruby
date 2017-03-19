@@ -359,7 +359,7 @@ module Rubinius
 
             if assign_fd = options[:assign_fd]
               assign_fd.each_slice(4) do |from, name, mode, perm|
-                to = IO.open_with_mode(name, mode | Fcntl::FD_CLOEXEC, perm)
+                to = IO.sysopen(name, mode | Fcntl::FD_CLOEXEC, perm)
                 redirect_file_descriptor(from, to)
               end
             end
