@@ -44,21 +44,6 @@ class IO
     raise PrimitiveFailure, "IO#write primitive failed"
   end
 
-  def prim_seek(amount, whence)
-    Truffle.primitive :io_seek
-    raise RangeError, "#{amount} is too big"
-  end
-
-  def self.prim_truncate(name, offset)
-    Truffle.primitive :io_truncate
-    raise RangeError, "#{offset} is too big"
-  end
-
-  def prim_ftruncate(offset)
-    Truffle.primitive :io_ftruncate
-    raise RangeError, "#{amount} is too big"
-  end
-
   def query(which)
     Truffle.primitive :io_query
     raise PrimitiveFailure, "IO#query primitive failed"
@@ -300,7 +285,10 @@ class IO
       Rubinius.synchronize(self) do
         # Unseek the still buffered amount
         return unless write_synced?
-        io.prim_seek @start - @used, IO::SEEK_CUR unless empty?
+        unless empty?
+          amount = @start - @used
+          Truffle.invoke_primitive :io_seek, io, amount, IO::SEEK_CUR
+        end
         reset!
       end
     end
@@ -1865,7 +1853,7 @@ class IO
     flush
     reset_buffering
 
-    prim_seek 0, SEEK_CUR
+    Truffle.invoke_primitive :io_seek, self, 0, SEEK_CUR
   end
 
   alias_method :tell, :pos
@@ -2286,7 +2274,7 @@ class IO
     reset_buffering
     @eof = false
 
-    prim_seek Integer(amount), whence
+    Truffle.invoke_primitive :io_seek, self, Integer(amount), whence
 
     return 0
   end
@@ -2496,7 +2484,7 @@ class IO
 
     amount = Integer(amount)
 
-    prim_seek amount, whence
+    Truffle.invoke_primitive :io_seek, self, amount, whence
   end
 
   def to_io
