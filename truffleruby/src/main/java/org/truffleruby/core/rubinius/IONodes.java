@@ -506,7 +506,7 @@ public abstract class IONodes {
     }
 
     @NonStandard
-    @CoreMethod(names = "ensure_open")
+    @CoreMethod(names = "ensure_open", visibility = Visibility.PRIVATE)
     public static abstract class IOEnsureOpenPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

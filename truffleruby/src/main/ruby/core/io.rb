@@ -2245,7 +2245,9 @@ class IO
         end
       end
 
-      io.ensure_open
+      Truffle.privately do
+        io.ensure_open
+      end
       io.reset_buffering
 
       reopen_io io
