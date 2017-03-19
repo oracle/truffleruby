@@ -103,7 +103,7 @@ module Kernel
         raise ArgumentError, "invalid value for Integer: (empty string)"
       else
         base ||= 0
-        return obj.to_inum(base, true)
+        return Truffle.invoke_primitive(:string_to_inum, obj, base, true)
       end
     end
 

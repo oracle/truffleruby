@@ -118,7 +118,7 @@ class String
   end
 
   def oct
-    to_inum(-8, false)
+    Truffle.invoke_primitive(:string_to_inum, self, -8, false)
   end
 
   # Treats leading characters from <i>self</i> as a string of hexadecimal digits
@@ -130,7 +130,7 @@ class String
   #    "0".hex        #=> 0
   #    "wombat".hex   #=> 0
   def hex
-    to_inum(16, false)
+    Truffle.invoke_primitive(:string_to_inum, self, 16, false)
   end
 
   def reverse
@@ -266,7 +266,7 @@ class String
       raise ArgumentError, "illegal radix #{base}"
     end
 
-    to_inum(base, false)
+    Truffle.invoke_primitive(:string_to_inum, self, base, false)
   end
 
   def tr(source, replacement)
@@ -337,11 +337,6 @@ class String
       result.append(additional)
       index += 1
     end
-  end
-
-  def to_inum(base, check)
-    Truffle.primitive :string_to_inum
-    raise ArgumentError, "invalid value for Integer"
   end
 
   def subpattern(pattern, capture)
