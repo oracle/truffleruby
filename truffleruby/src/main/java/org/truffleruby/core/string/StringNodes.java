@@ -3178,7 +3178,7 @@ public abstract class StringNodes {
                 try {
                     return Double.parseDouble(string.toString());
                 } catch (NumberFormatException e) {
-                    // Try falling back to this implementation if the first fails, niether 100% complete
+                    // Try falling back to this implementation if the first fails, neither 100% complete
                     final Object result = ConvertBytes.byteListToInum19(getContext(), this, fixnumOrBignumNode, string, 16, true);
                     if (result instanceof Integer) {
                         return ((Integer) result).doubleValue();
@@ -3187,7 +3187,7 @@ public abstract class StringNodes {
                     } else if (result instanceof Double) {
                         return result;
                     } else {
-                        return null;
+                        return nil();
                     }
                 }
             }

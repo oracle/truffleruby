@@ -56,9 +56,21 @@ module Kernel
   def Float(obj)
     case obj
     when String
-      Rubinius::Type.coerce_string_to_float obj, true
+      value = Truffle.invoke_primitive :string_to_f, obj, true
+      raise ArgumentError, "invalid string for Float" unless value
+      value
+    when Float
+      obj
+    when nil
+      raise TypeError, "can't convert nil into Float"
+    when Complex
+      if obj.respond_to?(:imag) && obj.imag.equal?(0)
+        Rubinius::Type.coerce_to obj, Float, :to_f
+      else
+        raise RangeError, "can't convert #{obj} into Float"
+      end
     else
-      Rubinius::Type.coerce_object_to_float obj
+      Rubinius::Type.coerce_to obj, Float, :to_f
     end
   end
   module_function :Float
@@ -78,7 +90,7 @@ module Kernel
       raise exception
     else
       begin
-        Rubinius::Type.coerce_object_to_float obj
+        Float(obj)
       rescue
         raise exception
       end

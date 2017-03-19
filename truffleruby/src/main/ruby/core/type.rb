@@ -75,29 +75,6 @@ module Rubinius
       Truffle.invoke_primitive :vm_method_lookup, obj, name
     end
 
-    def self.coerce_string_to_float(string, strict)
-      value = Truffle.invoke_primitive :string_to_f, StringValue(string), strict
-      raise ArgumentError, "invalid string for Float" if value.nil?
-      value
-    end
-
-    def self.coerce_object_to_float(obj)
-      case obj
-      when Float
-        obj
-      when nil
-        raise TypeError, "can't convert nil into Float"
-      when Complex
-        if obj.respond_to?(:imag) && obj.imag.equal?(0)
-          coerce_to obj, Float, :to_f
-        else
-          raise RangeError, "can't convert #{obj} into Float"
-        end
-      else
-        coerce_to obj, Float, :to_f
-      end
-    end
-
     def self.object_encoding(obj)
       Truffle.primitive :encoding_get_object_encoding
       raise PrimitiveFailure, "Rubinius::Type.object_encoding primitive failed"
