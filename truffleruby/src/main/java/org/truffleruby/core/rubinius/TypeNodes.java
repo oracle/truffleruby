@@ -9,10 +9,12 @@
  */
 package org.truffleruby.core.rubinius;
 
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsANodeGen;
 import org.truffleruby.language.objects.LogicalClassNode;
@@ -45,6 +47,17 @@ public abstract class TypeNodes {
         @Specialization
         public DynamicObject objectClass(VirtualFrame frame, Object object) {
             return classNode.executeLogicalClass(object);
+        }
+
+    }
+
+    @CoreMethod(names = "module_name", onSingleton = true, required = 1)
+    public static abstract class VMGetModuleNamePrimitiveNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject moduleName(DynamicObject module) {
+            final String name = Layouts.MODULE.getFields(module).getName();
+            return createString(StringOperations.encodeRope(name, UTF8Encoding.INSTANCE));
         }
 
     }

@@ -163,16 +163,6 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_get_module_name", needsSelf = false)
-    public static abstract class VMGetModuleNamePrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public DynamicObject vmGetModuleName(DynamicObject module) {
-            return createString(StringOperations.encodeRope(Layouts.MODULE.getFields(module).getName(), UTF8Encoding.INSTANCE));
-        }
-
-    }
-
     @Primitive(name = "vm_get_user_home", needsSelf = false)
     public abstract static class VMGetUserHomePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
