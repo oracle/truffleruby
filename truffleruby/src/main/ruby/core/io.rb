@@ -44,15 +44,6 @@ class IO
     raise PrimitiveFailure, "IO#write primitive failed"
   end
 
-  def query(which)
-    Truffle.primitive :io_query
-    raise PrimitiveFailure, "IO#query primitive failed"
-  end
-
-  def ttyname
-    query :ttyname
-  end
-
   def close
     ensure_open
     Truffle.invoke_primitive :io_close, self
