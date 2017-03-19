@@ -39,11 +39,6 @@ class IO
 
   # Instance primitive bindings
 
-  def write(str)
-    Truffle.primitive :io_write
-    raise PrimitiveFailure, "IO#write primitive failed"
-  end
-
   def close
     ensure_open
     Truffle.invoke_primitive :io_close, self
@@ -221,7 +216,8 @@ class IO
       return 0 if @write_synced or empty?
       @write_synced = true
 
-      io.prim_write(String.from_bytearray(@storage, @start, size))
+      data = String.from_bytearray(@storage, @start, size)
+      Truffle.invoke_primitive :io_write, io, data
       reset!
 
       return size
@@ -1179,7 +1175,6 @@ class IO
 
   private :initialize_copy
 
-  alias_method :prim_write, :write
   alias_method :prim_close, :close
 
   def advise(advice, offset = 0, len = 0)
@@ -2501,7 +2496,7 @@ class IO
     ensure_open_and_writable
     @ibuffer.unseek!(self) unless @sync
 
-    prim_write(data)
+    Truffle.invoke_primitive :io_write, self, data
   end
 
   def ungetbyte(obj)
@@ -2559,7 +2554,7 @@ class IO
     end
 
     if @sync
-      prim_write(data)
+      Truffle.invoke_primitive :io_write, self, data
     else
       reset_buffering
       bytes_to_write = data.bytesize
