@@ -12,12 +12,14 @@
 package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
 import org.jcodings.transcode.EConv;
@@ -384,16 +386,17 @@ public abstract class EncodingConverterNodes {
             return ToStrNodeGen.create(replacement);
         }
 
-        @TruffleBoundary
         @Specialization
-        public DynamicObject setReplacement(DynamicObject encodingConverter, DynamicObject replacement) {
+        public DynamicObject setReplacement(DynamicObject encodingConverter, DynamicObject replacement,
+                                            @Cached("create()") BranchProfile errorProfile) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
             final Rope rope = StringOperations.rope(replacement);
             final Encoding encoding = rope.getEncoding();
 
-            final int ret = ec.setReplacement(rope.getBytes(), 0, rope.byteLength(), encoding.getName());
+            final int ret = TranscodingManager.setReplacement(ec, rope.getBytes(), 0, rope.byteLength(), encoding.getName());
 
             if (ret == -1) {
+                errorProfile.enter();
                 throw new RaiseException(getContext().getCoreExceptions().encodingUndefinedConversionError(this));
             }
 

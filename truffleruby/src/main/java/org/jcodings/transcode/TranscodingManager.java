@@ -260,7 +260,7 @@ public class TranscodingManager {
 
     @TruffleBoundary
     private static boolean decorateAt(EConv ec, byte[] decorator, int n) {
-        // Taken from org.jcodings.transcode.EConv#decorateA.
+        // Taken from org.jcodings.transcode.EConv#decorateAt.
 
         if (ec.started) {
             return false;
@@ -515,5 +515,45 @@ public class TranscodingManager {
         }
 
         return 0;
+    }
+
+    /* rb_econv_set_replacement */
+    @TruffleBoundary
+    public static int setReplacement(EConv ec, byte[] str, int p, int len, byte[] encname) {
+        // Taken from org.jcodings.transcode.EConv#setReplacement.
+
+        byte[] encname2 = encodingToInsertOutput(ec);
+
+        final byte[] str2;
+        final int p2 = 0;
+        final int len2;
+
+        if (encname2.length == 0 || caseInsensitiveEquals(encname, encname2)) {
+            str2 = new byte[len];
+            System.arraycopy(str, p, str2, 0, len); // ??
+            len2 = len;
+            encname2 = encname;
+        } else {
+            Ptr len2p = new Ptr();
+            str2 = allocateConvertedString(encname, encname2, str, p, len, null, len2p);
+            if (str2 == null) return -1;
+            len2 = len2p.p;
+        }
+
+        ec.replacementString = str2;
+        ec.replacementLength = len2;
+        ec.replacementEncoding = encname2;
+        return 0;
+    }
+
+    /* rb_econv_encoding_to_insert_output */
+    @TruffleBoundary
+    public static byte[] encodingToInsertOutput(EConv ec) {
+        // Taken from org.jcodings.transcode.EConv#encodingToInsertOutput.
+
+        Transcoding transcoding = ec.lastTranscoding;
+        if (transcoding == null) return NULL_STRING;
+        Transcoder transcoder = transcoding.transcoder;
+        return transcoder.compatibility.isEncoder() ? transcoder.source : transcoder.destination;
     }
 }
