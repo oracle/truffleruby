@@ -11,7 +11,10 @@
  * copyright (C) Yukihiro Matsumoto, licensed under the 2-clause BSD licence
  * as described in the file BSDL included with JRuby+Truffle.
  */
-
+ 
+// Needed for vasprintf
+#define _GNU_SOURCE
+ 
 #include <ruby.h>
 
 #include <stdlib.h>
