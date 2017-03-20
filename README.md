@@ -1,4 +1,4 @@
-# TruffleRuby
+![TruffleRuby logo](logo/png/truffleruby_logo_horizontal_medium.png)
 
 A high performance implementation of the Ruby programming language. Built on the
 GraalVM by [Oracle Labs](https://labs.oracle.com).
