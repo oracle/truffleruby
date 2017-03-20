@@ -79,20 +79,8 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int exec(String path, String... argv) {
-        return posix.execv(path, argv);
-    }
-
-    @TruffleBoundary
-    @Override
     public int exec(String path, String[] argv, String[] envp) {
         return posix.execve(path, argv, envp);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int fork() {
-        return posix.fork();
     }
 
     @TruffleBoundary
@@ -197,19 +185,7 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public boolean isatty(FileDescriptor descriptor) {
-        return posix.isatty(descriptor);
-    }
-
-    @TruffleBoundary
-    @Override
     public int kill(int pid, int signal) {
-        return posix.kill(pid, signal);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int kill(long pid, int signal) {
         return posix.kill(pid, signal);
     }
 
@@ -229,11 +205,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public int link(String oldpath, String newpath) {
         return posix.link(oldpath, newpath);
-    }
-
-    @TruffleBoundary
-    public FileStat lstat(String path) {
-        return posix.lstat(path);
     }
 
     @TruffleBoundary
@@ -330,18 +301,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public int waitpid(int pid, int[] status, int flags) {
         return posix.waitpid(pid, status, flags);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int waitpid(long pid, int[] status, int flags) {
-        return posix.waitpid(pid, status, flags);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int wait(int[] status) {
-        return posix.wait(status);
     }
 
     @TruffleBoundary
