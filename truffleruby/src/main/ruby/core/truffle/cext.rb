@@ -958,10 +958,10 @@ module Truffle::CExt
   end
 
   def rb_funcallv(recv, meth, args)
-    rb_funcall(recv, meth, *args)
+    rb_funcall(recv, meth, nil, *args)
   end
 
-  def rb_funcall(recv, meth, *args)
+  def rb_funcall(recv, meth, n, *args)
     old_c_block = Thread.current[:__C_BLOCK__]
     begin
       block = Thread.current[:__C_BLOCK__]
