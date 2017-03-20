@@ -23,17 +23,22 @@ import jnr.posix.SignalHandler;
 import jnr.posix.SpawnAttribute;
 import jnr.posix.SpawnFileAction;
 import jnr.posix.Times;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.language.control.JavaException;
 
-import java.io.FileDescriptor;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 
 public class JNRTrufflePosix implements TrufflePosix {
 
+    protected final RubyContext context;
     private final POSIX posix;
 
-    public JNRTrufflePosix(POSIX posix) {
+    public JNRTrufflePosix(RubyContext context, POSIX posix) {
+        this.context = context;
         this.posix = posix;
     }
 
@@ -79,20 +84,8 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int exec(String path, String... argv) {
-        return posix.execv(path, argv);
-    }
-
-    @TruffleBoundary
-    @Override
     public int exec(String path, String[] argv, String[] envp) {
         return posix.execve(path, argv, envp);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int fork() {
-        return posix.fork();
     }
 
     @TruffleBoundary
@@ -197,19 +190,7 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public boolean isatty(FileDescriptor descriptor) {
-        return posix.isatty(descriptor);
-    }
-
-    @TruffleBoundary
-    @Override
     public int kill(int pid, int signal) {
-        return posix.kill(pid, signal);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int kill(long pid, int signal) {
         return posix.kill(pid, signal);
     }
 
@@ -229,11 +210,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public int link(String oldpath, String newpath) {
         return posix.link(oldpath, newpath);
-    }
-
-    @TruffleBoundary
-    public FileStat lstat(String path) {
-        return posix.lstat(path);
     }
 
     @TruffleBoundary
@@ -330,18 +306,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public int waitpid(int pid, int[] status, int flags) {
         return posix.waitpid(pid, status, flags);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int waitpid(long pid, int[] status, int flags) {
-        return posix.waitpid(pid, status, flags);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int wait(int[] status) {
-        return posix.wait(status);
     }
 
     @TruffleBoundary
@@ -446,25 +410,74 @@ public class JNRTrufflePosix implements TrufflePosix {
     @TruffleBoundary
     @Override
     public int write(int fd, byte[] buf, int n) {
+        if (context.getOptions().POLYGLOT_STDIO && (fd == 1 || fd == 2)) {
+            return polyglotWrite(fd, buf, 0, n);
+        }
+
         return posix.write(fd, buf, n);
     }
 
     @TruffleBoundary
     @Override
     public int read(int fd, byte[] buf, int n) {
+        if (context.getOptions().POLYGLOT_STDIO && fd == 0) {
+            return polyglotRead(buf, 0, n);
+        }
+
         return posix.read(fd, buf, n);
     }
 
     @TruffleBoundary
     @Override
     public int write(int fd, ByteBuffer buf, int n) {
+        if (context.getOptions().POLYGLOT_STDIO && (fd == 1 || fd == 2)) {
+            return polyglotWrite(fd, buf.array(), buf.arrayOffset(), n);
+        }
+
         return posix.write(fd, buf, n);
     }
 
     @TruffleBoundary
     @Override
     public int read(int fd, ByteBuffer buf, int n) {
+        if (context.getOptions().POLYGLOT_STDIO && fd == 0) {
+            return polyglotRead(buf.array(), buf.arrayOffset(), n);
+        }
+
         return posix.read(fd, buf, n);
+    }
+
+    @TruffleBoundary
+    protected int polyglotWrite(int fd, byte[] buf, int offset, int n) {
+        final OutputStream stream;
+
+        switch (fd) {
+            case 1:
+                stream = context.getEnv().out();
+                break;
+            case 2:
+                stream = context.getEnv().err();
+                break;
+            default:
+                throw new UnsupportedOperationException();
+        }
+
+        try {
+            stream.write(buf, offset, n);
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
+
+        return n;
+    }
+
+    @TruffleBoundary
+    protected int polyglotRead(byte[] buf, int offset, int n) {
+        try {
+            return context.getEnv().in().read(buf, offset, n);
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
     }
 
     @TruffleBoundary
@@ -532,4 +545,5 @@ public class JNRTrufflePosix implements TrufflePosix {
     public String nl_langinfo(int item) {
         return posix.nl_langinfo(item);
     }
+
 }

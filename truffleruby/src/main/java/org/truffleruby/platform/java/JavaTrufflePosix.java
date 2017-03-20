@@ -49,18 +49,11 @@ public class JavaTrufflePosix extends JNRTrufflePosix {
         }
     }
 
-    private static final int STDIN = 0;
-    private static final int STDOUT = 1;
-    private static final int STDERR = 2;
-
-    private final RubyContext context;
-
     private final AtomicInteger nextFileHandle = new AtomicInteger(3);
     private final Map<Integer, OpenFile> fileHandles = new ConcurrentHashMap<>();
 
     public JavaTrufflePosix(RubyContext context, POSIX delegateTo) {
-        super(delegateTo);
-        this.context = context;
+        super(context, delegateTo);
     }
 
     @TruffleBoundary
@@ -68,10 +61,10 @@ public class JavaTrufflePosix extends JNRTrufflePosix {
     public int fcntlInt(int fd, Fcntl fcntlConst, int arg) {
         if (fcntlConst.longValue() == Fcntl.F_GETFL.longValue()) {
             switch (fd) {
-                case STDIN:
+                case 0:
                     return OpenFlags.O_RDONLY.intValue();
-                case STDOUT:
-                case STDERR:
+                case 1:
+                case 2:
                     return OpenFlags.O_WRONLY.intValue();
             }
 
@@ -127,25 +120,25 @@ public class JavaTrufflePosix extends JNRTrufflePosix {
     @TruffleBoundary
     @Override
     public int read(int fd, ByteBuffer buf, int n) {
-        return pread(fd, buf.array(), n, buf.arrayOffset());
+        return pread(fd, buf.array(), buf.arrayOffset(), n);
     }
 
     @TruffleBoundary
     @Override
     public int read(int fd, byte[] buf, int n) {
-        return pread(fd, buf, n, 0);
+        return pread(fd, buf, 0, n);
     }
 
     @TruffleBoundary
     @Override
     public int write(int fd, ByteBuffer buf, int n) {
-        return pwrite(fd, buf.array(), n, buf.arrayOffset());
+        return pwrite(fd, buf.array(), buf.arrayOffset(), n);
     }
 
     @TruffleBoundary
     @Override
     public int write(int fd, byte[] buf, int n) {
-        return pwrite(fd, buf, n, 0);
+        return pwrite(fd, buf, 0, n);
     }
 
     @TruffleBoundary
@@ -198,43 +191,18 @@ public class JavaTrufflePosix extends JNRTrufflePosix {
     }
 
     @TruffleBoundary
-    private int pwrite(int fd, byte[] buf, int n, int offset) {
-        if (fd == STDOUT || fd == STDERR) {
-            final OutputStream stream;
-
-            switch (fd) {
-                case STDOUT:
-                    stream = context.getEnv().out();
-                    break;
-                case STDERR:
-                    stream = context.getEnv().err();
-                    break;
-                default:
-                    throw new UnsupportedOperationException();
-            }
-
-            try {
-                stream.write(buf, offset, n);
-            } catch (IOException e) {
-                throw new JavaException(e);
-            }
-
-            return n;
+    private int pwrite(int fd, byte[] buf, int offset, int n) {
+        if (fd == 1 || fd == 2) {
+            return polyglotWrite(fd, buf, offset, n);
         }
 
         throw new UnsupportedOperationException();
     }
 
     @TruffleBoundary
-    private int pread(int fd, byte[] buf, int n, int offset) {
-        if (fd == STDIN) {
-            try {
-                context.getEnv().in().read(buf, offset, n);
-            } catch (IOException e) {
-                return -1;
-            }
-
-            return n;
+    private int pread(int fd, byte[] buf, int offset, int n) {
+        if (fd == 0) {
+            return polyglotRead(buf, offset, n);
         }
 
         final OpenFile openFile = fileHandles.get(fd);

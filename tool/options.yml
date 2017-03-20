@@ -17,6 +17,7 @@ DID_YOU_MEAN: [did_you_mean, boolean, true, Use did_you_mean]
 INTERNAL_ENCODING: [internal_encoding, string, null, Internal encoding]
 EXTERNAL_ENCODING: [external_encoding, string, null, External encoding]
 
+POLYGLOT_STDIO: [ployglot.stdio, boolean, true, Use standard IO streams from the PolyglotEngine]
 PLATFORM_USE_JAVA: [platform.use_java, boolean, false, Use a pure-Java platform, so no native POSIX]
 
 TRACE_CALLS: [trace.calls, boolean, true, Support tracing (set_trace_func, TracePoint) of method calls]

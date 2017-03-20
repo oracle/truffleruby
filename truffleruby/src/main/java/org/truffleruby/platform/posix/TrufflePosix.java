@@ -32,9 +32,7 @@ public interface TrufflePosix {
     int fchmod(int fd, int mode);
     int chown(String filename, int user, int group);
     int fchown(int fd, int user, int group);
-    int exec(String path, String... argv);
     int exec(String path, String[] argv, String[] envp);
-    int fork();
     int fstat(int fd, FileStat stat);
     String getenv(String envName);
     int getegid();
@@ -51,9 +49,7 @@ public interface TrufflePosix {
     int getuid();
     int getrlimit(int resource, Pointer rlim);
     int setrlimit(int resource, Pointer rlim);
-    boolean isatty(FileDescriptor descriptor);
     int kill(int pid, int signal);
-    int kill(long pid, int signal);
     int lchmod(String filename, int mode);
     SignalHandler signal(Signal sig, SignalHandler handler);
     int link(String oldpath,String newpath);
@@ -73,8 +69,6 @@ public interface TrufflePosix {
     int unsetenv(String envName);
     int utimes(String path, Pointer times);
     int waitpid(int pid, int[] status, int flags);
-    int waitpid(long pid, int[] status, int flags);
-    int wait(int[] status);
     int errno();
     void errno(int value);
     int chdir(String path);
