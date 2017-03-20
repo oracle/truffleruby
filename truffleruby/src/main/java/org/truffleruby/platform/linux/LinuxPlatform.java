@@ -42,7 +42,7 @@ public class LinuxPlatform implements NativePlatform {
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public LinuxPlatform(RubyContext context) {
-        posix = new JNRTrufflePosix(POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context)));
+        posix = new JNRTrufflePosix(context, POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context)));
         memoryManager = Runtime.getSystemRuntime().getMemoryManager();
         signalManager = new SunMiscSignalManager();
         processName = new JavaProcessName();

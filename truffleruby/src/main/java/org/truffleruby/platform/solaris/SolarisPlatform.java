@@ -44,7 +44,7 @@ public class SolarisPlatform implements NativePlatform {
 
     public SolarisPlatform(RubyContext context) {
         POSIX _posix = POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context));
-        posix = new JNRTrufflePosix(_posix);
+        posix = new JNRTrufflePosix(context, _posix);
         memoryManager = Runtime.getSystemRuntime().getMemoryManager();
         signalManager = new SunMiscSignalManager();
         processName = new JavaProcessName();

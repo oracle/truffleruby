@@ -106,6 +106,14 @@ public class Main {
             builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
             builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
 
+            /*
+             * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
+             * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and
+             * blocking behaviour.
+             */
+
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.POLYGLOT_STDIO.getName(), false);
+
             for (Map.Entry<String, Object> option : config.getOptions().entrySet()) {
                 builder.config(RubyLanguage.MIME_TYPE, option.getKey(), option.getValue());
             }
