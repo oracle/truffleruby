@@ -36,15 +36,13 @@ public class DataMessageResolution {
 
     }
 
-    // TODO CS 2-Oct-16 why do we get reads at index 16, and writes at index 2?
-
     @Resolve(message = "READ")
     public static abstract class TypedDataReadNode extends Node {
 
         @Child private ReadObjectFieldNode readDataNode;
 
-        protected Object access(DataAdapter dataAdapter, long index) {
-            if (index == 16) {
+        protected Object access(DataAdapter dataAdapter, int index) {
+            if (index == 2) {
                 if (readDataNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     readDataNode = insert(ReadObjectFieldNodeGen.create("@data", 0));

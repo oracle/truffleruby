@@ -1016,13 +1016,11 @@ class << Truffle::CExt
       array.size
     end
 
-    def [](offset)
-      # Reads use the byte offset, not the index
-      array[offset / 8]
+    def [](index)
+      array[index]
     end
 
     def []=(index, value)
-      # Writes use the index, not the byte offset
       array[index] = value
     end
 

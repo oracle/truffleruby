@@ -36,8 +36,8 @@ public class EncodingPointerMessageResolution {
     @Resolve(message = "READ")
     public static abstract class EncodingPointerReadNode extends Node {
 
-        protected Object access(EncodingPointerAdapter adapter, long index) {
-            assert index == 0L;
+        protected Object access(EncodingPointerAdapter adapter, int index) {
+            assert index == 0;
             return Layouts.ENCODING.getName(adapter.getEncoding());
         }
 
