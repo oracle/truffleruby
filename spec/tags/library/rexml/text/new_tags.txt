@@ -1,0 +1,1 @@
+fails(graalvm):REXML::Text.new receives a parent as third argument
