@@ -154,6 +154,7 @@ else
         $JAVA_OPTS
         "${java_args[@]}"
         com.oracle.graalvm.Main
+        --
     )
 fi
 
