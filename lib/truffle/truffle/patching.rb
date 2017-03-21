@@ -13,12 +13,21 @@ module Kernel
   alias_method :require_without_truffle_patching, :require
 
   def require(path)
-    required = require_without_truffle_patching path
+    required = begin
+      require_without_truffle_patching path
+    rescue LoadError
+      if Truffle::Patching::TRUFFLE_PATCHES[path]
+        true # Pretend the file required so we attempt patching with something that should avoid the LoadError (e.g., replacing code using C extensions).
+      else
+        raise
+      end
+    end
 
     if required && Truffle::Patching::TRUFFLE_PATCHES[path]
       Truffle::System.log :PATCH, "applying #{path}"
       require_without_truffle_patching "#{Truffle::Patching::TRUFFLE_PATCHES_DIRECTORY}/#{path}.rb"
     end
+
     required
   end
 end
