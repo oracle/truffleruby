@@ -112,4 +112,4 @@ with copyright owned by other people. See `doc/legal` for full documentation.
 
 TruffleRuby is a fork of [JRuby](https://github.com/jruby/jruby), combining it
 with code from the [Rubinius](https://github.com/rubinius/rubinius) project, and
-also containing code from the standard implementation of Ruby, MRI.
+also containing code from the standard implementation of Ruby, [MRI](https://github.com/ruby/ruby).
