@@ -159,7 +159,7 @@ else
 fi
 
 full_command=(
-    ${full_command[@]}
+    "${full_command[@]}"
     org.truffleruby.Main
     "-Xhome=$root"
     "-Xlauncher=$root/bin/truffleruby"
