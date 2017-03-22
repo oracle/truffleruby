@@ -535,16 +535,6 @@ public class CExtNodes {
 
     }
 
-    @Primitive(name = "rb_to_encoding", needsSelf = false)
-    public abstract static class RbToEncodingPointer extends PrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "isRubyEncoding(encoding)")
-        public EncodingPointerAdapter encodingPointer(DynamicObject encoding) {
-            return new EncodingPointerAdapter(encoding);
-        }
-
-    }
-
     @CoreMethod(names = "rb_enc_codepoint_len", onSingleton = true, required = 2)
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
@@ -622,16 +612,6 @@ public class CExtNodes {
         protected static boolean shouldShrink(DynamicObject string, long len) {
             return rope(string).byteLength() > len;
         }
-    }
-
-    @CoreMethod(names = "rb_enc_from_encoding", onSingleton = true, required = 1)
-    public abstract static class RbEncFromEncodingNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public DynamicObject unadaptEncodingPointer(EncodingPointerAdapter adapter) {
-            return adapter.getEncoding();
-        }
-
     }
 
     @CoreMethod(names = "rb_block_proc", onSingleton = true)

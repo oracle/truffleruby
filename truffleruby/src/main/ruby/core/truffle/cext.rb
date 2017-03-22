@@ -1638,6 +1638,32 @@ class << Truffle::CExt
     RData.new(object)
   end
 
+  class RbEncoding
+
+    NAME_FIELD_INDEX = 0
+
+    attr_reader :encoding
+
+    def initialize(encoding)
+      @encoding = encoding
+    end
+
+    def [](index)
+      raise unless index == NAME_FIELD_INDEX
+      @encoding.name
+    end
+
+  end
+
+  def rb_to_encoding(encoding)
+    encoding = Encoding.find(encoding.to_str) unless encoding.is_a?(Encoding)
+    RbEncoding.new(encoding)
+  end
+
+  def rb_enc_from_encoding(rb_encoding)
+    rb_encoding.encoding
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
