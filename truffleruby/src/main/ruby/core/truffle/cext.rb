@@ -12,7 +12,7 @@ class Data
 
 end
 
-module Truffle::CExt
+class << Truffle::CExt
 
   T_NONE     = 0x00
 
@@ -50,8 +50,6 @@ module Truffle::CExt
   RUBY_ENC_CODERANGE_7BIT = 1
   RUBY_ENC_CODERANGE_VALID = 2
   RUBY_ENC_CODERANGE_BROKEN = 4
-
-  module_function
 
   def supported?
     Interop.mime_type_supported?('application/x-sulong-library')

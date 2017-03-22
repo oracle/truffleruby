@@ -86,7 +86,7 @@ public class CExtNodes {
 
     // TODO CS 19-Mar-17 many of these builtins could just be identify functions with a cast in C
 
-    @CoreMethod(names = "NUM2INT", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "NUM2INT", onSingleton = true, required = 1)
     public abstract static class NUM2INTNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -101,7 +101,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "NUM2UINT", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    @CoreMethod(names = "NUM2UINT", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class NUM2UINTNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -112,7 +112,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "NUM2LONG", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "NUM2LONG", onSingleton = true, required = 1)
     public abstract static class NUM2LONGNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -127,7 +127,7 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "NUM2ULONG", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    @CoreMethod(names = "NUM2ULONG", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class NUM2ULONGNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -138,7 +138,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "NUM2DBL", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    @CoreMethod(names = "NUM2DBL", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class NUM2DBLNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -162,7 +162,7 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "FIX2INT", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    @CoreMethod(names = "FIX2INT", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class FIX2INTNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -172,7 +172,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "FIX2UINT", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "FIX2UINT", onSingleton = true, required = 1)
     public abstract static class FIX2UINTNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -189,7 +189,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "FIX2LONG", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    @CoreMethod(names = "FIX2LONG", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class FIX2LONGNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -199,7 +199,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "INT2NUM", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "INT2NUM", onSingleton = true, required = 1)
     public abstract static class INT2NUMNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -214,7 +214,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "INT2FIX", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "INT2FIX", onSingleton = true, required = 1)
     public abstract static class INT2FIXNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -229,7 +229,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "UINT2NUM", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    @CoreMethod(names = "UINT2NUM", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class UINT2NUMNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -240,7 +240,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "LONG2NUM", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "LONG2NUM", onSingleton = true, required = 1)
     public abstract static class LONG2NUMNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -250,7 +250,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "LL2NUM", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "LL2NUM", onSingleton = true, required = 1)
     public abstract static class LL2NUMNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -260,7 +260,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "ULONG2NUM", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "ULONG2NUM", onSingleton = true, required = 1)
     public abstract static class ULONG2NUMNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -283,7 +283,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_integer_bytes", isModuleFunction = true, lowerFixnum = {2,3}, required = 6)
+    @CoreMethod(names = "rb_integer_bytes", onSingleton = true, lowerFixnum = { 2, 3 }, required = 6)
     public abstract static class IntegerBytesNode extends CoreMethodArrayArgumentsNode {
 
         // The Ruby MRI API for extracting the contents of a integer
@@ -397,7 +397,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_absint_bit_length", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_absint_bit_length", onSingleton = true, required = 1)
     public abstract static class BignumAbsBitLengthNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -419,7 +419,7 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_2scomp_bit_length", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_2scomp_bit_length", onSingleton = true, required = 1)
     public abstract static class Bignum2sCompBitLengthNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -441,7 +441,7 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "DBL2BIG", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "DBL2BIG", onSingleton = true, required = 1)
     public abstract static class DBL2BIGNode extends CoreMethodArrayArgumentsNode {
 
         @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
@@ -465,7 +465,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "LONG2FIX", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "LONG2FIX", onSingleton = true, required = 1)
     public abstract static class LONG2FIXNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -475,7 +475,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "CLASS_OF", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "CLASS_OF", onSingleton = true, required = 1)
     public abstract static class CLASSOFNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -486,7 +486,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_long2int", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_long2int", onSingleton = true, required = 1)
     public abstract static class Long2Int extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -510,7 +510,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "RSTRING_PTR", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "RSTRING_PTR", onSingleton = true, required = 1)
     public abstract static class StringPointerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
@@ -520,7 +520,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "to_ruby_string", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "to_ruby_string", onSingleton = true, required = 1)
     public abstract static class ToRubyStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -545,7 +545,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_enc_codepoint_len", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "rb_enc_codepoint_len", onSingleton = true, required = 2)
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -564,7 +564,7 @@ public class CExtNodes {
     }
 
 
-    @CoreMethod(names = "rb_str_resize", isModuleFunction = true, required = 2, lowerFixnum = 2)
+    @CoreMethod(names = "rb_str_resize", onSingleton = true, required = 2, lowerFixnum = 2)
     public abstract static class RbStrResizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "shouldNoop(string, len)")
@@ -624,7 +624,7 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "rb_enc_from_encoding", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_enc_from_encoding", onSingleton = true, required = 1)
     public abstract static class RbEncFromEncodingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -634,7 +634,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_block_proc", isModuleFunction = true)
+    @CoreMethod(names = "rb_block_proc", onSingleton = true)
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -663,7 +663,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_check_frozen", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_check_frozen", onSingleton = true, required = 1)
     public abstract static class CheckFrozenNode extends CoreMethodArrayArgumentsNode {
 
         @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
@@ -676,7 +676,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "get_block", isModuleFunction = true)
+    @CoreMethod(names = "get_block", onSingleton = true)
     public abstract static class GetBlockNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -694,7 +694,7 @@ public class CExtNodes {
             @NodeChild(type = RubyNode.class, value = "module"),
             @NodeChild(type = RubyNode.class, value = "name")
     })
-    @CoreMethod(names = "rb_const_get_from", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "rb_const_get_from", onSingleton = true, required = 2)
     public abstract static class ConstGetFromNode extends CoreMethodNode {
 
         @CreateCast("name")
@@ -713,7 +713,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "cext_module_function", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "cext_module_function", onSingleton = true, required = 2)
     public abstract static class CextModuleFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Child
@@ -726,7 +726,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "caller_frame_visibility", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "caller_frame_visibility", onSingleton = true, required = 1)
     public abstract static class CallerFrameVisibilityNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -749,7 +749,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_tr_adapt_rdata", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_tr_adapt_rdata", onSingleton = true, required = 1)
     public abstract static class AdaptRDataNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -763,7 +763,7 @@ public class CExtNodes {
     protected static final Map<DynamicObject, Long> toNative = new HashMap<>();
     protected static final Map<Long, DynamicObject> toManaged = new HashMap<>();
 
-    @CoreMethod(names = "rb_tr_to_native_handle", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_tr_to_native_handle", onSingleton = true, required = 1)
     public abstract static class ToNativeHandleNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -782,7 +782,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_tr_from_native_handle", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_tr_from_native_handle", onSingleton = true, required = 1)
     public abstract static class FromNativeHandleNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -801,7 +801,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_iter_break", isModuleFunction = true)
+    @CoreMethod(names = "rb_iter_break", onSingleton = true)
     public abstract static class IterBreakNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -811,7 +811,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_sourcefile", isModuleFunction = true)
+    @CoreMethod(names = "rb_sourcefile", onSingleton = true)
     public abstract static class SourceFileNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -840,7 +840,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_sourceline", isModuleFunction = true)
+    @CoreMethod(names = "rb_sourceline", onSingleton = true)
     public abstract static class SourceLineNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -852,7 +852,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_is_instance_id", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_is_instance_id", onSingleton = true, required = 1)
     public abstract static class IsInstanceIdNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(symbol)")
@@ -862,7 +862,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_is_const_id", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_is_const_id", onSingleton = true, required = 1)
     public abstract static class IsConstIdNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(symbol)")
@@ -872,7 +872,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_is_class_id", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_is_class_id", onSingleton = true, required = 1)
     public abstract static class IsClassVariableIdNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(symbol)")
@@ -882,7 +882,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "ruby_object?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "ruby_object?", onSingleton = true, required = 1)
     public abstract static class RubyObjectNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isBoxedPrimitive(object)")
@@ -897,7 +897,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_call_super_splatted", isModuleFunction = true, rest = true)
+    @CoreMethod(names = "rb_call_super_splatted", onSingleton = true, rest = true)
     public abstract static class CallSuperNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallSuperMethodNode callSuperMethodNode = CallSuperMethodNodeGen.create(null, null, null);
@@ -936,7 +936,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_thread_wait_fd", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    @CoreMethod(names = "rb_thread_wait_fd", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class ThreadWaitFDNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -963,7 +963,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_thread_fd_writable", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    @CoreMethod(names = "rb_thread_fd_writable", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class ThreadFDWritableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -988,7 +988,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_backref_get", isModuleFunction = true)
+    @CoreMethod(names = "rb_backref_get", onSingleton = true)
     public abstract static class BackRefGet extends CoreMethodNode {
 
         @Specialization
@@ -1005,7 +1005,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_define_hooked_variable_inner", isModuleFunction = true, required = 3)
+    @CoreMethod(names = "rb_define_hooked_variable_inner", onSingleton = true, required = 3)
     public abstract static class DefineHookedVariableInnerNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -1017,7 +1017,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_hash", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "rb_hash", onSingleton = true, required = 1)
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
         @Child private org.truffleruby.core.hash.HashNode hash;
 
