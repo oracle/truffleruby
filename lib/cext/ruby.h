@@ -1087,8 +1087,7 @@ VALUE rb_data_object_wrap(VALUE ruby_class, void *data, RUBY_DATA_FUNC dmark, RU
 #define Data_Get_Struct(obj, type, sval) \
     ((sval) = (type *)rb_data_object_get(obj))
 
-struct RData *rb_tr_adapt_rdata(VALUE value);
-#define RDATA(value) rb_tr_adapt_rdata(value)
+struct RData *RDATA(VALUE value);
 #define DATA_PTR(value) (RDATA(value)->data)
 #define rb_data_object_get DATA_PTR
 

@@ -2436,15 +2436,11 @@ VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_D
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_data_object_wrap", klass == NULL ? rb_cObject : klass, datap, dmark, dfree);
 }
 
-struct RData *rb_tr_adapt_rdata(VALUE value) {
-  return (struct RData *)truffle_invoke(RUBY_CEXT, "rb_tr_adapt_rdata", value);
+struct RData *RDATA(VALUE value) {
+  return (struct RData *)truffle_invoke(RUBY_CEXT, "RDATA", value);
 }
 
 // Typed data
-
-struct RTypedData *rb_tr_adapt_rtypeddata(VALUE value) {
-  return (struct RTypedData *)truffle_invoke(RUBY_CEXT, "rb_tr_adapt_rtypeddata", value);
-}
 
 VALUE rb_data_typed_object_wrap(VALUE ruby_class, void *data, const rb_data_type_t *data_type) {
   // TODO CS 6-Mar-17 work around the issue with LLVM addresses escaping into Ruby by making data_type a uintptr_t

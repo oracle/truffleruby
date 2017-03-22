@@ -1614,6 +1614,30 @@ class << Truffle::CExt
     Truffle::Debug.log_warning message
   end
 
+  class RData
+
+    DATA_FIELD_INDEX = 2
+
+    def initialize(object)
+      @object = object
+    end
+
+    def [](index)
+      raise unless index == DATA_FIELD_INDEX
+      @object.instance_variable_get(:@data)
+    end
+
+    def []=(index, value)
+      raise unless index == DATA_FIELD_INDEX
+      @object.instance_variable_set :@data, value
+    end
+
+  end
+
+  def RDATA(object)
+    RData.new(object)
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
