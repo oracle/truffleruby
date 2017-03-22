@@ -1,1 +1,2 @@
 slow:File.ftype returns fifo when the file is a fifo
+fails(solaris):File.ftype returns 'socket' when the file is a socket
