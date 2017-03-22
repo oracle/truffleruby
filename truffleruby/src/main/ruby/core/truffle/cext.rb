@@ -1000,32 +1000,6 @@ class << Truffle::CExt
     String(value)
   end
 
-  def RARRAY_PTR(array)
-    ArrayPointer.new(array)
-  end
-
-  class ArrayPointer
-
-    attr_reader :array
-
-    def initialize(array)
-      @array = array
-    end
-
-    def size
-      array.size
-    end
-
-    def [](index)
-      array[index]
-    end
-
-    def []=(index, value)
-      array[index] = value
-    end
-
-  end
-
   def rb_Array(value)
     Array(value)
   end
@@ -1167,7 +1141,7 @@ class << Truffle::CExt
   def rb_define_method(mod, name, function, argc)
     mod.send(:define_method, name) do |*args|
       if argc == -1
-        args = [args.size, ::Truffle::CExt::RARRAY_PTR(args), self]
+        args = [args.size, args, self]
       else
         args = [self, *args]
       end
@@ -1415,7 +1389,7 @@ class << Truffle::CExt
 
   def rb_block_call(object, method, args, func, data)
     object.send(method, *args) do |*block_args|
-      Truffle::Interop.execute(func, block_args.first, data, block_args.size, RARRAY_PTR(block_args))
+      Truffle::Interop.execute(func, block_args.first, data, block_args.size, block_args)
     end
   end
 

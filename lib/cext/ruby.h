@@ -684,7 +684,7 @@ int rb_is_instance_id(ID id);
 
 int RARRAY_LEN(VALUE array);
 int RARRAY_LENINT(VALUE array);
-VALUE *RARRAY_PTR(VALUE array);
+#define RARRAY_PTR(array) ((VALUE *)array)
 VALUE RARRAY_AREF(VALUE array, long index);
 VALUE rb_Array(VALUE value);
 VALUE rb_ary_new(void);

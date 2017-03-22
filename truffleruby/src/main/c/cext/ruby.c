@@ -1334,10 +1334,6 @@ int RARRAY_LENINT(VALUE array) {
   return truffle_get_size(array);
 }
 
-VALUE *RARRAY_PTR(VALUE array) {
-  return (VALUE*) truffle_invoke(RUBY_CEXT, "RARRAY_PTR", array);
-}
-
 VALUE RARRAY_AREF(VALUE array, long index) {
   return truffle_read_idx(array, (int) index);
 }
@@ -1396,7 +1392,6 @@ VALUE rb_ary_unshift(VALUE array, VALUE value) {
 }
 
 VALUE rb_ary_aref(int n, const VALUE* values, VALUE array) {
-  // TODO CS 21-Feb-17 if values is an RARRAY_PTR, go back to the array directly
   return (VALUE) truffle_invoke(RUBY_CEXT, "send_splatted", array, rb_str_new_cstr("[]"), rb_ary_new4(n, values));
 }
 
