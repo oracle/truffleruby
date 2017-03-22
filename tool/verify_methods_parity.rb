@@ -9,8 +9,8 @@
 =begin
 Run first with TruffleRuby, then with MRI:
 
-$ jt ruby tool/test_methods_parity.rb > truffle.methods
-$ ruby tool/test_methods_parity.rb truffle.methods > mri.methods
+$ jt ruby tool/verify_methods_parity.rb > truffle.methods
+$ ruby tool/verify_methods_parity.rb truffle.methods > mri.methods
 Compare with:
 $ git diff -U10 --no-index mri.methods truffle.methods
   Red is what we don't implement yet,
