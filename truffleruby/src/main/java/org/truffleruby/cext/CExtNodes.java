@@ -749,16 +749,6 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_tr_adapt_rdata", onSingleton = true, required = 1)
-    public abstract static class AdaptRDataNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public Object adaptRData(DynamicObject object) {
-            return new DataAdapter(object);
-        }
-
-    }
-
     protected static final Object handlesLock = new Object();
     protected static final Map<DynamicObject, Long> toNative = new HashMap<>();
     protected static final Map<Long, DynamicObject> toManaged = new HashMap<>();
