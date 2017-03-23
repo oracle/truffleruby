@@ -24,6 +24,21 @@ function mtime {
     fi
 }
 
+# Prefix any option in $@ with -J:, values are just copied over
+function prefix_options {
+    local result=()
+    for opt in "$@"
+    do
+        case $opt in
+            -*)
+                result+="-J:${opt} " ;;
+            *)
+                result+="$opt " ;;
+        esac
+    done
+    echo "$result"
+}
+
 # get the absolute path of the executable and resolve symlinks
 SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
 while [ -h "$SELF_PATH" ]; do
@@ -153,11 +168,8 @@ if [ $on_graalvm = false ]; then
     )
 else
     full_command=(
-        "$graalvm_root/bin/java"
-        -noverify
-        -polyglot
-        "${java_args[@]}"
-        com.oracle.graalvm.Main
+        "$graalvm_root/bin/graalvm"
+        $(prefix_options "${java_args[@]}")
         --
     )
 fi
