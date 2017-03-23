@@ -1664,6 +1664,50 @@ class << Truffle::CExt
     rb_encoding.encoding
   end
 
+  class RStringPtr
+
+    attr_reader :string
+
+    def initialize(string)
+      @string = string
+    end
+
+    def size
+      Truffle::CExt::string_pointer_size(@string)
+    end
+
+    def unbox
+      Truffle::CExt::string_pointer_unbox(@string)
+    end
+
+    def [](index)
+      Truffle::CExt::string_pointer_read(@string, index)
+    end
+
+    def []=(index, value)
+      Truffle::CExt::string_pointer_write @string, index, value
+    end
+
+    alias_method :to_str, :string
+    alias_method :to_s, :string
+
+  end
+
+  def RSTRING_PTR(string)
+    RStringPtr.new(string)
+  end
+
+  def to_ruby_string(string)
+    case string
+    when RStringPtr
+      string.string
+    when String
+      string
+    else
+      raise
+    end
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

@@ -19,7 +19,6 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
-import org.truffleruby.cext.StringCharPointerAdapter;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -144,19 +143,11 @@ public abstract class ToStringNode extends FormatNode {
         }
     }
 
-    @Specialization
-    public byte[] toString(VirtualFrame frame, StringCharPointerAdapter object) {
-        return toString(frame, object.getString());
-    }
-
     @TruffleBoundary
     @Specialization(guards = "!isRubyBasicObject(object)")
     public byte[] toString(TruffleObject object) {
         return object.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    protected static boolean isStringCharPointerAdapter(Object object) {
-        return object instanceof StringCharPointerAdapter;
-    }
 
 }
