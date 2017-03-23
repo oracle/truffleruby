@@ -795,7 +795,7 @@ class << Truffle::CExt
   end
 
   def rb_str_new(string, length)
-    to_ruby_string(string)[0, length].b
+    string.to_s[0, length].b
   end
 
   def rb_cstr_to_inum(string, base, raise)
@@ -1695,17 +1695,6 @@ class << Truffle::CExt
 
   def RSTRING_PTR(string)
     RStringPtr.new(string)
-  end
-
-  def to_ruby_string(string)
-    case string
-    when RStringPtr
-      string.string
-    when String
-      string
-    else
-      raise
-    end
   end
 
 end
