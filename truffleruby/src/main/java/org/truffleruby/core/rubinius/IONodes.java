@@ -141,7 +141,7 @@ public abstract class IONodes {
         @Specialization
         public DynamicObject allocate(VirtualFrame frame, DynamicObject classToAllocate) {
             final DynamicObject buffer = (DynamicObject) newBufferNode.call(frame, coreLibrary().getInternalBufferClass(), "new");
-            return allocateNode.allocate(classToAllocate, buffer, 0, 0, 0);
+            return allocateNode.allocate(classToAllocate, buffer, 0, -1, 0);
         }
 
     }

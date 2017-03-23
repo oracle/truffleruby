@@ -2541,6 +2541,11 @@ class IO
     nil
   end
 
+  # Correctly dump to YAML with Psych
+  def encode_with coder
+    # Do not save any state, like MRI
+  end
+
 end
 
 ##
