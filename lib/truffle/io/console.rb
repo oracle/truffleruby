@@ -101,7 +101,12 @@ class IO
 
   def winsize
     match = stty('-a').match(/#{IEEE_STD_1003_2}|#{UBUNTU}/)
-    [match[:rows].to_i, match[:columns].to_i]
+
+    if $?.success?
+      [match[:rows].to_i, match[:columns].to_i]
+    else
+      raise Errno::ENOTTY # This isn't guaranteed to be ENOTTY, but unless we invoke ioctl(2) instead of stty(1), we can't tell what the error is for certain.
+    end
   end
 
   def winsize=(size)
