@@ -30,6 +30,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyObjectType;
 import org.truffleruby.language.dispatch.DispatchAction;
 import org.truffleruby.language.dispatch.DispatchHeadNode;
+import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.dispatch.MissingBehavior;
 
 @MessageResolution(
@@ -72,8 +73,10 @@ public class RubyMessageResolution {
     @Resolve(message = "HAS_SIZE")
     public static abstract class ForeignHasSizeNode extends Node {
 
-        protected Object access(DynamicObject object) {
-            return RubyGuards.isRubyArray(object) || RubyGuards.isRubyHash(object) || RubyGuards.isRubyString(object);
+        @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
+
+        protected Object access(VirtualFrame frame, DynamicObject object) {
+            return doesRespond.doesRespondTo(frame, "size", object);
         }
 
     }
@@ -95,13 +98,15 @@ public class RubyMessageResolution {
         private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
-        protected Object access(DynamicObject object) {
+        @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
+
+        protected Object access(VirtualFrame frame, DynamicObject object) {
             if (stringProfile.profile(RubyGuards.isRubyString(object) && StringOperations.rope(object).byteLength() == 1)) {
                 return true;
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return true;
             } else {
-                return false;
+                return doesRespond.doesRespondTo(frame, "unbox", object);
             }
         }
 
@@ -114,7 +119,10 @@ public class RubyMessageResolution {
         private final ConditionProfile emptyProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
-        protected Object access(DynamicObject object) {
+        @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
+        @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
+
+        protected Object access(VirtualFrame frame, DynamicObject object) {
             if (stringProfile.profile(RubyGuards.isRubyString(object))) {
                 final Rope rope = Layouts.STRING.getRope(object);
 
@@ -125,6 +133,8 @@ public class RubyMessageResolution {
                 }
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return Layouts.POINTER.getPointer(object).address();
+            } else if (doesRespond.doesRespondTo(frame, "unbox", object)) {
+                return dispatchNode.dispatch(frame, object, "unbox", null, new Object[]{});
             } else {
                 throw UnsupportedMessageException.raise(Message.UNBOX);
             }

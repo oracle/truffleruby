@@ -31,7 +31,7 @@ expect. Doesn't pass a block.
 
 ### `HAS_SIZE`
 
-Returns true only for instances of `Array`, `Hash` and `String`.
+Returns true if the object responds to `size`.
 
 ### `GET_SIZE`
 
@@ -39,15 +39,15 @@ Call `size` on the object.
 
 ### `IS_BOXED`
 
-Returns true only for instances of `FFI::Pointer` and `String` with a length of 1,
-which allows them to be unboxed as a character.
+Returns true only for instances of `FFI::Pointer` and `String` with a length of
+1, which allows them to be unboxed as a character, or objects that respond to
+`unbox`.
 
 ### `UNBOX`
 
 For a `String`, returns the first character. Unboxing empty strings is not
-supported and will cause an `UnsupportedMessageException`.
-For a `FFI::Pointer` returns its address.
-For all other objects throws `UnsupportedMessageException`.
+supported and will cause an `UnsupportedMessageException`. For a `FFI::Pointer`
+returns its address. For all other objects calls `unbox`.
 
 ### `IS_NULL`
 
