@@ -53,7 +53,7 @@ module Truffle::Patching
       end
     end
 
-    return nil
+    nil
   end
 
   def self.required?(relative_path)
@@ -84,32 +84,32 @@ module Kernel
 
     # apply patch based on operation
     log = -> { Truffle::System.log :PATCH, "#{operation} original require '#{path}'" }
-    return case operation
-           when :after
-             require_without_truffle_patching(path).tap do |required|
-               if required
-                 log.call
-                 require_without_truffle_patching "#{Truffle::Patching::DIR}/#{path_no_suffix}.rb"
-               end
-             end
-           when :before
-             if Truffle::Patching.required? relative_path
-               result = require_without_truffle_patching path
-               raise 'should be already loaded' if result
-               result
-             else
-               log.call
-               require_without_truffle_patching "#{Truffle::Patching::DIR}/#{path_no_suffix}.rb"
-               require_without_truffle_patching path
-             end
-           when :instead
-             log.call
-             require_without_truffle_patching "#{Truffle::Patching::DIR}/#{path_no_suffix}.rb"
-           when :ignored
-             require_without_truffle_patching path
-           else
-             raise "unrecognised operation #{operation} for #{relative_path}"
-           end
+    case operation
+    when :after
+      require_without_truffle_patching(path).tap do |required|
+        if required
+          log.call
+          require_without_truffle_patching "#{Truffle::Patching::DIR}/#{path_no_suffix}.rb"
+        end
+      end
+    when :before
+      if Truffle::Patching.required? relative_path
+        result = require_without_truffle_patching path
+        raise 'should be already loaded' if result
+        result
+      else
+        log.call
+        require_without_truffle_patching "#{Truffle::Patching::DIR}/#{path_no_suffix}.rb"
+        require_without_truffle_patching path
+      end
+    when :instead
+      log.call
+      require_without_truffle_patching "#{Truffle::Patching::DIR}/#{path_no_suffix}.rb"
+    when :ignored
+      require_without_truffle_patching path
+    else
+      raise "unrecognised operation #{operation} for #{relative_path}"
+    end
   end
 end
 
