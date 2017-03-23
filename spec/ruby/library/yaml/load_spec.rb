@@ -105,4 +105,11 @@ describe "YAML.load" do
     loaded = YAML.load("--- !ruby/object:OpenStruct\ntable:\n  :age: 20\n  :name: John\n")
     loaded.should == os
   end
+
+  it "loads a File but raise an error when use as it is uninitialized" do
+    loaded = YAML.load("--- !ruby/object:File {}\n")
+    lambda {
+      loaded.read(1)
+    }.should raise_error(IOError)
+  end
 end

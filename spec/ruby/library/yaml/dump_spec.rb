@@ -39,4 +39,9 @@ describe "YAML.dump" do
     os = OpenStruct.new("age" => 20, "name" => "John")
     YAML.dump(os).should match_yaml("--- !ruby/object:OpenStruct\ntable:\n  :age: 20\n  :name: John\n")
   end
+
+  it "dumps a File without any state" do
+    file = File.new(__FILE__)
+    YAML.dump(file).should match_yaml("--- !ruby/object:File {}\n")
+  end
 end
