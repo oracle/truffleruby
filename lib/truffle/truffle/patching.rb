@@ -10,9 +10,9 @@ module Kernel
 
   private
 
-  alias_method :require_without_truffle_patching, :require
+  alias_method :require_without_truffle_patching, :gem_original_require
 
-  def require(path)
+  def gem_original_require(path)
     required = begin
       require_without_truffle_patching path
     rescue LoadError
