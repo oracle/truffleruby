@@ -24,6 +24,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -45,10 +46,14 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.regexp.RegexpNodes;
+import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeNodesFactory;
 import org.truffleruby.core.rope.SubstringRope;
+import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodesFactory;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.PointerNodes;
@@ -506,31 +511,6 @@ public class CExtNodes {
 
         protected boolean fitsIntoInteger(long num) {
             return CoreLibrary.fitsIntoInteger(num);
-        }
-
-    }
-
-    @CoreMethod(names = "RSTRING_PTR", onSingleton = true, required = 1)
-    public abstract static class StringPointerNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isRubyString(string)")
-        public StringCharPointerAdapter stringPointer(DynamicObject string) {
-            return new StringCharPointerAdapter(string);
-        }
-
-    }
-
-    @CoreMethod(names = "to_ruby_string", onSingleton = true, required = 1)
-    public abstract static class ToRubyStringNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public DynamicObject toRubyString(StringCharPointerAdapter stringCharPointerAdapter) {
-            return stringCharPointerAdapter.getString();
-        }
-
-        @Specialization(guards = "isRubyString(string)")
-        public DynamicObject toRubyString(DynamicObject string) {
-            return string;
         }
 
     }
@@ -1000,6 +980,82 @@ public class CExtNodes {
 
             return hash.hash(frame, object, false);
         }
+    }
+
+    @CoreMethod(names = "string_pointer_size", onSingleton = true, required = 1)
+    public abstract static class StringPointerSizeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(string)")
+        public int size(DynamicObject string) {
+            byte[] bytes = rope(string).getBytes();
+            int i = 0;
+            for (;i < bytes.length; i++) {
+                if (bytes[i] == 0) {
+                    break;
+                }
+            }
+            return i;
+        }
+
+    }
+
+    @CoreMethod(names = "string_pointer_unbox", onSingleton = true, required = 1)
+    public abstract static class StringPointerUnboxNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(string)")
+        public long unbox(DynamicObject string,
+                          @Cached("createBinaryProfile()") ConditionProfile convertProfile) {
+            final Rope currentRope = rope(string);
+
+            final NativeRope nativeRope;
+
+            if (convertProfile.profile(currentRope instanceof NativeRope)) {
+                nativeRope = (NativeRope) currentRope;
+            } else {
+                nativeRope = new NativeRope(getContext().getNativePlatform().getMemoryManager(), currentRope.getBytes(), currentRope.getEncoding(), currentRope.characterLength());
+                Layouts.STRING.setRope(string, nativeRope);
+            }
+
+            return nativeRope.getNativePointer().address();
+        }
+
+    }
+
+    @CoreMethod(names = "string_pointer_read", onSingleton = true, required = 2)
+    public abstract static class StringPointerReadNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(string)")
+        public Object read(DynamicObject string, int index,
+                           @Cached("createBinaryProfile()") ConditionProfile beyondEndProfile,
+                           @Cached("getHelperNode()") RopeNodes.GetByteNode getByteNode) {
+            final Rope rope = rope(string);
+
+            if (beyondEndProfile.profile(index >= rope.byteLength())) {
+                return 0;
+            } else {
+                return getByteNode.executeGetByte(rope, index);
+            }
+        }
+
+        protected RopeNodes.GetByteNode getHelperNode() {
+            return RopeNodesFactory.GetByteNodeGen.create(null, null);
+        }
+
+    }
+
+    @CoreMethod(names = "string_pointer_write", onSingleton = true, required = 3)
+    public abstract static class StringPointerWriteNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(string)")
+        public Object write(DynamicObject string, int index, int value,
+                            @Cached("getHelperNode()") StringNodes.SetByteNode setByteNode) {
+            return setByteNode.executeSetByte(string, index, value);
+        }
+
+        protected StringNodes.SetByteNode getHelperNode() {
+            return StringNodesFactory.SetByteNodeFactory.create(null, null, null);
+        }
+
     }
 
 }
