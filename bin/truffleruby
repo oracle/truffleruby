@@ -67,7 +67,6 @@ fi
 declare -a java_args
 declare -a ruby_args
 
-print_command=""
 CP=""
 
 if [ $on_graalvm = false ]; then
@@ -113,8 +112,6 @@ do
         elif [ "${val}" = "-cp" ]; then
             CP="$CP:$2"
             shift
-        elif [ "${val}" = "-cmd" ]; then
-            print_command="true"
         else
             java_args=("${java_args[@]}" "$val")
         fi
@@ -129,6 +126,12 @@ do
      *) break ;;
     esac
     shift
+done
+
+print_command=""
+for opt in $java_args
+do
+    [ "${opt}" = "-cmd" ] && print_command="true"
 done
 
 # Append the rest of the arguments
