@@ -374,11 +374,12 @@ public class CommandLineParser {
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
                         Log.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
+                        break FOR;
                     } else if (argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
                         config.setShouldPrintUsage(true);
                         config.setShouldRunInterpreter(false);
-                        break;
+                        break FOR;
                     } else if (argument.equals("--version")) {
                         disallowedInRubyOpts(argument);
                         config.setShowVersion(true);
