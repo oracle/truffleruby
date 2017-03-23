@@ -996,7 +996,7 @@ module Commands
           if gem.has_key?(:commit)
             raw_sh(*['git', 'checkout', gem[:commit]])
           end
-          run({'GEM_HOME' => gem_home}, *["-S", "gem", "install", "bundler", "-v","1.13.5"])
+          run({'GEM_HOME' => gem_home}, *["-S", "gem", "install", "bundler", "-v","1.14.6"])
           run({'GEM_HOME' => gem_home}, *["-S", "bundle", "install"])
           # Need to workaround ruby_install name `jruby-truffle` in the gems binstubs (command can't be found )
           # or figure out how to get it on the path to get `bundle exec rake` working
