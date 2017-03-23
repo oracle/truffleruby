@@ -8,6 +8,7 @@ module Truffle::Patching
               "bundler/current_ruby"                    => :after,
               "bundler/dependency"                      => :after,
               "bundler/fetcher/downloader"              => :after,
+              "bundler/fetcher/compact_index"           => :after,
               "bundler/ruby_version"                    => :after,
               "bundler/source/rubygems"                 => :after,
 
