@@ -1,7 +1,5 @@
 # Hardcode DNS Resolution to rubygems.org for gem install
 
-require 'openssl-stubs'
-
 class Gem::RemoteFetcher
   def api_endpoint(uri)
     host = uri.host

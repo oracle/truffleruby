@@ -1,7 +1,5 @@
 # TruffleRuby: Use curl when uri has https scheme
 
-require 'openssl-stubs'
-
 class Gem::Request
   class CurlResponse < Net::HTTPOK
     def body
