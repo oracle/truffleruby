@@ -110,6 +110,8 @@ import static org.truffleruby.core.string.StringOperations.rope;
 @CoreClass("IO")
 public abstract class IONodes {
 
+    private static final int CLOSED_FD = -1;
+
     public static abstract class IOPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
 
         private final BranchProfile errorProfile = BranchProfile.create();
@@ -141,7 +143,7 @@ public abstract class IONodes {
         @Specialization
         public DynamicObject allocate(VirtualFrame frame, DynamicObject classToAllocate) {
             final DynamicObject buffer = (DynamicObject) newBufferNode.call(frame, coreLibrary().getInternalBufferClass(), "new");
-            return allocateNode.allocate(classToAllocate, buffer, 0, -1, 0);
+            return allocateNode.allocate(classToAllocate, buffer, 0, CLOSED_FD, 0);
         }
 
     }
@@ -515,7 +517,7 @@ public abstract class IONodes {
                 @Cached("create()") BranchProfile errorProfile) {
             // TODO BJF 13-May-2015 Handle nil case
             final int fd = Layouts.IO.getDescriptor(file);
-            if (fd == -1) {
+            if (fd == CLOSED_FD) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().ioError("closed stream", this));
             } else if (fd == -2) {
@@ -754,12 +756,11 @@ public abstract class IONodes {
         public int close(DynamicObject io) {
             final int fd = Layouts.IO.getDescriptor(io);
 
-            if (fd == -1) {
+            if (fd == CLOSED_FD) {
                 return 0;
             }
 
-            int newDescriptor = -1;
-            Layouts.IO.setDescriptor(io, newDescriptor);
+            Layouts.IO.setDescriptor(io, CLOSED_FD);
 
             if (fd < 3) {
                 return 0;
