@@ -98,6 +98,9 @@ if [ $on_graalvm = false ]; then
 
 fi
 
+# convert string with " " separator to array
+java_args+=($(echo $JAVA_OPTS))
+
 while [ $# -gt 0 ]
 do
     case "$1" in
@@ -146,7 +149,6 @@ declare -a full_command
 if [ $on_graalvm = false ]; then
     full_command=(
         "$JAVACMD"
-        $JAVA_OPTS
         "${java_args[@]}"
     )
 else
@@ -154,7 +156,6 @@ else
         "$graalvm_root/bin/java"
         -noverify
         -polyglot
-        $JAVA_OPTS
         "${java_args[@]}"
         com.oracle.graalvm.Main
         --
