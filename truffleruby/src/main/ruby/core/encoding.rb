@@ -210,7 +210,7 @@ class Encoding
         raise ConverterNotFoundError, msg
       end
 
-      initialize_jruby(*[@source_encoding, @destination_encoding, @options])
+      initialize_jruby(@source_encoding, @destination_encoding, @options)
 
       if (@options & (INVALID_REPLACE | UNDEF_REPLACE | UNDEF_HEX_CHARREF))
         unless new_replacement.nil?

@@ -83,6 +83,11 @@ Lint/StringConversionInInterpolation:
   Enabled: true
 
 # Supports --auto-correct
+Lint/UnneededSplatExpansion:
+  Description: Checks for splat unnecessarily being called on literals
+  Enabled: true
+
+# Supports --auto-correct
 Lint/UnusedBlockArgument:
   Description: Checks for unused block arguments.
   StyleGuide: "#underscore-unused-vars"
