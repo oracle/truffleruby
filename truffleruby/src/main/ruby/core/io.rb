@@ -1165,7 +1165,6 @@ class IO
 
     # Truffle.invoke_primitive :io_advise, self, advice, offset, len
     raise 'IO#advise not implemented'
-    nil
   end
 
   def autoclose?

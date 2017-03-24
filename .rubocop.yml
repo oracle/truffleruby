@@ -100,6 +100,10 @@ Lint/UnneededSplatExpansion:
   Description: Checks for splat unnecessarily being called on literals
   Enabled: true
 
+Lint/UnreachableCode:
+  Description: Unreachable code.
+  Enabled: true
+
 # Supports --auto-correct
 Lint/UnusedBlockArgument:
   Description: Checks for unused block arguments.
