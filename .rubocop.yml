@@ -16,6 +16,7 @@ AllCops:
     - 'test/**/*'
     - 'tool/**/*'
     - 'truffleruby/target/classes/**/*'
+    - 'mxbuild/**/*'
 
 Style/IndentationWidth:
   Enabled: true
