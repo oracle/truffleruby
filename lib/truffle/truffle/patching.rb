@@ -56,6 +56,15 @@ module Truffle::Patching
       end
     end
 
+    patch_candidate = PATCHES.keys.find { |c| absolute_path.sub_ext("").to_s.end_with? c }
+    if !patch_candidate.nil? && !(absolute_path.each_filename.to_a & ['gems', 'lib']).empty?
+      Truffle::System.log :PATCH, <<-TXT
+The file '#{absolute_path}' appears to be from a gem whose lib is not in $LOAD_PATH.
+There is also a potential patch available '#{patch_candidate}' for the file.
+No patches are applied. Please add the gem's lib to $LOAD_PATH first to fix.
+      TXT
+    end
+
     nil
   end
 
