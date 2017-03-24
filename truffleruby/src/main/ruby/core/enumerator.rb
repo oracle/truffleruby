@@ -240,7 +240,7 @@ module Enumerable
     end
 
     class Lazy < self
-      class StopLazyError < Exception; end
+      class StopLazyError < Exception; end # rubocop:disable Lint/InheritException
 
       def initialize(receiver, size=nil)
         raise ArgumentError, 'Lazy#initialize requires a block' unless block_given?

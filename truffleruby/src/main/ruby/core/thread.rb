@@ -146,7 +146,7 @@ class Thread
   # Similar to detect_recursion, but will short circuit all inner recursion
   # levels (using a throw)
 
-  class InnerRecursionDetected < Exception; end
+  class InnerRecursionDetected < Exception; end # rubocop:disable Lint/InheritException
 
   def self.detect_outermost_recursion(obj, paired_obj=nil, &block)
     rec = current.recursive_objects

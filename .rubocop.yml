@@ -45,6 +45,17 @@ Lint/HandleExceptions:
   StyleGuide: "#dont-hide-exceptions"
   Enabled: true
 
+# Supports --auto-correct
+Lint/InheritException:
+  Description: Avoid inheriting from the `Exception` class.
+  Enabled: true
+  EnforcedStyle: runtime_error
+  SupportedStyles:
+  - runtime_error
+  - standard_error
+  Exclude:
+  - truffleruby/src/main/ruby/core/exception.rb
+
 Lint/LiteralInCondition:
   Description: Checks of literals used in conditions.
   Enabled: true

@@ -105,7 +105,7 @@ module Rubinius
     Truffle.primitive :vm_get_user_home
     raise PrimitiveFailure, 'Rubinius.get_user_home primitive failed'
   end
-  
+
   def self.synchronize(object, &block)
     Truffle::System.synchronized(object, &block)
   end
@@ -133,5 +133,5 @@ module Rubinius
   end
 end
 
-class PrimitiveFailure < Exception
+class PrimitiveFailure < Exception # rubocop:disable Lint/InheritException
 end

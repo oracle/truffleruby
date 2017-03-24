@@ -44,7 +44,7 @@ end
 class File < IO
   include Enumerable
 
-  class FileError < Exception; end
+  class FileError < Exception; end # rubocop:disable Lint/InheritException
   class NoFileError < FileError; end
   class UnableToStat < FileError; end
   class PermissionError < FileError; end
