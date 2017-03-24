@@ -30,7 +30,7 @@ module Rubinius
       if many
         many = Rubinius::Type.coerce_to_collection_index many
         many = 0 if many < 0
-        (_size = enum_size).nil? ? nil : _size * many
+        (size = enum_size).nil? ? nil : size * many
       else
         enum_size.nil? ? nil : Float::INFINITY
       end

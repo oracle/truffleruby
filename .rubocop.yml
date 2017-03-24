@@ -91,6 +91,10 @@ Lint/StringConversionInInterpolation:
   StyleGuide: "#no-to-s"
   Enabled: true
 
+Lint/UnderscorePrefixedVariableName:
+  Description: Do not use prefix `_` for a variable that is used.
+  Enabled: true
+
 # Supports --auto-correct
 Lint/UnneededSplatExpansion:
   Description: Checks for splat unnecessarily being called on literals
