@@ -1235,15 +1235,15 @@ class Array
       tuple = [at(i)]
       others.each do |other|
         tuple << case other
-        when Array
-          other.at(i)
-        else
-          begin
-            other.next
-          rescue StopIteration
-            nil
-          end
-        end
+                 when Array
+                   other.at(i)
+                 else
+                   begin
+                     other.next
+                   rescue StopIteration
+                     nil
+                   end
+                 end
       end
 
       if block_given?

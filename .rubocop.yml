@@ -23,6 +23,17 @@ Lint/DeprecatedClassMethods:
   Description: Check for deprecated class method calls.
   Enabled: true
 
+# Supports --auto-correct
+Lint/EndAlignment:
+  Description: Align ends correctly.
+  Enabled: true
+  EnforcedStyleAlignWith: keyword
+  SupportedStylesAlignWith:
+  - keyword
+  - variable
+  - start_of_line
+  AutoCorrect: false
+
 Lint/LiteralInCondition:
   Description: Checks of literals used in conditions.
   Enabled: true
