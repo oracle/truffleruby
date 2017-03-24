@@ -54,7 +54,7 @@ class Complex < Numeric
 
   def self.convert(real, imag = undefined)
     if nil.equal?(real) || nil.equal?(imag)
-      raise TypeError, "cannot convert nil into Complex"
+      raise TypeError, 'cannot convert nil into Complex'
     end
     imag = nil if undefined.equal?(imag)
 
@@ -304,19 +304,19 @@ class Complex < Numeric
     result = real.to_s
 
     if imag.kind_of?(Float) ? !imag.nan? && imag.signbit? : imag < 0
-      result << "-"
+      result << '-'
     else
-      result << "+"
+      result << '+'
     end
 
     imag_s = imag.abs.to_s
     result << imag_s
 
     unless imag_s[-1] =~ /\d/
-      result << "*"
+      result << '*'
     end
 
-    result << "i"
+    result << 'i'
     result
   end
 

@@ -37,17 +37,17 @@ class Time
 
   def self.now
     Truffle.primitive :time_s_now
-    raise PrimitiveFailure, "Time.now primitive failed"
+    raise PrimitiveFailure, 'Time.now primitive failed'
   end
 
   def self.duplicate(other)
     Truffle.primitive :time_s_dup
-    raise ArgumentError, "descriptors reference invalid time"
+    raise ArgumentError, 'descriptors reference invalid time'
   end
 
   def self.specific(sec, nsec, from_gmt, offset)
     Truffle.primitive :time_s_specific
-    raise ArgumentError, "descriptors reference invalid time"
+    raise ArgumentError, 'descriptors reference invalid time'
   end
 
   def dup
@@ -56,17 +56,17 @@ class Time
 
   def seconds
     Truffle.primitive :time_seconds
-    raise PrimitiveFailure, "Time#second primitive failed"
+    raise PrimitiveFailure, 'Time#second primitive failed'
   end
 
   def usec
     Truffle.primitive :time_useconds
-    raise PrimitiveFailure, "Time#usec primitive failed"
+    raise PrimitiveFailure, 'Time#usec primitive failed'
   end
 
   def to_a
     Truffle.primitive :time_decompose
-    raise PrimitiveFailure, "Time#to_a primitive failed"
+    raise PrimitiveFailure, 'Time#to_a primitive failed'
   end
 
   def strftime(format)
@@ -151,9 +151,9 @@ class Time
 
   def inspect
     if gmt?
-      str = strftime("%Y-%m-%d %H:%M:%S UTC")
+      str = strftime('%Y-%m-%d %H:%M:%S UTC')
     else
-      str = strftime("%Y-%m-%d %H:%M:%S %z")
+      str = strftime('%Y-%m-%d %H:%M:%S %z')
     end
 
     str.force_encoding Encoding::US_ASCII
@@ -163,12 +163,12 @@ class Time
 
   def nsec
     Truffle.primitive :time_nseconds
-    raise PrimitiveFailure, "Time#nsec primitive failed"
+    raise PrimitiveFailure, 'Time#nsec primitive failed'
   end
 
   def nsec=(nanoseconds)
     Truffle.primitive :time_set_nseconds
-    raise PrimitiveFailure, "Time#nsec= primitive failed"
+    raise PrimitiveFailure, 'Time#nsec= primitive failed'
   end
   private :nsec=
 
@@ -307,7 +307,7 @@ class Time
                    yday=undefined, is_dst=undefined, tz=undefined)
     if undefined.equal?(tz)
       unless undefined.equal?(is_dst)
-        raise ArgumentError, "wrong number of arguments (9 for 1..8)"
+        raise ArgumentError, 'wrong number of arguments (9 for 1..8)'
       end
 
       y = p1
@@ -333,7 +333,7 @@ class Time
       m = StringValue(m)
       m = MonthValue[m.upcase] || m.to_i
 
-      raise ArgumentError, "month argument out of range" unless m
+      raise ArgumentError, 'month argument out of range' unless m
     else
       m = Rubinius::Type.coerce_to(m || 1, Integer, :to_int)
     end
@@ -382,7 +382,7 @@ class Time
   end
 
   def asctime
-    strftime("%a %b %e %H:%M:%S %Y")
+    strftime('%a %b %e %H:%M:%S %Y')
   end
 
   def sec
@@ -437,7 +437,7 @@ class Time
 
   def gmt_offset
     Truffle.primitive :time_utc_offset
-    raise PrimitiveFailure, "Time#gmt_offset primitive failed"
+    raise PrimitiveFailure, 'Time#gmt_offset primitive failed'
   end
 
   def getgm

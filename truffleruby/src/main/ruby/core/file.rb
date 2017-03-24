@@ -131,7 +131,7 @@ class File < IO
 
   def self.absolute_path(obj, dir = nil)
     obj = path(obj)
-    if obj[0] == "~"
+    if obj[0] == '~'
       File.join Dir.getwd, dir.to_s, obj
     else
       expand_path(obj, dir)
@@ -158,7 +158,7 @@ class File < IO
   def self.basename(path, ext=undefined)
     path = Rubinius::Type.coerce_to_path(path)
 
-    slash = "/"
+    slash = '/'
 
     ext_not_present = undefined.equal?(ext)
 
@@ -197,8 +197,8 @@ class File < IO
 
     ext = StringValue(ext)
 
-    if ext == ".*"
-      if pos = path.find_string_reverse(".", path.bytesize)
+    if ext == '.*'
+      if pos = path.find_string_reverse('.', path.bytesize)
         return path.byteslice(0, pos)
       end
     elsif pos = path.find_string_reverse(ext, path.bytesize)
@@ -324,7 +324,7 @@ class File < IO
   # by the link). Often not available. Returns number
   # of files in the argument list.
   def self.lchown(owner, group, *paths)
-    raise NotImplementedError, "lchown not implemented on this platform" unless Rubinius::HAVE_LCHOWN
+    raise NotImplementedError, 'lchown not implemented on this platform' unless Rubinius::HAVE_LCHOWN
 
     if owner
       owner = Rubinius::Type.coerce_to(owner, Integer, :to_int)
@@ -403,20 +403,20 @@ class File < IO
     path = Rubinius::Type.coerce_to_path(path)
 
     # edge case
-    return "." if path.empty?
+    return '.' if path.empty?
 
-    slash = "/"
+    slash = '/'
 
     # pull off any /'s at the end to ignore
     chunk_size = last_nonslash(path)
-    return "/" unless chunk_size
+    return '/' unless chunk_size
 
     if pos = path.find_string_reverse(slash, chunk_size)
-      return "/" if pos == 0
+      return '/' if pos == 0
 
       path = path.byteslice(0, pos)
 
-      return "/" if path == "/"
+      return '/' if path == '/'
 
       return path unless path.end_with? slash
 
@@ -424,12 +424,12 @@ class File < IO
       idx = last_nonslash(path, pos)
 
       # edge case, only /'s, return /
-      return "/" unless idx
+      return '/' unless idx
 
       return path.byteslice(0, idx - 1)
     end
 
-    "."
+    '.'
   end
 
   ##
@@ -473,18 +473,18 @@ class File < IO
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
   def self.expand_path(path, dir=nil)
     path = Rubinius::Type.coerce_to_path(path)
-    str = "".force_encoding path.encoding
+    str = ''.force_encoding path.encoding
     first = path[0]
     if first == ?~
       case path[1]
       when ?/
-        unless home = ENV["HOME"]
+        unless home = ENV['HOME']
           raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
         end
 
-        path = ENV["HOME"] + path.byteslice(1, path.bytesize - 1)
+        path = ENV['HOME'] + path.byteslice(1, path.bytesize - 1)
       when nil
-        unless home = ENV["HOME"]
+        unless home = ENV['HOME']
           raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
         end
 
@@ -494,7 +494,7 @@ class File < IO
 
         return home.dup
       else
-        unless length = path.find_string("/", 1)
+        unless length = path.find_string('/', 1)
           length = path.bytesize
         end
 
@@ -519,15 +519,15 @@ class File < IO
     start = 0
     size = path.bytesize
 
-    while index = path.find_string("/", start) or (start < size and index = size)
+    while index = path.find_string('/', start) or (start < size and index = size)
       length = index - start
 
       if length > 0
         item = path.byteslice start, length
 
-        if item == ".."
+        if item == '..'
           items.pop
-        elsif item != "."
+        elsif item != '.'
           items << item
         end
       end
@@ -536,7 +536,7 @@ class File < IO
     end
 
     if items.empty?
-      str << "/"
+      str << '/'
     else
       items.each { |x| str.append "/#{x}" }
     end
@@ -556,24 +556,24 @@ class File < IO
     path = Rubinius::Type.coerce_to_path(path)
     path_size = path.bytesize
 
-    dot_idx = path.find_string_reverse(".", path_size)
+    dot_idx = path.find_string_reverse('.', path_size)
 
     # No dots at all
-    return "" unless dot_idx
+    return '' unless dot_idx
 
-    slash_idx = path.find_string_reverse("/", path_size)
+    slash_idx = path.find_string_reverse('/', path_size)
 
     # pretend there is / just to the left of the start of the string
     slash_idx ||= -1
 
     # no . in the last component of the path
-    return "" if dot_idx < slash_idx
+    return '' if dot_idx < slash_idx
 
     # last component starts with a .
-    return "" if dot_idx == slash_idx + 1
+    return '' if dot_idx == slash_idx + 1
 
     # last component ends with a .
-    return "" if dot_idx == path_size - 1
+    return '' if dot_idx == path_size - 1
 
     path.byteslice(dot_idx, path_size - dot_idx)
   end
@@ -592,7 +592,7 @@ class File < IO
     lbrace = nil
 
     # Do a quick search for a { to start the search better
-    i = pattern.index("{")
+    i = pattern.index('{')
 
     if i
       nest = 0
@@ -600,12 +600,12 @@ class File < IO
       while i < pattern.size
         char = pattern[i]
 
-        if char == "{"
+        if char == '{'
           lbrace = i if nest == 0
           nest += 1
         end
 
-        if char == "}"
+        if char == '}'
           nest -= 1
         end
 
@@ -614,7 +614,7 @@ class File < IO
           break
         end
 
-        if char == "\\" and escape
+        if char == '\\' and escape
           i += 1
         end
 
@@ -634,11 +634,11 @@ class File < IO
         pos += 1
         last = pos
 
-        while pos < rbrace and not (pattern[pos] == "," and nest == 0)
-          nest += 1 if pattern[pos] == "{"
-          nest -= 1 if pattern[pos] == "}"
+        while pos < rbrace and not (pattern[pos] == ',' and nest == 0)
+          nest += 1 if pattern[pos] == '{'
+          nest -= 1 if pattern[pos] == '}'
 
-          if pattern[pos] == "\\" and escape
+          if pattern[pos] == '\\' and escape
             pos += 1
             break if pos == rbrace
           end
@@ -805,7 +805,7 @@ class File < IO
         first = join(*first)
       end
 
-      raise ArgumentError, "recursive array" if recursion
+      raise ArgumentError, 'recursive array' if recursion
     else
       # We need to use dup here, since it's possible that
       # StringValue gives us a direct object we shouldn't mutate
@@ -825,7 +825,7 @@ class File < IO
           value = join(*el)
         end
 
-        raise ArgumentError, "recursive array" if recursion
+        raise ArgumentError, 'recursive array' if recursion
       else
         value = Rubinius::Type.coerce_to_path(el)
       end
@@ -1233,7 +1233,7 @@ class File < IO
       when String, Fixnum
         # do nothing
       when nil
-        mode = "r"
+        mode = 'r'
       when Hash
         options = mode
         mode = nil
@@ -1248,7 +1248,7 @@ class File < IO
       end
 
       nmode, binary, external, internal = IO.normalize_options(mode, options)
-      nmode ||= "r"
+      nmode ||= 'r'
 
       perm = 0666 if undefined.equal? perm
 
@@ -1313,12 +1313,12 @@ class File < IO
 
   def inspect
     return_string = "#<#{self.class}:0x#{object_id.to_s(16)} path=#{@path}"
-    return_string << " (closed)" if closed?
-    return_string << ">"
+    return_string << ' (closed)' if closed?
+    return_string << '>'
   end
 
   def size
-    raise IOError, "closed stream" if closed?
+    raise IOError, 'closed stream' if closed?
     stat.size
   end
 end     # File

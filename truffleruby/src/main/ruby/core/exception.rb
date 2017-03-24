@@ -78,14 +78,14 @@ class Exception
       if bt.all? { |s| s.kind_of? String }
         @custom_backtrace = bt
       else
-        raise TypeError, "backtrace must be Array of String"
+        raise TypeError, 'backtrace must be Array of String'
       end
     when String
       @custom_backtrace = [bt]
     when nil
       @custom_backtrace = nil
     else
-      raise TypeError, "backtrace must be Array of String"
+      raise TypeError, 'backtrace must be Array of String'
     end
   end
 
@@ -300,7 +300,7 @@ class SystemCallError < StandardError
 
   def self.errno_error(message, errno, location)
     Truffle.primitive :exception_errno_error
-    raise PrimitiveFailure, "SystemCallError.errno_error failed"
+    raise PrimitiveFailure, 'SystemCallError.errno_error failed'
   end
 
   # We use .new here because when errno is set, we attempt to
@@ -380,7 +380,7 @@ class SystemCallError < StandardError
     message, errno, location = args
     Truffle.invoke_primitive :exception_set_errno, self, errno
 
-    msg = "unknown error"
+    msg = 'unknown error'
     msg << " @ #{StringValue(location)}" if location
     msg << " - #{StringValue(message)}" if message
     super(msg)
@@ -408,7 +408,7 @@ class SignalException < Exception
       @signm = signm || "SIG#{@signm}"
     elsif signo
       if signm
-        raise ArgumentError, "wrong number of arguments (2 for 1)"
+        raise ArgumentError, 'wrong number of arguments (2 for 1)'
       end
       signm = signo
       if signo.kind_of?(Symbol)
@@ -416,7 +416,7 @@ class SignalException < Exception
       else
         signm = StringValue(signm)
       end
-      signm = signm[3..-1] if signm.start_with? "SIG"
+      signm = signm[3..-1] if signm.start_with? 'SIG'
       unless @signo = Signal::Names[signm]
         raise ArgumentError, "invalid signal name #{signm}"
       end

@@ -70,10 +70,10 @@ module Rubinius::FFI
       addr = address()
 
       if addr < 0
-        sign = "-"
+        sign = '-'
         addr = -addr
       else
-        sign = ""
+        sign = ''
       end
 
       "#<#{self.class.name} address=#{sign}0x#{addr.to_s(16)}>"
@@ -82,7 +82,7 @@ module Rubinius::FFI
     # Return the address pointed to as an Integer
     def address
       Truffle.primitive :pointer_address
-      raise PrimitiveFailure, "FFI::Pointer#address primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#address primitive failed'
     end
 
     alias_method :to_i, :address
@@ -90,7 +90,7 @@ module Rubinius::FFI
     # Set the address pointed to from an Integer
     def address=(address)
       Truffle.primitive :pointer_set_address
-      raise PrimitiveFailure, "FFI::Pointer#address= primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#address= primitive failed'
     end
 
     def null?
@@ -100,7 +100,7 @@ module Rubinius::FFI
     # Add +value+ to the address pointed to and return a new Pointer
     def +(value)
       Truffle.primitive :pointer_add
-      raise PrimitiveFailure, "FFI::Pointer#+ primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#+ primitive failed'
     end
 
     # Indicates if +self+ and +other+ point to the same address
@@ -111,14 +111,14 @@ module Rubinius::FFI
 
     def network_order(start, size)
       Truffle.primitive :pointer_network_order
-      raise PrimitiveFailure, "FFI::Pointer#network_order primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#network_order primitive failed'
     end
 
     # Read +len+ bytes from the memory pointed to and return them as
     # a String
     def read_string_length(len)
       Truffle.primitive :pointer_read_string
-      raise PrimitiveFailure, "FFI::Pointer#read_string_length primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#read_string_length primitive failed'
     end
     alias :read_bytes :read_string_length
 
@@ -126,7 +126,7 @@ module Rubinius::FFI
     # the bytes as a String
     def read_string_to_null
       Truffle.primitive :pointer_read_string_to_null
-      raise PrimitiveFailure, "FFI::Pointer#read_string_to_null primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#read_string_to_null primitive failed'
     end
 
     # Read bytes as a String from the memory pointed to
@@ -147,7 +147,7 @@ module Rubinius::FFI
     # write up to +len+ bytes.
     def write_string_length(str, len)
       Truffle.primitive :pointer_write_string
-      raise PrimitiveFailure, "FFI::Pointer#write_string_length primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#write_string_length primitive failed'
     end
 
     # Write a String +str+ as bytes to the memory pointed to.
@@ -190,13 +190,13 @@ module Rubinius::FFI
     # Read bytes from +offset+ from the memory pointed to as type +type+
     def get_at_offset(offset, type)
       Truffle.primitive :pointer_get_at_offset
-      raise PrimitiveFailure, "FFI::Pointer#get_at_offset primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#get_at_offset primitive failed'
     end
 
     # Write +val+ as type +type+ to bytes from +offset+
     def set_at_offset(offset, type, val)
       Truffle.primitive :pointer_set_at_offset
-      raise PrimitiveFailure, "FFI::Pointer#set_at_offset primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#set_at_offset primitive failed'
     end
 
     # Number of bytes taken up by a pointer.
@@ -207,82 +207,82 @@ module Rubinius::FFI
     # Primitive methods
     def primitive_read_char(signed)
       Truffle.primitive :pointer_read_char
-      raise PrimitiveFailure, "FFI::Pointer#primitive_read_char primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_read_char primitive failed'
     end
 
     def primitive_write_char(obj)
       Truffle.primitive :pointer_write_char
-      raise PrimitiveFailure, "FFI::Pointer#primitive_write_char primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_write_char primitive failed'
     end
 
     def primitive_read_short(signed)
       Truffle.primitive :pointer_read_short
-      raise PrimitiveFailure, "FFI::Pointer#primitive_read_short primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_read_short primitive failed'
     end
 
     def primitive_write_short(obj)
       Truffle.primitive :pointer_write_short
-      raise PrimitiveFailure, "FFI::Pointer#primitive_write_short primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_write_short primitive failed'
     end
 
     def primitive_read_int(signed)
       Truffle.primitive :pointer_read_int
-      raise PrimitiveFailure, "FFI::Pointer#primitive_read_int primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_read_int primitive failed'
     end
 
     def primitive_write_int(obj)
       Truffle.primitive :pointer_write_int
-      raise PrimitiveFailure, "FFI::Pointer#primitive_write_int primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_write_int primitive failed'
     end
 
     def primitive_read_long(signed)
       Truffle.primitive :pointer_read_long
-      raise PrimitiveFailure, "FFI::Pointer#primitive_read_long primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_read_long primitive failed'
     end
 
     def primitive_write_long(obj)
       Truffle.primitive :pointer_write_long
-      raise PrimitiveFailure, "FFI::Pointer#primitive_write_long primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_write_long primitive failed'
     end
 
     def primitive_read_long_long(signed)
       Truffle.primitive :pointer_read_long_long
-      raise PrimitiveFailure, "FFI::Pointer#primitive_read_long_long primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_read_long_long primitive failed'
     end
 
     def primitive_write_long_long(obj)
       Truffle.primitive :pointer_write_long_long
-      raise PrimitiveFailure, "FFI::Pointer#primitive_write_long_long primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_write_long_long primitive failed'
     end
 
     def primitive_read_float
       Truffle.primitive :pointer_read_float
-      raise PrimitiveFailure, "FFI::Pointer#primitive_read_float primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_read_float primitive failed'
     end
 
     def primitive_write_float(obj)
       Truffle.primitive :pointer_write_float
-      raise PrimitiveFailure, "FFI::Pointer#primitive_write_float primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_write_float primitive failed'
     end
 
     def primitive_read_double
       Truffle.primitive :pointer_read_double
-      raise PrimitiveFailure, "FFI::Pointer#primitive_read_double primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_read_double primitive failed'
     end
 
     def primitive_write_double(obj)
       Truffle.primitive :pointer_write_double
-      raise PrimitiveFailure, "FFI::Pointer#primitive_write_double primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_write_double primitive failed'
     end
 
     def primitive_read_pointer
       Truffle.primitive :pointer_read_pointer
-      raise PrimitiveFailure, "FFI::Pointer#primitive_read_pointer primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_read_pointer primitive failed'
     end
 
     def primitive_write_pointer(obj)
       Truffle.primitive :pointer_write_pointer
-      raise PrimitiveFailure, "FFI::Pointer#primitive_write_pointer primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#primitive_write_pointer primitive failed'
     end
 
     ##
@@ -290,14 +290,14 @@ module Rubinius::FFI
     # free() on it's address when it is garbage collected.
     def autorelease=(val)
       Truffle.primitive :pointer_set_autorelease
-      raise PrimitiveFailure, "FFI::Pointer#autorelease= primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#autorelease= primitive failed'
     end
 
     ##
     # Returns true if autorelease is enabled, otherwise false.
     def autorelease?
       Truffle.primitive :pointer_autorelease_p
-      raise PrimitiveFailure, "FFI::Pointer#pointer_autorelease_p primitive failed"
+      raise PrimitiveFailure, 'FFI::Pointer#pointer_autorelease_p primitive failed'
     end
 
     NULL = Pointer.new(0x0)
@@ -1184,7 +1184,7 @@ module Rubinius::FFI
 
     def self.malloc(total)
       Truffle.primitive :pointer_malloc
-      raise PrimitiveFailure, "FFI::MemoryPointer.malloc primitive failed"
+      raise PrimitiveFailure, 'FFI::MemoryPointer.malloc primitive failed'
     end
 
     def self.from_string(str)
@@ -1228,14 +1228,14 @@ module Rubinius::FFI
     #   new_ptr = &ptr[9];
     #
     def [](which)
-      raise ArgumentError, "unknown type size" unless @type_size
+      raise ArgumentError, 'unknown type size' unless @type_size
       self + (which * @type_size)
     end
 
     # Release the memory pointed to back to the OS.
     def free
       Truffle.primitive :pointer_free
-      raise PrimitiveFailure, "FFI::MemoryPointer#free primitive failed"
+      raise PrimitiveFailure, 'FFI::MemoryPointer#free primitive failed'
     end
   end
 end

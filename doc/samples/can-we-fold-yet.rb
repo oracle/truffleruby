@@ -16,7 +16,7 @@ end
 puts 'Can Truffle constant fold yet?'
 
 loop do
-  print "> "
+  print '> '
   code = gets
 
   test_thread = Thread.new do
@@ -28,12 +28,12 @@ loop do
       elsif e.message.include? 'Truffle.assert_constant'
         puts "No :( Truffle can't constant fold that"
       else
-        puts "There was an error executing that :("
+        puts 'There was an error executing that :('
       end
     end
   end
 
   unless test_thread.join(5)
-    puts "That timed out :( either it takes too long to execute it or to compile it"
+    puts 'That timed out :( either it takes too long to execute it or to compile it'
   end
 end

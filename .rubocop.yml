@@ -30,3 +30,7 @@ Style/IndentationConsistency:
 
 Style/RedundantReturn:
   Enabled: true
+
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: single_quotes

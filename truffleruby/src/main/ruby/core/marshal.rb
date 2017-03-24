@@ -35,7 +35,7 @@
 class BasicObject
   def __marshal__(ms, strip_ivars = false)
     out = ms.serialize_extended_object self
-    out << "o"
+    out << 'o'
     cls = ::Rubinius::Type.object_class self
     name = ::Rubinius::Type.module_name cls
     out << ms.serialize(name.to_sym)
@@ -65,30 +65,30 @@ end
 class Float
   def __marshal__(ms)
     if nan?
-      str = "nan"
+      str = 'nan'
     elsif zero?
       str = (1.0 / self) < 0 ? '-0' : '0'
     elsif infinite?
-      str = self < 0 ? "-inf" : "inf"
+      str = self < 0 ? '-inf' : 'inf'
     else
       s, decimal, sign, digits = dtoa
 
       if decimal < -3 or decimal > digits
-        str = s.insert(1, ".") << "e#{decimal - 1}"
+        str = s.insert(1, '.') << "e#{decimal - 1}"
       elsif decimal > 0
         str = s[0, decimal]
         digits -= decimal
         str << ".#{s[decimal, digits]}" if digits > 0
       else
-        str = "0."
-        str << "0" * -decimal if decimal != 0
+        str = '0.'
+        str << '0' * -decimal if decimal != 0
         str << s[0, digits]
       end
     end
 
     sl = str.length
     if sign == 1
-      ss = "-"
+      ss = '-'
       sl += 1
     end
 
@@ -102,7 +102,7 @@ class Exception
   # identical.
   def __marshal__(ms)
     out = ms.serialize_extended_object self
-    out << "o"
+    out << 'o'
     cls = Rubinius::Type.object_class self
     name = Rubinius::Type.module_name cls
     out << ms.serialize(name.to_sym)
@@ -119,7 +119,7 @@ end
 
 class Time
   def __custom_marshal__(ms)
-    out = Rubinius::Type.binary_string("")
+    out = Rubinius::Type.binary_string('')
 
     # Order matters.
     extra_values = {}
@@ -136,7 +136,7 @@ class Time
     end
 
     ivars = ms.serializable_instance_variables(self, false)
-    out << Rubinius::Type.binary_string("I")
+    out << Rubinius::Type.binary_string('I')
     out << Rubinius::Type.binary_string("u#{ms.serialize(self.class.name.to_sym)}")
 
     str = _dump
@@ -234,7 +234,7 @@ class Range
   # values so we generate the correct dump data.
   def __marshal__(ms)
     out = ms.serialize_extended_object self
-    out << "o"
+    out << 'o'
     cls = Rubinius::Type.object_class self
     name = Rubinius::Type.module_name cls
     out << ms.serialize(name.to_sym)
@@ -251,19 +251,19 @@ end
 
 class NilClass
   def __marshal__(ms)
-    Rubinius::Type.binary_string("0")
+    Rubinius::Type.binary_string('0')
   end
 end
 
 class TrueClass
   def __marshal__(ms)
-    Rubinius::Type.binary_string("T")
+    Rubinius::Type.binary_string('T')
   end
 end
 
 class FalseClass
   def __marshal__(ms)
-    Rubinius::Type.binary_string("F")
+    Rubinius::Type.binary_string('F')
   end
 end
 
@@ -291,7 +291,7 @@ end
 
 class Fixnum
   def __marshal__(ms)
-    ms.serialize_integer(self, "i")
+    ms.serialize_integer(self, 'i')
   end
 end
 
@@ -307,7 +307,7 @@ class Regexp
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Regexp)
-    out << "/"
+    out << '/'
     out << ms.serialize_integer(str.length) + str
     out << (options & Regexp::OPTION_MASK).chr
     out << ms.serialize_instance_variables_suffix(self)
@@ -323,7 +323,7 @@ class Struct
     out =  ms.serialize_instance_variables_prefix(self, exclude)
     out << ms.serialize_extended_object(self)
 
-    out << "S"
+    out << 'S'
 
     out << ms.serialize(self.class.name.to_sym)
     out << ms.serialize_integer(self.length)
@@ -344,7 +344,7 @@ class Array
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Array)
-    out << "["
+    out << '['
     out << ms.serialize_integer(self.length)
     unless empty?
       each do |element|
@@ -369,7 +369,7 @@ class Hash
     out =  ms.serialize_instance_variables_prefix(self, excluded_ivars)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Hash)
-    out << (self.default ? "}" : "{")
+    out << (self.default ? '}' : '{')
     out << ms.serialize_integer(length)
     unless empty?
       each_pair do |key, val|
@@ -589,14 +589,14 @@ module Marshal
                 obj = @objects.fetch(num)
                 return obj
               rescue IndexError
-                raise ArgumentError, "dump format error (unlinked)"
+                raise ArgumentError, 'dump format error (unlinked)'
               end
 
             when 59   # ?;
               num = construct_integer
               sym = @symbols[num]
 
-              raise ArgumentError, "bad symbol" unless sym
+              raise ArgumentError, 'bad symbol' unless sym
 
               return sym
             when 101  # ?e
@@ -714,11 +714,11 @@ module Marshal
     def construct_float
       s = get_byte_sequence
 
-      if s == "nan"
+      if s == 'nan'
         obj = 0.0 / 0.0
-      elsif s == "inf"
+      elsif s == 'inf'
         obj = 1.0 / 0.0
-      elsif s == "-inf"
+      elsif s == '-inf'
         obj = 1.0 / -0.0
       else
         obj = s.to_f
@@ -838,7 +838,7 @@ module Marshal
       construct_integer.times do |i|
         slot = get_symbol
         unless members[i].intern == slot
-          raise TypeError, "struct %s is not compatible (%p for %p)" %
+          raise TypeError, 'struct %s is not compatible (%p for %p)' %
             [klass, slot, members[i]]
         end
 
@@ -948,7 +948,7 @@ module Marshal
     end
 
     def serialize(obj)
-      raise ArgumentError, "exceed depth limit" if @depth == 0
+      raise ArgumentError, 'exceed depth limit' if @depth == 0
 
       # How much depth we have left.
       @depth -= 1;
@@ -991,7 +991,7 @@ module Marshal
 
     def serialize_instance_variables_prefix(obj, exclude_ivars = false)
       ivars = serializable_instance_variables(obj, exclude_ivars)
-      Rubinius::Type.binary_string(!ivars.empty? || serialize_encoding?(obj) ? "I" : "")
+      Rubinius::Type.binary_string(!ivars.empty? || serialize_encoding?(obj) ? 'I' : '')
     end
 
     def serialize_instance_variables_suffix(obj, force=false,
@@ -1000,7 +1000,7 @@ module Marshal
       ivars = serializable_instance_variables(obj, exclude_ivars)
 
       unless force or !ivars.empty? or serialize_encoding?(obj)
-        return Rubinius::Type.binary_string("")
+        return Rubinius::Type.binary_string('')
       end
 
       count = ivars.size
@@ -1076,7 +1076,7 @@ module Marshal
 
     def serialize_symbol(obj)
       str = obj.to_s
-      mf = "I" unless str.ascii_only?
+      mf = 'I' unless str.ascii_only?
       if mf
         if Rubinius::Type.object_encoding(obj).equal? Encoding::BINARY
           me = serialize_integer(0)
@@ -1113,7 +1113,7 @@ module Marshal
       end
 
       unless Rubinius::Type.object_kind_of? str, String
-        raise TypeError, "_dump() must return string"
+        raise TypeError, '_dump() must return string'
       end
 
       out = serialize_instance_variables_prefix(str)
@@ -1238,14 +1238,14 @@ module Marshal
     end
 
     def consume(bytes)
-      raise ArgumentError, "marshal data too short" if @consumed > @stream.bytesize
+      raise ArgumentError, 'marshal data too short' if @consumed > @stream.bytesize
       data = @stream.byteslice @consumed, bytes
       @consumed += bytes
       data
     end
 
     def consume_byte
-      raise ArgumentError, "marshal data too short" if @consumed >= @stream.bytesize
+      raise ArgumentError, 'marshal data too short' if @consumed >= @stream.bytesize
       data = @byte_array[@consumed]
       @consumed += 1
       data
@@ -1267,7 +1267,7 @@ module Marshal
 
     if an_io
       if !Rubinius::Type.object_respond_to? an_io, :write
-        raise TypeError, "output must respond to write"
+        raise TypeError, 'output must respond to write'
       end
       if Rubinius::Type.object_respond_to? an_io, :binmode
         an_io.binmode
@@ -1300,7 +1300,7 @@ module Marshal
       major = ms.consume_byte
       minor = ms.consume_byte
     else
-      raise TypeError, "instance of IO needed"
+      raise TypeError, 'instance of IO needed'
     end
 
     if major != MAJOR_VERSION or minor > MINOR_VERSION

@@ -32,7 +32,7 @@ module Digest
       when 512
         @sha2 = Digest::SHA512.new
       else
-        raise ArgumentError, "unsupported bit length: %s" % bitlen.inspect
+        raise ArgumentError, 'unsupported bit length: %s' % bitlen.inspect
       end
       @bitlen = bitlen
     end
@@ -101,7 +101,7 @@ module Digest
     end
 
     def inspect # :nodoc:
-      "#<%s:%d %s>" % [self.class.name, @bitlen, hexdigest]
+      '#<%s:%d %s>' % [self.class.name, @bitlen, hexdigest]
     end
 
     # Added by CS 7-Nov-15 I'm not sure how this is usually forwarded?

@@ -74,7 +74,7 @@ module Process
   FFI = Rubinius::FFI
 
   class Rlimit < FFI::Struct
-    config "rbx.platform.rlimit", :rlim_cur, :rlim_max
+    config 'rbx.platform.rlimit', :rlim_cur, :rlim_max
   end
 
   # Terminate with given status code.
@@ -108,17 +108,17 @@ module Process
 
   def self.wait_pid_prim(pid, no_hang)
     Truffle.primitive :vm_wait_pid
-    raise PrimitiveFailure, "Process.wait_pid primitive failed"
+    raise PrimitiveFailure, 'Process.wait_pid primitive failed'
   end
 
   def self.time
     Truffle.primitive :vm_time
-    raise PrimitiveFailure, "Process.time primitive failed"
+    raise PrimitiveFailure, 'Process.time primitive failed'
   end
 
   def self.cpu_times
     Truffle.primitive :vm_times
-    raise PrimitiveFailure, "Process.cpu_times primitive failed"
+    raise PrimitiveFailure, 'Process.cpu_times primitive failed'
   end
 
   ##
@@ -130,7 +130,7 @@ module Process
   #
   def self.setproctitle(title)
     val = Rubinius::Type.coerce_to(title, String, :to_str)
-    if !Truffle::Graal.substrate? and RbConfig::CONFIG["host_os"] == "linux" and File.readable?("/proc/self/maps")
+    if !Truffle::Graal.substrate? and RbConfig::CONFIG['host_os'] == 'linux' and File.readable?('/proc/self/maps')
       setproctitle_linux_from_proc_maps(val)
     else
       Truffle.invoke_primitive(:vm_set_process_title, val)
@@ -142,9 +142,9 @@ module Process
   # Truncates title if title would cover our org.jruby (main class) marker.
   def self.setproctitle_linux_from_proc_maps(title)
     @_argv0_address ||= begin
-      command = File.binread("/proc/self/cmdline")
+      command = File.binread('/proc/self/cmdline')
 
-      stack = File.readlines("/proc/self/maps").grep(/\[stack\]/)
+      stack = File.readlines('/proc/self/maps').grep(/\[stack\]/)
       raise stack.to_s unless stack.size == 1
 
       from, to = stack[0].split[0].split('-').map { |addr| Integer(addr, 16) }
@@ -166,7 +166,7 @@ module Process
       haystack = base_ptr.read_string(size)
 
       main_index = command.index("\x00org.truffleruby")
-      raise "Did not find the main class in args" unless main_index
+      raise 'Did not find the main class in args' unless main_index
       needle = command[0...main_index]
       i = haystack.index("\x00#{needle}")
       unless i
@@ -175,7 +175,7 @@ module Process
         puts
         p haystack
         puts
-        raise "argv[0] not found"
+        raise 'argv[0] not found'
       end
       i += 1
 
@@ -191,8 +191,8 @@ module Process
     argv0_ptr = FFI::Pointer.new(FFI::Type::CHAR, @_argv0_address)
     argv0_ptr.write_string(new_title)
 
-    new_command = File.binread("/proc/self/cmdline")
-    raise "failed" unless new_command.start_with?(new_title)
+    new_command = File.binread('/proc/self/cmdline')
+    raise 'failed' unless new_command.start_with?(new_title)
 
     title
   end
@@ -241,18 +241,18 @@ module Process
   end
 
   def self.kill(signal, *pids)
-    raise ArgumentError, "PID argument required" if pids.length == 0
+    raise ArgumentError, 'PID argument required' if pids.length == 0
 
     use_process_group = false
     signal = signal.to_s if signal.kind_of?(Symbol)
 
     if signal.kind_of?(String)
-      if signal.start_with? "-"
+      if signal.start_with? '-'
         signal = signal[1..-1]
         use_process_group = true
       end
 
-      if signal.start_with? "SIG"
+      if signal.start_with? 'SIG'
         signal = signal[3..-1]
       end
 
@@ -553,10 +553,10 @@ module Process
 
     exit!(0) if fork
 
-    Dir.chdir("/") unless stay_in_dir
+    Dir.chdir('/') unless stay_in_dir
 
     unless keep_stdio_open
-      io = File.open "/dev/null", File::RDWR, 0
+      io = File.open '/dev/null', File::RDWR, 0
       $stdin.reopen io
       $stdout.reopen io
       $stderr.reopen io
@@ -581,7 +581,7 @@ module Process
   #       and called periodically.
   #
   def self.detach(pid)
-    raise ArgumentError, "Only positive pids may be detached" unless pid > 0
+    raise ArgumentError, 'Only positive pids may be detached' unless pid > 0
 
     thread = Thread.new { Process.wait pid; $? }
     thread[:pid] = pid
@@ -719,7 +719,7 @@ module Process
       end
 
       def issetugid
-        raise "not implemented"
+        raise 'not implemented'
       end
 
       def setgid(gid)

@@ -27,7 +27,7 @@
 class FalseClass
 
   def to_s
-    "false"
+    'false'
   end
 
   def inspect

@@ -33,12 +33,12 @@ module Rubinius
 
     def get_variable(name)
       Truffle.primitive :vm_get_config_item
-      raise PrimitiveFailure, "Rubinius::Configuration#get_variable primitive failed"
+      raise PrimitiveFailure, 'Rubinius::Configuration#get_variable primitive failed'
     end
 
     def get_section(section)
       Truffle.primitive :vm_get_config_section
-      raise PrimitiveFailure, "Rubinius::Configuration#get_section primitive failed"
+      raise PrimitiveFailure, 'Rubinius::Configuration#get_section primitive failed'
     end
 
     def section(section)

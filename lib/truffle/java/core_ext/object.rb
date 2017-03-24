@@ -40,7 +40,7 @@ class Object
       case import_class
       when String
         cc = java.lang.Character
-        valid_name = import_class.split(".").all? do |frag|
+        valid_name = import_class.split('.').all? do |frag|
           cc.java_identifier_start? frag[0].ord and
           frag.each_char.all? {|c| cc.java_identifier_part? c.ord }
         end
@@ -48,10 +48,10 @@ class Object
           raise ArgumentError.new "not a valid Java identifier: #{import_class}"
         end
         # pull in the class
-        raise ArgumentError.new "must use jvm-style name: #{import_class}" if import_class.include? "::"
+        raise ArgumentError.new "must use jvm-style name: #{import_class}" if import_class.include? '::'
         import_class = JavaUtilities.get_proxy_class(import_class)
       when Module
-        if import_class.respond_to? "java_class"
+        if import_class.respond_to? 'java_class'
           # ok, it's a proxy
         else
           raise ArgumentError.new "not a Java class or interface: #{import_class}"
@@ -72,7 +72,7 @@ class Object
         elsif java_class.canonical_name =~ /(.*)\.[^.]$/
           package_name = $1
         else
-          package_name = ""
+          package_name = ''
         end
 
         constant = yield(package_name, class_name)
@@ -86,7 +86,7 @@ class Object
       end
 
       unless constant =~ /^[A-Z].*/
-        raise ArgumentError.new "cannot import class `" + java_class.name + "' as `" + constant + "'"
+        raise ArgumentError.new 'cannot import class `' + java_class.name + "' as `" + constant + "'"
       end
 
       # JRUBY-3453: Make import not complain if Java already has already imported the specific Java class

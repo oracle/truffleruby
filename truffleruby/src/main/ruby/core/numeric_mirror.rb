@@ -68,7 +68,7 @@ module Rubinius
       end
 
       def step_fetch_args(limit, step)
-        raise ArgumentError, "step cannot be 0" if step == 0
+        raise ArgumentError, 'step cannot be 0' if step == 0
 
         value = @object
         asc = step > 0

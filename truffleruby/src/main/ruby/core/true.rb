@@ -27,7 +27,7 @@
 class TrueClass
 
   def to_s
-    "true"
+    'true'
   end
 
   def inspect

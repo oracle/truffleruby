@@ -47,12 +47,12 @@ class String
         po = true
       elsif m = PATTERN1.match(@value)
         sr = nil
-        si = (m[1] || "") + (m[2] || "1")
+        si = (m[1] || '') + (m[2] || '1')
         re = m.post_match
         po = false
       elsif m = PATTERN2.match(@value)
         sr = m[1]
-        si = m[2] ? m[3] + (m[4] || "1") : nil
+        si = m[2] ? m[3] + (m[4] || '1') : nil
         re = m.post_match
         po = false
       else
@@ -63,7 +63,7 @@ class String
       i = 0
 
       if sr
-        if sr.include?("/")
+        if sr.include?('/')
           r = sr.to_r
         elsif sr.match(/[.eE]/)
           r = sr.to_f
@@ -73,7 +73,7 @@ class String
       end
 
       if si
-        if si.include?("/")
+        if si.include?('/')
           i = si.to_r
         elsif si.match(/[.eE]/)
           i = si.to_f

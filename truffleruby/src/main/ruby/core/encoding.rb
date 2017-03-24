@@ -123,7 +123,7 @@ class Encoding
     private :readagain_bytes=
     private :incomplete_input=
 
-    def initialize(message="")
+    def initialize(message='')
       super(message)
 
       @incomplete_input = nil
@@ -234,7 +234,7 @@ class Encoding
     def convert(str)
       str = StringValue(str)
 
-      dest = ""
+      dest = ''
       status = primitive_convert str.dup, dest, nil, nil, @options | PARTIAL_INPUT
 
       if status == :invalid_byte_sequence or
@@ -244,7 +244,7 @@ class Encoding
       end
 
       if status == :finished
-        raise ArgumentError, "converter already finished"
+        raise ArgumentError, 'converter already finished'
       end
 
       if status != :source_buffer_empty
@@ -270,16 +270,16 @@ class Encoding
         size = Rubinius::Type.coerce_to size, Fixnum, :to_int
 
         if size < 0
-          raise ArgumentError, "byte size is negative"
+          raise ArgumentError, 'byte size is negative'
         end
       end
 
       if offset < 0
-        raise ArgumentError, "byte offset is negative"
+        raise ArgumentError, 'byte offset is negative'
       end
 
       if offset > target.bytesize
-        raise ArgumentError, "byte offset is greater than destination buffer size"
+        raise ArgumentError, 'byte offset is greater than destination buffer size'
       end
 
       if !options.kind_of? Fixnum
@@ -305,7 +305,7 @@ class Encoding
     end
 
     def finish
-      dest = ""
+      dest = ''
       status = primitive_convert nil, dest
 
       if status == :invalid_byte_sequence or
@@ -346,7 +346,7 @@ class Encoding
       when :undefined_conversion
         error_char = error_bytes
         if codepoint
-          error_bytes_msg = "U+%04X" % codepoint
+          error_bytes_msg = 'U+%04X' % codepoint
         end
 
         if source_encoding_name.to_sym == @source_encoding.name and
@@ -395,7 +395,7 @@ class Encoding
 
     def primitive_errinfo
       Truffle.primitive :encoding_converter_primitive_errinfo
-      raise PrimitiveFailure, "Encoding::Converter#primitive_errinfo primitive failed"
+      raise PrimitiveFailure, 'Encoding::Converter#primitive_errinfo primitive failed'
     end
 
     def convpath
@@ -408,12 +408,12 @@ class Encoding
         a += 1
       end
 
-      path << "xml_text_escape" if @options & XML_TEXT_DECORATOR != 0
-      path << "xml_attr_content_escape" if @options & XML_ATTR_CONTENT_DECORATOR != 0
-      path << "xml_attr_quote" if @options & XML_ATTR_QUOTE_DECORATOR != 0
-      path << "universal_newline" if @options & UNIVERSAL_NEWLINE_DECORATOR != 0
-      path << "crlf_newline" if @options & CRLF_NEWLINE_DECORATOR != 0
-      path << "cr_newline" if @options & CR_NEWLINE_DECORATOR != 0
+      path << 'xml_text_escape' if @options & XML_TEXT_DECORATOR != 0
+      path << 'xml_attr_content_escape' if @options & XML_ATTR_CONTENT_DECORATOR != 0
+      path << 'xml_attr_quote' if @options & XML_ATTR_QUOTE_DECORATOR != 0
+      path << 'universal_newline' if @options & UNIVERSAL_NEWLINE_DECORATOR != 0
+      path << 'crlf_newline' if @options & CRLF_NEWLINE_DECORATOR != 0
+      path << 'cr_newline' if @options & CR_NEWLINE_DECORATOR != 0
 
       path
     end
@@ -525,11 +525,11 @@ class Encoding
   end
 
   def self.default_external=(enc)
-    raise ArgumentError, "default external encoding cannot be nil" if enc.nil?
+    raise ArgumentError, 'default external encoding cannot be nil' if enc.nil?
 
     enc = find(enc)
-    set_alias_index "external", enc
-    set_alias_index "filesystem", enc
+    set_alias_index 'external', enc
+    set_alias_index 'filesystem', enc
     @default_external = enc
     Truffle::Encoding.default_external = enc
   end
@@ -540,7 +540,7 @@ class Encoding
 
   def self.default_internal=(enc)
     enc = find(enc) unless enc.nil?
-    set_alias_index "internal", enc
+    set_alias_index 'internal', enc
     @default_internal = enc
     Truffle::Encoding.default_internal = enc
   end

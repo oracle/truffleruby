@@ -131,21 +131,21 @@ class File
 
     def ftype
       if file?
-        "file"
+        'file'
       elsif directory?
-        "directory"
+        'directory'
       elsif chardev?
-        "characterSpecial"
+        'characterSpecial'
       elsif blockdev?
-        "blockSpecial"
+        'blockSpecial'
       elsif pipe?
-        "fifo"
+        'fifo'
       elsif socket?
-        "socket"
+        'socket'
       elsif symlink?
-        "link"
+        'link'
       else
-        "unknown"
+        'unknown'
       end
     end
 

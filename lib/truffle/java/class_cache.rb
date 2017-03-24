@@ -8,16 +8,16 @@
 
 module JavaUtilities
 
-  HASH_MAP_CLASS = Java.java_class_by_name("java.util.concurrent.ConcurrentHashMap")
+  HASH_MAP_CLASS = Java.java_class_by_name('java.util.concurrent.ConcurrentHashMap')
   
   CLASS_NEW_INSTANCE = Java.get_java_method(
-    JAVA_CLASS_CLASS, "newInstance", false, JAVA_OBJECT_CLASS)
+    JAVA_CLASS_CLASS, 'newInstance', false, JAVA_OBJECT_CLASS)
   
   HASH_MAP_GET = Java.get_java_method(
-    HASH_MAP_CLASS, "get", false, JAVA_OBJECT_CLASS, JAVA_OBJECT_CLASS)
+    HASH_MAP_CLASS, 'get', false, JAVA_OBJECT_CLASS, JAVA_OBJECT_CLASS)
   
   HASH_MAP_PUT_IF_ABSENT = Java.get_java_method(
-    HASH_MAP_CLASS, "putIfAbsent", false, JAVA_OBJECT_CLASS, JAVA_OBJECT_CLASS, JAVA_OBJECT_CLASS)
+    HASH_MAP_CLASS, 'putIfAbsent', false, JAVA_OBJECT_CLASS, JAVA_OBJECT_CLASS, JAVA_OBJECT_CLASS)
   
   class ClassCache
 

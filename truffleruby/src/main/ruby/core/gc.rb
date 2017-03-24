@@ -39,7 +39,7 @@ module GC
 
   def self.run(force)
     Truffle.primitive :vm_gc_start
-    raise PrimitiveFailure, "GC.run primitive failed"
+    raise PrimitiveFailure, 'GC.run primitive failed'
   end
 
   # Totally fake.

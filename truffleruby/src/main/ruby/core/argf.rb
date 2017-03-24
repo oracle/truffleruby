@@ -104,7 +104,7 @@ module Rubinius
     end
 
     def default_value
-      "".encode(encoding)
+      ''.encode(encoding)
     end
 
     #
@@ -202,7 +202,7 @@ module Rubinius
     #         multiple FDs and if so, is this correct? --rue
     #
     def fileno
-      raise ArgumentError, "No stream" unless advance!
+      raise ArgumentError, 'No stream' unless advance!
       @stream.fileno
     end
     alias_method :to_i, :fileno
@@ -318,7 +318,7 @@ module Rubinius
     # @see IO#pos.
     #
     def pos
-      raise ArgumentError, "no stream" unless advance!
+      raise ArgumentError, 'no stream' unless advance!
       @stream.tell
     end
     alias_method :tell, :pos
@@ -329,7 +329,7 @@ module Rubinius
     # @see IO#pos=
     #
     def pos=(position)
-      raise ArgumentError, "no stream" unless advance!
+      raise ArgumentError, 'no stream' unless advance!
       @stream.pos = position
     end
 
@@ -348,7 +348,7 @@ module Rubinius
         return val
       end
 
-      raise EOFError, "ARGF at end"
+      raise EOFError, 'ARGF at end'
     end
     alias_method :readchar, :readbyte
 
@@ -413,13 +413,13 @@ module Rubinius
     # @see  #gets
     #
     def readline(sep=$/)
-      raise EOFError, "ARGF at end" unless advance!
+      raise EOFError, 'ARGF at end' unless advance!
 
       if line = gets(sep)
         return line
       end
 
-      raise EOFError, "ARGF at end"
+      raise EOFError, 'ARGF at end'
     end
 
     #
@@ -451,7 +451,7 @@ module Rubinius
     # @todo Is this correct, only current stream is rewound? --rue
     #
     def rewind
-      raise ArgumentError, "no stream to rewind" unless advance!
+      raise ArgumentError, 'no stream to rewind' unless advance!
       @lineno -= @stream.lineno
       @stream.rewind
     end
@@ -462,7 +462,7 @@ module Rubinius
     # @see IO#seek.
     #
     def seek(*args)
-      raise ArgumentError, "no stream" unless advance!
+      raise ArgumentError, 'no stream' unless advance!
       @stream.seek(*args)
     end
 
@@ -487,7 +487,7 @@ module Rubinius
     end
 
     def stream(file)
-      stream = file == "-" ? STDIN : File.open(file, "r", :external_encoding => encoding)
+      stream = file == '-' ? STDIN : File.open(file, 'r', :external_encoding => encoding)
 
       if @encoding_args
         stream.set_encoding *@encoding_args
@@ -512,7 +512,7 @@ module Rubinius
     # Returns "ARGF" as the string representation of this object.
     #
     def to_s
-      "ARGF"
+      'ARGF'
     end
 
 
@@ -536,14 +536,14 @@ module Rubinius
         if @argv.empty?
           @advance = false
           @stream = STDIN
-          @filename = "-"
+          @filename = '-'
           @use_stdin_only = true
           return true
         end
         @init = true
       end
 
-      File.unlink(@backup_filename) if @backup_filename && $-i == ""
+      File.unlink(@backup_filename) if @backup_filename && $-i == ''
 
       return false if @use_stdin_only || @argv.empty?
 
@@ -554,11 +554,11 @@ module Rubinius
       @filename = file
 
       if $-i && @stream != STDIN
-        backup_extension = $-i == "" ? ".bak" : $-i
+        backup_extension = $-i == '' ? '.bak' : $-i
         @backup_filename = "#{@filename}#{backup_extension}"
         File.rename(@filename, @backup_filename)
-        @stream = File.open(@backup_filename, "r")
-        $stdout = File.open(@filename, "w")
+        @stream = File.open(@backup_filename, 'r')
+        $stdout = File.open(@filename, 'w')
       end
 
       true

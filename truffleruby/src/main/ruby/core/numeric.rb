@@ -59,7 +59,7 @@ class Numeric
 
   def step(limit = undefined, step = undefined, by: undefined, to: undefined)
     limit = if !undefined.equal?(limit) && !undefined.equal?(to)
-              raise ArgumentError, "to is given twice"
+              raise ArgumentError, 'to is given twice'
             elsif !undefined.equal?(limit)
               limit
             elsif !undefined.equal?(to)
@@ -68,7 +68,7 @@ class Numeric
               nil
             end
     step = if !undefined.equal?(step) && !undefined.equal?(by)
-             raise ArgumentError, "step is given twice"
+             raise ArgumentError, 'step is given twice'
            elsif !undefined.equal?(step)
              step
            elsif !undefined.equal?(by)
@@ -84,7 +84,7 @@ class Numeric
       end
     end
 
-    raise ArgumentError, "step cannot be 0" if step == 0
+    raise ArgumentError, 'step cannot be 0' if step == 0
 
     m = Rubinius::Mirror::Numeric.reflect(self)
     values = m.step_fetch_args(limit, step)
@@ -230,7 +230,7 @@ class Numeric
     end
 
     unless Rubinius::Type.object_kind_of?(values, Array) && values.length == 2
-      raise TypeError, "coerce must return [x, y]"
+      raise TypeError, 'coerce must return [x, y]'
     end
 
     [values[1], values[0]]
@@ -258,7 +258,7 @@ class Numeric
   end
 
   def div(other)
-    raise ZeroDivisionError, "divided by 0" if other == 0
+    raise ZeroDivisionError, 'divided by 0' if other == 0
     (self / other).floor
   end
 

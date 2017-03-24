@@ -19,14 +19,14 @@ module Java
 
     def initialize(a_value)
       if a_value != nil && a_value.class != Truffle::Interop::Foreign
-        raise ArgumentError, "Can only wrap native java objects"
+        raise ArgumentError, 'Can only wrap native java objects'
       end
       @value = a_value
     end
 
     def to_s
-      return @value.java_send("toString") if @value != nil
-      ""
+      return @value.java_send('toString') if @value != nil
+      ''
     end
 
     def wrap obj
@@ -57,7 +57,7 @@ module Java
     end
 
     def length
-      raise TypeError, "Not a java array"
+      raise TypeError, 'Not a java array'
     end
 
     def java_proxy?
@@ -91,18 +91,18 @@ module Java
     attr_reader :children
 
     def self.new(*name_parts)
-      const_name = name_parts.reduce("") { |memo, obj| memo + obj.capitalize }
-      const_name = "Default" if const_name == ""
+      const_name = name_parts.reduce('') { |memo, obj| memo + obj.capitalize }
+      const_name = 'Default' if const_name == ''
       return ::Java.const_get(const_name) if ::Java.const_defined?(const_name, false)
       super(*name_parts)
     end
 
     def initialize(*name_parts)
-      ruby_name = name_parts.reduce("") do |memo, obj| memo + obj.capitalize end
-      java_name = name_parts.join(".")
+      ruby_name = name_parts.reduce('') do |memo, obj| memo + obj.capitalize end
+      java_name = name_parts.join('.')
       @package_name = java_name
       @children = {}
-      ::Java.const_set(ruby_name, self) if ruby_name != ""
+      ::Java.const_set(ruby_name, self) if ruby_name != ''
       parent = JavaPackage.new(*name_parts.first(name_parts.size - 1)) unless name_parts.size <= 1
       parent.add_child(name_parts.last, self) unless parent == nil
       super()
@@ -113,8 +113,8 @@ module Java
     end
 
     def self.capitalised_name(name)
-      name = ""
-      package_name.split(".").each do |s|
+      name = ''
+      package_name.split('.').each do |s|
         name += s.capitalize
       end
     end

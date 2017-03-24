@@ -197,7 +197,7 @@ class Hash
       proc = Rubinius::Type.coerce_to proc, Proc, :to_proc
 
       if proc.lambda? and proc.arity != 2
-        raise TypeError, "default proc must have arity 2"
+        raise TypeError, 'default proc must have arity 2'
       end
     end
 

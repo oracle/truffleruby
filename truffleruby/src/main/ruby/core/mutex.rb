@@ -31,7 +31,7 @@ class Mutex
 
   # Check and only allow it to be marshal'd if there are no waiters.
   def marshal_dump
-    raise "Unable to dump locked mutex" unless @waiters.empty?
+    raise 'Unable to dump locked mutex' unless @waiters.empty?
     1
   end
 

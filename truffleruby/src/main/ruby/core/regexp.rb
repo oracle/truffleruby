@@ -95,22 +95,22 @@ class Regexp
 
   def search_region(str, start, finish, forward) # equiv to MRI's re_search
     Truffle.primitive :regexp_search_region
-    raise PrimitiveFailure, "Regexp#search_region primitive failed"
+    raise PrimitiveFailure, 'Regexp#search_region primitive failed'
   end
 
   def options
     Truffle.primitive :regexp_options
-    raise PrimitiveFailure, "Regexp#options primitive failed"
+    raise PrimitiveFailure, 'Regexp#options primitive failed'
   end
 
   def self.set_block_last_match(block, match_data)
     Truffle.primitive :regexp_set_block_last_match
-    raise PrimitiveFailure, "Regexp#set_block_last_match primitive failed"
+    raise PrimitiveFailure, 'Regexp#set_block_last_match primitive failed'
   end
 
   def fixed_encoding?
     Truffle.primitive :regexp_fixed_encoding_p
-    raise PrimitiveFailure, "Regexp.fixed_encoding? primitive failed"
+    raise PrimitiveFailure, 'Regexp.fixed_encoding? primitive failed'
   end
 
   class << self
@@ -158,8 +158,8 @@ class Regexp
       enc = convert(patterns.first).encoding
     end
 
-    str = "".encode(enc)
-    sep = "|".encode(enc)
+    str = ''.encode(enc)
+    sep = '|'.encode(enc)
     patterns.each_with_index do |pat, idx|
       str << sep if idx != 0
       if pat.kind_of? Regexp
@@ -273,7 +273,7 @@ class Regexp
   end
 
   def option_to_string(option)
-    string = ""
+    string = ''
     string << 'm' if (option & MULTILINE) > 0
     string << 'i' if (option & IGNORECASE) > 0
     string << 'x' if (option & EXTENDED) > 0

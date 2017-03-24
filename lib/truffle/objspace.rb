@@ -86,32 +86,32 @@ module ObjectSpace
     case output
     when :string
       json = {
-        address: "0x" + object.object_id.to_s(16),
-        class: "0x" + object.class.object_id.to_s(16),
+        address: '0x' + object.object_id.to_s(16),
+        class: '0x' + object.class.object_id.to_s(16),
         memsize: memsize_of(object),
         flags: { }
       }
       case object
       when String
         json.merge!({
-          type: "STRING",
+          type: 'STRING',
           bytesize: object.bytesize,
           value: object,
           encoding: object.encoding.name
         })
       when Array
         json.merge!({
-          type: "ARRAY",
+          type: 'ARRAY',
           length: object.size
         })
       when Hash
         json.merge!({
-          type: "HASH",
+          type: 'HASH',
           size: object.size
         })
       else
         json.merge!({
-          type: "OBJECT",
+          type: 'OBJECT',
           length: object.instance_variables.size
         })
       end
@@ -171,7 +171,7 @@ module ObjectSpace
   module_function :reachable_objects_from
 
   def reachable_objects_from_root
-    {"roots" => Truffle::ObjSpace.root_objects}
+    {'roots' => Truffle::ObjSpace.root_objects}
   end
   module_function :reachable_objects_from_root
 

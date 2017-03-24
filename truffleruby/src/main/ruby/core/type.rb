@@ -77,7 +77,7 @@ module Rubinius
 
     def self.object_encoding(obj)
       Truffle.primitive :encoding_get_object_encoding
-      raise PrimitiveFailure, "Rubinius::Type.object_encoding primitive failed"
+      raise PrimitiveFailure, 'Rubinius::Type.object_encoding primitive failed'
     end
 
     ##
@@ -164,7 +164,7 @@ module Rubinius
     end
 
     def self.rb_num2long(val)
-      raise TypeError, "no implicit conversion from nil to integer" if val.nil?
+      raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
 
       if object_kind_of?(val, Fixnum)
         return val
@@ -180,7 +180,7 @@ module Rubinius
     end
 
     def self.rb_num2ulong(val)
-      raise TypeError, "no implicit conversion from nil to integer" if val.nil?
+      raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
 
       if object_kind_of?(val, Fixnum)
         return val
@@ -195,7 +195,7 @@ module Rubinius
     end
 
     def self.rb_num2dbl(val)
-      raise TypeError, "no implicit conversion from nil to float" if val.nil?
+      raise TypeError, 'no implicit conversion from nil to float' if val.nil?
 
       if object_kind_of?(val, Float)
         return val
@@ -204,7 +204,7 @@ module Rubinius
       elsif object_kind_of?(val, Bignum)
         return val.to_f
       elsif object_kind_of?(val, String)
-        raise TypeError, "no implicit conversion from to float from string"
+        raise TypeError, 'no implicit conversion from to float from string'
       else
         rb_num2dbl(rb_to_f(val))
       end
@@ -411,7 +411,7 @@ module Rubinius
       return idx if object_kind_of? idx, klass
 
       if object_kind_of? index, Bignum
-        raise RangeError, "Array index must be a Fixnum (passed Bignum)"
+        raise RangeError, 'Array index must be a Fixnum (passed Bignum)'
       else
         coerce_to_type_error index, idx, method, klass
       end
@@ -431,7 +431,7 @@ module Rubinius
       return size if object_kind_of? size, klass
 
       if object_kind_of? size, Bignum
-        raise ArgumentError, "Array size must be a Fixnum (passed Bignum)"
+        raise ArgumentError, 'Array size must be a Fixnum (passed Bignum)'
       else
         coerce_to_type_error length, size, :to_int, Fixnum
       end
@@ -551,7 +551,7 @@ module Rubinius
       end
 
       if offset <= -86400 || offset >= 86400
-        raise ArgumentError, "utc_offset out of range"
+        raise ArgumentError, 'utc_offset out of range'
       end
 
       offset
@@ -567,7 +567,7 @@ module Rubinius
     # String helpers
 
     def self.check_null_safe(string)
-      raise ArgumentError, "string contains NULL byte" if string.include? "\0"
+      raise ArgumentError, 'string contains NULL byte' if string.include? "\0"
       string
     end
 
@@ -593,7 +593,7 @@ module Rubinius
       unless enc
         enc_a = object_encoding a
         enc_b = object_encoding b
-        message = "undefined conversion "
+        message = 'undefined conversion '
         message << "for '#{a.inspect}' " if object_kind_of?(a, String)
         message << "from #{enc_a} to #{enc_b}"
 
@@ -631,11 +631,11 @@ module Rubinius
       if arg_count < min || (max != -1 && arg_count > max)
         error_message = case
         when min == max
-          "wrong number of arguments (given %d, expected %d)" % [arg_count, min]
+          'wrong number of arguments (given %d, expected %d)' % [arg_count, min]
         when max == -1
-          "wrong number of arguments (given %d, expected %d+)" % [arg_count, min]
+          'wrong number of arguments (given %d, expected %d+)' % [arg_count, min]
         else
-          "wrong number of arguments (given %d, expected %d..%d)" % [arg_count, min, max]
+          'wrong number of arguments (given %d, expected %d..%d)' % [arg_count, min, max]
         end
         raise ArgumentError, error_message
       end

@@ -63,7 +63,7 @@ module Rubinius
         @variables.delete(key)
       else
         if Truffle::POSIX.setenv(key, StringValue(value), 1) != 0
-          Errno.handle("setenv")
+          Errno.handle('setenv')
         end
         unless @variables.include?(key)
           @variables << set_encoding(key.dup)
@@ -133,7 +133,7 @@ module Rubinius
 
     def fetch(key, absent=undefined)
       if block_given? and !undefined.equal?(absent)
-        warn "block supersedes default value argument"
+        warn 'block supersedes default value argument'
       end
 
       if value = self[key]
@@ -143,14 +143,14 @@ module Rubinius
       if block_given?
         return yield(key)
       elsif undefined.equal?(absent)
-        raise KeyError, "key not found"
+        raise KeyError, 'key not found'
       end
 
       absent
     end
 
     def to_s
-      "ENV"
+      'ENV'
     end
 
     def inspect
@@ -293,7 +293,7 @@ module Rubinius
 
     def set_encoding(value)
       return unless value.kind_of? String
-      locale = Encoding.find("locale")
+      locale = Encoding.find('locale')
       if Encoding.default_internal && value.ascii_only?
         value = value.encode Encoding.default_internal, locale
       elsif value.encoding != locale

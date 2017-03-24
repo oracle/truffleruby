@@ -15,7 +15,7 @@ class RubyClassLoader
 
   def self.<<(a_string)
     urls = java.net.URL[1].new
-    urls[0] = java.net.URL.new("file:" + a_string)
+    urls[0] = java.net.URL.new('file:' + a_string)
     @loader = java.net.URLClassLoader.new(urls, @loader)
     ::Truffle::Interop::Java.loader = JavaUtilities.unwrap_java_value(@loader)
     self

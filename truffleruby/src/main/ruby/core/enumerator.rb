@@ -58,7 +58,7 @@ module Enumerable
         receiver = Generator.new(&block)
       else
         if undefined.equal? receiver_or_size
-          raise ArgumentError, "Enumerator#initialize requires a block when called without arguments"
+          raise ArgumentError, 'Enumerator#initialize requires a block when called without arguments'
         end
 
         receiver = receiver_or_size
@@ -141,7 +141,7 @@ module Enumerable
       rescue StopIteration
       end
 
-      exception = StopIteration.new "iteration reached end"
+      exception = StopIteration.new 'iteration reached end'
       Truffle.privately do
         exception.result = @generator.result
       end
@@ -194,14 +194,14 @@ module Enumerable
     end
 
     def feed(val)
-      raise TypeError, "Feed value already set" unless @feedvalue.nil?
+      raise TypeError, 'Feed value already set' unless @feedvalue.nil?
       @feedvalue = val
       nil
     end
 
     class Yielder
       def initialize(&block)
-        raise LocalJumpError, "Expected a block to be given" unless block_given?
+        raise LocalJumpError, 'Expected a block to be given' unless block_given?
 
         @proc = block
 
@@ -223,7 +223,7 @@ module Enumerable
     class Generator
       include Enumerable
       def initialize(&block)
-        raise LocalJumpError, "Expected a block to be given" unless block_given?
+        raise LocalJumpError, 'Expected a block to be given' unless block_given?
 
         @proc = block
 
@@ -242,7 +242,7 @@ module Enumerable
       class StopLazyError < Exception; end
 
       def initialize(receiver, size=nil)
-        raise ArgumentError, "Lazy#initialize requires a block" unless block_given?
+        raise ArgumentError, 'Lazy#initialize requires a block' unless block_given?
         Truffle.check_frozen
 
         super(size) do |yielder, *each_args|
@@ -279,7 +279,7 @@ module Enumerable
 
       def take(n)
         n = Rubinius::Type.coerce_to n, Integer, :to_int
-        raise ArgumentError, "attempt to take negative size" if n < 0
+        raise ArgumentError, 'attempt to take negative size' if n < 0
 
         current_size = enumerator_size
         if current_size.kind_of?(Numeric)
@@ -304,7 +304,7 @@ module Enumerable
 
       def drop(n)
         n = Rubinius::Type.coerce_to n, Integer, :to_int
-        raise ArgumentError, "attempt to drop negative size" if n < 0
+        raise ArgumentError, 'attempt to drop negative size' if n < 0
 
         current_size = enumerator_size
         if current_size.kind_of?(Integer)
@@ -324,7 +324,7 @@ module Enumerable
       end
 
       def take_while
-        raise ArgumentError, "Lazy#take_while requires a block" unless block_given?
+        raise ArgumentError, 'Lazy#take_while requires a block' unless block_given?
 
         Lazy.new(self, nil) do |yielder, *args|
           if yield(*args)
@@ -336,7 +336,7 @@ module Enumerable
       end
 
       def drop_while
-        raise ArgumentError, "Lazy#drop_while requires a block" unless block_given?
+        raise ArgumentError, 'Lazy#drop_while requires a block' unless block_given?
 
         succeeding = true
         Lazy.new(self, nil) do |yielder, *args|
@@ -362,7 +362,7 @@ module Enumerable
       alias_method :find_all, :select
 
       def reject
-        raise ArgumentError, "Lazy#reject requires a block" unless block_given?
+        raise ArgumentError, 'Lazy#reject requires a block' unless block_given?
 
         Lazy.new(self, nil) do |yielder, *args|
           val = args.length >= 2 ? args : args.first
@@ -503,7 +503,7 @@ module Enumerable
 
         val = @fiber.resume
 
-        raise StopIteration, "iteration has ended" if @done
+        raise StopIteration, 'iteration has ended' if @done
 
         val
       end

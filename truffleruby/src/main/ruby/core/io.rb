@@ -40,19 +40,19 @@ class IO
   module Socketable
     def accept
       Truffle.primitive :io_accept
-      raise PrimitiveFailure, "io_accept failed"
+      raise PrimitiveFailure, 'io_accept failed'
     end
   end
 
   module TransferIO
     def send_io
       Truffle.primitive :io_send_io
-      raise PrimitiveFailure, "IO#send_io failed"
+      raise PrimitiveFailure, 'IO#send_io failed'
     end
 
     def recv_fd
       Truffle.primitive :io_recv_fd
-      raise PrimitiveFailure, "IO#recv_fd failed"
+      raise PrimitiveFailure, 'IO#recv_fd failed'
     end
   end
 
@@ -159,7 +159,7 @@ class IO
         return fill(io.to_io)
       end
 
-      raise PrimitiveFailure, "IOBuffer#fill primitive failed"
+      raise PrimitiveFailure, 'IOBuffer#fill primitive failed'
     end
 
     ##
@@ -230,7 +230,7 @@ class IO
 
     def inspect # :nodoc:
       content = (@start..@used).map { |i| @storage[i].chr }.join.inspect
-      format "#<IO::InternalBuffer:0x%x total=%p start=%p used=%p data=%p %s>",
+      format '#<IO::InternalBuffer:0x%x total=%p start=%p used=%p data=%p %s>',
              object_id, @total, @start, @used, @storage, content
     end
 
@@ -312,7 +312,7 @@ class IO
       return if size == 0 and fill_from(io) == 0
 
       Rubinius.synchronize(self) do
-        char = ""
+        char = ''
         while size > 0
           char.force_encoding Encoding::ASCII_8BIT
           char << @storage[@start]
@@ -370,7 +370,7 @@ class IO
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
 
-    File.open(file, "r", :encoding => "ascii-8bit:-") do |f|
+    File.open(file, 'r', :encoding => 'ascii-8bit:-') do |f|
       f.seek(offset)
       f.read(length)
     end
@@ -388,7 +388,7 @@ class IO
       mode = File::CREAT | File::RDWR | File::BINARY
       mode |= File::TRUNC unless offset
     end
-    File.open(file, mode, :encoding => (external || "ASCII-8BIT")) do |f|
+    File.open(file, mode, :encoding => (external || 'ASCII-8BIT')) do |f|
       f.seek(offset || 0)
       f.write(string)
     end
@@ -399,8 +399,8 @@ class IO
       @length = length
       @offset = offset
 
-      @from_io, @from = to_io(from, "rb")
-      @to_io, @to = to_io(to, "wb")
+      @from_io, @from = to_io(from, 'rb')
+      @to_io, @to = to_io(to, 'wb')
 
       @method = read_method @from
     end
@@ -453,7 +453,7 @@ class IO
       bytes = 0
 
       begin
-        while data = @from.__send__(@method, size, "")
+        while data = @from.__send__(@method, size, '')
           @to.write data
           bytes += data.bytesize
 
@@ -533,10 +533,10 @@ class IO
     saved_line = $_
 
     if name[0] == ?|
-      io = IO.popen(name[1..-1], "r")
+      io = IO.popen(name[1..-1], 'r')
       return nil unless io
     else
-      options[:mode] = "r" unless options.key? :mode
+      options[:mode] = 'r' unless options.key? :mode
       io = File.open(name, options)
     end
 
@@ -589,7 +589,7 @@ class IO
       mode |= File::TRUNC unless offset
     end
 
-    open_args = opts[:open_args] || [mode, :encoding => (external || "ASCII-8BIT")]
+    open_args = opts[:open_args] || [mode, :encoding => (external || 'ASCII-8BIT')]
     File.open(file, *open_args) do |f|
       f.seek(offset) if offset
       f.write(string)
@@ -603,7 +603,7 @@ class IO
   def self.read(name, length_or_options=undefined, offset=0, options=nil)
     offset = 0 if offset.nil?
     name = Rubinius::Type.coerce_to_path name
-    mode = "r"
+    mode = 'r'
 
     if undefined.equal? length_or_options
       length = undefined
@@ -613,21 +613,21 @@ class IO
       options = length_or_options
     elsif length_or_options
       offset = Rubinius::Type.coerce_to(offset || 0, Fixnum, :to_int)
-      raise Errno::EINVAL, "offset must not be negative" if offset < 0
+      raise Errno::EINVAL, 'offset must not be negative' if offset < 0
 
       length = Rubinius::Type.coerce_to(length_or_options, Fixnum, :to_int)
-      raise ArgumentError, "length must not be negative" if length < 0
+      raise ArgumentError, 'length must not be negative' if length < 0
     else
       length = undefined
     end
 
     if options
-      mode = options.delete(:mode) || "r"
+      mode = options.delete(:mode) || 'r'
     end
 
     # Detect pipe mode
     if name[0] == ?|
-      io = IO.popen(name[1..-1], "r")
+      io = IO.popen(name[1..-1], 'r')
       return nil unless io # child process
     else
       io = File.new(name, mode, options)
@@ -661,7 +661,7 @@ class IO
       mode = nil if options
     elsif !options.nil?
       options = Rubinius::Type.try_convert(options, Hash, :to_hash)
-      raise ArgumentError, "wrong number of arguments (3 for 1..2)" unless options
+      raise ArgumentError, 'wrong number of arguments (3 for 1..2)' unless options
     end
 
     if mode
@@ -676,7 +676,7 @@ class IO
       end
 
       if mode
-        raise ArgumentError, "mode specified twice" if optmode
+        raise ArgumentError, 'mode specified twice' if optmode
       else
         mode = optmode
       end
@@ -685,8 +685,8 @@ class IO
     end
 
     if mode.kind_of?(String)
-      mode, external, internal = mode.split(":")
-      raise ArgumentError, "invalid access mode" unless mode
+      mode, external, internal = mode.split(':')
+      raise ArgumentError, 'invalid access mode' unless mode
 
       binary = true  if mode[1] === ?b
       binary = false if mode[1] === ?t
@@ -696,20 +696,20 @@ class IO
 
     if options
       if options[:textmode] and options[:binmode]
-        raise ArgumentError, "both textmode and binmode specified"
+        raise ArgumentError, 'both textmode and binmode specified'
       end
 
       if binary.nil?
         binary = options[:binmode]
       elsif options.key?(:textmode) or options.key?(:binmode)
-        raise ArgumentError, "text/binary mode specified twice"
+        raise ArgumentError, 'text/binary mode specified twice'
       end
 
       if !external and !internal
         external = options[:external_encoding]
         internal = options[:internal_encoding]
       elsif options[:external_encoding] or options[:internal_encoding] or options[:encoding]
-        raise ArgumentError, "encoding specified twice"
+        raise ArgumentError, 'encoding specified twice'
       end
 
       if !external and !internal
@@ -772,7 +772,7 @@ class IO
     when ?t
       ret &= ~BINARY
     when ?:
-      warn("encoding options not supported in 1.8")
+      warn('encoding options not supported in 1.8')
       return ret
     else
       raise ArgumentError, "invalid mode -- #{mode}"
@@ -789,7 +789,7 @@ class IO
     when ?t
       ret &= ~BINARY
     when ?:
-      warn("encoding options not supported in 1.8")
+      warn('encoding options not supported in 1.8')
       return ret
     else
       raise ArgumentError, "invalid mode -- #{mode}"
@@ -842,7 +842,7 @@ class IO
     end
 
     cmd, mode = args
-    mode ||= "r"
+    mode ||= 'r'
 
     if cmd.kind_of? Array
       if sub_env = Rubinius::Type.try_convert(cmd.first, Hash, :to_hash)
@@ -890,13 +890,13 @@ class IO
     elsif writable
       pipe = pa_write
     else
-      raise ArgumentError, "IO is neither readable nor writable"
+      raise ArgumentError, 'IO is neither readable nor writable'
     end
 
     pipe.binmode if binary
     pipe.set_encoding(external || Encoding.default_external, internal)
 
-    if cmd == "-"
+    if cmd == '-'
       pid = Rubinius::Mirror::Process.fork
 
       if !pid
@@ -986,7 +986,7 @@ class IO
   def self.select(readables=nil, writables=nil, errorables=nil, timeout=nil)
     if timeout
       unless Rubinius::Type.object_kind_of? timeout, Numeric
-        raise TypeError, "Timeout must be numeric"
+        raise TypeError, 'Timeout must be numeric'
       end
 
       raise ArgumentError, 'timeout must be positive' if timeout < 0
@@ -999,12 +999,12 @@ class IO
       readables =
         Rubinius::Type.coerce_to(readables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
+            raise IOError, 'closed stream' if obj.closed?
             return [[obj],[],[]] unless obj.buffer_empty?
             obj
           else
             io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
+            raise IOError, 'closed stream' if io.closed?
             [obj, io]
           end
         end
@@ -1014,11 +1014,11 @@ class IO
       writables =
         Rubinius::Type.coerce_to(writables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
+            raise IOError, 'closed stream' if obj.closed?
             obj
           else
             io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
+            raise IOError, 'closed stream' if io.closed?
             [obj, io]
           end
         end
@@ -1028,11 +1028,11 @@ class IO
       errorables =
         Rubinius::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
           if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
+            raise IOError, 'closed stream' if obj.closed?
             obj
           else
             io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
+            raise IOError, 'closed stream' if io.closed?
             [obj, io]
           end
         end
@@ -1046,7 +1046,7 @@ class IO
   #  IO.sysopen("testfile")   #=> 3
   def self.sysopen(path, mode = nil, perm = nil)
     path = Rubinius::Type.coerce_to_path path
-    mode = parse_mode(mode || "r")
+    mode = parse_mode(mode || 'r')
     perm ||= 0666
 
     Truffle.invoke_primitive :io_open, path, mode, perm
@@ -1147,8 +1147,8 @@ class IO
   end
 
   def advise(advice, offset = 0, len = 0)
-    raise IOError, "stream is closed" if closed?
-    raise TypeError, "advice must be a Symbol" unless advice.kind_of?(Symbol)
+    raise IOError, 'stream is closed' if closed?
+    raise TypeError, 'advice must be a Symbol' unless advice.kind_of?(Symbol)
 
     if offset.kind_of?(Bignum) || len.kind_of?(Bignum)
       raise RangeError, "bignum too big to convert into `long'"
@@ -1162,7 +1162,7 @@ class IO
     len = Rubinius::Type.coerce_to len, Integer, :to_int
 
     # Truffle.invoke_primitive :io_advise, self, advice, offset, len
-    raise "IO#advise not implemented"
+    raise 'IO#advise not implemented'
     nil
   end
 
@@ -1314,7 +1314,7 @@ class IO
 
     # method A, D
     def read_to_separator
-      str = ""
+      str = ''
 
       until @buffer.exhausted?
         available = @buffer.fill_from @io, @skip
@@ -1331,7 +1331,7 @@ class IO
 
           yield str
 
-          str = ""
+          str = ''
         else
           str << @buffer.shift
         end
@@ -1348,7 +1348,7 @@ class IO
 
     # method B, E
     def read_to_separator_with_limit
-      str = ""
+      str = ''
 
       #TODO: implement ignoring encoding with negative limit
       wanted = limit = @limit.abs
@@ -1369,7 +1369,7 @@ class IO
 
           yield str
 
-          str = ""
+          str = ''
           wanted = limit
         else
           if wanted < available
@@ -1383,7 +1383,7 @@ class IO
 
             yield str
 
-            str = ""
+            str = ''
             wanted = limit
           else
             str << @buffer.shift
@@ -1402,7 +1402,7 @@ class IO
 
     # Method G
     def read_all
-      str = ""
+      str = ''
       until @buffer.exhausted?
         @buffer.fill_from @io
         str << @buffer.shift
@@ -1418,7 +1418,7 @@ class IO
 
     # Method H
     def read_to_limit
-      str = ""
+      str = ''
       wanted = limit = @limit.abs
 
       until @buffer.exhausted?
@@ -1432,7 +1432,7 @@ class IO
           $. = @io.increment_lineno
           yield str
 
-          str = ""
+          str = ''
           wanted = limit
         else
           str << @buffer.shift
@@ -1575,13 +1575,13 @@ class IO
   private def ensure_open_and_readable
     ensure_open
     write_only = @mode & ACCMODE == WRONLY
-    raise IOError, "not opened for reading" if write_only
+    raise IOError, 'not opened for reading' if write_only
   end
 
   private def ensure_open_and_writable
     ensure_open
     read_only = @mode & ACCMODE == RDONLY
-    raise IOError, "not opened for writing" if read_only
+    raise IOError, 'not opened for writing' if read_only
   end
 
   def external_encoding
@@ -1604,7 +1604,7 @@ class IO
     elsif arg == true
       arg = 1
     elsif arg.kind_of? String
-      raise NotImplementedError, "cannot handle String"
+      raise NotImplementedError, 'cannot handle String'
     else
       arg = Rubinius::Type.coerce_to arg, Fixnum, :to_int
     end
@@ -1862,9 +1862,9 @@ class IO
     else
       args.each do |arg|
         if arg.equal? nil
-          str = ""
+          str = ''
         elsif Thread.guarding? arg
-          str = "[...]"
+          str = '[...]'
         elsif arg.kind_of?(Array)
           Thread.recursion_guard arg do
             arg.each do |a|
@@ -1909,7 +1909,7 @@ class IO
       return nil
     end
 
-    str = ""
+    str = ''
     needed = length
     while needed > 0 and not @ibuffer.exhausted?
       available = @ibuffer.fill_from self
@@ -1937,7 +1937,7 @@ class IO
   # Reads all input until +#eof?+ is true. Returns the input read.
   # If the buffer is already exhausted, returns +""+.
   private def read_all
-    str = ""
+    str = ''
     until @ibuffer.exhausted?
       @ibuffer.fill_from self
       str << @ibuffer.shift
@@ -1961,7 +1961,7 @@ class IO
   # If the read buffer is not empty, read_nonblock reads from the
   # buffer like readpartial. In this case, read(2) is not called.
   def read_nonblock(size, buffer = nil, exception: true)
-    raise ArgumentError, "illegal read size" if size < 0
+    raise ArgumentError, 'illegal read size' if size < 0
     ensure_open
 
     buffer = StringValue buffer if buffer
@@ -1975,14 +1975,14 @@ class IO
       str
     else
       if exception
-        raise EOFError, "stream closed"
+        raise EOFError, 'stream closed'
       else
         nil
       end
     end
   rescue EAGAINWaitReadable, Errno::EWOULDBLOCK, Errno::EAGAIN
     if exception
-      raise EAGAINWaitReadable, "read would block"
+      raise EAGAINWaitReadable, 'read would block'
     else
       :wait_readable
     end
@@ -1998,8 +1998,8 @@ class IO
 
   def readbyte
     byte = getbyte
-    raise EOFError, "end of file reached" unless byte
-    raise EOFError, "end of file" unless bytes
+    raise EOFError, 'end of file reached' unless byte
+    raise EOFError, 'end of file' unless bytes
     byte
   end
 
@@ -2007,7 +2007,7 @@ class IO
   # Reads a line as with IO#gets, but raises an EOFError on end of file.
   def readline(sep=$/)
     out = gets(sep)
-    raise EOFError, "end of file" unless out
+    raise EOFError, 'end of file' unless out
     out
   end
 
@@ -2100,7 +2100,7 @@ class IO
       buffer.replace(data)
       buffer
     else
-      return "" if size == 0
+      return '' if size == 0
 
       if @ibuffer.size > 0
         return @ibuffer.shift(size)
@@ -2129,7 +2129,7 @@ class IO
       else
         io = other.to_io
         unless io.kind_of? IO
-          raise TypeError, "#to_io must return an instance of IO"
+          raise TypeError, '#to_io must return an instance of IO'
         end
       end
 
@@ -2231,7 +2231,7 @@ class IO
     end
 
     if @external.nil? and not external.nil?
-      if index = external.index(":")
+      if index = external.index(':')
         internal = external[index+1..-1]
         external = external[0, index]
       end
@@ -2266,7 +2266,7 @@ class IO
     end
 
     if internal.kind_of? String
-      return self if internal == "-"
+      return self if internal == '-'
       internal = Encoding.find internal
     end
 
@@ -2291,7 +2291,7 @@ class IO
         if b3 == 0xFE
           b4 = getbyte
           if b4 == 0xFF
-            return "UTF-32BE"
+            return 'UTF-32BE'
           end
           ungetbyte b4
         end
@@ -2306,12 +2306,12 @@ class IO
         if b3 == 0x00
           b4 = getbyte
           if b4 == 0x00
-            return "UTF-32LE"
+            return 'UTF-32LE'
           end
           ungetbyte b4
         else
           ungetbyte b3
-          return "UTF-16LE"
+          return 'UTF-16LE'
         end
         ungetbyte b3
       end
@@ -2320,7 +2320,7 @@ class IO
     when 0xFE
       b2 = getbyte
       if b2 == 0xFF
-        return "UTF-16BE"
+        return 'UTF-16BE'
       end
       ungetbyte b2
 
@@ -2329,7 +2329,7 @@ class IO
       if b2 == 0xBB
         b3 = getbyte
         if b3 == 0xBF
-          return "UTF-8"
+          return 'UTF-8'
         end
         ungetbyte b3
       end

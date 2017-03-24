@@ -23,7 +23,7 @@ begin
     end
 
     def inspect
-      s = "[" + self.map(&:to_s).join(", ") + "]"
+      s = '[' + self.map(&:to_s).join(', ') + ']'
     end
 
     def to_ary
@@ -51,7 +51,7 @@ begin
 
     def [](*dimensions)
       dimensions.each do |d|
-        raise TypeError, "Array dimension must be an integer" unless d.kind_of?(Fixnum)
+        raise TypeError, 'Array dimension must be an integer' unless d.kind_of?(Fixnum)
         dims << d
       end
       self

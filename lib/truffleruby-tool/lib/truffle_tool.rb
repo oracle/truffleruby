@@ -175,16 +175,16 @@ class TruffleTool
   module GemfileLookUp
     def self.default_gemfile
       gemfile = find_gemfile
-      raise "Could not locate Gemfile" unless gemfile
+      raise 'Could not locate Gemfile' unless gemfile
       Pathname.new(gemfile).untaint
     end
 
     private
 
     def find_gemfile
-      given = ENV["BUNDLE_GEMFILE"]
+      given = ENV['BUNDLE_GEMFILE']
       return given if given && !given.empty?
-      find_file("Gemfile", "gems.rb")
+      find_file('Gemfile', 'gems.rb')
     end
 
     def find_file(*names)
@@ -198,9 +198,9 @@ class TruffleTool
       current  = File.expand_path(Pathname.pwd).untaint
 
       until !File.directory?(current) || current == previous
-        if ENV["BUNDLE_SPEC_RUN"]
+        if ENV['BUNDLE_SPEC_RUN']
           # avoid stepping above the tmp directory when testing
-          return nil if File.file?(File.join(current, "bundler.gemspec"))
+          return nil if File.file?(File.join(current, 'bundler.gemspec'))
         end
 
         names.each do |name|
@@ -208,7 +208,7 @@ class TruffleTool
           yield filename
         end
         previous = current
-        current  = File.expand_path("..", current)
+        current  = File.expand_path('..', current)
       end
     end
 
@@ -898,7 +898,7 @@ class TruffleTool
 
     def git_tags
       tags = Dir.chdir(repository_dir) { `git tag -l`.lines }
-      raise "fetching tags failed" if !$?.success?
+      raise 'fetching tags failed' if !$?.success?
       tags
     end
 
