@@ -659,7 +659,7 @@ class TruffleTool
 
     core_load_path = jruby_path.join 'truffleruby/src/main/ruby'
 
-    missing_core_load_path = !File.exists?(core_load_path)
+    missing_core_load_path = !File.exist?(core_load_path)
     log "Core load path: #{core_load_path} does not exist, fallbacking to --no-use-fs-core" if missing_core_load_path
 
     truffle_options = [
@@ -955,7 +955,7 @@ class TruffleTool
 
     def delete_gemfile_lock!
       path = repository_dir.join('Gemfile.lock')
-      FileUtils.rm path if File.exists? path
+      FileUtils.rm path if File.exist? path
     end
 
   end

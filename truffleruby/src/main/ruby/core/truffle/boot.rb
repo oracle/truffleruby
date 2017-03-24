@@ -31,17 +31,17 @@ module Truffle
     def self.find_s_file
       name = original_input_file
 
-      return name if File.exists?(name)
+      return name if File.exist?(name)
 
       name_in_ruby_home_lib = "#{RbConfig::CONFIG['libdir']}/bin/#{name}"
-      return name_in_ruby_home_lib if File.exists?(name_in_ruby_home_lib)
+      return name_in_ruby_home_lib if File.exist?(name_in_ruby_home_lib)
 
       name_in_ruby_home_bin = "#{RbConfig::CONFIG['bindir']}/#{name}"
-      return name_in_ruby_home_bin if File.exists?(name_in_ruby_home_bin)
+      return name_in_ruby_home_bin if File.exist?(name_in_ruby_home_bin)
 
       ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
         name_in_path = "#{path}/#{name}"
-        return name_in_path if File.exists?(name_in_path)
+        return name_in_path if File.exist?(name_in_path)
       end
 
       raise LoadError.new("No such file or directory -- #{name}")

@@ -18,6 +18,11 @@ AllCops:
     - 'truffleruby/target/classes/**/*'
     - 'mxbuild/**/*'
 
+# Supports --auto-correct
+Lint/DeprecatedClassMethods:
+  Description: Check for deprecated class method calls.
+  Enabled: true
+
 Lint/LiteralInCondition:
   Description: Checks of literals used in conditions.
   Enabled: true
