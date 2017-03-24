@@ -987,122 +987,28 @@ class String
 
   def gsub(pattern, replacement=undefined, &block)
     s = dup
-    ret = s.gsub!(pattern, replacement, &block)
-    Truffle.invoke_primitive(:regexp_set_last_match, $~)
-    ret || s
+    if undefined.equal?(replacement) && !block_given?
+      return s.to_enum(:gsub, pattern, replacement)
+    end
+    (ret, match_data) = Truffle::StringOps.gsub_internal(s, pattern, replacement, &block)
+    Truffle.invoke_primitive(:regexp_set_last_match, match_data)
+    s.replace(ret) if ret
+    s
   end
 
   def gsub!(pattern, replacement=undefined, &block)
-    # Because of the behavior of $~, this is duplicated from gsub! because
-    # if we call gsub! from gsub, the last_match can't be updated properly.
-
-    unless valid_encoding?
-      raise ArgumentError, "invalid byte sequence in #{encoding}"
+    if undefined.equal?(replacement) && !block_given?
+      return to_enum(:gsub!, pattern, replacement)
     end
-
-    if undefined.equal? replacement
-      unless block_given?
-        return to_enum(:gsub, pattern, replacement)
-      end
-      Truffle.check_frozen
-      use_yield = true
-      tainted = false
+    Truffle.check_frozen
+    (ret, match_data) = Truffle::StringOps.gsub_internal(self, pattern, replacement, &block)
+    Truffle.invoke_primitive(:regexp_set_last_match, match_data)
+    replace(ret) if ret
+    if ret
+      self
     else
-      Truffle.check_frozen
-      tainted = replacement.tainted?
-      untrusted = replacement.untrusted?
-
-      unless replacement.kind_of?(String)
-        hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
-        replacement = StringValue(replacement) unless hash
-        tainted ||= replacement.tainted?
-        untrusted ||= replacement.untrusted?
-      end
-      use_yield = false
+      nil
     end
-
-    pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
-    match = pattern.search_region(self, 0, bytesize, true)
-
-    Regexp.set_block_last_match(block, match) if block_given?
-
-    unless match
-      Truffle.invoke_primitive(:regexp_set_last_match, nil)
-      return nil
-    end
-
-    duped = dup
-
-    last_end = 0
-    offset = nil
-
-    last_match = nil
-
-    ret = byteslice(0, 0) # Empty string and string subclass
-    offset = match.byte_begin(0)
-
-    while match
-      if str = match.pre_match_from(last_end)
-        ret.append str
-      end
-
-      if use_yield || hash
-        Truffle.invoke_primitive(:regexp_set_last_match, match)
-
-        if use_yield
-          val = yield match.to_s
-        else
-          val = hash[match.to_s]
-        end
-        untrusted = true if val.untrusted?
-        val = val.to_s unless val.kind_of?(String)
-
-        tainted ||= val.tainted?
-
-        ret.append val
-
-        if duped != dup
-          raise RuntimeError, "string modified"
-        end
-      else
-        replacement.to_sub_replacement(ret, match)
-      end
-
-      tainted ||= val.tainted?
-
-      last_end = match.byte_end(0)
-
-      if match.collapsing?
-        if char = find_character(offset)
-          offset += char.bytesize
-        else
-          offset += 1
-        end
-      else
-        offset = match.byte_end(0)
-      end
-
-      last_match = match
-
-      match = pattern.match_from self, offset
-      Regexp.set_block_last_match(block, match) if block_given?
-      break unless match
-
-      offset = match.byte_begin(0)
-    end
-
-    Truffle.invoke_primitive(:regexp_set_last_match, last_match)
-
-    str = byteslice(last_end, bytesize-last_end+1)
-    if str
-      ret.append str
-    end
-
-    ret.taint if tainted
-    ret.untrust if untrusted
-
-    replace(ret)
-    self
   end
 
   def match(pattern, pos=0)

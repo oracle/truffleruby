@@ -1603,6 +1603,7 @@ public class CoreLibrary {
             "/core/truffle/support.rb",
             "/core/truffle/boot.rb",
             "/core/truffle/debug.rb",
+            "/core/truffle/string_ops.rb",
             "/core/io.rb",
             "/core/immediate.rb",
             "/core/string_mirror.rb",
