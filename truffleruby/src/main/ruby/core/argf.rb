@@ -232,7 +232,7 @@ module Rubinius
     end
 
     def getbyte
-      while true
+      while true # rubocop:disable Lint/LiteralInCondition
         return nil unless advance!
         if val = @stream.getbyte
           return val
@@ -251,7 +251,7 @@ module Rubinius
     # reading from a file, the stream is closed.
     #
     def getc
-      while true
+      while true # rubocop:disable Lint/LiteralInCondition
         return nil unless advance!
         if val = @stream.getc
           return val
@@ -273,7 +273,7 @@ module Rubinius
     # and updates $. accordingly.
     #
     def gets(sep=$/)
-      while true
+      while true # rubocop:disable Lint/LiteralInCondition
         return nil unless advance!
         line = @stream.gets(sep)
 

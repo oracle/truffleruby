@@ -513,7 +513,7 @@ module Enumerable
         i += 1
       end
     else
-      while true
+      while true # rubocop:disable Lint/LiteralInCondition
         cache.each { |o| yield o }
       end
     end

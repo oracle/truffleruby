@@ -18,6 +18,12 @@ AllCops:
     - 'truffleruby/target/classes/**/*'
     - 'mxbuild/**/*'
 
+Lint/LiteralInCondition:
+  Description: Checks of literals used in conditions.
+  Enabled: true
+  Exclude:
+  - lib/truffle/java/java_ext/*.rb
+
 Style/IndentationWidth:
   Enabled: true
 

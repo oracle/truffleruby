@@ -343,7 +343,7 @@ module Kernel
 
     result = nil
     begin
-      while true
+      while true # rubocop:disable Lint/LiteralInCondition
         yield
       end
     rescue StopIteration => si

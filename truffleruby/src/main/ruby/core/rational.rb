@@ -230,7 +230,7 @@ class Rational < Numeric
     q0 = 1
     q1 = 0
 
-    while true
+    while true # rubocop:disable Lint/LiteralInCondition
       c = a.ceil
 
       break if c < b

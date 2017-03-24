@@ -331,7 +331,7 @@ class Array
 
     # Don't use nil? because, historically, lame code has overridden that method
     if n.equal? nil
-      while true
+      while true # rubocop:disable Lint/LiteralInCondition
         each { |x| yield x }
       end
     else
@@ -1037,7 +1037,7 @@ class Array
           spin = false
           spin_count = 0
 
-          while true
+          while true # rubocop:disable Lint/LiteralInCondition
             j = 0
             while j < i
               if k == result[j]
