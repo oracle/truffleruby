@@ -14,9 +14,9 @@ Examples:
 Use a Ruby manager to switch to TruffleRuby e.g. `rbenv shell truffleruby`, 
 see [Configuring Ruby managers](ruby-managers.md).
 
-**Note:** Bundler `1.14.x` is not yet supported, please use 1.13 in the meanwhile.
+**Note:** Only bundler `1.14.x` is supported.
 
-    gem install bundler --version 1.13.7
+    gem install bundler --version 1.14.6
 
 `install`, `update`, and `exec` work as expected.
 

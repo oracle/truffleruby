@@ -1,7 +1,5 @@
 # TruffleRuby: Use curl in bundler downloader for https requests
 
-require "openssl-stubs"
-
 module Bundler
   class Fetcher
     class Downloader
