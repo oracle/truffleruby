@@ -1,5 +1,7 @@
+require 'pathname'
+
 module Truffle::Patching
-  DIR     = "#{Truffle::Boot.ruby_home}/lib/patches"
+  DIR     = Pathname(Truffle::Boot.ruby_home).join("lib/patches")
   # Allowed operations are: :before, :after, :instead, :ignore
   PATCHES = { "bundler"                                 => :before,
               "bundler/version"                         => :after,
@@ -25,32 +27,32 @@ module Truffle::Patching
   }
 
   PATCHES.each do |file, _|
-    unless File.exist? File.join(DIR, file) + '.rb'
+    unless DIR.join(file).sub_ext('.rb').exist?
       raise "file #{file} is missing in #{DIR}"
     end
   end
 
-  Dir["#{DIR}/**/*.rb"].each do |file|
-    relative_path = file[(DIR.size + 1)..-4]
-    unless PATCHES.key? relative_path
+  Pathname.glob(DIR.join("**/*.rb")) do |file|
+    relative_path = file.relative_path_from(DIR).sub_ext("")
+    unless PATCHES.key? relative_path.to_s
       raise "file #{relative_path} is not declared in PATCHES"
     end
   end
 
   def self.find_absolute_path(relative_path)
     $LOAD_PATH.each do |base|
-      candidate = File.join(base, relative_path) + '.rb'
-      return candidate if File.exist? candidate
+      candidate = Pathname(base).join(relative_path).sub_ext(".rb")
+      return candidate if candidate.exist?
     end
     raise "absolute path for #{relative_path} was not found in #{$LOAD_PATH}"
   end
 
   def self.find_relative_path(absolute_path)
-    return nil unless File.exist? absolute_path
+    return nil unless absolute_path.exist?
 
     $LOAD_PATH.each do |base|
-      if absolute_path.start_with?(base)
-        return File.basename absolute_path[(base.size)..-1], '.*'
+      if absolute_path.to_s.start_with?(base)
+        return absolute_path.relative_path_from(Pathname(base)).sub_ext("")
       end
     end
 
@@ -58,7 +60,7 @@ module Truffle::Patching
   end
 
   def self.required?(relative_path)
-    $LOADED_FEATURES.include? find_absolute_path relative_path
+    $LOADED_FEATURES.include? find_absolute_path(relative_path).to_s
   end
 end
 
@@ -69,47 +71,47 @@ module Kernel
   alias_method :require_without_truffle_patching, :gem_original_require
 
   def gem_original_require(path)
-    path           = Rubinius::Type.coerce_to path, String, :to_str
-    extname        = File.extname path
-    path_no_suffix = path[0..(-1-extname.size)]
-    relative_path  = if path_no_suffix.start_with?('/')
-                       Truffle::Patching.find_relative_path path_no_suffix + '.rb'
+    path           = Pathname(Rubinius::Type.coerce_to(path, String, :to_str))
+    path_no_suffix = path.sub_ext ""
+    relative_path  = if path_no_suffix.absolute?
+                       Truffle::Patching.find_relative_path path_no_suffix.sub_ext('.rb')
                      else
                        path_no_suffix
                      end
 
-    operation = Truffle::Patching::PATCHES[relative_path]
+    operation = Truffle::Patching::PATCHES[relative_path.to_s]
 
     # not patched requiring normally
     return require_without_truffle_patching path if operation.nil?
 
     # apply patch based on operation
-    log = -> { Truffle::System.log :PATCH, "#{operation} original require '#{path}'" }
+    log                 = -> { Truffle::System.log :PATCH, "#{operation} original require '#{path}'" }
+    absolute_patch_path = Truffle::Patching::DIR.join(path_no_suffix).sub_ext(".rb")
     case operation
     when :after
-      require_without_truffle_patching(path).tap do |required|
+      require_without_truffle_patching(path.to_s).tap do |required|
         if required
           log.call
-          require_without_truffle_patching "#{Truffle::Patching::DIR}/#{path_no_suffix}.rb"
+          require_without_truffle_patching absolute_patch_path.to_s
         end
       end
     when :before
       if Truffle::Patching.required? relative_path
-        result = require_without_truffle_patching path
+        result = require_without_truffle_patching path.to_s
         raise 'should be already loaded' if result
         result
       else
         log.call
-        require_without_truffle_patching "#{Truffle::Patching::DIR}/#{path_no_suffix}.rb"
-        require_without_truffle_patching path
+        require_without_truffle_patching absolute_patch_path.to_s
+        require_without_truffle_patching path.to_s
       end
     when :instead
       log.call
-      require_without_truffle_patching "#{Truffle::Patching::DIR}/#{path_no_suffix}.rb"
+      require_without_truffle_patching absolute_patch_path.to_s
     when :ignored
-      require_without_truffle_patching path
+      require_without_truffle_patching path.to_s
     else
-      raise "unrecognised operation #{operation} for #{relative_path}"
+      raise "unrecognized operation #{operation} for #{relative_path}"
     end
   end
 end
