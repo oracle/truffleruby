@@ -325,7 +325,7 @@ class Complex < Numeric
   end
 
   def inspect
-    "(#{to_s})"
+    "(#{self})"
   end
 
   def fdiv(other)

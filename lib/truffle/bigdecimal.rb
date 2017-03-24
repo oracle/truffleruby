@@ -256,7 +256,7 @@ class Truffle::BigDecimal < Numeric
     # TODO (pitr 30-jun-2015): increase density
     _sig, max_sig = precs
     str = to_s
-    "#{max_sig}:#{to_s}".force_encoding(str.encoding)
+    "#{max_sig}:#{self}".force_encoding(str.encoding)
   end
 
   def self._load(data)

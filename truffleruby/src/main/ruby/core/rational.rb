@@ -215,7 +215,7 @@ class Rational < Numeric
   end
 
   def inspect
-    "(#{to_s})"
+    "(#{self})"
   end
 
   def rationalize(eps = undefined)
@@ -282,7 +282,7 @@ class Rational < Numeric
   end
 
   def to_s
-    "#{@numerator.to_s}/#{@denominator.to_s}"
+    "#{@numerator}/#{@denominator}"
   end
 
   def truncate(precision = 0)

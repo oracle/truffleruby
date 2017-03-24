@@ -72,6 +72,12 @@ Lint/ShadowedException:
   Enabled: true
 
 # Supports --auto-correct
+Lint/StringConversionInInterpolation:
+  Description: Checks for Object#to_s usage in string interpolation.
+  StyleGuide: "#no-to-s"
+  Enabled: true
+
+# Supports --auto-correct
 Lint/UnusedBlockArgument:
   Description: Checks for unused block arguments.
   StyleGuide: "#underscore-unused-vars"

@@ -688,7 +688,7 @@ module Process
     end
 
     def inspect
-      "#<Process::Status: #{to_s}>"
+      "#<Process::Status: #{self}>"
     end
   end
 
