@@ -43,7 +43,7 @@ module Readline
     vi_editing_mode?
     set_screen_size
   ].each do |method_name|
-    define_method(method_name) do |*args|
+    define_method(method_name) do |*_args|
       raise "function Readline.#{method_name}() is unimplemented on this machine"
     end
   end

@@ -326,21 +326,21 @@ class Hash
 
     Truffle.check_frozen
 
-    select(&block).each { |k, v| delete k }
+    select(&block).each { |k, _v| delete k }
     self
   end
 
   def each_key
     return to_enum(:each_key) { size } unless block_given?
 
-    each_pair { |key,value| yield key }
+    each_pair { |key,_value| yield key }
     self
   end
 
   def each_value
     return to_enum(:each_value) { size } unless block_given?
 
-    each_pair { |key,value| yield value }
+    each_pair { |_key,value| yield value }
     self
   end
 

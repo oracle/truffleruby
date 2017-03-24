@@ -1068,7 +1068,7 @@ class String
 
     if replace
       replace = validate.call(replace)
-      replace_block = Proc.new { |broken| replace }
+      replace_block = Proc.new { |_broken| replace }
     else
       replace_block = Proc.new { |broken|
         validate.call(block.call(broken))

@@ -93,7 +93,7 @@ module Rubinius
     def each_value
       return to_enum(:each_value) { size } unless block_given?
 
-      each { |k, v| yield v }
+      each { |_k, v| yield v }
     end
 
     def delete(key)
@@ -175,14 +175,14 @@ module Rubinius
     def clear
       # Avoid deleting from the environment while iterating.
       keys = []
-      each { |k, v| keys << k }
+      each { |k, _v| keys << k }
       keys.each { |k| delete k }
 
       self
     end
 
     def has_value?(value)
-      each { |k, v| return true if v == value }
+      each { |_k, v| return true if v == value }
       false
     end
 
@@ -209,13 +209,13 @@ module Rubinius
 
     def keys
       keys = []
-      each { |k, v| keys << k }
+      each { |k, _v| keys << k }
       keys
     end
 
     def values
       vals = []
-      each { |k, v| vals << v }
+      each { |_k, v| vals << v }
       vals
     end
 
@@ -226,7 +226,7 @@ module Rubinius
 
     def length
       sz = 0
-      each { |k, v| sz += 1 }
+      each { |_k, _v| sz += 1 }
       sz
     end
 

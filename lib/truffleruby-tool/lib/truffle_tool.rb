@@ -123,7 +123,7 @@ class TruffleTool
     def deep_merge2!(a, b)
       if Hash === a
         if Hash === b
-          return a.merge!(b) { |k, ov, nv| deep_merge2! ov, nv }
+          return a.merge!(b) { |_k, ov, nv| deep_merge2! ov, nv }
         else
           return a
         end
@@ -143,7 +143,7 @@ class TruffleTool
     def deep_merge2(a, b)
       if Hash === a
         if Hash === b
-          return a.merge(b) { |k, ov, nv| deep_merge2 ov, nv }
+          return a.merge(b) { |_k, ov, nv| deep_merge2 ov, nv }
         else
           return a
         end
@@ -229,8 +229,8 @@ class TruffleTool
   TRUFFLERUBY_BIN   = TRUFFLERUBY_PATH.join('bin', 'truffleruby')
 
   module OptionBlocks
-    STORE_NEW_VALUE         = -> (new, old, _) { new }
-    STORE_NEW_NEGATED_VALUE = -> (new, old, _) { !new }
+    STORE_NEW_VALUE         = -> (new, _old, _) { new }
+    STORE_NEW_NEGATED_VALUE = -> (new, _old, _) { !new }
     ADD_TO_ARRAY            = -> (new, old, _) { old << new }
     MERGE_TO_HASH           = -> ((k, v), old, _) { old.merge k => v }
   end
@@ -317,7 +317,7 @@ class TruffleTool
         clean:  { help: ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false] },
 
         readme: { help: ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false] }
-    }.each { |group, options| options.each { |name, definition| definition.last.freeze } }
+    }.each { |_group, options| options.each { |_name, definition| definition.last.freeze } }
   end
 
   begin
@@ -822,7 +822,7 @@ class TruffleTool
       @option_parser.banner = "\nUsage: #{EXECUTABLE} [options] ci [subcommand-options] #{gem_name} [options-declared-in-CI-definition]\n\n"
       @option_parsed        = false
 
-      declare_options parse_options: false, help: ['-h', '--help', 'Show this message', -> (new, old, _) { puts option_parser; exit }, false]
+      declare_options parse_options: false, help: ['-h', '--help', 'Show this message', -> (_new, _old, _) { puts option_parser; exit }, false]
 
       (definition && do_definition(definition)) ||
           do_definition(gem_name) ||

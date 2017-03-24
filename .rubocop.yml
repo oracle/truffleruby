@@ -44,6 +44,14 @@ Lint/ShadowedException:
   Description: Avoid rescuing a higher level exception before a lower level exception.
   Enabled: true
 
+# Supports --auto-correct
+Lint/UnusedBlockArgument:
+  Description: Checks for unused block arguments.
+  StyleGuide: "#underscore-unused-vars"
+  Enabled: true
+  IgnoreEmptyBlocks: true
+  AllowUnusedKeywordArguments: false
+
 Lint/UselessAssignment:
   Description: Checks for useless assignment to a local variable.
   StyleGuide: "#underscore-unused-vars"

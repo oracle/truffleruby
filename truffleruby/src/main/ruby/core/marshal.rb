@@ -666,7 +666,7 @@ module Marshal
         end
       end
 
-      construct_integer.times do |i|
+      construct_integer.times do |_i|
         obj.__append__ construct
       end
 

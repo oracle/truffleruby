@@ -488,7 +488,7 @@ class Encoding
 
   def self.aliases
     aliases = {}
-    EncodingMap.each do |n, r|
+    EncodingMap.each do |_n, r|
       index = r.last
       next unless index
 
@@ -553,7 +553,7 @@ class Encoding
   end
 
   def self.name_list
-    EncodingMap.map do |n, r|
+    EncodingMap.map do |_n, r|
       index = r.last
       r.first or (index and Truffle.invoke_primitive(:encoding_get_encoding_by_index, index).name)
     end
@@ -566,7 +566,7 @@ class Encoding
   def names
     entry = EncodingMap[name.upcase.to_sym]
     names = [name]
-    EncodingMap.each do |k, r|
+    EncodingMap.each do |_k, r|
       aname = r.first
       names << aname if aname and r.last == entry.last
     end
