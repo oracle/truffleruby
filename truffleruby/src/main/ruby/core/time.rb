@@ -50,10 +50,6 @@ class Time
     raise ArgumentError, 'descriptors reference invalid time'
   end
 
-  def dup
-    self.class.duplicate(self)
-  end
-
   def seconds
     Truffle.primitive :time_seconds
     raise PrimitiveFailure, 'Time#second primitive failed'

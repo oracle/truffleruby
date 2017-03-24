@@ -33,6 +33,10 @@ Lint/DeprecatedClassMethods:
   Description: Check for deprecated class method calls.
   Enabled: true
 
+Lint/DuplicateMethods:
+  Description: Check for duplicate method definitions.
+  Enabled: true
+
 # Supports --auto-correct
 Lint/EndAlignment:
   Description: Align ends correctly.

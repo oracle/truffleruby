@@ -638,10 +638,6 @@ module Process
       @status
     end
 
-    def to_s
-      @status.to_s
-    end
-
     def &(num)
       @status & num
     end
