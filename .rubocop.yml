@@ -40,6 +40,10 @@ Lint/LiteralInCondition:
   Exclude:
   - lib/truffle/java/java_ext/*.rb
 
+Lint/ShadowedException:
+  Description: Avoid rescuing a higher level exception before a lower level exception.
+  Enabled: true
+
 Style/IndentationWidth:
   Enabled: true
 
