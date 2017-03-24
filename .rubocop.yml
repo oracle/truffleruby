@@ -76,6 +76,10 @@ Lint/NestedMethodDefinition:
   StyleGuide: "#no-nested-methods"
   Enabled: true
 
+Lint/NonLocalExitFromIterator:
+  Description: Do not use return in iterator to cause non-local exit.
+  Enabled: true
+
 Lint/ShadowedException:
   Description: Avoid rescuing a higher level exception before a lower level exception.
   Enabled: true
