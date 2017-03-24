@@ -46,6 +46,7 @@ module Truffle
 
       raise LoadError.new("No such file or directory -- #{name}")
     end
+    private_class_method :find_s_file
 
   end
 end

@@ -45,6 +45,11 @@ Lint/HandleExceptions:
   StyleGuide: "#dont-hide-exceptions"
   Enabled: true
 
+Lint/IneffectiveAccessModifier:
+  Description: Checks for attempts to use `private` or `protected` to set the visibility
+    of a class method, which does not work.
+  Enabled: true
+
 # Supports --auto-correct
 Lint/InheritException:
   Description: Avoid inheriting from the `Exception` class.

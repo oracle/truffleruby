@@ -454,6 +454,29 @@ class TruffleTool
     end
   end
 
+  def self.build_option_parser(parser_options, options_hash, option_parser: OptionParser.new)
+    parser_options.each do |option, data|
+      *args, description, block, default = data
+
+      option_parser.on(*args, description + " (default: #{default.inspect})") do |new_value|
+        old_value            = options_hash[option]
+        options_hash[option] = instance_exec new_value, old_value, options_hash, &block
+      end
+    end
+
+    option_parser
+  end
+
+  def self.default_option_values(group_options)
+    group_options.each_with_object({}) do |(option, data), group_option_defaults|
+      *args, block, default = data
+      unless [TrueClass, FalseClass, NilClass, Fixnum].any? { |v| v === default }
+        default = default.dup
+      end
+      group_option_defaults[option] = default
+    end
+  end
+
   private
 
   def verbose?
@@ -471,19 +494,6 @@ class TruffleTool
     end
 
     option_parsers.each { |key, option_parser| option_parser.banner = HELP[key] }
-  end
-
-  def self.build_option_parser(parser_options, options_hash, option_parser: OptionParser.new)
-    parser_options.each do |option, data|
-      *args, description, block, default = data
-
-      option_parser.on(*args, description + " (default: #{default.inspect})") do |new_value|
-        old_value            = options_hash[option]
-        options_hash[option] = instance_exec new_value, old_value, options_hash, &block
-      end
-    end
-
-    option_parser
   end
 
   def build_option_parser(parser_options, options_hash)
@@ -523,16 +533,6 @@ class TruffleTool
     end
   end
 
-  def self.default_option_values(group_options)
-    group_options.each_with_object({}) do |(option, data), group_option_defaults|
-      *args, block, default = data
-      unless [TrueClass, FalseClass, NilClass, Fixnum].any? { |v| v === default }
-        default = default.dup
-      end
-      group_option_defaults[option] = default
-    end
-  end
-
   def default_option_values(group_options)
     self.class.default_option_values(group_options)
   end
@@ -549,7 +549,7 @@ class TruffleTool
 
   BUNDLER_EVAL_ENV = Object.new
 
-  def BUNDLER_EVAL_ENV.gem(name, options)
+  def BUNDLER_EVAL_ENV.gem(name, options) # rubocop:disable Lint/IneffectiveAccessModifier
     [name, options]
   end
 
@@ -761,6 +761,8 @@ class TruffleTool
   def execute_cmd(cmd, dir: nil, raise: true, print_always: false)
     super cmd, dir: dir, raise: raise, print: verbose? || print_always
   end
+
+  # rubocop:disable Lint/IneffectiveAccessModifier
 
   CONFIGURATIONS = {}
   CI_DEFINITIONS = {}
