@@ -1553,7 +1553,7 @@ class << Truffle::CExt
   end
 
   def rb_call_super(args)
-    rb_call_super_splatted *args
+    rb_call_super_splatted(*args)
   end
 
   def rb_any_to_s(object)

@@ -45,9 +45,9 @@ module Rubinius
   end
 end
 
-ARGV.push *Truffle::Boot.original_argv
+ARGV.push(*Truffle::Boot.original_argv)
 
-$LOAD_PATH.push *Truffle::Boot.original_load_path
+$LOAD_PATH.push(*Truffle::Boot.original_load_path)
 
 ruby_home = Truffle::Boot.ruby_home
 

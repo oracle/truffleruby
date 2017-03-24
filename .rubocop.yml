@@ -18,6 +18,12 @@ AllCops:
     - 'truffleruby/target/classes/**/*'
     - 'mxbuild/**/*'
 
+Lint/AmbiguousOperator:
+  Description: Checks for ambiguous operators in the first argument of a method invocation
+    without parentheses.
+  StyleGuide: "#method-invocation-parens"
+  Enabled: true
+
 # Supports --auto-correct
 Lint/DeprecatedClassMethods:
   Description: Check for deprecated class method calls.

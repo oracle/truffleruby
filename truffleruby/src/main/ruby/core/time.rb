@@ -510,7 +510,7 @@ class Time
     end
 
     # Don't use self.class, MRI doesn't honor subclasses here
-    dup_internal(Time).add_internal! -other_sec, -other_nsec
+    dup_internal(Time).add_internal!(-other_sec, -other_nsec)
   end
 
   def round(places = 0)
