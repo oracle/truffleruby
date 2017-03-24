@@ -274,8 +274,8 @@ class Range
       end
     else
       i = 0
-      each do |curr|
-        yield curr if i % step_size == 0
+      each do |item|
+        yield item if i % step_size == 0
         i += 1
       end
     end

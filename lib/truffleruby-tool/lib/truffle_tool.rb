@@ -113,11 +113,11 @@ class TruffleTool
     end
 
     def deep_merge!(a, b, *rest)
-      [a, b, *rest].reduce { |a, b| deep_merge2! a, b }
+      [a, b, *rest].reduce { |first, second| deep_merge2! first, second }
     end
 
     def deep_merge(a, b, *rest)
-      [a, b, *rest].reduce { |a, b| deep_merge2 a, b }
+      [a, b, *rest].reduce { |first, second| deep_merge2 first, second }
     end
 
     def deep_merge2!(a, b)

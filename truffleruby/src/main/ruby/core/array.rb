@@ -1079,8 +1079,8 @@ class Array
 
       result = Array.new(self)
 
-      count.times do |i|
-        result.swap i, rng.rand(size)
+      count.times do |it|
+        result.swap it, rng.rand(size)
       end
 
       return count == size ? result : result[0, count]
