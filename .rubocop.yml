@@ -17,6 +17,7 @@ AllCops:
     - 'truffleruby/target/classes/**/*'
     - 'mxbuild/**/*'
 
+# Department 'Lint' (58):
 Lint/AmbiguousOperator:
   Description: Checks for ambiguous operators in the first argument of a method invocation
     without parentheses.
@@ -29,13 +30,82 @@ Lint/AmbiguousRegexpLiteral:
   Enabled: true
 
 # Supports --auto-correct
+Lint/BlockAlignment:
+  Description: Align block ends correctly.
+  Enabled: true
+  EnforcedStyleAlignWith: either
+  SupportedStylesAlignWith:
+  - either
+  - start_of_block
+  - start_of_line
+
+Lint/CircularArgumentReference:
+  Description: Default values in optional keyword arguments and optional ordinal arguments
+    should not refer back to the name of the argument.
+  Enabled: true
+
+Lint/ConditionPosition:
+  Description: Checks for condition placed in a confusing position relative to the keyword.
+  StyleGuide: "#same-line-condition"
+  Enabled: true
+
+# Supports --auto-correct
+Lint/Debugger:
+  Description: Check for debugger calls.
+  Enabled: true
+
+# Supports --auto-correct
+Lint/DefEndAlignment:
+  Description: Align ends corresponding to defs correctly.
+  Enabled: true
+  EnforcedStyleAlignWith: start_of_line
+  SupportedStylesAlignWith:
+  - start_of_line
+  - def
+  AutoCorrect: false
+
+# Supports --auto-correct
 Lint/DeprecatedClassMethods:
   Description: Check for deprecated class method calls.
+  Enabled: true
+
+Lint/DuplicateCaseCondition:
+  Description: Do not repeat values in case conditionals.
   Enabled: true
 
 Lint/DuplicateMethods:
   Description: Check for duplicate method definitions.
   Enabled: true
+
+Lint/DuplicatedKey:
+  Description: Check for duplicate keys in hash literals.
+  Enabled: true
+
+Lint/EachWithObjectArgument:
+  Description: Check for immutable argument given to each_with_object.
+  Enabled: true
+
+Lint/ElseLayout:
+  Description: Check for odd code arrangement in an else block.
+  Enabled: true
+
+Lint/EmptyEnsure:
+  Description: Checks for empty ensure block.
+  Enabled: true
+
+Lint/EmptyExpression:
+  Description: Checks for empty expressions.
+  Enabled: true
+
+# Supports --auto-correct
+Lint/EmptyInterpolation:
+  Description: Checks for empty string interpolation.
+  Enabled: true
+
+Lint/EmptyWhen:
+  Description: Checks for `when` branches with empty bodies.
+  # disabled, used quite often
+  Enabled: false
 
 # Supports --auto-correct
 Lint/EndAlignment:
@@ -48,9 +118,31 @@ Lint/EndAlignment:
   - start_of_line
   AutoCorrect: false
 
+Lint/EndInMethod:
+  Description: END blocks should not be placed inside method definitions.
+  Enabled: true
+
+Lint/EnsureReturn:
+  Description: Do not use return in an ensure block.
+  StyleGuide: "#no-return-ensure"
+  Enabled: true
+
+Lint/FloatOutOfRange:
+  Description: Catches floating-point literals too large or small for Ruby to represent.
+  Enabled: true
+
+Lint/FormatParameterMismatch:
+  Description: The number of parameters to format/sprint must match the fields.
+  Enabled: true
+
 Lint/HandleExceptions:
   Description: Don't suppress exception.
   StyleGuide: "#dont-hide-exceptions"
+  Enabled: true
+
+Lint/ImplicitStringConcatenation:
+  Description: Checks for adjacent string literals on the same line, which could better
+    be represented as a single string literal.
   Enabled: true
 
 Lint/IneffectiveAccessModifier:
@@ -69,19 +161,80 @@ Lint/InheritException:
   Exclude:
   - truffleruby/src/main/ruby/core/exception.rb
 
+Lint/InvalidCharacterLiteral:
+  Description: Checks for invalid character literals with a non-escaped whitespace character.
+  Enabled: true
+
 Lint/LiteralInCondition:
   Description: Checks of literals used in conditions.
   Enabled: true
   Exclude:
   - lib/truffle/java/java_ext/*.rb
 
+# Supports --auto-correct
+Lint/LiteralInInterpolation:
+  Description: Checks for literals used in interpolation.
+  Enabled: true
+
+Lint/Loop:
+  Description: Use Kernel#loop with break rather than begin/end/until or begin/end/while
+    for post-loop tests.
+  StyleGuide: "#loop-with-break"
+  # disabled, begin/end/until or begin/end/while seems better alternative to loop and a break
+  Enabled: false
+
+# Supports --auto-correct
+Lint/MultipleCompare:
+  Description: Use `&&` operator to compare multiple value.
+  Enabled: true
+
 Lint/NestedMethodDefinition:
   Description: Do not use nested method definitions.
   StyleGuide: "#no-nested-methods"
   Enabled: true
 
+Lint/NextWithoutAccumulator:
+  Description: Do not omit the accumulator when calling `next` in a `reduce`/`inject`
+    block.
+  Enabled: true
+
 Lint/NonLocalExitFromIterator:
   Description: Do not use return in iterator to cause non-local exit.
+  Enabled: true
+
+Lint/ParenthesesAsGroupedExpression:
+  Description: Checks for method calls with a space before the opening parenthesis.
+  StyleGuide: "#parens-no-spaces"
+  Enabled: true
+
+# Supports --auto-correct
+Lint/PercentStringArray:
+  Description: Checks for unwanted commas and quotes in %w/%W literals.
+  Enabled: true
+
+# Supports --auto-correct
+Lint/PercentSymbolArray:
+  Description: Checks for unwanted commas and colons in %i/%I literals.
+  Enabled: true
+
+Lint/RandOne:
+  Description: Checks for `rand(1)` calls. Such calls always return `0` and most likely
+    a mistake.
+  Enabled: true
+
+Lint/RequireParentheses:
+  Description: Use parentheses in the method call to avoid confusion about precedence.
+  Enabled: true
+
+Lint/RescueException:
+  Description: Avoid rescuing the Exception class.
+  StyleGuide: "#no-blind-rescues"
+  # disabled, used legitimately often
+  Enabled: false
+
+# Supports --auto-correct
+Lint/SafeNavigationChain:
+  Description: Do not chain ordinary method call after safe navigation operator.
   Enabled: true
 
 Lint/ShadowedException:
@@ -104,6 +257,18 @@ Lint/UnderscorePrefixedVariableName:
   Enabled: true
 
 # Supports --auto-correct
+Lint/UnifiedInteger:
+  Description: Use Integer instead of Fixnum or Bignum
+  # disabled, not a 2.4 yet
+  Enabled: false
+
+# Supports --auto-correct
+Lint/UnneededDisable:
+  Description: 'Checks for rubocop:disable comments that can be removed. Note: this
+    cop is not disabled when disabling all cops. It must be explicitly disabled.'
+  Enabled: true
+
+# Supports --auto-correct
 Lint/UnneededSplatExpansion:
   Description: Checks for splat unnecessarily being called on literals
   Enabled: true
@@ -120,6 +285,15 @@ Lint/UnusedBlockArgument:
   IgnoreEmptyBlocks: true
   AllowUnusedKeywordArguments: false
 
+# Supports --auto-correct
+Lint/UnusedMethodArgument:
+  Description: Checks for unused method arguments.
+  StyleGuide: "#underscore-unused-vars"
+  # disabled, used often in primitives
+  Enabled: false
+  AllowUnusedKeywordArguments: false
+  IgnoreEmptyMethods: true
+
 Lint/UselessAccessModifier:
   Description: Checks for useless access modifiers.
   Enabled: true
@@ -130,6 +304,24 @@ Lint/UselessAssignment:
   Description: Checks for useless assignment to a local variable.
   StyleGuide: "#underscore-unused-vars"
   Enabled: true
+
+Lint/UselessComparison:
+  Description: Checks for comparison of something with itself.
+  Enabled: true
+
+Lint/UselessElseWithoutRescue:
+  Description: Checks for useless `else` in `begin..end` without `rescue`.
+  Enabled: true
+
+Lint/UselessSetterCall:
+  Description: Checks for useless setter call to a local variable.
+  Enabled: true
+
+Lint/Void:
+  Description: Possible use of operator/literal/variable in void context.
+  Enabled: true
+
+
 
 Style/IndentationWidth:
   Enabled: true
