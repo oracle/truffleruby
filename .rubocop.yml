@@ -71,6 +71,11 @@ Lint/LiteralInCondition:
   Exclude:
   - lib/truffle/java/java_ext/*.rb
 
+Lint/NestedMethodDefinition:
+  Description: Do not use nested method definitions.
+  StyleGuide: "#no-nested-methods"
+  Enabled: true
+
 Lint/ShadowedException:
   Description: Avoid rescuing a higher level exception before a lower level exception.
   Enabled: true
