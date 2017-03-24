@@ -40,6 +40,11 @@ Lint/EndAlignment:
   - start_of_line
   AutoCorrect: false
 
+Lint/HandleExceptions:
+  Description: Don't suppress exception.
+  StyleGuide: "#dont-hide-exceptions"
+  Enabled: true
+
 Lint/LiteralInCondition:
   Description: Checks of literals used in conditions.
   Enabled: true

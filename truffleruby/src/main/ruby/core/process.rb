@@ -529,6 +529,7 @@ module Process
         statuses << Process.wait2
       end
     rescue Errno::ECHILD
+      nil
     end
 
     statuses

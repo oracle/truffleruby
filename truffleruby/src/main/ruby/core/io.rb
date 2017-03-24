@@ -461,6 +461,7 @@ class IO
         end
       rescue EOFError
         # done reading
+        nil
       end
 
       @to.flush if @to.kind_of? IO
@@ -739,6 +740,7 @@ class IO
         io.close unless io.closed?
       rescue StandardError
         # nothing, just swallow them.
+        nil
       end
     end
   end
@@ -2535,6 +2537,7 @@ class IO
         Process.wait @pid
       rescue Errno::ECHILD
         # If the child already exited
+        nil
       end
       @pid = nil
     end

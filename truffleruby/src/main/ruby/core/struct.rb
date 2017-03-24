@@ -212,6 +212,7 @@ class Struct
     begin
       result = self[key]
     rescue IndexError, NameError
+      nil
     end
     if result.nil? || more.empty?
       result
@@ -375,6 +376,7 @@ class Struct
     rescue SyntaxError
       # SyntaxError means that something is wrong with the
       # specialization code. Just eat the error and don't specialize.
+      nil
     end
   end
 end
