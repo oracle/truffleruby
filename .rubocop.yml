@@ -95,6 +95,12 @@ Lint/UnusedBlockArgument:
   IgnoreEmptyBlocks: true
   AllowUnusedKeywordArguments: false
 
+Lint/UselessAccessModifier:
+  Description: Checks for useless access modifiers.
+  Enabled: true
+  ContextCreatingMethods: []
+  MethodCreatingMethods: []
+
 Lint/UselessAssignment:
   Description: Checks for useless assignment to a local variable.
   StyleGuide: "#underscore-unused-vars"

@@ -26,8 +26,6 @@ module Truffle
       false
     end
 
-    private
-
     def self.find_s_file
       name = original_input_file
 
