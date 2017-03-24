@@ -524,7 +524,6 @@ class Array
 
   def hash
     hash_val = size
-    mask = Fixnum::MAX >> 1
 
     # This is duplicated and manually inlined code from Thread for performance
     # reasons. Before refactoring it, please benchmark it and compare your

@@ -423,7 +423,7 @@ module JavaUtilities
   def self.unreflect_method(a_method)
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT, LOOKUP, a_method)
-    rescue Exception => exception
+    rescue Exception
       nil
     end
   end
@@ -431,7 +431,7 @@ module JavaUtilities
   def self.unreflect_constructor(a_constructor)
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT_CONSTRUCTOR, LOOKUP, a_constructor)
-    rescue Exception => exception
+    rescue Exception
       nil
     end
   end
@@ -473,7 +473,7 @@ module JavaUtilities
   def self.get_java_class(obj)
     Java.invoke_java_method(OBJECT_GET_CLASS, obj)
   end
-  
+
   def self.constant_field?(a_field)
     modifiers = Java.invoke_java_method(FIELD_GET_MODIFIERS, a_field)
     constant = Modifiers::FINAL | Modifiers::PUBLIC | Modifiers::STATIC
@@ -501,7 +501,7 @@ module JavaUtilities
                   else
                     make_proxy(Java.invoke_java_method(CLASS_GET_SUPER_CLASS, a_class))
                   end
-    a_proxy = Class.new(super_class)
+    _a_proxy = Class.new(super_class)
   end
 
   def self.make_java_proxy_class(*modules)

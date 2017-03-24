@@ -383,7 +383,7 @@ class IO
       offset, opts = nil, offset
     end
 
-    mode, binary, external, internal, autoclose = IO.normalize_options(nil, opts)
+    mode, _binary, external, _internal, _autoclose = IO.normalize_options(nil, opts)
     unless mode
       mode = File::CREAT | File::RDWR | File::BINARY
       mode |= File::TRUNC unless offset
@@ -583,7 +583,7 @@ class IO
       offset, opts = nil, offset
     end
 
-    mode, binary, external, internal, autoclose = IO.normalize_options(nil, opts)
+    mode, _binary, external, _internal, _autoclose = IO.normalize_options(nil, opts)
     unless mode
       mode = File::CREAT | File::WRONLY
       mode |= File::TRUNC unless offset
@@ -855,7 +855,7 @@ class IO
       end
     end
 
-    mode, binary, external, internal, autoclose =
+    mode, binary, external, internal, _autoclose =
       IO.normalize_options(mode, io_options || {})
     mode_int = parse_mode mode
 
@@ -1158,8 +1158,8 @@ class IO
       raise NotImplementedError, "Unsupported advice: #{advice}"
     end
 
-    offset = Rubinius::Type.coerce_to offset, Integer, :to_int
-    len = Rubinius::Type.coerce_to len, Integer, :to_int
+    _offset = Rubinius::Type.coerce_to offset, Integer, :to_int
+    _len = Rubinius::Type.coerce_to len, Integer, :to_int
 
     # Truffle.invoke_primitive :io_advise, self, advice, offset, len
     raise 'IO#advise not implemented'
@@ -1887,7 +1887,7 @@ class IO
 
     nil
   end
-  
+
   def printf(fmt, *args)
     fmt = StringValue(fmt)
     write sprintf(fmt, *args)
@@ -2250,7 +2250,7 @@ class IO
     unless undefined.equal? options
       # TODO: set the encoding options on the IO instance
       if options and not options.kind_of? Hash
-        options = Rubinius::Type.coerce_to options, Hash, :to_hash
+        _options = Rubinius::Type.coerce_to options, Hash, :to_hash
       end
     end
 

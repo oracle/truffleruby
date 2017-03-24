@@ -354,7 +354,6 @@ class SystemCallError < StandardError
       end
 
       if defined?(self::Errno) && self::Errno.kind_of?(Fixnum)
-        errno = self::Errno
         error = SystemCallError.errno_error(message, self::Errno, location)
         if error && error.class.equal?(self)
           return error
@@ -376,7 +375,6 @@ class SystemCallError < StandardError
 
   # Use splat args here so that arity returns -1 to match MRI.
   def initialize(*args)
-    kls = self.class
     message, errno, location = args
     Truffle.invoke_primitive :exception_set_errno, self, errno
 

@@ -44,6 +44,11 @@ Lint/ShadowedException:
   Description: Avoid rescuing a higher level exception before a lower level exception.
   Enabled: true
 
+Lint/UselessAssignment:
+  Description: Checks for useless assignment to a local variable.
+  StyleGuide: "#underscore-unused-vars"
+  Enabled: true
+
 Style/IndentationWidth:
   Enabled: true
 

@@ -478,7 +478,7 @@ class File < IO
     if first == ?~
       case path[1]
       when ?/
-        unless home = ENV['HOME']
+        unless ENV['HOME']
           raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
         end
 
@@ -1247,7 +1247,7 @@ class File < IO
         perm = undefined if options
       end
 
-      nmode, binary, external, internal = IO.normalize_options(mode, options)
+      nmode, _binary, _external, _internal = IO.normalize_options(mode, options)
       nmode ||= 'r'
 
       perm = 0666 if undefined.equal? perm

@@ -48,7 +48,6 @@ class String
         si = m[1]
         nu = m[2]
         de = m[3]
-        re = m.post_match
 
         ifp, exp = nu.split /[eE]/
         ip, fp = ifp.split /\./

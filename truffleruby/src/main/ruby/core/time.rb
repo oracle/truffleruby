@@ -263,7 +263,6 @@ class Time
 
       min   =  (minor >> 26) & 0x3f
       sec   =  (minor >> 20) & 0x3f
-      isdst = false
 
       usec = minor & 0xfffff
 

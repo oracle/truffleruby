@@ -218,7 +218,6 @@ module Process
   def self.getrlimit(resource)
     resource = coerce_rlimit_resource(resource)
 
-    lim_max = []
     rlimit = Rlimit.new
     ret = Truffle::POSIX.getrlimit(resource, rlimit.pointer)
     Errno.handle if ret == -1
@@ -536,7 +535,7 @@ module Process
   end
 
   def self.wait(pid=-1, flags=nil)
-    pid, status = Process.wait2(pid, flags)
+    pid, _status = Process.wait2(pid, flags)
     pid
   end
 

@@ -823,9 +823,6 @@ module Marshal
     end
 
     def construct_struct
-      symbols = []
-      values = []
-
       name = get_symbol
       store_unique_object name
 

@@ -75,7 +75,7 @@ class Range
     max -= 1 if max.kind_of? Integer and exclude_end?
 
     start = min = Rubinius::Type.coerce_to min, Integer, :to_int
-    total = max = Rubinius::Type.coerce_to max, Integer, :to_int
+    max = Rubinius::Type.coerce_to max, Integer, :to_int
 
     last_true = nil
 
@@ -108,11 +108,11 @@ class Range
         mid = -((-1 - min - max) / 2 + 1)
       else
         mid = (min + max) / 2
-      end      
-      
+      end
+
       seeker.call mid
     end
-    
+
     if min == max
       seeker.call min
     end

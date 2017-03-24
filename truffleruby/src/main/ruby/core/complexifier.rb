@@ -43,17 +43,14 @@ class String
       if m = PATTERN0.match(@value)
         sr = m[1]
         si = m[2]
-        re = m.post_match
         po = true
       elsif m = PATTERN1.match(@value)
         sr = nil
         si = (m[1] || '') + (m[2] || '1')
-        re = m.post_match
         po = false
       elsif m = PATTERN2.match(@value)
         sr = m[1]
         si = m[2] ? m[3] + (m[4] || '1') : nil
-        re = m.post_match
         po = false
       else
         return Complex.new(0, 0)

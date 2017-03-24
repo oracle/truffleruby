@@ -129,7 +129,6 @@ module RbConfig
   ruby_home = Truffle::Boot.ruby_home
 
   if ruby_home
-    libdir = "#{ruby_home}/lib"
     bindir = "#{ruby_home}/bin"
     prefix = ruby_home
     exec_prefix = prefix
@@ -184,7 +183,7 @@ module RbConfig
 
   clang = ENV['JT_CLANG'] || 'clang'
   opt = ENV['JT_OPT'] || 'opt'
-  
+
   opt_passes = ['-always-inline', '-mem2reg', '-constprop']
   cc = "#{clang} -I#{ENV['SULONG_HOME']}/include"
   cpp = cc

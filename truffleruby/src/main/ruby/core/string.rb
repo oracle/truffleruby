@@ -461,7 +461,7 @@ class String
 
     # TODO: replace this hack with transcoders
     if options.kind_of? Hash
-      case invalid = options[:invalid]
+      case options[:invalid]
       when :replace
         self.scrub!
       end
@@ -512,6 +512,7 @@ class String
     enc_name = enc.name
     unicode = enc_name.start_with?('UTF-') && enc_name[4] != ?7
 
+    # TODO (nirvdrum 24-Mar-2017): review useless env assignments
     if unicode
       if enc.equal? Encoding::UTF_16
         a = getbyte 0
@@ -531,9 +532,9 @@ class String
         d = getbyte 3
 
         if a == 0 and b == 0 and c == 0xfe and d == 0xfe
-          enc = Encoding::UTF_32BE
+          enc = Encoding::UTF_32BE # rubocop:disable Lint/UselessAssignment
         elsif a == 0xff and b == 0xfe and c == 0 and d == 0
-          enc = Encoding::UTF_32LE
+          enc = Encoding::UTF_32LE # rubocop:disable Lint/UselessAssignment
         else
           unicode = false
         end
@@ -627,7 +628,7 @@ class String
       end
     end
 
-    size = array.inject(0) { |s, chr| s += chr.bytesize }
+    size = array.inject(0) { |s, chr| s + chr.bytesize }
     result = String.pattern size + 2, ?".ord
     m = Rubinius::Mirror.reflect result
 

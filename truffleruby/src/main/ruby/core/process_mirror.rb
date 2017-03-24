@@ -353,7 +353,7 @@ module Rubinius
               Truffle::POSIX.chdir(chdir)
             end
 
-            if close_others = options[:close_others]
+            if _close_others = options[:close_others]
               warn 'spawn_setup: close_others not yet implemented'
             end
 
