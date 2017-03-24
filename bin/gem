@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-exec "$(dirname $0)/truffleruby" -Sgem "$@"
+exec "$(dirname "$0")/truffleruby" -Sgem "$@"

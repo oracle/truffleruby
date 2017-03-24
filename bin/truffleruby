@@ -31,12 +31,12 @@ function prefix_options {
     do
         case $opt in
             -*)
-                result+="-J:${opt} " ;;
+                result+=("-J:${opt} ") ;;
             *)
-                result+="$opt " ;;
+                result+=("$opt ") ;;
         esac
     done
-    echo "$result"
+    echo "${result[@]}"
 }
 
 # get the absolute path of the executable and resolve symlinks
@@ -113,8 +113,8 @@ if [ $on_graalvm = false ]; then
 
 fi
 
-# convert string with " " separator to array
-java_args+=($(echo $JAVA_OPTS))
+# no " to split $JAVA_OPTS into array elements
+java_args+=($JAVA_OPTS)
 
 while [ $# -gt 0 ]
 do
@@ -147,7 +147,7 @@ do
 done
 
 print_command=""
-for opt in $java_args
+for opt in "${java_args[@]}"
 do
     [ "${opt}" = "-cmd" ] && print_command="true"
 done
