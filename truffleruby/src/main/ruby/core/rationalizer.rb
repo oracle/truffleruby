@@ -49,8 +49,8 @@ class String
         nu = m[2]
         de = m[3]
 
-        ifp, exp = nu.split /[eE]/
-        ip, fp = ifp.split /\./
+        ifp, exp = nu.split(/[eE]/)
+        ip, fp = ifp.split(/\./)
 
         value = Rational.new(ip.to_i, 1)
 

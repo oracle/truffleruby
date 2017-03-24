@@ -23,6 +23,11 @@ Lint/AmbiguousOperator:
   StyleGuide: "#method-invocation-parens"
   Enabled: true
 
+Lint/AmbiguousRegexpLiteral:
+  Description: Checks for ambiguous regexp literals in the first argument of a method
+    invocation without parentheses.
+  Enabled: true
+
 # Supports --auto-correct
 Lint/DeprecatedClassMethods:
   Description: Check for deprecated class method calls.
