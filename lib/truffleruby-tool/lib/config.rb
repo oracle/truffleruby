@@ -2,6 +2,7 @@ require 'pp'
 require 'yaml'
 
 # rubocop:disable Lint/UnneededSplatExpansion
+# rubocop:disable Lint/UselessAssignment
 
 include TruffleTool::ConfigUtils
 include TruffleTool::OptionBlocks

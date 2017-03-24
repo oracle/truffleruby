@@ -11,7 +11,6 @@ AllCops:
     - 'lib/pr-zlib/**/*'
     - 'lib/ruby/**/*'
     - 'lib/rubysl/**/*'
-    - 'lib/truffleruby-tool/**/*'
     - 'spec/**/*'
     - 'test/**/*'
     - 'tool/**/*'

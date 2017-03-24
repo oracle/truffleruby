@@ -54,7 +54,7 @@ class TruffleTool
 
       raise 'command failed' if raise && !result
 
-      return result
+      result
     end
 
     def print_cmd(cmd, dir, print)
@@ -75,7 +75,7 @@ class TruffleTool
                       end
 
       log '$ ' + [*formatted_env, *formatted_cmd].compact.join(' ') + (dir ? " (in #{dir})" : '')
-      return cmd
+      cmd
     end
   end
 
@@ -469,7 +469,7 @@ class TruffleTool
 
   def self.default_option_values(group_options)
     group_options.each_with_object({}) do |(option, data), group_option_defaults|
-      *args, block, default = data
+      *_args, _block, default = data
       unless [TrueClass, FalseClass, NilClass, Fixnum].any? { |v| v === default }
         default = default.dup
       end
@@ -543,7 +543,7 @@ class TruffleTool
               else
                 @option_parsers.values
               end
-    puts *parsers
+    puts(*parsers)
     exit
   end
 
@@ -838,7 +838,7 @@ class TruffleTool
       log "Using CI definition: #{name}"
       catch :cancel_ci! do
         begin
-          instance_eval &definition
+          instance_eval(&definition)
         rescue => e
           log format('%s: %s\n%s', e.class, e.message, e.backtrace.join("\n"))
         end
