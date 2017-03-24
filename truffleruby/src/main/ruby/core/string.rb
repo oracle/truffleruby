@@ -141,7 +141,7 @@ class String
     return super() if pattern == nil && block_given?
 
     if pattern.kind_of? Regexp
-      if m = pattern.match(self)
+      if m = Truffle::RegexpOps.match(pattern, self)
         Truffle.invoke_primitive(:regexp_set_last_match, m)
         return [m.pre_match, m.to_s, m.post_match]
       end
@@ -340,7 +340,7 @@ class String
   end
 
   def subpattern(pattern, capture)
-    match = pattern.match(self)
+    match = Truffle::RegexpOps.match(pattern, self)
 
     return nil unless match
 
@@ -1162,7 +1162,7 @@ class String
         count = 0
       end
 
-      if match = index.match(self)
+      if match = Truffle::RegexpOps.match(index, self)
         ms = match.size
       else
         raise IndexError, "regexp does not match"

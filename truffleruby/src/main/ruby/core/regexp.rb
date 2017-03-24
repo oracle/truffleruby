@@ -201,14 +201,7 @@ class Regexp
       Truffle.invoke_primitive(:regexp_set_last_match, nil)
       return nil
     end
-
-    str = str.to_s if str.is_a?(Symbol)
-    str = StringValue(str)
-
-    m = Rubinius::Mirror.reflect str
-    pos = pos < 0 ? pos + str.size : pos
-    pos = m.character_to_byte_index pos
-    result = search_region(str, pos, str.bytesize, true)
+    result = Truffle::RegexpOps.match(self, str, pos)
     Truffle.invoke_primitive(:regexp_set_last_match, result)
 
     if result && block_given?
