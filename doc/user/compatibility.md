@@ -62,7 +62,9 @@ interpreter.
 Most use cases of fibers rely on them being easy and cheap to start up and
 having low memory overheads. In TruffleRuby we implement fibers using operating
 system threads, so they have the same performance characteristics as Ruby
-threads.
+threads. As with coroutines and continuations, a conventional implementation
+of fibers fundamentally isn't compatible with the execution model we are
+currently using.
 
 #### Some classes marked as internal will be different
 
