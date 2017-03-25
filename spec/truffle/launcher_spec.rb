@@ -9,7 +9,7 @@
 
 require_relative '../ruby/spec_helper'
 
-describe "bin/truffleruby" do
+describe "The launcher" do
 
   before :each do
     @java_opts = ENV["JAVA_OPTS"]
@@ -51,6 +51,19 @@ describe "bin/truffleruby" do
     out = `#{RbConfig.ruby} -Xgraal.warn_unless=false -J-Dfoo="value with spaces" -e "print Truffle::System.get_java_property('foo')"`
     $?.success?.should == true
     out.should == "value with spaces"
+  end
+
+  it "warns when not using Graal" do
+    on_graalvm = !RbConfig.ruby.end_with?('/bin/truffleruby')
+    out = `#{RbConfig.ruby} -e 'puts "Hello"' 2>&1`
+    if on_graalvm
+      out.should == "Hello\n"
+    else
+      out.should == <<-EOS
+[ruby] PERFORMANCE This JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md
+Hello
+      EOS
+    end
   end
 
 end
