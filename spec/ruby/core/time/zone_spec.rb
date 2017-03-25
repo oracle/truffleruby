@@ -72,4 +72,13 @@ describe "Time#zone" do
   it "returns UTC when called on a UTC time" do
     Time.now.utc.zone.should == "UTC"
   end
+
+  it "defaults to UTC when bad zones given" do
+    with_timezone("hello-foo") do
+      Time.now.utc.zone.should == "UTC"
+    end
+    with_timezone("1,2") do
+      Time.now.utc.zone.should == "UTC"
+    end
+  end
 end

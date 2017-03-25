@@ -633,7 +633,7 @@ public abstract class TimeNodes {
 
                 try {
                     return new TimeZoneAndName(ZoneId.of(zone), null);
-                } catch (IllegalArgumentException | ZoneRulesException e) {
+                } catch (DateTimeException | IllegalArgumentException e) {
                     return new TimeZoneAndName(UTC, null);
                 }
             }
