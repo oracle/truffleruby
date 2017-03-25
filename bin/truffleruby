@@ -24,21 +24,6 @@ function mtime {
     fi
 }
 
-# Prefix any option in $@ with -J:, values are just copied over
-function prefix_options {
-    local result=()
-    for opt in "$@"
-    do
-        case $opt in
-            -*)
-                result+=("-J:${opt} ") ;;
-            *)
-                result+=("$opt ") ;;
-        esac
-    done
-    echo "${result[@]}"
-}
-
 # get the absolute path of the executable and resolve symlinks
 SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
 while [ -h "$SELF_PATH" ]; do
@@ -82,6 +67,7 @@ fi
 declare -a java_args
 declare -a ruby_args
 
+print_command=""
 CP=""
 
 if [ $on_graalvm = false ]; then
@@ -113,9 +99,6 @@ if [ $on_graalvm = false ]; then
 
 fi
 
-# no " to split $JAVA_OPTS into array elements
-java_args+=($JAVA_OPTS)
-
 while [ $# -gt 0 ]
 do
     case "$1" in
@@ -130,6 +113,8 @@ do
         elif [ "${val}" = "-cp" ]; then
             CP="$CP:$2"
             shift
+        elif [ "${val}" = "-cmd" ]; then
+            print_command="true"
         else
             java_args=("${java_args[@]}" "$val")
         fi
@@ -146,12 +131,6 @@ do
     shift
 done
 
-print_command=""
-for opt in "${java_args[@]}"
-do
-    [ "${opt}" = "-cmd" ] && print_command="true"
-done
-
 # Append the rest of the arguments
 ruby_args=("${ruby_args[@]}" "$@")
 
@@ -164,12 +143,17 @@ declare -a full_command
 if [ $on_graalvm = false ]; then
     full_command=(
         "$JAVACMD"
+        $JAVA_OPTS
         "${java_args[@]}"
     )
 else
     full_command=(
-        "$graalvm_root/bin/graalvm"
-        $(prefix_options "${java_args[@]}")
+        "$graalvm_root/bin/java"
+        -noverify
+        -polyglot
+        $JAVA_OPTS
+        "${java_args[@]}"
+        com.oracle.graalvm.Main
         --
     )
 fi
