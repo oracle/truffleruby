@@ -12,20 +12,24 @@ package org.truffleruby.language.exceptions;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.cast.SplatCastNode;
+import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.language.RubyNode;
 
 public class RescueSplatNode extends RescueNode {
 
-    @Child private RubyNode handlingClassesArray;
+    @Child private RubyNode splatCastNode;
 
     public RescueSplatNode(RubyNode handlingClassesArray, RubyNode rescueBody) {
         super(rescueBody);
-        this.handlingClassesArray = handlingClassesArray;
+        this.splatCastNode = SplatCastNodeGen.create(
+            SplatCastNode.NilBehavior.EMPTY_ARRAY,
+            true, handlingClassesArray);
     }
 
     @Override
     public boolean canHandle(VirtualFrame frame, DynamicObject exception) {
-        final DynamicObject handlingClasses = (DynamicObject) handlingClassesArray.execute(frame);
+        final DynamicObject handlingClasses = (DynamicObject) splatCastNode.execute(frame);
 
         for (Object handlingClass : ArrayOperations.toIterable(handlingClasses)) {
             if (matches(frame, exception, handlingClass)) {
