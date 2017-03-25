@@ -1673,19 +1673,19 @@ class << Truffle::CExt
     end
 
     def size
-      Truffle::CExt::string_pointer_size(@string)
+      Truffle::CExt.string_pointer_size(@string)
     end
 
     def unbox
-      Truffle::CExt::string_pointer_unbox(@string)
+      Truffle::CExt.string_pointer_unbox(@string)
     end
 
     def [](index)
-      Truffle::CExt::string_pointer_read(@string, index)
+      Truffle::CExt.string_pointer_read(@string, index)
     end
 
     def []=(index, value)
-      Truffle::CExt::string_pointer_write @string, index, value
+      Truffle::CExt.string_pointer_write @string, index, value
     end
 
     alias_method :to_str, :string
