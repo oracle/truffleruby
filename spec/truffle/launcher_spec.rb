@@ -38,13 +38,19 @@ describe "bin/truffleruby" do
     $?.success?.should == true
   end
 
-  it "adds flags from $JAVA_OPTS to the command" do
+  it "adds options from $JAVA_OPTS to the command" do
     option = '-Dfoo.bar=baz'
     ENV["JAVA_OPTS"] = option
     out = `#{RbConfig.ruby} -J-cmd --version`
     parts = out.lines[0].split(' ')
     parts.should include option
     $?.success?.should == true
+  end
+
+  it "preserve spaces in options" do
+    out = `#{RbConfig.ruby} -Xgraal.warn_unless=false -J-Dfoo="value with spaces" -e "print Truffle::System.get_java_property('foo')"`
+    $?.success?.should == true
+    out.should == "value with spaces"
   end
 
 end

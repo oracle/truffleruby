@@ -85,6 +85,21 @@ public abstract class TruffleSystemNodes {
 
     }
 
+    @CoreMethod(names = "get_java_property", onSingleton = true, required = 1)
+    public abstract static class GetJavaPropertyNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(property)")
+        public DynamicObject getJavaProperty(DynamicObject property) {
+            String value = System.getProperty(StringOperations.getString(property));
+            if (value == null) {
+                return nil();
+            } else {
+                return createString(StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
+            }
+        }
+
+    }
+
     @CoreMethod(names = "host_cpu", onSingleton = true)
     public abstract static class HostCPUNode extends CoreMethodNode {
 
