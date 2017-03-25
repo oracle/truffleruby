@@ -1021,7 +1021,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_read", onSingleton = true, required = 2)
+    @CoreMethod(names = "string_pointer_read", onSingleton = true, required = 2, lowerFixnum = 2)
     public abstract static class StringPointerReadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
@@ -1043,7 +1043,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_write", onSingleton = true, required = 3)
+    @CoreMethod(names = "string_pointer_write", onSingleton = true, required = 3, lowerFixnum = {2, 3})
     public abstract static class StringPointerWriteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
