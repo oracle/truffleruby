@@ -7,9 +7,9 @@
 # GNU Lesser General Public License version 2.1
 # OTHER DEALINGS IN THE SOFTWARE.
 
-require_relative '../../ruby/spec_helper'
+require_relative '../ruby/spec_helper'
 
-describe "bin/ruby" do
+describe "bin/truffleruby" do
 
   it "runs when symlinked" do
     require "tmpdir"
