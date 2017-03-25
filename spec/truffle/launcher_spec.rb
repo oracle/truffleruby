@@ -34,7 +34,7 @@ describe "The launcher" do
     out = `#{RbConfig.ruby} -J-cmd --version`
     parts = out.split(' ')
     parts[0].should == "$"
-    parts[1].should == "java"
+    parts[1].end_with?("java").should == true
     $?.success?.should == true
   end
 
