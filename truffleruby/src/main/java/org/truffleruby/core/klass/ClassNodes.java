@@ -25,8 +25,6 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.module.ModuleFields;
-import org.truffleruby.core.module.ModuleNodes;
-import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;

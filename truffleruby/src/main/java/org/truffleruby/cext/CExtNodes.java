@@ -60,7 +60,6 @@ import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -68,7 +67,7 @@ import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.DispatchHeadNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -1065,18 +1064,19 @@ public class CExtNodes {
     @CoreMethod(names = "rb_class_new", onSingleton = true, required = 1)
     public abstract static class ClassNewNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchHeadNode allocateNode;
+        @Child private CallDispatchHeadNode allocateNode;
         @Child private InitializeClassNode initializeClassNode;
 
         @Specialization
         public DynamicObject classNew(VirtualFrame frame, DynamicObject superclass) {
             if (allocateNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateNode = insert(DispatchHeadNodeFactory.createMethodCall());
+                allocateNode = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
                 initializeClassNode = insert(InitializeClassNodeGen.create(false, null, null, null));
             }
 
-            return initializeClassNode.executeInitialize(frame, (DynamicObject) allocateNode.dispatch(frame, getContext().getCoreLibrary().getClassClass(), "allocate", null, new Object[]{}), superclass, NotProvided.INSTANCE);
+            DynamicObject klass = (DynamicObject) allocateNode.call(frame, getContext().getCoreLibrary().getClassClass(), "__allocate__");
+            return initializeClassNode.executeInitialize(frame, klass, superclass, NotProvided.INSTANCE);
         }
 
     }
