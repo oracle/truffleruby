@@ -109,10 +109,12 @@ public class Main {
             /*
              * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
              * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and
-             * blocking behaviour.
+             * blocking behaviour. We also turn off sync on stdio and so revert to Ruby's default logic for looking
+             * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
              */
 
             builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.POLYGLOT_STDIO.getName(), false);
+            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.SYNC_STDIO.getName(), false);
 
             for (Map.Entry<String, Object> option : config.getOptions().entrySet()) {
                 builder.config(RubyLanguage.MIME_TYPE, option.getKey(), option.getValue());

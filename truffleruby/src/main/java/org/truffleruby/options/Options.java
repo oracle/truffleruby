@@ -33,6 +33,7 @@ public class Options {
     public final String INTERNAL_ENCODING;
     public final String EXTERNAL_ENCODING;
     public final boolean POLYGLOT_STDIO;
+    public final boolean SYNC_STDIO;
     public final boolean PLATFORM_USE_JAVA;
     public final boolean TRACE_CALLS;
     public final boolean COVERAGE_GLOBAL;
@@ -120,6 +121,7 @@ public class Options {
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
         POLYGLOT_STDIO = builder.getOrDefault(OptionsCatalog.POLYGLOT_STDIO);
+        SYNC_STDIO = builder.getOrDefault(OptionsCatalog.SYNC_STDIO);
         PLATFORM_USE_JAVA = builder.getOrDefault(OptionsCatalog.PLATFORM_USE_JAVA);
         TRACE_CALLS = builder.getOrDefault(OptionsCatalog.TRACE_CALLS);
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
@@ -224,6 +226,8 @@ public class Options {
                 return EXTERNAL_ENCODING;
             case "ployglot.stdio":
                 return POLYGLOT_STDIO;
+            case "sync.stdio":
+                return SYNC_STDIO;
             case "platform.use_java":
                 return PLATFORM_USE_JAVA;
             case "trace.calls":

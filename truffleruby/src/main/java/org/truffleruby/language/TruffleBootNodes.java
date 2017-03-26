@@ -236,4 +236,14 @@ public abstract class TruffleBootNodes {
         }
     }
 
+    @CoreMethod(names = "sync_stdio?", onSingleton = true)
+    public abstract static class SyncStdioNode extends CoreMethodNode {
+
+        @Specialization
+        public boolean syncStdio() {
+            return getContext().getOptions().SYNC_STDIO;
+        }
+
+    }
+
 }

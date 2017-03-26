@@ -31,6 +31,7 @@ public class OptionsCatalog {
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription("internal_encoding", "Internal encoding", null);
     public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription("external_encoding", "External encoding", null);
     public static final BooleanOptionDescription POLYGLOT_STDIO = new BooleanOptionDescription("ployglot.stdio", "Use standard IO streams from the PolyglotEngine", true);
+    public static final BooleanOptionDescription SYNC_STDIO = new BooleanOptionDescription("sync.stdio", "Sync operations on standard IO streams", true);
     public static final BooleanOptionDescription PLATFORM_USE_JAVA = new BooleanOptionDescription("platform.use_java", "Use a pure-Java platform", false);
     public static final BooleanOptionDescription TRACE_CALLS = new BooleanOptionDescription("trace.calls", "Support tracing (set_trace_func", true);
     public static final BooleanOptionDescription COVERAGE_GLOBAL = new BooleanOptionDescription("coverage.global", "Run coverage for all code and print results on exit", false);
@@ -134,6 +135,8 @@ public class OptionsCatalog {
                 return EXTERNAL_ENCODING;
             case "ployglot.stdio":
                 return POLYGLOT_STDIO;
+            case "sync.stdio":
+                return SYNC_STDIO;
             case "platform.use_java":
                 return PLATFORM_USE_JAVA;
             case "trace.calls":
@@ -296,6 +299,7 @@ public class OptionsCatalog {
             INTERNAL_ENCODING,
             EXTERNAL_ENCODING,
             POLYGLOT_STDIO,
+            SYNC_STDIO,
             PLATFORM_USE_JAVA,
             TRACE_CALLS,
             COVERAGE_GLOBAL,
