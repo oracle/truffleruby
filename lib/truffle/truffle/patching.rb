@@ -80,7 +80,7 @@ module Kernel
   alias_method :require_without_truffle_patching, :gem_original_require
 
   def gem_original_require(path)
-    path           = path.is_a?(Pathname) ? path : Pathname(Rubinius::Type.coerce_to_path(path))
+    path           = Pathname(Rubinius::Type.coerce_to_path(path))
     path_no_suffix = path.sub_ext ""
     relative_path  = if path_no_suffix.absolute?
                        Truffle::Patching.find_relative_path path_no_suffix.sub_ext('.rb')
