@@ -65,7 +65,7 @@ public class AmbiguousOptionalArgumentChecker {
                         }
                         String name = parameter.getName();
 
-                        if (parameterType == Object.class && !name.startsWith("unused") && !name.equals("maybeBlock")) {
+                        if (parameterType == Object.class && !name.startsWith("unused") && !name.startsWith("maybe")) {
                             String[] guards = method.getAnnotation(Specialization.class).guards();
                             if (!isGuarded(name, guards)) {
                                 unguardedObjectArgument = true;

@@ -294,13 +294,13 @@ public abstract class ClassNodes {
         @Child private InitializeClassNode initializeClassNode;
 
         @Specialization
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, Object superclass, Object block) {
+        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, Object maybeSuperclass, Object maybeBlock) {
             if (initializeClassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 initializeClassNode = insert(InitializeClassNodeGen.create(true, null, null, null));
             }
 
-            return initializeClassNode.executeInitialize(frame, rubyClass, superclass, block);
+            return initializeClassNode.executeInitialize(frame, rubyClass, maybeSuperclass, maybeBlock);
         }
 
     }
