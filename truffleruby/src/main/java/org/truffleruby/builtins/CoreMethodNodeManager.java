@@ -143,7 +143,7 @@ public class CoreMethodNodeManager {
         }
 
         if (methodDetails.getPrimaryName().equals("allocate") && !methodDetails.getModuleName().equals("Class")) {
-            Log.LOGGER.warning("Do not define #allocate but #__allocate__ for " + methodDetails.getIndicativeName());
+            Log.LOGGER.warning("do not define #allocate but #__allocate__ for " + methodDetails.getIndicativeName());
         }
         if (methodDetails.getPrimaryName().equals("__allocate__") && method.visibility() != Visibility.PRIVATE) {
             Log.LOGGER.warning(methodDetails.getIndicativeName() + " should be private");

@@ -136,7 +136,7 @@ public class Main {
                     exitCode = checkSyntax(engine, context, getScriptSource(config), filename);
                 } else {
                     if (!Graal.isGraal() && context.getOptions().GRAAL_WARNING_UNLESS) {
-                        Log.performanceOnce("This JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
+                        Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
                     }
 
                     if (config.shouldUsePathScript()) {

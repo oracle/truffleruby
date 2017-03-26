@@ -60,7 +60,7 @@ public class AmbiguousOptionalArgumentChecker {
                         boolean isNamePresent = parameter.isNamePresent();
                         if (!isNamePresent) {
                             AVAILABLE = SUCCESS = false;
-                            Log.LOGGER.warning("Method parameters names are not available for " + method);
+                            Log.LOGGER.warning("method parameters names are not available for " + method);
                             return;
                         }
                         String name = parameter.getName();
@@ -77,7 +77,7 @@ public class AmbiguousOptionalArgumentChecker {
 
                 if (unguardedObjectArgument) {
                     SUCCESS = false;
-                    Log.LOGGER.warning("Ambiguous optional argument in " + node.getCanonicalName() + ":\n" + errors);
+                    Log.LOGGER.warning("ambiguous optional argument in " + node.getCanonicalName() + ":\n" + errors);
                 }
             }
         }
