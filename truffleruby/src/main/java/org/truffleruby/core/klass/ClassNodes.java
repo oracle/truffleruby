@@ -34,6 +34,8 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
+import org.truffleruby.language.objects.InitializeClassNode;
+import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 @CoreClass("Class")
@@ -288,114 +290,19 @@ public abstract class ClassNodes {
         }
     }
 
-    @CoreMethod(names = "initialize", optional = 2, needsBlock = true)
+    @CoreMethod(names = "initialize", optional = 1, needsBlock = true)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ModuleNodes.InitializeNode moduleInitializeNode;
-        @Child private CallDispatchHeadNode inheritedNode;
-
-        void triggerInheritedHook(VirtualFrame frame, DynamicObject subClass, DynamicObject superClass) {
-            if (inheritedNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                inheritedNode = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
-            }
-            inheritedNode.call(frame, superClass, "inherited", subClass);
-        }
-
-        void moduleInitialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject block) {
-            if (moduleInitializeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                moduleInitializeNode = insert(ModuleNodesFactory.InitializeNodeFactory.create(null));
-            }
-            moduleInitializeNode.executeInitialize(frame, rubyClass, block);
-        }
-
-        // Added a non-standard second parameter that is a flag to say whether to call inherited or not
+        @Child private InitializeClassNode initializeClassNode;
 
         @Specialization
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, NotProvided superclass, NotProvided callInherited, NotProvided block) {
-            return initializeGeneralWithoutBlock(frame, rubyClass, coreLibrary().getObjectClass(), false, true);
-        }
-
-        @Specialization(guards = "isRubyClass(superclass)")
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, NotProvided callInherited, NotProvided block) {
-            return initializeGeneralWithoutBlock(frame, rubyClass, superclass, true, true);
-        }
-
-        @Specialization(guards = "isRubyClass(superclass)")
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, boolean callInherited, NotProvided block) {
-            return initializeGeneralWithoutBlock(frame, rubyClass, superclass, true, callInherited);
-        }
-
-        @Specialization
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, NotProvided superclass, NotProvided callInherited, DynamicObject block) {
-            return initializeGeneralWithBlock(frame, rubyClass, coreLibrary().getObjectClass(), block, false);
-        }
-
-        @Specialization(guards = "isRubyClass(superclass)")
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, NotProvided callInherited, DynamicObject block) {
-            return initializeGeneralWithBlock(frame, rubyClass, superclass, block, true);
-        }
-
-        private DynamicObject initializeGeneralWithoutBlock(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, boolean superClassProvided, boolean callInherited) {
-            assert RubyGuards.isRubyClass(rubyClass);
-            assert RubyGuards.isRubyClass(superclass);
-
-            if (isInitialized(rubyClass)) {
-                throw new RaiseException(getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
+        public DynamicObject initialize(VirtualFrame frame, DynamicObject rubyClass, Object superclass, Object block) {
+            if (initializeClassNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                initializeClassNode = insert(InitializeClassNodeGen.create(true, null, null, null));
             }
 
-            if (superClassProvided) {
-                checkInheritable(superclass);
-                if (!isInitialized(superclass)) {
-                    throw new RaiseException(getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
-                }
-            }
-
-            ClassNodes.initialize(getContext(), rubyClass, superclass);
-
-            if (callInherited) {
-                triggerInheritedHook(frame, rubyClass, superclass);
-            }
-
-            return rubyClass;
-        }
-
-        private DynamicObject initializeGeneralWithBlock(VirtualFrame frame, DynamicObject rubyClass, DynamicObject superclass, DynamicObject block, boolean superClassProvided) {
-            assert RubyGuards.isRubyClass(superclass);
-
-            if (isInitialized(rubyClass)) {
-                throw new RaiseException(getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
-            }
-            if (superClassProvided) {
-                checkInheritable(superclass);
-                if (!isInitialized(superclass)) {
-                    throw new RaiseException(getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
-                }
-            }
-
-            ClassNodes.initialize(getContext(), rubyClass, superclass);
-            triggerInheritedHook(frame, rubyClass, superclass);
-            moduleInitialize(frame, rubyClass, block);
-
-            return rubyClass;
-        }
-
-        private boolean isInitialized(DynamicObject rubyClass) {
-            return Layouts.CLASS.getSuperclass(rubyClass) != null || rubyClass == coreLibrary().getBasicObjectClass();
-        }
-
-        // rb_check_inheritable
-        private void checkInheritable(DynamicObject superClass) {
-            if (!RubyGuards.isRubyClass(superClass)) {
-                throw new RaiseException(coreExceptions().typeErrorSuperclassMustBeClass(this));
-            }
-            if (Layouts.CLASS.getIsSingleton(superClass)) {
-                throw new RaiseException(coreExceptions().typeErrorSubclassSingletonClass(this));
-            }
-            if (superClass == coreLibrary().getClassClass()) {
-                throw new RaiseException(coreExceptions().typeErrorSubclassClass(this));
-            }
+            return initializeClassNode.executeInitialize(frame, rubyClass, superclass, block);
         }
 
     }

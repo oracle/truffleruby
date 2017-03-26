@@ -34,8 +34,6 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
-import org.truffleruby.builtins.Primitive;
-import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
@@ -57,10 +55,12 @@ import org.truffleruby.core.string.StringNodesFactory;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.extra.ffi.PointerNodes;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -68,8 +68,12 @@ import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.InitializeClassNode;
+import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -1054,6 +1058,25 @@ public class CExtNodes {
 
         protected StringNodes.SetByteNode getHelperNode() {
             return StringNodesFactory.SetByteNodeFactory.create(null, null, null);
+        }
+
+    }
+
+    @CoreMethod(names = "rb_class_new", onSingleton = true, required = 1)
+    public abstract static class ClassNewNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private DispatchHeadNode allocateNode;
+        @Child private InitializeClassNode initializeClassNode;
+
+        @Specialization
+        public DynamicObject classNew(VirtualFrame frame, DynamicObject superclass) {
+            if (allocateNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                allocateNode = insert(DispatchHeadNodeFactory.createMethodCall());
+                initializeClassNode = insert(InitializeClassNodeGen.create(false, null, null, null));
+            }
+
+            return initializeClassNode.executeInitialize(frame, (DynamicObject) allocateNode.dispatch(frame, getContext().getCoreLibrary().getClassClass(), "allocate", null, new Object[]{}), superclass, NotProvided.INSTANCE);
         }
 
     }

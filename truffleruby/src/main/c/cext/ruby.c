@@ -1588,7 +1588,7 @@ VALUE rb_class_name(VALUE ruby_class) {
 }
 
 VALUE rb_class_new(VALUE super) {
-  return truffle_invoke(rb_cClass, "new", super, Qfalse);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_class_new", super);
 }
 
 VALUE rb_class_new_instance(int argc, const VALUE *argv, VALUE klass) {
