@@ -10,7 +10,7 @@ require_relative '../ruby/spec_helper'
 
 describe "rescue" do
 
-    it "should should splat the handling Error classes" do
+    it "should splat the handling Error classes" do
       begin
         raise "raise"
       rescue *(RuntimeError) => e
