@@ -75,10 +75,10 @@ describe "Time#zone" do
 
   it "defaults to UTC when bad zones given" do
     with_timezone("hello-foo") do
-      Time.now.utc.zone.should == "UTC"
+      Time.now.zone.should == "UTC"
     end
     with_timezone("1,2") do
-      Time.now.utc.zone.should == "UTC"
+      Time.now.zone.should == "UTC"
     end
   end
 end
