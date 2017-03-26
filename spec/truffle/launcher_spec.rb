@@ -60,7 +60,7 @@ describe "The launcher" do
       out.should == "Hello\n"
     else
       out.should == <<-EOS
-[ruby] PERFORMANCE This JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md
+[ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md
 Hello
       EOS
     end
