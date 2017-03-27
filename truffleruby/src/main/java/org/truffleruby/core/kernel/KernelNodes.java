@@ -40,6 +40,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -248,7 +249,7 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = "block_given?", isModuleFunction = true, needsCallerFrame = "READ_ONLY")
+    @CoreMethod(names = "block_given?", isModuleFunction = true, needsCallerFrame = CallerFrameAccess.ARGUMENTS)
     public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

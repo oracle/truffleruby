@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -25,8 +26,8 @@ public class ReadCallerFrameNode extends RubyNode {
 
     private final FrameAccess accessMode;
 
-    public ReadCallerFrameNode(String accessModeString) {
-        this.accessMode = FrameAccess.valueOf(accessModeString);
+    public ReadCallerFrameNode(CallerFrameAccess callerFrameAccess) {
+        this.accessMode = callerFrameAccess.getFrameAccess();
     }
 
     @Override

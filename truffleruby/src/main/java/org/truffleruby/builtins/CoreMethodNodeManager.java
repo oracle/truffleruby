@@ -179,7 +179,7 @@ public class CoreMethodNodeManager {
     private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, DynamicObject module, MethodDetails methodDetails) {
         final CoreMethod method = methodDetails.getMethodAnnotation();
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
-        final boolean needsCallerFrame = !method.needsCallerFrame().isEmpty();
+        final boolean needsCallerFrame = method.needsCallerFrame() != CallerFrameAccess.NONE;
 
         return new SharedMethodInfo(
                 context.getCoreLibrary().getSourceSection(),
@@ -222,7 +222,7 @@ public class CoreMethodNodeManager {
     public static RubyNode createCoreMethodNode(RubyContext context, Source source, SourceIndexLength sourceSection, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method) {
         final List<RubyNode> argumentsNodes = new ArrayList<>();
 
-        if (!method.needsCallerFrame().isEmpty()) {
+        if (method.needsCallerFrame() != CallerFrameAccess.NONE) {
             argumentsNodes.add(new ReadCallerFrameNode(method.needsCallerFrame()));
         }
 
