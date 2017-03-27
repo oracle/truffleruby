@@ -56,7 +56,7 @@ module JavaUtilities
       return a_map[name] = thing if ! a_map.has_key?(name)
       return a_map[name] = thing if a_map[name].precedence > thing.precedence
       return a_map[name].combine_with(thing) if a_map[name].precedence == thing.precedence
-      return a_map[name]
+      a_map[name]
     end
 
     # The following methods for adding fields, methods, constructors

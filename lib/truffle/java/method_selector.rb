@@ -67,7 +67,7 @@ module JavaUtilities
       return 1 if Java.invoke_java_method(
                      JavaUtilities::JavaDispatcher::CLASS_IS_ASSIGNABLE_FROM, another.type,
                      @type)
-      return 0
+      0
     end
 
     ParameterCache = ClassCache.new
@@ -420,7 +420,7 @@ module JavaUtilities
         end
         methods = retained
       end
-      return retained
+      retained
     end
 
     def find_matching_callable_for_args(args)

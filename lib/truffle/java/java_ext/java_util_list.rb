@@ -11,12 +11,12 @@ java.util.List
 module ::Java::JavaUtil::List
 
   def determine_range(a_range)
-      first = a_range.first
-      last = a_range.last
-      last += size if last < 0
-      first += size if first < 0
-      last += 1 unless a_range.exclude_end?
-      [first, last]
+    first = a_range.first
+    last = a_range.last
+    last += size if last < 0
+    first += size if first < 0
+    last += 1 unless a_range.exclude_end?
+    [first, last]
   end
 
   def [](start, length=nil)
