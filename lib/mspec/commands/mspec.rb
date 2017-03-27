@@ -10,7 +10,9 @@ require 'mspec/runner/actions/timer'
 
 class MSpecMain < MSpecScript
   def initialize
-    config[:includes] = []
+    super
+
+    config[:loadpath] = []
     config[:requires] = []
     config[:target]   = ENV['RUBY'] || 'ruby'
     config[:flags]    = []
@@ -142,7 +144,7 @@ class MSpecMain < MSpecScript
 
     argv.concat config[:launch]
     argv.concat config[:flags]
-    argv.concat config[:includes]
+    argv.concat config[:loadpath]
     argv.concat config[:requires]
     argv << "#{MSPEC_HOME}/bin/mspec-#{ config[:command] || "run" }"
     argv.concat config[:options]

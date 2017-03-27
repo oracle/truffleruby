@@ -262,7 +262,7 @@ class MSpecOptions
     end
     on("-I", "--include", "DIR",
        "Pass DIR through as the -I option to the target") do |d|
-      config[:includes] << "-I#{d}"
+      config[:loadpath] << "-I#{d}"
     end
     on("-r", "--require", "LIBRARY",
        "Pass LIBRARY through as the -r option to the target") do |f|
