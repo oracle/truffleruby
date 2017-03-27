@@ -20,6 +20,7 @@ import org.truffleruby.language.RubyNode;
 
 import java.util.Arrays;
 
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 
 public class ParserRopeOperations {
@@ -40,7 +41,7 @@ public class ParserRopeOperations {
 
     public Rope makeShared(Rope rope, int sharedStart, int sharedLength) {
         if (TruffleOptions.AOT) {
-            return RopeOperations.create(Arrays.copyOfRange(rope.getBytes(), sharedStart, sharedStart + sharedLength), rope.getEncoding(), rope.getCodeRange());
+            return RopeOperations.create(Arrays.copyOfRange(rope.getBytes(), sharedStart, sharedStart + sharedLength), rope.getEncoding(), rope.getCodeRange() == CR_7BIT ? CR_7BIT : CR_UNKNOWN);
         } else {
             final Rope newRope = ropeNode.getMakeSubstringNode().executeMake(rope, sharedStart, sharedLength);
 
