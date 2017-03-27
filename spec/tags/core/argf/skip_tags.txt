@@ -1,0 +1,1 @@
+fails:ARGF.skip has no effect when nothing has been processed yet

@@ -1,2 +1,3 @@
 fails:Kernel#sprintf returns a String in the same encoding as the format String if compatible
 fails:Kernel#sprintf returns a String in the argument encoding if format encoding is more restrictive
+fails:Kernel#sprintf with format string that contains %<> sections raises ArgumentError if missing second named argument

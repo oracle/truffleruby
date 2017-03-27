@@ -1,0 +1,1 @@
+fails:A number literal can be an bignum literal with trailing 'r' to represent a Rational
