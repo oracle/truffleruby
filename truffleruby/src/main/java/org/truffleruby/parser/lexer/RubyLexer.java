@@ -2740,16 +2740,16 @@ public class RubyLexer {
     }
 
     public int precise_mbclen() {
-        // we subtract one since we have read past first byte by time we are calling this.
-        int start = lex_p - 1;
-        int end = lex_pend;
-        int length = end - start;
-
         // A substring of a single-byte optimizable string is always single-byte optimizable, so there's no need
         // to actually perform the substring operation.
         if ((current_enc == lexb.getEncoding() && lexb.isSingleByteOptimizable()) || current_enc.isSingleByte()) {
             return 1;
         }
+
+        // we subtract one since we have read past first byte by time we are calling this.
+        int start = lex_p - 1;
+        int end = lex_pend;
+        int length = end - start;
 
         // Otherwise, take the substring and see if that new string is single-byte optimizable.
         Rope rope = parserRopeOperations.makeShared(lexb, start, length);
