@@ -106,7 +106,7 @@ describe "YAML.load" do
     loaded.should == os
   end
 
-  it "loads a File but raise an error when use as it is uninitialized" do
+  it "loads a File but raise an error when used as it is uninitialized" do
     loaded = YAML.load("--- !ruby/object:File {}\n")
     lambda {
       loaded.read(1)

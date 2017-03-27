@@ -44,7 +44,7 @@ describe "C-API Range function" do
       excl.should be_false
     end
 
-    it "stores the range properties of none Range object" do
+    it "stores the range properties of non-Range object" do
       range_like = mock('range')
 
       def range_like.begin

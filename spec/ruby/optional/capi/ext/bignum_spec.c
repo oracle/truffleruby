@@ -64,7 +64,7 @@ static VALUE bignum_spec_rb_big_pack_length(VALUE self, VALUE val) {
   long long_len;
   int leading_bits = 0;
   int divisor = SIZEOF_LONG;
-  int len = rb_absint_size(val, &leading_bits);
+  size_t len = rb_absint_size(val, &leading_bits);
   if (leading_bits == 0) {
     len += 1;
   }
