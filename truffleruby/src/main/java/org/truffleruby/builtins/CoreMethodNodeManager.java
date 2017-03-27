@@ -179,6 +179,7 @@ public class CoreMethodNodeManager {
     private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, DynamicObject module, MethodDetails methodDetails) {
         final CoreMethod method = methodDetails.getMethodAnnotation();
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
+        final boolean needsCallerFrame = !method.needsCallerFrame().isEmpty();
 
         return new SharedMethodInfo(
                 context.getCoreLibrary().getSourceSection(),
@@ -189,8 +190,8 @@ public class CoreMethodNodeManager {
                 "builtin",
                 null,
                 context.getOptions().CORE_ALWAYS_CLONE,
-                method.needsCallerFrame() && context.getOptions().INLINE_NEEDS_CALLER_FRAME,
-                method.needsCallerFrame());
+                needsCallerFrame && context.getOptions().INLINE_NEEDS_CALLER_FRAME,
+                needsCallerFrame);
     }
 
     private static CallTarget makeGenericMethod(RubyContext context, MethodDetails methodDetails, SharedMethodInfo sharedMethodInfo) {
@@ -221,8 +222,8 @@ public class CoreMethodNodeManager {
     public static RubyNode createCoreMethodNode(RubyContext context, Source source, SourceIndexLength sourceSection, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method) {
         final List<RubyNode> argumentsNodes = new ArrayList<>();
 
-        if (method.needsCallerFrame()) {
-            argumentsNodes.add(new ReadCallerFrameNode());
+        if (!method.needsCallerFrame().isEmpty()) {
+            argumentsNodes.add(new ReadCallerFrameNode(method.needsCallerFrame()));
         }
 
         final boolean needsSelf = needsSelf(method);

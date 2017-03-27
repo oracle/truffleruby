@@ -42,7 +42,7 @@ public @interface CoreMethod {
      */
     boolean isModuleFunction() default false;
 
-    boolean needsCallerFrame() default false;
+    String needsCallerFrame() default "";
 
     boolean needsSelf() default true;
 
