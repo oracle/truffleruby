@@ -26,7 +26,7 @@ public class ParserRopeOperations {
 
     public Rope withEncoding(Rope rope, Encoding encoding) {
         if (TruffleOptions.AOT) {
-            return RopeOperations.create(rope.getBytes(), encoding, rope.getCodeRange());
+            return RopeOperations.create(rope.getBytes(), encoding, CR_UNKNOWN);
         } else {
             final Rope newRope = ropeNode.getWithEncodingNode().executeWithEncoding(rope, encoding, CR_UNKNOWN);
 
