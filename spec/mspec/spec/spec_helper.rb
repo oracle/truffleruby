@@ -7,7 +7,7 @@ $VERBOSE = nil unless $VERBOSE
 
 class MOSConfig < Hash
   def initialize
-    self[:includes]  = []
+    self[:loadpath]  = []
     self[:requires]  = []
     self[:flags]     = []
     self[:options]   = []

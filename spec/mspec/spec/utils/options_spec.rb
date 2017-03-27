@@ -658,11 +658,11 @@ describe "The -I, --include DIR option" do
     @options.targets
   end
 
-  it "add DIR to the includes list" do
+  it "add DIR to the load path" do
     ["-I", "--include"].each do |opt|
-      @config[:includes].delete "-Ipackage"
+      @config[:loadpath].delete "-Ipackage"
       @options.parse [opt, "package"]
-      @config[:includes].should include("-Ipackage")
+      @config[:loadpath].should include("-Ipackage")
     end
   end
 end
