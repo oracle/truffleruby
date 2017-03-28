@@ -1,5 +1,5 @@
 module Truffle
-  class RegexpOps
+  class RegexpOperations
     def self.match(re, str, pos=0)
       return nil unless str
 

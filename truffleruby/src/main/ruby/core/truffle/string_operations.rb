@@ -1,8 +1,8 @@
 module Truffle
-  class StringOps
+  class StringOperations
 
     def self.gsub_block_set_last_match(s, pattern, &block)
-      Truffle::StringOps.gsub_internal(s, pattern) do |m, str|
+      Truffle::StringOperations.gsub_internal(s, pattern) do |m, str|
         Regexp.set_block_last_match(block, m)
         yield str
       end

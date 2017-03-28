@@ -201,7 +201,7 @@ class Regexp
       Truffle.invoke_primitive(:regexp_set_last_match, nil)
       return nil
     end
-    result = Truffle::RegexpOps.match(self, str, pos)
+    result = Truffle::RegexpOperations.match(self, str, pos)
     Truffle.invoke_primitive(:regexp_set_last_match, result)
 
     if result && block_given?

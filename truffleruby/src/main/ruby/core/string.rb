@@ -141,7 +141,7 @@ class String
     return super() if pattern == nil && block_given?
 
     if pattern.kind_of? Regexp
-      if m = Truffle::RegexpOps.match(pattern, self)
+      if m = Truffle::RegexpOperations.match(pattern, self)
         Truffle.invoke_primitive(:regexp_set_last_match, m)
         return [m.pre_match, m.to_s, m.post_match]
       end
@@ -340,7 +340,7 @@ class String
   end
 
   def subpattern(pattern, capture)
-    match = Truffle::RegexpOps.match(pattern, self)
+    match = Truffle::RegexpOperations.match(pattern, self)
 
     return nil unless match
 
@@ -991,9 +991,9 @@ class String
       return s.to_enum(:gsub, pattern, replacement)
     end
     if undefined.equal?(replacement)
-      ret, match_data = Truffle::StringOps.gsub_block_set_last_match(s, pattern, &block)
+      ret, match_data = Truffle::StringOperations.gsub_block_set_last_match(s, pattern, &block)
     else
-      ret, match_data = Truffle::StringOps.gsub_internal(s, pattern, replacement)
+      ret, match_data = Truffle::StringOperations.gsub_internal(s, pattern, replacement)
     end
     Truffle.invoke_primitive(:regexp_set_last_match, match_data)
     s.replace(ret) if ret
@@ -1006,9 +1006,9 @@ class String
     end
     Truffle.check_frozen
     if undefined.equal?(replacement)
-      ret, match_data = Truffle::StringOps.gsub_block_set_last_match(self, pattern, &block)
+      ret, match_data = Truffle::StringOperations.gsub_block_set_last_match(self, pattern, &block)
     else
-      ret, match_data = Truffle::StringOps.gsub_internal(self, pattern, replacement)
+      ret, match_data = Truffle::StringOperations.gsub_internal(self, pattern, replacement)
     end
     Truffle.invoke_primitive(:regexp_set_last_match, match_data)
     if ret
@@ -1170,7 +1170,7 @@ class String
         count = 0
       end
 
-      if match = Truffle::RegexpOps.match(index, self)
+      if match = Truffle::RegexpOperations.match(index, self)
         ms = match.size
       else
         raise IndexError, "regexp does not match"
