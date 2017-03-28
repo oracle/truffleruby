@@ -127,10 +127,6 @@ module Java
       super.to_s
     end
 
-    def const_get(name, inherit=true)
-      super.const_get(name, inherit) rescue method_missing(name)
-    end
-
     def const_missing(name)
       method_missing(name)
     end
