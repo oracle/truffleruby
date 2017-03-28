@@ -117,6 +117,10 @@ public class RopeOperations {
 
     @TruffleBoundary
     public static String decodeUTF8(Rope rope) {
+        if (rope.isAsciiOnly()) {
+            return decodeAscii(rope);
+        }
+
         return decode(UTF8, rope.getBytes(), 0, rope.byteLength());
     }
 
@@ -125,9 +129,30 @@ public class RopeOperations {
     }
 
     @TruffleBoundary
-    public static String decodeRope(Rope value) {
-        // TODO CS 9-May-16 having recursive problems with this, so flatten up front for now
+    private static String decodeAscii(Rope rope) {
+        assert rope.getCodeRange() == CR_7BIT;
 
+        return decodeAscii(rope.getBytes(), 0, rope.byteLength());
+    }
+
+    @TruffleBoundary
+    private static String decodeAscii(byte[] bytes, int offset, int byteLength) {
+        final char[] buffer = new char[byteLength];
+
+        for (int i = 0; i < byteLength; i++) {
+            buffer[i] = (char) bytes[offset + i];
+        }
+
+        return new String(buffer);
+    }
+
+    @TruffleBoundary
+    public static String decodeRope(Rope value) {
+        if (value.isAsciiOnly()) {
+            return decodeAscii(value);
+        }
+
+        // TODO CS 9-May-16 having recursive problems with this, so flatten up front for now
         value = flatten(value);
 
         Encoding encoding = value.getEncoding();

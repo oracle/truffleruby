@@ -84,6 +84,10 @@ public abstract class Rope {
         return singleByteOptimizable;
     }
 
+    public final boolean isAsciiOnly() {
+        return codeRange == CodeRange.CR_7BIT;
+    }
+
     public final int depth() {
         return ropeDepth;
     }
