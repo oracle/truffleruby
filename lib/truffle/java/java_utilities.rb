@@ -32,14 +32,14 @@ module JavaUtilities
 
   module ::Truffle::Interop::Java
 
-    @@loader = nil
+    @loader = nil
 
     def self.loader
-      @@loader
+      @loader
     end
 
     def self.loader= a_loader
-      @@loader = a_loader
+      @loader = a_loader
     end
 
     def self.invoke_java_method(method, *args)
