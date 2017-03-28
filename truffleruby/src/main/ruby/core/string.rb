@@ -990,7 +990,11 @@ class String
     if undefined.equal?(replacement) && !block_given?
       return s.to_enum(:gsub, pattern, replacement)
     end
-    (ret, match_data) = Truffle::StringOps.gsub_internal(s, pattern, replacement, &block)
+    if undefined.equal?(replacement)
+      ret, match_data = Truffle::StringOps.gsub_block_set_last_match(s, pattern, &block)
+    else
+      ret, match_data = Truffle::StringOps.gsub_internal(s, pattern, replacement)
+    end
     Truffle.invoke_primitive(:regexp_set_last_match, match_data)
     s.replace(ret) if ret
     s
@@ -1001,10 +1005,14 @@ class String
       return to_enum(:gsub!, pattern, replacement)
     end
     Truffle.check_frozen
-    (ret, match_data) = Truffle::StringOps.gsub_internal(self, pattern, replacement, &block)
+    if undefined.equal?(replacement)
+      ret, match_data = Truffle::StringOps.gsub_block_set_last_match(self, pattern, &block)
+    else
+      ret, match_data = Truffle::StringOps.gsub_internal(self, pattern, replacement)
+    end
     Truffle.invoke_primitive(:regexp_set_last_match, match_data)
-    replace(ret) if ret
     if ret
+      replace(ret)
       self
     else
       nil

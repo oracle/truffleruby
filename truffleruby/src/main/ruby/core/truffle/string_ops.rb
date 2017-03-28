@@ -1,10 +1,14 @@
 module Truffle
   class StringOps
 
-    def self.gsub_internal(orig, pattern, replacement=undefined, &block)
-      # Because of the behavior of $~, this is duplicated from gsub! because
-      # if we call gsub! from gsub, the last_match can't be updated properly.
+    def self.gsub_block_set_last_match(s, pattern, &block)
+      Truffle::StringOps.gsub_internal(s, pattern) do |m, str|
+        Regexp.set_block_last_match(block, m)
+        yield str
+      end
+    end
 
+    def self.gsub_internal(orig, pattern, replacement=undefined, &block)
       unless orig.valid_encoding?
         raise ArgumentError, "invalid byte sequence in #{orig.encoding}"
       end
@@ -28,10 +32,8 @@ module Truffle
       pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
       match = pattern.search_region(orig, 0, orig.bytesize, true)
 
-      Regexp.set_block_last_match(block, match) if block_given?
-
       unless match
-        return [nil, nil]
+        return nil
       end
 
       duped = orig.dup
@@ -53,7 +55,7 @@ module Truffle
           match_data =  match
 
           if use_yield
-            val = yield match.to_s
+            val = yield match, match.to_s
           else
             val = hash[match.to_s]
           end
@@ -71,8 +73,6 @@ module Truffle
           replacement.to_sub_replacement(ret, match)
         end
 
-        tainted ||= val.tainted?
-
         last_end = match.byte_end(0)
 
         if match.collapsing?
@@ -88,7 +88,6 @@ module Truffle
         last_match = match
 
         match = pattern.match_from orig, offset
-        Regexp.set_block_last_match(block, match) if block_given?
         break unless match
 
         offset = match.byte_begin(0)
