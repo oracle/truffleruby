@@ -52,24 +52,12 @@ class Module
 
       @included_packages.each do |package|
         begin
-          java_class = JavaUtilities.get_java_class("#{package}.#{real_name}")
+          java_class = JavaUtilities.get_package_or_class("#{package}.#{real_name}", true, true)
         rescue NameError
           # we only rescue NameError, since other errors should bubble out
           last_error = $!
         end
-        break if java_class
-      end
-
-      if java_class
-        return JavaUtilities.create_proxy_class(constant, java_class, self)
-      else
-        # try to chain to super's const_missing
-        begin
-          return super
-        rescue NameError
-          # super didn't find anything either, raise our Java error
-          raise NameError.new("#{constant} not found in packages #{@included_packages.join(', ')}; last error: #{last_error.message}")
-        end
+        return java_class if java_class != nil
       end
     end
   end

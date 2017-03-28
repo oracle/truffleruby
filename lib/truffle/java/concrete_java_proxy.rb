@@ -6,9 +6,18 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-class ConcreteJavaProxy < JavaProxy
+begin
+  # Although we are outside the normal proxy creation process this
+  # class does not represent a concrete Java type itself. Setting this
+  # thread local will stop the JavaProxy meta-programming hooks from
+  # attempting to generate a new Java class.
+  Thread.current[:MAKING_JAVA_PROXY] = true
+  class ConcreteJavaProxy < JavaProxy
 
-  def to_s
-    self.toString
+    def to_s
+      self.toString
+    end
   end
+ensure
+  Thread.current[:MAKING_JAVA_PROXY] = false
 end

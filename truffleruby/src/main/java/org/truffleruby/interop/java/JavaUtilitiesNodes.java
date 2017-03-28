@@ -14,6 +14,7 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -25,34 +26,31 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.ThrowException;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
 @CoreClass("Truffle::Interop::Java")
 public class JavaUtilitiesNodes {
 
-    @CoreMethod(names = "to_ruby_string", required = 1, isModuleFunction = true)
-    public static abstract class ToRubyStringNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        public DynamicObject toRubyString(String target) {
-            return createString(getRope(target));
-        }
-
-        protected Rope getRope(String value) {
-            return StringOperations.encodeRope(value, UTF8Encoding.INSTANCE);
-        }
-    }
-
-    @CoreMethod(names = "java_class_by_name", isModuleFunction = true, required = 1)
-    @NodeChild(value = "name", type = RubyNode.class)
+    @CoreMethod(names = "java_class_by_name_and_loader", isModuleFunction = true, required = 2)
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "name"),
+            @NodeChild(type = RubyNode.class, value = "loader")
+    })
     public abstract static class JavaClassByNameNode extends CoreMethodNode {
         @CreateCast("name")
         public RubyNode coercetNameToString(RubyNode newName) {
@@ -60,11 +58,14 @@ public class JavaUtilitiesNodes {
         }
 
         @Specialization
-        public Object javaClassByName(String name,
+        public Object javaClassByName(String name, Object classLoader,
                                       @Cached("create()") BranchProfile errorProfile) {
             if (!TruffleOptions.AOT) {
                 try {
-                    Class<?> klass =  Class.forName(name);
+                    if (nil().equals(classLoader)) {
+                        classLoader = null;
+                    }
+                    Class<?> klass =  Class.forName(name, true, (ClassLoader)classLoader);
                     return klass;
                 } catch (Exception e) {
                     errorProfile.enter();
@@ -73,15 +74,6 @@ public class JavaUtilitiesNodes {
             } else {
                 throw new RaiseException(coreExceptions().runtimeError("Not available on SVM.", this));
             }
-        }
-    }
-
-    @CoreMethod(names = "to_java_string", required = 1, isModuleFunction = true)
-    public static abstract class ToJavaStringNode extends CoreMethodArrayArgumentsNode {
-        @Specialization
-        public String toJavaString(VirtualFrame frame, DynamicObject string,
-                                   @Cached("create()") NameToJavaStringNode toJavaStringNode) {
-            return toJavaStringNode.executeToJavaString(frame, string);
         }
     }
 
@@ -146,21 +138,70 @@ public class JavaUtilitiesNodes {
         }
     }
 
-    @CoreMethod(names = "invoke_java_method", required = 1, rest = true, isModuleFunction = true)
+    @CoreMethod(names = "invoke_with_catch", required = 2, rest = true, isModuleFunction = true)
     public static abstract class JavaInvokeMethodNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
-        public Object invokeJavaMethod(MethodHandle method, Object[] rest) {
+        public Object invokeJavaMethod(MethodHandle method, Object tag, Object[] rest) {
             if (!TruffleOptions.AOT) {
                 try {
+                    for (int i = 0; i < rest.length; i++) {
+                        if (rest[i] == nil()) {
+                            rest[i] = null;
+                        }
+                    }
                     Object res = method.invokeWithArguments(rest);
                     return res == null ? nil() : res;
                 } catch (Throwable e) {
-                    throw new JavaException(e);
+                    throw new ThrowException(tag, e);
                 }
             } else {
                 throw new RaiseException(coreExceptions().runtimeError("Not available on SVM.", this));
             }
+        }
+    }
+
+    @CoreMethod(names = "proxy_class", required = 1, rest = true, isModuleFunction = true)
+    public static abstract class JavaProxyClassNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object createJavaProxyClass(Object loader, Object[] rest) {
+            Class<?>[] interfaces = new Class<?>[rest.length];
+            for (int i = 0; i < rest.length; i++) {
+                interfaces[i] = (Class<?>)rest[i];
+            }
+            ClassLoader cl;
+            if (loader instanceof ClassLoader) {
+                cl = (ClassLoader)loader;
+            } else if (loader == nil()) {
+                cl = null;
+            } else {
+                throw new RaiseException(coreExceptions().typeError("loader must be a java class loader or null", this));
+            }
+            return Proxy.getProxyClass(cl, interfaces);
+        }
+    }
+
+    @CoreMethod(names = "invocation_handler", required = 1, isModuleFunction = true)
+    public static abstract class InvocationHandlerNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object createHandler(DynamicObject aProc) {
+            InvocationHandler handler = new InvocationHandler() {
+                    public Object invoke(Object aProxy, Method method, Object[] args) {
+                        Object[] rubyArgs;
+                        if (args != null) {
+                            rubyArgs = new Object[args.length + 1];
+                            System.arraycopy(args, 0, rubyArgs, 1, args.length);
+                        } else {
+                            rubyArgs = new Object[1];
+                        }
+                        rubyArgs[0] = method;
+                        return ProcOperations.rootCall(aProc, rubyArgs);
+                    }
+                };
+            return handler;
         }
     }
 }
