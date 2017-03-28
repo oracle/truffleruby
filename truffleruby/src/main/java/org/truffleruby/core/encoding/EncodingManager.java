@@ -28,6 +28,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.ISO_8859_16;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -142,7 +143,7 @@ public class EncodingManager {
         final String encodingName = encoding.toString();
 
         if (encodingName.equals("ASCII-8BIT")) {
-            return Charset.forName("ISO-8859-1");
+            return StandardCharsets.ISO_8859_1;
         }
 
         if (encoding == ISO8859_16Encoding.INSTANCE) {
