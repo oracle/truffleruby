@@ -11,11 +11,11 @@ AllCops:
     - 'lib/pr-zlib/**/*'
     - 'lib/ruby/**/*'
     - 'lib/rubysl/**/*'
+    - 'mxbuild/**/*'
     - 'spec/**/*'
     - 'test/**/*'
     - 'tool/**/*'
     - 'truffleruby/target/classes/**/*'
-    - 'mxbuild/**/*'
 
 # Department 'Lint' (58):
 Lint/AmbiguousOperator:
