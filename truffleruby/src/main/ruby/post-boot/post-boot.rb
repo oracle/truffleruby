@@ -51,7 +51,7 @@ if Truffle::Boot.rubygems_enabled?
       begin
         gem 'did_you_mean'
         require 'did_you_mean'
-      rescue Gem::LoadError, LoadError => e # rubocop:disable Lint/ShadowedException
+      rescue LoadError => e
         Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
       end
     end
