@@ -10,13 +10,15 @@
 package org.truffleruby.core.module;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.methods.InternalMethod;
 
 public class MethodLookupResult {
 
     private final InternalMethod method;
-    private final Assumption[] assumptions;
+    @CompilationFinal private final Assumption[] assumptions;
 
     public MethodLookupResult(InternalMethod method, Assumption... assumptions) {
         this.method = method;

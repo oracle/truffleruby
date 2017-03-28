@@ -10,6 +10,7 @@
 package org.truffleruby.core.module;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
@@ -18,7 +19,7 @@ import org.truffleruby.language.RubyConstant;
 public class ConstantLookupResult {
 
     private final RubyConstant constant;
-    private final Assumption[] assumptions;
+    @CompilationFinal private final Assumption[] assumptions;
 
     public ConstantLookupResult(RubyConstant constant, Assumption... assumptions) {
         this.constant = constant;
