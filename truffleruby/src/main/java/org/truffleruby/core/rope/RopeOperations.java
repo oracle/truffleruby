@@ -40,6 +40,7 @@ import org.truffleruby.language.RubyGuards;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentHashMap;
@@ -129,22 +130,19 @@ public class RopeOperations {
 
         value = flatten(value);
 
-        int begin = 0;
-        int length = value.byteLength();
-
         Encoding encoding = value.getEncoding();
         Charset charset = encodingToCharsetMap.computeIfAbsent(encoding, EncodingManager::charsetForEncoding);
 
-        return decode(charset, value.getBytes(), begin, length);
+        return new String(value.getBytes(), charset);
     }
 
     @TruffleBoundary
     public static String decode(Charset charset, byte[] bytes, int offset, int byteLength) {
-        return charset.decode(ByteBuffer.wrap(bytes, offset, byteLength)).toString();
+        return new String(bytes, offset, byteLength, charset);
     }
 
     public static String decodeRope(Charset charset, Rope rope) {
-        return charset.decode(ByteBuffer.wrap(rope.getBytes(), 0, rope.byteLength())).toString();
+        return new String(rope.getBytes(), charset);
     }
 
     // MRI: get_actual_encoding
