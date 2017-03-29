@@ -145,12 +145,13 @@ public class ThreadManager {
     }
 
     private static void setException(RubyContext context, DynamicObject thread, DynamicObject exception, Node currentNode) {
+        // A Thread is always shared (Thread.list)
+        SharedObjects.propagate(context, thread, exception);
         final DynamicObject mainThread = context.getThreadManager().getRootThread();
         final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context.getCoreLibrary().getSystemExitClass();
         if (thread != mainThread && (isSystemExit || Layouts.THREAD.getAbortOnException(thread))) {
             ThreadNodes.ThreadRaisePrimitiveNode.raiseInThread(context, mainThread, exception, currentNode);
         }
-        SharedObjects.propagate(context, thread, exception);
         Layouts.THREAD.setException(thread, exception);
     }
 
