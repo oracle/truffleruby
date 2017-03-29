@@ -27,7 +27,7 @@ module Truffle
       end
     end
 
-    def self.gsub_internal(orig, pattern, replacement=undefined, &block)
+    def self.gsub_internal(orig, pattern, replacement)
       unless replacement.kind_of?(String)
         hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
