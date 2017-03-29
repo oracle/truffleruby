@@ -26,11 +26,13 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameInstanceVisitor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -508,6 +510,62 @@ public abstract class RegexpNodes {
 
     }
 
+    public static abstract class SetLastMatchStrategy {
+        protected final FrameDescriptor fd;
+        protected final FrameSlot fs;
+        protected final Object defaultValue;
+
+        protected SetLastMatchStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue) {
+            this.fd = fd;
+            this.fs = fs;
+            this.defaultValue = defaultValue;
+        }
+
+        public boolean matches(Object callerFrame) {
+            return ((MaterializedFrame) callerFrame).getFrameDescriptor() == fd;
+        }
+
+        public abstract ThreadLocalObject getThreadLocal(RubyContext context, MaterializedFrame callerFrame);
+
+        public static SetLastMatchStrategy of(RubyContext context, Object aFrame) {
+            MaterializedFrame callerFrame = (MaterializedFrame) aFrame;
+            FrameDescriptor fd = callerFrame.getFrameDescriptor();
+
+            int depth = getMatchDataDeclarationFrameDepth(callerFrame);
+            MaterializedFrame mf = RubyArguments.getDeclarationFrame(callerFrame, depth);
+            FrameSlot fs = getMatchDataFrameSlotWrite(mf);
+            Object defaultValue = mf.getFrameDescriptor().getDefaultValue();
+            if (depth != 0) {
+                return new ComplexSetLastMatchStrategy(fd, fs, defaultValue, depth);
+            } else {
+                return new SimpleSetLastMatchStrategy(fd, fs, defaultValue);
+            }
+        }
+    }
+
+    public static class SimpleSetLastMatchStrategy extends SetLastMatchStrategy {
+        public SimpleSetLastMatchStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue) {
+            super(fd, fs, defaultValue);
+        }
+
+        public ThreadLocalObject getThreadLocal(RubyContext context, MaterializedFrame callerFrame) {
+            return getThreadLocalObjectFromFrame(context, callerFrame, fs, defaultValue, true);
+        }
+    }
+
+    public static class ComplexSetLastMatchStrategy extends SetLastMatchStrategy {
+        private final int depth;
+        public ComplexSetLastMatchStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue, int depth) {
+            super(fd, fs, defaultValue);
+            this.depth = depth;
+        }
+
+        public ThreadLocalObject getThreadLocal(RubyContext context, MaterializedFrame callerFrame) {
+            final MaterializedFrame frame = RubyArguments.getDeclarationFrame(callerFrame, depth);
+            return getThreadLocalObjectFromFrame(context, frame, fs, defaultValue, true);
+        }
+    }
+
     @Primitive(name = "regexp_set_last_match", needsSelf = false)
     @ImportStatic(RegexpNodes.class)
     public static abstract class RegexpSetLastMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
@@ -540,12 +598,20 @@ public abstract class RegexpNodes {
 
         public abstract DynamicObject executeSetLastMatch(Object callerFrame, Object matchData);
 
+        @Specialization(guards = { "isSuitableMatchDataType(getContext(), matchData)",
+                                   "strategy.matches(callerFrame)" }, limit = "20" )
+        public DynamicObject setLastMatchDataForFrame(Object callerFrame, DynamicObject matchData,
+                @Cached("of(getContext(), callerFrame)") SetLastMatchStrategy strategy) {
+            ThreadLocalObject lastMatch = strategy.getThreadLocal(getContext(), (MaterializedFrame) callerFrame);
+            lastMatch.set(matchData);
+            return matchData;
+        }
+
         @TruffleBoundary
         @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)")
         public DynamicObject setLastMatchData(Object callerFrame, DynamicObject matchData) {
-            Frame frame = (Frame) callerFrame;
             ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(
-                    getContext(), frame, true);
+                    getContext(), (MaterializedFrame) callerFrame, true);
             lastMatch.set(matchData);
             return matchData;
         }
@@ -596,6 +662,27 @@ public abstract class RegexpNodes {
         });
     }
 
+    private static int getMatchDataDeclarationFrameDepth(MaterializedFrame topFrame) {
+        Frame frame = topFrame;
+        int count = 0;
+
+        while (true) {
+            final FrameSlot slot = getMatchDataSlot(frame);
+            if (slot != null) {
+                return count;
+            }
+
+            final Frame nextFrame = RubyArguments.getDeclarationFrame(frame);
+            if (nextFrame != null) {
+                frame = nextFrame;
+                count++;
+            } else {
+                return count;
+            }
+        }
+    }
+
+
     private static Frame getMatchDataFrameSearchingDeclarations(Frame topFrame, boolean returnCandidate) {
         Frame frame = topFrame;
 
@@ -616,6 +703,16 @@ public abstract class RegexpNodes {
 
         return frame;
     }
+
+    private static FrameSlot getMatchDataFrameSlotWrite(MaterializedFrame frame) {
+        FrameDescriptor fd = frame.getFrameDescriptor();
+        FrameSlot fs = fd.findFrameSlot("$~");
+        if (fs == null) {
+            fs = fd.addFrameSlot("$~", FrameSlotKind.Object);
+        }
+        return fs;
+    }
+
 
     private static FrameSlot getMatchDataSlot(Frame frame) {
         return frame.getFrameDescriptor().findFrameSlot("$~");
@@ -648,9 +745,13 @@ public abstract class RegexpNodes {
             slot = frame.getFrameDescriptor().addFrameSlot("$~", FrameSlotKind.Object);
         }
 
+        return getThreadLocalObjectFromFrame(context, frame, slot, frame.getFrameDescriptor().getDefaultValue(), add);
+    }
+
+    private static ThreadLocalObject getThreadLocalObjectFromFrame(RubyContext context, Frame frame, FrameSlot slot, Object defaultValue, boolean add) {
         final Object previousMatchData = frame.getValue(slot);
 
-        if (previousMatchData == frame.getFrameDescriptor().getDefaultValue()) { // Never written to
+        if (previousMatchData == defaultValue) { // Never written to
             if (add) {
                 ThreadLocalObject threadLocalObject = new ThreadLocalObject(context);
                 frame.setObject(slot, threadLocalObject);

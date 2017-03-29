@@ -156,6 +156,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -496,15 +497,16 @@ public abstract class StringNodes {
                 @Cached("createMethodCallIgnoreVisibility()") CallDispatchHeadNode callNode,
                 @Cached("create()") RegexpSetLastMatchPrimitiveNode2 setLastMatchNode) {
             final Object matchStrPair = callNode.call(frame, string, "subpattern", regexp, capture);
+            MaterializedFrame mFrame = ((Frame)callerFrame).materialize();
 
             if (matchStrPair == nil()) {
-                setLastMatchNode.executeSetLastMatch(callerFrame, nil());
+                setLastMatchNode.executeSetLastMatch(mFrame, nil());
                 return nil();
             }
 
             final Object[] array = (Object[]) Layouts.ARRAY.getStore((DynamicObject) matchStrPair);
 
-            setLastMatchNode.executeSetLastMatch(callerFrame, array[0]);
+            setLastMatchNode.executeSetLastMatch(mFrame, array[0]);
 
             return array[1];
         }
