@@ -10,78 +10,73 @@ module Truffle
   module StringOperations
 
     def self.gsub_block_set_last_match(s, pattern, &block)
-      Truffle::StringOperations.gsub_internal(s, pattern) do |m, str|
+      Truffle::StringOperations.gsub_internal_block(s, pattern) do |m, str|
         Regexp.set_block_last_match(block, m)
         yield str
       end
     end
 
+    def self.gsub_internal_block(orig, pattern, &block)
+      duped = orig.dup
+      gsub_internal_core(orig, pattern) do |ret, m, str|
+        val = yield m, str
+        if duped != orig.dup
+          raise RuntimeError, "string modified"
+        end
+        val
+      end
+    end
+
     def self.gsub_internal(orig, pattern, replacement=undefined, &block)
-      unless orig.valid_encoding?
-        raise ArgumentError, "invalid byte sequence in #{orig.encoding}"
+      unless replacement.kind_of?(String)
+        hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
+        replacement = StringValue(replacement) unless hash
       end
 
-      if undefined.equal? replacement
-        use_yield = true
-        tainted = false
+      if hash
+        gsub_internal_hash(orig, pattern, hash)
       else
-        tainted = replacement.tainted?
-        untrusted = replacement.untrusted?
+        gsub_internal_replacement(orig, pattern, replacement)
+      end
+    end
 
-        unless replacement.kind_of?(String)
-          hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
-          replacement = StringValue(replacement) unless hash
-          tainted ||= replacement.tainted?
-          untrusted ||= replacement.untrusted?
-        end
-        use_yield = false
+    def self.gsub_internal_hash(orig, pattern, replacement)
+      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |ret, m, str|
+        replacement[str]
+      end
+    end
+
+    def self.gsub_internal_replacement(orig, pattern, replacement)
+      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |ret, m, str|
+        replacement.to_sub_replacement(ret, m)
+      end
+    end
+
+    def self.gsub_internal_core(orig, pattern, tainted=false, untrusted=false)
+      unless orig.valid_encoding?
+        raise ArgumentError, "invalid byte sequence in #{orig.encoding}"
       end
 
       pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
       match = pattern.search_region(orig, 0, orig.bytesize, true)
 
-      unless match
-        return nil
-      end
-
-      duped = orig.dup
+      return nil unless match
 
       last_end = 0
-      offset = nil
-
       last_match = nil
-
       ret = orig.byteslice(0, 0) # Empty string and string subclass
-      offset = match.byte_begin(0)
 
       while match
-        if str = match.pre_match_from(last_end)
-          ret.append str
-        end
+        offset = match.byte_begin(0)
 
-        if use_yield || hash
-          match_data =  match
+        str = match.pre_match_from(last_end)
+        ret.append str if str
 
-          if use_yield
-            val = yield match, match.to_s
-          else
-            val = hash[match.to_s]
-          end
-          untrusted = true if val.untrusted?
-          val = val.to_s unless val.kind_of?(String)
-
-          tainted ||= val.tainted?
-
-          ret.append val
-
-          if duped != orig.dup
-            raise RuntimeError, "string modified"
-          end
-        else
-          replacement.to_sub_replacement(ret, match)
-        end
-
-        last_end = match.byte_end(0)
+        val = yield ret, match, match.to_s
+        untrusted ||= val.untrusted?
+        val = val.to_s
+        tainted ||= val.tainted?
+        ret.append val
 
         if match.collapsing?
           if char = orig.find_character(offset)
@@ -94,25 +89,18 @@ module Truffle
         end
 
         last_match = match
+        last_end = match.byte_end(0)
 
         match = pattern.match_from orig, offset
-        break unless match
-
-        offset = match.byte_begin(0)
       end
-
-      match_data = last_match
 
       str = orig.byteslice(last_end, orig.bytesize-last_end+1)
-      if str
-        ret.append str
-      end
+      ret.append str if str
 
       ret.taint if tainted
       ret.untrust if untrusted
 
-      [ret, match_data]
+      [ret, last_match]
     end
-
   end
 end
