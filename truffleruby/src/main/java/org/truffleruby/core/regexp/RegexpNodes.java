@@ -51,6 +51,7 @@ import org.joni.exception.SyntaxException;
 import org.joni.exception.ValueException;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -382,45 +383,45 @@ public abstract class RegexpNodes {
         return !context.getCoreLibrary().isSend(method);
     }
 
-    @CoreMethod(names = "=~", required = 1)
+    @CoreMethod(names = "=~", required = 1, needsCallerFrame = CallerFrameAccess.READ_WRITE)
     public abstract static class MatchOperatorNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dupNode = DispatchHeadNodeFactory.createMethodCall();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
-        @Child private RegexpSetLastMatchPrimitiveNode setLastMatchNode = RegexpSetLastMatchPrimitiveNodeFactory.create(null);
+        @Child private RegexpSetLastMatchPrimitiveNode2 setLastMatchNode = RegexpSetLastMatchPrimitiveNode2Factory.create(null);
         @Child private CallDispatchHeadNode toSNode;
         @Child private ToStrNode toStrNode;
 
         @Specialization(guards = "isRubyString(string)")
-        public Object matchString(VirtualFrame frame, DynamicObject regexp, DynamicObject string) {
+        public Object matchString(VirtualFrame frame, Object callerFrame, DynamicObject regexp, DynamicObject string) {
             final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
 
-            return matchWithStringCopy(regexp, dupedString);
+            return matchWithStringCopy(regexp, dupedString, callerFrame);
         }
 
         @Specialization(guards = "isRubySymbol(symbol)")
-        public Object matchSymbol(VirtualFrame frame, DynamicObject regexp, DynamicObject symbol) {
+        public Object matchSymbol(VirtualFrame frame, Object callerFrame, DynamicObject regexp, DynamicObject symbol) {
             if (toSNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toSNode = insert(DispatchHeadNodeFactory.createMethodCall());
             }
 
-            return matchWithStringCopy(regexp, (DynamicObject) toSNode.call(frame, symbol, "to_s"));
+            return matchWithStringCopy(regexp, (DynamicObject) toSNode.call(frame, symbol, "to_s"), callerFrame);
         }
 
         @Specialization(guards = "isNil(nil)")
-        public Object matchNil(DynamicObject regexp, Object nil) {
+        public Object matchNil(VirtualFrame frame, Object callerFrame, DynamicObject regexp, Object nil) {
             return nil();
         }
 
         @Specialization(guards = { "!isRubyString(other)", "!isRubySymbol(other)", "!isNil(other)" })
-        public Object matchGeneric(VirtualFrame frame, DynamicObject regexp, DynamicObject other) {
+        public Object matchGeneric(VirtualFrame frame, Object callerFrame, DynamicObject regexp, DynamicObject other) {
             if (toStrNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toStrNode = insert(ToStrNodeGen.create(null));
             }
 
-            return matchWithStringCopy(regexp, toStrNode.executeToStr(frame, other));
+            return matchWithStringCopy(regexp, toStrNode.executeToStr(frame, other), callerFrame);
         }
 
         // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
@@ -434,12 +435,12 @@ public abstract class RegexpNodes {
         //
         // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
         // same as when the MatchData was created.
-        private Object matchWithStringCopy(DynamicObject regexp, DynamicObject string) {
+        private Object matchWithStringCopy(DynamicObject regexp, DynamicObject string, Object callerFrame) {
             final Matcher matcher = createMatcher(getContext(), regexp, string);
             final int range = StringOperations.rope(string).byteLength();
 
             final DynamicObject matchData = matchCommon(getContext(), this, makeSubstringNode, regexp, string, true, matcher, 0, range);
-            setLastMatchNode.executeSetLastMatch(matchData);
+            setLastMatchNode.executeSetLastMatch((MaterializedFrame) callerFrame, matchData);
 
             if (matchData != nil()) {
                 return matcher.getBegin();
