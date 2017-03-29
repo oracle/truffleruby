@@ -62,22 +62,21 @@
  */
 package org.truffleruby.core.string;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
+import static org.truffleruby.core.rope.RopeNodes.MakeConcatNode.commonCodeRange;
+import static org.truffleruby.core.string.StringOperations.encoding;
+import static org.truffleruby.core.string.StringOperations.rope;
+import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_LEN;
+import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_P;
+import static org.truffleruby.core.string.StringSupport.MBCLEN_INVALID_P;
+import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
 import org.jcodings.specific.ASCIIEncoding;
@@ -85,6 +84,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -113,7 +113,7 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
-import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode;
+import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode2;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
 import org.truffleruby.core.rope.LeafRope;
@@ -145,20 +145,23 @@ import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.posix.TrufflePosix;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
-import static org.truffleruby.core.rope.RopeNodes.MakeConcatNode.commonCodeRange;
-import static org.truffleruby.core.string.StringOperations.encoding;
-import static org.truffleruby.core.string.StringOperations.rope;
-import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_LEN;
-import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_P;
-import static org.truffleruby.core.string.StringSupport.MBCLEN_INVALID_P;
-import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreClass("String")
 public abstract class StringNodes {
@@ -369,7 +372,7 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = { "[]", "slice" }, required = 1, optional = 1, lowerFixnum = { 1, 2 }, taintFrom = 0)
+    @CoreMethod(names = { "[]", "slice" }, required = 1, optional = 1, lowerFixnum = { 1, 2 }, taintFrom = 0, needsCallerFrame = CallerFrameAccess.READ_WRITE)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
@@ -381,7 +384,7 @@ public abstract class StringNodes {
         private final BranchProfile outOfBounds = BranchProfile.create();
 
         @Specialization
-        public Object getIndex(VirtualFrame frame, DynamicObject string, int index, NotProvided length) {
+        public Object getIndex(VirtualFrame frame, Object callerFrame, DynamicObject string, int index, NotProvided length) {
             // Check for the only difference from str[index, 1]
             if (index == rope(string).characterLength()) {
                 outOfBounds.enter();
@@ -391,23 +394,23 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isRubyRange(index)", "!isRubyRegexp(index)", "!isRubyString(index)" })
-        public Object getIndex(VirtualFrame frame, DynamicObject string, Object index, NotProvided length, @Cached("new()") SnippetNode snippetNode) {
-            return getIndex(frame, string, (int)snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", index), length);
+        public Object getIndex(VirtualFrame frame, Object callerFrame, DynamicObject string, Object index, NotProvided length, @Cached("new()") SnippetNode snippetNode) {
+            return getIndex(frame, callerFrame, string, (int)snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", index), length);
         }
 
         @Specialization(guards = "isIntRange(range)")
-        public Object sliceIntegerRange(VirtualFrame frame, DynamicObject string, DynamicObject range, NotProvided length) {
+        public Object sliceIntegerRange(VirtualFrame frame, Object callerFrame, DynamicObject string, DynamicObject range, NotProvided length) {
             return sliceRange(frame, string, Layouts.INT_RANGE.getBegin(range), Layouts.INT_RANGE.getEnd(range), Layouts.INT_RANGE.getExcludedEnd(range));
         }
 
         @Specialization(guards = "isLongRange(range)")
-        public Object sliceLongRange(VirtualFrame frame, DynamicObject string, DynamicObject range, NotProvided length) {
+        public Object sliceLongRange(VirtualFrame frame, Object callerFrame, DynamicObject string, DynamicObject range, NotProvided length) {
             // TODO (nirvdrum 31-Mar-15) The begin and end values should be properly lowered, only if possible.
             return sliceRange(frame, string, (int) Layouts.LONG_RANGE.getBegin(range), (int) Layouts.LONG_RANGE.getEnd(range), Layouts.LONG_RANGE.getExcludedEnd(range));
         }
 
         @Specialization(guards = "isObjectRange(range)")
-        public Object sliceObjectRange(VirtualFrame frame, DynamicObject string, DynamicObject range, NotProvided length,
+        public Object sliceObjectRange(VirtualFrame frame, Object callerFrame, DynamicObject string, DynamicObject range, NotProvided length,
                 @Cached("new()") SnippetNode snippetNode1,
                 @Cached("new()") SnippetNode snippetNode2) {
             // TODO (nirvdrum 31-Mar-15) The begin and end values may return Fixnums beyond int boundaries and we should handle that -- Bignums are always errors.
@@ -457,55 +460,57 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        public Object slice(VirtualFrame frame, DynamicObject string, int start, int length) {
+        public Object slice(VirtualFrame frame, Object callerFrame, DynamicObject string, int start, int length) {
             return getSubstringNode().execute(frame, string, start, length);
         }
 
         @Specialization(guards = "wasProvided(length)")
-        public Object slice(VirtualFrame frame, DynamicObject string, int start, Object length, @Cached("new()") SnippetNode snippetNode) {
-            return slice(frame, string, start, (int)snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
+        public Object slice(VirtualFrame frame, Object callerFrame, DynamicObject string, int start, Object length, @Cached("new()") SnippetNode snippetNode) {
+            return slice(frame, callerFrame, string, start, (int)snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
         }
 
         @Specialization(guards = { "!isRubyRange(start)", "!isRubyRegexp(start)", "!isRubyString(start)", "wasProvided(length)" })
-        public Object slice(VirtualFrame frame, DynamicObject string, Object start, Object length, @Cached("new()") SnippetNode snippetNode1, @Cached("new()") SnippetNode snippetNode2) {
-            return slice(frame, string, (int)snippetNode1.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", start), (int)snippetNode2.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
+        public Object slice(VirtualFrame frame, Object callerFrame, DynamicObject string, Object start, Object length, @Cached("new()") SnippetNode snippetNode1, @Cached("new()") SnippetNode snippetNode2) {
+            return slice(frame, callerFrame, string, (int)snippetNode1.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", start), (int)snippetNode2.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
         }
 
         @Specialization(guards = "isRubyRegexp(regexp)")
         public Object slice1(
                 VirtualFrame frame,
+                Object callerFrame,
                 DynamicObject string,
                 DynamicObject regexp,
                 NotProvided capture,
                 @Cached("createMethodCallIgnoreVisibility()") CallDispatchHeadNode callNode,
-                @Cached("create()") RegexpSetLastMatchPrimitiveNode setLastMatchNode) {
-            return sliceCapture(frame, string, regexp, 0, callNode, setLastMatchNode);
+                @Cached("create()") RegexpSetLastMatchPrimitiveNode2 setLastMatchNode) {
+            return sliceCapture(frame, callerFrame, string, regexp, 0, callNode, setLastMatchNode);
         }
 
         @Specialization(guards = {"isRubyRegexp(regexp)", "wasProvided(capture)"})
         public Object sliceCapture(
                 VirtualFrame frame,
+                Object callerFrame,
                 DynamicObject string,
                 DynamicObject regexp,
                 Object capture,
                 @Cached("createMethodCallIgnoreVisibility()") CallDispatchHeadNode callNode,
-                @Cached("create()") RegexpSetLastMatchPrimitiveNode setLastMatchNode) {
+                @Cached("create()") RegexpSetLastMatchPrimitiveNode2 setLastMatchNode) {
             final Object matchStrPair = callNode.call(frame, string, "subpattern", regexp, capture);
 
             if (matchStrPair == nil()) {
-                setLastMatchNode.executeSetLastMatch(nil());
+                setLastMatchNode.executeSetLastMatch(callerFrame, nil());
                 return nil();
             }
 
             final Object[] array = (Object[]) Layouts.ARRAY.getStore((DynamicObject) matchStrPair);
 
-            setLastMatchNode.executeSetLastMatch(array[0]);
+            setLastMatchNode.executeSetLastMatch(callerFrame, array[0]);
 
             return array[1];
         }
 
         @Specialization(guards = "isRubyString(matchStr)")
-        public Object slice2(VirtualFrame frame, DynamicObject string, DynamicObject matchStr, NotProvided length) {
+        public Object slice2(VirtualFrame frame, Object callerFrame, DynamicObject string, DynamicObject matchStr, NotProvided length) {
             if (includeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 includeNode = insert(DispatchHeadNodeFactory.createMethodCall());

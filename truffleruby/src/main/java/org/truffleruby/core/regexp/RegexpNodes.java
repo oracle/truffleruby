@@ -58,6 +58,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
+import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNode2Factory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -521,6 +522,28 @@ public abstract class RegexpNodes {
         @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)")
         public DynamicObject setLastMatchData(DynamicObject matchData) {
             Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);
+            ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(
+                    getContext(), frame, true);
+            lastMatch.set(matchData);
+            return matchData;
+        }
+
+    }
+
+    @Primitive(name = "regexp_set_last_match2", needsSelf = false)
+    @ImportStatic(RegexpNodes.class)
+    public static abstract class RegexpSetLastMatchPrimitiveNode2 extends PrimitiveArrayArgumentsNode {
+
+        public static RegexpSetLastMatchPrimitiveNode2 create() {
+            return RegexpSetLastMatchPrimitiveNode2Factory.create(null);
+        }
+
+        public abstract DynamicObject executeSetLastMatch(Object callerFrame, Object matchData);
+
+        @TruffleBoundary
+        @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)")
+        public DynamicObject setLastMatchData(Object callerFrame, DynamicObject matchData) {
+            Frame frame = (Frame) callerFrame;
             ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(
                     getContext(), frame, true);
             lastMatch.set(matchData);
