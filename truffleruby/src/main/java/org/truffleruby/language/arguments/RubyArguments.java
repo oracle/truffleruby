@@ -99,6 +99,7 @@ public final class RubyArguments {
     }
 
     public static Object getArgument(Frame frame, int index) {
+        assert index >= 0 && index < (frame.getArguments().length - RUNTIME_ARGUMENT_COUNT);
         return frame.getArguments()[RUNTIME_ARGUMENT_COUNT + index];
     }
 
