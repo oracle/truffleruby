@@ -377,6 +377,11 @@ public abstract class RegexpNodes {
         return matchData == context.getCoreLibrary().getNilObject() || RubyGuards.isRubyMatchData(matchData);
     }
 
+    public static boolean frameIsNotSend(RubyContext context, Object callerFrame) {
+        InternalMethod method = RubyArguments.tryGetMethod((Frame) callerFrame);
+        return !context.getCoreLibrary().isSend(method);
+    }
+
     @CoreMethod(names = "=~", required = 1)
     public abstract static class MatchOperatorNode extends CoreMethodArrayArgumentsNode {
 
@@ -599,6 +604,7 @@ public abstract class RegexpNodes {
         public abstract DynamicObject executeSetLastMatch(Object callerFrame, Object matchData);
 
         @Specialization(guards = { "isSuitableMatchDataType(getContext(), matchData)",
+                                   "frameIsNotSend(getContext(), callerFrame)",
                                    "strategy.matches(callerFrame)" }, limit = "20" )
         public DynamicObject setLastMatchDataForFrame(Object callerFrame, DynamicObject matchData,
                 @Cached("of(getContext(), callerFrame)") SetLastMatchStrategy strategy) {
@@ -607,15 +613,25 @@ public abstract class RegexpNodes {
             return matchData;
         }
 
+        // @TruffleBoundary
+        // @Specialization(guards = { "isSuitableMatchDataType(getContext(), matchData)",
+        //                            "frameIsNotSend(getContext(), callerFrame)" } )
+        // public DynamicObject setLastMatchData(Object callerFrame, DynamicObject matchData) {
+        //     ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(
+        //              getContext(), (MaterializedFrame) callerFrame, true);
+        //     lastMatch.set(matchData);
+        //     return matchData;
+        // }
+
         @TruffleBoundary
-        @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)")
+        @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)" )
         public DynamicObject setLastMatchData(Object callerFrame, DynamicObject matchData) {
+            Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);
             ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(
-                    getContext(), (MaterializedFrame) callerFrame, true);
+                     getContext(), frame, true);
             lastMatch.set(matchData);
             return matchData;
         }
-
     }
 
     @Primitive(name = "regexp_set_block_last_match", needsSelf = false)
