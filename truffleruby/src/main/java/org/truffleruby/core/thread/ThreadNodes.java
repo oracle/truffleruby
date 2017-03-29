@@ -71,6 +71,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
 import java.util.ArrayList;
@@ -501,7 +502,10 @@ public abstract class ThreadNodes {
         }
 
         @TruffleBoundary
-        public static void raiseInThread(final RubyContext context, DynamicObject rubyThread, final DynamicObject exception, Node currentNode) {
+        public static void raiseInThread(RubyContext context, DynamicObject rubyThread, DynamicObject exception, Node currentNode) {
+            // The exception will be shared with another thread
+            SharedObjects.writeBarrier(context, exception);
+
             final Thread javaThread = Layouts.FIBER.getThread((Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiber()));
 
             context.getSafepointManager().pauseThreadAndExecuteLater(javaThread, currentNode, (currentThread, currentNode1) -> {
