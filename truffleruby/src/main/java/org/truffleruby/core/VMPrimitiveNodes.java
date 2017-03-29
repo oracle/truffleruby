@@ -345,6 +345,10 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = { "isRubyString(signalName)", "isRubyProc(proc)" })
         public boolean watchSignalProc(DynamicObject signalName, DynamicObject proc) {
+            if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
+                // The proc will be executed on the main thread
+                SharedObjects.writeBarrier(getContext(), proc);
+            }
             return handle(signalName, new ProcSignalHandler(getContext(), proc));
         }
 
