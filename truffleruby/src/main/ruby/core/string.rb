@@ -357,7 +357,7 @@ class String
 
   def shorten!(size)
     return if empty?
-    Truffle::String.truncate(self, bytesize - size)
+    Truffle::StringOperations.truncate(self, bytesize - size)
   end
 
   def each_codepoint
@@ -806,7 +806,7 @@ class String
       end
     end
 
-    Truffle::String.truncate(self, bytes)
+    Truffle::StringOperations.truncate(self, bytes)
 
     self
   end
@@ -870,7 +870,7 @@ class String
       bytes = bytesize - size
     end
 
-    Truffle::String.truncate(self, bytes)
+    Truffle::StringOperations.truncate(self, bytes)
 
     self
   end
