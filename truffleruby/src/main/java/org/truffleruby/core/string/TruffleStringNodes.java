@@ -24,7 +24,7 @@ import org.truffleruby.language.control.RaiseException;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
-@CoreClass("Truffle::String")
+@CoreClass("Truffle::StringOperations")
 public class TruffleStringNodes {
 
     @CoreMethod(names = "truncate", onSingleton = true, required = 2, lowerFixnum = 2)

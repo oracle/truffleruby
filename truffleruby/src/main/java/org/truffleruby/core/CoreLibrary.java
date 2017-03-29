@@ -591,7 +591,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "Ropes");
         defineModule(truffleModule, "GC");
         defineModule(truffleModule, "Array");
-        defineModule(truffleModule, "String");
+        defineModule(truffleModule, "StringOperations");
         truffleBootModule = defineModule(truffleModule, "Boot");
         defineModule(truffleModule, "Fixnum");
         defineModule(truffleModule, "System");
@@ -1603,6 +1603,8 @@ public class CoreLibrary {
             "/core/truffle/support.rb",
             "/core/truffle/boot.rb",
             "/core/truffle/debug.rb",
+            "/core/truffle/string_operations.rb",
+            "/core/truffle/regexp_operations.rb",
             "/core/io.rb",
             "/core/immediate.rb",
             "/core/string_mirror.rb",

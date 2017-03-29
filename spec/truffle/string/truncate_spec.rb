@@ -9,24 +9,24 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle::String.truncate" do
+describe "Truffle::StringOperations.truncate" do
   it "should truncate if the new byte length is shorter than the current length" do
     str = "abcdef"
 
-    Truffle::String.truncate(str, 3)
+    Truffle::StringOperations.truncate(str, 3)
 
     str.should == "abc"
   end
 
   it "should raise an error if the new byte length is greater than the current length" do
     lambda do
-      Truffle::String.truncate("abc", 10)
+      Truffle::StringOperations.truncate("abc", 10)
     end.should raise_error(ArgumentError)
   end
 
   it "should raise an error if the new byte length is negative" do
     lambda do
-      Truffle::String.truncate("abc", -1)
+      Truffle::StringOperations.truncate("abc", -1)
     end.should raise_error(ArgumentError)
   end
 end
