@@ -165,8 +165,13 @@ public class JavaUtilitiesNodes {
     @CoreMethod(names = "proxy_class", required = 1, rest = true, isModuleFunction = true)
     public static abstract class JavaProxyClassNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary(throwsControlFlowException = true)
         @Specialization
         public Object createJavaProxyClass(Object loader, Object[] rest) {
+            if (TruffleOptions.AOT) {
+                throw new RaiseException(coreExceptions().runtimeError("Not available on SVM.", this));
+            }
+
             Class<?>[] interfaces = new Class<?>[rest.length];
             for (int i = 0; i < rest.length; i++) {
                 interfaces[i] = (Class<?>)rest[i];
