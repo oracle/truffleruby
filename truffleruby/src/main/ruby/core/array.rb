@@ -115,6 +115,8 @@ class Array
   end
 
   def ==(other)
+    Truffle.primitive :array_equal
+
     return true if equal?(other)
     unless other.kind_of? Array
       return false unless other.respond_to? :to_ary
@@ -372,6 +374,8 @@ class Array
   end
 
   def eql?(other)
+    Truffle.primitive :array_eql
+
     return true if equal? other
     return false unless other.kind_of?(Array)
     return false if size != other.size

@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -47,6 +48,10 @@ import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.pack.PackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
+import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
+import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
+import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.Rope;
@@ -711,6 +716,102 @@ public abstract class ArrayNodes {
             }
 
             return array;
+        }
+
+    }
+
+    @Primitive(name = "array_equal")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class EqualNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private SameOrEqualNode equalNode = SameOrEqualNodeFactory.create(null);
+
+        @Specialization(guards = { "isRubyArray(b)", "strategy.matches(a)", "strategy.matches(b)",
+                "!strategy.accepts(nil())" }, limit = "ARRAY_STRATEGIES")
+        protected boolean equalSamePrimitiveType(VirtualFrame frame, DynamicObject a, DynamicObject b,
+                @Cached("of(a)") ArrayStrategy strategy,
+                @Cached("createBinaryProfile()") ConditionProfile sameProfile,
+                @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
+                @Cached("createBinaryProfile()") ConditionProfile sameSizeProfile,
+                @Cached("create()") BranchProfile trueProfile,
+                @Cached("create()") BranchProfile falseProfile) {
+
+            if (sameProfile.profile(a == b)) {
+                return true;
+            }
+
+            final int aSize = sizeProfile.profile(strategy.getSize(a));
+            final int bSize = strategy.getSize(b);
+
+            if (!sameSizeProfile.profile(aSize == bSize)) {
+                return false;
+            }
+
+            final ArrayMirror aMirror = strategy.newMirror(a);
+            final ArrayMirror bMirror = strategy.newMirror(b);
+
+            for (int i = 0; i < aSize; i++) {
+                if (!equalNode.executeSameOrEqual(frame, aMirror.get(i), bMirror.get(i))) {
+                    falseProfile.enter();
+                    return false;
+                }
+            }
+
+            trueProfile.enter();
+            return true;
+        }
+
+        @Fallback
+        protected Object fallback(Object a, Object b) {
+            return FAILURE;
+        }
+
+    }
+
+    @Primitive(name = "array_eql")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class EqlNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private SameOrEqlNode eqlNode = SameOrEqlNodeFactory.create(null);
+
+        @Specialization(guards = { "isRubyArray(b)", "strategy.matches(a)", "strategy.matches(b)",
+                "!strategy.accepts(nil())" }, limit = "ARRAY_STRATEGIES")
+        protected boolean eqlSamePrimitiveType(VirtualFrame frame, DynamicObject a, DynamicObject b,
+                @Cached("of(a)") ArrayStrategy strategy,
+                @Cached("createBinaryProfile()") ConditionProfile sameProfile,
+                @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
+                @Cached("createBinaryProfile()") ConditionProfile sameSizeProfile,
+                @Cached("create()") BranchProfile trueProfile,
+                @Cached("create()") BranchProfile falseProfile) {
+
+            if (sameProfile.profile(a == b)) {
+                return true;
+            }
+
+            final int aSize = sizeProfile.profile(strategy.getSize(a));
+            final int bSize = strategy.getSize(b);
+
+            if (!sameSizeProfile.profile(aSize == bSize)) {
+                return false;
+            }
+
+            final ArrayMirror aMirror = strategy.newMirror(a);
+            final ArrayMirror bMirror = strategy.newMirror(b);
+
+            for (int i = 0; i < aSize; i++) {
+                if (!eqlNode.executeSameOrEql(frame, aMirror.get(i), bMirror.get(i))) {
+                    falseProfile.enter();
+                    return false;
+                }
+            }
+
+            trueProfile.enter();
+            return true;
+        }
+
+        @Fallback
+        protected Object fallback(Object a, Object b) {
+            return FAILURE;
         }
 
     }
