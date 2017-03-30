@@ -2232,26 +2232,6 @@ rb_nativethread_id_t rb_nativethread_self() {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_nativethread_self");
 }
 
-int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock) {
-  *lock = truffle_invoke(RUBY_CEXT, "rb_nativethread_lock_initialize");
-  return 0;
-}
-
-int rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock) {
-  *lock = NULL;
-  return 0;
-}
-
-int rb_nativethread_lock_lock(rb_nativethread_lock_t *lock) {
-  truffle_invoke(lock, "lock");
-  return 0;
-}
-
-int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
-  truffle_invoke(lock, "unlock");
-  return 0;
-}
-
 // IO
 
 void rb_io_check_writable(rb_io_t *io) {

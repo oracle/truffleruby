@@ -1008,10 +1008,10 @@ typedef void *rb_nativethread_id_t;
 typedef void *rb_nativethread_lock_t;
 
 rb_nativethread_id_t rb_nativethread_self();
-int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock);
-int rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock);
-int rb_nativethread_lock_lock(rb_nativethread_lock_t *lock);
-int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock);
+MUST_INLINE int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock);
+MUST_INLINE int rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock);
+MUST_INLINE int rb_nativethread_lock_lock(rb_nativethread_lock_t *lock);
+MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock);
 
 // IO
 
@@ -1148,6 +1148,26 @@ VALUE *rb_ruby_debug_ptr(void);
 #define ruby_debug (*rb_ruby_debug_ptr())
 
 // Inline implementations
+
+MUST_INLINE int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock) {
+  *lock = truffle_invoke(RUBY_CEXT, "rb_nativethread_lock_initialize");
+  return 0;
+}
+
+MUST_INLINE int rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock) {
+  *lock = NULL;
+  return 0;
+}
+
+MUST_INLINE int rb_nativethread_lock_lock(rb_nativethread_lock_t *lock) {
+  truffle_invoke(*lock, "lock");
+  return 0;
+}
+
+MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
+  truffle_invoke(*lock, "unlock");
+  return 0;
+}
 
 MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
   if (rb_obj_is_kind_of(range, rb_cRange)) {
