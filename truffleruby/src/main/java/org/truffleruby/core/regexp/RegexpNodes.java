@@ -531,7 +531,23 @@ public abstract class RegexpNodes {
             return ((MaterializedFrame) callerFrame).getFrameDescriptor() == fd;
         }
 
+        public boolean matchesBlock(DynamicObject block) {
+            return matches(Layouts.PROC.getDeclarationFrame(block));
+        }
+
         public abstract ThreadLocalObject getThreadLocal(RubyContext context, MaterializedFrame callerFrame);
+
+        public ThreadLocalObject getThreadLocalBlock(RubyContext context, DynamicObject block) {
+            return getThreadLocal(context, Layouts.PROC.getDeclarationFrame(block).materialize());
+        }
+
+        public static SetLastMatchStrategy ofBlock(RubyContext context, DynamicObject block) {
+            Object frame = Layouts.PROC.getDeclarationFrame(block);
+            if (frame == null) {
+                return NullStrategy.INSTANCE;
+            }
+            return of(context, frame);
+        }
 
         public static SetLastMatchStrategy of(RubyContext context, Object aFrame) {
             MaterializedFrame callerFrame = (MaterializedFrame) aFrame;
@@ -546,6 +562,22 @@ public abstract class RegexpNodes {
             } else {
                 return new SimpleSetLastMatchStrategy(fd, fs, defaultValue);
             }
+        }
+    }
+
+    public static class NullStrategy extends SetLastMatchStrategy {
+        public static NullStrategy INSTANCE = new NullStrategy();
+
+        private NullStrategy() {
+            super(null, null, null);
+        }
+
+        public ThreadLocalObject getThreadLocal(RubyContext context, MaterializedFrame callerFrame) {
+            return null;
+        }
+
+        public ThreadLocalObject getThreadLocalBlock(RubyContext context, DynamicObject block) {
+            return null;
         }
     }
 
@@ -638,6 +670,18 @@ public abstract class RegexpNodes {
     @Primitive(name = "regexp_set_block_last_match", needsSelf = false)
     @ImportStatic(RegexpNodes.class)
     public static abstract class RegexpSetBlockLastMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyProc(block)",
+                                   "isSuitableMatchDataType(getContext(), matchData)",
+                                   "strategy.matchesBlock(block)" }, limit = "20" )
+        public DynamicObject setBlockLastMatchDataForFrame(DynamicObject block, DynamicObject matchData,
+                @Cached("ofBlock(getContext(), block)") SetLastMatchStrategy strategy) {
+            ThreadLocalObject lastMatch = strategy.getThreadLocalBlock(getContext(), block);
+            if (lastMatch != null) {
+                lastMatch.set(matchData);
+            }
+            return matchData;
+        }
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyProc(block)", "isSuitableMatchDataType(getContext(), matchData)" })
