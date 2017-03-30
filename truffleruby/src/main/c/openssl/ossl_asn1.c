@@ -495,38 +495,40 @@ typedef struct {
 } ossl_asn1_info_t;
 
 static const ossl_asn1_info_t ossl_asn1_info[] = {
-    { "EOC",               &cASN1EndOfContent,    },  /*  0 */
-    { "BOOLEAN",           &cASN1Boolean,         },  /*  1 */
-    { "INTEGER",           &cASN1Integer,         },  /*  2 */
-    { "BIT_STRING",        &cASN1BitString,       },  /*  3 */
-    { "OCTET_STRING",      &cASN1OctetString,     },  /*  4 */
-    { "NULL",              &cASN1Null,            },  /*  5 */
-    { "OBJECT",            &cASN1ObjectId,        },  /*  6 */
-    { "OBJECT_DESCRIPTOR", NULL,                  },  /*  7 */
-    { "EXTERNAL",          NULL,                  },  /*  8 */
-    { "REAL",              NULL,                  },  /*  9 */
-    { "ENUMERATED",        &cASN1Enumerated,      },  /* 10 */
-    { "EMBEDDED_PDV",      NULL,                  },  /* 11 */
-    { "UTF8STRING",        &cASN1UTF8String,      },  /* 12 */
-    { "RELATIVE_OID",      NULL,                  },  /* 13 */
-    { "[UNIVERSAL 14]",    NULL,                  },  /* 14 */
-    { "[UNIVERSAL 15]",    NULL,                  },  /* 15 */
-    { "SEQUENCE",          &cASN1Sequence,        },  /* 16 */
-    { "SET",               &cASN1Set,             },  /* 17 */
-    { "NUMERICSTRING",     &cASN1NumericString,   },  /* 18 */
-    { "PRINTABLESTRING",   &cASN1PrintableString, },  /* 19 */
-    { "T61STRING",         &cASN1T61String,       },  /* 20 */
-    { "VIDEOTEXSTRING",    &cASN1VideotexString,  },  /* 21 */
-    { "IA5STRING",         &cASN1IA5String,       },  /* 22 */
-    { "UTCTIME",           &cASN1UTCTime,         },  /* 23 */
-    { "GENERALIZEDTIME",   &cASN1GeneralizedTime, },  /* 24 */
-    { "GRAPHICSTRING",     &cASN1GraphicString,   },  /* 25 */
-    { "ISO64STRING",       &cASN1ISO64String,     },  /* 26 */
-    { "GENERALSTRING",     &cASN1GeneralString,   },  /* 27 */
-    { "UNIVERSALSTRING",   &cASN1UniversalString, },  /* 28 */
-    { "CHARACTER_STRING",  NULL,                  },  /* 29 */
-    { "BMPSTRING",         &cASN1BMPString,       },  /* 30 */
+    { "EOC",               /*&cASN1EndOfContent*/ NULL,    },  /*  0 */
+    { "BOOLEAN",           /*&cASN1Boolean*/ NULL,         },  /*  1 */
+    { "INTEGER",           /*&cASN1Integer*/ NULL,         },  /*  2 */
+    { "BIT_STRING",        /*&cASN1BitString*/ NULL,       },  /*  3 */
+    { "OCTET_STRING",      /*&cASN1OctetString*/ NULL,     },  /*  4 */
+    { "NULL",              /*&cASN1Null*/ NULL,            },  /*  5 */
+    { "OBJECT",            /*&cASN1ObjectId*/ NULL,        },  /*  6 */
+    { "OBJECT_DESCRIPTOR", NULL,                           },  /*  7 */
+    { "EXTERNAL",          NULL,                           },  /*  8 */
+    { "REAL",              NULL,                           },  /*  9 */
+    { "ENUMERATED",        /*&cASN1Enumerated*/ NULL,      },  /* 10 */
+    { "EMBEDDED_PDV",      NULL,                           },  /* 11 */
+    { "UTF8STRING",        /*&cASN1UTF8String*/ NULL,      },  /* 12 */
+    { "RELATIVE_OID",      NULL,                           },  /* 13 */
+    { "[UNIVERSAL 14]",    NULL,                           },  /* 14 */
+    { "[UNIVERSAL 15]",    NULL,                           },  /* 15 */
+    { "SEQUENCE",          /*&cASN1Sequence*/ NULL,        },  /* 16 */
+    { "SET",               /*&cASN1Set*/ NULL,             },  /* 17 */
+    { "NUMERICSTRING",     /*&cASN1NumericString*/ NULL,   },  /* 18 */
+    { "PRINTABLESTRING",   /*&cASN1PrintableString*/ NULL, },  /* 19 */
+    { "T61STRING",         /*&cASN1T61String*/ NULL,       },  /* 20 */
+    { "VIDEOTEXSTRING",    /*&cASN1VideotexString*/ NULL,  },  /* 21 */
+    { "IA5STRING",         /*&cASN1IA5String*/ NULL,       },  /* 22 */
+    { "UTCTIME",           /*&cASN1UTCTime*/ NULL,         },  /* 23 */
+    { "GENERALIZEDTIME",   /*&cASN1GeneralizedTime*/ NULL, },  /* 24 */
+    { "GRAPHICSTRING",     /*&cASN1GraphicString*/ NULL,   },  /* 25 */
+    { "ISO64STRING",       /*&cASN1ISO64String*/ NULL,     },  /* 26 */
+    { "GENERALSTRING",     /*&cASN1GeneralString*/ NULL,   },  /* 27 */
+    { "UNIVERSALSTRING",   /*&cASN1UniversalString*/ NULL, },  /* 28 */
+    { "CHARACTER_STRING",  NULL,                           },  /* 29 */
+    { "BMPSTRING",         /*&cASN1BMPString*/ NULL,       },  /* 30 */
 };
+
+VALUE** ossl_asn1_info_klass;
 
 enum {ossl_asn1_info_size = (sizeof(ossl_asn1_info)/sizeof(ossl_asn1_info[0]))};
 
@@ -842,8 +844,8 @@ int_ossl_asn1_decode0_prim(unsigned char **pp, long length, long hlen, int tag,
     *pp += hlen + length;
     *num_read = hlen + length;
 
-    if (tc == sUNIVERSAL && tag < ossl_asn1_info_size && ossl_asn1_info[tag].klass) {
-	VALUE klass = *ossl_asn1_info[tag].klass;
+    if (tc == sUNIVERSAL && tag < ossl_asn1_info_size && ossl_asn1_info_klass[tag]) { // ossl_asn1_info[tag].klass) {
+	VALUE klass = *ossl_asn1_info_klass[tag]; // *ossl_asn1_info[tag].klass;
 	VALUE args[4];
 	args[0] = value;
 	args[1] = INT2NUM(tag);
@@ -907,7 +909,7 @@ int_ossl_asn1_decode0_cons(unsigned char **pp, long max_len, long length,
 	    }
 	}
 	else {
-	    VALUE klass = *ossl_asn1_info[tag].klass;
+	    VALUE klass = *ossl_asn1_info_klass[tag]; // *ossl_asn1_info[tag].klass;
 	    asn1data = rb_obj_alloc(klass);
 	}
 	args[0] = ary;
@@ -1476,6 +1478,39 @@ OSSL_ASN1_IMPL_FACTORY_METHOD(EndOfContent)
 void
 Init_ossl_asn1(void)
 {
+    ossl_asn1_info_klass = truffle_managed_malloc(sizeof(VALUE *) * 31);
+    ossl_asn1_info_klass[ 0] = &cASN1EndOfContent;
+    ossl_asn1_info_klass[ 1] = &cASN1Boolean;
+    ossl_asn1_info_klass[ 2] = &cASN1Integer;
+    ossl_asn1_info_klass[ 3] = &cASN1BitString;
+    ossl_asn1_info_klass[ 4] = &cASN1OctetString;
+    ossl_asn1_info_klass[ 5] = &cASN1Null;
+    ossl_asn1_info_klass[ 6] = &cASN1ObjectId;
+    ossl_asn1_info_klass[ 7] = NULL;
+    ossl_asn1_info_klass[ 8] = NULL;
+    ossl_asn1_info_klass[ 9] = NULL;
+    ossl_asn1_info_klass[10] = &cASN1Enumerated;
+    ossl_asn1_info_klass[11] = NULL;
+    ossl_asn1_info_klass[12] = &cASN1UTF8String;
+    ossl_asn1_info_klass[13] = NULL;
+    ossl_asn1_info_klass[14] = NULL;
+    ossl_asn1_info_klass[15] = NULL;
+    ossl_asn1_info_klass[16] = &cASN1Sequence;
+    ossl_asn1_info_klass[17] = &cASN1Set;
+    ossl_asn1_info_klass[18] = &cASN1NumericString;
+    ossl_asn1_info_klass[19] = &cASN1PrintableString;
+    ossl_asn1_info_klass[20] = &cASN1T61String;
+    ossl_asn1_info_klass[21] = &cASN1VideotexString;
+    ossl_asn1_info_klass[22] = &cASN1IA5String;
+    ossl_asn1_info_klass[23] = &cASN1UTCTime;
+    ossl_asn1_info_klass[24] = &cASN1GeneralizedTime;
+    ossl_asn1_info_klass[25] = &cASN1GraphicString;
+    ossl_asn1_info_klass[26] = &cASN1ISO64String;
+    ossl_asn1_info_klass[27] = &cASN1GeneralString;
+    ossl_asn1_info_klass[28] = &cASN1UniversalString;
+    ossl_asn1_info_klass[29] = NULL;
+    ossl_asn1_info_klass[30] = &cASN1BMPString;
+    
     VALUE ary;
     int i;
 
