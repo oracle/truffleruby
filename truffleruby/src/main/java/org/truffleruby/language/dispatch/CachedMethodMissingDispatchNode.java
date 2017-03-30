@@ -16,6 +16,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.methods.InternalMethod;
@@ -33,13 +34,14 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
     @Child private DirectCallNode callNode;
 
     public CachedMethodMissingDispatchNode(
+            RubyContext context,
             Object cachedName,
             DispatchNode next,
             DynamicObject expectedClass,
             MethodLookupResult originalMethodLookup,
             MethodLookupResult methodMissingLookup,
             DispatchAction dispatchAction) {
-        super(cachedName, next, dispatchAction);
+        super(context, cachedName, next, dispatchAction);
 
         this.expectedClass = expectedClass;
         this.originalMethodAssumptions = originalMethodLookup.getAssumptions();
@@ -55,12 +57,12 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
          */
 
         if (callNode.isCallTargetCloningAllowed()
-                && (getContext().getOptions().METHODMISSING_ALWAYS_CLONE || methodMissing.getSharedMethodInfo().shouldAlwaysClone())) {
+                && (context.getOptions().METHODMISSING_ALWAYS_CLONE || methodMissing.getSharedMethodInfo().shouldAlwaysClone())) { // TODO (pitr-ch 30-Mar-2017):
             insert(callNode);
             callNode.cloneCallTarget();
         }
 
-        if (callNode.isInlinable() && getContext().getOptions().METHODMISSING_ALWAYS_INLINE) {
+        if (callNode.isInlinable() && context.getOptions().METHODMISSING_ALWAYS_INLINE) { // TODO (pitr-ch 30-Mar-2017):
             insert(callNode);
             callNode.forceInlining();
         }

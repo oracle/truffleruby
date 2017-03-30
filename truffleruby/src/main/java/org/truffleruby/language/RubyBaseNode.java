@@ -167,6 +167,7 @@ public abstract class RubyBaseNode extends Node {
 
         }
 
+        assert context != null: "getContext() has to always return a context";
         return context;
     }
 

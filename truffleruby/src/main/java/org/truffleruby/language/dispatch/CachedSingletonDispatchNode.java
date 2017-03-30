@@ -16,6 +16,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.methods.InternalMethod;
@@ -33,12 +34,13 @@ public class CachedSingletonDispatchNode extends CachedDispatchNode {
     @Child private DirectCallNode callNode;
 
     public CachedSingletonDispatchNode(
+            RubyContext context,
             Object cachedName,
             DispatchNode next,
             DynamicObject expectedReceiver,
             MethodLookupResult methodLookup,
             DispatchAction dispatchAction) {
-        super(cachedName, next, dispatchAction);
+        super(context, cachedName, next, dispatchAction);
 
         this.expectedReceiver = expectedReceiver;
         this.assumptions = methodLookup.getAssumptions();

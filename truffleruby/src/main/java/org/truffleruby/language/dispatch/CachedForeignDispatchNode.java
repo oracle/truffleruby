@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.dispatch;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.interop.OutgoingForeignCallNode;
 import org.truffleruby.interop.OutgoingForeignCallNodeGen;
 import org.truffleruby.language.RubyGuards;
@@ -23,8 +24,8 @@ public final class CachedForeignDispatchNode extends CachedDispatchNode {
 
     @Child private OutgoingForeignCallNode outgoingForeignCallNode;
 
-    public CachedForeignDispatchNode(DispatchNode next, Object cachedName) {
-        super(cachedName, next, DispatchAction.CALL_METHOD);
+    public CachedForeignDispatchNode(RubyContext context, DispatchNode next, Object cachedName) {
+        super(context, cachedName, next, DispatchAction.CALL_METHOD);
         name = cachedName.toString();
         outgoingForeignCallNode = OutgoingForeignCallNodeGen.create(name, null, null);
     }

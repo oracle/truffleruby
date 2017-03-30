@@ -38,7 +38,7 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
             Shape expectedShape,
             MethodLookupResult methodLookup,
             DispatchAction dispatchAction) {
-        super(cachedName, next, dispatchAction);
+        super(context, cachedName,  next, dispatchAction);
 
         this.expectedShape = expectedShape;
         this.validShape = expectedShape.getValidAssumption();

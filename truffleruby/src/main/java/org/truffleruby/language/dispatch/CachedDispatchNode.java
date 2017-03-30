@@ -18,6 +18,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -34,6 +35,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
 
     public CachedDispatchNode(
+            RubyContext context,
             Object cachedName,
             DispatchNode next,
             DispatchAction dispatchAction) {
@@ -45,9 +47,9 @@ public abstract class CachedDispatchNode extends DispatchNode {
         if (RubyGuards.isRubySymbol(cachedName)) {
             cachedNameAsSymbol = (DynamicObject) cachedName;
         } else if (RubyGuards.isRubyString(cachedName)) {
-            cachedNameAsSymbol = getContext().getSymbolTable().getSymbol(StringOperations.rope((DynamicObject) cachedName));
+            cachedNameAsSymbol = context.getSymbolTable().getSymbol(StringOperations.rope((DynamicObject) cachedName));
         } else if (cachedName instanceof String) {
-            cachedNameAsSymbol = getContext().getSymbolTable().getSymbol((String) cachedName);
+            cachedNameAsSymbol = context.getSymbolTable().getSymbol((String) cachedName);
         } else {
             throw new UnsupportedOperationException();
         }

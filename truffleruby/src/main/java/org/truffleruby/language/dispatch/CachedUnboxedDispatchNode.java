@@ -9,6 +9,10 @@
  */
 package org.truffleruby.language.dispatch;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.module.MethodLookupResult;
+import org.truffleruby.language.methods.InternalMethod;
+
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.Truffle;
@@ -16,8 +20,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.core.module.MethodLookupResult;
-import org.truffleruby.language.methods.InternalMethod;
 
 public class CachedUnboxedDispatchNode extends CachedDispatchNode {
 
@@ -28,12 +30,13 @@ public class CachedUnboxedDispatchNode extends CachedDispatchNode {
     @Child private DirectCallNode callNode;
 
     public CachedUnboxedDispatchNode(
+            RubyContext context,
             Object cachedName,
             DispatchNode next,
             Class<?> expectedClass,
             MethodLookupResult methodLookup,
             DispatchAction dispatchAction) {
-        super(cachedName, next, dispatchAction);
+        super(context, cachedName, next, dispatchAction);
 
         this.expectedClass = expectedClass;
         this.assumptions = methodLookup.getAssumptions();

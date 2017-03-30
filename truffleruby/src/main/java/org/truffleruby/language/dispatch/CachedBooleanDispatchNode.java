@@ -17,6 +17,7 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -35,12 +36,13 @@ public class CachedBooleanDispatchNode extends CachedDispatchNode {
     @Child private DirectCallNode trueCallDirect;
 
     public CachedBooleanDispatchNode(
+            RubyContext context,
             Object cachedName,
             DispatchNode next,
             MethodLookupResult falseMethodLookup,
             MethodLookupResult trueMethodLookup,
             DispatchAction dispatchAction) {
-        super(cachedName, next, dispatchAction);
+        super(context, cachedName, next, dispatchAction);
 
         this.falseAssumptions = falseMethodLookup.getAssumptions();
         this.falseMethod = falseMethodLookup.getMethod();

@@ -34,7 +34,7 @@ public class CachedBoxedSymbolDispatchNode extends CachedDispatchNode {
             DispatchNode next,
             MethodLookupResult methodLookup,
             DispatchAction dispatchAction) {
-        super(cachedName, next, dispatchAction);
+        super(context, cachedName, next, dispatchAction);
 
         this.assumptions = methodLookup.getAssumptions();
         this.method = methodLookup.getMethod();

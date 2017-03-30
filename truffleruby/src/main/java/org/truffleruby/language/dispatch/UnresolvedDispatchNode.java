@@ -81,7 +81,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             } else {
                 depth++;
                 if (RubyGuards.isForeignObject(receiverObject)) {
-                    newDispathNode = new CachedForeignDispatchNode(first, methodName);
+                    newDispathNode = new CachedForeignDispatchNode(getContext(), first, methodName);
                 } else if (RubyGuards.isRubyBasicObject(receiverObject)) {
                     newDispathNode = doDynamicObject(frame, first, receiverObject, methodName, argumentsObjects);
                 } else {
@@ -115,12 +115,12 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             assert falseMethodLookup.isDefined() || trueMethodLookup.isDefined();
 
             return new CachedBooleanDispatchNode(
-                    methodName, first,
+                    getContext(), methodName, first,
                     falseMethodLookup, trueMethodLookup,
                     getDispatchAction());
         } else {
             return new CachedUnboxedDispatchNode(
-                    methodName, first, receiverObject.getClass(),
+                    getContext(), methodName, first, receiverObject.getClass(),
                     method, getDispatchAction());
         }
     }
@@ -142,7 +142,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
         if (RubyGuards.isRubySymbol(receiverObject)) {
             return new CachedBoxedSymbolDispatchNode(getContext(), methodName, first, method, getDispatchAction());
         } else if (Layouts.CLASS.getIsSingleton(coreLibrary().getMetaClass(receiverObject))) {
-            return new CachedSingletonDispatchNode(methodName, first, ((DynamicObject) receiverObject),
+            return new CachedSingletonDispatchNode(getContext(), methodName, first, ((DynamicObject) receiverObject),
                     method, getDispatchAction());
         } else {
             return new CachedBoxedDispatchNode(getContext(), methodName, first, ((DynamicObject) receiverObject).getShape(),
@@ -169,7 +169,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             MethodLookupResult methodLookup) {
         switch (missingBehavior) {
             case RETURN_MISSING: {
-                return new CachedReturnMissingDispatchNode(methodName, first, methodLookup, coreLibrary().getMetaClass(receiverObject),
+                return new CachedReturnMissingDispatchNode(getContext(), methodName, first, methodLookup, coreLibrary().getMetaClass(receiverObject),
                         getDispatchAction());
             }
 
@@ -181,7 +181,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                             receiverObject.toString() + " didn't have a #method_missing", this));
                 }
 
-                return new CachedMethodMissingDispatchNode(methodName, first, coreLibrary().getMetaClass(receiverObject),
+                return new CachedMethodMissingDispatchNode(getContext(), methodName, first, coreLibrary().getMetaClass(receiverObject),
                         methodLookup, methodMissing, getDispatchAction());
             }
 
