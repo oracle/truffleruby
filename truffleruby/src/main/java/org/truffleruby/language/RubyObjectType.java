@@ -36,8 +36,7 @@ public class RubyObjectType extends ObjectType {
             return Layouts.MODULE.getFields(object).getName();
         } else {
             final String className = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(object)).getName();
-            final Object isShared = SharedObjects.isShared(RubyContext.getInstance(), object) ? "(shared)" : "";
-            return StringUtils.format("DynamicObject@%x<%s>%s", System.identityHashCode(object), className, isShared);
+            return StringUtils.format("DynamicObject@%x<%s>", System.identityHashCode(object), className);
         }
     }
 
