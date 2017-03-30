@@ -54,14 +54,13 @@ describe "The launcher" do
   end
 
   it "warns when not using Graal" do
-    on_graalvm = !RbConfig.ruby.end_with?('/bin/truffleruby')
-    out = `#{RbConfig.ruby} -e 'puts "Hello"' 2>&1`
-    if on_graalvm
-      out.should == "Hello\n"
+    out = `#{RbConfig.ruby} -e 'puts Truffle::Graal.graal?' 2>&1`
+    if out.lines.last == "true\n"
+      out.should == "true\n"
     else
       out.should == <<-EOS
 [ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md
-Hello
+false
       EOS
     end
   end
