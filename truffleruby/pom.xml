@@ -11,7 +11,7 @@
   <properties>
     <maven.test.skip>true</maven.test.skip>
     <!-- Must be the same as in mx.truffleruby/suite.py (except for the -SNAPSHOT part, and here we can use a release name) -->
-    <truffle.version>c02973969fb144b533ae0e53187674cb04c2aacc-SNAPSHOT</truffle.version>
+    <truffle.version>ab98f3154821fed6f33dcaba224667c4aa718fcc-SNAPSHOT</truffle.version>
   </properties>
   <repositories>
     <repository>
