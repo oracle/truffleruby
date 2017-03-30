@@ -57,12 +57,12 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
          */
 
         if (callNode.isCallTargetCloningAllowed()
-                && (context.getOptions().METHODMISSING_ALWAYS_CLONE || methodMissing.getSharedMethodInfo().shouldAlwaysClone())) { // TODO (pitr-ch 30-Mar-2017):
+                && (context.getOptions().METHODMISSING_ALWAYS_CLONE || methodMissing.getSharedMethodInfo().shouldAlwaysClone())) {
             insert(callNode);
             callNode.cloneCallTarget();
         }
 
-        if (callNode.isInlinable() && context.getOptions().METHODMISSING_ALWAYS_INLINE) { // TODO (pitr-ch 30-Mar-2017):
+        if (callNode.isInlinable() && context.getOptions().METHODMISSING_ALWAYS_INLINE) {
             insert(callNode);
             callNode.forceInlining();
         }
