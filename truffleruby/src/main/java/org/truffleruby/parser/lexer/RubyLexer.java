@@ -1070,11 +1070,11 @@ public class RubyLexer {
         String name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, magicLine).subSequence(beg + begs[1], beg + ends[1]).toString().replace('-', '_');
         Rope value = parserRopeOperations.makeShared(magicLine, beg + begs[2], ends[2] - begs[2]);
 
-        if ("coding".equals(name) || "encoding".equals(name)) {
+        if ("coding".equalsIgnoreCase(name) || "encoding".equalsIgnoreCase(name)) {
             magicCommentEncoding(value);
-        } else if ("frozen_string_literal".equals(name)) {
+        } else if ("frozen_string_literal".equalsIgnoreCase(name)) {
             setCompileOptionFlag(name, value);
-        } else if ("warn_indent".equals(name)) {
+        } else if ("warn_indent".equalsIgnoreCase(name)) {
             setTokenInfo(name, value);
         } else {
             return false;
