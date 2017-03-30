@@ -1059,7 +1059,7 @@ public class RubyLexer {
         }
 
         int begin = beg;
-        Matcher matcher = magicRegexp.matcher(magicLine.getBytes());
+        Matcher matcher = magicRegexp.matcher(magicLine.getBytes(), begin, begin + length);
         int result = ClassicRegexp.matcherSearch(matcher, begin, begin + length, Option.NONE);
 
         if (result < 0) return false;
