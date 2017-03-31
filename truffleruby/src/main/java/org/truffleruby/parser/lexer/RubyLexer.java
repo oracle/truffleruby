@@ -805,7 +805,7 @@ public class RubyLexer {
                 // no point in looking for them. However, if warnings are enabled, we do need to scan for the magic comment
                 // so we can report that it will be ignored.
                 if (!tokenSeen || (!TruffleOptions.AOT && parserSupport.getContext().warningsEnabled())) {
-                    if (!parseMagicComment(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p))) {
+                    if (!parseMagicComment(lexb, lex_p, lex_pend - lex_p)) {
                         if (comment_at_top()) set_file_encoding(lex_p, lex_pend);
                     }
                 }
@@ -1053,11 +1053,11 @@ public class RubyLexer {
     }
 
     // MRI: parser_magic_comment
-    public boolean parseMagicComment(Rope magicLine) throws IOException {
-        int length = magicLine.byteLength();
+    public boolean parseMagicComment(Rope magicLine, int magicLineOffset, int magicLineLength) throws IOException {
+        int length = magicLineLength;
 
         if (length <= 7) return false;
-        int beg = magicCommentMarker(magicLine, 0);
+        int beg = magicCommentMarker(magicLine, magicLineOffset);
         if (beg >= 0) {
             int end = magicCommentMarker(magicLine, beg);
             if (end < 0) return false;
