@@ -1,1 +1,0 @@
-fails:splat should allow array modification by arguments following splat

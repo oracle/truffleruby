@@ -1,0 +1,1 @@
+fails:A method send with a middle splatted Object argument allows an array being splatted to be modified by another argument
