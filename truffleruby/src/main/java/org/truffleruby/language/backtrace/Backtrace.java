@@ -10,6 +10,7 @@
 package org.truffleruby.language.backtrace;
 
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
@@ -23,6 +24,7 @@ public class Backtrace {
 
     private final Activation[] activations;
     private final Throwable javaThrowable;
+    private DynamicObject backtraceStringArray;
 
     public Backtrace(Activation[] activations, Throwable javaThrowable) {
         this.activations = activations;
@@ -61,4 +63,11 @@ public class Backtrace {
         }
     }
 
+    public DynamicObject getBacktraceStringArray() {
+        return backtraceStringArray;
+    }
+
+    public void setBacktraceStringArray(DynamicObject backtraceStringArray) {
+        this.backtraceStringArray = backtraceStringArray;
+    }
 }

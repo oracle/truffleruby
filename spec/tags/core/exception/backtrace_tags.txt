@@ -1,1 +1,0 @@
-fails:Exception#backtrace returns an Array that can be updated

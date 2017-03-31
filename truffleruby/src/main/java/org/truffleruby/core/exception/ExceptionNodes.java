@@ -79,10 +79,14 @@ public abstract class ExceptionNodes {
             if (hasCustomBacktraceProfile.profile(customBacktrace != null)) {
                 return customBacktrace;
             } else if (hasBacktraceProfile.profile(Layouts.EXCEPTION.getBacktrace(exception) != null)) {
-                return ExceptionOperations.backtraceAsRubyStringArray(
+                final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
+                if (backtrace.getBacktraceStringArray() == null) {
+                    backtrace.setBacktraceStringArray(ExceptionOperations.backtraceAsRubyStringArray(
                         getContext(),
                         exception,
-                        Layouts.EXCEPTION.getBacktrace(exception));
+                        Layouts.EXCEPTION.getBacktrace(exception)));
+                }
+                return backtrace.getBacktraceStringArray();
             } else {
                 return nil();
             }
