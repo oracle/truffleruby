@@ -259,7 +259,7 @@ class Thread
     end
 
     if $DEBUG
-      STDERR.puts "Exception: #{exc.message} (#{exc.class})"
+      STDERR.puts "Exception: `#{exc.class}' - #{exc.message}"
     end
 
     if self == Thread.current
