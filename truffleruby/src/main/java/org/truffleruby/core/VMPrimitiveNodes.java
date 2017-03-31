@@ -354,11 +354,6 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private boolean handleDefault(DynamicObject signalName) {
-            // We can't work with signals with AOT.
-            if (TruffleOptions.AOT) {
-                return true;
-            }
-
             Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(signalName.toString());
             try {
                 getContext().getNativePlatform().getSignalManager().watchDefaultForSignal(signal);
@@ -370,11 +365,6 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private boolean handle(DynamicObject signalName, SignalHandler newHandler) {
-            // We can't work with signals with AOT.
-            if (TruffleOptions.AOT) {
-                return true;
-            }
-
             Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(signalName.toString());
             try {
                 getContext().getNativePlatform().getSignalManager().watchSignal(signal, newHandler);
