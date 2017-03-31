@@ -1063,7 +1063,7 @@ public class RubyLexer {
             if (end < 0) return false;
             length = end - beg - 3; // -3 is to backup over end just found
         } else {
-            beg = 0;
+            beg = magicLineOffset;
         }
 
         int begin = beg;
