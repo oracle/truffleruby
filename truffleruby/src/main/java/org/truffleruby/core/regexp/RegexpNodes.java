@@ -61,7 +61,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
-import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNode2Factory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -72,6 +71,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -388,40 +388,40 @@ public abstract class RegexpNodes {
 
         @Child private CallDispatchHeadNode dupNode = DispatchHeadNodeFactory.createMethodCall();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
-        @Child private RegexpSetLastMatchPrimitiveNode2 setLastMatchNode = RegexpSetLastMatchPrimitiveNode2Factory.create(null);
+        @Child private RegexpSetLastMatchPrimitiveNode setLastMatchNode = RegexpSetLastMatchPrimitiveNodeFactory.create(null);
         @Child private CallDispatchHeadNode toSNode;
         @Child private ToStrNode toStrNode;
 
         @Specialization(guards = "isRubyString(string)")
-        public Object matchString(VirtualFrame frame, Object callerFrame, DynamicObject regexp, DynamicObject string) {
+        public Object matchString(VirtualFrame frame, DynamicObject regexp, DynamicObject string) {
             final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
 
-            return matchWithStringCopy(regexp, dupedString, callerFrame);
+            return matchWithStringCopy(frame, regexp, dupedString);
         }
 
         @Specialization(guards = "isRubySymbol(symbol)")
-        public Object matchSymbol(VirtualFrame frame, Object callerFrame, DynamicObject regexp, DynamicObject symbol) {
+        public Object matchSymbol(VirtualFrame frame, DynamicObject regexp, DynamicObject symbol) {
             if (toSNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toSNode = insert(DispatchHeadNodeFactory.createMethodCall());
             }
 
-            return matchWithStringCopy(regexp, (DynamicObject) toSNode.call(frame, symbol, "to_s"), callerFrame);
+            return matchWithStringCopy(frame, regexp, (DynamicObject) toSNode.call(frame, symbol, "to_s"));
         }
 
         @Specialization(guards = "isNil(nil)")
-        public Object matchNil(VirtualFrame frame, Object callerFrame, DynamicObject regexp, Object nil) {
+        public Object matchNil(VirtualFrame frame, DynamicObject regexp, Object nil) {
             return nil();
         }
 
         @Specialization(guards = { "!isRubyString(other)", "!isRubySymbol(other)", "!isNil(other)" })
-        public Object matchGeneric(VirtualFrame frame, Object callerFrame, DynamicObject regexp, DynamicObject other) {
+        public Object matchGeneric(VirtualFrame frame, DynamicObject regexp, DynamicObject other) {
             if (toStrNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toStrNode = insert(ToStrNodeGen.create(null));
             }
 
-            return matchWithStringCopy(regexp, toStrNode.executeToStr(frame, other), callerFrame);
+            return matchWithStringCopy(frame, regexp, toStrNode.executeToStr(frame, other));
         }
 
         // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
@@ -435,12 +435,12 @@ public abstract class RegexpNodes {
         //
         // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
         // same as when the MatchData was created.
-        private Object matchWithStringCopy(DynamicObject regexp, DynamicObject string, Object callerFrame) {
+        private Object matchWithStringCopy(VirtualFrame frame, DynamicObject regexp, DynamicObject string) {
             final Matcher matcher = createMatcher(getContext(), regexp, string);
             final int range = StringOperations.rope(string).byteLength();
 
             final DynamicObject matchData = matchCommon(getContext(), this, makeSubstringNode, regexp, string, true, matcher, 0, range);
-            setLastMatchNode.executeSetLastMatch((MaterializedFrame) callerFrame, matchData);
+            setLastMatchNode.executeSetLastMatch(frame, matchData);
 
             if (matchData != nil()) {
                 return matcher.getBegin();
@@ -527,8 +527,8 @@ public abstract class RegexpNodes {
             this.defaultValue = defaultValue;
         }
 
-        public boolean matches(Object callerFrame) {
-            return ((MaterializedFrame) callerFrame).getFrameDescriptor() == fd;
+        public boolean matches(Frame callerFrame) {
+            return callerFrame.getFrameDescriptor() == fd;
         }
 
         public boolean matchesBlock(DynamicObject block) {
@@ -542,15 +542,15 @@ public abstract class RegexpNodes {
         }
 
         public static SetLastMatchStrategy ofBlock(RubyContext context, DynamicObject block) {
-            Object frame = Layouts.PROC.getDeclarationFrame(block);
+            Frame frame = (Frame) Layouts.PROC.getDeclarationFrame(block);
             if (frame == null) {
                 return NullStrategy.INSTANCE;
             }
             return of(context, frame);
         }
 
-        public static SetLastMatchStrategy of(RubyContext context, Object aFrame) {
-            MaterializedFrame callerFrame = (MaterializedFrame) aFrame;
+        public static SetLastMatchStrategy of(RubyContext context, Frame aFrame) {
+            MaterializedFrame callerFrame = aFrame.materialize();
             FrameDescriptor fd = callerFrame.getFrameDescriptor();
 
             int depth = getMatchDataDeclarationFrameDepth(callerFrame);
@@ -608,62 +608,35 @@ public abstract class RegexpNodes {
     @ImportStatic(RegexpNodes.class)
     public static abstract class RegexpSetLastMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
+
         public static RegexpSetLastMatchPrimitiveNode create() {
             return RegexpSetLastMatchPrimitiveNodeFactory.create(null);
         }
 
-        public abstract DynamicObject executeSetLastMatch(Object matchData);
-
-        @TruffleBoundary
-        @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)")
-        public DynamicObject setLastMatchData(DynamicObject matchData) {
-            Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);
-            ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(
-                    getContext(), frame, true);
-            lastMatch.set(matchData);
-            return matchData;
-        }
-
-    }
-
-    @Primitive(name = "regexp_set_last_match2", needsSelf = false)
-    @ImportStatic(RegexpNodes.class)
-    public static abstract class RegexpSetLastMatchPrimitiveNode2 extends PrimitiveArrayArgumentsNode {
-
-        public static RegexpSetLastMatchPrimitiveNode2 create() {
-            return RegexpSetLastMatchPrimitiveNode2Factory.create(null);
-        }
-
-        public abstract DynamicObject executeSetLastMatch(Object callerFrame, Object matchData);
+        public abstract DynamicObject executeSetLastMatch(VirtualFrame frame, Object matchData);
 
         @Specialization(guards = { "isSuitableMatchDataType(getContext(), matchData)",
-                                   "frameIsNotSend(getContext(), callerFrame)",
-                                   "strategy.matches(callerFrame)" }, limit = "20" )
-        public DynamicObject setLastMatchDataForFrame(Object callerFrame, DynamicObject matchData,
-                @Cached("of(getContext(), callerFrame)") SetLastMatchStrategy strategy) {
-            ThreadLocalObject lastMatch = strategy.getThreadLocal(getContext(), (MaterializedFrame) callerFrame);
+                "strategy.matches(readCallerFrame.execute(frame))" }, limit = "20")
+        public DynamicObject setLastMatchDataForFrame(VirtualFrame frame, DynamicObject matchData,
+                @Cached("of(getContext(), readCallerFrame.execute(frame))") SetLastMatchStrategy strategy) {
+            MaterializedFrame callerFrame = readCallerFrame.execute(frame).materialize();
+            ThreadLocalObject lastMatch = strategy.getThreadLocal(getContext(), callerFrame);
             lastMatch.set(matchData);
             return matchData;
         }
 
-        // @TruffleBoundary
-        // @Specialization(guards = { "isSuitableMatchDataType(getContext(), matchData)",
-        //                            "frameIsNotSend(getContext(), callerFrame)" } )
-        // public DynamicObject setLastMatchData(Object callerFrame, DynamicObject matchData) {
-        //     ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(
-        //              getContext(), (MaterializedFrame) callerFrame, true);
-        //     lastMatch.set(matchData);
-        //     return matchData;
-        // }
-
-        @TruffleBoundary
         @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)" )
-        public DynamicObject setLastMatchData(Object callerFrame, DynamicObject matchData) {
-            Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);
-            ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(
-                     getContext(), frame, true);
-            lastMatch.set(matchData);
+        public DynamicObject setLastMatchData(VirtualFrame frame, DynamicObject matchData) {
+            Frame callerFrame = readCallerFrame.execute(frame);
+            setMatchData(matchData, callerFrame);
             return matchData;
+        }
+
+        private void setMatchData(DynamicObject matchData, Frame callerFrame) {
+            ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(
+                    getContext(), callerFrame, true);
+            lastMatch.set(matchData);
         }
     }
 

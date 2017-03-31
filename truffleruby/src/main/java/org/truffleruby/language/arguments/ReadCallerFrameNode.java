@@ -31,7 +31,7 @@ public class ReadCallerFrameNode extends RubyNode {
     }
 
     @Override
-    public Object execute(VirtualFrame frame) {
+    public Frame execute(VirtualFrame frame) {
         final MaterializedFrame callerFrame = RubyArguments.getCallerFrame(frame);
 
         if (callerFrameProfile.profile(callerFrame != null)) {
@@ -43,7 +43,7 @@ public class ReadCallerFrameNode extends RubyNode {
 
     @TruffleBoundary
     private Frame getCallerFrame() {
-        return Truffle.getRuntime().getCallerFrame().getFrame(accessMode);
+        return getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(accessMode);
     }
 
 }
