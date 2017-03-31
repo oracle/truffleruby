@@ -581,13 +581,12 @@ module Kernel
       exc.capture_backtrace!(2) unless exc.backtrace?
     end
 
-    if $DEBUG and $VERBOSE != nil
+    if $DEBUG
       if bt = exc.backtrace and !bt.empty?
         pos = bt.first
       else
         pos = caller.first
       end
-
       STDERR.puts "Exception: `#{exc.class}' #{pos} - #{exc.message}"
     end
 
