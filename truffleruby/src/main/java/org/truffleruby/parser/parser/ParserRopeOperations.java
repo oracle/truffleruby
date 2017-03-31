@@ -27,6 +27,10 @@ public class ParserRopeOperations {
 
     public Rope withEncoding(Rope rope, Encoding encoding) {
         if (TruffleOptions.AOT) {
+            if (rope.isAsciiOnly() && encoding.isAsciiCompatible()) {
+                return rope.withEncoding(encoding, CR_7BIT);
+            }
+
             return RopeOperations.create(rope.getBytes(), encoding, CR_UNKNOWN);
         } else {
             final Rope newRope = ropeNode.getWithEncodingNode().executeWithEncoding(rope, encoding, CR_UNKNOWN);
@@ -41,6 +45,10 @@ public class ParserRopeOperations {
 
     public Rope makeShared(Rope rope, int sharedStart, int sharedLength) {
         if (TruffleOptions.AOT) {
+            if (sharedLength == rope.byteLength()) {
+                return rope;
+            }
+
             return RopeOperations.create(Arrays.copyOfRange(rope.getBytes(), sharedStart, sharedStart + sharedLength), rope.getEncoding(), rope.getCodeRange() == CR_7BIT ? CR_7BIT : CR_UNKNOWN);
         } else {
             final Rope newRope = ropeNode.getMakeSubstringNode().executeMake(rope, sharedStart, sharedLength);
