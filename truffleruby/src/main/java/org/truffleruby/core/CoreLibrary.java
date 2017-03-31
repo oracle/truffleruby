@@ -288,6 +288,7 @@ public class CoreLibrary {
 
     @CompilationFinal private GlobalVariableStorage loadPathStorage;
     @CompilationFinal private GlobalVariableStorage loadedFeaturesStorage;
+    @CompilationFinal private GlobalVariableStorage debugStorage;
 
     private final String coreLoadPath;
 
@@ -739,7 +740,7 @@ public class CoreLibrary {
 
         globals.put("$0", dollarZeroValue);
 
-        globals.put("$DEBUG", context.getOptions().DEBUG);
+        debugStorage = globals.put("$DEBUG", context.getOptions().DEBUG);
 
         final Object verbose;
 
@@ -1258,6 +1259,10 @@ public class CoreLibrary {
 
     public DynamicObject getLoadedFeatures() {
         return (DynamicObject) loadedFeaturesStorage.getValue();
+    }
+
+    public Object getDebug() {
+        return debugStorage.getValue();
     }
 
     public DynamicObject getMainObject() {

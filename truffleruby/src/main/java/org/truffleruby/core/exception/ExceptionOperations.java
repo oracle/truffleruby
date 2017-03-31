@@ -47,12 +47,16 @@ public abstract class ExceptionOperations {
     // because the factory is not constant
     @TruffleBoundary
     public static DynamicObject createRubyException(DynamicObject rubyClass, Object message, Backtrace backtrace) {
+        final RubyContext context = Layouts.MODULE.getFields(rubyClass).getContext();
+        context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.EXCEPTION.createException(Layouts.CLASS.getInstanceFactory(rubyClass), message, backtrace);
     }
 
     // because the factory is not constant
     @TruffleBoundary
     public static DynamicObject createSystemCallError(DynamicObject rubyClass, Object message, Backtrace backtrace, int errno) {
+        final RubyContext context = Layouts.MODULE.getFields(rubyClass).getContext();
+        context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.SYSTEM_CALL_ERROR.createSystemCallError(Layouts.CLASS.getInstanceFactory(rubyClass), message, backtrace, errno);
     }
 

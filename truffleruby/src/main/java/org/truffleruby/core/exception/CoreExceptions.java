@@ -25,15 +25,33 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 
 import static org.truffleruby.core.array.ArrayHelpers.createArray;
+
+import java.util.EnumSet;
 
 public class CoreExceptions {
 
     private final RubyContext context;
+    private final BacktraceFormatter debugBacktraceFormatter;
 
     public CoreExceptions(RubyContext context) {
         this.context = context;
+        this.debugBacktraceFormatter = new BacktraceFormatter(context, EnumSet.of(FormattingFlags.OMIT_EXCEPTION));
+    }
+
+    public void showExceptionIfDebug(DynamicObject rubyClass, Object message, Backtrace backtrace) {
+        if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
+            final String exceptionClass = Layouts.MODULE.getFields(rubyClass).getName();
+            String from = "";
+            if (!backtrace.getActivations().isEmpty()) {
+                from = " at " + debugBacktraceFormatter.formatLine(backtrace.getActivations(), 0, null);
+            }
+            System.err.println("Exception `" + exceptionClass + "'" + from + " - " + message);
+        }
     }
 
     // ArgumentError
@@ -534,11 +552,13 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject nameError(String message, Object receiver, String name, Node currentNode) {
-        final DynamicObject nameString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        showExceptionIfDebug(context.getCoreLibrary().getNameErrorClass(), messageString, backtrace);
         return Layouts.NAME_ERROR.createNameError(
                 context.getCoreLibrary().getNameErrorFactory(),
-                nameString,
-                context.getCallStack().getBacktrace(currentNode),
+                messageString,
+                backtrace,
                 receiver,
                 context.getSymbolTable().getSymbol(name));
     }
@@ -549,10 +569,12 @@ public class CoreExceptions {
     public DynamicObject noMethodError(String message, Object receiver, String name, Object[] args, Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final DynamicObject argsArray =  createArray(context, args, args.length);
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        showExceptionIfDebug(context.getCoreLibrary().getNoMethodErrorClass(), messageString, backtrace);
         return Layouts.NO_METHOD_ERROR.createNoMethodError(
                 context.getCoreLibrary().getNoMethodErrorFactory(),
                 messageString,
-                context.getCallStack().getBacktrace(currentNode),
+                backtrace,
                 receiver,
                 context.getSymbolTable().getSymbol(name),
                 argsArray);
@@ -561,11 +583,13 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject noSuperMethodOutsideMethodError(Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope("super called outside of method", UTF8Encoding.INSTANCE));
+        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+        showExceptionIfDebug(context.getCoreLibrary().getNameErrorClass(), messageString, backtrace);
         // TODO BJF Jul 21, 2016 Review to add receiver
         DynamicObject noMethodError = Layouts.NAME_ERROR.createNameError(
                 context.getCoreLibrary().getNoMethodErrorFactory(),
                 messageString,
-                context.getCallStack().getBacktrace(currentNode),
+                backtrace,
                 null,
                 context.getSymbolTable().getSymbol("<unknown>"));
         // FIXME: the name of the method is not known in this case currently
