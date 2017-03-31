@@ -43,6 +43,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.lexer;
 
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
@@ -799,9 +800,16 @@ public class RubyLexer {
                 continue;
             case '#': {	/* it's a comment */
                 this.tokenSeen = tokenSeen;
-                if (!parseMagicComment(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p))) {
-                    if (comment_at_top()) set_file_encoding(lex_p, lex_pend);
+
+                // There are no magic comments that can affect any runtime options after a token has been seen, so there's
+                // no point in looking for them. However, if warnings are enabled, we do need to scan for the magic comment
+                // so we can report that it will be ignored.
+                if (!tokenSeen || (!TruffleOptions.AOT && parserSupport.getContext().warningsEnabled())) {
+                    if (!parseMagicComment(parserRopeOperations.makeShared(lexb, lex_p, lex_pend - lex_p))) {
+                        if (comment_at_top()) set_file_encoding(lex_p, lex_pend);
+                    }
                 }
+
                 lex_p = lex_pend;
             }
             /* fall through */
