@@ -282,8 +282,10 @@ public abstract class ThreadNodes {
 
             });
 
-            if (Layouts.THREAD.getException(thread) != null) {
-                throw new RaiseException(Layouts.THREAD.getException(thread));
+            final DynamicObject exception = Layouts.THREAD.getException(thread);
+            if (exception != null) {
+                currentNode.getContext().getCoreExceptions().showExceptionIfDebug(exception);
+                throw new RaiseException(exception);
             }
         }
 
@@ -301,8 +303,12 @@ public abstract class ThreadNodes {
                 return Layouts.THREAD.getFinishedLatch(thread).await(timeoutInMillis - waited, TimeUnit.MILLISECONDS);
             });
 
-            if (joined && Layouts.THREAD.getException(thread) != null) {
-                throw new RaiseException(Layouts.THREAD.getException(thread));
+            if (joined) {
+                final DynamicObject exception = Layouts.THREAD.getException(thread);
+                if (exception != null) {
+                    getContext().getCoreExceptions().showExceptionIfDebug(exception);
+                    throw new RaiseException(exception);
+                }
             }
 
             return joined;
