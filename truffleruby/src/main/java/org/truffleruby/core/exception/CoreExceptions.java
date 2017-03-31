@@ -43,6 +43,13 @@ public class CoreExceptions {
         this.debugBacktraceFormatter = new BacktraceFormatter(context, EnumSet.of(FormattingFlags.OMIT_EXCEPTION));
     }
 
+    public void showExceptionIfDebug(DynamicObject exception) {
+        showExceptionIfDebug(
+                Layouts.EXCEPTION.getLogicalClass(exception),
+                Layouts.EXCEPTION.getMessage(exception),
+                Layouts.EXCEPTION.getBacktrace(exception));
+    }
+
     public void showExceptionIfDebug(DynamicObject rubyClass, Object message, Backtrace backtrace) {
         if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
             final String exceptionClass = Layouts.MODULE.getFields(rubyClass).getName();
