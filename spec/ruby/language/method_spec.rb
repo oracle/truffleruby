@@ -111,6 +111,12 @@ describe "A method send" do
       lambda { m(1, *x, 2, 3) }.should raise_error(TypeError)
     end
 
+    it "copies the splatted array" do
+      args = [3, 4]
+      m(1, 2, *args, 4, 5).should == [1, 2, [3, 4], 4, 5]
+      m(1, 2, *args, 4, 5)[2].should_not equal(args)
+    end
+
     it "allows an array being splatted to be modified by another argument" do
       args = [3, 4]
       m(1, 2, *args, args.shift, 5).should == [1, 2, [4], 3, 5]
