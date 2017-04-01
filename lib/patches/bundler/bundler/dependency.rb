@@ -1,3 +1,5 @@
+Truffle::Patching.require_original __FILE__
+
 class Bundler::Dependency
 
   # TruffleRuby: add record for truffleruby

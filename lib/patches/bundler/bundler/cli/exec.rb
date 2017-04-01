@@ -1,3 +1,5 @@
+Truffle::Patching.require_original __FILE__
+
 module Bundler
   class CLI::Exec
     def ruby_shebang?(file)
