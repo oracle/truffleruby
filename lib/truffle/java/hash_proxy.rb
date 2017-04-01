@@ -61,7 +61,7 @@ class HashProxy
 
   def entrySet
     s = java.util.HashSet.new
-    a_hash.each { |k, v| s.add HashEntry.new(k, self) }
+    a_hash.each { |k, _| s.add HashEntry.new(k, self) }
     s
   end
 end

@@ -12,6 +12,74 @@ class Data
 
 end
 
+module Truffle::CExt
+  class RData
+
+    DATA_FIELD_INDEX = 2
+
+    def initialize(object)
+      @object = object
+    end
+
+    def [](index)
+      raise unless index == DATA_FIELD_INDEX
+      @object.instance_variable_get(:@data)
+    end
+
+    def []=(index, value)
+      raise unless index == DATA_FIELD_INDEX
+      @object.instance_variable_set :@data, value
+    end
+
+  end
+
+  class RbEncoding
+
+    NAME_FIELD_INDEX = 0
+
+    attr_reader :encoding
+
+    def initialize(encoding)
+      @encoding = encoding
+    end
+
+    def [](index)
+      raise unless index == NAME_FIELD_INDEX
+      @encoding.name
+    end
+
+  end
+
+  class RStringPtr
+
+    attr_reader :string
+
+    def initialize(string)
+      @string = string
+    end
+
+    def size
+      Truffle::CExt.string_pointer_size(@string)
+    end
+
+    def unbox
+      Truffle::CExt.string_pointer_unbox(@string)
+    end
+
+    def [](index)
+      Truffle::CExt.string_pointer_read(@string, index)
+    end
+
+    def []=(index, value)
+      Truffle::CExt.string_pointer_write @string, index, value
+    end
+
+    alias_method :to_str, :string
+    alias_method :to_s, :string
+
+  end
+end
+
 class << Truffle::CExt
 
   T_NONE     = 0x00
@@ -731,11 +799,6 @@ class << Truffle::CExt
 
   def rb_filesystem_encoding
     Encoding.find('filesystem')
-  end
-
-  def rb_to_encoding(enc)
-    enc = Rubinius::Type.coerce_to_encoding(enc)
-    Truffle.invoke_primitive :rb_to_encoding, enc
   end
 
   def rb_to_encoding_index(enc)
@@ -1618,45 +1681,8 @@ class << Truffle::CExt
     Truffle::Debug.log_warning message
   end
 
-  class RData
-
-    DATA_FIELD_INDEX = 2
-
-    def initialize(object)
-      @object = object
-    end
-
-    def [](index)
-      raise unless index == DATA_FIELD_INDEX
-      @object.instance_variable_get(:@data)
-    end
-
-    def []=(index, value)
-      raise unless index == DATA_FIELD_INDEX
-      @object.instance_variable_set :@data, value
-    end
-
-  end
-
   def RDATA(object)
     RData.new(object)
-  end
-
-  class RbEncoding
-
-    NAME_FIELD_INDEX = 0
-
-    attr_reader :encoding
-
-    def initialize(encoding)
-      @encoding = encoding
-    end
-
-    def [](index)
-      raise unless index == NAME_FIELD_INDEX
-      @encoding.name
-    end
-
   end
 
   def rb_to_encoding(encoding)
@@ -1666,35 +1692,6 @@ class << Truffle::CExt
 
   def rb_enc_from_encoding(rb_encoding)
     rb_encoding.encoding
-  end
-
-  class RStringPtr
-
-    attr_reader :string
-
-    def initialize(string)
-      @string = string
-    end
-
-    def size
-      Truffle::CExt.string_pointer_size(@string)
-    end
-
-    def unbox
-      Truffle::CExt.string_pointer_unbox(@string)
-    end
-
-    def [](index)
-      Truffle::CExt.string_pointer_read(@string, index)
-    end
-
-    def []=(index, value)
-      Truffle::CExt.string_pointer_write @string, index, value
-    end
-
-    alias_method :to_str, :string
-    alias_method :to_s, :string
-
   end
 
   def RSTRING_PTR(string)

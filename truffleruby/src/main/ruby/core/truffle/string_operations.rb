@@ -18,10 +18,10 @@ module Truffle
 
     def self.gsub_internal_block(orig, pattern, &block)
       duped = orig.dup
-      gsub_internal_core(orig, pattern) do |ret, m, str|
+      gsub_internal_core(orig, pattern) do |_ret, m, str|
         val = yield m, str
         if duped != orig.dup
-          raise RuntimeError, "string modified"
+          raise RuntimeError, 'string modified'
         end
         val
       end
@@ -41,13 +41,13 @@ module Truffle
     end
 
     def self.gsub_internal_hash(orig, pattern, replacement)
-      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |ret, m, str|
+      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |_ret, _m, str|
         replacement[str]
       end
     end
 
     def self.gsub_internal_replacement(orig, pattern, replacement)
-      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |ret, m, str|
+      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |ret, m, _str|
         replacement.to_sub_replacement(ret, m)
       end
     end
@@ -79,7 +79,7 @@ module Truffle
         ret.append val
 
         if match.collapsing?
-          if char = orig.find_character(offset)
+          if (char = orig.find_character(offset))
             offset += char.bytesize
           else
             offset += 1

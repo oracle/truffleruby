@@ -110,7 +110,7 @@ module JavaUtilities
 
     def fast_converter(a)
       if a == nil
-        lambda { |z| 0 }
+        lambda { |_| 0 }
       else
         lambda { |x| x }
       end
@@ -159,7 +159,7 @@ module JavaUtilities
 
     def fast_converter(a)
       if a == nil
-        lambda { |x| 0.0 }
+        lambda { |_| 0.0 }
       else
         lambda { |x| x }
       end
@@ -184,9 +184,9 @@ module JavaUtilities
 
     def fast_converter(a)
       if a
-        lambda { |x| true }
+        lambda { |_| true }
       else
-        lambda { |x| false }
+        lambda { |_| false }
       end
     end
   end
@@ -253,18 +253,18 @@ module JavaUtilities
   end
 
   begin
-    types = { "java.lang.Integer" => "java.lang.Integer",
-              "java.lang.Byte" => "java.lang.Integer",
-              "java.lang.Character" => "java.lang.Integer",
-              "java.lang.Short" => "java.lang.Integer",
-              "java.lang.Double" => "java.lang.Double",
-              "java.lang.Float" => "java.lang.Double" }
+    types = { 'java.lang.Integer' => 'java.lang.Integer',
+              'java.lang.Byte' => 'java.lang.Integer',
+              'java.lang.Character' => 'java.lang.Integer',
+              'java.lang.Short' => 'java.lang.Integer',
+              'java.lang.Double' => 'java.lang.Double',
+              'java.lang.Float' => 'java.lang.Double' }
     temp_hash = {}
     types.each do |t, w|
       java_type = Java.java_class_by_name(t)
       prim_type = Java.invoke_java_method(
         FIELD_GET, Java.invoke_java_method(
-          CLASS_GET_FIELD, java_type, Interop.to_java_string("TYPE")),
+          CLASS_GET_FIELD, java_type, Interop.to_java_string('TYPE')),
         nil)
       wide_type = temp_hash[w]
       widening_type = WideningType.new(prim_type, java_type, wide_type)
@@ -275,16 +275,16 @@ module JavaUtilities
 
   # We'll want to populate the common primitive and boxed types
   begin
-    integer_types = { "java.lang.Long" => -2**63...2**63,
-                      "java.lang.Integer" => -2**31...2**31,
-                      "java.lang.Byte" => -2**7...2**7,
-                      "java.lang.Character" => 0...2**16,
-                      "java.lang.Short" => -2**15...2**15 }
+    integer_types = { 'java.lang.Long' => -2**63...2**63,
+                      'java.lang.Integer' => -2**31...2**31,
+                      'java.lang.Byte' => -2**7...2**7,
+                      'java.lang.Character' => 0...2**16,
+                      'java.lang.Short' => -2**15...2**15 }
     integer_types.each do |t|
       java_type = Java.java_class_by_name(t[0])
       prim_type = Java.invoke_java_method(
         FIELD_GET, Java.invoke_java_method(
-          CLASS_GET_FIELD, java_type, Interop.to_java_string("TYPE")),
+          CLASS_GET_FIELD, java_type, Interop.to_java_string('TYPE')),
         nil)
       boxed_param = BoxedIntegerParameter.new(t[1], java_type)
       prim_param = PrimitiveIntegerParameter.new(t[1], prim_type)
@@ -292,13 +292,13 @@ module JavaUtilities
       Parameter::ParameterCache.put_if_absent(prim_type, prim_param)
     end
 
-    float_types = ["java.lang.Float", "java.lang.Double"]
+    float_types = ['java.lang.Float', 'java.lang.Double']
 
     float_types.each do |t|
       java_type = Java.java_class_by_name(t)
       prim_type = Java.invoke_java_method(
         FIELD_GET, Java.invoke_java_method(
-          CLASS_GET_FIELD, java_type, Interop.to_java_string("TYPE")),
+          CLASS_GET_FIELD, java_type, Interop.to_java_string('TYPE')),
         nil)
       boxed_param = FloatParameter.new(true, java_type)
       prim_param = FloatParameter.new(false, prim_type)
@@ -306,28 +306,28 @@ module JavaUtilities
       Parameter::ParameterCache.put_if_absent(prim_type, prim_param)
     end
 
-    java_type = Java.java_class_by_name("java.lang.Boolean")
+    java_type = Java.java_class_by_name('java.lang.Boolean')
     prim_type = Java.invoke_java_method(
       FIELD_GET, Java.invoke_java_method(
-        CLASS_GET_FIELD, java_type, Interop.to_java_string("TYPE")),
+        CLASS_GET_FIELD, java_type, Interop.to_java_string('TYPE')),
       nil)
     boxed_param = BooleanParameter.new(true, java_type)
     prim_param = BooleanParameter.new(false, prim_type)
     Parameter::ParameterCache.put_if_absent(java_type, boxed_param)
     Parameter::ParameterCache.put_if_absent(prim_type, prim_param)
 
-    java_type = Java.java_class_by_name("java.lang.String")
+    java_type = Java.java_class_by_name('java.lang.String')
     param = StringParameter.new(java_type)
     Parameter::ParameterCache.put_if_absent(java_type, param)
 
-    java_type = Java.java_class_by_name("java.lang.Object")
+    java_type = Java.java_class_by_name('java.lang.Object')
     param = ObjectParameter.new(java_type)
     Parameter::ParameterCache.put_if_absent(java_type, param)
   end
 
   # Common interface types can accept some standard Ruby objects
   begin
-    java_class = Java.java_class_by_name("java.util.Map")
+    java_class = Java.java_class_by_name('java.util.Map')
     Parameter::ParameterCache.put_if_absent(java_class, MapParameter.new(java_class))
   end
 

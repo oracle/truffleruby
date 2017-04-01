@@ -23,7 +23,7 @@ begin
     end
 
     def inspect
-      s = '[' + self.map(&:to_s).join(', ') + ']'
+      '[' + self.map(&:to_s).join(', ') + ']'
     end
 
     def to_ary

@@ -44,7 +44,7 @@ module ::Java::JavaUtil::List
     if index.kind_of?(Range)
       first, last = determine_range(index)
       if first < size
-        (first...[last, size].min).each { |x| remove(first) } # Remove elements in list
+        (first...[last, size].min).each { |_| remove(first) } # Remove elements in list
       else
         (size...first).each { add(nil) } # Pad out the list
       end
@@ -79,27 +79,6 @@ module ::Java::JavaUtil::List
 
   alias :ruby_first :first
   alias :ruby_last :last
-
-  def index(obj = nil)
-    if obj == nil
-      return to_enum(:index, self) unless block_given?
-
-      i = 0
-      iter = self.iterator
-      while iter.has_next
-        return i if yield iter.next
-        i += 1
-      end
-      nil
-    else
-      iter = self.iterator
-      while iter.has_next
-        return i if iter.next == obj
-        i += 1
-      end
-      nil
-    end
-  end
 
   def index(obj = nil)
     if obj == nil
