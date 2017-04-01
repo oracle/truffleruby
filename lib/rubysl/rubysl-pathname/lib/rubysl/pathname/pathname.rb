@@ -542,6 +542,7 @@ class Pathname
   # This method is available since 1.8.5.
   #
   def descend
+    return to_enum :descend unless block_given?
     vs = []
     ascend {|v| vs << v }
     vs.reverse_each {|v| yield v }
@@ -569,6 +570,7 @@ class Pathname
   # This method is available since 1.8.5.
   #
   def ascend
+    return to_enum :ascend unless block_given?
     path = @path
     yield self
     while r = chop_basename(path)
