@@ -96,8 +96,7 @@ module JavaUtilities
   def self.get_package_or_class(name, probably_class, must_be_class=false)
     a_class = begin
                 Java.java_class_by_name(name)
-              rescue Exception
-                nil
+              rescue Exception  # rubocop:disable Lint/HandleExceptions
               end
     if !probably_class
       # Probably not true, but somebody may have been silly in their class names.
@@ -272,7 +271,7 @@ module JavaUtilities
             Interop.from_java_string(
               Java.invoke_java_method(CLASS_GET_SIMPLE_NAME, a_class)),
             a_proxy) unless parent == nil
-        rescue
+        rescue # rubocop:disable Lint/HandleExceptions
         end
       else
         a_proxy = existing_proxy
@@ -423,32 +422,28 @@ module JavaUtilities
   def self.unreflect_method(a_method)
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT, LOOKUP, a_method)
-    rescue Exception
-      nil
+    rescue Exception # rubocop:disable Lint/HandleExceptions
     end
   end
 
   def self.unreflect_constructor(a_constructor)
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT_CONSTRUCTOR, LOOKUP, a_constructor)
-    rescue Exception
-      nil
+    rescue Exception # rubocop:disable Lint/HandleExceptions
     end
   end
 
   def self.unreflect_getter(a_field)
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT_GETTER, LOOKUP, a_field)
-    rescue Exception
-      nil
+    rescue Exception # rubocop:disable Lint/HandleExceptions
     end
   end
 
   def self.unreflect_setter(a_field)
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT_SETTER, LOOKUP, a_field)
-    rescue Exception
-      nil
+    rescue Exception # rubocop:disable Lint/HandleExceptions
     end
   end
 

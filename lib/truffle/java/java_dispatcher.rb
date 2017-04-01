@@ -40,7 +40,7 @@ module JavaUtilities
       method = lambda do |*args|
         cs = simple_arities[args.size]
         target = cs.find_matching_callable_for_args(args)
-        check = target.checker(args)
+        check = target.checker(args) # rubocop:disable Lint/UselessAssignment
         conn = target.converter(args)
         conn[args]
         ::JavaUtilities.wrap_java_value(Java.invoke_java_method(target.mh, *args))
@@ -73,7 +73,7 @@ module JavaUtilities
     end
 
     def self.widen_method(m)
-      return_type = JavaDispatcher::method_return_type(m)
+      return_type = JavaDispatcher::method_return_type(m) # rubocop:disable Lint/UselessAssignment
       mt = Java.invoke_java_method(METHODHANDLE_TYPE, m)
       uwmt = Java.invoke_java_method(METHODTYPE_UNWRAP, mt)
       m = Java.invoke_java_method(METHODHANDLE_AS_TYPE, m, uwmt)
