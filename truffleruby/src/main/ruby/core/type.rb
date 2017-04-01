@@ -98,7 +98,7 @@ module Rubinius
     def self.execute_coerce_to(obj, cls, meth)
       begin
         ret = obj.__send__(meth)
-      rescue Exception => orig
+      rescue => orig
         coerce_to_failed obj, cls, meth, orig
       end
 
@@ -139,7 +139,7 @@ module Rubinius
     def self.execute_check_convert_type(obj, cls, meth)
       begin
         ret = obj.__send__(meth)
-      rescue Exception
+      rescue
         return nil
       end
 
@@ -404,7 +404,7 @@ module Rubinius
 
       begin
         idx = index.__send__ method
-      rescue Exception => exc
+      rescue => exc
         coerce_to_failed index, klass, method, exc
       end
       return idx if object_kind_of? idx, klass
@@ -424,7 +424,7 @@ module Rubinius
 
       begin
         size = length.__send__ method
-      rescue Exception => exc
+      rescue => exc
         coerce_to_failed length, klass, method, exc
       end
       return size if object_kind_of? size, klass

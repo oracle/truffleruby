@@ -239,7 +239,7 @@ module Enumerable
       end
     end
 
-    class Lazy < self
+    class Lazy < Enumerator
       class StopLazyError < Exception; end # rubocop:disable Lint/InheritException
 
       def initialize(receiver, size=nil)
@@ -251,7 +251,7 @@ module Enumerable
             receiver.each(*each_args) do |*args|
               yield yielder, *args
             end
-          rescue Exception
+          rescue StopLazyError, StandardError
             nil
           end
         end

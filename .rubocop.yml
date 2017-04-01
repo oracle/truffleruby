@@ -233,8 +233,7 @@ Lint/RequireParentheses:
 Lint/RescueException:
   Description: Avoid rescuing the Exception class.
   StyleGuide: "#no-blind-rescues"
-  # disabled, used legitimately often
-  Enabled: false
+  Enabled: true
 
 # Supports --auto-correct
 Lint/SafeNavigationChain:

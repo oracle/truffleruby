@@ -83,7 +83,7 @@ module FFI
               lib = FFI::DynamicLibrary.open(libname, lib_flags)
               break if lib
 
-            rescue Exception => ex
+            rescue Exception => ex # rubocop:disable Lint/RescueException # code from ffi gem
               ldscript = false
               if ex.message =~ /(([^ \t()])+\.so([^ \t:()])*):([ \t])*(invalid ELF header|file too short|invalid file format)/
                 if File.read($1) =~ /(?:GROUP|INPUT) *\( *([^ \)]+)/
