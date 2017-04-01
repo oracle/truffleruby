@@ -460,8 +460,7 @@ class IO
           break if @length && bytes >= @length
         end
       rescue EOFError
-        # done reading
-        nil
+        nil # done reading
       end
 
       @to.flush if @to.kind_of? IO
@@ -739,8 +738,7 @@ class IO
       begin
         io.close unless io.closed?
       rescue StandardError
-        # nothing, just swallow them.
-        nil
+        nil # nothing, just swallow them.
       end
     end
   end
@@ -2535,8 +2533,7 @@ class IO
       begin
         Process.wait @pid
       rescue Errno::ECHILD
-        # If the child already exited
-        nil
+        nil # If the child already exited
       end
       @pid = nil
     end

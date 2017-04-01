@@ -139,7 +139,7 @@ module Enumerable
       begin
         return @generator.next if @generator.next?
       rescue StopIteration
-        nil
+        nil # the enumerator could change between next? and next leading to StopIteration
       end
 
       exception = StopIteration.new 'iteration reached end'

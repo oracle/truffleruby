@@ -212,7 +212,7 @@ class Struct
     begin
       result = self[key]
     rescue IndexError, NameError
-      nil
+      nil # nothing found with key
     end
     if result.nil? || more.empty?
       result

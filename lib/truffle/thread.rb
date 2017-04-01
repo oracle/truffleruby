@@ -113,7 +113,7 @@ class ConditionVariable
         begin
           t.run
         rescue ThreadError
-          nil
+          nil # e.g. killed thread
         end
       end
     end

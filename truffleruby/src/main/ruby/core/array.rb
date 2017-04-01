@@ -1240,7 +1240,7 @@ class Array
                    begin
                      other.next
                    rescue StopIteration
-                     nil
+                     nil # the enumerator could change between next? and next leading to StopIteration
                    end
                  end
       end
