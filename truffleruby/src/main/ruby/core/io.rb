@@ -1979,7 +1979,7 @@ class IO
         nil
       end
     end
-  rescue EAGAINWaitReadable, Errno::EWOULDBLOCK, Errno::EAGAIN
+  rescue EAGAINWaitReadable, Errno::EWOULDBLOCK, Errno::EAGAIN # rubocop:disable Lint/ShadowedException
     if exception
       raise EAGAINWaitReadable, 'read would block'
     else

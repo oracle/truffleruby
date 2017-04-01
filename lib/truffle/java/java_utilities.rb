@@ -285,7 +285,7 @@ module JavaUtilities
 
   def self.ensure_owner(a_class)
     if Java.invoke_java_method(CLASS_IS_MEMBER_CLASS, a_class)
-      package = make_proxy(Java.invoke_java_method(CLASS_GET_ENCLOSING_CLASS, a_class))
+      _package = make_proxy(Java.invoke_java_method(CLASS_GET_ENCLOSING_CLASS, a_class))
     else
       package = Java.invoke_java_method(CLASS_GET_PACKAGE, a_class)
       if package != nil
