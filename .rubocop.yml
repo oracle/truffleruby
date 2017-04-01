@@ -1,6 +1,7 @@
 AllCops:
   DisabledByDefault: true
   DisplayCopNames: true
+  ExtraDetails: true
   Exclude:
     - '*.rb'
     - 'bin/**/*'
@@ -167,6 +168,9 @@ Lint/InvalidCharacterLiteral:
 
 Lint/LiteralInCondition:
   Description: Checks of literals used in conditions.
+  Details: >-
+      Pattern `while true` is allowed, disable the cop with
+      `while true # rubocop:disable Lint/LiteralInCondition` in this case.
   Enabled: true
   Exclude:
   - lib/truffle/java/java_ext/*.rb
