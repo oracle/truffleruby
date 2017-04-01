@@ -46,18 +46,13 @@ module Rubinius::FFI::Library
 
     caller = Truffle::Boot.source_of_caller
 
-    suffixes = ['rubysl/rubysl-socket/lib/rubysl/socket.rb']
+    suffix = 'rubysl/rubysl-socket/lib/rubysl/socket.rb'
 
-    suffix = suffixes.find do |s|
-      caller.end_with?(s) and Truffle::POSIX.respond_to?(mname)
-    end
-
-    if suffix
+    if caller.end_with?(suffix) and Truffle::POSIX.respond_to?(mname)
       define_method mname, &Truffle::POSIX.method(mname)
       module_function mname
     else
       # Fallback
-
       define_method mname do |*|
         raise "FFI::Library method #{name} with caller #{caller} not implemented"
       end
