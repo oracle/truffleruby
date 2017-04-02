@@ -42,6 +42,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.CallBoundMethodNodeGen;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.LogicalClassNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -57,12 +58,17 @@ public abstract class MethodNodes {
         public boolean equal(VirtualFrame frame, DynamicObject a, DynamicObject b,
                 @Cached("create()") ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(Layouts.METHOD.getReceiver(a), Layouts.METHOD.getReceiver(b)) &&
-                    Layouts.METHOD.getMethod(a) == Layouts.METHOD.getMethod(b);
+                    Layouts.METHOD.getMethod(a).getDeclaringModule() == Layouts.METHOD.getMethod(b).getDeclaringModule() &&
+                    originalMethod(a) == originalMethod(b);
         }
 
         @Specialization(guards = "!isRubyMethod(b)")
         public boolean equal(DynamicObject a, Object b) {
             return false;
+        }
+
+        private SharedMethodInfo originalMethod(DynamicObject a) {
+            return Layouts.METHOD.getMethod(a).getSharedMethodInfo();
         }
 
     }
