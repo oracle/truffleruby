@@ -81,5 +81,8 @@ describe "Time#zone" do
     with_timezone("1,2") do
       Time.now.utc_offset.should == 0
     end
+    with_timezone("7") do
+      Time.now.utc_offset.should == 0
+    end
   end
 end
