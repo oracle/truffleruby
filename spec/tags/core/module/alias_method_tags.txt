@@ -1,0 +1,1 @@
+fails:Module#alias_method creates methods that are == to eachother
