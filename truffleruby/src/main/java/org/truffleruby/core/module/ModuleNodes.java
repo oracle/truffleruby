@@ -1107,6 +1107,11 @@ public abstract class ModuleNodes {
         @Specialization(guards = { "!isRubyClass(self)", "isRubyModule(from)", "!isRubyClass(from)" })
         public Object initializeCopyModule(DynamicObject self, DynamicObject from) {
             Layouts.MODULE.getFields(self).initCopy(from);
+            
+            final DynamicObject selfMetaClass = getSingletonClass(self);
+            final DynamicObject fromMetaClass = getSingletonClass(from);
+            Layouts.MODULE.getFields(selfMetaClass).initCopy(fromMetaClass);
+
             return nil();
         }
 

@@ -1,1 +1,0 @@
-fails:Module#initialize_copy should retain singleton methods when duped
