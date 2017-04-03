@@ -13,7 +13,7 @@ describe "CApiFalseSpecs" do
     end
   end
 
-  describe "a false value from Qtrue" do
+  describe "a false value from Qfalse" do
     it "is falsey in C" do
       @b.is_true(@b.q_false).should == 2
     end
