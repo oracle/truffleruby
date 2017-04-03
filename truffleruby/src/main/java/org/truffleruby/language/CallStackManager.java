@@ -47,6 +47,46 @@ public class CallStackManager {
         return getCallerFrameIgnoringSend(0);
     }
 
+    public Node getCallerNode() {
+        return getCallerNode(0);
+    }
+
+    @TruffleBoundary
+    public Node getCallerNode(int skip) {
+        // Try first using getCallerFrame() as it's the common case
+        if (skip == 0) {
+            FrameInstance callerFrame = Truffle.getRuntime().getCurrentFrame();
+            if (callerFrame == null) {
+                return null;
+            }
+            Node node = callerFrame.getCallNode();
+            if (node != null) {
+                return node;
+            }
+        }
+
+        // Need to iterate further
+        return Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<Node>() {
+            int depth = 0;
+            int skipped = 0;
+
+            @Override
+            public Node visitFrame(FrameInstance frameInstance) {
+                depth++;
+                if (depth == 1) { // Skip top frame
+                    return null;
+                }
+
+                if (skipped >= skip) {
+                    return frameInstance.getCallNode();
+                } else {
+                    skipped++;
+                }
+                return null;
+            }
+        });
+    }
+
     @TruffleBoundary
     public FrameInstance getCallerFrameIgnoringSend(int skip) {
         // Try first using getCallerFrame() as it's the common case

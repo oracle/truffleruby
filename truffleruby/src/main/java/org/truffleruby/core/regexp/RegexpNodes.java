@@ -383,7 +383,7 @@ public abstract class RegexpNodes {
         return !context.getCoreLibrary().isSend(method);
     }
 
-    @CoreMethod(names = "=~", required = 1, needsCallerFrame = CallerFrameAccess.READ_WRITE)
+    @CoreMethod(names = "=~", required = 1)
     public abstract static class MatchOperatorNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dupNode = DispatchHeadNodeFactory.createMethodCall();

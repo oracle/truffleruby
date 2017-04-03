@@ -77,7 +77,7 @@ public class CachedBoxedSymbolDispatchNode extends CachedDispatchNode {
 
         switch (getDispatchAction()) {
             case CALL_METHOD:
-                return call(callNode, frame, method, receiverObject, blockObject, argumentsObjects);
+                return call(callNode, frame, method, receiverObject, blockObject, argumentsObjects, needsCallerFrame);
 
             case RESPOND_TO_METHOD:
                 return true;
