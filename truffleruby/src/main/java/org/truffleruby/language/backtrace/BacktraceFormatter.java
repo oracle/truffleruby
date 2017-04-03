@@ -161,6 +161,8 @@ public class BacktraceFormatter {
             builder.append(":in `");
             builder.append(reportedName);
             builder.append("'");
+        } else if (rootNode.getLanguageInfo().getName().equals("Sulong")) {
+            builder.append(formatSulong(activation.getCallNode()));
         } else {
             builder.append(formatForeign(activation.getCallNode()));
         }
@@ -258,6 +260,25 @@ public class BacktraceFormatter {
         return path.indexOf("/lib/stdlib/rubygems") == -1;
     }
 
+    private String formatSulong(Node callNode) {
+        final StringBuilder builder = new StringBuilder();
+
+        final RootNode rootNode = callNode.getRootNode();
+
+        final String source = rootNode.getSourceSection().getSource().getName();
+        final String[] components = source.split("[@:]");
+
+        builder.append(components[0]);
+        builder.append(":");
+        builder.append(components[1].replaceFirst("[\\dabcdef]+_", ""));
+        builder.append(":in `");
+        assert rootNode.getName().startsWith("@");
+        builder.append(rootNode.getName().substring(1));
+        builder.append("'");
+
+        return builder.toString();
+    }
+
     private String formatForeign(Node callNode) {
         final StringBuilder builder = new StringBuilder();
 
@@ -265,7 +286,6 @@ public class BacktraceFormatter {
 
         if (sourceSection != null) {
             final String shortDescription = RubyLanguage.fileLine(sourceSection);
-
 
             builder.append(shortDescription);
 
