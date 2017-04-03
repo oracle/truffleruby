@@ -95,6 +95,8 @@ void rb_tr_log_warning(const char *message);
 void *rb_tr_to_native_handle(VALUE managed);
 VALUE rb_tr_from_native_handle(void *native);
 
+#define rb_tr_debug(object) truffle_invoke(RUBY_CEXT, "rb_tr_debug", object)
+
 // Memory
 
 #define xmalloc       malloc    // TODO CS 4-Mar-17 malloc and all these macros should be a version that throws an exception on failure
