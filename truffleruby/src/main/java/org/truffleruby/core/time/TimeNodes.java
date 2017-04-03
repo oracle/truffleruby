@@ -542,7 +542,7 @@ public abstract class TimeNodes {
          */
 
         private static final Pattern TZ_PATTERN
-                = Pattern.compile("([^-\\+\\d]+)?([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
+                = Pattern.compile("([a-zA-Z]{3,}+)([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
 
         private static final Map<String, String> LONG_TZNAME = Helpers.map(
                 "MET", "CET", // JRUBY-2759
