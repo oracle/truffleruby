@@ -17,7 +17,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 @CoreClass("Truffle::Etc")
 public abstract class EtcNodes {
 
-    @CoreMethod(names = "nprocessors", needsSelf = false)
+    @CoreMethod(names = "nprocessors", onSingleton = true)
     public abstract static class NProcessors extends CoreMethodNode {
 
         @Specialization

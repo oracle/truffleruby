@@ -7,5 +7,9 @@
 # GNU Lesser General Public License version 2.1
 
 module Etc
-  include Truffle::Etc
+  module_function
+
+  def nprocessors
+    Truffle::Etc.nprocessors
+  end
 end
