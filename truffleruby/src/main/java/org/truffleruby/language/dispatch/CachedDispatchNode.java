@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -33,7 +34,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
     @Child protected DispatchNode next;
 
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
-    protected boolean needsCallerFrame = false;
+    @CompilationFinal protected boolean needsCallerFrame = false;
 
     public CachedDispatchNode(
             RubyContext context,
@@ -59,10 +60,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
     }
 
     public void replaceSendingChild() {
-        assert (!needsCallerFrame);
-        CachedDispatchNode newNode = (CachedDispatchNode) this.deepCopy();
-        newNode.needsCallerFrame = true;
-        replace(newNode);
+        needsCallerFrame = true;
     }
 
     @Override
