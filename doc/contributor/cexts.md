@@ -67,6 +67,25 @@ C extension is actually being used by looking for these log lines.
 [ruby] INFO loading cext module ...
 ```
 
+## OpenSSL
+
+To build the `openssl` gem you need to install the OpenSSL system library. On
+macOS we use Homebrew and 1.0.2g. You need to set the `OPENSSL_HOME` variable
+and then you can build C extensions including `openssl`.
+
+```bash
+SULONG_HOME=/absolute/path/to/sulong JT_OPT=opt-3.8 JT_CLANG=clang-3.8 \
+OPENSSL_HOME=/usr/local/Cellar/openssl/1.0.2g \
+    jt build cexts
+```
+
+The `openssl` specs and tests are currently segregated and are run separately.
+
+```
+jt test :openssl --sulong
+jt test mri openssl --sulong
+```
+
 ## Implementation
 
 We run Ruby C extensions using Sulong, running any dynamically linked libraries
