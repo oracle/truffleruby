@@ -46,7 +46,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.debug.DebugHelpers;
 import org.truffleruby.language.control.RaiseException;
 
 import java.io.ByteArrayInputStream;
@@ -357,7 +356,7 @@ public class RubyDateFormatter {
         }
     }
 
-    public RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt) {
+    public RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt, TimeZoneAndName envTZ) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
         RopeBuilder toAppendTo = new RopeBuilder();
 
@@ -479,7 +478,7 @@ public class RubyDateFormatter {
                     output = formatZone(colons, (int) value, formatter);
                     break;
                 case FORMAT_ZONE_ID:
-                    output = getRubyTimeZoneName(dt);
+                    output = getRubyTimeZoneName(dt, envTZ);
                     break;
                 case FORMAT_CENTURY:
                     type = NUMERIC;
@@ -610,13 +609,8 @@ public class RubyDateFormatter {
         return before + after;
     }
 
-    public String getRubyTimeZoneName(ZonedDateTime dt) {
-        return getRubyTimeZoneName(getEnvTimeZone().toString(), dt);
-    }
-
-    @SuppressWarnings("deprecation")
-    private Object getEnvTimeZone() {
-        return DebugHelpers.eval(context, "Time.now.zone");
+    public String getRubyTimeZoneName(ZonedDateTime dt, TimeZoneAndName envTZ) {
+        return getRubyTimeZoneName(envTZ.getName(), dt);
     }
 
     /* Some TZ values need to be overriden for Time#zone

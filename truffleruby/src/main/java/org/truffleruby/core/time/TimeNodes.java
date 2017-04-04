@@ -9,19 +9,25 @@
  */
 package org.truffleruby.core.time;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.time.RubyDateFormatter.Token;
@@ -332,16 +338,40 @@ public abstract class TimeNodes {
     }
 
     @Primitive(name = "time_strftime")
+    @ImportStatic(StringCachingGuards.class)
     public static abstract class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(format)")
-        public DynamicObject timeStrftime(DynamicObject time, DynamicObject format) {
-            final RubyDateFormatter rdf = new RubyDateFormatter(getContext(), this);
-            final List<Token> pattern = rdf.compilePattern(StringOperations.rope(format), false);
-            return createString(rdf.formatToRopeBuilder(pattern, Layouts.TIME.getDateTime(time)));
+        @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
+        
+        @Specialization(guards = { "isRubyString(format)",
+                                   "ropesEqual(format, cachedFormat)" } )
+        public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format,
+                                          @Cached("privatizeRope(format)") Rope cachedFormat,
+                                          @Cached("createFormatter()") RubyDateFormatter rdf,
+                @Cached("compilePattern(rdf, cachedFormat)") List<Token> pattern) {
+            return createString(format(rdf, pattern, Layouts.TIME.getDateTime(time), getTimeZoneNode.executeGetTimeZone(frame)));
         }
 
+        @Specialization(guards = "isRubyString(format)")
+        public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format) {
+            final  RubyDateFormatter rdf = new RubyDateFormatter(getContext(), this);
+            final List<Token> pattern = compilePattern(rdf, StringOperations.rope(format));
+            return createString(format(rdf, pattern, Layouts.TIME.getDateTime(time), getTimeZoneNode.executeGetTimeZone(frame)));
+        }
+
+        protected RubyDateFormatter createFormatter() {
+            return new RubyDateFormatter(getContext(), this);
+        }
+
+        @TruffleBoundary
+        protected List<Token> compilePattern(RubyDateFormatter rdf, Rope format) {
+            return rdf.compilePattern(format, false);
+        }
+
+        @TruffleBoundary
+        public RopeBuilder format(RubyDateFormatter rdf, List<Token> pattern, ZonedDateTime dt, TimeZoneAndName envTZ) {
+            return rdf.formatToRopeBuilder(pattern, dt, envTZ);
+        }
     }
 
     @Primitive(name = "time_s_from_array", needsSelf = true, lowerFixnum = { 1 /*sec*/, 2 /* min */, 3 /* hour */, 4 /* mday */, 5 /* month */, 6 /* year */, 7 /*nsec*/, 8 /*isdst*/})
