@@ -34,7 +34,7 @@ describe "The launcher" do
     out   = `#{cmd}`
     parts = out.split(' ')
     parts[0].should == "$"
-    parts[1].end_with?("java").should == true
+    (parts[1] =~ /java|graalvm/).should_not be_nil
     $?.success?.should == true
   end
 
@@ -51,7 +51,7 @@ describe "The launcher" do
     ENV["JAVA_OPTS"] = option
     out = `#{RbConfig.ruby} -J-cmd --version`
     parts = out.lines[0].split(' ')
-    parts.should include option
+    parts.find { |part| part =~ /^(-J:)?#{option}$/ }.should_not be_nil
     $?.success?.should == true
   end
 
