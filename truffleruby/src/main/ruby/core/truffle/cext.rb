@@ -807,7 +807,7 @@ class << Truffle::CExt
   end
 
   def rb_str_new_nul(length)
-    "\0" * length
+    "\0".b * length
   end
 
   def rb_str_new_cstr(java_string)
