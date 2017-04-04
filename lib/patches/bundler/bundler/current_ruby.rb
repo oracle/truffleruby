@@ -1,3 +1,5 @@
+Truffle::Patching.require_original __FILE__
+
 module Bundler
   class CurrentRuby
     # TruffleRuby: added method
