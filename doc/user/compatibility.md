@@ -148,6 +148,12 @@ cannot be passed as variadic arguments.
 The `mark` function of `RDATA` is never called. The `free` function is also
 never called at the moment, but this will be fixed in the future.
 
+#### Ruby objects and truthiness in C
+
+All Ruby objects are truthy in C, except for `Qfalse`, the `Fixnum` value `0`,
+and the `Float` value `0.0`. The last two are incompatible with MRI, which would
+also see these values as truthy.
+
 ## Compatibility with JRuby
 
 #### Ruby to Java interop
