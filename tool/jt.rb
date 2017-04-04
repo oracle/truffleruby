@@ -784,6 +784,7 @@ module Commands
     non_options_args = args.reject { |arg| arg.start_with?('-') }
 
     index = if non_options_args == ["openssl"]
+      args.delete_if { |arg| arg == "openssl"}
       "#{JRUBY_DIR}/test/openssl.index"
     elsif non_options_args.empty?
       "#{JRUBY_DIR}/test/mri_truffle.index"
