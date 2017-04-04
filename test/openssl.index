@@ -1,37 +1,28 @@
-openssl/test_asn1.rb
+# openssl/test_asn1.rb
 openssl/test_bn.rb
-openssl/test_buffering.rb
-# openssl/test_certificate.rb # no file
-openssl/test_cipher.rb
-openssl/test_config.rb
-openssl/test_digest.rb
-
-# openssl/test_ec.rb  # no file
-
-openssl/test_engine.rb
-openssl/test_hmac.rb
-# openssl/test_imaps.rb  # no file
-# openssl/test_integration.rb # no file
-openssl/test_ns_spki.rb
-
-openssl/test_ocsp.rb
-# openssl/test_parse_certificate.rb # no file
-openssl/test_pair.rb
-openssl/test_partial_record_read.rb
-openssl/test_pkcs12.rb
-openssl/test_pkcs7.rb
-openssl/test_pkey_dh.rb
-openssl/test_pkey_dsa.rb
-
-openssl/test_pkey_ec.rb
-openssl/test_pkey_rsa.rb
-
-openssl/test_ssl.rb
-
-openssl/test_ssl_session.rb
-openssl/test_x509cert.rb
-openssl/test_x509crl.rb
-openssl/test_x509ext.rb
-openssl/test_x509name.rb
-openssl/test_x509req.rb
-openssl/test_x509store.rb
+# openssl/test_buffering.rb
+# openssl/test_cipher.rb
+# openssl/test_config.rb
+# openssl/test_digest.rb
+# openssl/test_engine.rb
+# openssl/test_fips.rb
+# openssl/test_hmac.rb
+# openssl/test_ns_spki.rb
+# openssl/test_ocsp.rb
+# openssl/test_pair.rb
+# openssl/test_partial_record_read.rb
+# openssl/test_pkcs5.rb
+# openssl/test_pkcs7.rb
+# openssl/test_pkcs12.rb
+# openssl/test_pkey_dh.rb
+# openssl/test_pkey_dsa.rb
+# openssl/test_pkey_ec.rb
+# openssl/test_pkey_rsa.rb
+# openssl/test_ssl.rb
+# openssl/test_ssl_session.rb
+# openssl/test_x509cert.rb
+# openssl/test_x509crl.rb
+# openssl/test_x509ext.rb
+# openssl/test_x509name.rb
+# openssl/test_x509req.rb
+# openssl/test_x509store.rb
