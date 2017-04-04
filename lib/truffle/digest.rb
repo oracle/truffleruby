@@ -83,11 +83,13 @@ module Digest
 
     def digest(message = NO_MESSAGE)
       if NO_MESSAGE == message
-        Truffle::Digest.digest @digest
+        finish
       else
         reset
         update message
-        digest!
+        digested = finish
+        reset
+        digested
       end
     end
 
@@ -98,9 +100,13 @@ module Digest
     alias_method :to_str, :hexdigest
 
     def digest!
-      digested = digest
+      digested = finish
       reset
       digested
+    end
+    
+    def finish
+      Truffle::Digest.digest @digest
     end
 
     def hexdigest!
