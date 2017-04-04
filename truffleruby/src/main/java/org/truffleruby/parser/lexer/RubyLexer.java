@@ -67,6 +67,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubyWarnings;
 import org.truffleruby.parser.SafeDoubleParser;
 import org.truffleruby.parser.ast.BackRefParseNode;
+import org.truffleruby.parser.ast.BigRationalParseNode;
 import org.truffleruby.parser.ast.BignumParseNode;
 import org.truffleruby.parser.ast.ComplexParseNode;
 import org.truffleruby.parser.ast.FixnumParseNode;
@@ -154,8 +155,12 @@ public class RubyLexer {
         return new FixnumParseNode(getPosition(), Long.parseLong(value, radix));
     }
     
-    private RationalParseNode newRationalNode(String value, int radix) throws NumberFormatException {
-        return new RationalParseNode(getPosition(), Long.parseLong(value, radix), 1);
+    private ParseNode newRationalNode(String value, int radix) throws NumberFormatException {
+        try {
+            return new RationalParseNode(getPosition(), Long.parseLong(value, radix), 1);
+        } catch (NumberFormatException e) {
+            return new BigRationalParseNode(getPosition(), new BigInteger(value, radix), BigInteger.ONE);
+        }
     }
     
     private ComplexParseNode newComplexNode(NumericParseNode number) {

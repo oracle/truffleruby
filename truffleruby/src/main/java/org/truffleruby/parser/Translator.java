@@ -27,6 +27,7 @@ import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.parser.ast.NilImplicitParseNode;
 import org.truffleruby.parser.ast.ParseNode;
+import org.truffleruby.parser.ast.visitor.AbstractNodeVisitor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class Translator extends org.truffleruby.parser.ast.visitor.AbstractNodeVisitor<RubyNode> {
+public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
 
     public static final Set<String> FRAME_LOCAL_GLOBAL_VARIABLES = new HashSet<>(
             Arrays.asList("$_", "$~", "$+", "$&", "$`", "$'", "$1", "$2", "$3", "$4", "$5", "$6", "$7", "$8", "$9"));

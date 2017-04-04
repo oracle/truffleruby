@@ -59,6 +59,7 @@ import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.AttrAssignParseNode;
 import org.truffleruby.parser.ast.BackRefParseNode;
 import org.truffleruby.parser.ast.BeginParseNode;
+import org.truffleruby.parser.ast.BigRationalParseNode;
 import org.truffleruby.parser.ast.BignumParseNode;
 import org.truffleruby.parser.ast.BinaryOperatorParseNode;
 import org.truffleruby.parser.ast.BlockArgParseNode;
@@ -1183,6 +1184,12 @@ public class ParserSupport {
                                 rationalNode.getDenominator());
     }
 
+    public BigRationalParseNode negateBigRational(BigRationalParseNode rationalNode) {
+        return new BigRationalParseNode(rationalNode.getPosition(),
+                rationalNode.getNumerator().negate(),
+                rationalNode.getDenominator());
+    }
+
     private ParseNode checkForNilNode(ParseNode node, SourceIndexLength defaultPosition) {
         return (node == null) ? new NilParseNode(defaultPosition) : node;
     }
@@ -1567,6 +1574,8 @@ public class ParserSupport {
                 return negateFloat((FloatParseNode) node);
             case RATIONALNODE:
                 return negateRational((RationalParseNode) node);
+            case BIGRATIONALNODE:
+                return negateBigRational((BigRationalParseNode) node);
         }
         
         yyerror("Invalid or unimplemented numeric to negate: " + node.toString());

@@ -36,6 +36,7 @@ import org.truffleruby.parser.ast.ArrayParseNode;
 import org.truffleruby.parser.ast.AttrAssignParseNode;
 import org.truffleruby.parser.ast.BackRefParseNode;
 import org.truffleruby.parser.ast.BeginParseNode;
+import org.truffleruby.parser.ast.BigRationalParseNode;
 import org.truffleruby.parser.ast.BignumParseNode;
 import org.truffleruby.parser.ast.BlockArgParseNode;
 import org.truffleruby.parser.ast.BlockParseNode;
@@ -552,6 +553,11 @@ public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
 
     @Override
     public T visitRationalNode(RationalParseNode node) {
+        return defaultVisit(node);
+    }
+
+    @Override
+    public T visitBigRationalNode(BigRationalParseNode node) {
         return defaultVisit(node);
     }
 

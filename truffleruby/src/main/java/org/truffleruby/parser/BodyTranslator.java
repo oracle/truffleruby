@@ -170,6 +170,7 @@ import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.AttrAssignParseNode;
 import org.truffleruby.parser.ast.BackRefParseNode;
 import org.truffleruby.parser.ast.BeginParseNode;
+import org.truffleruby.parser.ast.BigRationalParseNode;
 import org.truffleruby.parser.ast.BignumParseNode;
 import org.truffleruby.parser.ast.BlockParseNode;
 import org.truffleruby.parser.ast.BlockPassParseNode;
@@ -437,16 +438,18 @@ public class BodyTranslator extends Translator {
         // These aren't always Bignums!
 
         final BigInteger value = node.getValue();
-        final RubyNode ret;
-
-        if (value.bitLength() >= 64) {
-            ret = new ObjectLiteralNode(BignumOperations.createBignum(context, node.getValue()));
-        } else {
-            ret = new LongFixnumLiteralNode(value.longValue());
-        }
+        final RubyNode ret = bignumOrFixnumNode(value);
         ret.unsafeSetSourceSection(sourceSection);
 
         return addNewlineIfNeeded(node, ret);
+    }
+
+    private RubyNode bignumOrFixnumNode(BigInteger value) {
+        if (value.bitLength() >= 64) {
+            return new ObjectLiteralNode(BignumOperations.createBignum(context, value));
+        } else {
+            return new LongFixnumLiteralNode(value.longValue());
+        }
     }
 
     @Override
@@ -2781,6 +2784,17 @@ public class BodyTranslator extends Translator {
         final RubyNode ret = translateRationalComplex(sourceSection, "Rational",
                 new LongFixnumLiteralNode(node.getNumerator()),
                 new LongFixnumLiteralNode(node.getDenominator()));
+
+        return addNewlineIfNeeded(node, ret);
+    }
+
+    @Override
+    public RubyNode visitBigRationalNode(BigRationalParseNode node) {
+        final SourceIndexLength sourceSection = node.getPosition();
+
+        final RubyNode ret = translateRationalComplex(sourceSection, "Rational",
+                bignumOrFixnumNode(node.getNumerator()),
+                bignumOrFixnumNode(node.getDenominator()));
 
         return addNewlineIfNeeded(node, ret);
     }

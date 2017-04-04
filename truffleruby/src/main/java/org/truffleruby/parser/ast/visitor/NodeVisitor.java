@@ -41,6 +41,7 @@ import org.truffleruby.parser.ast.ArrayParseNode;
 import org.truffleruby.parser.ast.AttrAssignParseNode;
 import org.truffleruby.parser.ast.BackRefParseNode;
 import org.truffleruby.parser.ast.BeginParseNode;
+import org.truffleruby.parser.ast.BigRationalParseNode;
 import org.truffleruby.parser.ast.BignumParseNode;
 import org.truffleruby.parser.ast.BlockArgParseNode;
 import org.truffleruby.parser.ast.BlockParseNode;
@@ -226,6 +227,7 @@ public interface NodeVisitor<T> {
     T visitPreExeNode(PreExeParseNode iVisited);
     T visitPostExeNode(PostExeParseNode iVisited);
     T visitRationalNode(RationalParseNode iVisited);
+    T visitBigRationalNode(BigRationalParseNode iVisited);
     T visitRedoNode(RedoParseNode iVisited);
     T visitRegexpNode(RegexpParseNode iVisited);
     T visitRequiredKeywordArgumentValueNode(RequiredKeywordArgumentValueParseNode iVisited);
