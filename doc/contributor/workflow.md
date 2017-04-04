@@ -134,3 +134,22 @@ This is intended for special cases such as integrating with other Graal
 projects, and we wouldn't recommend using it for normal development. If you do
 use it, you should clean before using `jt` again as having built it with `mx`
 will change some behaviour.
+
+## How to fix a failing spec
+
+We usually use the `jt untag` command to work on failing specs. It runs only
+specs that are marked as failing.
+
+```
+$ jt untag spec/ruby/core/string
+```
+
+When you find a spec that you want to work on it's usually best to look at the
+spec's source (for example look in `spec/ruby/core/string`) and recreate it
+as a standalone Ruby file for simplicity.
+
+Then you probably want to run with `-Xexceptions.print_java` if you see a Java
+exception.
+
+When the spec is fixed the `untag` command will remove the tag and you can
+commit the fix and the removal of the tag.
