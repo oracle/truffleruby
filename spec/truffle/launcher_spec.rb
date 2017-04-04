@@ -31,11 +31,15 @@ describe "The launcher" do
   end
 
   it "prints the full java command with -J-cmd" do
-    out = `#{RbConfig.ruby} -J-cmd --version`
-    parts = out.split(' ')
-    parts[0].should == "$"
-    parts[1].end_with?("java").should == true
-    $?.success?.should == true
+    commands = ["#{RbConfig.ruby} -J-cmd --version",
+                "JAVA_OPTS='-cmd' #{RbConfig.ruby} --version"]
+    commands.each do |cmd|
+      out   = `#{cmd}`
+      parts = out.split(' ')
+      parts[0].should == "$"
+      parts[1].end_with?("java").should == true
+      $?.success?.should == true
+    end
   end
 
   it "adds options from $JAVA_OPTS to the command" do
