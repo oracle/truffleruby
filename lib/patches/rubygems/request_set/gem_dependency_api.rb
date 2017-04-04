@@ -1,5 +1,3 @@
-Truffle::Patching.require_original __FILE__
-
 class Gem::RequestSet::GemDependencyAPI
 
   ENGINE_MAP[:ruby] << 'truffleruby'

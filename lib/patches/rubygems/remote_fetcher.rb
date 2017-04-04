@@ -1,6 +1,3 @@
-
-Truffle::Patching.require_original __FILE__
-
 # Hardcode DNS Resolution to rubygems.org for gem install
 
 class Gem::RemoteFetcher

@@ -1,5 +1,3 @@
-Truffle::Patching.require_original __FILE__
-
 # - shell to tar for untarring
 # - skip some checksum/digest verification
 

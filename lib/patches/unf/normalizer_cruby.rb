@@ -1,5 +1,3 @@
-Truffle::Patching.require_original __FILE__
-
 # Copyright (c) 2011, 2017 Akinori MUSHA
 #
 # All rights reserved.

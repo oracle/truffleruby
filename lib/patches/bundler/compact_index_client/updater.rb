@@ -1,7 +1,4 @@
 # frozen_string_literal: true
-
-Truffle::Patching.require_original __FILE__
-
 require "fileutils"
 require "stringio"
 require "tmpdir"

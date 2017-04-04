@@ -1,5 +1,3 @@
-Truffle::Patching.require_original __FILE__
-
 module Bundler
   class RubyVersion
     def self.system

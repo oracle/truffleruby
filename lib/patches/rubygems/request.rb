@@ -1,5 +1,3 @@
-Truffle::Patching.require_original __FILE__
-
 # TruffleRuby: Use curl when uri has https scheme
 
 class Gem::Request

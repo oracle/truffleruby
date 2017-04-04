@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-Truffle::Patching.require_original __FILE__
-
 module Bundler
   class Source
     class Rubygems < Source

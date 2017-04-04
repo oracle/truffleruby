@@ -1,5 +1,3 @@
-Truffle::Patching.require_original __FILE__
-
 module RSpec
   module Support
     module RubyFeatures

@@ -34,7 +34,7 @@ public class Log {
     }
 
     public static final Level PERFORMANCE = new RubyLevel("PERFORMANCE", Level.WARNING);
-    public static final Level PATCH = new RubyLevel("PATCH", Level.CONFIG);
+    public static final Level PATCH = new RubyLevel("PATCH", Level.WARNING);
     public static final Level[] LEVELS = new Level[]{PERFORMANCE, PATCH};
 
     public static final Logger LOGGER = createLogger();

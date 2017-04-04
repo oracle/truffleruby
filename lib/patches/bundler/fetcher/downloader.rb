@@ -1,5 +1,3 @@
-Truffle::Patching.require_original __FILE__
-
 # TruffleRuby: Use curl in bundler downloader for https requests
 
 module Bundler
