@@ -712,48 +712,6 @@ public class CExtNodes {
 
     }
 
-    protected static final Object handlesLock = new Object();
-    protected static final Map<DynamicObject, Long> toNative = new HashMap<>();
-    protected static final Map<Long, DynamicObject> toManaged = new HashMap<>();
-
-    @CoreMethod(names = "rb_tr_to_native_handle", onSingleton = true, required = 1)
-    public abstract static class ToNativeHandleNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public long toNativeHandle(DynamicObject object) {
-            synchronized (handlesLock) {
-                return toNative.computeIfAbsent(object, (k) -> {
-                    final long handle = getContext().getNativePlatform().getMallocFree().malloc(Long.BYTES);
-                    memoryManager().newPointer(handle).putLong(0, 0xdeadbeef);
-                    Log.LOGGER.info(String.format("native handle 0x%x -> %s", handle, object));
-                    toManaged.put(handle, object);
-                    return handle;
-                });
-            }
-        }
-
-    }
-
-    @CoreMethod(names = "rb_tr_from_native_handle", onSingleton = true, required = 1)
-    public abstract static class FromNativeHandleNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject fromNativeHandle(long handle) {
-            synchronized (handlesLock) {
-                final DynamicObject object = toManaged.get(handle);
-
-                if (object == null) {
-                    throw new UnsupportedOperationException();
-                }
-
-                return object;
-            }
-        }
-
-    }
-
     @CoreMethod(names = "rb_iter_break", onSingleton = true)
     public abstract static class IterBreakNode extends CoreMethodArrayArgumentsNode {
 

@@ -89,12 +89,7 @@ NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object
 // Non-standard
 
 NORETURN(void rb_tr_error(const char *message));
-
 void rb_tr_log_warning(const char *message);
-
-void *rb_tr_to_native_handle(VALUE managed);
-VALUE rb_tr_from_native_handle(void *native);
-
 #define rb_tr_debug(object) truffle_invoke(RUBY_CEXT, "rb_tr_debug", object)
 
 // Memory

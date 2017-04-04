@@ -521,7 +521,7 @@ static void ossl_threadid_func(CRYPTO_THREADID *id)
 static unsigned long ossl_thread_id(void)
 {
     /* before OpenSSL 1.0, this is 'unsigned long' */
-    return (unsigned long)rb_tr_to_native_handle(rb_nativethread_self());
+    return (unsigned long)truffle_handle_for_managed(rb_nativethread_self());
 }
 #endif
 

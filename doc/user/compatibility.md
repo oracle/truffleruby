@@ -120,8 +120,8 @@ Simple local variables of type `VALUE`, and locals arrays that are defined such
 as `VALUE array[n]` are an exception and are supported, provided their address
 is not taken and passed to a function that is not inlined.
 
-`void *rb_tr_to_native_handle(VALUE managed)` and
-`VALUE rb_tr_from_native_handle(void *native)` may help you work around this
+`void *truffle_handle_for_managed(VALUE managed)` and
+`VALUE truffle_managed_from_handle(void *native)` may help you work around this
 limitation.
 
 #### Variadic functions
