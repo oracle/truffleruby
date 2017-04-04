@@ -447,12 +447,16 @@ class String
 
     if ascii_only? and from_enc.ascii_compatible? and to_enc and to_enc.ascii_compatible?
       force_encoding to_enc
-    elsif to_enc and from_enc != to_enc
-      ec = Encoding::Converter.new from_enc, to_enc, options
-      dest = ""
-      status = ec.primitive_convert self.dup, dest, nil, nil, ec.options
-      raise ec.last_error unless status == :finished
-      replace dest
+    elsif to_enc
+      if from_enc != to_enc
+        ec = Encoding::Converter.new from_enc, to_enc, options
+        dest = ""
+        status = ec.primitive_convert self.dup, dest, nil, nil, ec.options
+        raise ec.last_error unless status == :finished
+        replace dest
+      elsif options == 0
+        force_encoding to_enc
+      end
     end
 
     # TODO: replace this hack with transcoders
