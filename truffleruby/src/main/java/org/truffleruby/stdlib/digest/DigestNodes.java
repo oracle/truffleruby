@@ -166,7 +166,7 @@ public abstract class DigestNodes {
         @Specialization(guards = "isRubyString(message)")
         public DynamicObject bubblebabble(DynamicObject message) {
             final Rope rope = StringOperations.rope(message);
-            return createString(bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes(), USASCIIEncoding.INSTANCE);
+            return create7BitString(bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes(), USASCIIEncoding.INSTANCE);
         }
 
         /**
