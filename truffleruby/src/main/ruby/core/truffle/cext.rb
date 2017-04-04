@@ -114,6 +114,10 @@ class << Truffle::CExt
       value.is_a?(Symbol)
     when T_STRING
       value.is_a?(String)
+    when T_FIXNUM
+      value.is_a?(Fixnum)
+    when T_BIGNUM
+      value.is_a?(Bignum)
     when T_ARRAY
       value.is_a?(Array)
     when T_FILE
