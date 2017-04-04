@@ -101,7 +101,7 @@ class << Truffle::CExt
     when Object
       T_OBJECT
     else
-      raise 'unknown type'
+      raise "unknown type #{value.class}"
     end
   end
 
@@ -119,7 +119,7 @@ class << Truffle::CExt
     when T_FILE
       value.is_a?(File)
     else
-      raise 'unknown type'
+      raise "unknown type #{type}"
     end
   end
 
