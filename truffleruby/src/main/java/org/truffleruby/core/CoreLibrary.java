@@ -289,6 +289,7 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableStorage loadPathStorage;
     @CompilationFinal private GlobalVariableStorage loadedFeaturesStorage;
     @CompilationFinal private GlobalVariableStorage debugStorage;
+    @CompilationFinal private GlobalVariableStorage stderrStorage;
 
     private final String coreLoadPath;
 
@@ -763,6 +764,8 @@ public class CoreLibrary {
         globals.put("$/", frozenUSASCIIString(CLI_RECORD_SEPARATOR));
 
         globals.put("$SAFE", 0);
+
+        stderrStorage = globals.getStorage("$stderr");
     }
 
     private void initializeConstants() {
@@ -1263,6 +1266,10 @@ public class CoreLibrary {
 
     public Object getDebug() {
         return debugStorage.getValue();
+    }
+
+    public Object getStderr() {
+        return stderrStorage.getValue();
     }
 
     public DynamicObject getMainObject() {

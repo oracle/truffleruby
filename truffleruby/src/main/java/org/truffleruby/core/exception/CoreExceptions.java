@@ -57,7 +57,10 @@ public class CoreExceptions {
             if (!backtrace.getActivations().isEmpty()) {
                 from = " at " + debugBacktraceFormatter.formatLine(backtrace.getActivations(), 0, null);
             }
-            System.err.println("Exception `" + exceptionClass + "'" + from + " - " + message);
+            Object stderr = context.getCoreLibrary().getStderr();
+            String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
+            DynamicObject outputString = StringOperations.createString(context, StringOperations.encodeRope(output, UTF8Encoding.INSTANCE));
+            context.send(stderr, "write", null, outputString);
         }
     }
 
