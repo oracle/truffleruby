@@ -89,6 +89,11 @@ class Thread
   # Otherwise, it will yield once and return false.
 
   def self.detect_recursion(obj, paired_obj=nil)
+    unless Truffle.invoke_primitive :object_can_contain_object, obj
+      yield
+      return false
+    end
+
     id = obj.object_id
     pair_id = paired_obj.object_id
     objects = current.recursive_objects
@@ -136,6 +141,7 @@ class Thread
 
     false
   end
+  Truffle::Graal.always_split method(:detect_recursion)
 
   # Similar to detect_recursion, but will short circuit all inner recursion
   # levels (using a throw)

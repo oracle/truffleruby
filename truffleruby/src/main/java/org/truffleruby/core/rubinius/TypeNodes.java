@@ -16,6 +16,8 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.objects.IsANode;
@@ -31,8 +33,10 @@ import org.truffleruby.language.objects.TaintNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreClass("Rubinius::Type")
@@ -99,6 +103,31 @@ public abstract class TypeNodes {
 
         protected ObjectIVarSetNode createObjectIVarSetNode() {
             return ObjectIVarSetNodeGen.create(false, null, null, null);
+        }
+
+    }
+
+    @Primitive(name = "object_can_contain_object")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class CanContainObjectNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)",
+                "!strategy.accepts(nil())" }, limit = "ARRAY_STRATEGIES")
+        protected boolean primitiveArray(DynamicObject array,
+                @Cached("of(array)") ArrayStrategy strategy) {
+            return false;
+        }
+
+        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)",
+                "strategy.accepts(nil())" }, limit = "ARRAY_STRATEGIES")
+        protected boolean objectArray(DynamicObject array,
+                @Cached("of(array)") ArrayStrategy strategy) {
+            return true;
+        }
+
+        @Specialization(guards = "!isRubyArray(object)")
+        protected boolean other(Object object) {
+            return true;
         }
 
     }
