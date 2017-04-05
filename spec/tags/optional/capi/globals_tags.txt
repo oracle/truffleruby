@@ -2,3 +2,5 @@ fails:CApiGlobalSpecs rb_lastline_set sets the value of $_
 fails:CApiGlobalSpecs rb_lastline_set sets a Thread-local value
 fails:CApiGlobalSpecs rb_lastline_get gets the value of $_
 fails:CApiGlobalSpecs rb_lastline_get gets a Thread-local value
+fails(GR-3559):CApiGlobalSpecs rb_define_readonly_variable should define a new readonly global variable
+fails(GR-3558):CApiGlobalSpecs rb_define_hooked_variable should define a C hooked global variable
