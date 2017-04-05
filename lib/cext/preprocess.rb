@@ -11,6 +11,8 @@ VALUE_LOCALS = /^(\s+)VALUE\s+(#{LOCAL}(\s*,\s*#{LOCAL})*);\s*$/
 
 ALLOCA_LOCALS = /^(\s+)VALUE\s*\*\s*([a-z_][a-zA-Z_0-9]*)\s*=\s*(\(\s*VALUE\s*\*\s*\)\s*)?alloca\(/
 
+VA_END = /^(\s+)(va_end\s*\(.*)$/
+
 def preprocess(line)
   if line =~ VALUE_LOCALS
     # Translate
@@ -49,6 +51,9 @@ def preprocess(line)
     #   VALUE *argv = (VALUE *)truffle_managed_malloc(sizeof(VALUE) * argc);
 
     line = "#{$1}VALUE *#{$2} = truffle_managed_malloc(#{$'}"
+  elsif line =~ VA_END
+    # GR-3136
+    line = "#{$1}// #{$2}"
   else
     line
   end

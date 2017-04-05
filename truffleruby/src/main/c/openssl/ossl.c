@@ -337,7 +337,7 @@ ossl_raise(VALUE exc, const char *fmt, ...)
     VALUE err;
     va_start(args, fmt);
     err = ossl_make_error(exc, fmt, args);
-    //va_end(args); Truffle GR-3136
+    va_end(args);
     rb_exc_raise(err);
 }
 
