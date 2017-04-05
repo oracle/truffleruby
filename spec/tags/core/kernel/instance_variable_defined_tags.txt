@@ -1,1 +1,0 @@
-fails:Kernel#instance_variable_defined? returns false if the instance variable is not defined for different types

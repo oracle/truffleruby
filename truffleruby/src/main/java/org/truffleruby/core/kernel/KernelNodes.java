@@ -826,8 +826,33 @@ public abstract class KernelNodes {
             return NameToJavaStringNodeGen.create(name);
         }
 
-        @TruffleBoundary
         @Specialization
+        public boolean isInstanceVariableDefinedBoolean(boolean object, String name) {
+            return false;
+        }
+
+        @Specialization
+        public boolean isInstanceVariableDefinedInt(int object, String name) {
+            return false;
+        }
+
+        @Specialization
+        public boolean isInstanceVariableDefinedLong(long object, String name) {
+            return false;
+        }
+
+        @Specialization
+        public boolean isInstanceVariableDefinedDouble(double object, String name) {
+            return false;
+        }
+
+        @Specialization(guards = "isRubySymbol(object) || isNil(object)")
+        public boolean isInstanceVariableDefinedSymbolOrNil(DynamicObject object, String name) {
+            return false;
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = {"!isRubySymbol(object)", "!isNil(object)"})
         public boolean isInstanceVariableDefined(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             final Property property = object.getShape().getProperty(ivar);
