@@ -27,6 +27,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -132,6 +133,8 @@ import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.PropertyFlags;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.TaintNode;
@@ -150,6 +153,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 
 @CoreClass("Kernel")
 public abstract class KernelNodes {
@@ -316,18 +320,68 @@ public abstract class KernelNodes {
 
     }
 
+    @ImportStatic(ShapeCachingGuards.class)
     public abstract static class CopyNode extends UnaryCoreMethodNode {
 
         @Child private CallDispatchHeadNode allocateNode = DispatchHeadNodeFactory.createMethodCall(true);
 
         public abstract DynamicObject executeCopy(VirtualFrame frame, DynamicObject self);
 
-        @Specialization
-        public DynamicObject copy(VirtualFrame frame, DynamicObject self) {
+        @ExplodeLoop
+        @Specialization(guards = "self.getShape() == cachedShape", limit = "getCacheLimit()")
+        protected DynamicObject copyCached(VirtualFrame frame, DynamicObject self,
+                @Cached("self.getShape()") Shape cachedShape,
+                @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass,
+                @Cached("getUserProperties(cachedShape)") Property[] properties,
+                @Cached("createReadFieldNodes(properties)") ReadObjectFieldNode[] readFieldNodes,
+                @Cached("createWriteFieldNodes(properties)") WriteObjectFieldNode[] writeFieldNodes) {
+            final DynamicObject newObject = (DynamicObject) allocateNode.call(frame, logicalClass, "__allocate__");
+
+            for (int i = 0; i < properties.length; i++) {
+                // TODO (eregon, 2017-04-05): we can read directly from the property once we have CompilationFinal[] in DSL
+                // final Object value = properties[i].get(self, cachedShape);
+                final Object value = readFieldNodes[i].execute(self);
+                writeFieldNodes[i].execute(newObject, value);
+            }
+
+            return newObject;
+        }
+
+        @Specialization(guards = "updateShape(self)")
+        protected Object updateShapeAndCopy(VirtualFrame frame, DynamicObject self) {
+            return executeCopy(frame, self);
+        }
+
+        @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
+        protected DynamicObject copyUncached(VirtualFrame frame, DynamicObject self) {
             final DynamicObject rubyClass = Layouts.BASIC_OBJECT.getLogicalClass(self);
             final DynamicObject newObject = (DynamicObject) allocateNode.call(frame, rubyClass, "__allocate__");
             copyInstanceVariables(self, newObject);
             return newObject;
+        }
+
+        protected DynamicObject getLogicalClass(Shape shape) {
+            return Layouts.BASIC_OBJECT.getLogicalClass(shape.getObjectType());
+        }
+
+        protected Property[] getUserProperties(Shape shape) {
+            return shape.getPropertyList().toArray(new Property[0]);
+        }
+
+        protected ReadObjectFieldNode[] createReadFieldNodes(Property[] properties) {
+            final ReadObjectFieldNode[] nodes = new ReadObjectFieldNode[properties.length];
+            for (int i = 0; i < properties.length; i++) {
+                nodes[i] = ReadObjectFieldNodeGen.create(properties[i].getKey(), nil());
+            }
+            return nodes;
+        }
+
+        protected WriteObjectFieldNode[] createWriteFieldNodes(Property[] properties) {
+            final WriteObjectFieldNode[] nodes = new WriteObjectFieldNode[properties.length];
+            for (int i = 0; i < properties.length; i++) {
+                nodes[i] = WriteObjectFieldNodeGen.create(properties[i].getKey());
+            }
+            return nodes;
         }
 
         @TruffleBoundary
@@ -339,6 +393,10 @@ public abstract class KernelNodes {
                     to.define(property.getKey(), property.get(from, from.getShape()), property.getFlags());
                 }
             }
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().INSTANCE_VARIABLE_CACHE;
         }
 
     }
