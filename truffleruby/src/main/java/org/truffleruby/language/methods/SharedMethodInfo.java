@@ -30,7 +30,7 @@ public class SharedMethodInfo {
     private final String name;
     private final String notes;
     private final ArgumentDescriptor[] argumentDescriptors;
-    private final boolean alwaysClone;
+    private boolean alwaysClone;
     private final boolean alwaysInline;
     private final boolean needsCallerFrame;
     private String descriptiveNameAndSource;
@@ -97,6 +97,10 @@ public class SharedMethodInfo {
 
     public boolean needsCallerFrame() {
         return needsCallerFrame;
+    }
+
+    public void setAlwaysClone(boolean alwaysClone) {
+        this.alwaysClone = alwaysClone;
     }
 
     public SharedMethodInfo withName(String newName) {

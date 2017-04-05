@@ -13,11 +13,13 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.platform.graal.Graal;
 
 @CoreClass("Truffle::Graal")
@@ -69,6 +71,25 @@ public abstract class TruffleGraalNodes {
         @Specialization
         public DynamicObject graalVersion() {
             return createString(StringOperations.encodeRope(Graal.getVersion(), UTF8Encoding.INSTANCE));
+        }
+
+    }
+
+    @CoreMethod(names = "always_split", onSingleton = true, required = 1)
+    public abstract static class AlwaysSplitNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyMethod(rubyMethod)")
+        public DynamicObject splitMethod(DynamicObject rubyMethod) {
+            InternalMethod internalMethod = Layouts.METHOD.getMethod(rubyMethod);
+            internalMethod.getSharedMethodInfo().setAlwaysClone(true);
+            return rubyMethod;
+        }
+
+        @Specialization(guards = "isRubyUnboundMethod(rubyMethod)")
+        public DynamicObject splitUnboundMethod(DynamicObject rubyMethod) {
+            InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(rubyMethod);
+            internalMethod.getSharedMethodInfo().setAlwaysClone(true);
+            return rubyMethod;
         }
 
     }
