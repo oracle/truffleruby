@@ -1,0 +1,11 @@
+fails:English aliases $ERROR_INFO to $!
+fails:English aliases $ERROR_POSITION to $@
+fails:English aliases $DEFAULT_OUTPUT to $>
+fails:English aliases $DEFAULT_INPUT to $<
+fails:English aliases $CHILD_STATUS to $?
+fails:English aliases $LAST_MATCH_INFO to $~
+fails:English aliases $IGNORECASE to $=
+fails:English aliases $MATCH to $&
+fails:English aliases $PREMATCH to $`
+fails:English aliases $POSTMATCH to $'
+fails:English aliases $LAST_PAREN_MATCH to $+
