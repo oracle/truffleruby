@@ -19,7 +19,10 @@ end
 
 if Truffle::Boot.rubygems_enabled?
   begin
+    require 'truffle/patching'
+    Truffle::Patching.insert_patching_dir 'stdlib', File.join(Truffle::Boot.ruby_home, 'lib/mri')
     require 'rubygems'
+    Truffle::Patching.install_gem_activation_hook
   rescue LoadError => e
     Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
   else
