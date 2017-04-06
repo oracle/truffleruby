@@ -339,6 +339,14 @@ Style/IndentationConsistency:
 Style/RedundantReturn:
   Enabled: true
 
+# Supports --auto-correct
 Style/StringLiterals:
+  Description: Checks if uses of quotes match the configured preference.
+  StyleGuide: "#consistent-string-literals"
+  Details: Use `rubocop --only Style/StringLiterals -a` to fix.
   Enabled: true
   EnforcedStyle: single_quotes
+  SupportedStyles:
+  - single_quotes
+  - double_quotes
+  ConsistentQuotesInMultiline: false
