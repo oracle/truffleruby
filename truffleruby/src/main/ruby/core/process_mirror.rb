@@ -424,7 +424,7 @@ module Rubinius
         end
 
         def should_search_path?(command)
-          ['/', './', '../'].none? { |prefix| command.start_with?(prefix) }
+          !command.include?(File::SEPARATOR)
         end
 
         def resolve_in_path(command)
