@@ -26,11 +26,11 @@
 
 module Signal
   Names = {
-    "EXIT" => 0
+    'EXIT' => 0
   }
 
   Numbers = {
-    0 => "EXIT"
+    0 => 'EXIT'
   }
 
   # Fill the Names and Numbers Hash.
@@ -52,7 +52,7 @@ module Signal
     if sig.kind_of?(String)
       osig = sig
 
-      if sig.start_with? "SIG"
+      if sig.start_with? 'SIG'
         sig = sig[3..-1]
       end
 
@@ -68,21 +68,21 @@ module Signal
     prc = prc.to_s if prc.kind_of?(Symbol)
 
     case prc
-    when "DEFAULT", "SIG_DFL"
+    when 'DEFAULT', 'SIG_DFL'
       had_old = @handlers.key?(number)
       old = @handlers.delete(number)
 
-      if number != Names["EXIT"]
+      if number != Names['EXIT']
         Rubinius.watch_signal(Numbers[number], 'DEFAULT') # Truffle: adapted to pass the signal name and simpler arguments
       end
 
-      return "DEFAULT" unless had_old
+      return 'DEFAULT' unless had_old
       return old ? old : nil
-    when "IGNORE", "SIG_IGN"
-      prc = "IGNORE"
+    when 'IGNORE', 'SIG_IGN'
+      prc = 'IGNORE'
     when nil
       prc = nil
-    when "EXIT"
+    when 'EXIT'
       prc = proc { exit }
     when String
       raise ArgumentError, "Unsupported command '#{prc}'"
@@ -97,11 +97,11 @@ module Signal
     old = @handlers[number]
     @handlers[number] = prc
 
-    if number != Names["EXIT"]
+    if number != Names['EXIT']
       Rubinius.watch_signal(Numbers[number], (prc.nil? || prc == 'IGNORE') ? nil : prc) # Truffle: adapted to pass the signal name and simpler arguments
     end
 
-    return "DEFAULT" unless had_old
+    return 'DEFAULT' unless had_old
     old ? old : nil
   end
 

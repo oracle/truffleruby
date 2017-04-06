@@ -59,8 +59,8 @@ module JavaUtilities
     java_class.class_eval(&block)
   end
 
-  def self.print_class(java_type, indent="")
-    while !java_type.nil? && java_type.name != "java.lang.Class"
+  def self.print_class(java_type, indent='')
+    while !java_type.nil? && java_type.name != 'java.lang.Class'
       puts "#{indent}Name:  #{java_type.name}, access: #{ JavaUtilities.access(java_type) }  Interfaces: "
       java_type.interfaces.each { |i| print_class(i, "  #{indent}") }
       puts "#{indent}SuperClass: "
@@ -96,14 +96,13 @@ module JavaUtilities
   def self.get_package_or_class(name, probably_class, must_be_class=false)
     a_class = begin
                 Java.java_class_by_name(name)
-              rescue Exception
-                nil
+              rescue Exception  # rubocop:disable Lint/HandleExceptions, Lint/RescueException
               end
     if !probably_class
       # Probably not true, but somebody may have been silly in their class names.
       return make_proxy(a_class) if a_class != nil
 
-      return ::Java::JavaPackage.new(*name.split(".")) unless must_be_class
+      return ::Java::JavaPackage.new(*name.split('.')) unless must_be_class
     else
       if a_class == nil
         raise NameError, "Missing class name ('#{name}')"
@@ -114,64 +113,64 @@ module JavaUtilities
   end
 
   # Classes we'll need to bootstrap things.
-  JAVA_CLASS_CLASS = Java.java_class_by_name("java.lang.Class")
-  JAVA_CLASS_ARRAY = Java.java_class_by_name("[Ljava.lang.Class;")
-  JAVA_CONSTRUCTOR_CLASS = Java.java_class_by_name("java.lang.reflect.Constructor")
-  JAVA_CONSTRUCTOR_ARRAY = Java.java_class_by_name("[Ljava.lang.reflect.Constructor;")
-  JAVA_FIELD_CLASS = Java.java_class_by_name("java.lang.reflect.Field")
-  JAVA_FIELD_ARRAY = Java.java_class_by_name("[Ljava.lang.reflect.Field;")
-  JAVA_METHOD_CLASS = Java.java_class_by_name("java.lang.reflect.Method")
-  JAVA_METHOD_ARRAY = Java.java_class_by_name("[Ljava.lang.reflect.Method;")
-  JAVA_MODIFIERS_CLASS = Java.java_class_by_name("java.lang.reflect.Modifier")
-  JAVA_OBJECT_CLASS = Java.java_class_by_name("java.lang.Object")
-  JAVA_OBJECT_ARRAY = Java.java_class_by_name("[Ljava.lang.Object;")
-  JAVA_PACKAGE_CLASS = Java.java_class_by_name("java.lang.Package")
-  JAVA_STRING_CLASS = Java.java_class_by_name("java.lang.String")
-  JAVA_THROWABLE_CLASS = Java.java_class_by_name("java.lang.Throwable")
+  JAVA_CLASS_CLASS = Java.java_class_by_name('java.lang.Class')
+  JAVA_CLASS_ARRAY = Java.java_class_by_name('[Ljava.lang.Class;')
+  JAVA_CONSTRUCTOR_CLASS = Java.java_class_by_name('java.lang.reflect.Constructor')
+  JAVA_CONSTRUCTOR_ARRAY = Java.java_class_by_name('[Ljava.lang.reflect.Constructor;')
+  JAVA_FIELD_CLASS = Java.java_class_by_name('java.lang.reflect.Field')
+  JAVA_FIELD_ARRAY = Java.java_class_by_name('[Ljava.lang.reflect.Field;')
+  JAVA_METHOD_CLASS = Java.java_class_by_name('java.lang.reflect.Method')
+  JAVA_METHOD_ARRAY = Java.java_class_by_name('[Ljava.lang.reflect.Method;')
+  JAVA_MODIFIERS_CLASS = Java.java_class_by_name('java.lang.reflect.Modifier')
+  JAVA_OBJECT_CLASS = Java.java_class_by_name('java.lang.Object')
+  JAVA_OBJECT_ARRAY = Java.java_class_by_name('[Ljava.lang.Object;')
+  JAVA_PACKAGE_CLASS = Java.java_class_by_name('java.lang.Package')
+  JAVA_STRING_CLASS = Java.java_class_by_name('java.lang.String')
+  JAVA_THROWABLE_CLASS = Java.java_class_by_name('java.lang.Throwable')
 
   # We'll also need the primitive numeric classes, but can't get those by name.
   CLASS_GET_FIELD = Java.get_java_method(
-    JAVA_CLASS_CLASS, "getField", false, JAVA_FIELD_CLASS, JAVA_STRING_CLASS)
+    JAVA_CLASS_CLASS, 'getField', false, JAVA_FIELD_CLASS, JAVA_STRING_CLASS)
   FIELD_GET = Java.get_java_method(
-    JAVA_FIELD_CLASS, "get", false, JAVA_OBJECT_CLASS, JAVA_OBJECT_CLASS)
-  JAVA_BOOLEAN_CLASS = Java.java_class_by_name("java.lang.Boolean")
+    JAVA_FIELD_CLASS, 'get', false, JAVA_OBJECT_CLASS, JAVA_OBJECT_CLASS)
+  JAVA_BOOLEAN_CLASS = Java.java_class_by_name('java.lang.Boolean')
   JAVA_PRIM_BOOLEAN_CLASS = Java.invoke_java_method(
     FIELD_GET, Java.invoke_java_method(
-      CLASS_GET_FIELD, JAVA_BOOLEAN_CLASS, Interop.to_java_string("TYPE")),
+      CLASS_GET_FIELD, JAVA_BOOLEAN_CLASS, Interop.to_java_string('TYPE')),
     nil)
 
-  JAVA_INTEGER_CLASS = Java.java_class_by_name("java.lang.Integer")
+  JAVA_INTEGER_CLASS = Java.java_class_by_name('java.lang.Integer')
   JAVA_PRIM_INT_CLASS = Java.invoke_java_method(
     FIELD_GET, Java.invoke_java_method(
-      CLASS_GET_FIELD, JAVA_INTEGER_CLASS, Interop.to_java_string("TYPE")),
+      CLASS_GET_FIELD, JAVA_INTEGER_CLASS, Interop.to_java_string('TYPE')),
     nil)
 
-  JAVA_LONG_CLASS = Java.java_class_by_name("java.lang.Long")
+  JAVA_LONG_CLASS = Java.java_class_by_name('java.lang.Long')
   JAVA_PRIM_LONG_CLASS = Java.invoke_java_method(
     FIELD_GET, Java.invoke_java_method(
-      CLASS_GET_FIELD, JAVA_LONG_CLASS, Interop.to_java_string("TYPE")),
+      CLASS_GET_FIELD, JAVA_LONG_CLASS, Interop.to_java_string('TYPE')),
     nil)
 
-  JAVA_DOUBLE_CLASS = Java.java_class_by_name("java.lang.Double")
+  JAVA_DOUBLE_CLASS = Java.java_class_by_name('java.lang.Double')
   JAVA_PRIM_DBL_CLASS = Java.invoke_java_method(
     FIELD_GET, Java.invoke_java_method(
-      CLASS_GET_FIELD, JAVA_DOUBLE_CLASS, Interop.to_java_string("TYPE")),
+      CLASS_GET_FIELD, JAVA_DOUBLE_CLASS, Interop.to_java_string('TYPE')),
     nil)
 
   # We'll also want the modifiers for methods and fields.
   module Modifiers
-    names = ["ABSTRACT",
-             "FINAL",
-             "INTERFACE",
-             "NATIVE",
-             "PRIVATE",
-             "PROTECTED",
-             "PUBLIC",
-             "STATIC",
-             "STRICT",
-             "SYNCHRONIZED",
-             "TRANSIENT",
-             "VOLATILE" ]
+    names = ['ABSTRACT',
+             'FINAL',
+             'INTERFACE',
+             'NATIVE',
+             'PRIVATE',
+             'PROTECTED',
+             'PUBLIC',
+             'STATIC',
+             'STRICT',
+             'SYNCHRONIZED',
+             'TRANSIENT',
+             'VOLATILE' ]
     names.each do |s|
       js = Interop.to_java_string(s)
       val = Java.invoke_java_method(
@@ -184,43 +183,43 @@ module JavaUtilities
 
   # Methods we'll need to bootstrap stuff.
   CLASS_GET_CONSTRUCTORS = Java.get_java_method(
-    JAVA_CLASS_CLASS, "getConstructors", false, JAVA_CONSTRUCTOR_ARRAY)
+    JAVA_CLASS_CLASS, 'getConstructors', false, JAVA_CONSTRUCTOR_ARRAY)
   CLASS_GET_DECLARED_FIELDS = Java.get_java_method(
-    JAVA_CLASS_CLASS, "getDeclaredFields", false, JAVA_FIELD_ARRAY)
+    JAVA_CLASS_CLASS, 'getDeclaredFields', false, JAVA_FIELD_ARRAY)
   CLASS_GET_DECLARED_METHODS = Java.get_java_method(
-    JAVA_CLASS_CLASS, "getDeclaredMethods", false, JAVA_METHOD_ARRAY)
+    JAVA_CLASS_CLASS, 'getDeclaredMethods', false, JAVA_METHOD_ARRAY)
   CLASS_GET_ENCLOSING_CLASS = Java.get_java_method(
-    JAVA_CLASS_CLASS, "getEnclosingClass", false, JAVA_CLASS_CLASS)
+    JAVA_CLASS_CLASS, 'getEnclosingClass', false, JAVA_CLASS_CLASS)
   CLASS_GET_INTERFACES = Java.get_java_method(
-    JAVA_CLASS_CLASS, "getInterfaces", false, JAVA_CLASS_ARRAY)
+    JAVA_CLASS_CLASS, 'getInterfaces', false, JAVA_CLASS_ARRAY)
   CLASS_GET_NAME = Java.get_java_method(
-    JAVA_CLASS_CLASS, "getName", false, JAVA_STRING_CLASS)
+    JAVA_CLASS_CLASS, 'getName', false, JAVA_STRING_CLASS)
   CLASS_GET_PACKAGE = Java.get_java_method(
-    JAVA_CLASS_CLASS, "getPackage", false, JAVA_PACKAGE_CLASS)
+    JAVA_CLASS_CLASS, 'getPackage', false, JAVA_PACKAGE_CLASS)
   CLASS_GET_SIMPLE_NAME = Java.get_java_method(
-    JAVA_CLASS_CLASS, "getSimpleName", false, JAVA_STRING_CLASS)
+    JAVA_CLASS_CLASS, 'getSimpleName', false, JAVA_STRING_CLASS)
   CLASS_GET_SUPER_CLASS = Java.get_java_method(
-    JAVA_CLASS_CLASS, "getSuperclass", false, JAVA_CLASS_CLASS)
+    JAVA_CLASS_CLASS, 'getSuperclass', false, JAVA_CLASS_CLASS)
   CLASS_IS_ARRAY = Java.get_java_method(
-    JAVA_CLASS_CLASS, "isArray", false, JAVA_PRIM_BOOLEAN_CLASS)
+    JAVA_CLASS_CLASS, 'isArray', false, JAVA_PRIM_BOOLEAN_CLASS)
   CLASS_IS_INTERFACE = Java.get_java_method(
-    JAVA_CLASS_CLASS, "isInterface", false, JAVA_PRIM_BOOLEAN_CLASS)
+    JAVA_CLASS_CLASS, 'isInterface', false, JAVA_PRIM_BOOLEAN_CLASS)
   CLASS_IS_MEMBER_CLASS = Java.get_java_method(
-    JAVA_CLASS_CLASS, "isMemberClass", false, JAVA_PRIM_BOOLEAN_CLASS)
+    JAVA_CLASS_CLASS, 'isMemberClass', false, JAVA_PRIM_BOOLEAN_CLASS)
   CLASS_IS_PRIMITIVE = Java.get_java_method(
-    JAVA_CLASS_CLASS, "isPrimitive", false, JAVA_PRIM_BOOLEAN_CLASS)
+    JAVA_CLASS_CLASS, 'isPrimitive', false, JAVA_PRIM_BOOLEAN_CLASS)
   FIELD_GET_MODIFIERS = Java.get_java_method(
-    JAVA_FIELD_CLASS, "getModifiers", false, JAVA_PRIM_INT_CLASS)
+    JAVA_FIELD_CLASS, 'getModifiers', false, JAVA_PRIM_INT_CLASS)
   FIELD_GET_NAME = Java.get_java_method(
-    JAVA_FIELD_CLASS, "getName", false, JAVA_STRING_CLASS)
+    JAVA_FIELD_CLASS, 'getName', false, JAVA_STRING_CLASS)
   METHOD_GET_MODIFIERS = Java.get_java_method(
-    JAVA_METHOD_CLASS, "getModifiers", false, JAVA_PRIM_INT_CLASS)
+    JAVA_METHOD_CLASS, 'getModifiers', false, JAVA_PRIM_INT_CLASS)
   METHOD_GET_NAME = Java.get_java_method(
-    JAVA_METHOD_CLASS, "getName", false, JAVA_STRING_CLASS)
+    JAVA_METHOD_CLASS, 'getName', false, JAVA_STRING_CLASS)
   OBJECT_GET_CLASS = Java.get_java_method(
-    JAVA_OBJECT_CLASS, "getClass", false, JAVA_CLASS_CLASS)
+    JAVA_OBJECT_CLASS, 'getClass', false, JAVA_CLASS_CLASS)
   PACKAGE_GET_NAME = Java.get_java_method(
-    JAVA_PACKAGE_CLASS, "getName", false, JAVA_STRING_CLASS)
+    JAVA_PACKAGE_CLASS, 'getName', false, JAVA_STRING_CLASS)
 
   def self.make_proxy(a_class)
     was_in_make_proxy = Thread.current[:MAKING_JAVA_PROXY]
@@ -272,7 +271,7 @@ module JavaUtilities
             Interop.from_java_string(
               Java.invoke_java_method(CLASS_GET_SIMPLE_NAME, a_class)),
             a_proxy) unless parent == nil
-        rescue
+        rescue # rubocop:disable Lint/HandleExceptions
         end
       else
         a_proxy = existing_proxy
@@ -286,13 +285,13 @@ module JavaUtilities
 
   def self.ensure_owner(a_class)
     if Java.invoke_java_method(CLASS_IS_MEMBER_CLASS, a_class)
-      package = make_proxy(Java.invoke_java_method(CLASS_GET_ENCLOSING_CLASS, a_class))
+      _package = make_proxy(Java.invoke_java_method(CLASS_GET_ENCLOSING_CLASS, a_class))
     else
       package = Java.invoke_java_method(CLASS_GET_PACKAGE, a_class)
       if package != nil
         name = Interop.from_java_string(
           Java.invoke_java_method(PACKAGE_GET_NAME, package))
-        ::Java::JavaPackage.new(*name.split("."))
+        ::Java::JavaPackage.new(*name.split('.'))
       else
         ::Java
       end
@@ -404,18 +403,18 @@ module JavaUtilities
     end
   end
 
-  JAVA_LOOKUP_CLASS = Java.java_class_by_name("java.lang.invoke.MethodHandles$Lookup")
-  JAVA_METHODHANDLE_CLASS = Java.java_class_by_name("java.lang.invoke.MethodHandle")
-  JAVA_METHODHANDLES_CLASS = Java.java_class_by_name("java.lang.invoke.MethodHandles")
+  JAVA_LOOKUP_CLASS = Java.java_class_by_name('java.lang.invoke.MethodHandles$Lookup')
+  JAVA_METHODHANDLE_CLASS = Java.java_class_by_name('java.lang.invoke.MethodHandle')
+  JAVA_METHODHANDLES_CLASS = Java.java_class_by_name('java.lang.invoke.MethodHandles')
 
   LOOKUP_UNREFLECT = Java.get_java_method(
-    JAVA_LOOKUP_CLASS, "unreflect", false, JAVA_METHODHANDLE_CLASS, JAVA_METHOD_CLASS)
+    JAVA_LOOKUP_CLASS, 'unreflect', false, JAVA_METHODHANDLE_CLASS, JAVA_METHOD_CLASS)
   LOOKUP_UNREFLECT_CONSTRUCTOR = Java.get_java_method(
-    JAVA_LOOKUP_CLASS, "unreflectConstructor", false, JAVA_METHODHANDLE_CLASS, JAVA_CONSTRUCTOR_CLASS)
+    JAVA_LOOKUP_CLASS, 'unreflectConstructor', false, JAVA_METHODHANDLE_CLASS, JAVA_CONSTRUCTOR_CLASS)
   LOOKUP_UNREFLECT_GETTER = Java.get_java_method(
-    JAVA_LOOKUP_CLASS, "unreflectGetter", false, JAVA_METHODHANDLE_CLASS, JAVA_FIELD_CLASS)
+    JAVA_LOOKUP_CLASS, 'unreflectGetter', false, JAVA_METHODHANDLE_CLASS, JAVA_FIELD_CLASS)
   LOOKUP_UNREFLECT_SETTER = Java.get_java_method(
-    JAVA_LOOKUP_CLASS, "unreflectSetter", false, JAVA_METHODHANDLE_CLASS, JAVA_FIELD_CLASS)
+    JAVA_LOOKUP_CLASS, 'unreflectSetter', false, JAVA_METHODHANDLE_CLASS, JAVA_FIELD_CLASS)
 
   # We can't use the public lookup because it won't resolve caller sensitive methods.
   LOOKUP = Java.get_lookup
@@ -423,43 +422,39 @@ module JavaUtilities
   def self.unreflect_method(a_method)
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT, LOOKUP, a_method)
-    rescue Exception => exception
-      nil
+    rescue Exception # rubocop:disable Lint/HandleExceptions, Lint/RescueException
     end
   end
 
   def self.unreflect_constructor(a_constructor)
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT_CONSTRUCTOR, LOOKUP, a_constructor)
-    rescue Exception => exception
-      nil
+    rescue Exception # rubocop:disable Lint/HandleExceptions, Lint/RescueException
     end
   end
 
   def self.unreflect_getter(a_field)
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT_GETTER, LOOKUP, a_field)
-    rescue Exception
-      nil
+    rescue Exception # rubocop:disable Lint/HandleExceptions, Lint/RescueException
     end
   end
 
   def self.unreflect_setter(a_field)
     begin
       Java.invoke_java_method(LOOKUP_UNREFLECT_SETTER, LOOKUP, a_field)
-    rescue Exception
-      nil
+    rescue Exception # rubocop:disable Lint/HandleExceptions, Lint/RescueException
     end
   end
 
-  REFLECT_ARRAY_CLASS = Java.java_class_by_name("java.lang.reflect.Array")
+  REFLECT_ARRAY_CLASS = Java.java_class_by_name('java.lang.reflect.Array')
   REFLECT_ARRAY_LENGTH = Java.get_java_method(
-    REFLECT_ARRAY_CLASS, "getLength", true, JAVA_PRIM_INT_CLASS, JAVA_OBJECT_CLASS)
+    REFLECT_ARRAY_CLASS, 'getLength', true, JAVA_PRIM_INT_CLASS, JAVA_OBJECT_CLASS)
 
   ARRAY_GETTER_GETTER = Java.get_java_method(
-    JAVA_METHODHANDLES_CLASS, "arrayElementGetter", true, JAVA_METHODHANDLE_CLASS, JAVA_CLASS_CLASS)
+    JAVA_METHODHANDLES_CLASS, 'arrayElementGetter', true, JAVA_METHODHANDLE_CLASS, JAVA_CLASS_CLASS)
   ARRAY_SETTER_GETTER = Java.get_java_method(
-    JAVA_METHODHANDLES_CLASS, "arrayElementSetter", true, JAVA_METHODHANDLE_CLASS, JAVA_CLASS_CLASS)
+    JAVA_METHODHANDLES_CLASS, 'arrayElementSetter', true, JAVA_METHODHANDLE_CLASS, JAVA_CLASS_CLASS)
   ARRAY_GETTER = Java.invoke_java_method(ARRAY_GETTER_GETTER, JAVA_OBJECT_ARRAY)
 
   def self.java_array_size(an_array)
@@ -501,7 +496,7 @@ module JavaUtilities
                   else
                     make_proxy(Java.invoke_java_method(CLASS_GET_SUPER_CLASS, a_class))
                   end
-    a_proxy = Class.new(super_class)
+    _a_proxy = Class.new(super_class)
   end
 
   def self.make_java_proxy_class(*modules)

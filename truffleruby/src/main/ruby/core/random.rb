@@ -37,7 +37,7 @@ class Rubinius::Randomizer
 
   def set_seed(new_seed)
     Truffle.primitive :randomizer_seed
-    raise PrimitiveFailure, "Randomizer#seed primitive failed"
+    raise PrimitiveFailure, 'Randomizer#seed primitive failed'
   end
 
   def swap_seed(new_seed)
@@ -77,13 +77,13 @@ class Rubinius::Randomizer
   # Generate a random Float, in the range 0...1.0
   def random_float
     Truffle.primitive :randomizer_rand_float
-    raise PrimitiveFailure, "Randomizer#rand_float primitive failed"
+    raise PrimitiveFailure, 'Randomizer#rand_float primitive failed'
   end
 
   # Generate a random Integer, in the range 0...limit
   def random_integer(limit)
     Truffle.primitive :randomizer_rand_int
-    raise PrimitiveFailure, "Randomizer#rand_int primitive failed"
+    raise PrimitiveFailure, 'Randomizer#rand_int primitive failed'
   end
 
   def random_range(limit)
@@ -95,7 +95,7 @@ class Rubinius::Randomizer
 
   def generate_seed
     Truffle.primitive :randomizer_gen_seed
-    raise PrimitiveFailure, "Randomizer#gen_seed primitive failed"
+    raise PrimitiveFailure, 'Randomizer#gen_seed primitive failed'
   end
 
   ##

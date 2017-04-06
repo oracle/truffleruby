@@ -50,7 +50,7 @@ module FFI
 
     if lib && File.basename(lib) == lib
       lib = Platform::LIBPREFIX + lib unless lib =~ /^#{Platform::LIBPREFIX}/
-      r = Platform::IS_GNU ? "\\.so($|\\.[1234567890]+)" : "\\.#{Platform::LIBSUFFIX}$"
+      r = Platform::IS_GNU ? '\\.so($|\\.[1234567890]+)' : "\\.#{Platform::LIBSUFFIX}$"
       lib += ".#{Platform::LIBSUFFIX}" unless lib =~ /#{r}/
     end
 
@@ -64,7 +64,7 @@ module FFI
     # @raise {LoadError} if a library cannot be opened
     # Load native libraries.
     def ffi_lib(*names)
-      raise LoadError.new("library names list must not be empty") if names.empty?
+      raise LoadError.new('library names list must not be empty') if names.empty?
 
       lib_flags = defined?(@ffi_lib_flags) ? @ffi_lib_flags : FFI::DynamicLibrary::RTLD_LAZY | FFI::DynamicLibrary::RTLD_LOCAL
       ffi_libs = names.map do |name|
@@ -83,7 +83,7 @@ module FFI
               lib = FFI::DynamicLibrary.open(libname, lib_flags)
               break if lib
 
-            rescue Exception => ex
+            rescue Exception => ex # rubocop:disable Lint/RescueException # code from ffi gem
               ldscript = false
               if ex.message =~ /(([^ \t()])+\.so([^ \t:()])*):([ \t])*(invalid ELF header|file too short|invalid file format)/
                 if File.read($1) =~ /(?:GROUP|INPUT) *\( *([^ \)]+)/
@@ -97,7 +97,7 @@ module FFI
               else
                 # TODO better library lookup logic
                 libname = libname.to_s
-                unless libname.start_with?("/")
+                unless libname.start_with?('/')
                   path = ['/usr/lib/','/usr/local/lib/'].find do |pth|
                     File.exist?(pth + libname)
                   end

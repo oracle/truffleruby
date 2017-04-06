@@ -59,7 +59,7 @@ class Dir
 
   def closed?
     Truffle.primitive :dir_closed_p
-    raise PrimitiveFailure, "Dir#closed? primitive failed"
+    raise PrimitiveFailure, 'Dir#closed? primitive failed'
   end
 
   def read

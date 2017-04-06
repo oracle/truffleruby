@@ -204,7 +204,7 @@ module Rubinius::FFI
 
   # Load all the platform dependent types
 
-  Rubinius::Config.section("rbx.platform.typedef.") do |key, value|
+  Rubinius::Config.section('rbx.platform.typedef.') do |key, value|
     add_typedef(find_type(value.to_sym), key.substring(21, key.length).to_sym)
   end
 
@@ -247,15 +247,15 @@ end
 module Rubinius::FFI::Platform
   case
   when Rubinius.windows?
-    LIBSUFFIX = "dll"
+    LIBSUFFIX = 'dll'
     IS_WINDOWS = true
     OS = 'windows'
   when Rubinius.darwin?
-    LIBSUFFIX = "dylib"
+    LIBSUFFIX = 'dylib'
     IS_WINDOWS = false
     OS = 'darwin'
   else
-    LIBSUFFIX = "so"
+    LIBSUFFIX = 'so'
     IS_WINDOWS = false
     OS = 'linux'
   end

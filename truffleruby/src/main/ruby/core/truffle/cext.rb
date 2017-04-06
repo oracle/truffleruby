@@ -12,6 +12,74 @@ class Data
 
 end
 
+module Truffle::CExt
+  class RData
+
+    DATA_FIELD_INDEX = 2
+
+    def initialize(object)
+      @object = object
+    end
+
+    def [](index)
+      raise unless index == DATA_FIELD_INDEX
+      @object.instance_variable_get(:@data)
+    end
+
+    def []=(index, value)
+      raise unless index == DATA_FIELD_INDEX
+      @object.instance_variable_set :@data, value
+    end
+
+  end
+
+  class RbEncoding
+
+    NAME_FIELD_INDEX = 0
+
+    attr_reader :encoding
+
+    def initialize(encoding)
+      @encoding = encoding
+    end
+
+    def [](index)
+      raise unless index == NAME_FIELD_INDEX
+      @encoding.name
+    end
+
+  end
+
+  class RStringPtr
+
+    attr_reader :string
+
+    def initialize(string)
+      @string = string
+    end
+
+    def size
+      Truffle::CExt.string_pointer_size(@string)
+    end
+
+    def unbox
+      Truffle::CExt.string_pointer_unbox(@string)
+    end
+
+    def [](index)
+      Truffle::CExt.string_pointer_read(@string, index)
+    end
+
+    def []=(index, value)
+      Truffle::CExt.string_pointer_write @string, index, value
+    end
+
+    alias_method :to_str, :string
+    alias_method :to_s, :string
+
+  end
+end
+
 class << Truffle::CExt
 
   T_NONE     = 0x00
@@ -570,18 +638,18 @@ class << Truffle::CExt
       if raise_error
         raise TypeError, "#{y.class} can't be coerced to #{x.class}"
       else
-        warn "Numerical comparison operators will no more rescue exceptions of #coerce"
-        warn "in the next release. Return nil in #coerce if the coercion is impossible."
+        warn 'Numerical comparison operators will no more rescue exceptions of #coerce'
+        warn 'in the next release. Return nil in #coerce if the coercion is impossible.'
       end
       return nil
     end
 
     if !ary.is_a?(Array) || ary.size != 2
       if raise_error
-        raise TypeError, "coerce must return [x, y]"
+        raise TypeError, 'coerce must return [x, y]'
       else
-        warn "Numerical comparison operators will no more rescue exceptions of #coerce"
-        warn "in the next release. Return nil in #coerce if the coercion is impossible."
+        warn 'Numerical comparison operators will no more rescue exceptions of #coerce'
+        warn 'in the next release. Return nil in #coerce if the coercion is impossible.'
       end
       return nil
     end
@@ -718,24 +786,19 @@ class << Truffle::CExt
   end
 
   def rb_default_external_encoding
-    Encoding.find("external")
+    Encoding.find('external')
   end
 
   def rb_default_internal_encoding
-    Encoding.find("internal")
+    Encoding.find('internal')
   end
 
   def rb_locale_encoding
-    Encoding.find("locale")
+    Encoding.find('locale')
   end
 
   def rb_filesystem_encoding
-    Encoding.find("filesystem")
-  end
-
-  def rb_to_encoding(enc)
-    enc = Rubinius::Type.coerce_to_encoding(enc)
-    Truffle.invoke_primitive :rb_to_encoding, enc
+    Encoding.find('filesystem')
   end
 
   def rb_to_encoding_index(enc)
@@ -745,11 +808,11 @@ class << Truffle::CExt
   end
 
   def rb_locale_encindex
-    rb_enc_find_index Encoding.find("locale").name
+    rb_enc_find_index Encoding.find('locale').name
   end
 
   def rb_filesystem_encindex
-    rb_enc_find_index Encoding.find("filesystem").name
+    rb_enc_find_index Encoding.find('filesystem').name
   end
 
   def rb_ascii8bit_encindex
@@ -1090,7 +1153,7 @@ class << Truffle::CExt
 
   def rb_set_errinfo(error)
     if !error.nil? && !error.is_a?(Exception)
-      raise TypeError, "assigning non-exception to ?!"
+      raise TypeError, 'assigning non-exception to ?!'
     end
     $! = error
   end
@@ -1553,7 +1616,7 @@ class << Truffle::CExt
   end
 
   def rb_call_super(args)
-    rb_call_super_splatted *args
+    rb_call_super_splatted(*args)
   end
 
   def rb_any_to_s(object)
@@ -1613,50 +1676,13 @@ class << Truffle::CExt
 
     rb_define_hooked_variable_inner id, getter_proc, setter_proc
   end
-  
+
   def rb_tr_log_warning(message)
     Truffle::Debug.log_warning message
   end
 
-  class RData
-
-    DATA_FIELD_INDEX = 2
-
-    def initialize(object)
-      @object = object
-    end
-
-    def [](index)
-      raise unless index == DATA_FIELD_INDEX
-      @object.instance_variable_get(:@data)
-    end
-
-    def []=(index, value)
-      raise unless index == DATA_FIELD_INDEX
-      @object.instance_variable_set :@data, value
-    end
-
-  end
-
   def RDATA(object)
     RData.new(object)
-  end
-
-  class RbEncoding
-
-    NAME_FIELD_INDEX = 0
-
-    attr_reader :encoding
-
-    def initialize(encoding)
-      @encoding = encoding
-    end
-
-    def [](index)
-      raise unless index == NAME_FIELD_INDEX
-      @encoding.name
-    end
-
   end
 
   def rb_to_encoding(encoding)
@@ -1666,35 +1692,6 @@ class << Truffle::CExt
 
   def rb_enc_from_encoding(rb_encoding)
     rb_encoding.encoding
-  end
-
-  class RStringPtr
-
-    attr_reader :string
-
-    def initialize(string)
-      @string = string
-    end
-
-    def size
-      Truffle::CExt.string_pointer_size(@string)
-    end
-
-    def unbox
-      Truffle::CExt.string_pointer_unbox(@string)
-    end
-
-    def [](index)
-      Truffle::CExt.string_pointer_read(@string, index)
-    end
-
-    def []=(index, value)
-      Truffle::CExt.string_pointer_write @string, index, value
-    end
-
-    alias_method :to_str, :string
-    alias_method :to_s, :string
-
   end
 
   def RSTRING_PTR(string)

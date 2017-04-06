@@ -91,7 +91,7 @@ module Rubinius::FFI
     def self.find_nested_parent
       return nil if self.name.nil?
 
-      path = self.name.split("::")
+      path = self.name.split('::')
       path.pop # remove ourself
 
       mod = Object
@@ -290,7 +290,7 @@ module Rubinius::FFI
           return val
         end
 
-        raise TypeError, "Unable to set inline array"
+        raise TypeError, 'Unable to set inline array'
       when Rubinius::NativeFunction
         @pointer.set_at_offset(offset, FFI::TYPE_PTR, val)
       else

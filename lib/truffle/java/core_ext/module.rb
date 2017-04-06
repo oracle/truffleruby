@@ -44,7 +44,7 @@ class Module
     @included_packages = [ package ]
     @java_aliases ||= {}
 
-    def self.const_missing(constant)
+    def self.const_missing(constant) # rubocop:disable Lint/NestedMethodDefinition
       real_name = @java_aliases[constant] || constant
 
       java_class = nil

@@ -57,7 +57,7 @@ class Integer < Numeric
 
     if ndigits.kind_of? Numeric
       if ndigits > Fixnum::MAX or ndigits <= Fixnum::MIN
-        raise RangeError, "precision is outside of the range of Fixnum"
+        raise RangeError, 'precision is outside of the range of Fixnum'
       end
     end
 

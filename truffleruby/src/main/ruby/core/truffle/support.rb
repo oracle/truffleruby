@@ -54,7 +54,7 @@ module Truffle
   def self.add_rejected_kwargs_to_rest(rest, kwargs)
     return if kwargs.nil?
 
-    rejected = kwargs.select do |key, value|
+    rejected = kwargs.select do |key, _value|
       not key.is_a?(Symbol)
     end
 

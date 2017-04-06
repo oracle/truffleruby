@@ -34,9 +34,9 @@ class Range
 
     unless first.kind_of?(Fixnum) && last.kind_of?(Fixnum)
       begin
-        raise ArgumentError, "bad value for range" unless first <=> last
+        raise ArgumentError, 'bad value for range' unless first <=> last
       rescue
-        raise ArgumentError, "bad value for range"
+        raise ArgumentError, 'bad value for range'
       end
     end
 
@@ -75,7 +75,7 @@ class Range
     max -= 1 if max.kind_of? Integer and exclude_end?
 
     start = min = Rubinius::Type.coerce_to min, Integer, :to_int
-    total = max = Rubinius::Type.coerce_to max, Integer, :to_int
+    max = Rubinius::Type.coerce_to max, Integer, :to_int
 
     last_true = nil
 
@@ -97,7 +97,7 @@ class Range
       when false, nil
         min = current + 1
       else
-        raise TypeError, "Range#bsearch block must return Numeric or boolean"
+        raise TypeError, 'Range#bsearch block must return Numeric or boolean'
       end
     end
 
@@ -108,11 +108,11 @@ class Range
         mid = -((-1 - min - max) / 2 + 1)
       else
         mid = (min + max) / 2
-      end      
-      
+      end
+
       seeker.call mid
     end
-    
+
     if min == max
       seeker.call min
     end
@@ -224,11 +224,11 @@ class Range
     return self.end unless exclude_end?
 
     unless self.end.kind_of?(Integer)
-      raise TypeError, "cannot exclude non Integer end value"
+      raise TypeError, 'cannot exclude non Integer end value'
     end
 
     unless self.begin.kind_of?(Integer)
-      raise TypeError, "cannot exclude end value with non Integer begin value"
+      raise TypeError, 'cannot exclude end value with non Integer begin value'
     end
 
     self.end - 1
@@ -274,8 +274,8 @@ class Range
       end
     else
       i = 0
-      each do |curr|
-        yield curr if i % step_size == 0
+      each do |item|
+        yield item if i % step_size == 0
         i += 1
       end
     end

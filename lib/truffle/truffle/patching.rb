@@ -1,29 +1,29 @@
 require 'pathname'
 
 module Truffle::Patching
-  DIR     = Pathname(Truffle::Boot.ruby_home).join("lib/patches")
+  DIR     = Pathname(Truffle::Boot.ruby_home).join('lib/patches')
   # Allowed operations are: :before, :after, :instead, :ignore
-  PATCHES = { "bundler"                                 => :before,
-              "bundler/version"                         => :after,
-              "bundler/cli/exec"                        => :after,
-              "bundler/compact_index_client/updater"    => :after,
-              "bundler/current_ruby"                    => :after,
-              "bundler/dependency"                      => :after,
-              "bundler/fetcher/downloader"              => :after,
-              "bundler/fetcher/compact_index"           => :after,
-              "bundler/ruby_version"                    => :after,
-              "bundler/source/rubygems"                 => :after,
+  PATCHES = { 'bundler'                                 => :before,
+              'bundler/version'                         => :after,
+              'bundler/cli/exec'                        => :after,
+              'bundler/compact_index_client/updater'    => :after,
+              'bundler/current_ruby'                    => :after,
+              'bundler/dependency'                      => :after,
+              'bundler/fetcher/downloader'              => :after,
+              'bundler/fetcher/compact_index'           => :after,
+              'bundler/ruby_version'                    => :after,
+              'bundler/source/rubygems'                 => :after,
 
-              "rubygems"                                => :before,
-              "rubygems/ext"                            => :after,
-              "rubygems/package"                        => :after,
-              "rubygems/remote_fetcher"                 => :after,
-              "rubygems/request"                        => :after,
-              "rubygems/request_set/gem_dependency_api" => :after,
+              'rubygems'                                => :before,
+              'rubygems/ext'                            => :after,
+              'rubygems/package'                        => :after,
+              'rubygems/remote_fetcher'                 => :after,
+              'rubygems/request'                        => :after,
+              'rubygems/request_set/gem_dependency_api' => :after,
 
-              "rspec/support"                           => :after,
+              'rspec/support'                           => :after,
 
-              "unf/normalizer_cruby"                    => :before,
+              'unf/normalizer_cruby'                    => :before,
   }
 
   PATCHES.each do |file, _|
@@ -32,8 +32,8 @@ module Truffle::Patching
     end
   end
 
-  Pathname.glob(DIR.join("**/*.rb")) do |file|
-    relative_path = file.relative_path_from(DIR).sub_ext("")
+  Pathname.glob(DIR.join('**/*.rb')) do |file|
+    relative_path = file.relative_path_from(DIR).sub_ext('')
     unless PATCHES.key? relative_path.to_s
       raise "file #{relative_path} is not declared in PATCHES"
     end
@@ -41,7 +41,7 @@ module Truffle::Patching
 
   def self.find_absolute_path(relative_path)
     $LOAD_PATH.each do |base|
-      candidate = Pathname(base).join(relative_path).sub_ext(".rb")
+      candidate = Pathname(base).join(relative_path).sub_ext('.rb')
       return candidate if candidate.exist?
     end
     raise "absolute path for #{relative_path} was not found in #{$LOAD_PATH}"
@@ -52,11 +52,11 @@ module Truffle::Patching
 
     $LOAD_PATH.each do |base|
       if absolute_path.to_s.start_with?(base)
-        return absolute_path.relative_path_from(Pathname(base)).sub_ext("")
+        return absolute_path.relative_path_from(Pathname(base)).sub_ext('')
       end
     end
 
-    patch_candidate = PATCHES.keys.find { |c| absolute_path.sub_ext("").to_s.end_with? c }
+    patch_candidate = PATCHES.keys.find { |c| absolute_path.sub_ext('').to_s.end_with? c }
     if !patch_candidate.nil? && !(absolute_path.each_filename.to_a & ['gems', 'lib']).empty?
       Truffle::System.log :PATCH, <<-TXT
 The file '#{absolute_path}' appears to be from a gem whose lib is not in $LOAD_PATH.
@@ -81,7 +81,7 @@ module Kernel
 
   def gem_original_require(path)
     path           = Pathname(Rubinius::Type.coerce_to_path(path))
-    path_no_suffix = path.sub_ext ""
+    path_no_suffix = path.sub_ext ''
     relative_path  = if path_no_suffix.absolute?
                        Truffle::Patching.find_relative_path path_no_suffix.sub_ext('.rb')
                      else
@@ -95,7 +95,7 @@ module Kernel
 
     # apply patch based on operation
     log                 = -> { Truffle::System.log :PATCH, "#{operation} original require '#{path}'" }
-    absolute_patch_path = Truffle::Patching::DIR.join(path_no_suffix).sub_ext(".rb")
+    absolute_patch_path = Truffle::Patching::DIR.join(path_no_suffix).sub_ext('.rb')
     case operation
     when :after
       require_without_truffle_patching(path.to_s).tap do |required|

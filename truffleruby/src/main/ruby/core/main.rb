@@ -47,12 +47,12 @@ class << self
   end
 
   def to_s
-    "main"
+    'main'
   end
 
   alias_method :inspect, :to_s
 end
 
-Signal.trap("INT") do
+Signal.trap('INT') do
   raise Interrupt
 end

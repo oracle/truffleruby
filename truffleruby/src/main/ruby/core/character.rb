@@ -34,7 +34,7 @@ class String
 
   def printable?
     Truffle.primitive :character_printable_p
-    raise PrimitiveFailure, "Rubinius::Character#printable? primitive failed"
+    raise PrimitiveFailure, 'Rubinius::Character#printable? primitive failed'
   end
 
 end

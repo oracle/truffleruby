@@ -54,7 +54,7 @@ class TruffleTool
 
       raise 'command failed' if raise && !result
 
-      return result
+      result
     end
 
     def print_cmd(cmd, dir, print)
@@ -75,7 +75,7 @@ class TruffleTool
                       end
 
       log '$ ' + [*formatted_env, *formatted_cmd].compact.join(' ') + (dir ? " (in #{dir})" : '')
-      return cmd
+      cmd
     end
   end
 
@@ -113,17 +113,17 @@ class TruffleTool
     end
 
     def deep_merge!(a, b, *rest)
-      [a, b, *rest].reduce { |a, b| deep_merge2! a, b }
+      [a, b, *rest].reduce { |first, second| deep_merge2! first, second }
     end
 
     def deep_merge(a, b, *rest)
-      [a, b, *rest].reduce { |a, b| deep_merge2 a, b }
+      [a, b, *rest].reduce { |first, second| deep_merge2 first, second }
     end
 
     def deep_merge2!(a, b)
       if Hash === a
         if Hash === b
-          return a.merge!(b) { |k, ov, nv| deep_merge2! ov, nv }
+          return a.merge!(b) { |_k, ov, nv| deep_merge2! ov, nv }
         else
           return a
         end
@@ -143,7 +143,7 @@ class TruffleTool
     def deep_merge2(a, b)
       if Hash === a
         if Hash === b
-          return a.merge(b) { |k, ov, nv| deep_merge2 ov, nv }
+          return a.merge(b) { |_k, ov, nv| deep_merge2 ov, nv }
         else
           return a
         end
@@ -175,16 +175,16 @@ class TruffleTool
   module GemfileLookUp
     def self.default_gemfile
       gemfile = find_gemfile
-      raise "Could not locate Gemfile" unless gemfile
+      raise 'Could not locate Gemfile' unless gemfile
       Pathname.new(gemfile).untaint
     end
 
     private
 
     def find_gemfile
-      given = ENV["BUNDLE_GEMFILE"]
+      given = ENV['BUNDLE_GEMFILE']
       return given if given && !given.empty?
-      find_file("Gemfile", "gems.rb")
+      find_file('Gemfile', 'gems.rb')
     end
 
     def find_file(*names)
@@ -198,9 +198,9 @@ class TruffleTool
       current  = File.expand_path(Pathname.pwd).untaint
 
       until !File.directory?(current) || current == previous
-        if ENV["BUNDLE_SPEC_RUN"]
+        if ENV['BUNDLE_SPEC_RUN']
           # avoid stepping above the tmp directory when testing
-          return nil if File.file?(File.join(current, "bundler.gemspec"))
+          return nil if File.file?(File.join(current, 'bundler.gemspec'))
         end
 
         names.each do |name|
@@ -208,7 +208,7 @@ class TruffleTool
           yield filename
         end
         previous = current
-        current  = File.expand_path("..", current)
+        current  = File.expand_path('..', current)
       end
     end
 
@@ -229,8 +229,8 @@ class TruffleTool
   TRUFFLERUBY_BIN   = TRUFFLERUBY_PATH.join('bin', 'truffleruby')
 
   module OptionBlocks
-    STORE_NEW_VALUE         = -> (new, old, _) { new }
-    STORE_NEW_NEGATED_VALUE = -> (new, old, _) { !new }
+    STORE_NEW_VALUE         = -> (new, _old, _) { new }
+    STORE_NEW_NEGATED_VALUE = -> (new, _old, _) { !new }
     ADD_TO_ARRAY            = -> (new, old, _) { old << new }
     MERGE_TO_HASH           = -> ((k, v), old, _) { old.merge k => v }
   end
@@ -317,7 +317,7 @@ class TruffleTool
         clean:  { help: ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false] },
 
         readme: { help: ['-h', '--help', 'Show this message', STORE_NEW_VALUE, false] }
-    }.each { |group, options| options.each { |name, definition| definition.last.freeze } }
+    }.each { |_group, options| options.each { |_name, definition| definition.last.freeze } }
   end
 
   begin
@@ -454,6 +454,29 @@ class TruffleTool
     end
   end
 
+  def self.build_option_parser(parser_options, options_hash, option_parser: OptionParser.new)
+    parser_options.each do |option, data|
+      *args, description, block, default = data
+
+      option_parser.on(*args, description + " (default: #{default.inspect})") do |new_value|
+        old_value            = options_hash[option]
+        options_hash[option] = instance_exec new_value, old_value, options_hash, &block
+      end
+    end
+
+    option_parser
+  end
+
+  def self.default_option_values(group_options)
+    group_options.each_with_object({}) do |(option, data), group_option_defaults|
+      *_args, _block, default = data
+      unless [TrueClass, FalseClass, NilClass, Fixnum].any? { |v| v === default }
+        default = default.dup
+      end
+      group_option_defaults[option] = default
+    end
+  end
+
   private
 
   def verbose?
@@ -471,19 +494,6 @@ class TruffleTool
     end
 
     option_parsers.each { |key, option_parser| option_parser.banner = HELP[key] }
-  end
-
-  def self.build_option_parser(parser_options, options_hash, option_parser: OptionParser.new)
-    parser_options.each do |option, data|
-      *args, description, block, default = data
-
-      option_parser.on(*args, description + " (default: #{default.inspect})") do |new_value|
-        old_value            = options_hash[option]
-        options_hash[option] = instance_exec new_value, old_value, options_hash, &block
-      end
-    end
-
-    option_parser
   end
 
   def build_option_parser(parser_options, options_hash)
@@ -523,16 +533,6 @@ class TruffleTool
     end
   end
 
-  def self.default_option_values(group_options)
-    group_options.each_with_object({}) do |(option, data), group_option_defaults|
-      *args, block, default = data
-      unless [TrueClass, FalseClass, NilClass, Fixnum].any? { |v| v === default }
-        default = default.dup
-      end
-      group_option_defaults[option] = default
-    end
-  end
-
   def default_option_values(group_options)
     self.class.default_option_values(group_options)
   end
@@ -543,13 +543,13 @@ class TruffleTool
               else
                 @option_parsers.values
               end
-    puts *parsers
+    puts(*parsers)
     exit
   end
 
   BUNDLER_EVAL_ENV = Object.new
 
-  def BUNDLER_EVAL_ENV.gem(name, options)
+  def BUNDLER_EVAL_ENV.gem(name, options) # rubocop:disable Lint/IneffectiveAccessModifier
     [name, options]
   end
 
@@ -659,7 +659,7 @@ class TruffleTool
 
     core_load_path = jruby_path.join 'truffleruby/src/main/ruby'
 
-    missing_core_load_path = !File.exists?(core_load_path)
+    missing_core_load_path = !File.exist?(core_load_path)
     log "Core load path: #{core_load_path} does not exist, fallbacking to --no-use-fs-core" if missing_core_load_path
 
     truffle_options = [
@@ -762,6 +762,8 @@ class TruffleTool
     super cmd, dir: dir, raise: raise, print: verbose? || print_always
   end
 
+  # rubocop:disable Lint/IneffectiveAccessModifier
+
   CONFIGURATIONS = {}
   CI_DEFINITIONS = {}
 
@@ -822,7 +824,7 @@ class TruffleTool
       @option_parser.banner = "\nUsage: #{EXECUTABLE} [options] ci [subcommand-options] #{gem_name} [options-declared-in-CI-definition]\n\n"
       @option_parsed        = false
 
-      declare_options parse_options: false, help: ['-h', '--help', 'Show this message', -> (new, old, _) { puts option_parser; exit }, false]
+      declare_options parse_options: false, help: ['-h', '--help', 'Show this message', -> (_new, _old, _) { puts option_parser; exit }, false]
 
       (definition && do_definition(definition)) ||
           do_definition(gem_name) ||
@@ -836,7 +838,7 @@ class TruffleTool
       log "Using CI definition: #{name}"
       catch :cancel_ci! do
         begin
-          instance_eval &definition
+          instance_eval(&definition)
         rescue => e
           log format('%s: %s\n%s', e.class, e.message, e.backtrace.join("\n"))
         end
@@ -898,7 +900,7 @@ class TruffleTool
 
     def git_tags
       tags = Dir.chdir(repository_dir) { `git tag -l`.lines }
-      raise "fetching tags failed" if !$?.success?
+      raise 'fetching tags failed' if !$?.success?
       tags
     end
 
@@ -955,7 +957,7 @@ class TruffleTool
 
     def delete_gemfile_lock!
       path = repository_dir.join('Gemfile.lock')
-      FileUtils.rm path if File.exists? path
+      FileUtils.rm path if File.exist? path
     end
 
   end

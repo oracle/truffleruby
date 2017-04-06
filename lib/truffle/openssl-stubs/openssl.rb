@@ -15,7 +15,7 @@ module OpenSSL
     class Name
 
       def to_a
-        raise "not implemented"
+        raise 'not implemented'
       end
 
     end
@@ -62,7 +62,7 @@ module OpenSSL
           iv_byte = @iv[(iv_i*2)..(iv_i*2+1)].to_i(16)
           (byte ^ iv_byte).chr
         end.join
-      rescue => e
+      rescue
         # puts format "%s (%s)\n%s", e.message, e.class, e.backtrace.join("\n")
         raise CipherError
       end
@@ -99,8 +99,8 @@ module OpenSSL
   module HMAC
     def self.hexdigest(digest, key, data)
       # AS test data
-      if data == "BAh7BjoIZm9vbzonTWVzc2FnZVZlcmlmaWVyVGVzdDo6QXV0b2xvYWRDbGFzcwY6CUBmb29JIghmb28GOgZFVA=="
-        return "f3ef39a5241c365083770566dc7a9eb5d6ace914"
+      if data == 'BAh7BjoIZm9vbzonTWVzc2FnZVZlcmlmaWVyVGVzdDo6QXV0b2xvYWRDbGFzcwY6CUBmb29JIghmb28GOgZFVA=='
+        return 'f3ef39a5241c365083770566dc7a9eb5d6ace914'
       end
       Digest::SHA1.hexdigest(data)
     end

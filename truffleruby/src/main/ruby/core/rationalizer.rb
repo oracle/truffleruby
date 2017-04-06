@@ -32,8 +32,8 @@
 #
 class String
   class Rationalizer
-    SPACE = "\\s*"
-    DIGITS = "(?:[0-9](?:_[0-9]|[0-9])*)"
+    SPACE = '\\s*'
+    DIGITS = '(?:[0-9](?:_[0-9]|[0-9])*)'
     NUMERATOR = "(?:#{DIGITS}?\\.)?#{DIGITS}(?:[eE][-+]?#{DIGITS})?"
     DENOMINATOR = DIGITS
     RATIONAL = "\\A#{SPACE}([-+])?(#{NUMERATOR})(?:\\/(#{DENOMINATOR}))?#{SPACE}"
@@ -48,10 +48,9 @@ class String
         si = m[1]
         nu = m[2]
         de = m[3]
-        re = m.post_match
 
-        ifp, exp = nu.split /[eE]/
-        ip, fp = ifp.split /\./
+        ifp, exp = nu.split(/[eE]/)
+        ip, fp = ifp.split(/\./)
 
         value = Rational.new(ip.to_i, 1)
 
@@ -70,7 +69,7 @@ class String
           value = value.quo(l)
         end
 
-        value = -value if si == "-"
+        value = -value if si == '-'
         value *= 10 ** exp.to_i if exp
         value = value.quo(de.to_i) if de
 

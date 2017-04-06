@@ -31,7 +31,7 @@ require_relative 'ffi/library'
 module FFI
   module Library
     TO_NATIVE_TYPE = {
-      int: "SINT32",
+      int: 'SINT32',
     }
 
     private def to_native_type(type)

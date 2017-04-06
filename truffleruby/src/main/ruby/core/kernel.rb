@@ -57,7 +57,7 @@ module Kernel
     case obj
     when String
       value = Truffle.invoke_primitive :string_to_f, obj, true
-      raise ArgumentError, "invalid string for Float" unless value
+      raise ArgumentError, 'invalid string for Float' unless value
       value
     when Float
       obj
@@ -89,7 +89,7 @@ module Kernel
   def Integer(obj, base=nil)
     if obj.kind_of? String
       if obj.empty?
-        raise ArgumentError, "invalid value for Integer: (empty string)"
+        raise ArgumentError, 'invalid value for Integer: (empty string)'
       else
         base ||= 0
         return Truffle.invoke_primitive(:string_to_inum, obj, base, true)
@@ -97,7 +97,7 @@ module Kernel
     end
 
     if base
-      raise ArgumentError, "base is only valid for String values"
+      raise ArgumentError, 'base is only valid for String values'
     end
 
     case obj
@@ -147,7 +147,7 @@ module Kernel
     end
 
     unless str.kind_of? String
-      raise TypeError, "#to_s did not return a String"
+      raise TypeError, '#to_s did not return a String'
     end
 
     str
@@ -237,7 +237,7 @@ module Kernel
   module_function :exit!
 
   def extend(*modules)
-    raise ArgumentError, "wrong number of arguments (0 for 1+)" if modules.empty?
+    raise ArgumentError, 'wrong number of arguments (0 for 1+)' if modules.empty?
 
     modules.reverse_each do |mod|
       if !mod.kind_of?(Module) or mod.kind_of?(Class)
@@ -343,7 +343,7 @@ module Kernel
 
     result = nil
     begin
-      while true
+      while true # rubocop:disable Lint/LiteralInCondition
         yield
       end
     rescue StopIteration => si
@@ -531,7 +531,7 @@ module Kernel
   def trace_var(name, cmd = nil, &block)
     if !cmd && !block
       raise ArgumentError,
-        "The 2nd argument should be a Proc/String, alternatively use a block"
+        'The 2nd argument should be a Proc/String, alternatively use a block'
     end
 
     # Truffle: not yet implemented
@@ -561,7 +561,7 @@ module Kernel
       if exc
         skip = true
       else
-        exc = RuntimeError.new("No current exception")
+        exc = RuntimeError.new('No current exception')
       end
     elsif exc.respond_to? :exception
       if undefined.equal? msg
@@ -630,7 +630,7 @@ module Kernel
 
   def global_variables
     Truffle.primitive :kernel_global_variables
-    raise PrimitiveFailure, "Kernel.global_variables primitive failed"
+    raise PrimitiveFailure, 'Kernel.global_variables primitive failed'
   end
   module_function :global_variables
 

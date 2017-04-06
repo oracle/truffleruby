@@ -24,7 +24,7 @@ describe "The launcher" do
     Dir.mktmpdir do |path|
       Dir.chdir(path) do
         `ln -s #{RbConfig.ruby} linktoruby`
-        `./linktoruby --version`.should include("truffleruby")
+        `./linktoruby --version 2>&1`.should include("truffleruby")
         $?.success?.should == true
       end
     end

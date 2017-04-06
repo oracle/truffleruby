@@ -28,7 +28,7 @@ module Java
     end
 
     def to_s
-      s = "{" + (self.map { |x| '"' + x[0].to_s + '"=>"' + x[1].to_s +  + '"' }).join(", ") + "}"
+      '{' + (self.map { |x| '"' + x[0].to_s + '"=>"' + x[1].to_s +  + '"' }).join(', ') + '}'
     end
 
     def inspect

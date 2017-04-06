@@ -36,12 +36,12 @@ class Dir
       attr_writer :separator
 
       def separator
-        @separator || "/"
+        @separator || '/'
       end
 
       def path_join(parent, ent)
         return ent unless parent
-        if parent == "/"
+        if parent == '/'
           "/#{ent}"
         else
           "#{parent}#{separator}#{ent}"
@@ -81,7 +81,7 @@ class Dir
 
     class RootDirectory < Node
       def call(env, path)
-        @next.call env, "/"
+        @next.call env, '/'
       end
     end
 
@@ -109,7 +109,7 @@ class Dir
           end
 
           while ent = dir.read
-            next if ent == "." || ent == ".."
+            next if ent == '.' || ent == '..'
             full = path_join(path, ent)
             stat = File::Stat.lstat full
 
@@ -125,7 +125,7 @@ class Dir
 
     class StartRecursiveDirectories < Node
       def call(env, start)
-        raise "invalid usage" if start
+        raise 'invalid usage' if start
 
         # Even though the recursive entry is zero width
         # in this case, its left separator is still the
@@ -142,9 +142,9 @@ class Dir
 
         allow_dots = ((@flags & File::FNM_DOTMATCH) != 0)
 
-        dir = Dir.new(".")
+        dir = Dir.new('.')
         while ent = dir.read
-          next if ent == "." || ent == ".."
+          next if ent == '.' || ent == '..'
           stat = File::Stat.lstat ent
 
           if stat.directory? and (allow_dots or ent.getbyte(0) != 46) # ?.
@@ -158,7 +158,7 @@ class Dir
           path = stack.pop
           dir = Dir.new(path)
           while ent = dir.read
-            next if ent == "." || ent == ".."
+            next if ent == '.' || ent == '..'
             full = path_join(path, ent)
             stat = File::Stat.lstat full
 
@@ -175,7 +175,7 @@ class Dir
     class Match < Node
       def initialize(nxt, flags, glob)
         super nxt, flags
-        @glob = glob || ""
+        @glob = glob || ''
       end
 
       def match?(str)
@@ -187,13 +187,13 @@ class Dir
       def initialize(nxt, flags, glob)
         super
 
-        @glob.gsub! "**", "*"
+        @glob.gsub! '**', '*'
       end
 
       def call(env, path)
         return if path and !File.exist?("#{path}/.")
 
-        dir = Dir.new(path ? path : ".")
+        dir = Dir.new(path ? path : '.')
         while ent = dir.read
           if match? ent
             full = path_join(path, ent)
@@ -212,7 +212,7 @@ class Dir
         return if path and !File.exist?("#{path}/.")
 
         begin
-          dir = Dir.new(path ? path : ".")
+          dir = Dir.new(path ? path : '.')
         rescue SystemCallError
           return
         end
@@ -293,7 +293,7 @@ class Dir
         last.separator = parts.pop
         dir = parts.pop
 
-        if dir == "**"
+        if dir == '**'
           if parts.empty?
             last = StartRecursiveDirectories.new last, flags
           else
@@ -343,7 +343,7 @@ class Dir
         if braces = m[2]
           stem = m[1]
 
-          braces.split(",").each do |s|
+          braces.split(',').each do |s|
             path = "#{stem}#{s}"
             if File.exist? path
               matches << path
@@ -361,7 +361,7 @@ class Dir
         return matches
       end
 
-      if pattern.include? "{"
+      if pattern.include? '{'
         patterns = compile(pattern, flags)
 
         patterns.each do |node|
@@ -381,7 +381,7 @@ class Dir
       lbrace = nil
 
       # Do a quick search for a { to start the search better
-      i = pattern.index("{")
+      i = pattern.index('{')
 
       # If there was a { found, then search
       if i
@@ -390,12 +390,12 @@ class Dir
         while i < pattern.size
           char = pattern[i]
 
-          if char == "{"
+          if char == '{'
             lbrace = i if nest == 0
             nest += 1
           end
 
-          if char == "}"
+          if char == '}'
             nest -= 1
           end
 
@@ -404,7 +404,7 @@ class Dir
             break
           end
 
-          if char == "\\" and escape
+          if char == '\\' and escape
             i += 1
           end
 
@@ -424,11 +424,11 @@ class Dir
           pos += 1
           last = pos
 
-          while pos < rbrace and not (pattern[pos] == "," and nest == 0)
-            nest += 1 if pattern[pos] == "{"
-            nest -= 1 if pattern[pos] == "}"
+          while pos < rbrace and not (pattern[pos] == ',' and nest == 0)
+            nest += 1 if pattern[pos] == '{'
+            nest -= 1 if pattern[pos] == '}'
 
-            if pattern[pos] == "\\" and escape
+            if pattern[pos] == '\\' and escape
               pos += 1
               break if pos == rbrace
             end

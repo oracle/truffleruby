@@ -30,22 +30,22 @@ class WeakRef < BasicObject
 
   def self.new(obj)
     Truffle.primitive :weakref_new
-    ::Kernel.raise PrimitiveFailure, "WeakRef.new primitive failed"
+    ::Kernel.raise PrimitiveFailure, 'WeakRef.new primitive failed'
   end
 
   def __setobj__(obj)
     Truffle.primitive :weakref_set_object
-    ::Kernel.raise PrimitiveFailure, "WeakRef#__setobj__ primitive failed"
+    ::Kernel.raise PrimitiveFailure, 'WeakRef#__setobj__ primitive failed'
   end
 
   def __object__
     Truffle.primitive :weakref_object
-    ::Kernel.raise PrimitiveFailure, "WeakRef#__object__ primitive failed"
+    ::Kernel.raise PrimitiveFailure, 'WeakRef#__object__ primitive failed'
   end
 
   def __getobj__
     obj = __object__()
-    ::Kernel.raise RefError, "Object has been collected as garbage" unless obj
+    ::Kernel.raise RefError, 'Object has been collected as garbage' unless obj
     obj
   end
 

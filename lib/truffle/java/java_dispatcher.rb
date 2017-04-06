@@ -40,7 +40,7 @@ module JavaUtilities
       method = lambda do |*args|
         cs = simple_arities[args.size]
         target = cs.find_matching_callable_for_args(args)
-        check = target.checker(args)
+        check = target.checker(args) # rubocop:disable Lint/UselessAssignment
         conn = target.converter(args)
         conn[args]
         ::JavaUtilities.wrap_java_value(Java.invoke_java_method(target.mh, *args))
@@ -49,7 +49,7 @@ module JavaUtilities
     end
 
     def basic_arity
-      raise Exception, "Can only give basic arity for single Java target." if @methods.size != 1
+      raise Exception, 'Can only give basic arity for single Java target.' if @methods.size != 1
       m = @methods[0]
       arity = Java.invoke_java_method(
         METHODTYPE_PARAM_COUNT,
@@ -72,37 +72,59 @@ module JavaUtilities
       types_array
     end
 
+    def self.widen_method(m)
+      return_type = JavaDispatcher::method_return_type(m) # rubocop:disable Lint/UselessAssignment
+      mt = Java.invoke_java_method(METHODHANDLE_TYPE, m)
+      uwmt = Java.invoke_java_method(METHODTYPE_UNWRAP, mt)
+      m = Java.invoke_java_method(METHODHANDLE_AS_TYPE, m, uwmt)
+      params = Java.invoke_java_method(METHODTYPE_PARAMETERS, uwmt)
+      rt = Java.invoke_java_method(METHODTYPE_RETURN_TYPE, uwmt)
+      params_size = JavaUtilities.java_array_size(params)
+      new_params = Array.new(params_size)
+      (0...params_size).each do |i|
+        p = JavaUtilities.java_array_get(params, i)
+        wt = WideningType::PrimitiveTypes[p]
+        if wt != nil
+          new_params[i] = wt.wide_type.value_class
+        else
+          new_params[i] = p
+        end
+      end
+      new_mt = Java.invoke_java_method(METHODTYPE_METHODTYPE, rt, *new_params)
+      Java.invoke_java_method(METHODHANDLES_CAST_ARGS, m, new_mt)
+    end
+
     private
 
-    JAVA_METHODTYPE_CLASS = Java.java_class_by_name("java.lang.invoke.MethodType")
+    JAVA_METHODTYPE_CLASS = Java.java_class_by_name('java.lang.invoke.MethodType')
     METHODHANDLE_TYPE = Java.get_java_method(
-      JAVA_METHODHANDLE_CLASS, "type", false, JAVA_METHODTYPE_CLASS);
+      JAVA_METHODHANDLE_CLASS, 'type', false, JAVA_METHODTYPE_CLASS);
     METHODHANDLE_VARARGS = Java.get_java_method(
-      JAVA_METHODHANDLE_CLASS, "isVarargsCollector", false, JAVA_PRIM_BOOLEAN_CLASS)
+      JAVA_METHODHANDLE_CLASS, 'isVarargsCollector', false, JAVA_PRIM_BOOLEAN_CLASS)
     METHODHANDLE_AS_VARARGS = Java.get_java_method(
-      JAVA_METHODHANDLE_CLASS, "asVarargsCollector", false, JAVA_METHODHANDLE_CLASS, JAVA_CLASS_CLASS)
+      JAVA_METHODHANDLE_CLASS, 'asVarargsCollector', false, JAVA_METHODHANDLE_CLASS, JAVA_CLASS_CLASS)
     METHODHANDLE_AS_TYPE = Java.get_java_method(
-        JAVA_METHODHANDLE_CLASS, "asType", false, JAVA_METHODHANDLE_CLASS, JAVA_METHODTYPE_CLASS)
+        JAVA_METHODHANDLE_CLASS, 'asType', false, JAVA_METHODHANDLE_CLASS, JAVA_METHODTYPE_CLASS)
     METHODHANDLES_CAST_ARGS = Java.get_java_method(
-      JAVA_METHODHANDLES_CLASS, "explicitCastArguments", true,
+      JAVA_METHODHANDLES_CLASS, 'explicitCastArguments', true,
       JAVA_METHODHANDLE_CLASS, JAVA_METHODHANDLE_CLASS, JAVA_METHODTYPE_CLASS)
     METHODTYPE_METHODTYPE = Java.invoke_java_method(
       METHODHANDLE_AS_VARARGS,
       Java.get_java_method(
-        JAVA_METHODTYPE_CLASS, "methodType", true, JAVA_METHODTYPE_CLASS, JAVA_CLASS_CLASS, JAVA_CLASS_ARRAY),
+        JAVA_METHODTYPE_CLASS, 'methodType', true, JAVA_METHODTYPE_CLASS, JAVA_CLASS_CLASS, JAVA_CLASS_ARRAY),
       JAVA_CLASS_ARRAY)
     METHODTYPE_PARAMETERS = Java.get_java_method(
-      JAVA_METHODTYPE_CLASS, "parameterArray", false, JAVA_CLASS_ARRAY)
+      JAVA_METHODTYPE_CLASS, 'parameterArray', false, JAVA_CLASS_ARRAY)
     METHODTYPE_PARAM_COUNT = Java.get_java_method(
-      JAVA_METHODTYPE_CLASS, "parameterCount", false, JAVA_PRIM_INT_CLASS)
+      JAVA_METHODTYPE_CLASS, 'parameterCount', false, JAVA_PRIM_INT_CLASS)
     METHODTYPE_RETURN_TYPE = Java.get_java_method(
-      JAVA_METHODTYPE_CLASS, "returnType", false, JAVA_CLASS_CLASS)
+      JAVA_METHODTYPE_CLASS, 'returnType', false, JAVA_CLASS_CLASS)
     METHODTYPE_UNWRAP = Java.get_java_method(
-      JAVA_METHODTYPE_CLASS, "unwrap", false, JAVA_METHODTYPE_CLASS)
+      JAVA_METHODTYPE_CLASS, 'unwrap', false, JAVA_METHODTYPE_CLASS)
     METHODTYPE_WRAP = Java.get_java_method(
-      JAVA_METHODTYPE_CLASS, "wrap", false, JAVA_METHODTYPE_CLASS)
+      JAVA_METHODTYPE_CLASS, 'wrap', false, JAVA_METHODTYPE_CLASS)
     CLASS_IS_ASSIGNABLE_FROM = Java.get_java_method(
-      JAVA_CLASS_CLASS, "isAssignableFrom", false, JAVA_PRIM_BOOLEAN_CLASS, JAVA_CLASS_CLASS)
+      JAVA_CLASS_CLASS, 'isAssignableFrom', false, JAVA_PRIM_BOOLEAN_CLASS, JAVA_CLASS_CLASS)
 
     def min_method_arity(m)
       arity = Java.invoke_java_method(
@@ -135,30 +157,13 @@ module JavaUtilities
         Java.invoke_java_method(METHODHANDLE_TYPE, m))
     end
 
+    private_class_method :method_return_type
+
     def self.method_exact_cast(m, return_type, param_types)
       Java.invoke_java_method()
     end
 
-    def self.widen_method(m)
-      return_type = JavaDispatcher::method_return_type(m)
-      mt = Java.invoke_java_method(METHODHANDLE_TYPE, m)
-      uwmt = Java.invoke_java_method(METHODTYPE_UNWRAP, mt)
-      m = Java.invoke_java_method(METHODHANDLE_AS_TYPE, m, uwmt)
-      params = Java.invoke_java_method(METHODTYPE_PARAMETERS, uwmt)
-      rt = Java.invoke_java_method(METHODTYPE_RETURN_TYPE, uwmt)
-      params_size = JavaUtilities.java_array_size(params)
-      new_params = Array.new(params_size)
-      (0...params_size).each do |i|
-        p = JavaUtilities.java_array_get(params, i)
-        wt = WideningType::PrimitiveTypes[p]
-        if wt != nil
-          new_params[i] = wt.wide_type.value_class
-        else
-          new_params[i] = p
-        end
-      end
-      new_mt = Java.invoke_java_method(METHODTYPE_METHODTYPE, rt, *new_params)
-      Java.invoke_java_method(METHODHANDLES_CAST_ARGS, m, new_mt)
-    end
+    private_class_method :method_exact_cast
+
   end
 end

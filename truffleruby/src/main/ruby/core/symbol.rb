@@ -86,7 +86,7 @@ class Symbol
       Truffle.invoke_primitive(:regexp_set_last_match, match_data)
       return match_data.byte_begin(0) if match_data
     when String
-      raise TypeError, "type mismatch: String given"
+      raise TypeError, 'type mismatch: String given'
     else
       pattern =~ str
     end

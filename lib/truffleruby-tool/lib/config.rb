@@ -1,6 +1,9 @@
 require 'pp'
 require 'yaml'
 
+# rubocop:disable Lint/UnneededSplatExpansion
+# rubocop:disable Lint/UselessAssignment
+
 include TruffleTool::ConfigUtils
 include TruffleTool::OptionBlocks
 
@@ -371,7 +374,7 @@ end
 
 begin # not tested in CI
   TruffleTool.add_config :'concurrent-ruby',
-                         setup: { file: { "stub-processor_number.rb" => dedent(<<-RUBY) } },
+                         setup: { file: { 'stub-processor_number.rb' => dedent(<<-RUBY) } },
                               # stub methods calling #system
                               require 'concurrent'
                               module Concurrent

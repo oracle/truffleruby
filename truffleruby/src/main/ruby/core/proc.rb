@@ -61,10 +61,10 @@ class Proc
         if (curried_arity < min_args) ||
            (!has_rest && (curried_arity > max_args))
           if has_rest
-            raise ArgumentError, "Wrong number of arguments " +
+            raise ArgumentError, 'Wrong number of arguments ' +
                                  "(given #{curried_arity}, expected #{min_args}+)"
           else
-            raise ArgumentError, "Wrong number of arguments " +
+            raise ArgumentError, 'Wrong number of arguments ' +
                                  "(given #{curried_arity}, expected #{min_args}..#{max_args})"
           end
         end
@@ -75,7 +75,7 @@ class Proc
     f = m.curry self, [], arity
 
     def f.binding
-      raise ArgumentError, "cannot create binding from curried proc"
+      raise ArgumentError, 'cannot create binding from curried proc'
     end
 
     # TODO: set the procs parameters to be :rest to match spec. DMM - 2017-01-19
@@ -89,7 +89,7 @@ class Proc
     return super if sl.nil?
     file, line = sl
 
-    l = " (lambda)" if lambda?
+    l = ' (lambda)' if lambda?
     if file and line
       "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}#{l}>"
     else

@@ -18,9 +18,9 @@ module JavaUtilities
     end
 
     def reserve_names()
-      both = ["__id__", "__send__", "instance_of?"]
-      instance = ["class", "initialize"]
-      static = ["new"]
+      both = ['__id__', '__send__', 'instance_of?']
+      instance = ['class', 'initialize']
+      static = ['new']
       (both + instance).map { |name| add_to_instance(name, Reserved.new) }
       (both + static).map { |name| add_to_singleton(name, Reserved.new) }
     end
@@ -44,12 +44,12 @@ module JavaUtilities
       return if name.upcase == name
       parts = name.split(/(?=[[:upper:]])/).map { |v| v.downcase }
       return if parts.size == 1
-      getter = maybe_getter & (parts[0] == "get")
-      setter = maybe_setter & (parts[0] == "set")
-      yield parts.join("_")
-      yield parts[1..-1].join("_") + "?" if parts[0] == "is"
-      yield parts[1..-1].join("_") if getter
-      yield parts[1..-1].join("_") + "=" if setter
+      getter = maybe_getter & (parts[0] == 'get')
+      setter = maybe_setter & (parts[0] == 'set')
+      yield parts.join('_')
+      yield parts[1..-1].join('_') + '?' if parts[0] == 'is'
+      yield parts[1..-1].join('_') if getter
+      yield parts[1..-1].join('_') + '=' if setter
     end
 
     def add_to_map_internal(a_map, name, thing)
@@ -164,7 +164,7 @@ module JavaUtilities
       array_getter = Java.invoke_java_method(JavaUtilities::ARRAY_GETTER_GETTER, @java_class)
       array_setter = Java.invoke_java_method(JavaUtilities::ARRAY_SETTER_GETTER, @java_class)
       array_length = JavaUtilities::REFLECT_ARRAY_LENGTH
-      ms = {"[]" => array_getter, "[]=" => array_setter, "size" => array_length}
+      ms = {'[]' => array_getter, '[]=' => array_setter, 'size' => array_length}
       ms.each do |name, mh|
         a_method = Method.new(name, mh)
         arity = a_method.arity
@@ -176,11 +176,11 @@ module JavaUtilities
     def add_constructors
       constructors = Java.invoke_java_method(CLASS_GET_CONSTRUCTORS, @java_class)
       constructors_size = JavaUtilities.java_array_size(constructors)
-      (0...constructors_size).each do |i; m|
+      (0...constructors_size).each do |i|
         c = JavaUtilities.java_array_get(constructors, i)
         mh = JavaUtilities.unreflect_constructor(c)
         if mh != nil
-          add_to_singleton("new", Constructor.new(mh))
+          add_to_singleton('new', Constructor.new(mh))
         end
       end
       self
@@ -219,7 +219,7 @@ module JavaUtilities
       if @is_const
         begin
           a_proxy.const_set(@name, @const_val)
-        rescue NameError
+        rescue NameError # rubocop:disable Lint/HandleExceptions
         end
       end
       message = if static
@@ -232,7 +232,7 @@ module JavaUtilities
     end
 
     def combine_with(a_field)
-      raise Exception, "We should never see overloaded fields."
+      raise Exception, 'We should never see overloaded fields.'
     end
   end
 
@@ -275,7 +275,7 @@ module JavaUtilities
 
   class Constructor < Method
     def initialize(a_method)
-      super("new", a_method)
+      super('new', a_method)
     end
 
     def precedence

@@ -35,7 +35,7 @@
 module Rubinius
   module Type
     def self.const_get(mod, name, inherit=true, resolve=true)
-      raise "unsupported" unless resolve
+      raise 'unsupported' unless resolve
       mod.const_get name, inherit
     end
 
@@ -45,9 +45,9 @@ module Rubinius
   end
 end
 
-ARGV.push *Truffle::Boot.original_argv
+ARGV.concat(Truffle::Boot.original_argv)
 
-$LOAD_PATH.push *Truffle::Boot.original_load_path
+$LOAD_PATH.concat(Truffle::Boot.original_load_path)
 
 ruby_home = Truffle::Boot.ruby_home
 

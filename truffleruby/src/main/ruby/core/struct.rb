@@ -105,7 +105,7 @@ class Struct
   end
 
   def to_s
-    return "[...]" if Thread.guarding? self
+    return '[...]' if Thread.guarding? self
 
     Thread.recursion_guard self do
       values = []
@@ -212,6 +212,7 @@ class Struct
     begin
       result = self[key]
     rescue IndexError, NameError
+      nil # nothing found with key
     end
     if result.nil? || more.empty?
       result
@@ -375,6 +376,7 @@ class Struct
     rescue SyntaxError
       # SyntaxError means that something is wrong with the
       # specialization code. Just eat the error and don't specialize.
+      nil
     end
   end
 end

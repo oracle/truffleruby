@@ -10,7 +10,7 @@
 #
 
 unless defined? Thread
-  raise "Thread not available for this ruby interpreter"
+  raise 'Thread not available for this ruby interpreter'
 end
 
 unless defined? ThreadError
@@ -113,6 +113,7 @@ class ConditionVariable
         begin
           t.run
         rescue ThreadError
+          nil # e.g. killed thread
         end
       end
     end

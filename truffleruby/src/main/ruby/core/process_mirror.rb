@@ -125,7 +125,7 @@ module Rubinius
 
           if env = Rubinius::Type.try_convert(env_or_cmd, ::Hash, :to_hash)
             unless command = args.shift
-              raise ArgumentError, "command argument expected"
+              raise ArgumentError, 'command argument expected'
             end
           else
             command = env_or_cmd
@@ -136,7 +136,7 @@ module Rubinius
             @argv = []
           else
             if cmd = Rubinius::Type.try_convert(command, ::Array, :to_ary)
-              raise ArgumentError, "wrong first argument" unless cmd.size == 2
+              raise ArgumentError, 'wrong first argument' unless cmd.size == 2
               command = StringValue(cmd[0])
               name = StringValue(cmd[1])
             else
@@ -286,9 +286,9 @@ module Rubinius
 
         def default_mode(target)
           if target == 1 or target == 2
-            OFLAGS["w"]
+            OFLAGS['w']
           else
-            OFLAGS["r"]
+            OFLAGS['r']
           end
         end
 
@@ -299,7 +299,7 @@ module Rubinius
           when ::String
             OFLAGS[obj]
           when nil
-            OFLAGS["r"]
+            OFLAGS['r']
           else
             Rubinius::Type.coerce_to obj, Integer, :to_int
           end
@@ -308,7 +308,7 @@ module Rubinius
         def convert_env_key(key)
           key = Rubinius::Type.check_null_safe(StringValue(key))
 
-          if key.include?("=")
+          if key.include?('=')
             raise ArgumentError, "environment name contains a equal : #{key}"
           end
 
@@ -322,12 +322,12 @@ module Rubinius
 
         # Mapping of string open modes to integer oflag versions.
         OFLAGS = {
-          "r"  => ::File::RDONLY,
-          "r+" => ::File::RDWR   | ::File::CREAT,
-          "w"  => ::File::WRONLY | ::File::CREAT  | ::File::TRUNC,
-          "w+" => ::File::RDWR   | ::File::CREAT  | ::File::TRUNC,
-          "a"  => ::File::WRONLY | ::File::APPEND | ::File::CREAT,
-          "a+" => ::File::RDWR   | ::File::APPEND | ::File::CREAT
+          'r'  => ::File::RDONLY,
+          'r+' => ::File::RDWR   | ::File::CREAT,
+          'w'  => ::File::WRONLY | ::File::CREAT  | ::File::TRUNC,
+          'w+' => ::File::RDWR   | ::File::CREAT  | ::File::TRUNC,
+          'a'  => ::File::WRONLY | ::File::APPEND | ::File::CREAT,
+          'a+' => ::File::RDWR   | ::File::APPEND | ::File::CREAT
         }
 
         def spawn_setup(alter_process)
@@ -353,7 +353,7 @@ module Rubinius
               Truffle::POSIX.chdir(chdir)
             end
 
-            if close_others = options[:close_others]
+            if _close_others = options[:close_others]
               warn 'spawn_setup: close_others not yet implemented'
             end
 
@@ -416,7 +416,7 @@ module Rubinius
             end
           end
           Truffle.invoke_primitive :vm_exec, command, args, env_array
-          raise PrimitiveFailure, "Rubinius::Mirror::Process::Execute#exec primitive failed"
+          raise PrimitiveFailure, 'Rubinius::Mirror::Process::Execute#exec primitive failed'
         end
 
         def should_use_shell?(command)

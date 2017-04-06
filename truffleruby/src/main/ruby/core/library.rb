@@ -1,7 +1,7 @@
 # Copyright (c) 2014, 2016 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
-# 
+#
 # Eclipse Public License version 1.0
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
@@ -46,22 +46,19 @@ module Rubinius::FFI::Library
 
     caller = Truffle::Boot.source_of_caller
 
-    suffixes = ['rubysl/rubysl-socket/lib/rubysl/socket.rb']
+    suffix = 'rubysl/rubysl-socket/lib/rubysl/socket.rb'
 
-    suffixes.each do |suffix|
-      if caller.end_with?(suffix) and Truffle::POSIX.respond_to?(mname)
-        define_method mname, &Truffle::POSIX.method(mname)
-        module_function mname
-        return
+    if caller.end_with?(suffix) and Truffle::POSIX.respond_to?(mname)
+      define_method mname, &Truffle::POSIX.method(mname)
+      module_function mname
+    else
+      # Fallback
+      define_method mname do |*|
+        raise "FFI::Library method #{name} with caller #{caller} not implemented"
       end
+      module_function mname
     end
-
-    # Fallback
-
-    define_method mname do |*|
-      raise "FFI::Library method #{name} with caller #{caller} not implemented"
-    end
-    module_function mname
+    nil
   end
 
 end

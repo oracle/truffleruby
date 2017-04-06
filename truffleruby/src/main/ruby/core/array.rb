@@ -255,7 +255,7 @@ class Array
       when false, nil
         min = i + 1
       else
-        raise TypeError, "wrong argument type (must be numeric, true, false or nil)"
+        raise TypeError, 'wrong argument type (must be numeric, true, false or nil)'
       end
 
       i = min + (max - min) / 2
@@ -331,7 +331,7 @@ class Array
 
     # Don't use nil? because, historically, lame code has overridden that method
     if n.equal? nil
-      while true
+      while true # rubocop:disable Lint/LiteralInCondition
         each { |x| yield x }
       end
     else
@@ -419,13 +419,13 @@ class Array
 
     if block_given?
       unless undefined.equal?(c)
-        raise ArgumentError, "wrong number of arguments"
+        raise ArgumentError, 'wrong number of arguments'
       end
       one = a
       two = b
     else
       if undefined.equal?(a)
-        raise ArgumentError, "wrong number of arguments"
+        raise ArgumentError, 'wrong number of arguments'
       end
       obj = a
       one = b
@@ -436,7 +436,7 @@ class Array
       left = 0
       right = size
     elsif one.kind_of? Range
-      raise TypeError, "length invalid with range" unless undefined.equal?(two)
+      raise TypeError, 'length invalid with range' unless undefined.equal?(two)
 
       left = Rubinius::Type.coerce_to_collection_length one.begin
       left += size if left < 0
@@ -456,9 +456,9 @@ class Array
         begin
           right = Rubinius::Type.coerce_to_collection_length two
         rescue ArgumentError
-          raise RangeError, "bignum too big to convert into `long"
+          raise RangeError, 'bignum too big to convert into `long'
         rescue TypeError
-          raise ArgumentError, "second argument must be a Fixnum"
+          raise ArgumentError, 'second argument must be a Fixnum'
         end
 
         return self if right == 0
@@ -469,7 +469,7 @@ class Array
     end
 
     if left >= Fixnum::MAX || right > Fixnum::MAX
-      raise ArgumentError, "argument too big"
+      raise ArgumentError, 'argument too big'
     end
 
     i = left
@@ -492,7 +492,7 @@ class Array
     return at(0) if undefined.equal?(n)
 
     n = Rubinius::Type.coerce_to_collection_index n
-    raise ArgumentError, "Size must be positive" if n < 0
+    raise ArgumentError, 'Size must be positive' if n < 0
 
     Array.new self[0, n]
   end
@@ -524,7 +524,6 @@ class Array
 
   def hash
     hash_val = size
-    mask = Fixnum::MAX >> 1
 
     # This is duplicated and manually inlined code from Thread for performance
     # reasons. Before refactoring it, please benchmark it and compare your
@@ -593,11 +592,11 @@ class Array
   end
 
   def inspect
-    return "[]".force_encoding(Encoding::US_ASCII) if size == 0
-    comma = ", "
-    result = "["
+    return '[]'.force_encoding(Encoding::US_ASCII) if size == 0
+    comma = ', '
+    result = '['
 
-    return "[...]" if Thread.detect_recursion self do
+    return '[...]' if Thread.detect_recursion self do
       each_with_index do |element, index|
         temp = Rubinius::Type.rb_inspect(element)
         result.force_encoding(temp.encoding) if index == 0
@@ -607,16 +606,16 @@ class Array
 
     Rubinius::Type.infect(result, self)
     result.shorten!(2)
-    result << "]"
+    result << ']'
     result
   end
   alias_method :to_s, :inspect
 
   def join(sep=nil)
-    return "".force_encoding(Encoding::US_ASCII) if size == 0
+    return ''.force_encoding(Encoding::US_ASCII) if size == 0
 
-    out = ""
-    raise ArgumentError, "recursive array join" if Thread.detect_recursion self do
+    out = ''
+    raise ArgumentError, 'recursive array join' if Thread.detect_recursion self do
       sep = sep.nil? ? $, : StringValue(sep)
 
       # We've manually unwound the first loop entry for performance
@@ -676,7 +675,7 @@ class Array
     n = Rubinius::Type.coerce_to_collection_index n
     return [] if n == 0
 
-    raise ArgumentError, "count must be positive" if n < 0
+    raise ArgumentError, 'count must be positive' if n < 0
 
     n = size if n > size
     Array.new self[-n..-1]
@@ -780,7 +779,7 @@ class Array
     sum = args.inject(size) { |n, x| n * x.size }
 
     if sum > Fixnum::MAX
-      raise RangeError, "product result is too large"
+      raise RangeError, 'product result is too large'
     end
 
     # TODO rewrite this to not use a tree of Proc objects.
@@ -973,8 +972,8 @@ class Array
 
     def rand(size)
       random = Rubinius::Type.coerce_to_collection_index @rng.rand(size)
-      raise RangeError, "random value must be >= 0" if random < 0
-      raise RangeError, "random value must be less than Array size" unless random < size
+      raise RangeError, 'random value must be >= 0' if random < 0
+      raise RangeError, 'random value must be less than Array size' unless random < size
 
       random
     end
@@ -997,7 +996,7 @@ class Array
     end
 
     if count and count < 0
-      raise ArgumentError, "count must be greater than 0"
+      raise ArgumentError, 'count must be greater than 0'
     end
 
     rng = options[:random] if options
@@ -1037,7 +1036,7 @@ class Array
           spin = false
           spin_count = 0
 
-          while true
+          while true # rubocop:disable Lint/LiteralInCondition
             j = 0
             while j < i
               if k == result[j]
@@ -1080,8 +1079,8 @@ class Array
 
       result = Array.new(self)
 
-      count.times do |i|
-        result.swap i, rng.rand(size)
+      count.times do |c|
+        result.swap c, rng.rand(size)
       end
 
       return count == size ? result : result[0, count]
@@ -1122,7 +1121,7 @@ class Array
 
   def drop(n)
     n = Rubinius::Type.coerce_to_collection_index n
-    raise ArgumentError, "attempt to drop negative size" if n < 0
+    raise ArgumentError, 'attempt to drop negative size' if n < 0
 
     new_size = size - n
     return [] if new_size <= 0
@@ -1165,7 +1164,7 @@ class Array
       max ||= ary.size
 
       # Catches too-large as well as too-small (for which #fetch would suffice)
-      raise IndexError, "All arrays must be same length" if ary.size != max
+      raise IndexError, 'All arrays must be same length' if ary.size != max
 
       ary.size.times do |i|
         entry = (out[i] ||= [])
@@ -1235,15 +1234,15 @@ class Array
       tuple = [at(i)]
       others.each do |other|
         tuple << case other
-        when Array
-          other.at(i)
-        else
-          begin
-            other.next
-          rescue StopIteration
-            nil
-          end
-        end
+                 when Array
+                   other.at(i)
+                 else
+                   begin
+                     other.next
+                   rescue StopIteration
+                     nil # the enumerator could change between next? and next leading to StopIteration
+                   end
+                 end
       end
 
       if block_given?
@@ -1293,7 +1292,7 @@ class Array
       end
     end
 
-    raise ArgumentError, "tried to flatten recursive array" if recursion
+    raise ArgumentError, 'tried to flatten recursive array' if recursion
     modified
   end
 

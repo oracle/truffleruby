@@ -487,6 +487,7 @@ module Commands
       jt test report :language                       build a report on language specs
                      :core                               (results go into test/target/mspec-html-report)
                      :library
+      jt rubocop [rubocop options]                   run rubocop rules (using ruby available in the environment)
       jt tag spec/ruby/language                      tag failing specs in this directory
       jt tag spec/ruby/language/while_spec.rb        tag failing specs in this file
       jt tag all spec/ruby/language                  tag all specs in this file, without running them

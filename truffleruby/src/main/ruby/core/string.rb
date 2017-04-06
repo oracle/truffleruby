@@ -83,7 +83,7 @@ class String
       Truffle.invoke_primitive(:regexp_set_last_match, match_data)
       return match_data.begin(0) if match_data
     when String
-      raise TypeError, "type mismatch: String given"
+      raise TypeError, 'type mismatch: String given'
     else
       pattern =~ self
     end
@@ -158,7 +158,7 @@ class String
     end
 
     # Nothing worked out, this is the default.
-    [self, "", ""]
+    [self, '', '']
   end
 
   def rpartition(pattern)
@@ -179,7 +179,7 @@ class String
       end
 
       # Nothing worked out, this is the default.
-      ["", "", self]
+      ['', '', self]
     end
   end
 
@@ -292,7 +292,7 @@ class String
 
       # found backslash escape, looking next
       if current == bytesize - 1
-        result.append("\\") # backslash at end of string
+        result.append('\\') # backslash at end of string
         break
       end
       index = current + 1
@@ -314,7 +314,7 @@ class String
                      '\\'
                    when 107 # \k named capture
                      if data[index + 1] == 60
-                       name = ""
+                       name = ''
                        i = index + 2
                        while i < bytesize && data[i] != 62
                          name << data[i]
@@ -450,7 +450,7 @@ class String
     elsif to_enc
       if from_enc != to_enc
         ec = Encoding::Converter.new from_enc, to_enc, options
-        dest = ""
+        dest = ''
         status = ec.primitive_convert self.dup, dest, nil, nil, ec.options
         raise ec.last_error unless status == :finished
         replace dest
@@ -461,7 +461,7 @@ class String
 
     # TODO: replace this hack with transcoders
     if options.kind_of? Hash
-      case invalid = options[:invalid]
+      case options[:invalid]
       when :replace
         self.scrub!
       end
@@ -510,7 +510,7 @@ class String
     enc = encoding
     ascii = enc.ascii_compatible?
     enc_name = enc.name
-    unicode = enc_name.start_with?("UTF-") && enc_name[4] != ?7
+    unicode = enc_name.start_with?('UTF-') && enc_name[4] != ?7
 
     if unicode
       if enc.equal? Encoding::UTF_16
@@ -518,9 +518,9 @@ class String
         b = getbyte 1
 
         if a == 0xfe and b == 0xff
-          enc = Encoding::UTF_16BE
+          enc = Encoding::UTF_16BE # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 24-Mar-2017)
         elsif a == 0xff and b == 0xfe
-          enc = Encoding::UTF_16LE
+          enc = Encoding::UTF_16LE # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 24-Mar-2017)
         else
           unicode = false
         end
@@ -531,9 +531,9 @@ class String
         d = getbyte 3
 
         if a == 0 and b == 0 and c == 0xfe and d == 0xfe
-          enc = Encoding::UTF_32BE
+          enc = Encoding::UTF_32BE # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 24-Mar-2017)
         elsif a == 0xff and b == 0xfe and c == 0 and d == 0
-          enc = Encoding::UTF_32LE
+          enc = Encoding::UTF_32LE # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 24-Mar-2017)
         else
           unicode = false
         end
@@ -605,14 +605,14 @@ class String
 
           if unicode
             if code < 0x10000
-              pad = "0" * (4 - escaped.bytesize)
+              pad = '0' * (4 - escaped.bytesize)
               array << "\\u#{pad}#{escaped}"
             else
               array << "\\u{#{escaped}}"
             end
           else
             if code < 0x100
-              pad = "0" * (2 - escaped.bytesize)
+              pad = '0' * (2 - escaped.bytesize)
               array << "\\x#{pad}#{escaped}"
             else
               array << "\\x{#{escaped}}"
@@ -627,7 +627,7 @@ class String
       end
     end
 
-    size = array.inject(0) { |s, chr| s += chr.bytesize }
+    size = array.inject(0) { |s, chr| s + chr.bytesize }
     result = String.pattern size + 2, ?".ord
     m = Rubinius::Mirror.reflect result
 
@@ -727,7 +727,7 @@ class String
           val = hash[match.to_s]
         end
         if duped != self
-          raise RuntimeError, "string modified"
+          raise RuntimeError, 'string modified'
         end
         untrusted = true if val.untrusted?
         val = val.to_s unless val.kind_of?(String)
@@ -922,7 +922,7 @@ class String
     # normal line breaking.
     if sep.empty?
       sep = "\n\n"
-      pat_size = 2
+      pat_size = 2 # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 01-Apr-2017)
       data = bytes
 
       while pos < size
@@ -943,7 +943,7 @@ class String
 
         # detect mutation within the block
         if duped != self
-          raise RuntimeError, "string modified while iterating"
+          raise RuntimeError, 'string modified while iterating'
         end
 
         pos = nxt
@@ -1054,11 +1054,11 @@ class String
     validate = -> str {
       str = StringValue(str)
       unless str.valid_encoding?
-        raise ArgumentError, "replacement must be valid byte sequence"
+        raise ArgumentError, 'replacement must be valid byte sequence'
       end
       # Special encoding check for #scrub
       if str.ascii_only? ? !encoding.ascii_compatible? : encoding != str.encoding
-        raise Encoding::CompatibilityError, "incompatible character encodings"
+        raise Encoding::CompatibilityError, 'incompatible character encodings'
       end
       # Modifies the outer taint variable
       taint = true if str.tainted?
@@ -1067,7 +1067,7 @@ class String
 
     if replace
       replace = validate.call(replace)
-      replace_block = Proc.new { |broken| replace }
+      replace_block = Proc.new { |_broken| replace }
     else
       replace_block = Proc.new { |broken|
         validate.call(block.call(broken))
@@ -1112,7 +1112,7 @@ class String
         count = Rubinius::Type.coerce_to count, Fixnum, :to_int
 
         if count < 0
-          raise IndexError, "count is negative"
+          raise IndexError, 'count is negative'
         end
 
         total = index + count
@@ -1131,7 +1131,7 @@ class String
       m.splice bi, bs, replacement, enc
     when String
       unless start = m.byte_index(index)
-        raise IndexError, "string not matched"
+        raise IndexError, 'string not matched'
       end
 
       replacement = StringValue replacement
@@ -1177,7 +1177,7 @@ class String
       if match = Truffle::RegexpOperations.match(index, self)
         ms = match.size
       else
-        raise IndexError, "regexp does not match"
+        raise IndexError, 'regexp does not match'
       end
 
       count += ms if count < 0 and -count < ms
@@ -1211,9 +1211,9 @@ class String
     replacement
   end
 
-  def center(width, padding=" ")
+  def center(width, padding=' ')
     padding = StringValue(padding)
-    raise ArgumentError, "zero width padding" if padding.size == 0
+    raise ArgumentError, 'zero width padding' if padding.size == 0
 
     enc = Rubinius::Type.compatible_encoding self, padding
 
@@ -1245,7 +1245,7 @@ class String
       rbytes = x * pbs + rpbi
 
       pad = self.class.pattern rbytes, padding
-      str = self.class.pattern lbytes + bs + rbytes, ""
+      str = self.class.pattern lbytes + bs + rbytes, ''
       m = Rubinius::Mirror.reflect str
 
       m.copy_from self, 0, bs, lbytes
@@ -1261,9 +1261,9 @@ class String
     str.force_encoding enc
   end
 
-  def ljust(width, padding=" ")
+  def ljust(width, padding=' ')
     padding = StringValue(padding)
-    raise ArgumentError, "zero width padding" if padding.size == 0
+    raise ArgumentError, 'zero width padding' if padding.size == 0
 
     enc = Rubinius::Type.compatible_encoding self, padding
 
@@ -1310,9 +1310,9 @@ class String
     str.force_encoding enc
   end
 
-  def rjust(width, padding=" ")
+  def rjust(width, padding=' ')
     padding = StringValue(padding)
-    raise ArgumentError, "zero width padding" if padding.size == 0
+    raise ArgumentError, 'zero width padding' if padding.size == 0
 
     enc = Rubinius::Type.compatible_encoding self, padding
 
@@ -1370,7 +1370,7 @@ class String
     end
 
     str = StringValue(str)
-    return start if str == ""
+    return start if str == ''
 
     Rubinius::Type.compatible_encoding self, str
 
@@ -1407,7 +1407,7 @@ class String
     when Fixnum
       if finish == size
         return nil if finish == 0
-        finish -= 1
+        finish -= 1 # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 01-Apr-2017)
       end
 
       begin

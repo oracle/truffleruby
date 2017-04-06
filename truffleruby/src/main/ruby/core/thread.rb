@@ -146,7 +146,7 @@ class Thread
   # Similar to detect_recursion, but will short circuit all inner recursion
   # levels (using a throw)
 
-  class InnerRecursionDetected < Exception; end
+  class InnerRecursionDetected < Exception; end # rubocop:disable Lint/InheritException
 
   def self.detect_outermost_recursion(obj, paired_obj=nil, &block)
     rec = current.recursive_objects
@@ -184,7 +184,7 @@ class Thread
 
   def raise_prim(exc)
     Truffle.primitive :thread_raise
-    Kernel.raise PrimitiveFailure, "Thread#raise primitive failed"
+    Kernel.raise PrimitiveFailure, 'Thread#raise primitive failed'
   end
   private :raise_prim
 
@@ -204,7 +204,7 @@ class Thread
   end
 
   def priority=(priority)
-    Kernel.raise TypeError, "priority must be a Fixnum" unless priority.kind_of? Fixnum
+    Kernel.raise TypeError, 'priority must be a Fixnum' unless priority.kind_of? Fixnum
     priority = -3 if priority < -3
     priority = 3 if priority > 3
     java_priority = PRIORITIES_RUBY_TO_JAVA[priority]
@@ -214,7 +214,7 @@ class Thread
 
   def name
     Truffle.primitive :thread_get_name
-    Kernel.raise ThreadError, "Thread#name primitive failed"
+    Kernel.raise ThreadError, 'Thread#name primitive failed'
   end
 
   def name=(val)
@@ -229,7 +229,7 @@ class Thread
 
   def inspect
     stat = status()
-    stat = "dead" unless stat
+    stat = 'dead' unless stat
 
     "#<#{self.class}:0x#{object_id.to_s(16)} id=#{@thread_id} #{stat}>"
   end
@@ -370,7 +370,7 @@ class Thread
 
   def self.handle_interrupt(config, &block)
     unless config.is_a?(Hash) and config.size == 1
-      raise ArgumentError, "unknown mask signature"
+      raise ArgumentError, 'unknown mask signature'
     end
     exception, timing = config.first
     Truffle.privately do

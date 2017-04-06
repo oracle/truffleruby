@@ -35,8 +35,8 @@ module Digest
     # Updates the digest with the contents of a given file _name_ and
     # returns self.
     def file(name)
-      File.open(name, "rb") {|f|
-        buf = ""
+      File.open(name, 'rb') {|f|
+        buf = ''
         while f.read(16384, buf)
           update buf
         end
