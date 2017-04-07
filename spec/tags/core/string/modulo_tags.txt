@@ -1,0 +1,1 @@
+fails:String#% supports inspect formats using %p
