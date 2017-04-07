@@ -88,7 +88,25 @@ public abstract class ToStringNode extends FormatNode {
         if (taintedProfile.profile(isTaintedNode.executeIsTainted(string))) {
             setTainted(frame);
         }
+        if ("inspect".equals(conversionMethod)) {
+            if (toStrNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                toStrNode = insert(DispatchHeadNodeFactory.createMethodCall(true,
+                    MissingBehavior.RETURN_MISSING));
+            }
 
+            final Object value = toStrNode.call(frame, string, conversionMethod);
+
+            if (RubyGuards.isRubyString(value)) {
+                if (taintedProfile.profile(isTaintedNode.executeIsTainted(value))) {
+                    setTainted(frame);
+                }
+
+                return Layouts.STRING.getRope((DynamicObject) value).getBytes();
+            } else {
+                throw new NoImplicitConversionException(string, "String");
+            }
+        }
         return Layouts.STRING.getRope(string).getBytes();
     }
 
