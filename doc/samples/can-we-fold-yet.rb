@@ -8,6 +8,8 @@
 
 # Use -J-Dgraal.TruffleIterativePartialEscape=true
 
+require 'readline'
+
 unless Truffle::Graal.graal?
   puts 'You need Graal to run this'
   exit
@@ -16,8 +18,7 @@ end
 puts 'Can Truffle constant fold yet?'
 
 loop do
-  print '> '
-  code = gets
+  code = Readline.readline('> ', true)
 
   test_thread = Thread.new do
     begin
