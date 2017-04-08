@@ -8,7 +8,7 @@
 
 # Use -J-Dgraal.TruffleIterativePartialEscape=true
 
-unless Truffle.graal?
+unless Truffle::Graal.graal?
   puts 'You need Graal to run this'
   exit
 end
@@ -21,11 +21,11 @@ loop do
 
   test_thread = Thread.new do
     begin
-      eval "loop { Truffle.assert_constant #{code}; Truffle.assert_not_compiled; Thread.pass }"
+      eval "loop { Truffle::Graal.assert_constant #{code}; Truffle::Graal.assert_not_compiled; Thread.pass }"
     rescue RubyTruffleError => e
-      if e.message.include? 'Truffle.assert_not_compiled'
+      if e.message.include? 'Truffle::Graal.assert_not_compiled'
         puts "Yes! Truffle can constant fold this to #{eval(code).inspect}"
-      elsif e.message.include? 'Truffle.assert_constant'
+      elsif e.message.include? 'Truffle::Graal.assert_constant'
         puts "No :( Truffle can't constant fold that"
       else
         puts 'There was an error executing that :('
@@ -34,6 +34,6 @@ loop do
   end
 
   unless test_thread.join(5)
-    puts 'That timed out :( either it takes too long to execute it or to compile it'
+    puts 'That timed out :( either it takes too long to execute or to compile'
   end
 end
