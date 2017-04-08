@@ -50,6 +50,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodes;
@@ -82,6 +83,7 @@ import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcNodesFactory.ProcNewNodeFactory;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
@@ -145,15 +147,12 @@ import org.truffleruby.language.threadlocal.ThreadLocalObject;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 
 @CoreClass("Kernel")
 public abstract class KernelNodes {
@@ -702,16 +701,36 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject gets() {
-            // TODO(CS): having some trouble interacting with JRuby stdin - so using this hack
-            final InputStream in = System.in;
+            // TODO CS 8-Apr-17 this whole method is archaic and won't interact with the rest of the system properly
 
-            Encoding encoding = getContext().getEncodingManager().getDefaultExternalEncoding();
+            final InputStream in = getContext().getEnv().in();
 
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(in, encoding.getCharset()));
+            final byte[] line = getContext().getThreadManager().runUntilResult(this, () -> {
+                final ByteArrayBuilder builder = new ByteArrayBuilder();
 
-            final String line = getContext().getThreadManager().runUntilResult(this, () -> gets(reader));
+                while (true) {
+                    final int c;
+                    try {
+                        c = in.read();
+                    } catch (IOException e) {
+                        throw new JavaException(e);
+                    }
 
-            final DynamicObject rubyLine = createString(StringOperations.encodeRope(line, UTF8Encoding.INSTANCE));
+                    if (c == -1) {
+                        break;
+                    }
+
+                    builder.append(c);
+
+                    if (c == '\n') {
+                        break;
+                    }
+                }
+
+                return builder.getBytes();
+            });
+
+            final DynamicObject rubyLine = createString(RopeOperations.create(line, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
 
             // Set the local variable $_ in the caller
 
@@ -724,15 +743,6 @@ public abstract class KernelNodes {
             }
 
             return rubyLine;
-        }
-
-        @TruffleBoundary
-        private static String gets(BufferedReader reader) {
-            try {
-                return reader.readLine() + "\n";
-            } catch (IOException e) {
-                throw new JavaException(e);
-            }
         }
 
     }
