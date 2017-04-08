@@ -1,2 +1,0 @@
-fails:CApiFalseSpecs a false value from Ruby is falsey in C
-fails:CApiFalseSpecs a false value from Qfalse is falsey in C
