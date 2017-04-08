@@ -31,7 +31,7 @@ For a nested test class structure like `TestPrime::TestInteger` in
 
 The lines in exclude file appear like this:
 
-```
+```ruby
 exclude :test_asctime, "needs investigation"
 exclude :test_at, "needs investigation"
 ```
