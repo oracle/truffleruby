@@ -1682,12 +1682,12 @@ class << Truffle::CExt
   end
 
   def RDATA(object)
-    RData.new(object)
+    Truffle::CExt::RData.new(object)
   end
 
   def rb_to_encoding(encoding)
     encoding = Encoding.find(encoding.to_str) unless encoding.is_a?(Encoding)
-    RbEncoding.new(encoding)
+    Truffle::CExt::RbEncoding.new(encoding)
   end
 
   def rb_enc_from_encoding(rb_encoding)
@@ -1695,7 +1695,7 @@ class << Truffle::CExt
   end
 
   def RSTRING_PTR(string)
-    RStringPtr.new(string)
+    Truffle::CExt::RStringPtr.new(string)
   end
 
 end
