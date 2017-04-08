@@ -90,6 +90,7 @@ NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object
 
 NORETURN(void rb_tr_error(const char *message));
 void rb_tr_log_warning(const char *message);
+void *rb_tr_handle_for_managed_leaking(void *managed);
 #define rb_tr_debug(object) truffle_invoke(RUBY_CEXT, "rb_tr_debug", object)
 
 // Memory

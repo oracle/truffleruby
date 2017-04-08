@@ -2473,6 +2473,12 @@ void rb_tr_log_warning(const char *message) {
   truffle_invoke(RUBY_CEXT, "rb_tr_log_warning", rb_str_new_cstr(message));
 }
 
+void *rb_tr_handle_for_managed_leaking(void *managed) {
+  void *handle = truffle_handle_for_managed(managed);
+  rb_tr_log_warning("truffle_handle_for_managed without matching truffle_release_handle; handles will be leaking");
+  return handle;
+}
+
 void rb_p(VALUE obj) {
   truffle_invoke(rb_mKernel, "puts", truffle_invoke(obj, "inspect"));
 }

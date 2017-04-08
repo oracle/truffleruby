@@ -122,7 +122,9 @@ is not taken and passed to a function that is not inlined.
 
 `void *truffle_handle_for_managed(VALUE managed)` and
 `VALUE truffle_managed_from_handle(void *native)` may help you work around this
-limitation.
+limitation. Use `void* rb_tr_handle_for_managed_leaking(VALUE managed)` if you
+don't yet know where to put a corresponding call to
+`void *truffle_release_handle(void *native)`.
 
 #### Variadic functions
 
