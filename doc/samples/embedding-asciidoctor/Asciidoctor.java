@@ -8,17 +8,6 @@
  * GNU Lesser General Public License version 2.1
  */
 
-/*
- * To compile:
- *
- * graalvm/bin/javac -classpath graalvm/jre/lib/truffle/truffle-api.jar samples/truffle/interop/asciidoctor/Asciidoctor.java
- *
- * To run:
- *
- * RUBYOPT=-Iasciidoctor/lib graalvm/bin/java -polyglot -classpath samples/truffle/interop/asciidoctor Asciidoctor asciidoctor/benchmark/sample-data/mdbasics.adoc
- *
- */
-
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 
@@ -32,21 +21,15 @@ public class Asciidoctor {
 
         polyglotEngine.eval(Source
                 .newBuilder("require 'asciidoctor'")
-                .name("hello")
+                .name("setup")
                 .mimeType("application/x-ruby")
                 .build());
 
-        final Source convertSource = Source
-                .newBuilder("Asciidoctor.load(Truffle::Interop.from_java_string(Truffle::Interop.import('file'))).convert")
+        polyglotEngine.eval(Source
+                .newBuilder("Asciidoctor.convert_file Truffle::Interop.from_java_string(Truffle::Interop.import('file'))")
                 .name("convert")
                 .mimeType("application/x-ruby")
-                .build();
-
-        while (true) {
-            final long startTime = System.currentTimeMillis();
-            polyglotEngine.eval(convertSource);
-            System.err.println(System.currentTimeMillis() - startTime);
-        }
+                .build());
     }
 
 }
