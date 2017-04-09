@@ -635,7 +635,7 @@ module Kernel
   module_function :global_variables
 
   def fork
-    raise RubyTruffleError.new('Kernel#fork not implemented')
+    raise NotImplementedError.new('fork is not available')
   end
   module_function :fork
 
