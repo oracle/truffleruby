@@ -59,7 +59,7 @@ bool RB_TYPE_P(VALUE value, int type) {
 }
 
 void rb_check_type(VALUE value, int type) {
-  truffle_invoke(RUBY_CEXT, "rb_check_type", value);
+  truffle_invoke(RUBY_CEXT, "rb_check_type", value, type);
 }
 
 VALUE rb_obj_is_instance_of(VALUE object, VALUE ruby_class) {
