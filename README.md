@@ -30,8 +30,9 @@ Collaborations with:
 
 And others.
 
-The best way to get in touch with us is to join us in `#jruby` on Freenode, but 
-you can also Tweet to @chrisgseaton, or email chris.seaton@oracle.com.
+The best way to get in touch with us is to join us in
+https://gitter.im/graalvm/truffleruby, but you can also Tweet to @chrisgseaton,
+or email chris.seaton@oracle.com.
 
 ## Mailing list
 
