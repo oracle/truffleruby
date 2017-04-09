@@ -159,7 +159,7 @@ class IO
         return fill(io.to_io)
       end
 
-      raise PrimitiveFailure, 'IOBuffer#fill primitive failed'
+      raise PrimitiveFailure, 'InternalBuffer#fill primitive failed'
     end
 
     ##
