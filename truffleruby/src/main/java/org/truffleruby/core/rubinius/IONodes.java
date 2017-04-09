@@ -787,6 +787,8 @@ public abstract class IONodes {
     @Primitive(name = "io_accept")
     public abstract static class AcceptNode extends IOPrimitiveArrayArgumentsNode {
 
+        private static final int SHUT_RD = 0;
+
         @SuppressWarnings("restriction")
         @TruffleBoundary(throwsControlFlowException = true)
         @Specialization
@@ -799,7 +801,9 @@ public abstract class IONodes {
             final int newFd;
 
             try {
-                newFd = ensureSuccessful(nativeSockets().accept(fd, memoryManager().newPointer(address), addressLength));
+                newFd = getContext().getThreadManager().runUntilResult(this,
+                        () -> ensureSuccessful(nativeSockets().accept(fd, memoryManager().newPointer(address), addressLength)),
+                        () -> nativeSockets().shutdown(fd, SHUT_RD));
             } finally {
                 getContext().getNativePlatform().getMallocFree().free(address);
             }
