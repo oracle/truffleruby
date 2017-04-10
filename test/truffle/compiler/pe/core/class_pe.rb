@@ -12,7 +12,6 @@ module ClassPEFixtures
   AInstance = ClassPEFixtures::A.new
 end
 
-
 example "ClassPEFixtures::B.superclass", ClassPEFixtures::A
 example "ClassPEFixtures::A.new.class", ClassPEFixtures::A
 example "ClassPEFixtures::AInstance.singleton_class", ClassPEFixtures::AInstance.singleton_class

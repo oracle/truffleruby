@@ -10,5 +10,4 @@ example "[3, 1, 2][1]", 1
 
 example "[3, 1, 2].sort[1]", 2
 
-# I think this fails due to our iterative partial escape issue
-tagged example "[14].pack('C').getbyte(0)", 14
+example "[14].pack('C').getbyte(0)", 14
