@@ -9,9 +9,11 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
@@ -43,8 +45,7 @@ public class RubyCallNode extends RubyNode {
 
     @Child private CallDispatchHeadNode dispatchHead;
     @Child private ArrayToObjectArrayNode toObjectArrayNode;
-    @Child private CallDispatchHeadNode respondToMissing;
-    @Child private BooleanCastNode respondToMissingCast;
+    @Child private DefinedNode definedNode;
 
     private final ConditionProfile nilProfile;
 
@@ -138,58 +139,12 @@ public class RubyCallNode extends RubyNode {
 
     @Override
     public Object isDefined(VirtualFrame frame) {
-        if (receiver.isDefined(frame) == nil()) {
-            return nil();
-        }
-
-        for (RubyNode argument : arguments) {
-            if (argument.isDefined(frame) == nil()) {
-                return nil();
-            }
-        }
-
-        final Object receiverObject;
-        try {
-            receiverObject = receiver.execute(frame);
-        } catch (Exception e) {
-            return nil();
-        }
-
-        // TODO(CS): this lookup should be cached
-
-        final InternalMethod method = ModuleOperations.lookupMethod(coreLibrary().getMetaClass(receiverObject), methodName).getMethod();
-
-        final Object self = RubyArguments.getSelf(frame);
-
-        if (method == null) {
-            final Object r = respondToMissing(frame, receiverObject);
-            if (r != DispatchNode.MISSING && !castRespondToMissingToBoolean(r)) {
-                return nil();
-            }
-        } else if (method.isUndefined()) {
-            return nil();
-        } else if (!ignoreVisibility && !method.isVisibleTo(coreLibrary().getMetaClass(self))) {
-            return nil();
-        }
-
-        return create7BitString("method", UTF8Encoding.INSTANCE);
-    }
-
-    private Object respondToMissing(VirtualFrame frame, Object receiverObject) {
-        if (respondToMissing == null) {
+        if (definedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToMissing = insert(DispatchHeadNodeFactory.createMethodCall(true, MissingBehavior.RETURN_MISSING));
+            definedNode = insert(new DefinedNode());
         }
-        final DynamicObject method = getContext().getSymbolTable().getSymbol(methodName);
-        return respondToMissing.call(frame, receiverObject, "respond_to_missing?", method, false);
-    }
 
-    private boolean castRespondToMissingToBoolean(Object r) {
-        if (respondToMissingCast == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToMissingCast = insert(BooleanCastNodeGen.create(null));
-        }
-        return respondToMissingCast.executeToBoolean(r);
+        return definedNode.isDefined(frame);
     }
 
     public String getName() {
@@ -204,5 +159,68 @@ public class RubyCallNode extends RubyNode {
         assert block != null;
         return block.getChild() instanceof BlockDefinitionNode;
     }
+
+    private class DefinedNode extends Node {
+
+        @Child private CallDispatchHeadNode respondToMissing;
+        @Child private BooleanCastNode respondToMissingCast;
+
+        public Object isDefined(VirtualFrame frame) {
+            if (receiver.isDefined(frame) == nil()) {
+                return nil();
+            }
+
+            for (RubyNode argument : arguments) {
+                if (argument.isDefined(frame) == nil()) {
+                    return nil();
+                }
+            }
+
+            final Object receiverObject;
+            try {
+                receiverObject = receiver.execute(frame);
+            } catch (Exception e) {
+                return nil();
+            }
+
+            // TODO(CS): this lookup should be cached
+
+            final InternalMethod method = ModuleOperations.lookupMethod(coreLibrary().getMetaClass(receiverObject), methodName).getMethod();
+
+            final Object self = RubyArguments.getSelf(frame);
+
+            if (method == null) {
+                final Object r = respondToMissing(frame, receiverObject);
+                if (r != DispatchNode.MISSING && !castRespondToMissingToBoolean(r)) {
+                    return nil();
+                }
+            } else if (method.isUndefined()) {
+                return nil();
+            } else if (!ignoreVisibility && !method.isVisibleTo(coreLibrary().getMetaClass(self))) {
+                return nil();
+            }
+
+            return create7BitString("method", UTF8Encoding.INSTANCE);
+        }
+
+        private Object respondToMissing(VirtualFrame frame, Object receiverObject) {
+            if (respondToMissing == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                respondToMissing = insert(DispatchHeadNodeFactory.createMethodCall(true, MissingBehavior.RETURN_MISSING));
+            }
+            final DynamicObject method = getContext().getSymbolTable().getSymbol(methodName);
+            return respondToMissing.call(frame, receiverObject, "respond_to_missing?", method, false);
+        }
+
+        private boolean castRespondToMissingToBoolean(Object r) {
+            if (respondToMissingCast == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                respondToMissingCast = insert(BooleanCastNodeGen.create(null));
+            }
+            return respondToMissingCast.executeToBoolean(r);
+        }
+
+    }
+
 
 }
