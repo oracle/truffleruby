@@ -38,7 +38,6 @@ public class GetFromThreadLocalNode extends RubyNode {
         return threadLocalObject;
     }
 
-    @TruffleBoundary
     private Object getThreadLocalValue(ThreadLocalObject threadLocalObject) {
         return threadLocalObject.get();
     }
