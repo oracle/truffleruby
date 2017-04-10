@@ -83,7 +83,7 @@ module Digest
 
     def digest(message = NO_MESSAGE)
       if NO_MESSAGE == message
-        finish
+        clone.finish
       else
         reset
         update message

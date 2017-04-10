@@ -134,6 +134,8 @@ public abstract class DigestNodes {
                     cloneAndDigest(digest), ASCIIEncoding.INSTANCE, CodeRange.CR_VALID));
         }
 
+        // TODO CS 10-Apr-17 the Ruby code for digest also clones in some cases! Are we cloning redundantly?
+
         @TruffleBoundary
         private static byte[] cloneAndDigest(MessageDigest digest) {
             final MessageDigest clonedDigest;
