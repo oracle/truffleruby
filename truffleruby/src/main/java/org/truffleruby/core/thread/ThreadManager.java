@@ -77,8 +77,7 @@ public class ThreadManager {
                 Thread.NORM_PRIORITY,
                 context.getCoreLibrary().getNilObject(),
                 info,
-                context.getCoreLibrary().getNilObject(),
-                null);
+                context.getCoreLibrary().getNilObject());
 
         Layouts.THREAD.setFiberManagerUnsafe(object, new FiberManager(context, object)); // Because it is cyclic
 
@@ -434,5 +433,10 @@ public class ThreadManager {
         }
 
         thread.interrupt();
+    }
+
+    @TruffleBoundary
+    public UnblockingAction getUnblockingAction(Thread thread) {
+        return unblockingActions.get(thread);
     }
 }
