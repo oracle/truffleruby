@@ -1456,7 +1456,7 @@ class << Truffle::CExt
 
   def rb_block_call(object, method, args, func, data)
     object.send(method, *args) do |*block_args|
-      Truffle::Interop.execute(func, block_args.first, data, block_args.size, block_args)
+      Truffle::Interop.execute(func, block_args.first, data, block_args.size, block_args, nil)
     end
   end
 
