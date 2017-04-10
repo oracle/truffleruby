@@ -169,16 +169,13 @@ public abstract class PsychParserNodes {
                     } else if (isEvent(event, Event.ID.DocumentStart)) {
                         final DocumentStartEvent startEvent = (DocumentStartEvent) event;
 
-                        final DumperOptions.Version versionOptions = startEvent.getVersion();
-                        final Integer[] versionInts = versionOptions == null ? null : versionOptions.getArray();
-
                         final DynamicObject versionArray;
 
-                        if (versionInts == null) {
+                        if (startEvent.getVersion() == null) {
                             versionArray = createArray(null, 0);
                         } else {
                             versionArray = createArray(new Object[] {
-                                    versionInts[0], versionInts[1]
+                                    startEvent.getVersion().major(), startEvent.getVersion().minor()
                             }, 2);
                         }
 

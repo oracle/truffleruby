@@ -131,7 +131,7 @@ suite = {
             "maven": {
                 "groupId": "org.yaml",
                 "artifactId": "snakeyaml",
-                "version": "1.14"
+                "version": "1.17"
             },
             "sha1": "c2df91929ed06a25001939929bff5120e0ea3fd4",
             "sourceSha1": "4c6bcedc3efa772a5ae1c2fd01efee8e4d15edac",
