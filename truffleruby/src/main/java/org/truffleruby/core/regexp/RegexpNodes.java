@@ -528,7 +528,7 @@ public abstract class RegexpNodes {
         }
 
         public boolean matches(Frame callerFrame) {
-            return callerFrame.getFrameDescriptor() == fd;
+            return callerFrame != null && callerFrame.getFrameDescriptor() == fd;
         }
 
         public boolean matchesBlock(DynamicObject block) {
@@ -542,7 +542,7 @@ public abstract class RegexpNodes {
         }
 
         public static SetLastMatchStrategy ofBlock(RubyContext context, DynamicObject block) {
-            Frame frame = (Frame) Layouts.PROC.getDeclarationFrame(block);
+            Frame frame = Layouts.PROC.getDeclarationFrame(block);
             if (frame == null) {
                 return NullStrategy.INSTANCE;
             }
@@ -572,12 +572,19 @@ public abstract class RegexpNodes {
             super(null, null, null);
         }
 
+        @Override
         public ThreadLocalObject getThreadLocal(RubyContext context, MaterializedFrame callerFrame) {
             return null;
         }
 
+        @Override
         public ThreadLocalObject getThreadLocalBlock(RubyContext context, DynamicObject block) {
             return null;
+        }
+
+        @Override
+        public boolean matches(Frame callerFrame) {
+            return callerFrame == null;
         }
     }
 
@@ -586,6 +593,7 @@ public abstract class RegexpNodes {
             super(fd, fs, defaultValue);
         }
 
+        @Override
         public ThreadLocalObject getThreadLocal(RubyContext context, MaterializedFrame callerFrame) {
             return getThreadLocalObjectFromFrame(context, callerFrame, fs, defaultValue, true);
         }
@@ -598,6 +606,7 @@ public abstract class RegexpNodes {
             this.depth = depth;
         }
 
+        @Override
         public ThreadLocalObject getThreadLocal(RubyContext context, MaterializedFrame callerFrame) {
             final MaterializedFrame frame = RubyArguments.getDeclarationFrame(callerFrame, depth);
             return getThreadLocalObjectFromFrame(context, frame, fs, defaultValue, true);
