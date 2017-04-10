@@ -130,13 +130,21 @@ ossl_str_new(int size)
     return rb_str_new(0, size);
 }
 
+// Workaround for Sulong not accepting the undefined behaviour of casting a function pointer type like this
+
+static VALUE
+ossl_str_new_x(VALUE size)
+{
+    return ossl_str_new((int) size);
+}
+
 VALUE
 ossl_buf2str(char *buf, int len)
 {
     VALUE str;
     int status = 0;
 
-    str = rb_protect((VALUE(*)_((VALUE)))ossl_str_new, len, &status);
+    str = rb_protect(ossl_str_new_x, len, &status);
     if(!NIL_P(str)) memcpy(RSTRING_PTR(str), buf, len);
     OPENSSL_free(buf);
     if(status) rb_jump_tag(status);
