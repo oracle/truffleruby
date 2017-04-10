@@ -1050,4 +1050,31 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "hidden_variable_get", onSingleton = true, required = 2)
+    public abstract static class HiddenVariableGetNode extends CoreMethodArrayArgumentsNode {
+
+        // TODO CS 10-Apr-17 fast path
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubySymbol(name)")
+        public Object hiddenVariableGet(DynamicObject object, DynamicObject name) {
+            return object.get(name, nil());
+        }
+
+    }
+
+    @CoreMethod(names = "hidden_variable_set", onSingleton = true, required = 3)
+    public abstract static class HiddenVariableSetNode extends CoreMethodArrayArgumentsNode {
+
+        // TODO CS 10-Apr-17 fast path
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubySymbol(name)")
+        public Object hiddenVariableSet(DynamicObject object, DynamicObject name, Object value) {
+            object.define(name, value);
+            return value;
+        }
+
+    }
+
 }

@@ -23,12 +23,12 @@ module Truffle::CExt
 
     def [](index)
       raise unless index == DATA_FIELD_INDEX
-      @object.instance_variable_get(:@data)
+      Truffle::CExt.hidden_variable_get(@object, :data)
     end
 
     def []=(index, value)
       raise unless index == DATA_FIELD_INDEX
-      @object.instance_variable_set :@data, value
+      Truffle::CExt.hidden_variable_set @object, :data, value
     end
 
   end
@@ -1408,7 +1408,7 @@ class << Truffle::CExt
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object if Truffle::Interop.null?(ruby_class)
     object = ruby_class.internal_allocate
-    object.instance_variable_set :@data, data
+    hidden_variable_set object, :data, data
     ObjectSpace.define_finalizer object, data_finalizer(data, free)
     object
   end
@@ -1424,7 +1424,7 @@ class << Truffle::CExt
   def rb_data_typed_object_wrap(ruby_class, data, data_type)
     object = ruby_class.internal_allocate
     object.instance_variable_set :@data_type, data_type
-    object.instance_variable_set :@data, data
+    hidden_variable_set object, :data, data
     object
   end
 

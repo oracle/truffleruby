@@ -10,6 +10,7 @@
 package org.truffleruby.core.kernel;
 
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -151,8 +152,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 @CoreClass("Kernel")
 public abstract class KernelNodes {
@@ -364,7 +367,17 @@ public abstract class KernelNodes {
         }
 
         protected Property[] getUserProperties(Shape shape) {
-            return shape.getPropertyList().toArray(new Property[0]);
+            CompilerAsserts.neverPartOfCompilation();
+
+            final List<Property> userProperties = new ArrayList<>();
+
+            for (Property property : shape.getProperties()) {
+                if (property.getKey() instanceof String) {
+                    userProperties.add(property);
+                }
+            }
+
+            return userProperties.toArray(new Property[userProperties.size()]);
         }
 
         protected ReadObjectFieldNode[] createReadFieldNodes(Property[] properties) {
@@ -387,10 +400,8 @@ public abstract class KernelNodes {
         private void copyInstanceVariables(DynamicObject from, DynamicObject to) {
             // Concurrency: OK if callers create the object and publish it after copy
             // Only copy user-level instance variables, hidden ones are initialized later with #initialize_copy.
-            for (Property property : from.getShape().getProperties()) {
-                if (property.getKey() instanceof String) {
-                    to.define(property.getKey(), property.get(from, from.getShape()), property.getFlags());
-                }
+            for (Property property : getUserProperties(from.getShape())) {
+                to.define(property.getKey(), property.get(from, from.getShape()), property.getFlags());
             }
         }
 
