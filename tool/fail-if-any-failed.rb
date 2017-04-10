@@ -50,6 +50,7 @@ known_failures = [
   ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:file-lines"],
   ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:load-string"],
   ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:load-file"],
+  ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:string-lines"],
   ["svm", "default", "jruby", "truffle", "classic", "binary-trees"],
   ["svm", "default", "jruby", "truffle", "psd", "psd-compose-color-burn"],
   ["svm", "default", "jruby", "truffle", "psd", "psd-compose-color-dodge"],
