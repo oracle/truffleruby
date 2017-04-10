@@ -2483,6 +2483,10 @@ void *rb_tr_handle_for_managed_leaking(void *managed) {
   return handle;
 }
 
+long rb_tr_obj_id(VALUE object) {
+  return truffle_invoke_l(RUBY_CEXT, "rb_tr_obj_id", object);
+}
+
 void rb_p(VALUE obj) {
   truffle_invoke(rb_mKernel, "puts", truffle_invoke(obj, "inspect"));
 }

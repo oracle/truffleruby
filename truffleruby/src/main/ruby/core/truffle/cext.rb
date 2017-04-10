@@ -1698,6 +1698,17 @@ class << Truffle::CExt
     Truffle::CExt::RStringPtr.new(string)
   end
 
+  def rb_tr_obj_id(object)
+    id = object.object_id
+
+    # This method specifically returns a long for everyday practicality - so return a sentinel value if it's out of range
+    if id > 0 && id < 2**63-1
+      id
+    else
+      0x0101010101010101
+    end
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)
