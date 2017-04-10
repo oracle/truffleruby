@@ -45,7 +45,6 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -391,10 +390,10 @@ public abstract class ThreadNodes {
                 throw new RaiseException(coreExceptions().threadErrorKilledThread(this));
             }
 
-            final DynamicObject unblocker = Layouts.THREAD.getUnblocker(thread);
+            final ThreadManager.UnblockingAction unblocker = getContext().getThreadManager().getUnblockingAction(Layouts.THREAD.getThread(thread));
 
             if (unblocker != null) {
-                yieldNode.dispatch(unblocker);
+                unblocker.unblock();
             }
 
             Layouts.THREAD.getWakeUp(thread).set(true);
@@ -415,17 +414,12 @@ public abstract class ThreadNodes {
     @CoreMethod(names = "unblock", required = 2)
     public abstract static class UnblockNode extends YieldingCoreMethodNode {
 
+        @TruffleBoundary
         @Specialization(guards = {"isRubyProc(unblocker)", "isRubyProc(runner)"})
         public Object unblock(DynamicObject thread, DynamicObject unblocker, DynamicObject runner) {
-            Layouts.THREAD.setUnblocker(thread, unblocker);
-            Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
-
-            try {
-                return yield(runner);
-            } finally {
-                Layouts.THREAD.setUnblocker(thread, null);
-                Layouts.THREAD.setStatus(thread, ThreadStatus.RUN);
-            }
+            return getContext().getThreadManager().runUntilResult(this,
+                    () -> yield(runner),
+                    () -> yield(unblocker));
         }
 
     }
@@ -477,8 +471,7 @@ public abstract class ThreadNodes {
                     new AtomicInteger(Thread.NORM_PRIORITY),
                     currentGroup,
                     "<uninitialized>",
-                    nil(),
-                    null);
+                    nil());
 
             Layouts.THREAD.setFiberManagerUnsafe(object, new FiberManager(getContext(), object)); // Because it is cyclic
 
