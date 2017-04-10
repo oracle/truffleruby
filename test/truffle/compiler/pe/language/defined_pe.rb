@@ -10,4 +10,4 @@ example "defined?(true) == 'true'", true
 example "defined?(false) == 'false'", true
 example "defined?(self) == 'self'", true
 example "defined?(14) == 'expression'", true
-tagged example "defined?(14 + 2) == 'method'", true
+example "defined?(14 + 2) == 'method'", true

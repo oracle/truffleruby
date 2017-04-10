@@ -9,14 +9,14 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -28,6 +28,8 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.LookupMethodNodeGen;
 
 public class RubyCallNode extends RubyNode {
 
@@ -162,62 +164,79 @@ public class RubyCallNode extends RubyNode {
 
     private class DefinedNode extends Node {
 
-        @Child private CallDispatchHeadNode respondToMissing;
-        @Child private BooleanCastNode respondToMissingCast;
+        private final DynamicObject methodNameSymbol = getContext().getSymbolTable().getSymbol(methodName);
 
+        @Child private CallDispatchHeadNode respondToMissing = DispatchHeadNodeFactory.createMethodCall(true, MissingBehavior.RETURN_MISSING);
+        @Child private BooleanCastNode respondToMissingCast = BooleanCastNodeGen.create(null);
+
+        // TODO CS-10-Apr-17 see below
+        // @Child private LookupMethodNode lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, false, null, null);
+
+        private final ConditionProfile receiverDefinedProfile = ConditionProfile.createBinaryProfile();
+        private final BranchProfile argumentNotDefinedProfile = BranchProfile.create();
+        private final BranchProfile allArgumentsDefinedProfile = BranchProfile.create();
+        private final BranchProfile receiverExceptionProfile = BranchProfile.create();
+        private final ConditionProfile methodNotFoundProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile methodUndefinedProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile methodNotVisibleProfile = ConditionProfile.createBinaryProfile();
+
+        @ExplodeLoop
         public Object isDefined(VirtualFrame frame) {
-            if (receiver.isDefined(frame) == nil()) {
+            if (receiverDefinedProfile.profile(receiver.isDefined(frame) == nil())) {
                 return nil();
             }
 
             for (RubyNode argument : arguments) {
                 if (argument.isDefined(frame) == nil()) {
+                    argumentNotDefinedProfile.enter();
                     return nil();
                 }
             }
 
+            allArgumentsDefinedProfile.enter();
+
             final Object receiverObject;
+
             try {
                 receiverObject = receiver.execute(frame);
             } catch (Exception e) {
+                receiverExceptionProfile.enter();
                 return nil();
             }
 
-            // TODO(CS): this lookup should be cached
-
-            final InternalMethod method = ModuleOperations.lookupMethod(coreLibrary().getMetaClass(receiverObject), methodName).getMethod();
-
+            final InternalMethod method = doLookup(receiverObject);
             final Object self = RubyArguments.getSelf(frame);
 
-            if (method == null) {
-                final Object r = respondToMissing(frame, receiverObject);
-                if (r != DispatchNode.MISSING && !castRespondToMissingToBoolean(r)) {
+            if (methodNotFoundProfile.profile(method == null)) {
+                final Object r = respondToMissing.call(frame, receiverObject, "respond_to_missing?", methodNameSymbol, false);
+
+                if (r != DispatchNode.MISSING && !respondToMissingCast.executeToBoolean(r)) {
                     return nil();
                 }
-            } else if (method.isUndefined()) {
+            } else if (methodUndefinedProfile.profile(method.isUndefined())) {
                 return nil();
-            } else if (!ignoreVisibility && !method.isVisibleTo(coreLibrary().getMetaClass(self))) {
+            } else if (methodNotVisibleProfile.profile(!ignoreVisibility && !isVisibleTo(method, self))) {
                 return nil();
             }
 
-            return create7BitString("method", UTF8Encoding.INSTANCE);
+            return coreStrings().METHOD.createInstance();
         }
 
-        private Object respondToMissing(VirtualFrame frame, Object receiverObject) {
-            if (respondToMissing == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToMissing = insert(DispatchHeadNodeFactory.createMethodCall(true, MissingBehavior.RETURN_MISSING));
-            }
-            final DynamicObject method = getContext().getSymbolTable().getSymbol(methodName);
-            return respondToMissing.call(frame, receiverObject, "respond_to_missing?", method, false);
+        // TODO CS-10-Apr-17 remove this boundary
+
+        @TruffleBoundary
+        private InternalMethod doLookup(Object receiverObject) {
+            // TODO CS-10-Apr-17 I'd like to use this but it doesn't give the same result
+            // lookupMethodNode.executeLookupMethod(frame, coreLibrary().getMetaClass(receiverObject), methodName);
+
+            return ModuleOperations.lookupMethod(coreLibrary().getMetaClass(receiverObject), methodName).getMethod();
         }
 
-        private boolean castRespondToMissingToBoolean(Object r) {
-            if (respondToMissingCast == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToMissingCast = insert(BooleanCastNodeGen.create(null));
-            }
-            return respondToMissingCast.executeToBoolean(r);
+        // TODO CS-10-Apr-17 remove this boundary
+
+        @TruffleBoundary
+        private boolean isVisibleTo(InternalMethod method, Object self) {
+            return method.isVisibleTo(coreLibrary().getMetaClass(self));
         }
 
     }
