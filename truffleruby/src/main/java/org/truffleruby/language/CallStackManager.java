@@ -88,6 +88,16 @@ public class CallStackManager {
     }
 
     @TruffleBoundary
+    public boolean callerIsSend() {
+        FrameInstance callerFrame = Truffle.getRuntime().getCallerFrame();
+        if (callerFrame == null) {
+            return false;
+        }
+        InternalMethod method = getMethod(callerFrame);
+        return context.getCoreLibrary().isSend(method);
+    }
+
+    @TruffleBoundary
     public FrameInstance getCallerFrameIgnoringSend(int skip) {
         // Try first using getCallerFrame() as it's the common case
         if (skip == 0) {

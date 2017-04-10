@@ -45,11 +45,13 @@ public class ReadCallerFrameNode extends RubyNode {
     }
 
     private void replaceDispatchNode() {
-        Node callerNode = getContext().getCallStack().getCallerNode();
-        if (callerNode instanceof DirectCallNode) {
-            Node parent = callerNode.getParent();
-            if (parent instanceof CachedDispatchNode) {
-                ((CachedDispatchNode) parent).replaceSendingChild();
+        if (!getContext().getCallStack().callerIsSend()) {
+            Node callerNode = getContext().getCallStack().getCallerNode();
+            if (callerNode instanceof DirectCallNode) {
+                Node parent = callerNode.getParent();
+                if (parent instanceof CachedDispatchNode) {
+                    ((CachedDispatchNode) parent).replaceSendingChild();
+                }
             }
         }
     }
