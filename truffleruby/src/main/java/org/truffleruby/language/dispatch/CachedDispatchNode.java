@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -60,7 +61,10 @@ public abstract class CachedDispatchNode extends DispatchNode {
     }
 
     public void replaceSendingChild() {
-        needsCallerFrame = true;
+        if (!needsCallerFrame) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            needsCallerFrame = true;
+        }
     }
 
     @Override
