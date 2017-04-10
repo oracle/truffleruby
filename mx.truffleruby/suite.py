@@ -133,8 +133,8 @@ suite = {
                 "artifactId": "snakeyaml",
                 "version": "1.17"
             },
-            "sha1": "c2df91929ed06a25001939929bff5120e0ea3fd4",
-            "sourceSha1": "4c6bcedc3efa772a5ae1c2fd01efee8e4d15edac",
+            "sha1": "7a27ea250c5130b2922b86dea63cbb1cc10a660c",
+            "sourceSha1": "63577e87886c76228db9f8a2c50ea43cde5072eb",
             "licence": "Apache-2.0"
         },
 
