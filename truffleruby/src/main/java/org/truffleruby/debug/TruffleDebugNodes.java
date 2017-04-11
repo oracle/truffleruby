@@ -252,4 +252,27 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "throw_java_exception", onSingleton = true, required = 1)
+    public abstract static class ThrowJavaExceptionNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject throwJavaException(Object message) {
+            throw new RuntimeException(message.toString());
+        }
+
+    }
+
+    @CoreMethod(names = "assert", onSingleton = true, required = 1)
+    public abstract static class AssertNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject throwJavaException(boolean condition) {
+            assert condition;
+            return nil();
+        }
+
+    }
+
 }
