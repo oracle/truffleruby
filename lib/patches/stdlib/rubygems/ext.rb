@@ -1,3 +1,5 @@
+Truffle::Patching.require_original __FILE__
+
 # TruffleRuby: Ignore native extensions
 
 class Gem::Ext::Builder
