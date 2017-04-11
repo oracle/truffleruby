@@ -30,12 +30,20 @@ describe "The launcher" do
     end
   end
 
-  it "prints the full java command with -J-cmd" do
-    out = `#{RbConfig.ruby} -J-cmd --version`
+  def should_print_full_java_command(cmd)
+    out   = `#{cmd}`
     parts = out.split(' ')
     parts[0].should == "$"
-    parts[1].end_with?("java").should == true
+    (parts[1] =~ /java|graalvm/).should_not be_nil
     $?.success?.should == true
+  end
+
+  it "prints the full java command with -J-cmd" do
+    should_print_full_java_command "#{RbConfig.ruby} -J-cmd --version"
+  end
+
+  it "prints the full java command with -cmd in JAVA_OTPS" do
+    should_print_full_java_command "JAVA_OPTS=-cmd #{RbConfig.ruby} --version"
   end
 
   it "adds options from $JAVA_OPTS to the command" do
@@ -43,7 +51,7 @@ describe "The launcher" do
     ENV["JAVA_OPTS"] = option
     out = `#{RbConfig.ruby} -J-cmd --version`
     parts = out.lines[0].split(' ')
-    parts.should include option
+    parts.find { |part| part =~ /^(-J:)?#{option}$/ }.should_not be_nil
     $?.success?.should == true
   end
 
