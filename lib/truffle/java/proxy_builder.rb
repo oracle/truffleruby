@@ -219,7 +219,8 @@ module JavaUtilities
       if @is_const
         begin
           a_proxy.const_set(@name, @const_val)
-        rescue NameError # rubocop:disable Lint/HandleExceptions
+        rescue NameError
+          nil
         end
       end
       message = if static
