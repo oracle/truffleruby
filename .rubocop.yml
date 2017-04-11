@@ -172,8 +172,6 @@ Lint/LiteralInCondition:
       Pattern `while true` is allowed, disable the cop with
       `while true # rubocop:disable Lint/LiteralInCondition` in this case.
   Enabled: true
-  Exclude:
-  - lib/truffle/java/java_ext/*.rb
 
 # Supports --auto-correct
 Lint/LiteralInInterpolation:
