@@ -61,8 +61,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
     }
 
     public void replaceSendingChild() {
+        CompilerAsserts.neverPartOfCompilation("Dispatch nodes should not be altered after compilation.");
         if (!needsCallerFrame) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
             needsCallerFrame = true;
         }
     }

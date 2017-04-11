@@ -13,6 +13,7 @@ import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CachedDispatchNode;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
@@ -45,6 +46,7 @@ public class ReadCallerFrameNode extends RubyNode {
     }
 
     private void replaceDispatchNode() {
+        CompilerAsserts.neverPartOfCompilation("Dispatch nodes should never be replaced after compilation.");
         if (!getContext().getCallStack().callerIsSend()) {
             Node callerNode = getContext().getCallStack().getCallerNode();
             if (callerNode instanceof DirectCallNode) {
