@@ -44,15 +44,15 @@ class Module
     @included_packages = [ package ]
     @java_aliases ||= {}
 
-    def self.const_missing(constant) # rubocop:disable Lint/NestedMethodDefinition
+    define_singleton_method(:const_missing) do |constant|
       real_name = @java_aliases[constant] || constant
 
       java_class = nil
       last_error = nil
 
-      @included_packages.each do |package|
+      @included_packages.each do |package_name|
         begin
-          java_class = JavaUtilities.get_package_or_class("#{package}.#{real_name}", true, true)
+          java_class = JavaUtilities.get_package_or_class("#{package_name}.#{real_name}", true, true)
         rescue NameError
           # we only rescue NameError, since other errors should bubble out
           last_error = $!
