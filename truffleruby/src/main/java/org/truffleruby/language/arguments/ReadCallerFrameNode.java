@@ -11,13 +11,17 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.CachedDispatchNode;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadCallerFrameNode extends RubyNode {
@@ -31,7 +35,7 @@ public class ReadCallerFrameNode extends RubyNode {
     }
 
     @Override
-    public Object execute(VirtualFrame frame) {
+    public Frame execute(VirtualFrame frame) {
         final MaterializedFrame callerFrame = RubyArguments.getCallerFrame(frame);
 
         if (callerFrameProfile.profile(callerFrame != null)) {
@@ -41,9 +45,25 @@ public class ReadCallerFrameNode extends RubyNode {
         }
     }
 
+    private void replaceDispatchNode() {
+        CompilerAsserts.neverPartOfCompilation("Dispatch nodes should never be replaced after compilation.");
+        if (!getContext().getCallStack().callerIsSend()) {
+            Node callerNode = getContext().getCallStack().getCallerNode();
+            if (callerNode instanceof DirectCallNode) {
+                Node parent = callerNode.getParent();
+                if (parent instanceof CachedDispatchNode) {
+                    ((CachedDispatchNode) parent).replaceSendingChild();
+                }
+            }
+        }
+    }
+
     @TruffleBoundary
     private Frame getCallerFrame() {
-        return Truffle.getRuntime().getCallerFrame().getFrame(accessMode);
+        if (!CompilerDirectives.inCompiledCode()) {
+            replaceDispatchNode();
+        }
+        return getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(accessMode);
     }
 
 }

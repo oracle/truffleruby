@@ -97,6 +97,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -258,10 +259,13 @@ public abstract class KernelNodes {
     @CoreMethod(names = "block_given?", isModuleFunction = true, needsCallerFrame = CallerFrameAccess.ARGUMENTS)
     public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
 
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.ARGUMENTS);
+
         @Specialization
-        public boolean blockGiven(Object callerFrame,
+        public boolean blockGiven(VirtualFrame frame,
                 @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
-            return blockProfile.profile(RubyArguments.getBlock((Frame) callerFrame) != null);
+            Frame callerFrame = callerFrameNode.execute(frame);
+            return blockProfile.profile(RubyArguments.getBlock(callerFrame) != null);
         }
 
     }

@@ -100,7 +100,7 @@ public class CachedBooleanDispatchNode extends CachedDispatchNode {
 
             switch (getDispatchAction()) {
                 case CALL_METHOD:
-                    return call(trueCallDirect, frame, trueMethod, receiverObject, blockObject, argumentsObjects);
+                    return call(trueCallDirect, frame, trueMethod, receiverObject, blockObject, argumentsObjects, needsCallerFrame);
                 case RESPOND_TO_METHOD:
                     return true;
 
@@ -112,7 +112,7 @@ public class CachedBooleanDispatchNode extends CachedDispatchNode {
 
             switch (getDispatchAction()) {
                 case CALL_METHOD:
-                    return call(falseCallDirect, frame, falseMethod, receiverObject, blockObject, argumentsObjects);
+                    return call(falseCallDirect, frame, falseMethod, receiverObject, blockObject, argumentsObjects, needsCallerFrame);
 
                 case RESPOND_TO_METHOD:
                     return true;

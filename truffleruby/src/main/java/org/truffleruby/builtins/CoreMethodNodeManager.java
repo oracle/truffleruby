@@ -222,10 +222,6 @@ public class CoreMethodNodeManager {
     public static RubyNode createCoreMethodNode(RubyContext context, Source source, SourceIndexLength sourceSection, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method) {
         final List<RubyNode> argumentsNodes = new ArrayList<>();
 
-        if (method.needsCallerFrame() != CallerFrameAccess.NONE) {
-            argumentsNodes.add(new ReadCallerFrameNode(method.needsCallerFrame()));
-        }
-
         final boolean needsSelf = needsSelf(method);
 
         if (needsSelf) {

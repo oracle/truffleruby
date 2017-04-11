@@ -106,3 +106,6 @@ OPTIONS_LOG: [options.log, boolean, false, Log the final value of all options]
 
 LOG_LOAD: [log.load, boolean, false, Log loading files]
 LOG_FEATURE_LOCATION: [log.feature_location, boolean, false, Log the process of finding features]
+
+SET_LAST_MATCH_LIMIT: [set.last.match.limit, integer, 5, Maximum number of specialisations for set last match nodes]
+SET_BLOCK_LAST_MATCH_LIMIT: [set.block.last.match.limit, integer, 5, Maximum number of specialisations for set block last match nodes]

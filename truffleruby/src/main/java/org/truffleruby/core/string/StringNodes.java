@@ -62,22 +62,21 @@
  */
 package org.truffleruby.core.string;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
+import static org.truffleruby.core.rope.RopeNodes.MakeConcatNode.commonCodeRange;
+import static org.truffleruby.core.string.StringOperations.encoding;
+import static org.truffleruby.core.string.StringOperations.rope;
+import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_LEN;
+import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_P;
+import static org.truffleruby.core.string.StringSupport.MBCLEN_INVALID_P;
+import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
 import org.jcodings.specific.ASCIIEncoding;
@@ -85,6 +84,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -136,6 +136,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
@@ -145,20 +146,24 @@ import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.posix.TrufflePosix;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
-import static org.truffleruby.core.rope.RopeNodes.MakeConcatNode.commonCodeRange;
-import static org.truffleruby.core.string.StringOperations.encoding;
-import static org.truffleruby.core.string.StringOperations.rope;
-import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_LEN;
-import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_P;
-import static org.truffleruby.core.string.StringSupport.MBCLEN_INVALID_P;
-import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreClass("String")
 public abstract class StringNodes {
@@ -392,7 +397,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isRubyRange(index)", "!isRubyRegexp(index)", "!isRubyString(index)" })
         public Object getIndex(VirtualFrame frame, DynamicObject string, Object index, NotProvided length, @Cached("new()") SnippetNode snippetNode) {
-            return getIndex(frame, string, (int)snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", index), length);
+            return getIndex(frame, string, (int) snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", index), length);
         }
 
         @Specialization(guards = "isIntRange(range)")
@@ -463,12 +468,12 @@ public abstract class StringNodes {
 
         @Specialization(guards = "wasProvided(length)")
         public Object slice(VirtualFrame frame, DynamicObject string, int start, Object length, @Cached("new()") SnippetNode snippetNode) {
-            return slice(frame, string, start, (int)snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
+            return slice(frame, string, start, (int) snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
         }
 
         @Specialization(guards = { "!isRubyRange(start)", "!isRubyRegexp(start)", "!isRubyString(start)", "wasProvided(length)" })
         public Object slice(VirtualFrame frame, DynamicObject string, Object start, Object length, @Cached("new()") SnippetNode snippetNode1, @Cached("new()") SnippetNode snippetNode2) {
-            return slice(frame, string, (int)snippetNode1.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", start), (int)snippetNode2.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
+            return slice(frame, string, (int) snippetNode1.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", start), (int) snippetNode2.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
         }
 
         @Specialization(guards = "isRubyRegexp(regexp)")
@@ -493,13 +498,13 @@ public abstract class StringNodes {
             final Object matchStrPair = callNode.call(frame, string, "subpattern", regexp, capture);
 
             if (matchStrPair == nil()) {
-                setLastMatchNode.executeSetLastMatch(nil());
+                setLastMatchNode.executeSetLastMatch(frame, nil());
                 return nil();
             }
 
             final Object[] array = (Object[]) Layouts.ARRAY.getStore((DynamicObject) matchStrPair);
 
-            setLastMatchNode.executeSetLastMatch(array[0]);
+            setLastMatchNode.executeSetLastMatch(frame, array[0]);
 
             return array[1];
         }

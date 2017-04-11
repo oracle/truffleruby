@@ -11,6 +11,8 @@ package org.truffleruby.language.dispatch;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -33,6 +35,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
     @Child protected DispatchNode next;
 
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
+    @CompilationFinal protected boolean needsCallerFrame = false;
 
     public CachedDispatchNode(
             RubyContext context,
@@ -55,6 +58,13 @@ public abstract class CachedDispatchNode extends DispatchNode {
         }
 
         this.next = next;
+    }
+
+    public void replaceSendingChild() {
+        CompilerAsserts.neverPartOfCompilation("Dispatch nodes should not be altered after compilation.");
+        if (!needsCallerFrame) {
+            needsCallerFrame = true;
+        }
     }
 
     @Override
@@ -104,9 +114,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
         }
     }
 
-    protected static Object call(DirectCallNode callNode, VirtualFrame frame, InternalMethod method, Object receiver, DynamicObject block, Object[] arguments) {
-        CompilerAsserts.compilationConstant(method.getSharedMethodInfo().needsCallerFrame());
-        MaterializedFrame callerFrame = method.getSharedMethodInfo().needsCallerFrame() ? frame.materialize() : null;
+    protected static Object call(DirectCallNode callNode, VirtualFrame frame, InternalMethod method, Object receiver, DynamicObject block, Object[] arguments, boolean needsCallerFrame) {
+        MaterializedFrame callerFrame = needsCallerFrame ? frame.materialize() : null;
         return callNode.call(RubyArguments.pack(null, callerFrame, method, DeclarationContext.METHOD, null, receiver, block, arguments));
     }
 }
