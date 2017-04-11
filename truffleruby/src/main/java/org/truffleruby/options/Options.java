@@ -104,6 +104,8 @@ public class Options {
     public final boolean OPTIONS_LOG;
     public final boolean LOG_LOAD;
     public final boolean LOG_FEATURE_LOCATION;
+    public final int SET_LAST_MATCH_LIMIT;
+    public final int SET_BLOCK_LAST_MATCH_LIMIT;
     
     Options(OptionsBuilder builder) {
         HOME = builder.getOrDefault(OptionsCatalog.HOME);
@@ -192,6 +194,8 @@ public class Options {
         OPTIONS_LOG = builder.getOrDefault(OptionsCatalog.OPTIONS_LOG);
         LOG_LOAD = builder.getOrDefault(OptionsCatalog.LOG_LOAD);
         LOG_FEATURE_LOCATION = builder.getOrDefault(OptionsCatalog.LOG_FEATURE_LOCATION);
+        SET_LAST_MATCH_LIMIT = builder.getOrDefault(OptionsCatalog.SET_LAST_MATCH_LIMIT);
+        SET_BLOCK_LAST_MATCH_LIMIT = builder.getOrDefault(OptionsCatalog.SET_BLOCK_LAST_MATCH_LIMIT);
     }
 
     public Object fromDescription(OptionDescription<?> description) {
@@ -368,6 +372,10 @@ public class Options {
                 return LOG_LOAD;
             case "log.feature_location":
                 return LOG_FEATURE_LOCATION;
+            case "set.last.match.limit":
+                return SET_LAST_MATCH_LIMIT;
+            case "set.block.last.match.limit":
+                return SET_BLOCK_LAST_MATCH_LIMIT;
             default:
                 return null;
         }
