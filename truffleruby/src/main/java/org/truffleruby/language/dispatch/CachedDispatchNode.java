@@ -21,8 +21,10 @@ import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.RubyContext;
+import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -35,7 +37,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
     @Child protected DispatchNode next;
 
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
-    @CompilationFinal protected boolean needsCallerFrame = false;
+    @CompilationFinal protected boolean sendsFrame = false;
+    @CompilationFinal @Child private ReadCallerFrameNode readCaller;
 
     public CachedDispatchNode(
             RubyContext context,
@@ -60,10 +63,17 @@ public abstract class CachedDispatchNode extends DispatchNode {
         this.next = next;
     }
 
-    public void replaceSendingChild() {
+    public void replaceSendingFrame() {
         CompilerAsserts.neverPartOfCompilation("Dispatch nodes should not be altered after compilation.");
-        if (!needsCallerFrame) {
-            needsCallerFrame = true;
+        if (!sendsFrame) {
+            sendsFrame = true;
+        }
+    }
+
+    public void replaceSendingCallerFrame(CallerFrameAccess access) {
+        CompilerAsserts.neverPartOfCompilation("Dispatch nodes should not be altered after compilation.");
+        if (readCaller == null) {
+            readCaller = new ReadCallerFrameNode(access);
         }
     }
 
@@ -114,8 +124,17 @@ public abstract class CachedDispatchNode extends DispatchNode {
         }
     }
 
-    protected static Object call(DirectCallNode callNode, VirtualFrame frame, InternalMethod method, Object receiver, DynamicObject block, Object[] arguments, boolean needsCallerFrame) {
-        MaterializedFrame callerFrame = needsCallerFrame ? frame.materialize() : null;
+    protected Object call(DirectCallNode callNode, VirtualFrame frame, InternalMethod method, Object receiver, DynamicObject block, Object[] arguments) {
+        MaterializedFrame callerFrame = getFrameIfRequired(frame);
         return callNode.call(RubyArguments.pack(null, callerFrame, method, DeclarationContext.METHOD, null, receiver, block, arguments));
+    }
+
+    private MaterializedFrame getFrameIfRequired(VirtualFrame frame) {
+        if (sendsFrame) {
+            return frame.materialize();
+        } else if (readCaller != null) {
+            return readCaller.execute(frame).materialize();
+        }
+        return null;
     }
 }

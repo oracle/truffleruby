@@ -17,7 +17,6 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -28,10 +27,10 @@ public class ReadCallerFrameNode extends RubyNode {
 
     private final ConditionProfile callerFrameProfile = ConditionProfile.createBinaryProfile();
 
-    private final FrameAccess accessMode;
+    private final CallerFrameAccess accessMode;
 
     public ReadCallerFrameNode(CallerFrameAccess callerFrameAccess) {
-        this.accessMode = callerFrameAccess.getFrameAccess();
+        this.accessMode = callerFrameAccess;
     }
 
     @Override
@@ -47,12 +46,14 @@ public class ReadCallerFrameNode extends RubyNode {
 
     private void replaceDispatchNode() {
         CompilerAsserts.neverPartOfCompilation("Dispatch nodes should never be replaced after compilation.");
-        if (!getContext().getCallStack().callerIsSend()) {
-            Node callerNode = getContext().getCallStack().getCallerNode();
-            if (callerNode instanceof DirectCallNode) {
-                Node parent = callerNode.getParent();
-                if (parent instanceof CachedDispatchNode) {
-                    ((CachedDispatchNode) parent).replaceSendingChild();
+        Node callerNode = getContext().getCallStack().getCallerNode();
+        if (callerNode instanceof DirectCallNode) {
+            Node parent = callerNode.getParent();
+            if (parent instanceof CachedDispatchNode) {
+                if (getContext().getCallStack().callerIsSend()) {
+                    ((CachedDispatchNode) parent).replaceSendingCallerFrame(accessMode);
+                } else {
+                    ((CachedDispatchNode) parent).replaceSendingFrame();
                 }
             }
         }
@@ -63,7 +64,7 @@ public class ReadCallerFrameNode extends RubyNode {
         if (!CompilerDirectives.inCompiledCode()) {
             replaceDispatchNode();
         }
-        return getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(accessMode);
+        return getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(accessMode.getFrameAccess());
     }
 
 }
