@@ -102,8 +102,8 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription OPTIONS_LOG = new BooleanOptionDescription("options.log", "Log the final value of all options", false);
     public static final BooleanOptionDescription LOG_LOAD = new BooleanOptionDescription("log.load", "Log loading files", false);
     public static final BooleanOptionDescription LOG_FEATURE_LOCATION = new BooleanOptionDescription("log.feature_location", "Log the process of finding features", false);
-    public static final IntegerOptionDescription SET_LAST_MATCH_LIMIT = new IntegerOptionDescription("set.last.match.limit", "Maximum number of specialisations for set last match nodes", 20);
-    public static final IntegerOptionDescription SET_BLOCK_LAST_MATCH_LIMIT = new IntegerOptionDescription("set.block.last.match.limit", "Maximum number of specialisations for set block last match nodes", 20);
+    public static final IntegerOptionDescription SET_LAST_MATCH_LIMIT = new IntegerOptionDescription("set.last.match.limit", "Maximum number of specialisations for set last match nodes", 5);
+    public static final IntegerOptionDescription SET_BLOCK_LAST_MATCH_LIMIT = new IntegerOptionDescription("set.block.last.match.limit", "Maximum number of specialisations for set block last match nodes", 5);
     
     public static OptionDescription<?> fromName(String name) {
         switch (name) {
