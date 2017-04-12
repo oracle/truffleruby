@@ -787,21 +787,25 @@ module Commands
     if args.delete('--openssl')
       include_pattern = "#{JRUBY_DIR}/test/mri/openssl/test_*.rb"
       exclude_file = "#{JRUBY_DIR}/test/mri_openssl.exclude"
-    else
+    elsif args.all? { |a| a.start_with?('-') }
       include_pattern = "#{JRUBY_DIR}/test/mri/**/test_*.rb"
       exclude_file = "#{JRUBY_DIR}/test/mri_standard.exclude"
+    else
+      args, files_to_run = args.partition { |a| a.start_with?('-') }
     end
     
-    prefix = "#{JRUBY_DIR}/test/mri/"
-    
-    include_files = Dir.glob(include_pattern).map { |f|
-      raise unless f.start_with?(prefix)
-      f[prefix.size..-1]
-    }
-    
-    exclude_files = File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }
-    
-    files_to_run = (include_files - exclude_files)
+    unless files_to_run
+      prefix = "#{JRUBY_DIR}/test/mri/"
+      
+      include_files = Dir.glob(include_pattern).map { |f|
+        raise unless f.start_with?(prefix)
+        f[prefix.size..-1]
+      }
+      
+      exclude_files = File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }
+      
+      files_to_run = (include_files - exclude_files)
+    end
     
     command = %w[test/mri/runner.rb -v --color=never --tty=no -q]
     run(env_vars, *truffle_args, *args, *command, *files_to_run)
