@@ -31,6 +31,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -50,6 +51,36 @@ import java.util.Set;
 @CoreClass("Binding")
 public abstract class BindingNodes {
 
+    @ImportStatic(BindingNodes.class)
+    public abstract static class CreateBindingNode extends RubyBaseNode {
+
+        public abstract DynamicObject execute(MaterializedFrame frame);
+
+        @Specialization(guards = "descriptor == frame.getFrameDescriptor()", limit = "20")
+        public DynamicObject createBinding(MaterializedFrame frame,
+                @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
+                @Cached("newFrameDescriptor(getContext())") FrameDescriptor bindingDescriptor) {
+            RubyContext context = getContext();
+            final MaterializedFrame bindingFrame = Truffle.getRuntime().createMaterializedFrame(
+                    RubyArguments.pack(frame, null, RubyArguments.getMethod(frame), RubyArguments.getDeclarationContext(frame), null, RubyArguments.getSelf(frame), RubyArguments.getBlock(frame),
+                            RubyArguments.getArguments(frame)),
+                    bindingDescriptor);
+
+            return Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), bindingFrame);
+        }
+
+        @Specialization
+        public DynamicObject createBinding(MaterializedFrame frame) {
+            RubyContext context = getContext();
+            final MaterializedFrame bindingFrame = Truffle.getRuntime().createMaterializedFrame(
+                    RubyArguments.pack(frame, null, RubyArguments.getMethod(frame), RubyArguments.getDeclarationContext(frame), null, RubyArguments.getSelf(frame), RubyArguments.getBlock(frame),
+                            RubyArguments.getArguments(frame)),
+                    newFrameDescriptor(context));
+
+            return Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), bindingFrame);
+        }
+    }
+
     public static DynamicObject createBinding(RubyContext context, MaterializedFrame frame) {
         final MaterializedFrame bindingFrame = Truffle.getRuntime().createMaterializedFrame(
                 RubyArguments.pack(frame, null, RubyArguments.getMethod(frame), RubyArguments.getDeclarationContext(frame), null, RubyArguments.getSelf(frame), RubyArguments.getBlock(frame), RubyArguments.getArguments(frame)),
@@ -59,7 +90,7 @@ public abstract class BindingNodes {
     }
 
     @TruffleBoundary
-    private static FrameDescriptor newFrameDescriptor(RubyContext context) {
+    public static FrameDescriptor newFrameDescriptor(RubyContext context) {
         return new FrameDescriptor(context.getCoreLibrary().getNilObject());
     }
 
