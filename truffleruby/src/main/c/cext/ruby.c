@@ -1771,11 +1771,11 @@ void rb_define_global_const(const char *name, VALUE value) {
 
 // Global variables
 
-VALUE rb_gvar_var_getter(ID id, VALUE *var, struct rb_global_variable *gvar) {
+VALUE rb_gvar_var_getter(ID id, VALUE *var, void *gvar) {
   return *var;
 }
 
-void rb_gvar_var_setter(VALUE val, ID id, VALUE *var, struct rb_global_variable *g) {
+void rb_gvar_var_setter(VALUE val, ID id, VALUE *var, void *g) {
   *var = val;
 }
 
@@ -1791,7 +1791,7 @@ void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANY
   truffle_invoke(RUBY_CEXT, "rb_define_hooked_variable", rb_str_new_cstr(name), var, getter, setter);
 }
 
-void rb_gvar_readonly_setter(VALUE v, ID id, void *d, struct rb_global_variable *g) {
+void rb_gvar_readonly_setter(VALUE v, ID id, void *d, void *g) {
   rb_raise(rb_eNameError, "read-only variable");
 }
 
