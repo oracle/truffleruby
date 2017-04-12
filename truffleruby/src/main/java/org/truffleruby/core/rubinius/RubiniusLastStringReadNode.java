@@ -10,20 +10,33 @@
 
 package org.truffleruby.core.rubinius;
 
+import org.truffleruby.builtins.CallerFrameAccess;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
+import org.truffleruby.language.threadlocal.ThreadLocalInFrameNode;
+import org.truffleruby.language.threadlocal.ThreadLocalInFrameNodeGen;
+import org.truffleruby.language.threadlocal.ThreadLocalObject;
+
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.threadlocal.ThreadLocalObject;
 
 public class RubiniusLastStringReadNode extends RubyNode {
+    @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
+    @Child ThreadLocalInFrameNode threadLocalNode;
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return getLastString();
+        Frame callerFrame = callerFrameNode.execute(frame);
+        if (threadLocalNode == null) {
+            CompilerDirectives.transferToInterpreter();
+            threadLocalNode = ThreadLocalInFrameNodeGen.create("$_", 5);
+        }
+        return threadLocalNode.execute(callerFrame.materialize()).get();
     }
 
     @TruffleBoundary

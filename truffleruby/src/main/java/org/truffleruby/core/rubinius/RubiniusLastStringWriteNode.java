@@ -10,55 +10,34 @@
 
 package org.truffleruby.core.rubinius;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.builtins.CallerFrameAccess;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
+import org.truffleruby.language.threadlocal.ThreadLocalInFrameNode;
+import org.truffleruby.language.threadlocal.ThreadLocalInFrameNodeGen;
+
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.threadlocal.ThreadLocalObject;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class RubiniusLastStringWriteNode extends RubyNode {
 
-    @TruffleBoundary
+    @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
+    @Child ThreadLocalInFrameNode threadLocalNode;
+
     @Specialization
-    public Object lastStringWrite(Object value) {
+    public Object lastStringWrite(VirtualFrame frame, Object value) {
         // Rubinius expects $_ to be thread-local, rather than frame-local.  If we see it in a method call, we need
         // to look to the caller's frame to get the correct value, otherwise it will be nil.
-        Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);
-
-        FrameSlot slot = callerFrame.getFrameDescriptor().findFrameSlot("$_");
-
-        while (slot == null) {
-            callerFrame = RubyArguments.getDeclarationFrame(callerFrame);
-
-            if (callerFrame == null) {
-                break;
-            }
-
-            slot = callerFrame.getFrameDescriptor().findFrameSlot("$_");
+        Frame callerFrame = callerFrameNode.execute(frame);
+        if (threadLocalNode == null) {
+            CompilerDirectives.transferToInterpreter();
+            threadLocalNode = ThreadLocalInFrameNodeGen.create("$_", 20);
         }
-
-        if (slot == null) {
-            return value;
-        }
-
-        try {
-            Object currentValue = callerFrame.getObject(slot);
-
-            if (currentValue instanceof ThreadLocalObject) {
-                ThreadLocalObject threadLocalObject = (ThreadLocalObject) currentValue;
-                threadLocalObject.set(value);
-            } else {
-                callerFrame.setObject(slot, value);
-            }
-        } catch (FrameSlotTypeException e) {
-            throw new UnsupportedOperationException(e);
-        }
+        threadLocalNode.execute(callerFrame.materialize()).set(value);
 
         return value;
     }
