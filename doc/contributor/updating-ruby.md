@@ -31,7 +31,7 @@ Then:
 * Update `doc/user/compatibility.md`
 * Update `doc/user/legal.md`
 
-Check again with everyone for clerance.
+Check again with everyone for clearance.
 
 ## Updating bundled gems
 
