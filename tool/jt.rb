@@ -1477,12 +1477,13 @@ module Commands
   end
 
   def rubocop(*args)
+    version = "0.48.1"
     begin
       require 'rubocop'
     rescue LoadError
-      sh "gem", "install", "rubocop"
+      sh "gem", "install", "rubocop", "--version", version
     end
-    sh "rubocop", *args
+    sh "rubocop", format('_%s_', version), *args
   end
 
   def lint
