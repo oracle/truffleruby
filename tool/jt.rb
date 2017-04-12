@@ -469,7 +469,7 @@ module Commands
       jt test                                        run all mri tests, specs and integration tests (set SULONG_HOME)
       jt test tck [--jdebug]                         run the Truffle Compatibility Kit tests
       jt test mri                                    run mri tests
-          --openssl       runs openssl.index         use with --sulong
+          --openssl       runs openssl tests         use with --sulong
           --aot           use AOT TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME)
       jt test specs                                  run all specs
@@ -777,22 +777,34 @@ module Commands
   end
 
   def test_mri(*args)
+    truffle_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
+    
     env_vars = {
       "EXCLUDES" => "test/mri/excludes_truffle",
       "RUBYOPT" => '--disable-gems'
     }
 
     if args.delete('--openssl')
-      index = "#{JRUBY_DIR}/test/openssl.index"
+      include_pattern = "#{JRUBY_DIR}/test/mri/openssl/test_*.rb"
+      exclude_file = "#{JRUBY_DIR}/test/mri_openssl.exclude"
     else
-      index = "#{JRUBY_DIR}/test/mri_truffle.index"
+      include_pattern = "#{JRUBY_DIR}/test/mri/**/test_*.rb"
+      exclude_file = "#{JRUBY_DIR}/test/mri_standard.exclude"
     end
-
-    truffle_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
-    test_args = File.readlines(index).grep(/^[^#]\w+/).map(&:chomp)
-
+    
+    prefix = "#{JRUBY_DIR}/test/mri/"
+    
+    include_files = Dir.glob(include_pattern).map { |f|
+      raise unless f.start_with?(prefix)
+      f[prefix.size..-1]
+    }
+    
+    exclude_files = File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }
+    
+    files_to_run = (include_files - exclude_files)
+    
     command = %w[test/mri/runner.rb -v --color=never --tty=no -q]
-    run(env_vars, *truffle_args, *args, *command, *test_args)
+    run(env_vars, *truffle_args, *args, *command, *files_to_run)
   end
   private :test_mri
 

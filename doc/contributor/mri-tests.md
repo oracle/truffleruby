@@ -10,8 +10,9 @@ running tests that are ignored using test exclude files in the
 
 ### Run test suite
 
-The `jt test mri` command is used to run all MRI test files specified in the
-`test/mri_truffle.index` file.
+The `jt test mri` command is used to run all MRI test files that can be run
+normally. `--openssl` runs those using `openssl` and needs to be run with
+`--sulong`.
 
 ### Run a single test
 
@@ -19,8 +20,11 @@ A single MRI test can be run using the command `jt test mri ruby/test_time.rb`.
 
 ## Excluding tests 
 
-Test excludes are created in the `test/mri/excludes_truffle` directory using the
-test's class name as the file name.
+Whole files are excluded in `test/mri_standard.exclude` and
+`test/mri_openssl.exclude`.
+
+Individual test excludes are created in the `test/mri/excludes_truffle`
+directory using the test's class name as the file name.
 
 For example the `TestTime` class found in `test/mri/ruby/test_time.rb` has a
 corresponding exclude file: `test/mri/excludes_truffle/TestTime.rb`.
