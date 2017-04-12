@@ -781,16 +781,16 @@ module Commands
       "EXCLUDES" => "test/mri/excludes_truffle",
       "RUBYOPT" => '--disable-gems'
     }
-    
+
     if args.delete('--openssl')
       index = "#{JRUBY_DIR}/test/openssl.index"
     else
       index = "#{JRUBY_DIR}/test/mri_truffle.index"
     end
-    
+
     truffle_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
     test_args = File.readlines(index).grep(/^[^#]\w+/).map(&:chomp)
-    
+
     command = %w[test/mri/runner.rb -v --color=never --tty=no -q]
     run(env_vars, *truffle_args, *args, *command, *test_args)
   end
