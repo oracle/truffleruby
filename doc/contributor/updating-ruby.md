@@ -9,7 +9,10 @@ From MRI copy and paste over our versions of:
 * `ext/openssl/*.{c,h}` to `truffleruby/src/main/c/openssl`
 * `ext/openssl/lib` to `lib/mri`
 * `test/mri`
+* `ext/-test-` to `test/mri`
 * `doc/legal/ruby-bsdl.txt` and `doc/legal/ruby-licence.txt`
+* Move `test/mri/-ext-` to `test/mri/cext/ruby`, and `test/mri/-test-` to `test/mri/cext/c`
+* Change instances of `-test-` in the MRI cext tests to `c`
 
 The script `tool/update-mri.sh` will do the above for you, assuming you have the
 version of MRI you want checked out in `../ruby`. You should be able to commit

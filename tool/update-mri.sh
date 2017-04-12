@@ -19,6 +19,12 @@ cp -r ../ruby/ext/pty/lib/*.rb lib/mri
 
 rm -rf test/mri
 cp -r ../ruby/test test/mri
+cp -r ../ruby/ext/-test- test/mri
+mkdir test/mri/cext
+mv test/mri/-ext- test/mri/cext/ruby
+mv test/mri/-test- test/mri/cext/c
+find test/mri/cext/ruby -name *.rb | xargs -n 1 sed -i .backup 's/-test-/c/g'
+find test/mri/cext/ruby -name *.backup | xargs rm
 git checkout -- test/mri/excludes_truffle
 rm -rf test/mri/excludes
 git checkout -- test/mri/runner.rb
