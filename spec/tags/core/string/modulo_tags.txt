@@ -1,1 +1,0 @@
-fails:String#% supports binary formats using %b for positive numbers
