@@ -151,6 +151,8 @@ public class MethodTranslator extends BodyTranslator {
 
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
 
+        body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
+
         // Procs
         final RubyNode bodyProc = new CatchForProcNode(composeBody(sourceSection, preludeProc, NodeUtil.cloneNode(body)));
         bodyProc.unsafeSetSourceSection(enclosing(sourceSection, body));
@@ -261,7 +263,6 @@ public class MethodTranslator extends BodyTranslator {
 
         body = new CatchForMethodNode(environment.getReturnID(), body);
 
-        // TODO(CS, 10-Jan-15) why do we only translate exceptions in methods and not blocks?
         body = new ExceptionTranslatingNode(body, UnsupportedOperationBehavior.TYPE_ERROR);
 
         body.unsafeSetSourceSection(sourceSection);
