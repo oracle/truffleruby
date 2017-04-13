@@ -444,8 +444,7 @@ public class RopeOperations {
     }
 
     public static int hashCodeForLeafRope(byte[] bytes, int startingHashCode, int offset, int length) {
-        assert offset <= bytes.length;
-        assert length <= bytes.length;
+        assert offset + length <= bytes.length;
 
         int hashCode = startingHashCode;
         final int endIndex = offset + length;
