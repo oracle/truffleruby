@@ -27,6 +27,8 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.binding.BindingNodes.CreateBindingNode;
+import org.truffleruby.core.binding.BindingNodesFactory.CreateBindingNodeGen;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
@@ -201,10 +203,12 @@ public abstract class ProcNodes {
     @CoreMethod(names = "binding")
     public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
 
+        @Child CreateBindingNode createBinding = CreateBindingNodeGen.create();
+
         @Specialization
         public DynamicObject binding(DynamicObject proc) {
             final MaterializedFrame frame = Layouts.PROC.getDeclarationFrame(proc);
-            return BindingNodes.createBinding(getContext(), frame);
+            return createBinding.execute(frame);
         }
 
     }

@@ -627,7 +627,7 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = { "isSuitableMatchDataType(getContext(), matchData)",
                                    "strategy.matches(readCallerFrame.execute(frame))" },
-                        limit = "getContext().getOptions().SET_LAST_MATCH_LIMIT" )
+                limit = "getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT")
         public DynamicObject setLastMatchDataForFrame(VirtualFrame frame, DynamicObject matchData,
                 @Cached("of(getContext(), readCallerFrame.execute(frame))") SetLastMatchStrategy strategy) {
             MaterializedFrame callerFrame = readCallerFrame.execute(frame).materialize();
@@ -657,7 +657,7 @@ public abstract class RegexpNodes {
         @Specialization(guards = { "isRubyProc(block)",
                                    "isSuitableMatchDataType(getContext(), matchData)",
                                    "strategy.matchesBlock(block)" },
-                        limit = "getContext().getOptions().SET_BLOCK_LAST_MATCH_LIMIT" )
+                limit = "getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT")
         public DynamicObject setBlockLastMatchDataForFrame(DynamicObject block, DynamicObject matchData,
                 @Cached("ofBlock(getContext(), block)") SetLastMatchStrategy strategy) {
             ThreadLocalObject lastMatch = strategy.getThreadLocalBlock(getContext(), block);
