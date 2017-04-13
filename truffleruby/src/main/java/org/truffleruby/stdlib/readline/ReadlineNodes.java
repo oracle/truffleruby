@@ -228,7 +228,7 @@ public abstract class ReadlineNodes {
         public Object lineBuffer() {
             final CursorBuffer cb = getContext().getConsoleHolder().getReadline().getCursorBuffer();
 
-            final DynamicObject ret = createString(StringOperations.encodeRope(cb.toString(), getDefaultInternalEncoding()));
+            final DynamicObject ret = createString(StringOperations.encodeRope(cb.toString(), getLocaleEncoding()));
             return taintNode.executeTaint(ret);
         }
 

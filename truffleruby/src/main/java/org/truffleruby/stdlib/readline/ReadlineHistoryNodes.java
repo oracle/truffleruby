@@ -101,7 +101,7 @@ public abstract class ReadlineHistoryNodes {
             }
 
             final String lastLine = consoleHolder.getHistory().removeLast().toString();
-            final DynamicObject ret = createString(StringOperations.encodeRope(lastLine, getDefaultInternalEncoding()));
+            final DynamicObject ret = createString(StringOperations.encodeRope(lastLine, getLocaleEncoding()));
 
             return taintNode.executeTaint(ret);
         }
@@ -123,7 +123,7 @@ public abstract class ReadlineHistoryNodes {
             }
 
             final String lastLine = consoleHolder.getHistory().removeFirst().toString();
-            final DynamicObject ret = createString(StringOperations.encodeRope(lastLine, getDefaultInternalEncoding()));
+            final DynamicObject ret = createString(StringOperations.encodeRope(lastLine, getLocaleEncoding()));
 
             return taintNode.executeTaint(ret);
         }
@@ -164,7 +164,7 @@ public abstract class ReadlineHistoryNodes {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             for (final History.Entry e : consoleHolder.getHistory()) {
-                final DynamicObject line = createString(StringOperations.encodeRope(historyEntryToString(e), getDefaultInternalEncoding()));
+                final DynamicObject line = createString(StringOperations.encodeRope(historyEntryToString(e), getLocaleEncoding()));
 
                 yield(frame, block, taintNode.executeTaint(line));
             }
@@ -193,7 +193,7 @@ public abstract class ReadlineHistoryNodes {
 
             try {
                 final String line = consoleHolder.getHistory().get(normalizedIndex).toString();
-                final DynamicObject ret = createString(StringOperations.encodeRope(line, getDefaultInternalEncoding()));
+                final DynamicObject ret = createString(StringOperations.encodeRope(line, getLocaleEncoding()));
 
                 return taintNode.executeTaint(ret);
             } catch (IndexOutOfBoundsException e) {
@@ -250,7 +250,7 @@ public abstract class ReadlineHistoryNodes {
 
             try {
                 final String line = consoleHolder.getHistory().remove(normalizedIndex).toString();
-                final DynamicObject ret = createString(StringOperations.encodeRope(line, getDefaultInternalEncoding()));
+                final DynamicObject ret = createString(StringOperations.encodeRope(line, getLocaleEncoding()));
 
                 return taintNode.executeTaint(ret);
             } catch (IndexOutOfBoundsException e) {
