@@ -103,8 +103,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription OPTIONS_LOG = new BooleanOptionDescription("options.log", "Log the final value of all options", false);
     public static final BooleanOptionDescription LOG_LOAD = new BooleanOptionDescription("log.load", "Log loading files", false);
     public static final BooleanOptionDescription LOG_FEATURE_LOCATION = new BooleanOptionDescription("log.feature_location", "Log the process of finding features", false);
-    public static final IntegerOptionDescription SET_LAST_MATCH_LIMIT = new IntegerOptionDescription("set.last.match.limit", "Maximum number of specialisations for set last match nodes", 5);
-    public static final IntegerOptionDescription SET_BLOCK_LAST_MATCH_LIMIT = new IntegerOptionDescription("set.block.last.match.limit", "Maximum number of specialisations for set block last match nodes", 5);
+    public static final IntegerOptionDescription FRAME_VARIABLE_ACCESS_LIMIT = new IntegerOptionDescription("frame.variable.access.limit", "Maximum number of specialisations for nodes which access variables in another frame", 5);
     
     public static OptionDescription<?> fromName(String name) {
         switch (name) {
@@ -282,10 +281,8 @@ public class OptionsCatalog {
                 return LOG_LOAD;
             case "log.feature_location":
                 return LOG_FEATURE_LOCATION;
-            case "set.last.match.limit":
-                return SET_LAST_MATCH_LIMIT;
-            case "set.block.last.match.limit":
-                return SET_BLOCK_LAST_MATCH_LIMIT;
+            case "frame.variable.access.limit":
+                return FRAME_VARIABLE_ACCESS_LIMIT;
             default:
                 return null;
         }
@@ -380,8 +377,7 @@ public class OptionsCatalog {
             OPTIONS_LOG,
             LOG_LOAD,
             LOG_FEATURE_LOCATION,
-            SET_LAST_MATCH_LIMIT,
-            SET_BLOCK_LAST_MATCH_LIMIT,
+            FRAME_VARIABLE_ACCESS_LIMIT,
         };
     }
 

@@ -56,7 +56,7 @@ public abstract class BindingNodes {
 
         public abstract DynamicObject execute(MaterializedFrame frame);
 
-        @Specialization(guards = "descriptor == frame.getFrameDescriptor()", limit = "20")
+        @Specialization(guards = "descriptor == frame.getFrameDescriptor()", limit = "getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT")
         public DynamicObject createBinding(MaterializedFrame frame,
                 @Cached("frame.getFrameDescriptor()") FrameDescriptor descriptor,
                 @Cached("newFrameDescriptor(getContext())") FrameDescriptor bindingDescriptor) {
