@@ -434,7 +434,7 @@ public class RopeOperations {
     private static int computeLoopCount(int offset, int times, int length, int patternLength) {
         // The loopCount has to be precisely determined so every repetition has at least some parts used.
         // It has to account for the beginning we don't need (offset), has to reach the end but, and must not
-        // have extra repetitions. However it cannot be ever longer then repeatingRope.getTimes()
+        // have extra repetitions. However it cannot ever be longer than repeatingRope.getTimes().
         return Integer.min(
                 times,
                 (offset
@@ -502,13 +502,14 @@ public class RopeOperations {
 
             int hash = startingHashCode;
             for (int i = 0; i < loopCount; i++) {
+                final int bytesToHashThisPass = bytesToHash + offset > patternLength ? patternLength - offset : bytesToHash;
                 hash = hashForRange(
                         child,
                         hash,
                         offset,
-                        bytesToHash >= child.byteLength() ? child.byteLength() : bytesToHash % child.byteLength());
-                bytesToHash = child.byteLength() - offset;
+                        bytesToHashThisPass);
                 offset = 0;
+                bytesToHash -= bytesToHashThisPass;
             }
 
             return hash;
