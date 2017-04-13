@@ -110,11 +110,10 @@ long rb_tr_obj_id(VALUE object);
 #define ZALLOC(type)                RB_ZALLOC(type)
 
 void *rb_alloc_tmp_buffer(VALUE *buffer_pointer, long length);
-void *rb_alloc_tmp_buffer2(VALUE *buffer_pointer, long count, size_t size);
 void rb_free_tmp_buffer(VALUE *buffer_pointer);
 
 #define RB_ALLOCV(v, n)             rb_alloc_tmp_buffer(&(v), (n))
-#define RB_ALLOCV_N(type, v, n)     rb_alloc_tmp_buffer2(&(v), (n), sizeof(type))
+#define RB_ALLOCV_N(type, v, n)     rb_alloc_tmp_buffer(&(v), (n) * sizeof(type))
 #define RB_ALLOCV_END(v)            rb_free_tmp_buffer(&(v))
 
 #define ALLOCV(v, n)                RB_ALLOCV(v, n)
