@@ -64,14 +64,14 @@ public abstract class CachedDispatchNode extends DispatchNode {
     }
 
     public void replaceSendingFrame() {
-        CompilerAsserts.neverPartOfCompilation("Dispatch nodes should not be altered after compilation.");
+        CompilerAsserts.neverPartOfCompilation("No fast path frame access changes after compilation.");
         if (!sendsFrame) {
             sendsFrame = true;
         }
     }
 
     public void replaceSendingCallerFrame(CallerFrameAccess access) {
-        CompilerAsserts.neverPartOfCompilation("Dispatch nodes should not be altered after compilation.");
+        CompilerAsserts.neverPartOfCompilation("No fast path frame access changes after compilation.");
         if (readCaller == null) {
             readCaller = new ReadCallerFrameNode(access);
         }

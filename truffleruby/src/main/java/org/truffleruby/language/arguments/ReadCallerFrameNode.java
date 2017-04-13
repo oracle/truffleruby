@@ -45,7 +45,7 @@ public class ReadCallerFrameNode extends RubyNode {
     }
 
     private void replaceDispatchNode() {
-        CompilerAsserts.neverPartOfCompilation("Dispatch nodes should never be replaced after compilation.");
+        CompilerAsserts.neverPartOfCompilation("No fast path frame access changes after compilation.");
         Node callerNode = getContext().getCallStack().getCallerNode();
         if (callerNode instanceof DirectCallNode) {
             Node parent = callerNode.getParent();
