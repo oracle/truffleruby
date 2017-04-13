@@ -45,6 +45,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
             Arrays.asList("$:", "$LOAD_PATH", "$-I", "$\"", "$LOADED_FEATURES", "$<", "$FILENAME", "$?", "$-a", "$-l", "$-p", "$!"));
     static final Set<String> ALWAYS_DEFINED_GLOBALS = new HashSet<>(Arrays.asList("$!", "$~"));
     static final Set<String> THREAD_LOCAL_GLOBAL_VARIABLES = new HashSet<>(Arrays.asList("$!", "$?")); // "$_"
+    static final Set<String> THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES = new HashSet<>(Arrays.asList("$~", "$_"));
 
     static final Map<String, String> GLOBAL_VARIABLE_ALIASES = new HashMap<>();
     static {

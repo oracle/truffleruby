@@ -155,6 +155,7 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.WriteClassVariableNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
 import org.truffleruby.language.threadlocal.GetFromThreadLocalNode;
+import org.truffleruby.language.threadlocal.SetInThreadLocalNode;
 import org.truffleruby.language.threadlocal.ThreadLocalObjectNode;
 import org.truffleruby.language.threadlocal.ThreadLocalObjectNodeGen;
 import org.truffleruby.language.threadlocal.WrapInThreadLocalNodeGen;
@@ -1685,10 +1686,12 @@ public class BodyTranslator extends Translator {
 
         switch (name) {
             case "$~":
-                rhs = new CheckMatchVariableTypeNode(rhs);
-                rhs = WrapInThreadLocalNodeGen.create(rhs);
-                rhs.unsafeSetSourceSection(sourceSection);
-                environment.declareVarInMethodScope("$~");
+                environment.declareVarInMethodScope(name);
+                // The right hand side must be built using the resolved variable.
+                break;
+            case "$_":
+                // The right hand side must be built using the resolved variable.
+                environment.declareVar(name);
                 break;
             case "$0":
                 rhs = new CheckProgramNameVariableTypeNode(rhs);
@@ -1701,15 +1704,6 @@ public class BodyTranslator extends Translator {
             case "$,":
                 rhs = new CheckOutputSeparatorVariableTypeNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
-                break;
-            case "$_":
-                if (getSourcePath(sourceSection).endsWith(buildPartialPath("rubysl", "rubysl-stringio", "lib", "rubysl", "stringio", "stringio.rb"))) {
-                    rhs = RubiniusLastStringWriteNodeGen.create(rhs);
-                } else {
-                    rhs = WrapInThreadLocalNodeGen.create(rhs);
-                }
-                rhs.unsafeSetSourceSection(sourceSection);
-                environment.declareVar("$_");
                 break;
             case "$stdout":
                 rhs = new CheckStdoutVariableTypeNode(rhs);
@@ -1761,11 +1755,12 @@ public class BodyTranslator extends Translator {
                 }
             }
 
-            RubyNode assignment = localVarNode.makeWriteNode(rhs);
-
-            if (name.equals("$_") || name.equals("$~")) {
-                // TODO CS 4-Jan-16 I can't work out why this is a *get* node
-                assignment = withSourceSection(sourceSection, new GetFromThreadLocalNode(assignment));
+            final RubyNode assignment;
+            if (THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+                assignment = new SetInThreadLocalNode(localVarNode, rhs);
+                assignment.unsafeSetSourceSection(sourceSection);
+            } else {
+                assignment = localVarNode.makeWriteNode(rhs);
             }
 
             return addNewlineIfNeeded(node, assignment);
