@@ -780,22 +780,22 @@ module Commands
     truffle_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
     
     env_vars = {
-      "EXCLUDES" => "test/mri/excludes_truffle",
+      "EXCLUDES" => "test/mri/excludes",
       "RUBYOPT" => '--disable-gems'
     }
 
     if args.delete('--openssl')
-      include_pattern = "#{JRUBY_DIR}/test/mri/openssl/test_*.rb"
-      exclude_file = "#{JRUBY_DIR}/test/mri_openssl.exclude"
+      include_pattern = "#{JRUBY_DIR}/test/mri/tests/openssl/test_*.rb"
+      exclude_file = "#{JRUBY_DIR}/test/mri/openssl.exclude"
     elsif args.all? { |a| a.start_with?('-') }
-      include_pattern = "#{JRUBY_DIR}/test/mri/**/test_*.rb"
-      exclude_file = "#{JRUBY_DIR}/test/mri_standard.exclude"
+      include_pattern = "#{JRUBY_DIR}/test/mri/tests/**/test_*.rb"
+      exclude_file = "#{JRUBY_DIR}/test/mri/standard.exclude"
     else
       args, files_to_run = args.partition { |a| a.start_with?('-') }
     end
     
     unless files_to_run
-      prefix = "#{JRUBY_DIR}/test/mri/"
+      prefix = "#{JRUBY_DIR}/test/mri/tests/"
       
       include_files = Dir.glob(include_pattern).map { |f|
         raise unless f.start_with?(prefix)
@@ -807,7 +807,7 @@ module Commands
       files_to_run = (include_files - exclude_files)
     end
     
-    command = %w[test/mri/runner.rb -v --color=never --tty=no -q]
+    command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
     run(env_vars, *truffle_args, *args, *command, *files_to_run)
   end
   private :test_mri

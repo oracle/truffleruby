@@ -6,7 +6,7 @@ MRI tests are located in the `test/mri` directory.
 
 MRI tests are run using the `jt` tool. By default these commands will exclude
 running tests that are ignored using test exclude files in the
-`test/mri/excludes_truffle` directory (more exclude details below).
+`test/mri/excludes` directory (more exclude details below).
 
 ### Run test suite
 
@@ -20,14 +20,14 @@ A single MRI test can be run using the command `jt test mri ruby/test_time.rb`.
 
 ## Excluding tests 
 
-Whole files are excluded in `test/mri_standard.exclude` and
-`test/mri_openssl.exclude`.
+Whole files are excluded in `test/mri/standard.exclude` and
+`test/mri/openssl.exclude`.
 
-Individual test excludes are created in the `test/mri/excludes_truffle`
+Individual test excludes are created in the `test/mri/excludes`
 directory using the test's class name as the file name.
 
-For example the `TestTime` class found in `test/mri/ruby/test_time.rb` has a
-corresponding exclude file: `test/mri/excludes_truffle/TestTime.rb`.
+For example the `TestTime` class found in `test/mri/test/ruby/test_time.rb` has
+a corresponding exclude file: `test/mri/excludes/TestTime.rb`.
 
 For a nested test class structure like `TestPrime::TestInteger` in
 `test_prime.rb`, the exclude directory for `TestInteger` is created in a
