@@ -86,7 +86,7 @@ public class CachedSingletonDispatchNode extends CachedDispatchNode {
 
         switch (getDispatchAction()) {
             case CALL_METHOD:
-                return call(callNode, frame, method, expectedReceiver, blockObject, argumentsObjects, needsCallerFrame);
+                return call(callNode, frame, method, expectedReceiver, blockObject, argumentsObjects);
 
             case RESPOND_TO_METHOD:
                 return true;
