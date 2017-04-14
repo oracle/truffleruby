@@ -28,10 +28,10 @@ Truffle::Patching.require_original __FILE__
 class String
   [:nfc, :nfd, :nfkc, :nfkd].each { |form|
     eval %{
-    def to_#{form.to_s}
-      unicode_normalize(#{form.inspect})
-    end
-  }
+      def to_#{form.to_s}
+        unicode_normalize(#{form.inspect})
+      end
+    }
   }
 end
 
