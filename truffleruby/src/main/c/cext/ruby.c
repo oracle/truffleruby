@@ -2489,3 +2489,11 @@ long rb_tr_obj_id(VALUE object) {
 void rb_p(VALUE obj) {
   truffle_invoke(rb_mKernel, "puts", truffle_invoke(obj, "inspect"));
 }
+
+VALUE rb_java_class_of(VALUE obj) {
+  return truffle_invoke(RUBY_CEXT, "rb_java_class_of", obj);
+}
+
+VALUE rb_java_to_string(VALUE obj) {
+  return truffle_invoke(RUBY_CEXT, "rb_java_to_string", obj);
+}

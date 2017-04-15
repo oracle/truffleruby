@@ -103,6 +103,16 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "java_to_string", onSingleton = true, required = 1)
+    public abstract static class JavaToStringNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject javaToString(Object value) {
+            return createString(StringOperations.encodeRope(String.valueOf(value), UTF8Encoding.INSTANCE));
+        }
+
+    }
+
     @CoreMethod(names = "print_backtrace", onSingleton = true)
     public abstract static class PrintBacktraceNode extends CoreMethodNode {
 

@@ -1713,6 +1713,14 @@ class << Truffle::CExt
     end
   end
 
+  def rb_java_class_of(object)
+    Truffle::Debug.java_class_of(object)
+  end
+
+  def rb_java_to_string(object)
+    Truffle::Debug.java_to_string(object)
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

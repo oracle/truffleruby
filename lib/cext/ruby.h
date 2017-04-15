@@ -408,6 +408,8 @@ int RB_FIXNUM_P(VALUE value);
 int RTEST(VALUE value);
 
 void rb_p(VALUE value);
+VALUE rb_java_class_of(VALUE val);
+VALUE rb_java_to_string(VALUE val);
 
 // Kernel
 
