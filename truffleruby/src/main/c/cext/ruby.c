@@ -66,7 +66,7 @@ VALUE rb_obj_is_instance_of(VALUE object, VALUE ruby_class) {
 }
 
 VALUE rb_obj_is_kind_of(VALUE object, VALUE ruby_class) {
-  return truffle_invoke(object, "kind_of?", ruby_class);
+  return truffle_invoke(RUBY_CEXT, "rb_obj_is_kind_of", object, ruby_class);
 }
 
 void rb_check_frozen(VALUE object) {
