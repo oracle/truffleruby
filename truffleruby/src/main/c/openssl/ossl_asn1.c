@@ -620,7 +620,8 @@ ossl_asn1_default_tag(VALUE obj)
     tmp_class = CLASS_OF(obj);
     while (tmp_class) {
 	tag = rb_hash_lookup(class_tag_map, tmp_class);
-	if (tag != Qnil) {
+    // TODO BJF Apr-15-2017 - `if (tag != Qnil) {` - Investigate why 0L == DynamicObject<NilClass>
+    if (!NIL_P(tag)) {
        	    return NUM2INT(tag);
       	}
     	tmp_class = rb_class_superclass(tmp_class);
