@@ -50,7 +50,7 @@ test_results = contents.scan(t)
 test_results.each do |r|
   if r[0]
     unless r[4] == "."
-      dirname = "excludes_truffle/#{r[0].chop.chop}"
+      dirname = "excludes/#{r[0].chop.chop}"
       #puts "dirname #{dirname}"
       Dir.mkdir(dirname) unless Dir.exist?(dirname)
       if r[2].include?("::")
@@ -64,7 +64,7 @@ test_results.each do |r|
     end
   else
     unless r[4] == "."
-      File.open("excludes_truffle/#{r[2]}.rb", 'a') {|f| f.write("exclude :\"#{r[3].strip}\", \"needs investigation\"\n") }
+      File.open("excludes/#{r[2]}.rb", 'a') {|f| f.write("exclude :\"#{r[3].strip}\", \"needs investigation\"\n") }
     end
   end
 end
