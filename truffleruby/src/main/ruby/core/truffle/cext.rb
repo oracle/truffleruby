@@ -215,7 +215,7 @@ class << Truffle::CExt
   end
 
   def rb_obj_is_kind_of(object, ruby_class)
-     object.kind_of?(ruby_class)
+    object.kind_of?(ruby_class)
   end
 
   def SYMBOL_P(value)
