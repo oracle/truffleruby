@@ -24,7 +24,6 @@ end
 if Truffle::Boot.rubygems_enabled?
   begin
     require 'rubygems'
-    Truffle::Patching.install_gem_activation_hook if Truffle::Boot.patching_enabled?
   rescue LoadError => e
     Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
   else
