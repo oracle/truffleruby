@@ -1,6 +1,6 @@
+exclude :"test_ctx_server_session_cb", "needs investigation"
 exclude :"test_client_session", "needs investigation"
 exclude :"test_ctx_client_session_cb", "needs investigation"
-exclude :"test_ctx_server_session_cb", "needs investigation"
 exclude :"test_server_session", "needs investigation"
 exclude :"test_session", "needs investigation"
 exclude :"test_session_equals", "needs investigation"
