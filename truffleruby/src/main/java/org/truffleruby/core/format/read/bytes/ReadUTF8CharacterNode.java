@@ -28,8 +28,6 @@ import org.truffleruby.core.string.StringUtils;
 })
 public abstract class ReadUTF8CharacterNode extends FormatNode {
 
-    private final ConditionProfile rangeProfile = ConditionProfile.createBinaryProfile();
-
     @Specialization(guards = "isNull(source)")
     public void read(VirtualFrame frame, Object source) {
         advanceSourcePosition(frame, 1);
@@ -38,7 +36,8 @@ public abstract class ReadUTF8CharacterNode extends FormatNode {
 
     @Specialization
     public Object read(VirtualFrame frame, byte[] source,
-            @Cached("create()") BranchProfile errorProfile) {
+            @Cached("create()") BranchProfile errorProfile,
+            @Cached("createBinaryProfile()") ConditionProfile rangeProfile) {
         final int index = getSourcePosition(frame);
         final int sourceLength = getSourceLength(frame);
 
