@@ -23,7 +23,7 @@ module Truffle::Patching
           min
       originals[name] = paths
       Truffle::Patching.log(name, path)
-      $LOAD_PATH.insert insertion_point, path.to_s
+      $LOAD_PATH.insert insertion_point, path.to_s if $LOAD_PATH[insertion_point-1] != path.to_s
       true
     else
       false
