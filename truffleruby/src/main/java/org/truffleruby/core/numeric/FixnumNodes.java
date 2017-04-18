@@ -481,6 +481,12 @@ public abstract class FixnumNodes {
             return divModNode.execute(a, Layouts.BIGNUM.getValue(b));
         }
 
+        @Specialization(guards = "!isRubyBignum(b)")
+        public DynamicObject divModOther(VirtualFrame frame, long a, DynamicObject b,
+                                         @Cached("new()") SnippetNode snippetNode) {
+            return (DynamicObject) snippetNode.execute(frame, "raise ZeroDivisionError if b === 0; [(a / b).floor, a-b*(a/b).floor]", "a", a, "b", b);
+        }
+
         @Specialization
         public DynamicObject divMod(long a, double b) {
             return divModNode.execute(a, b);
