@@ -1706,7 +1706,7 @@ class << Truffle::CExt
     id = object.object_id
 
     # This method specifically returns a long for everyday practicality - so return a sentinel value if it's out of range
-    if id > 0 && id < 2**63-1
+    if id >= 0 && id < 2**63-1
       id
     else
       0x0101010101010101
