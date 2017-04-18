@@ -22,6 +22,7 @@ CMD irb
 ```
 $ docker build -t graalvm .
 $ docker run -it graalvm
+irb(main):001:0> ...
 ```
 
 Make sure that you read the OTN licence agreement when you download GraalVM and keep
