@@ -1,4 +1,4 @@
-# User Docker
+# Using Docker
 
 Get the [GraalVM tarball](using-graalvm.md) (the Linux version, with Labs JDK) and put it in
 the current directory along with this `Dockerfile`:
