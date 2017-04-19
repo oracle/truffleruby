@@ -43,7 +43,7 @@ public class CheckLayoutNode extends RubyBaseNode {
         public abstract ObjectType executeGetObjectType(DynamicObject object);
 
         @Specialization(
-                guards = { "object == cachedObject", "cachedShape.isLeaf()" },
+                guards = "object == cachedObject",
                 assumptions = "cachedShape.getLeafAssumption()",
                 limit = "getLimit()")
         ObjectType cachedLeafShapeGetObjectType(DynamicObject object,
