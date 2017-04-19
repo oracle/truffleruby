@@ -93,7 +93,8 @@ if [ $on_graalvm = false ]; then
 
     if [ "$mx_time" -gt "$mvn_time" ]; then
         binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
-        source_truffle="$(dirname "$root")/truffle/mxbuild"
+        source_truffle_suite_py=("$(dirname "$root")"/*/*/"mx.truffle/suite.py")
+        source_truffle="$(dirname "$(dirname "$source_truffle_suite_py")")/mxbuild"
         if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
             truffle="$binary_truffle"
         elif [ -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
