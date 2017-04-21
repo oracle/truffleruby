@@ -158,7 +158,6 @@ import org.truffleruby.language.threadlocal.GetFromThreadLocalNode;
 import org.truffleruby.language.threadlocal.SetInThreadLocalNode;
 import org.truffleruby.language.threadlocal.ThreadLocalObjectNode;
 import org.truffleruby.language.threadlocal.ThreadLocalObjectNodeGen;
-import org.truffleruby.language.threadlocal.WrapInThreadLocalNodeGen;
 import org.truffleruby.language.yield.YieldExpressionNode;
 import org.truffleruby.parser.ast.AliasParseNode;
 import org.truffleruby.parser.ast.AndParseNode;
