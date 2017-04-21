@@ -77,6 +77,10 @@ import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
+import org.truffleruby.language.objects.ObjectIVarGetNode;
+import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
+import org.truffleruby.language.objects.ObjectIVarSetNode;
+import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.language.supercall.CallSuperMethodNodeGen;
 import org.truffleruby.language.threadlocal.ThreadLocalObject;
@@ -1053,12 +1057,14 @@ public class CExtNodes {
     @CoreMethod(names = "hidden_variable_get", onSingleton = true, required = 2)
     public abstract static class HiddenVariableGetNode extends CoreMethodArrayArgumentsNode {
 
-        // TODO CS 10-Apr-17 fast path
-
-        @TruffleBoundary
         @Specialization(guards = "isRubySymbol(name)")
-        public Object hiddenVariableGet(DynamicObject object, DynamicObject name) {
-            return object.get(name, nil());
+        public Object hiddenVariableGet(DynamicObject object, DynamicObject name,
+                @Cached("createObjectIVarGetNode()") ObjectIVarGetNode iVarGetNode) {
+            return iVarGetNode.executeIVarGet(object, name);
+        }
+
+        protected ObjectIVarGetNode createObjectIVarGetNode() {
+            return ObjectIVarGetNodeGen.create(false, null, null);
         }
 
     }
@@ -1066,13 +1072,14 @@ public class CExtNodes {
     @CoreMethod(names = "hidden_variable_set", onSingleton = true, required = 3)
     public abstract static class HiddenVariableSetNode extends CoreMethodArrayArgumentsNode {
 
-        // TODO CS 10-Apr-17 fast path
-
-        @TruffleBoundary
         @Specialization(guards = "isRubySymbol(name)")
-        public Object hiddenVariableSet(DynamicObject object, DynamicObject name, Object value) {
-            object.define(name, value);
-            return value;
+        public Object hiddenVariableSet(DynamicObject object, DynamicObject name, Object value,
+                @Cached("createObjectIVarSetNode()") ObjectIVarSetNode iVarSetNode) {
+            return iVarSetNode.executeIVarSet(object, name, value);
+        }
+
+        protected ObjectIVarSetNode createObjectIVarSetNode() {
+            return ObjectIVarSetNodeGen.create(false, null, null, null);
         }
 
     }

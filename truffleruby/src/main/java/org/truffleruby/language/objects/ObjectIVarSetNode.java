@@ -28,11 +28,11 @@ public abstract class ObjectIVarSetNode extends RubyNode {
         this.checkName = checkName;
     }
 
-    public abstract Object executeIVarSet(DynamicObject object, String name, Object value);
+    public abstract Object executeIVarSet(DynamicObject object, Object name, Object value);
 
     @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
-    public Object ivarSetCached(DynamicObject object, String name, Object value,
-            @Cached("name") String cachedName,
+    public Object ivarSetCached(DynamicObject object, Object name, Object value,
+            @Cached("name") Object cachedName,
             @Cached("createWriteFieldNode(checkName(cachedName, object))") WriteObjectFieldNode writeObjectFieldNode) {
         writeObjectFieldNode.execute(object, value);
         return value;
@@ -40,7 +40,7 @@ public abstract class ObjectIVarSetNode extends RubyNode {
 
     @TruffleBoundary
     @Specialization(replaces = "ivarSetCached")
-    public Object ivarSetUncached(DynamicObject object, String name, Object value) {
+    public Object ivarSetUncached(DynamicObject object, Object name, Object value) {
         if (SharedObjects.isShared(getContext(), object)) {
             SharedObjects.writeBarrier(getContext(), value);
             synchronized (object) {
@@ -52,8 +52,8 @@ public abstract class ObjectIVarSetNode extends RubyNode {
         return value;
     }
 
-    protected String checkName(String name, DynamicObject object) {
-        return checkName ? SymbolTable.checkInstanceVariableName(getContext(), name, object, this) : name;
+    protected Object checkName(Object name, DynamicObject object) {
+        return checkName ? SymbolTable.checkInstanceVariableName(getContext(), (String) name, object, this) : name;
     }
 
     protected WriteObjectFieldNode createWriteFieldNode(String name) {

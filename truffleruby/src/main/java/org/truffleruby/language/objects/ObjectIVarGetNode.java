@@ -27,23 +27,23 @@ public abstract class ObjectIVarGetNode extends RubyNode {
         this.checkName = checkName;
     }
 
-    public abstract Object executeIVarGet(DynamicObject object, String name);
+    public abstract Object executeIVarGet(DynamicObject object, Object name);
 
     @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
-    public Object ivarGetCached(DynamicObject object, String name,
-            @Cached("name") String cachedName,
+    public Object ivarGetCached(DynamicObject object, Object name,
+            @Cached("name") Object cachedName,
             @Cached("createReadFieldNode(checkName(cachedName, object))") ReadObjectFieldNode readObjectFieldNode) {
         return readObjectFieldNode.execute(object);
     }
 
     @TruffleBoundary
     @Specialization(replaces = "ivarGetCached")
-    public Object ivarGetUncached(DynamicObject object, String name) {
+    public Object ivarGetUncached(DynamicObject object, Object name) {
         return ReadObjectFieldNode.read(object, checkName(name, object), nil());
     }
 
-    protected String checkName(String name, DynamicObject object) {
-        return checkName ? SymbolTable.checkInstanceVariableName(getContext(), name, object, this) : name;
+    protected Object checkName(Object name, DynamicObject object) {
+        return checkName ? SymbolTable.checkInstanceVariableName(getContext(), (String) name, object, this) : name;
     }
 
     protected ReadObjectFieldNode createReadFieldNode(String name) {
