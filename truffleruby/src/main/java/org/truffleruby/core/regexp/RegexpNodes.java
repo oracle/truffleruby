@@ -492,15 +492,18 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "last_match", onSingleton = true, optional = 1, lowerFixnum = 1)
     public abstract static class LastMatchNode extends CoreMethodArrayArgumentsNode {
 
+        @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
+        @Child ThreadLocalInFrameNode threadLocalNode;
+
         @Specialization
-        public Object lastMatch(NotProvided index) {
-            return getMatchData();
+        public Object lastMatch(VirtualFrame frame, NotProvided index) {
+            return getMatchData(frame);
         }
 
         @Specialization
         public Object lastMatch(VirtualFrame frame, int index,
                                 @Cached("create()") MatchDataNodes.GetIndexNode getIndexNode) {
-            final Object matchData = getMatchData();
+            final Object matchData = getMatchData(frame);
 
             if (matchData == nil()) {
                 return nil();
@@ -509,15 +512,15 @@ public abstract class RegexpNodes {
             }
         }
 
-        @TruffleBoundary
-        private Object getMatchData() {
-            Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
-            ThreadLocalObject lastMatch = getMatchDataThreadLocalSearchingDeclarations(getContext(), frame, false);
-            if (lastMatch == null) {
-                return nil();
-            } else {
-                return lastMatch.get();
+        private Object getMatchData(VirtualFrame frame) {
+            if (threadLocalNode == null) {
+                CompilerDirectives.transferToInterpreter();
+                threadLocalNode = ThreadLocalInFrameNodeGen.create(LAST_MATCH_VARIABLE,
+                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT);
             }
+            Frame callerFrame = readCallerFrame.execute(frame);
+            ThreadLocalObject lastMatch = threadLocalNode.execute(callerFrame.materialize());
+            return lastMatch.get();
         }
 
     }
