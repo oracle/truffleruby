@@ -14,11 +14,12 @@ import org.truffleruby.RubyContext;
 
 import java.lang.ref.WeakReference;
 
-public class ThreadLocalObject extends ThreadLocal<Object> {
+public class ThreadLocalObject {
 
     private final RubyContext context;
     private final WeakReference<Thread> originalThread;
     private Object originalThreadValue;
+    private volatile ThreadLocal<Object> otherThreadValues = null;
 
     public static ThreadLocalObject wrap(RubyContext context, Object value) {
         final ThreadLocalObject threadLocal = new ThreadLocalObject(context);
@@ -32,7 +33,6 @@ public class ThreadLocalObject extends ThreadLocal<Object> {
         originalThreadValue = initialValue();
     }
 
-    @Override
     public Object get() {
         if (Thread.currentThread() == originalThread.get()) {
             return originalThreadValue;
@@ -41,12 +41,25 @@ public class ThreadLocalObject extends ThreadLocal<Object> {
         }
     }
 
-    @TruffleBoundary
-    private Object fallbackGet() {
-        return super.get();
+    private ThreadLocal<Object> getOtherThreadValues() {
+        if (otherThreadValues != null) {
+            return otherThreadValues;
+        } else {
+            synchronized (this) {
+                if (otherThreadValues != null) {
+                    return otherThreadValues;
+                } else {
+                    return otherThreadValues = new ThreadLocal<>();
+                }
+            }
+        }
     }
 
-    @Override
+    @TruffleBoundary
+    private Object fallbackGet() {
+        return getOtherThreadValues().get();
+    }
+
     public void set(Object value) {
         if (Thread.currentThread() == originalThread.get()) {
             originalThreadValue = value;
@@ -57,10 +70,9 @@ public class ThreadLocalObject extends ThreadLocal<Object> {
 
     @TruffleBoundary
     private void fallbackSet(Object value) {
-        super.set(value);
+        getOtherThreadValues().set(value);
     }
 
-    @Override
     protected Object initialValue() {
         return context.getCoreLibrary().getNilObject();
     }
