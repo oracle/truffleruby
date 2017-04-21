@@ -46,7 +46,7 @@ public abstract class ObjectIVarGetNode extends RubyNode {
         return checkName ? SymbolTable.checkInstanceVariableName(getContext(), (String) name, object, this) : name;
     }
 
-    protected ReadObjectFieldNode createReadFieldNode(String name) {
+    protected ReadObjectFieldNode createReadFieldNode(Object name) {
         return ReadObjectFieldNodeGen.create(name, nil());
     }
 

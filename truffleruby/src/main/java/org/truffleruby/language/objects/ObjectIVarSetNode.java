@@ -56,7 +56,7 @@ public abstract class ObjectIVarSetNode extends RubyNode {
         return checkName ? SymbolTable.checkInstanceVariableName(getContext(), (String) name, object, this) : name;
     }
 
-    protected WriteObjectFieldNode createWriteFieldNode(String name) {
+    protected WriteObjectFieldNode createWriteFieldNode(Object name) {
         return WriteObjectFieldNodeGen.create(name);
     }
 
