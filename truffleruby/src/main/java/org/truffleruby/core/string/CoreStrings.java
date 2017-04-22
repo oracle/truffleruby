@@ -36,7 +36,8 @@ public class CoreStrings {
     public final CoreString OUT_OF_RANGE;
     public final CoreString PROC_WITHOUT_BLOCK;
     public final CoreString REPLACEMENT_CHARACTER_SETUP_FAILED;
-    public final CoreString RESOURCE_TEMP_UNAVAIL;
+    public final CoreString RESOURCE_TEMP_UNAVAIL_READ;
+    public final CoreString RESOURCE_TEMP_UNAVAIL_WRITE;
     public final CoreString UNKNOWN;
     public final CoreString SELF;
     public final CoreString TIME_INTERVAL_MUST_BE_POS;
@@ -70,7 +71,8 @@ public class CoreStrings {
         OUT_OF_RANGE = new CoreString(context, "out of range");
         PROC_WITHOUT_BLOCK = new CoreString(context, "tried to create Proc object without a block");
         REPLACEMENT_CHARACTER_SETUP_FAILED = new CoreString(context, "replacement character setup failed");
-        RESOURCE_TEMP_UNAVAIL = new CoreString(context, "Resource temporarily unavailable");
+        RESOURCE_TEMP_UNAVAIL_READ = new CoreString(context, "Resource temporarily unavailable - read would block");
+        RESOURCE_TEMP_UNAVAIL_WRITE = new CoreString(context, "Resource temporarily unavailable - write would block");
         UNKNOWN = new CoreString(context, "(unknown)");
         SELF = new CoreString(context, "self");
         TIME_INTERVAL_MUST_BE_POS = new CoreString(context, "time interval must be positive");
