@@ -34,7 +34,7 @@ describe "The launcher" do
     out   = `#{cmd}`
     parts = out.split(' ')
     parts[0].should == "$"
-    (parts[1] =~ /java|graalvm/).should_not be_nil
+    parts[1].should =~ /(java|graalvm)$/
     $?.success?.should == true
   end
 
