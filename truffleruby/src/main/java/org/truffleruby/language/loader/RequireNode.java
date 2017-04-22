@@ -50,6 +50,7 @@ public abstract class RequireNode extends RubyNode {
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
     @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.createMethodCall();
     @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.createMethodCall();
+    @Child private RequireNode afterRequireNode;
 
     @Child private Node isExecutableNode = Message.IS_EXECUTABLE.createNode();
     @Child private Node executeNode = Message.createExecute(0).createNode();
@@ -160,6 +161,14 @@ public abstract class RequireNode extends RubyNode {
                 }
 
                 addToLoadedFeatures(frame, pathString);
+
+                if(feature.endsWith("rspec/support/ruby_features")) {
+                    if (afterRequireNode == null) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        afterRequireNode = insert(RequireNode.create());
+                    }
+                    afterRequireNode.executeRequire(frame, "rspec-workarounds");
+                }
 
                 return true;
             } finally {
