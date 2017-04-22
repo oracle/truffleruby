@@ -59,12 +59,12 @@ test_results.each do |r|
         Dir.mkdir(nested_dirname) unless Dir.exist?(nested_dirname)
         File.open("#{nested_dirname}/#{name_split[1]}.rb", 'a') {|f| f.write("exclude :#{r[3].strip}, \"needs investigation\"\n") }
       else
-        File.open("#{dirname}/#{r[2]}.rb", 'a') {|f| f.write("exclude :\"#{r[3].strip}\", \"needs investigation\"\n") }
+        File.open("#{dirname}/#{r[2]}.rb", 'a') {|f| f.write("exclude #{r[3].strip.to_sym.inspect}, \"needs investigation\"\n") }
       end
     end
   else
     unless r[4] == "."
-      File.open("excludes/#{r[2]}.rb", 'a') {|f| f.write("exclude :\"#{r[3].strip}\", \"needs investigation\"\n") }
+      File.open("excludes/#{r[2]}.rb", 'a') {|f| f.write("exclude #{r[3].strip.to_sym.inspect}, \"needs investigation\"\n") }
     end
   end
 end
