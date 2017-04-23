@@ -341,15 +341,13 @@ module Kernel
   def loop
     return to_enum(:loop) { Float::INFINITY } unless block_given?
 
-    result = nil
     begin
       while true # rubocop:disable Lint/LiteralInCondition
         yield
       end
     rescue StopIteration => si
-      result = si.result
+      si.result
     end
-    result
   end
   module_function :loop
 
