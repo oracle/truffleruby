@@ -46,7 +46,7 @@ require 'fileutils'
 repo_root = File.expand_path("../..", __FILE__)
 excludes = "#{repo_root}/test/mri/excludes"
 
-t = /((?:\w+(?:::))?\w+)#(.+)\s*=.*=\s([.FE])/
+t = /((?:\w+::)?\w+)#(.+)\s*=.*=\s([.FE])/
 contents.scan(t) do |class_name, test_method, result|
   file = excludes + "/" + class_name.split("::").join('/') + ".rb"
   unless result == "."
