@@ -1,5 +1,4 @@
 ruby/test_argf.rb # spawn needed for tests
-ruby/test_array.rb # StackOverflowError null java.lang.ClassLoader.getClassLoadingLock(ClassLoader.java:461) (RubyTruffleError)
 ruby/test_case.rb # uses refinements
 ruby/test_continuation.rb # cannot load such file -- continuation
 ruby/test_enum.rb # cannot load such file -- continuation
