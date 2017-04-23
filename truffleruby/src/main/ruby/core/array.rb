@@ -324,7 +324,7 @@ class Array
     seq
   end
 
-  def cycle(n=nil)
+  def cycle(n = nil)
     unless block_given?
       return to_enum(:cycle, n) do
         Rubinius::EnumerableHelper.cycle_size(size, n)
@@ -333,9 +333,8 @@ class Array
 
     return nil if empty?
 
-    # Don't use nil? because, historically, lame code has overridden that method
-    if n.equal? nil
-      while true # rubocop:disable Lint/LiteralInCondition
+    if nil.equal? n
+      until empty?
         each { |x| yield x }
       end
     else
