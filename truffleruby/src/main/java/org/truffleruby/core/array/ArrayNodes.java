@@ -241,8 +241,13 @@ public abstract class ArrayNodes {
             return FAILURE;
         }
 
-        @Specialization(guards = { "!isIntRange(a)", "wasProvided(b)" })
-        public Object fallbackSlice(VirtualFrame frame, DynamicObject array, Object a, Object b) {
+        @Specialization(guards = { "!isInteger(a)", "!isIntRange(a)", "wasProvided(b)" })
+        public Object fallbackSlice1(VirtualFrame frame, DynamicObject array, Object a, Object b) {
+            return FAILURE;
+        }
+
+        @Specialization(guards = { "wasProvided(b)", "!isInteger(b)" })
+        public Object fallbackSlice2(VirtualFrame frame, DynamicObject array, Object a, Object b) {
             return FAILURE;
         }
 

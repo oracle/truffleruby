@@ -160,6 +160,8 @@ class Array
         if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
           raise RangeError, "bignum too big to convert into `long'"
         end
+        start_index = Rubinius::Type.clamp_to_int(start_index)
+        end_index = Rubinius::Type.clamp_to_int(end_index)
         range = Range.new(start_index, end_index, arg.exclude_end?)
         send(method_name, range)
       when Bignum
@@ -173,6 +175,8 @@ class Array
       if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
         raise RangeError, "bignum too big to convert into `long'"
       end
+      start_index = Rubinius::Type.clamp_to_int(start_index)
+      end_index = Rubinius::Type.clamp_to_int(end_index)
       send(method_name, start_index, end_index)
     end
   end
@@ -491,7 +495,7 @@ class Array
   def first(n = undefined)
     return at(0) if undefined.equal?(n)
 
-    n = Rubinius::Type.coerce_to_collection_index n
+    n = Rubinius::Type.coerce_to_collection_index(n)
     raise ArgumentError, 'Size must be positive' if n < 0
 
     Array.new self[0, n]
