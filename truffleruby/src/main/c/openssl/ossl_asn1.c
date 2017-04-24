@@ -845,6 +845,7 @@ int_ossl_asn1_decode0_prim(unsigned char **pp, long length, long hlen, int tag,
     *pp += hlen + length;
     *num_read = hlen + length;
 
+    // Using truffle_is_truffle_object to workaround issue casting truffle object to int for truth comparison
     if (tc == sUNIVERSAL && tag < ossl_asn1_info_size && truffle_is_truffle_object(ossl_asn1_info_klass[tag])) { // ossl_asn1_info[tag].klass) {
 	VALUE klass = *ossl_asn1_info_klass[tag]; // *ossl_asn1_info[tag].klass;
 	VALUE args[4];
