@@ -1223,8 +1223,8 @@ class << Truffle::CExt
   end
 
   def rb_define_method_undefined(mod, name)
-    mod.send(:define_method, name) do |*args|
-      raise 'not implemented'
+    mod.send(:define_method, name) do |*|
+      raise NotImplementedError, "#{name}() function is unimplemented on this machine"
     end
   end
 
