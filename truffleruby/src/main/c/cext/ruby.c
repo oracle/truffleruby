@@ -1933,7 +1933,11 @@ void rb_include_module(VALUE module, VALUE to_include) {
 }
 
 void rb_define_method(VALUE module, const char *name, void *function, int argc) {
-  truffle_invoke(RUBY_CEXT, "rb_define_method", module, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  if (function == rb_f_notimplement) {
+    truffle_invoke(RUBY_CEXT, "rb_define_method_undefined", module, rb_str_new_cstr(name));
+  } else {
+    truffle_invoke(RUBY_CEXT, "rb_define_method", module, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  }
 }
 
 void rb_define_private_method(VALUE module, const char *name, void *function, int argc) {

@@ -1222,6 +1222,12 @@ class << Truffle::CExt
     end
   end
 
+  def rb_define_method_undefined(mod, name)
+    mod.send(:define_method, name) do |*args|
+      raise 'not implemented'
+    end
+  end
+
   def rb_class_new_instance(klass, args)
     klass.new(*args)
   end
