@@ -1937,15 +1937,18 @@ void rb_define_method(VALUE module, const char *name, void *function, int argc) 
 }
 
 void rb_define_private_method(VALUE module, const char *name, void *function, int argc) {
-  truffle_invoke(RUBY_CEXT, "rb_define_private_method", module, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  rb_define_method(module, name, function, argc);
+  truffle_invoke(module, "private", rb_str_new_cstr(name));
 }
 
 void rb_define_protected_method(VALUE module, const char *name, void *function, int argc) {
-  truffle_invoke(RUBY_CEXT, "rb_define_protected_method", module, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  rb_define_method(module, name, function, argc);
+  truffle_invoke(module, "protected", rb_str_new_cstr(name));
 }
 
 void rb_define_module_function(VALUE module, const char *name, void *function, int argc) {
-  truffle_invoke(RUBY_CEXT, "rb_define_module_function", module, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  rb_define_method(module, name, function, argc);
+  truffle_invoke(RUBY_CEXT, "cext_module_function", module, rb_intern(name));
 }
 
 void rb_define_global_function(const char *name, void *function, int argc) {
@@ -1953,7 +1956,7 @@ void rb_define_global_function(const char *name, void *function, int argc) {
 }
 
 void rb_define_singleton_method(VALUE object, const char *name, void *function, int argc) {
-  truffle_invoke(RUBY_CEXT, "rb_define_singleton_method", object, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  rb_define_method(truffle_invoke(object, "singleton_class"), name, function, argc);
 }
 
 void rb_define_alias(VALUE module, const char *new_name, const char *old_name) {

@@ -1258,25 +1258,6 @@ class << Truffle::CExt
     eval(str)
   end
 
-  def rb_define_private_method(mod, name, function, argc)
-    rb_define_method(mod, name, function, argc)
-    mod.send :private, name
-  end
-
-  def rb_define_protected_method(mod, name, function, argc)
-    rb_define_method(mod, name, function, argc)
-    mod.send :protected, name
-  end
-
-  def rb_define_module_function(mod, name, function, argc)
-    rb_define_method(mod, name, function, argc)
-    cext_module_function mod, name.to_sym
-  end
-
-  def rb_define_singleton_method(object, name, function, argc)
-    rb_define_method(object.singleton_class, name, function, argc)
-  end
-
   def rb_define_alloc_func(ruby_class, function)
     ruby_class.singleton_class.send(:define_method, :__allocate__) do
       function.call(self)
