@@ -1651,18 +1651,16 @@ class << Truffle::CExt
     object[key]
   end
 
-  def rb_define_hooked_variable(name, data, getter, setter)
+  def rb_define_hooked_variable(name, gvar, getter, setter)
     name = "$#{name}" unless name.start_with?('$')
     id = name.to_sym
 
-    gvar = nil
-
     getter_proc = proc {
-      Truffle::Interop.execute getter, id, data, gvar
+      Truffle::Interop.execute getter, id, gvar, nil
     }
 
     setter_proc = proc { |value|
-      Truffle::Interop.execute setter, value, id, data, gvar
+      Truffle::Interop.execute setter, value, id, gvar, nil
     }
 
     rb_define_hooked_variable_inner id, getter_proc, setter_proc
