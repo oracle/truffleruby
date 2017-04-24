@@ -6,6 +6,7 @@ have = %w{
   BN_RAND_RANGE
   BN_PSEUDO_RAND_RANGE
   X509V3_EXT_NCONF_NID
+  OBJ_NAME_DO_ALL_SORTED
 }
 $CFLAGS += " -I #{ENV['OPENSSL_INCLUDE']} #{have.map { |h| "-DHAVE_#{h}" }.join(' ')}"
 $LIBS += " -l #{ENV['OPENSSL_LIB']}"
