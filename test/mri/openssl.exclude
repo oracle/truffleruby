@@ -1,1 +1,1 @@
-openssl/test_cipher.rb   # segmentation fault on load
+openssl/test_cipher.rb   # error on load
