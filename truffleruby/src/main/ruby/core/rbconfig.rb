@@ -53,7 +53,8 @@ module RbConfig
       '-Wno-int-conversion',                    # MRI has VALUE defined as long while we have it as void*
       '-Wno-int-to-pointer-cast',               # Same as above
       '-Wno-macro-redefined',                   # We redefine __DARWIN_ALIAS_C
-      '-Wno-unused-value',                         # RB_GC_GUARD leaves
+      '-Wno-unused-value',                      # RB_GC_GUARD leaves
+      '-Wno-incompatible-pointer-types',        # We define VALUE as void* rather than uint32_t
       '-c', '-emit-llvm'
   ].join(' ')
   libs = ''
