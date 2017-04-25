@@ -68,7 +68,12 @@ public class BacktraceFormatter {
             builder.append("\n");
             builder.append(line);
         }
-        return builder.toString().substring(1);
+        String string = builder.toString();
+        if (string.isEmpty()) {
+            return "<empty backtrace>";
+        } else {
+            return string.substring(1); // Remove first \n added above
+        }
     }
 
     public BacktraceFormatter(RubyContext context, EnumSet<FormattingFlags> flags) {
