@@ -12,7 +12,7 @@ module Truffle
   module Boot
 
     def self.main_s
-      $0 = find_s_file
+      $0 = find_s_file(original_input_file)
       load $0
       0
     end
@@ -26,25 +26,39 @@ module Truffle
       false
     end
 
-    def self.find_s_file
-      name = original_input_file
-
-      return name if File.exist?(name)
-
+    def self.find_s_file(name)
+      # nonstandard lookup
+      # TODO (pitr-ch 25-Apr-2017): to be removed
       name_in_ruby_home_lib = "#{RbConfig::CONFIG['libdir']}/bin/#{name}"
       return name_in_ruby_home_lib if File.exist?(name_in_ruby_home_lib)
 
+      # nonstandard lookup
+      # TODO (pitr-ch 25-Apr-2017): remove when bin/executables are no longer using -S executable
       name_in_ruby_home_bin = "#{RbConfig::CONFIG['bindir']}/#{name}"
       return name_in_ruby_home_bin if File.exist?(name_in_ruby_home_bin)
 
-      ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
-        name_in_path = "#{path}/#{name}"
-        return name_in_path if File.exist?(name_in_path)
+      if ENV['RUBYPATH']
+        path = find_in_environment_paths(name, ENV['RUBYPATH']) and return path
       end
+
+      path = find_in_environment_paths(name, ENV['PATH']) and return path
+
+      return name if File.exist?(name)
 
       raise LoadError.new("No such file or directory -- #{name}")
     end
+
     private_class_method :find_s_file
+
+    def self.find_in_environment_paths(name, env_value)
+      env_value.to_s.split(File::PATH_SEPARATOR).each do |path|
+        name_in_path = "#{path}/#{name}"
+        return name_in_path if File.exist?(name_in_path)
+      end
+      nil
+    end
+
+    private_class_method :find_in_environment_paths
 
   end
 end
