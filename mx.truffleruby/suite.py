@@ -14,10 +14,11 @@ suite = {
         "suites": [
             {
                 "name": "truffle",
-                # Must be the same as in truffle/pom.xml (except for the -SNAPSHOT part only in pom.xml, and there we can use a release name)
-                "version": "0a4208265912ecfa452f8bb174b907f17b38609e",
+                "subdir": True,
+                # Must be the same as in truffleruby/pom.xml (except for the -SNAPSHOT part only in pom.xml, and there we can use a release name)
+                "version": "01a039cbfc6238fd78d9159292495f93d6428f2a",
                 "urls": [
-                    {"url": "https://github.com/graalvm/truffle.git", "kind": "git"},
+                    {"url": "https://github.com/graalvm/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
                 ]
             },

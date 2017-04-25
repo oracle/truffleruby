@@ -117,8 +117,11 @@ module Utilities
 
   def self.find_mx(graal_home)
     sibling_mx = File.expand_path("../mx/mx", graal_home)
+    sibling_parent_mx = File.expand_path("../../mx/mx", graal_home)
     if File.executable?(sibling_mx)
       sibling_mx
+    elsif File.executable?(sibling_parent_mx)
+      sibling_parent_mx
     else
       "mx"
     end
@@ -1410,6 +1413,7 @@ module Commands
 
   def install(name)
     case name
+    when "graal"
     when "graal-core"
       install_graal_core
     else
@@ -1418,7 +1422,7 @@ module Commands
   end
 
   def install_graal_core
-    raise "Installing graal-core is only available on Linux and macOS currently" unless LINUX || MAC
+    raise "Installing graal is only available on Linux and macOS currently" unless LINUX || MAC
 
     dir = "#{JRUBY_DIR}/graal"
     Dir.mkdir(dir) unless File.directory?(dir)
@@ -1428,9 +1432,9 @@ module Commands
         raw_sh "git", "clone", "https://github.com/graalvm/mx.git"
       end
 
-      unless File.directory?("#{dir}/graal-core")
-        puts "Cloning graal-core"
-        raw_sh "git", "clone", "https://github.com/graalvm/graal-core.git"
+      unless File.directory?("#{dir}/graal")
+        puts "Cloning graal"
+        raw_sh "git", "clone", "https://github.com/graalvm/graal.git"
       end
 
       if LINUX
@@ -1465,19 +1469,19 @@ module Commands
       puts "Testing JDK"
       raw_sh "#{java_home}/bin/java", "-version"
 
-      puts "Building graal-core"
-      Dir.chdir("#{dir}/graal-core") do
-        File.write("mx.graal-core/env", "JAVA_HOME=#{java_home}\n")
-        raw_sh "../mx/mx", "build"
+      puts "Building graal"
+      Dir.chdir("#{dir}/graal/compiler") do
+        File.write("mx.compiler/env", "JAVA_HOME=#{java_home}\n")
+        raw_sh "../../mx/mx", "build"
       end
 
       puts "Running with Graal"
-      env = { "GRAAL_HOME" => "#{dir}/graal-core" }
+      env = { "GRAAL_HOME" => "#{dir}/graal/compiler" }
       sh env, "tool/jt.rb", "ruby", "--graal", "-e", "p Truffle::Graal.graal?"
 
       puts
-      puts "To run with graal-core, run:"
-      puts "GRAAL_HOME=#{dir}/graal-core tool/jt.rb ruby --graal ..."
+      puts "To run with graal, run:"
+      puts "GRAAL_HOME=#{dir}/graal/compiler tool/jt.rb ruby --graal ..."
     end
   end
 
