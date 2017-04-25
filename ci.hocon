@@ -70,7 +70,6 @@ mx_sclone: [mx, --version-conflict-resolution, ignore, sclone, --kind, git]
 
 graal-core: ${labsjdk8} {
   setup: ${common.setup} [
-    ${mx_sclone} ["https://github.com/graalvm/graal.git", ../graal],
     [cd, ../graal/compiler],
     [mx, sversions],
     [mx, build],
