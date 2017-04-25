@@ -34,6 +34,6 @@ the load path, but we don't have a Ruby command line. Instead, we use the
 
 ```bash
 $ cp asciidoctor/benchmark/sample-data/mdbasics.adoc sample.adoc
-$ .../graalvm/bin/java -polyglot -classpath . -Dtruffleruby.load_paths=asciidoctor/lib Asciidoctor ample.adoc
+$ .../graalvm/bin/java -polyglot -classpath . -Dtruffleruby.load_paths=asciidoctor/lib Asciidoctor sample.adoc
 $ open sample.html
 ```
