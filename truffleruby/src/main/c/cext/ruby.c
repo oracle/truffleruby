@@ -37,15 +37,14 @@ VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object) {
 // Memory
 
 void *rb_alloc_tmp_buffer(VALUE *buffer_pointer, long length) {
-  rb_tr_error("rb_alloc_tmp_buffer not implemented");
-}
-
-void *rb_alloc_tmp_buffer2(VALUE *buffer_pointer, long count, size_t size) {
-  rb_tr_error("rb_alloc_tmp_buffer2 not implemented");
+  // TODO CS 13-Apr-17 MRI sometimes uses alloc and sometimes malloc, and wraps it in a Ruby object - is rb_free_tmp_buffer guaranteed to be called or do we need to free in a finalizer?
+  void *space = malloc(length);
+  *((void**) buffer_pointer) = space;
+  return space;
 }
 
 void rb_free_tmp_buffer(VALUE *buffer_pointer) {
-  rb_tr_error("rb_free_tmp_buffer not implemented");
+  free(*((void**) buffer_pointer));
 }
 
 // Types
@@ -67,7 +66,7 @@ VALUE rb_obj_is_instance_of(VALUE object, VALUE ruby_class) {
 }
 
 VALUE rb_obj_is_kind_of(VALUE object, VALUE ruby_class) {
-  return truffle_invoke(object, "kind_of?", ruby_class);
+  return truffle_invoke(RUBY_CEXT, "rb_obj_is_kind_of", object, ruby_class);
 }
 
 void rb_check_frozen(VALUE object) {
@@ -1771,11 +1770,11 @@ void rb_define_global_const(const char *name, VALUE value) {
 
 // Global variables
 
-VALUE rb_gvar_var_getter(ID id, VALUE *var, struct rb_global_variable *gvar) {
+VALUE rb_gvar_var_getter(ID id, VALUE *var, void *gvar) {
   return *var;
 }
 
-void rb_gvar_var_setter(VALUE val, ID id, VALUE *var, struct rb_global_variable *g) {
+void rb_gvar_var_setter(VALUE val, ID id, VALUE *var, void *g) {
   *var = val;
 }
 
@@ -1791,7 +1790,7 @@ void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANY
   truffle_invoke(RUBY_CEXT, "rb_define_hooked_variable", rb_str_new_cstr(name), var, getter, setter);
 }
 
-void rb_gvar_readonly_setter(VALUE v, ID id, void *d, struct rb_global_variable *g) {
+void rb_gvar_readonly_setter(VALUE v, ID id, void *d, void *g) {
   rb_raise(rb_eNameError, "read-only variable");
 }
 
@@ -1934,19 +1933,26 @@ void rb_include_module(VALUE module, VALUE to_include) {
 }
 
 void rb_define_method(VALUE module, const char *name, void *function, int argc) {
-  truffle_invoke(RUBY_CEXT, "rb_define_method", module, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  if (function == rb_f_notimplement) {
+    truffle_invoke(RUBY_CEXT, "rb_define_method_undefined", module, rb_str_new_cstr(name));
+  } else {
+    truffle_invoke(RUBY_CEXT, "rb_define_method", module, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  }
 }
 
 void rb_define_private_method(VALUE module, const char *name, void *function, int argc) {
-  truffle_invoke(RUBY_CEXT, "rb_define_private_method", module, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  rb_define_method(module, name, function, argc);
+  truffle_invoke(module, "private", rb_str_new_cstr(name));
 }
 
 void rb_define_protected_method(VALUE module, const char *name, void *function, int argc) {
-  truffle_invoke(RUBY_CEXT, "rb_define_protected_method", module, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  rb_define_method(module, name, function, argc);
+  truffle_invoke(module, "protected", rb_str_new_cstr(name));
 }
 
 void rb_define_module_function(VALUE module, const char *name, void *function, int argc) {
-  truffle_invoke(RUBY_CEXT, "rb_define_module_function", module, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  rb_define_method(module, name, function, argc);
+  truffle_invoke(RUBY_CEXT, "cext_module_function", module, rb_intern(name));
 }
 
 void rb_define_global_function(const char *name, void *function, int argc) {
@@ -1954,7 +1960,7 @@ void rb_define_global_function(const char *name, void *function, int argc) {
 }
 
 void rb_define_singleton_method(VALUE object, const char *name, void *function, int argc) {
-  truffle_invoke(RUBY_CEXT, "rb_define_singleton_method", object, rb_str_new_cstr(name), truffle_address_to_function(function), argc);
+  rb_define_method(truffle_invoke(object, "singleton_class"), name, function, argc);
 }
 
 void rb_define_alias(VALUE module, const char *new_name, const char *old_name) {
@@ -2489,4 +2495,12 @@ long rb_tr_obj_id(VALUE object) {
 
 void rb_p(VALUE obj) {
   truffle_invoke(rb_mKernel, "puts", truffle_invoke(obj, "inspect"));
+}
+
+VALUE rb_java_class_of(VALUE obj) {
+  return truffle_invoke(RUBY_CEXT, "rb_java_class_of", obj);
+}
+
+VALUE rb_java_to_string(VALUE obj) {
+  return truffle_invoke(RUBY_CEXT, "rb_java_to_string", obj);
 }

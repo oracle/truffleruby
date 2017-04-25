@@ -89,14 +89,14 @@ To run with a GraalVM binary tarball, set the `GRAALVM_BIN` environment variable
 and run with the `--graal` option.
 
 ```
-$ export GRAALVM_BIN=.../graalvm-0.20/bin/java
+$ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
 $ jt ruby --graal ...
 ```
 
 You can check this is working by printing the value of `Truffle::Graal.graal?`.
 
 ```
-$ export GRAALVM_BIN=.../graalvm-0.20/bin/java
+$ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
 $ jt ruby --graal -e 'p Truffle::Graal.graal?'
 ```
 
@@ -153,3 +153,12 @@ exception.
 
 When the spec is fixed the `untag` command will remove the tag and you can
 commit the fix and the removal of the tag.
+
+## How to fix a failing MRI test
+
+Remove the exclusion of either the file (`test/mri_standard.exclude`) or the the
+individual method (`test/mri/excludes_truffle`) and run the individual file
+`jt test mri test/mri/file.rb` to see any errors.
+
+As with specs, you probably then want to recreate the test in a standalone Ruby
+file to fix it.

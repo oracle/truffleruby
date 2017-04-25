@@ -8,14 +8,6 @@ You can debug Ruby programs running in TruffleRuby using the NetBeans IDE.
 * Via Tools, Plugins, install 'Truffle Debugging Support'
 * [Download GraalVM](using-graalvm.md)
 
-To make GraalVM appear as a conventional JVM to NetBeans, you need to create
-some new symlinks. In the `bin` directory, run:
-
-```
-$ ln -s ../jdk/bin/javac .
-$ ln -s ../jdk/bin/javadoc .
-```
-
 We then need a project to debug. An example project that works well and demonstrates features is available on GitHub:
 
 ```

@@ -19,7 +19,7 @@ import org.truffleruby.core.CoreLibrary;
 public abstract class TruffleFixnumNodes {
 
     @CoreMethod(names = "lower", isModuleFunction = true, required = 1)
-    public abstract static class LowerPrimitiveNode extends UnaryCoreMethodNode {
+    public abstract static class LowerNode extends UnaryCoreMethodNode {
 
         @Specialization
         public int lower(int value) {

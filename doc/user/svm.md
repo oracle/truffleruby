@@ -23,7 +23,7 @@ To use the SVM you need a release of GraalVM, as described in
 [Using GraalVM](using-graalvm.md). You can then run:
 
 ```
-$ graalvm-0.20/bin/aot-image --ruby
+$ graalvm-0.nn/bin/aot-image --ruby
 ```
 
 This command will take a few minutes to run, and it requires about 6 GB of
@@ -70,7 +70,7 @@ hello
         0.40 real         0.16 user         0.07 sys
  145813504  maximum resident set size
  
-$ /usr/bin/time -l graalvm-0.20/bin/ruby -e "puts 'hello'"  # TruffleRuby on the JVM
+$ /usr/bin/time -l graalvm-0.nn/bin/ruby -e "puts 'hello'"  # TruffleRuby on the JVM
 hello
         5.03 real        10.84 user         1.85 sys
  463806464  maximum resident set size

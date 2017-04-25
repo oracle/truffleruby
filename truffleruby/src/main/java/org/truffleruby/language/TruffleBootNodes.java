@@ -162,13 +162,23 @@ public abstract class TruffleBootNodes {
         }
 
     }
-    
+
     @CoreMethod(names = "rubygems_enabled?", onSingleton = true)
     public abstract static class RubygemsEnabledNode extends CoreMethodNode {
 
         @Specialization
         public boolean isRubygemsEnabled() {
             return getContext().getOptions().RUBYGEMS;
+        }
+
+    }
+
+    @CoreMethod(names = "patching_enabled?", onSingleton = true)
+    public abstract static class PatchingEnabledNode extends CoreMethodNode {
+
+        @Specialization
+        public boolean isPatchingEnabled() {
+            return getContext().getOptions().PATCHING;
         }
 
     }

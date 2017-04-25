@@ -230,11 +230,8 @@ class Rational < Numeric
     q0 = 1
     q1 = 0
 
-    while true # rubocop:disable Lint/LiteralInCondition
-      c = a.ceil
-
-      break if c < b
-
+    c = a.ceil
+    until c < b
       k = c - 1
       p2 = k * p1 + p0
       q2 = k * q1 + q0
@@ -246,6 +243,8 @@ class Rational < Numeric
       q0 = q1
       p1 = p2
       q1 = q2
+
+      c = a.ceil
     end
 
     # The rational number is guaranteed to be in lowest terms.

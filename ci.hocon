@@ -432,8 +432,8 @@ test-cexts: ${sulong} ${gem-test-pack} {
   run: [
     ${jt} [test, cexts],
     ${jt} [test, specs, --sulong, ":capi"],
-    ${jt} [test, specs, --sulong, ":openssl"],
-    ${jt} [test, mri, --openssl, --sulong]
+    ${jt} [test, specs, --sulong, "-T-Xpatching=false", ":openssl"],
+    ${jt} [test, mri, --openssl, --sulong, "-T-Xpatching=false"]
   ]
 }
 

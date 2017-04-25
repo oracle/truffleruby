@@ -472,7 +472,7 @@ module Commands
       jt test                                        run all mri tests, specs and integration tests (set SULONG_HOME)
       jt test tck [--jdebug]                         run the Truffle Compatibility Kit tests
       jt test mri                                    run mri tests
-          --openssl       runs openssl.index         use with --sulong
+          --openssl       runs openssl tests         use with --sulong
           --aot           use AOT TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME)
       jt test specs                                  run all specs
@@ -780,22 +780,38 @@ module Commands
   end
 
   def test_mri(*args)
+    truffle_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
+    
     env_vars = {
-      "EXCLUDES" => "test/mri/excludes_truffle",
+      "EXCLUDES" => "test/mri/excludes",
       "RUBYOPT" => '--disable-gems'
     }
-    
+
     if args.delete('--openssl')
-      index = "#{JRUBY_DIR}/test/openssl.index"
+      include_pattern = "#{JRUBY_DIR}/test/mri/tests/openssl/test_*.rb"
+      exclude_file = "#{JRUBY_DIR}/test/mri/openssl.exclude"
+    elsif args.all? { |a| a.start_with?('-') }
+      include_pattern = "#{JRUBY_DIR}/test/mri/tests/**/test_*.rb"
+      exclude_file = "#{JRUBY_DIR}/test/mri/standard.exclude"
     else
-      index = "#{JRUBY_DIR}/test/mri_truffle.index"
+      args, files_to_run = args.partition { |a| a.start_with?('-') }
     end
     
-    truffle_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
-    test_args = File.readlines(index).grep(/^[^#]\w+/).map(&:chomp)
+    unless files_to_run
+      prefix = "#{JRUBY_DIR}/test/mri/tests/"
+      
+      include_files = Dir.glob(include_pattern).map { |f|
+        raise unless f.start_with?(prefix)
+        f[prefix.size..-1]
+      }
+      
+      exclude_files = File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }
+      
+      files_to_run = (include_files - exclude_files)
+    end
     
-    command = %w[test/mri/runner.rb -v --color=never --tty=no -q]
-    run(env_vars, *truffle_args, *args, *command, *test_args)
+    command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
+    run(env_vars, *truffle_args, *args, *command, *files_to_run)
   end
   private :test_mri
 
@@ -1481,12 +1497,13 @@ module Commands
   end
 
   def rubocop(*args)
+    version = "0.48.1"
     begin
       require 'rubocop'
     rescue LoadError
-      sh "gem", "install", "rubocop"
+      sh "gem", "install", "rubocop", "--version", version
     end
-    sh "rubocop", *args
+    sh "rubocop", format('_%s_', version), *args
   end
 
   def lint

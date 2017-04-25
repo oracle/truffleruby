@@ -54,6 +54,15 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
             this.hasZeroFlag, this.useAlternativeFormat, this.hasMinusFlag, this.format);
     }
 
+    @Specialization
+    public byte[] format(int width, int precision, long value) {
+        final boolean isNegative = value < 0;
+        final boolean negativeAndPadded = isNegative && (this.hasSpaceFlag || this.hasPlusFlag);
+        final String formatted = negativeAndPadded ? Long.toBinaryString(-value) : Long.toBinaryString(value);
+        return getFormattedString(formatted, width, precision, isNegative, this.hasSpaceFlag, this.hasPlusFlag,
+            this.hasZeroFlag, this.useAlternativeFormat, this.hasMinusFlag, this.format);
+    }
+
     @TruffleBoundary
     @Specialization(guards = "isRubyBignum(value)")
     public byte[] format(int width, int precision, DynamicObject value) {

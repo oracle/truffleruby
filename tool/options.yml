@@ -12,6 +12,7 @@ VERBOSITY: [verbosity, verbosity, false, Verbosity]
 
 FROZEN_STRING_LITERALS: [frozen_string_literals, boolean, false, Use frozen string literals]
 RUBYGEMS: [rubygems, boolean, true, Use RubyGems]
+PATCHING: [patching, boolean, true, Use patching]
 DID_YOU_MEAN: [did_you_mean, boolean, true, Use did_you_mean]
 
 INTERNAL_ENCODING: [internal_encoding, string, null, Internal encoding]
@@ -105,3 +106,5 @@ OPTIONS_LOG: [options.log, boolean, false, Log the final value of all options]
 
 LOG_LOAD: [log.load, boolean, false, Log loading files]
 LOG_FEATURE_LOCATION: [log.feature_location, boolean, false, Log the process of finding features]
+
+FRAME_VARIABLE_ACCESS_LIMIT: [frame.variable.access.limit, integer, 5, Maximum number of specialisations for nodes which access variables in another frame]

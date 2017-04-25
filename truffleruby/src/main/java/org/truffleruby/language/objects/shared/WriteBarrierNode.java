@@ -12,6 +12,7 @@ package org.truffleruby.language.objects.shared;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.language.RubyBaseNode;
@@ -64,7 +65,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
                 value instanceof Integer ||
                 value instanceof Long ||
                 value instanceof Double ||
-                value.getClass().getName().equals("com.oracle.truffle.llvm.runtime.LLVMTruffleAddress")
+                value instanceof TruffleObject
                     : value.getClass().getName();
     }
 

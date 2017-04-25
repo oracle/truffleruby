@@ -11,7 +11,7 @@ First, clone `openweather`.
 
 ```
 $ git clone https://github.com/lucasocon/openweather.git
-$ pushd
+$ pushd openweather
 $ git checkout d5f49d3c567bd1ac3e055a65189661d8d3851c7f
 $ popd
 ```

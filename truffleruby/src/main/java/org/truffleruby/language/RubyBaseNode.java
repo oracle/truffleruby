@@ -77,8 +77,8 @@ public abstract class RubyBaseNode extends Node {
         return getContext().getSymbolTable().getSymbol(name);
     }
 
-    protected Encoding getDefaultInternalEncoding() {
-        return getContext().getEncodingManager().getDefaultInternalEncoding();
+    protected Encoding getLocaleEncoding() {
+        return getContext().getEncodingManager().getLocaleEncoding();
     }
 
     protected DynamicObject createString(RopeBuilder bytes) {

@@ -509,19 +509,14 @@ class String
 
     enc = encoding
     ascii = enc.ascii_compatible?
-    enc_name = enc.name
-    unicode = enc_name.start_with?('UTF-') && enc_name[4] != ?7
+    unicode = Truffle::Encoding.unicode?(enc)
 
     if unicode
       if enc.equal? Encoding::UTF_16
         a = getbyte 0
         b = getbyte 1
 
-        if a == 0xfe and b == 0xff
-          enc = Encoding::UTF_16BE # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 24-Mar-2017)
-        elsif a == 0xff and b == 0xfe
-          enc = Encoding::UTF_16LE # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 24-Mar-2017)
-        else
+        unless (a == 0xfe and b == 0xff) or (a == 0xff and b == 0xfe)
           unicode = false
         end
       elsif enc.equal? Encoding::UTF_32
@@ -530,11 +525,7 @@ class String
         c = getbyte 2
         d = getbyte 3
 
-        if a == 0 and b == 0 and c == 0xfe and d == 0xfe
-          enc = Encoding::UTF_32BE # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 24-Mar-2017)
-        elsif a == 0xff and b == 0xfe and c == 0 and d == 0
-          enc = Encoding::UTF_32LE # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 24-Mar-2017)
-        else
+        unless (a == 0 and b == 0 and c == 0xfe and d == 0xfe) or (a == 0xff and b == 0xfe and c == 0 and d == 0)
           unicode = false
         end
       end
@@ -922,7 +913,6 @@ class String
     # normal line breaking.
     if sep.empty?
       sep = "\n\n"
-      pat_size = 2 # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 01-Apr-2017)
       data = bytes
 
       while pos < size
@@ -1407,7 +1397,6 @@ class String
     when Fixnum
       if finish == size
         return nil if finish == 0
-        finish -= 1 # rubocop:disable Lint/UselessAssignment # TODO (nirvdrum 01-Apr-2017)
       end
 
       begin

@@ -298,6 +298,7 @@ describe "String#%" do
     ("%*b" % [10, 6]).should == "       110"
     ("%*b" % [-10, 6]).should == "110       "
     ("%.4b" % 2).should == "0010"
+    ("%.32b" % 2147483648).should == "10000000000000000000000000000000"
   end
 
   it "supports binary formats using %b for negative numbers" do

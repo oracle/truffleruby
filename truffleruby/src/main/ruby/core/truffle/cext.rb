@@ -214,6 +214,10 @@ class << Truffle::CExt
     object.class == ruby_class
   end
 
+  def rb_obj_is_kind_of(object, ruby_class)
+    object.kind_of?(ruby_class)
+  end
+
   def SYMBOL_P(value)
     value.is_a?(Symbol)
   end
@@ -1218,6 +1222,12 @@ class << Truffle::CExt
     end
   end
 
+  def rb_define_method_undefined(mod, name)
+    mod.send(:define_method, name) do |*|
+      raise NotImplementedError, "#{name}() function is unimplemented on this machine"
+    end
+  end
+
   def rb_class_new_instance(klass, args)
     klass.new(*args)
   end
@@ -1252,25 +1262,6 @@ class << Truffle::CExt
 
   def rb_eval_string(str)
     eval(str)
-  end
-
-  def rb_define_private_method(mod, name, function, argc)
-    rb_define_method(mod, name, function, argc)
-    mod.send :private, name
-  end
-
-  def rb_define_protected_method(mod, name, function, argc)
-    rb_define_method(mod, name, function, argc)
-    mod.send :protected, name
-  end
-
-  def rb_define_module_function(mod, name, function, argc)
-    rb_define_method(mod, name, function, argc)
-    cext_module_function mod, name.to_sym
-  end
-
-  def rb_define_singleton_method(object, name, function, argc)
-    rb_define_method(object.singleton_class, name, function, argc)
   end
 
   def rb_define_alloc_func(ruby_class, function)
@@ -1660,18 +1651,16 @@ class << Truffle::CExt
     object[key]
   end
 
-  def rb_define_hooked_variable(name, data, getter, setter)
+  def rb_define_hooked_variable(name, gvar, getter, setter)
     name = "$#{name}" unless name.start_with?('$')
     id = name.to_sym
 
-    gvar = nil
-
     getter_proc = proc {
-      Truffle::Interop.execute getter, id, data, gvar
+      Truffle::Interop.execute getter, id, gvar, nil
     }
 
     setter_proc = proc { |value|
-      Truffle::Interop.execute setter, value, id, data, gvar
+      Truffle::Interop.execute setter, value, id, gvar, nil
     }
 
     rb_define_hooked_variable_inner id, getter_proc, setter_proc
@@ -1702,11 +1691,19 @@ class << Truffle::CExt
     id = object.object_id
 
     # This method specifically returns a long for everyday practicality - so return a sentinel value if it's out of range
-    if id > 0 && id < 2**63-1
+    if Fixnum === id && id >= 0
       id
     else
       0x0101010101010101
     end
+  end
+
+  def rb_java_class_of(object)
+    Truffle::Debug.java_class_of(object)
+  end
+
+  def rb_java_to_string(object)
+    Truffle::Debug.java_to_string(object)
   end
 
 end

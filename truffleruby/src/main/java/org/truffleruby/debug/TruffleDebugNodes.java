@@ -9,19 +9,9 @@
  */
 package org.truffleruby.debug;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.EventBinding;
-import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
-import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
-import com.oracle.truffle.api.instrumentation.StandardTags;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -41,8 +31,20 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.EventBinding;
+import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
+import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.nodes.GraphPrintVisitor;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 
 @CoreClass("Truffle::Debug")
 public abstract class TruffleDebugNodes {
@@ -97,6 +99,16 @@ public abstract class TruffleDebugNodes {
         @Specialization
         public DynamicObject javaClassOf(Object value) {
             return createString(StringOperations.encodeRope(value.getClass().getSimpleName(), UTF8Encoding.INSTANCE));
+        }
+
+    }
+
+    @CoreMethod(names = "java_to_string", onSingleton = true, required = 1)
+    public abstract static class JavaToStringNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject javaToString(Object value) {
+            return createString(StringOperations.encodeRope(String.valueOf(value), UTF8Encoding.INSTANCE));
         }
 
     }
@@ -156,6 +168,46 @@ public abstract class TruffleDebugNodes {
             }
 
             return createArray(array.toArray(), array.size());
+        }
+
+    }
+
+    @CoreMethod(names = "ast_graph", onSingleton = true, required = 1)
+    public abstract static class ASTGraphNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyMethod(method)")
+        public DynamicObject astMethod(DynamicObject method) {
+            return ast(Layouts.METHOD.getMethod(method));
+        }
+
+        @Specialization(guards = "isRubyUnboundMethod(method)")
+        public DynamicObject astUnboundMethod(DynamicObject method) {
+            return ast(Layouts.UNBOUND_METHOD.getMethod(method));
+        }
+
+        @Specialization(guards = "isRubyProc(proc)")
+        public DynamicObject astProc(DynamicObject proc) {
+            return ast(Layouts.PROC.getMethod(proc));
+        }
+
+        @TruffleBoundary
+        private DynamicObject ast(InternalMethod method) {
+            if (method.getCallTarget() instanceof RootCallTarget) {
+                return ast(method.getName(), ((RootCallTarget) method.getCallTarget()).getRootNode());
+            } else {
+                return nil();
+            }
+        }
+
+        private DynamicObject ast(String name, Node node) {
+            if (node != null) {
+                GraphPrintVisitor graphPrinter = new GraphPrintVisitor();
+                graphPrinter.beginGraph(name).visit(node);
+
+                graphPrinter.printToNetwork(true);
+                graphPrinter.close();
+            }
+            return nil();
         }
 
     }
@@ -247,6 +299,29 @@ public abstract class TruffleDebugNodes {
                 VirtualFrame frame, Object value,
                 @Cached("create()") NameToJavaStringNode toJavaStringNode) {
             Log.warning(toJavaStringNode.executeToJavaString(frame, value));
+            return nil();
+        }
+
+    }
+
+    @CoreMethod(names = "throw_java_exception", onSingleton = true, required = 1)
+    public abstract static class ThrowJavaExceptionNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject throwJavaException(Object message) {
+            throw new RuntimeException(message.toString());
+        }
+
+    }
+
+    @CoreMethod(names = "assert", onSingleton = true, required = 1)
+    public abstract static class AssertNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject throwJavaException(boolean condition) {
+            assert condition;
             return nil();
         }
 

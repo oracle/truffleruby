@@ -27,6 +27,7 @@ public class OptionsCatalog {
     public static final VerbosityOptionDescription VERBOSITY = new VerbosityOptionDescription("verbosity", "Verbosity", Verbosity.FALSE);
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription("frozen_string_literals", "Use frozen string literals", false);
     public static final BooleanOptionDescription RUBYGEMS = new BooleanOptionDescription("rubygems", "Use RubyGems", true);
+    public static final BooleanOptionDescription PATCHING = new BooleanOptionDescription("patching", "Use patching", true);
     public static final BooleanOptionDescription DID_YOU_MEAN = new BooleanOptionDescription("did_you_mean", "Use did_you_mean", true);
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription("internal_encoding", "Internal encoding", null);
     public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription("external_encoding", "External encoding", null);
@@ -102,6 +103,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription OPTIONS_LOG = new BooleanOptionDescription("options.log", "Log the final value of all options", false);
     public static final BooleanOptionDescription LOG_LOAD = new BooleanOptionDescription("log.load", "Log loading files", false);
     public static final BooleanOptionDescription LOG_FEATURE_LOCATION = new BooleanOptionDescription("log.feature_location", "Log the process of finding features", false);
+    public static final IntegerOptionDescription FRAME_VARIABLE_ACCESS_LIMIT = new IntegerOptionDescription("frame.variable.access.limit", "Maximum number of specialisations for nodes which access variables in another frame", 5);
     
     public static OptionDescription<?> fromName(String name) {
         switch (name) {
@@ -127,6 +129,8 @@ public class OptionsCatalog {
                 return FROZEN_STRING_LITERALS;
             case "rubygems":
                 return RUBYGEMS;
+            case "patching":
+                return PATCHING;
             case "did_you_mean":
                 return DID_YOU_MEAN;
             case "internal_encoding":
@@ -277,6 +281,8 @@ public class OptionsCatalog {
                 return LOG_LOAD;
             case "log.feature_location":
                 return LOG_FEATURE_LOCATION;
+            case "frame.variable.access.limit":
+                return FRAME_VARIABLE_ACCESS_LIMIT;
             default:
                 return null;
         }
@@ -295,6 +301,7 @@ public class OptionsCatalog {
             VERBOSITY,
             FROZEN_STRING_LITERALS,
             RUBYGEMS,
+            PATCHING,
             DID_YOU_MEAN,
             INTERNAL_ENCODING,
             EXTERNAL_ENCODING,
@@ -370,6 +377,7 @@ public class OptionsCatalog {
             OPTIONS_LOG,
             LOG_LOAD,
             LOG_FEATURE_LOCATION,
+            FRAME_VARIABLE_ACCESS_LIMIT,
         };
     }
 

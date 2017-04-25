@@ -110,11 +110,10 @@ long rb_tr_obj_id(VALUE object);
 #define ZALLOC(type)                RB_ZALLOC(type)
 
 void *rb_alloc_tmp_buffer(VALUE *buffer_pointer, long length);
-void *rb_alloc_tmp_buffer2(VALUE *buffer_pointer, long count, size_t size);
 void rb_free_tmp_buffer(VALUE *buffer_pointer);
 
 #define RB_ALLOCV(v, n)             rb_alloc_tmp_buffer(&(v), (n))
-#define RB_ALLOCV_N(type, v, n)     rb_alloc_tmp_buffer2(&(v), (n), sizeof(type))
+#define RB_ALLOCV_N(type, v, n)     rb_alloc_tmp_buffer(&(v), (n) * sizeof(type))
 #define RB_ALLOCV_END(v)            rb_free_tmp_buffer(&(v))
 
 #define ALLOCV(v, n)                RB_ALLOCV(v, n)
@@ -409,6 +408,8 @@ int RB_FIXNUM_P(VALUE value);
 int RTEST(VALUE value);
 
 void rb_p(VALUE value);
+VALUE rb_java_class_of(VALUE val);
+VALUE rb_java_to_string(VALUE val);
 
 // Kernel
 
@@ -840,10 +841,6 @@ VALUE rb_define_const(VALUE module, const char *name, VALUE value);
 void rb_define_global_const(const char *name, VALUE value);
 
 // Global variables
-
-struct rb_global_variable {
-  int empty;
-};
 
 void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANYARGS), void (*setter)(ANYARGS));
 void rb_define_readonly_variable(const char *name, const VALUE *var);

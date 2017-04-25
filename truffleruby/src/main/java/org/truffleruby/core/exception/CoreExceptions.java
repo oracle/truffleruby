@@ -915,7 +915,7 @@ public class CoreExceptions {
     public DynamicObject eAGAINWaitReadable(Node currentNode) {
         return ExceptionOperations.createSystemCallError(
                 context.getCoreLibrary().getEagainWaitReadable(),
-                coreStrings().RESOURCE_TEMP_UNAVAIL.createInstance(),
+                coreStrings().RESOURCE_TEMP_UNAVAIL_READ.createInstance(),
                 context.getCallStack().getBacktrace(currentNode), Errno.EAGAIN.intValue());
     }
 
@@ -923,7 +923,7 @@ public class CoreExceptions {
     public DynamicObject eAGAINWaitWritable(Node currentNode) {
         return ExceptionOperations.createSystemCallError(
                 context.getCoreLibrary().getEagainWaitWritable(),
-                coreStrings().RESOURCE_TEMP_UNAVAIL.createInstance(),
+                coreStrings().RESOURCE_TEMP_UNAVAIL_WRITE.createInstance(),
                 context.getCallStack().getBacktrace(currentNode), Errno.EAGAIN.intValue());
     }
 

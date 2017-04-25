@@ -9,34 +9,15 @@
  */
 package org.truffleruby.core.kernel;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameInstance;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Property;
-import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.source.Source;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -60,6 +41,8 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.binding.BindingNodes.CreateBindingNode;
+import org.truffleruby.core.binding.BindingNodesFactory.CreateBindingNodeGen;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
@@ -97,6 +80,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -148,14 +132,34 @@ import org.truffleruby.language.threadlocal.ThreadLocalObject;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Property;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.Source;
 
 @CoreClass("Kernel")
 public abstract class KernelNodes {
@@ -242,26 +246,30 @@ public abstract class KernelNodes {
     @CoreMethod(names = "binding", isModuleFunction = true)
     public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
 
-        public abstract DynamicObject executeBinding();
+        public abstract DynamicObject executeBinding(VirtualFrame frame);
+        
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
+        @Child CreateBindingNode createBinding = CreateBindingNodeGen.create();
 
-        @TruffleBoundary
         @Specialization
-        public DynamicObject binding() {
+        public DynamicObject binding(VirtualFrame frame) {
             // Materialize the caller's frame - false means don't use a slow path to get it - we want to optimize it
-            final MaterializedFrame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend()
-                    .getFrame(FrameInstance.FrameAccess.MATERIALIZE).materialize();
+            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
 
-            return BindingNodes.createBinding(getContext(), callerFrame);
+            return createBinding.execute(callerFrame);
         }
     }
 
     @CoreMethod(names = "block_given?", isModuleFunction = true, needsCallerFrame = CallerFrameAccess.ARGUMENTS)
     public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
 
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.ARGUMENTS);
+
         @Specialization
-        public boolean blockGiven(Object callerFrame,
+        public boolean blockGiven(VirtualFrame frame,
                 @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
-            return blockProfile.profile(RubyArguments.getBlock((Frame) callerFrame) != null);
+            Frame callerFrame = callerFrameNode.execute(frame);
+            return blockProfile.profile(RubyArguments.getBlock(callerFrame) != null);
         }
 
     }
@@ -498,7 +506,7 @@ public abstract class KernelNodes {
                 bindingNode = insert(KernelNodesFactory.BindingNodeFactory.create(null));
             }
 
-            return bindingNode.executeBinding();
+            return bindingNode.executeBinding(frame);
         }
 
         protected static class RootNodeWrapper {

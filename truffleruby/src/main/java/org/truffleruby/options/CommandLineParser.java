@@ -153,7 +153,7 @@ public class CommandLineParser {
     }
 
     private String getArgumentError(String additionalError) {
-        return "jruby: invalid argument\n" + additionalError + "\n";
+        return "truffleruby: invalid argument\n" + additionalError + "\n";
     }
 
     private void processArgument() {
@@ -427,9 +427,9 @@ public class CommandLineParser {
                             break;
                         }
                     }
-                    throw new MainExitException(1, "jruby: unknown option " + argument);
+                    throw new MainExitException(1, "truffleruby: unknown option " + argument);
                 default:
-                    throw new MainExitException(1, "jruby: unknown option " + argument);
+                    throw new MainExitException(1, "truffleruby: unknown option " + argument);
             }
         }
     }
@@ -455,7 +455,7 @@ public class CommandLineParser {
 
     private void disallowedInRubyOpts(CharSequence option) {
         if (rubyOpts) {
-            throw new MainExitException(1, "jruby: invalid switch in RUBYOPT: " + option + " (RuntimeError)");
+            throw new MainExitException(1, "truffleruby: invalid switch in RUBYOPT: " + option + " (RuntimeError)");
         }
     }
 
@@ -483,7 +483,7 @@ public class CommandLineParser {
     }
 
     private void runBinScript() {
-        String scriptName = grabValue("jruby: provide a bin script to execute");
+        String scriptName = grabValue("truffleruby: provide a bin script to execute");
         config.setUsePathScript(scriptName);
         endOfArguments = true;
     }

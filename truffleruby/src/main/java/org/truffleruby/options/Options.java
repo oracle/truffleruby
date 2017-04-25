@@ -29,6 +29,7 @@ public class Options {
     public final Verbosity VERBOSITY;
     public final boolean FROZEN_STRING_LITERALS;
     public final boolean RUBYGEMS;
+    public final boolean PATCHING;
     public final boolean DID_YOU_MEAN;
     public final String INTERNAL_ENCODING;
     public final String EXTERNAL_ENCODING;
@@ -104,6 +105,7 @@ public class Options {
     public final boolean OPTIONS_LOG;
     public final boolean LOG_LOAD;
     public final boolean LOG_FEATURE_LOCATION;
+    public final int FRAME_VARIABLE_ACCESS_LIMIT;
     
     Options(OptionsBuilder builder) {
         HOME = builder.getOrDefault(OptionsCatalog.HOME);
@@ -117,6 +119,7 @@ public class Options {
         VERBOSITY = builder.getOrDefault(OptionsCatalog.VERBOSITY);
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
         RUBYGEMS = builder.getOrDefault(OptionsCatalog.RUBYGEMS);
+        PATCHING = builder.getOrDefault(OptionsCatalog.PATCHING);
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
@@ -192,6 +195,7 @@ public class Options {
         OPTIONS_LOG = builder.getOrDefault(OptionsCatalog.OPTIONS_LOG);
         LOG_LOAD = builder.getOrDefault(OptionsCatalog.LOG_LOAD);
         LOG_FEATURE_LOCATION = builder.getOrDefault(OptionsCatalog.LOG_FEATURE_LOCATION);
+        FRAME_VARIABLE_ACCESS_LIMIT = builder.getOrDefault(OptionsCatalog.FRAME_VARIABLE_ACCESS_LIMIT);
     }
 
     public Object fromDescription(OptionDescription<?> description) {
@@ -218,6 +222,8 @@ public class Options {
                 return FROZEN_STRING_LITERALS;
             case "rubygems":
                 return RUBYGEMS;
+            case "patching":
+                return PATCHING;
             case "did_you_mean":
                 return DID_YOU_MEAN;
             case "internal_encoding":
@@ -368,6 +374,8 @@ public class Options {
                 return LOG_LOAD;
             case "log.feature_location":
                 return LOG_FEATURE_LOCATION;
+            case "frame.variable.access.limit":
+                return FRAME_VARIABLE_ACCESS_LIMIT;
             default:
                 return null;
         }

@@ -1188,6 +1188,16 @@ describe "A method" do
       result = m(1, 2, e: 3, g: 4, h: 5, i: 6, &(l = ->{}))
       result.should == [1, 1, [], 2, 3, 2, 4, { h: 5, i: 6 }, l]
     end
+
+    evaluate <<-ruby do
+        def m (a, b = nil, c = nil, d, e: nil, **f)
+          [a, b, c, d, e, f]
+        end
+    ruby
+
+      result = m(1, 2)
+      result.should == [1, nil, nil, 2, nil, {}]
+    end
   end
 end
 

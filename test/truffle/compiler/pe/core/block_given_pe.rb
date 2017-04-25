@@ -16,3 +16,5 @@ end
 
 example "BlockGivenFixtures.foo", false
 example "BlockGivenFixtures.foo { }", true
+example "BlockGivenFixtures.send(:foo)", false
+example "BlockGivenFixtures.send(:foo) { }", true

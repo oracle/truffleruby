@@ -525,8 +525,8 @@ module Process
     statuses = []
 
     begin
-      while true # rubocop:disable Lint/LiteralInCondition
-        statuses << Process.wait2
+      while status = Process.wait2
+        statuses << status
       end
     rescue Errno::ECHILD
       nil # No child processes

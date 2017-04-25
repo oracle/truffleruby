@@ -160,6 +160,8 @@ class Array
         if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
           raise RangeError, "bignum too big to convert into `long'"
         end
+        start_index = Rubinius::Type.clamp_to_int(start_index)
+        end_index = Rubinius::Type.clamp_to_int(end_index)
         range = Range.new(start_index, end_index, arg.exclude_end?)
         send(method_name, range)
       when Bignum
@@ -173,6 +175,8 @@ class Array
       if start_index.is_a?(Bignum) || end_index.is_a?(Bignum)
         raise RangeError, "bignum too big to convert into `long'"
       end
+      start_index = Rubinius::Type.clamp_to_int(start_index)
+      end_index = Rubinius::Type.clamp_to_int(end_index)
       send(method_name, start_index, end_index)
     end
   end
@@ -320,7 +324,7 @@ class Array
     seq
   end
 
-  def cycle(n=nil)
+  def cycle(n = nil)
     unless block_given?
       return to_enum(:cycle, n) do
         Rubinius::EnumerableHelper.cycle_size(size, n)
@@ -329,9 +333,8 @@ class Array
 
     return nil if empty?
 
-    # Don't use nil? because, historically, lame code has overridden that method
-    if n.equal? nil
-      while true # rubocop:disable Lint/LiteralInCondition
+    if nil.equal? n
+      until empty?
         each { |x| yield x }
       end
     else
@@ -491,7 +494,7 @@ class Array
   def first(n = undefined)
     return at(0) if undefined.equal?(n)
 
-    n = Rubinius::Type.coerce_to_collection_index n
+    n = Rubinius::Type.coerce_to_collection_index(n)
     raise ArgumentError, 'Size must be positive' if n < 0
 
     Array.new self[0, n]
