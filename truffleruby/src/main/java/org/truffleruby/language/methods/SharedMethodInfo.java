@@ -158,4 +158,9 @@ public class SharedMethodInfo {
         return descriptiveNameAndSource;
     }
 
+    @Override
+    public String toString() {
+        return getDescriptiveNameAndSource();
+    }
+
 }
