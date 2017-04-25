@@ -88,8 +88,11 @@ public class SyntaxException extends RuntimeException {
 
 
     private static String prepareMessage(String message, String line) {
-        if (line != null && line.length() > 5) {
-            boolean addNewline = message != null && ! message.endsWith("\n");
+        if (line != null && line.endsWith("\n")) {
+            line = line.substring(0, line.length() - 1);
+        }
+        if (line != null && !line.isEmpty()) {
+            boolean addNewline = message != null && !message.endsWith("\n");
             return message + (addNewline ? "\n" : "") + line;
         }
         
