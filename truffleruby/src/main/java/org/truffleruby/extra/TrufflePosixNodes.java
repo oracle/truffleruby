@@ -18,6 +18,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import jnr.constants.platform.Fcntl;
+import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -728,6 +729,18 @@ public abstract class TrufflePosixNodes {
         public DynamicObject freeaddrinfo(DynamicObject addrInfo) {
             nativeSockets().freeaddrinfo(Layouts.POINTER.getPointer(addrInfo));
             return nil();
+        }
+
+    }
+
+    @CoreMethod(names = "gai_strerror", isModuleFunction = true, required = 1, lowerFixnum = 1)
+    public abstract static class GaiStrErrorNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject gai_strerror(int ecode) {
+            final String errorMessage = nativeSockets().gai_strerror(ecode);
+            return createString(StringOperations.encodeRope(errorMessage, ASCIIEncoding.INSTANCE));
         }
 
     }

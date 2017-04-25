@@ -32,6 +32,13 @@ public interface Sockets {
     void freeaddrinfo(Pointer ai);
 
     /*
+     * const char *
+     * gai_strerror(int ecode);
+     */
+
+    String gai_strerror(int ecode);
+
+    /*
      * int
      * getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
      *             socklen_t hostlen, char *serv, socklen_t servlen, int flags);

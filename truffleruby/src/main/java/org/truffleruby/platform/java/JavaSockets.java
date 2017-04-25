@@ -28,6 +28,11 @@ public class JavaSockets implements Sockets {
     }
 
     @Override
+    public String gai_strerror(int ecode) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int getnameinfo(Pointer sa, int salen, Pointer host, int hostlen, Pointer serv, int servlen, int flags) {
         throw new UnsupportedOperationException();
     }
