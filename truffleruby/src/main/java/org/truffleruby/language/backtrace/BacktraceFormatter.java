@@ -101,6 +101,11 @@ public class BacktraceFormatter {
         final List<Activation> activations = backtrace.getActivations();
         final ArrayList<String> lines = new ArrayList<>();
 
+        if (activations.isEmpty() && !flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null) {
+            lines.add(formatException(exception));
+            return lines;
+        }
+
         for (int n = 0; n < activations.size(); n++) {
             try {
                 lines.add(formatLine(activations, n, exception));
@@ -173,25 +178,31 @@ public class BacktraceFormatter {
         }
 
         if (!flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null && n == 0) {
-            String message;
-            try {
-                Object messageObject = context.send(exception, "message", null);
-                if (RubyGuards.isRubyString(messageObject)) {
-                    message = messageObject.toString();
-                } else {
-                    message = Layouts.EXCEPTION.getMessage(exception).toString();
-                }
-            } catch (RaiseException e) {
-                message = Layouts.EXCEPTION.getMessage(exception).toString();
-            }
-
             builder.append(": ");
-            builder.append(message);
-            builder.append(" (");
-            builder.append(Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception)).getName());
-            builder.append(")");
+            builder.append(formatException(exception));
         }
 
+        return builder.toString();
+    }
+
+    private String formatException(DynamicObject exception) {
+        final StringBuilder builder = new StringBuilder();
+        String message;
+        try {
+            Object messageObject = context.send(exception, "message", null);
+            if (RubyGuards.isRubyString(messageObject)) {
+                message = messageObject.toString();
+            } else {
+                message = Layouts.EXCEPTION.getMessage(exception).toString();
+            }
+        } catch (RaiseException e) {
+            message = Layouts.EXCEPTION.getMessage(exception).toString();
+        }
+
+        builder.append(message);
+        builder.append(" (");
+        builder.append(Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception)).getName());
+        builder.append(")");
         return builder.toString();
     }
 
