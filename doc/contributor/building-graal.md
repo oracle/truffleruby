@@ -18,6 +18,6 @@ You can then set the `GRAAL_HOME` environment variable to the location of the
 $ GRAAL_HOME=$PWD/graal/graal/compiler tool/jt.rb ruby --graal ...
 ```
 
-If you want to build Graal by yourself, follow the instructions in the Graal core repository.
+If you want to build Graal by yourself, follow the instructions in the Graal repository.
 
 https://github.com/graalvm/graal
