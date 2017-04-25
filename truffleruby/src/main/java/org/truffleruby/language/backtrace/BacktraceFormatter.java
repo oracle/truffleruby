@@ -199,10 +199,18 @@ public class BacktraceFormatter {
             message = Layouts.EXCEPTION.getMessage(exception).toString();
         }
 
-        builder.append(message);
-        builder.append(" (");
-        builder.append(Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception)).getName());
-        builder.append(")");
+        final String exceptionClass = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception)).getName();
+
+        // Show the exception class at the end of the first line of the message
+        final int firstLn = message.indexOf("\n");
+        if (firstLn >= 0) {
+            builder.append(message.substring(0, firstLn));
+            builder.append(" (").append(exceptionClass).append(")");
+            builder.append(message.substring(firstLn));
+        } else {
+            builder.append(message);
+            builder.append(" (").append(exceptionClass).append(")");
+        }
         return builder.toString();
     }
 
