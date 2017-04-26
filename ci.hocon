@@ -87,6 +87,7 @@ graal-enterprise: ${labsjdk8} {
   setup: ${common.setup} [
     ${mx_sclone} ["https://github.com/graalvm/graal-enterprise.git", ../graal-enterprise],
     [cd, ../graal-enterprise/graal-enterprise],
+    [mx, sforceimports],
     [mx, sversions],
     [mx, build],
     [cd, ../../main]
