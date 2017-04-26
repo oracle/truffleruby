@@ -801,7 +801,9 @@ VALUE rb_integer_unpack(const void *words, size_t numwords, size_t wordsize, siz
 
 size_t rb_absint_size(VALUE value, int *nlz_bits_ret) {
   int size = truffle_invoke_i(RUBY_CEXT, "rb_absint_bit_length", value);
-  nlz_bits_ret = size % 8;
+  if (nlz_bits_ret != NULL) {
+    *nlz_bits_ret = size % 8;
+  }
   return size / 8;
 }
 
