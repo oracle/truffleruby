@@ -50,6 +50,8 @@ public class ThreadManager {
     private final Set<DynamicObject> runningRubyThreads
             = Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
 
+    private final ConcurrentHashMap<Thread, UnblockingAction> unblockingActions = new ConcurrentHashMap<>();
+
     public ThreadManager(RubyContext context) {
         this.context = context;
         this.rootThread = createRubyThread(context);
@@ -74,8 +76,7 @@ public class ThreadManager {
                 new AtomicBoolean(false),
                 Thread.NORM_PRIORITY,
                 context.getCoreLibrary().getNilObject(),
-                context.getCoreLibrary().getNilObject(),
-                null);
+                context.getCoreLibrary().getNilObject());
 
         Layouts.THREAD.setFiberManagerUnsafe(object, new FiberManager(context, object)); // Because it is cyclic
 
@@ -206,6 +207,10 @@ public class ThreadManager {
         T block(Timeval timeoutToUse) throws InterruptedException;
     }
 
+    public interface UnblockingAction {
+        void unblock();
+    }
+
     /**
      * Runs {@code action} until it returns a non-null value.
      * The action might be {@link Thread#interrupted()}, for instance by
@@ -216,20 +221,47 @@ public class ThreadManager {
      */
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> action) {
+        return runUntilResult(currentNode, action, null);
+    }
+
+    /**
+     * Runs {@code action} until it returns a non-null value.
+     * The blocking action might be {@link Thread#interrupted()}, for instance by
+     * the {@link SafepointManager}, in which case it will be run again.
+     * The unblocking action is registered with the thread manager and will be invoked
+     * if the thread manager interrupts the thread. If the blocking action is making a
+     * native call, simply interrupting the thread will not unblock the action. It is the
+     * responsibility of the unblocking action to break out of the native call so the thread
+     * can be interrupted.
+     *
+     * @param blockingAction must not touch any Ruby state
+     * @param unblockingAction must not touch any Ruby state
+     * @return the first non-null return value from {@code action}
+     */
+    @TruffleBoundary
+    public <T> T runUntilResult(Node currentNode, BlockingAction<T> blockingAction, UnblockingAction unblockingAction) {
         final DynamicObject runningThread = getCurrentThread();
         T result = null;
+
+        if (unblockingAction != null) {
+            unblockingActions.put(Layouts.THREAD.getThread(runningThread), unblockingAction);
+        }
 
         do {
             Layouts.THREAD.setStatus(runningThread, ThreadStatus.SLEEP);
 
             try {
                 try {
-                    result = action.block();
+                    result = blockingAction.block();
                 } finally {
                     Layouts.THREAD.setStatus(runningThread, ThreadStatus.RUN);
                 }
             } catch (InterruptedException e) {
                 // We were interrupted, possibly by the SafepointManager.
+                if (unblockingAction != null) {
+                    unblockingActions.put(Layouts.THREAD.getThread(runningThread), unblockingAction);
+                }
+
                 context.getSafepointManager().pollFromBlockingCall(currentNode);
             }
         } while (result == null);
@@ -389,4 +421,20 @@ public class ThreadManager {
         }
     }
 
+    @TruffleBoundary
+    public void interrupt(Thread thread) {
+        final UnblockingAction action = unblockingActions.get(thread);
+
+        if (action != null) {
+            action.unblock();
+            unblockingActions.remove(thread);
+        }
+
+        thread.interrupt();
+    }
+
+    @TruffleBoundary
+    public UnblockingAction getUnblockingAction(Thread thread) {
+        return unblockingActions.get(thread);
+    }
 }

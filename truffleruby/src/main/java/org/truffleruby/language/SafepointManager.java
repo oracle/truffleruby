@@ -20,6 +20,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
+import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadStatus;
 
 import java.util.Collections;
@@ -238,7 +239,7 @@ public class SafepointManager {
         Thread current = Thread.currentThread();
         for (Thread thread : runningThreads) {
             if (thread != current) {
-                thread.interrupt();
+                context.getThreadManager().interrupt(thread);
             }
         }
     }
