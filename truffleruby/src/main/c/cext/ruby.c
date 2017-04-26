@@ -804,7 +804,11 @@ size_t rb_absint_size(VALUE value, int *nlz_bits_ret) {
   if (nlz_bits_ret != NULL) {
     *nlz_bits_ret = size % 8;
   }
-  return size / 8;
+  int bytes = size / 8;
+  if (size % 8 > 0) {
+    bytes++;
+  }
+  return bytes;
 }
 
 VALUE rb_cstr_to_inum(const char* string, int base, int raise) {
