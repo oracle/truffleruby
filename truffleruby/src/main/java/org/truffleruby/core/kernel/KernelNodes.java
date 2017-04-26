@@ -41,8 +41,6 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.core.binding.BindingNodes.CreateBindingNode;
-import org.truffleruby.core.binding.BindingNodesFactory.CreateBindingNodeGen;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
@@ -249,14 +247,13 @@ public abstract class KernelNodes {
         public abstract DynamicObject executeBinding(VirtualFrame frame);
         
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
-        @Child CreateBindingNode createBinding = CreateBindingNodeGen.create();
 
         @Specialization
         public DynamicObject binding(VirtualFrame frame) {
             // Materialize the caller's frame - false means don't use a slow path to get it - we want to optimize it
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
 
-            return createBinding.execute(callerFrame);
+            return BindingNodes.createBinding(getContext(), callerFrame);
         }
     }
 
@@ -1093,7 +1090,7 @@ public abstract class KernelNodes {
         @Specialization
         public DynamicObject localVariables() {
             final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_ONLY);
-            return BindingNodes.LocalVariablesNode.listLocalVariables(getContext(), frame, null);
+            return BindingNodes.LocalVariablesNode.listLocalVariables(getContext(), frame);
         }
 
     }

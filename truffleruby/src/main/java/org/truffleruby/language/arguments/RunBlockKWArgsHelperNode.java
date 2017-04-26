@@ -9,17 +9,18 @@
  */
 package org.truffleruby.language.arguments;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.Layouts;
 import org.truffleruby.Log;
+import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 import org.truffleruby.language.locals.WriteFrameSlotNode;
 import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class RunBlockKWArgsHelperNode extends RubyNode {
 
@@ -51,7 +52,7 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
                 "Truffle.load_arguments_from_array_kw_helper(array, kwrest_name, binding)",
                 "array", array,
                 "kwrest_name", kwrestName,
-                "binding", Layouts.BINDING.createBinding(coreLibrary().getBindingFactory(), frame.materialize(), null));
+                "binding", BindingNodes.createBinding(getContext(), frame.materialize()));
 
         writeArrayNode.executeWrite(frame, remainingArray);
 
