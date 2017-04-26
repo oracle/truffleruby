@@ -71,7 +71,7 @@ public abstract class TruffleDebugNodes {
 
                         @Override
                         protected void onEnter(VirtualFrame frame) {
-                            yieldNode.dispatch(frame, block, Layouts.BINDING.createBinding(getContext().getCoreLibrary().getBindingFactory(), frame.materialize()));
+                            yieldNode.dispatch(frame, block, Layouts.BINDING.createBinding(getContext().getCoreLibrary().getBindingFactory(), frame.materialize(), null));
                         }
 
                     });

@@ -649,7 +649,10 @@ public abstract class KernelNodes {
             // TODO CS 14-Apr-15 concat space + code as a rope, otherwise the string will be copied after the rope is converted
             final Source source = Source.newBuilder(space + RopeOperations.decodeRope(code)).name(filename).mimeType(RubyLanguage.MIME_TYPE).build();
 
-            final MaterializedFrame frame = Layouts.BINDING.getFrame(binding);
+            MaterializedFrame frame = Layouts.BINDING.getExtras(binding);
+            if (frame == null) {
+                frame = Layouts.BINDING.getFrame(binding);
+            }
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source, code.getEncoding(), ParserContext.EVAL, frame, ownScopeForAssignments, this);
@@ -1090,7 +1093,7 @@ public abstract class KernelNodes {
         @Specialization
         public DynamicObject localVariables() {
             final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_ONLY);
-            return BindingNodes.LocalVariablesNode.listLocalVariables(getContext(), frame);
+            return BindingNodes.LocalVariablesNode.listLocalVariables(getContext(), frame, null);
         }
 
     }

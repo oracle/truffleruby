@@ -46,7 +46,7 @@ class TracePointEventNode extends ExecutionEventNode {
         Layouts.TRACE_POINT.setEvent(tracePoint, context.getCoreStrings().LINE.getSymbol());
         Layouts.TRACE_POINT.setPath(tracePoint, getPath());
         Layouts.TRACE_POINT.setLine(tracePoint, getLine());
-        Layouts.TRACE_POINT.setBinding(tracePoint, Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), frame.materialize()));
+        Layouts.TRACE_POINT.setBinding(tracePoint, Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), frame.materialize(), null));
 
         Layouts.TRACE_POINT.setInsideProc(tracePoint, true);
         

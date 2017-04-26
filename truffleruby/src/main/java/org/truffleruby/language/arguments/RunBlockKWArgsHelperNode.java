@@ -51,7 +51,7 @@ public class RunBlockKWArgsHelperNode extends RubyNode {
                 "Truffle.load_arguments_from_array_kw_helper(array, kwrest_name, binding)",
                 "array", array,
                 "kwrest_name", kwrestName,
-                "binding", Layouts.BINDING.createBinding(coreLibrary().getBindingFactory(), frame.materialize()));
+                "binding", Layouts.BINDING.createBinding(coreLibrary().getBindingFactory(), frame.materialize(), null));
 
         writeArrayNode.executeWrite(frame, remainingArray);
 
