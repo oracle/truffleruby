@@ -194,12 +194,4 @@ public class CommandLineOptions {
         return shouldPrintShortUsage;
     }
 
-    public void setReadRubyOpt(boolean readRubyOpt) {
-        this.readRubyOpt = readRubyOpt;
-    }
-
-    public boolean getReadRubyOpt() {
-        return readRubyOpt;
-    }
-
 }

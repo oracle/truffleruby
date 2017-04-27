@@ -174,7 +174,7 @@ public class Main {
     public static void processArguments(CommandLineOptions config, String[] arguments) {
         new CommandLineParser(arguments, config).processArguments();
 
-        if (config.getReadRubyOpt()) {
+        if ((boolean) config.getOptions().getOrDefault(OptionsCatalog.READ_RUBYOPT.getName(), OptionsCatalog.READ_RUBYOPT.getDefaultValue())) {
             String rubyopt = System.getenv("RUBYOPT");
 
             if (rubyopt != null && rubyopt.length() != 0) {

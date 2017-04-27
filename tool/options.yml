@@ -6,6 +6,7 @@ REQUIRED_LIBRARIES: [required_libraries, string-array, [], Required libraries]
 INLINE_SCRIPT: [inline_script, byte-string, null, Inline script]
 ARGUMENTS: [arguments, string-array, [], Command line arguments for the Ruby program]
 DISPLAYED_FILE_NAME: [displayed_file_name, string, null, Displayed file name]
+READ_RUBYOPT: [read_rubyopt, boolean, true, Read RUBYOPT and TRUFFLERUBYOPT environment variables]
 
 DEBUG: [debug, boolean, false, Debug]
 VERBOSITY: [verbosity, verbosity, false, Verbosity]

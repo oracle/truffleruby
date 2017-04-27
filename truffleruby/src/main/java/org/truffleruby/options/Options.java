@@ -25,6 +25,7 @@ public class Options {
     @CompilationFinal(dimensions=1) public final byte[] INLINE_SCRIPT;
     @CompilationFinal(dimensions=1) public final String[] ARGUMENTS;
     public final String DISPLAYED_FILE_NAME;
+    public final boolean READ_RUBYOPT;
     public final boolean DEBUG;
     public final Verbosity VERBOSITY;
     public final boolean FROZEN_STRING_LITERALS;
@@ -115,6 +116,7 @@ public class Options {
         INLINE_SCRIPT = builder.getOrDefault(OptionsCatalog.INLINE_SCRIPT);
         ARGUMENTS = builder.getOrDefault(OptionsCatalog.ARGUMENTS);
         DISPLAYED_FILE_NAME = builder.getOrDefault(OptionsCatalog.DISPLAYED_FILE_NAME);
+        READ_RUBYOPT = builder.getOrDefault(OptionsCatalog.READ_RUBYOPT);
         DEBUG = builder.getOrDefault(OptionsCatalog.DEBUG);
         VERBOSITY = builder.getOrDefault(OptionsCatalog.VERBOSITY);
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
@@ -214,6 +216,8 @@ public class Options {
                 return ARGUMENTS;
             case "displayed_file_name":
                 return DISPLAYED_FILE_NAME;
+            case "read_rubyopt":
+                return READ_RUBYOPT;
             case "debug":
                 return DEBUG;
             case "verbosity":

@@ -624,7 +624,7 @@ public class CommandLineParser {
                 FEATURES.get("frozen-string-literal"));
 
         FEATURES.put("rubyopt", (processor, enable) ->
-                processor.config.setReadRubyOpt(false));
+                processor.config.getOptions().put(OptionsCatalog.READ_RUBYOPT.getName(), enable));
     }
 
 }
