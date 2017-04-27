@@ -57,7 +57,6 @@ public class CommandLineOptions {
     private boolean hasScriptArgv;
     private boolean forceStdin;
     private boolean shouldPrintShortUsage;
-    private boolean readRubyOpt = true;
 
     public Map<String, Object> getOptions() {
         return options;
