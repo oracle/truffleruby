@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class SafepointManager {
@@ -103,15 +105,32 @@ public class SafepointManager {
         }
     }
 
+    private static final int WAIT_TIME = 5;
+
     @TruffleBoundary
     private SafepointAction step(Node currentNode, boolean isDrivingThread) {
         final DynamicObject thread = context.getThreadManager().getCurrentThread();
 
         // Wait for other threads to reach their safepoint
-        phaser.arriveAndAwaitAdvance();
-
         if (isDrivingThread) {
+            int phase = phaser.arrive();
+            while (true) {
+                try {
+                    phaser.awaitAdvanceInterruptibly(phase, WAIT_TIME, TimeUnit.SECONDS);
+                    break;
+                } catch (InterruptedException e) {
+                    // retry
+                } catch (TimeoutException e) {
+                    System.err.println("WARNING: Waited " + WAIT_TIME + " seconds in the SafepointManager but other threads did not arrive.\n" +
+                            "Some thread is likely doing some blocking native call which should be replaced with a non-blocking call. Check with jstack.");
+                    phaser.awaitAdvance(phase);
+                    break;
+                }
+            }
+
             assumption = Truffle.getRuntime().createAssumption(getClass().getCanonicalName());
+        } else {
+            phaser.arriveAndAwaitAdvance();
         }
 
         // Wait for the assumption to be renewed
