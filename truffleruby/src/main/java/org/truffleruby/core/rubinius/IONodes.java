@@ -799,7 +799,7 @@ public abstract class IONodes {
             final int newFd;
 
             try {
-                newFd = ensureSuccessful(nativeSockets().accept(fd, memoryManager().newPointer(address), addressLength));
+                newFd = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(nativeSockets().accept(fd, memoryManager().newPointer(address), addressLength)));
             } finally {
                 getContext().getNativePlatform().getMallocFree().free(address);
             }
