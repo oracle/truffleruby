@@ -74,6 +74,16 @@ public abstract class BindingNodes {
         }
     }
 
+    public static MaterializedFrame getExtrasFrame(RubyContext context, DynamicObject binding) {
+        assert RubyGuards.isRubyBinding(binding);
+        MaterializedFrame frame = Layouts.BINDING.getExtras(binding);
+        if (frame == null) {
+            frame = newExtrasFrame(context, Layouts.BINDING.getFrame(binding));
+            Layouts.BINDING.setExtras(binding, frame);
+        }
+        return frame;
+    }
+
     public static MaterializedFrame newExtrasFrame(RubyContext context, MaterializedFrame parent) {
         final MaterializedFrame frame = Truffle.getRuntime().createMaterializedFrame(
                 RubyArguments.pack(
