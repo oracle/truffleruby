@@ -175,23 +175,8 @@ public class Main {
         new CommandLineParser(arguments, config).processArguments();
 
         if ((boolean) config.getOptions().getOrDefault(OptionsCatalog.READ_RUBYOPT.getName(), OptionsCatalog.READ_RUBYOPT.getDefaultValue())) {
-            String rubyopt = System.getenv("RUBYOPT");
-
-            if (rubyopt != null && rubyopt.length() != 0) {
-                String[] rubyoptArgs = rubyopt.split("\\s+");
-                if (rubyoptArgs.length != 0) {
-                    new CommandLineParser(rubyoptArgs, false, true, true, config).processArguments();
-                }
-            }
-
-            String truffleRubyopt = System.getenv("TRUFFLERUBYOPT");
-
-            if (truffleRubyopt != null && truffleRubyopt.length() != 0) {
-                String[] truffleRubyoptArgs = truffleRubyopt.split("\\s+");
-                if (truffleRubyoptArgs.length != 0) {
-                    new CommandLineParser(truffleRubyoptArgs, false, true, false, config).processArguments();
-                }
-            }
+            CommandLineParser.processEnvironmentVariable("RUBYOPT", config);
+            CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config);
         }
 
         if (!config.doesHaveScriptArgv() && !config.shouldUsePathScript() && System.console() != null) {
