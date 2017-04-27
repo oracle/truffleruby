@@ -646,10 +646,7 @@ public abstract class KernelNodes {
             // TODO CS 14-Apr-15 concat space + code as a rope, otherwise the string will be copied after the rope is converted
             final Source source = Source.newBuilder(space + RopeOperations.decodeRope(code)).name(filename).mimeType(RubyLanguage.MIME_TYPE).build();
 
-            MaterializedFrame frame = Layouts.BINDING.getExtras(binding);
-            if (frame == null) {
-                frame = Layouts.BINDING.getFrame(binding);
-            }
+            final MaterializedFrame frame = BindingNodes.getDeclarationFrame(binding);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source, code.getEncoding(), ParserContext.EVAL, frame, ownScopeForAssignments, this);
