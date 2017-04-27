@@ -759,6 +759,7 @@ public abstract class RegexpNodes {
     }
 
 
+    @TruffleBoundary
     private static FrameSlot getMatchDataSlot(Frame frame) {
         return frame.getFrameDescriptor().findFrameSlot("$~");
     }
