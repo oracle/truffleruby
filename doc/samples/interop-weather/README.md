@@ -22,7 +22,7 @@ command line. Instead, we use the `load_paths` option, which as a Java system
 property is written `truffleruby.load_paths`.
 
 ```
-.../graalvm/bin/js -Dtruffleruby.load_paths=openweather/lib,. weather.js
+.../graalvm/bin/js -J-Dtruffleruby.load_paths=openweather/lib,. weather.js
 ```
 
 Unfortunately, the demo hangs after printing the temperature, as some Ruby
