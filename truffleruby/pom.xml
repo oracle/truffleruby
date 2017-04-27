@@ -4,10 +4,10 @@
   <parent>
     <groupId>org.truffleruby</groupId>
     <artifactId>truffleruby-parent</artifactId>
-    <version>0-SNAPSHOT</version>
+    <version>0</version>
   </parent>
   <artifactId>truffleruby</artifactId>
-  <version>0-SNAPSHOT</version>
+  <version>0</version>
   <properties>
     <maven.test.skip>true</maven.test.skip>
     <!-- Must be the same as in mx.truffleruby/suite.py (except for the -SNAPSHOT part, and here we can use a release name) -->

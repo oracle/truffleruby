@@ -166,16 +166,11 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         return super.findContext(node);
     }
 
-    public static String getTruffleRubyVersion() {
-        return System.getProperty("graalvm.version", "0.SNAPSHOT");
-    }
-
     public static String getVersionString() {
-        final String version = getTruffleRubyVersion();
 
         return String.format(
                 "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",
-                version,
+                System.getProperty("graalvm.version", "unknown version"),
                 RUBY_VERSION,
                 TruffleOptions.AOT ? "AOT" : System.getProperty("java.vm.name", "unknown JVM"),
                 TruffleOptions.AOT ? "build" : System.getProperty("java.runtime.version", System.getProperty("java.version", "unknown runtime version")),
