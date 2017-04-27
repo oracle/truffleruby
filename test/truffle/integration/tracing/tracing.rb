@@ -9,23 +9,14 @@
 $trace = []
 
 $trace_proc = proc { |*args|
-  args[4] = args[4].dup
+  bind = args[4]
+  # Capture the current values of variables at this point in time.
+  capture = Hash[args[4].local_variables.sort.map { |v|
+    [v, args[4].local_variable_get(v)]
+  }]
+  args[4] = capture
   $trace << args
 }
-
-class MockBinding
-
-  def local_variables
-    []
-  end
-
-end
-
-def expand_binding(binding)
-  Hash[binding.local_variables.sort.map { |v|
-    [v, binding.local_variable_get(v)]
-  }]
-end
 
 def check(file)
   expected = nil
@@ -41,7 +32,7 @@ def check(file)
   #  p a
   #end
   
-  empty_binding = MockBinding.new
+  empty_binding = {}
   
   while actual.size < expected.size
     actual.push ['missing', 'missing', :missing, :missing, empty_binding, :missing]
@@ -52,39 +43,39 @@ def check(file)
   end
   
   success = true
+  trace_event = 1
   
   expected.zip(actual).each do |e, a|
     unless a[0] == e[0]
-      puts "Expected #{e[0].inspect}, actually #{a[0].inspect}"
+      puts "Event #{trace_event}\n    Expected #{e[0].inspect}\n    actually #{a[0].inspect}"
       success = false
     end
     
     unless a[1].end_with?(e[1])
-      puts "Expected #{e[1].inspect}, actually #{a[1].inspect}"
+      puts "Event #{trace_event}\n    Expected #{e[1].inspect}\n    actually #{a[1].inspect}"
       success = false
     end
   
     unless a[2] == e[2]
-      puts "Expected #{e[2].inspect}, actually #{a[2].inspect}"
+      puts "Event #{trace_event}\n    Expected #{e[2].inspect}\n    actually #{a[2].inspect}"
       success = false
     end
   
     unless a[3] == e[3]
-      puts "Expected #{e[3].inspect}, actually #{a[3].inspect}"
+      puts "Event #{trace_event}\n    Expected #{e[3].inspect}\n    actually #{a[3].inspect}"
       success = false
     end
     
-    ab = expand_binding(a[4])
-  
-    unless ab == e[4]
-      puts "Expected Binding, actually #{ab.inspect}"
+    unless a[4] == e[4]
+      puts "Event #{trace_event}\n    Expected #{e[4].inspect}\n    actually #{a[4].inspect}"
       success = false
     end
   
     unless a[5] == e[5]
-      puts "Expected #{e[5].inspect}, actually #{a[5].inspect}"
+      puts "Event #{trace_event}\n    Expected #{e[5].inspect}\n    actually #{a[5].inspect}"
       success = false
     end
+    trace_event += 1
   end
   
   unless success
