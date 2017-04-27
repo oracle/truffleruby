@@ -401,7 +401,7 @@ gem-test-pack: {
   }
 
   setup: [
-    [mx, sclone, --kind, git, "https://github.com/jruby/jruby-truffle-gem-test-pack.git", ../jruby-truffle-gem-test-pack],
+    [mx, sclone, --kind, git, "https://github.com/jruby/all-ruby-benchmarks.git", ../jruby-truffle-gem-test-pack],
     [test/truffle/gem-test-pack-checkout-revision.sh]
   ]
 }
