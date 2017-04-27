@@ -1059,6 +1059,7 @@ module Commands
     if args.delete('--aot')
       verify_aot_bin!
 
+      options += %w[--excl-tag graalvm]
       options << '-t' << ENV['AOT_BIN']
       options << '-T-XX:OldGenerationSize=2G'
       options << "-T-Xhome=#{JRUBY_DIR}"
