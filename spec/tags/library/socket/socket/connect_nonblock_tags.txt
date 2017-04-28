@@ -1,2 +1,3 @@
 fails:Socket#connect_nonblock raises Errno::EINPROGRESS with IO::WaitWritable mixed in when the connect would block
 fails:Socket#connect_nonblock returns :wait_writable in exceptionless mode when the connect would block
+solaris:Socket#connect_nonblock connects the socket to the remote side
