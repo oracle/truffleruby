@@ -1040,7 +1040,7 @@ module Commands
     when 'run'
       options += %w[--excl-tag fails]
     when 'tag'
-      options += %w[--add fails --fail]
+      options += %w[--add fails --fail --excl-tag fails]
     when 'untag'
       options += %w[--del fails --pass]
       command = 'tag'
