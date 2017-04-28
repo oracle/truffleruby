@@ -41,8 +41,6 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.core.binding.BindingNodes.CreateBindingNode;
-import org.truffleruby.core.binding.BindingNodesFactory.CreateBindingNodeGen;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
@@ -249,14 +247,13 @@ public abstract class KernelNodes {
         public abstract DynamicObject executeBinding(VirtualFrame frame);
         
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
-        @Child CreateBindingNode createBinding = CreateBindingNodeGen.create();
 
         @Specialization
         public DynamicObject binding(VirtualFrame frame) {
             // Materialize the caller's frame - false means don't use a slow path to get it - we want to optimize it
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
 
-            return createBinding.execute(callerFrame);
+            return BindingNodes.createBinding(getContext(), callerFrame);
         }
     }
 
@@ -649,7 +646,7 @@ public abstract class KernelNodes {
             // TODO CS 14-Apr-15 concat space + code as a rope, otherwise the string will be copied after the rope is converted
             final Source source = Source.newBuilder(space + RopeOperations.decodeRope(code)).name(filename).mimeType(RubyLanguage.MIME_TYPE).build();
 
-            final MaterializedFrame frame = Layouts.BINDING.getFrame(binding);
+            final MaterializedFrame frame = BindingNodes.getExtrasFrame(getContext(), binding);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source, code.getEncoding(), ParserContext.EVAL, frame, ownScopeForAssignments, this);

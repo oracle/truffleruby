@@ -22,6 +22,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LazyRubyNode;
@@ -71,7 +72,7 @@ public abstract class TruffleDebugNodes {
 
                         @Override
                         protected void onEnter(VirtualFrame frame) {
-                            yieldNode.dispatch(frame, block, Layouts.BINDING.createBinding(getContext().getCoreLibrary().getBindingFactory(), frame.materialize()));
+                            yieldNode.dispatch(frame, block, BindingNodes.createBinding(getContext(), frame.materialize()));
                         }
 
                     });
