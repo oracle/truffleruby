@@ -54,7 +54,6 @@ class MSpecScript
     "^spec/ruby/library/drb",
 
     # Not yet explored
-    "^spec/ruby/library/continuation",
     "^spec/ruby/library/mathn",
     "^spec/ruby/library/readline",
     "^spec/ruby/library/syslog",
@@ -118,7 +117,6 @@ class MSpecScript
   # Enable features
   MSpec.enable_feature :fiber
   MSpec.enable_feature :fiber_library
-  MSpec.disable_feature :continuation_library
   MSpec.disable_feature :fork
   MSpec.enable_feature :encoding
   MSpec.enable_feature :readline
