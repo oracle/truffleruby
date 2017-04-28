@@ -119,8 +119,6 @@ describe "A method send" do
 
     it "allows an array being splatted to be modified by another argument" do
       args = [3, 4]
-      m(1, 2, *args, args.shift, 5).should == [1, 2, [4], 3, 5]
-      args = [3, 4]
       m(1, args.shift, *args, 4, 5).should == [1, 3, [4], 4, 5]
     end
   end

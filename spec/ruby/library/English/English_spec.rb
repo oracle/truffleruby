@@ -119,10 +119,7 @@ describe "English" do
   end
 
   it "aliases $CHILD_STATUS to $?" do
-    begin
-      `missing_program_name`
-    rescue
-    end
+    ruby_exe('exit 0')
     $CHILD_STATUS.should_not be_nil
     $CHILD_STATUS.should == $?
   end
@@ -134,8 +131,13 @@ describe "English" do
   end
 
   it "aliases $IGNORECASE to $=" do
-    $IGNORECASE.should_not be_nil
-    $IGNORECASE.should == $=
+    $VERBOSE, verbose = nil, $VERBOSE
+    begin
+      $IGNORECASE.should_not be_nil
+      $IGNORECASE.should == $=
+    ensure
+      $VERBOSE = verbose
+    end
   end
 
   it "aliases $ARGV to $*" do
