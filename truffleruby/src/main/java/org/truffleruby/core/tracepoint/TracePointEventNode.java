@@ -17,6 +17,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -46,7 +47,7 @@ class TracePointEventNode extends ExecutionEventNode {
         Layouts.TRACE_POINT.setEvent(tracePoint, context.getCoreStrings().LINE.getSymbol());
         Layouts.TRACE_POINT.setPath(tracePoint, getPath());
         Layouts.TRACE_POINT.setLine(tracePoint, getLine());
-        Layouts.TRACE_POINT.setBinding(tracePoint, Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), frame.materialize(), null));
+        Layouts.TRACE_POINT.setBinding(tracePoint, BindingNodes.createBinding(context, frame.materialize()));
 
         Layouts.TRACE_POINT.setInsideProc(tracePoint, true);
         

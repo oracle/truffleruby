@@ -28,6 +28,7 @@ import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.RubyGuards;
@@ -146,7 +147,7 @@ public class TraceManager {
                         getFile(),
                         getLine(),
                         context.getCoreLibrary().getNilObject(),
-                        Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), frame.materialize(), null),
+                        BindingNodes.createBinding(context, frame.materialize()),
                         context.getCoreLibrary().getNilObject());
             } finally {
                 isInTraceFunc = false;
@@ -217,7 +218,7 @@ public class TraceManager {
                         getFile(file),
                         line,
                         context.getSymbolTable().getSymbol(RubyArguments.getMethod(frame).getName()),
-                        Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), frame.materialize(), null),
+                        BindingNodes.createBinding(context, frame.materialize()),
                         getLogicalClass(RubyArguments.getSelf(frame)));
             } finally {
                 isInTraceFunc = false;

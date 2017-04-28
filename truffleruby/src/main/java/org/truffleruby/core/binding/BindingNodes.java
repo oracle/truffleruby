@@ -61,10 +61,10 @@ public abstract class BindingNodes {
 
     public static FrameDescriptor getFrameDescriptor(DynamicObject binding) {
         assert RubyGuards.isRubyBinding(binding);
-        return getDeclarationFrame(binding).getFrameDescriptor();
+        return getTopFrame(binding).getFrameDescriptor();
     }
 
-    public static MaterializedFrame getDeclarationFrame(DynamicObject binding) {
+    public static MaterializedFrame getTopFrame(DynamicObject binding) {
         assert RubyGuards.isRubyBinding(binding);
         MaterializedFrame frame = Layouts.BINDING.getExtras(binding);
         if (frame != null) {
@@ -138,7 +138,7 @@ public abstract class BindingNodes {
 
         @Specialization
         public DynamicObject dup(DynamicObject binding) {
-            MaterializedFrame frame = getDeclarationFrame(binding);
+            MaterializedFrame frame = getTopFrame(binding);
             Layouts.BINDING.setExtras(binding, newExtrasFrame(getContext(), frame));
             DynamicObject copy = allocateObjectNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(binding),
@@ -164,7 +164,7 @@ public abstract class BindingNodes {
         @TruffleBoundary
         @Specialization(guards = "!hiddenVariable(name)")
         public boolean localVariableDefinedUncached(DynamicObject binding, String name) {
-            return findFrameSlotOrNull(name, getDeclarationFrame(binding)) != null;
+            return findFrameSlotOrNull(name, getTopFrame(binding)) != null;
         }
 
         @TruffleBoundary
@@ -197,16 +197,16 @@ public abstract class BindingNodes {
         public Object localVariableGetCached(DynamicObject binding, String name,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor descriptor,
-                @Cached("findFrameSlotOrNull(name, getDeclarationFrame(binding))") FrameSlotAndDepth cachedFrameSlot,
+                @Cached("findFrameSlotOrNull(name, getTopFrame(binding))") FrameSlotAndDepth cachedFrameSlot,
                 @Cached("createReadNode(cachedFrameSlot)") ReadFrameSlotNode readLocalVariableNode) {
-            final MaterializedFrame frame = RubyArguments.getDeclarationFrame(getDeclarationFrame(binding), cachedFrameSlot.depth);
+            final MaterializedFrame frame = RubyArguments.getDeclarationFrame(getTopFrame(binding), cachedFrameSlot.depth);
             return readLocalVariableNode.executeRead(frame);
         }
 
         @TruffleBoundary
         @Specialization(guards = "!hiddenVariable(name)")
         public Object localVariableGetUncached(DynamicObject binding, String name) {
-            MaterializedFrame frame = getDeclarationFrame(binding);
+            MaterializedFrame frame = getTopFrame(binding);
             FrameSlotAndDepth frameSlot = findFrameSlotOrNull(name, frame);
             if (frameSlot != null) {
                 return RubyArguments.getDeclarationFrame(frame, frameSlot.depth).getValue(frameSlot.slot);
@@ -258,26 +258,23 @@ public abstract class BindingNodes {
         public Object localVariableSetCached(DynamicObject binding, String name, Object value,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
-                @Cached("findFrameSlotOrNull(name, getDeclarationFrame(binding))") FrameSlotAndDepth cachedFrameSlot,
+                @Cached("findFrameSlotOrNull(name, getTopFrame(binding))") FrameSlotAndDepth cachedFrameSlot,
                 @Cached("createWriteNode(cachedFrameSlot)") WriteFrameSlotNode writeLocalVariableNode) {
-            final MaterializedFrame frame = RubyArguments.getDeclarationFrame(getDeclarationFrame(binding), cachedFrameSlot.depth);
+            final MaterializedFrame frame = RubyArguments.getDeclarationFrame(getTopFrame(binding), cachedFrameSlot.depth);
             return writeLocalVariableNode.executeWrite(frame, value);
         }
 
         @TruffleBoundary
         @Specialization(guards = "!hiddenVariable(name)")
         public Object localVariableSetUncached(DynamicObject binding, String name, Object value) {
-            MaterializedFrame frame = getDeclarationFrame(binding);
+            MaterializedFrame frame = getTopFrame(binding);
             final FrameSlotAndDepth frameSlot = findFrameSlotOrNull(name, frame);
             final FrameSlot slot;
             if (frameSlot != null) {
                 frame = RubyArguments.getDeclarationFrame(frame, frameSlot.depth);
                 slot = frameSlot.slot;
             } else {
-                if (Layouts.BINDING.getExtras(binding) == null) {
-                    frame = newExtrasFrame(getContext(), frame);
-                    Layouts.BINDING.setExtras(binding, frame);
-                }
+                frame = getExtrasFrame(getContext(), binding);
                 slot = frame.getFrameDescriptor().findOrAddFrameSlot(name);
 
             }
@@ -305,7 +302,7 @@ public abstract class BindingNodes {
 
         @Specialization
         public DynamicObject localVariables(DynamicObject binding) {
-            return listLocalVariables(getContext(), getDeclarationFrame(binding));
+            return listLocalVariables(getContext(), getTopFrame(binding));
         }
 
         @TruffleBoundary
