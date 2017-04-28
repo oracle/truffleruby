@@ -142,7 +142,6 @@ sulong: ${labsjdk8} {
   setup: ${common.setup} [
     ${mx_sclone} ["https://github.com/graalvm/sulong.git", ../sulong],
     [cd, ../sulong],
-    [mx, sforceimports], # Use Sulong's Truffle for now
     [mx, sversions],
     [mx, build],
     [cd, ../main],
