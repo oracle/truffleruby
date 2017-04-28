@@ -7,8 +7,7 @@ unset GEM_HOME GEM_PATH
 
 git clone \
     --branch master \
-    https://github.com/jruby/jruby-truffle-gem-test-pack.git \
+    https://github.com/jruby/all-ruby-benchmarks.git \
     ../jruby-truffle-gem-test-pack
 
 test/truffle/gem-test-pack-checkout-revision.sh
-
