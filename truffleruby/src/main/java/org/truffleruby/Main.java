@@ -175,8 +175,8 @@ public class Main {
         new CommandLineParser(arguments, config).processArguments();
 
         if ((boolean) config.getOptions().getOrDefault(OptionsCatalog.READ_RUBYOPT.getName(), OptionsCatalog.READ_RUBYOPT.getDefaultValue())) {
-            CommandLineParser.processEnvironmentVariable("RUBYOPT", config);
-            CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config);
+            CommandLineParser.processEnvironmentVariable("RUBYOPT", config, true);
+            CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config, false);
         }
 
         if (!config.doesHaveScriptArgv() && !config.shouldUsePathScript() && System.console() != null) {

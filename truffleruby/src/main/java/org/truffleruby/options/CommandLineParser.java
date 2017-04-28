@@ -102,14 +102,14 @@ public class CommandLineParser {
         this.rubyOpts = rubyOpts;
     }
 
-    public static void processEnvironmentVariable(String name, CommandLineOptions commandLineOptions) {
+    public static void processEnvironmentVariable(String name, CommandLineOptions commandLineOptions, boolean rubyOpts) {
         String value = System.getenv(name);
 
         if (value != null && value.length() != 0) {
             String[] args = value.split("\\s+");
 
             if (args.length != 0) {
-                new CommandLineParser(args, false, true, true, commandLineOptions).processArguments();
+                new CommandLineParser(args, false, true, rubyOpts, commandLineOptions).processArguments();
             }
         }
     }
