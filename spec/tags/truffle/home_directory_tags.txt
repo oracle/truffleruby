@@ -1,2 +1,0 @@
-fails:Truffle.home_directory returns a String
-fails:Truffle.home_directory returns a path to a directory
