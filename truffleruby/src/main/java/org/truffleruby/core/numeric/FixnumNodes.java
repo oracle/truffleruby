@@ -787,12 +787,12 @@ public abstract class FixnumNodes {
             return a & b;
         }
 
-        @Specialization
+        @Specialization(guards = "a >= 0")
         public int bitAndIntLong(int a, long b) {
             return a & ((int) b);
         }
 
-        @Specialization
+        @Specialization(guards = "b >= 0")
         public int bitAndLongInt(long a, int b) {
             return ((int) a) & b;
         }
