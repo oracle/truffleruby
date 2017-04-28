@@ -38,7 +38,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
     @CompilationFinal protected boolean sendsFrame = false;
-    @CompilationFinal @Child private ReadCallerFrameNode readCaller;
+    @Child private ReadCallerFrameNode readCaller;
 
     public CachedDispatchNode(
             RubyContext context,
@@ -63,18 +63,30 @@ public abstract class CachedDispatchNode extends DispatchNode {
         this.next = next;
     }
 
+    protected boolean sendingFrames() {
+        return sendsFrame || readCaller != null;
+    }
+
     public void replaceSendingFrame() {
-        CompilerDirectives.transferToInterpreterAndInvalidate();
+        assert readCaller == null;
         if (!sendsFrame) {
-            sendsFrame = true;
+            replaceSendingFrame(true, null);
         }
     }
 
     public void replaceSendingCallerFrame(CallerFrameAccess access) {
-        CompilerDirectives.transferToInterpreterAndInvalidate();
+        assert sendsFrame == false;
         if (readCaller == null) {
-            readCaller = new ReadCallerFrameNode(access);
+            replaceSendingFrame(false, new ReadCallerFrameNode(access));
         }
+    }
+
+    private void replaceSendingFrame(boolean sendsFrame, ReadCallerFrameNode readCaller) {
+        CachedDispatchNode copy = (CachedDispatchNode) copy();
+        copy.sendsFrame = sendsFrame;
+        copy.readCaller = readCaller;
+        replace(copy);
+        copy.reassessSplittingInliningStrategy();
     }
 
     @Override
@@ -113,13 +125,15 @@ public abstract class CachedDispatchNode extends DispatchNode {
         return cachedNameAsSymbol;
     }
 
+    protected abstract void reassessSplittingInliningStrategy();
+
     protected void applySplittingInliningStrategy(DirectCallNode callNode, InternalMethod method) {
         if (callNode.isCallTargetCloningAllowed() && method.getSharedMethodInfo().shouldAlwaysClone()) {
             insert(callNode);
             callNode.cloneCallTarget();
         }
 
-        if (method.getSharedMethodInfo().shouldAlwaysInline() && callNode.isInlinable()) {
+        if (sendingFrames() && getContext().getOptions().INLINE_NEEDS_CALLER_FRAME && callNode.isInlinable()) {
             callNode.forceInlining();
         }
     }

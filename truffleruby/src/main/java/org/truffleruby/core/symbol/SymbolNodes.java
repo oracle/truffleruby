@@ -109,8 +109,6 @@ public abstract class SymbolNodes {
                     Layouts.SYMBOL.getString(symbol),
                     "proc",
                     ArgumentDescriptor.ANON_REST,
-                    false,
-                    false,
                     false);
 
             final RubyRootNode rootNode = new RubyRootNode(getContext(), sourceSection, new FrameDescriptor(nil()), sharedMethodInfo, Translator.sequence(sourceIndexLength, Arrays.asList(Translator.createCheckArityNode(Arity.AT_LEAST_ONE), new SymbolProcNode(Layouts.SYMBOL.getString(symbol)))), false);

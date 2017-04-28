@@ -62,6 +62,17 @@ public class CachedBooleanDispatchNode extends CachedDispatchNode {
     }
 
     @Override
+    protected void reassessSplittingInliningStrategy() {
+        if (falseCallDirect != null) {
+            applySplittingInliningStrategy(falseCallDirect, falseMethod);
+        }
+
+        if (falseCallDirect != null) {
+            applySplittingInliningStrategy(trueCallDirect, trueMethod);
+        }
+    }
+
+    @Override
     protected boolean guard(Object methodName, Object receiver) {
         return guardName(methodName) && (receiver instanceof Boolean);
     }
@@ -123,5 +134,4 @@ public class CachedBooleanDispatchNode extends CachedDispatchNode {
             }
         }
     }
-
 }

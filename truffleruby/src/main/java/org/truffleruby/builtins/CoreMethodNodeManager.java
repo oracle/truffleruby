@@ -179,7 +179,6 @@ public class CoreMethodNodeManager {
     private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, DynamicObject module, MethodDetails methodDetails) {
         final CoreMethod method = methodDetails.getMethodAnnotation();
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
-        final boolean needsCallerFrame = method.needsCallerFrame() != CallerFrameAccess.NONE;
 
         return new SharedMethodInfo(
                 context.getCoreLibrary().getSourceSection(),
@@ -189,9 +188,7 @@ public class CoreMethodNodeManager {
                 methodDetails.getPrimaryName(),
                 "builtin",
                 null,
-                context.getOptions().CORE_ALWAYS_CLONE,
-                needsCallerFrame && context.getOptions().INLINE_NEEDS_CALLER_FRAME,
-                needsCallerFrame);
+                context.getOptions().CORE_ALWAYS_CLONE);
     }
 
     private static CallTarget makeGenericMethod(RubyContext context, MethodDetails methodDetails, SharedMethodInfo sharedMethodInfo) {
