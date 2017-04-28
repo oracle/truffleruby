@@ -1,0 +1,1 @@
+fails:Enumerable#find_index ignores the block if an argument is given

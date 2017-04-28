@@ -1,0 +1,1 @@
+fails:Hash#each properly expands (or not) child class's 'each'-yielded args

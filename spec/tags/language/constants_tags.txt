@@ -1,0 +1,3 @@
+fails:Literal (A::X) constant resolution with dynamically assigned constants returns the updated value when a constant is reassigned
+fails:Constant resolution within methods with dynamically assigned constants returns the updated value when a constant is reassigned
+fails:Module#private_constant marked constants remain private even when updated

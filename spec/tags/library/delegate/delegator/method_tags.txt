@@ -1,1 +1,2 @@
 fails:Delegator#method returns a method object for protected methods of the delegate object
+fails:Delegator#method raises a NameError for protected methods of the delegate object

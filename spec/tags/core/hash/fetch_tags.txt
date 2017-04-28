@@ -1,0 +1,1 @@
+fails:Hash#fetch gives precedence to the default block over the default argument when passed both

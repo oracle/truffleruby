@@ -1,0 +1,1 @@
+fails:Module#const_get with dynamically assigned constants returns the updated value of a constant

@@ -1,0 +1,1 @@
+fails:Array#find_index ignores the block if there is an argument
