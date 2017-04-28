@@ -15,7 +15,7 @@ example "x = 14; binding.local_variable_get(:x)", 14
 tagged example "x = 14; p = Proc.new { }; p.binding.local_variable_get(:x)", 14
 
 # set + get
-example "b = binding; b.local_variable_set(:x, 14); b.local_variable_get(:x)", 14
+tagged example "b = binding; b.local_variable_set(:x, 14); b.local_variable_get(:x)", 14
 
 # get (2 levels)
 example "x = 14; y = nil; 1.times { y = binding.local_variable_get(:x) }; y", 14
