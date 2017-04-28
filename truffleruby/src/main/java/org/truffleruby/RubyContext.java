@@ -52,7 +52,9 @@ import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.security.CodeSource;
 
 public class RubyContext extends ExecutionContext {
@@ -202,7 +204,32 @@ public class RubyContext extends ExecutionContext {
 
         // Try to find it automatically from the location of the JAR, but this won't work from the JRuby launcher as it uses the boot classpath
 
-        if (!TruffleOptions.AOT) {
+        if (TruffleOptions.AOT) {
+            final String executablePath = (String) Compiler.command(new Object[]{"com.oracle.svm.core.posix.GetExecutableName"});
+            final String parentDirectory = new File(executablePath).getParent();
+
+            // Root of the GraalVM distribution.
+            File candidate = Paths.get(parentDirectory, "language", "ruby").toFile();
+            if (candidate.exists()) {
+                return candidate.toString();
+            }
+
+            // Root of the TruffleRuby source tree.
+            candidate = Paths.get(parentDirectory, "lib", "ruby").toFile();
+            if (candidate.exists()) {
+                return parentDirectory;
+            }
+
+            // Nested mx build.
+            candidate = Paths.get(parentDirectory, "..", "..", "..", "truffleruby").toFile();
+            if (candidate.exists()) {
+                try {
+                    return candidate.getCanonicalPath();
+                } catch (IOException e) {
+                    return null;
+                }
+            }
+        } else {
             final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
 
             if (codeSource != null && codeSource.getLocation().getProtocol().equals("file")) {
