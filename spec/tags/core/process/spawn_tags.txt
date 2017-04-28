@@ -89,3 +89,6 @@ fails:Process.spawn when passed close_others: true closes file descriptors >= 3 
 fails:Process.spawn when passed close_others: true does not close STDIN
 fails:Process.spawn when passed close_others: true does not close STDOUT
 fails:Process.spawn when passed close_others: true does not close STDERR
+ci:Process.spawn redirects STDOUT to the given file if out: String
+ci:Process.spawn redirects STDOUT to the given file if out: [String name, String mode]
+ci:Process.spawn redirects STDERR to the given file if err: String
