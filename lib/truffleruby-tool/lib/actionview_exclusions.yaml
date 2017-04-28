@@ -7,11 +7,13 @@ CachedViewRenderTest:
 - test_render_file_with_errors
 - test_render_partial_with_errors
 - test_render_sub_template_with_errors
+- test_render_ignores_templates_with_malformed_template_handlers
 LazyViewRenderTest:
 - test_render_error_indentation
 - test_render_file_with_errors
 - test_render_partial_with_errors
 - test_render_sub_template_with_errors
+- test_render_ignores_templates_with_malformed_template_handlers
 
 # Stubbed Sanitize
 SanitizeHelperTest:
@@ -881,4 +883,3 @@ RenderTest:
 - test_render_action_upcased
 
 ## test/activerecord/... ##
-
