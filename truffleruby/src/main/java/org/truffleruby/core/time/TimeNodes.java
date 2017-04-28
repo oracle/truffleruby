@@ -344,7 +344,7 @@ public abstract class TimeNodes {
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         
         @Specialization(guards = { "isRubyString(format)",
-                                   "ropesEqual(format, cachedFormat)" } )
+                "ropesEqual(format, cachedFormat)" }, limit = "getContext().getOptions().TIME_FORMAT_CACHE")
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format,
                                           @Cached("privatizeRope(format)") Rope cachedFormat,
                                           @Cached("createFormatter()") RubyDateFormatter rdf,

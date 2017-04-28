@@ -77,6 +77,7 @@ public class Options {
     public final int INTEROP_READ_CACHE;
     public final int INTEROP_WRITE_CACHE;
     public final int INTEROP_INVOKE_CACHE;
+    public final int TIME_FORMAT_CACHE;
     public final boolean CLONE_DEFAULT;
     public final boolean INLINE_DEFAULT;
     public final boolean CORE_ALWAYS_CLONE;
@@ -168,6 +169,7 @@ public class Options {
         INTEROP_READ_CACHE = builder.getOrDefault(OptionsCatalog.INTEROP_READ_CACHE, DEFAULT_CACHE);
         INTEROP_WRITE_CACHE = builder.getOrDefault(OptionsCatalog.INTEROP_WRITE_CACHE, DEFAULT_CACHE);
         INTEROP_INVOKE_CACHE = builder.getOrDefault(OptionsCatalog.INTEROP_INVOKE_CACHE, DEFAULT_CACHE);
+        TIME_FORMAT_CACHE = builder.getOrDefault(OptionsCatalog.TIME_FORMAT_CACHE, DEFAULT_CACHE);
         CLONE_DEFAULT = builder.getOrDefault(OptionsCatalog.CLONE_DEFAULT);
         INLINE_DEFAULT = builder.getOrDefault(OptionsCatalog.INLINE_DEFAULT);
         CORE_ALWAYS_CLONE = builder.getOrDefault(OptionsCatalog.CORE_ALWAYS_CLONE, CLONE_DEFAULT);
@@ -320,6 +322,8 @@ public class Options {
                 return INTEROP_WRITE_CACHE;
             case "interop.invoke.cache":
                 return INTEROP_INVOKE_CACHE;
+            case "time.format.cache":
+                return TIME_FORMAT_CACHE;
             case "clone.default":
                 return CLONE_DEFAULT;
             case "inline.default":

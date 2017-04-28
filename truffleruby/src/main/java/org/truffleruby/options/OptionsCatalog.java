@@ -75,6 +75,7 @@ public class OptionsCatalog {
     public static final IntegerOptionDescription INTEROP_READ_CACHE = new IntegerOptionDescription("interop.read.cache", "Cache size for interop READ messages", DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INTEROP_WRITE_CACHE = new IntegerOptionDescription("interop.write.cache", "Cache size for interop WRITE messages", DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INTEROP_INVOKE_CACHE = new IntegerOptionDescription("interop.invoke.cache", "Cache size for interop INVOKE messages", DEFAULT_CACHE.getDefaultValue());
+    public static final IntegerOptionDescription TIME_FORMAT_CACHE = new IntegerOptionDescription("time.format.cache", "Cache size for parsed time format specifiers", DEFAULT_CACHE.getDefaultValue());
     public static final BooleanOptionDescription CLONE_DEFAULT = new BooleanOptionDescription("clone.default", "Default option for cloning", true);
     public static final BooleanOptionDescription INLINE_DEFAULT = new BooleanOptionDescription("inline.default", "Default option for inlining", true);
     public static final BooleanOptionDescription CORE_ALWAYS_CLONE = new BooleanOptionDescription("core.always_clone", "Always clone built-in core methods", CLONE_DEFAULT.getDefaultValue());
@@ -226,6 +227,8 @@ public class OptionsCatalog {
                 return INTEROP_WRITE_CACHE;
             case "interop.invoke.cache":
                 return INTEROP_INVOKE_CACHE;
+            case "time.format.cache":
+                return TIME_FORMAT_CACHE;
             case "clone.default":
                 return CLONE_DEFAULT;
             case "inline.default":
@@ -352,6 +355,7 @@ public class OptionsCatalog {
             INTEROP_READ_CACHE,
             INTEROP_WRITE_CACHE,
             INTEROP_INVOKE_CACHE,
+            TIME_FORMAT_CACHE,
             CLONE_DEFAULT,
             INLINE_DEFAULT,
             CORE_ALWAYS_CLONE,
