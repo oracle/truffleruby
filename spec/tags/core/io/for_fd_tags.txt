@@ -1,0 +1,2 @@
+fails:IO.for_fd ignores the :encoding option when the :external_encoding option is present
+fails:IO.for_fd ignores the :encoding option when the :internal_encoding option is present

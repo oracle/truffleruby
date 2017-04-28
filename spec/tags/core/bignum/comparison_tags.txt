@@ -1,0 +1,1 @@
+fails:Bignum#<=> with an Object returns nil if #coerce raises an exception

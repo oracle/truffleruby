@@ -20,3 +20,5 @@ slow:Kernel#require (concurrently) blocks based on the path
 slow:Kernel.require (concurrently) blocks based on the path
 slow:Kernel#require ($LOADED_FEATURES) complex, enumerator, rational, thread and unicode_normalize are already required
 slow:Kernel.require ($LOADED_FEATURES) complex, enumerator, rational, thread and unicode_normalize are already required
+fails:Kernel#require (path resolution) loads a file that recursively requires itself
+fails:Kernel.require (path resolution) loads a file that recursively requires itself

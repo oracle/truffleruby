@@ -1,1 +1,3 @@
 fails:IO.open propagates an exception raised by #close that is a StandardError
+fails:IO.open ignores the :encoding option when the :external_encoding option is present
+fails:IO.open ignores the :encoding option when the :internal_encoding option is present

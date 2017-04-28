@@ -1492,6 +1492,8 @@ class IO
       end
     end
 
+    raise ArgumentError, "invalid limit: #{limit} for each_line" if limit == 0
+
     return if @ibuffer.exhausted?
 
     EachReader.new(self, @ibuffer, sep, limit).each(&block)

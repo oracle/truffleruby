@@ -12,3 +12,5 @@ fails:Kernel.load when passed true for 'wrap' sets the enclosing scope to an ano
 fails:Kernel.load when passed true for 'wrap' allows referencing outside namespaces
 fails:Kernel.load when passed true for 'wrap' with top-level methods allows calling top-level methods
 fails:Kernel.load when passed true for 'wrap' with top-level methods does not pollute the receiver
+fails:Kernel#load loads a file that recursively requires itself
+fails:Kernel.load loads a file that recursively requires itself
