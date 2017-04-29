@@ -1,0 +1,1 @@
+slow:Dir.getwd returns the current working directory

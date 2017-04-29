@@ -1,1 +1,6 @@
 slow:Kernel#` lets the standard error stream pass through to the inherited stderr
+slow:Kernel#` returns the standard output of the executed sub-process
+slow:Kernel#` produces a String in the default external encoding
+slow:Kernel#` raises an Errno::ENOENT if the command is not executable
+slow:Kernel#` sets $? to the exit status of the executed sub-process
+slow:Kernel.` tries to convert the given argument to String using #to_str

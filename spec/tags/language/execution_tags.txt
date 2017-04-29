@@ -1,0 +1,2 @@
+slow:`` returns the output of the executed sub-process
+slow:%x is the same as ``

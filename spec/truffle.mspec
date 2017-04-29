@@ -18,7 +18,7 @@ class MSpecScript
 
   set :target, "#{JRUBY_DIR}/bin/truffleruby"
 
-  unless ARGV.include?('-t')  # No flags set if Ruby binary specified via -t. 
+  unless ARGV.include?('-t')  # No flags set if Ruby binary specified via -t.
     flags = %w[
       -J-ea
       -J-esa
@@ -48,7 +48,7 @@ class MSpecScript
 
   set :library, [
     "spec/ruby/library",
-    
+
     # Since 2.3
     "^spec/ruby/library/resolv",
     "^spec/ruby/library/drb",
@@ -78,7 +78,7 @@ class MSpecScript
   set :capi, [
     "spec/ruby/optional/capi"
   ]
-  
+
   set :openssl, [
     "spec/ruby/library/openssl"
   ]
@@ -152,19 +152,28 @@ if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and is_child_process
     [Object, [:ruby_exe, :ruby_cmd]],
     [ObjectSpace.singleton_class, [:each_object]],
     [GC.singleton_class, [:start]],
-    [Kernel, [:system]],
-    [Kernel.singleton_class, [:system]],
+    [Kernel, [:system, :`]],
+    [Kernel.singleton_class, [:system, :`]],
     [Timeout.singleton_class, [:timeout]],
   ]
+
+  module Kernel
+    alias_method :"mspec_old_`", :`
+    private :"mspec_old_`"
+  end
 
   slow_methods.each do |klass, meths|
     klass.class_exec do
       meths.each do |meth|
         define_method(meth) do |*args, &block|
-          raise SlowSpecException, "Was tagged as slow as it uses #{meth}(). Rerun specs."
+          if MSpec.current && MSpec.current.state # an example is running
+            raise SlowSpecException, "Was tagged as slow as it uses #{meth}(). Rerun specs."
+          else
+            send("mspec_old_#{meth}", *args, &block)
+          end
         end
-        # Keep visibility of Kernel#system
-        private meth if klass == Kernel and meth == :system
+        # Keep visibility for Kernel instance methods
+        private meth if klass == Kernel
       end
     end
   end

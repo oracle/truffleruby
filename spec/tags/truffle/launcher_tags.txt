@@ -1,0 +1,6 @@
+slow:The launcher runs when symlinked
+slow:The launcher prints the full java command with -J-cmd
+slow:The launcher prints the full java command with -cmd in JAVA_OTPS
+slow:The launcher adds options from $JAVA_OPTS to the command
+slow:The launcher preserve spaces in options
+slow:The launcher warns when not using Graal
