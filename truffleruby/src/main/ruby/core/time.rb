@@ -54,6 +54,7 @@ class Time
     Truffle.primitive :time_seconds
     raise PrimitiveFailure, 'Time#second primitive failed'
   end
+  alias_method :to_i, :seconds
 
   def usec
     Truffle.primitive :time_useconds
@@ -151,24 +152,21 @@ class Time
     else
       str = strftime('%Y-%m-%d %H:%M:%S %z')
     end
-
     str.force_encoding Encoding::US_ASCII
   end
-
   alias_method :to_s, :inspect
 
   def nsec
     Truffle.primitive :time_nseconds
     raise PrimitiveFailure, 'Time#nsec primitive failed'
   end
+  alias_method :tv_nsec, :nsec
 
   def nsec=(nanoseconds)
     Truffle.primitive :time_set_nseconds
     raise PrimitiveFailure, 'Time#nsec= primitive failed'
   end
   private :nsec=
-
-  alias_method :tv_nsec, :nsec
 
   def subsec
     if nsec == 0
@@ -267,7 +265,6 @@ class Time
       time
     end
   end
-
   private_class_method :_load
 
   #--
@@ -295,7 +292,6 @@ class Time
 
     [major, minor].pack 'VV'
   end
-
   private :_dump
 
   def self.compose(offset, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
@@ -428,8 +424,6 @@ class Time
     end
   end
 
-  alias_method :to_i, :seconds
-
   def gmt_offset
     Truffle.primitive :time_utc_offset
     raise PrimitiveFailure, 'Time#gmt_offset primitive failed'
@@ -523,5 +517,4 @@ class Time
   def dup
     dup_internal self.class
   end
-
 end
