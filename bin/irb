@@ -4,22 +4,12 @@ exec "$(dirname $0)/truffleruby" "$(dirname $0)/irb" "$@" # ignored by Ruby inte
 # ^ marks start of Ruby interpretation
 
 #
-#   irb.rb - intaractive ruby
-#   	$Release Version: 0.7.3 $
+#   irb.rb - interactive ruby
+#   	$Release Version: 0.9.6 $
 #   	$Revision$
-#   	$Date$
-#   	by Keiju ISHITSUKA(keiju@ishitsuka.com)
+#   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 
 require "irb"
 
-if __FILE__ == $0
-  IRB.start(__FILE__)
-else
-  # check -e option
-  if /^-e$/ =~ $0
-    IRB.start(__FILE__)
-  else
-    IRB.setup(__FILE__)
-  end
-end
+IRB.start(__FILE__)
