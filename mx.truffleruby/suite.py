@@ -265,7 +265,7 @@ suite = {
                 "truffleruby-lib",
                 "truffleruby-doc",
             ],
-            "description": "TruffleRuby libraries",
+            "description": "TruffleRuby libraries, documentation, bin directory",
             "license": ["EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib"],
         },
 
