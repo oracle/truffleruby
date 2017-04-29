@@ -992,7 +992,7 @@ module Commands
   private :test_ecosystem
 
   def test_bundle(*args)
-    gems = [{:url => "https://github.com/sstephenson/hike", :commit => "3abf0b3feb47c26911f8cedf2cd409471fd26da1"}]
+    gems = [{:url => "https://github.com/pitr-ch/algebrick", commit: '89cf71984964ce9cbe6a1f4fb5155144ac56d057'}]
     gems.each do |gem|
       gem_url = gem[:url]
       name = gem_url.split('/')[-1]
@@ -1018,9 +1018,7 @@ module Commands
           end
           run({'GEM_HOME' => gem_home}, *["-S", "gem", "install", "bundler", "-v","1.14.6"])
           run({'GEM_HOME' => gem_home}, *["-S", "bundle", "install"])
-          # Need to workaround ruby_install name `jruby-truffle` in the gems binstubs (command can't be found )
-          # or figure out how to get it on the path to get `bundle exec rake` working
-          #run({'GEM_HOME' => gem_home}, *["-S", "bundle", "exec", "rake"])
+          run({ 'GEM_HOME' => gem_home }, *[File.join(gem_home, 'bin', 'bundle'), 'exec', File.join(gem_home, 'bin', 'rake')])
         end
       ensure
         FileUtils.remove_entry temp_dir
