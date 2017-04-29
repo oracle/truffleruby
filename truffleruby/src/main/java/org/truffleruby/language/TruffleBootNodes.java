@@ -82,25 +82,19 @@ public abstract class TruffleBootNodes {
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object main(
-                VirtualFrame frame,
-                NotProvided path,
-                @Cached("create()") IndirectCallNode callNode) {
+        public Object main(VirtualFrame frame, NotProvided path, @Cached("create()") IndirectCallNode callNode) {
 
             final String inputFile = getContext().getOriginalInputFile();
             return loadMain(callNode, inputFile);
         }
 
         @Specialization(guards = "isRubyString(path)")
-        public Object loadMain(
-                VirtualFrame frame,
-                DynamicObject path,
-                @Cached("create()") IndirectCallNode callNode) {
+        public Object loadMain(VirtualFrame frame, DynamicObject path, @Cached("create()") IndirectCallNode callNode) {
             final String inputFile = StringOperations.getString(path);
             return loadMain(callNode, inputFile);
         }
 
-        private Object loadMain(@Cached("create()") IndirectCallNode callNode, String inputFile) {
+        private Object loadMain(IndirectCallNode callNode, String inputFile) {
             final Source source = getMainSource(inputFile);
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(

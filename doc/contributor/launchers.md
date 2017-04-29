@@ -15,7 +15,7 @@
     -   `-x` option has to be implemented
 5.  [x] `ruby -S irb` when executed in a `bin` directory has to work. (Applies to other 
     executables in `bin` as well.)
-    -   In MRI: When a file starting with a shebang not containing ruby is loaded the lines at 
+    -   In MRI: When a file starting with a shebang not containing `ruby` is loaded the lines at 
         the begging are skipped until a shebang containing `'ruby'` is found (it has `-x` 
         option behaviour). We can implement it and reuse.
 6.  [x] Any executable has to work when pwd is `bin` directory.
