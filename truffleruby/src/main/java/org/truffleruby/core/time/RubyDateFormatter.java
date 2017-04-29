@@ -481,7 +481,7 @@ public class RubyDateFormatter {
                     output = formatZone(colons, (int) value, formatter);
                     break;
                 case FORMAT_ZONE_ID:
-                    output = getRubyTimeZoneName(dt, envTZ);
+                    output = getRubyTimeZoneName(envTZ.getName(), dt);
                     break;
                 case FORMAT_CENTURY:
                     type = NUMERIC;
@@ -612,10 +612,6 @@ public class RubyDateFormatter {
         return before + after;
     }
 
-    public String getRubyTimeZoneName(ZonedDateTime dt, TimeZoneAndName envTZ) {
-        return getRubyTimeZoneName(envTZ.getName(), dt);
-    }
-
     /* Some TZ values need to be overriden for Time#zone
      */
     private static final Map<String, String> SHORT_STD_TZNAME = map(
@@ -633,7 +629,7 @@ public class RubyDateFormatter {
     private static final Pattern TIME_OFFSET_PATTERN
             = Pattern.compile("([\\+-])(\\d\\d):(\\d\\d)(?::(\\d\\d))?");
 
-    public static String getRubyTimeZoneName(String envTZ, ZonedDateTime dt) {
+    private static String getRubyTimeZoneName(String envTZ, ZonedDateTime dt) {
         // see declaration of SHORT_TZNAME
         if (SHORT_STD_TZNAME.containsKey(envTZ) && ! dt.getOffset().getRules().isDaylightSavings(dt.toInstant())) {
             return SHORT_STD_TZNAME.get(envTZ);
@@ -662,7 +658,7 @@ public class RubyDateFormatter {
         return zone;
     }
 
-    public static final Map<String, String> map(String... keyValues) {
+    private static final Map<String, String> map(String... keyValues) {
         HashMap<String, String> map = new HashMap<>(keyValues.length / 2);
         for (int i = 0; i < keyValues.length;) {
             map.put(keyValues[i++], keyValues[i++]);
