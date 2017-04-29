@@ -24,6 +24,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -345,25 +346,24 @@ public abstract class TimeNodes {
                 "ropesEqual(format, cachedFormat)" }, limit = "getContext().getOptions().TIME_FORMAT_CACHE")
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format,
                                           @Cached("privatizeRope(format)") Rope cachedFormat,
-                                          @Cached("createFormatter()") RubyDateFormatter rdf,
-                @Cached("compilePattern(rdf, cachedFormat)") List<Token> pattern) {
-            return createString(rdf.formatToRopeBuilder(pattern, Layouts.TIME.getDateTime(time), Layouts.TIME.getZone(time)));
+                                          @Cached("compilePattern(cachedFormat)") List<Token> pattern) {
+            return createString(formatTime(time, pattern));
         }
 
         @Specialization(guards = "isRubyString(format)")
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format) {
-            final  RubyDateFormatter rdf = new RubyDateFormatter(getContext(), this);
-            final List<Token> pattern = compilePattern(rdf, StringOperations.rope(format));
-            return createString(rdf.formatToRopeBuilder(pattern, Layouts.TIME.getDateTime(time), Layouts.TIME.getZone(time)));
-        }
-
-        protected RubyDateFormatter createFormatter() {
-            return new RubyDateFormatter(getContext(), this);
+            final List<Token> pattern = compilePattern(StringOperations.rope(format));
+            return createString(formatTime(time, pattern));
         }
 
         @TruffleBoundary
-        protected List<Token> compilePattern(RubyDateFormatter rdf, Rope format) {
-            return rdf.compilePattern(format, false);
+        protected List<Token> compilePattern(Rope format) {
+            return RubyDateFormatter.compilePattern(format, false, getContext(), this);
+        }
+
+        private RopeBuilder formatTime(DynamicObject time, List<Token> pattern) {
+            return RubyDateFormatter.formatToRopeBuilder(
+                    pattern, Layouts.TIME.getDateTime(time), Layouts.TIME.getZone(time), getContext(), this);
         }
 
     }

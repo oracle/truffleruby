@@ -74,13 +74,9 @@ import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC4;
 import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC5;
 import static org.truffleruby.core.time.RubyDateFormatter.FieldType.TEXT;
 
-public class RubyDateFormatter {
+public abstract class RubyDateFormatter {
     private static final DateFormatSymbols FORMAT_SYMBOLS = new DateFormatSymbols(Locale.US);
     private static final Token[] CONVERSION2TOKEN = new Token[256];
-
-    private RubyContext context;
-    private Node currentNode;
-    private StrftimeLexer lexer;
 
     static enum Format {
         /** encoding to give to output */
@@ -226,17 +222,7 @@ public class RubyDateFormatter {
         }
     }
 
-    /**
-     * Constructor for RubyDateFormatter.
-     */
-    public RubyDateFormatter(RubyContext context, Node currentNode) {
-        super();
-        this.context = context;
-        this.currentNode = currentNode;
-        lexer = new StrftimeLexer((Reader) null);
-    }
-
-    private void addToPattern(List<Token> compiledPattern, String str) {
+    private static void addToPattern(List<Token> compiledPattern, String str) {
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
             if (('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z')) {
@@ -248,7 +234,8 @@ public class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public List<Token> compilePattern(Rope pattern, boolean dateLibrary) {
+    public static List<Token> compilePattern(Rope pattern, boolean dateLibrary, RubyContext context, Node currentNode) {
+        StrftimeLexer lexer = new StrftimeLexer((Reader) null);
         List<Token> compiledPattern = new LinkedList<>();
 
         Encoding enc = pattern.getEncoding();
@@ -358,7 +345,7 @@ public class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt, Object zone) {
+    public static RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt, Object zone, RubyContext context, Node currentNode) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
         RopeBuilder toAppendTo = new RopeBuilder();
 
@@ -543,7 +530,7 @@ public class RubyDateFormatter {
         return toAppendTo;
     }
 
-    private int formatWeekOfYear(ZonedDateTime dt, int firstDayOfWeek) {
+    private static int formatWeekOfYear(ZonedDateTime dt, int firstDayOfWeek) {
         Calendar dtCalendar = GregorianCalendar.from(dt);
         dtCalendar.setFirstDayOfWeek(firstDayOfWeek);
         dtCalendar.setMinimalDaysInFirstWeek(7);
@@ -558,7 +545,7 @@ public class RubyDateFormatter {
         return value;
     }
 
-    private String formatZone(int colons, int value, RubyTimeOutputFormatter formatter) {
+    private static String formatZone(int colons, int value, RubyTimeOutputFormatter formatter) {
         int seconds = Math.abs(value);
         int hours = seconds / 3600;
         seconds %= 3600;
