@@ -56,7 +56,6 @@ import java.io.Reader;
 import java.text.DateFormatSymbols;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoField;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -493,7 +492,7 @@ public class RubyDateFormatter {
                     break;
                 case FORMAT_WEEK_WEEKYEAR:
                     type = NUMERIC2;
-                    value = dt.get(ChronoField.ALIGNED_WEEK_OF_YEAR);
+                    value = GregorianCalendar.from(dt).get(Calendar.WEEK_OF_YEAR);
                     break;
                 case FORMAT_MILLISEC:
                 case FORMAT_NANOSEC:
