@@ -40,6 +40,8 @@ package org.truffleruby.core.time;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+
 import jnr.constants.platform.Errno;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -47,6 +49,8 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
 import java.io.ByteArrayInputStream;
@@ -63,8 +67,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC;
 import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC2;
@@ -358,7 +360,7 @@ public class RubyDateFormatter {
     }
 
     @TruffleBoundary
-    public RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt, TimeZoneAndName envTZ) {
+    public RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt, Object zone) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
         RopeBuilder toAppendTo = new RopeBuilder();
 
@@ -480,7 +482,7 @@ public class RubyDateFormatter {
                     output = formatZone(colons, (int) value, formatter);
                     break;
                 case FORMAT_ZONE_ID:
-                    output = getRubyTimeZoneName(envTZ.getName(), dt);
+                    output = getRubyTimeZoneName(dt, zone);
                     break;
                 case FORMAT_CENTURY:
                     type = NUMERIC;
@@ -625,36 +627,23 @@ public class RubyDateFormatter {
             "UCT", "UCT"
     );
 
-    private static final Pattern TIME_OFFSET_PATTERN
-            = Pattern.compile("([\\+-])(\\d\\d):(\\d\\d)(?::(\\d\\d))?");
-
-    private static String getRubyTimeZoneName(String envTZ, ZonedDateTime dt) {
+    private static String getRubyTimeZoneName(ZonedDateTime dt, Object zone) {
         // see declaration of SHORT_TZNAME
-        if (SHORT_STD_TZNAME.containsKey(envTZ) && ! dt.getOffset().getRules().isDaylightSavings(dt.toInstant())) {
-            return SHORT_STD_TZNAME.get(envTZ);
-        }
-
-        if (SHORT_DL_TZNAME.containsKey(envTZ) && dt.getOffset().getRules().isDaylightSavings(dt.toInstant())) {
-            return SHORT_DL_TZNAME.get(envTZ);
-        }
-
-        String zone = dt.getZone().getId();
-
-        Matcher offsetMatcher = TIME_OFFSET_PATTERN.matcher(zone);
-
-        if (offsetMatcher.matches()) {
-            if (zone.equals("+00:00")) {
-                zone = "UTC";
-            } else {
-                // try non-localized time zone name
-                zone = dt.getZone().getId();
-                if (zone == null) {
-                    zone = "";
-                }
+        if (dt.getOffset().getRules().isDaylightSavings(dt.toInstant())) {
+            if (SHORT_DL_TZNAME.containsKey(dt)) {
+                return SHORT_DL_TZNAME.get(dt);
+            }
+        } else {
+            if (SHORT_STD_TZNAME.containsKey(dt)) {
+                return SHORT_STD_TZNAME.get(dt);
             }
         }
 
-        return zone;
+        if (RubyGuards.isRubyString(zone)) {
+            return StringOperations.getString((DynamicObject) zone);
+        } else {
+            return "UTC";
+        }
     }
 
     private static final Map<String, String> map(String... keyValues) {

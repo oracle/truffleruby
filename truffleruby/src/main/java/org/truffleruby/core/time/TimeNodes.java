@@ -190,7 +190,7 @@ public abstract class TimeNodes {
 
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, Layouts.TIME.build(ZERO, coreLibrary().getNilObject(), 0, false, false));
+            return allocateObjectNode.allocate(rubyClass, Layouts.TIME.build(ZERO, nil(), 0, false, false));
         }
 
     }
@@ -203,8 +203,11 @@ public abstract class TimeNodes {
 
         @Specialization
         public DynamicObject timeSNow(VirtualFrame frame, DynamicObject timeClass) {
-            final TimeZoneAndName zoneName = getTimeZoneNode.executeGetTimeZone(frame);
-            return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(now(zoneName.getZone()), nil(), nil(), false, false));
+            final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
+            final ZonedDateTime dt = now(zoneAndName.getZone());
+            final String shortZoneName = TimeZoneParser.getShortZoneName(dt, zoneAndName.getZone());
+            final DynamicObject zone = createString(StringOperations.encodeRope(shortZoneName, UTF8Encoding.INSTANCE));
+            return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(dt, zone, nil(), false, false));
         }
 
         @TruffleBoundary
@@ -239,24 +242,25 @@ public abstract class TimeNodes {
 
         @Specialization(guards = { "isUTC" })
         public DynamicObject timeSSpecificUTC(DynamicObject timeClass, long seconds, int nanoseconds, boolean isUTC, Object offset) {
-            return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(getDateTime(seconds, nanoseconds, UTC), nil(), nil(), false, isUTC));
+            return buildTime(timeClass, getDateTime(seconds, nanoseconds, UTC), isUTC, nil());
         }
 
         @Specialization(guards = { "!isUTC", "isNil(offset)" })
         public DynamicObject timeSSpecific(VirtualFrame frame, DynamicObject timeClass, long seconds, int nanoseconds, boolean isUTC, Object offset) {
             final TimeZoneAndName zoneName = getTimeZoneNode.executeGetTimeZone(frame);
-            return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
-                            getDateTime(seconds, nanoseconds, zoneName.getZone()),
-                            nil(), offset, false, isUTC));
+            return buildTime(timeClass, getDateTime(seconds, nanoseconds, zoneName.getZone()), isUTC, offset);
         }
 
         @Specialization(guards = { "!isUTC" })
-        public DynamicObject timeSSpecific(VirtualFrame frame, DynamicObject timeClass, long seconds, int nanoseconds, boolean isUTC, long offset) {
+        public DynamicObject timeSSpecific(DynamicObject timeClass, long seconds, int nanoseconds, boolean isUTC, long offset) {
             ZoneId timeZone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds((int) offset));
-            return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
-                            getDateTime(seconds, nanoseconds, timeZone), nil(), nil(), false, isUTC));
+            return buildTime(timeClass, getDateTime(seconds, nanoseconds, timeZone), isUTC, nil());
         }
 
+        private DynamicObject buildTime(DynamicObject timeClass, ZonedDateTime dateTime, boolean isUTC, Object offset) {
+            return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
+                    dateTime, nil(), offset, false, isUTC));
+        }
 
         @TruffleBoundary
         private ZonedDateTime getDateTime(long seconds, int nanoseconds, ZoneId timeZone) {
@@ -337,22 +341,20 @@ public abstract class TimeNodes {
     @ImportStatic(StringCachingGuards.class)
     public static abstract class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
-        
         @Specialization(guards = { "isRubyString(format)",
                 "ropesEqual(format, cachedFormat)" }, limit = "getContext().getOptions().TIME_FORMAT_CACHE")
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format,
                                           @Cached("privatizeRope(format)") Rope cachedFormat,
                                           @Cached("createFormatter()") RubyDateFormatter rdf,
                 @Cached("compilePattern(rdf, cachedFormat)") List<Token> pattern) {
-            return createString(rdf.formatToRopeBuilder(pattern, Layouts.TIME.getDateTime(time), getTimeZoneNode.executeGetTimeZone(frame)));
+            return createString(rdf.formatToRopeBuilder(pattern, Layouts.TIME.getDateTime(time), Layouts.TIME.getZone(time)));
         }
 
         @Specialization(guards = "isRubyString(format)")
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format) {
             final  RubyDateFormatter rdf = new RubyDateFormatter(getContext(), this);
             final List<Token> pattern = compilePattern(rdf, StringOperations.rope(format));
-            return createString(rdf.formatToRopeBuilder(pattern, Layouts.TIME.getDateTime(time), getTimeZoneNode.executeGetTimeZone(frame)));
+            return createString(rdf.formatToRopeBuilder(pattern, Layouts.TIME.getDateTime(time), Layouts.TIME.getZone(time)));
         }
 
         protected RubyDateFormatter createFormatter() {
@@ -372,7 +374,7 @@ public abstract class TimeNodes {
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-        @Specialization(guards = {"!fromutc", "!isNil(utcoffset)"})
+        @Specialization(guards = { "!fromutc", "!isNil(utcoffset)" })
         public DynamicObject timeSFromArray(VirtualFrame frame, DynamicObject timeClass, int sec, int min, int hour, int mday, int month, int year,
                                             int nsec, int isdst, boolean fromutc, DynamicObject utcoffset,
                                             @Cached("new()") SnippetNode snippetNode) {
