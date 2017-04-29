@@ -35,11 +35,6 @@
 class Time
   include Comparable
 
-  def self.duplicate(other)
-    Truffle.primitive :time_s_dup
-    raise ArgumentError, 'descriptors reference invalid time'
-  end
-
   def self.specific(sec, nsec, from_gmt, offset)
     Truffle.primitive :time_s_specific
     raise ArgumentError, 'descriptors reference invalid time'
@@ -73,7 +68,11 @@ class Time
   def self.at(sec, usec=undefined)
     if undefined.equal?(usec)
       if sec.kind_of?(Time)
-        return duplicate(sec)
+        copy = allocate
+        Truffle.privately do
+          copy.initialize_copy(sec)
+        end
+        return copy
       elsif sec.kind_of?(Integer)
         return specific(sec, 0, false, nil)
       end

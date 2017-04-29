@@ -55,7 +55,18 @@ public abstract class TimeNodes {
     private static final ZonedDateTime ZERO = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault());
     private static final ZoneId UTC = ZoneId.of("UTC");
 
-    // We need it to copy the internal data for a call to Kernel#clone.
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+
+        @Specialization
+        public DynamicObject allocate(DynamicObject rubyClass) {
+            return allocateObjectNode.allocate(rubyClass, Layouts.TIME.build(ZERO, nil(), 0, false, false));
+        }
+
+    }
+
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
@@ -63,7 +74,9 @@ public abstract class TimeNodes {
         public Object initializeCopy(DynamicObject self, DynamicObject from) {
             Layouts.TIME.setDateTime(self, Layouts.TIME.getDateTime(from));
             Layouts.TIME.setOffset(self, Layouts.TIME.getOffset(from));
+            Layouts.TIME.setZone(self, Layouts.TIME.getZone(from));
             Layouts.TIME.setRelativeOffset(self, Layouts.TIME.getRelativeOffset(from));
+            Layouts.TIME.setIsUtc(self, Layouts.TIME.getIsUtc(from));
             return self;
         }
 
@@ -184,18 +197,6 @@ public abstract class TimeNodes {
 
     }
 
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
-        @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, Layouts.TIME.build(ZERO, nil(), 0, false, false));
-        }
-
-    }
-
     @CoreMethod(names = "now", constructor = true)
     public static abstract class TimeNowNode extends CoreMethodArrayArgumentsNode {
 
@@ -214,23 +215,6 @@ public abstract class TimeNodes {
         @TruffleBoundary
         private ZonedDateTime now(ZoneId timeZone) {
             return ZonedDateTime.now(timeZone);
-        }
-
-    }
-
-    @Primitive(name = "time_s_dup")
-    public static abstract class TimeSDupNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
-        @Specialization
-        public DynamicObject timeSDup(DynamicObject timeClass, DynamicObject other) {
-            return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
-                    Layouts.TIME.getDateTime(other),
-                    Layouts.TIME.getZone(other),
-                    Layouts.TIME.getOffset(other),
-                    Layouts.TIME.getRelativeOffset(other),
-                    Layouts.TIME.getIsUtc(other)));
         }
 
     }
