@@ -171,7 +171,7 @@ describe :strftime_date, shared: true do
     @d2000_4_10.strftime("%u").should == "1"
   end
 
-  it "should be able to show the commercial week" do
+  it "should be able to show the commercial week with %V" do
     @d2000_4_9.strftime("%V").should == "14"
     @d2000_4_10.strftime("%V").should == "15"
   end
