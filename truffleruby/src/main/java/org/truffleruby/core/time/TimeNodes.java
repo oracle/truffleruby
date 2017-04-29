@@ -196,14 +196,14 @@ public abstract class TimeNodes {
 
     }
 
-    @Primitive(name = "time_s_now")
-    public static abstract class TimeSNowPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "now", constructor = true)
+    public static abstract class TimeNowNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
 
         @Specialization
-        public DynamicObject timeSNow(VirtualFrame frame, DynamicObject timeClass) {
+        public DynamicObject timeNow(VirtualFrame frame, DynamicObject timeClass) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
             final ZonedDateTime dt = now(zoneAndName.getZone());
             final String shortZoneName = TimeZoneParser.getShortZoneName(dt, zoneAndName.getZone());

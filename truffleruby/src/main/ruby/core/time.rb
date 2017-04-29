@@ -35,11 +35,6 @@
 class Time
   include Comparable
 
-  def self.now
-    Truffle.primitive :time_s_now
-    raise PrimitiveFailure, 'Time.now primitive failed'
-  end
-
   def self.duplicate(other)
     Truffle.primitive :time_s_dup
     raise ArgumentError, 'descriptors reference invalid time'
