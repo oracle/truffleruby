@@ -62,11 +62,9 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC;
 import static org.truffleruby.core.time.RubyDateFormatter.FieldType.NUMERIC2;
@@ -613,45 +611,12 @@ public class RubyDateFormatter {
         return before + after;
     }
 
-    /* Some TZ values need to be overriden for Time#zone
-     */
-    private static final Map<String, String> SHORT_STD_TZNAME = map(
-            "Etc/UCT", "UCT",
-            "MET", "MET", // needs to be overriden
-            "UCT", "UCT"
-    );
-
-    private static final Map<String, String> SHORT_DL_TZNAME = map(
-            "Etc/UCT", "UCT",
-            "MET", "MEST", // needs to be overriden
-            "UCT", "UCT"
-    );
-
     private static String getRubyTimeZoneName(ZonedDateTime dt, Object zone) {
-        // see declaration of SHORT_TZNAME
-        if (dt.getOffset().getRules().isDaylightSavings(dt.toInstant())) {
-            if (SHORT_DL_TZNAME.containsKey(dt)) {
-                return SHORT_DL_TZNAME.get(dt);
-            }
-        } else {
-            if (SHORT_STD_TZNAME.containsKey(dt)) {
-                return SHORT_STD_TZNAME.get(dt);
-            }
-        }
-
         if (RubyGuards.isRubyString(zone)) {
             return StringOperations.getString((DynamicObject) zone);
         } else {
             return "UTC";
         }
-    }
-
-    private static final Map<String, String> map(String... keyValues) {
-        HashMap<String, String> map = new HashMap<>(keyValues.length / 2);
-        for (int i = 0; i < keyValues.length;) {
-            map.put(keyValues[i++], keyValues[i++]);
-        }
-        return map;
     }
 
 }
