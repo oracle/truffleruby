@@ -38,6 +38,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.time;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import jnr.constants.platform.Errno;
 import org.jcodings.Encoding;
@@ -247,6 +248,7 @@ public class RubyDateFormatter {
         }
     }
 
+    @TruffleBoundary
     public List<Token> compilePattern(Rope pattern, boolean dateLibrary) {
         List<Token> compiledPattern = new LinkedList<>();
 
@@ -356,6 +358,7 @@ public class RubyDateFormatter {
         }
     }
 
+    @TruffleBoundary
     public RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt, TimeZoneAndName envTZ) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
         RopeBuilder toAppendTo = new RopeBuilder();
