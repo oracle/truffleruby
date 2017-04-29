@@ -10,15 +10,15 @@
 2.  [x] Newly installed gem executables has to always run the `truffleruby` from the same `bin`. 
     -   By default RubyGems generate executables with absolute path.
 3.  [x] Behave as proper Ruby implementation when the `bin` is put on `PATH`.
-4.  [ ] RubyMine requires `gem` in `bin` to work when executed with `truffleruby -x` option 
+4.  [x] RubyMine requires `gem` in `bin` to work when executed with `truffleruby -x` option 
     (otherwise gems are not listed).
     -   `-x` option has to be implemented
-5.  [ ] `ruby -S irb` when executed in a `bin` directory has to work. (Applies to other 
+5.  [x] `ruby -S irb` when executed in a `bin` directory has to work. (Applies to other 
     executables in `bin` as well.)
     -   In MRI: When a file starting with a shebang not containing ruby is loaded the lines at 
         the begging are skipped until a shebang containing `'ruby'` is found (it has `-x` 
         option behaviour). We can implement it and reuse.
-6.  [ ] Any executable has to work when pwd is `bin` directory.
+6.  [x] Any executable has to work when pwd is `bin` directory.
     -   Translates to `ruby -S executable` 
 7.  [x] Works on Linux, Solaris, macOS.
     -   Currently works.
@@ -37,7 +37,7 @@ Then we can have a hybrid executables, an example of `gem` file follows:
 ```ruby
 #!/usr/bin/env bash
 exec "$(dirname $0)/truffleruby" "$(dirname $0)/gem" "$@" # ignored by Ruby interpreter
-#!/ruby
+#!ruby
 # ^ marks start of Ruby interpretation, content of current lib/bin follows   
 
 #--

@@ -26,6 +26,7 @@ public class Options {
     @CompilationFinal(dimensions=1) public final String[] ARGUMENTS;
     public final String DISPLAYED_FILE_NAME;
     public final boolean READ_RUBYOPT;
+    public final boolean IGNORE_LINES_BEFORE_RUBY_SHEBANG;
     public final boolean DEBUG;
     public final Verbosity VERBOSITY;
     public final boolean FROZEN_STRING_LITERALS;
@@ -117,6 +118,7 @@ public class Options {
         ARGUMENTS = builder.getOrDefault(OptionsCatalog.ARGUMENTS);
         DISPLAYED_FILE_NAME = builder.getOrDefault(OptionsCatalog.DISPLAYED_FILE_NAME);
         READ_RUBYOPT = builder.getOrDefault(OptionsCatalog.READ_RUBYOPT);
+        IGNORE_LINES_BEFORE_RUBY_SHEBANG = builder.getOrDefault(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG);
         DEBUG = builder.getOrDefault(OptionsCatalog.DEBUG);
         VERBOSITY = builder.getOrDefault(OptionsCatalog.VERBOSITY);
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
@@ -218,6 +220,8 @@ public class Options {
                 return DISPLAYED_FILE_NAME;
             case "read_rubyopt":
                 return READ_RUBYOPT;
+            case "ignore_lines_before_ruby_shebang":
+                return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "debug":
                 return DEBUG;
             case "verbosity":

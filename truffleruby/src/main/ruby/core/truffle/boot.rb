@@ -13,7 +13,7 @@ module Truffle
 
     def self.main_s
       $0 = find_s_file(original_input_file)
-      load $0
+      main $0
       0
     end
 
@@ -27,24 +27,21 @@ module Truffle
     end
 
     def self.find_s_file(name)
-      # nonstandard lookup
-      # TODO (pitr-ch 25-Apr-2017): to be removed
-      name_in_ruby_home_lib = "#{RbConfig::CONFIG['libdir']}/bin/#{name}"
-      return name_in_ruby_home_lib if File.exist?(name_in_ruby_home_lib)
+      # Nonstandard lookup
 
-      # nonstandard lookup
-      # TODO (pitr-ch 25-Apr-2017): remove when bin/executables are no longer using -S executable
+      # added to look up truffleruby own files first when it's not on PATH
       name_in_ruby_home_bin = "#{RbConfig::CONFIG['bindir']}/#{name}"
       return name_in_ruby_home_bin if File.exist?(name_in_ruby_home_bin)
+
+      # Standard lookups
 
       if ENV['RUBYPATH']
         path = find_in_environment_paths(name, ENV['RUBYPATH']) and return path
       end
-
       path = find_in_environment_paths(name, ENV['PATH']) and return path
-
       return name if File.exist?(name)
 
+      # Fail otherwise
       raise LoadError.new("No such file or directory -- #{name}")
     end
 

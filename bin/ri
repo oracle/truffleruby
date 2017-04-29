@@ -1,2 +1,20 @@
 #!/usr/bin/env bash
-exec "$(dirname "$0")/truffleruby" -Sri "$@"
+exec "$(dirname $0)/truffleruby" "$(dirname $0)/rake" "$@" # ignored by Ruby interpreter
+#!ruby
+# ^ marks start of Ruby interpretation
+
+require 'rubygems'
+
+version = ">= 0.a"
+
+if ARGV.first
+  str = ARGV.first
+  str = str.dup.force_encoding("BINARY") if str.respond_to? :force_encoding
+  if str =~ /\A_(.*)_\z/ and Gem::Version.correct?($1) then
+    version = $1
+    ARGV.shift
+  end
+end
+
+gem 'rdoc', version
+load Gem.bin_path('rdoc', 'ri', version)

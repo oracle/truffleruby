@@ -43,7 +43,18 @@ https://github.com/ruby/ruby/blob/ruby_2_3/gems/bundled_gems
 
 To update a bundled gem, follow these steps:
 
-1. Remove the current gem and gemspec from `lib/gems/2.3.0/gems` and `lib/gems/2.3.0/specifications`
-2. Run the gem install command with the desired version. E.g. `gem install rake -v 10.4.2 --no-doc`
-3. Update the project `.gitignore` to allow the newly install gem sources and gemspec
-4. If the gem installs any executables like `rake` in `lib/bin`. Add these to the `.gitignore` if not already and verify there is no shebang line and remove executable permissions on the file.
+1.  Remove the current gem and gemspec from `lib/gems/2.3.0/gems` and `lib/gems/2.3.0/specifications`
+2.  Run the gem install command with the desired version. E.g. `gem install rake -v 10.4.2 --no-doc`
+3.  Update the project `.gitignore` to allow the newly install gem sources and gemspec
+4.  If the gem installs any executables like `rake` in `bin`. Add these to the `.gitignore` using `!bin/rake` if not already and ensure that the shebang has a format as follows:
+    
+    ```bash
+    #!/usr/bin/env bash
+    exec "$(dirname $0)/truffleruby" "$(dirname $0)/the-executable" "$@" # ignored by Ruby interpreter
+    #!ruby
+    # ^ marks start of Ruby interpretation
+
+    # ... the content of the executable
+    ```
+    
+    See [Launchers doc](launchers.md) 
