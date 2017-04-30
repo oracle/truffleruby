@@ -40,79 +40,6 @@ class Time
     'JUL' => 7, 'AUG' => 8, 'SEP' => 9, 'OCT' =>10, 'NOV' =>11, 'DEC' =>12
   }
 
-  def self.at(sec, usec=undefined)
-    if undefined.equal?(usec)
-      if sec.kind_of?(Time)
-        copy = allocate
-        copy.send(:initialize_copy, sec)
-        return copy
-      elsif sec.kind_of?(Integer)
-        return Truffle.invoke_primitive :time_at, self, sec, 0
-      end
-    end
-
-    if sec.kind_of?(Time) && usec.kind_of?(Integer)
-      raise TypeError, "can't convert Time into an exact number"
-    end
-
-    usec = 0 if undefined.equal?(usec)
-
-    s = Rubinius::Type.coerce_to_exact_num(sec)
-    u = Rubinius::Type.coerce_to_exact_num(usec)
-
-    sec       = s.to_i
-    nsec_frac = s % 1.0
-
-    sec -= 1 if s < 0 && nsec_frac > 0
-    nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i + (u * 1000).to_i
-
-    sec += nsec / 1_000_000_000
-    nsec %= 1_000_000_000
-
-    Truffle.invoke_primitive :time_at, self, sec, nsec
-  end
-
-  def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
-    Truffle.primitive :time_s_from_array
-
-    if sec.kind_of?(String)
-      sec = sec.to_i
-    elsif nsec
-      sec = Rubinius::Type.coerce_to(sec || 0, Integer, :to_int)
-    else
-      s = Rubinius::Type.coerce_to_exact_num(sec || 0)
-
-      sec       = s.to_i
-      nsec_frac = s % 1.0
-
-      if s < 0 && nsec_frac > 0
-        sec -= 1
-      end
-
-      nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
-    end
-
-    nsec ||= 0
-    sec += nsec / 1_000_000_000
-    nsec %= 1_000_000_000
-
-    from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
-  end
-
-  def self.new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil)
-    if undefined.equal?(year)
-      now
-    elsif utc_offset == nil
-      compose(:local, year, month, day, hour, minute, second)
-    elsif utc_offset == :std
-      compose(:local, second, minute, hour, day, month, year, nil, nil, false, nil)
-    elsif utc_offset == :dst
-      compose(:local, second, minute, hour, day, month, year, nil, nil, true, nil)
-    else
-      compose(Rubinius::Type.coerce_to_utc_offset(utc_offset), year, month, day, hour, minute, second)
-    end
-  end
-
   def inspect
     if gmt?
       str = strftime('%Y-%m-%d %H:%M:%S UTC')
@@ -171,6 +98,18 @@ class Time
     dup.localtime(offset)
   end
 
+  def zone
+    zone = Truffle.invoke_primitive(:time_zone, self)
+
+    if zone && zone.ascii_only?
+      zone.encode Encoding::US_ASCII
+    elsif zone && Encoding.default_internal
+      zone.encode Encoding.default_internal
+    else
+      zone
+    end
+  end
+
   def hash
     tv_sec ^ tv_nsec
   end
@@ -203,154 +142,6 @@ class Time
     strftime('%a %b %e %H:%M:%S %Y')
   end
   alias_method :ctime, :asctime
-
-  #--
-  # TODO: doesn't load ivars
-  #++
-
-  def self._load(data)
-    raise TypeError, 'marshaled time format differ' unless data.bytesize == 8
-
-    major, minor = data.unpack 'VV'
-
-    if (major & (1 << 31)) == 0 then
-      at major, minor
-    else
-      major &= ~(1 << 31)
-
-      is_gmt =  (major >> 30) & 0x1
-      year   = ((major >> 14) & 0xffff) + 1900
-      mon    = ((major >> 10) & 0xf) + 1
-      mday   =  (major >>  5) & 0x1f
-      hour   =  major         & 0x1f
-
-      min   =  (minor >> 26) & 0x3f
-      sec   =  (minor >> 20) & 0x3f
-
-      usec = minor & 0xfffff
-
-      time = gm year, mon, mday, hour, min, sec, usec
-      time.localtime if is_gmt.zero?
-      time
-    end
-  end
-  private_class_method :_load
-
-  #--
-  # TODO: doesn't dump ivars
-  #++
-
-  def _dump(limit = nil)
-    tm = getgm.to_a
-
-    if (year & 0xffff) != year || year < 1900 then
-      raise ArgumentError, "year too big to marshal: #{year}"
-    end
-
-    gmt = gmt? ? 1 : 0
-
-    major =  1             << 31 | # 1 bit
-             gmt           << 30 | # 1 bit
-            (tm[5] - 1900) << 14 | # 16 bits
-            (tm[4] - 1)    << 10 | # 4 bits
-             tm[3]         <<  5 | # 5 bits
-             tm[2]                 # 5 bits
-    minor =  tm[1]   << 26 | # 6 bits
-             tm[0]   << 20 | # 6 bits
-             usec # 20 bits
-
-    [major, minor].pack 'VV'
-  end
-  private :_dump
-
-  class << self
-    def compose(offset, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
-                yday=undefined, is_dst=undefined, tz=undefined)
-      if undefined.equal?(tz)
-        unless undefined.equal?(is_dst)
-          raise ArgumentError, 'wrong number of arguments (9 for 1..8)'
-        end
-
-        y = p1
-        m = p2
-        d = p3
-        hr = p4
-        min = p5
-        sec = p6
-        usec = p7
-        is_dst = -1
-      else
-        y = p6
-        m = p5
-        d = p4
-        hr = p3
-        min = p2
-        sec = p1
-        usec = 0
-        is_dst = is_dst ? 1 : 0
-      end
-
-      if m.kind_of?(String) or m.respond_to?(:to_str)
-        m = StringValue(m)
-        m = MonthValue[m.upcase] || m.to_i
-
-        raise ArgumentError, 'month argument out of range' unless m
-      else
-        m = Rubinius::Type.coerce_to(m || 1, Integer, :to_int)
-      end
-
-      y   = y.kind_of?(String)   ? y.to_i   : Rubinius::Type.coerce_to(y,        Integer, :to_int)
-      d   = d.kind_of?(String)   ? d.to_i   : Rubinius::Type.coerce_to(d   || 1, Integer, :to_int)
-      hr  = hr.kind_of?(String)  ? hr.to_i  : Rubinius::Type.coerce_to(hr  || 0, Integer, :to_int)
-      min = min.kind_of?(String) ? min.to_i : Rubinius::Type.coerce_to(min || 0, Integer, :to_int)
-
-      nsec = nil
-
-      if usec.kind_of?(String)
-        nsec = usec.to_i * 1000
-      elsif usec
-        nsec = (usec * 1000).to_i
-      end
-
-      case offset
-      when :utc
-        is_dst = -1
-        is_utc = true
-        offset = nil
-      when :local
-        is_utc = false
-        offset = nil
-      else
-        is_dst = -1
-        is_utc = false
-      end
-
-      from_array(sec, min, hr, d, m, y, nsec, is_dst, is_utc, offset)
-    end
-    private :compose
-
-    def local(*args)
-      compose(:local, *args)
-    end
-    alias_method :mktime, :local
-
-    def gm(*args)
-      compose(:utc, *args)
-    end
-    alias_method :utc, :gm
-  end
-
-  def zone
-    zone = Truffle.invoke_primitive(:time_zone, self)
-
-    if zone && zone.ascii_only?
-      zone.encode Encoding::US_ASCII
-    elsif zone && Encoding.default_internal
-      zone.encode Encoding.default_internal
-    else
-      zone
-    end
-  end
 
   def getgm
     dup.gmtime
@@ -415,5 +206,209 @@ class Time
     time = Time.allocate
     time.send(:initialize_copy, self)
     Truffle.invoke_primitive(:time_add, time, sec - tv_sec, nano - tv_nsec)
+  end
+
+  def self._load(data)
+    # TODO: doesn't load ivars
+    raise TypeError, 'marshaled time format differ' unless data.bytesize == 8
+
+    major, minor = data.unpack 'VV'
+
+    if (major & (1 << 31)) == 0 then
+      at major, minor
+    else
+      major &= ~(1 << 31)
+
+      is_gmt =  (major >> 30) & 0x1
+      year   = ((major >> 14) & 0xffff) + 1900
+      mon    = ((major >> 10) & 0xf) + 1
+      mday   =  (major >>  5) & 0x1f
+      hour   =  major         & 0x1f
+
+      min   =  (minor >> 26) & 0x3f
+      sec   =  (minor >> 20) & 0x3f
+
+      usec = minor & 0xfffff
+
+      time = gm year, mon, mday, hour, min, sec, usec
+      time.localtime if is_gmt.zero?
+      time
+    end
+  end
+  private_class_method :_load
+
+  def _dump(limit = nil)
+    # TODO: doesn't dump ivars
+    tm = getgm.to_a
+
+    if (year & 0xffff) != year || year < 1900 then
+      raise ArgumentError, "year too big to marshal: #{year}"
+    end
+
+    gmt = gmt? ? 1 : 0
+
+    major =  1             << 31 | # 1 bit
+             gmt           << 30 | # 1 bit
+            (tm[5] - 1900) << 14 | # 16 bits
+            (tm[4] - 1)    << 10 | # 4 bits
+             tm[3]         <<  5 | # 5 bits
+             tm[2]                 # 5 bits
+    minor =  tm[1]   << 26 | # 6 bits
+             tm[0]   << 20 | # 6 bits
+             usec # 20 bits
+
+    [major, minor].pack 'VV'
+  end
+  private :_dump
+
+  class << self
+    def at(sec, usec=undefined)
+      if undefined.equal?(usec)
+        if sec.kind_of?(Time)
+          copy = allocate
+          copy.send(:initialize_copy, sec)
+          return copy
+        elsif sec.kind_of?(Integer)
+          return Truffle.invoke_primitive :time_at, self, sec, 0
+        end
+      end
+
+      if sec.kind_of?(Time) && usec.kind_of?(Integer)
+        raise TypeError, "can't convert Time into an exact number"
+      end
+
+      usec = 0 if undefined.equal?(usec)
+
+      s = Rubinius::Type.coerce_to_exact_num(sec)
+      u = Rubinius::Type.coerce_to_exact_num(usec)
+
+      sec       = s.to_i
+      nsec_frac = s % 1.0
+
+      sec -= 1 if s < 0 && nsec_frac > 0
+      nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i + (u * 1000).to_i
+
+      sec += nsec / 1_000_000_000
+      nsec %= 1_000_000_000
+
+      Truffle.invoke_primitive :time_at, self, sec, nsec
+    end
+
+    def from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
+      Truffle.primitive :time_s_from_array
+
+      if sec.kind_of?(String)
+        sec = sec.to_i
+      elsif nsec
+        sec = Rubinius::Type.coerce_to(sec || 0, Integer, :to_int)
+      else
+        s = Rubinius::Type.coerce_to_exact_num(sec || 0)
+
+        sec       = s.to_i
+        nsec_frac = s % 1.0
+
+        if s < 0 && nsec_frac > 0
+          sec -= 1
+        end
+
+        nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
+      end
+
+      nsec ||= 0
+      sec += nsec / 1_000_000_000
+      nsec %= 1_000_000_000
+
+      from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
+    end
+    private :from_array
+
+    def compose(offset, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
+                yday=undefined, is_dst=undefined, tz=undefined)
+      if undefined.equal?(tz)
+        unless undefined.equal?(is_dst)
+          raise ArgumentError, 'wrong number of arguments (9 for 1..8)'
+        end
+
+        y = p1
+        m = p2
+        d = p3
+        hr = p4
+        min = p5
+        sec = p6
+        usec = p7
+        is_dst = -1
+      else
+        y = p6
+        m = p5
+        d = p4
+        hr = p3
+        min = p2
+        sec = p1
+        usec = 0
+        is_dst = is_dst ? 1 : 0
+      end
+
+      if m.kind_of?(String) or m.respond_to?(:to_str)
+        m = StringValue(m)
+        m = MonthValue[m.upcase] || m.to_i
+
+        raise ArgumentError, 'month argument out of range' unless m
+      else
+        m = Rubinius::Type.coerce_to(m || 1, Integer, :to_int)
+      end
+
+      y   = y.kind_of?(String)   ? y.to_i   : Rubinius::Type.coerce_to(y,        Integer, :to_int)
+      d   = d.kind_of?(String)   ? d.to_i   : Rubinius::Type.coerce_to(d   || 1, Integer, :to_int)
+      hr  = hr.kind_of?(String)  ? hr.to_i  : Rubinius::Type.coerce_to(hr  || 0, Integer, :to_int)
+      min = min.kind_of?(String) ? min.to_i : Rubinius::Type.coerce_to(min || 0, Integer, :to_int)
+
+      nsec = nil
+      if usec.kind_of?(String)
+        nsec = usec.to_i * 1000
+      elsif usec
+        nsec = (usec * 1000).to_i
+      end
+
+      case offset
+      when :utc
+        is_dst = -1
+        is_utc = true
+        offset = nil
+      when :local
+        is_utc = false
+        offset = nil
+      else
+        is_dst = -1
+        is_utc = false
+      end
+
+      from_array(sec, min, hr, d, m, y, nsec, is_dst, is_utc, offset)
+    end
+    private :compose
+
+    def new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil)
+      if undefined.equal?(year)
+        self.now
+      elsif utc_offset == nil
+        compose(:local, year, month, day, hour, minute, second)
+      elsif utc_offset == :std
+        compose(:local, second, minute, hour, day, month, year, nil, nil, false, nil)
+      elsif utc_offset == :dst
+        compose(:local, second, minute, hour, day, month, year, nil, nil, true, nil)
+      else
+        utc_offset = Rubinius::Type.coerce_to_utc_offset(utc_offset)
+        compose(utc_offset, year, month, day, hour, minute, second)
+      end
+    end
+
+    def local(*args)
+      compose(:local, *args)
+    end
+    alias_method :mktime, :local
+
+    def gm(*args)
+      compose(:utc, *args)
+    end
+    alias_method :utc, :gm
   end
 end
