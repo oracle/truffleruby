@@ -354,7 +354,7 @@ class Time
   alias_method :getutc, :getgm
 
   def hash
-    tv_sec ^ usec
+    tv_sec ^ tv_nsec
   end
 
   def to_f
