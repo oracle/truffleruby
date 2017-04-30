@@ -602,7 +602,7 @@ public abstract class RubyDateFormatter {
         if (RubyGuards.isRubyString(zone)) {
             return StringOperations.getString((DynamicObject) zone);
         } else {
-            return "UTC";
+            return "";
         }
     }
 

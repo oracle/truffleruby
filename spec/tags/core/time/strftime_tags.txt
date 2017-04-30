@@ -1,2 +1,1 @@
 fails:Time#strftime with %N formats the picoseconds of the second with %12N
-fails:Time#strftime should be able to show the timezone if available
