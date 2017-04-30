@@ -69,9 +69,7 @@ class Time
     if undefined.equal?(usec)
       if sec.kind_of?(Time)
         copy = allocate
-        Truffle.privately do
-          copy.initialize_copy(sec)
-        end
+        copy.send(:initialize_copy, sec)
         return copy
       elsif sec.kind_of?(Integer)
         return specific(sec, 0, false, nil)
@@ -475,8 +473,9 @@ class Time
       other_nsec = (nsec_frac * 1_000_000_000).to_i
     end
 
-    # Don't use self.class, MRI doesn't honor subclasses here
-    dup_internal(Time).add_internal! other_sec, other_nsec
+    time = Time.allocate
+    time.send(:initialize_copy, self)
+    time.add_internal! other_sec, other_nsec
   end
 
   def -(other)
@@ -493,8 +492,9 @@ class Time
       other_nsec = (nsec_frac * 1_000_000_000 + 0.5).to_i
     end
 
-    # Don't use self.class, MRI doesn't honor subclasses here
-    dup_internal(Time).add_internal!(-other_sec, -other_nsec)
+    time = Time.allocate
+    time.send(:initialize_copy, self)
+    time.add_internal!(-other_sec, -other_nsec)
   end
 
   def round(places = 0)
@@ -505,10 +505,8 @@ class Time
     sec = roundable_time.floor
     nano = ((roundable_time - sec) * 1_000_000_000).floor
 
-    dup_internal(Time).add_internal! sec - seconds, nano - nsec
-  end
-
-  def dup
-    dup_internal self.class
+    time = Time.allocate
+    time.send(:initialize_copy, self)
+    time.add_internal!(sec - seconds, nano - nsec)
   end
 end

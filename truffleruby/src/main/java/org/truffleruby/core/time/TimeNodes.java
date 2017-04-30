@@ -144,22 +144,6 @@ public abstract class TimeNodes {
         }
     }
 
-    @CoreMethod(names = "dup_internal", required = 1, visibility = Visibility.PROTECTED)
-    public static abstract class DupInternalNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
-        @Specialization
-        public DynamicObject dup(DynamicObject time, DynamicObject klass) {
-            return allocateObjectNode.allocate(klass, Layouts.TIME.build(
-                            Layouts.TIME.getDateTime(time),
-                            Layouts.TIME.getZone(time),
-                            Layouts.TIME.getOffset(time),
-                            Layouts.TIME.getRelativeOffset(time),
-                            Layouts.TIME.getIsUtc(time)));
-        }
-    }
-
     @CoreMethod(names = "gmtime")
     public abstract static class GmTimeNode extends CoreMethodArrayArgumentsNode {
 
