@@ -393,11 +393,6 @@ class Time
     end
   end
 
-  def gmt_offset
-    Truffle.primitive :time_utc_offset
-    raise PrimitiveFailure, 'Time#gmt_offset primitive failed'
-  end
-
   def getgm
     dup.gmtime
   end
@@ -418,8 +413,6 @@ class Time
   alias_method :tv_usec,    :usec
   alias_method :utc,        :gmtime
   alias_method :isdst,      :dst?
-  alias_method :utc_offset, :gmt_offset
-  alias_method :gmtoff,     :gmt_offset
   alias_method :getutc,     :getgm
 
   def to_f

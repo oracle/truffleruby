@@ -289,6 +289,16 @@ public abstract class TimeNodes {
 
     }
 
+    @CoreMethod(names = { "utc_offset", "gmt_offset", "gmtoff" })
+    public static abstract class TimeUTCOffsetNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public Object timeUTCOffset(DynamicObject time) {
+            return Layouts.TIME.getDateTime(time).getOffset().getTotalSeconds();
+        }
+    }
+
     @Primitive(name = "time_decompose")
     public static abstract class TimeDecomposePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -478,17 +488,6 @@ public abstract class TimeNodes {
             } else {
                 throw new UnsupportedOperationException("Can't cast " + value.getClass());
             }
-        }
-
-    }
-
-    @Primitive(name = "time_utc_offset")
-    public static abstract class TimeUTCOffsetPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public Object timeUTCOffset(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getOffset().getTotalSeconds();
         }
 
     }
