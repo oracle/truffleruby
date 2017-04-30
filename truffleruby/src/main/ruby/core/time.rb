@@ -410,7 +410,6 @@ class Time
   alias_method :month,      :mon
   alias_method :ctime,      :asctime
   alias_method :mday,       :day
-  alias_method :tv_usec,    :usec
   alias_method :utc,        :gmtime
   alias_method :isdst,      :dst?
   alias_method :getutc,     :getgm
