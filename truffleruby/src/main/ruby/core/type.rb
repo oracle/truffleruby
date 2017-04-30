@@ -560,6 +560,10 @@ module Rubinius
         offset = Rubinius::Type.coerce_to_exact_num(offset)
       end
 
+      if Rational === offset
+        offset = offset.round
+      end
+
       if offset <= -86400 || offset >= 86400
         raise ArgumentError, 'utc_offset out of range'
       end

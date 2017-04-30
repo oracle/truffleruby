@@ -29,9 +29,7 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.time.RubyDateFormatter.Token;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -447,45 +445,29 @@ public abstract class TimeNodes {
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-        @Specialization(guards = { "!fromutc", "!isNil(utcoffset)" })
-        public DynamicObject timeSFromArray(VirtualFrame frame, DynamicObject timeClass, int sec, int min, int hour, int mday, int month, int year,
-                                            int nsec, int isdst, boolean fromutc, DynamicObject utcoffset,
-                                            @Cached("new()") SnippetNode snippetNode) {
-
-            final TimeZoneAndName zoneAndName;
-            if (!fromutc && utcoffset == nil()) {
-                zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
-            } else {
-                zoneAndName = null;
-            }
-
-            final int millis = cast(snippetNode.execute(frame, "(offset * 1000).to_i", "offset", utcoffset));
-
-            return buildTime(timeClass, sec, min, hour, mday, month, year, nsec, isdst, fromutc, utcoffset, zoneAndName, millis);
-        }
-
         @Specialization(guards = "(fromutc || !isDynamicObject(utcoffset)) || isNil(utcoffset)")
-        public DynamicObject timeSFromArray(VirtualFrame frame, DynamicObject timeClass, int sec, int min, int hour, int mday, int month, int year,
-                                            int nsec, int isdst, boolean fromutc, Object utcoffset) {
-
+        public DynamicObject timeSFromArray(VirtualFrame frame, DynamicObject timeClass,
+                int sec, int min, int hour, int mday, int month, int year,
+                int nsec, int isdst, boolean fromutc, Object utcoffset) {
             final TimeZoneAndName zoneAndName;
             if (!fromutc && utcoffset == nil()) {
                 zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
             } else {
                 zoneAndName = null;
             }
-            return buildTime(timeClass, sec, min, hour, mday, month, year, nsec, isdst, fromutc, utcoffset, zoneAndName, -1);
+            return buildTime(timeClass, sec, min, hour, mday, month, year, nsec, isdst, fromutc, utcoffset, zoneAndName);
         }
 
         @Specialization(guards = "!isInteger(sec) || !isInteger(nsec)")
-        public DynamicObject timeSFromArrayFallback(VirtualFrame frame, DynamicObject timeClass, Object sec, int min, int hour, int mday, int month, int year,
-                                                    Object nsec, int isdst, boolean fromutc, Object utcoffset) {
+        public DynamicObject timeSFromArrayFallback(DynamicObject timeClass,
+                Object sec, int min, int hour, int mday, int month, int year,
+                Object nsec, int isdst, boolean fromutc, Object utcoffset) {
             return null; // Primitive failure
         }
 
         @TruffleBoundary
         private DynamicObject buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month, int year,
-                int nsec, int isdst, boolean fromutc, Object utcoffset, TimeZoneAndName envZone, int zoneOffsetMillis) {
+                int nsec, int isdst, boolean fromutc, Object utcoffset, TimeZoneAndName envZone) {
             if (sec < 0 || sec > 60 ||
                     min < 0 || min > 59 ||
                     hour < 0 || hour > 23 ||
@@ -526,10 +508,6 @@ public abstract class TimeNodes {
                     zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds((int) (long) utcoffset));
                     relativeOffset = true;
                     zoneToStore = nil();
-                } else if (utcoffset instanceof DynamicObject) {
-                    zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds((zoneOffsetMillis + 500) / 1_000));
-                    relativeOffset = true;
-                    zoneToStore = nil();
                 } else {
                     throw new UnsupportedOperationException(StringUtils.format("%s %s %s %s", isdst, fromutc, utcoffset, utcoffset.getClass()));
                 }
@@ -547,17 +525,8 @@ public abstract class TimeNodes {
                 dt = dt.withEarlierOffsetAtOverlap();
             }
 
-            return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(dt, zoneToStore, utcoffset, relativeOffset, fromutc));
-        }
-
-        private static int cast(Object value) {
-            if (value instanceof Integer) {
-                return (int) value;
-            } else if (value instanceof Long) {
-                return (int) (long) value;
-            } else {
-                throw new UnsupportedOperationException("Can't cast " + value.getClass());
-            }
+            return allocateObjectNode.allocate(timeClass,
+                    Layouts.TIME.build(dt, zoneToStore, utcoffset, relativeOffset, fromutc));
         }
 
     }
