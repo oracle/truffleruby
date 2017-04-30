@@ -160,7 +160,7 @@ class Time
   end
 
   def to_f
-    tv_sec + tv_nsec * 0.000000001 # Truffle: optimized
+    tv_sec + tv_nsec * 0.000_000_001
   end
 
   def to_r
@@ -387,7 +387,7 @@ class Time
 
   def -(other)
     if other.kind_of?(Time)
-      return (tv_sec - other.tv_sec) + ((tv_nsec - other.tv_nsec) * 0.000000001)
+      return (tv_sec - other.tv_sec) + ((tv_nsec - other.tv_nsec) * 0.000_000_001)
     end
 
     case other = Rubinius::Type.coerce_to_exact_num(other)
