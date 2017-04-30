@@ -35,14 +35,6 @@
 class Time
   include Comparable
 
-  def to_a
-    [sec, min, hour, day, month, year, wday, yday, dst?, zone]
-  end
-
-  def strftime(format)
-    Truffle.invoke_primitive :time_strftime, self, StringValue(format)
-  end
-
   MonthValue = {
     'JAN' => 1, 'FEB' => 2, 'MAR' => 3, 'APR' => 4, 'MAY' => 5, 'JUN' => 6,
     'JUL' => 7, 'AUG' => 8, 'SEP' => 9, 'OCT' =>10, 'NOV' =>11, 'DEC' =>12
@@ -167,12 +159,20 @@ class Time
     wday == 6
   end
 
+  def to_f
+    tv_sec + tv_nsec * 0.000000001 # Truffle: optimized
+  end
+
   def to_r
     (tv_sec + subsec).to_r
   end
 
   def getlocal(offset=nil)
     dup.localtime(offset)
+  end
+
+  def hash
+    tv_sec ^ tv_nsec
   end
 
   def eql?(other)
@@ -190,6 +190,19 @@ class Time
       0
     end
   end
+
+  def to_a
+    [sec, min, hour, day, month, year, wday, yday, dst?, zone]
+  end
+
+  def strftime(format)
+    Truffle.invoke_primitive :time_strftime, self, StringValue(format)
+  end
+
+  def asctime
+    strftime('%a %b %e %H:%M:%S %Y')
+  end
+  alias_method :ctime, :asctime
 
   #--
   # TODO: doesn't load ivars
@@ -327,15 +340,6 @@ class Time
     alias_method :utc, :gm
   end
 
-  def succ
-    self + 1
-  end
-
-  def asctime
-    strftime('%a %b %e %H:%M:%S %Y')
-  end
-  alias_method :ctime, :asctime
-
   def zone
     zone = Truffle.invoke_primitive(:time_zone, self)
 
@@ -353,22 +357,15 @@ class Time
   end
   alias_method :getutc, :getgm
 
-  def hash
-    tv_sec ^ tv_nsec
-  end
-
-  def to_f
-    tv_sec + tv_nsec * 0.000000001 # Truffle: optimized
-  end
-
   def localtime(offset = nil)
     if offset
-      localtime_internal Rubinius::Type.coerce_to_utc_offset(offset)
-    else
-      localtime_internal
+      offset = Rubinius::Type.coerce_to_utc_offset(offset)
     end
+    Truffle.invoke_primitive(:time_localtime, self, offset)
+  end
 
-    self
+  def succ
+    self + 1
   end
 
   def +(other)

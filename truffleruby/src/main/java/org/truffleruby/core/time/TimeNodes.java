@@ -82,13 +82,13 @@ public abstract class TimeNodes {
 
     }
 
-    @CoreMethod(names = "localtime_internal", optional = 1)
-    public abstract static class LocalTimeNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "time_localtime")
+    public abstract static class LocalTimeNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
 
-        @Specialization
-        public DynamicObject localtime(VirtualFrame frame, DynamicObject time, NotProvided offset) {
+        @Specialization(guards = "isNil(offset)")
+        public DynamicObject localtime(VirtualFrame frame, DynamicObject time, DynamicObject offset) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
             final ZoneId dateTimeZone = timeZoneAndName.getZone();
             final String shortZoneName = TimeZoneParser.getShortZoneName(time, dateTimeZone);
@@ -133,11 +133,11 @@ public abstract class TimeNodes {
     }
 
     @Primitive(name = "time_add")
-    public abstract static class AddInternalNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class TimeAddNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject addInternal(DynamicObject time, long seconds, long nanoSeconds) {
+        public DynamicObject add(DynamicObject time, long seconds, long nanoSeconds) {
             final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
             Layouts.TIME.setDateTime(time, dateTime.plusSeconds(seconds).plusNanos(nanoSeconds));
             return time;
