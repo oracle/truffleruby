@@ -76,6 +76,9 @@ module Rubinius::FFI
     # Given a +type+ as a number, indicate how many bytes that type
     # takes up on this platform.
 
+    Rubinius::NativeFunction = Class.new
+    Rubinius::FFI::Enum = Class.new
+
     def type_size(type)
       Truffle.primitive :nativefunction_type_size
 

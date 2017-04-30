@@ -1,0 +1,2 @@
+class SocketError < StandardError
+end

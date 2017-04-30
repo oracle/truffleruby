@@ -44,6 +44,14 @@ module Rubinius
 
   HOST_OS = Truffle::System.host_os
 
+  def self.bsd?
+    !!(HOST_OS =~ /bsd/i)
+  end
+
+  def self.linux?
+    !!(HOST_OS =~ /linux/i)
+  end
+
   def self.windows?
     false
   end

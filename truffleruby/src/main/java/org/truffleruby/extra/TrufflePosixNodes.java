@@ -18,6 +18,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import jnr.constants.platform.Fcntl;
+import jnr.ffi.Pointer;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -29,6 +30,7 @@ import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.extra.ffi.PointerNodes;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.signal.Signal;
 
 import static org.truffleruby.core.string.StringOperations.decodeUTF8;
@@ -710,6 +712,48 @@ public abstract class TrufflePosixNodes {
 
     }
 
+    @CoreMethod(names = "gethostbyname", isModuleFunction = true, required = 1)
+    public abstract static class GetHostByNameNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(name)")
+        public DynamicObject gethostbyname(DynamicObject name) {
+            final Pointer ptr = nativeSockets().gethostbyname(StringOperations.getString(name));
+            DynamicObject pointer = allocateObjectNode.allocate(getContext().getCoreLibrary().getRubiniusFFIPointerClass(), ptr);
+            return pointer;
+        }
+
+    }
+
+    @CoreMethod(names = "sendto", isModuleFunction = true, required = 6)
+    public abstract static class SendToNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        
+        @Specialization(guards = "!isRubyPointer(dest_addr)")
+        public int sendToStruct(VirtualFrame frame, int socket, DynamicObject message, int length, int flags, DynamicObject dest_addr, int dest_len, @Cached("new()") SnippetNode snippetNode) {
+            DynamicObject dest_addr_ptr = (DynamicObject) snippetNode.execute(frame, "dest_addr.to_ptr", "dest_addr", dest_addr);
+            final Pointer messagePointer = Layouts.POINTER.getPointer(message);
+            final Pointer destAddrPointer = Layouts.POINTER.getPointer(dest_addr_ptr);
+            return sendToPrivate(socket, length, flags, dest_len, messagePointer, destAddrPointer);
+        }
+
+        @Specialization(guards = "isRubyPointer(dest_addr)")
+        public int sendTo(int socket, DynamicObject message, int length, int flags, DynamicObject dest_addr, int dest_len) {
+             final Pointer messagePointer = Layouts.POINTER.getPointer(message);
+             final Pointer destAddrPointer = Layouts.POINTER.getPointer(dest_addr);
+            return sendToPrivate(socket, length, flags, dest_len, messagePointer, destAddrPointer);
+        }
+
+        @TruffleBoundary
+        private int sendToPrivate(int socket, int length, int flags, int dest_len, Pointer messagePointer, Pointer destAddrPointer) {
+            return nativeSockets().sendto(socket, messagePointer, length, flags, destAddrPointer, dest_len);
+        }
+
+    }
+
     @CoreMethod(names = "_connect", isModuleFunction = true, required = 3, lowerFixnum = { 1, 3 })
     public abstract static class ConnectNode extends CoreMethodArrayArgumentsNode {
 
@@ -717,6 +761,74 @@ public abstract class TrufflePosixNodes {
         @Specialization(guards = "isRubyPointer(address)")
         public int connect(int socket, DynamicObject address, int address_len) {
             return nativeSockets().connect(socket, Layouts.POINTER.getPointer(address), address_len);
+        }
+
+    }
+
+    @CoreMethod(names = "inet_network", isModuleFunction = true, required = 1)
+    public abstract static class InetNetworkNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int inetNetwork(DynamicObject string) {
+            return nativeSockets().inet_network(StringOperations.getString(string));
+        }
+
+    }
+
+    @CoreMethod(names = "inet_pton", isModuleFunction = true, required = 3)
+    public abstract static class InetPtonNode extends CoreMethodArrayArgumentsNode {
+        
+        @TruffleBoundary
+        @Specialization
+        public int inetNetwork(int af, DynamicObject str, DynamicObject dst) {
+            return nativeSockets().inet_pton(af, StringOperations.getString(str), Layouts.POINTER.getPointer(dst));
+        }
+
+    }
+
+    @CoreMethod(names = "_socketpair", isModuleFunction = true, required = 4)
+    public abstract static class SocketpairNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int socketpair(int domain, int type, int protocolint, DynamicObject pointer) {
+            return nativeSockets().socketpair(domain, type, protocolint, Layouts.POINTER.getPointer(pointer));
+        }
+
+    }
+
+    @CoreMethod(names = "accept", isModuleFunction = true, required = 3, lowerFixnum = { 1, 3 })
+    public abstract static class AcceptNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyPointer(addressPtr)")
+        public int accept(int fd, DynamicObject addressPtr, DynamicObject socklenPointer) {
+
+            final Pointer sockPointer = Layouts.POINTER.getPointer(socklenPointer);
+            final Pointer addressPointer = Layouts.POINTER.getPointer(addressPtr);
+
+            final int newFd;
+
+            try {
+                newFd = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(nativeSockets().accept(fd, addressPointer, sockPointer)));
+            } finally {
+                // getContext().getNativePlatform().getMallocFree().free(addressPointer); // TODO BJF REVIEW
+            }
+
+            return newFd;
+        }
+
+        protected int ensureSuccessful(int result, int errno, String extra) {
+            assert result >= -1;
+            if (result == -1) {
+                throw new RaiseException(coreExceptions().errnoError(errno, extra, this));
+            }
+            return result;
+        }
+
+        protected int ensureSuccessful(int result) {
+            return ensureSuccessful(result, posix().errno(), "");
         }
 
     }

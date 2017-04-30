@@ -46,7 +46,7 @@ module Rubinius::FFI::Library
 
     caller = Truffle::Boot.source_of_caller
 
-    suffix = 'rubysl/rubysl-socket/lib/rubysl/socket.rb'
+    suffix = 'rubysl/rubysl-socket/lib/rubysl/socket/foreign.rb'
 
     if caller.end_with?(suffix) and Truffle::POSIX.respond_to?(mname)
       define_method mname, &Truffle::POSIX.method(mname)

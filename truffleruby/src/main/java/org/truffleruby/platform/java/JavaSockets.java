@@ -43,6 +43,11 @@ public class JavaSockets implements Sockets {
     }
 
     @Override
+    public int sendto(int socket, Pointer message, int length, int flags, Pointer dest_addr, int dest_len) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int setsockopt(int socket, int level, int option_name, Pointer option_value, int option_len) {
         throw new UnsupportedOperationException();
     }
@@ -63,12 +68,37 @@ public class JavaSockets implements Sockets {
     }
 
     @Override
+    public int accept(int socket, Pointer sockaddr, Pointer address_len) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int gethostname(Pointer name, int namelen) {
         throw new UnsupportedOperationException();
     }
 
     @Override
+    public int inet_network(String cp) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int inet_pton(int af, String src, Pointer dst) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Pointer gethostbyname(String name) {
+        return null;
+    }
+
+    @Override
     public int select(int nfds, Pointer readfds, Pointer writefds, Pointer errorfds, Timeval timeout) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int socketpair(int domain, int type, int protocolint, Pointer ptr) {
         throw new UnsupportedOperationException();
     }
 

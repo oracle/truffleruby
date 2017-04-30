@@ -367,6 +367,22 @@ class IO
     @mode = Truffle::Fixnum.lower(value)
   end
 
+  def mode_read_only?
+    @mode & ACCMODE == RDONLY
+  end
+
+  def mode_write_only?
+    @mode & ACCMODE == WRONLY
+  end
+
+  def force_read_only
+    # TODO BJF 30-Apr-2017 Please implement
+  end
+
+  def force_write_only
+    # TODO BJF 30-Apr-2017 Please implement
+  end
+
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
 

@@ -1220,6 +1220,10 @@ public class CoreLibrary {
         return regexpFactory;
     }
 
+    public DynamicObject getRubiniusFFIPointerClass() {
+        return rubiniusFFIPointerClass;
+    }
+
     public DynamicObject getRubyTruffleErrorClass() {
         return rubyTruffleErrorClass;
     }
