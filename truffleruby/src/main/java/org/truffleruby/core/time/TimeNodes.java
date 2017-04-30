@@ -243,9 +243,10 @@ public abstract class TimeNodes {
 
     }
 
-    @Primitive(name = "time_seconds")
-    public static abstract class TimeSecondsPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = { "to_i", "tv_sec" })
+    public static abstract class TimeSecondsSinceEpochNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         public long timeSeconds(DynamicObject time) {
             return Layouts.TIME.getDateTime(time).toInstant().getEpochSecond();

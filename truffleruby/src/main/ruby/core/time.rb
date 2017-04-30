@@ -40,12 +40,6 @@ class Time
     raise ArgumentError, 'descriptors reference invalid time'
   end
 
-  def seconds
-    Truffle.primitive :time_seconds
-    raise PrimitiveFailure, 'Time#second primitive failed'
-  end
-  alias_method :to_i, :seconds
-
   def usec
     Truffle.primitive :time_useconds
     raise PrimitiveFailure, 'Time#usec primitive failed'
@@ -197,7 +191,7 @@ class Time
   end
 
   def to_r
-    (seconds + subsec).to_r
+    (tv_sec + subsec).to_r
   end
 
   def getlocal(offset=nil)
@@ -205,12 +199,12 @@ class Time
   end
 
   def eql?(other)
-    other.kind_of?(Time) and seconds == other.seconds and nsec == other.nsec
+    other.kind_of?(Time) and tv_sec == other.tv_sec and tv_nsec == other.tv_nsec
   end
 
   def <=>(other)
     if other.kind_of? Time
-      (seconds <=> other.seconds).nonzero? or (nsec <=> other.nsec)
+      (tv_sec <=> other.tv_sec).nonzero? or (tv_nsec <=> other.tv_nsec)
     else
       r = (other <=> self)
       return nil if r == nil
@@ -426,7 +420,7 @@ class Time
   end
 
   def hash
-    seconds ^ usec
+    tv_sec ^ usec
   end
 
   class << self
@@ -438,8 +432,6 @@ class Time
   alias_method :month,      :mon
   alias_method :ctime,      :asctime
   alias_method :mday,       :day
-  alias_method :to_i,       :seconds
-  alias_method :tv_sec,     :seconds
   alias_method :tv_usec,    :usec
   alias_method :utc,        :gmtime
   alias_method :isdst,      :dst?
@@ -448,7 +440,7 @@ class Time
   alias_method :getutc,     :getgm
 
   def to_f
-    seconds + nsec * 0.000000001 # Truffle: optimized
+    tv_sec + tv_nsec * 0.000000001 # Truffle: optimized
   end
 
   def localtime(offset = nil)
@@ -480,7 +472,7 @@ class Time
 
   def -(other)
     if other.kind_of?(Time)
-      return (seconds - other.seconds) + ((nsec - other.nsec) * 0.000000001)
+      return (tv_sec - other.tv_sec) + ((tv_nsec - other.tv_nsec) * 0.000000001)
     end
 
     case other = Rubinius::Type.coerce_to_exact_num(other)
@@ -507,6 +499,6 @@ class Time
 
     time = Time.allocate
     time.send(:initialize_copy, self)
-    Truffle.invoke_primitive(:time_add, time, sec - seconds, nano - nsec)
+    Truffle.invoke_primitive(:time_add, time, sec - tv_sec, nano - tv_nsec)
   end
 end
