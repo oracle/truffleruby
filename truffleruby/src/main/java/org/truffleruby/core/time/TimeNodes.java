@@ -132,8 +132,8 @@ public abstract class TimeNodes {
 
     }
 
-    @CoreMethod(names = "add_internal!", required = 2, visibility = Visibility.PROTECTED)
-    public abstract static class AddInternalNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "time_add")
+    public abstract static class AddInternalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization

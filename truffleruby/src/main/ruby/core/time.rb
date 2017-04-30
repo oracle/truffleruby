@@ -475,7 +475,7 @@ class Time
 
     time = Time.allocate
     time.send(:initialize_copy, self)
-    time.add_internal! other_sec, other_nsec
+    Truffle.invoke_primitive(:time_add, time, other_sec, other_nsec)
   end
 
   def -(other)
@@ -494,7 +494,7 @@ class Time
 
     time = Time.allocate
     time.send(:initialize_copy, self)
-    time.add_internal!(-other_sec, -other_nsec)
+    Truffle.invoke_primitive(:time_add, time, -other_sec, -other_nsec)
   end
 
   def round(places = 0)
@@ -507,6 +507,6 @@ class Time
 
     time = Time.allocate
     time.send(:initialize_copy, self)
-    time.add_internal!(sec - seconds, nano - nsec)
+    Truffle.invoke_primitive(:time_add, time, sec - seconds, nano - nsec)
   end
 end
