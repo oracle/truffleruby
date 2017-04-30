@@ -781,7 +781,7 @@ module Commands
 
   def test_mri(*args)
     truffle_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
-    
+
     env_vars = {
       "EXCLUDES" => "test/mri/excludes",
       "RUBYOPT" => '--disable-gems'
@@ -796,20 +796,20 @@ module Commands
     else
       args, files_to_run = args.partition { |a| a.start_with?('-') }
     end
-    
+
     unless files_to_run
       prefix = "#{JRUBY_DIR}/test/mri/tests/"
-      
+
       include_files = Dir.glob(include_pattern).map { |f|
         raise unless f.start_with?(prefix)
         f[prefix.size..-1]
       }
-      
+
       exclude_files = File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }
-      
+
       files_to_run = (include_files - exclude_files)
     end
-    
+
     command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
     run(env_vars, *truffle_args, *args, *command, *files_to_run)
   end
@@ -976,10 +976,6 @@ module Commands
   private :test_gems
 
   def test_ecosystem(env={}, *args)
-    unless File.exist? "#{JRUBY_DIR}/../jruby-truffle-gem-test-pack/gem-testing"
-      raise 'missing ../jruby-truffle-gem-test-pack/gem-testing directory'
-    end
-
     tests_path             = "#{JRUBY_DIR}/test/truffle/ecosystem"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
