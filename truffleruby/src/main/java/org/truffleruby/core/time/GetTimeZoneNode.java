@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.time;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -36,12 +37,17 @@ public abstract class GetTimeZoneNode extends RubyNode {
 
     @Specialization(assumptions = "TZ_UNCHANGED.getAssumption()")
     public TimeZoneAndName getTimeZone(VirtualFrame frame,
-            @Cached("getTimeZone(frame)") TimeZoneAndName zone) {
+            @Cached("getTZ(frame)") Object tzValue,
+            @Cached("getTimeZone(tzValue)") TimeZoneAndName zone) {
         return zone;
     }
 
-    protected TimeZoneAndName getTimeZone(VirtualFrame frame) {
-        Object tz = snippetNode.execute(frame, "ENV['TZ']");
+    protected Object getTZ(VirtualFrame frame) {
+        return snippetNode.execute(frame, "ENV['TZ']");
+    }
+
+    @TruffleBoundary
+    protected TimeZoneAndName getTimeZone(Object tz) {
         String tzString = "";
         if (RubyGuards.isRubyString(tz)) {
             tzString = StringOperations.getString((DynamicObject) tz);
