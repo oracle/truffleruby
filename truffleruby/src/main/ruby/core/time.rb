@@ -355,7 +355,6 @@ class Time
     alias_method :utc,    :gm
   end
 
-  alias_method :utc?,       :gmt?
   alias_method :ctime,      :asctime
   alias_method :utc,        :gmtime
   alias_method :getutc,     :getgm

@@ -171,16 +171,6 @@ public abstract class TimeNodes {
 
     }
 
-    @CoreMethod(names = "gmt?")
-    public abstract static class GmtNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean allocate(DynamicObject time) {
-            return Layouts.TIME.getIsUtc(time);
-        }
-
-    }
-
     @CoreMethod(names = "now", constructor = true)
     public static abstract class TimeNowNode extends CoreMethodArrayArgumentsNode {
 
@@ -385,6 +375,16 @@ public abstract class TimeNodes {
         public boolean timeIsDST(DynamicObject time) {
             final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
             return dateTime.getZone().getRules().isDaylightSavings(dateTime.toInstant());
+        }
+
+    }
+
+    @CoreMethod(names = { "utc?", "gmt?" })
+    public abstract static class IsUTCNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean isUTC(DynamicObject time) {
+            return Layouts.TIME.getIsUtc(time);
         }
 
     }
