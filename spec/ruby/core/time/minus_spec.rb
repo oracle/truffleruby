@@ -63,12 +63,12 @@ describe "Time#-" do
   end
 
   it "maintains microseconds precision" do
-    time = Time.at(10) - Rational(1_000_000_000_000_001, 1_000_000_000_000_000)
+    time = Time.at(10) - Rational(1, 1_000_000)
     time.usec.should == 999_999
   end
 
   it "maintains nanoseconds precision" do
-    time = Time.at(10) - Rational(1_000_000_000_000_001, 1_000_000_000_000_000)
+    time = Time.at(10) - Rational(1, 1_000_000_000)
     time.nsec.should == 999_999_999
   end
 
