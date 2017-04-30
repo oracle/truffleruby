@@ -259,7 +259,7 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        public long timeUSec(DynamicObject time) {
+        public int timeUSec(DynamicObject time) {
             return Layouts.TIME.getDateTime(time).getNano() / 1000;
         }
 
@@ -270,7 +270,7 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        public long timeNSec(DynamicObject time) {
+        public int timeNSec(DynamicObject time) {
             return Layouts.TIME.getDateTime(time).getNano();
         }
 
@@ -294,49 +294,133 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object timeUTCOffset(DynamicObject time) {
+        public int timeUTCOffset(DynamicObject time) {
             return Layouts.TIME.getDateTime(time).getOffset().getTotalSeconds();
         }
     }
 
-    @Primitive(name = "time_decompose")
-    public static abstract class TimeDecomposePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "sec")
+    public static abstract class TimeSecNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject timeDecompose(DynamicObject time) {
-            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
-            final int sec = dateTime.getSecond();
-            final int min = dateTime.getMinute();
-            final int hour = dateTime.getHour();
-            final int day = dateTime.getDayOfMonth();
-            final int month = dateTime.getMonthValue();
-            final int year = dateTime.getYear();
+        public int timeSec(DynamicObject time) {
+            return Layouts.TIME.getDateTime(time).getSecond();
+        }
 
-            int wday = dateTime.getDayOfWeek().getValue();
+    }
 
+    @CoreMethod(names = "min")
+    public static abstract class TimeMinNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int timeMin(DynamicObject time) {
+            return Layouts.TIME.getDateTime(time).getMinute();
+        }
+
+    }
+
+    @CoreMethod(names = "hour")
+    public static abstract class TimeHourNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int timeHour(DynamicObject time) {
+            return Layouts.TIME.getDateTime(time).getHour();
+        }
+
+    }
+
+    @CoreMethod(names = { "day", "mday" })
+    public static abstract class TimeDayNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int timeDay(DynamicObject time) {
+            return Layouts.TIME.getDateTime(time).getDayOfMonth();
+        }
+
+    }
+
+    @CoreMethod(names = { "mon", "month" })
+    public static abstract class TimeMonthNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int timeMonth(DynamicObject time) {
+            return Layouts.TIME.getDateTime(time).getMonthValue();
+        }
+
+    }
+
+    @CoreMethod(names = "year")
+    public static abstract class TimeYearNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int timeYear(DynamicObject time) {
+            return Layouts.TIME.getDateTime(time).getYear();
+        }
+
+    }
+
+    @CoreMethod(names = "wday")
+    public static abstract class TimeWeekDayNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int timeWeekDay(DynamicObject time) {
+            int wday = Layouts.TIME.getDateTime(time).getDayOfWeek().getValue();
             if (wday == 7) {
                 wday = 0;
             }
+            return wday;
+        }
 
-            final int yday = dateTime.getDayOfYear();
-            final boolean isdst = dateTime.getZone().getRules().isDaylightSavings(dateTime.toInstant());
+    }
 
-            final Object zone;
+    @CoreMethod(names = "yday")
+    public static abstract class TimeYearDayNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public int timeYeayDay(DynamicObject time) {
+            return Layouts.TIME.getDateTime(time).getDayOfYear();
+        }
+
+    }
+
+    @CoreMethod(names = { "dst?", "isdst" })
+    public static abstract class TimeIsDSTNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public boolean timeIsDST(DynamicObject time) {
+            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
+            return dateTime.getZone().getRules().isDaylightSavings(dateTime.toInstant());
+        }
+
+    }
+
+    @Primitive(name = "time_zone")
+    public static abstract class TimeZonePrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public Object timeZone(DynamicObject time) {
+            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
             if (Layouts.TIME.getRelativeOffset(time)) {
-                zone = nil();
+                return nil();
             } else {
                 final Object timeZone = Layouts.TIME.getZone(time);
                 if (timeZone == nil()) {
                     final String zoneString = TimeZoneParser.getShortZoneName(dateTime, dateTime.getZone());
-                    zone = createString(StringOperations.encodeRope(zoneString, UTF8Encoding.INSTANCE));
+                    return createString(StringOperations.encodeRope(zoneString, UTF8Encoding.INSTANCE));
                 } else {
-                    zone = timeZone;
+                    return timeZone;
                 }
             }
-
-            final Object[] decomposed = new Object[]{ sec, min, hour, day, month, year, wday, yday, isdst, zone };
-            return createArray(decomposed, decomposed.length);
         }
 
     }

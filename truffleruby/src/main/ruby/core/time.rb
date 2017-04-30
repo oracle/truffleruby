@@ -41,8 +41,7 @@ class Time
   end
 
   def to_a
-    Truffle.primitive :time_decompose
-    raise PrimitiveFailure, 'Time#to_a primitive failed'
+    [sec, min, hour, day, month, year, wday, yday, dst?, zone]
   end
 
   def strftime(format)
@@ -345,44 +344,8 @@ class Time
     strftime('%a %b %e %H:%M:%S %Y')
   end
 
-  def sec
-    to_a[0]
-  end
-
-  def min
-    to_a[1]
-  end
-
-  def hour
-    to_a[2]
-  end
-
-  def day
-    to_a[3]
-  end
-
-  def mon
-    to_a[4]
-  end
-
-  def year
-    to_a[5]
-  end
-
-  def wday
-    to_a[6]
-  end
-
-  def yday
-    to_a[7]
-  end
-
-  def dst?
-    to_a[8]
-  end
-
   def zone
-    zone = to_a[9]
+    zone = Truffle.invoke_primitive(:time_zone, self)
 
     if zone && zone.ascii_only?
       zone.encode Encoding::US_ASCII
@@ -407,11 +370,8 @@ class Time
   end
 
   alias_method :utc?,       :gmt?
-  alias_method :month,      :mon
   alias_method :ctime,      :asctime
-  alias_method :mday,       :day
   alias_method :utc,        :gmtime
-  alias_method :isdst,      :dst?
   alias_method :getutc,     :getgm
 
   def to_f
