@@ -203,32 +203,18 @@ public abstract class TimeNodes {
 
     }
 
-    @Primitive(name = "time_s_specific", lowerFixnum = 2)
-    public static abstract class TimeSSpecificPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "time_at", lowerFixnum = 2)
+    public static abstract class TimeAtPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-        @Specialization(guards = { "isUTC" })
-        public DynamicObject timeSSpecificUTC(DynamicObject timeClass, long seconds, int nanoseconds, boolean isUTC, Object offset) {
-            return buildTime(timeClass, getDateTime(seconds, nanoseconds, UTC), isUTC, nil());
-        }
-
-        @Specialization(guards = { "!isUTC", "isNil(offset)" })
-        public DynamicObject timeSSpecific(VirtualFrame frame, DynamicObject timeClass, long seconds, int nanoseconds, boolean isUTC, Object offset) {
+        @Specialization
+        public DynamicObject timeAt(VirtualFrame frame, DynamicObject timeClass, long seconds, int nanoseconds) {
             final TimeZoneAndName zoneName = getTimeZoneNode.executeGetTimeZone(frame);
-            return buildTime(timeClass, getDateTime(seconds, nanoseconds, zoneName.getZone()), isUTC, offset);
-        }
-
-        @Specialization(guards = { "!isUTC" })
-        public DynamicObject timeSSpecific(DynamicObject timeClass, long seconds, int nanoseconds, boolean isUTC, long offset) {
-            ZoneId timeZone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds((int) offset));
-            return buildTime(timeClass, getDateTime(seconds, nanoseconds, timeZone), isUTC, nil());
-        }
-
-        private DynamicObject buildTime(DynamicObject timeClass, ZonedDateTime dateTime, boolean isUTC, Object offset) {
+            final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneName.getZone());
             return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
-                    dateTime, nil(), offset, false, isUTC));
+                    dateTime, nil(), nil(), false, false));
         }
 
         @TruffleBoundary

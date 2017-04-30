@@ -35,11 +35,6 @@
 class Time
   include Comparable
 
-  def self.specific(sec, nsec, from_gmt, offset)
-    Truffle.primitive :time_s_specific
-    raise ArgumentError, 'descriptors reference invalid time'
-  end
-
   def to_a
     [sec, min, hour, day, month, year, wday, yday, dst?, zone]
   end
@@ -60,7 +55,7 @@ class Time
         copy.send(:initialize_copy, sec)
         return copy
       elsif sec.kind_of?(Integer)
-        return specific(sec, 0, false, nil)
+        return Truffle.invoke_primitive :time_at, self, sec, 0
       end
     end
 
@@ -82,7 +77,7 @@ class Time
     sec += nsec / 1_000_000_000
     nsec %= 1_000_000_000
 
-    specific(sec, nsec, false, nil)
+    Truffle.invoke_primitive :time_at, self, sec, nsec
   end
 
   def self.from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
