@@ -992,33 +992,37 @@ module Commands
   private :test_ecosystem
 
   def test_bundle(*args)
-    gems = [{:url => "https://github.com/pitr-ch/algebrick", commit: '89cf71984964ce9cbe6a1f4fb5155144ac56d057'}]
+    require 'tmpdir'
+
+    gems = [{ name:   'algebrick',
+              url:    'https://github.com/pitr-ch/algebrick.git',
+              commit: '89cf71984964ce9cbe6a1f4fb5155144ac56d057' }]
+
     gems.each do |gem|
-      gem_url = gem[:url]
-      name = gem_url.split('/')[-1]
-      require 'tmpdir'
-      temp_dir = Dir.mktmpdir(name)
+      gem_name = gem.fetch(:name)
+      temp_dir = Dir.mktmpdir(gem_name)
+
       begin
         Dir.chdir(temp_dir) do
-          puts "Cloning gem #{name} into temp directory: #{temp_dir}"
-          raw_sh(*['git', 'clone', gem_url])
+          puts "Cloning gem #{gem_name} into temp directory: #{temp_dir}"
+          raw_sh('git', 'clone', gem.fetch(:url))
         end
-        gem_dir = File.join(temp_dir, name)
+
         gem_home = if ENV['GEM_HOME']
                      ENV['GEM_HOME']
                    else
-                     tmp_home = File.join(temp_dir, "gem_home")
+                     tmp_home = File.join(temp_dir, 'gem_home')
                      Dir.mkdir(tmp_home)
                      puts "Using temporary GEM_HOME:#{tmp_home}"
                      tmp_home
                    end
-        Dir.chdir(gem_dir) do
-          if gem.has_key?(:commit)
-            raw_sh(*['git', 'checkout', gem[:commit]])
-          end
-          run({'GEM_HOME' => gem_home}, *["-S", "gem", "install", "bundler", "-v","1.14.6"])
-          run({'GEM_HOME' => gem_home}, *["-S", "bundle", "install"])
-          run({ 'GEM_HOME' => gem_home }, *[File.join(gem_home, 'bin', 'bundle'), 'exec', File.join(gem_home, 'bin', 'rake')])
+
+        Dir.chdir(File.join(temp_dir, gem_name)) do
+          raw_sh('git', 'checkout', gem.fetch(:commit)) if gem.key?(:commit)
+
+          run({ 'GEM_HOME' => gem_home }, '-S', 'gem', 'install', 'bundler', '-v', '1.14.6')
+          run({ 'GEM_HOME' => gem_home }, '-S', 'bundle', 'install')
+          run({ 'GEM_HOME' => gem_home }, File.join(gem_home, 'bin', 'bundle'), 'exec', File.join(gem_home, 'bin', 'rake'))
         end
       ensure
         FileUtils.remove_entry temp_dir
