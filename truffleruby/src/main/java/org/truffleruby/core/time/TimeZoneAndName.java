@@ -18,6 +18,11 @@ import java.time.ZoneId;
 public class TimeZoneAndName {
 
     private final ZoneId zone;
+
+    /**
+     * The short name optionally captured from the $TZ environment variable such as PST if TZ=PST8:00:00.
+     * If $TZ is like America/New_York, the short zone name is computed later by TimeZoneParser.getShortZoneName.
+     */
     private final String name;
 
     public TimeZoneAndName(ZoneId zone, String name) {

@@ -294,7 +294,7 @@ class Time
       Truffle.invoke_primitive :time_at, self, sec, nsec
     end
 
-    def from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
+    def from_array(sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
       Truffle.primitive :time_s_from_array
 
       if sec.kind_of?(String)
@@ -318,7 +318,7 @@ class Time
       sec += nsec / 1_000_000_000
       nsec %= 1_000_000_000
 
-      from_array(sec, min, hour, mday, month, year, nsec, is_dst, from_gmt, utc_offset)
+      from_array(sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
     end
     private :from_array
 

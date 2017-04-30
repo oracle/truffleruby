@@ -18,6 +18,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -52,6 +53,11 @@ public abstract class TimeNodes {
 
     private static final ZonedDateTime ZERO = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault());
     private static final ZoneId UTC = ZoneId.of("UTC");
+
+    public static DynamicObject getShortZoneName(RubyContext context, ZonedDateTime dt, TimeZoneAndName zoneAndName) {
+        final String shortZoneName = TimeZoneParser.getShortZoneName(dt, zoneAndName);
+        return StringOperations.createString(context, StringOperations.encodeRope(shortZoneName, UTF8Encoding.INSTANCE));
+    }
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
@@ -88,15 +94,13 @@ public abstract class TimeNodes {
         @Specialization(guards = "isNil(offset)")
         public DynamicObject localtime(VirtualFrame frame, DynamicObject time, DynamicObject offset) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
-            final ZoneId dateTimeZone = timeZoneAndName.getZone();
-            final String shortZoneName = TimeZoneParser.getShortZoneName(time, dateTimeZone);
-            final DynamicObject zone = createString(StringOperations.encodeRope(shortZoneName, UTF8Encoding.INSTANCE));
             final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
+            final DynamicObject zone = getShortZoneName(getContext(), dateTime, timeZoneAndName);
 
             Layouts.TIME.setIsUtc(time, false);
             Layouts.TIME.setRelativeOffset(time, false);
             Layouts.TIME.setZone(time, zone);
-            Layouts.TIME.setDateTime(time, withZone(dateTime, dateTimeZone));
+            Layouts.TIME.setDateTime(time, withZone(dateTime, timeZoneAndName.getZone()));
 
             return time;
         }
@@ -179,8 +183,7 @@ public abstract class TimeNodes {
         public DynamicObject timeNow(VirtualFrame frame, DynamicObject timeClass) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
             final ZonedDateTime dt = now(zoneAndName.getZone());
-            final String shortZoneName = TimeZoneParser.getShortZoneName(dt, zoneAndName.getZone());
-            final DynamicObject zone = createString(StringOperations.encodeRope(shortZoneName, UTF8Encoding.INSTANCE));
+            final DynamicObject zone = getShortZoneName(getContext(), dt, zoneAndName);
             return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(dt, zone, nil(), false, false));
         }
 
@@ -199,10 +202,11 @@ public abstract class TimeNodes {
 
         @Specialization
         public DynamicObject timeAt(VirtualFrame frame, DynamicObject timeClass, long seconds, int nanoseconds) {
-            final TimeZoneAndName zoneName = getTimeZoneNode.executeGetTimeZone(frame);
-            final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneName.getZone());
+            final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
+            final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
+            final DynamicObject zone = getShortZoneName(getContext(), dateTime, zoneAndName);
             return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
-                    dateTime, nil(), nil(), false, false));
+                    dateTime, zone, nil(), false, false));
         }
 
         @TruffleBoundary
@@ -388,23 +392,11 @@ public abstract class TimeNodes {
     }
 
     @Primitive(name = "time_zone")
-    public static abstract class TimeZonePrimitiveNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class TimeZoneNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         public Object timeZone(DynamicObject time) {
-            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
-            if (Layouts.TIME.getRelativeOffset(time)) {
-                return nil();
-            } else {
-                final Object timeZone = Layouts.TIME.getZone(time);
-                if (timeZone == nil()) {
-                    final String zoneString = TimeZoneParser.getShortZoneName(dateTime, dateTime.getZone());
-                    return createString(StringOperations.encodeRope(zoneString, UTF8Encoding.INSTANCE));
-                } else {
-                    return timeZone;
-                }
-            }
+            return Layouts.TIME.getZone(time);
         }
 
     }
@@ -445,17 +437,17 @@ public abstract class TimeNodes {
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-        @Specialization(guards = "(fromutc || !isDynamicObject(utcoffset)) || isNil(utcoffset)")
+        @Specialization(guards = "(isutc || !isDynamicObject(utcoffset)) || isNil(utcoffset)")
         public DynamicObject timeSFromArray(VirtualFrame frame, DynamicObject timeClass,
                 int sec, int min, int hour, int mday, int month, int year,
-                int nsec, int isdst, boolean fromutc, Object utcoffset) {
+                int nsec, int isdst, boolean isutc, Object utcoffset) {
             final TimeZoneAndName zoneAndName;
-            if (!fromutc && utcoffset == nil()) {
+            if (!isutc && utcoffset == nil()) {
                 zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
             } else {
                 zoneAndName = null;
             }
-            return buildTime(timeClass, sec, min, hour, mday, month, year, nsec, isdst, fromutc, utcoffset, zoneAndName);
+            return buildTime(timeClass, sec, min, hour, mday, month, year, nsec, isdst, isutc, utcoffset, zoneAndName);
         }
 
         @Specialization(guards = "!isInteger(sec) || !isInteger(nsec)")
@@ -467,7 +459,7 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         private DynamicObject buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month, int year,
-                int nsec, int isdst, boolean fromutc, Object utcoffset, TimeZoneAndName envZone) {
+                int nsec, int isdst, boolean isutc, Object utcoffset, TimeZoneAndName envZone) {
             if (sec < 0 || sec > 60 ||
                     min < 0 || min > 59 ||
                     hour < 0 || hour > 23 ||
@@ -490,26 +482,24 @@ public abstract class TimeNodes {
             DynamicObject zoneToStore;
 
             try {
-                if (fromutc) {
+                if (isutc) {
                     zone = UTC;
                     relativeOffset = false;
-                    zoneToStore = nil();
+                    zoneToStore = create7BitString("UTC", USASCIIEncoding.INSTANCE);
                 } else if (utcoffset == nil()) {
                     zone = envZone.getZone();
-                    // TODO BJF 16-Feb-2016 verify which zone the following date time should be in
-                    // final String zoneName = TimeZoneParser.getShortZoneName(dt.withZoneSameInstant(zone), zone);
-                    zoneToStore = envZone.getNameAsRubyObject(getContext()); // createString(StringOperations.encodeRope(zoneName, UTF8Encoding.INSTANCE));
+                    zoneToStore = getShortZoneName(getContext(), dt, envZone);
                     relativeOffset = false;
-                } else if (utcoffset instanceof Integer) {
-                    zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds((int) utcoffset));
+                } else if (utcoffset instanceof Integer || utcoffset instanceof Long) {
+                    zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds(((Number) utcoffset).intValue()));
                     relativeOffset = true;
-                    zoneToStore = nil();
-                } else if (utcoffset instanceof Long) {
-                    zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds((int) (long) utcoffset));
-                    relativeOffset = true;
-                    zoneToStore = nil();
+                    if (envZone != null && envZone.getName() != null) {
+                        zoneToStore = envZone.getNameAsRubyObject(getContext());
+                    } else {
+                        zoneToStore = nil();
+                    }
                 } else {
-                    throw new UnsupportedOperationException(StringUtils.format("%s %s %s %s", isdst, fromutc, utcoffset, utcoffset.getClass()));
+                    throw new UnsupportedOperationException(StringUtils.format("%s %s %s %s", isdst, isutc, utcoffset, utcoffset.getClass()));
                 }
             } catch (DateTimeException e) {
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
@@ -526,7 +516,7 @@ public abstract class TimeNodes {
             }
 
             return allocateObjectNode.allocate(timeClass,
-                    Layouts.TIME.build(dt, zoneToStore, utcoffset, relativeOffset, fromutc));
+                    Layouts.TIME.build(dt, zoneToStore, utcoffset, relativeOffset, isutc));
         }
 
     }
@@ -572,8 +562,9 @@ public abstract class TimeNodes {
          * the terms of any one of the EPL, the GPL or the LGPL.
          */
 
-        private static final Pattern TZ_PATTERN
-                = Pattern.compile("([a-zA-Z]{3,}+)([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
+        private static final String ZONE_HMS_OFFSET = "([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?";
+        private static final Pattern OFFSET_PATTERN = Pattern.compile(ZONE_HMS_OFFSET);
+        private static final Pattern TZ_PATTERN = Pattern.compile("([a-zA-Z]{3,}+)" + ZONE_HMS_OFFSET);
 
         private static final Map<String, String> LONG_TZNAME = Helpers.map(
                 "MET", "CET", // JRUBY-2759
@@ -581,14 +572,14 @@ public abstract class TimeNodes {
                 "WET", "Europe/Lisbon" // Western European Time
         );
 
-        public static String getShortZoneName(DynamicObject time, ZoneId zone) {
-            ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
-            return getShortZoneName(dateTime, zone);
-        }
-
         @TruffleBoundary
-        public static String getShortZoneName(ZonedDateTime dateTime, ZoneId zone) {
+        public static String getShortZoneName(ZonedDateTime dateTime, TimeZoneAndName timeZoneAndName) {
+            final ZoneId zone = timeZoneAndName.getZone();
             String name = zone.getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+
+            if (OFFSET_PATTERN.matcher(name).matches() && timeZoneAndName.getName() != null) {
+                return timeZoneAndName.getName();
+            }
 
             // Joda used to let us get the time zone at a given instance, which gave use EST rather than ET
 
@@ -598,34 +589,15 @@ public abstract class TimeNodes {
 
             switch (name) {
                 case "AT":
-                    if (summer) {
-                        name = "ADT";
-                    } else {
-                        name = "AST";
-                    }
-                    break;
-
+                    return summer ? "ADT" : "AST";
                 case "ET":
-                    if (summer) {
-                        name = "EDT";
-                    } else {
-                        name = "EST";
-                    }
-                    break;
-
+                    return summer ? "EDT" : "EST";
                 case "CT":
-                    if (summer) {
-                        name = "CDT";
-                    } else {
-                        name = "CST";
-                    }
-                    break;
-
+                    return summer ? "CDT" : "CST";
+                case "PT":
+                    return summer ? "PDT" : "PST";
                 case "CET":
-                    if (summer) {
-                        name = "CEST";
-                    }
-                    break;
+                    return summer ? "CEST" : "CET";
             }
 
             return name;
@@ -634,7 +606,6 @@ public abstract class TimeNodes {
         @TruffleBoundary(throwsControlFlowException = true)
         public static TimeZoneAndName parse(RubyNode node, String zoneString) {
             String zone = zoneString;
-            String upZone = zone.toUpperCase(Locale.ENGLISH);
 
             Matcher tzMatcher = TZ_PATTERN.matcher(zone);
             if (tzMatcher.matches()) {
@@ -651,6 +622,7 @@ public abstract class TimeNodes {
                 // Sign is reversed in legacy TZ notation
                 return getTimeZoneFromHHMM(node, name, sign.equals("-"), hours, minutes, seconds);
             } else {
+                final String upZone = zone.toUpperCase(Locale.ENGLISH);
                 if (LONG_TZNAME.containsKey(upZone)) {
                     zone = LONG_TZNAME.get(upZone);
                 } else if (upZone.equals("UTC") || upZone.equals("GMT")) {
