@@ -40,11 +40,6 @@ class Time
     raise ArgumentError, 'descriptors reference invalid time'
   end
 
-  def usec
-    Truffle.primitive :time_useconds
-    raise PrimitiveFailure, 'Time#usec primitive failed'
-  end
-
   def to_a
     Truffle.primitive :time_decompose
     raise PrimitiveFailure, 'Time#to_a primitive failed'
@@ -141,18 +136,6 @@ class Time
     str.force_encoding Encoding::US_ASCII
   end
   alias_method :to_s, :inspect
-
-  def nsec
-    Truffle.primitive :time_nseconds
-    raise PrimitiveFailure, 'Time#nsec primitive failed'
-  end
-  alias_method :tv_nsec, :nsec
-
-  def nsec=(nanoseconds)
-    Truffle.primitive :time_set_nseconds
-    raise PrimitiveFailure, 'Time#nsec= primitive failed'
-  end
-  private :nsec=
 
   def subsec
     if nsec == 0

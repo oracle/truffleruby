@@ -398,7 +398,8 @@ class Time
     nano_num = obj.instance_variable_get(:@nano_num)
     nano_den = obj.instance_variable_get(:@nano_den)
     if nano_num && nano_den
-      obj.send(:nsec=, Rational(nano_num, nano_den).to_i)
+      Truffle.invoke_primitive(:time_set_nseconds, obj,
+        Rational(nano_num, nano_den).to_i)
     end
 
     obj

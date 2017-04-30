@@ -254,13 +254,37 @@ public abstract class TimeNodes {
 
     }
 
-    @Primitive(name = "time_useconds")
-    public static abstract class TimeUSecondsPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @CoreMethod(names = { "usec", "tv_usec" })
+    public static abstract class TimeMicroSecondsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        public long timeUSeconds(DynamicObject time) {
+        public long timeUSec(DynamicObject time) {
             return Layouts.TIME.getDateTime(time).getNano() / 1000;
+        }
+
+    }
+
+    @CoreMethod(names = { "nsec", "tv_nsec" })
+    public static abstract class TimeNanoSecondsNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public long timeNSec(DynamicObject time) {
+            return Layouts.TIME.getDateTime(time).getNano();
+        }
+
+    }
+
+    @Primitive(name = "time_set_nseconds", lowerFixnum = 1)
+    public static abstract class TimeSetNSecondsPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public long timeSetNSeconds(DynamicObject time, int nanoseconds) {
+            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
+            Layouts.TIME.setDateTime(time, dateTime.plusNanos(nanoseconds - dateTime.getNano()));
+            return nanoseconds;
         }
 
     }
@@ -454,30 +478,6 @@ public abstract class TimeNodes {
             } else {
                 throw new UnsupportedOperationException("Can't cast " + value.getClass());
             }
-        }
-
-    }
-
-    @Primitive(name = "time_nseconds")
-    public static abstract class TimeNSecondsPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public long timeNSeconds(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getNano();
-        }
-
-    }
-
-    @Primitive(name = "time_set_nseconds", lowerFixnum = 1)
-    public static abstract class TimeSetNSecondsPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public long timeSetNSeconds(DynamicObject time, int nanoseconds) {
-            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
-            Layouts.TIME.setDateTime(time, dateTime.plusNanos(nanoseconds - dateTime.getNano()));
-            return nanoseconds;
         }
 
     }
