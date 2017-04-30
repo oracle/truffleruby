@@ -527,7 +527,7 @@ public abstract class TimeNodes {
                     relativeOffset = true;
                     zoneToStore = nil();
                 } else if (utcoffset instanceof DynamicObject) {
-                    zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds(zoneOffsetMillis / 1_000));
+                    zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds((zoneOffsetMillis + 500) / 1_000));
                     relativeOffset = true;
                     zoneToStore = nil();
                 } else {
