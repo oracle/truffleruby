@@ -144,11 +144,11 @@ public abstract class TimeNodes {
         }
     }
 
-    @CoreMethod(names = "gmtime")
+    @CoreMethod(names = { "gmtime", "utc" })
     public abstract static class GmTimeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject localtime(DynamicObject time) {
+        public DynamicObject gmtime(DynamicObject time) {
             final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
 
             Layouts.TIME.setIsUtc(time, true);

@@ -181,7 +181,7 @@ class Time
 
   def <=>(other)
     if other.kind_of? Time
-      (tv_sec <=> other.tv_sec).nonzero? or (tv_nsec <=> other.tv_nsec)
+      (tv_sec <=> other.tv_sec).nonzero? || (tv_nsec <=> other.tv_nsec)
     else
       r = (other <=> self)
       return nil if r == nil
@@ -250,76 +250,81 @@ class Time
   end
   private :_dump
 
-  def self.compose(offset, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
-                   yday=undefined, is_dst=undefined, tz=undefined)
-    if undefined.equal?(tz)
-      unless undefined.equal?(is_dst)
-        raise ArgumentError, 'wrong number of arguments (9 for 1..8)'
+  class << self
+    def compose(offset, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
+                yday=undefined, is_dst=undefined, tz=undefined)
+      if undefined.equal?(tz)
+        unless undefined.equal?(is_dst)
+          raise ArgumentError, 'wrong number of arguments (9 for 1..8)'
+        end
+
+        y = p1
+        m = p2
+        d = p3
+        hr = p4
+        min = p5
+        sec = p6
+        usec = p7
+        is_dst = -1
+      else
+        y = p6
+        m = p5
+        d = p4
+        hr = p3
+        min = p2
+        sec = p1
+        usec = 0
+        is_dst = is_dst ? 1 : 0
       end
 
-      y = p1
-      m = p2
-      d = p3
-      hr = p4
-      min = p5
-      sec = p6
-      usec = p7
-      is_dst = -1
-    else
-      y = p6
-      m = p5
-      d = p4
-      hr = p3
-      min = p2
-      sec = p1
-      usec = 0
-      is_dst = is_dst ? 1 : 0
+      if m.kind_of?(String) or m.respond_to?(:to_str)
+        m = StringValue(m)
+        m = MonthValue[m.upcase] || m.to_i
+
+        raise ArgumentError, 'month argument out of range' unless m
+      else
+        m = Rubinius::Type.coerce_to(m || 1, Integer, :to_int)
+      end
+
+      y   = y.kind_of?(String)   ? y.to_i   : Rubinius::Type.coerce_to(y,        Integer, :to_int)
+      d   = d.kind_of?(String)   ? d.to_i   : Rubinius::Type.coerce_to(d   || 1, Integer, :to_int)
+      hr  = hr.kind_of?(String)  ? hr.to_i  : Rubinius::Type.coerce_to(hr  || 0, Integer, :to_int)
+      min = min.kind_of?(String) ? min.to_i : Rubinius::Type.coerce_to(min || 0, Integer, :to_int)
+
+      nsec = nil
+
+      if usec.kind_of?(String)
+        nsec = usec.to_i * 1000
+      elsif usec
+        nsec = (usec * 1000).to_i
+      end
+
+      case offset
+      when :utc
+        is_dst = -1
+        is_utc = true
+        offset = nil
+      when :local
+        is_utc = false
+        offset = nil
+      else
+        is_dst = -1
+        is_utc = false
+      end
+
+      from_array(sec, min, hr, d, m, y, nsec, is_dst, is_utc, offset)
     end
+    private :compose
 
-    if m.kind_of?(String) or m.respond_to?(:to_str)
-      m = StringValue(m)
-      m = MonthValue[m.upcase] || m.to_i
-
-      raise ArgumentError, 'month argument out of range' unless m
-    else
-      m = Rubinius::Type.coerce_to(m || 1, Integer, :to_int)
+    def local(*args)
+      compose(:local, *args)
     end
+    alias_method :mktime, :local
 
-    y   = y.kind_of?(String)   ? y.to_i   : Rubinius::Type.coerce_to(y,        Integer, :to_int)
-    d   = d.kind_of?(String)   ? d.to_i   : Rubinius::Type.coerce_to(d   || 1, Integer, :to_int)
-    hr  = hr.kind_of?(String)  ? hr.to_i  : Rubinius::Type.coerce_to(hr  || 0, Integer, :to_int)
-    min = min.kind_of?(String) ? min.to_i : Rubinius::Type.coerce_to(min || 0, Integer, :to_int)
-
-    nsec = nil
-
-    if usec.kind_of?(String)
-      nsec = usec.to_i * 1000
-    elsif usec
-      nsec = (usec * 1000).to_i
+    def gm(*args)
+      compose(:utc, *args)
     end
-
-    case offset
-    when :utc
-      is_dst = -1
-      is_utc = true
-      offset = nil
-    when :local
-      is_utc = false
-      offset = nil
-    else
-      is_dst = -1
-      is_utc = false
-    end
-
-    from_array(sec, min, hr, d, m, y, nsec, is_dst, is_utc, offset)
-  end
-
-  def self.local(*args)
-    compose(:local, *args)
-  end
-
-  def self.gm(*args)
-    compose(:utc, *args)
+    alias_method :utc, :gm
   end
 
   def succ
@@ -329,6 +334,7 @@ class Time
   def asctime
     strftime('%a %b %e %H:%M:%S %Y')
   end
+  alias_method :ctime, :asctime
 
   def zone
     zone = Truffle.invoke_primitive(:time_zone, self)
@@ -345,19 +351,11 @@ class Time
   def getgm
     dup.gmtime
   end
+  alias_method :getutc, :getgm
 
   def hash
     tv_sec ^ usec
   end
-
-  class << self
-    alias_method :mktime, :local
-    alias_method :utc,    :gm
-  end
-
-  alias_method :ctime,      :asctime
-  alias_method :utc,        :gmtime
-  alias_method :getutc,     :getgm
 
   def to_f
     tv_sec + tv_nsec * 0.000000001 # Truffle: optimized
