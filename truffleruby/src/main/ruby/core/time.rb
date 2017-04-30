@@ -196,13 +196,6 @@ class Time
     end
   end
 
-  class << self
-    def compose_deal_with_year(year)
-      year
-    end
-    private :compose_deal_with_year
-  end
-
   #--
   # TODO: doesn't load ivars
   #++
@@ -309,8 +302,6 @@ class Time
     elsif usec
       nsec = (usec * 1000).to_i
     end
-
-    y = compose_deal_with_year(y)
 
     case offset
     when :utc
