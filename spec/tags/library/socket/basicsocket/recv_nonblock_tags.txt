@@ -1,3 +1,1 @@
-fails:Socket::BasicSocket#recv_nonblock does not block if there's no data available
-fails:Socket::BasicSocket#recv_nonblock raises an exception extending IO::WaitReadable if there's no data available
 fails:Socket::BasicSocket#recv_nonblock allows an output buffer as third argument

@@ -54,6 +54,15 @@ public interface Sockets {
     int socket(int domain, int type, int protocol);
 
     /*
+     * ssize_t
+     * sendto(int socket, const void *message, size_t length,
+     *        int flags, const struct sockaddr *dest_addr,
+     *        socklen_t dest_len);
+     */
+
+    int sendto(int socket, Pointer message, int length, int flags, Pointer dest_addr, int dest_len);
+
+    /*
      * int
      * setsockopt(int socket, int level, int option_name,
      *            const void *option_value, socklen_t option_len);
@@ -85,10 +94,39 @@ public interface Sockets {
 
     /*
      * int
+     * accept(int socket, struct sockaddr *restrict address,
+     *        socklen_t *restrict address_len);
+     */
+
+    int accept(int socket, Pointer sockaddr, Pointer address_len);
+
+    /*
+     * int
      * gethostname(char *name, size_t namelen);
      */
 
     int gethostname(Pointer name, int namelen);
+
+    /*
+     * in_addr_t
+     * inet_network(const char *cp);
+     */
+
+    int inet_network(String cp);
+
+    /*
+     * int
+     * inet_pton(int af, const char *restrict src, void *restrict dst);
+     */
+    
+    int inet_pton(int af, String src, Pointer dst);
+
+    /*
+     * struct hostent *
+     * gethostbyname(const char *name);
+     */
+
+    Pointer gethostbyname(String name);
 
     /*
      * int
@@ -97,6 +135,14 @@ public interface Sockets {
      */
 
     int select(int nfds, Pointer readfds, Pointer writefds, Pointer errorfds, Timeval timeout);
+
+    /*
+     * int
+     * socketpair(int domain, int type, int protocol,
+     *            int socket_vector[2]);
+     */
+
+    int socketpair(int domain, int type, int protocolint, Pointer ptr);
 
     /*
      * int

@@ -1,0 +1,2 @@
+fails:Socket#sockaddr_un handles correctly paths with multibyte chars
+fails:Socket#sockaddr_un raises if path length exceeds max size

@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.ffi.Pointer;
+import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -28,10 +29,13 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.RubiniusTypes;
+
+import java.nio.charset.StandardCharsets;
 
 @CoreClass("Rubinius::FFI::Pointer")
 public abstract class PointerNodes {
@@ -175,6 +179,19 @@ public abstract class PointerNodes {
         public long setAtOffsetULL(DynamicObject pointer, int offset, int type, long value) {
             Layouts.POINTER.getPointer(pointer).putLongLong(offset, value);
             return value;
+        }
+
+        @Specialization(guards = "type == TYPE_UCHAR")
+        public long setAtOffsetUChar(DynamicObject pointer, int offset, int type, int value) {
+            Layouts.POINTER.getPointer(pointer).putInt(offset, value);
+            return value;
+        }
+
+        @Specialization(guards = {"type == TYPE_CHARARR", "isRubyString(string)"})
+        public DynamicObject setAtOffsetCharArr(DynamicObject pointer, int offset, int type, DynamicObject string) {
+            final String str = StringOperations.getString(string);
+            Layouts.POINTER.getPointer(pointer).putString(offset, str, str.length(), StringOperations.encoding(string).getCharset());
+            return string;
         }
 
     }
