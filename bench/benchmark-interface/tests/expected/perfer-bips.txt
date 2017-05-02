@@ -1,0 +1,20 @@
+This benchmark set contains blocks that want a number of iterations - running all iterations XXX times 
+These are long benchmarks - we're increasing warmup and sample time 
+Warming up -------------------------------------- 
+ clamp_a XXX i/100ms 
+ clamp_b XXX i/100ms 
+ clamp_a XXX i/100ms 
+ clamp_b XXX i/100ms 
+ clamp_a XXX i/100ms 
+ clamp_b XXX i/100ms 
+Calculating ------------------------------------- 
+ clamp_a XXX (XXX%) i/s - XXX 
+ clamp_b XXX (XXX%) i/s - XXX 
+ clamp_a XXX (XXX%) i/s - XXX 
+ clamp_b XXX (XXX%) i/s - XXX 
+ clamp_a XXX (XXX%) i/s - XXX 
+ clamp_b XXX (XXX%) i/s - XXX 
+ 
+Comparison: 
+ XXX
+ 

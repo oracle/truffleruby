@@ -1,0 +1,171 @@
+= Contributing
+// settings:
+:idprefix:
+:idseparator: -
+:source-language: ruby
+:language: {source-language}
+ifdef::env-github,env-browser[:outfilesuffix: .adoc]
+// URIs:
+:uri-repo: https://github.com/asciidoctor/asciidoctor
+:uri-help-base: https://help.github.com/articles
+:uri-issues: {uri-repo}/issues
+:uri-fork-help: {uri-help-base}/fork-a-repo
+:uri-branch-help: {uri-fork-help}#create-branches
+:uri-pr-help: {uri-help-base}/using-pull-requests
+:uri-gist: https://gist.github.com
+
+== License Agreement
+
+By contributing changes to this repository, you agree to license your contributions under the <<LICENSE#,MIT license>>.
+This ensures your contributions have the same license as the project and that the community is free to use your contributions.
+You also assert that you are the original author of the work that you are contributing unless otherwise stated.
+
+== Submitting an Issue
+
+We use the {uri-issues}[issue tracker on GitHub] associated with this project to track bugs and features.
+Before submitting a bug report or feature request, check to make sure it hasn't already been submitted.
+When submitting a bug report, please include a {uri-gist}[Gist] that includes any details that may help reproduce the bug, including your gem version, Ruby version, and operating system.
+
+Most importantly, since Asciidoctor is a text processor, reproducing most bugs requires that we have some snippet of text on which Asciidoctor exhibits the bad behavior.
+
+An ideal bug report would include a pull request with failing specs.
+
+== Submitting a Pull Request
+
+. {uri-fork-help}[Fork the repository].
+. Run `bundle` to install development dependencies.
+  * If the `bundle` command is not available, run `gem install bundler` to install it.
+. {uri-branch-help}[Create a topic branch] (preferably using the pattern `issue-XYZ`, where `XYZ` is the issue number).
+. Add tests for your unimplemented feature or bug fix. (See <<writing-and-executing-tests>>)
+. Run `bundle exec rake` to run the tests.
+If your tests pass, return to step 4.
+. Implement your feature or bug fix.
+. Run `bundle exec rake` to run the tests.
+If your tests fail, return to step 6.
+. Add documentation for your feature or bug fix.
+. If your changes are not 100% documented, go back to step 8.
+. Add, commit, and push your changes.
+. {uri-pr-help}[Submit a pull request].
+
+For ideas about how to use pull requests, see the post http://blog.quickpeople.co.uk/2013/07/10/useful-github-patterns[Useful GitHub Patterns].
+
+=== Background Knowledge
+
+As Asciidoctor is built using Ruby some basic knowledge of Ruby, RubyGems and Minitest is beneficial. The following resources provide a good starting point for contributors who may not be completely comfortable with these tools:
+
+* https://www.ruby-lang.org/en/documentation/quickstart/[Ruby in 20 minutes]
+* https://www.ruby-lang.org/en/documentation/ruby-from-other-languages/[Ruby from other languages]
+* http://guides.rubygems.org/rubygems-basics/[RubyGems basics]
+* http://guides.rubygems.org/what-is-a-gem/[What is a Gem?]
+* http://blog.teamtreehouse.com/short-introduction-minitest[How to use Minitest]
+* http://www.rubyinside.com/a-minitestspec-tutorial-elegant-spec-style-testing-that-comes-with-ruby-5354.html[Minitest spec tutorial]
+* https://github.com/seattlerb/minitest/blob/master/README.rdoc[Minitest Project Documentation]
+
+While these resources don't cover everything needed they serve as a good starting off point for beginners.
+
+=== Writing and Executing Tests
+
+Tests live inside the test directory and are named <topic>_test.rb.
+For instance, tests for the different types of blocks can be found in the file test/blocks_test.rb.
+
+Within a test file, individual test cases are organized inside of contexts.
+A context is type of logical container that groups related tests together.
+
+Each test case follows the same structure:
+
+[source]
+----
+test 'description of test' do
+  # test logic
+end
+----
+
+At the moment, the tests are quite primitive.
+Here's how a typical test operates:
+
+. Defines sample AsciiDoc source
+. Renders the document to HTML or DocBook
+. Uses XPath and CSS expressions to verify expected output
+
+Here's how we might test the open block syntax:
+
+[source]
+----
+test 'should render content bounded by two consecutive hyphens as an open block' do
+  input = <<-EOS
+--
+This is an open block.
+--
+  EOS
+  result = render_embedded_string input
+  assert_css '.openblock', result, 1
+  assert_css '.openblock p', result, 1
+  assert_xpath '/div[@class="openblock"]//p[text()="This is an open block."]', result, 1
+end
+----
+
+As you can see, several helpers are used to facilitate the test scenario.
+The `render_embedded_string` invokes Asciidoctor's render method with the header and footer option disabled.
+This method is ideal for unit-level tests.
+If you need to test the whole document, use `render_string` instead.
+The `assert_css` and `assert_xpath` assertion methods take a CSS or XPath selector, respectively, the rendered result and the number of expected matches.
+You can also use built-in assertions in Ruby's test library.
+
+To run all the tests, simply execute `rake`:
+
+ $ rake
+
+NOTE: The tests should only take a few seconds to run using Ruby 2.1.
+
+If you want to run a single test file, you can use `ruby`:
+
+ $ ruby test/blocks_test.rb
+
+To test a single test case, first add the string "wip" to the beginning of the description.
+For example:
+
+[source]
+----
+test 'wip should render ...' do
+  ...
+end
+----
+
+Then, run `ruby` again, but this time pass a selector argument so it finds matching tests:
+
+ $ ruby test/blocks_test.rb -n /wip/
+
+You can also turn on verbose mode if you want to see more output:
+
+ $ ruby test/blocks_test.rb -n /wip/ -v
+
+Once you are done with your test, make sure to remove `wip` from the description and run all the tests again using `rake`.
+
+We plan on switching to a more elegant testing framework in the future, such as RSpec or Cucumber, in order to make the tests more clear and robust.
+
+=== Running Asciidoctor in Development Mode
+
+Asciidoctor is designed so that you can run the script directly out of the cloned repository.
+Simply execute the `asciidoctor` command directly (referencing it either by relative or absolute path).
+There's no need to install it using the `gem` command first.
+
+For example, to convert the README file, switch to the root of the project and run:
+
+ $ ./bin/asciidoctor README.adoc
+
+IMPORTANT: You'll need to make sure you reference the correct relative path to the `asciidoctor` command.
+
+If you want to be able to execute the `asciidoctor` command from any directory without worrying about the relative (or absolute) path, you can setup the following Bash alias:
+
+ alias asciidoctor-dev="/path/to/asciidoctor/bin/asciidoctor"
+
+Now you can execute the `asciidoctor` command from any folder as follows:
+
+ $ asciidoctor-dev README.adoc
+
+== Supporting Additional Ruby Versions
+
+If you would like this library to support another Ruby version, you may volunteer to be a maintainer.
+Being a maintainer entails making sure all tests run and pass on that implementation.
+When something breaks on your implementation, you will be expected to provide patches in a timely fashion.
+If critical issues for a particular implementation exist at the time of a major release, support for that Ruby version may be dropped.

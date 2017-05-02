@@ -1,0 +1,236 @@
+'\" t
+.\"     Title: asciidoctor
+.\"    Author: Dan Allen, Sarah White, Ryan Waldron
+.\" Generator: Asciidoctor 1.5.4
+.\"      Date: 2016-01-05
+.\"    Manual: Asciidoctor Manual
+.\"    Source: Asciidoctor 1.5.4
+.\"  Language: English
+.\"
+.TH "ASCIIDOCTOR" "1" "2016-01-05" "Asciidoctor 1.5.4" "Asciidoctor Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\\$2 \(laURL: \\$1 \(ra\\$3
+..
+.if \n[.g] .mso www.tmac
+.LINKSTYLE blue R < >
+.SH "NAME"
+asciidoctor \- converts AsciiDoc source files to HTML, DocBook and other formats
+.SH "SYNOPSIS"
+.sp
+\fBasciidoctor\fP [\fIOPTION\fP]... \fIFILE\fP...
+.SH "DESCRIPTION"
+.sp
+The asciidoctor(1) command converts the AsciiDoc source file(s) \fIFILE\fP to HTML5, DocBook 5, DocBook 4.5, man(ual) page and other custom output formats.
+.sp
+If \fIFILE\fP is \fI\-\fP then the AsciiDoc source is read from standard input.
+.SH "OPTIONS"
+.SS "Security Settings"
+.sp
+\fB\-B, \-\-base\-dir\fP=\fIDIR\fP
+.RS 4
+Base directory containing the document and resources.
+Defaults to the directory containing the source file, or the working directory if the source is read from a stream.
+Can be used as a way to chroot the execution of the program.
+.RE
+.sp
+\fB\-S, \-\-safe\-mode\fP=\fISAFE_MODE\fP
+.RS 4
+Set safe mode level: \fIunsafe\fP, \fIsafe\fP, \fIserver\fP or \fIsecure\fP.
+Disables potentially dangerous macros in source files, such as \f[CR]include::[]\fP.
+If not set, the safe mode level defaults to \fIunsafe\fP when Asciidoctor is invoked using this script.
+.RE
+.sp
+\fB\-\-safe\fP
+.RS 4
+Set safe mode level to \fIsafe\fP.
+Enables include macros, but restricts access to ancestor paths of source file.
+Provided for compatibility with the asciidoc command.
+If not set, the safe mode level defaults to \fIunsafe\fP when Asciidoctor is invoked using this script.
+.RE
+.SS "Document Settings"
+.sp
+\fB\-a, \-\-attribute\fP=\fIATTRIBUTE\fP
+.RS 4
+Define, override or delete a document attribute.
+Command\-line attributes take precedence over attributes defined in the source file.
+.sp
+\fIATTRIBUTE\fP is normally formatted as a key\-value pair, in the form \fINAME=VALUE\fP.
+Alternate acceptable forms are \fINAME\fP (where the \fIVALUE\fP defaults to an empty string), \fINAME!\fP (unassigns the \fINAME\fP attribute) and \fINAME=VALUE@\fP (where \fIVALUE\fP does not override value of \fINAME\fP attribute if it\(cqs already defined in the source document).
+Values containing spaces should be enclosed in quotes.
+.sp
+This option may be specified more than once.
+.RE
+.sp
+\fB\-b, \-\-backend\fP=\fIBACKEND\fP
+.RS 4
+Backend output file format: \fIhtml5\fP, \fIdocbook5\fP, \fIdocbook45\fP and \fImanpage\fP are supported out of the box.
+You can also use the backend alias names \fIhtml\fP (aliased to \fIhtml5\fP) or \fIdocbook\fP (aliased to \fIdocbook5\fP).
+Defaults to \fIhtml5\fP.
+Other options can be passed, but if Asciidoctor cannot find the backend, it will fail during conversion.
+.RE
+.sp
+\fB\-d, \-\-doctype\fP=\fIDOCTYPE\fP
+.RS 4
+Document type: \fIarticle\fP, \fIbook\fP, \fImanpage\fP or \fIinline\fP.
+Sets the root element when using the \fIdocbook\fP backend and the style class on the HTML body element when using the \fIhtml\fP backend.
+The \fIbook\fP document type allows multiple level\-0 section titles in a single document.
+The \fImanpage\fP document type enables parsing of metadata necessary to produce a manpage.
+The \fIinline\fP document type allows the content of a single paragraph to be formatted and returned without wrapping it in a containing element.
+Defaults to \fIarticle\fP.
+.RE
+.SS "Rendering Control"
+.sp
+\fB\-C, \-\-compact\fP
+.RS 4
+Compact the output by removing blank lines.
+(No longer in use).
+.RE
+.sp
+\fB\-D, \-\-destination\-dir\fP=\fIDIR\fP
+.RS 4
+Destination output directory.
+Defaults to the directory containing the source file, or the working directory if the source is read from a stream.
+If specified, the directory is resolved relative to the working directory.
+.RE
+.sp
+\fB\-E, \-\-template\-engine\fP=\fINAME\fP
+.RS 4
+Template engine to use for the custom converter templates.
+The gem with the same name as the engine will be loaded automatically.
+This name is also used to build the full path to the custom converter templates.
+If a template engine is not specified, it will be auto\-detected based on the file extension of the custom converter templates found.
+.RE
+.sp
+\fB\-e, \-\-eruby\fP
+.RS 4
+Specifies the eRuby implementation to use for executing the custom converter templates written in ERB.
+Supported values are \fIerb\fP and \fIerubis\fP.
+Defaults to \fIerb\fP.
+.RE
+.sp
+\fB\-I, \-\-load\-path\fP=\fIDIRECTORY\fP
+.RS 4
+Add the specified directory to the load path, so that \fI\-r\fP can load extensions from outside the default Ruby load path.
+This option may be specified more than once.
+.RE
+.sp
+\fB\-n, \-\-section\-numbers\fP
+.RS 4
+Auto\-number section titles.
+Synonym for \fB\-\-attribute numbered\fP.
+.RE
+.sp
+\fB\-o, \-\-out\-file\fP=\fIOUT_FILE\fP
+.RS 4
+Write output to file \fIOUT_FILE\fP.
+Defaults to the base name of the input file suffixed with \fIbackend\fP extension.
+If the input is read from standard input, then the output file defaults to stdout.
+If \fIOUT_FILE\fP is \fI\-\fP then the standard output is also used.
+If specified, the file is resolved relative to the working directory.
+.RE
+.sp
+\fB\-r, \-\-require\fP=\fILIBRARY\fP
+.RS 4
+Require the specified library before executing the processor, using the standard Ruby require.
+This option may be specified more than once.
+.RE
+.sp
+\fB\-s, \-\-no\-header\-footer\fP
+.RS 4
+Suppress the document header and footer in the output.
+.RE
+.sp
+\fB\-T, \-\-template\-dir\fP=\fIDIR\fP
+.RS 4
+A directory containing custom converter templates that override one or more templates from the built\-in set.
+(requires \fItilt\fP gem)
+.sp
+If there is a subfolder that matches the engine name (if specified), that folder is appended to the template directory path.
+Similarly, if there is a subfolder in the resulting template directory that matches the name of the backend, that folder is appended to the template directory path.
+.sp
+This option may be specified more than once.
+Matching templates found in subsequent directories override ones previously discovered.
+.RE
+.SS "Processing Information"
+.sp
+\fB\-q, \-\-quiet\fP
+.RS 4
+Silence warnings.
+.RE
+.sp
+\fB\-\-trace\fP
+.RS 4
+Include backtrace information on errors.
+Not enabled by default.
+.RE
+.sp
+\fB\-v, \-\-verbose\fP
+.RS 4
+Verbosely print processing information and configuration file checks to stderr.
+.RE
+.sp
+\fB\-t, \-\-timings\fP
+.RS 4
+Display timings information (time to read, parse and convert).
+.RE
+.SS "Program Information"
+.sp
+\fB\-h, \-\-help\fP
+.RS 4
+Show the help message.
+.RE
+.sp
+\fB\-V, \-\-version\fP
+.RS 4
+Print program version number.
+.sp
+\f[CR]\-v\fP can also be used if no other flags or arguments are present.
+.RE
+.SH "EXIT STATUS"
+.sp
+\fB0\fP
+.RS 4
+Success.
+.RE
+.sp
+\fB1\fP
+.RS 4
+Failure (syntax or usage error; configuration error; document processing failure; unexpected error).
+.RE
+.SH "BUGS"
+.sp
+Refer to the \fBAsciidoctor\fP issue tracker at \c
+.URL "https://github.com/asciidoctor/asciidoctor/issues?q=is%3Aopen" "" "."
+.SH "AUTHORS"
+.sp
+\fBAsciidoctor\fP was written by Dan Allen, Ryan Waldron, Jason Porter, Nick Hengeveld and other contributors.
+.sp
+\fBAsciiDoc\fP was written by Stuart Rackham and has received contributions from many other individuals.
+.SH "RESOURCES"
+.sp
+\fBProject web site:\fP \c
+.URL "http://asciidoctor.org" "" ""
+.sp
+\fBGit source repository on GitHub:\fP \c
+.URL "https://github.com/asciidoctor/asciidoctor" "" ""
+.sp
+\fBGitHub organization:\fP \c
+.URL "https://github.com/asciidoctor" "" ""
+.sp
+\fBDiscussion list / forum:\fP \c
+.URL "http://discuss.asciidoctor.org" "" ""
+.SH "COPYING"
+.sp
+Copyright (C) 2012\-2016 Dan Allen, Ryan Waldron and the Asciidoctor Project.
+Free use of this software is granted under the terms of the MIT License.
+.SH "AUTHOR(S)"
+.sp
+\fBDan Allen, Sarah White, Ryan Waldron\fP
+.RS 4
+Author(s).
+.RE

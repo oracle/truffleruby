@@ -1,0 +1,12 @@
+ user system total real 
+benchmark:XXX XXX XXX XXX (XXX) 
+clamp_a1 XXX XXX XXX (XXX) 
+benchmark:XXX XXX XXX XXX (XXX) 
+clamp_a1 XXX XXX XXX (XXX) 
+clamp_b1 XXX XXX XXX (XXX) 
+benchmark:XXX XXX XXX XXX (XXX) 
+clamp_a3 XXX XXX XXX (XXX) 
+clamp_b3 XXX XXX XXX (XXX) 
+benchmark:XXX XXX XXX XXX (XXX) 
+clamp_a4 XXX XXX XXX (XXX) 
+clamp_b4 XXX XXX XXX (XXX) 
