@@ -82,7 +82,8 @@ public abstract class TruffleBootNodes {
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object main(VirtualFrame frame, @Cached("create()") IndirectCallNode callNode) {
+        public Object main(VirtualFrame frame,
+                @Cached("create()") IndirectCallNode callNode) {
             String inputFile = getContext().getOriginalInputFile();
 
             final Source source = getMainSource(inputFile);

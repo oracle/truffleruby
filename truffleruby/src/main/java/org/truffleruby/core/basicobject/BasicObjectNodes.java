@@ -253,7 +253,8 @@ public abstract class BasicObjectNodes {
         @Child private YieldNode yield = new YieldNode(DeclarationContext.INSTANCE_EVAL);
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
+        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
+                @Cached("create()") IndirectCallNode callNode) {
             final Rope code = StringOperations.rope(string);
 
             // TODO (pitr 15-Oct-2015): fix this ugly hack, required for AS, copy-paste
@@ -266,12 +267,14 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, NotProvided line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
+        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, NotProvided line, NotProvided block,
+                @Cached("create()") IndirectCallNode callNode) {
             return instanceEval(frame, receiver, string, fileName, 1, block, callNode);
         }
 
         @Specialization(guards = { "isRubyString(string)" })
-        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, NotProvided fileName, NotProvided line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
+        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, NotProvided fileName, NotProvided line, NotProvided block,
+                @Cached("create()") IndirectCallNode callNode) {
             final DynamicObject eval = StringOperations.createString(getContext(), StringOperations.encodeRope("(eval)", ASCIIEncoding.INSTANCE));
             return instanceEval(frame, receiver, string, eval, 1, block, callNode);
         }

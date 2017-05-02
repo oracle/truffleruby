@@ -470,7 +470,8 @@ public abstract class EncodingNodes {
     public static abstract class EncodingReplicateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(nameObject)")
-        public DynamicObject encodingReplicate(VirtualFrame frame, DynamicObject self, DynamicObject nameObject, @Cached("new()") SnippetNode snippetNode) {
+        public DynamicObject encodingReplicate(VirtualFrame frame, DynamicObject self, DynamicObject nameObject,
+                @Cached("new()") SnippetNode snippetNode) {
             final String name = StringOperations.getString(nameObject);
             final Encoding encoding = EncodingOperations.getEncoding(self);
 

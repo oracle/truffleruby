@@ -551,32 +551,38 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isRubyString(code)")
-        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, NotProvided file, NotProvided line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
+        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, NotProvided file, NotProvided line, NotProvided block,
+                @Cached("create()") IndirectCallNode callNode) {
             return classEvalSource(frame, module, code, "(eval)", callNode);
         }
 
         @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
-        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file, NotProvided line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
+        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file, NotProvided line, NotProvided block,
+                @Cached("create()") IndirectCallNode callNode) {
             return classEvalSource(frame, module, code, file.toString(), callNode);
         }
 
         @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
-        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file, int line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
+        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file, int line, NotProvided block,
+                @Cached("create()") IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, file.toString(), line);
             return deferredCall.call(callNode);
         }
 
         @Specialization(guards = "wasProvided(code)")
-        public Object classEval(VirtualFrame frame, DynamicObject module, Object code, NotProvided file, NotProvided line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
+        public Object classEval(VirtualFrame frame, DynamicObject module, Object code, NotProvided file, NotProvided line, NotProvided block,
+                @Cached("create()") IndirectCallNode callNode) {
             return classEvalSource(frame, module, toStr(frame, code), file.toString(), callNode);
         }
 
         @Specialization(guards = {"isRubyString(code)", "wasProvided(file)"})
-        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, Object file, NotProvided line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
+        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, Object file, NotProvided line, NotProvided block,
+                @Cached("create()") IndirectCallNode callNode) {
             return classEvalSource(frame, module, code, toStr(frame, file).toString(), callNode);
         }
 
-        private Object classEvalSource(VirtualFrame frame, DynamicObject module, DynamicObject code, String file, @Cached("create()") IndirectCallNode callNode) {
+        private Object classEvalSource(VirtualFrame frame, DynamicObject module, DynamicObject code, String file,
+                @Cached("create()") IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, file, 1);
             return deferredCall.call(callNode);
         }

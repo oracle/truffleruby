@@ -483,8 +483,8 @@ public abstract class KernelNodes {
     @NodeChildren({
             @NodeChild(value = "source", type = RubyNode.class),
             @NodeChild(value = "binding", type = RubyNode.class),
-            @NodeChild(value = "filename", type = RubyNode.class),
-            @NodeChild(value = "lineNumber", type = RubyNode.class)
+            @NodeChild(value = "file", type = RubyNode.class),
+            @NodeChild(value = "line", type = RubyNode.class)
     })
     @ImportStatic(StringCachingGuards.class)
     public abstract static class EvalNode extends CoreMethodNode {
@@ -527,8 +527,8 @@ public abstract class KernelNodes {
                 VirtualFrame frame,
                 DynamicObject source,
                 NotProvided binding,
-                NotProvided filename,
-                NotProvided lineNumber,
+                NotProvided file,
+                NotProvided line,
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("compileSource(frame, source)") RootNodeWrapper cachedRootNode,
                 @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
@@ -554,8 +554,8 @@ public abstract class KernelNodes {
         @Specialization(guards = {
                 "isRubyString(source)"
         }, replaces = "evalNoBindingCached")
-        public Object evalNoBindingUncached(VirtualFrame frame, DynamicObject source, NotProvided noBinding,
-                                            NotProvided filename, NotProvided lineNumber, @Cached("create()") IndirectCallNode callNode) {
+        public Object evalNoBindingUncached(VirtualFrame frame, DynamicObject source, NotProvided noBinding, NotProvided file, NotProvided line,
+                @Cached("create()") IndirectCallNode callNode) {
             final DynamicObject binding = getCallerBinding(frame);
             final MaterializedFrame topFrame = Layouts.BINDING.getFrame(binding);
             RubyArguments.setSelf(topFrame, RubyArguments.getSelf(frame));
@@ -567,10 +567,10 @@ public abstract class KernelNodes {
         @Specialization(guards = {
                 "isRubyString(source)",
                 "isNil(noBinding)",
-                "isRubyString(filename)"
+                "isRubyString(file)"
         })
-        public Object evalNilBinding(VirtualFrame frame, DynamicObject source, DynamicObject noBinding,
-                                     DynamicObject filename, Object unusedLineNumber, @Cached("create()") IndirectCallNode callNode) {
+        public Object evalNilBinding(VirtualFrame frame, DynamicObject source, DynamicObject noBinding, DynamicObject file, Object unusedLine,
+                @Cached("create()") IndirectCallNode callNode) {
             return evalNoBindingUncached(frame, source, NotProvided.INSTANCE, NotProvided.INSTANCE, NotProvided.INSTANCE, callNode);
         }
 
@@ -578,8 +578,8 @@ public abstract class KernelNodes {
                 "isRubyString(source)",
                 "isRubyBinding(binding)"
         })
-        public Object evalBinding(VirtualFrame frame, DynamicObject source, DynamicObject binding, NotProvided filename,
-                                  NotProvided lineNumber, @Cached("create()") IndirectCallNode callNode) {
+        public Object evalBinding(VirtualFrame frame, DynamicObject source, DynamicObject binding, NotProvided file, NotProvided line,
+                @Cached("create()") IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(source, binding, "(eval)", 1, false);
             return deferredCall.call(callNode);
         }
@@ -587,39 +587,41 @@ public abstract class KernelNodes {
         @Specialization(guards = {
                 "isRubyString(source)",
                 "isRubyBinding(binding)",
-                "isNil(noFilename)",
-                "isNil(noLineNumber)"
+                "isNil(noFile)",
+                "isNil(noLine)"
         })
-        public Object evalBinding(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject noFilename, DynamicObject noLineNumber, @Cached("create()") IndirectCallNode callNode) {
+        public Object evalBinding(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject noFile, DynamicObject noLine,
+                @Cached("create()") IndirectCallNode callNode) {
             return evalBinding(frame, source, binding, NotProvided.INSTANCE, NotProvided.INSTANCE, callNode);
         }
 
         @Specialization(guards = {
                 "isRubyString(source)",
                 "isRubyBinding(binding)",
-                "isRubyString(filename)" })
-        public Object evalBindingFilename(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject filename,
-                                          NotProvided lineNumber, @Cached("create()") IndirectCallNode callNode) {
-            return evalBindingFilenameLine(frame, source, binding, filename, 0, callNode);
+                "isRubyString(file)" })
+        public Object evalBindingFilename(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject file, NotProvided line,
+                @Cached("create()") IndirectCallNode callNode) {
+            return evalBindingFilenameLine(frame, source, binding, file, 0, callNode);
         }
 
         @Specialization(guards = {
                 "isRubyString(source)",
                 "isRubyBinding(binding)",
-                "isRubyString(filename)",
-                "isNil(noLineNumber)"
+                "isRubyString(file)",
+                "isNil(noLine)"
         })
-        public Object evalBindingFilename(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject filename, DynamicObject noLineNumber, @Cached("create()") IndirectCallNode callNode) {
-            return evalBindingFilename(frame, source, binding, filename, NotProvided.INSTANCE, callNode);
+        public Object evalBindingFilename(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject file, DynamicObject noLine,
+                @Cached("create()") IndirectCallNode callNode) {
+            return evalBindingFilename(frame, source, binding, file, NotProvided.INSTANCE, callNode);
         }
 
         @Specialization(guards = {
                 "isRubyString(source)",
                 "isRubyBinding(binding)",
-                "isRubyString(filename)" })
-        public Object evalBindingFilenameLine(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject filename,
-                                              int lineNumber, @Cached("create()") IndirectCallNode callNode) {
-            final CodeLoader.DeferredCall deferredCall = doEvalX(source, binding, filename.toString(), lineNumber, false);
+                "isRubyString(file)" })
+        public Object evalBindingFilenameLine(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject file, int line,
+                @Cached("create()") IndirectCallNode callNode) {
+            final CodeLoader.DeferredCall deferredCall = doEvalX(source, binding, file.toString(), line, false);
             return deferredCall.call(callNode);
         }
 
@@ -627,24 +629,23 @@ public abstract class KernelNodes {
         @Specialization(guards = {
                 "isRubyString(source)",
                 "!isRubyBinding(badBinding)" })
-        public Object evalBadBinding(DynamicObject source, DynamicObject badBinding, NotProvided filename,
-                                     NotProvided lineNumber) {
+        public Object evalBadBinding(DynamicObject source, DynamicObject badBinding, NotProvided file, NotProvided line) {
             throw new RaiseException(coreExceptions().typeErrorWrongArgumentType(badBinding, "binding", this));
         }
 
         @TruffleBoundary
         private CodeLoader.DeferredCall doEvalX(DynamicObject rubySource,
-                                                DynamicObject binding,
-                                                String filename,
-                                                int line,
-                                                boolean ownScopeForAssignments) {
+                DynamicObject binding,
+                String file,
+                int line,
+                boolean ownScopeForAssignments) {
             final Rope code = StringOperations.rope(rubySource);
 
             // TODO (pitr 15-Oct-2015): fix this ugly hack, required for AS, copy-paste
             final String s = new String(new char[Math.max(line - 1, 0)]);
             final String space = StringUtils.replace(s, "\0", "\n");
             // TODO CS 14-Apr-15 concat space + code as a rope, otherwise the string will be copied after the rope is converted
-            final Source source = Source.newBuilder(space + RopeOperations.decodeRope(code)).name(filename).mimeType(RubyLanguage.MIME_TYPE).build();
+            final Source source = Source.newBuilder(space + RopeOperations.decodeRope(code)).name(file).mimeType(RubyLanguage.MIME_TYPE).build();
 
             final MaterializedFrame frame = BindingNodes.getExtrasFrame(getContext(), binding);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);

@@ -396,7 +396,8 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isRubyRange(index)", "!isRubyRegexp(index)", "!isRubyString(index)" })
-        public Object getIndex(VirtualFrame frame, DynamicObject string, Object index, NotProvided length, @Cached("new()") SnippetNode snippetNode) {
+        public Object getIndex(VirtualFrame frame, DynamicObject string, Object index, NotProvided length,
+                @Cached("new()") SnippetNode snippetNode) {
             return getIndex(frame, string, (int) snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", index), length);
         }
 
@@ -467,12 +468,15 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "wasProvided(length)")
-        public Object slice(VirtualFrame frame, DynamicObject string, int start, Object length, @Cached("new()") SnippetNode snippetNode) {
+        public Object slice(VirtualFrame frame, DynamicObject string, int start, Object length,
+                @Cached("new()") SnippetNode snippetNode) {
             return slice(frame, string, start, (int) snippetNode.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
         }
 
         @Specialization(guards = { "!isRubyRange(start)", "!isRubyRegexp(start)", "!isRubyString(start)", "wasProvided(length)" })
-        public Object slice(VirtualFrame frame, DynamicObject string, Object start, Object length, @Cached("new()") SnippetNode snippetNode1, @Cached("new()") SnippetNode snippetNode2) {
+        public Object slice(VirtualFrame frame, DynamicObject string, Object start, Object length,
+                @Cached("new()") SnippetNode snippetNode1,
+                @Cached("new()") SnippetNode snippetNode2) {
             return slice(frame, string, (int) snippetNode1.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", start), (int) snippetNode2.execute(frame, "Rubinius::Type.rb_num2int(v)", "v", length));
         }
 
@@ -611,7 +615,8 @@ public abstract class StringNodes {
     public abstract static class ByteSizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int byteSize(DynamicObject string, @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile) {
+        public int byteSize(DynamicObject string,
+                @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile) {
             final Rope rope = rope(string);
 
             if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {

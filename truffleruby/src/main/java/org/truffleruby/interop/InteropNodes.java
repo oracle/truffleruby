@@ -659,7 +659,8 @@ public abstract class InteropNodes {
         }
 
         @Specialization(guards = {"isRubyString(mimeType)", "isRubyString(source)"}, replaces = "evalCached")
-        public Object evalUncached(DynamicObject mimeType, DynamicObject source, @Cached("create()") IndirectCallNode callNode) {
+        public Object evalUncached(DynamicObject mimeType, DynamicObject source,
+                @Cached("create()") IndirectCallNode callNode) {
             return callNode.call(parse(mimeType, source), new Object[]{});
         }
 
