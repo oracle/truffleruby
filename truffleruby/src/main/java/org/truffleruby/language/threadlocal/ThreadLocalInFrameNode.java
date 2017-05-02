@@ -29,7 +29,7 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
 
     @Specialization(guards = "strategy.matches(frame)", limit = "limit")
     public ThreadLocalObject getThreadLocal(MaterializedFrame frame,
-            @Cached("of(getContext(), frame, variableName)") SetLastMatchStrategy strategy) {
+            @Cached("of(getContext(), frame, variableName)") SetThreadLocalInFrameStrategy strategy) {
         return strategy.getThreadLocal(getContext(), frame);
     }
 
@@ -39,12 +39,12 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
     }
 
 
-    public static abstract class SetLastMatchStrategy {
+    public static abstract class SetThreadLocalInFrameStrategy {
         protected final FrameDescriptor fd;
         protected final FrameSlot fs;
         protected final Object defaultValue;
 
-        protected SetLastMatchStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue) {
+        protected SetThreadLocalInFrameStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue) {
             this.fd = fd;
             this.fs = fs;
             this.defaultValue = defaultValue;
@@ -64,7 +64,7 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
             return getThreadLocal(context, Layouts.PROC.getDeclarationFrame(block).materialize());
         }
 
-        public static SetLastMatchStrategy ofBlock(RubyContext context, DynamicObject block, String varName) {
+        public static SetThreadLocalInFrameStrategy ofBlock(RubyContext context, DynamicObject block, String varName) {
             Frame frame = Layouts.PROC.getDeclarationFrame(block);
             if (frame == null) {
                 return NullStrategy.INSTANCE;
@@ -72,7 +72,7 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
             return of(context, frame, varName);
         }
 
-        public static SetLastMatchStrategy of(RubyContext context, Frame aFrame, String variableName) {
+        public static SetThreadLocalInFrameStrategy of(RubyContext context, Frame aFrame, String variableName) {
             MaterializedFrame callerFrame = aFrame.materialize();
             FrameDescriptor fd = callerFrame.getFrameDescriptor();
 
@@ -81,15 +81,15 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
             FrameSlot fs = getVariableFrameSlotWrite(mf, variableName);
             Object defaultValue = mf.getFrameDescriptor().getDefaultValue();
             if (depth != 0) {
-                return new ComplexSetLastMatchStrategy(fd, fs, defaultValue, depth);
+                return new ComplexStrategy(fd, fs, defaultValue, depth);
             } else {
-                return new SimpleSetLastMatchStrategy(fd, fs, defaultValue);
+                return new SimpleStrategy(fd, fs, defaultValue);
             }
         }
     }
 
-    public static class NullStrategy extends SetLastMatchStrategy {
-        public static NullStrategy INSTANCE = new NullStrategy();
+    private static class NullStrategy extends SetThreadLocalInFrameStrategy {
+        private static NullStrategy INSTANCE = new NullStrategy();
 
         private NullStrategy() {
             super(null, null, null);
@@ -111,8 +111,8 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
         }
     }
 
-    public static class SimpleSetLastMatchStrategy extends SetLastMatchStrategy {
-        public SimpleSetLastMatchStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue) {
+    private static class SimpleStrategy extends SetThreadLocalInFrameStrategy {
+        public SimpleStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue) {
             super(fd, fs, defaultValue);
         }
 
@@ -122,10 +122,10 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
         }
     }
 
-    public static class ComplexSetLastMatchStrategy extends SetLastMatchStrategy {
+    private static class ComplexStrategy extends SetThreadLocalInFrameStrategy {
         private final int depth;
 
-        public ComplexSetLastMatchStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue, int depth) {
+        public ComplexStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue, int depth) {
             super(fd, fs, defaultValue);
             this.depth = depth;
         }

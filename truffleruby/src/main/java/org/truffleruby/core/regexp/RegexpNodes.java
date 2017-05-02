@@ -26,13 +26,11 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameInstanceVisitor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -79,7 +77,6 @@ import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.threadlocal.ThreadLocalInFrameNode;
-import org.truffleruby.language.threadlocal.ThreadLocalInFrameNode.SetLastMatchStrategy;
 import org.truffleruby.language.threadlocal.ThreadLocalInFrameNodeGen;
 import org.truffleruby.language.threadlocal.ThreadLocalObject;
 
@@ -622,28 +619,9 @@ public abstract class RegexpNodes {
         return frame;
     }
 
-    private static FrameSlot getMatchDataFrameSlotWrite(MaterializedFrame frame) {
-        FrameDescriptor fd = frame.getFrameDescriptor();
-        FrameSlot fs = fd.findFrameSlot("$~");
-        if (fs == null) {
-            fs = fd.addFrameSlot("$~", FrameSlotKind.Object);
-        }
-        return fs;
-    }
-
-
     @TruffleBoundary
     private static FrameSlot getMatchDataSlot(Frame frame) {
         return frame.getFrameDescriptor().findFrameSlot("$~");
-    }
-
-    private static ThreadLocalObject getMatchDataThreadLocalSearchingDeclarations(
-            RubyContext context,
-            Frame topFrame,
-            boolean add) {
-
-        final Frame frame = getMatchDataFrameSearchingDeclarations(topFrame, add);
-        return getThreadLocalObject(context, frame, add);
     }
 
     @TruffleBoundary

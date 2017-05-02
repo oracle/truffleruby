@@ -55,8 +55,6 @@ import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rubinius.RubiniusLastStringReadNode;
-import org.truffleruby.core.rubinius.RubiniusLastStringWriteNodeGen;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -1803,15 +1801,7 @@ public class BodyTranslator extends Translator {
                 readNode = environment.findLocalVarNode(name, source, sourceSection);
             }
 
-            if (name.equals("$_")) {
-                if (getSourcePath(sourceSection).equals(corePath() + "regexp.rb")) {
-                    readNode = new RubiniusLastStringReadNode();
-                    readNode.unsafeSetSourceSection(sourceSection);
-                } else {
-                    readNode = new GetFromThreadLocalNode(readNode);
-                    readNode.unsafeSetSourceSection(sourceSection);
-                }
-            } else if (name.equals("$~")) {
+            if (THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
                 readNode = new GetFromThreadLocalNode(readNode);
                 readNode.unsafeSetSourceSection(sourceSection);
             }

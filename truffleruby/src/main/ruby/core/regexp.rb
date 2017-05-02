@@ -252,7 +252,7 @@ class Regexp
   end
 
   def ~
-    line = $_
+    line = Truffle.invoke_primitive(:io_get_last_line)
 
     unless line.kind_of?(String)
       Truffle.invoke_primitive(:regexp_set_last_match, nil)
