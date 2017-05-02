@@ -1,0 +1,2 @@
+ user system total real 
+bench9000micro XXX XXX XXX (XXX) 

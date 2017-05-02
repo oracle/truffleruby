@@ -1,0 +1,7 @@
+This benchmark set contains blocks that want a number of iterations - running all iterations XXX times 
+ user system total real 
+bips:XXX XXX XXX XXX (XXX) 
+clamp_a1 XXX XXX XXX (XXX) 
+clamp_b1 XXX XXX XXX (XXX) 
+clamp_a2 XXX XXX XXX (XXX) 
+clamp_a3 XXX XXX XXX (XXX) 

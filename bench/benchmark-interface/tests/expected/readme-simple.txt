@@ -1,0 +1,4 @@
+mul 
+XXX 
+pow 
+XXX 

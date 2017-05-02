@@ -1,0 +1,6 @@
+machine:
+  ruby:
+    version: 2.0.0-p195
+test:
+  override:
+    - rspec
