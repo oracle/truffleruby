@@ -56,13 +56,18 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
          * to manually clone the call target and to inline it.
          */
 
+        applySplittingInliningStrategy(callNode, methodMissing);
+    }
+
+    @Override
+    protected void applySplittingInliningStrategy(DirectCallNode callNode, InternalMethod method) {
         if (callNode.isCallTargetCloningAllowed()
-                && (context.getOptions().METHODMISSING_ALWAYS_CLONE || methodMissing.getSharedMethodInfo().shouldAlwaysClone())) {
+                && (getContext().getOptions().METHODMISSING_ALWAYS_CLONE || method.getSharedMethodInfo().shouldAlwaysClone())) {
             insert(callNode);
             callNode.cloneCallTarget();
         }
 
-        if (callNode.isInlinable() && context.getOptions().METHODMISSING_ALWAYS_INLINE) {
+        if (callNode.isInlinable() && getContext().getOptions().METHODMISSING_ALWAYS_INLINE) {
             insert(callNode);
             callNode.forceInlining();
         }
@@ -70,7 +75,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
 
     @Override
     protected void reassessSplittingInliningStrategy() {
-        // Do nothing, this node does not split or inline.
+        applySplittingInliningStrategy(callNode, methodMissing);
     }
 
     @Override
