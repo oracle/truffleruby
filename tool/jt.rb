@@ -210,11 +210,7 @@ module Utilities
     if File.exist?(benchmark)
       benchmark
     else
-      begin
-        File.join(find_repo('ruby-benchmarks'), benchmark)
-      rescue RuntimeError
-        File.join(find_repo('all-ruby-benchmarks'), benchmark)
-      end
+      File.join(JRUBY_DIR, 'bench', benchmark)
     end
   end
 
@@ -1393,7 +1389,7 @@ module Commands
     end
 
     run_args.push "-I#{Utilities.find_gem('benchmark-ips')}/lib" rescue nil
-    run_args.push "#{Utilities.find_benchmark('benchmark-interface')}/bin/benchmark"
+    run_args.push "#{JRUBY_DIR}/bench/benchmark-interface/bin/benchmark"
     run_args.push *args
 
     if benchmark_ruby

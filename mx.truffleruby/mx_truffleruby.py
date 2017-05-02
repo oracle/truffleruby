@@ -13,6 +13,9 @@ from os.path import join
 import mx
 import mx_unittest
 
+if 'RUBY_BENCHMARKS' in os.environ:
+    import mx_truffleruby_benchmark
+
 _suite = mx.suite('truffleruby')
 rubyDists = ['TRUFFLERUBY', 'TRUFFLERUBY-TEST']
 

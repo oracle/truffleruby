@@ -11,12 +11,9 @@ require 'json'
 
 result = JSON.parse(File.read(ARGV[0]))
 
-# Remove extra commit information, as it comes from our shimmed mx suite and
-# is therefore potentially wrong.
-
 result['queries'].each do |q|
   q.delete_if do |k, v|
-    k =~ /^extra\.[\w-]+\.commit\.[\w-]+$/ || k =~ /^truffleruby\.commit\./ || k =~ /^ruby-benchmarks\.commit\./
+    k =~ /^extra\.[\w-]+\.commit\.[\w-]+$/ || k =~ /^truffleruby\.commit\./
   end
 end
 
