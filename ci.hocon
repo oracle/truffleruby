@@ -8,6 +8,7 @@ common-base: {
 
   environment: {
     CI: "true",
+    RUBY_BENCHMARKS: "true",
     JAVA_OPTS: -Xmx2G
     PATH: "$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH"
   }
@@ -242,10 +243,7 @@ weekly-bench-caps: {
 }
 
 bench: {
-  cmd: [mx, --dynamicimport, ruby-benchmarks, benchmark]
-  setup: [
-    ${mx_sclone} ["https://github.com/jruby/all-ruby-benchmarks.git", ../ruby-benchmarks]
-  ]
+  cmd: [mx, benchmark]
 }
 
 post-process-and-upload-results-wait: [
@@ -263,7 +261,7 @@ post-process-and-upload-results: [
 ]
 
 metrics: {
-  run: ${bench.setup} [
+  run: [
     ${bench.cmd} [allocation]
   ] ${post-process-and-upload-results-wait} [
     ${bench.cmd} [minheap]
@@ -274,7 +272,7 @@ metrics: {
 }
 
 compiler-metrics: {
-  run: ${bench.setup} [
+  run: [
     ${bench.cmd} ["allocation:compile-mandelbrot"]
   ] ${post-process-and-upload-results-wait} [
     ${bench.cmd} ["minheap:compile-mandelbrot"]
@@ -285,13 +283,13 @@ compiler-metrics: {
 }
 
 svm-build-stats: {
-  run: ${bench.setup} [
+  run: [
     ${bench.cmd} ["build-stats"]
   ] ${post-process-and-upload-results-wait}
 }
 
 svm-metrics: {
-  run: ${bench.setup} [
+  run: [
     ${bench.cmd} [instructions]
   ] ${post-process-and-upload-results-wait} [
     ${bench.cmd} [time, --, --aot]
@@ -300,7 +298,7 @@ svm-metrics: {
 }
 
 classic-benchmarks: {
-  run: ${bench.setup} [
+  run: [
     ${bench.cmd} [classic]
   ] ${post-process-and-upload-results}
   timelimit: "00:35:00"
@@ -311,28 +309,28 @@ classic-benchmarks-solaris: ${classic-benchmarks} {
 }
 
 chunky-benchmarks: {
-  run: ${bench.setup} [
+  run: [
     ${bench.cmd} [chunky]
   ] ${post-process-and-upload-results}
   timelimit: "01:00:00"
 }
 
 psd-benchmarks: {
-  run: ${bench.setup} [
+  run: [
     ${bench.cmd} [psd]
   ] ${post-process-and-upload-results}
   timelimit: "02:00:00"
 }
 
 asciidoctor-benchmarks: {
-  run: ${bench.setup} [
+  run: [
     ${bench.cmd} [asciidoctor]
   ] ${post-process-and-upload-results}
   timelimit: "00:35:00"
 }
 
 other-benchmarks: {
-  run: ${bench.setup} [
+  run: [
     ${bench.cmd} [image-demo]
   ] ${post-process-and-upload-results-wait} [
     ${bench.cmd} [optcarrot]
@@ -347,7 +345,7 @@ other-benchmarks: {
 }
 
 other-benchmarks-svm: {
-  run: ${bench.setup} [
+  run: [
     ${bench.cmd} [image-demo]
   ] ${post-process-and-upload-results-wait} [
     ${bench.cmd} [optcarrot]
@@ -360,7 +358,7 @@ other-benchmarks-svm: {
 }
 
 optcarrot-warmup: {
-  run: ${bench.setup} [
+  run: [
     ${jt} [benchmark, --stable, --elapsed, --time, "300", ../ruby-benchmarks/optcarrot/optcarrot.rb]
   ]
   timelimit: "00:40:00"
@@ -371,7 +369,7 @@ server-benchmarks: {
     "apache/ab": ">=2.3"
   }
 
-  run: ${bench.setup} [
+  run: [
     ${bench.cmd} [server]
   ] ${post-process-and-upload-results}
   timelimit: "00:20:00"
@@ -383,9 +381,9 @@ cext-benchmarks: ${sulong} {
     USE_CEXTS: "true"
   }
 
-  setup: ${sulong.setup} ${gem-test-pack.setup} ${bench.setup} [
-    ${jt} [cextc, ../ruby-benchmarks/chunky_png/oily_png],
-    ${jt} [cextc, ../ruby-benchmarks/psd.rb/psd_native]
+  setup: ${sulong.setup} ${gem-test-pack.setup} [
+    ${jt} [cextc, bench/chunky_png/oily_png],
+    ${jt} [cextc, bench/psd.rb/psd_native]
   ]
 
   run: [

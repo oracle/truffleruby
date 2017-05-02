@@ -52,14 +52,14 @@ $ jt test --sulong :capi
 To run C extension benchmarks, you first need to compile them.
 
 ```bash
-$ jt cextc .../all-ruby-benchmarks/chunky_png/oily_png/
+$ jt cextc bench/chunky_png/oily_png/
 ```
 
 Then follow the instructions for benchmarking above, and then try:
 
 ```
-$ USE_CEXTS=true TRUFFLERUBYOPT=-Xcexts.log.load=true jt benchmark
-$ .../all-ruby-benchmarks/chunky_png/chunky-color-r.rb --simple
+$ USE_CEXTS=true TRUFFLERUBYOPT=-Xcexts.log.load=true jt benchmark /
+      bench/chunky_png/chunky-color-r.rb --simple
 ```
 
 These benchmarks have Ruby fallbacks, so we should carefully check that the
