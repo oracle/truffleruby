@@ -157,6 +157,13 @@ public abstract class PointerNodes {
     @ImportStatic(RubiniusTypes.class)
     public static abstract class PointerSetAtOffsetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Specialization(guards = "type == TYPE_USHORT")
+        public int setAtOffsetUShort(DynamicObject pointer, int offset, int type, int value) {
+            assert ((short) value) == value;
+            Layouts.POINTER.getPointer(pointer).putShort(offset, (short) value);
+            return value;
+        }
+
         @Specialization(guards = "type == TYPE_INT")
         public int setAtOffsetInt(DynamicObject pointer, int offset, int type, int value) {
             Layouts.POINTER.getPointer(pointer).putInt(offset, value);
