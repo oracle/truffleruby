@@ -8,6 +8,17 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
+=begin
+Instructions:
+git clone https://github.com/rubinius/rubinius.git
+cd rubinius
+git checkout v2.71828182
+bundle install
+./configure --disable-llvm
+bundle exec rake runtime/platform.conf
+ruby tool/translate_rubinius_config.rb ../rubinius/runtime/platform.conf
+=end
+
 puts "        // Generated from tool/translate_rubinius_config.rb < ../rubinius/runtime/platform.conf"
 
 ARGF.each do |line|
