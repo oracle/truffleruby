@@ -376,11 +376,13 @@ class IO
   end
 
   def force_read_only
-    # TODO BJF 30-Apr-2017 Please implement
+    @mode &= ~IO::ACCMODE
+    @mode |= RDONLY
   end
 
   def force_write_only
-    # TODO BJF 30-Apr-2017 Please implement
+    @mode &= ~IO::ACCMODE
+    @mode |= WRONLY
   end
 
   def self.binread(file, length=nil, offset=0)
