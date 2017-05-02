@@ -1510,6 +1510,7 @@ module Commands
   def lint
     check_dsl_usage
     rubocop
+    sh "tool/lint.sh"
   end
 
   def verify_aot_bin!
