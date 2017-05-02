@@ -727,13 +727,14 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "sendto", isModuleFunction = true, required = 6)
+    @CoreMethod(names = "sendto", isModuleFunction = true, required = 6, lowerFixnum = { 1, 3, 4, 6 })
     public abstract static class SendToNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         
         @Specialization(guards = "!isRubyPointer(dest_addr)")
-        public int sendToStruct(VirtualFrame frame, int socket, DynamicObject message, int length, int flags, DynamicObject dest_addr, int dest_len, @Cached("new()") SnippetNode snippetNode) {
+        public int sendToStruct(VirtualFrame frame, int socket, DynamicObject message, int length, int flags, DynamicObject dest_addr, int dest_len,
+                @Cached("new()") SnippetNode snippetNode) {
             DynamicObject dest_addr_ptr = (DynamicObject) snippetNode.execute(frame, "dest_addr.to_ptr", "dest_addr", dest_addr);
             final Pointer messagePointer = Layouts.POINTER.getPointer(message);
             final Pointer destAddrPointer = Layouts.POINTER.getPointer(dest_addr_ptr);
@@ -776,7 +777,7 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "inet_pton", isModuleFunction = true, required = 3)
+    @CoreMethod(names = "inet_pton", isModuleFunction = true, required = 3, lowerFixnum = 1)
     public abstract static class InetPtonNode extends CoreMethodArrayArgumentsNode {
         
         @TruffleBoundary
@@ -787,7 +788,7 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "_socketpair", isModuleFunction = true, required = 4)
+    @CoreMethod(names = "_socketpair", isModuleFunction = true, required = 4, lowerFixnum = { 1, 2, 3 })
     public abstract static class SocketpairNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
