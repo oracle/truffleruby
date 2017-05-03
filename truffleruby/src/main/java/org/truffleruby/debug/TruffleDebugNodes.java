@@ -12,6 +12,8 @@ package org.truffleruby.debug;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.interop.ForeignAccess;
+import com.oracle.truffle.api.interop.TruffleObject;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -324,6 +326,26 @@ public abstract class TruffleDebugNodes {
         public DynamicObject throwJavaException(boolean condition) {
             assert condition;
             return nil();
+        }
+
+    }
+
+    @CoreMethod(names = "foregin_object", onSingleton = true)
+    public abstract static class ForeignObjectNode extends CoreMethodArrayArgumentsNode {
+
+        private static class ForeignObject implements TruffleObject {
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                throw new UnsupportedOperationException();
+            }
+            
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public Object resolveLazyNodes() {
+            return new ForeignObject();
         }
 
     }
