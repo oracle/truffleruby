@@ -3,7 +3,7 @@ AllCops:
   DisplayCopNames: true
   ExtraDetails: true
   Exclude:
-    - '*.rb'
+    - '*.rb' # test scripts at the root of the repo
     - 'bin/**/*'
     - 'bench/**/*'
     - 'lib/bin/**/*'
