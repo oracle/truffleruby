@@ -717,12 +717,15 @@ public abstract class TrufflePosixNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-        @TruffleBoundary
         @Specialization(guards = "isRubyString(name)")
         public DynamicObject gethostbyname(DynamicObject name) {
-            final Pointer ptr = nativeSockets().gethostbyname(StringOperations.getString(name));
-            DynamicObject pointer = allocateObjectNode.allocate(getContext().getCoreLibrary().getRubiniusFFIPointerClass(), ptr);
-            return pointer;
+            final Pointer pointer = getHostByName(name);
+            return allocateObjectNode.allocate(getContext().getCoreLibrary().getRubiniusFFIPointerClass(), pointer);
+        }
+
+        @TruffleBoundary
+        private Pointer getHostByName(DynamicObject name) {
+            return nativeSockets().gethostbyname(StringOperations.getString(name));
         }
 
     }
@@ -731,20 +734,18 @@ public abstract class TrufflePosixNodes {
     public abstract static class SendToNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-        
+
         @Specialization(guards = "!isRubyPointer(dest_addr)")
         public int sendToStruct(VirtualFrame frame, int socket, DynamicObject message, int length, int flags, DynamicObject dest_addr, int dest_len,
                 @Cached("new()") SnippetNode snippetNode) {
-            DynamicObject dest_addr_ptr = (DynamicObject) snippetNode.execute(frame, "dest_addr.to_ptr", "dest_addr", dest_addr);
-            final Pointer messagePointer = Layouts.POINTER.getPointer(message);
-            final Pointer destAddrPointer = Layouts.POINTER.getPointer(dest_addr_ptr);
-            return sendToPrivate(socket, length, flags, dest_len, messagePointer, destAddrPointer);
+            final DynamicObject dest_addr_ptr = (DynamicObject) snippetNode.execute(frame, "dest_addr.to_ptr", "dest_addr", dest_addr);
+            return sendTo(socket, message, length, flags, dest_addr_ptr, dest_len);
         }
 
         @Specialization(guards = "isRubyPointer(dest_addr)")
         public int sendTo(int socket, DynamicObject message, int length, int flags, DynamicObject dest_addr, int dest_len) {
-             final Pointer messagePointer = Layouts.POINTER.getPointer(message);
-             final Pointer destAddrPointer = Layouts.POINTER.getPointer(dest_addr);
+            final Pointer messagePointer = Layouts.POINTER.getPointer(message);
+            final Pointer destAddrPointer = Layouts.POINTER.getPointer(dest_addr);
             return sendToPrivate(socket, length, flags, dest_len, messagePointer, destAddrPointer);
         }
 
@@ -805,18 +806,10 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyPointer(addressPtr)")
         public int accept(int fd, DynamicObject addressPtr, DynamicObject socklenPointer) {
-
             final Pointer sockPointer = Layouts.POINTER.getPointer(socklenPointer);
             final Pointer addressPointer = Layouts.POINTER.getPointer(addressPtr);
 
-            final int newFd;
-
-            try {
-                newFd = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(nativeSockets().accept(fd, addressPointer, sockPointer)));
-            } finally {
-                // getContext().getNativePlatform().getMallocFree().free(addressPointer); // TODO BJF REVIEW
-            }
-
+            final int newFd = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(nativeSockets().accept(fd, addressPointer, sockPointer)));
             return newFd;
         }
 
