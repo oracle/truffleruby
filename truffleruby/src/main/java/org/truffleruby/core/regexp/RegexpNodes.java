@@ -170,7 +170,6 @@ public abstract class RegexpNodes {
             for (Iterator<NameEntry> i = Layouts.REGEXP.getRegex(regexp).namedBackrefIterator(); i.hasNext();) {
                 final NameEntry e = i.next();
                 final String name = new String(e.name, e.nameP, e.nameEnd - e.nameP, StandardCharsets.UTF_8).intern();
-                System.err.printf("Updating %s.\n", name);
                 int nth = Layouts.REGEXP.getRegex(regexp).nameToBackrefNumber(e.name, e.nameP, e.nameEnd, region);
 
                 final Object value;
@@ -511,9 +510,9 @@ public abstract class RegexpNodes {
 
         private Object getMatchData(VirtualFrame frame) {
             if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreter();
-                threadLocalNode = ThreadLocalInFrameNodeGen.create(LAST_MATCH_VARIABLE,
-                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT);
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                threadLocalNode = insert(ThreadLocalInFrameNodeGen.create(LAST_MATCH_VARIABLE,
+                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT));
             }
             Frame callerFrame = readCallerFrame.execute(frame);
             ThreadLocalObject lastMatch = threadLocalNode.execute(callerFrame.materialize());
@@ -538,9 +537,9 @@ public abstract class RegexpNodes {
         @Specialization(guards = "isSuitableMatchDataType(getContext(), matchData)" )
         public DynamicObject setLastMatchData(VirtualFrame frame, DynamicObject matchData) {
             if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreter();
-                threadLocalNode = ThreadLocalInFrameNodeGen.create(LAST_MATCH_VARIABLE,
-                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT);
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                threadLocalNode = insert(ThreadLocalInFrameNodeGen.create(LAST_MATCH_VARIABLE,
+                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT));
             }
             Frame callerFrame = readCallerFrame.execute(frame);
             ThreadLocalObject lastMatch = threadLocalNode.execute(callerFrame.materialize());
@@ -562,9 +561,9 @@ public abstract class RegexpNodes {
                 return matchData;
             }
             if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreter();
-                threadLocalNode = ThreadLocalInFrameNodeGen.create(LAST_MATCH_VARIABLE,
-                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT);
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                threadLocalNode = insert(ThreadLocalInFrameNodeGen.create(LAST_MATCH_VARIABLE,
+                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT));
             }
 
             ThreadLocalObject lastMatch = threadLocalNode.execute(declarationFrame.materialize());

@@ -1006,9 +1006,9 @@ public abstract class IONodes {
         public Object getLastLine(VirtualFrame frame) {
             Frame callerFrame = callerFrameNode.execute(frame);
             if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreter();
-                threadLocalNode = ThreadLocalInFrameNodeGen.create(LAST_LINE_VARIABLE,
-                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT);
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                threadLocalNode = insert(ThreadLocalInFrameNodeGen.create(LAST_LINE_VARIABLE,
+                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT));
             }
             return threadLocalNode.execute(callerFrame.materialize()).get();
         }
@@ -1029,9 +1029,9 @@ public abstract class IONodes {
         @Specialization
         public DynamicObject setLastLine(VirtualFrame frame, DynamicObject matchData) {
             if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreter();
-                threadLocalNode = ThreadLocalInFrameNodeGen.create(LAST_LINE_VARIABLE,
-                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT);
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                threadLocalNode = insert(ThreadLocalInFrameNodeGen.create(LAST_LINE_VARIABLE,
+                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT));
             }
             Frame callerFrame = readCallerFrame.execute(frame);
             ThreadLocalObject lastMatch = threadLocalNode.execute(callerFrame.materialize());

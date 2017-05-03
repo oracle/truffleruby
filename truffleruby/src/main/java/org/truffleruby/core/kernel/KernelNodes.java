@@ -722,9 +722,9 @@ public abstract class KernelNodes {
         public DynamicObject gets(VirtualFrame frame) {
             final DynamicObject rubyLine = getInputLine();
             if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreter();
-                threadLocalNode = ThreadLocalInFrameNodeGen.create("$_",
-                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT);
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                threadLocalNode = insert(ThreadLocalInFrameNodeGen.create("$_",
+                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT));
             }
             Frame callerFrame = readCallerFrame.execute(frame);
             ThreadLocalObject lastMatch = threadLocalNode.execute(callerFrame.materialize());

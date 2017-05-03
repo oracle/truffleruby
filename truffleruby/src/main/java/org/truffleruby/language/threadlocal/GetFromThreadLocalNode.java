@@ -11,12 +11,15 @@ package org.truffleruby.language.threadlocal;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
 public class GetFromThreadLocalNode extends RubyNode {
 
     @Child private RubyNode value;
+    private final ConditionProfile isThreadLocalProfile = ConditionProfile.createBinaryProfile();
 
     public GetFromThreadLocalNode(RubyNode value) {
         this.value = value;
@@ -31,7 +34,7 @@ public class GetFromThreadLocalNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         final Object threadLocalObject = value.execute(frame);
 
-        if (RubyGuards.isThreadLocal(threadLocalObject)) {
+        if (isThreadLocalProfile.profile(RubyGuards.isThreadLocal(threadLocalObject))) {
             return getThreadLocalValue((ThreadLocalObject) threadLocalObject);
         }
 

@@ -28,30 +28,30 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
     public abstract ThreadLocalObject execute(MaterializedFrame frame);
 
     @Specialization(guards = "strategy.matches(frame)", limit = "limit")
-    public ThreadLocalObject getThreadLocal(MaterializedFrame frame,
+    public ThreadLocalObject getThreadLocalCached(MaterializedFrame frame,
             @Cached("of(getContext(), frame, variableName)") SetThreadLocalInFrameStrategy strategy) {
         return strategy.getThreadLocal(getContext(), frame);
     }
 
-    @Specialization
+    @Specialization(replaces = "getThreadLocalCached")
     public ThreadLocalObject getThreadLocal(MaterializedFrame frame) {
         return getThreadLocalSearchingDeclarations(getContext(), frame, variableName);
     }
 
 
     public static abstract class SetThreadLocalInFrameStrategy {
-        protected final FrameDescriptor fd;
-        protected final FrameSlot fs;
+        protected final FrameDescriptor descriptor;
+        protected final FrameSlot slot;
         protected final Object defaultValue;
 
         protected SetThreadLocalInFrameStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue) {
-            this.fd = fd;
-            this.fs = fs;
+            this.descriptor = fd;
+            this.slot = fs;
             this.defaultValue = defaultValue;
         }
 
         public boolean matches(Frame callerFrame) {
-            return callerFrame != null && callerFrame.getFrameDescriptor() == fd;
+            return callerFrame != null && callerFrame.getFrameDescriptor() == descriptor;
         }
 
         public boolean matchesBlock(DynamicObject block) {
@@ -80,11 +80,7 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
             MaterializedFrame mf = RubyArguments.getDeclarationFrame(callerFrame, depth);
             FrameSlot fs = getVariableFrameSlotWrite(mf, variableName);
             Object defaultValue = mf.getFrameDescriptor().getDefaultValue();
-            if (depth != 0) {
-                return new ComplexStrategy(fd, fs, defaultValue, depth);
-            } else {
-                return new SimpleStrategy(fd, fs, defaultValue);
-            }
+            return new NormalStrategy(fd, fs, defaultValue, depth);
         }
     }
 
@@ -111,21 +107,10 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
         }
     }
 
-    private static class SimpleStrategy extends SetThreadLocalInFrameStrategy {
-        public SimpleStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue) {
-            super(fd, fs, defaultValue);
-        }
-
-        @Override
-        public ThreadLocalObject getThreadLocal(RubyContext context, MaterializedFrame callerFrame) {
-            return getThreadLocalObjectFromFrame(context, callerFrame, fs, defaultValue, true);
-        }
-    }
-
-    private static class ComplexStrategy extends SetThreadLocalInFrameStrategy {
+    private static class NormalStrategy extends SetThreadLocalInFrameStrategy {
         private final int depth;
 
-        public ComplexStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue, int depth) {
+        public NormalStrategy(FrameDescriptor fd, FrameSlot fs, Object defaultValue, int depth) {
             super(fd, fs, defaultValue);
             this.depth = depth;
         }
@@ -133,7 +118,7 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
         @Override
         public ThreadLocalObject getThreadLocal(RubyContext context, MaterializedFrame callerFrame) {
             final MaterializedFrame frame = RubyArguments.getDeclarationFrame(callerFrame, depth);
-            return getThreadLocalObjectFromFrame(context, frame, fs, defaultValue, true);
+            return getThreadLocalObjectFromFrame(context, frame, slot, defaultValue, true);
         }
     }
 
@@ -142,7 +127,7 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
         int count = 0;
 
         while (true) {
-            final FrameSlot slot = getVaraibleSlot(frame, variableName);
+            final FrameSlot slot = getVariableSlot(frame, variableName);
             if (slot != null) {
                 return count;
             }
@@ -161,7 +146,7 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
         Frame frame = topFrame;
 
         while (true) {
-            final FrameSlot slot = getVaraibleSlot(frame, variableName);
+            final FrameSlot slot = getVariableSlot(frame, variableName);
             if (slot != null) {
                 return frame;
             }
@@ -175,7 +160,7 @@ public abstract class ThreadLocalInFrameNode extends RubyBaseNode {
         }
     }
 
-    private static FrameSlot getVaraibleSlot(Frame frame, String variableName) {
+    private static FrameSlot getVariableSlot(Frame frame, String variableName) {
         return frame.getFrameDescriptor().findFrameSlot(variableName);
     }
 

@@ -1683,12 +1683,9 @@ public class BodyTranslator extends Translator {
 
         switch (name) {
             case "$~":
+            case "$_":
                 environment.declareVarInMethodScope(name);
                 // The right hand side must be built using the resolved variable.
-                break;
-            case "$_":
-                // The right hand side must be built using the resolved variable.
-                environment.declareVar(name);
                 break;
             case "$0":
                 rhs = new CheckProgramNameVariableTypeNode(rhs);
