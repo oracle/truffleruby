@@ -1418,7 +1418,7 @@ class << Truffle::CExt
 
   def rb_data_typed_object_wrap(ruby_class, data, data_type)
     object = ruby_class.internal_allocate
-    object.instance_variable_set :@data_type, data_type
+    hidden_variable_set object, :data_type, data_type
     hidden_variable_set object, :data, data
     object
   end

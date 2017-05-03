@@ -636,6 +636,14 @@ VALUE rb_obj_id(VALUE object) {
   return (VALUE) truffle_invoke(object, "object_id");
 }
 
+void rb_tr_hidden_variable_set(VALUE object, const char *name, VALUE value) {
+  truffle_invoke(RUBY_CEXT, "hidden_variable_set", object, rb_intern(name), value);
+}
+
+VALUE rb_tr_hidden_variable_get(VALUE object, const char *name) {
+  return truffle_invoke(RUBY_CEXT, "hidden_variable_get", object, rb_intern(name));
+}
+
 int rb_obj_method_arity(VALUE object, ID id) {
   return truffle_invoke_i(RUBY_CEXT, "rb_obj_method_arity", object, id);
 }
@@ -2484,7 +2492,7 @@ VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, vo
 
 void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
   // TODO CS 6-Mar-17 work around the issue with LLVM addresses escaping into Ruby by making data_type a uintptr_t
-  if ((uintptr_t) rb_iv_get(value, "@data_type") != (uintptr_t) data_type) {
+  if ((uintptr_t) rb_tr_hidden_variable_get(value, "data_type") != (uintptr_t) data_type) {
     rb_raise(rb_eTypeError, "wrong argument type");
   }
   return RTYPEDDATA_DATA(value);

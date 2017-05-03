@@ -93,6 +93,8 @@ void rb_tr_log_warning(const char *message);
 void *rb_tr_handle_for_managed_leaking(void *managed);
 #define rb_tr_debug(object) truffle_invoke(RUBY_CEXT, "rb_tr_debug", object)
 long rb_tr_obj_id(VALUE object);
+void rb_tr_hidden_variable_set(VALUE object, const char *name, VALUE value);
+VALUE rb_tr_hidden_variable_get(VALUE object, const char *name);
 
 // Memory
 
