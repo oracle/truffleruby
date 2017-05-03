@@ -53,6 +53,7 @@ import org.truffleruby.language.dispatch.MissingBehavior;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -430,7 +431,16 @@ public abstract class BasicObjectNodes {
 
                 final SuperCallNode superCallNode = NodeUtil.findParent(callNode, SuperCallNode.class);
                 final Frame frame = frameInstance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
-                final String superMethodName = RubyArguments.getMethod(frame).getName();
+
+                final InternalMethod method = RubyArguments.tryGetMethod(frame);
+
+                final String superMethodName;
+
+                if (method == null) {
+                    superMethodName = "(unknown)";
+                } else {
+                    superMethodName = method.getName();
+                }
 
                 if (superCallNode != null && superMethodName.equals("method_missing")) {
                     // skip super calls of method_missing itself

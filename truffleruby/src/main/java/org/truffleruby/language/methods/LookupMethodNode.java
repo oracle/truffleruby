@@ -102,8 +102,11 @@ public abstract class LookupMethodNode extends RubyNode {
         if (ignoreVisibility || onlyLookupPublic) {
             return null; // No need to check visibility
         } else {
-            InternalMethod method = RubyArguments.getMethod(callingFrame);
-            if (!context.getCoreLibrary().isSend(method)) {
+            InternalMethod method = RubyArguments.tryGetMethod(callingFrame);
+
+            if (method == null) {
+                return context.getCoreLibrary().getObjectClass();
+            } else if (!context.getCoreLibrary().isSend(method)) {
                 return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callingFrame));
             } else {
                 FrameInstance instance = context.getCallStack().getCallerFrameIgnoringSend();
