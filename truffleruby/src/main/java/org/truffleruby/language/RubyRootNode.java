@@ -9,11 +9,17 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.ExecutionContext;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
+
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.methods.SharedMethodInfo;
@@ -25,6 +31,8 @@ public class RubyRootNode extends RootNode {
     private final boolean needsDeclarationFrame;
 
     @Child private RubyNode body;
+
+    private volatile Assumption needsCallerAssumption = Truffle.getRuntime().createAssumption();
 
     public RubyRootNode(RubyContext context, SourceSection sourceSection, FrameDescriptor frameDescriptor,
                         SharedMethodInfo sharedMethodInfo, RubyNode body, boolean needsDeclarationFrame) {
@@ -85,4 +93,24 @@ public class RubyRootNode extends RootNode {
     public RubyContext getContext() {
         return context;
     }
+
+    public synchronized Assumption getNeedsCallerAssumption() {
+        return needsCallerAssumption;
+    }
+
+    public synchronized void replaceAndInvalidateNeedsCallerAssumption(Assumption assumption) {
+        Assumption oldAssumption = needsCallerAssumption;
+        needsCallerAssumption = Truffle.getRuntime().createAssumption();
+        oldAssumption.invalidate();
+        assumption.invalidate();
+    }
+
+    @Override
+    public Node copy() {
+        RubyRootNode root = (RubyRootNode) super.copy();
+        root.needsCallerAssumption = Truffle.getRuntime().createAssumption();
+        return root;
+    }
+
+
 }
