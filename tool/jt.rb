@@ -630,7 +630,6 @@ module Commands
     end
 
     if args.delete('--igv')
-      warn "warning: --igv might not work on master - if it does not, use truffle-head instead which builds against latest graal" if Utilities.git_branch == 'master'
       Utilities.ensure_igv_running
       if args.delete('--full')
         jruby_args << "-J-Dgraal.Dump=Truffle"
@@ -785,17 +784,17 @@ module Commands
     else
       args, files_to_run = args.partition { |a| a.start_with?('-') }
     end
-    
+
     unless files_to_run
       prefix = "#{JRUBY_DIR}/test/mri/tests/"
-      
+
       include_files = Dir.glob(include_pattern).map { |f|
         raise unless f.start_with?(prefix)
         f[prefix.size..-1]
       }
-      
+
       exclude_files = File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }
-      
+
       files_to_run = (include_files - exclude_files)
     end
 
@@ -805,7 +804,7 @@ module Commands
 
   def run_mri_tests(extra_args, test_files, run_options = {})
     truffle_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
-    
+
     env_vars = {
       "EXCLUDES" => "test/mri/excludes",
       "RUBYOPT" => '--disable-gems'
