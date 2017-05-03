@@ -10,11 +10,13 @@
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -78,6 +80,25 @@ abstract class ForeignReadStringCachedHelperNode extends RubyNode {
             Object stringName,
             boolean isIVar) {
         return getCallNode().call(frame, receiver, "[]", name);
+    }
+
+    @Specialization(guards = {
+            "!isIVar",
+            "!methodDefined(frame, receiver, stringName, getDefinedNode())",
+            "!methodDefined(frame, receiver, INDEX_METHOD_NAME, getIndexDefinedNode())"
+    })
+    public Object indexUnknown(
+            VirtualFrame frame,
+            DynamicObject receiver,
+            Object name,
+            Object stringName,
+            boolean isIVar) {
+        throw UnknownIdentifierException.raise(toString(name));
+    }
+
+    @TruffleBoundary
+    private String toString(Object name) {
+        return name.toString();
     }
 
     protected DoesRespondDispatchHeadNode getDefinedNode() {
