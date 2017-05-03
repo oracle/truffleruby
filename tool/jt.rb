@@ -819,8 +819,9 @@ module Commands
   def retag(test_file)
     test_classes = File.read(test_file).scan(/class (\w+) < Test::Unit::TestCase/)
     test_classes.each do |test_class,|
-      file = "test/mri/excludes/#{test_class.gsub('::', '/')}.rb"
-      FileUtils::Verbose.rm_f file
+      prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
+      FileUtils::Verbose.rm_f "#{prefix}.rb"
+      FileUtils::Verbose.rm_rf prefix
     end
 
     puts "1. Tagging tests"
