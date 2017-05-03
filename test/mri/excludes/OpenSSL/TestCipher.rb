@@ -1,0 +1,7 @@
+exclude :test_AES, "needs investigation"
+exclude :test_aes_gcm, "needs investigation"
+exclude :test_aes_gcm_short_tag, "needs investigation"
+exclude :test_aes_gcm_wrong_auth_data, "needs investigation"
+exclude :test_aes_gcm_wrong_ciphertext, "needs investigation"
+exclude :test_aes_gcm_wrong_tag, "needs investigation"
+exclude :test_authenticated, "needs investigation"
