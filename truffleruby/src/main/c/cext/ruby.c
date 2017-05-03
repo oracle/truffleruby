@@ -1291,6 +1291,10 @@ int rb_enc_get_index(VALUE obj) {
   return truffle_invoke_i(RUBY_CEXT, "rb_enc_get_index", obj);
 }
 
+VALUE rb_str_times(VALUE string, VALUE times) {
+  rb_tr_error("rb_str_times not implemented");
+}
+
 // Symbol
 
 ID rb_to_id(VALUE name) {
@@ -1367,7 +1371,7 @@ VALUE rb_ary_new_from_args(long n, ...) {
   return array;
 }
 
-VALUE rb_ary_new4(long n, const VALUE *values) {
+VALUE rb_ary_new_from_values(long n, const VALUE *values) {
   VALUE array = rb_ary_new_capa(n);
   for (int i = 0; i < n; i++) {
     rb_ary_store(array, i, values[i]);
@@ -1477,7 +1481,19 @@ VALUE rb_check_array_type(VALUE array) {
   return rb_check_convert_type(array, T_ARRAY, "Array", "to_ary");
 }
 
+VALUE rb_ary_cat(VALUE array, const VALUE *cat, long n) {
+  rb_tr_error("rb_ary_cat not implemented");
+}
+
+VALUE rb_ary_rotate(VALUE array, long n) {
+  rb_tr_error("rb_ary_rotate not implemented");
+}
+
 // Hash
+
+VALUE rb_Hash(VALUE obj) {
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_Hash", obj);
+}
 
 VALUE rb_hash(VALUE obj) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_hash", obj);
@@ -2424,6 +2440,18 @@ VALUE rb_struct_new(VALUE klass, ...) {
 
 VALUE rb_struct_getmember(VALUE obj, ID id) {
   rb_tr_error("rb_struct_getmember not implemented");
+}
+
+VALUE rb_struct_s_members(VALUE klass) {
+  rb_tr_error("rb_struct_s_members not implemented");
+}
+
+VALUE rb_struct_members(VALUE s) {
+  rb_tr_error("rb_struct_members not implemented");
+}
+
+VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
+  rb_tr_error("rb_struct_define_under not implemented");
 }
 
 // Data

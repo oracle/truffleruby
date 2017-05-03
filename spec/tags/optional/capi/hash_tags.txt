@@ -1,3 +1,5 @@
 fails:C-API Hash function rb_hash_foreach iterates over the hash
 fails:C-API Hash function rb_hash_foreach stops via the callback
 fails:C-API Hash function rb_hash_foreach deletes via the callback
+fails:C-API Hash function rb_Hash tries to convert the passed argument to a hash by calling #to_hash
+fails:C-API Hash function rb_Hash raises a TypeError if #to_hash does not return a hash

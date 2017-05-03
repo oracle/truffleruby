@@ -665,6 +665,7 @@ int rb_enc_get_index(VALUE obj);
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer);
 MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer);
 MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer);
+VALUE rb_str_times(VALUE string, VALUE times);
 
 // Symbol
 
@@ -692,7 +693,6 @@ VALUE rb_ary_new_capa(long capacity);
 #define rb_ary_new2 rb_ary_new_capa
 VALUE rb_ary_new_from_args(long n, ...);
 #define rb_ary_new3 rb_ary_new_from_args
-VALUE rb_ary_new4(long n, const VALUE *values);
 VALUE rb_ary_push(VALUE array, VALUE value);
 VALUE rb_ary_pop(VALUE array);
 void rb_ary_store(VALUE array, long index, VALUE value);
@@ -719,9 +719,14 @@ VALUE rb_ary_to_ary(VALUE array);
 VALUE rb_ary_subseq(VALUE array, long start, long length);
 #define rb_assoc_new(a, b) rb_ary_new3(2, a, b)
 VALUE rb_check_array_type(VALUE array);
+VALUE rb_ary_new_from_values(long n, const VALUE *values);
+#define rb_ary_new4 rb_ary_new_from_values
+VALUE rb_ary_cat(VALUE array, const VALUE *cat, long n);
+VALUE rb_ary_rotate(VALUE array, long n);
 
 // Hash
 
+VALUE rb_Hash(VALUE obj);
 VALUE rb_hash(VALUE obj);
 VALUE rb_hash_new(void);
 VALUE rb_hash_aref(VALUE hash, VALUE key);
@@ -1057,6 +1062,9 @@ VALUE rb_struct_aset(VALUE s, VALUE idx, VALUE val);
 VALUE rb_struct_define(const char *name, ...);
 VALUE rb_struct_new(VALUE klass, ...);
 VALUE rb_struct_getmember(VALUE obj, ID id);
+VALUE rb_struct_s_members(VALUE klass);
+VALUE rb_struct_members(VALUE s);
+VALUE rb_struct_define_under(VALUE outer, const char *name, ...);
 
 // Objects
 

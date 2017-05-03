@@ -1,0 +1,6 @@
+fails:C-API Array function rb_ary_new2 raises an ArgumentError when the given argument is negative
+fails:C-API Array function rb_ary_new_capa raises an ArgumentError when the given argument is negative
+fails:C-API Array function rb_ary_cat pushes the given objects onto the end of the array
+fails:C-API Array function rb_ary_cat raises a RuntimeError if the array is frozen
+fails:C-API Array function rb_ary_rotate rotates the array so that the element at the specified position comes first
+fails:C-API Array function rb_ary_rotate raises a RuntimeError if the array is frozen

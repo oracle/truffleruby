@@ -1075,6 +1075,10 @@ class << Truffle::CExt
     Array(value)
   end
 
+  def rb_Hash(value)
+    Hash(value)
+  end
+
   def rb_ary_new
     []
   end

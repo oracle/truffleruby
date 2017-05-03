@@ -1,0 +1,2 @@
+fails:CApiModule rb_const_set given a symbol name and a value sets an existing constant's value
+fails:CApiModule rb_define_const given a String name and a value sets an existing constant's value

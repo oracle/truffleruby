@@ -1,0 +1,1 @@
+fails:CApiWrappedTypedStruct unwraps data for a parent type

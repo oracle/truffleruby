@@ -4,3 +4,13 @@ fails:C-API String function rb_str_new2 encodes the string with ASCII_8BIT
 fails:C-API String function rb_str_new_cstr encodes the string with ASCII_8BIT
 fails:C-API String function rb_str_subseq returns a byte-indexed substring
 fails:C-API String function StringValue does not call #to_s on non-String objects
+fails:C-API String function rb_str_times returns a new string containing count copies of self
+fails:C-API String function rb_str_times tries to convert the given argument to an integer using to_int
+fails:C-API String function rb_str_times raises an ArgumentError when given integer is negative
+fails:C-API String function rb_str_times raises a RangeError when given integer is a Bignum
+fails:C-API String function rb_str_times returns subclass instances
+fails:C-API String function rb_str_times always taints the result when self is tainted
+fails:C-API String function rb_str_times returns a String in the same encoding as self
+fails:C-API String function rb_str_times raises an ArgumentError if the length of the resulting string doesn't fit into a long
+fails:C-API String function rb_String tries to convert the passed argument to a string by calling #to_str first
+fails:C-API String function rb_String raises a TypeError if #to_str does not return a string

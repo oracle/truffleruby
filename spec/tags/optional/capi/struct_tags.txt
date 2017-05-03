@@ -1,0 +1,9 @@
+fails:C-API Struct function rb_struct_define_under creates accessors for the struct members
+fails:C-API Struct function rb_struct_define_under has a value of nil for the member of a newly created instance
+fails:C-API Struct function rb_struct_define_under creates a constant scoped under the namespace of the given class
+fails:C-API Struct function rb_struct_define_under returns the member names as Symbols
+fails:C-API Struct function rb_struct_define raises an ArgumentError if arguments contain duplicate member name
+fails:C-API Struct function rb_struct_getmember returns the value of a struct member
+fails:C-API Struct function rb_struct_getmember raises a NameError if the struct member does not exist
+fails:C-API Struct function rb_struct_s_members returns the struct members as an array of symbols
+fails:C-API Struct function rb_struct_members returns the struct members as an array of symbols
