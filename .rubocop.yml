@@ -17,7 +17,7 @@ AllCops:
     - 'spec/**/*'
     - 'test/**/*'
     - 'tool/**/*'
-    - 'truffleruby/target/classes/**/*'
+    - 'truffleruby/target/**/*'
 
 # Department 'Lint' (58):
 Lint/AmbiguousOperator:
