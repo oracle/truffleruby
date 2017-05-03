@@ -20,12 +20,12 @@ import mx_benchmark
 # Utilities
 
 _suite = mx.suite('truffleruby')
+rubyDir = _suite.dir
 
 def log(msg):
     print >> sys.stderr, msg
 
 def jt(args, suite=None, nonZeroIsFatal=True, out=None, err=None, timeout=None, env=None, cwd=None):
-    rubyDir = _suite.dir
     jt = join(rubyDir, 'tool', 'jt.rb')
     return mx.run(['ruby', jt] + args, nonZeroIsFatal=nonZeroIsFatal, out=out, err=err, timeout=timeout, env=env, cwd=cwd)
 
@@ -51,7 +51,6 @@ class BackgroundServerTask:
 
 class BackgroundJT(BackgroundServerTask):
     def __init__(self, args):
-        rubyDir = _suite.dir
         jt = join(rubyDir, 'tool', 'jt.rb')
         BackgroundServerTask.__init__(self, ['ruby', jt] + args)
 
@@ -125,7 +124,7 @@ class BuildStatsBenchmarkSuite(RubyBenchmarkSuite):
 
 metrics_benchmarks = {
     'hello': ['-e', "puts 'hello'"],
-    'compile-mandelbrot': ['--graal', '../ruby-benchmarks/metrics/mandelbrot.rb']
+    'compile-mandelbrot': ['--graal', join(rubyDir, 'bench', 'metrics', 'mandelbrot.rb')]
 }
 
 default_metrics_benchmarks = ['hello']
@@ -509,7 +508,6 @@ class MicroBenchmarkSuite(AllBenchmarksBenchmarkSuite):
         return 'micro'
 
     def benchmarks(self):
-        rubyDir = _suite.dir
         ruby_benchmarks = join(rubyDir, 'bench')
         benchmarks = []
         for root, dirs, files in os.walk(join(ruby_benchmarks, 'micro')):
