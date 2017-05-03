@@ -77,7 +77,7 @@ describe "Truffle::Interop.read" do
   end
 
   it "throws a Java UnknownIdentifierException exception when the name is not a supported type" do
-    lambda { Truffle::Interop.read(Math, Truffle::Debug.foregin_object) }.should raise_error(RubyTruffleError, /Unknown identifier: /)
+    lambda { Truffle::Interop.read(Math, Truffle::Debug.foreign_object) }.should raise_error(RubyTruffleError, /Unknown identifier: /)
   end
 
   it "can be used to index a hash" do

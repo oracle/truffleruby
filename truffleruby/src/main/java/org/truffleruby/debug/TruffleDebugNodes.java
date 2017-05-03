@@ -330,7 +330,7 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @CoreMethod(names = "foregin_object", onSingleton = true)
+    @CoreMethod(names = "foreign_object", onSingleton = true)
     public abstract static class ForeignObjectNode extends CoreMethodArrayArgumentsNode {
 
         private static class ForeignObject implements TruffleObject {
