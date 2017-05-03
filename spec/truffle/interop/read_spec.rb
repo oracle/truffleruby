@@ -72,6 +72,10 @@ describe "Truffle::Interop.read" do
     Truffle::Interop.read([1, 2, 3], 1).should == 2
   end
 
+  it "throws a Java exception when there is a Ruby exception during the read" do
+    lambda { Truffle::Interop.read([], Truffle::Interop.to_java_string('foo')) }.should raise_error(RubyTruffleError, /Unknown identifier: foo/)
+  end
+
   it "can be used to index a hash" do
     Truffle::Interop.read({1 => 2, 3 => 4, 5 => 6}, 3).should == 4
   end

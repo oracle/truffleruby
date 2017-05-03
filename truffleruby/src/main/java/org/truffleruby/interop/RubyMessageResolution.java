@@ -11,15 +11,18 @@ package org.truffleruby.interop;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.CanResolve;
 import com.oracle.truffle.api.interop.Message;
 import com.oracle.truffle.api.interop.MessageResolution;
 import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -28,6 +31,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyObjectType;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchAction;
 import org.truffleruby.language.dispatch.DispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
@@ -147,8 +151,20 @@ public class RubyMessageResolution {
 
         @Child private ForeignReadStringCachingHelperNode helperNode = ForeignReadStringCachingHelperNodeGen.create(null, null);
 
+        private final BranchProfile exceptionProfile = BranchProfile.create();
+
         protected Object access(VirtualFrame frame, DynamicObject object, Object name) {
-            return helperNode.executeStringCachingHelper(frame, object, name);
+            try {
+                return helperNode.executeStringCachingHelper(frame, object, name);
+            } catch (RaiseException e) {
+                exceptionProfile.enter();
+                throw UnknownIdentifierException.raise(toString(name));
+            }
+        }
+
+        @TruffleBoundary
+        private String toString(Object name) {
+            return name.toString();
         }
 
     }

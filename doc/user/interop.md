@@ -12,6 +12,7 @@ Interop ignores visibility entirely.
 * [How to send messages using idiomatic Ruby](#how-to-send-messages-using-idiomatic-ruby)
 * [What messages are sent for Ruby syntax on foreign objects](#what-messages-are-sent-for-ruby-syntax-on-foreign-objects)
 * [Import and export](#import-and-export)
+* [Interop eval](#interop-eval)
 
 ## How Ruby responds to messages
 
@@ -90,6 +91,8 @@ Otherwise, perform a method call using the name as the called method name:
 `READ(object, name)` → `object.name` if `object.responds_to?(name)`
 
 In all cases where a call is made no block is passed.
+
+An exception during a read will result in an `UnknownIdentifierException`.
 
 ### `WRITE`
 
