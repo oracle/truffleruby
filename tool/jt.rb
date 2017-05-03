@@ -776,13 +776,6 @@ module Commands
   end
 
   def test_mri(*args)
-    truffle_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
-    
-    env_vars = {
-      "EXCLUDES" => "test/mri/excludes",
-      "RUBYOPT" => '--disable-gems'
-    }
-
     if args.delete('--openssl')
       include_pattern = "#{JRUBY_DIR}/test/mri/tests/openssl/test_*.rb"
       exclude_file = "#{JRUBY_DIR}/test/mri/openssl.exclude"
@@ -805,11 +798,41 @@ module Commands
       
       files_to_run = (include_files - exclude_files)
     end
-    
-    command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
-    run(env_vars, *truffle_args, *args, *command, *files_to_run)
+
+    run_mri_tests(args, files_to_run)
   end
   private :test_mri
+
+  def run_mri_tests(extra_args, test_files, run_options = {})
+    truffle_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
+    
+    env_vars = {
+      "EXCLUDES" => "test/mri/excludes",
+      "RUBYOPT" => '--disable-gems'
+    }
+
+    command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
+    run(env_vars, *truffle_args, *extra_args, *command, *test_files, run_options)
+  end
+  private :run_mri_tests
+
+  def retag(test_file)
+    test_classes = File.read(test_file).scan(/class (\w+) < Test::Unit::TestCase/)
+    test_classes.each do |test_class,|
+      file = "test/mri/excludes/#{test_class.gsub('::', '/')}.rb"
+      FileUtils::Verbose.rm_f file
+    end
+
+    puts "1. Tagging tests"
+    output_file = "mri_tests.txt"
+    run_mri_tests([], test_file, out: output_file, continue_on_failure: true)
+
+    puts "2. Parsing errors"
+    sh "ruby", "tool/parse_mri_errors.rb", output_file
+
+    puts "3. Verifying tests pass"
+    run_mri_tests([], test_file)
+  end
 
   def test_compiler(*args)
     env = {}
