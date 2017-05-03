@@ -49,7 +49,7 @@ class TruffleRubyDocsProject(ArchiveProject):
 def ruby_tck(args):
     mx_unittest.unittest(['--verbose', '--suite', 'truffleruby'])
 
-def deploy_binary_if_truffle_head(args):
+def deploy_binary_if_master(args):
     """If the active branch is 'master', deploy binaries for the primary suite to remote maven repository."""
     primary_branch = 'master'
     active_branch = mx.VC.get_vc(_suite.dir).active_branch(_suite.dir)
@@ -68,6 +68,6 @@ def ruby_testdownstream(args):
 
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],
-    'deploy-binary-if-truffle-head': [deploy_binary_if_truffle_head, ''],
+    'deploy-binary-if-master': [deploy_binary_if_master, ''],
     'ruby_testdownstream': [ruby_testdownstream, '']
 })
