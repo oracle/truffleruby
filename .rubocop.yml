@@ -5,6 +5,7 @@ AllCops:
   Exclude:
     - '*.rb'
     - 'bin/**/*'
+    - 'bench/**/*'
     - 'lib/bin/**/*'
     - 'lib/json/**/*'
     - 'lib/mri/**/*'
@@ -17,7 +18,6 @@ AllCops:
     - 'test/**/*'
     - 'tool/**/*'
     - 'truffleruby/target/classes/**/*'
-    - 'bench/**/*'
 
 # Department 'Lint' (58):
 Lint/AmbiguousOperator:
