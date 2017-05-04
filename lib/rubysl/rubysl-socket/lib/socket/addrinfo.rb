@@ -86,7 +86,7 @@ class Addrinfo
       else
         @ip_port, @ip_address = Socket.unpack_sockaddr_in(sockaddr)
 
-        if sockaddr.bytesize == 28
+        if sockaddr.bytesize == RubySL::Socket::Foreign::SockaddrIn6.size
           @afamily = Socket::AF_INET6
         else
           @afamily = Socket::AF_INET
