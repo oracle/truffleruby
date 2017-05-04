@@ -999,26 +999,31 @@ module Commands
       temp_dir = Dir.mktmpdir(gem_name)
 
       begin
+        gem_home = if ENV['GEM_HOME']
+                     ENV['GEM_HOME']
+                   else
+                     File.join(temp_dir, 'gem_home')
+                   end
+
+        FileUtils.mkpath(gem_home)
+        gem_home = File.realpath gem_home # remove symlinks
+        puts "Using temporary GEM_HOME:#{gem_home}"
+
         Dir.chdir(temp_dir) do
           puts "Cloning gem #{gem_name} into temp directory: #{temp_dir}"
           raw_sh('git', 'clone', gem.fetch(:url))
         end
 
-        gem_home = if ENV['GEM_HOME']
-                     ENV['GEM_HOME']
-                   else
-                     tmp_home = File.join(temp_dir, 'gem_home')
-                     Dir.mkdir(tmp_home)
-                     puts "Using temporary GEM_HOME:#{tmp_home}"
-                     tmp_home
-                   end
-
-        Dir.chdir(File.join(temp_dir, gem_name)) do
+        Dir.chdir(gem_checkout = File.join(temp_dir, gem_name)) do
           raw_sh('git', 'checkout', gem.fetch(:commit)) if gem.key?(:commit)
 
-          run({ 'GEM_HOME' => gem_home }, '-S', 'gem', 'install', 'bundler', '-v', '1.14.6')
-          run({ 'GEM_HOME' => gem_home }, '-S', 'bundle', 'install')
-          run({ 'GEM_HOME' => gem_home }, File.join(gem_home, 'bin', 'bundle'), 'exec', File.join(gem_home, 'bin', 'rake'))
+          environment = { 'GEM_HOME' => gem_home,
+                          # add bin from gem_home to PATH
+                          'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR) }
+
+          run(environment, '-S', 'gem', 'install', 'bundler', '-v', '1.14.6', '--backtrace')
+          run(environment, '-S', 'bundle', 'install')
+          run(environment, '-S', 'bundle', 'exec', 'rake')
         end
       ensure
         FileUtils.remove_entry temp_dir
