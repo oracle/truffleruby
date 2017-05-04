@@ -49,7 +49,14 @@ public class ThreadLocalObject {
                 if (otherThreadValues != null) {
                     return otherThreadValues;
                 } else {
-                    return otherThreadValues = new ThreadLocal<>();
+                    otherThreadValues = new ThreadLocal<Object>() {
+                        @Override
+                        protected Object initialValue() {
+                            return ThreadLocalObject.this.initialValue();
+                        }
+
+                    };
+                    return otherThreadValues;
                 }
             }
         }
