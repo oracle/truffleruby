@@ -74,11 +74,20 @@ class File
     end
 
     def self.lstat(path)
+      stat = lstat?(path)
+      Errno.handle path unless stat
+      stat
+    end
+
+    def self.lstat?(path)
       path = Rubinius::Type.coerce_to_path(path)
       stat = allocate
       result = Truffle.invoke_primitive(:stat_lstat, stat, path)
-      Errno.handle path unless result == 0
-      stat
+      if result == 0
+        stat
+      else
+        nil
+      end
     end
 
     def self.fstat(fd)
