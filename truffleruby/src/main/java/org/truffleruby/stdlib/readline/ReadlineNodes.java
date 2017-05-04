@@ -303,7 +303,7 @@ public abstract class ReadlineNodes {
         @Override
         public int complete(String buffer, int cursor, List<CharSequence> candidates) {
             buffer = buffer.substring(0, cursor);
-            int index = buffer.lastIndexOf(" ");
+            int index = buffer.lastIndexOf(' ');
             if (index != -1) {
                 buffer = buffer.substring(index + 1);
             }

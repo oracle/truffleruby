@@ -202,7 +202,7 @@ public class BacktraceFormatter {
         final String exceptionClass = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception)).getName();
 
         // Show the exception class at the end of the first line of the message
-        final int firstLn = message.indexOf("\n");
+        final int firstLn = message.indexOf('\n');
         if (firstLn >= 0) {
             builder.append(message.substring(0, firstLn));
             builder.append(" (").append(exceptionClass).append(")");
