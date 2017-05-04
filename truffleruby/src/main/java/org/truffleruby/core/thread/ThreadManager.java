@@ -52,13 +52,13 @@ public class ThreadManager {
 
     public ThreadManager(RubyContext context) {
         this.context = context;
-        this.rootThread = createRubyThread(context);
+        this.rootThread = createRubyThread(context, "main");
     }
 
     public static final InterruptMode DEFAULT_INTERRUPT_MODE = InterruptMode.IMMEDIATE;
     public static final ThreadStatus DEFAULT_STATUS = ThreadStatus.RUN;
 
-    public static DynamicObject createRubyThread(RubyContext context) {
+    public static DynamicObject createRubyThread(RubyContext context, String info) {
         final DynamicObject object = Layouts.THREAD.createThread(
                 context.getCoreLibrary().getThreadFactory(),
                 createThreadLocals(context),
@@ -74,6 +74,7 @@ public class ThreadManager {
                 new AtomicBoolean(false),
                 Thread.NORM_PRIORITY,
                 context.getCoreLibrary().getNilObject(),
+                info,
                 context.getCoreLibrary().getNilObject(),
                 null);
 
@@ -94,7 +95,7 @@ public class ThreadManager {
         return threadLocals;
     }
 
-    public static void initialize(final DynamicObject thread, RubyContext context, Node currentNode, final Object[] arguments, final DynamicObject block) {
+    public static void initialize(DynamicObject thread, RubyContext context, Node currentNode, Object[] arguments, DynamicObject block) {
         if (context.getOptions().SHARED_OBJECTS_ENABLED) {
             SharedObjects.shareDeclarationFrame(context, block);
         }
@@ -107,16 +108,17 @@ public class ThreadManager {
         });
     }
 
-    public static void initialize(final DynamicObject thread, final RubyContext context, final Node currentNode, final String info, final Runnable task) {
+    public static void initialize(DynamicObject thread, RubyContext context, Node currentNode, String info, Runnable task) {
         assert RubyGuards.isRubyThread(thread);
         new Thread(() -> run(thread, context, currentNode, info, task)).start();
 
         FiberNodes.waitForInitialization(context, Layouts.THREAD.getFiberManager(thread).getRootFiber(), currentNode);
     }
 
-    public static void run(DynamicObject thread, final RubyContext context, Node currentNode, String info, Runnable task) {
+    public static void run(DynamicObject thread, RubyContext context, Node currentNode, String info, Runnable task) {
         assert RubyGuards.isRubyThread(thread);
 
+        Layouts.THREAD.setSourceLocation(thread, info);
         final String name = "Ruby Thread@" + info;
         Thread.currentThread().setName(name);
         DynamicObject fiber = Layouts.THREAD.getFiberManager(thread).getRootFiber();
@@ -138,7 +140,7 @@ public class ThreadManager {
         }
     }
 
-    private static void setThreadValue(RubyContext context, DynamicObject thread, final Object value) {
+    private static void setThreadValue(RubyContext context, DynamicObject thread, Object value) {
         // A Thread is always shared (Thread.list)
         SharedObjects.propagate(context, thread, value);
         Layouts.THREAD.setValue(thread, value);
