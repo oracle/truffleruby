@@ -23,6 +23,7 @@ import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -37,8 +38,6 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 
 public abstract class CachedDispatchNode extends DispatchNode {
-
-    private static final Assumption DUMMY_ASSUMPTION = Truffle.getRuntime().createAssumption();
 
     private final Object cachedName;
     private final DynamicObject cachedNameAsSymbol;
@@ -84,7 +83,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
         if (root instanceof RubyRootNode && !sendingFrames()) {
             needsCallerAssumption = ((RubyRootNode) root).getNeedsCallerAssumption();
         } else {
-            needsCallerAssumption = DUMMY_ASSUMPTION;
+            needsCallerAssumption = AlwaysValidAssumption.INSTANCE;
         }
     }
 
@@ -107,7 +106,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
     }
 
     private void replaceSendingFrame(boolean sendsFrame, ReadCallerFrameNode readCaller) {
-        assert needsCallerAssumption != DUMMY_ASSUMPTION;
+        assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
         this.sendsFrame = sendsFrame;
         this.readCaller = readCaller;
         Node root = getRootNode();

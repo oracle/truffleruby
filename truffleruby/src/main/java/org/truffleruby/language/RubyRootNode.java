@@ -9,6 +9,10 @@
  */
 package org.truffleruby.language;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.methods.SharedMethodInfo;
+
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.ExecutionContext;
 import com.oracle.truffle.api.Truffle;
@@ -17,12 +21,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
-
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.methods.SharedMethodInfo;
 
 public class RubyRootNode extends RootNode {
 
