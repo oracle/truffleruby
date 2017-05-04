@@ -16,7 +16,7 @@ git checkout v2.71828182
 bundle install
 ./configure --disable-llvm
 # If running on Solaris, use the following instead. "-m64" forces a 64-bit binary. "-D_XOPEN_SOURCE=600" tells Solaris to use the SUSv3 feature set. "-std=gnu99" is required to build with SUSv3 enabled.
-# CC="gcc -std=gnu99 -m64 -D_XOPEN_SOURCE=600" ./configure --disable-llvm
+# CC="gcc -std=gnu99 -m64 -D_XOPEN_SOURCE=600 -D__EXTENSIONS__=1" ./configure --disable-llvm
 bundle exec rake runtime/platform.conf
 cd ../truffleruby
 ruby tool/translate_rubinius_config.rb ../rubinius/runtime/platform.conf
