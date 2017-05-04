@@ -747,9 +747,9 @@ class File < IO
   # group id of the calling process is the owner of the file.
   # Returns false on Windows.
   def self.grpowned?(path)
-    begin
-      lstat(path).grpowned?
-    rescue
+    if stat = Stat.lstat?(path)
+      stat.grpowned?
+    else
       false
     end
   end
@@ -1053,9 +1053,11 @@ class File < IO
   ##
   # Returns true if the named file is a symbolic link.
   def self.symlink?(path)
-    Stat.lstat(path).symlink?
-  rescue Errno::ENOENT, Errno::ENODIR
-    false
+    if stat = Stat.lstat?(path)
+      stat.symlink?
+    else
+      false
+    end
   end
 
   ##
@@ -1186,33 +1188,41 @@ class File < IO
   # used id of the calling process is the owner of the file.
   #  File.owned?(file_name)   => true or false
   def self.owned?(file_name)
-    Stat.new(file_name).owned?
-  rescue Errno::ENOENT
-    return false
+    if stat = Stat.stat(file_name)
+      stat.owned?
+    else
+      false
+    end
   end
 
   ##
   # Returns true if the named file has the setgid bit set.
   def self.setgid?(file_name)
-    Stat.new(file_name).setgid?
-  rescue Errno::ENOENT
-    return false
+    if stat = Stat.stat(file_name)
+      stat.setgid?
+    else
+      false
+    end
   end
 
   ##
   # Returns true if the named file has the setuid bit set.
   def self.setuid?(file_name)
-    Stat.new(file_name).setuid?
-  rescue Errno::ENOENT
-    return false
+    if stat = Stat.stat(file_name)
+      stat.setuid?
+    else
+      false
+    end
   end
 
   ##
   # Returns true if the named file has the sticky bit set.
   def self.sticky?(file_name)
-    Stat.new(file_name).sticky?
-  rescue Errno::ENOENT
-    return false
+    if stat = Stat.stat(file_name)
+      stat.sticky?
+    else
+      false
+    end
   end
 
   class << self
