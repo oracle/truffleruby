@@ -230,8 +230,8 @@ class Thread
   def inspect
     stat = status()
     stat = 'dead' unless stat
-
-    "#<#{self.class}:0x#{object_id.to_s(16)} id=#{@thread_id} #{stat}>"
+    loc = Truffle.invoke_primitive(:thread_source_location, self)
+    "#<#{self.class}:0x#{object_id.to_s(16)}@#{loc} #{stat}>"
   end
 
   alias_method :to_s, :inspect

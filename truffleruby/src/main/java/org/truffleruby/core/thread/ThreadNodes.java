@@ -50,6 +50,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
@@ -63,6 +64,7 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -474,6 +476,7 @@ public abstract class ThreadNodes {
                     new AtomicBoolean(false),
                     new AtomicInteger(Thread.NORM_PRIORITY),
                     currentGroup,
+                    "<uninitialized>",
                     nil(),
                     null);
 
@@ -523,6 +526,16 @@ public abstract class ThreadNodes {
             });
         }
 
+    }
+
+    @Primitive(name = "thread_source_location")
+    public static abstract class ThreadSourceLocationNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyThread(thread)")
+        public DynamicObject sourceLocation(DynamicObject thread) {
+            return StringOperations.createString(getContext(), StringOperations.encodeRope(
+                    Layouts.THREAD.getSourceLocation(thread), UTF8Encoding.INSTANCE));
+        }
     }
 
     @Primitive(name = "thread_get_name")
