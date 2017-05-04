@@ -483,6 +483,7 @@ public abstract class KernelNodes {
 
         @Child private CallDispatchHeadNode toStr;
         @Child private BindingNode bindingNode;
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
 
         @CreateCast("source")
         public RubyNode coerceSourceToString(RubyNode source) {
@@ -513,6 +514,7 @@ public abstract class KernelNodes {
         @Specialization(guards = {
                 "isRubyString(source)",
                 "ropesEqual(source, cachedSource)",
+                "callerDescriptor == callerFrameNode.execute(frame).getFrameDescriptor()",
                 "!parseDependsOnDeclarationFrame(cachedRootNode)"
         }, limit = "getCacheLimit()")
         public Object evalNoBindingCached(
@@ -524,11 +526,48 @@ public abstract class KernelNodes {
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("compileSource(frame, source)") RootNodeWrapper cachedRootNode,
                 @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
-                @Cached("create(cachedCallTarget)") DirectCallNode callNode
+                @Cached("create(cachedCallTarget)") DirectCallNode callNode,
+                @Cached("callerFrameNode.execute(frame).getFrameDescriptor()") FrameDescriptor callerDescriptor,
+                @Cached("newFrameDescriptor(getContext())") FrameDescriptor extrasDescriptor
         ) {
-            final DynamicObject callerBinding = getCallerBinding(frame);
+            final DynamicObject callerBinding = BindingNodes.createBinding(getContext(), callerFrameNode.execute(frame).materialize(), extrasDescriptor);
 
-            final MaterializedFrame parentFrame = Layouts.BINDING.getFrame(callerBinding);
+            final MaterializedFrame parentFrame = Layouts.BINDING.getExtras(callerBinding);
+            final Object callerSelf = RubyArguments.getSelf(frame);
+
+            final InternalMethod method = new InternalMethod(
+                    getContext(),
+                    cachedRootNode.getRootNode().getSharedMethodInfo(),
+                    RubyArguments.getMethod(parentFrame).getLexicalScope(),
+                    cachedRootNode.getRootNode().getSharedMethodInfo().getName(),
+                    RubyArguments.getMethod(parentFrame).getDeclaringModule(),
+                    Visibility.PUBLIC,
+                    cachedCallTarget);
+
+            return callNode.call(RubyArguments.pack(parentFrame, null, method, RubyArguments.getDeclarationContext(parentFrame), null, callerSelf, null, new Object[]{}));
+        }
+
+        @Specialization(guards = {
+                "isRubyString(source)",
+                "ropesEqual(source, cachedSource)",
+                "callerDescriptor == callerFrameNode.execute(frame).getFrameDescriptor()",
+                "parseDependsOnDeclarationFrame(cachedRootNode)"
+        }, limit = "getCacheLimit()")
+        public Object evalDependsOnContextNoBindingCached(
+                VirtualFrame frame,
+                DynamicObject source,
+                NotProvided binding,
+                NotProvided file,
+                NotProvided line,
+                @Cached("privatizeRope(source)") Rope cachedSource,
+                @Cached("callerFrameNode.execute(frame).getFrameDescriptor()") FrameDescriptor callerDescriptor,
+                @Cached("newFrameDescriptor(getContext())") FrameDescriptor extrasDescriptor,
+                @Cached("compileSource(frame, source, callerFrameNode.execute(frame).materialize(), extrasDescriptor)") RootNodeWrapper cachedRootNode,
+                @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
+                @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
+            final DynamicObject callerBinding = BindingNodes.createBinding(getContext(), callerFrameNode.execute(frame).materialize(), extrasDescriptor);
+
+            final MaterializedFrame parentFrame = Layouts.BINDING.getExtras(callerBinding);
             final Object callerSelf = RubyArguments.getSelf(frame);
 
             final InternalMethod method = new InternalMethod(
@@ -545,7 +584,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = {
                 "isRubyString(source)"
-        }, replaces = "evalNoBindingCached")
+        }, replaces = { "evalNoBindingCached", "evalDependsOnContextNoBindingCached" })
         public Object evalNoBindingUncached(VirtualFrame frame, DynamicObject source, NotProvided noBinding, NotProvided file, NotProvided line,
                 @Cached("create()") IndirectCallNode callNode) {
             final DynamicObject binding = getCallerBinding(frame);
@@ -661,6 +700,20 @@ public abstract class KernelNodes {
             return new RootNodeWrapper(translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
         }
 
+        protected RootNodeWrapper compileSource(VirtualFrame frame, DynamicObject sourceText, MaterializedFrame caller, FrameDescriptor extrasDescriptor) {
+            assert RubyGuards.isRubyString(sourceText);
+
+            final DynamicObject callerBinding = BindingNodes.createBinding(getContext(), caller, extrasDescriptor);
+            final MaterializedFrame parentFrame = Layouts.BINDING.getExtras(callerBinding);
+
+            final Encoding encoding = Layouts.STRING.getRope(sourceText).getEncoding();
+            final Source source = Source.newBuilder(sourceText.toString()).name("(eval)").mimeType(RubyLanguage.MIME_TYPE).build();
+
+            final TranslatorDriver translator = new TranslatorDriver(getContext());
+
+            return new RootNodeWrapper(translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
+        }
+
         protected boolean parseDependsOnDeclarationFrame(RootNodeWrapper rootNode) {
             return rootNode.getRootNode().needsDeclarationFrame();
         }
@@ -673,6 +726,10 @@ public abstract class KernelNodes {
             return getContext().getOptions().EVAL_CACHE;
         }
 
+    @TruffleBoundary
+    public static FrameDescriptor newFrameDescriptor(RubyContext context) {
+        return new FrameDescriptor(context.getCoreLibrary().getNilObject());
+    }
     }
 
     @CoreMethod(names = "freeze")
