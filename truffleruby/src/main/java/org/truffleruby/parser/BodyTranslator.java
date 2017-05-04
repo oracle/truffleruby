@@ -152,8 +152,8 @@ import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.WriteClassVariableNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
-import org.truffleruby.language.threadlocal.GetFromThreadLocalNode;
-import org.truffleruby.language.threadlocal.SetInThreadLocalNode;
+import org.truffleruby.language.threadlocal.GetFromThreadAndFrameLocalStorageNode;
+import org.truffleruby.language.threadlocal.SetInThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.threadlocal.ThreadLocalObjectNode;
 import org.truffleruby.language.threadlocal.ThreadLocalObjectNodeGen;
 import org.truffleruby.language.yield.YieldExpressionNode;
@@ -1755,7 +1755,7 @@ public class BodyTranslator extends Translator {
 
             final RubyNode assignment;
             if (THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-                assignment = new SetInThreadLocalNode(localVarNode, rhs);
+                assignment = new SetInThreadAndFrameLocalStorageNode(localVarNode, rhs);
                 assignment.unsafeSetSourceSection(sourceSection);
             } else {
                 assignment = localVarNode.makeWriteNode(rhs);
@@ -1803,7 +1803,7 @@ public class BodyTranslator extends Translator {
             }
 
             if (THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-                readNode = new GetFromThreadLocalNode(readNode);
+                readNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
                 readNode.unsafeSetSourceSection(sourceSection);
             }
 
@@ -2499,7 +2499,7 @@ public class BodyTranslator extends Translator {
 
         environment.declareVarInMethodScope("$~");
 
-        final GetFromThreadLocalNode readMatchNode = new GetFromThreadLocalNode(environment.findLocalVarNode("$~", source, sourceSection));
+        final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(environment.findLocalVarNode("$~", source, sourceSection));
         final RubyNode ret = new ReadMatchReferenceNode(readMatchNode, node.getMatchNumber());
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
@@ -3249,7 +3249,7 @@ public class BodyTranslator extends Translator {
 
         environment.declareVarInMethodScope("$~");
 
-        final GetFromThreadLocalNode readMatchNode = new GetFromThreadLocalNode(environment.findLocalVarNode("$~", source, sourceSection));
+        final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(environment.findLocalVarNode("$~", source, sourceSection));
         final RubyNode ret = new ReadMatchReferenceNode(readMatchNode, index);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);

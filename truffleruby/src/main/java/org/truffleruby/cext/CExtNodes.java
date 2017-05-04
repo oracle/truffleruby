@@ -83,7 +83,7 @@ import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.language.supercall.CallSuperMethodNodeGen;
-import org.truffleruby.language.threadlocal.ThreadLocalObject;
+import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.platform.FDSet;
 
@@ -909,7 +909,7 @@ public class CExtNodes {
         @Specialization
         @TruffleBoundary
         public Object backRefGet() {
-            final ThreadLocalObject storage = RegexpNodes.getMatchDataThreadLocalSearchingStack(getContext());
+            final ThreadAndFrameLocalStorage storage = RegexpNodes.getMatchDataThreadLocalSearchingStack(getContext());
 
             if (storage == null) {
                 return nil();

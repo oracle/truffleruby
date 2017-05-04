@@ -126,9 +126,9 @@ import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.threadlocal.ThreadLocalInFrameNode;
-import org.truffleruby.language.threadlocal.ThreadLocalInFrameNodeGen;
-import org.truffleruby.language.threadlocal.ThreadLocalObject;
+import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
+import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;;
+import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
@@ -716,18 +716,17 @@ public abstract class KernelNodes {
     public abstract static class GetsNode extends CoreMethodArrayArgumentsNode {
 
         @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
-        @Child ThreadLocalInFrameNode threadLocalNode;
+        @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
 
         @Specialization
         public DynamicObject gets(VirtualFrame frame) {
             final DynamicObject rubyLine = getInputLine();
             if (threadLocalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                threadLocalNode = insert(ThreadLocalInFrameNodeGen.create("$_",
-                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT));
+                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create("$_"));
             }
             Frame callerFrame = readCallerFrame.execute(frame);
-            ThreadLocalObject lastMatch = threadLocalNode.execute(callerFrame.materialize());
+            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(callerFrame.materialize());
             lastMatch.set(rubyLine);
 
             return rubyLine;

@@ -16,12 +16,12 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
-public class GetFromThreadLocalNode extends RubyNode {
+public class GetFromThreadAndFrameLocalStorageNode extends RubyNode {
 
     @Child private RubyNode value;
-    private final ConditionProfile isThreadLocalProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isStorageProfile = ConditionProfile.createBinaryProfile();
 
-    public GetFromThreadLocalNode(RubyNode value) {
+    public GetFromThreadAndFrameLocalStorageNode(RubyNode value) {
         this.value = value;
     }
 
@@ -32,16 +32,16 @@ public class GetFromThreadLocalNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object threadLocalObject = value.execute(frame);
+        final Object storage = value.execute(frame);
 
-        if (isThreadLocalProfile.profile(RubyGuards.isThreadLocal(threadLocalObject))) {
-            return getThreadLocalValue((ThreadLocalObject) threadLocalObject);
+        if (isStorageProfile.profile(RubyGuards.isThreadLocal(storage))) {
+            return getStoredValue((ThreadAndFrameLocalStorage) storage);
         }
 
-        return threadLocalObject;
+        return storage;
     }
 
-    private Object getThreadLocalValue(ThreadLocalObject threadLocalObject) {
+    private Object getStoredValue(ThreadAndFrameLocalStorage threadLocalObject) {
         return threadLocalObject.get();
     }
 

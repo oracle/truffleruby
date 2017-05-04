@@ -61,23 +61,10 @@
  */
 package org.truffleruby.core.rubinius;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.ControlFlowException;
-import com.oracle.truffle.api.nodes.Node.Child;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import jnr.constants.platform.Errno;
-import jnr.constants.platform.Fcntl;
-import jnr.constants.platform.OpenFlags;
-import jnr.posix.DefaultNativeTimeval;
-import jnr.posix.Timeval;
+import static org.truffleruby.core.string.StringOperations.rope;
+
+import java.nio.ByteBuffer;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
@@ -89,7 +76,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayOperations;
-import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode;
 import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
 import org.truffleruby.core.rope.BytesVisitor;
@@ -102,22 +88,34 @@ import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.ResultWithinTime;
 import org.truffleruby.extra.ffi.PointerNodes;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.threadlocal.ThreadLocalInFrameNode;
-import org.truffleruby.language.threadlocal.ThreadLocalInFrameNodeGen;
-import org.truffleruby.language.threadlocal.ThreadLocalObject;
+import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
+import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
+import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.Platform;
 
-import java.nio.ByteBuffer;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.ControlFlowException;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
-import static org.truffleruby.core.string.StringOperations.rope;
+import jnr.constants.platform.Errno;
+import jnr.constants.platform.Fcntl;
+import jnr.constants.platform.OpenFlags;
+import jnr.posix.DefaultNativeTimeval;
+import jnr.posix.Timeval;
 
 @CoreClass("IO")
 public abstract class IONodes {
@@ -1000,15 +998,14 @@ public abstract class IONodes {
     public static abstract class GetLastLineNode extends PrimitiveArrayArgumentsNode {
 
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
-        @Child ThreadLocalInFrameNode threadLocalNode;
+        @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
 
         @Specialization
         public Object getLastLine(VirtualFrame frame) {
             Frame callerFrame = callerFrameNode.execute(frame);
             if (threadLocalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                threadLocalNode = insert(ThreadLocalInFrameNodeGen.create(LAST_LINE_VARIABLE,
-                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT));
+                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create(LAST_LINE_VARIABLE));
             }
             return threadLocalNode.execute(callerFrame.materialize()).get();
         }
@@ -1018,7 +1015,7 @@ public abstract class IONodes {
     public static abstract class SetLastLineNode extends PrimitiveArrayArgumentsNode {
 
         @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
-        @Child ThreadLocalInFrameNode threadLocalNode;
+        @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
 
         public static RegexpSetLastMatchPrimitiveNode create() {
             return RegexpSetLastMatchPrimitiveNodeFactory.create(null);
@@ -1030,11 +1027,10 @@ public abstract class IONodes {
         public DynamicObject setLastLine(VirtualFrame frame, DynamicObject matchData) {
             if (threadLocalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                threadLocalNode = insert(ThreadLocalInFrameNodeGen.create(LAST_LINE_VARIABLE,
-                        getContext().getOptions().FRAME_VARIABLE_ACCESS_LIMIT));
+                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create(LAST_LINE_VARIABLE));
             }
             Frame callerFrame = readCallerFrame.execute(frame);
-            ThreadLocalObject lastMatch = threadLocalNode.execute(callerFrame.materialize());
+            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(callerFrame.materialize());
             lastMatch.set(matchData);
             return matchData;
         }

@@ -8,16 +8,16 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class SetInThreadLocalNode extends RubyNode {
+public class SetInThreadAndFrameLocalStorageNode extends RubyNode {
 
     @Child private RubyNode variableNode;
     @Child private RubyNode writeNode;
     @Child private RubyNode valueNode;
-    private final ConditionProfile isThreadLocalProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isStorageProfile = ConditionProfile.createBinaryProfile();
 
-    public SetInThreadLocalNode(ReadLocalNode variable, RubyNode value) {
+    public SetInThreadAndFrameLocalStorageNode(ReadLocalNode variable, RubyNode value) {
         this.variableNode = variable;
-        writeNode = variable.makeWriteNode(new NewThreadLocalObjectNode());
+        writeNode = variable.makeWriteNode(new NewThreadAndFrameLocalStorageNode());
         this.valueNode = value;
     }
 
@@ -29,15 +29,15 @@ public class SetInThreadLocalNode extends RubyNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object variableObject = variableNode.execute(frame);
-        final ThreadLocalObject threadLocal;
-        if (isThreadLocalProfile.profile(RubyGuards.isThreadLocal(variableObject))) {
-            threadLocal = (ThreadLocalObject) variableObject;
+        final ThreadAndFrameLocalStorage storage;
+        if (isStorageProfile.profile(RubyGuards.isThreadLocal(variableObject))) {
+            storage = (ThreadAndFrameLocalStorage) variableObject;
         } else {
-            threadLocal = (ThreadLocalObject) writeNode.execute(frame);
+            storage = (ThreadAndFrameLocalStorage) writeNode.execute(frame);
         }
 
         Object result = valueNode.execute(frame);
-        threadLocal.set(result);
+        storage.set(result);
         return result;
     }
 }

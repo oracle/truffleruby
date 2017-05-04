@@ -14,20 +14,20 @@ import org.truffleruby.RubyContext;
 
 import java.lang.ref.WeakReference;
 
-public class ThreadLocalObject {
+public class ThreadAndFrameLocalStorage {
 
     private final RubyContext context;
     private final WeakReference<Thread> originalThread;
     private Object originalThreadValue;
     private volatile ThreadLocal<Object> otherThreadValues = null;
 
-    public static ThreadLocalObject wrap(RubyContext context, Object value) {
-        final ThreadLocalObject threadLocal = new ThreadLocalObject(context);
-        threadLocal.set(value);
-        return threadLocal;
+    public static ThreadAndFrameLocalStorage wrap(RubyContext context, Object value) {
+        final ThreadAndFrameLocalStorage storage = new ThreadAndFrameLocalStorage(context);
+        storage.set(value);
+        return storage;
     }
 
-    public ThreadLocalObject(RubyContext context) {
+    public ThreadAndFrameLocalStorage(RubyContext context) {
         this.context = context;
         originalThread = new WeakReference<>(Thread.currentThread());
         originalThreadValue = initialValue();
@@ -52,7 +52,7 @@ public class ThreadLocalObject {
                     otherThreadValues = new ThreadLocal<Object>() {
                         @Override
                         protected Object initialValue() {
-                            return ThreadLocalObject.this.initialValue();
+                            return ThreadAndFrameLocalStorage.this.initialValue();
                         }
 
                     };
