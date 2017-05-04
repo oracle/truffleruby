@@ -126,7 +126,9 @@ import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.threadlocal.ThreadLocalObject;
+import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
+import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;;
+import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
@@ -145,7 +147,6 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -715,9 +716,25 @@ public abstract class KernelNodes {
     @CoreMethod(names = "gets", isModuleFunction = true)
     public abstract static class GetsNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
+        @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
+        @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
+
         @Specialization
-        public DynamicObject gets() {
+        public DynamicObject gets(VirtualFrame frame) {
+            final DynamicObject rubyLine = getInputLine();
+            if (threadLocalNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create("$_"));
+            }
+            Frame callerFrame = readCallerFrame.execute(frame);
+            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(callerFrame.materialize());
+            lastMatch.set(rubyLine);
+
+            return rubyLine;
+        }
+
+        @TruffleBoundary
+        private DynamicObject getInputLine() {
             // TODO CS 8-Apr-17 this whole method is archaic and won't interact with the rest of the system properly
 
             final InputStream in = getContext().getEnv().in();
@@ -747,21 +764,8 @@ public abstract class KernelNodes {
                 return builder.getBytes();
             });
 
-            final DynamicObject rubyLine = createString(RopeOperations.create(line, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
-
-            // Set the local variable $_ in the caller
-
-            final Frame caller = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);
-
-            final FrameSlot slot = caller.getFrameDescriptor().findFrameSlot("$_");
-
-            if (slot != null) {
-                caller.setObject(slot, ThreadLocalObject.wrap(getContext(), rubyLine));
-            }
-
-            return rubyLine;
+            return createString(RopeOperations.create(line, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
-
     }
 
     @CoreMethod(names = "hash")

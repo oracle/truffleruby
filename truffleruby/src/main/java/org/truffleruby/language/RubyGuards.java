@@ -13,7 +13,7 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.extra.ffi.PointerNodes;
-import org.truffleruby.language.threadlocal.ThreadLocalObject;
+import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 
 public abstract class RubyGuards {
 
@@ -252,7 +252,7 @@ public abstract class RubyGuards {
     // Internal types
 
     public static boolean isThreadLocal(Object value) {
-        return value instanceof ThreadLocalObject;
+        return value instanceof ThreadAndFrameLocalStorage;
     }
 
     public static boolean isTruffleObject(Object object) {

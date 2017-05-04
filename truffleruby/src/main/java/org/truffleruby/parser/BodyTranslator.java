@@ -55,8 +55,6 @@ import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.rubinius.RubiniusLastStringReadNode;
-import org.truffleruby.core.rubinius.RubiniusLastStringWriteNodeGen;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -154,10 +152,10 @@ import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.WriteClassVariableNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
-import org.truffleruby.language.threadlocal.GetFromThreadLocalNode;
+import org.truffleruby.language.threadlocal.GetFromThreadAndFrameLocalStorageNode;
+import org.truffleruby.language.threadlocal.SetInThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.threadlocal.ThreadLocalObjectNode;
 import org.truffleruby.language.threadlocal.ThreadLocalObjectNodeGen;
-import org.truffleruby.language.threadlocal.WrapInThreadLocalNodeGen;
 import org.truffleruby.language.yield.YieldExpressionNode;
 import org.truffleruby.parser.ast.AliasParseNode;
 import org.truffleruby.parser.ast.AndParseNode;
@@ -1686,9 +1684,12 @@ public class BodyTranslator extends Translator {
         switch (name) {
             case "$~":
                 rhs = new CheckMatchVariableTypeNode(rhs);
-                rhs = WrapInThreadLocalNodeGen.create(rhs);
-                rhs.unsafeSetSourceSection(sourceSection);
-                environment.declareVarInMethodScope("$~");
+                environment.declareVarInMethodScope(name);
+                // The right hand side must be built using the resolved variable.
+                break;
+            case "$_":
+                environment.declareVarInMethodScope(name);
+                // The right hand side must be built using the resolved variable.
                 break;
             case "$0":
                 rhs = new CheckProgramNameVariableTypeNode(rhs);
@@ -1701,15 +1702,6 @@ public class BodyTranslator extends Translator {
             case "$,":
                 rhs = new CheckOutputSeparatorVariableTypeNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
-                break;
-            case "$_":
-                if (getSourcePath(sourceSection).endsWith(buildPartialPath("rubysl", "rubysl-stringio", "lib", "rubysl", "stringio", "stringio.rb"))) {
-                    rhs = RubiniusLastStringWriteNodeGen.create(rhs);
-                } else {
-                    rhs = WrapInThreadLocalNodeGen.create(rhs);
-                }
-                rhs.unsafeSetSourceSection(sourceSection);
-                environment.declareVar("$_");
                 break;
             case "$stdout":
                 rhs = new CheckStdoutVariableTypeNode(rhs);
@@ -1761,11 +1753,12 @@ public class BodyTranslator extends Translator {
                 }
             }
 
-            RubyNode assignment = localVarNode.makeWriteNode(rhs);
-
-            if (name.equals("$_") || name.equals("$~")) {
-                // TODO CS 4-Jan-16 I can't work out why this is a *get* node
-                assignment = withSourceSection(sourceSection, new GetFromThreadLocalNode(assignment));
+            final RubyNode assignment;
+            if (THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+                assignment = new SetInThreadAndFrameLocalStorageNode(localVarNode, rhs);
+                assignment.unsafeSetSourceSection(sourceSection);
+            } else {
+                assignment = localVarNode.makeWriteNode(rhs);
             }
 
             return addNewlineIfNeeded(node, assignment);
@@ -1809,16 +1802,8 @@ public class BodyTranslator extends Translator {
                 readNode = environment.findLocalVarNode(name, source, sourceSection);
             }
 
-            if (name.equals("$_")) {
-                if (getSourcePath(sourceSection).equals(corePath() + "regexp.rb")) {
-                    readNode = new RubiniusLastStringReadNode();
-                    readNode.unsafeSetSourceSection(sourceSection);
-                } else {
-                    readNode = new GetFromThreadLocalNode(readNode);
-                    readNode.unsafeSetSourceSection(sourceSection);
-                }
-            } else if (name.equals("$~")) {
-                readNode = new GetFromThreadLocalNode(readNode);
+            if (THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+                readNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
                 readNode.unsafeSetSourceSection(sourceSection);
             }
 
@@ -2514,7 +2499,7 @@ public class BodyTranslator extends Translator {
 
         environment.declareVarInMethodScope("$~");
 
-        final GetFromThreadLocalNode readMatchNode = new GetFromThreadLocalNode(environment.findLocalVarNode("$~", source, sourceSection));
+        final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(environment.findLocalVarNode("$~", source, sourceSection));
         final RubyNode ret = new ReadMatchReferenceNode(readMatchNode, node.getMatchNumber());
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
@@ -3264,7 +3249,7 @@ public class BodyTranslator extends Translator {
 
         environment.declareVarInMethodScope("$~");
 
-        final GetFromThreadLocalNode readMatchNode = new GetFromThreadLocalNode(environment.findLocalVarNode("$~", source, sourceSection));
+        final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(environment.findLocalVarNode("$~", source, sourceSection));
         final RubyNode ret = new ReadMatchReferenceNode(readMatchNode, index);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);

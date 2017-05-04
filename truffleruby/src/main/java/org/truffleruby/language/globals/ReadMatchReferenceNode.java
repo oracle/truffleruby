@@ -14,7 +14,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.threadlocal.GetFromThreadLocalNode;
+import org.truffleruby.language.threadlocal.GetFromThreadAndFrameLocalStorageNode;
 
 public class ReadMatchReferenceNode extends RubyNode {
 
@@ -25,11 +25,11 @@ public class ReadMatchReferenceNode extends RubyNode {
 
     private final int index;
 
-    @Child private GetFromThreadLocalNode readMatchNode;
+    @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
 
     private final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
 
-    public ReadMatchReferenceNode(GetFromThreadLocalNode readMatchNode, int index) {
+    public ReadMatchReferenceNode(GetFromThreadAndFrameLocalStorageNode readMatchNode, int index) {
         this.readMatchNode = readMatchNode;
         this.index = index;
     }

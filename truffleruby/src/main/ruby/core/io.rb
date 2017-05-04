@@ -1,3 +1,4 @@
+# coding: utf-8
 # Copyright (c) 2015, 2016 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -530,8 +531,6 @@ class IO
       options = Rubinius::Type.coerce_to options, Hash, :to_hash
     end
 
-    saved_line = $_
-
     if name[0] == ?|
       io = IO.popen(name[1..-1], 'r')
       return nil unless io
@@ -545,7 +544,6 @@ class IO
         yield line
       end
     ensure
-      $_ = saved_line
       io.close
     end
     nil
@@ -1715,11 +1713,13 @@ class IO
   end
 
   def gets(sep_or_limit=$/, limit=nil)
-    each sep_or_limit, limit do |line|
-      $_ = line if line
-      return line
+    line = nil
+    each sep_or_limit, limit do |l|
+      line = l
+      break
     end
-    nil
+    Truffle.invoke_primitive(:io_set_last_line, line) if line
+    line
   end
 
   ##
@@ -1812,7 +1812,7 @@ class IO
   # nil.
   def print(*args)
     if args.empty?
-      write $_.to_s
+      write Truffle.invoke_primitive(:io_get_last_line).to_s
     else
       args.each { |o| write o.to_s }
     end
@@ -2023,12 +2023,10 @@ class IO
   def readlines(sep=$/)
     sep = StringValue sep if sep
 
-    old_line = $_
     ary = Array.new
     while line = gets(sep)
       ary << line
     end
-    $_ = old_line
 
     ary
   end
