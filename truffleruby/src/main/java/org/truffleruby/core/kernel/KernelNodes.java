@@ -511,46 +511,18 @@ public abstract class KernelNodes {
             }
         }
 
+        // We always cache against the caller's frame descriptor to avoid breaking assumptions about
+        // the shapes of declaration frames made in other areas. Specifically other code in the
+        // runtime assumes that a frame with a particular shape will always have a chain of
+        // declaration frame also of stable shapes. This assumption could be broken by code such
+        // as eval("binding") which does not depend on a declaration context from the parses piont
+        // of view but could produce frames that broke the assumption.
         @Specialization(guards = {
                 "isRubyString(source)",
                 "ropesEqual(source, cachedSource)",
                 "callerDescriptor == callerFrameNode.execute(frame).getFrameDescriptor()",
-                "!parseDependsOnDeclarationFrame(cachedRootNode)"
         }, limit = "getCacheLimit()")
         public Object evalNoBindingCached(
-                VirtualFrame frame,
-                DynamicObject source,
-                NotProvided binding,
-                NotProvided file,
-                NotProvided line,
-                @Cached("privatizeRope(source)") Rope cachedSource,
-                @Cached("compileSource(frame, source)") RootNodeWrapper cachedRootNode,
-                @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
-                @Cached("create(cachedCallTarget)") DirectCallNode callNode,
-                @Cached("callerFrameNode.execute(frame).getFrameDescriptor()") FrameDescriptor callerDescriptor
-        ) {
-            final MaterializedFrame parentFrame = callerFrameNode.execute(frame).materialize();
-            final Object callerSelf = RubyArguments.getSelf(frame);
-
-            final InternalMethod method = new InternalMethod(
-                    getContext(),
-                    cachedRootNode.getRootNode().getSharedMethodInfo(),
-                    RubyArguments.getMethod(parentFrame).getLexicalScope(),
-                    cachedRootNode.getRootNode().getSharedMethodInfo().getName(),
-                    RubyArguments.getMethod(parentFrame).getDeclaringModule(),
-                    Visibility.PUBLIC,
-                    cachedCallTarget);
-
-            return callNode.call(RubyArguments.pack(parentFrame, null, method, RubyArguments.getDeclarationContext(parentFrame), null, callerSelf, null, new Object[]{}));
-        }
-
-        @Specialization(guards = {
-                "isRubyString(source)",
-                "ropesEqual(source, cachedSource)",
-                "callerDescriptor == callerFrameNode.execute(frame).getFrameDescriptor()",
-                "parseDependsOnDeclarationFrame(cachedRootNode)"
-        }, limit = "getCacheLimit()")
-        public Object evalDependsOnContextNoBindingCached(
                 VirtualFrame frame,
                 DynamicObject source,
                 NotProvided binding,
@@ -578,7 +550,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = {
                 "isRubyString(source)"
-        }, replaces = { "evalNoBindingCached", "evalDependsOnContextNoBindingCached" })
+        }, replaces = "evalNoBindingCached")
         public Object evalNoBindingUncached(VirtualFrame frame, DynamicObject source, NotProvided noBinding, NotProvided file, NotProvided line,
                 @Cached("create()") IndirectCallNode callNode) {
             final DynamicObject binding = getCallerBinding(frame);
@@ -703,10 +675,6 @@ public abstract class KernelNodes {
             final TranslatorDriver translator = new TranslatorDriver(getContext());
 
             return new RootNodeWrapper(translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
-        }
-
-        protected boolean parseDependsOnDeclarationFrame(RootNodeWrapper rootNode) {
-            return rootNode.getRootNode().needsDeclarationFrame();
         }
 
         protected CallTarget createCallTarget(RootNodeWrapper rootNode) {
