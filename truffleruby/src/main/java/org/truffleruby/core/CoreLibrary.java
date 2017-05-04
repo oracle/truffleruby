@@ -1005,7 +1005,7 @@ public class CoreLibrary {
 
         // External should always have a value, but Encoding.external_encoding{,=} will lazily setup
         final String externalEncodingName = getContext().getOptions().EXTERNAL_ENCODING;
-        if (externalEncodingName != null && !externalEncodingName.equals("")) {
+        if (externalEncodingName != null && !externalEncodingName.isEmpty()) {
             final DynamicObject loadedEncoding = getContext().getEncodingManager().getRubyEncoding(externalEncodingName);
             if (loadedEncoding == null) {
                 // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit with a status code of 1 -- it's essentially an input validation error -- no need to show the user a full trace.
@@ -1018,7 +1018,7 @@ public class CoreLibrary {
         }
 
         final String internalEncodingName = getContext().getOptions().INTERNAL_ENCODING;
-        if (internalEncodingName != null && !internalEncodingName.equals("")) {
+        if (internalEncodingName != null && !internalEncodingName.isEmpty()) {
             final DynamicObject rubyEncoding = getContext().getEncodingManager().getRubyEncoding(internalEncodingName);
             if (rubyEncoding == null) {
                 // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit with a status code of 1 -- it's essentially an input validation error -- no need to show the user a full trace.
