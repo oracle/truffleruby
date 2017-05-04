@@ -527,12 +527,9 @@ public abstract class KernelNodes {
                 @Cached("compileSource(frame, source)") RootNodeWrapper cachedRootNode,
                 @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
-                @Cached("callerFrameNode.execute(frame).getFrameDescriptor()") FrameDescriptor callerDescriptor,
-                @Cached("newFrameDescriptor(getContext())") FrameDescriptor extrasDescriptor
+                @Cached("callerFrameNode.execute(frame).getFrameDescriptor()") FrameDescriptor callerDescriptor
         ) {
-            final DynamicObject callerBinding = BindingNodes.createBinding(getContext(), callerFrameNode.execute(frame).materialize(), extrasDescriptor);
-
-            final MaterializedFrame parentFrame = Layouts.BINDING.getExtras(callerBinding);
+            final MaterializedFrame parentFrame = callerFrameNode.execute(frame).materialize();
             final Object callerSelf = RubyArguments.getSelf(frame);
 
             final InternalMethod method = new InternalMethod(
@@ -561,13 +558,10 @@ public abstract class KernelNodes {
                 NotProvided line,
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("callerFrameNode.execute(frame).getFrameDescriptor()") FrameDescriptor callerDescriptor,
-                @Cached("newFrameDescriptor(getContext())") FrameDescriptor extrasDescriptor,
-                @Cached("compileSource(frame, source, callerFrameNode.execute(frame).materialize(), extrasDescriptor)") RootNodeWrapper cachedRootNode,
+                @Cached("compileSource(frame, source, callerFrameNode.execute(frame).materialize())") RootNodeWrapper cachedRootNode,
                 @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
-            final DynamicObject callerBinding = BindingNodes.createBinding(getContext(), callerFrameNode.execute(frame).materialize(), extrasDescriptor);
-
-            final MaterializedFrame parentFrame = Layouts.BINDING.getExtras(callerBinding);
+            final MaterializedFrame parentFrame = callerFrameNode.execute(frame).materialize();
             final Object callerSelf = RubyArguments.getSelf(frame);
 
             final InternalMethod method = new InternalMethod(
@@ -700,11 +694,8 @@ public abstract class KernelNodes {
             return new RootNodeWrapper(translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
         }
 
-        protected RootNodeWrapper compileSource(VirtualFrame frame, DynamicObject sourceText, MaterializedFrame caller, FrameDescriptor extrasDescriptor) {
+        protected RootNodeWrapper compileSource(VirtualFrame frame, DynamicObject sourceText, MaterializedFrame parentFrame) {
             assert RubyGuards.isRubyString(sourceText);
-
-            final DynamicObject callerBinding = BindingNodes.createBinding(getContext(), caller, extrasDescriptor);
-            final MaterializedFrame parentFrame = Layouts.BINDING.getExtras(callerBinding);
 
             final Encoding encoding = Layouts.STRING.getRope(sourceText).getEncoding();
             final Source source = Source.newBuilder(sourceText.toString()).name("(eval)").mimeType(RubyLanguage.MIME_TYPE).build();
