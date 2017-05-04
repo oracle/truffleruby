@@ -29,9 +29,9 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 
-import static org.truffleruby.core.array.ArrayHelpers.createArray;
-
 import java.util.EnumSet;
+
+import static org.truffleruby.core.array.ArrayHelpers.createArray;
 
 public class CoreExceptions {
 
@@ -54,7 +54,7 @@ public class CoreExceptions {
         if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
             final String exceptionClass = Layouts.MODULE.getFields(rubyClass).getName();
             String from = "";
-            if (!backtrace.getActivations().isEmpty()) {
+            if (backtrace != null && !backtrace.getActivations().isEmpty()) {
                 from = " at " + debugBacktraceFormatter.formatLine(backtrace.getActivations(), 0, null);
             }
             Object stderr = context.getCoreLibrary().getStderr();
