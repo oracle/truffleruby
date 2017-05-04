@@ -74,12 +74,6 @@ public abstract class CachedDispatchNode extends DispatchNode {
         this.next = next;
     }
 
-    @Override
-    public void setupForReplacement(Node oldNode, CharSequence reason) {
-        super.setupForReplacement(oldNode, reason);
-        resetNeedsCallerAssumption();
-    }
-
     private void resetNeedsCallerAssumption() {
         Node root = getRootNode();
         if (root instanceof RubyRootNode && !sendingFrames()) {
@@ -171,6 +165,10 @@ public abstract class CachedDispatchNode extends DispatchNode {
     }
 
     protected Object call(DirectCallNode callNode, VirtualFrame frame, InternalMethod method, Object receiver, DynamicObject block, Object[] arguments) {
+        if (needsCallerAssumption == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            resetNeedsCallerAssumption();
+        }
         try {
             needsCallerAssumption.check();
         } catch (InvalidAssumptionException e) {

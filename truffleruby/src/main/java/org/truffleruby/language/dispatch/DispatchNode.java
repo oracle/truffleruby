@@ -92,14 +92,4 @@ public abstract class DispatchNode extends RubyNode {
     public DispatchAction getDispatchAction() {
         return dispatchAction;
     }
-
-    public void setupForReplacement(Node oldNode, CharSequence reason) {
-    }
-
-    @Override
-    public final void onReplace(Node newNode, CharSequence reason) {
-        if (newNode instanceof DispatchNode) {
-            ((DispatchNode) newNode).setupForReplacement(this, reason);
-        }
-    }
 }
