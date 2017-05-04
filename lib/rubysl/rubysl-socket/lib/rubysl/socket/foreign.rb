@@ -222,6 +222,17 @@ module RubySL
 
       def self.pack_sockaddr_in(host, port, family = ::Socket::AF_UNSPEC,
                                 type = 0, flags = 0)
+        if type == 0
+          begin
+            # Check if the port is a numeric value we must set the socket type in order for the getaddrinfo call
+            # to succeed on some platforms (most notably, Solaris).
+            Integer(port)
+            type = ::Socket::SOCK_DGRAM
+          rescue ArgumentError
+            # Ignored.
+          end
+        end
+
         hints = Addrinfo.new
 
         hints[:ai_family]   = family
