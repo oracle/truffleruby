@@ -85,7 +85,7 @@ class Socket < BasicSocket
       when 1
         onoff = true
       else
-        onoff = linger.onoff.to_i
+        onoff = linger.on_off.to_i
       end
 
       [onoff, linger.linger]
