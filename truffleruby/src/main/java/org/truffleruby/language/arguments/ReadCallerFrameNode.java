@@ -51,9 +51,9 @@ public class ReadCallerFrameNode extends RubyNode {
             Node parent = callerNode.getParent();
             if (parent instanceof CachedDispatchNode) {
                 if (getContext().getCallStack().callerIsSend()) {
-                    ((CachedDispatchNode) parent).replaceSendingCallerFrame(accessMode);
+                    ((CachedDispatchNode) parent).startSendingCallerFrame(accessMode);
                 } else {
-                    ((CachedDispatchNode) parent).replaceSendingFrame();
+                    ((CachedDispatchNode) parent).startSendingOwnFrame();
                 }
             }
         }

@@ -9,24 +9,6 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.InvalidAssumptionException;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
-
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.core.string.StringOperations;
@@ -37,7 +19,27 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 
+import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.InvalidAssumptionException;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
+
 public abstract class CachedDispatchNode extends DispatchNode {
+
+    protected static enum SendsFrame {
+        NO_FRAME,
+        MY_FRAME,
+        CALLER_FRAME;
+    }
 
     private final Object cachedName;
     private final DynamicObject cachedNameAsSymbol;
@@ -45,7 +47,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
     @Child protected DispatchNode next;
 
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
-    @CompilationFinal protected boolean sendsFrame = false;
+    @CompilationFinal protected SendsFrame sendsFrame = SendsFrame.NO_FRAME;
     @Child private ReadCallerFrameNode readCaller;
     @CompilationFinal private Assumption needsCallerAssumption;
 
@@ -88,27 +90,29 @@ public abstract class CachedDispatchNode extends DispatchNode {
     }
 
     protected boolean sendingFrames() {
-        return sendsFrame || readCaller != null;
+        return sendsFrame != SendsFrame.NO_FRAME;
     }
 
-    public void replaceSendingFrame() {
-        assert readCaller == null;
-        if (!sendsFrame) {
-            replaceSendingFrame(true, null);
+    public void startSendingOwnFrame() {
+        assert sendsFrame != SendsFrame.CALLER_FRAME;
+        if (sendsFrame == SendsFrame.NO_FRAME) {
+            startSendingFrame(SendsFrame.MY_FRAME);
         }
     }
 
-    public void replaceSendingCallerFrame(CallerFrameAccess access) {
-        assert sendsFrame == false;
-        if (readCaller == null) {
-            replaceSendingFrame(false, new ReadCallerFrameNode(access));
+    public void startSendingCallerFrame(CallerFrameAccess access) {
+        assert sendsFrame != SendsFrame.MY_FRAME;
+        if (sendsFrame == SendsFrame.NO_FRAME) {
+            startSendingFrame(SendsFrame.CALLER_FRAME);
         }
     }
 
-    private void replaceSendingFrame(boolean sendsFrame, ReadCallerFrameNode readCaller) {
+    private void startSendingFrame(SendsFrame frameToSend) {
         assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
-        this.sendsFrame = sendsFrame;
-        this.readCaller = readCaller;
+        this.sendsFrame = frameToSend;
+        if (frameToSend == SendsFrame.CALLER_FRAME) {
+            this.readCaller = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
+        }
         Node root = getRootNode();
         if (root instanceof RubyRootNode) {
             ((RubyRootNode) root).replaceAndInvalidateNeedsCallerAssumption(needsCallerAssumption);
@@ -194,11 +198,13 @@ public abstract class CachedDispatchNode extends DispatchNode {
     }
 
     private MaterializedFrame getFrameIfRequired(VirtualFrame frame) {
-        if (sendsFrame) {
-            return frame.materialize();
-        } else if (readCaller != null) {
-            return readCaller.execute(frame).materialize();
+        switch (sendsFrame) {
+            case MY_FRAME:
+                return frame.materialize();
+            case CALLER_FRAME:
+                return readCaller.execute(frame).materialize();
+            default:
+                return null;
         }
-        return null;
     }
 }
