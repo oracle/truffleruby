@@ -573,6 +573,39 @@ public abstract class KernelNodes {
 
         @Specialization(guards = {
                 "isRubyString(source)",
+                "ropesEqual(source, cachedSource)",
+                "isRubyBinding(binding)",
+                "assignsNoNewVariables(cachedRootNode)",
+                "bindingDescriptor == getBindingDescriptor(binding)"
+        }, limit = "getCacheLimit()")
+        public Object evalBindingCached(
+                VirtualFrame frame,
+                DynamicObject source,
+                DynamicObject binding,
+                NotProvided file,
+                NotProvided line,
+                @Cached("privatizeRope(source)") Rope cachedSource,
+                @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
+                @Cached("compileSource(frame, source, getBindingFrame(binding))") RootNodeWrapper cachedRootNode,
+                @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
+                @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
+            final MaterializedFrame parentFrame = BindingNodes.getTopFrame(binding);
+            final Object callerSelf = RubyArguments.getSelf(frame);
+
+            final InternalMethod method = new InternalMethod(
+                    getContext(),
+                    cachedRootNode.getRootNode().getSharedMethodInfo(),
+                    RubyArguments.getMethod(parentFrame).getLexicalScope(),
+                    cachedRootNode.getRootNode().getSharedMethodInfo().getName(),
+                    RubyArguments.getMethod(parentFrame).getDeclaringModule(),
+                    Visibility.PUBLIC,
+                    cachedCallTarget);
+
+            return callNode.call(RubyArguments.pack(parentFrame, null, method, RubyArguments.getDeclarationContext(parentFrame), null, callerSelf, null, new Object[]{}));
+        }
+
+        @Specialization(guards = {
+                "isRubyString(source)",
                 "isRubyBinding(binding)"
         })
         public Object evalBinding(VirtualFrame frame, DynamicObject source, DynamicObject binding, NotProvided file, NotProvided line,
@@ -681,14 +714,24 @@ public abstract class KernelNodes {
             return Truffle.getRuntime().createCallTarget(rootNode.rootNode);
         }
 
+        protected FrameDescriptor getBindingDescriptor(DynamicObject binding) {
+            return BindingNodes.getFrameDescriptor(binding);
+        }
+
+        protected MaterializedFrame getBindingFrame(DynamicObject binding) {
+            return BindingNodes.getTopFrame(binding);
+        }
+
         protected int getCacheLimit() {
             return getContext().getOptions().EVAL_CACHE;
         }
 
-    @TruffleBoundary
-    public static FrameDescriptor newFrameDescriptor(RubyContext context) {
-        return new FrameDescriptor(context.getCoreLibrary().getNilObject());
-    }
+        protected boolean assignsNoNewVariables(RootNodeWrapper rootNode) {
+            FrameDescriptor descriptor = rootNode.getRootNode().getFrameDescriptor();
+            // All frames associated with our root nodes will contain self, which we don't need to
+            // care about.
+            return descriptor.getSize() == 1;
+        }
     }
 
     @CoreMethod(names = "freeze")
