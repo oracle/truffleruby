@@ -71,13 +71,25 @@ C extension is actually being used by looking for these log lines.
 
 ## OpenSSL
 
-To build the `openssl` gem you need to install the OpenSSL system library. On
-macOS we use Homebrew and 1.0.2g. You need to set the `OPENSSL_HOME` variable
-and then you can build C extensions including `openssl`.
+To build the `openssl` gem you need to install the OpenSSL system library and configure the
+location to the OpenSSL header and library files. On macOS we use Homebrew and 1.0.2g.
+On Linux, it's probably safe to use your package manager's version of the OpenSSL dev package
+(just note that we currently test with 1.0.2g). For Homebrew you can simple set the `OPENSSL_HOME`
+variable to the Cellar location. For Linux users installing system packages, you may need 
+to set one or more of `OPENSSL_LIB_HOME`, `OPENSSL_INCLUDE`, or `OPENSSL_LIB`. On Ubuntu,
+setting `OPENSSL_LIB` is sufficient. Once your environment variables are set, you can build
+the C extensions, including support for `openssl`. Note that if you do change any of the
+aforementioned environment variables you will need to recompile the extension.
 
 ```
+# macOS
 $ SULONG_HOME=/absolute/path/to/sulong JT_OPT=opt-3.8 JT_CLANG=clang-3.8 \
   OPENSSL_HOME=/usr/local/Cellar/openssl/1.0.2g \
+    jt build cexts
+    
+# Linux
+$ SULONG_HOME=/absolute/path/to/sulong JT_OPT=opt-3.8 JT_CLANG=clang-3.8 \
+  OPENSSL_LIB_HOME /usr/lib/x86_64-linux-gnu \
     jt build cexts
 ```
 
