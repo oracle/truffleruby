@@ -394,12 +394,13 @@ cext-benchmarks: ${sulong} {
 
 gem-test-pack: {
   environment: {
-    GEM_HOME: "$PWD/../jruby-truffle-gem-test-pack/gems"
+    TRUFFLERUBY_GEM_TEST_PACK_VERSION: "1",
+    GEM_HOME: "$PWD/truffleruby-gem-test-pack/gems"
   }
 
   setup: [
-    [mx, sclone, --kind, git, "https://github.com/jruby/all-ruby-benchmarks.git", ../jruby-truffle-gem-test-pack],
-    [test/truffle/gem-test-pack-checkout-revision.sh]
+    [curl, -OL, "https://www.dropbox.com/s/mpz7xopz29173jy/truffleruby-gem-test-pack-$TRUFFLERUBY_GEM_TEST_PACK_VERSION.tar.gz"],
+    [tar, -zxf, "truffleruby-gem-test-pack-$TRUFFLERUBY_GEM_TEST_PACK_VERSION.tar.gz"]
   ]
 }
 

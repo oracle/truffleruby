@@ -1016,6 +1016,10 @@ module Commands
   private :test_gems
 
   def test_ecosystem(env={}, *args)
+    unless File.exist? "#{JRUBY_DIR}/truffleruby-gem-test-pack/gem-testing"
+      raise 'missing truffleruby-gem-test-pack/gem-testing directory'
+    end
+
     tests_path             = "#{JRUBY_DIR}/test/truffle/ecosystem"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'

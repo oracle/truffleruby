@@ -5,9 +5,7 @@ set -x
 
 unset GEM_HOME GEM_PATH
 
-git clone \
-    --branch master \
-    https://github.com/jruby/all-ruby-benchmarks.git \
-    ../jruby-truffle-gem-test-pack
+TRUFFLERUBY_GEM_TEST_PACK_VERSION=1
 
-test/truffle/gem-test-pack-checkout-revision.sh
+curl -OL https://www.dropbox.com/s/mpz7xopz29173jy/truffleruby-gem-test-pack-$TRUFFLERUBY_GEM_TEST_PACK_VERSION.tar.gz
+tar -zxf truffleruby-gem-test-pack-$TRUFFLERUBY_GEM_TEST_PACK_VERSION.tar.gz

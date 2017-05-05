@@ -25,13 +25,13 @@ jt build cexts --no-openssl
 
 ## Testing
 
-Get the `all-ruby-benchmarks` repository at
-https://github.com/jruby/all-ruby-benchmarks
+Get the `truffleruby-gem-test-pack-n.tar.gz` file and extract into the root
+of the TruffleRuby repository.
 
 You can then test C extension support.
 
 ```bash
-GEM_HOME=../all-ruby-benchmarks/gems jt test cexts --no-libxml --no-openssl
+GEM_HOME=truffleruby-gem-test-pack/gems jt test cexts --no-libxml --no-openssl
 ```
 
 If you want to test `libxml`, remove that flag and set either `LIBXML_HOME` or
