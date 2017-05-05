@@ -139,19 +139,15 @@ public class Main {
                         Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
                     }
 
+                    final String bootCode;
                     if (config.shouldUsePathScript()) {
                         context.setOriginalInputFile(config.getScriptFileName());
-                        exitCode = engine.eval(context.getCoreLibrary().createMainBootSource(
-                                //language=ruby
-                                "Truffle::Boot.main_s",
-                                "main")).as(Integer.class);
+                        bootCode = "Truffle::Boot.main_s";
                     } else {
                         context.setOriginalInputFile(filename);
-                        exitCode = engine.eval(context.getCoreLibrary().createMainBootSource(
-                                //language=ruby
-                                "exit Truffle::Boot.main",
-                                "main")).as(Integer.class);
+                        bootCode = "exit Truffle::Boot.main";
                     }
+                    exitCode = engine.eval(context.getCoreLibrary().createMainBootSource(bootCode, "main")).as(Integer.class);
                 }
             } finally {
                 printTruffleTimeMetric("after-run");
