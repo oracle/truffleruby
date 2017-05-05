@@ -262,9 +262,11 @@ public class CallStackManager {
 
         });
 
-        // TODO CS 3-Mar-16 The last activation is I think what calls jruby_root_node, and I can't seem to remove it any other way
         if (!activations.isEmpty()) {
-            activations.remove(activations.size() - 1);
+            final Activation last = activations.get(activations.size() - 1);
+            if (last.getCallNode().getRootNode().getSourceSection().getSource() == context.getCoreLibrary().getMainBootSource()) {
+                activations.remove(activations.size() - 1);
+            }
         }
 
         if (context.getOptions().EXCEPTIONS_STORE_JAVA || context.getOptions().BACKTRACES_INTERLEAVE_JAVA) {

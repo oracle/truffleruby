@@ -580,12 +580,9 @@ module Kernel
     end
 
     if $DEBUG
-      if bt = exc.backtrace and !bt.empty?
-        pos = bt.first
-      else
-        pos = caller.first
-      end
-      STDERR.puts "Exception: `#{exc.class}' #{pos} - #{exc.message}"
+      bt = exc.backtrace
+      bt = caller if bt.empty?
+      STDERR.puts "Exception: `#{exc.class}' #{bt.first} - #{exc.message}\n"
     end
 
     Rubinius.raise_exception exc

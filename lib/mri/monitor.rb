@@ -239,9 +239,11 @@ module MonitorMixin
   # Initializes the MonitorMixin after being included in a class or when an
   # object has been extended with the MonitorMixin
   def mon_initialize
-    @mon_owner = nil
-    @mon_count = 0
-    @mon_mutex = Mutex.new
+    unless @mon_mutex
+      @mon_owner = nil
+      @mon_count = 0
+      @mon_mutex = Mutex.new
+    end
   end
 
   def mon_check_owner

@@ -46,6 +46,7 @@ public interface ThreadLayout extends BasicObjectLayout {
             AtomicBoolean wakeUp,
             @Volatile int priority,
             DynamicObject threadGroup,
+            String sourceLocation,
             DynamicObject name,
             @Nullable DynamicObject unblocker);
 
@@ -89,6 +90,9 @@ public interface ThreadLayout extends BasicObjectLayout {
 
     DynamicObject getName(DynamicObject object);
     void setName(DynamicObject object, DynamicObject value);
+
+    String getSourceLocation(DynamicObject object);
+    void setSourceLocation(DynamicObject object, String value);
 
     DynamicObject getUnblocker(DynamicObject object);
     void setUnblocker(DynamicObject object, DynamicObject value);

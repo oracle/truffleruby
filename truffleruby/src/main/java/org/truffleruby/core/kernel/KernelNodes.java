@@ -127,7 +127,7 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
-import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;;
+import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
 import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;

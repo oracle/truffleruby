@@ -291,11 +291,23 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableStorage debugStorage;
     @CompilationFinal private GlobalVariableStorage stderrStorage;
 
+    private Source mainBootSource = null;
+
     private final String coreLoadPath;
 
     @TruffleBoundary
     private static Source initCoreSource() {
         return Source.newBuilder("").name("(core)").mimeType(RubyLanguage.MIME_TYPE).build();
+    }
+
+    public Source createMainBootSource(String code, String name) {
+        assert mainBootSource == null;
+        mainBootSource = Source.newBuilder(code).name(name).internal().mimeType(RubyLanguage.MIME_TYPE).build();
+        return mainBootSource;
+    }
+
+    public Source getMainBootSource() {
+        return mainBootSource;
     }
 
     private String buildCoreLoadPath() {

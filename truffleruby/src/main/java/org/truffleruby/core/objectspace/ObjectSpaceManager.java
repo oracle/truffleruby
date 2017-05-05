@@ -123,7 +123,7 @@ public class ObjectSpaceManager {
         if (finalizerThread == null) {
             // TODO(CS): should we be running this in a real Ruby thread?
 
-            finalizerThread = ThreadManager.createRubyThread(context);
+            finalizerThread = ThreadManager.createRubyThread(context, "finalizer");
             ThreadManager.initialize(finalizerThread, context, null, "finalizer", () -> runFinalizers());
         }
     }
