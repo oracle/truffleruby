@@ -36,7 +36,7 @@ public class TrufflePosixHandler implements POSIXHandler {
         throw new RaiseException(ExceptionOperations.createSystemCallError(
                 context.getCoreLibrary().getErrnoClass(errno),
                 context.getCoreLibrary().getNilObject(),
-                null,
+                context.getCallStack().getBacktrace(null),
                 errno.intValue()));
     }
 
