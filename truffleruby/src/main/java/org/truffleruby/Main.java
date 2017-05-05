@@ -141,13 +141,13 @@ public class Main {
 
                     if (config.shouldUsePathScript()) {
                         context.setOriginalInputFile(config.getScriptFileName());
-                        exitCode = engine.eval(loadBootSource(
+                        exitCode = engine.eval(context.getCoreLibrary().createMainBootSource(
                                 //language=ruby
                                 "Truffle::Boot.main_s",
                                 "main")).as(Integer.class);
                     } else {
                         context.setOriginalInputFile(filename);
-                        exitCode = engine.eval(loadBootSource(
+                        exitCode = engine.eval(context.getCoreLibrary().createMainBootSource(
                                 //language=ruby
                                 "exit Truffle::Boot.main",
                                 "main")).as(Integer.class);
