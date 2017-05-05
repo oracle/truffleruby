@@ -87,7 +87,7 @@ actually test it, with `-T-Xpatching=false`.
 
 ```
 $ jt test -T-Xpatching=false --sulong :openssl
-$ jt test mri --openssl -T-Xpatching=false --sulong
+$ jt test mri --openssl --sulong
 ```
 
 ## Implementation
