@@ -153,11 +153,10 @@ public abstract class MutexNodes {
             Layouts.THREAD.getWakeUp(thread).set(false);
 
             MutexOperations.unlock(lock, thread, this);
-
             try {
                 return KernelNodes.SleepNode.sleepFor(this, getContext(), durationInMillis);
             } finally {
-                MutexOperations.lock(lock, thread, this);
+                MutexOperations.lockEvenWithExceptions(lock, thread, this);
             }
         }
 

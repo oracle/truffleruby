@@ -15,6 +15,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -22,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class MutexOperations {
 
     @TruffleBoundary
-    protected static void lock(final ReentrantLock lock, final DynamicObject thread, RubyNode currentNode) {
+    protected static void lock(ReentrantLock lock, DynamicObject thread, RubyNode currentNode) {
         final RubyContext context = currentNode.getContext();
 
         if (lock.isHeldByCurrentThread()) {
@@ -39,6 +40,52 @@ public abstract class MutexOperations {
             }
 
         });
+    }
+
+    @TruffleBoundary
+    protected static void lockEvenWithExceptions(ReentrantLock lock, DynamicObject thread, RubyNode currentNode) {
+        final RubyContext context = currentNode.getContext();
+
+        if (lock.isHeldByCurrentThread()) {
+            throw new RaiseException(context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
+        }
+
+        // We need to re-lock this lock after a Mutex#sleep, no matter what, even if another thread throw us an exception.
+        // Yet, we also need to allow safepoints to happen otherwise the thread that could unlock could be blocked.
+        Throwable throwable = null;
+        try {
+            while (true) {
+                try {
+                    context.getThreadManager().runUntilResult(currentNode, new ThreadManager.BlockingAction<Boolean>() {
+
+                        @Override
+                        public Boolean block() throws InterruptedException {
+                            lock.lockInterruptibly();
+                            Layouts.THREAD.getOwnedLocks(thread).add(lock);
+                            return SUCCESS;
+                        }
+
+                    });
+                } catch (Throwable t) {
+                    throwable = t;
+                }
+                break;
+            }
+        } finally {
+            if (!lock.isHeldByCurrentThread()) {
+                throw new AssertionError("the lock could not be reacquired after Mutex#sleep");
+            }
+        }
+
+        if (throwable != null) {
+            if (throwable instanceof RuntimeException) {
+                throw (RuntimeException) throwable;
+            } else if (throwable instanceof Error) {
+                throw (Error) throwable;
+            } else {
+                throw new JavaException(throwable);
+            }
+        }
     }
 
     @TruffleBoundary
