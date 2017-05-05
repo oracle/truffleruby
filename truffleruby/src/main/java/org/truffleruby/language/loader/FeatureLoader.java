@@ -191,8 +191,6 @@ public class FeatureLoader {
                 throw new RaiseException(context.getCoreExceptions().loadError("Sulong is required to support C extensions, and it doesn't appear to be available", feature, null));
             }
 
-            System.setProperty("sulong.LLVM", "3.2");
-
             final CallTarget callTarget = getCExtLibRuby(feature);
             callNode.call(callTarget, new Object[] {});
 
