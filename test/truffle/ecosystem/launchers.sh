@@ -6,14 +6,14 @@ set -x
 function check_launchers() {
     if [ -n "$2" ]
     then
-        echo "$(${1}truffleruby --version)" | grep -e 'truffleruby .* like ruby 2.3.3'
-        echo "$(${1}ruby --version)" | grep -e 'truffleruby .* like ruby 2.3.3'
+        [[ "$(${1}truffleruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.3 ]]
+        [[ "$(${1}ruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.3 ]]
     fi
-    echo "$(${1}gem --version)" | grep -e '^2.5.2$'
-    echo "$(${1}irb --version)" | grep -e '^irb 0.9.6'
-    echo "$(${1}rake --version)" | grep -e '^rake, version [0-9.]\+'
-    # echo "$(${1}rdoc --version)" | grep -e '^4.2.1$' # TODO (pitr-ch 30-Apr-2017): reports 4.3.0 on CI
-    # echo "$(${1}ri --version)" | grep -e '^ri 4.2.1$' # TODO (pitr-ch 30-Apr-2017): reports 4.3.0 on CI
+    [[ "$(${1}gem --version)" =~ ^2.5.2$ ]]
+    [[ "$(${1}irb --version)" =~ ^irb\ 0.9.6 ]]
+    [[ "$(${1}rake --version)" =~ ^rake,\ version\ [0-9.]+ ]]
+    # [[ "$(${1}rdoc --version)" =~ ^4.2.1$ ]] # TODO (pitr-ch 30-Apr-2017): reports 4.3.0 on CI
+    # [[ "$(${1}ri --version)" =~ ^ri\ 4.2.1$ ]] # TODO (pitr-ch 30-Apr-2017): reports 4.3.0 on CI
 }
 
 echo '** Check all launchers work'
@@ -45,6 +45,6 @@ for bundled_gem in "${bundled_gems[@]}"
 do
     bundled_gem="${bundled_gem//./\\.}"
     bundled_gem="${bundled_gem/ /.*}"
-    grep -e "${bundled_gem}" <<< "${gem_list}"
+    [[ "${gem_list}" =~ ${bundled_gem} ]]
 done
 
