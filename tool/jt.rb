@@ -556,16 +556,12 @@ module Commands
     mx(JRUBY_DIR, 'clean') if Utilities.mx?
     mvn 'clean'
   end
-  
+
   def dis(file)
-    file = `find #{JRUBY_DIR} -name "#{file}"`.chomp
+    file = `find #{JRUBY_DIR} -name "#{file}"`.lines.first.chomp
     raise ArgumentError, "file not found:`#{file}`" if file.empty?
     sh "llvm-dis-3.8", file
-    if $?.success?
-      puts Pathname(file).sub_ext('.ll')
-    else
-      exit(1)
-    end
+    puts Pathname(file).sub_ext('.ll')
   end
 
   def rebuild
