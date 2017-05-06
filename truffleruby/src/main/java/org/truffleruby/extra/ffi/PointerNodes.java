@@ -17,7 +17,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.ffi.Pointer;
-import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -29,13 +28,10 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
-import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.RubiniusTypes;
-
-import java.nio.charset.StandardCharsets;
 
 @CoreClass("Rubinius::FFI::Pointer")
 public abstract class PointerNodes {

@@ -1,6 +1,5 @@
 package org.truffleruby.language.threadlocal;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -13,7 +12,6 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
 
