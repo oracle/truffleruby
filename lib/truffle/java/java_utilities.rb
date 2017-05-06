@@ -266,14 +266,15 @@ module JavaUtilities
 
         JavaProxyBuilder.new(a_proxy, a_class).build
 
-        # Not all proxies can be added as constants.
-        begin
-          parent.const_set(
-            Interop.from_java_string(
-              Java.invoke_java_method(CLASS_GET_SIMPLE_NAME, a_class)),
-            a_proxy) unless parent == nil
-        rescue
-          nil
+        unless parent == nil
+          name = Interop.from_java_string(
+            Java.invoke_java_method(CLASS_GET_SIMPLE_NAME, a_class))
+          # Not all proxies can be added as constants.
+          begin
+            parent.const_set(name, a_proxy)
+          rescue NameError
+            nil
+          end
         end
       else
         a_proxy = existing_proxy
