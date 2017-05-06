@@ -730,7 +730,7 @@ module Commands
                   end
 
     Dir.chdir(gem_dir) do
-      STDERR.puts "in #{gem_dir}..."
+      STDERR.puts "in #{gem_dir} ..."
       run("extconf.rb")
       raw_sh("make")
       FileUtils.copy_file("#{gem_name}.su", copy_target)
