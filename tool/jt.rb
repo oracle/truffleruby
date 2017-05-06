@@ -20,6 +20,7 @@ require 'json'
 require 'timeout'
 require 'yaml'
 require 'open3'
+require 'pathname'
 
 JRUBY_DIR = File.expand_path('../..', __FILE__)
 M2_REPO = File.expand_path('~/.m2/repository')
@@ -445,7 +446,7 @@ module Commands
           parser                                     build the parser
           options                                    build the options
       jt clean                                       clean
-      jt dis <file>                                  finds the bc file in the project, dissasembles, and opens it in JT_EDITOR or vi
+      jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
       jt rebuild                                     clean and build
       jt run [options] args...                       run JRuby with args
           --graal         use Graal (set either GRAALVM_BIN or GRAAL_HOME)
@@ -556,13 +557,15 @@ module Commands
     mvn 'clean'
   end
   
-  def dis(*args)
-    raise ArgumentError, "expected one arg: <filename>" unless args.size == 1
-    editor = ENV['JT_EDITOR'] || 'vi'
-    file = `find #{JRUBY_DIR} -name "#{args[0]}"`
-    raise ArgumentError, "file not found:`#{args[0]}`" if file.empty?
-    `llvm-dis-3.8 #{file}`
-    system(editor, file.split('.')[0] + ".ll")
+  def dis(file)
+    file = `find #{JRUBY_DIR} -name "#{file}"`.chomp
+    raise ArgumentError, "file not found:`#{file}`" if file.empty?
+    sh "llvm-dis-3.8", file
+    if $?.success?
+      puts Pathname(file).sub_ext('.ll')
+    else
+      exit(1)
+    end
   end
 
   def rebuild
