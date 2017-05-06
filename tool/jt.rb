@@ -558,9 +558,10 @@ module Commands
   end
 
   def dis(file)
+    dis = `which llvm-dis-3.8 llvm-dis 2>/dev/null`.lines.first.chomp
     file = `find #{JRUBY_DIR} -name "#{file}"`.lines.first.chomp
     raise ArgumentError, "file not found:`#{file}`" if file.empty?
-    sh "llvm-dis-3.8", file
+    sh dis, file
     puts Pathname(file).sub_ext('.ll')
   end
 
