@@ -22,7 +22,7 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
  * also have their own frame(s) in {@code extras} to store variables added in the Binding, which
  * must not be added in the captured frame (MRI semantics). New frame(s) are added as required to
  * prevent evaluation using the binding from leaking new variables into the captured frame, and when
- * cloning a binding to stop vatriables from the clone leaking to the original or vice versa.
+ * cloning a binding to stop variables from the clone leaking to the original or vice versa.
  */
 @Layout
 public interface BindingLayout extends BasicObjectLayout {

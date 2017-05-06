@@ -3,18 +3,18 @@
 ## Setup
 
 TruffleRuby runs C extension using Sulong. You should build Sulong from source.
-Set `SULONG_VERSION=3.8` when building. Clone from 
+Set `SULONG_VERSION=3.8` when building. Clone from
 https://github.com/graalvm/sulong
 
 You need LLVM installed. Version 3.8 seems to work best. We need the `opt`
 command, so you can't just use what is installed by Xcode if you are on macOS,
-and you'll need to install LLVM via something like Homebrew. E.g. use 
+and you'll need to install LLVM via something like Homebrew. E.g. use
 `brew install llvm38`.
 
 You can now build the C extension support. Building the OpenSSL C extension is
 incomplete, so most people probably want to disable that with `--no-openssl`.
 The 3 environment variables in the following command are needed, `JT_CLANG` and
-`JT_OPT` point the the LLVM binaries installed earlier. 
+`JT_OPT` point the the LLVM binaries installed earlier.
 
 ```
 $ SULONG_HOME=/absolute/path/to/sulong JT_OPT=opt-3.8 JT_CLANG=clang-3.8 \
@@ -23,7 +23,7 @@ $ SULONG_HOME=/absolute/path/to/sulong JT_OPT=opt-3.8 JT_CLANG=clang-3.8 \
 
 ## Testing
 
-Get the `all-ruby-benchmarks` repository at 
+Get the `all-ruby-benchmarks` repository at
 https://github.com/jruby/all-ruby-benchmarks
 
 You can then test C extension support.
@@ -38,8 +38,8 @@ If you want to test `libxml`, remove that flag and set either `LIBXML_HOME` or
 `LIBXML_INCLUDE` and `LIBXML_LIB`. Try the same with `OPENSSL_` if you are
 adventurous.
 
-We further assume that following was exported: 
-`SULONG_HOME=/absolute/path/to/sulong`, `JT_OPT=opt-3.8`, `JT_CLANG=clang-3.8`. 
+We further assume that following was exported:
+`SULONG_HOME=/absolute/path/to/sulong`, `JT_OPT=opt-3.8`, `JT_CLANG=clang-3.8`.
 
 You can also runs specs:
 
@@ -75,9 +75,9 @@ To build the `openssl` gem you need to install the OpenSSL system library and co
 location to the OpenSSL header and library files. On macOS we use Homebrew and 1.0.2g.
 On Linux, it's probably safe to use your package manager's version of the OpenSSL dev package
 (just note that we currently test with 1.0.2g). For Homebrew you can simple set the `OPENSSL_HOME`
-variable to the Cellar location. For Linux users installing system packages, you may need 
+variable to the Cellar location. For Linux users installing system packages, you may need
 to set one or more of `OPENSSL_LIB_HOME`, `OPENSSL_INCLUDE`, or `OPENSSL_LIB`. On Ubuntu,
-setting `OPENSSL_LIB` is sufficient. Once your environment variables are set, you can build
+setting `OPENSSL_LIB_HOME` is sufficient. Once your environment variables are set, you can build
 the C extensions, including support for `openssl`. Note that if you do change any of the
 aforementioned environment variables you will need to recompile the extension.
 
@@ -86,10 +86,10 @@ aforementioned environment variables you will need to recompile the extension.
 $ SULONG_HOME=/absolute/path/to/sulong JT_OPT=opt-3.8 JT_CLANG=clang-3.8 \
   OPENSSL_HOME=/usr/local/Cellar/openssl/1.0.2g \
     jt build cexts
-    
+
 # Linux
 $ SULONG_HOME=/absolute/path/to/sulong JT_OPT=opt-3.8 JT_CLANG=clang-3.8 \
-  OPENSSL_LIB_HOME /usr/lib/x86_64-linux-gnu \
+  OPENSSL_LIB_HOME=/usr/lib/x86_64-linux-gnu \
     jt build cexts
 ```
 
@@ -116,7 +116,7 @@ natively.
 
 We compile C extensions using the standard `mkmf` tool, and `clang` compilers
 which have flags set to generate bitcode instead of machine code. We separately
-run the LLVM `opt` tool to specifically apply some optimisations that we need
+run the LLVM `opt` tool to specifically apply some optimizations that we need
 such as `mem2reg`. We link the bitcode files into a `.su` file (just a JAR of
 the bitcode files), using the `su-link` tool in Sulong.
 
