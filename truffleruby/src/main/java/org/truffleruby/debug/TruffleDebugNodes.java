@@ -318,6 +318,17 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "throw_java_exception_with_cause", onSingleton = true, required = 1)
+    public abstract static class ThrowJavaExceptionWithCauseNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject throwJavaExceptionWithCause(Object message) {
+            throw new RuntimeException(message.toString(), new RuntimeException("cause 1", new RuntimeException("cause 2")));
+        }
+
+    }
+
     @CoreMethod(names = "assert", onSingleton = true, required = 1)
     public abstract static class AssertNode extends CoreMethodArrayArgumentsNode {
 
