@@ -25,8 +25,5 @@ property is written `truffleruby.load_paths`.
 .../graalvm/bin/js -J-Dtruffleruby.load_paths=openweather/lib,. weather.js
 ```
 
-Unfortunately, the demo hangs after printing the temperature, as some Ruby
-service threads get stuck and aren't shutting down properly.
-
 Note that this sample uses the API key from the `openweather` gem tests, and you
 shouldn't re-use this in production.
