@@ -12,8 +12,8 @@ describe "Java exceptions" do
   
   it "formats to include the source information" do
     message = <<~MESSAGE
-    
-    RuntimeException message org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:316)
+    message
+    	RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:316)
     MESSAGE
     
     message.chomp!
@@ -25,10 +25,10 @@ describe "Java exceptions" do
   
   it "formats to include the source information including cause" do
     message = <<~MESSAGE
-    
-    RuntimeException message org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:327)
-    Caused by: RuntimeException cause 1 org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:327)
-    Caused by: RuntimeException cause 2 org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:327)
+    message
+    	RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:327)
+    		caused by cause 1 RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:327)
+    		caused by cause 2 RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:327)
     MESSAGE
     
     message.chomp!

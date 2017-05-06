@@ -188,21 +188,36 @@ public class ExceptionTranslatingNode extends RubyNode {
         }
 
         final StringBuilder messageBuilder = new StringBuilder();
-        messageBuilder.append('\n');
+        int exceptionCount = 0;
 
         while (t != null) {
+            if (exceptionCount > 0) {
+                messageBuilder.append("\n");
+            }
+
+            if (exceptionCount > 0) {
+                messageBuilder.append("\t\tcaused by ");
+            }
+
             String message = t.getMessage();
-            if (throwable instanceof RuntimeException && message != null && message.startsWith("LLVM error")){
+
+            if (throwable instanceof RuntimeException && message != null && message.startsWith("LLVM error")) {
                 message = message.replaceAll(" - ", " \n- ");
             }
 
-            messageBuilder.append(t.getClass().getSimpleName());
-            messageBuilder.append(" ");
             if (message != null) {
                 messageBuilder.append(message);
             } else {
                 messageBuilder.append("<no message>");
             }
+
+            if (exceptionCount == 0) {
+                messageBuilder.append("\n\t");
+            } else {
+                messageBuilder.append(" ");
+            }
+
+            messageBuilder.append(t.getClass().getSimpleName());
 
             if (t.getStackTrace().length > 0) {
                 messageBuilder.append(" ");
@@ -210,12 +225,10 @@ public class ExceptionTranslatingNode extends RubyNode {
             }
 
             t = t.getCause();
-            if (t != null) {
-                messageBuilder.append("\nCaused by: ");
-            }
+            exceptionCount++;
         }
 
-        return coreExceptions().internalError(messageBuilder.toString(), this, throwable);
+        return coreExceptions().internalErrorFullMessage(messageBuilder.toString(), this, throwable);
     }
 
 }

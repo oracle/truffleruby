@@ -800,9 +800,14 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject internalError(String message, Node currentNode, Throwable javaThrowable) {
+        return internalErrorFullMessage("internal implementation error - " + message, currentNode, javaThrowable);
+    }
+
+    @TruffleBoundary
+    public DynamicObject internalErrorFullMessage(String fullMessage, Node currentNode, Throwable javaThrowable) {
         return ExceptionOperations.createRubyException(
                 context.getCoreLibrary().getRubyTruffleErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope("internal implementation error - " + message, UTF8Encoding.INSTANCE)),
+                StringOperations.createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE)),
                 context.getCallStack().getBacktrace(currentNode, javaThrowable));
     }
 
