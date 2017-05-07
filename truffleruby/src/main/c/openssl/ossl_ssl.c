@@ -159,7 +159,7 @@ ossl_sslctx_s_alloc(VALUE klass)
     }
     SSL_CTX_set_mode(ctx, mode);
     RTYPEDDATA_DATA(obj) = ctx;
-    SSL_CTX_set_ex_data(ctx, ossl_ssl_ex_ptr_idx, (void*)obj);
+    SSL_CTX_set_ex_data(ctx, ossl_ssl_ex_ptr_idx, (void*)rb_tr_handle_for_managed_leaking(obj));
 
     return obj;
 }
@@ -1218,9 +1218,9 @@ ossl_ssl_setup(VALUE self)
         rb_io_check_readable(fptr);
         rb_io_check_writable(fptr);
         SSL_set_fd(ssl, TO_SOCKET(FPTR_TO_FD(fptr)));
-	SSL_set_ex_data(ssl, ossl_ssl_ex_ptr_idx, (void*)self);
+	SSL_set_ex_data(ssl, ossl_ssl_ex_ptr_idx, (void*)rb_tr_handle_for_managed_leaking(self));
 	cb = ossl_sslctx_get_verify_cb(v_ctx);
-	SSL_set_ex_data(ssl, ossl_ssl_ex_vcb_idx, (void*)cb);
+	SSL_set_ex_data(ssl, ossl_ssl_ex_vcb_idx, (void*)rb_tr_handle_for_managed_leaking(cb));
 	SSL_set_info_callback(ssl, ssl_info_cb);
     }
 
