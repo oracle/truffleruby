@@ -5,11 +5,10 @@ platform_is_not :windows do
   describe "UNIXServer#accept" do
     before :each do
       @path = SocketSpecs.socket_path
-      rm_r @path
     end
 
     after :each do
-      rm_r @path
+      SocketSpecs.rm_socket @path
     end
 
     it "accepts what is written by the client" do
