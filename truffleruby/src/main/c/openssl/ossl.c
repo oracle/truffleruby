@@ -212,7 +212,7 @@ int ossl_store_ex_verify_cb_idx;
 VALUE
 ossl_call_verify_cb_proc(struct ossl_verify_cb_args *args)
 {
-    return rb_funcall(args->proc, rb_intern("call"), 2,
+    return rb_funcall(truffle_managed_from_handle(args->proc), rb_intern("call"), 2,
                       args->preverify_ok ? Qtrue : Qfalse, args->store_ctx);
 }
 
@@ -223,9 +223,9 @@ ossl_verify_cb(int ok, X509_STORE_CTX *ctx)
     struct ossl_verify_cb_args args;
     int state = 0;
 
-    proc = (VALUE)X509_STORE_CTX_get_ex_data(ctx, ossl_store_ctx_ex_verify_cb_idx);
+    proc = rb_tr_managed_from_handle_or_null(X509_STORE_CTX_get_ex_data(ctx, ossl_store_ctx_ex_verify_cb_idx));
     if (!proc)
-	proc = (VALUE)X509_STORE_get_ex_data(ctx->ctx, ossl_store_ex_verify_cb_idx);
+	proc = X509_STORE_get_ex_data(ctx->ctx, ossl_store_ex_verify_cb_idx);
     if (!proc)
 	return ok;
     if (!NIL_P(proc)) {
@@ -237,10 +237,10 @@ ossl_verify_cb(int ok, X509_STORE_CTX *ctx)
 	    rb_warn("StoreContext initialization failure");
 	}
 	else {
-	    args.proc = proc;
+	    args.proc = rb_tr_handle_for_managed_leaking(proc);
 	    args.preverify_ok = ok;
 	    args.store_ctx = rb_tr_handle_for_managed_leaking(rctx);
-	    // ret = rb_protect((VALUE(*)(VALUE))ossl_call_verify_cb_proc, (VALUE)&args, &state); // TODO Resolve error
+	    ret = rb_protect((VALUE(*)(VALUE))ossl_call_verify_cb_proc, (VALUE)&args, &state);
 	    if (state) {
 		rb_set_errinfo(Qnil);
 		rb_warn("exception in verify_callback is ignored");
