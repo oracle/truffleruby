@@ -122,9 +122,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject printBacktrace() {
-            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
-            final BacktraceFormatter formatter = BacktraceFormatter.createDefaultFormatter(getContext());
-            formatter.printBacktrace(getContext(), null, backtrace);
+            getContext().getCallStack().printBacktrace(this);
             return nil();
         }
 
