@@ -52,8 +52,9 @@ module SocketSpecs
 
   def self.socket_path
     path = tmp("unix.sock", false)
-    # Check for too long unix socket path (108 bytes max)
-    if path.size > 108
+    # Check for too long unix socket path (max 108 bytes including \0 => 107)
+    # Note that Linux accepts not null-terminated paths but the man page advises against it.
+    if path.bytesize > 107
       path = "/tmp/unix_server_spec.socket"
     end
     rm_socket(path)
