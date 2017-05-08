@@ -134,7 +134,7 @@ int EVP_CIPHER_CTX_copy(EVP_CIPHER_CTX *out, EVP_CIPHER_CTX *in);
 
 #if !defined(HAVE_X509_STORE_GET_EX_DATA)
 #  define X509_STORE_get_ex_data(x, idx) \
-	truffle_managed_from_handle(CRYPTO_get_ex_data(&(x)->ex_data, (idx)))
+	rb_tr_managed_from_handle_or_null(CRYPTO_get_ex_data(&(x)->ex_data, (idx)))
 #endif
 
 #if !defined(HAVE_X509_STORE_SET_EX_DATA)
