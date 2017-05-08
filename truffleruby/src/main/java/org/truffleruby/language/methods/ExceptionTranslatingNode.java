@@ -201,6 +201,16 @@ public class ExceptionTranslatingNode extends RubyNode {
 
             String message = t.getMessage();
 
+            if (t instanceof RaiseException) {
+                /*
+                 * If this is already a Ruby exception caused by a Java exception then the message will already include
+                 * multiple lines for each caused-by. However, we print the Java exception on the second line. That's
+                 * confusing here, as it breaks the first caused-by. Remove the line break.
+                 */
+
+                message = message.replaceFirst("\n", "");
+            }
+
             if (message != null) {
                 messageBuilder.append(message);
             } else {
