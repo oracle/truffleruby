@@ -2531,6 +2531,14 @@ void *rb_tr_handle_for_managed_leaking(void *managed) {
   return handle;
 }
 
+VALUE rb_tr_managed_from_handle_or_null(void *handle) {
+  if (handle == NULL) {
+    return NULL;
+  } else {
+    return truffle_managed_from_handle(handle);
+  }
+}
+
 long rb_tr_obj_id(VALUE object) {
   return truffle_invoke_l(RUBY_CEXT, "rb_tr_obj_id", object);
 }
