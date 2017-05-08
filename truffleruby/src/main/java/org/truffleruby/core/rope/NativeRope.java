@@ -20,8 +20,9 @@ public class NativeRope extends Rope {
     public NativeRope(MemoryManager memoryManager, byte[] bytes, Encoding encoding, int characterLength) {
         super(encoding, CodeRange.CR_UNKNOWN, false, bytes.length, characterLength, 1, null);
 
-        pointer = memoryManager.allocateDirect(bytes.length, false);
+        pointer = memoryManager.allocateDirect(bytes.length + 1 /* trailing \0 */, false);
         pointer.put(0, bytes, 0, bytes.length);
+        pointer.putByte(bytes.length, (byte) 0);
     }
 
     @Override
@@ -38,6 +39,7 @@ public class NativeRope extends Rope {
 
     @Override
     public byte get(int index) {
+        assert 0 <= index && index <= byteLength();
         return pointer.getByte(index);
     }
 
