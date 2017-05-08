@@ -235,6 +235,11 @@ class Socket < BasicSocket
 
   if RubySL::Socket.unix_socket_support?
     def self.pack_sockaddr_un(file)
+      max_path_size =  Rubinius::Config['rbx.platform.sockaddr_un.sun_path.size'] - 1
+      if file.bytesize > max_path_size
+        raise ArgumentError, "too long unix socket path (#{file.bytesize} bytes given but #{max_path_size} bytes max)"
+      end
+
       struct = RubySL::Socket::Foreign::SockaddrUn.new
       struct[:sun_family] = Socket::AF_UNIX
       struct[:sun_path] = file
