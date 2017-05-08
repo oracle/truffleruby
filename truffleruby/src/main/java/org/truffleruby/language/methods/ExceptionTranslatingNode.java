@@ -201,10 +201,6 @@ public class ExceptionTranslatingNode extends RubyNode {
 
             String message = t.getMessage();
 
-            if (throwable instanceof RuntimeException && message != null && message.startsWith("LLVM error")) {
-                message = message.replaceAll(" - ", " \n- ");
-            }
-
             if (message != null) {
                 messageBuilder.append(message);
             } else {
