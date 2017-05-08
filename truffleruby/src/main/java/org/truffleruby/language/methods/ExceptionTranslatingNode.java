@@ -74,6 +74,10 @@ public class ExceptionTranslatingNode extends RubyNode {
     private DynamicObject translate(ArithmeticException exception) {
         if (getContext().getOptions().EXCEPTIONS_PRINT_JAVA) {
             exception.printStackTrace();
+
+            if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                getContext().getCallStack().printBacktrace(this);
+            }
         }
 
         return coreExceptions().zeroDivisionError(this, exception);
@@ -83,6 +87,10 @@ public class ExceptionTranslatingNode extends RubyNode {
     private DynamicObject translate(StackOverflowError error) {
         if (getContext().getOptions().EXCEPTIONS_PRINT_JAVA) {
             error.printStackTrace();
+
+            if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                getContext().getCallStack().printBacktrace(this);
+            }
         }
 
         return coreExceptions().systemStackErrorStackLevelTooDeep(this, error);
@@ -92,6 +100,10 @@ public class ExceptionTranslatingNode extends RubyNode {
     private DynamicObject translate(IllegalArgumentException exception) {
         if (getContext().getOptions().EXCEPTIONS_PRINT_JAVA) {
             exception.printStackTrace();
+
+            if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                getContext().getCallStack().printBacktrace(this);
+            }
         }
 
         String message = exception.getMessage();
@@ -107,6 +119,10 @@ public class ExceptionTranslatingNode extends RubyNode {
     private DynamicObject translate(UnsupportedSpecializationException exception) {
         if (getContext().getOptions().EXCEPTIONS_PRINT_JAVA) {
             exception.printStackTrace();
+
+            if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                getContext().getCallStack().printBacktrace(this);
+            }
         }
 
         final StringBuilder builder = new StringBuilder();
@@ -180,6 +196,10 @@ public class ExceptionTranslatingNode extends RubyNode {
         if (getContext().getOptions().EXCEPTIONS_PRINT_JAVA
                 || getContext().getOptions().EXCEPTIONS_PRINT_UNCAUGHT_JAVA) {
             throwable.printStackTrace();
+
+            if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                getContext().getCallStack().printBacktrace(this);
+            }
         }
 
         Throwable t = throwable;

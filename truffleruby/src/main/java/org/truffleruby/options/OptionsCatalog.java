@@ -89,6 +89,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription EXCEPTIONS_STORE_JAVA = new BooleanOptionDescription("exceptions.store_java", "Store the Java exception with the Ruby backtrace", false);
     public static final BooleanOptionDescription EXCEPTIONS_PRINT_JAVA = new BooleanOptionDescription("exceptions.print_java", "Print Java exceptions at the point of translating them to Ruby exceptions", false);
     public static final BooleanOptionDescription EXCEPTIONS_PRINT_UNCAUGHT_JAVA = new BooleanOptionDescription("exceptions.print_uncaught_java", "Print uncaught Java exceptions at the point of translating them to Ruby exceptions", false);
+    public static final BooleanOptionDescription EXCEPTIONS_PRINT_RUBY_FOR_JAVA = new BooleanOptionDescription("exceptions.print_ruby_for_java", "When printing a Java backtrace", false);
     public static final BooleanOptionDescription EXCEPTIONS_TRANSLATE_ASSERT = new BooleanOptionDescription("exceptions.translate_assert", "Translate failed Java assertions to Ruby exceptions", true);
     public static final BooleanOptionDescription BACKTRACES_HIDE_CORE_FILES = new BooleanOptionDescription("backtraces.hide_core_files", "Hide core source files in backtraces", true);
     public static final BooleanOptionDescription BACKTRACES_INTERLEAVE_JAVA = new BooleanOptionDescription("backtraces.interleave_java", "Interleave Java stacktraces into the Ruby backtrace", false);
@@ -255,6 +256,8 @@ public class OptionsCatalog {
                 return EXCEPTIONS_PRINT_JAVA;
             case "exceptions.print_uncaught_java":
                 return EXCEPTIONS_PRINT_UNCAUGHT_JAVA;
+            case "exceptions.print_ruby_for_java":
+                return EXCEPTIONS_PRINT_RUBY_FOR_JAVA;
             case "exceptions.translate_assert":
                 return EXCEPTIONS_TRANSLATE_ASSERT;
             case "backtraces.hide_core_files":
@@ -369,6 +372,7 @@ public class OptionsCatalog {
             EXCEPTIONS_STORE_JAVA,
             EXCEPTIONS_PRINT_JAVA,
             EXCEPTIONS_PRINT_UNCAUGHT_JAVA,
+            EXCEPTIONS_PRINT_RUBY_FOR_JAVA,
             EXCEPTIONS_TRANSLATE_ASSERT,
             BACKTRACES_HIDE_CORE_FILES,
             BACKTRACES_INTERLEAVE_JAVA,

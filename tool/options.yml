@@ -87,6 +87,7 @@ PACK_RECOVER_LOOP_MIN: [pack.recover, integer, 32, If a pack or unpack expressio
 EXCEPTIONS_STORE_JAVA: [exceptions.store_java, boolean, false, Store the Java exception with the Ruby backtrace]
 EXCEPTIONS_PRINT_JAVA: [exceptions.print_java, boolean, false, Print Java exceptions at the point of translating them to Ruby exceptions]
 EXCEPTIONS_PRINT_UNCAUGHT_JAVA: [exceptions.print_uncaught_java, boolean, false, Print uncaught Java exceptions at the point of translating them to Ruby exceptions]
+EXCEPTIONS_PRINT_RUBY_FOR_JAVA: [exceptions.print_ruby_for_java, boolean, false, When printing a Java backtrace, also print the Ruby backtrace at that point]
 EXCEPTIONS_TRANSLATE_ASSERT: [exceptions.translate_assert, boolean, true, Translate failed Java assertions to Ruby exceptions]
 BACKTRACES_HIDE_CORE_FILES: [backtraces.hide_core_files, boolean, true, Hide core source files in backtraces, like MRI does]
 BACKTRACES_INTERLEAVE_JAVA: [backtraces.interleave_java, boolean, false, Interleave Java stacktraces into the Ruby backtrace]

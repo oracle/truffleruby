@@ -112,6 +112,10 @@ public class BacktraceFormatter {
             } catch (Exception e) {
                 if (context.getOptions().EXCEPTIONS_PRINT_JAVA) {
                     e.printStackTrace();
+
+                    if (context.getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                        context.getCallStack().printBacktrace(null);
+                    }
                 }
 
                 lines.add(StringUtils.format("(exception %s %s", e.getMessage(), e.getStackTrace()[0].toString()));
