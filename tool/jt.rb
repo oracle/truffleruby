@@ -999,11 +999,7 @@ module Commands
       temp_dir = Dir.mktmpdir(gem_name)
 
       begin
-        gem_home = if ENV['GEM_HOME']
-                     ENV['GEM_HOME']
-                   else
-                     File.join(temp_dir, 'gem_home')
-                   end
+        gem_home = File.join(temp_dir, 'gem_home')
 
         FileUtils.mkpath(gem_home)
         gem_home = File.realpath gem_home # remove symlinks
