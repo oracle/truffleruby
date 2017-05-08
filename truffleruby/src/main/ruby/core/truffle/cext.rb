@@ -71,7 +71,7 @@ module Truffle::CExt
     end
 
     def []=(index, value)
-      Truffle::CExt.string_pointer_write @string, index, value
+      Truffle::CExt.string_pointer_write(@string, index, value)
     end
 
     alias_method :to_str, :string
