@@ -213,7 +213,7 @@ VALUE
 ossl_call_verify_cb_proc(struct ossl_verify_cb_args *args)
 {
     return rb_funcall(args->proc, rb_intern("call"), 2,
-                      args->preverify_ok, args->store_ctx);
+                      args->preverify_ok ? Qtrue : Qfalse, args->store_ctx);
 }
 
 int
@@ -238,7 +238,7 @@ ossl_verify_cb(int ok, X509_STORE_CTX *ctx)
 	}
 	else {
 	    args.proc = proc;
-	    // args.preverify_ok = ok ? Qtrue : Qfalse; // TODO Resolve error
+	    args.preverify_ok = ok;
 	    args.store_ctx = rb_tr_handle_for_managed_leaking(rctx);
 	    // ret = rb_protect((VALUE(*)(VALUE))ossl_call_verify_cb_proc, (VALUE)&args, &state); // TODO Resolve error
 	    if (state) {

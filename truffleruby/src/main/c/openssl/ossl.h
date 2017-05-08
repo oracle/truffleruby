@@ -172,7 +172,7 @@ extern int ossl_store_ex_verify_cb_idx;
 
 struct ossl_verify_cb_args {
     VALUE proc;
-    VALUE preverify_ok;
+    int preverify_ok;
     VALUE store_ctx;
 };
 
