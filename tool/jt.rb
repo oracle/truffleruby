@@ -20,6 +20,7 @@ require 'json'
 require 'timeout'
 require 'yaml'
 require 'open3'
+require 'rbconfig'
 
 JRUBY_DIR = File.expand_path('../..', __FILE__)
 M2_REPO = File.expand_path('~/.m2/repository')
@@ -988,6 +989,12 @@ module Commands
   private :test_ecosystem
 
   def test_bundle(*args)
+    if RbConfig::CONFIG['host_os'] =~ /sunos|solaris/i
+      # TODO (pitr-ch 08-May-2017): fix workaround using tar, it's broken on Solaris "tar: C: unknown function modifier"
+      puts 'skipping on Solaris'
+      return
+    end
+
     require 'tmpdir'
 
     gems = [{ name:   'algebrick',
