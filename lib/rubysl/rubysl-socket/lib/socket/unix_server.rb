@@ -33,4 +33,8 @@ class UNIXServer < UNIXSocket
   def sysaccept
     accept.fileno
   end
+
+  def inspect
+    "#{super[0...-1]} #{@path}>"
+  end
 end
