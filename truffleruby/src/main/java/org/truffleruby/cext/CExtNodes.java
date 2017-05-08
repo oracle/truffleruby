@@ -952,14 +952,15 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public int size(DynamicObject string) {
-            byte[] bytes = rope(string).getBytes();
+            final Rope rope = rope(string);
+            final int byteLength = rope.byteLength();
             int i = 0;
-            for (;i < bytes.length; i++) {
-                if (bytes[i] == 0) {
+            for (; i < byteLength; i++) {
+                if (rope.get(i) == 0) {
                     break;
                 }
             }
-            return i;
+            return byteLength;
         }
 
     }
