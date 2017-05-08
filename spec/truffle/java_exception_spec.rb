@@ -13,28 +13,28 @@ describe "Java exceptions" do
   it "formats to include the source information" do
     message = <<~MESSAGE
     message
-    	RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:314)
+    	RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:LINE)
     MESSAGE
 
     message.chomp!
 
     lambda { Truffle::Debug.throw_java_exception 'message' }.should raise_error { |e|
-      e.message.should == message
+      e.message.gsub(/:\d+/, ':LINE').should == message
     }
   end
 
   it "formats to include the source information including cause" do
     message = <<~MESSAGE
     message
-    	RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:325)
-    		caused by cause 1 RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:325)
-    		caused by cause 2 RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:325)
+    	RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)
+    		caused by cause 1 RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)
+    		caused by cause 2 RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)
     MESSAGE
 
     message.chomp!
 
     lambda { Truffle::Debug.throw_java_exception_with_cause 'message' }.should raise_error { |e|
-      e.message.should == message
+      e.message.gsub(/:\d+/, ':LINE') .should == message
     }
   end
 
