@@ -425,9 +425,8 @@ public class RopeOperations {
                 }
             } else if (current instanceof NativeRope) {
                 final NativeRope nativeRope = (NativeRope) current;
-                // getBytesSlow because we want the latest values, not anything cached like getBytes
                 // TODO CS 13-Apr-17 getBytesSlow creates a new array, and then we just copy it here
-                System.arraycopy(nativeRope.getBytesSlow(), 0, buffer, 0, rope.byteLength());
+                System.arraycopy(nativeRope.getBytes(), 0, buffer, 0, rope.byteLength());
             } else {
                 throw new UnsupportedOperationException("Don't know how to flatten rope of type: " + rope.getClass().getName());
             }
