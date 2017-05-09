@@ -10,7 +10,7 @@
 package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
-
+import org.truffleruby.core.Hashing;
 import java.util.Arrays;
 
 public abstract class Rope {
@@ -92,10 +92,13 @@ public abstract class Rope {
         return ropeDepth;
     }
 
+    private static final int MURMUR_SEED = System.identityHashCode(Rope.class);
+
     @Override
     public final int hashCode() {
-        if (! isHashCodeCalculated()) {
-            hashCode = RopeOperations.hashForRange(this, 1, 0, byteLength);
+        if (!isHashCodeCalculated()) {
+            long hash = Hashing.hash(MURMUR_SEED, RopeOperations.hashForRange(this, 1, 0, byteLength));
+            hashCode = Long.hashCode(hash);
         }
 
         return hashCode;

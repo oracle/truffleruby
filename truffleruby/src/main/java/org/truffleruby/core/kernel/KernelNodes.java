@@ -784,14 +784,13 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        public int hash(double value) {
-            // TODO(CS): should check this matches MRI
-            return Double.valueOf(value).hashCode();
+        public long hash(double value) {
+            return Hashing.hash(MURMUR_SEED, Double.doubleToRawLongBits(value));
         }
 
         @Specialization
-        public int hash(boolean value) {
-            return Boolean.valueOf(value).hashCode();
+        public long hash(boolean value) {
+            return Hashing.hash(MURMUR_SEED, Boolean.valueOf(value).hashCode());
         }
 
         @TruffleBoundary

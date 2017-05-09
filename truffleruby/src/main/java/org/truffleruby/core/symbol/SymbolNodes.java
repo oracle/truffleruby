@@ -73,7 +73,7 @@ public abstract class SymbolNodes {
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int hash(DynamicObject symbol) {
+        public long hash(DynamicObject symbol) {
             return Layouts.SYMBOL.getHashCode(symbol);
         }
 

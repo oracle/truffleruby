@@ -17,6 +17,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.Hashing;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
@@ -132,6 +133,8 @@ public class SymbolTable {
         }
     }
 
+    private static final int MURMUR_SEED = System.identityHashCode(SymbolTable.class);
+
     private DynamicObject createSymbol(Rope rope) {
         final String string = RopeOperations.decodeRope(rope);
         // Symbol has to have reference to its SymbolEquality otherwise it would be GCed.
@@ -140,7 +143,7 @@ public class SymbolTable {
                 symbolFactory,
                 string,
                 rope,
-                string.hashCode(),
+                Hashing.hash(MURMUR_SEED, string.hashCode()),
                 equalityWrapper);
 
         equalityWrapper.setSymbol(symbol);

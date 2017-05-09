@@ -26,7 +26,7 @@ public interface SymbolLayout extends BasicObjectLayout {
             DynamicObjectFactory factory,
             String string,
             Rope rope,
-            int hashCode,
+            long hashCode,
             SymbolEquality equalityWrapper);
 
     boolean isSymbol(Object object);
@@ -36,7 +36,7 @@ public interface SymbolLayout extends BasicObjectLayout {
 
     Rope getRope(DynamicObject object);
 
-    int getHashCode(DynamicObject object);
+    long getHashCode(DynamicObject object);
 
     SymbolEquality getEqualityWrapper(DynamicObject object);
 
