@@ -15,7 +15,7 @@ jdk: oraclejdk8
 matrix:
   include:
   - env: JT='test specs :command_line'
-  - env: JT='test specs :language'
+  - env: JT='test specs :language :security'
   - env: JT='test specs :core'
   - env: JT='test specs :library'
   - env: JT='test specs :truffle'

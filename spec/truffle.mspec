@@ -38,6 +38,10 @@ class MSpecScript
     "spec/ruby/command_line"
   ]
 
+  set :security, [
+    "spec/ruby/security"
+  ]
+
   set :language, [
     "spec/ruby/language"
   ]
