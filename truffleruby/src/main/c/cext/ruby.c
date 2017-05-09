@@ -1872,13 +1872,19 @@ void rb_exc_raise(VALUE exception) {
 }
 
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
-  // TODO CS 23-Jul-16
-  return function(data);
+  VALUE ary;
+  if (rb_block_given_p()) {
+    ary = truffle_invoke(RUBY_CEXT, "rb_protect_with_block", truffle_address_to_function(function), data, rb_block_proc());
+  } else {
+    ary = truffle_invoke(RUBY_CEXT, "rb_protect", truffle_address_to_function(function), data);
+  }    
+  *status = NUM2INT(truffle_read_idx(ary, 1));
+  return truffle_read_idx(ary, 0);
 }
 
 void rb_jump_tag(int status) {
   if (status) {
-    rb_tr_error("rb_jump_tag not implemented");
+    truffle_invoke(RUBY_CEXT, "rb_jump_tag", status);
   }
 }
 
