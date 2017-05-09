@@ -425,8 +425,9 @@ public class RopeOperations {
                 }
             } else if (current instanceof NativeRope) {
                 final NativeRope nativeRope = (NativeRope) current;
-                // TODO CS 13-Apr-17 getBytesSlow creates a new array, and then we just copy it here
-                System.arraycopy(nativeRope.getBytes(), 0, buffer, 0, rope.byteLength());
+                assert substringLengths.isEmpty();
+                nativeRope.copyTo(offset, buffer, bufferPosition);
+                bufferPosition += nativeRope.byteLength();
             } else {
                 throw new UnsupportedOperationException("Don't know how to flatten rope of type: " + rope.getClass().getName());
             }
