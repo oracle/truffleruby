@@ -26,7 +26,8 @@ public class NativeRope extends Rope {
     }
 
     @Override
-    protected byte[] getBytesSlow() {
+    public byte[] getBytes() {
+        // Always re-read bytes from the native pointer as they might have changed.
         final byte[] bytes = new byte[byteLength()];
         pointer.get(0, bytes, 0, bytes.length);
         return bytes;

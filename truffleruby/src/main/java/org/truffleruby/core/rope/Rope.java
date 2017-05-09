@@ -56,7 +56,7 @@ public abstract class Rope {
         return bytes;
     }
 
-    public final byte[] getBytes() {
+    public byte[] getBytes() {
         if (bytes == null) {
             bytes = getBytesSlow();
         }

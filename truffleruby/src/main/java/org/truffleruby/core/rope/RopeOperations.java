@@ -520,6 +520,7 @@ public class RopeOperations {
         } else if (rope instanceof LazyRope) {
             return hashCodeForLeafRope(rope.getBytes(), startingHashCode, offset, length);
         } else {
+            // NOTE (eregon): this should not be defined for NativeRope or the result should not be cached in Rope.hashCode().
             throw new RuntimeException("Hash code not supported for rope of type: " + rope.getClass().getName());
         }
     }
