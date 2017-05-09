@@ -22,6 +22,9 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TruffleFatalException;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 public class ExceptionTranslatingNode extends RubyNode {
 
     private final UnsupportedOperationBehavior unsupportedOperationBehavior;
@@ -212,14 +215,16 @@ public class ExceptionTranslatingNode extends RubyNode {
 
         while (t != null) {
             if (exceptionCount > 0) {
-                messageBuilder.append("\n");
-            }
-
-            if (exceptionCount > 0) {
-                messageBuilder.append("\t\tcaused by ");
+                messageBuilder.append("\n\t\tcaused by ");
             }
 
             String message = t.getMessage();
+            Stream<String> extraLines = Stream.empty();
+
+            if (t.getClass().getSimpleName().equals("SulongRuntimeException")) {
+                extraLines = Arrays.stream(message.split("\n")).skip(1).map(line -> line.trim());
+                message = "error in C extension";
+            }
 
             if (t instanceof RaiseException) {
                 /*
@@ -249,6 +254,10 @@ public class ExceptionTranslatingNode extends RubyNode {
                 messageBuilder.append(" ");
                 messageBuilder.append(t.getStackTrace()[0].toString());
             }
+
+            extraLines.forEach(line -> {
+                messageBuilder.append("\n\t" + line);
+            });
 
             t = t.getCause();
             exceptionCount++;
