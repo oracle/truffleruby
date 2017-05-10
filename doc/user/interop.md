@@ -40,15 +40,28 @@ Call `size` on the object.
 
 ### `IS_BOXED`
 
-Returns true only for instances of `FFI::Pointer` and `String` with a length of
-1, which allows them to be unboxed as a character, or objects that respond to
-`unbox`.
+Returns true only for instances of `String` with a length of 1, which allows
+them to be unboxed as a character, or objects that respond to `unbox`.
 
 ### `UNBOX`
 
 For a `String`, returns the first character. Unboxing empty strings is not
-supported and will cause an `UnsupportedMessageException`. For a `FFI::Pointer`
-returns its address. For all other objects calls `unbox`.
+supported and will cause an `UnsupportedMessageException`. For all other objects
+calls `unbox`.
+
+### `IS_POINTER`
+
+Returns true only for `FFI::Pointer`.
+
+### `AS_POINTER`
+
+Calls `address` if the object responds to it, otherwise throws
+`UnsupportedMessageException`.
+
+### `TO_NATIVE`
+
+Calls `to_native` if the object responds to it, otherwise throws
+`UnsupportedMessageException`.
 
 ### `IS_NULL`
 
@@ -149,6 +162,18 @@ In all cases where a call is made no block is passed.
 
 `Truffle::Interop.unbox(value)`
 
+### `IS_POINTER`
+
+`Truffle::Interop.pointer?(value)`
+
+### `AS_POINTER`
+
+`Truffle::Interop.as_pointer(value)`
+
+### `TO_NATIVE`
+
+`Truffle::Interop.to_native(value)`
+
 ### `IS_NULL`
 
 `Truffle::Interop.null?(value)`
@@ -201,6 +226,18 @@ Not supported.
 Not supported.
 
 ### `UNBOX`
+
+Not supported.
+
+### `IS_POINTER`
+
+Not supported.
+
+### `AS_POINTER`
+
+Not supported.
+
+### `TO_NATIVE`
 
 Not supported.
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2016 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2014, 2017 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -369,6 +369,71 @@ public abstract class InteropNodes {
         @Fallback
         public boolean isNull(Object receiver) {
             return false;
+        }
+
+    }
+
+    @CoreMethod(names = "pointer?", isModuleFunction = true, required = 1)
+    public abstract static class PointerNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean isPointer(
+                TruffleObject receiver,
+                @Cached("createIsPointerNode()") Node isPointerNode) {
+            return ForeignAccess.sendIsPointer(isPointerNode, receiver);
+        }
+
+        protected Node createIsPointerNode() {
+            return Message.IS_POINTER.createNode();
+        }
+
+        @Fallback
+        public boolean isPointer(Object receiver) {
+            return false;
+        }
+
+    }
+
+    @CoreMethod(names = "as_pointer", isModuleFunction = true, required = 1)
+    public abstract static class AsPointerNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object asPointer(
+                TruffleObject receiver,
+                @Cached("createAsPointerNode()") Node asPointerNode,
+                @Cached("create()") BranchProfile exceptionProfile) {
+            try {
+                return ForeignAccess.sendAsPointer(asPointerNode, receiver);
+            } catch (UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this, e));
+            }
+        }
+
+        protected Node createAsPointerNode() {
+            return Message.AS_POINTER.createNode();
+        }
+
+    }
+
+    @CoreMethod(names = "to_native", isModuleFunction = true, required = 1)
+    public abstract static class ToNativeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object toNative(
+                TruffleObject receiver,
+                @Cached("createToNativeNode()") Node toNativeNode,
+                @Cached("create()") BranchProfile exceptionProfile) {
+            try {
+                return ForeignAccess.sendToNative(toNativeNode, receiver);
+            } catch (UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this, e));
+            }
+        }
+
+        protected Node createToNativeNode() {
+            return Message.TO_NATIVE.createNode();
         }
 
     }

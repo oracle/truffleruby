@@ -146,6 +146,47 @@ public class RubyMessageResolution {
 
     }
 
+    @Resolve(message = "IS_POINTER")
+    public static abstract class ForeignIsPointerNode extends Node {
+
+        protected Object access(DynamicObject object) {
+            return Layouts.POINTER.isPointer(object);
+        }
+
+    }
+
+    @Resolve(message = "AS_POINTER")
+    public static abstract class ForeignAsPointerNode extends Node {
+
+        @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
+        @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
+
+        protected Object access(VirtualFrame frame, DynamicObject object) {
+            if (doesRespond.doesRespondTo(frame, "address", object)) {
+                return dispatchNode.dispatch(frame, object, "address", null, new Object[]{});
+            } else {
+                throw UnsupportedMessageException.raise(Message.AS_POINTER);
+            }
+        }
+
+    }
+
+    @Resolve(message = "TO_NATIVE")
+    public static abstract class ForeignToNativeNode extends Node {
+
+        @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
+        @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
+
+        protected Object access(VirtualFrame frame, DynamicObject object) {
+            if (doesRespond.doesRespondTo(frame, "to_native", object)) {
+                return dispatchNode.dispatch(frame, object, "to_native", null, new Object[]{});
+            } else {
+                throw UnsupportedMessageException.raise(Message.TO_NATIVE);
+            }
+        }
+
+    }
+
     @Resolve(message = "READ")
     public static abstract class ForeignReadNode extends Node {
 

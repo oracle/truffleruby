@@ -965,11 +965,11 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_unbox", onSingleton = true, required = 1)
-    public abstract static class StringPointerUnboxNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "string_pointer_to_native", onSingleton = true, required = 1)
+    public abstract static class StringPointerToNativeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public long unbox(DynamicObject string,
+        public long toNative(DynamicObject string,
                           @Cached("createBinaryProfile()") ConditionProfile convertProfile) {
             final Rope currentRope = rope(string);
 

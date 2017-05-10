@@ -62,8 +62,8 @@ module Truffle::CExt
       Truffle::CExt.string_pointer_size(@string)
     end
 
-    def unbox
-      Truffle::CExt.string_pointer_unbox(@string)
+    def to_native
+      Rubinius::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string))
     end
 
     def [](index)
