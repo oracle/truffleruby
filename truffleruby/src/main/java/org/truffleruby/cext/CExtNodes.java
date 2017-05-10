@@ -957,7 +957,7 @@ public class CExtNodes {
             int i = 0;
             for (; i < byteLength; i++) {
                 if (rope.get(i) == 0) {
-                    break;
+                    return i;
                 }
             }
             return byteLength;
