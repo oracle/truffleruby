@@ -257,6 +257,10 @@ public class RopeOperations {
             return rope.getRawBytes();
         }
 
+        if (rope instanceof NativeRope) {
+            return rope.getBytes();
+        }
+
         int bufferPosition = 0;
         int offset = 0;
 
@@ -423,11 +427,6 @@ public class RopeOperations {
                         workStack.push(flattenedChild);
                     }
                 }
-            } else if (current instanceof NativeRope) {
-                final NativeRope nativeRope = (NativeRope) current;
-                assert substringLengths.isEmpty();
-                nativeRope.copyTo(offset, buffer, bufferPosition);
-                bufferPosition += nativeRope.byteLength();
             } else {
                 throw new UnsupportedOperationException("Don't know how to flatten rope of type: " + current.getClass().getName());
             }

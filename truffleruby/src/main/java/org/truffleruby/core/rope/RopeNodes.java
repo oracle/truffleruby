@@ -257,7 +257,7 @@ public abstract class RopeNodes {
 
         public abstract Rope executeMake(Rope left, Rope right, Encoding encoding);
 
-        @Specialization(guards = "isMutableRope(left)")
+        @Specialization
         public Rope concatMutableRope(RopeBuffer left, Rope right, Encoding encoding,
                                       @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile) {
             try {
@@ -277,7 +277,19 @@ public abstract class RopeNodes {
             return left;
         }
 
-        @Specialization(guards = { "!isMutableRope(left)", "!isCodeRangeBroken(left, right)" })
+        @TruffleBoundary
+        @Specialization
+        public Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding) {
+            return executeMake(left.toLeafRope(), right, encoding);
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public Rope concatNativeRopeRight(Rope left, NativeRope right, Encoding encoding) {
+            return executeMake(left, right.toLeafRope(), encoding);
+        }
+
+        @Specialization(guards = { "!isMutableRope(left)", "!isNativeRope(left)", "!isNativeRope(right)", "!isCodeRangeBroken(left, right)" })
         public Rope concat(Rope left, Rope right, Encoding encoding,
                            @Cached("createBinaryProfile()") ConditionProfile sameCodeRangeProfile,
                            @Cached("createBinaryProfile()") ConditionProfile brokenCodeRangeProfile,
@@ -414,7 +426,7 @@ public abstract class RopeNodes {
             }
         }
 
-        @Specialization(guards = {"!isMutableRope(left)", "isCodeRangeBroken(left, right)"})
+        @Specialization(guards = { "!isMutableRope(left)", "!isNativeRope(left)", "!isNativeRope(right)", "isCodeRangeBroken(left, right)" })
         public Rope concatCrBroken(Rope left, Rope right, Encoding encoding,
                                    @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
             // This specialization was added to a special case where broken code range(s),
@@ -475,6 +487,10 @@ public abstract class RopeNodes {
 
         protected static boolean isMutableRope(Rope rope) {
             return rope instanceof RopeBuffer;
+        }
+
+        protected static boolean isNativeRope(Rope rope) {
+            return rope instanceof NativeRope;
         }
 
         protected static boolean isCodeRangeBroken(Rope first, Rope second) {

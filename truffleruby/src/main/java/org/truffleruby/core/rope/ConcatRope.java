@@ -31,6 +31,8 @@ public class ConcatRope extends Rope {
                 depth,
                 bytes);
 
+        assert !(left instanceof NativeRope);
+        assert !(right instanceof NativeRope);
         this.left = left;
         this.right = right;
         this.balanced = balanced;
