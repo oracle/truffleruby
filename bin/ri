@@ -1,2 +1,15 @@
 #!/usr/bin/env bash
-exec "$(dirname "$0")/truffleruby" -Sri "$@"
+exec "$(dirname $0)/truffleruby" "$(dirname $0)/ri" "$@" # ignored by Ruby interpreter
+#!ruby
+# ^ marks start of Ruby interpretation
+
+begin
+  gem 'rdoc'
+rescue NameError => e # --disable-gems
+  raise unless e.name == :gem
+rescue Gem::LoadError
+end
+
+require 'rdoc/ri/driver'
+
+RDoc::RI::Driver.run ARGV

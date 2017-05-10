@@ -24,6 +24,7 @@ public class OptionsCatalog {
     public static final StringArrayOptionDescription ARGUMENTS = new StringArrayOptionDescription("arguments", "Command line arguments for the Ruby program", new String[]{});
     public static final StringOptionDescription DISPLAYED_FILE_NAME = new StringOptionDescription("displayed_file_name", "Displayed file name", null);
     public static final BooleanOptionDescription READ_RUBYOPT = new BooleanOptionDescription("read_rubyopt", "Read RUBYOPT and TRUFFLERUBYOPT environment variables", true);
+    public static final BooleanOptionDescription IGNORE_LINES_BEFORE_RUBY_SHEBANG = new BooleanOptionDescription("ignore_lines_before_ruby_shebang", "strip off text before #!ruby line", false);
     public static final BooleanOptionDescription DEBUG = new BooleanOptionDescription("debug", "Debug", false);
     public static final VerbosityOptionDescription VERBOSITY = new VerbosityOptionDescription("verbosity", "Verbosity", Verbosity.FALSE);
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription("frozen_string_literals", "Use frozen string literals", false);
@@ -126,6 +127,8 @@ public class OptionsCatalog {
                 return DISPLAYED_FILE_NAME;
             case "read_rubyopt":
                 return READ_RUBYOPT;
+            case "ignore_lines_before_ruby_shebang":
+                return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "debug":
                 return DEBUG;
             case "verbosity":
@@ -307,6 +310,7 @@ public class OptionsCatalog {
             ARGUMENTS,
             DISPLAYED_FILE_NAME,
             READ_RUBYOPT,
+            IGNORE_LINES_BEFORE_RUBY_SHEBANG,
             DEBUG,
             VERBOSITY,
             FROZEN_STRING_LITERALS,

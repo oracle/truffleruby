@@ -22,6 +22,8 @@ import com.oracle.truffle.api.object.IncompatibleLocationException;
 import com.oracle.truffle.api.object.Location;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.utilities.NeverValidAssumption;
+
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -52,7 +54,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
     public void writeExistingField(DynamicObject object, Object value,
             @Cached("getLocation(object, value)") Location location,
             @Cached("object.getShape()") Shape cachedShape,
-            @Cached("createAssumption()") Assumption validLocation,
+            @Cached("createAssumption(cachedShape)") Assumption validLocation,
             @Cached("isShared(cachedShape)") boolean shared,
             @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode) {
         try {
@@ -90,7 +92,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             @Cached("object.getShape()") Shape oldShape,
             @Cached("defineProperty(oldShape, value)") Shape newShape,
             @Cached("getNewLocation(newShape)") Location newLocation,
-            @Cached("createAssumption()") Assumption validLocation,
+            @Cached("createAssumption(oldShape)") Assumption validLocation,
             @Cached("isShared(oldShape)") boolean shared,
             @Cached("createWriteBarrierNode(shared)") WriteBarrierNode writeBarrierNode) {
         try {
@@ -164,7 +166,10 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         return newShape.getProperty(name).getLocation();
     }
 
-    protected Assumption createAssumption() {
+    protected Assumption createAssumption(Shape shape) {
+        if (!shape.isValid()) {
+            return NeverValidAssumption.INSTANCE;
+        }
         return Truffle.getRuntime().createAssumption("object location is valid");
     }
 

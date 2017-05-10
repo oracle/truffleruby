@@ -64,11 +64,11 @@ describe "The launcher" do
   it "warns when not using Graal" do
     out                 = `#{RbConfig.ruby} -e 'p graal: Truffle::Graal.graal?' 2>&1`
     on_graal            = out.lines.include? "{:graal=>true}\n"
-    performance_warning = '[ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md'
+    performance_warning = "[ruby] PERFORMANCE this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md\n"
     if on_graal
-      out.lines.should include performance_warning
-    else
       out.lines.should_not include performance_warning
+    else
+      out.lines.should include performance_warning
     end
   end
 

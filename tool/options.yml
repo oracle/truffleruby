@@ -7,6 +7,7 @@ INLINE_SCRIPT: [inline_script, byte-string, null, Inline script]
 ARGUMENTS: [arguments, string-array, [], Command line arguments for the Ruby program]
 DISPLAYED_FILE_NAME: [displayed_file_name, string, null, Displayed file name]
 READ_RUBYOPT: [read_rubyopt, boolean, true, Read RUBYOPT and TRUFFLERUBYOPT environment variables]
+IGNORE_LINES_BEFORE_RUBY_SHEBANG: [ignore_lines_before_ruby_shebang, boolean, false, "strip off text before #!ruby line"]
 
 DEBUG: [debug, boolean, false, Debug]
 VERBOSITY: [verbosity, verbosity, false, Verbosity]

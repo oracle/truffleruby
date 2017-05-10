@@ -27,7 +27,7 @@ matrix:
   - env: JT='test bundle'
   - env: JT='test ecosystem actionpack actionview' JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
   - env: JT='test ecosystem activemodel activesupport' JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
-  - env: JT='test ecosystem algebrick railties rails-app' HAS_REDIS=true JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
+  - env: JT='test ecosystem algebrick railties rails-app launchers' HAS_REDIS=true JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
   # Exlude the default job https://github.com/travis-ci/travis-ci/issues/4681
   exclude:
   - jdk: oraclejdk8

@@ -20,6 +20,7 @@ require 'json'
 require 'timeout'
 require 'yaml'
 require 'open3'
+require 'rbconfig'
 require 'pathname'
 
 JRUBY_DIR = File.expand_path('../..', __FILE__)
@@ -1005,10 +1006,6 @@ module Commands
   private :test_gems
 
   def test_ecosystem(env={}, *args)
-    unless File.exist? "#{JRUBY_DIR}/../jruby-truffle-gem-test-pack/gem-testing"
-      raise 'missing ../jruby-truffle-gem-test-pack/gem-testing directory'
-    end
-
     tests_path             = "#{JRUBY_DIR}/test/truffle/ecosystem"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
@@ -1021,35 +1018,44 @@ module Commands
   private :test_ecosystem
 
   def test_bundle(*args)
-    gems = [{:url => "https://github.com/sstephenson/hike", :commit => "3abf0b3feb47c26911f8cedf2cd409471fd26da1"}]
+    if RbConfig::CONFIG['host_os'] =~ /sunos|solaris/i
+      # TODO (pitr-ch 08-May-2017): fix workaround using tar, it's broken on Solaris "tar: C: unknown function modifier"
+      puts 'skipping on Solaris'
+      return
+    end
+
+    require 'tmpdir'
+
+    gems = [{ name:   'algebrick',
+              url:    'https://github.com/pitr-ch/algebrick.git',
+              commit: '89cf71984964ce9cbe6a1f4fb5155144ac56d057' }]
+
     gems.each do |gem|
-      gem_url = gem[:url]
-      name = gem_url.split('/')[-1]
-      require 'tmpdir'
-      temp_dir = Dir.mktmpdir(name)
+      gem_name = gem.fetch(:name)
+      temp_dir = Dir.mktmpdir(gem_name)
+
       begin
+        gem_home = File.join(temp_dir, 'gem_home')
+
+        FileUtils.mkpath(gem_home)
+        gem_home = File.realpath gem_home # remove symlinks
+        puts "Using temporary GEM_HOME:#{gem_home}"
+
         Dir.chdir(temp_dir) do
-          puts "Cloning gem #{name} into temp directory: #{temp_dir}"
-          raw_sh(*['git', 'clone', gem_url])
+          puts "Cloning gem #{gem_name} into temp directory: #{temp_dir}"
+          raw_sh('git', 'clone', gem.fetch(:url))
         end
-        gem_dir = File.join(temp_dir, name)
-        gem_home = if ENV['GEM_HOME']
-                     ENV['GEM_HOME']
-                   else
-                     tmp_home = File.join(temp_dir, "gem_home")
-                     Dir.mkdir(tmp_home)
-                     puts "Using temporary GEM_HOME:#{tmp_home}"
-                     tmp_home
-                   end
-        Dir.chdir(gem_dir) do
-          if gem.has_key?(:commit)
-            raw_sh(*['git', 'checkout', gem[:commit]])
-          end
-          run({'GEM_HOME' => gem_home}, *["-S", "gem", "install", "bundler", "-v","1.14.6"])
-          run({'GEM_HOME' => gem_home}, *["-S", "bundle", "install"])
-          # Need to workaround ruby_install name `jruby-truffle` in the gems binstubs (command can't be found )
-          # or figure out how to get it on the path to get `bundle exec rake` working
-          #run({'GEM_HOME' => gem_home}, *["-S", "bundle", "exec", "rake"])
+
+        Dir.chdir(gem_checkout = File.join(temp_dir, gem_name)) do
+          raw_sh('git', 'checkout', gem.fetch(:commit)) if gem.key?(:commit)
+
+          environment = { 'GEM_HOME' => gem_home,
+                          # add bin from gem_home to PATH
+                          'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR) }
+
+          run(environment, '-S', 'gem', 'install', 'bundler', '-v', '1.14.6', '--backtrace')
+          run(environment, '-S', 'bundle', 'install')
+          run(environment, '-S', 'bundle', 'exec', 'rake')
         end
       ensure
         FileUtils.remove_entry temp_dir

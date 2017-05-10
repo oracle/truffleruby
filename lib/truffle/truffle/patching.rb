@@ -36,7 +36,7 @@ module Truffle::Patching
     name                           = relative_file_path_to_patching.descend.first
     require_path                   = relative_file_path_to_patching.relative_path_from(name)
 
-    original = originals[name.to_s].flat_map do |original_path|
+    original = originals.fetch(name.to_s).flat_map do |original_path|
       Pathname.glob(File.join(original_path, require_path))
     end.first
 
@@ -62,7 +62,7 @@ module Truffle::Patching
   end
 
   def dir
-    @dir ||= Pathname(Truffle::Boot.ruby_home).join('lib/patches')
+    @dir ||= Pathname(Truffle::Boot.ruby_home).join('lib/patches').realpath
   end
 
 end

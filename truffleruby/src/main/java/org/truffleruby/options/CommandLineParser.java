@@ -335,7 +335,12 @@ public class CommandLineParser {
                     }
                 case 'x':
                     disallowedInRubyOpts(argument);
-                    throw new UnsupportedOperationException();
+                    config.getOptions().put(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG.getName(), true);
+                    String directory = grabOptionalValue();
+                    if (directory != null) {
+                        throw new UnsupportedOperationException();
+                    }
+                    break FOR;
                 case 'X':
                     disallowedInRubyOpts(argument);
                     String extendedOption = grabValue("-X must be followed by an option");

@@ -1,2 +1,15 @@
 #!/usr/bin/env bash
-exec "$(dirname "$0")/truffleruby" -Sirb "$@"
+exec "$(dirname $0)/truffleruby" "$(dirname $0)/irb" "$@" # ignored by Ruby interpreter
+#!ruby
+# ^ marks start of Ruby interpretation
+
+#
+#   irb.rb - interactive ruby
+#   	$Release Version: 0.9.6 $
+#   	$Revision$
+#   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
+#
+
+require "irb"
+
+IRB.start(__FILE__)
