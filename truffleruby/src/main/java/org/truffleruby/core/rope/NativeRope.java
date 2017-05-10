@@ -44,7 +44,7 @@ public class NativeRope extends Rope {
 
     @Override
     public byte get(int index) {
-        assert 0 <= index && index <= byteLength();
+        assert 0 <= index && index < byteLength();
         return pointer.getByte(index);
     }
 
