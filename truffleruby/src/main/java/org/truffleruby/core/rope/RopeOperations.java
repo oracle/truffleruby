@@ -429,7 +429,7 @@ public class RopeOperations {
                 nativeRope.copyTo(offset, buffer, bufferPosition);
                 bufferPosition += nativeRope.byteLength();
             } else {
-                throw new UnsupportedOperationException("Don't know how to flatten rope of type: " + rope.getClass().getName());
+                throw new UnsupportedOperationException("Don't know how to flatten rope of type: " + current.getClass().getName());
             }
         }
 
