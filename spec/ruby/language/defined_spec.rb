@@ -881,7 +881,9 @@ end
 
 describe "The defined? keyword for a variable scoped constant" do
   after :all do
-    Object.__send__(:remove_class_variable, :@@defined_specs_obj)
+    if Object.class_variable_defined? :@@defined_specs_obj
+      Object.__send__(:remove_class_variable, :@@defined_specs_obj)
+    end
   end
 
   it "returns nil if the instance scoped constant is not defined" do
