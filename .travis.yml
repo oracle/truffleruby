@@ -22,7 +22,7 @@ jdk: oraclejdk8
 
 matrix:
   include:
-  - env: JT='test cexts_and_openssl' COMMAND=tool/install-sulong.sh
+  - env: JT='test cexts_and_openssl' COMMAND=tool/install-sulong.sh SULONG_HOME=../sulong
   # Exlude the default job https://github.com/travis-ci/travis-ci/issues/4681
   exclude:
   - jdk: oraclejdk8

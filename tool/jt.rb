@@ -25,7 +25,6 @@ require 'pathname'
 
 JRUBY_DIR = File.expand_path('../..', __FILE__)
 M2_REPO = File.expand_path('~/.m2/repository')
-SULONG_HOME = ENV['SULONG_HOME']
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -43,6 +42,8 @@ SO = MAC ? 'dylib' : 'so'
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
+
+SULONG_HOME = ENV['SULONG_HOME'] = ENV['SULONG_HOME'] && File.expand_path(ENV['SULONG_HOME'])
 
 LIBXML_HOME = ENV['LIBXML_HOME'] = ENV['LIBXML_HOME'] || '/usr'
 LIBXML_LIB_HOME = ENV['LIBXML_LIB_HOME'] = ENV['LIBXML_LIB_HOME'] || "#{LIBXML_HOME}/lib"
