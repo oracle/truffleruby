@@ -6,6 +6,6 @@ set -e
 
 for f in test/truffle/integration/tracing/*.rb
 do
-  echo $f
-  jt ruby $f
+  echo "$f"
+  jt ruby "$f"
 done

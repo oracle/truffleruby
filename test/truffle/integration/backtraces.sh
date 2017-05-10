@@ -6,6 +6,6 @@ set -e
 
 for f in test/truffle/integration/backtraces/*.rb
 do
-  echo $f
-  jt ruby --no-core-load-path $f
+  echo "$f"
+  jt ruby --no-core-load-path "$f"
 done

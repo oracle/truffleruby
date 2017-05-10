@@ -19,13 +19,13 @@ else
 
     if [ -f tmp/pids/server.pid ]
     then
-        kill $(cat tmp/pids/server.pid) || true
+        kill "$(cat tmp/pids/server.pid)" || true
         rm tmp/pids/server.pid
     fi
 
     ${JTR} setup --offline
     ${JTR} run --offline -- -S bundle exec bin/rails server &
-    serverpid=$!
+
     url="http://localhost:3000"
 
     set +x
@@ -41,10 +41,10 @@ else
     curl -s -X "DELETE" "$url/people/destroy_all.json"
     test "$(curl -s "$url/people.json")" = '[]'
     curl -s --data 'name=Anybody&email=ab@example.com' "$url/people.json"
-    echo "$(curl -s "$url/people.json")" | grep '"name":"Anybody","email":"ab@example.com"'
+    curl -s "$url/people.json" | grep '"name":"Anybody","email":"ab@example.com"'
     curl -s -X "DELETE" "$url/people/destroy_all.json"
 
     kill %1
-    kill $(cat tmp/pids/server.pid)
+    kill "$(cat tmp/pids/server.pid)"
 
 fi

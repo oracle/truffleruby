@@ -50,11 +50,13 @@ sudo mkdir /usr/local/apache-maven/apache-maven-3.2.5
 sudo tar -xvzf apache-maven-3.2.5-bin.tar.gz -C /usr/local/apache-maven
 
 echo "Setup bash and environment"
-echo 'function jt { ruby tool/jt.rb $@; }' >> /home/vagrant/.bashrc
-echo "cd /vagrant" >> /home/vagrant/.bashrc
-echo "export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/jre" >> /home/vagrant/.bashrc
-echo "export PATH=$PATH:/usr/local/apache-maven/apache-maven-3.2.5/bin"  >> /home/vagrant/.bashrc
-echo 'export MAVEN_OPTS="-Xms512m -XX:MaxPermSize=2048m -Xmx2048m"' >> /home/vagrant/.bashrc
+cat << EOF > /home/vagrant/.bashrc
+function jt { ruby tool/jt.rb $@; }
+cd /vagrant
+export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/jre
+export PATH=$PATH:/usr/local/apache-maven/apache-maven-3.2.5/bin
+export MAVEN_OPTS="-Xms512m -XX:MaxPermSize=2048m -Xmx2048m"
+EOF
 
 # Check versions
 ruby -v

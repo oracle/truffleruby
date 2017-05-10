@@ -8,8 +8,8 @@ curl -LO 'http://central.maven.org/maven2/org/jacoco/org.jacoco.core/0.7.4.20150
 curl -LO 'http://central.maven.org/maven2/org/jacoco/org.jacoco.ant/0.7.4.201502262128/org.jacoco.ant-0.7.4.201502262128.jar'
 curl -LO 'http://central.maven.org/maven2/org/jacoco/org.jacoco.report/0.7.4.201502262128/org.jacoco.report-0.7.4.201502262128.jar'
 
-JACOCO_AGENT=`pwd`/jacoco-agent.jar
-JACOCO_LOG=`pwd`/jacoco.exec
+JACOCO_AGENT=$(pwd)/jacoco-agent.jar
+JACOCO_LOG=$(pwd)/jacoco.exec
 
 export VERIFY_JRUBY=1
 export JAVA_OPTS="-javaagent:$JACOCO_AGENT=destfile=$JACOCO_LOG"
