@@ -1,2 +1,0 @@
-fails:Post-args with optional args with a circular argument reference shadows an existing local with the same name as the argument
-fails:Post-args with optional args with a circular argument reference shadows an existing method with the same name as the argument

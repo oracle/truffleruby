@@ -289,6 +289,7 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableStorage loadPathStorage;
     @CompilationFinal private GlobalVariableStorage loadedFeaturesStorage;
     @CompilationFinal private GlobalVariableStorage debugStorage;
+    @CompilationFinal private GlobalVariableStorage verboseStorage;
     @CompilationFinal private GlobalVariableStorage stderrStorage;
 
     private Source mainBootSource = null;
@@ -771,7 +772,7 @@ public class CoreLibrary {
                 throw new UnsupportedOperationException();
         }
 
-        globals.put("$VERBOSE", verbose);
+        verboseStorage = globals.put("$VERBOSE", verbose);
 
         globals.put("$/", frozenUSASCIIString(CLI_RECORD_SEPARATOR));
 
@@ -1282,6 +1283,14 @@ public class CoreLibrary {
 
     public Object getDebug() {
         return debugStorage.getValue();
+    }
+
+    public boolean warningsEnabled() {
+        return verboseStorage.getValue() != getNilObject();
+    }
+
+    public boolean isVerbose() {
+        return verboseStorage.getValue() == Boolean.TRUE;
     }
 
     public Object getStderr() {

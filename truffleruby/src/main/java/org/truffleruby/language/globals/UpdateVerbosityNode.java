@@ -23,17 +23,15 @@ public class UpdateVerbosityNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object childValue = child.execute(frame);
-        setVerbose(childValue);
-        return childValue;
+        final Object value = child.execute(frame);
+        validateVerbose(value);
+        return value;
     }
 
     @TruffleBoundary
-    private void setVerbose(Object childValue) {
-        if (childValue instanceof Boolean) {
-            getContext().setVerbose((boolean) childValue);
-        } else if (childValue == nil()) {
-            getContext().setVerboseNil();
+    private void validateVerbose(Object value) {
+        if (value instanceof Boolean || value == nil()) {
+            // OK
         } else {
             throw new UnsupportedOperationException();
         }

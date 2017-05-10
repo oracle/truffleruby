@@ -119,13 +119,17 @@ public class RubyWarnings implements WarnCallback {
         this.runtime = runtime;
     }
 
-    @Override
-    public void warn(String message) {
-        warn(ID.MISCELLANEOUS, message);
+    public boolean warningsEnabled() {
+        return runtime.getCoreLibrary().warningsEnabled();
     }
 
     public boolean isVerbose() {
-        return runtime != null && runtime.isVerbose();
+        return runtime != null && runtime.getCoreLibrary().isVerbose();
+    }
+
+    @Override
+    public void warn(String message) {
+        warn(ID.MISCELLANEOUS, message);
     }
 
     /**
@@ -133,7 +137,9 @@ public class RubyWarnings implements WarnCallback {
      */
     @SuppressWarnings("deprecation")
     public void warn(ID id, String fileName, int lineNumber, String message) {
-        if (!runtime.warningsEnabled()) return;
+        if (!warningsEnabled()) {
+            return;
+        }
 
         StringBuilder buffer = new StringBuilder(100);
 
@@ -147,7 +153,7 @@ public class RubyWarnings implements WarnCallback {
      */
     @SuppressWarnings("deprecation")
     public void warn(ID id, String fileName, String message) {
-        if (!runtime.warningsEnabled()) {
+        if (!warningsEnabled()) {
             return;
         }
 
@@ -169,8 +175,12 @@ public class RubyWarnings implements WarnCallback {
     }
 
     public void warnOnce(ID id, String message) {
-        if (!runtime.warningsEnabled()) return;
-        if (oncelers.contains(id)) return;
+        if (!warningsEnabled()) {
+            return;
+        }
+        if (oncelers.contains(id)) {
+            return;
+        }
 
         oncelers.add(id);
         warn(id, message);
@@ -181,8 +191,9 @@ public class RubyWarnings implements WarnCallback {
      * before calling them
      */
     public void warning(String message) {
-        if (!isVerbose()) return;
-        if (!runtime.warningsEnabled()) return;
+        if (!isVerbose()) {
+            return;
+        }
 
         throw new UnsupportedOperationException();
     }
@@ -191,7 +202,9 @@ public class RubyWarnings implements WarnCallback {
      * Prints a warning, only in verbose mode.
      */
     public void warning(ID id, String fileName, int lineNumber, String message) {
-        if (!runtime.warningsEnabled() || !runtime.isVerbose()) return;
+        if (!isVerbose()) {
+            return;
+        }
 
         warn(id, fileName, lineNumber, message);
     }

@@ -67,7 +67,6 @@ public class RubyContext extends ExecutionContext {
     private String originalInputFile;
 
     private InputStream syntaxCheckInputStream;
-    private boolean verbose;
 
     private final RopeTable ropeTable = new RopeTable();
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
@@ -118,7 +117,6 @@ public class RubyContext extends ExecutionContext {
             Log.LOGGER.config(() -> String.format("ruby home: %s", rubyHome));
 
             currentDirectory = System.getProperty("user.dir");
-            verbose = options.VERBOSITY.equals(Verbosity.TRUE);
 
             // Stuff that needs to be loaded before we load any code
 
@@ -421,22 +419,6 @@ public class RubyContext extends ExecutionContext {
 
     public String getRubyHome() {
         return rubyHome;
-    }
-
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
-
-    public void setVerboseNil() {
-        verbose = false;
-    }
-
-    public boolean warningsEnabled() {
-        return verbose;
-    }
-
-    public boolean isVerbose() {
-        return verbose;
     }
 
     public InputStream getSyntaxCheckInputStream() {

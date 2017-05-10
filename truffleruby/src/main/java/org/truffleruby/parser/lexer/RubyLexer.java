@@ -809,7 +809,7 @@ public class RubyLexer {
                 // There are no magic comments that can affect any runtime options after a token has been seen, so there's
                 // no point in looking for them. However, if warnings are enabled, we do need to scan for the magic comment
                 // so we can report that it will be ignored.
-                if (!tokenSeen || (!TruffleOptions.AOT && parserSupport.getContext().warningsEnabled())) {
+                if (!tokenSeen || (!TruffleOptions.AOT && parserSupport.getContext().getCoreLibrary().warningsEnabled())) {
                     if (!parseMagicComment(lexb, lex_p, lex_pend - lex_p)) {
                         if (comment_at_top()) set_file_encoding(lex_p, lex_pend);
                     }
