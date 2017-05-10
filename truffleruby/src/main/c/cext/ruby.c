@@ -882,7 +882,7 @@ int rb_str_len(VALUE string) {
 
 VALUE rb_str_new(const char *string, long length) {
   if (length < 0) {
-	rb_raise(rb_eArgError, "negative string size (or size too big)");
+    rb_raise(rb_eArgError, "negative string size (or size too big)");
   }
 
   if (string == NULL) {
