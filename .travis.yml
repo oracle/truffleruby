@@ -6,6 +6,14 @@ cache:
   directories:
   - $HOME/.mx/cache
 
+addons:
+  apt:
+    packages:
+    - libc++1
+    - libc++abi1
+    - libc++-dev
+    - libc++abi-dev
+
 before_install:
 - rvm install 2.1.0
 - unset GEM_PATH GEM_HOME IRBRC
