@@ -826,8 +826,11 @@ module Commands
   end
   private :run_mri_tests
 
-  def retag(test_file)
-    test_classes = File.read(test_file).scan(/class (\w+) < Test::Unit::TestCase/)
+  def retag(*args)
+    options, test_files = args.partition { |a| a.start_with?('-') }
+    raise unless test_files.size == 1
+    test_file = test_files[0]
+    test_classes = File.read(test_file).scan(/class ([\w:]+) < .+TestCase/)
     test_classes.each do |test_class,|
       prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
       FileUtils::Verbose.rm_f "#{prefix}.rb"
@@ -836,13 +839,13 @@ module Commands
 
     puts "1. Tagging tests"
     output_file = "mri_tests.txt"
-    run_mri_tests([], test_file, out: output_file, continue_on_failure: true)
+    run_mri_tests(options, test_file, out: output_file, continue_on_failure: true)
 
     puts "2. Parsing errors"
     sh "ruby", "tool/parse_mri_errors.rb", output_file
 
     puts "3. Verifying tests pass"
-    run_mri_tests([], test_file)
+    run_mri_tests(options, test_file)
   end
 
   def test_compiler(*args)
