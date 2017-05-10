@@ -15,7 +15,7 @@ addons:
     - libc++abi-dev
 
 before_install:
-- rvm install 2.1.0
+- rvm install 2.1.9
 - unset GEM_PATH GEM_HOME IRBRC
 
 jdk: oraclejdk8
