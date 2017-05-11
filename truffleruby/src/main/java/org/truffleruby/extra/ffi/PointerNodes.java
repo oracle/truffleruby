@@ -25,6 +25,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
@@ -190,10 +191,11 @@ public abstract class PointerNodes {
             return value;
         }
 
+        @TruffleBoundary
         @Specialization(guards = {"type == TYPE_CHARARR", "isRubyString(string)"})
         public DynamicObject setAtOffsetCharArr(DynamicObject pointer, int offset, int type, DynamicObject string) {
             final String str = StringOperations.getString(string);
-            Layouts.POINTER.getPointer(pointer).putString(offset, str, str.length(), StringOperations.encoding(string).getCharset());
+            Layouts.POINTER.getPointer(pointer).putString(offset, str, str.length(), EncodingManager.charsetForEncoding(StringOperations.encoding(string)));
             return string;
         }
 
