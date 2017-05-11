@@ -529,7 +529,7 @@ static void ossl_threadid_func(CRYPTO_THREADID *id)
 static unsigned long ossl_thread_id(void)
 {
     /* before OpenSSL 1.0, this is 'unsigned long' */
-    return (unsigned long)rb_tr_handle_for_managed_leaking(rb_nativethread_self());
+    return rb_tr_obj_id(rb_nativethread_self());
 }
 #endif
 
