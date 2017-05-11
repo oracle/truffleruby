@@ -1710,6 +1710,10 @@ class << Truffle::CExt
     Truffle::Debug.java_to_string(object)
   end
 
+  def rb_sprintf(format, *args)
+    f = format.gsub(/%l.\v/, "%s")
+    sprintf(f, *args) rescue raise ArgumentError, "Bad format string #{f}."
+  end
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

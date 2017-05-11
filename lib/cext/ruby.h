@@ -630,7 +630,7 @@ int rb_utf8_encindex(void);
 VALUE rb_str_buf_new(long capacity);
 
 #define rb_sprintf(format, ...) \
-    (VALUE) truffle_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(format), ##__VA_ARGS__)
+    (VALUE) truffle_invoke(RUBY_CEXT, "rb_sprintf", rb_str_new_cstr(format), ##__VA_ARGS__)
 
 VALUE rb_vsprintf(const char *format, va_list args);
 
