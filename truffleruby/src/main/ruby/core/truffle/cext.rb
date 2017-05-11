@@ -1711,7 +1711,7 @@ class << Truffle::CExt
   end
 
   def rb_sprintf(format, *args)
-    f = format.gsub(/%l.\v/, "%s")
+    f = format.gsub(/%l.\v/, '%s')
     sprintf(f, *args) rescue raise ArgumentError, "Bad format string #{f}."
   end
 end
