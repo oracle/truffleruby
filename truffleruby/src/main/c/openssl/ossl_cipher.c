@@ -162,7 +162,7 @@ ossl_cipher_copy(VALUE self, VALUE other)
 static void*
 add_cipher_name_to_ary(const OBJ_NAME *name, void* ary_handle)
 {
-    VALUE ary = truffle_managed_from_handle(ary_handle);
+    VALUE ary = rb_tr_managed_from_handle(ary_handle);
     rb_ary_push(ary, rb_str_new2(name->name));
     return NULL;
 }

@@ -212,7 +212,7 @@ int ossl_store_ex_verify_cb_idx;
 VALUE
 ossl_call_verify_cb_proc(struct ossl_verify_cb_args *args)
 {
-    return rb_funcall(truffle_managed_from_handle(args->proc), rb_intern("call"), 2,
+    return rb_funcall(rb_tr_managed_from_handle(args->proc), rb_intern("call"), 2,
                       args->preverify_ok ? Qtrue : Qfalse, args->store_ctx);
 }
 

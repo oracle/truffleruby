@@ -2525,20 +2525,6 @@ void rb_tr_log_warning(const char *message) {
   truffle_invoke(RUBY_CEXT, "rb_tr_log_warning", rb_str_new_cstr(message));
 }
 
-void *rb_tr_handle_for_managed_leaking(void *managed) {
-  void *handle = truffle_handle_for_managed(managed);
-  rb_tr_log_warning("truffle_handle_for_managed without matching truffle_release_handle; handles will be leaking");
-  return handle;
-}
-
-VALUE rb_tr_managed_from_handle_or_null(void *handle) {
-  if (handle == NULL) {
-    return NULL;
-  } else {
-    return truffle_managed_from_handle(handle);
-  }
-}
-
 long rb_tr_obj_id(VALUE object) {
   return truffle_invoke_l(RUBY_CEXT, "rb_tr_obj_id", object);
 }
@@ -2553,4 +2539,31 @@ VALUE rb_java_class_of(VALUE obj) {
 
 VALUE rb_java_to_string(VALUE obj) {
   return truffle_invoke(RUBY_CEXT, "rb_java_to_string", obj);
+}
+
+void *rb_tr_handle_for_managed(void *managed) {
+  void *handle = truffle_handle_for_managed(managed);
+  printf("--> %p\n", handle);
+  return handle;
+}
+
+void *rb_tr_handle_for_managed_leaking(void *managed) {
+  rb_tr_log_warning("rb_tr_handle_for_managed without matching rb_tr_release_handle; handles will be leaking");
+  return rb_tr_handle_for_managed(managed);
+}
+
+VALUE rb_tr_managed_from_handle_or_null(void *handle) {
+  if (handle == NULL) {
+    return NULL;
+  } else {
+    return rb_tr_managed_from_handle(handle);
+  }
+}
+
+void *rb_tr_managed_from_handle(void *handle) {
+  return truffle_managed_from_handle(handle);
+}
+
+void rb_tr_release_handle(void *handle) {
+  truffle_release_handle(handle);
 }
