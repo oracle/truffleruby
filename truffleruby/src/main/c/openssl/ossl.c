@@ -225,7 +225,7 @@ ossl_verify_cb(int ok, X509_STORE_CTX *ctx)
 
     proc = rb_tr_managed_from_handle_or_null(X509_STORE_CTX_get_ex_data(ctx, ossl_store_ctx_ex_verify_cb_idx));
     if (!proc)
-	proc = X509_STORE_get_ex_data(ctx->ctx, ossl_store_ex_verify_cb_idx);
+	proc = rb_tr_managed_from_handle_or_null(X509_STORE_get_ex_data(ctx->ctx, ossl_store_ex_verify_cb_idx));
     if (!proc)
 	return ok;
     if (!NIL_P(proc)) {

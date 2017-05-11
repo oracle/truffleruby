@@ -134,12 +134,12 @@ int EVP_CIPHER_CTX_copy(EVP_CIPHER_CTX *out, EVP_CIPHER_CTX *in);
 
 #if !defined(HAVE_X509_STORE_GET_EX_DATA)
 #  define X509_STORE_get_ex_data(x, idx) \
-	rb_tr_managed_from_handle_or_null(CRYPTO_get_ex_data(&(x)->ex_data, (idx)))
+	CRYPTO_get_ex_data(&(x)->ex_data, (idx))
 #endif
 
 #if !defined(HAVE_X509_STORE_SET_EX_DATA)
 #  define X509_STORE_set_ex_data(x, idx, data) \
-	CRYPTO_set_ex_data(&(x)->ex_data, (idx), rb_tr_handle_for_managed_leaking(data))
+	CRYPTO_set_ex_data(&(x)->ex_data, (idx), data)
 #  define X509_STORE_get_ex_new_index(l, p, newf, dupf, freef) \
 	CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_X509_STORE, (l), (p), \
 				(newf), (dupf), (freef))
