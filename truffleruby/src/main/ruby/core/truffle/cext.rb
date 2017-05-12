@@ -1423,21 +1423,22 @@ class << Truffle::CExt
     object
   end
 
+  def rb_data_typed_object_wrap(ruby_class, data, data_type, free)
+    ruby_class = Object if Truffle::Interop.null?(ruby_class)
+    object = ruby_class.internal_allocate
+    data_holder = Truffle::CExt::DataHolder.new(data)
+    hidden_variable_set object, :data_type, data_type
+    hidden_variable_set object, :data_holder, data_holder
+    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder)
+    object
+  end
+
   def data_finalizer(free, data_holder)
     # In a separate method to avoid capturing the object
 
     proc {
       Truffle::Interop.execute(free, data_holder.data)
     }
-  end
-
-  def rb_data_typed_object_wrap(ruby_class, data, data_type)
-    ruby_class = Object if Truffle::Interop.null?(ruby_class)
-    object = ruby_class.internal_allocate
-    data_holder = Truffle::CExt::DataHolder.new(data)
-    hidden_variable_set object, :data_type, data_type
-    hidden_variable_set object, :data_holder, data_holder
-    object
   end
 
   def rb_ruby_verbose_ptr
