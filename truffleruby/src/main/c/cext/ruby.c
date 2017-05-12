@@ -2465,7 +2465,7 @@ VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
 // Data
 
 VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_data_object_wrap", klass == NULL ? rb_cObject : klass, datap, dmark, dfree);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, datap, dmark, dfree);
 }
 
 struct RData *RDATA(VALUE value) {

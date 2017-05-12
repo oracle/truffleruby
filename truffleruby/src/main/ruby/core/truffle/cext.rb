@@ -13,6 +13,16 @@ class Data
 end
 
 module Truffle::CExt
+  class DataHolder
+
+    attr_accessor :data
+
+    def initialize(data)
+      @data = data
+    end
+
+  end
+
   class RData
 
     DATA_FIELD_INDEX = 2
@@ -23,12 +33,16 @@ module Truffle::CExt
 
     def [](index)
       raise unless index == DATA_FIELD_INDEX
-      Truffle::CExt.hidden_variable_get(@object, :data)
+      data_holder.data
     end
 
     def []=(index, value)
       raise unless index == DATA_FIELD_INDEX
-      Truffle::CExt.hidden_variable_set @object, :data, value
+      data_holder.data = value
+    end
+
+    def data_holder
+      Truffle::CExt.hidden_variable_get(@object, :data_holder)
     end
 
   end
@@ -1403,23 +1417,26 @@ class << Truffle::CExt
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object if Truffle::Interop.null?(ruby_class)
     object = ruby_class.internal_allocate
-    hidden_variable_set object, :data, data
-    ObjectSpace.define_finalizer object, data_finalizer(data, free)
+    data_holder = Truffle::CExt::DataHolder.new(data)
+    hidden_variable_set object, :data_holder, data_holder
+    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder)
     object
   end
 
-  def data_finalizer(data, free)
+  def data_finalizer(free, data_holder)
+    # In a separate method to avoid capturing the object
+
     proc {
-      Truffle::Debug.log_warning 'native data finalizer not being called; probably leaking resources'
-      # TODO CS 14-Mar-17 data pointer has escaped
-      # Truffle::Interop.execute(free, data)
+      Truffle::Interop.execute(free, data_holder.data)
     }
   end
 
   def rb_data_typed_object_wrap(ruby_class, data, data_type)
+    ruby_class = Object if Truffle::Interop.null?(ruby_class)
     object = ruby_class.internal_allocate
+    data_holder = Truffle::CExt::DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
-    hidden_variable_set object, :data, data
+    hidden_variable_set object, :data_holder, data_holder
     object
   end
 

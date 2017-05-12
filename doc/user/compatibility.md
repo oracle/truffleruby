@@ -148,8 +148,7 @@ cannot be passed as variadic arguments.
 
 #### `RDATA`
 
-The `mark` function of `RDATA` is never called. The `free` function is also
-never called at the moment, but this will be fixed in the future.
+The `mark` function of `RDATA` and `RTYPEDDATA` is never called.
 
 #### Ruby objects and truthiness in C
 
