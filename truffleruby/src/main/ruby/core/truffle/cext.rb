@@ -1064,7 +1064,7 @@ class << Truffle::CExt
   end
 
   def rb_string_value_cstr_check(string)
-    !string.include?("\0")
+    raise ArgumentError, "string contains null byte" if string.include?("\0")
   end
 
   def rb_String(value)

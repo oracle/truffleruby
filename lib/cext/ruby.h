@@ -1218,9 +1218,7 @@ MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer) {
 MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer) {
   VALUE string = rb_string_value(value_pointer);
 
-  if (!truffle_invoke_b(RUBY_CEXT, "rb_string_value_cstr_check", string)) {
-    rb_tr_error("rb_string_value_cstr failure case not implemented");
-  }
+  truffle_invoke(RUBY_CEXT, "rb_string_value_cstr_check", string);
 
   return RSTRING_PTR(string);
 }
