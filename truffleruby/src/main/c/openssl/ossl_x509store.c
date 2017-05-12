@@ -57,6 +57,7 @@ VALUE eX509StoreError;
 static void
 ossl_x509store_free(void *ptr)
 {
+    rb_tr_release_handle(X509_STORE_get_ex_data((X509_STORE *)ptr, ossl_store_ex_verify_cb_idx));
     X509_STORE_free(ptr);
 }
 
@@ -130,7 +131,10 @@ ossl_x509store_set_vfy_cb(VALUE self, VALUE cb)
     X509_STORE *store;
 
     GetX509Store(self, store);
-    X509_STORE_set_ex_data(store, ossl_store_ex_verify_cb_idx, rb_tr_handle_for_managed_leaking(cb));
+    void *old_cb = X509_STORE_get_ex_data(store, ossl_store_ex_verify_cb_idx);
+    if (old_cb != NULL)
+      rb_tr_release_handle(old_cb);
+    X509_STORE_set_ex_data(store, ossl_store_ex_verify_cb_idx, rb_tr_handle_for_managed(cb));
     rb_iv_set(self, "@verify_callback", cb);
 
     return cb;

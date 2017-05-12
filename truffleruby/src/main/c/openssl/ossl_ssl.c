@@ -130,6 +130,7 @@ ossl_sslctx_free(void *ptr)
     SSL_CTX *ctx = ptr;
     if(ctx && SSL_CTX_get_ex_data(ctx, ossl_ssl_ex_store_p)== (void*)1)
 	ctx->cert_store = NULL;
+	  rb_tr_release_handle(SSL_CTX_get_ex_data(ctx, ossl_ssl_ex_ptr_idx));
     SSL_CTX_free(ctx);
 }
 
@@ -159,7 +160,7 @@ ossl_sslctx_s_alloc(VALUE klass)
     }
     SSL_CTX_set_mode(ctx, mode);
     RTYPEDDATA_DATA(obj) = ctx;
-    SSL_CTX_set_ex_data(ctx, ossl_ssl_ex_ptr_idx, (void*)rb_tr_handle_for_managed_leaking(obj));
+    SSL_CTX_set_ex_data(ctx, ossl_ssl_ex_ptr_idx, rb_tr_handle_for_managed(obj));
 
     return obj;
 }
@@ -1167,6 +1168,8 @@ ossl_ssl_shutdown(SSL *ssl)
 static void
 ossl_ssl_free(void *ssl)
 {
+	  rb_tr_release_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_ptr_idx));
+	  rb_tr_release_handle(SSL_get_ex_data(ssl, ossl_ssl_ex_vcb_idx));
     SSL_free(ssl);
 }
 
@@ -1218,9 +1221,9 @@ ossl_ssl_setup(VALUE self)
         rb_io_check_readable(fptr);
         rb_io_check_writable(fptr);
         SSL_set_fd(ssl, TO_SOCKET(FPTR_TO_FD(fptr)));
-	SSL_set_ex_data(ssl, ossl_ssl_ex_ptr_idx, (void*)rb_tr_handle_for_managed_leaking(self));
+	SSL_set_ex_data(ssl, ossl_ssl_ex_ptr_idx, (void*)rb_tr_handle_for_managed(self));
 	cb = ossl_sslctx_get_verify_cb(v_ctx);
-	SSL_set_ex_data(ssl, ossl_ssl_ex_vcb_idx, (void*)rb_tr_handle_for_managed_leaking(cb));
+	SSL_set_ex_data(ssl, ossl_ssl_ex_vcb_idx, (void*)rb_tr_handle_for_managed(cb));
 	SSL_set_info_callback(ssl, ssl_info_cb);
     }
 
