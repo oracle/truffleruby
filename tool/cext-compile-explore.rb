@@ -16,10 +16,21 @@ require 'rbconfig'
 file = ARGV.shift
 args = ARGV
 
-`ruby lib/cext/preprocess.rb #{file} > explore-pre.c`
-`#{RbConfig::CONFIG['CC']} -Wno-macro-redefined -E -I#{RbConfig::CONFIG['rubyhdrdir']} #{args.join(' ')} explore-pre.c -o explore-cpp.c`
-`#{RbConfig::CONFIG['CC']} -Werror=implicit-function-declaration -Wno-int-conversion -Wno-int-to-pointer-cast -Wno-macro-redefined -Wno-unused-value -c -emit-llvm -I#{RbConfig::CONFIG['rubyhdrdir']} #{args.join(' ')} explore-pre.c -o explore-frontend.bc`
-`llvm-dis-3.8 explore-frontend.bc`
-opt_passes = ['-always-inline', '-mem2reg', '-constprop']
-`#{ENV['JT_OPT'] || 'opt'} #{opt_passes.join(' ')} explore-frontend.bc -o explore-opt.bc`
-`llvm-dis-3.8 explore-opt.bc`
+def run(command)
+  puts '$ ' + command
+  exit 1 unless system command
+end
+
+args_joined = args.join(' ')
+
+run "ruby lib/cext/preprocess.rb #{file} > explore-pre.c"
+run "#{RbConfig::CONFIG['CC']} -Wno-macro-redefined -E -I#{RbConfig::CONFIG['rubyhdrdir']} " +
+        "#{args_joined} explore-pre.c -o explore-cpp.c"
+run "#{RbConfig::CONFIG['CC']} -Werror=implicit-function-declaration -Wno-int-conversion -Wno-int-to-pointer-cast " +
+        "-Wno-macro-redefined -Wno-unused-value -c -emit-llvm -I#{RbConfig::CONFIG['rubyhdrdir']} " +
+        "#{args_joined} explore-pre.c -o explore-frontend.bc"
+run 'llvm-dis-3.8 explore-frontend.bc'
+
+opt_passes = %w[-always-inline -mem2reg -constprop]
+run "#{ENV['JT_OPT'] || 'opt'} #{opt_passes.join(' ')} explore-frontend.bc -o explore-opt.bc"
+run 'llvm-dis-3.8 explore-opt.bc'
