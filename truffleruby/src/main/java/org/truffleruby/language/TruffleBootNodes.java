@@ -27,6 +27,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
@@ -191,6 +192,21 @@ public abstract class TruffleBootNodes {
         @Specialization
         public boolean isPatchingEnabled() {
             return getContext().getOptions().PATCHING;
+        }
+
+    }
+
+    @CoreMethod(names = "patching_openssl_enabled?", onSingleton = true)
+    public abstract static class PatchingOpensslEnabledNode extends CoreMethodNode {
+
+        @Specialization
+        public boolean isPatchingEnabled() {
+            final boolean patching_openssl = getContext().getOptions().PATCHING_OPENSSL;
+            if (patching_openssl && !getContext().getOptions().PATCHING) {
+                throw new RaiseException(getContext().getCoreExceptions().runtimeError(
+                        "Cannot patch openssl without patching enabled", this));
+            }
+            return patching_openssl;
         }
 
     }

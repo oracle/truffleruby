@@ -15,6 +15,7 @@ VERBOSITY: [verbosity, verbosity, false, Verbosity]
 FROZEN_STRING_LITERALS: [frozen_string_literals, boolean, false, Use frozen string literals]
 RUBYGEMS: [rubygems, boolean, true, Use RubyGems]
 PATCHING: [patching, boolean, true, Use patching]
+PATCHING_OPENSSL: [patching_openssl, boolean, PATCHING, Use openssl patching]
 DID_YOU_MEAN: [did_you_mean, boolean, true, Use did_you_mean]
 
 INTERNAL_ENCODING: [internal_encoding, string, null, Internal encoding]

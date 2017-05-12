@@ -30,6 +30,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription("frozen_string_literals", "Use frozen string literals", false);
     public static final BooleanOptionDescription RUBYGEMS = new BooleanOptionDescription("rubygems", "Use RubyGems", true);
     public static final BooleanOptionDescription PATCHING = new BooleanOptionDescription("patching", "Use patching", true);
+    public static final BooleanOptionDescription PATCHING_OPENSSL = new BooleanOptionDescription("patching_openssl", "Use openssl patching", true);
     public static final BooleanOptionDescription DID_YOU_MEAN = new BooleanOptionDescription("did_you_mean", "Use did_you_mean", true);
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription("internal_encoding", "Internal encoding", null);
     public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription("external_encoding", "External encoding", null);
@@ -139,6 +140,8 @@ public class OptionsCatalog {
                 return RUBYGEMS;
             case "patching":
                 return PATCHING;
+            case "patching_openssl":
+                return PATCHING_OPENSSL;
             case "did_you_mean":
                 return DID_YOU_MEAN;
             case "internal_encoding":
@@ -316,6 +319,7 @@ public class OptionsCatalog {
             FROZEN_STRING_LITERALS,
             RUBYGEMS,
             PATCHING,
+            PATCHING_OPENSSL,
             DID_YOU_MEAN,
             INTERNAL_ENCODING,
             EXTERNAL_ENCODING,

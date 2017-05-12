@@ -4,6 +4,7 @@ Truffle::Patching.require_original __FILE__
 # - skip some checksum/digest verification
 
 class Gem::Package
+
   def extract_files destination_dir, pattern = "*"
     verify unless @spec
 
@@ -32,58 +33,61 @@ class Gem::Package
     end
   end
 
-  def verify
-    @files = []
-    @spec  = nil
+  if Truffle::Boot.patching_openssl_enabled?
 
-    @gem.with_read_io do |io|
-      Gem::Package::TarReader.new io do |reader|
-        read_checksums reader
+    def verify
+      @files = []
+      @spec  = nil
 
-        verify_files reader
+      @gem.with_read_io do |io|
+        Gem::Package::TarReader.new io do |reader|
+          read_checksums reader
+
+          verify_files reader
+        end
       end
+
+      # TruffleRuby:disable
+      # verify_checksums @digests, @checksums
+
+      @security_policy.verify_signatures @spec, @digests, @signatures if @security_policy
+
+      true
+    rescue Gem::Security::Exception
+      @spec  = nil
+      @files = []
+      raise
+    rescue Errno::ENOENT => e
+      raise Gem::Package::FormatError.new e.message
+    rescue Gem::Package::TarInvalidError => e
+      raise Gem::Package::FormatError.new e.message, @gem
     end
 
-    # TruffleRuby:disable
-    # verify_checksums @digests, @checksums
+    def verify_entry entry
+      file_name = entry.full_name
+      @files << file_name
 
-    @security_policy.verify_signatures @spec, @digests, @signatures if @security_policy
+      case file_name
+      when /\.sig$/ then
+        @signatures[$`] = entry.read if @security_policy
+        return
+      else
+        # TruffleRuby: disable
+        # digest entry
+      end
 
-    true
-  rescue Gem::Security::Exception
-    @spec  = nil
-    @files = []
-    raise
-  rescue Errno::ENOENT => e
-    raise Gem::Package::FormatError.new e.message
-  rescue Gem::Package::TarInvalidError => e
-    raise Gem::Package::FormatError.new e.message, @gem
-  end
-
-  def verify_entry entry
-    file_name = entry.full_name
-    @files << file_name
-
-    case file_name
-    when /\.sig$/ then
-      @signatures[$`] = entry.read if @security_policy
-      return
-    else
-      # TruffleRuby: disable
-      # digest entry
+      case file_name
+      when /^metadata(.gz)?$/ then
+        load_spec entry
+      when 'data.tar.gz' then
+        # TruffleRuby: disable
+        # verify_gz entry
+      end
+    rescue => e
+      message = "package is corrupt, exception while verifying: " +
+          "#{e.message} (#{e.class})"
+      raise Gem::Package::FormatError.new message, @gem
     end
-
-    case file_name
-    when /^metadata(.gz)?$/ then
-      load_spec entry
-    when 'data.tar.gz' then
-      # TruffleRuby: disable
-      # verify_gz entry
-    end
-  rescue => e
-    message = "package is corrupt, exception while verifying: " +
-        "#{e.message} (#{e.class})"
-    raise Gem::Package::FormatError.new message, @gem
   end
 
 end
