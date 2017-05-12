@@ -13,8 +13,6 @@ addons:
     - libc++abi1
     - libc++-dev
     - libc++abi-dev
-    - libxml2
-    - libxml2-dev
 
 before_install:
 - rvm use 2.3.1
