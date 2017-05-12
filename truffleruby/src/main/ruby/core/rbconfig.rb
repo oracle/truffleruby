@@ -185,8 +185,10 @@ module RbConfig
   clang = ENV['JT_CLANG'] || 'clang'
   opt = ENV['JT_OPT'] || 'opt'
 
-  opt_passes = ['-always-inline', '-mem2reg', '-constprop']
-  cc = "#{clang} -I#{ENV['SULONG_HOME']}/include"
+  opt_passes  = ['-always-inline', '-mem2reg', '-constprop']
+  sulong_home = ENV['SULONG_HOME'] || ''
+  sulong_include = File.join sulong_home, 'include'
+  cc = "#{clang} -I#{sulong_include}"
   cpp = cc
 
   CONFIG.merge!({
@@ -194,8 +196,8 @@ module RbConfig
       'CPP' => cpp,
       'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes.join(' ')} $@ -o $@",
       'CFLAGS' => cflags,
-      'LINK_SO' => "mx -v -p #{ENV['SULONG_HOME']} su-link -o $@ $(OBJS) #{libs}",
-      'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) #{cflags} -I#{ENV['SULONG_HOME']}/include #{libs}"
+      'LINK_SO' => "mx -v -p #{sulong_home} su-link -o $@ $(OBJS) #{libs}",
+      'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) #{cflags} -I#{sulong_include} #{libs}"
   })
 
   MAKEFILE_CONFIG.merge!({
@@ -203,8 +205,8 @@ module RbConfig
       'CPP' => cpp,
       'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes.join(' ')} $@ -o $@",
       'CFLAGS' => cflags,
-      'LINK_SO' => "mx -v -p #{ENV['SULONG_HOME']} su-link -o $@ $(OBJS) $(LIBS)",
-      'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{ENV['SULONG_HOME']}/include $(LIBS)"
+      'LINK_SO' => "mx -v -p #{sulong_home} su-link -o $@ $(OBJS) $(LIBS)",
+      'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{sulong_include} $(LIBS)"
   })
 
   def self.ruby
