@@ -956,7 +956,11 @@ public abstract class IONodes {
                     throw new UnsupportedOperationException();
                 }
 
-                fileDescriptors[n] = Layouts.IO.getDescriptor((DynamicObject) objects[n]);
+                DynamicObject object = (DynamicObject) objects[n];
+                if (!RubyGuards.isRubyIO(object) && RubyGuards.isRubyArray(object)) {
+                    object = (DynamicObject) ArrayOperations.toObjectArray(object)[1];
+                }
+                fileDescriptors[n] = Layouts.IO.getDescriptor(object);
             }
 
             return fileDescriptors;
@@ -980,7 +984,11 @@ public abstract class IONodes {
 
             for (int n = 0; n < objects.length; n++) {
                 if (set.isSet(fds[n])) {
-                    setObjects[setFdsCount] = objects[n];
+                    DynamicObject object = (DynamicObject) objects[n];
+                    if (!RubyGuards.isRubyIO(object) && RubyGuards.isRubyArray(object)) {
+                        object = (DynamicObject) ArrayOperations.toObjectArray(object)[0];
+                    }
+                    setObjects[setFdsCount] = object;
                     setFdsCount++;
                 }
             }
