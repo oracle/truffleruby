@@ -767,7 +767,7 @@ module Commands
     when 'cexts' then test_cexts(*rest)
     when 'cexts_and_openssl' then
       test('cexts')
-      # test('specs', '--sulong', ':capi')
+      test('specs', '--sulong', ':capi')
       test('specs', '--sulong', '-T-Xpatching=false', ':openssl')
       test('mri', '--openssl', '--sulong')
     when 'report' then test_report(*rest)
