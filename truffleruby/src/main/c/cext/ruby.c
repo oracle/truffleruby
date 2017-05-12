@@ -2542,9 +2542,7 @@ VALUE rb_java_to_string(VALUE obj) {
 }
 
 void *rb_tr_handle_for_managed(void *managed) {
-  void *handle = truffle_handle_for_managed(managed);
-  printf("--> %p\n", handle);
-  return handle;
+  return truffle_handle_for_managed(managed);
 }
 
 void *rb_tr_handle_for_managed_leaking(void *managed) {
