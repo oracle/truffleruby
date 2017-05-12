@@ -1,5 +1,5 @@
 language: java
-
+dist: trusty
 sudo: false
 
 cache:
@@ -7,7 +7,7 @@ cache:
   - $HOME/.mx/cache
 
 before_install:
-- rvm install 2.1.0
+- rvm use 2.3.1
 - unset GEM_PATH GEM_HOME IRBRC
 
 jdk: oraclejdk8
@@ -28,6 +28,14 @@ matrix:
   - env: JT='test ecosystem actionpack actionview' JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
   - env: JT='test ecosystem activemodel activesupport' JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
   - env: JT='test ecosystem algebrick railties rails-app launchers' HAS_REDIS=true JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
+  - env: JT='test cexts_and_openssl' COMMAND=tool/install-sulong.sh SULONG_HOME=../sulong LIBXML_LIB=/usr/lib/x86_64-linux-gnu/libxml2.so OPENSSL_LIB=/usr/lib/x86_64-linux-gnu/libssl.so
+    addons:
+      apt:
+        packages:
+        - libc++1
+        - libc++abi1
+        - libc++-dev
+        - libc++abi-dev
   # Exlude the default job https://github.com/travis-ci/travis-ci/issues/4681
   exclude:
   - jdk: oraclejdk8
