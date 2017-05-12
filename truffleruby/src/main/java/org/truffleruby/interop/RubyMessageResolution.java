@@ -161,9 +161,17 @@ public class RubyMessageResolution {
         @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
         @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
 
+        private final ConditionProfile intProfile = ConditionProfile.createBinaryProfile();
+
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (doesRespond.doesRespondTo(frame, "address", object)) {
-                return dispatchNode.dispatch(frame, object, "address", null, new Object[]{});
+                Object result = dispatchNode.dispatch(frame, object, "address", null, new Object[]{});
+
+                if (intProfile.profile(result instanceof Integer)) {
+                    result = (long) ((int) result);
+                }
+
+                return result;
             } else {
                 throw UnsupportedMessageException.raise(Message.AS_POINTER);
             }
