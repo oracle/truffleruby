@@ -259,7 +259,9 @@ describe "C-API IO function" do
 
       it "raises and IOError if passed a closed stream" do
         @r_io.close
-        lambda { @o.rb_io_wait_readable(@r_io, false) }.should raise_error(IOError)
+        lambda {
+          @o.rb_io_wait_readable(@r_io, false)
+        }.should raise_error(IOError)
       end
 
       it "blocks until the io is readable and returns true" do

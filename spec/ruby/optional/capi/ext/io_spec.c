@@ -2,7 +2,7 @@
 #include "rubyspec.h"
 #include "ruby/io.h"
 #include <fcntl.h>
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
@@ -13,7 +13,8 @@ extern "C" {
 static int set_non_blocking(int fd) {
   int flags;
 #if defined(O_NONBLOCK) && defined(F_GETFL)
-  if (-1 == (flags = fcntl(fd, F_GETFL, 0)))
+  flags = fcntl(fd, F_GETFL, 0);
+  if (flags == -1)
     flags = 0;
   return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 #elif defined(FIOBIO)
@@ -145,7 +146,7 @@ VALUE io_spec_rb_io_wait_readable(VALUE self, VALUE io, VALUE read_p) {
   wait_bool ret;
 
   if (set_non_blocking(fd) == -1)
-    rb_sys_fail(0);
+    rb_sys_fail("set_non_blocking failed");
 
   if(RTEST(read_p)) {
     rb_ivar_set(self, rb_intern("@write_data"), Qtrue);
