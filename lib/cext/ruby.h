@@ -48,9 +48,10 @@ extern "C" {
 #define SIZEOF_LONG 8
 #define LONG_LONG long long
 
-#define HAVE_SYS_TIME_H
+#define HAVE_UNISTD_H 1
+#define HAVE_SYS_TIME_H 1
 
-#define HAVE_RB_IO_T
+#define HAVE_RB_IO_T 1
 
 // Overrides
 
@@ -1061,7 +1062,8 @@ int rb_tr_writable(int mode);
 #define GetOpenFile(file, pointer) ( \
     (pointer) = truffle_managed_malloc(sizeof(rb_io_t)), \
     (pointer)->mode = FIX2INT(rb_iv_get(file, "@mode")), \
-    (pointer)->fd = FIX2INT(rb_iv_get(file, "@descriptor")) \
+    (pointer)->fd = FIX2INT(rb_iv_get(file, "@descriptor")), \
+    rb_io_check_closed(pointer) \
 )
 
 // Structs
