@@ -267,11 +267,9 @@ describe "C-API IO function" do
       it "blocks until the io is readable and returns true" do
         @o.instance_variable_set :@write_data, false
         thr = Thread.new do
-          sleep 0.1 until @o.instance_variable_get(:@write_data)
+          Thread.pass until @o.instance_variable_get(:@write_data)
           @w_io.write "rb_io_wait_readable"
         end
-
-        Thread.pass until thr.alive?
 
         @o.rb_io_wait_readable(@r_io, true).should be_true
         @o.instance_variable_get(:@read_data).should == "rb_io_wait_re"
@@ -286,7 +284,7 @@ describe "C-API IO function" do
       start = false
       thr = Thread.new do
         start = true
-        sleep 0.5
+        sleep 0.05
         @w_io.write "rb_io_wait_readable"
       end
 
