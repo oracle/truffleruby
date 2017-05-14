@@ -12,8 +12,8 @@ platform_is_not :windows do
     end
 
     it "accepts what is written by the client" do
-      server = UNIXServer.open(SocketSpecs.socket_path)
-      client = UNIXSocket.open(SocketSpecs.socket_path)
+      server = UNIXServer.open(@path)
+      client = UNIXSocket.open(@path)
 
       client.send('hello', 0)
 

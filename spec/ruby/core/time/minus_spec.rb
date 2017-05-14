@@ -41,7 +41,7 @@ describe "Time#-" do
     time.usec.should == 123456
   end
 
-  it "tracks microseconds" do
+  it "tracks microseconds from a Rational" do
     time = Time.at(Rational(777_777, 1_000_000))
     time -= Rational(654_321, 1_000_000)
     time.usec.should == 123_456
