@@ -7,7 +7,7 @@ cache:
   - $HOME/.mx/cache
 
 before_install:
-- rvm use 2.3.1
+- rvm list
 - unset GEM_PATH GEM_HOME IRBRC
 
 jdk: oraclejdk8
