@@ -12,6 +12,7 @@ package org.truffleruby.core.rope;
 import jnr.ffi.Pointer;
 import jnr.ffi.provider.MemoryManager;
 import org.jcodings.Encoding;
+import org.truffleruby.core.Hashing;
 
 public class NativeRope extends Rope {
 
@@ -46,6 +47,15 @@ public class NativeRope extends Rope {
     public byte get(int index) {
         assert 0 <= index && index < byteLength();
         return pointer.getByte(index);
+    }
+
+    @Override
+    public int hashCode() {
+        // TODO (pitr-ch 16-May-2017): this forces Rope#hashCode to be non-final, which is bad for performance
+        return Long.hashCode(
+                Hashing.hash(
+                        MURMUR_SEED,
+                        RopeOperations.hashForRange(this, 1, 0, byteLength())));
     }
 
     @Override

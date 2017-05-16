@@ -92,10 +92,10 @@ public abstract class Rope {
         return ropeDepth;
     }
 
-    private static final int MURMUR_SEED = System.identityHashCode(Rope.class);
+    protected static final int MURMUR_SEED = System.identityHashCode(Rope.class);
 
     @Override
-    public final int hashCode() {
+    public int hashCode() {
         if (!isHashCodeCalculated()) {
             long hash = Hashing.hash(MURMUR_SEED, RopeOperations.hashForRange(this, 1, 0, byteLength));
             hashCode = Long.hashCode(hash);

@@ -38,9 +38,7 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentHashMap;
@@ -518,8 +516,9 @@ public class RopeOperations {
             return hash;
         } else if (rope instanceof LazyRope) {
             return hashCodeForLeafRope(rope.getBytes(), startingHashCode, offset, length);
+        } else if (rope instanceof NativeRope) {
+            return hashCodeForLeafRope(rope.getBytes(), startingHashCode, offset, length);
         } else {
-            // NOTE (eregon): this should not be defined for NativeRope or the result should not be cached in Rope.hashCode().
             throw new RuntimeException("Hash code not supported for rope of type: " + rope.getClass().getName());
         }
     }
