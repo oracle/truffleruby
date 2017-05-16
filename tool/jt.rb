@@ -1551,8 +1551,8 @@ module Commands
     sh "rubocop", format('_%s_', version), *args
   end
 
-  def lint
-    check_dsl_usage
+  def lint(*args)
+    check_dsl_usage unless args.delete '--no-build'
     rubocop
     sh "tool/lint.sh"
   end
