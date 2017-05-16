@@ -990,7 +990,8 @@ public abstract class ArrayNodes {
         // With block
 
         @Specialization(guards = "size >= 0")
-        public Object initializeBlock(DynamicObject array, int size, Object unusedValue, DynamicObject block, @Cached("create()") ArrayBuilderNode arrayBuilder) {
+        public Object initializeBlock(DynamicObject array, int size, Object unusedValue, DynamicObject block,
+                @Cached("create()") ArrayBuilderNode arrayBuilder) {
             Object store = arrayBuilder.start(size);
 
             int n = 0;
@@ -1111,13 +1112,15 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)", "wasProvided(initial)" }, limit = "ARRAY_STRATEGIES")
-        public Object injectWithInitial(DynamicObject array, Object initial, NotProvided unused, DynamicObject block, @Cached("of(array)") ArrayStrategy strategy) {
+        public Object injectWithInitial(DynamicObject array, Object initial, NotProvided unused, DynamicObject block,
+                @Cached("of(array)") ArrayStrategy strategy) {
             final ArrayMirror store = strategy.newMirror(array);
             return injectBlockHelper(array, block, store, initial, 0);
         }
 
         @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "ARRAY_STRATEGIES")
-        public Object injectNoInitial(DynamicObject array, NotProvided initial, NotProvided unused, DynamicObject block, @Cached("of(array)") ArrayStrategy strategy) {
+        public Object injectNoInitial(DynamicObject array, NotProvided initial, NotProvided unused, DynamicObject block,
+                @Cached("of(array)") ArrayStrategy strategy) {
             final ArrayMirror store = strategy.newMirror(array);
             return injectBlockHelper(array, block, store, store.get(0), 1);
         }
