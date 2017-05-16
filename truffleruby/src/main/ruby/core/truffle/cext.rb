@@ -23,6 +23,8 @@ module Truffle::CExt
 
   end
 
+  Sync = Mutex.new
+
   class RData
 
     DATA_FIELD_INDEX = 2
@@ -1121,7 +1123,13 @@ class << Truffle::CExt
 
   def rb_proc_new(function, value)
     Proc.new do |*args|
-      Truffle::Interop.execute(function, *args)
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute(function, *args)
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     end
   end
 
@@ -1236,7 +1244,13 @@ class << Truffle::CExt
       end
 
       # Using raw execute instead of #call here to avoid argument conversion
-      Truffle::Interop.execute(function, *args)
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute(function, *args)
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     end
   end
 
@@ -1394,7 +1408,13 @@ class << Truffle::CExt
 
   def rb_mutex_synchronize(mutex, func, arg)
     mutex.synchronize do
-      Truffle::Interop.execute(func, arg)
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute(func, arg)
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     end
   end
 
@@ -1437,7 +1457,13 @@ class << Truffle::CExt
     # In a separate method to avoid capturing the object
 
     proc {
-      Truffle::Interop.execute(free, data_holder.data)
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute(free, data_holder.data)
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     }
   end
 
@@ -1469,51 +1495,87 @@ class << Truffle::CExt
 
   def rb_block_call(object, method, args, func, data)
     object.send(method, *args) do |*block_args|
-      Truffle::Interop.execute(func, block_args.first, data, block_args.size, block_args, nil)
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute(func, block_args.first, data, block_args.size, block_args, nil)
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     end
   end
 
   def rb_ensure(b_proc, data1, e_proc, data2)
+    mine = Truffle::CExt::Sync.owned?
+    Truffle::CExt::Sync.lock unless mine
     begin
-      Truffle::Interop.execute(b_proc, data1)
+      begin
+        Truffle::Interop.execute(b_proc, data1)
+      ensure
+        Truffle::Interop.execute(e_proc, data2)
+      end
     ensure
-      Truffle::Interop.execute(e_proc, data2)
+      Truffle::CExt::Sync.unlock unless mine
     end
   end
 
   def rb_rescue(b_proc, data1, r_proc, data2)
+    mine = Truffle::CExt::Sync.owned?
+    Truffle::CExt::Sync.lock unless mine
     begin
-      Truffle::Interop.execute(b_proc, data1)
-    rescue StandardError => e
-      Truffle::Interop.execute(r_proc, data2, e)
+      begin
+        Truffle::Interop.execute(b_proc, data1)
+      rescue StandardError => e
+        Truffle::Interop.execute(r_proc, data2, e)
+      end
+    ensure
+      Truffle::CExt::Sync.unlock unless mine
     end
   end
 
   def rb_rescue2(b_proc, data1, r_proc, data2, rescued)
+    mine = Truffle::CExt::Sync.owned?
+    Truffle::CExt::Sync.lock unless mine
     begin
-      Truffle::Interop.execute(b_proc, data1)
-    rescue *rescued => e
-      Truffle::Interop.execute(r_proc, data2, e)
+      begin
+        Truffle::Interop.execute(b_proc, data1)
+      rescue *rescued => e
+        Truffle::Interop.execute(r_proc, data2, e)
+      end
+    ensure
+      Truffle::CExt::Sync.unlock unless mine
     end
   end
 
   def rb_exec_recursive(func, obj, arg)
     result = nil
 
-    recursive = Thread.detect_recursion(obj) {
-      result = Truffle::Interop.execute(func, obj, arg, 0)
-    }
+    mine = Truffle::CExt::Sync.owned?
+    Truffle::CExt::Sync.lock unless mine
+    begin
+      recursive = Thread.detect_recursion(obj) {
+        result = Truffle::Interop.execute(func, obj, arg, 0)
+      }
 
-    if recursive
-      Truffle::Interop.execute(func, obj, arg, 1)
-    else
-      result
+      if recursive
+        Truffle::Interop.execute(func, obj, arg, 1)
+      else
+        result
+      end
+    ensure
+      Truffle::CExt::Sync.unlock unless mine
     end
   end
 
   def rb_catch_obj(tag, func, data)
     catch tag do |caught|
-      Truffle::Interop.execute(func, caught, data)
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute(func, caught, data)
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     end
   end
 
@@ -1584,24 +1646,48 @@ class << Truffle::CExt
 
   def rb_thread_create(fn, args)
     Thread.new do
-      Truffle::Interop.execute(fn, args)
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute(fn, args)
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     end
   end
 
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
     unblocker = proc {
-      Truffle::Interop.execute unblock, data2
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute unblock, data2
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     }
 
     runner = proc {
-      Truffle::Interop.execute function, data1
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute function, data1
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     }
 
     Thread.current.unblock unblocker, runner
   end
 
   def rb_iterate_call_block( iter_block, block_arg, arg2)
-    Truffle::Interop.execute iter_block, block_arg, arg2
+    mine = Truffle::CExt::Sync.owned?
+    Truffle::CExt::Sync.lock unless mine
+    begin
+      Truffle::Interop.execute iter_block, block_arg, arg2
+    ensure
+      Truffle::CExt::Sync.unlock unless mine
+    end
   end
 
   def rb_iterate(function, arg1, iter_block, arg2, block)
@@ -1613,7 +1699,13 @@ class << Truffle::CExt
       end
     else
       call_c_with_block function, arg1 do |block_arg|
-        Truffle::Interop.execute iter_block, block_arg, arg2
+        mine = Truffle::CExt::Sync.owned?
+        Truffle::CExt::Sync.lock unless mine
+        begin
+          Truffle::Interop.execute iter_block, block_arg, arg2
+        ensure
+          Truffle::CExt::Sync.unlock unless mine
+        end
       end
     end
   end
@@ -1622,7 +1714,13 @@ class << Truffle::CExt
     old_c_block = Thread.current[:__C_BLOCK__]
     begin
       Thread.current[:__C_BLOCK__] = block
-      Truffle::Interop.execute function, arg
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute function, arg
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     ensure
       Thread.current[:__C_BLOCK__] = old_c_block
     end
@@ -1678,11 +1776,23 @@ class << Truffle::CExt
     id = name.to_sym
 
     getter_proc = proc {
-      Truffle::Interop.execute getter, id, gvar, nil
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute getter, id, gvar, nil
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     }
 
     setter_proc = proc { |value|
-      Truffle::Interop.execute setter, value, id, gvar, nil
+      mine = Truffle::CExt::Sync.owned?
+      Truffle::CExt::Sync.lock unless mine
+      begin
+        Truffle::Interop.execute setter, value, id, gvar, nil
+      ensure
+        Truffle::CExt::Sync.unlock unless mine
+      end
     }
 
     rb_define_hooked_variable_inner id, getter_proc, setter_proc
