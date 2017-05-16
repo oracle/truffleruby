@@ -12,6 +12,7 @@ package org.truffleruby.platform.darwin;
 import jnr.ffi.LibraryLoader;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
+import jnr.posix.LibC.LibCSignalHandler;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
@@ -24,7 +25,9 @@ import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.MallocFree;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
+import org.truffleruby.platform.posix.SigAction;
 import org.truffleruby.platform.posix.Sockets;
+import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.TrufflePosix;
 import org.truffleruby.platform.posix.TrufflePosixHandler;
 import org.truffleruby.platform.signal.SignalManager;
@@ -38,6 +41,7 @@ public class DarwinPlatform implements NativePlatform {
     private final ProcessName processName;
     private final Sockets sockets;
     private final ClockGetTime clockGetTime;
+    private final Threads threads;
     private final MallocFree mallocFree;
     private final RubiniusConfiguration rubiniusConfiguration;
 
@@ -48,6 +52,7 @@ public class DarwinPlatform implements NativePlatform {
         signalManager = new SunMiscSignalManager();
         processName = new DarwinProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("c").load();
+        threads = LibraryLoader.create(Threads.class).library("c").library("pthread").load();
         clockGetTime = new JavaClockGetTime();
         mallocFree = LibraryLoader.create(MallocFree.class).library("c").load();
         rubiniusConfiguration = new RubiniusConfiguration();
@@ -86,6 +91,11 @@ public class DarwinPlatform implements NativePlatform {
     }
 
     @Override
+    public Threads getThreads() {
+        return threads;
+    }
+
+    @Override
     public MallocFree getMallocFree() {
         return mallocFree;
     }
@@ -98,6 +108,14 @@ public class DarwinPlatform implements NativePlatform {
     @Override
     public FDSet createFDSet() {
         return new PosixFDSet4Bytes();
+    }
+
+    @Override
+    public SigAction createSigAction(LibCSignalHandler handler, int flags) {
+        DarwinSigAction sigAction = new DarwinSigAction(Runtime.getSystemRuntime());
+        sigAction.sa_handler.set(handler);
+        sigAction.sa_flags.set(flags);
+        return sigAction;
     }
 
 }

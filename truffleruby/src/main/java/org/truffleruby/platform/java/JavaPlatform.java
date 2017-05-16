@@ -10,6 +10,7 @@
 package org.truffleruby.platform.java;
 
 import jnr.ffi.provider.MemoryManager;
+import jnr.posix.LibC.LibCSignalHandler;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
@@ -21,7 +22,9 @@ import org.truffleruby.platform.linux.LinuxRubiniusConfiguration;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.MallocFree;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
+import org.truffleruby.platform.posix.SigAction;
 import org.truffleruby.platform.posix.Sockets;
+import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.TrufflePosix;
 import org.truffleruby.platform.posix.TrufflePosixHandler;
 import org.truffleruby.platform.signal.SignalManager;
@@ -75,6 +78,11 @@ public class JavaPlatform implements NativePlatform {
     }
 
     @Override
+    public Threads getThreads() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public ClockGetTime getClockGetTime() {
         return clockGetTime;
     }
@@ -92,6 +100,11 @@ public class JavaPlatform implements NativePlatform {
     @Override
     public FDSet createFDSet() {
         return new PosixFDSet4Bytes();
+    }
+
+    @Override
+    public SigAction createSigAction(LibCSignalHandler handler, int flags) {
+        throw new UnsupportedOperationException();
     }
 
 }
