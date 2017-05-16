@@ -13,7 +13,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
@@ -29,13 +28,13 @@ import org.truffleruby.language.yield.CallBlockNodeGen;
 })
 abstract class ForeignExecuteHelperNode extends RubyNode {
 
-    public abstract Object executeCall(VirtualFrame frame, Object receiver, Object[] arguments);
+    public abstract Object executeCall(Object receiver, Object[] arguments);
 
     @Specialization(guards = "isRubyProc(proc)")
-    protected Object callProc(VirtualFrame frame, DynamicObject proc, Object[] arguments,
+    protected Object callProc(DynamicObject proc, Object[] arguments,
                               @Cached("createCallBlockNode()") CallBlockNode callBlockNode) {
         Object self = Layouts.PROC.getSelf(proc);
-        return callBlockNode.executeCallBlock(frame, proc, self, null, arguments);
+        return callBlockNode.executeCallBlock(proc, self, null, arguments);
     }
 
     protected CallBlockNode createCallBlockNode() {
@@ -43,9 +42,9 @@ abstract class ForeignExecuteHelperNode extends RubyNode {
     }
 
     @Specialization(guards = "isRubyMethod(method)")
-    protected Object callMethod(VirtualFrame frame, DynamicObject method, Object[] arguments,
+    protected Object callMethod(DynamicObject method, Object[] arguments,
                                 @Cached("createCallBoundMethodNode()") CallBoundMethodNode callBoundMethodNode) {
-        return callBoundMethodNode.executeCallBoundMethod(frame, method, arguments, nil());
+        return callBoundMethodNode.executeCallBoundMethod(method, arguments, nil());
     }
 
     protected CallBoundMethodNode createCallBoundMethodNode() {

@@ -28,6 +28,10 @@ import org.truffleruby.language.control.RaiseException;
 })
 public abstract class IsANode extends RubyNode {
 
+    public static IsANode create() {
+        return IsANodeGen.create(null, null);
+    }
+
     @Child private MetaClassNode metaClassNode;
 
     public abstract boolean executeIsA(Object self, DynamicObject module);

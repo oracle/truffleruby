@@ -214,13 +214,13 @@ public abstract class ProcNodes {
     public abstract static class CallNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public Object call(VirtualFrame frame, DynamicObject proc, Object[] args, NotProvided block) {
-            return yield(frame, proc, args);
+        public Object call(DynamicObject proc, Object[] args, NotProvided block) {
+            return yield(proc, args);
         }
 
         @Specialization
-        public Object call(VirtualFrame frame, DynamicObject proc, Object[] args, DynamicObject block) {
-            return yieldWithBlock(frame, proc, block, args);
+        public Object call(DynamicObject proc, Object[] args, DynamicObject block) {
+            return yieldWithBlock(proc, block, args);
         }
 
     }

@@ -15,7 +15,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -38,8 +37,7 @@ public abstract class CallBlockNode extends RubyNode {
         this.declarationContext = declarationContext;
     }
 
-    public abstract Object executeCallBlock(VirtualFrame frame, DynamicObject block, Object self,
-                                            Object blockArgument, Object[] arguments);
+    public abstract Object executeCallBlock(DynamicObject block, Object self, Object blockArgument, Object[] arguments);
 
     // blockArgument is typed as Object below because it must accept "null".
     @Specialization(

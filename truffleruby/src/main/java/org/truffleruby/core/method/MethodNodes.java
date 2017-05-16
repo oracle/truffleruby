@@ -90,7 +90,7 @@ public abstract class MethodNodes {
 
         @Specialization
         protected Object call(VirtualFrame frame, DynamicObject method, Object[] arguments, Object maybeBlock) {
-            return callBoundMethodNode.executeCallBoundMethod(frame, method, arguments, maybeBlock);
+            return callBoundMethodNode.executeCallBoundMethod(method, arguments, maybeBlock);
         }
 
     }

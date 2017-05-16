@@ -126,9 +126,9 @@ public abstract class TruffleSystemNodes {
 
         // We must not allow to synchronize on boxed primitives.
         @Specialization
-        public Object synchronize(VirtualFrame frame, DynamicObject self, DynamicObject block) {
+        public Object synchronize(DynamicObject self, DynamicObject block) {
             synchronized (self) {
-                return yield(frame, block);
+                return yield(block);
             }
         }
     }

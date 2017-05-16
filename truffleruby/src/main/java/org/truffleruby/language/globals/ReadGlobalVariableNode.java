@@ -32,15 +32,16 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
     }
 
     @Specialization(guards = "storage.isSimple()")
-    public Object read(@Cached("getStorage()") GlobalVariableStorage storage) {
+    public Object read(
+            @Cached("getStorage()") GlobalVariableStorage storage) {
         return storage.getValue();
     }
 
     @Specialization(guards = "storage.hasHooks()")
-    public Object readHooks(VirtualFrame frame,
-                            @Cached("getStorage()") GlobalVariableStorage storage,
-                            @Cached("new()") YieldNode yieldNode) {
-        return yieldNode.dispatch(frame, storage.getGetter());
+    public Object readHooks(
+            @Cached("getStorage()") GlobalVariableStorage storage,
+            @Cached("new()") YieldNode yieldNode) {
+        return yieldNode.dispatch(storage.getGetter());
     }
 
     protected GlobalVariableStorage getStorage() {

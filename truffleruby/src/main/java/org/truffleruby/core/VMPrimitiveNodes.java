@@ -98,7 +98,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached("createBinaryProfile()") ConditionProfile matchProfile,
                 @Cached("create()") ReferenceEqualNode referenceEqualNode) {
             try {
-                return dispatchNode.dispatch(frame, block, tag);
+                return dispatchNode.dispatch(block, tag);
             } catch (ThrowException e) {
                 catchProfile.enter();
                 if (matchProfile.profile(referenceEqualNode.executeReferenceEqual(e.getTag(), tag))) {

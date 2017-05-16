@@ -142,8 +142,7 @@ public class TraceManager {
             isInTraceFunc = true;
 
             try {
-                getYieldNode().dispatch(frame, traceFunc,
-                        event,
+                getYieldNode().dispatch(traceFunc, event,
                         getFile(),
                         getLine(),
                         context.getCoreLibrary().getNilObject(),
@@ -213,8 +212,7 @@ public class TraceManager {
             isInTraceFunc = true;
 
             try {
-                getYieldNode().dispatch(frame, traceFunc,
-                        event,
+                getYieldNode().dispatch(traceFunc, event,
                         getFile(file),
                         line,
                         context.getSymbolTable().getSymbol(RubyArguments.getMethod(frame).getName()),

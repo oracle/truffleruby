@@ -52,7 +52,7 @@ class TracePointEventNode extends ExecutionEventNode {
         Layouts.TRACE_POINT.setInsideProc(tracePoint, true);
         
         try {
-            getYieldNode().dispatch(frame, Layouts.TRACE_POINT.getProc(tracePoint), tracePoint);
+            getYieldNode().dispatch(Layouts.TRACE_POINT.getProc(tracePoint), tracePoint);
         } finally {
             Layouts.TRACE_POINT.setInsideProc(tracePoint, false);
         }

@@ -10,7 +10,6 @@
 package org.truffleruby.language.yield;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
@@ -30,27 +29,24 @@ public class YieldNode extends Node {
         this.declarationContext = declarationContext;
     }
 
-    public Object dispatch(VirtualFrame frame, DynamicObject block, Object... argumentsObjects) {
+    public Object dispatch(DynamicObject block, Object... argumentsObjects) {
         return getCallBlockNode().executeCallBlock(
-                frame,
                 block,
                 Layouts.PROC.getSelf(block),
                 Layouts.PROC.getBlock(block),
                 argumentsObjects);
     }
 
-    public Object dispatchWithBlock(VirtualFrame frame, DynamicObject block, DynamicObject blockArgument, Object... argumentsObjects) {
+    public Object dispatchWithBlock(DynamicObject block, DynamicObject blockArgument, Object... argumentsObjects) {
         return getCallBlockNode().executeCallBlock(
-                frame,
                 block,
                 Layouts.PROC.getSelf(block),
                 blockArgument,
                 argumentsObjects);
     }
 
-    public Object dispatchWithModifiedSelf(VirtualFrame currentFrame, DynamicObject block, Object self, Object... argumentsObjects) {
+    public Object dispatchWithModifiedSelf(DynamicObject block, Object self, Object... argumentsObjects) {
         return getCallBlockNode().executeCallBlock(
-                currentFrame,
                 block,
                 self,
                 Layouts.PROC.getBlock(block),

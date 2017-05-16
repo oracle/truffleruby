@@ -12,6 +12,7 @@ package org.truffleruby.core.range;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -48,8 +49,7 @@ public abstract class RangeNodes {
     public abstract static class MapNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = "isIntRange(range)")
-        public DynamicObject map(
-                VirtualFrame frame, DynamicObject range, DynamicObject block,
+        public DynamicObject map(DynamicObject range, DynamicObject block,
                 @Cached("create()") ArrayBuilderNode arrayBuilder) {
             final int begin = Layouts.INT_RANGE.getBegin(range);
             final int end = Layouts.INT_RANGE.getEnd(range);
@@ -66,7 +66,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    store = arrayBuilder.appendValue(store, n, yield(frame, block, begin + direction * n));
+                    store = arrayBuilder.appendValue(store, n, yield(block, begin + direction * n));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -85,7 +85,7 @@ public abstract class RangeNodes {
         @Child private CallDispatchHeadNode eachInternalCall;
 
         @Specialization(guards = "isIntRange(range)")
-        public Object eachInt(VirtualFrame frame, DynamicObject range, DynamicObject block) {
+        public Object eachInt(DynamicObject range, DynamicObject block) {
             int result;
             if (Layouts.INT_RANGE.getExcludedEnd(range)) {
                 result = Layouts.INT_RANGE.getEnd(range);
@@ -102,7 +102,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    yield(frame, block, n);
+                    yield(block, n);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -114,7 +114,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isLongRange(range)")
-        public Object eachLong(VirtualFrame frame, DynamicObject range, DynamicObject block) {
+        public Object eachLong(DynamicObject range, DynamicObject block) {
             long result;
             if (Layouts.LONG_RANGE.getExcludedEnd(range)) {
                 result = Layouts.LONG_RANGE.getEnd(range);
@@ -131,7 +131,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    yield(frame, block, n);
+                    yield(block, n);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -269,7 +269,7 @@ public abstract class RangeNodes {
         @Child private CallDispatchHeadNode stepInternalCall;
 
         @Specialization(guards = { "isIntRange(range)", "step > 0" })
-        public Object stepInt(VirtualFrame frame, DynamicObject range, int step, DynamicObject block) {
+        public Object stepInt(DynamicObject range, int step, DynamicObject block) {
             int count = 0;
 
             try {
@@ -284,7 +284,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    yield(frame, block, n);
+                    yield(block, n);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -296,7 +296,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = { "isLongRange(range)", "step > 0" })
-        public Object stepLong(VirtualFrame frame, DynamicObject range, int step, DynamicObject block) {
+        public Object stepLong(DynamicObject range, int step, DynamicObject block) {
             int count = 0;
 
             try {
@@ -311,7 +311,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    yield(frame, block, n);
+                    yield(block, n);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -322,82 +322,25 @@ public abstract class RangeNodes {
             return range;
         }
 
-        private Object stepInternal(VirtualFrame frame, DynamicObject range, DynamicObject block) {
-            return stepInternal(frame, range, 1, block);
-        }
-
-        private Object stepInternal(VirtualFrame frame, DynamicObject range, Object step, DynamicObject block) {
+        @Fallback
+        public Object stepFallback(VirtualFrame frame, Object range, Object step, Object block) {
             if (stepInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 stepInternalCall = insert(DispatchHeadNodeFactory.createMethodCall());
             }
 
-            return stepInternalCall.callWithBlock(frame, range, "step_internal", block, step);
-        }
+            if (step instanceof NotProvided) {
+                step = 1;
+            }
 
-        @Specialization(guards = { "isIntRange(range)", "wasProvided(step)" })
-        public Object stepFallbackInt(VirtualFrame frame, DynamicObject range, Object step, DynamicObject block) {
-            return stepInternal(frame, range, step, block);
-        }
+            final DynamicObject blockProc;
+            if (RubyGuards.wasProvided(block)) {
+                blockProc = (DynamicObject) block;
+            } else {
+                blockProc = null;
+            }
 
-        @Specialization(guards = { "isLongRange(range)", "wasProvided(step)" })
-        public Object stepFallbackLong(VirtualFrame frame, DynamicObject range, Object step, DynamicObject block) {
-            return stepInternal(frame, range, step, block);
-        }
-
-        @Specialization(guards = "isIntRange(range)")
-        public Object stepInt(VirtualFrame frame, DynamicObject range, NotProvided step, NotProvided block) {
-            return stepInternal(frame, range, null);
-        }
-
-        @Specialization(guards = "isIntRange(range)")
-        public Object stepInt(VirtualFrame frame, DynamicObject range, NotProvided step, DynamicObject block) {
-            return stepInternal(frame, range, block);
-        }
-
-        @Specialization(guards = {
-                "isIntRange(range)",
-                "!isInteger(step)",
-                "!isLong(step)",
-                "wasProvided(step)"
-        })
-        public Object stepInt(VirtualFrame frame, DynamicObject range, Object step, NotProvided block) {
-            return stepInternal(frame, range, step, null);
-        }
-
-        @Specialization(guards = "isLongRange(range)")
-        public Object stepLong(VirtualFrame frame, DynamicObject range, NotProvided step, NotProvided block) {
-            return stepInternal(frame, range, null);
-        }
-
-        @Specialization(guards = "isLongRange(range)")
-        public Object stepLong(VirtualFrame frame, DynamicObject range, NotProvided step, DynamicObject block) {
-            return stepInternal(frame, range, block);
-        }
-
-        @Specialization(guards = { "isLongRange(range)", "wasProvided(step)" })
-        public Object stepLong(VirtualFrame frame, DynamicObject range, Object step, NotProvided block) {
-            return stepInternal(frame, range, step, null);
-        }
-
-        @Specialization(guards = { "isObjectRange(range)", "wasProvided(step)" })
-        public Object stepObject(VirtualFrame frame, DynamicObject range, Object step, DynamicObject block) {
-            return stepInternal(frame, range, step, block);
-        }
-
-        @Specialization(guards = "isObjectRange(range)")
-        public Object stepObject(VirtualFrame frame, DynamicObject range, NotProvided step, NotProvided block) {
-            return stepInternal(frame, range, null);
-        }
-
-        @Specialization(guards = "isObjectRange(range)")
-        public Object stepObject(VirtualFrame frame, DynamicObject range, NotProvided step, DynamicObject block) {
-            return stepInternal(frame, range, block);
-        }
-
-        @Specialization(guards = { "isObjectRange(range)", "wasProvided(step)" })
-        public Object step(VirtualFrame frame, DynamicObject range, Object step, NotProvided block) {
-            return stepInternal(frame, range, step, null);
+            return stepInternalCall.callWithBlock(frame, range, "step_internal", blockProc, step);
         }
 
     }

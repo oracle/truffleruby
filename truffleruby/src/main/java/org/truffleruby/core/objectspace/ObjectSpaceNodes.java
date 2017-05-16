@@ -21,12 +21,12 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
@@ -102,12 +102,12 @@ public abstract class ObjectSpaceNodes {
     public abstract static class EachObjectNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public int eachObject(VirtualFrame frame, NotProvided ofClass, DynamicObject block) {
+        public int eachObject(NotProvided ofClass, DynamicObject block) {
             int count = 0;
 
             for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
                 if (!isHidden(object)) {
-                    yield(frame, block, object);
+                    yield(block, object);
                     count++;
                 }
             }
@@ -116,12 +116,13 @@ public abstract class ObjectSpaceNodes {
         }
 
         @Specialization(guards = "isRubyModule(ofClass)")
-        public int eachObject(VirtualFrame frame, DynamicObject ofClass, DynamicObject block) {
+        public int eachObject(DynamicObject ofClass, DynamicObject block,
+                @Cached("create()") IsANode isANode) {
             int count = 0;
 
             for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
-                if (!isHidden(object) && ModuleOperations.assignableTo(Layouts.BASIC_OBJECT.getMetaClass(object), ofClass)) {
-                    yield(frame, block, object);
+                if (!isHidden(object) && isANode.executeIsA(object, ofClass)) {
+                    yield(block, object);
                     count++;
                 }
             }

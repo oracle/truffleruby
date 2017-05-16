@@ -268,7 +268,7 @@ public class RubyMessageResolution {
         @Child private ForeignExecuteHelperNode executeMethodNode = ForeignExecuteHelperNodeGen.create(null, null);
 
         protected Object access(VirtualFrame frame, DynamicObject object, Object[] arguments) {
-            return executeMethodNode.executeCall(frame, object, arguments);
+            return executeMethodNode.executeCall(object, arguments);
         }
 
     }

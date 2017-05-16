@@ -37,7 +37,7 @@ public abstract class IntegerNodes {
         @Child private CallDispatchHeadNode downtoInternalCall;
 
         @Specialization
-        public Object downto(VirtualFrame frame, int from, int to, DynamicObject block) {
+        public Object downto(int from, int to, DynamicObject block) {
             int count = 0;
 
             try {
@@ -46,7 +46,7 @@ public abstract class IntegerNodes {
                         count++;
                     }
 
-                    yield(frame, block, i);
+                    yield(block, i);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -58,12 +58,12 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public Object downto(VirtualFrame frame, int from, double to, DynamicObject block) {
-            return downto(frame, from, (int) Math.ceil(to), block);
+        public Object downto(int from, double to, DynamicObject block) {
+            return downto(from, (int) Math.ceil(to), block);
         }
 
         @Specialization
-        public Object downto(VirtualFrame frame, long from, long to, DynamicObject block) {
+        public Object downto(long from, long to, DynamicObject block) {
             // TODO BJF 22-Apr-2015 how to handle reportLoopCount(long)
             int count = 0;
 
@@ -73,7 +73,7 @@ public abstract class IntegerNodes {
                         count++;
                     }
 
-                    yield(frame, block, i);
+                    yield(block, i);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -85,8 +85,8 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public Object downto(VirtualFrame frame, long from, double to, DynamicObject block) {
-            return downto(frame, from, (long) Math.ceil(to), block);
+        public Object downto(long from, double to, DynamicObject block) {
+            return downto(from, (long) Math.ceil(to), block);
         }
 
         @Specialization(guards = "isDynamicObject(from) || isDynamicObject(to)")
@@ -107,7 +107,7 @@ public abstract class IntegerNodes {
         // TODO CS 2-May-15 we badly need OSR in this node
 
         @Specialization
-        public DynamicObject times(VirtualFrame frame, int n, NotProvided block) {
+        public DynamicObject times(int n, NotProvided block) {
             // TODO (eregon, 16 June 2015): this should return an enumerator
             final int[] array = new int[n];
 
@@ -119,13 +119,13 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public int times(VirtualFrame frame, int n, DynamicObject block,
+        public int times(int n, DynamicObject block,
                 @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
             int i = 0;
             loopProfile.profileCounted(n);
             try {
                 for (; loopProfile.inject(i < n); i++) {
-                    yield(frame, block, i);
+                    yield(block, i);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -137,13 +137,13 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public long times(VirtualFrame frame, long n, DynamicObject block,
+        public long times(long n, DynamicObject block,
                 @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
             long i = 0;
             loopProfile.profileCounted(n);
             try {
                 for (; loopProfile.inject(i < n); i++) {
-                    yield(frame, block, i);
+                    yield(block, i);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -155,11 +155,11 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = "isRubyBignum(n)")
-        public Object times(VirtualFrame frame, DynamicObject n, DynamicObject block,
+        public Object times(DynamicObject n, DynamicObject block,
                             @Cached("create(getSourceIndexLength())") FixnumOrBignumNode fixnumOrBignumNode) {
 
             for (BigInteger i = BigInteger.ZERO; i.compareTo(Layouts.BIGNUM.getValue(n)) < 0; i = i.add(BigInteger.ONE)) {
-                yield(frame, block, fixnumOrBignumNode.fixnumOrBignum(i));
+                yield(block, fixnumOrBignumNode.fixnumOrBignum(i));
             }
 
             return n;
@@ -193,7 +193,7 @@ public abstract class IntegerNodes {
         @Child private CallDispatchHeadNode uptoInternalCall;
 
         @Specialization
-        public Object upto(VirtualFrame frame, int from, int to, DynamicObject block) {
+        public Object upto(int from, int to, DynamicObject block) {
             int count = 0;
 
             try {
@@ -202,7 +202,7 @@ public abstract class IntegerNodes {
                         count++;
                     }
 
-                    yield(frame, block, i);
+                    yield(block, i);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -214,12 +214,12 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public Object upto(VirtualFrame frame, int from, double to, DynamicObject block) {
-            return upto(frame, from, (int) Math.floor(to), block);
+        public Object upto(int from, double to, DynamicObject block) {
+            return upto(from, (int) Math.floor(to), block);
         }
 
         @Specialization
-        public Object upto(VirtualFrame frame, long from, long to, DynamicObject block) {
+        public Object upto(long from, long to, DynamicObject block) {
             int count = 0;
 
             try {
@@ -228,7 +228,7 @@ public abstract class IntegerNodes {
                         count++;
                     }
 
-                    yield(frame, block, i);
+                    yield(block, i);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -240,8 +240,8 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        public Object upto(VirtualFrame frame, long from, double to, DynamicObject block) {
-            return upto(frame, from, (long) Math.ceil(to), block);
+        public Object upto(long from, double to, DynamicObject block) {
+            return upto(from, (long) Math.ceil(to), block);
         }
 
         @Specialization(guards = "isDynamicObject(from) || isDynamicObject(to)")

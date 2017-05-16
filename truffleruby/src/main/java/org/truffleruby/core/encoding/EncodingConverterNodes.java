@@ -91,7 +91,7 @@ public abstract class EncodingConverterNodes {
     public abstract static class EachTranscoderNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public Object transcodingMap(VirtualFrame frame, DynamicObject block) {
+        public Object transcodingMap(DynamicObject block) {
             for (Map.Entry<String, Map<String, Transcoder>> sourceEntry : TranscodingManager.allTranscoders.entrySet()) {
                 final DynamicObject source = getContext().getSymbolTable().getSymbol(sourceEntry.getKey());
                 final int size = sourceEntry.getValue().size();
@@ -102,7 +102,7 @@ public abstract class EncodingConverterNodes {
                     destinations[i++] = getContext().getSymbolTable().getSymbol(destinationEntry.getKey());
                 }
 
-                yield(frame, block, source, createArray(destinations, size));
+                yield(block, source, createArray(destinations, size));
             }
 
             return nil();

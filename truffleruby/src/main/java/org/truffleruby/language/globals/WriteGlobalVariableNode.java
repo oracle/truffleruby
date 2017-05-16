@@ -64,10 +64,10 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
     }
 
     @Specialization(guards = "storage.hasHooks()")
-    public Object writeHooks(VirtualFrame frame, Object value,
+    public Object writeHooks(Object value,
                              @Cached("getStorage()") GlobalVariableStorage storage,
                              @Cached("new()") YieldNode yieldNode) {
-        yieldNode.dispatch(frame, storage.getSetter(), value);
+        yieldNode.dispatch(storage.getSetter(), value);
         return value;
     }
 

@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import org.truffleruby.language.RubyNode;
@@ -25,7 +24,7 @@ import org.truffleruby.language.RubyNode;
 })
 public abstract class CallInternalMethodNode extends RubyNode {
 
-    public abstract Object executeCallMethod(VirtualFrame frame, InternalMethod method, Object[] frameArguments);
+    public abstract Object executeCallMethod(InternalMethod method, Object[] frameArguments);
 
     @Specialization(
             guards = "method.getCallTarget() == cachedCallTarget",

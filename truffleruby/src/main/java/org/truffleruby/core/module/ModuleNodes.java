@@ -551,20 +551,17 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isRubyString(code)")
-        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, NotProvided file, NotProvided line, NotProvided block,
-                @Cached("create()") IndirectCallNode callNode) {
-            return classEvalSource(frame, module, code, "(eval)", callNode);
+        public Object classEval(DynamicObject module, DynamicObject code, NotProvided file, NotProvided line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
+            return classEvalSource(module, code, "(eval)", callNode);
         }
 
         @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
-        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file, NotProvided line, NotProvided block,
-                @Cached("create()") IndirectCallNode callNode) {
-            return classEvalSource(frame, module, code, file.toString(), callNode);
+        public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, NotProvided line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
+            return classEvalSource(module, code, file.toString(), callNode);
         }
 
         @Specialization(guards = {"isRubyString(code)", "isRubyString(file)"})
-        public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file, int line, NotProvided block,
-                @Cached("create()") IndirectCallNode callNode) {
+        public Object classEval(DynamicObject module, DynamicObject code, DynamicObject file, int line, NotProvided block, @Cached("create()") IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, file.toString(), line);
             return deferredCall.call(callNode);
         }
@@ -572,17 +569,16 @@ public abstract class ModuleNodes {
         @Specialization(guards = "wasProvided(code)")
         public Object classEval(VirtualFrame frame, DynamicObject module, Object code, NotProvided file, NotProvided line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
-            return classEvalSource(frame, module, toStr(frame, code), file.toString(), callNode);
+            return classEvalSource(module, toStr(frame, code), file.toString(), callNode);
         }
 
         @Specialization(guards = {"isRubyString(code)", "wasProvided(file)"})
         public Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, Object file, NotProvided line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
-            return classEvalSource(frame, module, code, toStr(frame, file).toString(), callNode);
+            return classEvalSource(module, code, toStr(frame, file).toString(), callNode);
         }
 
-        private Object classEvalSource(VirtualFrame frame, DynamicObject module, DynamicObject code, String file,
-                @Cached("create()") IndirectCallNode callNode) {
+        private Object classEvalSource(DynamicObject module, DynamicObject code, String file, @Cached("create()") IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(module, code, file, 1);
             return deferredCall.call(callNode);
         }
@@ -606,8 +602,8 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        public Object classEval(VirtualFrame frame, DynamicObject self, NotProvided code, NotProvided file, NotProvided line, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(frame, block, self, self);
+        public Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line, DynamicObject block) {
+            return yield.dispatchWithModifiedSelf(block, self, self);
         }
 
         @Specialization
@@ -627,11 +623,11 @@ public abstract class ModuleNodes {
 
         @Child private YieldNode yield = new YieldNode(DeclarationContext.CLASS_EVAL);
 
-        public abstract Object executeClassExec(VirtualFrame frame, DynamicObject self, Object[] args, Object block);
+        public abstract Object executeClassExec(DynamicObject self, Object[] args, Object block);
 
         @Specialization
-        public Object classExec(VirtualFrame frame, DynamicObject self, Object[] args, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(frame, block, self, args);
+        public Object classExec(DynamicObject self, Object[] args, DynamicObject block) {
+            return yield.dispatchWithModifiedSelf(block, self, args);
         }
 
         @Specialization
@@ -1082,14 +1078,14 @@ public abstract class ModuleNodes {
 
         @Child private ModuleNodes.ClassExecNode classExecNode;
 
-        public abstract DynamicObject executeInitialize(VirtualFrame frame, DynamicObject module, Object block);
+        public abstract DynamicObject executeInitialize(DynamicObject module, Object block);
 
-        void classEval(VirtualFrame frame, DynamicObject module, DynamicObject block) {
+        void classEval(DynamicObject module, DynamicObject block) {
             if (classExecNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 classExecNode = insert(ModuleNodesFactory.ClassExecNodeFactory.create(null));
             }
-            classExecNode.executeClassExec(frame, module, new Object[]{module}, block);
+            classExecNode.executeClassExec(module, new Object[]{module}, block);
         }
 
         @Specialization
@@ -1098,8 +1094,8 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject module, DynamicObject block) {
-            classEval(frame, module, block);
+        public DynamicObject initialize(DynamicObject module, DynamicObject block) {
+            classEval(module, block);
             return module;
         }
 

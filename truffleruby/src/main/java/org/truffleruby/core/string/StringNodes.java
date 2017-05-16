@@ -598,12 +598,12 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        public DynamicObject bytes(VirtualFrame frame, DynamicObject string, DynamicObject block) {
+        public DynamicObject bytes(DynamicObject string, DynamicObject block) {
             Rope rope = rope(string);
             byte[] bytes = rope.getBytes();
 
             for (int i = 0; i < bytes.length; i++) {
-                yield(frame, block, bytes[i] & 0xff);
+                yield(block, bytes[i] & 0xff);
             }
 
             return string;
@@ -911,13 +911,13 @@ public abstract class StringNodes {
     public abstract static class EachByteNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public DynamicObject eachByte(VirtualFrame frame, DynamicObject string, DynamicObject block,
+        public DynamicObject eachByte(DynamicObject string, DynamicObject block,
                                       @Cached("createBinaryProfile()") ConditionProfile ropeChangedProfile) {
             Rope rope = rope(string);
             byte[] bytes = rope.getBytes();
 
             for (int i = 0; i < bytes.length; i++) {
-                yield(frame, block, bytes[i] & 0xff);
+                yield(block, bytes[i] & 0xff);
 
                 Rope updatedRope = rope(string);
                 if (ropeChangedProfile.profile(rope != updatedRope)) {
@@ -940,7 +940,7 @@ public abstract class StringNodes {
         @Child private TaintResultNode taintResultNode;
 
         @Specialization(guards = "!isBrokenCodeRange(string)")
-        public DynamicObject eachChar(VirtualFrame frame, DynamicObject string, DynamicObject block) {
+        public DynamicObject eachChar(DynamicObject string, DynamicObject block) {
             final Rope rope = rope(string);
             final byte[] ptrBytes = rope.getBytes();
             final int len = ptrBytes.length;
@@ -951,14 +951,14 @@ public abstract class StringNodes {
             for (int i = 0; i < len; i += n) {
                 n = StringSupport.encFastMBCLen(ptrBytes, i, len, enc);
 
-                yield(frame, block, substr(rope, string, i, n));
+                yield(block, substr(rope, string, i, n));
             }
 
             return string;
         }
 
         @Specialization(guards = "isBrokenCodeRange(string)")
-        public DynamicObject eachCharMultiByteEncoding(VirtualFrame frame, DynamicObject string, DynamicObject block) {
+        public DynamicObject eachCharMultiByteEncoding(DynamicObject string, DynamicObject block) {
             final Rope rope = rope(string);
             final byte[] ptrBytes = rope.getBytes();
             final int len = ptrBytes.length;
@@ -969,7 +969,7 @@ public abstract class StringNodes {
             for (int i = 0; i < len; i += n) {
                 n = multiByteStringLength(enc, ptrBytes, i, len);
 
-                yield(frame, block, substr(rope, string, i, n));
+                yield(block, substr(rope, string, i, n));
             }
 
             return string;
@@ -1467,7 +1467,7 @@ public abstract class StringNodes {
         }
 
         public Object yield(VirtualFrame frame, DynamicObject block, Object... arguments) {
-            return yieldNode.dispatch(frame, block, arguments);
+            return yieldNode.dispatch(block, arguments);
         }
 
     }

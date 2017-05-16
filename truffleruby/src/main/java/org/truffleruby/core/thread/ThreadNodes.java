@@ -173,14 +173,14 @@ public abstract class ThreadNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization(guards = { "isRubyClass(exceptionClass)", "isRubySymbol(timing)" })
-        public Object handle_interrupt(VirtualFrame frame, DynamicObject self, DynamicObject exceptionClass, DynamicObject timing, DynamicObject block) {
+        public Object handle_interrupt(DynamicObject self, DynamicObject exceptionClass, DynamicObject timing, DynamicObject block) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
             final InterruptMode newInterruptMode = symbolToInterruptMode(timing);
 
             final InterruptMode oldInterruptMode = Layouts.THREAD.getInterruptMode(self);
             Layouts.THREAD.setInterruptMode(self, newInterruptMode);
             try {
-                return yield(frame, block);
+                return yield(block);
             } finally {
                 Layouts.THREAD.setInterruptMode(self, oldInterruptMode);
             }
@@ -394,7 +394,7 @@ public abstract class ThreadNodes {
             final DynamicObject unblocker = Layouts.THREAD.getUnblocker(thread);
 
             if (unblocker != null) {
-                yieldNode.dispatch(null, unblocker);
+                yieldNode.dispatch(unblocker);
             }
 
             Layouts.THREAD.getWakeUp(thread).set(true);
@@ -416,12 +416,12 @@ public abstract class ThreadNodes {
     public abstract static class UnblockNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = {"isRubyProc(unblocker)", "isRubyProc(runner)"})
-        public Object unblock(VirtualFrame frame, DynamicObject thread, DynamicObject unblocker, DynamicObject runner) {
+        public Object unblock(DynamicObject thread, DynamicObject unblocker, DynamicObject runner) {
             Layouts.THREAD.setUnblocker(thread, unblocker);
             Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
 
             try {
-                return yield(frame, runner);
+                return yield(runner);
             } finally {
                 Layouts.THREAD.setUnblocker(thread, null);
                 Layouts.THREAD.setStatus(thread, ThreadStatus.RUN);

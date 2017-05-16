@@ -72,12 +72,12 @@ public abstract class TruffleEncodingNodes {
     public abstract static class EachAliasNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public DynamicObject eachAlias(VirtualFrame frame, DynamicObject block) {
+        public DynamicObject eachAlias(DynamicObject block) {
             CompilerAsserts.neverPartOfCompilation();
             for (Hash.HashEntry<EncodingDB.Entry> entry : EncodingDB.getAliases().entryIterator()) {
                 final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = (CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry>) entry;
                 final Rope aliasName = RopeOperations.create(ArrayUtils.extractRange(e.bytes, e.p, e.end), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
-                yield(frame, block, createString(aliasName), entry.value.getIndex());
+                yield(block, createString(aliasName), entry.value.getIndex());
             }
             return nil();
         }

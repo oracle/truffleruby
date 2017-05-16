@@ -254,7 +254,7 @@ public abstract class BasicObjectNodes {
         @Child private YieldNode yield = new YieldNode(DeclarationContext.INSTANCE_EVAL);
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
+        public Object instanceEval(Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
             final Rope code = StringOperations.rope(string);
 
@@ -268,21 +268,21 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName, NotProvided line, NotProvided block,
+        public Object instanceEval(Object receiver, DynamicObject string, DynamicObject fileName, NotProvided line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
-            return instanceEval(frame, receiver, string, fileName, 1, block, callNode);
+            return instanceEval(receiver, string, fileName, 1, block, callNode);
         }
 
         @Specialization(guards = { "isRubyString(string)" })
-        public Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, NotProvided fileName, NotProvided line, NotProvided block,
+        public Object instanceEval(Object receiver, DynamicObject string, NotProvided fileName, NotProvided line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
             final DynamicObject eval = StringOperations.createString(getContext(), StringOperations.encodeRope("(eval)", ASCIIEncoding.INSTANCE));
-            return instanceEval(frame, receiver, string, eval, 1, block, callNode);
+            return instanceEval(receiver, string, eval, 1, block, callNode);
         }
 
         @Specialization
-        public Object instanceEval(VirtualFrame frame, Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(frame, block, receiver, receiver);
+        public Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line, DynamicObject block) {
+            return yield.dispatchWithModifiedSelf(block, receiver, receiver);
         }
 
         @TruffleBoundary
@@ -304,8 +304,8 @@ public abstract class BasicObjectNodes {
         @Child private YieldNode yield = new YieldNode(DeclarationContext.INSTANCE_EVAL);
 
         @Specialization
-        public Object instanceExec(VirtualFrame frame, Object receiver, Object[] arguments, DynamicObject block) {
-            return yield.dispatchWithModifiedSelf(frame, block, receiver, arguments);
+        public Object instanceExec(Object receiver, Object[] arguments, DynamicObject block) {
+            return yield.dispatchWithModifiedSelf(block, receiver, arguments);
         }
 
         @Specialization

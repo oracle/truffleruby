@@ -10,7 +10,6 @@
 package org.truffleruby.builtins;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
@@ -25,16 +24,16 @@ public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNod
         super();
     }
 
-    public Object yield(VirtualFrame frame, DynamicObject block, Object... arguments) {
-        return dispatchNode.dispatch(frame, block, arguments);
+    public Object yield(DynamicObject block, Object... arguments) {
+        return dispatchNode.dispatch(block, arguments);
     }
 
-    public Object yieldWithBlock(VirtualFrame frame, DynamicObject block, DynamicObject blockArgument, Object... arguments) {
-        return dispatchNode.dispatchWithBlock(frame, block, blockArgument, arguments);
+    public Object yieldWithBlock(DynamicObject block, DynamicObject blockArgument, Object... arguments) {
+        return dispatchNode.dispatchWithBlock(block, blockArgument, arguments);
     }
 
-    public boolean yieldIsTruthy(VirtualFrame frame, DynamicObject block, Object... arguments) {
-        return booleanCast(yield(frame, block, arguments));
+    public boolean yieldIsTruthy(DynamicObject block, Object... arguments) {
+        return booleanCast(yield(block, arguments));
     }
 
     private boolean booleanCast(Object value) {

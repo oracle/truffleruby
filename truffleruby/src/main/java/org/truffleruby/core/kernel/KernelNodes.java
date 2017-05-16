@@ -103,7 +103,6 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.FreezeNode;
 import org.truffleruby.language.objects.FreezeNodeGen;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsANodeGen;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.IsTaintedNode;
@@ -997,10 +996,9 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "is_a?", "kind_of?" }, required = 1)
     public abstract static class KernelIsANode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsANode isANode = IsANodeGen.create(null, null);
-
         @Specialization
-        public boolean isA(Object self, DynamicObject module) {
+        public boolean isA(Object self, DynamicObject module,
+                @Cached("create()") IsANode isANode) {
             return isANode.executeIsA(self, module);
         }
 
