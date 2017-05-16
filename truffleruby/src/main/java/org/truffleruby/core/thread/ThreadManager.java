@@ -223,7 +223,25 @@ public class ThreadManager {
      */
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> action) {
-        return runUntilResult(currentNode, action, null);
+        final DynamicObject runningThread = getCurrentThread();
+        T result = null;
+
+        do {
+            Layouts.THREAD.setStatus(runningThread, ThreadStatus.SLEEP);
+
+            try {
+                try {
+                    result = action.block();
+                } finally {
+                    Layouts.THREAD.setStatus(runningThread, ThreadStatus.RUN);
+                }
+            } catch (InterruptedException e) {
+                // We were interrupted, possibly by the SafepointManager.
+                context.getSafepointManager().pollFromBlockingCall(currentNode);
+            }
+        } while (result == null);
+
+        return result;
     }
 
     /**
@@ -242,33 +260,14 @@ public class ThreadManager {
      */
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> blockingAction, UnblockingAction unblockingAction) {
-        final DynamicObject runningThread = getCurrentThread();
-        T result = null;
+        final Thread thread = Layouts.THREAD.getThread(getCurrentThread());
 
-        if (unblockingAction != null) {
-            unblockingActions.put(Layouts.THREAD.getThread(runningThread), unblockingAction);
+        final UnblockingAction oldUnblockingAction = unblockingActions.put(thread, unblockingAction);
+        try {
+            return runUntilResult(currentNode, blockingAction);
+        } finally {
+            unblockingActions.put(thread, oldUnblockingAction);
         }
-
-        do {
-            Layouts.THREAD.setStatus(runningThread, ThreadStatus.SLEEP);
-
-            try {
-                try {
-                    result = blockingAction.block();
-                } finally {
-                    Layouts.THREAD.setStatus(runningThread, ThreadStatus.RUN);
-                }
-            } catch (InterruptedException e) {
-                // We were interrupted, possibly by the SafepointManager.
-                if (unblockingAction != null) {
-                    unblockingActions.put(Layouts.THREAD.getThread(runningThread), unblockingAction);
-                }
-
-                context.getSafepointManager().pollFromBlockingCall(currentNode);
-            }
-        } while (result == null);
-
-        return result;
     }
 
     @TruffleBoundary
@@ -429,14 +428,9 @@ public class ThreadManager {
 
         if (action != null) {
             action.unblock();
-            unblockingActions.remove(thread);
         }
 
         thread.interrupt();
     }
 
-    @TruffleBoundary
-    public UnblockingAction getUnblockingAction(Thread thread) {
-        return unblockingActions.get(thread);
-    }
 }
