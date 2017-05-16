@@ -390,19 +390,12 @@ public abstract class ThreadNodes {
                 throw new RaiseException(coreExceptions().threadErrorKilledThread(this));
             }
 
-            final ThreadManager.UnblockingAction unblocker = getContext().getThreadManager().getUnblockingAction(Layouts.THREAD.getThread(thread));
-
-            if (unblocker != null) {
-                unblocker.unblock();
-            }
-
             Layouts.THREAD.getWakeUp(thread).set(true);
 
             final Thread toInterrupt = Layouts.THREAD.getThread(thread);
-
             if (toInterrupt != null) {
                 // TODO: should only interrupt sleep
-                toInterrupt.interrupt();
+                getContext().getThreadManager().interrupt(toInterrupt);
             }
 
             return thread;
