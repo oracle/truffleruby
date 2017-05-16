@@ -858,7 +858,7 @@ public class CExtNodes {
         public DynamicObject threadWaitFDNode(int fd) {
             final FDSet fdSet = getContext().getNativePlatform().createFDSet();
 
-            getContext().getThreadManager().runUntilResult(this, () -> {
+            getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
                 fdSet.set(fd);
                 final int result = nativeSockets().select(fd + 1,
                         fdSet.getPointer(),
@@ -884,9 +884,9 @@ public class CExtNodes {
         @Specialization
         public int threadFDWritableNode(int fd) {
             final FDSet fdSet = getContext().getNativePlatform().createFDSet();
-            fdSet.set(fd);
 
-            return getContext().getThreadManager().runUntilResult(this, () -> {
+            return getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
+                fdSet.set(fd);
                 final int result = nativeSockets().select(fd + 1,
                         PointerNodes.NULL_POINTER,
                         fdSet.getPointer(),

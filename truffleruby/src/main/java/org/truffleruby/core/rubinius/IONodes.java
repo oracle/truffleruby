@@ -555,8 +555,9 @@ public abstract class IONodes {
             }
 
             final ByteBuffer buffer = ByteBuffer.allocate(length);
-            final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(
-                    nativeSockets().recvfrom(sockfd, buffer, length, flags, PointerNodes.NULL_POINTER, PointerNodes.NULL_POINTER)));
+            final int bytesRead = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
+                    () -> nativeSockets().recvfrom(sockfd, buffer, length, flags, PointerNodes.NULL_POINTER, PointerNodes.NULL_POINTER));
+            ensureSuccessful(bytesRead);
             buffer.position(bytesRead);
 
             return createString(RopeBuilder.createRopeBuilder(buffer.array(), buffer.arrayOffset(), buffer.position()));
@@ -810,12 +811,12 @@ public abstract class IONodes {
             final int newFd;
 
             try {
-                newFd = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(nativeSockets().accept(fd, memoryManager().newPointer(address), addressLength)));
+                newFd = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
+                        () -> nativeSockets().accept(fd, memoryManager().newPointer(address), addressLength));
+                return ensureSuccessful(newFd);
             } finally {
                 getContext().getNativePlatform().getMallocFree().free(address);
             }
-
-            return newFd;
         }
 
     }

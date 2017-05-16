@@ -31,6 +31,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
@@ -65,7 +66,8 @@ public abstract class FiberNodes {
                 thread,
                 null,
                 true,
-                null);
+                null,
+                0L);
     }
 
     public static void initialize(final RubyContext context, final DynamicObject fiber, final DynamicObject block, final Node currentNode) {
@@ -119,27 +121,33 @@ public abstract class FiberNodes {
     private static void run(RubyContext context, DynamicObject fiber, Node currentNode, final Runnable task) {
         assert RubyGuards.isRubyFiber(fiber);
 
-        start(context, fiber);
+        start(context, context.getThreadManager(), fiber);
         try {
             task.run();
         } finally {
-            cleanup(context, fiber);
+            cleanup(context, context.getThreadManager(), fiber);
         }
     }
 
-    public static void start(RubyContext context, DynamicObject fiber) {
+    public static void start(RubyContext context, ThreadManager threadManager, DynamicObject fiber) {
         assert RubyGuards.isRubyFiber(fiber);
+
         Layouts.FIBER.setThread(fiber, Thread.currentThread());
-        context.getThreadManager().initializeCurrentThread(Layouts.FIBER.getRubyThread(fiber));
+
+        final long pThreadID = context.getNativePlatform().getThreads().pthread_self();
+        Layouts.FIBER.setPThreadID(fiber, pThreadID);
+        threadManager.initializeValuesBasedOnCurrentJavaThread(Layouts.FIBER.getRubyThread(fiber), pThreadID);
+
         Layouts.THREAD.getFiberManager(Layouts.FIBER.getRubyThread(fiber)).registerFiber(fiber);
         context.getSafepointManager().enterThread();
         // fully initialized
         Layouts.FIBER.getInitializedLatch(fiber).countDown();
     }
 
-    public static void cleanup(RubyContext context, DynamicObject fiber) {
+    public static void cleanup(RubyContext context, ThreadManager threadManager, DynamicObject fiber) {
         assert RubyGuards.isRubyFiber(fiber);
         Layouts.FIBER.setAlive(fiber, false);
+        threadManager.cleanupValuesBasedOnCurrentJavaThread();
         context.getSafepointManager().leaveThread();
         Layouts.THREAD.getFiberManager(Layouts.FIBER.getRubyThread(fiber)).unregisterFiber(fiber);
         Layouts.FIBER.setThread(fiber, null);
