@@ -13,7 +13,11 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+
+import jnr.constants.platform.Errno;
+import jnr.constants.platform.Signal;
 import jnr.posix.DefaultNativeTimeval;
+import jnr.posix.LibC.LibCSignalHandler;
 import jnr.posix.Timeval;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -31,9 +35,11 @@ import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.control.ThreadExitException;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.platform.posix.SigAction;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -50,17 +56,26 @@ public class ThreadManager {
     private final Set<DynamicObject> runningRubyThreads
             = Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
 
-    private final ConcurrentHashMap<Thread, UnblockingAction> unblockingActions = new ConcurrentHashMap<>();
+    private final Map<Thread, UnblockingAction> unblockingActions = new ConcurrentHashMap<>();
+    private static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
+    };
+
+    private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = new ThreadLocal<>();
 
     public ThreadManager(RubyContext context) {
         this.context = context;
         this.rootThread = createRubyThread(context, "main");
+        setupSignalHandler(context);
+
+        start(rootThread);
+        FiberNodes.start(context, this, Layouts.THREAD.getFiberManager(rootThread).getRootFiber());
     }
 
     public static final InterruptMode DEFAULT_INTERRUPT_MODE = InterruptMode.IMMEDIATE;
     public static final ThreadStatus DEFAULT_STATUS = ThreadStatus.RUN;
 
     public static DynamicObject createRubyThread(RubyContext context, String info) {
+
         final DynamicObject object = Layouts.THREAD.createThread(
                 context.getCoreLibrary().getThreadFactory(),
                 createThreadLocals(context),
@@ -82,6 +97,22 @@ public class ThreadManager {
         Layouts.THREAD.setFiberManagerUnsafe(object, new FiberManager(context, object)); // Because it is cyclic
 
         return object;
+    }
+
+    private static final LibCSignalHandler EMPTY_HANDLER = sig -> {
+        // Empty
+    };
+
+    private static void setupSignalHandler(RubyContext context) {
+        int flags = 0; // NO SA_RESTART so we can interrupt blocking syscalls.
+        final SigAction action = context.getNativePlatform().createSigAction(EMPTY_HANDLER, flags);
+        if (!Signal.SIGVTALRM.defined()) {
+            throw new UnsupportedOperationException("SIGVTALRM not defined");
+        }
+        int result = context.getNativePlatform().getThreads().sigaction(Signal.SIGVTALRM.intValue(), action, null);
+        if (result != 0) {
+            throw new UnsupportedOperationException("sigaction() failed");
+        }
     }
 
     public static boolean getGlobalAbortOnException(RubyContext context) {
@@ -119,13 +150,14 @@ public class ThreadManager {
     public static void run(DynamicObject thread, RubyContext context, Node currentNode, String info, Runnable task) {
         assert RubyGuards.isRubyThread(thread);
 
+
         Layouts.THREAD.setSourceLocation(thread, info);
         final String name = "Ruby Thread@" + info;
         Thread.currentThread().setName(name);
         DynamicObject fiber = Layouts.THREAD.getFiberManager(thread).getRootFiber();
 
-        start(context, thread);
-        FiberNodes.start(context, fiber);
+        context.getThreadManager().start(thread);
+        FiberNodes.start(context, context.getThreadManager(), fiber);
         try {
             task.run();
         } catch (ThreadExitException e) {
@@ -136,8 +168,8 @@ public class ThreadManager {
         } catch (ReturnException e) {
             setException(context, thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
         } finally {
-            FiberNodes.cleanup(context, fiber);
-            cleanup(context, thread);
+            FiberNodes.cleanup(context, context.getThreadManager(), fiber);
+            context.getThreadManager().cleanup(thread);
         }
     }
 
@@ -158,17 +190,16 @@ public class ThreadManager {
         Layouts.THREAD.setException(thread, exception);
     }
 
-    public static void start(RubyContext context, DynamicObject thread) {
-        assert RubyGuards.isRubyThread(thread);
+    public void start(DynamicObject thread) {
         Layouts.THREAD.setThread(thread, Thread.currentThread());
-        context.getThreadManager().registerThread(thread);
+        registerThread(thread);
     }
 
-    public static void cleanup(RubyContext context, DynamicObject thread) {
+    public void cleanup(DynamicObject thread) {
         assert RubyGuards.isRubyThread(thread);
 
         Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
-        context.getThreadManager().unregisterThread(thread);
+        unregisterThread(thread);
 
         Layouts.THREAD.setStatus(thread, ThreadStatus.DEAD);
         Layouts.THREAD.setThread(thread, null);
@@ -188,11 +219,6 @@ public class ThreadManager {
         } else {
             throw new ThreadExitException();
         }
-    }
-
-    public void initialize() {
-        start(context, rootThread);
-        FiberNodes.start(context, Layouts.THREAD.getFiberManager(rootThread).getRootFiber());
     }
 
     public DynamicObject getRootThread() {
@@ -215,8 +241,11 @@ public class ThreadManager {
 
     /**
      * Runs {@code action} until it returns a non-null value.
-     * The action might be {@link Thread#interrupted()}, for instance by
-     * the {@link SafepointManager}, in which case it will be run again.
+     * The given action should throw an {@link InterruptedException} when {@link Thread#interrupt()} is called.
+     * Otherwise, the {@link SafepointManager} will not be able to interrupt this action.
+     * See {@link ThreadManager#runBlockingSystemCallUntilResult(Node, BlockingAction)} for blocking native calls.
+     * If the action throws an {@link InterruptedException},
+     * it will be retried until it returns a non-null value.
      *
      * @param action must not touch any Ruby state
      * @return the first non-null return value from {@code action}
@@ -245,14 +274,13 @@ public class ThreadManager {
     }
 
     /**
-     * Runs {@code action} until it returns a non-null value.
-     * The blocking action might be {@link Thread#interrupted()}, for instance by
-     * the {@link SafepointManager}, in which case it will be run again.
-     * The unblocking action is registered with the thread manager and will be invoked
-     * if the thread manager interrupts the thread. If the blocking action is making a
-     * native call, simply interrupting the thread will not unblock the action. It is the
-     * responsibility of the unblocking action to break out of the native call so the thread
-     * can be interrupted.
+     * Runs {@code action} until it returns a non-null value. The blocking action might be
+     * {@link Thread#interrupted()}, for instance by the {@link SafepointManager}, in which case it
+     * will be run again. The unblocking action is registered with the thread manager and will be
+     * invoked if the {@link SafepointManager} needs to interrupt the thread. If the blocking action
+     * is making a native call, simply interrupting the thread will not unblock the action. It is
+     * the responsibility of the unblocking action to break out of the native call so the thread can
+     * be interrupted.
      *
      * @param blockingAction must not touch any Ruby state
      * @param unblockingAction must not touch any Ruby state
@@ -260,14 +288,37 @@ public class ThreadManager {
      */
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> blockingAction, UnblockingAction unblockingAction) {
+        assert unblockingAction != null;
         final Thread thread = Layouts.THREAD.getThread(getCurrentThread());
 
-        final UnblockingAction oldUnblockingAction = unblockingActions.put(thread, unblockingAction);
-        try {
-            return runUntilResult(currentNode, blockingAction);
-        } finally {
-            unblockingActions.put(thread, oldUnblockingAction);
-        }
+        return runUntilResult(currentNode, () -> {
+            final UnblockingAction oldUnblockingAction = unblockingActions.put(thread, unblockingAction);
+            try {
+                return blockingAction.block();
+            } finally {
+                unblockingActions.put(thread, oldUnblockingAction);
+            }
+        });
+    }
+
+    /**
+     * Similar to {@link ThreadManager#runUntilResult(Node, BlockingAction)} but purposed for
+     * blocking native calls. If the {@link SafepointManager} needs to interrupt the thread, it will
+     * send a SIGVTALRM to abort the blocking syscall which will return with a value < 0 and
+     * errno=EINTR.
+     */
+    @TruffleBoundary
+    public int runBlockingSystemCallUntilResult(Node currentNode, BlockingAction<Integer> action) {
+        assert Errno.EINTR.defined();
+        int EINTR = Errno.EINTR.intValue();
+
+        return runUntilResult(currentNode, () -> {
+            int result = action.block();
+            if (result < 0 && context.getNativePlatform().getPosix().errno() == EINTR) {
+                throw new InterruptedException("EINTR");
+            }
+            return result;
+        }, blockingNativeCallUnblockingAction.get());
     }
 
     @TruffleBoundary
@@ -352,9 +403,21 @@ public class ThreadManager {
         }
     }
 
-    public void initializeCurrentThread(DynamicObject thread) {
+    public void initializeValuesBasedOnCurrentJavaThread(DynamicObject thread, long pThreadID) {
         assert RubyGuards.isRubyThread(thread);
         currentThread.set(thread);
+
+        final int SIGVTALRM = jnr.constants.platform.Signal.SIGVTALRM.intValue();
+
+        blockingNativeCallUnblockingAction.set(() -> {
+            context.getNativePlatform().getThreads().pthread_kill(pThreadID, SIGVTALRM);
+        });
+
+        unblockingActions.put(Thread.currentThread(), EMPTY_UNBLOCKING_ACTION);
+    }
+
+    public void cleanupValuesBasedOnCurrentJavaThread() {
+        unblockingActions.remove(Thread.currentThread());
     }
 
     @TruffleBoundary
@@ -364,7 +427,6 @@ public class ThreadManager {
 
     public synchronized void registerThread(DynamicObject thread) {
         assert RubyGuards.isRubyThread(thread);
-        initializeCurrentThread(thread);
         runningRubyThreads.add(thread);
 
         if (context.getOptions().SHARED_OBJECTS_ENABLED && runningRubyThreads.size() > 1) {
@@ -387,8 +449,8 @@ public class ThreadManager {
             }
         } finally {
             Layouts.THREAD.getFiberManager(rootThread).shutdown();
-            FiberNodes.cleanup(context, Layouts.THREAD.getFiberManager(rootThread).getRootFiber());
-            cleanup(context, rootThread);
+            FiberNodes.cleanup(context, this, Layouts.THREAD.getFiberManager(rootThread).getRootFiber());
+            cleanup(rootThread);
         }
     }
 

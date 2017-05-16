@@ -436,7 +436,6 @@ public abstract class VMPrimitiveNodes {
 
             int options = 0;
             final int[] statusReference = new int[]{ 0 };
-            int pid;
 
             if (no_hang) {
                 options |= WNOHANG.intValue();
@@ -444,13 +443,19 @@ public abstract class VMPrimitiveNodes {
 
             final int finalOptions = options;
 
-            pid = getContext().getThreadManager().runUntilResult(this, () -> {
-                int result = posix().waitpid(input_pid, statusReference, finalOptions);
-                if (result == -1 && posix().errno() == EINTR.intValue()) {
-                    throw new InterruptedException();
-                }
-                return result;
-            });
+            final int pid;
+            if (no_hang) {
+                pid = getContext().getThreadManager().runUntilResult(this, () -> {
+                    int result = posix().waitpid(input_pid, statusReference, finalOptions);
+                    if (result == -1 && posix().errno() == EINTR.intValue()) {
+                        throw new InterruptedException();
+                    }
+                    return result;
+                });
+            } else {
+                pid = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
+                        () -> posix().waitpid(input_pid, statusReference, finalOptions));
+            }
 
             final int errno = posix().errno();
 

@@ -159,7 +159,6 @@ public class RubyContext extends ExecutionContext {
             coreLibrary.initializeEncodingManager();
 
             threadManager = new ThreadManager(this);
-            threadManager.initialize();
 
             // Load the nodes
 

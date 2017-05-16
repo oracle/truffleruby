@@ -809,8 +809,9 @@ public abstract class TrufflePosixNodes {
             final Pointer sockPointer = Layouts.POINTER.getPointer(socklenPointer);
             final Pointer addressPointer = Layouts.POINTER.getPointer(addressPtr);
 
-            final int newFd = getContext().getThreadManager().runUntilResult(this, () -> ensureSuccessful(nativeSockets().accept(fd, addressPointer, sockPointer)));
-            return newFd;
+            final int newFd = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
+                    () -> nativeSockets().accept(fd, addressPointer, sockPointer));
+            return ensureSuccessful(newFd);
         }
 
         protected int ensureSuccessful(int result, int errno, String extra) {

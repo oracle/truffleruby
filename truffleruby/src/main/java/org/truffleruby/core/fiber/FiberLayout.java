@@ -33,7 +33,8 @@ public interface FiberLayout extends BasicObjectLayout {
                               DynamicObject rubyThread,
                               @Volatile @Nullable DynamicObject lastResumedByFiber,
                               @Volatile boolean alive,
-                              @Volatile @Nullable Thread thread);
+                              @Volatile @Nullable Thread thread,
+                              long pThreadID);
 
     boolean isFiber(DynamicObject object);
 
@@ -55,5 +56,8 @@ public interface FiberLayout extends BasicObjectLayout {
 
     Thread getThread(DynamicObject object);
     void setThread(DynamicObject object, Thread value);
+
+    long getPThreadID(DynamicObject object);
+    void setPThreadID(DynamicObject object, long value);
 
 }

@@ -384,21 +384,22 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject wakeup(DynamicObject thread,
+        public DynamicObject wakeup(DynamicObject rubyThread,
                                     @Cached("new()") YieldNode yieldNode) {
-            if (Layouts.THREAD.getStatus(thread) == ThreadStatus.DEAD) {
+            final DynamicObject currentFiber = Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiber();
+            final Thread thread = Layouts.FIBER.getThread(currentFiber);
+            if (thread == null) {
                 throw new RaiseException(coreExceptions().threadErrorKilledThread(this));
             }
 
-            Layouts.THREAD.getWakeUp(thread).set(true);
+            Layouts.THREAD.getWakeUp(rubyThread).set(true);
 
-            final Thread toInterrupt = Layouts.THREAD.getThread(thread);
-            if (toInterrupt != null) {
+            if (thread != null) {
                 // TODO: should only interrupt sleep
-                getContext().getThreadManager().interrupt(toInterrupt);
+                getContext().getThreadManager().interrupt(thread);
             }
 
-            return thread;
+            return rubyThread;
         }
 
     }
