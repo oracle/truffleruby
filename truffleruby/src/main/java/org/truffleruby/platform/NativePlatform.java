@@ -10,9 +10,13 @@
 package org.truffleruby.platform;
 
 import jnr.ffi.provider.MemoryManager;
+import jnr.posix.LibC.LibCSignalHandler;
+
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.MallocFree;
+import org.truffleruby.platform.posix.SigAction;
 import org.truffleruby.platform.posix.Sockets;
+import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.TrufflePosix;
 import org.truffleruby.platform.signal.SignalManager;
 
@@ -28,6 +32,8 @@ public interface NativePlatform {
 
     Sockets getSockets();
 
+    Threads getThreads();
+
     ClockGetTime getClockGetTime();
 
     MallocFree getMallocFree();
@@ -35,5 +41,7 @@ public interface NativePlatform {
     RubiniusConfiguration getRubiniusConfiguration();
 
     FDSet createFDSet();
+
+    SigAction createSigAction(LibCSignalHandler handler, int flags);
 
 }

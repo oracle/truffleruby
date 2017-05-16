@@ -96,7 +96,7 @@ public interface SignalManager {
         Map<String, Integer> signals = new HashMap<>();
 
         for (Signal s : Signal.values()) {
-            if (!s.description().startsWith(SIGNAME_PREFIX))
+            if (!s.defined())
                 continue;
             if (!RUBY_18_SIGNALS.contains(signmWithoutPrefix(s.description())))
                 continue;
