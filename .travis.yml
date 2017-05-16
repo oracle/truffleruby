@@ -7,7 +7,6 @@ cache:
   - $HOME/.mx/cache
 
 before_install:
-- rvm list
 - unset GEM_PATH GEM_HOME IRBRC
 
 jdk: oraclejdk8
@@ -22,7 +21,7 @@ matrix:
   - env: JT='test integration'
   - env: JT='test gems' COMMAND=test/truffle/gems/install-gems.sh
   - env: JT='test tck'
-  - env: JT='lint' SKIP_BUILD=true V=1
+  - env: JT='lint' COMMAND='rvm install 2.1.0' SKIP_BUILD=true V=1
   - env: JT='test mri'
   - env: JT='test bundle'
   - env: JT='test ecosystem actionpack actionview' JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
