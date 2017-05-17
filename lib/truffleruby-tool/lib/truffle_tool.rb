@@ -253,7 +253,7 @@ class TruffleTool
     shared_offline_options = {
         offline:          ['--[no-]offline', 'Use local gems only', STORE_NEW_VALUE, false],
         offline_gem_path: ['--offline-gem-path', 'Path to a local pre-installed gems', STORE_NEW_VALUE,
-                           TRUFFLERUBY_PATH.join('truffleruby-gem-test-pack', 'gems')] }
+                           TRUFFLERUBY_PATH.join('truffleruby-gem-test-pack-3', 'gems')] } # TODO
 
 
     # Format:
