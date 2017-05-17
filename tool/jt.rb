@@ -1168,7 +1168,7 @@ module Commands
       sh 'curl', '-OL', "https://www.dropbox.com/s/xst3axtgevowf1i/truffleruby-gem-test-pack-3.tar.gz"
       sh 'tar', '-zxf', "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
     end
-    test_pack
+    print test_pack
   end
   alias_method :'gem-test-pack', :gem_test_pack
 
