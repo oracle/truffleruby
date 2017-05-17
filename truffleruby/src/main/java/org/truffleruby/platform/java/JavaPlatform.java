@@ -37,6 +37,7 @@ public class JavaPlatform implements NativePlatform {
     private final SignalManager signalManager;
     private final ProcessName processName;
     private final Sockets sockets;
+    private final Threads threads;
     private final ClockGetTime clockGetTime;
     private final RubiniusConfiguration rubiniusConfiguration;
 
@@ -46,6 +47,7 @@ public class JavaPlatform implements NativePlatform {
         signalManager = new SunMiscSignalManager();
         processName = new JavaProcessName();
         sockets = new JavaSockets();
+        threads = new NoopThreads();
         clockGetTime = new JavaClockGetTime();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -79,7 +81,7 @@ public class JavaPlatform implements NativePlatform {
 
     @Override
     public Threads getThreads() {
-        throw new UnsupportedOperationException();
+        return threads;
     }
 
     @Override
@@ -104,7 +106,24 @@ public class JavaPlatform implements NativePlatform {
 
     @Override
     public SigAction createSigAction(LibCSignalHandler handler, int flags) {
-        throw new UnsupportedOperationException();
+        return null;
+    }
+
+    // Since JavaPlatform does not do any native call, there is no need to interrupt with a native signal.
+    private static class NoopThreads implements Threads {
+
+        public long pthread_self() {
+            return 0L;
+        }
+
+        public int pthread_kill(long thread, int sig) {
+            return 0;
+        }
+
+        public int sigaction(int signum, SigAction act, SigAction oldAct) {
+            return 0;
+        }
+
     }
 
 }
