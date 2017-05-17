@@ -1,3 +1,1 @@
-fails:UDPSocket.new using Symbol argument
-fails:UDPSocket.new using String argument
 solaris:UDPSocket.new raises Errno::EAFNOSUPPORT if unsupported family passed
