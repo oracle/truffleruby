@@ -156,7 +156,8 @@ public abstract class IOBufferNodes {
         private int performFill(int fd, byte[] readBuffer, int count) {
             int bytesRead;
             while (true) {
-                bytesRead = posix().read(fd, readBuffer, count);
+                bytesRead = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
+                        () -> posix().read(fd, readBuffer, count));
 
                 if (bytesRead == -1) {
                     final int errno = posix().errno();
