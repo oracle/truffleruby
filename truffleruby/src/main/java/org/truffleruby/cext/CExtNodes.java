@@ -1104,7 +1104,7 @@ public class CExtNodes {
         public Object executeWithProtect(VirtualFrame frame, DynamicObject block,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                yield(frame, block);
+                yield(block);
                 return nil();
             } catch (Throwable e) {
                 exceptionProfile.enter();
