@@ -10,8 +10,6 @@
 package org.truffleruby.core.kernel;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +30,6 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodes;
@@ -65,7 +62,6 @@ import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcNodesFactory.ProcNewNodeFactory;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
@@ -82,7 +78,6 @@ import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchAction;
@@ -125,9 +120,6 @@ import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
-import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
-import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
@@ -710,61 +702,6 @@ public abstract class KernelNodes {
             return isFrozenNode.executeIsFrozen(self);
         }
 
-    }
-
-    @CoreMethod(names = "gets", isModuleFunction = true)
-    public abstract static class GetsNode extends CoreMethodArrayArgumentsNode {
-
-        @Child ReadCallerFrameNode readCallerFrame = new ReadCallerFrameNode(CallerFrameAccess.READ_WRITE);
-        @Child FindThreadAndFrameLocalStorageNode threadLocalNode;
-
-        @Specialization
-        public DynamicObject gets(VirtualFrame frame) {
-            final DynamicObject rubyLine = getInputLine();
-            if (threadLocalNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                threadLocalNode = insert(FindThreadAndFrameLocalStorageNodeGen.create("$_"));
-            }
-            Frame callerFrame = readCallerFrame.execute(frame);
-            ThreadAndFrameLocalStorage lastMatch = threadLocalNode.execute(callerFrame.materialize());
-            lastMatch.set(rubyLine);
-
-            return rubyLine;
-        }
-
-        @TruffleBoundary
-        private DynamicObject getInputLine() {
-            // TODO CS 8-Apr-17 this whole method is archaic and won't interact with the rest of the system properly
-
-            final InputStream in = getContext().getEnv().in();
-
-            final byte[] line = getContext().getThreadManager().runUntilResult(this, () -> {
-                final ByteArrayBuilder builder = new ByteArrayBuilder();
-
-                while (true) {
-                    final int c;
-                    try {
-                        c = in.read();
-                    } catch (IOException e) {
-                        throw new JavaException(e);
-                    }
-
-                    if (c == -1) {
-                        break;
-                    }
-
-                    builder.append(c);
-
-                    if (c == '\n') {
-                        break;
-                    }
-                }
-
-                return builder.getBytes();
-            });
-
-            return createString(RopeOperations.create(line, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
-        }
     }
 
     @CoreMethod(names = "hash")

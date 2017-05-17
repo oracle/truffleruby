@@ -262,6 +262,13 @@ module Kernel
   end
   module_function :getc
 
+  def gets(*args)
+    line = ARGF.gets(*args)
+    Truffle.invoke_primitive(:io_set_last_line, line) if line
+    line
+  end
+  module_function :gets
+
   def inspect
     prefix = "#<#{self.class}:0x#{self.__id__.to_s(16)}"
 
