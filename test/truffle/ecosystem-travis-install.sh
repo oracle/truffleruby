@@ -3,8 +3,8 @@
 set -e
 set -x
 
+source test/truffle/common.sh.inc
+
 unset GEM_HOME GEM_PATH
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION=2
-
-ruby tool/jt.rb gem-test-pack
+jt gem-test-pack
