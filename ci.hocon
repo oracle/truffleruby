@@ -393,14 +393,8 @@ cext-benchmarks: ${sulong} {
 }
 
 gem-test-pack: {
-  environment: {
-    TRUFFLERUBY_GEM_TEST_PACK_VERSION: "2",
-    GEM_HOME: "$PWD/truffleruby-gem-test-pack/gems"
-  }
-
   setup: [
-    [curl, -OL, "https://www.dropbox.com/s/mpz7xopz29173jy/truffleruby-gem-test-pack-$TRUFFLERUBY_GEM_TEST_PACK_VERSION.tar.gz"],
-    [tar, -zxf, "truffleruby-gem-test-pack-$TRUFFLERUBY_GEM_TEST_PACK_VERSION.tar.gz"]
+    ${jt} [gem-test-pack]
   ]
 }
 

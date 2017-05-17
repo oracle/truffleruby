@@ -26,6 +26,8 @@ require 'pathname'
 JRUBY_DIR = File.expand_path('../..', __FILE__)
 M2_REPO = File.expand_path('~/.m2/repository')
 
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = 3
+
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
 JDEBUG_TEST = "-Dmaven.surefire.debug=-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=#{JDEBUG_PORT} -Xnoagent -Djava.compiler=NONE"
@@ -490,6 +492,7 @@ module Commands
       jt test report :language                       build a report on language specs
                      :core                               (results go into test/target/mspec-html-report)
                      :library
+      jt gem-test-pack                               check that the gem test pack is downloaded, or download it for you, and print the path
       jt rubocop [rubocop options]                   run rubocop rules (using ruby available in the environment)
       jt tag spec/ruby/language                      tag failing specs in this directory
       jt tag spec/ruby/language/while_spec.rb        tag failing specs in this file
@@ -1016,9 +1019,7 @@ module Commands
   private :test_gems
 
   def test_ecosystem(env={}, *args)
-    unless File.exist? "#{JRUBY_DIR}/truffleruby-gem-test-pack/gem-testing"
-      raise 'missing truffleruby-gem-test-pack/gem-testing directory'
-    end
+    gem_test_pack
 
     tests_path             = "#{JRUBY_DIR}/test/truffle/ecosystem"
     single_test            = !args.empty?
@@ -1159,6 +1160,17 @@ module Commands
     end
   end
   private :test_tck
+  
+  def gem_test_pack
+    test_pack = "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}"
+    unless Dir.exist?(test_pack)
+      puts "Downloading latest gem test pack..."
+      sh 'curl', '-OL', "https://www.dropbox.com/s/xst3axtgevowf1i/truffleruby-gem-test-pack-3.tar.gz"
+      sh 'tar', '-zxf', "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
+    end
+    test_pack
+  end
+  alias_method :'gem-test-pack', :gem_test_pack
 
   def tag(path, *args)
     return tag_all(*args) if path == 'all'

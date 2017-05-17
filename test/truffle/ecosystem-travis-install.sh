@@ -7,5 +7,4 @@ unset GEM_HOME GEM_PATH
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION=2
 
-curl -OL https://www.dropbox.com/s/mpz7xopz29173jy/truffleruby-gem-test-pack-$TRUFFLERUBY_GEM_TEST_PACK_VERSION.tar.gz
-tar -zxf truffleruby-gem-test-pack-$TRUFFLERUBY_GEM_TEST_PACK_VERSION.tar.gz
+jt gem-test-pack

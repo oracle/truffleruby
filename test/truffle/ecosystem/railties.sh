@@ -3,6 +3,5 @@
 set -e
 set -x
 
-test -d ../jruby-truffle-gem-test-pack/gem-testing
-bin/truffleruby lib/truffleruby-tool/bin/truffleruby-tool \
-    --dir truffleruby-gem-test-pack/gem-testing ci --offline railties
+jt ruby lib/truffleruby-tool/bin/truffleruby-tool \
+    --dir `jt gem-test-pack`/gem-testing ci --offline railties

@@ -3,7 +3,7 @@
 set -e
 set -x
 
-test -d ../jruby-truffle-gem-test-pack/gem-testing
+jt gem-test-pack
 
 truffle_ruby=$(pwd)
 JTR="${truffle_ruby}/bin/truffleruby ${truffle_ruby}/lib/truffleruby-tool/bin/truffleruby-tool"
