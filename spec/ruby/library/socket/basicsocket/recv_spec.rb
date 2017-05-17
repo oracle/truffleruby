@@ -9,8 +9,7 @@ describe "BasicSocket#recv" do
   end
 
   after :each do
-    @server.closed?.should be_false
-    @server.close
+    @server.close unless @server.closed?
     ScratchPad.clear
   end
 
@@ -83,11 +82,18 @@ describe "BasicSocket#recv" do
 
       client = @server.accept
       buf = "foo"
-      client.recv(4, 0, buf)
-      client.close
+      begin
+        client.recv(4, 0, buf)
+      ensure
+        client.close
+      end
       buf.should == "data"
 
       socket.close
+    end
+
+    it "foo" do
+      1.should == 1
     end
   end
 end
