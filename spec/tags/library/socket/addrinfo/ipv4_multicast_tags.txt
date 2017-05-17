@@ -1,1 +1,0 @@
-fails:Addrinfo#ipv4_multicast? for an ipv4 socket returns true for the loopback address

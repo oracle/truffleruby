@@ -150,9 +150,28 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_set_at_offset", lowerFixnum = { 1, 2 })
+    @Primitive(name = "pointer_set_at_offset", lowerFixnum = { 1, 2, 3 })
     @ImportStatic(RubiniusTypes.class)
     public static abstract class PointerSetAtOffsetPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "type == TYPE_CHAR")
+        public long setAtOffsetChar(DynamicObject pointer, int offset, int type, int value) {
+            Layouts.POINTER.getPointer(pointer).putByte(offset, (byte) (value & 0xFF));
+            return value;
+        }
+
+        @Specialization(guards = "type == TYPE_UCHAR")
+        public long setAtOffsetUChar(DynamicObject pointer, int offset, int type, int value) {
+            Layouts.POINTER.getPointer(pointer).putInt(offset, (byte) (value & 0xFF));
+            return value;
+        }
+
+        @Specialization(guards = "type == TYPE_SHORT")
+        public int setAtOffsetShort(DynamicObject pointer, int offset, int type, int value) {
+            assert ((short) value) == value;
+            Layouts.POINTER.getPointer(pointer).putShort(offset, (short) value);
+            return value;
+        }
 
         @Specialization(guards = "type == TYPE_USHORT")
         public int setAtOffsetUShort(DynamicObject pointer, int offset, int type, int value) {
@@ -163,6 +182,12 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "type == TYPE_INT")
         public int setAtOffsetInt(DynamicObject pointer, int offset, int type, int value) {
+            Layouts.POINTER.getPointer(pointer).putInt(offset, value);
+            return value;
+        }
+
+        @Specialization(guards = "type == TYPE_UINT")
+        public int setAtOffsetUInt(DynamicObject pointer, int offset, int type, int value) {
             Layouts.POINTER.getPointer(pointer).putInt(offset, value);
             return value;
         }
@@ -185,9 +210,9 @@ public abstract class PointerNodes {
             return value;
         }
 
-        @Specialization(guards = "type == TYPE_UCHAR")
-        public long setAtOffsetUChar(DynamicObject pointer, int offset, int type, int value) {
-            Layouts.POINTER.getPointer(pointer).putInt(offset, value);
+        @Specialization(guards = { "type == TYPE_PTR", "isRubyPointer(value)" })
+        public DynamicObject setAtOffsetULL(DynamicObject pointer, int offset, int type, DynamicObject value) {
+            Layouts.POINTER.getPointer(pointer).putPointer(offset, Layouts.POINTER.getPointer(value));
             return value;
         }
 
