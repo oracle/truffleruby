@@ -7,4 +7,4 @@ unset GEM_HOME GEM_PATH
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION=2
 
-jt gem-test-pack
+ruby tool/jt.rb gem-test-pack
