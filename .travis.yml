@@ -38,6 +38,7 @@ install:
 - echo MX_BINARY_SUITES=truffle >> mx.truffleruby/env
 - echo JAVA_HOME=$JAVA_HOME >> mx.truffleruby/env
 - if [ -z "$SKIP_BUILD" ]; then mx build; fi
+- $COMMAND
 script:
 - tool/jt.rb $JT
 
