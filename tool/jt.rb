@@ -770,6 +770,7 @@ module Commands
       test('specs', '--sulong', ':capi')
       test('specs', '--sulong', '-T-Xpatching=false', ':openssl')
       test('mri', '--openssl', '--sulong')
+      test('bundle', '--openssl')
     when 'report' then test_report(*rest)
     when 'integration' then test_integration({}, *rest)
     when 'gems' then test_gems({}, *rest)
@@ -1035,9 +1036,10 @@ module Commands
 
     require 'tmpdir'
 
-    gems = [{ name:   'algebrick',
-              url:    'https://github.com/pitr-ch/algebrick.git',
-              commit: '89cf71984964ce9cbe6a1f4fb5155144ac56d057' }]
+    openssl = args.delete '--openssl'
+    gems    = [{ name:   'algebrick',
+                 url:    'https://github.com/pitr-ch/algebrick.git',
+                 commit: '89cf71984964ce9cbe6a1f4fb5155144ac56d057' }]
 
     gems.each do |gem|
       gem_name = gem.fetch(:name)
@@ -1062,9 +1064,14 @@ module Commands
                           # add bin from gem_home to PATH
                           'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR) }
 
-          run(environment, '-S', 'gem', 'install', 'bundler', '-v', '1.14.6', '--backtrace')
-          run(environment, '-S', 'bundle', 'install')
-          run(environment, '-S', 'bundle', 'exec', 'rake')
+          openssl_options = openssl ? %w[--sulong -Xpatching_openssl=false -Xexceptions.print_java=true] : []
+
+          run(environment, *openssl_options,
+              '-S', 'gem', 'install', 'bundler', '-v', '1.14.6', '--backtrace')
+          run(environment, *openssl_options,
+              '-S', 'bundle', 'install')
+          run(environment, *openssl_options,
+              '-S', 'bundle', 'exec', 'rake')
         end
       ensure
         FileUtils.remove_entry temp_dir
