@@ -1000,6 +1000,8 @@ module Commands
   private :test_integration
 
   def test_gems(env={}, *args)
+    gem_test_pack
+    
     env = env.dup
 
     if ENV['GRAAL_JS_JAR']
@@ -1011,7 +1013,6 @@ module Commands
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
-      next if test_script.end_with?('/install-gems.sh')
       check_test_port
       sh env, test_script
     end
