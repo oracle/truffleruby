@@ -23,15 +23,15 @@ module Truffle::CExt
 
   end
 
-  Sync = Mutex.new
+  SYNC = Mutex.new
 
   def self.execute_with_mutex(function, *args)
-    mine = Truffle::CExt::Sync.owned?
-    Truffle::CExt::Sync.lock unless mine
+    mine = Truffle::CExt::SYNC.owned?
+    Truffle::CExt::SYNC.lock unless mine
     begin
       Truffle::Interop.execute(function, *args)
     ensure
-      Truffle::CExt::Sync.unlock unless mine
+      Truffle::CExt::SYNC.unlock unless mine
     end
   end
 
@@ -1616,8 +1616,8 @@ class << Truffle::CExt
     Thread.current.unblock unblocker, runner
   end
 
-  def rb_iterate_call_block( iter_block, block_arg, arg2)
-    Truffle::CExt.execute_with_mutex iter_block, block_arg, arg2
+  def rb_iterate_call_block( iter_block, block_arg, arg2, &block)
+    Truffle::CExt.execute_with_mutex iter_block, block_arg, arg2, &block
   end
 
   def rb_iterate(function, arg1, iter_block, arg2, block)
@@ -1638,7 +1638,7 @@ class << Truffle::CExt
     old_c_block = Thread.current[:__C_BLOCK__]
     begin
       Thread.current[:__C_BLOCK__] = block
-      Truffle::CExt.execute_with_mutex function, arg
+      Truffle::CExt.execute_with_mutex function, arg, &block
     ensure
       Thread.current[:__C_BLOCK__] = old_c_block
     end

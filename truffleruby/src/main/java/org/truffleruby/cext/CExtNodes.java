@@ -737,7 +737,7 @@ public class CExtNodes {
             return createString(StringOperations.encodeRope(file, UTF8Encoding.INSTANCE));
         }
 
-        public static SourceSection getTopUserSourceSection(String...methodNames) {
+        public static SourceSection getTopUserSourceSection(String...  methodNames) {
             return Truffle.getRuntime().iterateFrames(frameInstance -> {
                 final Node callNode = frameInstance.getCallNode();
 
@@ -847,6 +847,7 @@ public class CExtNodes {
                 if (method == null) {
                     return null;
                 } else if (method.getName().equals(/* Truffle::Cext. */ "rb_call_super")
+                        || method.getName().equals(/* Truffle::CExt. */ "execute_with_mutex")
                         || method.getName().equals(/* Truffle::Interop. */ "execute")
                         || method.getName().equals(/* Truffle::Cext. */ "rb_call_super_splatted")) {
                     // TODO CS 11-Mar-17 must have a more precise check to skip these methods
