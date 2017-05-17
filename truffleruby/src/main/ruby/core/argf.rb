@@ -281,6 +281,7 @@ module Rubinius
           next
         end
 
+        Truffle.invoke_primitive(:io_set_last_line, line) if line
         @lineno += 1
         $. = @lineno
         return line
