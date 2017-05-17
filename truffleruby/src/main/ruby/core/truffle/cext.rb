@@ -1139,12 +1139,12 @@ class << Truffle::CExt
 
   def rb_yield(value)
     block = get_block
-    block.call(value)
+    Truffle::CExt.execute_with_mutex(block, value)
   end
 
   def rb_yield_splat(values)
     block = get_block
-    block.call(*values)
+    Truffle::CExt.execute_with_mutex(block, *values)
   end
 
   def rb_ivar_lookup(object, name, default_value)
@@ -1300,7 +1300,7 @@ class << Truffle::CExt
 
   def rb_define_alloc_func(ruby_class, function)
     ruby_class.singleton_class.send(:define_method, :__allocate__) do
-      function.call(self)
+      Truffle::CExt.execute_with_mutex(function, self)
     end
     class << ruby_class
       private :__allocate__
