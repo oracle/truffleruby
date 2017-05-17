@@ -732,19 +732,19 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject sourceFile() {
-            final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
+            final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile", "execute_with_mutex");
             final String file = sourceSection.getSource().getPath();
             return createString(StringOperations.encodeRope(file, UTF8Encoding.INSTANCE));
         }
 
-        public static SourceSection getTopUserSourceSection(String methodName) {
+        public static SourceSection getTopUserSourceSection(String...methodNames) {
             return Truffle.getRuntime().iterateFrames(frameInstance -> {
                 final Node callNode = frameInstance.getCallNode();
 
                 if (callNode != null) {
                     final RootNode rootNode = callNode.getRootNode();
 
-                    if (rootNode instanceof RubyRootNode && rootNode.getSourceSection().isAvailable() && !methodName.equals(rootNode.getName())) {
+                    if (rootNode instanceof RubyRootNode && rootNode.getSourceSection().isAvailable() && !nameMatches(rootNode.getName(), methodNames)) {
                         return frameInstance.getCallNode().getEncapsulatingSourceSection();
                     }
                 }
@@ -753,6 +753,14 @@ public class CExtNodes {
             });
         }
 
+        private static boolean nameMatches(String name, String...methodNames) {
+            for (String methodName : methodNames) {
+                if (methodName.equals(name)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     @CoreMethod(names = "rb_sourceline", onSingleton = true)
