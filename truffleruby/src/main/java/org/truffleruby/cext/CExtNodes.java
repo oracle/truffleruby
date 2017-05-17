@@ -1098,10 +1098,10 @@ public class CExtNodes {
     }
 
     @CoreMethod(names = "capture_exception", onSingleton = true, needsBlock = true)
-    public abstract static class StoreExceptionNode extends YieldingCoreMethodNode {
+    public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public Object executeWithProtect(VirtualFrame frame, DynamicObject block,
+        public Object executeWithProtect(DynamicObject block,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 yield(block);
@@ -1117,17 +1117,16 @@ public class CExtNodes {
     public abstract static class RaiseExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object executeWithProtect(Throwable e,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("create()") BranchProfile errorProfile) {
-            if (e instanceof RuntimeException) {
+        public Object executeThrow(Throwable e,
+                @Cached("createBinaryProfile()") ConditionProfile runtimeExceptionProfile,
+                @Cached("createBinaryProfile()") ConditionProfile errorProfile) {
+            if (runtimeExceptionProfile.profile(e instanceof RuntimeException)) {
                 throw (RuntimeException) e;
-            } else if (e instanceof Error) {
-                errorProfile.enter();
+            } else if (errorProfile.profile(e instanceof Error)) {
                 throw (Error) e;
+            } else {
+                throw new JavaException(e);
             }
-            exceptionProfile.enter();
-            throw new JavaException(e);
         }
     }
 

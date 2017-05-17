@@ -1166,7 +1166,7 @@ class << Truffle::CExt
       else
         # Can't disturb other positions or other rb_jump_tag calls might fail.
         e = store[pos - 1]
-        store[pos] = nil
+        store[pos - 1] = nil
       end
       raise_exception(e)
     end
