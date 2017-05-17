@@ -1142,38 +1142,26 @@ class << Truffle::CExt
   end
 
   def rb_protect_with_block(function, arg, block)
-    res = nil;
-    pos = 0;
-    e = store_exception do
-      puts "Block is #{block}"
-      res = foreign_call_with_block(function, arg, &block)
+    res = nil
+    pos = 0
+    e = capture_exception do
+      if block
+        res = foreign_call_with_block(function, arg, &block)
+      else
+        res = foreign_call_with_block(function, arg)
+      end
     end
     unless e == nil
-      store = Thread.current[:__stored_exceptions__]
-      store = Thread.current[:__stored_exceptions__] = [] unless store
-      pos = store.push(e).size
-    end
-    [res, pos]
-  end
-
-  def rb_protect(function, arg)
-    res = nil;
-    pos = 0;
-    e = store_exception do
-      res = Truffle::Interop.execute(function, arg)
-    end
-    unless e == nil
-      store = Thread.current[:__stored_exceptions__]
-      store = Thread.current[:__stored_exceptions__] = [] unless store
+      store = (Thread.current[:__stored_exceptions__] ||= [])
       pos = store.push(e).size
     end
     [res, pos]
   end
 
   def rb_jump_tag(pos)
-    if (pos > 0)
+    if pos > 0
       store = Thread.current[:__stored_exceptions__]
-      if (pos = store.size)
+      if pos == store.size
         e = store.pop
       else
         # Can't disturb other positions or other rb_jump_tag calls might fail.

@@ -1097,15 +1097,17 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "store_exception", onSingleton = true, needsBlock = true)
+    @CoreMethod(names = "capture_exception", onSingleton = true, needsBlock = true)
     public abstract static class StoreExceptionNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public Object executeWithProtect(VirtualFrame frame, DynamicObject block) {
+        public Object executeWithProtect(VirtualFrame frame, DynamicObject block,
+                @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 yield(frame, block);
                 return nil();
             } catch (Throwable e) {
+                exceptionProfile.enter();
                 return e;
             }
         }
@@ -1115,12 +1117,16 @@ public class CExtNodes {
     public abstract static class RaiseExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object executeWithProtect(Throwable e) {
-            if (e instanceof Error) {
-                throw (Error) e;
-            } else if (e instanceof RuntimeException) {
+        public Object executeWithProtect(Throwable e,
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("create()") BranchProfile errorProfile) {
+            if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;
+            } else if (e instanceof Error) {
+                errorProfile.enter();
+                throw (Error) e;
             }
+            exceptionProfile.enter();
             throw new JavaException(e);
         }
     }
