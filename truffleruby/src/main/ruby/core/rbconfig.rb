@@ -48,15 +48,6 @@ module RbConfig
 
   arch = "#{host_cpu}-#{host_os}"
   cppflags = ''
-  cflags = [
-      '-Werror=implicit-function-declaration',  # To make missing C ext functions very clear
-      '-Wno-int-conversion',                    # MRI has VALUE defined as long while we have it as void*
-      '-Wno-int-to-pointer-cast',               # Same as above
-      '-Wno-macro-redefined',                   # We redefine __DARWIN_ALIAS_C
-      '-Wno-unused-value',                      # RB_GC_GUARD leaves
-      '-Wno-incompatible-pointer-types',        # We define VALUE as void* rather than uint32_t
-      '-c', '-emit-llvm'
-  ].join(' ')
   libs = ''
   ruby_so_name = ruby_base_name
 
@@ -186,28 +177,40 @@ module RbConfig
   opt = ENV['JT_OPT'] || 'opt'
 
   opt_passes  = ['-always-inline', '-mem2reg', '-constprop']
-  sulong_home = ENV['SULONG_HOME'] || ''
-  sulong_include = File.join sulong_home, 'include'
-  cc = "#{clang} -I#{sulong_include}"
-  cpp = cc
 
-  CONFIG.merge!({
-      'CC' => cc,
-      'CPP' => cpp,
-      'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes.join(' ')} $@ -o $@",
-      'CFLAGS' => cflags,
-      'LINK_SO' => "mx -v -p #{sulong_home} su-link -o $@ $(OBJS) #{libs}",
-      'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) #{cflags} -I#{sulong_include} #{libs}"
-  })
+  sulong_home = ENV['SULONG_HOME']
+  if  sulong_home
+    sulong_include = File.join sulong_home, 'include'
+    cc = "#{clang} -I#{sulong_include}"
+    cpp = cc
+    cflags = [
+        '-Werror=implicit-function-declaration',  # To make missing C ext functions very clear
+        '-Wno-int-conversion',                    # MRI has VALUE defined as long while we have it as void*
+        '-Wno-int-to-pointer-cast',               # Same as above
+        '-Wno-macro-redefined',                   # We redefine __DARWIN_ALIAS_C
+        '-Wno-unused-value',                      # RB_GC_GUARD leaves
+        '-Wno-incompatible-pointer-types',        # We define VALUE as void* rather than uint32_t
+        '-c', '-emit-llvm'
+    ].join(' ')
 
-  MAKEFILE_CONFIG.merge!({
-      'CC' => cc,
-      'CPP' => cpp,
-      'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes.join(' ')} $@ -o $@",
-      'CFLAGS' => cflags,
-      'LINK_SO' => "mx -v -p #{sulong_home} su-link -o $@ $(OBJS) $(LIBS)",
-      'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{sulong_include} $(LIBS)"
-  })
+    CONFIG.merge!({
+        'CC' => cc,
+        'CPP' => cpp,
+        'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes.join(' ')} $@ -o $@",
+        'CFLAGS' => cflags,
+        'LINK_SO' => "mx -v -p #{sulong_home} su-link -o $@ $(OBJS) #{libs}",
+        'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) #{cflags} -I#{sulong_include} #{libs}"
+    })
+
+    MAKEFILE_CONFIG.merge!({
+        'CC' => cc,
+        'CPP' => cpp,
+        'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes.join(' ')} $@ -o $@",
+        'CFLAGS' => cflags,
+        'LINK_SO' => "mx -v -p #{sulong_home} su-link -o $@ $(OBJS) $(LIBS)",
+        'TRY_LINK' => "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{sulong_include} $(LIBS)"
+    })
+  end
 
   def self.ruby
     ruby = Truffle::Boot.ruby_launcher
