@@ -1605,4 +1605,6 @@ class JT
   end
 end
 
-JT.new.main(ARGV)
+if $0 == __FILE__
+  JT.new.main(ARGV)
+end
