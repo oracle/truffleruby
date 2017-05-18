@@ -1165,7 +1165,7 @@ module Commands
   def gem_test_pack
     test_pack = "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}"
     unless Dir.exist?(test_pack)
-      puts "Downloading latest gem test pack..."
+      $stderr.puts "Downloading latest gem test pack..."
       sh 'curl', '-OL', "https://www.dropbox.com/s/xst3axtgevowf1i/truffleruby-gem-test-pack-3.tar.gz"
       sh 'tar', '-zxf', "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
     end
