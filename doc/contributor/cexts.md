@@ -34,7 +34,7 @@ jt gem-test-pack
 You can then test C extension support.
 
 ```bash
-GEM_HOME=`jt gem-test-pack` jt test cexts --no-libxml --no-openssl
+GEM_HOME=$(jt gem-test-pack)/gems jt test cexts --no-libxml --no-openssl
 ```
 
 If you want to test `libxml`, remove that flag and set either `LIBXML_HOME` or
