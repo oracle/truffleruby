@@ -98,19 +98,21 @@ public interface SignalManager {
         for (Signal s : Signal.values()) {
             if (!s.defined())
                 continue;
-            if (!RUBY_18_SIGNALS.contains(signmWithoutPrefix(s.description())))
+
+            final String name = signmWithoutPrefix(s.description());
+            if (!RUBY_18_SIGNALS.contains(name))
                 continue;
 
-            // replace CLD with CHLD value
             int signo = s.intValue();
-            if (s == Signal.SIGCLD)
-                signo = Signal.SIGCHLD.intValue();
-
             // omit unsupported signals
             if (signo >= 20000)
                 continue;
 
-            signals.put(signmWithoutPrefix(s.description()), signo);
+            signals.put(name, signo);
+        }
+
+        if (!Signal.SIGCLD.defined() && Signal.SIGCHLD.defined()) {
+            signals.put("CLD", Signal.SIGCHLD.intValue());
         }
 
         return signals;
