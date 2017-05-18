@@ -770,7 +770,7 @@ module Commands
       test('specs', '--sulong', ':capi')
       test('specs', '--sulong', '-T-Xpatching=false', ':openssl')
       test('mri', '--openssl', '--sulong')
-      test('bundle', '--openssl')
+      test('bundle', '--openssl') unless args.delete '--skip-bundle'
     when 'report' then test_report(*rest)
     when 'integration' then test_integration({}, *rest)
     when 'gems' then test_gems({}, *rest)
