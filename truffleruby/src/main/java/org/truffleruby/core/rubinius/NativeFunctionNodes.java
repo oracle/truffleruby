@@ -47,13 +47,13 @@ public abstract class NativeFunctionNodes {
                 case RubiniusTypes.TYPE_PTR:
                 case RubiniusTypes.TYPE_STRPTR:
                 case RubiniusTypes.TYPE_STRING:
+                case RubiniusTypes.TYPE_CHARARR:
                     return 8;
 
                 case RubiniusTypes.TYPE_BOOL:
                 case RubiniusTypes.TYPE_LL:
                 case RubiniusTypes.TYPE_ULL:
                 case RubiniusTypes.TYPE_VOID:
-                case RubiniusTypes.TYPE_CHARARR:
                 case RubiniusTypes.TYPE_ENUM:
                 case RubiniusTypes.TYPE_VARARGS:
                 default:
