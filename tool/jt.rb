@@ -13,8 +13,6 @@
 
 # Recommended: function jt { ruby tool/jt.rb "$@"; }
 
-abort "Do not run #{$0} with JRuby+Truffle itself, use MRI or some other Ruby." if RUBY_ENGINE == "truffleruby"
-
 require 'fileutils'
 require 'json'
 require 'timeout'
@@ -1630,5 +1628,6 @@ class JT
 end
 
 if $0 == __FILE__
+  abort "Do not run #{$0} with JRuby+Truffle itself, use MRI or some other Ruby." if RUBY_ENGINE == "truffleruby"
   JT.new.main(ARGV)
 end
