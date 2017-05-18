@@ -15,7 +15,7 @@ require 'pathname'
 require 'rbconfig'
 require 'rubygems'
 
-require_relative '../../tool/jt'
+require_relative '../../../tool/jt'
 
 class String
   def pretty_print(q)
