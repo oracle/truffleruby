@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-set -x
-
 source test/truffle/common.sh.inc
 
 jt gem-test-pack
