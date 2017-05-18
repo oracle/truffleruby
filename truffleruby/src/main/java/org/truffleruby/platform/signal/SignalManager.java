@@ -11,6 +11,7 @@ package org.truffleruby.platform.signal;
 
 import jnr.constants.platform.Signal;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,60 +20,52 @@ import java.util.Set;
 
 public interface SignalManager {
 
-    Set<String> RUBY_18_SIGNALS = get18Signals();
-
-    static Set<String> get18Signals() {
-        Set<String> RUBY_18_SIGNALS = new HashSet<>();
-        for (String name : new String[] {
-                "EXIT",
-                "HUP",
-                "INT",
-                "QUIT",
-                "ILL",
-                "TRAP",
-                "IOT",
-                "ABRT",
-                "EMT",
-                "FPE",
-                "KILL",
-                "BUS",
-                "SEGV",
-                "SYS",
-                "PIPE",
-                "ALRM",
-                "TERM",
-                "URG",
-                "STOP",
-                "TSTP",
-                "CONT",
-                "CHLD",
-                "CLD",
-                "TTIN",
-                "TTOU",
-                "IO",
-                "XCPU",
-                "XFSZ",
-                "VTALRM",
-                "PROF",
-                "WINCH",
-                "USR1",
-                "USR2",
-                "LOST",
-                "MSG",
-                "PWR",
-                "POLL",
-                "DANGER",
-                "MIGRATE",
-                "PRE",
-                "GRANT",
-                "RETRACT",
-                "SOUND",
-                "INFO",
-        }) {
-            RUBY_18_SIGNALS.add(name);
-        }
-        return RUBY_18_SIGNALS;
-    }
+    Set<String> RUBY_SIGNALS = new HashSet<>(Arrays.asList(new String[]{
+            "EXIT",
+            "HUP",
+            "INT",
+            "QUIT",
+            "ILL",
+            "TRAP",
+            "IOT",
+            "ABRT",
+            "EMT",
+            "FPE",
+            "KILL",
+            "BUS",
+            "SEGV",
+            "SYS",
+            "PIPE",
+            "ALRM",
+            "TERM",
+            "URG",
+            "STOP",
+            "TSTP",
+            "CONT",
+            "CHLD",
+            "CLD",
+            "TTIN",
+            "TTOU",
+            "IO",
+            "XCPU",
+            "XFSZ",
+            "VTALRM",
+            "PROF",
+            "WINCH",
+            "USR1",
+            "USR2",
+            "LOST",
+            "MSG",
+            "PWR",
+            "POLL",
+            "DANGER",
+            "MIGRATE",
+            "PRE",
+            "GRANT",
+            "RETRACT",
+            "SOUND",
+            "INFO",
+    }));
 
     Map<String, Integer> SIGNALS_LIST = Collections.unmodifiableMap(list());
 
@@ -99,8 +92,8 @@ public interface SignalManager {
             if (!s.defined())
                 continue;
 
-            final String name = signmWithoutPrefix(s.description());
-            if (!RUBY_18_SIGNALS.contains(name))
+            final String name = signameWithoutPrefix(s.description());
+            if (!RUBY_SIGNALS.contains(name))
                 continue;
 
             int signo = s.intValue();
@@ -118,10 +111,8 @@ public interface SignalManager {
         return signals;
     }
 
-    static String signmWithoutPrefix(String nm) {
-        return (nm.startsWith(SIGNAME_PREFIX)) ? nm.substring(SIGNAME_PREFIX.length()) : nm;
+    static String signameWithoutPrefix(String signame) {
+        return signame.startsWith("SIG") ? signame.substring(3) : signame;
     }
-
-    String SIGNAME_PREFIX = "SIG";
 
 }
