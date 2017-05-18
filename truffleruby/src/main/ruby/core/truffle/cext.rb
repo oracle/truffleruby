@@ -23,6 +23,18 @@ module Truffle::CExt
 
   end
 
+  SYNC = Mutex.new
+
+  def self.execute_with_mutex(function, *args)
+    mine = Truffle::CExt::SYNC.owned?
+    Truffle::CExt::SYNC.lock unless mine
+    begin
+      Truffle::Interop.execute(function, *args)
+    ensure
+      Truffle::CExt::SYNC.unlock unless mine
+    end
+  end
+
   class RData
 
     DATA_FIELD_INDEX = 2
@@ -1121,18 +1133,18 @@ class << Truffle::CExt
 
   def rb_proc_new(function, value)
     Proc.new do |*args|
-      Truffle::Interop.execute(function, *args)
+      Truffle::CExt.execute_with_mutex(function, *args)
     end
   end
 
   def rb_yield(value)
     block = get_block
-    block.call(value)
+    Truffle::CExt.execute_with_mutex(block, value)
   end
 
   def rb_yield_splat(values)
     block = get_block
-    block.call(*values)
+    Truffle::CExt.execute_with_mutex(block, *values)
   end
 
   def rb_ivar_lookup(object, name, default_value)
@@ -1228,7 +1240,7 @@ class << Truffle::CExt
   end
 
   def rb_define_method(mod, name, function, argc)
-    mod.send(:define_method, name) do |*args|
+    mod.send(:define_method, name) do |*args, &block|
       if argc == -1
         args = [args.size, args, self]
       else
@@ -1236,7 +1248,11 @@ class << Truffle::CExt
       end
 
       # Using raw execute instead of #call here to avoid argument conversion
-      Truffle::Interop.execute(function, *args)
+      if block
+        Truffle::CExt.execute_with_mutex(function, *args, &block)
+      else
+        Truffle::CExt.execute_with_mutex(function, *args)
+      end
     end
   end
 
@@ -1284,7 +1300,7 @@ class << Truffle::CExt
 
   def rb_define_alloc_func(ruby_class, function)
     ruby_class.singleton_class.send(:define_method, :__allocate__) do
-      function.call(self)
+      Truffle::CExt.execute_with_mutex(function, self)
     end
     class << ruby_class
       private :__allocate__
@@ -1394,7 +1410,7 @@ class << Truffle::CExt
 
   def rb_mutex_synchronize(mutex, func, arg)
     mutex.synchronize do
-      Truffle::Interop.execute(func, arg)
+      Truffle::CExt.execute_with_mutex(func, arg)
     end
   end
 
@@ -1437,7 +1453,7 @@ class << Truffle::CExt
     # In a separate method to avoid capturing the object
 
     proc {
-      Truffle::Interop.execute(free, data_holder.data)
+      Truffle::CExt.execute_with_mutex(free, data_holder.data)
     }
   end
 
@@ -1469,31 +1485,31 @@ class << Truffle::CExt
 
   def rb_block_call(object, method, args, func, data)
     object.send(method, *args) do |*block_args|
-      Truffle::Interop.execute(func, block_args.first, data, block_args.size, block_args, nil)
+      Truffle::CExt.execute_with_mutex(func, block_args.first, data, block_args.size, block_args, nil)
     end
   end
 
   def rb_ensure(b_proc, data1, e_proc, data2)
     begin
-      Truffle::Interop.execute(b_proc, data1)
+      Truffle::CExt.execute_with_mutex(b_proc, data1)
     ensure
-      Truffle::Interop.execute(e_proc, data2)
+      Truffle::CExt.execute_with_mutex(e_proc, data2)
     end
   end
 
   def rb_rescue(b_proc, data1, r_proc, data2)
     begin
-      Truffle::Interop.execute(b_proc, data1)
+      Truffle::CExt.execute_with_mutex(b_proc, data1)
     rescue StandardError => e
-      Truffle::Interop.execute(r_proc, data2, e)
+      Truffle::CExt.execute_with_mutex(r_proc, data2, e)
     end
   end
 
   def rb_rescue2(b_proc, data1, r_proc, data2, rescued)
     begin
-      Truffle::Interop.execute(b_proc, data1)
+      Truffle::CExt.execute_with_mutex(b_proc, data1)
     rescue *rescued => e
-      Truffle::Interop.execute(r_proc, data2, e)
+      Truffle::CExt.execute_with_mutex(r_proc, data2, e)
     end
   end
 
@@ -1501,11 +1517,11 @@ class << Truffle::CExt
     result = nil
 
     recursive = Thread.detect_recursion(obj) {
-      result = Truffle::Interop.execute(func, obj, arg, 0)
+      result = Truffle::CExt.execute_with_mutex(func, obj, arg, 0)
     }
 
     if recursive
-      Truffle::Interop.execute(func, obj, arg, 1)
+      Truffle::CExt.execute_with_mutex(func, obj, arg, 1)
     else
       result
     end
@@ -1513,7 +1529,7 @@ class << Truffle::CExt
 
   def rb_catch_obj(tag, func, data)
     catch tag do |caught|
-      Truffle::Interop.execute(func, caught, data)
+      Truffle::CExt.execute_with_mutex(func, caught, data)
     end
   end
 
@@ -1584,24 +1600,24 @@ class << Truffle::CExt
 
   def rb_thread_create(fn, args)
     Thread.new do
-      Truffle::Interop.execute(fn, args)
+      Truffle::CExt.execute_with_mutex(fn, args)
     end
   end
 
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
     unblocker = proc {
-      Truffle::Interop.execute unblock, data2
+      Truffle::CExt.execute_with_mutex unblock, data2
     }
 
     runner = proc {
-      Truffle::Interop.execute function, data1
+      Truffle::CExt.execute_with_mutex function, data1
     }
 
     Thread.current.unblock unblocker, runner
   end
 
-  def rb_iterate_call_block( iter_block, block_arg, arg2)
-    Truffle::Interop.execute iter_block, block_arg, arg2
+  def rb_iterate_call_block( iter_block, block_arg, arg2, &block)
+    Truffle::CExt.execute_with_mutex iter_block, block_arg, arg2, &block
   end
 
   def rb_iterate(function, arg1, iter_block, arg2, block)
@@ -1613,7 +1629,7 @@ class << Truffle::CExt
       end
     else
       call_c_with_block function, arg1 do |block_arg|
-        Truffle::Interop.execute iter_block, block_arg, arg2
+        Truffle::CExt.execute_with_mutex iter_block, block_arg, arg2
       end
     end
   end
@@ -1622,7 +1638,7 @@ class << Truffle::CExt
     old_c_block = Thread.current[:__C_BLOCK__]
     begin
       Thread.current[:__C_BLOCK__] = block
-      Truffle::Interop.execute function, arg
+      Truffle::CExt.execute_with_mutex function, arg, &block
     ensure
       Thread.current[:__C_BLOCK__] = old_c_block
     end
@@ -1678,11 +1694,11 @@ class << Truffle::CExt
     id = name.to_sym
 
     getter_proc = proc {
-      Truffle::Interop.execute getter, id, gvar, nil
+      Truffle::CExt.execute_with_mutex getter, id, gvar, nil
     }
 
     setter_proc = proc { |value|
-      Truffle::Interop.execute setter, value, id, gvar, nil
+      Truffle::CExt.execute_with_mutex setter, value, id, gvar, nil
     }
 
     rb_define_hooked_variable_inner id, getter_proc, setter_proc
