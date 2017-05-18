@@ -442,24 +442,17 @@ public abstract class VMPrimitiveNodes {
             }
 
             final int finalOptions = options;
-
             final int pid;
             if (no_hang) {
-                pid = getContext().getThreadManager().runUntilResult(this, () -> {
-                    int result = posix().waitpid(input_pid, statusReference, finalOptions);
-                    if (result == -1 && posix().errno() == EINTR.intValue()) {
-                        throw new InterruptedException();
-                    }
-                    return result;
-                });
+                pid = getContext().getThreadManager().runUntilResult(this,
+                        () -> posix().waitpid(input_pid, statusReference, finalOptions));
             } else {
                 pid = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
                         () -> posix().waitpid(input_pid, statusReference, finalOptions));
             }
 
-            final int errno = posix().errno();
-
             if (pid == -1) {
+                final int errno = posix().errno();
                 if (errno == ECHILD.intValue()) {
                     return false;
                 }
