@@ -11,7 +11,7 @@ package org.truffleruby.platform.posix;
 
 public interface Threads {
 
-    // Assumes pthread_t is 8 bytes, on Linux it's a long, on OS X a pointer
+    // Assumes pthread_t is 8 bytes, on Linux it's a long, on macOS it's a pointer, and on Solaris it's an int.
 
     // pthread_t pthread_self(void);
     long pthread_self();
