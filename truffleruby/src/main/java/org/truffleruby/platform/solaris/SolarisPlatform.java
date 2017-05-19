@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2016, 2017 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -41,6 +41,7 @@ public class SolarisPlatform implements NativePlatform {
     private final SignalManager signalManager;
     private final ProcessName processName;
     private final Sockets sockets;
+    private final Threads threads;
     private final ClockGetTime clockGetTime;
     private final MallocFree mallocFree;
     private final RubiniusConfiguration rubiniusConfiguration;
@@ -52,6 +53,7 @@ public class SolarisPlatform implements NativePlatform {
         signalManager = new SunMiscSignalManager();
         processName = new JavaProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("socket").load();
+        threads = LibraryLoader.create(Threads.class).library("libpthread.so.1").load();
         clockGetTime = LibraryLoader.create(ClockGetTime.class).library("c").library("rt").load();
         mallocFree = LibraryLoader.create(MallocFree.class).library("c").load();
         rubiniusConfiguration = new RubiniusConfiguration();
@@ -86,7 +88,7 @@ public class SolarisPlatform implements NativePlatform {
 
     @Override
     public Threads getThreads() {
-        throw new UnsupportedOperationException();
+        return threads;
     }
 
     @Override
@@ -111,7 +113,10 @@ public class SolarisPlatform implements NativePlatform {
 
     @Override
     public SigAction createSigAction(LibCSignalHandler handler, int flags) {
-        throw new UnsupportedOperationException();
+        SolarisSigAction sigAction = new SolarisSigAction(Runtime.getSystemRuntime());
+        sigAction.sa_handler.set(handler);
+        sigAction.sa_flags.set(flags);
+        return sigAction;
     }
 
 }
