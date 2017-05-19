@@ -1,3 +1,5 @@
+exclude :test_alpn_protocol_selection_cancel, "needs investigation"
+exclude :test_alpn_protocol_selection_ary, "needs investigation"
 exclude :test_close_and_socket_close_while_connecting, "needs investigation"
 exclude :test_client_auth_failure, "needs investigation"
 exclude :test_client_auth_success, "needs investigation"
