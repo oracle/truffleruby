@@ -24,7 +24,7 @@ require 'pathname'
 JRUBY_DIR = File.expand_path('../..', __FILE__)
 M2_REPO = File.expand_path('~/.m2/repository')
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 3
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = 1
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1164,7 +1164,14 @@ module Commands
     test_pack = "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}"
     unless Dir.exist?(test_pack)
       $stderr.puts "Downloading latest gem test pack..."
-      sh 'curl', '-OL', "https://www.dropbox.com/s/xst3axtgevowf1i/truffleruby-gem-test-pack-3.tar.gz"
+      
+      if ENV['USE_GRAAL_GEM_TEST_PACK']
+        url = "http://graal.us.oracle.com/slavefiles2/truffleruby/truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
+      else
+        url = "https://www.dropbox.com/s/jdxzpl9ihsy9fw1/truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
+      end
+      
+      sh 'curl', '-OL', url
       sh 'tar', '-zxf', "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
     end
     puts test_pack

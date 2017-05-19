@@ -393,6 +393,10 @@ cext-benchmarks: ${sulong} {
 }
 
 gem-test-pack: {
+  environment: {
+    USE_GRAAL_GEM_TEST_PACK: "true"
+  }
+  
   setup: [
     ${jt} [gem-test-pack]
   ]
