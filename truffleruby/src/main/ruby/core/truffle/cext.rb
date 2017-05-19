@@ -1745,7 +1745,8 @@ class << Truffle::CExt
   end
 
   def rb_sprintf(format, *args)
-    f = format.gsub(/%l.\v/, '%s')
+    # TODO (kjmenard 19-May-17) We shouldn't just ignore the '+' modifier. This is a hack to just get things running, even if it produces bad data.
+    f = format.gsub(/%(?:\+)?l.\v/, '%s')
     sprintf(f, *args) rescue raise ArgumentError, "Bad format string #{f}."
   end
 end
