@@ -120,8 +120,11 @@ module Digest
     def digest_length
       Truffle::Digest.digest_length @digest
     end
-    alias_method :size, :digest_length
-    alias_method :length, :digest_length
+    
+    def size
+      digest_length
+    end
+    alias_method :length, :size
 
     def ==(other)
       hexdigest == other.to_str
