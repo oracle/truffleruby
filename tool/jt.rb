@@ -767,11 +767,12 @@ module Commands
     when 'compiler' then test_compiler(*rest)
     when 'cexts' then test_cexts(*rest)
     when 'cexts_and_openssl' then
+      # Has to run first otherwise it gets killed on travis
+      test('bundle', '--openssl') unless args.delete '--skip-bundle'
       test('cexts')
       test('specs', '--sulong', ':capi')
       test('specs', '--sulong', '-T-Xpatching=false', ':openssl')
       test('mri', '--openssl', '--sulong')
-      test('bundle', '--openssl') unless args.delete '--skip-bundle'
     when 'report' then test_report(*rest)
     when 'integration' then test_integration({}, *rest)
     when 'gems' then test_gems({}, *rest)
@@ -1073,7 +1074,7 @@ module Commands
           run(environment, *openssl_options,
               '-S', 'gem', 'install', 'bundler', '-v', '1.14.6', '--backtrace')
           run(environment, *openssl_options,
-              '-S', 'bundle', 'install')
+              '-J-Xmx512M','-S', 'bundle', 'install')
           run(environment, *openssl_options,
               '-S', 'bundle', 'exec', 'rake')
         end
