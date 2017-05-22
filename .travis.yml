@@ -19,14 +19,14 @@ matrix:
   - env: JT='test specs :library'
   - env: JT='test specs :truffle'
   - env: JT='test integration'
-  - env: JT='test gems' COMMAND=test/truffle/gems/install-gems.sh
+  - env: JT='test gems'
   - env: JT='test tck'
   - env: JT='lint' COMMAND='rvm install 2.1.0' SKIP_BUILD=true V=1
   - env: JT='test mri'
   - env: JT='test bundle'
-  - env: JT='test ecosystem actionpack actionview' JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
-  - env: JT='test ecosystem activemodel activesupport' JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
-  - env: JT='test ecosystem algebrick railties rails-app launchers' HAS_REDIS=true JAVA_OPTS="$JAVA_OPTS -Xmx512m" COMMAND=test/truffle/ecosystem-travis-install.sh
+  - env: JT='test ecosystem actionpack actionview' JAVA_OPTS="$JAVA_OPTS -Xmx512m"
+  - env: JT='test ecosystem activemodel activesupport' JAVA_OPTS="$JAVA_OPTS -Xmx512m"
+  - env: JT='test ecosystem algebrick railties rails-app launchers' HAS_REDIS=true JAVA_OPTS="$JAVA_OPTS -Xmx512m"
   - env: JT='test cexts_and_openssl --skip-bundle' COMMAND=tool/install-sulong.sh SULONG_VERSION=3.2 SULONG_HOME=../sulong LIBXML_LIB=/usr/lib/x86_64-linux-gnu/libxml2.so OPENSSL_LIB=/usr/lib/x86_64-linux-gnu/libssl.so
   # Exlude the default job https://github.com/travis-ci/travis-ci/issues/4681
   exclude:

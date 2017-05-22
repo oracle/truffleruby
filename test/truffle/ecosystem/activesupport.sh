@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
-set -x
+source test/truffle/common.sh.inc
 
-test -d ../jruby-truffle-gem-test-pack/gem-testing
-bin/truffleruby lib/truffleruby-tool/bin/truffleruby-tool \
-    --dir ../jruby-truffle-gem-test-pack/gem-testing ci --offline activesupport
+jt ruby lib/truffleruby-tool/bin/truffleruby-tool \
+    --dir $(jt gem-test-pack)/gem-testing ci --offline activesupport

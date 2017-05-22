@@ -1,3 +1,6 @@
+set -e
+set -x
+
 PORT=14873
 
 function test_server {

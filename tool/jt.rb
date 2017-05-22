@@ -13,8 +13,6 @@
 
 # Recommended: function jt { ruby tool/jt.rb "$@"; }
 
-abort "Do not run #{$0} with JRuby+Truffle itself, use MRI or some other Ruby." if RUBY_ENGINE == "truffleruby"
-
 require 'fileutils'
 require 'json'
 require 'timeout'
@@ -25,6 +23,8 @@ require 'pathname'
 
 JRUBY_DIR = File.expand_path('../..', __FILE__)
 M2_REPO = File.expand_path('~/.m2/repository')
+
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = 1
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -490,6 +490,7 @@ module Commands
       jt test report :language                       build a report on language specs
                      :core                               (results go into test/target/mspec-html-report)
                      :library
+      jt gem-test-pack                               check that the gem test pack is downloaded, or download it for you, and print the path
       jt rubocop [rubocop options]                   run rubocop rules (using ruby available in the environment)
       jt tag spec/ruby/language                      tag failing specs in this directory
       jt tag spec/ruby/language/while_spec.rb        tag failing specs in this file
@@ -997,6 +998,8 @@ module Commands
   private :test_integration
 
   def test_gems(env={}, *args)
+    gem_test_pack
+    
     env = env.dup
 
     if ENV['GRAAL_JS_JAR']
@@ -1008,7 +1011,6 @@ module Commands
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
-      next if test_script.end_with?('/install-gems.sh')
       check_test_port
       sh env, test_script
     end
@@ -1016,6 +1018,8 @@ module Commands
   private :test_gems
 
   def test_ecosystem(env={}, *args)
+    gem_test_pack
+
     tests_path             = "#{JRUBY_DIR}/test/truffle/ecosystem"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
@@ -1155,6 +1159,26 @@ module Commands
     end
   end
   private :test_tck
+  
+  def gem_test_pack
+    test_pack = "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}"
+    unless Dir.exist?(test_pack)
+      $stderr.puts "Downloading latest gem test pack..."
+      
+      # To update these files contact Manuel Zach for graal.us.oracle.com and Gilles Duboscq for lafo
+      
+      if ENV['USE_GRAAL_GEM_TEST_PACK']
+        url = "http://graal.us.oracle.com/slavefiles2/truffleruby/truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
+      else
+        url = "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
+      end
+      
+      sh 'curl', '-OL', url
+      sh 'tar', '-zxf', "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
+    end
+    puts test_pack
+  end
+  alias_method :'gem-test-pack', :gem_test_pack
 
   def tag(path, *args)
     return tag_all(*args) if path == 'all'
@@ -1613,5 +1637,6 @@ class JT
 end
 
 if $0 == __FILE__
+  abort "Do not run #{$0} with JRuby+Truffle itself, use MRI or some other Ruby." if RUBY_ENGINE == "truffleruby"
   JT.new.main(ARGV)
 end

@@ -1,0 +1,54 @@
+<h1>People</h1>
+
+<p>
+    This is simple demonstration of people database stored in <b>Redis</b>.
+    <b>API</b> is available as well, try
+    <%= link_to people_path(format: 'json') do %>
+        people returned as <b>JSON</b>.
+    <% end %>
+</p>
+
+<table>
+    <thead>
+    <tr>
+        <td>Name</td>
+        <td>Email</td>
+        <td></td>
+    </tr>
+    </thead>
+
+    <tbody>
+    <% @people.each do |person| %>
+        <tr>
+            <td><%= person.name %></td>
+            <td><%= person.email %></td>
+            <td><%= button_to 'Delete', person_path(id: person.id), method: :delete, class: 'pure-button' %></td>
+        </tr>
+    <% end %>
+    </tbody>
+
+    <tfoot>
+    <tr>
+        <td>Total:</td>
+        <td><%= @people.size %></td>
+        <td><%= button_to 'Delete all', destroy_all_people_path, method: :delete, class: 'pure-button' %></td>
+    </tr>
+    </tfoot>
+
+</table>
+
+<%= form_tag '/people', class: 'pure-form pure-form-stacked' do %>
+    <fieldset>
+        <legend>Insert new person with name and e-mail. There is no validation.</legend>
+
+        <label for="name">Name</label>
+        <%= text_field_tag :name %>
+
+        <label for="email">Email</label>
+        <%= text_field_tag :email %>
+
+        <button type="submit" class="pure-button pure-button-primary">Create</button>
+
+    </fieldset>
+<% end %>
+

@@ -1,0 +1,61 @@
+:setup:
+  :file:
+    stubs.rb: |
+              capture_stdout = -> (&block) do
+                original_stdout = $stdout
+                $stdout         = fake = StringIO.new
+                begin
+                  yield
+                ensure
+                  $stdout = original_stdout
+                end
+                fake.string
+              end
+
+              capture_stdout.() { require 'racc/parser' }
+
+              require 'action_view'
+              require 'action_view/helpers'
+              require 'action_view/helpers/sanitize_helper'
+
+              module ActionView
+                module Helpers
+                  module SanitizeHelper
+                    def sanitize(html, options = {})
+                      html
+                    end
+
+                    def sanitize_css(style)
+                      style
+                    end
+
+                    def strip_tags(html)
+                      html
+                    end
+
+                    def strip_links(html)
+                      html
+                    end
+
+                    module ClassMethods #:nodoc:
+                      attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
+
+                      def sanitized_allowed_tags
+                        []
+                      end
+
+                      def sanitized_allowed_attributes
+                        []
+                      end
+                    end
+
+                  end
+                end
+              end
+    "irb/completion.rb": "puts 'irb/completion stubbed'"
+    rails-html-sanitizer.rb: "puts 'HTML sanitization stubbed'"
+
+:run:
+  :require:
+    - openssl-stubs
+    - stubs

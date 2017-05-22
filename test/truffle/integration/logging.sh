@@ -2,8 +2,6 @@
 
 source test/truffle/common.sh.inc
 
-set -e
-
 rm -f ruby.log
 
 jt ruby -J-Djava.util.logging.config.file=doc/samples/logging.properties -e 14

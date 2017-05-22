@@ -1,0 +1,13 @@
+<h1>A Blog</h1>
+<!--<span class="author">About very interesting stuff</span>-->
+
+<% content_for :menu do %>
+    <li class="pure-menu-item"><%= link_to 'New post', new_post_path, class: 'pure-menu-link' %></li>
+    <li class="pure-menu-item"><%= link_to 'Delete all post', destroy_all_posts_path, method: :delete, class: 'pure-menu-link' %></li>
+<% end %>
+
+
+<% @posts.each do |post| %>
+    <h3><%= link_to post.title, post_path(post) %></h3>
+    <p class="authors">by <%= post.author %></p>
+<% end %>

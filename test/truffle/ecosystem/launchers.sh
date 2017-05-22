@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
-set -x
+source test/truffle/common.sh.inc
 
 function check_launchers() {
     if [ -n "$2" ]
@@ -47,4 +46,3 @@ do
     bundled_gem="${bundled_gem/ /.*}"
     [[ "${gem_list}" =~ ${bundled_gem} ]]
 done
-

@@ -1,0 +1,8 @@
+<% content_for :menu do %>
+    <li class="pure-menu-item"><%= link_to 'Edit post', [:edit, @post], class: 'pure-menu-link' %></li>
+    <li class="pure-menu-item"><%= link_to 'Delete post', @post, method: :delete, class: 'pure-menu-link' %></li>
+<% end %>
+
+<%= render partial: 'post' %>
+
+
