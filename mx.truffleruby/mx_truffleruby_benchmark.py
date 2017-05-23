@@ -194,6 +194,27 @@ class MinHeapBenchmarkSuite(MetricsBenchmarkSuite):
             'metric.better': 'lower'
         }]
 
+class MaxRssBenchmarkSuite(MetricsBenchmarkSuite):
+    def name(self):
+        return 'maxrss'
+
+    def runBenchmark(self, benchmark, bmSuiteArgs):
+        out = mx.OutputCapture()
+
+        jt(['metrics', 'maxrss', '--json'] + metrics_benchmarks[benchmark] + bmSuiteArgs, out=out)
+
+        data = json.loads(out.data)
+
+        return [{
+            'benchmark': benchmark,
+            'extra.metric.region': region,
+            'metric.name': 'time',
+            'metric.value': sample,
+            'metric.unit': 'MiB',
+            'metric.better': 'lower',
+            'metric.iteration': n
+        } for region, region_data in data.items() for n, sample in enumerate(region_data['samples'])]
+
 class TimeBenchmarkSuite(MetricsBenchmarkSuite):
     def name(self):
         return 'time'
@@ -202,7 +223,7 @@ class TimeBenchmarkSuite(MetricsBenchmarkSuite):
         out = mx.OutputCapture()
 
         jt(['metrics', 'time', '--json'] + metrics_benchmarks[benchmark] + bmSuiteArgs, out=out)
-        
+
         data = json.loads(out.data)
 
         return [{
@@ -600,6 +621,7 @@ mx_benchmark.add_bm_suite(BuildStatsBenchmarkSuite())
 mx_benchmark.add_bm_suite(AllocationBenchmarkSuite())
 mx_benchmark.add_bm_suite(InstructionsBenchmarkSuite())
 mx_benchmark.add_bm_suite(MinHeapBenchmarkSuite())
+mx_benchmark.add_bm_suite(MaxRssBenchmarkSuite())
 mx_benchmark.add_bm_suite(TimeBenchmarkSuite())
 mx_benchmark.add_bm_suite(ClassicBenchmarkSuite())
 mx_benchmark.add_bm_suite(ChunkyBenchmarkSuite())
