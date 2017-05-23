@@ -58,6 +58,38 @@ public abstract class PointerNodes {
 
     }
 
+    @Primitive(name = "pointer_set_address")
+    public static abstract class PointerSetAddressPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public long setAddress(DynamicObject pointer, long address) {
+            Layouts.POINTER.setPointer(pointer, memoryManager().newPointer(address));
+            return address;
+        }
+
+    }
+
+    @Primitive(name = "pointer_address")
+    public static abstract class PointerAddressPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public long address(DynamicObject pointer) {
+            return Layouts.POINTER.getPointer(pointer).address();
+        }
+
+    }
+
+    @Primitive(name = "pointer_set_autorelease")
+    public static abstract class PointerSetAutoreleasePrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public boolean setAutorelease(DynamicObject pointer, boolean autorelease) {
+            // TODO CS 24-April-2015 let memory leak
+            return autorelease;
+        }
+
+    }
+
     @Primitive(name = "pointer_malloc")
     public static abstract class PointerMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -81,17 +113,6 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_set_address")
-    public static abstract class PointerSetAddressPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public long setAddress(DynamicObject pointer, long address) {
-            Layouts.POINTER.setPointer(pointer, memoryManager().newPointer(address));
-            return address;
-        }
-
-    }
-
     @Primitive(name = "pointer_add")
     public static abstract class PointerAddPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -103,6 +124,81 @@ public abstract class PointerNodes {
         }
 
     }
+
+    // Special reads and writes
+
+    @Primitive(name = "pointer_read_string", lowerFixnum = 1)
+    public static abstract class PointerReadStringPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject readString(DynamicObject pointer, int length) {
+            final byte[] bytes = new byte[length];
+            Layouts.POINTER.getPointer(pointer).get(0, bytes, 0, length);
+            return createString(RopeBuilder.createRopeBuilder(bytes));
+        }
+
+    }
+
+    @Primitive(name = "pointer_read_string_to_null")
+    public static abstract class PointerReadStringToNullPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isNullPointer(pointer)")
+        public DynamicObject readNullPointer(DynamicObject pointer) {
+            return createString(RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "!isNullPointer(pointer)")
+        public DynamicObject readStringToNull(DynamicObject pointer) {
+            if (TruffleOptions.AOT) {
+                final jnr.ffi.Pointer ptr = Layouts.POINTER.getPointer(pointer);
+                final int nullOffset = ptr.indexOf(0, (byte) 0);
+                final byte[] bytes = new byte[nullOffset];
+
+                ptr.get(0, bytes, 0, bytes.length);
+
+                return StringOperations.createString(getContext(), RopeBuilder.createRopeBuilder(bytes));
+            }
+
+            return createString(MemoryIO.getInstance().getZeroTerminatedByteArray(Layouts.POINTER.getPointer(pointer).address()), ASCIIEncoding.INSTANCE);
+        }
+
+    }
+
+    @Primitive(name = "pointer_read_pointer")
+    public static abstract class PointerReadPointerPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+
+        @Specialization
+        public DynamicObject readPointer(DynamicObject pointer) {
+            Pointer ptr = Layouts.POINTER.getPointer(pointer);
+            assert ptr.address() != 0 : "Attempt to dereference a null pointer";
+            Pointer readPointer = ptr.getPointer(0);
+
+            if (readPointer == null) {
+                readPointer = NULL_POINTER;
+            }
+
+            return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(pointer), readPointer);
+        }
+
+    }
+
+    @Primitive(name = "pointer_write_string", lowerFixnum = 2)
+    public static abstract class PointerWriteStringPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(string)")
+        public DynamicObject address(DynamicObject pointer, DynamicObject string, int maxLength) {
+            final Rope rope = StringOperations.rope(string);
+            final int length = Math.min(rope.byteLength(), maxLength);
+            Layouts.POINTER.getPointer(pointer).put(0, rope.getBytes(), 0, length);
+            return pointer;
+        }
+
+    }
+
+    // Reads and writes of number types
 
     @Primitive(name = "pointer_read_char")
     public static abstract class PointerReadCharPrimitiveNode extends PrimitiveArrayArgumentsNode {
@@ -173,25 +269,82 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_read_string", lowerFixnum = 1)
-    public static abstract class PointerReadStringPrimitiveNode extends PrimitiveArrayArgumentsNode {
+    @Primitive(name = "pointer_get_at_offset", lowerFixnum = { 1, 2 })
+    @ImportStatic(RubiniusTypes.class)
+    public static abstract class PointerGetAtOffsetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
-        public DynamicObject readString(DynamicObject pointer, int length) {
-            final byte[] bytes = new byte[length];
-            Layouts.POINTER.getPointer(pointer).get(0, bytes, 0, length);
-            return createString(RopeBuilder.createRopeBuilder(bytes));
+        @Child private AllocateObjectNode allocateObjectNode;
+
+        @Specialization(guards = "type == TYPE_CHAR")
+        public int getAtOffsetChar(DynamicObject pointer, int offset, int type) {
+            return Layouts.POINTER.getPointer(pointer).getByte(offset);
         }
 
-    }
+        @Specialization(guards = "type == TYPE_UCHAR")
+        public int getAtOffsetUChar(DynamicObject pointer, int offset, int type) {
+            return Byte.toUnsignedInt(Layouts.POINTER.getPointer(pointer).getByte(offset));
+        }
 
-    @Primitive(name = "pointer_set_autorelease")
-    public static abstract class PointerSetAutoreleasePrimitiveNode extends PrimitiveArrayArgumentsNode {
+        @Specialization(guards = "type == TYPE_SHORT")
+        public int getAtOffsetShort(DynamicObject pointer, int offset, int type) {
+            return Layouts.POINTER.getPointer(pointer).getShort(offset);
+        }
 
-        @Specialization
-        public boolean setAutorelease(DynamicObject pointer, boolean autorelease) {
-            // TODO CS 24-April-2015 let memory leak
-            return autorelease;
+        @Specialization(guards = "type == TYPE_USHORT")
+        public int getAtOffsetUShort(DynamicObject pointer, int offset, int type) {
+            return Short.toUnsignedInt(Layouts.POINTER.getPointer(pointer).getShort(offset));
+        }
+
+        @Specialization(guards = "type == TYPE_INT")
+        public int getAtOffsetInt(DynamicObject pointer, int offset, int type) {
+            return Layouts.POINTER.getPointer(pointer).getInt(offset);
+        }
+
+        @Specialization(guards = "type == TYPE_UINT")
+        public long getAtOffsetUInt(DynamicObject pointer, int offset, int type) {
+            return Integer.toUnsignedLong(Layouts.POINTER.getPointer(pointer).getInt(offset));
+        }
+
+        @Specialization(guards = "type == TYPE_LONG")
+        public long getAtOffsetLong(DynamicObject pointer, int offset, int type) {
+            return Layouts.POINTER.getPointer(pointer).getLong(offset);
+        }
+
+        @Specialization(guards = "type == TYPE_ULONG")
+        public Object getAtOffsetULong(DynamicObject pointer, int offset, int type) {
+            return PointerReadLongPrimitiveNode.readUnsignedLong(getContext(), pointer, offset);
+        }
+
+        @Specialization(guards = "type == TYPE_LL")
+        public long getAtOffsetLL(DynamicObject pointer, int offset, int type) {
+            return Layouts.POINTER.getPointer(pointer).getLongLong(offset);
+        }
+
+        @Specialization(guards = "type == TYPE_ULL")
+        public Object getAtOffsetULL(DynamicObject pointer, int offset, int type) {
+            return PointerReadLongPrimitiveNode.readUnsignedLong(getContext(), pointer, offset);
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "type == TYPE_STRING")
+        public DynamicObject getAtOffsetString(DynamicObject pointer, int offset, int type) {
+            return createString(StringOperations.encodeRope(Layouts.POINTER.getPointer(pointer).getString(offset), UTF8Encoding.INSTANCE));
+        }
+
+        @Specialization(guards = "type == TYPE_PTR")
+        public DynamicObject getAtOffsetPointer(DynamicObject pointer, int offset, int type) {
+            if (allocateObjectNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                allocateObjectNode = insert(AllocateObjectNode.create());
+            }
+
+            final Pointer readPointer = Layouts.POINTER.getPointer(pointer).getPointer(offset);
+
+            if (readPointer == null) {
+                return nil();
+            } else {
+                return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(pointer), readPointer);
+            }
         }
 
     }
@@ -295,155 +448,11 @@ public abstract class PointerNodes {
 
     }
 
-    @Primitive(name = "pointer_read_pointer")
-    public static abstract class PointerReadPointerPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
-        @Specialization
-        public DynamicObject readPointer(DynamicObject pointer) {
-            Pointer ptr = Layouts.POINTER.getPointer(pointer);
-            assert ptr.address() != 0 : "Attempt to dereference a null pointer";
-            Pointer readPointer = ptr.getPointer(0);
-
-            if (readPointer == null) {
-                readPointer = NULL_POINTER;
-            }
-
-            return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(pointer), readPointer);
-        }
-
-    }
-
-    @Primitive(name = "pointer_address")
-    public static abstract class PointerAddressPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public long address(DynamicObject pointer) {
-            return Layouts.POINTER.getPointer(pointer).address();
-        }
-
-    }
-
-    @Primitive(name = "pointer_get_at_offset", lowerFixnum = { 1, 2 })
-    @ImportStatic(RubiniusTypes.class)
-    public static abstract class PointerGetAtOffsetPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private AllocateObjectNode allocateObjectNode;
-
-        @Specialization(guards = "type == TYPE_CHAR")
-        public int getAtOffsetChar(DynamicObject pointer, int offset, int type) {
-            return Layouts.POINTER.getPointer(pointer).getByte(offset);
-        }
-
-        @Specialization(guards = "type == TYPE_UCHAR")
-        public int getAtOffsetUChar(DynamicObject pointer, int offset, int type) {
-            return Byte.toUnsignedInt(Layouts.POINTER.getPointer(pointer).getByte(offset));
-        }
-
-        @Specialization(guards = "type == TYPE_SHORT")
-        public int getAtOffsetShort(DynamicObject pointer, int offset, int type) {
-            return Layouts.POINTER.getPointer(pointer).getShort(offset);
-        }
-
-        @Specialization(guards = "type == TYPE_USHORT")
-        public int getAtOffsetUShort(DynamicObject pointer, int offset, int type) {
-            return Short.toUnsignedInt(Layouts.POINTER.getPointer(pointer).getShort(offset));
-        }
-
-        @Specialization(guards = "type == TYPE_INT")
-        public int getAtOffsetInt(DynamicObject pointer, int offset, int type) {
-            return Layouts.POINTER.getPointer(pointer).getInt(offset);
-        }
-
-        @Specialization(guards = "type == TYPE_UINT")
-        public long getAtOffsetUInt(DynamicObject pointer, int offset, int type) {
-            return Integer.toUnsignedLong(Layouts.POINTER.getPointer(pointer).getInt(offset));
-        }
-
-        @Specialization(guards = "type == TYPE_LONG")
-        public long getAtOffsetLong(DynamicObject pointer, int offset, int type) {
-            return Layouts.POINTER.getPointer(pointer).getLong(offset);
-        }
-
-        @Specialization(guards = "type == TYPE_ULONG")
-        public Object getAtOffsetULong(DynamicObject pointer, int offset, int type) {
-            return PointerReadLongPrimitiveNode.readUnsignedLong(getContext(), pointer, offset);
-        }
-
-        @Specialization(guards = "type == TYPE_LL")
-        public long getAtOffsetLL(DynamicObject pointer, int offset, int type) {
-            return Layouts.POINTER.getPointer(pointer).getLongLong(offset);
-        }
-
-        @Specialization(guards = "type == TYPE_ULL")
-        public Object getAtOffsetULL(DynamicObject pointer, int offset, int type) {
-            return PointerReadLongPrimitiveNode.readUnsignedLong(getContext(), pointer, offset);
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "type == TYPE_STRING")
-        public DynamicObject getAtOffsetString(DynamicObject pointer, int offset, int type) {
-            return createString(StringOperations.encodeRope(Layouts.POINTER.getPointer(pointer).getString(offset), UTF8Encoding.INSTANCE));
-        }
-
-        @Specialization(guards = "type == TYPE_PTR")
-        public DynamicObject getAtOffsetPointer(DynamicObject pointer, int offset, int type) {
-            if (allocateObjectNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateObjectNode = insert(AllocateObjectNode.create());
-            }
-
-            final Pointer readPointer = Layouts.POINTER.getPointer(pointer).getPointer(offset);
-
-            if (readPointer == null) {
-                return nil();
-            } else {
-                return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(pointer), readPointer);
-            }
-        }
-
-    }
-
-    @Primitive(name = "pointer_write_string", lowerFixnum = 2)
-    public static abstract class PointerWriteStringPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "isRubyString(string)")
-        public DynamicObject address(DynamicObject pointer, DynamicObject string, int maxLength) {
-            final Rope rope = StringOperations.rope(string);
-            final int length = Math.min(rope.byteLength(), maxLength);
-            Layouts.POINTER.getPointer(pointer).put(0, rope.getBytes(), 0, length);
-            return pointer;
-        }
-
-    }
-
-    @Primitive(name = "pointer_read_string_to_null")
-    public static abstract class PointerReadStringToNullPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "isNullPointer(pointer)")
-        public DynamicObject readNullPointer(DynamicObject pointer) {
-            return createString(RopeConstants.EMPTY_ASCII_8BIT_ROPE);
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "!isNullPointer(pointer)")
-        public DynamicObject readStringToNull(DynamicObject pointer) {
-            if (TruffleOptions.AOT) {
-                final jnr.ffi.Pointer ptr = Layouts.POINTER.getPointer(pointer);
-                final int nullOffset = ptr.indexOf(0, (byte) 0);
-                final byte[] bytes = new byte[nullOffset];
-
-                ptr.get(0, bytes, 0, bytes.length);
-
-                return StringOperations.createString(getContext(), RopeBuilder.createRopeBuilder(bytes));
-            }
-
-            return createString(MemoryIO.getInstance().getZeroTerminatedByteArray(Layouts.POINTER.getPointer(pointer).address()), ASCIIEncoding.INSTANCE);
-        }
-
-    }
-
+    /* Rubinius use these write primitives for both signed and unsigned numbers.
+     * Values from 0 to MAX_SIGNED are encoded the same for both signed and unsigned.
+     * Larger values need to be converted to the corresponding negative signed number
+     * as the JNR API only accepts Java signed numbers. */
+    
     @Primitive(name = "pointer_write_char", lowerFixnum = 1)
     public static abstract class PointerWriteCharPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -501,9 +510,6 @@ public abstract class PointerNodes {
             return pointer;
         }
 
-        // Rubinius also uses this primitive for uint32.
-        // Values from 0 to MAX_INT are encoded the same as a signed int32.
-        // Larger values need to be converted to the corresponding signed negative int.
         @Specialization(guards = "value > MAX_INT")
         public DynamicObject writeUnsignedInt(DynamicObject pointer, long value) {
             assert value < (1L << Integer.SIZE);
