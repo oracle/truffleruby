@@ -14,9 +14,9 @@ class MSpecScript
     RbConfig::CONFIG['host_os'] == 'solaris'
   end
 
-  JRUBY_DIR = File.expand_path('../..', __FILE__)
+  TRUFFLERUBY_DIR = File.expand_path('../..', __FILE__)
 
-  set :target, "#{JRUBY_DIR}/bin/truffleruby"
+  set :target, "#{TRUFFLERUBY_DIR}/bin/truffleruby"
 
   unless ARGV.include?('-t')  # No flags set if Ruby binary specified via -t.
     flags = %w[
@@ -26,7 +26,7 @@ class MSpecScript
       -J-Xmx2G
       -Xgraal.warn_unless=false
     ]
-    core_path = "#{JRUBY_DIR}/src/main/ruby"
+    core_path = "#{TRUFFLERUBY_DIR}/src/main/ruby"
     if File.directory?(core_path)
       flags << "-Xcore.load_path=#{core_path}"
       flags << "-Xbacktraces.hide_core_files=false"

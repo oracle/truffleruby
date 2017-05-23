@@ -21,8 +21,8 @@ require 'open3'
 require 'rbconfig'
 require 'pathname'
 
-JRUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
-M2_REPO = File.expand_path('~/.m2/repository')
+TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
+M2_REPO         = File.expand_path('~/.m2/repository')
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = 1
 
@@ -61,7 +61,7 @@ trap(:INT) {}
 module Utilities
 
   def self.truffle_version
-    File.foreach("#{JRUBY_DIR}/truffle/pom.rb") do |line|
+    File.foreach("#{TRUFFLERUBY_DIR}/truffle/pom.rb") do |line|
       if /'truffle\.version' => '((?:\d+\.\d+|\h+)(?:-SNAPSHOT)?)'/ =~ line
         break $1
       end
@@ -173,8 +173,8 @@ module Utilities
   end
 
   def self.mx?
-    mx_jar = "#{JRUBY_DIR}/mxbuild/dists/truffleruby.jar"
-    mvn_jar = "#{JRUBY_DIR}/lib/truffleruby.jar"
+    mx_jar = "#{TRUFFLERUBY_DIR}/mxbuild/dists/truffleruby.jar"
+    mvn_jar = "#{TRUFFLERUBY_DIR}/lib/truffleruby.jar"
     mx_time = File.exist?(mx_jar) ? File.mtime(mx_jar) : Time.at(0)
     mvn_time = File.exist?(mvn_jar) ? File.mtime(mvn_jar) : Time.at(0)
     mx_time > mvn_time
@@ -197,12 +197,12 @@ module Utilities
     if ENV['RUBY_BIN']
       ENV['RUBY_BIN']
     else
-      "#{JRUBY_DIR}/bin/truffleruby"
+      "#{TRUFFLERUBY_DIR}/bin/truffleruby"
     end
   end
 
   def self.find_repo(name)
-    [JRUBY_DIR, "#{JRUBY_DIR}/.."].each do |dir|
+    [TRUFFLERUBY_DIR, "#{TRUFFLERUBY_DIR}/.."].each do |dir|
       found = Dir.glob("#{dir}/#{name}*").sort.first
       return File.expand_path(found) if found
     end
@@ -213,17 +213,17 @@ module Utilities
     if File.exist?(benchmark)
       benchmark
     else
-      File.join(JRUBY_DIR, 'bench', benchmark)
+      File.join(TRUFFLERUBY_DIR, 'bench', benchmark)
     end
   end
 
   def self.find_gem(name)
-    ["#{JRUBY_DIR}/lib/ruby/gems/shared/gems"].each do |dir|
+    ["#{TRUFFLERUBY_DIR}/lib/ruby/gems/shared/gems"].each do |dir|
       found = Dir.glob("#{dir}/#{name}*").sort.first
       return File.expand_path(found) if found
     end
 
-    [JRUBY_DIR, "#{JRUBY_DIR}/.."].each do |dir|
+    [TRUFFLERUBY_DIR, "#{TRUFFLERUBY_DIR}/.."].each do |dir|
       found = Dir.glob("#{dir}/#{name}").sort.first
       return File.expand_path(found) if found
     end
@@ -231,7 +231,7 @@ module Utilities
   end
 
   def self.git_branch
-    @git_branch ||= `GIT_DIR="#{JRUBY_DIR}/.git" git rev-parse --abbrev-ref HEAD`.strip
+    @git_branch ||= `GIT_DIR="#{TRUFFLERUBY_DIR}/.git" git rev-parse --abbrev-ref HEAD`.strip
   end
 
   def self.igv_running?
@@ -243,7 +243,7 @@ module Utilities
   end
 
   def self.jruby_version
-    File.read("#{JRUBY_DIR}/VERSION").strip
+    File.read("#{TRUFFLERUBY_DIR}/VERSION").strip
   end
 
   def self.human_size(bytes)
@@ -374,7 +374,7 @@ module ShellUtils
   end
 
   def sh(*args)
-    Dir.chdir(JRUBY_DIR) do
+    Dir.chdir(TRUFFLERUBY_DIR) do
       raw_sh(*args)
     end
   end
@@ -538,7 +538,7 @@ module Commands
       no_openssl = options.delete('--no-openssl')
       build_ruby_su
       unless no_openssl
-        cextc "#{JRUBY_DIR}/src/main/c/openssl"
+        cextc "#{TRUFFLERUBY_DIR}/src/main/c/openssl"
       end
     when 'parser'
       jay = Utilities.find_repo('jay')
@@ -556,13 +556,13 @@ module Commands
   end
 
   def clean
-    mx(JRUBY_DIR, 'clean') if Utilities.mx?
+    mx(TRUFFLERUBY_DIR, 'clean') if Utilities.mx?
     mvn 'clean'
   end
 
   def dis(file)
     dis = `which llvm-dis-3.8 llvm-dis 2>/dev/null`.lines.first.chomp
-    file = `find #{JRUBY_DIR} -name "#{file}"`.lines.first.chomp
+    file = `find #{TRUFFLERUBY_DIR} -name "#{file}"`.lines.first.chomp
     raise ArgumentError, "file not found:`#{file}`" if file.empty?
     sh dis, file
     puts Pathname(file).sub_ext('.ll')
@@ -589,7 +589,7 @@ module Commands
     end
 
     unless args.delete('--no-core-load-path')
-      jruby_args << "-Xcore.load_path=#{JRUBY_DIR}/src/main/ruby"
+      jruby_args << "-Xcore.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"
     end
 
     if args.delete('--graal')
@@ -704,10 +704,10 @@ module Commands
     abort "You need to set SULONG_HOME" unless SULONG_HOME
 
     # Ensure ruby.su is up-to-date
-    ruby_cext_api = "#{JRUBY_DIR}/src/main/c/cext"
-    ruby_c = "#{JRUBY_DIR}/src/main/c/cext/ruby.c"
-    ruby_h = "#{JRUBY_DIR}/lib/cext/ruby.h"
-    ruby_su = "#{JRUBY_DIR}/lib/cext/ruby.su"
+    ruby_cext_api = "#{TRUFFLERUBY_DIR}/src/main/c/cext"
+    ruby_c = "#{TRUFFLERUBY_DIR}/src/main/c/cext/ruby.c"
+    ruby_h = "#{TRUFFLERUBY_DIR}/lib/cext/ruby.h"
+    ruby_su = "#{TRUFFLERUBY_DIR}/lib/cext/ruby.su"
     if cext_dir != ruby_cext_api and (newer?(ruby_h, ruby_su) or newer?(ruby_c, ruby_su))
       puts "Compiling outdated ruby.su"
       cextc ruby_cext_api
@@ -718,28 +718,28 @@ module Commands
   def cextc(cext_dir, test_gem=false, *clang_opts)
     build_ruby_su(cext_dir)
 
-    is_ruby = cext_dir == "#{JRUBY_DIR}/src/main/c/cext"
+    is_ruby = cext_dir == "#{TRUFFLERUBY_DIR}/src/main/c/cext"
     gem_name = if is_ruby
                  "ruby"
                else
                  File.basename(cext_dir)
                end
 
-    gem_dir = if cext_dir.start_with?("#{JRUBY_DIR}/src/main/c")
+    gem_dir = if cext_dir.start_with?("#{TRUFFLERUBY_DIR}/src/main/c")
                 cext_dir
               elsif test_gem
-                "#{JRUBY_DIR}/test/truffle/cexts/#{gem_name}/ext/#{gem_name}/"
-              elsif cext_dir.start_with?(JRUBY_DIR)
+                "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/ext/#{gem_name}/"
+              elsif cext_dir.start_with?(TRUFFLERUBY_DIR)
                 Dir.glob(ENV['GEM_HOME'] + "/gems/#{gem_name}*/")[0] + "ext/#{gem_name}/"
               else
                 cext_dir + "/ext/#{gem_name}/"
               end
     copy_target = if is_ruby
-                    "#{JRUBY_DIR}/lib/cext/ruby.su"
-                  elsif cext_dir == "#{JRUBY_DIR}/src/main/c/openssl"
-                    "#{JRUBY_DIR}/lib/mri/openssl.su"
+                    "#{TRUFFLERUBY_DIR}/lib/cext/ruby.su"
+                  elsif cext_dir == "#{TRUFFLERUBY_DIR}/src/main/c/openssl"
+                    "#{TRUFFLERUBY_DIR}/lib/mri/openssl.su"
                   else
-                    "#{JRUBY_DIR}/test/truffle/cexts/#{gem_name}/lib/#{gem_name}/#{gem_name}.su"
+                    "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/lib/#{gem_name}/#{gem_name}.su"
                   end
 
     Dir.chdir(gem_dir) do
@@ -786,7 +786,7 @@ module Commands
       test_tck *args
     when 'mri' then test_mri(*rest)
     else
-      if File.expand_path(path).start_with?("#{JRUBY_DIR}/test")
+      if File.expand_path(path).start_with?("#{TRUFFLERUBY_DIR}/test")
         test_mri(*args)
       else
         test_specs('run', *args)
@@ -796,17 +796,17 @@ module Commands
 
   def test_mri(*args)
     if args.delete('--openssl')
-      include_pattern = "#{JRUBY_DIR}/test/mri/tests/openssl/test_*.rb"
-      exclude_file = "#{JRUBY_DIR}/test/mri/openssl.exclude"
+      include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"
+      exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/openssl.exclude"
     elsif args.all? { |a| a.start_with?('-') }
-      include_pattern = "#{JRUBY_DIR}/test/mri/tests/**/test_*.rb"
-      exclude_file = "#{JRUBY_DIR}/test/mri/standard.exclude"
+      include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/**/test_*.rb"
+      exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/standard.exclude"
     else
       args, files_to_run = args.partition { |a| a.start_with?('-') }
     end
 
     unless files_to_run
-      prefix = "#{JRUBY_DIR}/test/mri/tests/"
+      prefix = "#{TRUFFLERUBY_DIR}/test/mri/tests/"
 
       include_files = Dir.glob(include_pattern).map { |f|
         raise unless f.start_with?(prefix)
@@ -866,7 +866,7 @@ module Commands
       env['JAVA_OPTS'] = "-cp #{Utilities.find_graal_js}"
     end
 
-    Dir["#{JRUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
+    Dir["#{TRUFFLERUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
       if args.empty? or args.include?(File.basename(test_script, ".*"))
         sh env, test_script
       end
@@ -917,7 +917,7 @@ module Commands
       ['minimum', 'method', 'module', 'globals', 'xml', 'xopenssl'].each do |gem_name|
         next if gem_name == 'xml' && no_libxml
         next if gem_name == 'xopenssl' && no_openssl
-        dir = "#{JRUBY_DIR}/test/truffle/cexts/#{gem_name}"
+        dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
         cextc dir, true
         name = File.basename(dir)
         next if gem_name == 'globals' # globals is excluded just for running
@@ -942,14 +942,14 @@ module Commands
       tests.each do |gem_name, dependencies, libs, gem_root|
         next if gem_name == 'nokogiri' # nokogiri totally excluded
         next if gem_name == 'nokogiri' && no_libxml
-        gem_root = "#{JRUBY_DIR}/test/truffle/cexts/#{gem_name}"
+        gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
         cextc gem_root, false, '-Werror=implicit-function-declaration'
 
         next if gem_name == 'psd_native' # psd_native is excluded just for running
         run '--sulong',
-          *dependencies.map { |d| "-I#{ENV['GEM_HOME']}/gems/#{d}/lib" },
-          *libs.map { |l| "-I#{JRUBY_DIR}/test/truffle/cexts/#{l}/lib" },
-          "#{JRUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root
+            *dependencies.map { |d| "-I#{ENV['GEM_HOME']}/gems/#{d}/lib" },
+            *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
+            "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root
       end
     end
   end
@@ -987,7 +987,7 @@ module Commands
       env['JAVA_OPTS'] = "-cp #{classpath.join(':')}"
     end
 
-    tests_path             = "#{JRUBY_DIR}/test/truffle/integration"
+    tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/integration"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
@@ -1007,7 +1007,7 @@ module Commands
       env['JAVA_OPTS'] = "-cp #{Utilities.find_graal_js}"
     end
 
-    tests_path             = "#{JRUBY_DIR}/test/truffle/gems"
+    tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/gems"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
@@ -1021,7 +1021,7 @@ module Commands
   def test_ecosystem(env={}, *args)
     gem_test_pack
 
-    tests_path             = "#{JRUBY_DIR}/test/truffle/ecosystem"
+    tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/ecosystem"
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
@@ -1118,7 +1118,7 @@ module Commands
       options += %w[--excl-tag graalvm]
       options << '-t' << ENV['AOT_BIN']
       options << '-T-XX:OldGenerationSize=2G'
-      options << "-T-Xhome=#{JRUBY_DIR}"
+      options << "-T-Xhome=#{TRUFFLERUBY_DIR}"
     end
 
     if args.delete('--graal')
@@ -1501,7 +1501,7 @@ module Commands
     if args.delete('--aot') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == ENV['AOT_BIN']))
       run_args.push '-XX:YoungGenerationSize=2G'
       run_args.push '-XX:OldGenerationSize=2G'
-      run_args.push "-Xhome=#{JRUBY_DIR}"
+      run_args.push "-Xhome=#{TRUFFLERUBY_DIR}"
 
       # We already have a mechanism for setting the Ruby to benchmark, but elsewhere we use AOT_BIN with the "--aot" flag.
       # Favor JT_BENCHMARK_RUBY to AOT_BIN, but try both.
@@ -1518,7 +1518,7 @@ module Commands
     end
 
     run_args.push "-I#{Utilities.find_gem('benchmark-ips')}/lib" rescue nil
-    run_args.push "#{JRUBY_DIR}/bench/benchmark-interface/bin/benchmark"
+    run_args.push "#{TRUFFLERUBY_DIR}/bench/benchmark-interface/bin/benchmark"
     run_args.push *args
 
     if benchmark_ruby
@@ -1550,7 +1550,7 @@ module Commands
   def install_graal_core
     raise "Installing graal is only available on Linux and macOS currently" unless LINUX || MAC
 
-    dir = "#{JRUBY_DIR}/graal"
+    dir = "#{TRUFFLERUBY_DIR}/graal"
     Dir.mkdir(dir) unless File.directory?(dir)
     Dir.chdir(dir) do
       unless File.directory?("#{dir}/mx")
@@ -1616,9 +1616,9 @@ module Commands
   end
 
   def check_dsl_usage
-    mx(JRUBY_DIR, 'clean')
+    mx(TRUFFLERUBY_DIR, 'clean')
     # We need to build with -parameters to get parameter names
-    mx(JRUBY_DIR, 'build', '-A-parameters')
+    mx(TRUFFLERUBY_DIR, 'build', '-A-parameters')
     run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-e', 'exit')
   end
 
