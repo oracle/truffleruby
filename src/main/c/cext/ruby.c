@@ -11,10 +11,10 @@
  * copyright (C) Yukihiro Matsumoto, licensed under the 2-clause BSD licence
  * as described in the file BSDL included with JRuby+Truffle.
  */
- 
+
 // Needed for vasprintf
 #define _GNU_SOURCE
- 
+
 #include <ruby.h>
 
 #include <stdlib.h>
@@ -2564,4 +2564,17 @@ void *rb_tr_managed_from_handle(void *handle) {
 
 void rb_tr_release_handle(void *handle) {
   truffle_release_handle(handle);
+}
+
+// util
+char *
+ruby_strdup(const char *str)
+{
+    char *tmp;
+    size_t len = strlen(str) + 1;
+
+    tmp = xmalloc(len);
+    memcpy(tmp, str, len);
+
+    return tmp;
 }

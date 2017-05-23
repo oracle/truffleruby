@@ -14,6 +14,8 @@
 #ifndef TRUFFLERUBY_H
 #define TRUFFLERUBY_H
 
+#define HAVE_RUBY_UTIL_H
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -1392,3 +1394,8 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 #endif
 
 #endif
+
+// util
+char *ruby_strdup(const char *);
+#undef strdup
+#define strdup(s) ruby_strdup(s)
