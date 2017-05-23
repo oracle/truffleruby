@@ -36,6 +36,8 @@ public abstract class NativeFunctionNodes {
 
                 case RubiniusTypes.TYPE_LONG:
                 case RubiniusTypes.TYPE_ULONG:
+                case RubiniusTypes.TYPE_LL:
+                case RubiniusTypes.TYPE_ULL:
                     return 8;
 
                 case RubiniusTypes.TYPE_FLOAT:
@@ -51,8 +53,6 @@ public abstract class NativeFunctionNodes {
                     return 8;
 
                 case RubiniusTypes.TYPE_BOOL:
-                case RubiniusTypes.TYPE_LL:
-                case RubiniusTypes.TYPE_ULL:
                 case RubiniusTypes.TYPE_VOID:
                 case RubiniusTypes.TYPE_ENUM:
                 case RubiniusTypes.TYPE_VARARGS:

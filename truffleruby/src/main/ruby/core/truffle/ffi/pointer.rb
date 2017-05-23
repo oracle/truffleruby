@@ -245,13 +245,15 @@ module Rubinius::FFI
       raise PrimitiveFailure, 'FFI::Pointer#primitive_write_long primitive failed'
     end
 
+    # We only support 64-bit platforms, so long and long long are identical for us.
     def primitive_read_long_long(signed)
-      Truffle.primitive :pointer_read_long_long
+      Truffle.primitive :pointer_read_long
       raise PrimitiveFailure, 'FFI::Pointer#primitive_read_long_long primitive failed'
     end
 
+    # We only support 64-bit platforms, so long and long long are identical for us.
     def primitive_write_long_long(obj)
-      Truffle.primitive :pointer_write_long_long
+      Truffle.primitive :pointer_write_long
       raise PrimitiveFailure, 'FFI::Pointer#primitive_write_long_long primitive failed'
     end
 
