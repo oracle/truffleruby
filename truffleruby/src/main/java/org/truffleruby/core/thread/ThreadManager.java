@@ -111,7 +111,7 @@ public class ThreadManager {
         }
         int result = context.getNativePlatform().getThreads().sigaction(Signal.SIGVTALRM.intValue(), action, null);
         if (result != 0) {
-            throw new UnsupportedOperationException("sigaction() failed");
+            throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
         }
     }
 
