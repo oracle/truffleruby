@@ -21,7 +21,7 @@ require 'open3'
 require 'rbconfig'
 require 'pathname'
 
-JRUBY_DIR = File.expand_path('../..', __FILE__)
+JRUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 M2_REPO = File.expand_path('~/.m2/repository')
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = 1
@@ -1000,7 +1000,7 @@ module Commands
 
   def test_gems(env={}, *args)
     gem_test_pack
-    
+
     env = env.dup
 
     if ENV['GRAAL_JS_JAR']
@@ -1160,20 +1160,20 @@ module Commands
     end
   end
   private :test_tck
-  
+
   def gem_test_pack
     test_pack = "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}"
     unless Dir.exist?(test_pack)
       $stderr.puts "Downloading latest gem test pack..."
-      
+
       # To update these files contact Manuel Zach for graal.us.oracle.com and Gilles Duboscq for lafo
-      
+
       if ENV['USE_GRAAL_GEM_TEST_PACK']
         url = "http://graal.us.oracle.com/slavefiles2/truffleruby/truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
       else
         url = "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
       end
-      
+
       sh 'curl', '-OL', url
       sh 'tar', '-zxf', "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
     end
