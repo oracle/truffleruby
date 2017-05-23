@@ -10,7 +10,6 @@
 package org.truffleruby.platform.solaris;
 
 import jnr.ffi.Runtime;
-import jnr.ffi.Struct;
 import jnr.posix.LibC;
 import org.truffleruby.platform.posix.SigAction;
 
@@ -18,24 +17,10 @@ public class SolarisSigAction extends SigAction {
 
     public final Signed32 sa_flags = new Signed32();
     public final Function<LibC.LibCSignalHandler> sa_handler = new Function<>(LibC.LibCSignalHandler.class);
-    public final SigSet sa_mask = inner(new SigSet());
+    public final Unsigned32[] sa_mask = array(new Unsigned32[4]); // 16 bytes
 
     public SolarisSigAction(Runtime runtime) {
         super(runtime);
     }
 
-    final static class SigSet extends Struct {
-
-        // 16 bytes
-
-        Unsigned32 l1 = new Unsigned32();
-        Unsigned32 l2 = new Unsigned32();
-        Unsigned32 l3 = new Unsigned32();
-        Unsigned32 l4 = new Unsigned32();
-
-        public SigSet() {
-            super(Runtime.getSystemRuntime());
-        }
-
-    }
 }
