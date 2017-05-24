@@ -251,6 +251,7 @@ suite = {
             "distDependencies": [
                 "truffle:TRUFFLE_API",
                 "truffle:TRUFFLE_DEBUG",
+                "truffle:TRUFFLE_NFI",
             ],
             "description": "TruffleRuby",
             "license": ["EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0"],
