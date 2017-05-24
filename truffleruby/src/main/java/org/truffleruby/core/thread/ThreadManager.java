@@ -10,6 +10,7 @@
 package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
@@ -35,6 +36,7 @@ import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.control.ThreadExitException;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.platform.posix.ActionableThreads;
 import org.truffleruby.platform.posix.SigAction;
 
 import java.util.ArrayList;
@@ -104,14 +106,17 @@ public class ThreadManager {
     };
 
     private static void setupSignalHandler(RubyContext context) {
-        int flags = 0; // NO SA_RESTART so we can interrupt blocking syscalls.
-        final SigAction action = context.getNativePlatform().createSigAction(EMPTY_HANDLER, flags);
-        if (!Signal.SIGVTALRM.defined()) {
-            throw new UnsupportedOperationException("SIGVTALRM not defined");
-        }
-        int result = context.getNativePlatform().getThreads().sigaction(Signal.SIGVTALRM.intValue(), action, null);
-        if (result != 0) {
-            throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
+        if (!TruffleOptions.AOT) {
+            int flags = 0; // NO SA_RESTART so we can interrupt blocking syscalls.
+            final SigAction action = context.getNativePlatform().createSigAction(EMPTY_HANDLER, flags);
+            if (!Signal.SIGVTALRM.defined()) {
+                throw new UnsupportedOperationException("SIGVTALRM not defined");
+            }
+            ActionableThreads actionableThreads = (ActionableThreads) context.getNativePlatform().getThreads();
+            int result = actionableThreads.sigaction(Signal.SIGVTALRM.intValue(), action, null);
+            if (result != 0) {
+                throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
+            }
         }
     }
 

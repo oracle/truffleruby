@@ -9,6 +9,7 @@
  */
 package org.truffleruby.platform.solaris;
 
+import org.truffleruby.platform.posix.ActionableThreads;
 import org.truffleruby.platform.posix.SigAction;
 import org.truffleruby.platform.posix.Threads;
 
@@ -27,7 +28,7 @@ public interface SolarisThreads {
 
 }
 
-class SolarisThreadsImplementation implements Threads {
+class SolarisThreadsImplementation implements ActionableThreads {
 
     final SolarisThreads nativeThreads;
 

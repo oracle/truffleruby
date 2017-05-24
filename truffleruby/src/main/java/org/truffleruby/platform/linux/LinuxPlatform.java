@@ -9,6 +9,7 @@
  */
 package org.truffleruby.platform.linux;
 
+import com.oracle.truffle.api.TruffleOptions;
 import jnr.ffi.LibraryLoader;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
@@ -21,15 +22,7 @@ import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.java.JavaProcessName;
-import org.truffleruby.platform.posix.ClockGetTime;
-import org.truffleruby.platform.posix.JNRTrufflePosix;
-import org.truffleruby.platform.posix.MallocFree;
-import org.truffleruby.platform.posix.Threads;
-import org.truffleruby.platform.posix.PosixFDSet4Bytes;
-import org.truffleruby.platform.posix.SigAction;
-import org.truffleruby.platform.posix.Sockets;
-import org.truffleruby.platform.posix.TrufflePosix;
-import org.truffleruby.platform.posix.TrufflePosixHandler;
+import org.truffleruby.platform.posix.*;
 import org.truffleruby.platform.signal.SignalManager;
 import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 
@@ -51,7 +44,13 @@ public class LinuxPlatform implements NativePlatform {
         signalManager = new SunMiscSignalManager();
         processName = new JavaProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("libc.so.6").load();
-        threads = LibraryLoader.create(Threads.class).library("libc.so.6").library("libpthread.so.0").load();
+
+        if (TruffleOptions.AOT) {
+            threads = LibraryLoader.create(Threads.class).library("libc.so.6").library("libpthread.so.0").load();
+        } else {
+            threads = LibraryLoader.create(ActionableThreads.class).library("libc.so.6").library("libpthread.so.0").load();
+        }
+
         clockGetTime = LibraryLoader.create(ClockGetTime.class).library("libc.so.6").library("librt.so.1").load();
         mallocFree = LibraryLoader.create(MallocFree.class).library("libc.so.6").load();
         rubiniusConfiguration = new RubiniusConfiguration();

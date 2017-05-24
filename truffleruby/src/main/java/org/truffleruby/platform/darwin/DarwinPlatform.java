@@ -9,6 +9,7 @@
  */
 package org.truffleruby.platform.darwin;
 
+import com.oracle.truffle.api.TruffleOptions;
 import jnr.ffi.LibraryLoader;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
@@ -21,15 +22,7 @@ import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.java.JavaClockGetTime;
-import org.truffleruby.platform.posix.ClockGetTime;
-import org.truffleruby.platform.posix.JNRTrufflePosix;
-import org.truffleruby.platform.posix.MallocFree;
-import org.truffleruby.platform.posix.PosixFDSet4Bytes;
-import org.truffleruby.platform.posix.SigAction;
-import org.truffleruby.platform.posix.Sockets;
-import org.truffleruby.platform.posix.Threads;
-import org.truffleruby.platform.posix.TrufflePosix;
-import org.truffleruby.platform.posix.TrufflePosixHandler;
+import org.truffleruby.platform.posix.*;
 import org.truffleruby.platform.signal.SignalManager;
 import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 
@@ -52,7 +45,13 @@ public class DarwinPlatform implements NativePlatform {
         signalManager = new SunMiscSignalManager();
         processName = new DarwinProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("c").load();
-        threads = LibraryLoader.create(Threads.class).library("c").library("pthread").load();
+
+        if (TruffleOptions.AOT) {
+            threads = LibraryLoader.create(Threads.class).library("c").library("pthread").load();
+        } else {
+            threads = LibraryLoader.create(ActionableThreads.class).library("c").library("pthread").load();
+        }
+
         clockGetTime = new JavaClockGetTime();
         mallocFree = LibraryLoader.create(MallocFree.class).library("c").load();
         rubiniusConfiguration = new RubiniusConfiguration();
