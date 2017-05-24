@@ -179,8 +179,11 @@ public abstract class RubyBaseNode extends Node {
 
     public void unsafeSetSourceSection(SourceIndexLength sourceSection) {
         assert sourceCharIndex == -1;
-        sourceCharIndex = sourceSection.getCharIndex();
-        sourceLength = sourceSection.getLength();
+        
+        if (sourceSection != null) {
+            sourceCharIndex = sourceSection.getCharIndex();
+            sourceLength = sourceSection.getLength();
+        }
     }
 
     protected Source getSource() {
