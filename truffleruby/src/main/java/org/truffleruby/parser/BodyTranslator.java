@@ -33,6 +33,7 @@ import org.truffleruby.core.array.ArrayDropTailNode;
 import org.truffleruby.core.array.ArrayDropTailNodeGen;
 import org.truffleruby.core.array.ArrayGetTailNodeGen;
 import org.truffleruby.core.array.ArrayLiteralNode;
+import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.array.PrimitiveArrayNodeFactory;
 import org.truffleruby.core.cast.HashCastNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
@@ -302,22 +303,22 @@ public class BodyTranslator extends Translator {
         this.environment = environment;
     }
 
-    private DynamicObject translateNameNodeToSymbol(ParseNode node) {
-        return context.getSymbolTable().getSymbol(((LiteralParseNode) node).getName());
+    private RubyNode translateNameNodeToSymbol(ParseNode node) {
+        if (node instanceof LiteralParseNode) {
+            return new ObjectLiteralNode(context.getSymbolTable().getSymbol(((LiteralParseNode) node).getName()));
+        } else if (node instanceof SymbolParseNode) {
+            return node.accept(this);
+        } else {
+            throw new UnsupportedOperationException(node.getClass().getName());
+        }
     }
 
     @Override
     public RubyNode visitAliasNode(AliasParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        final DynamicObject oldName = translateNameNodeToSymbol(node.getOldName());
-        final DynamicObject newName = translateNameNodeToSymbol(node.getNewName());
-
-        final RubyNode newNameNode = new ObjectLiteralNode(newName);
-        newNameNode.unsafeSetSourceSection(sourceSection);
-
-        final RubyNode oldNameNode = new ObjectLiteralNode(oldName);
-        oldNameNode.unsafeSetSourceSection(sourceSection);
+        final RubyNode oldNameNode = translateNameNodeToSymbol(node.getOldName());
+        final RubyNode newNameNode = translateNameNodeToSymbol(node.getNewName());
 
         final RubyNode ret = ModuleNodesFactory.AliasMethodNodeFactory.create(
                 new RaiseIfFrozenNode(new GetDefaultDefineeNode()),
@@ -3095,11 +3096,14 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitUndefNode(UndefParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-        final DynamicObject nameSymbol = translateNameNodeToSymbol(node.getName());
 
         final RubyNode ret = ModuleNodesFactory.UndefMethodNodeFactory.create(new RubyNode[]{
                 new RaiseIfFrozenNode(new GetDefaultDefineeNode()),
-                new ObjectLiteralNode(new Object[]{ nameSymbol })
+                ArrayToObjectArrayNodeGen.create(
+                    ArrayLiteralNode.create(new RubyNode[]{
+                        translateNameNodeToSymbol(node.getName())
+                    })
+                )
         });
 
         ret.unsafeSetSourceSection(sourceSection);
