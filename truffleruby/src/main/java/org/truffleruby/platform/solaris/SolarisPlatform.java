@@ -9,7 +9,6 @@
  */
 package org.truffleruby.platform.solaris;
 
-import com.oracle.truffle.api.TruffleOptions;
 import jnr.ffi.LibraryLoader;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
@@ -54,14 +53,8 @@ public class SolarisPlatform implements NativePlatform {
         signalManager = new SunMiscSignalManager();
         processName = new JavaProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("socket").load();
-
-        if (TruffleOptions.AOT) {
-            threads = null;
-        } else {
-            final SolarisThreads nativeThreads = LibraryLoader.create(SolarisThreads.class).library("libpthread.so.1").load();
-            threads = new SolarisThreadsImplementation(nativeThreads);
-        }
-
+        final SolarisThreads nativeThreads = LibraryLoader.create(SolarisThreads.class).library("libpthread.so.1").load();
+        threads = new SolarisThreadsImplementation(nativeThreads);
         clockGetTime = LibraryLoader.create(ClockGetTime.class).library("c").library("rt").load();
         mallocFree = LibraryLoader.create(MallocFree.class).library("c").load();
         rubiniusConfiguration = new RubiniusConfiguration();

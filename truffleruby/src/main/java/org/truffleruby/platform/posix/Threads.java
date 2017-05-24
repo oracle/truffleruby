@@ -20,4 +20,7 @@ public interface Threads {
     // int pthread_kill(pthread_t thread, int sig);
     int pthread_kill(long thread, int sig);
 
+    // int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
+    int sigaction(int signum, SigAction act, SigAction oldAct);
+
 }
