@@ -18,6 +18,7 @@ AllCops:
     - 'test/**/*'
     - 'tool/**/*'
     - 'truffleruby/target/**/*'
+    - 'truffleruby-gem-test-pack-*/**/*'
 
 # Department 'Lint' (58):
 Lint/AmbiguousOperator:
