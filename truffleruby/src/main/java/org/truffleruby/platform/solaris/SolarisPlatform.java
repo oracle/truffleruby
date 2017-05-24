@@ -12,7 +12,6 @@ package org.truffleruby.platform.solaris;
 import jnr.ffi.LibraryLoader;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
-import jnr.posix.LibC.LibCSignalHandler;
 import jnr.posix.POSIX;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
@@ -21,12 +20,12 @@ import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
+import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.java.JavaProcessName;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.MallocFree;
 import org.truffleruby.platform.posix.PosixFDSet8Bytes;
-import org.truffleruby.platform.posix.SigAction;
 import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.TrufflePosix;
@@ -36,6 +35,7 @@ import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 
 public class SolarisPlatform implements NativePlatform {
 
+    private final TruffleNFIPlatform nfi;
     private final TrufflePosix posix;
     private final MemoryManager memoryManager;
     private final SignalManager signalManager;
@@ -47,6 +47,7 @@ public class SolarisPlatform implements NativePlatform {
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public SolarisPlatform(RubyContext context) {
+        nfi = new TruffleNFIPlatform(context);
         POSIX _posix = POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context));
         posix = new JNRTrufflePosix(context, _posix);
         memoryManager = Runtime.getSystemRuntime().getMemoryManager();
@@ -60,6 +61,11 @@ public class SolarisPlatform implements NativePlatform {
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, context);
+    }
+
+    @Override
+    public TruffleNFIPlatform getTruffleNFI() {
+        return nfi;
     }
 
     @Override
@@ -113,11 +119,10 @@ public class SolarisPlatform implements NativePlatform {
     }
 
     @Override
-    public SigAction createSigAction(LibCSignalHandler handler, int flags) {
-        SolarisSigAction sigAction = new SolarisSigAction(Runtime.getSystemRuntime());
-        sigAction.sa_handler.set(handler);
-        sigAction.sa_flags.set(flags);
-        return sigAction;
+    public long createSigAction(long handler) {
+        long structSigAction = nfi.allocate(32); // sizeof(struct sigaction)
+        nfi.putLong(structSigAction + 8, handler); // offsetof(struct sigaction, sa_handler)
+        return structSigAction;
     }
 
 }

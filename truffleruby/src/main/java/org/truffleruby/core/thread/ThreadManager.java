@@ -10,6 +10,7 @@
 package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
@@ -17,7 +18,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import jnr.constants.platform.Errno;
 import jnr.constants.platform.Signal;
 import jnr.posix.DefaultNativeTimeval;
-import jnr.posix.LibC.LibCSignalHandler;
 import jnr.posix.Timeval;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -35,8 +35,7 @@ import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.control.ThreadExitException;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.platform.posix.SigAction;
-
+import org.truffleruby.platform.TruffleNFIPlatform;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -99,19 +98,25 @@ public class ThreadManager {
         return object;
     }
 
-    private static final LibCSignalHandler EMPTY_HANDLER = sig -> {
-        // Empty
-    };
-
     private static void setupSignalHandler(RubyContext context) {
-        int flags = 0; // NO SA_RESTART so we can interrupt blocking syscalls.
-        final SigAction action = context.getNativePlatform().createSigAction(EMPTY_HANDLER, flags);
-        if (!Signal.SIGVTALRM.defined()) {
-            throw new UnsupportedOperationException("SIGVTALRM not defined");
-        }
-        int result = context.getNativePlatform().getThreads().sigaction(Signal.SIGVTALRM.intValue(), action, null);
-        if (result != 0) {
-            throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
+        TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
+        if (nfi != null) {
+            TruffleObject libC = nfi.getDefaultLibrary();
+            // We use abs() as a function taking a int and having no side effects
+            TruffleObject abs = nfi.lookup(libC, "abs");
+            TruffleObject sigaction = (TruffleObject) nfi.invoke(nfi.lookup(libC, "sigaction"), "bind", "(SINT32,POINTER,POINTER):SINT32");
+
+            // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
+            long structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs));
+
+            if (!Signal.SIGVTALRM.defined()) {
+                throw new UnsupportedOperationException("SIGVTALRM not defined");
+            }
+
+            int result = (int) nfi.execute(sigaction, Signal.SIGVTALRM.intValue(), structSigAction, 0L);
+            if (result != 0) {
+                throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
+            }
         }
     }
 

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.platform.solaris;
 
-import org.truffleruby.platform.posix.SigAction;
 import org.truffleruby.platform.posix.Threads;
 
 public interface SolarisThreads {
@@ -21,9 +20,6 @@ public interface SolarisThreads {
 
     // int pthread_kill(pthread_t thread, int sig);
     int pthread_kill(int thread, int sig);
-
-    // int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
-    int sigaction(int signum, SigAction act, SigAction oldAct);
 
 }
 
@@ -41,10 +37,6 @@ class SolarisThreadsImplementation implements Threads {
 
     public int pthread_kill(long thread, int sig) {
         return nativeThreads.pthread_kill((int) thread, sig);
-    }
-
-    public int sigaction(int signum, SigAction act, SigAction oldAct) {
-        return nativeThreads.sigaction(signum, act, oldAct);
     }
 
 }

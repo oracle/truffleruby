@@ -10,7 +10,6 @@
 package org.truffleruby.platform.java;
 
 import jnr.ffi.provider.MemoryManager;
-import jnr.posix.LibC.LibCSignalHandler;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
@@ -18,11 +17,11 @@ import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
+import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.linux.LinuxRubiniusConfiguration;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.MallocFree;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
-import org.truffleruby.platform.posix.SigAction;
 import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.TrufflePosix;
@@ -52,6 +51,11 @@ public class JavaPlatform implements NativePlatform {
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         LinuxRubiniusConfiguration.load(rubiniusConfiguration, context); // Just load the Linux one - let errors happen later
+    }
+
+    @Override
+    public TruffleNFIPlatform getTruffleNFI() {
+        return null;
     }
 
     @Override
@@ -105,8 +109,8 @@ public class JavaPlatform implements NativePlatform {
     }
 
     @Override
-    public SigAction createSigAction(LibCSignalHandler handler, int flags) {
-        return null;
+    public long createSigAction(long handler) {
+        return 0L;
     }
 
     // Since JavaPlatform does not do any native call, there is no need to interrupt with a native signal.
@@ -117,10 +121,6 @@ public class JavaPlatform implements NativePlatform {
         }
 
         public int pthread_kill(long thread, int sig) {
-            return 0;
-        }
-
-        public int sigaction(int signum, SigAction act, SigAction oldAct) {
             return 0;
         }
 

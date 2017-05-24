@@ -12,7 +12,6 @@ package org.truffleruby.platform.linux;
 import jnr.ffi.LibraryLoader;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
-import jnr.posix.LibC.LibCSignalHandler;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
@@ -20,13 +19,13 @@ import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
+import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.java.JavaProcessName;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.MallocFree;
 import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
-import org.truffleruby.platform.posix.SigAction;
 import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.TrufflePosix;
 import org.truffleruby.platform.posix.TrufflePosixHandler;
@@ -35,6 +34,7 @@ import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 
 public class LinuxPlatform implements NativePlatform {
 
+    private final TruffleNFIPlatform nfi;
     private final TrufflePosix posix;
     private final MemoryManager memoryManager;
     private final SignalManager signalManager;
@@ -46,6 +46,7 @@ public class LinuxPlatform implements NativePlatform {
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public LinuxPlatform(RubyContext context) {
+        nfi = new TruffleNFIPlatform(context);
         posix = new JNRTrufflePosix(context, POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context)));
         memoryManager = Runtime.getSystemRuntime().getMemoryManager();
         signalManager = new SunMiscSignalManager();
@@ -57,6 +58,11 @@ public class LinuxPlatform implements NativePlatform {
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         LinuxRubiniusConfiguration.load(rubiniusConfiguration, context);
+    }
+
+    @Override
+    public TruffleNFIPlatform getTruffleNFI() {
+        return nfi;
     }
 
     @Override
@@ -110,11 +116,10 @@ public class LinuxPlatform implements NativePlatform {
     }
 
     @Override
-    public SigAction createSigAction(LibCSignalHandler handler, int flags) {
-        LinuxSigAction sigAction = new LinuxSigAction(Runtime.getSystemRuntime());
-        sigAction.sa_handler.set(handler);
-        sigAction.sa_flags.set(flags);
-        return sigAction;
+    public long createSigAction(long handler) {
+        long structSigAction = nfi.allocate(152); // sizeof(struct sigaction)
+        nfi.putLong(structSigAction + 0, handler); // offsetof(struct sigaction, sa_handler)
+        return structSigAction;
     }
 
 }
