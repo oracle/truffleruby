@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.core.adapaters;
+package org.truffleruby.core.adapters;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;

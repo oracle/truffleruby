@@ -48,7 +48,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.core.adapaters.OutputStreamAdapter;
+import org.truffleruby.core.adapters.OutputStreamAdapter;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.language.NotProvided;

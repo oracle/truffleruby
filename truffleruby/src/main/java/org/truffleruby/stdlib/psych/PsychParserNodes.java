@@ -58,7 +58,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.collections.BoundaryIterable;
-import org.truffleruby.core.adapaters.InputStreamAdapter;
+import org.truffleruby.core.adapters.InputStreamAdapter;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
