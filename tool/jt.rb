@@ -1256,6 +1256,8 @@ module Commands
       metrics_alloc *args
     when 'minheap'
       metrics_minheap *args
+    when 'maxrss'
+      metrics_maxrss *args
     when 'instructions'
       metrics_aot_instructions *args
     when 'time'
@@ -1345,6 +1347,53 @@ module Commands
 
   def can_run_in_heap(heap, *command)
     run("-J-Xmx#{heap}M", *command, {err: '/dev/null', out: '/dev/null', no_print_cmd: true, continue_on_failure: true, timeout: 60})
+  end
+
+  def metrics_maxrss(*args)
+    verify_aot_bin!
+
+    use_json = args.delete '--json'
+    samples = []
+
+    METRICS_REPS.times do
+      Utilities.log '.', "sampling\n"
+
+      max_rss_in_mb = if LINUX
+                        out, err = raw_sh('/usr/bin/time', '-v', '--', ENV['AOT_BIN'], *args, {capture: true, no_print_cmd: true})
+                        err =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
+                        Integer($~[:max_rss_in_kb]) / 1024.0
+                      elsif MAC
+                        out, err = raw_sh('/usr/bin/time', '-l', '--', ENV['AOT_BIN'], *args, {capture: true, no_print_cmd: true})
+                        err =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
+                        Integer($~[:max_rss_in_bytes]) / 1024.0 / 1024.0
+                      else
+                        raise "Can't measure RSS on this platform."
+                      end
+
+      samples.push(maxrss: max_rss_in_mb)
+    end
+    Utilities.log "\n", nil
+
+    results = {}
+    samples[0].each_key do |region|
+      region_samples = samples.map { |s| s[region] }
+      mean = region_samples.inject(:+) / samples.size
+      human = "#{region} #{mean.round(2)} MB"
+      results[region] = {
+          samples: region_samples,
+          mean: mean,
+          human: human
+      }
+      if use_json
+        file = STDERR
+      else
+        file = STDOUT
+      end
+      file.puts region[/\s*/] + human
+    end
+    if use_json
+      puts JSON.generate(Hash[results.map { |key, values| [key, values] }])
+    end
   end
 
   def metrics_aot_instructions(*args)

@@ -293,6 +293,8 @@ svm-metrics: {
     ${bench.cmd} [instructions]
   ] ${post-process-and-upload-results-wait} [
     ${bench.cmd} [time, --, --aot]
+  ] ${post-process-and-upload-results-wait} [
+    ${bench.cmd} [maxrss]
   ] ${post-process-and-upload-results}
   timelimit: "00:25:00"
 }
