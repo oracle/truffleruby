@@ -96,7 +96,7 @@ public class RubyRootNode extends RootNode {
         return needsCallerAssumption;
     }
 
-    public synchronized void replaceAndInvalidateNeedsCallerAssumption(Assumption assumption) {
+    public synchronized void invalidateNeedsCallerAssumption(Assumption assumption) {
         Assumption oldAssumption = needsCallerAssumption;
         needsCallerAssumption = Truffle.getRuntime().createAssumption();
         oldAssumption.invalidate();
