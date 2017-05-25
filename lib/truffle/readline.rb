@@ -47,12 +47,12 @@ module Readline
     Truffle.invoke_primitive :method_unimplement, method(method_name)
   end
 
-  def input=(input)
+  def self.input=(input)
     # TODO (nirvdrum 20-May-16): This should do something functional.
     nil
   end
 
-  def output=(output)
+  def self.output=(output)
     # TODO (nirvdrum 20-May-16): This should do something functional.
     nil
   end
