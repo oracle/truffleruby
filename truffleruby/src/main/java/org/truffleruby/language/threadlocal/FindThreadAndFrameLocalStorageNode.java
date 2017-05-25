@@ -63,13 +63,13 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
 
         public static StorageInFrameFinder of(RubyContext context, Frame aFrame, String variableName) {
             MaterializedFrame callerFrame = aFrame.materialize();
-            FrameDescriptor fd = callerFrame.getFrameDescriptor();
+            FrameDescriptor descriptor = callerFrame.getFrameDescriptor();
 
             int depth = getVariableDeclarationFrameDepth(callerFrame, variableName);
-            MaterializedFrame mf = RubyArguments.getDeclarationFrame(callerFrame, depth);
-            FrameSlot fs = getVariableFrameSlotWrite(mf, variableName);
-            Object defaultValue = mf.getFrameDescriptor().getDefaultValue();
-            return new StorageInFrameFinder(fd, fs, defaultValue, depth);
+            MaterializedFrame methodFrame = RubyArguments.getDeclarationFrame(callerFrame, depth);
+            FrameSlot slot = getVariableFrameSlotWrite(methodFrame, variableName);
+            Object defaultValue = methodFrame.getFrameDescriptor().getDefaultValue();
+            return new StorageInFrameFinder(descriptor, slot, defaultValue, depth);
         }
     }
 
