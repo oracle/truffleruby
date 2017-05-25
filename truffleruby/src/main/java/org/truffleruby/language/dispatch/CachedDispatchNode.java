@@ -88,20 +88,19 @@ public abstract class CachedDispatchNode extends DispatchNode {
     }
 
     public void startSendingOwnFrame() {
-        assert sendsFrame != SendsFrame.CALLER_FRAME;
-        if (sendsFrame == SendsFrame.NO_FRAME) {
+        if (getContext().getCallStack().callerIsSend()) {
+            assert sendsFrame != SendsFrame.MY_FRAME;
+            startSendingFrame(SendsFrame.CALLER_FRAME);
+        } else {
+            assert sendsFrame != SendsFrame.CALLER_FRAME;
             startSendingFrame(SendsFrame.MY_FRAME);
         }
     }
 
-    public void startSendingCallerFrame(CallerFrameAccess access) {
-        assert sendsFrame != SendsFrame.MY_FRAME;
-        if (sendsFrame == SendsFrame.NO_FRAME) {
-            startSendingFrame(SendsFrame.CALLER_FRAME);
-        }
-    }
-
     private void startSendingFrame(SendsFrame frameToSend) {
+        if (sendsFrame != SendsFrame.NO_FRAME) {
+            return;
+        }
         assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
         this.sendsFrame = frameToSend;
         if (frameToSend == SendsFrame.CALLER_FRAME) {
