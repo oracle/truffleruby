@@ -65,7 +65,9 @@ public class TruffleNFIPlatform {
     }
 
     public long allocate(long bytes) {
-        return UNSAFE.allocateMemory(bytes);
+        final long address = UNSAFE.allocateMemory(bytes);
+        UNSAFE.setMemory(address, bytes, (byte) 0);
+        return address;
     }
 
     public void putLong(long address, long value) {
