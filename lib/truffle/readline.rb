@@ -39,7 +39,6 @@ module Readline
     special_prefixes=
     vi_editing_mode
     vi_editing_mode?
-    set_screen_size
   ].each do |method_name|
     define_singleton_method(method_name) do |*|
       raise NotImplementedError, "function Readline.#{method_name}() is unimplemented on this machine"
