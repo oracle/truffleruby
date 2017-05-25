@@ -99,8 +99,8 @@ public abstract class ModuleOperations {
 
         // Look in the current module
         ModuleFields fields = Layouts.MODULE.getFields(module);
-        RubyConstant constant = fields.getConstant(name);
         assumptions.add(fields.getConstantsUnmodifiedAssumption());
+        RubyConstant constant = fields.getConstant(name);
         if (constant != null) {
             return new ConstantLookupResult(constant, toArray(assumptions));
         }
@@ -108,8 +108,8 @@ public abstract class ModuleOperations {
         // Look in ancestors
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).parentAncestors()) {
             fields = Layouts.MODULE.getFields(ancestor);
-            constant = fields.getConstant(name);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
+            constant = fields.getConstant(name);
             if (constant != null) {
                 return new ConstantLookupResult(constant, toArray(assumptions));
             }
@@ -125,8 +125,8 @@ public abstract class ModuleOperations {
             final DynamicObject objectClass = context.getCoreLibrary().getObjectClass();
 
             ModuleFields fields = Layouts.MODULE.getFields(objectClass);
-            RubyConstant constant = fields.getConstant(name);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
+            RubyConstant constant = fields.getConstant(name);
             if (constant != null) {
                 return new ConstantLookupResult(constant, toArray(assumptions));
             }
@@ -134,8 +134,8 @@ public abstract class ModuleOperations {
 
             for (DynamicObject ancestor : Layouts.MODULE.getFields(objectClass).prependedAndIncludedModules()) {
                 fields = Layouts.MODULE.getFields(ancestor);
-                constant = fields.getConstant(name);
                 assumptions.add(fields.getConstantsUnmodifiedAssumption());
+                constant = fields.getConstant(name);
                 if (constant != null) {
                     return new ConstantLookupResult(constant, toArray(assumptions));
                 }
@@ -162,8 +162,8 @@ public abstract class ModuleOperations {
         // Look in lexical scope
         while (lexicalScope != context.getRootLexicalScope()) {
             ModuleFields fields = Layouts.MODULE.getFields(lexicalScope.getLiveModule());
-            RubyConstant constant = fields.getConstant(name);
             assumptions.add(fields.getConstantsUnmodifiedAssumption());
+            RubyConstant constant = fields.getConstant(name);
             if (constant != null) {
                 return new ConstantLookupResult(constant, toArray(assumptions));
             }
@@ -303,9 +303,8 @@ public abstract class ModuleOperations {
         // Look in ancestors
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
             ModuleFields fields = Layouts.MODULE.getFields(ancestor);
-            InternalMethod method = fields.getMethod(name);
             assumptions.add(fields.getMethodsUnmodifiedAssumption());
-
+            InternalMethod method = fields.getMethod(name);
             if (method != null) {
                 return new MethodLookupResult(method, toArray(assumptions));
             }
@@ -338,9 +337,8 @@ public abstract class ModuleOperations {
                 foundDeclaringModule = true;
             } else if (foundDeclaringModule) {
                 ModuleFields fields = Layouts.MODULE.getFields(module);
-                InternalMethod method = fields.getMethod(name);
                 assumptions.add(fields.getMethodsUnmodifiedAssumption());
-
+                InternalMethod method = fields.getMethod(name);
                 if (method != null) {
                     return new MethodLookupResult(method, toArray(assumptions));
                 }
