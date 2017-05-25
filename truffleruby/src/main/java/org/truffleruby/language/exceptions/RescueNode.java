@@ -50,10 +50,14 @@ public abstract class RescueNode extends RubyNode {
         if (callTripleEqualsNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callTripleEqualsNode = insert(DispatchHeadNodeFactory.createMethodCall());
+        }
+        if (booleanCastNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             booleanCastNode = insert(BooleanCastNodeGen.create(null));
         }
 
-        return booleanCastNode.executeToBoolean(callTripleEqualsNode.call(frame, handlingClass, "===", exception));
+        final Object matches = callTripleEqualsNode.call(frame, handlingClass, "===", exception);
+        return booleanCastNode.executeToBoolean(matches);
     }
 
 }
