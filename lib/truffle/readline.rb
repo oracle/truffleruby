@@ -13,8 +13,6 @@ module Readline
   HISTORY = Object.new
   VERSION = 'JLine wrapper'
 
-  module_function
-
   %i[
     basic_quote_characters
     basic_quote_characters=
@@ -43,7 +41,7 @@ module Readline
     vi_editing_mode?
     set_screen_size
   ].each do |method_name|
-    define_method(method_name) do |*|
+    define_singleton_method(method_name) do |*|
       raise "function Readline.#{method_name}() is unimplemented on this machine"
     end
   end
