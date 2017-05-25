@@ -71,24 +71,25 @@ public class InternalMethod implements ObjectGraphNode {
             LexicalScope lexicalScope,
             String name,
             DynamicObject declaringModule,
-            Visibility visibility, CallTarget callTarget) {
+            Visibility visibility,
+            CallTarget callTarget) {
         this(context, sharedMethodInfo, lexicalScope, name, declaringModule, visibility, false, null, callTarget, null, null);
     }
 
     public InternalMethod(
-        RubyContext context,
-        SharedMethodInfo sharedMethodInfo,
-        LexicalScope lexicalScope,
-        String name,
-        DynamicObject declaringModule,
-        Visibility visibility,
-        boolean undefined,
-        DynamicObject proc,
-        CallTarget callTarget,
-        DynamicObject capturedBlock,
-        DynamicObject capturedDefaultDefinee) {
+            RubyContext context,
+            SharedMethodInfo sharedMethodInfo,
+            LexicalScope lexicalScope,
+            String name,
+            DynamicObject declaringModule,
+            Visibility visibility,
+            boolean undefined,
+            DynamicObject proc,
+            CallTarget callTarget,
+            DynamicObject capturedBlock,
+            DynamicObject capturedDefaultDefinee) {
         this(sharedMethodInfo, lexicalScope, name, declaringModule, visibility, undefined,
-            !context.getCoreLibrary().isLoaded(), proc, callTarget, capturedBlock, capturedDefaultDefinee);
+                !context.getCoreLibrary().isLoaded(), proc, callTarget, capturedBlock, capturedDefaultDefinee);
     }
 
     private InternalMethod(
