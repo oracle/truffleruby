@@ -232,7 +232,7 @@ module Process
   end
 
   def self.fork
-    raise 'unsupported'
+    raise NotImplementedError, 'fork is not available'
   end
 
   def self.times

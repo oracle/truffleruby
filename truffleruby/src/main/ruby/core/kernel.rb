@@ -635,7 +635,7 @@ module Kernel
   module_function :global_variables
 
   def fork
-    raise NotImplementedError.new('fork is not available')
+    raise NotImplementedError, 'fork is not available'
   end
   module_function :fork
 
