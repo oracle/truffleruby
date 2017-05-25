@@ -171,7 +171,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
             needsCallerAssumption.check();
         } catch (InvalidAssumptionException e) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            return resetAndCa1ll(
+            return resetAndCall(
                     callNode,
                     frame,
                     method,
@@ -187,7 +187,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
         return callNode.call(RubyArguments.pack(null, callerFrame, method, DeclarationContext.METHOD, null, receiver, block, arguments));
     }
 
-    private Object resetAndCa1ll(DirectCallNode callNode, VirtualFrame frame, InternalMethod method, Object receiver, DynamicObject block, Object[] arguments) {
+    private Object resetAndCall(DirectCallNode callNode, VirtualFrame frame, InternalMethod method, Object receiver, DynamicObject block, Object[] arguments) {
         resetNeedsCallerAssumption();
         reassessSplittingInliningStrategy();
         return callWithoutAssumption(callNode, frame, method, receiver, block, arguments);
