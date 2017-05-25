@@ -101,6 +101,10 @@ public class ThreadManager {
     private static void setupSignalHandler(RubyContext context) {
         TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
         if (nfi != null) {
+            if (!Signal.SIGVTALRM.defined()) {
+                throw new UnsupportedOperationException("SIGVTALRM not defined");
+            }
+
             TruffleObject libC = nfi.getDefaultLibrary();
             // We use abs() as a function taking a int and having no side effects
             TruffleObject abs = nfi.lookup(libC, "abs");
@@ -108,14 +112,13 @@ public class ThreadManager {
 
             // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
             long structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs));
-
-            if (!Signal.SIGVTALRM.defined()) {
-                throw new UnsupportedOperationException("SIGVTALRM not defined");
-            }
-
-            int result = (int) nfi.execute(sigaction, Signal.SIGVTALRM.intValue(), structSigAction, 0L);
-            if (result != 0) {
-                throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
+            try {
+                int result = (int) nfi.execute(sigaction, Signal.SIGVTALRM.intValue(), structSigAction, 0L);
+                if (result != 0) {
+                    throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
+                }
+            } finally {
+                context.getNativePlatform().getTruffleNFI().free(structSigAction);
             }
         }
     }

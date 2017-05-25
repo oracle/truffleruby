@@ -70,6 +70,10 @@ public class TruffleNFIPlatform {
         return address;
     }
 
+    public void free(long address) {
+        UNSAFE.freeMemory(address);
+    }
+
     public void putLong(long address, long value) {
         UNSAFE.putLong(address, value);
     }
