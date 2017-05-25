@@ -515,7 +515,7 @@ public abstract class KernelNodes {
         // the shapes of declaration frames made in other areas. Specifically other code in the
         // runtime assumes that a frame with a particular shape will always have a chain of
         // declaration frame also of stable shapes. This assumption could be broken by code such
-        // as eval("binding") which does not depend on a declaration context from the parses piont
+        // as eval("binding") which does not depend on a declaration context from the parses point
         // of view but could produce frames that broke the assumption.
         @Specialization(guards = {
                 "isRubyString(source)",
@@ -530,7 +530,7 @@ public abstract class KernelNodes {
                 NotProvided line,
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("callerFrameNode.execute(frame).getFrameDescriptor()") FrameDescriptor callerDescriptor,
-                @Cached("compileSource(frame, source, callerFrameNode.execute(frame).materialize())") RootNodeWrapper cachedRootNode,
+                @Cached("compileSource(source, callerFrameNode.execute(frame).materialize())") RootNodeWrapper cachedRootNode,
                 @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
             final MaterializedFrame parentFrame = callerFrameNode.execute(frame).materialize();
@@ -579,14 +579,13 @@ public abstract class KernelNodes {
                 "bindingDescriptor == getBindingDescriptor(binding)"
         }, limit = "getCacheLimit()")
         public Object evalBindingCached(
-                VirtualFrame frame,
                 DynamicObject source,
                 DynamicObject binding,
                 NotProvided file,
                 NotProvided line,
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(frame, source, getBindingFrame(binding))") RootNodeWrapper cachedRootNode,
+                @Cached("compileSource(source, getBindingFrame(binding))") RootNodeWrapper cachedRootNode,
                 @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
             final MaterializedFrame parentFrame = BindingNodes.getTopFrame(binding);
@@ -699,7 +698,7 @@ public abstract class KernelNodes {
             return new RootNodeWrapper(translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
         }
 
-        protected RootNodeWrapper compileSource(VirtualFrame frame, DynamicObject sourceText, MaterializedFrame parentFrame) {
+        protected RootNodeWrapper compileSource(DynamicObject sourceText, MaterializedFrame parentFrame) {
             assert RubyGuards.isRubyString(sourceText);
 
             final Encoding encoding = Layouts.STRING.getRope(sourceText).getEncoding();
@@ -728,9 +727,7 @@ public abstract class KernelNodes {
 
         protected boolean assignsNoNewVariables(RootNodeWrapper rootNode) {
             FrameDescriptor descriptor = rootNode.getRootNode().getFrameDescriptor();
-            // All frames associated with our root nodes will contain self, which we don't need to
-            // care about.
-            return descriptor.getSize() == 1;
+            return descriptor.getSize() == 1 && "self".equals(descriptor.getSlots().get(0));
         }
     }
 
