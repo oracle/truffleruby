@@ -97,14 +97,14 @@ public abstract class CachedDispatchNode extends DispatchNode {
         }
     }
 
-    private void startSendingFrame(SendsFrame frameToSend) {
+    private synchronized void startSendingFrame(SendsFrame frameToSend) {
         if (sendsFrame != SendsFrame.NO_FRAME) {
             return;
         }
         assert needsCallerAssumption != AlwaysValidAssumption.INSTANCE;
         this.sendsFrame = frameToSend;
         if (frameToSend == SendsFrame.CALLER_FRAME) {
-            this.readCaller = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
+            this.readCaller = insert(new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE));
         }
         Node root = getRootNode();
         if (root instanceof RubyRootNode) {
