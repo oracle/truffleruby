@@ -234,6 +234,7 @@ module Process
   def self.fork
     raise NotImplementedError, 'fork is not available'
   end
+  Truffle.invoke_primitive :method_unimplement, method(:fork)
 
   def self.times
     Struct::Tms.new(*cpu_times)

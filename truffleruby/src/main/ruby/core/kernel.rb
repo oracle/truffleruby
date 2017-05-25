@@ -638,5 +638,7 @@ module Kernel
     raise NotImplementedError, 'fork is not available'
   end
   module_function :fork
+  Truffle.invoke_primitive :method_unimplement, method(:fork)
+  Truffle.invoke_primitive :method_unimplement, nil.method(:fork)
 
 end
