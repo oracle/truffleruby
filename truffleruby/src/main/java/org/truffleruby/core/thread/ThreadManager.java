@@ -296,14 +296,12 @@ public class ThreadManager {
         assert unblockingAction != null;
         final Thread thread = Layouts.THREAD.getThread(getCurrentThread());
 
-        return runUntilResult(currentNode, () -> {
-            final UnblockingAction oldUnblockingAction = unblockingActions.put(thread, unblockingAction);
-            try {
-                return blockingAction.block();
-            } finally {
-                unblockingActions.put(thread, oldUnblockingAction);
-            }
-        });
+        final UnblockingAction oldUnblockingAction = unblockingActions.put(thread, unblockingAction);
+        try {
+            return runUntilResult(currentNode, blockingAction);
+        } finally {
+            unblockingActions.put(thread, oldUnblockingAction);
+        }
     }
 
     /**
