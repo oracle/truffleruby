@@ -1102,9 +1102,11 @@ public class CExtNodes {
 
         @Specialization
         public Object executeWithProtect(DynamicObject block,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("create()") BranchProfile noExceptionProfile) {
             try {
                 yield(block);
+                noExceptionProfile.enter();
                 return nil();
             } catch (Throwable e) {
                 exceptionProfile.enter();
