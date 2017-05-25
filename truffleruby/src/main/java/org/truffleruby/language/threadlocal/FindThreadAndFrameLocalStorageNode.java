@@ -112,11 +112,17 @@ public abstract class FindThreadAndFrameLocalStorageNode extends RubyBaseNode {
     }
 
     private static FrameSlot getVariableSlot(Frame frame, String variableName) {
-        return frame.getFrameDescriptor().findFrameSlot(variableName);
+        final FrameDescriptor descriptor = frame.getFrameDescriptor();
+        synchronized (descriptor) {
+            return descriptor.findFrameSlot(variableName);
+        }
     }
 
     private static FrameSlot getVariableFrameSlotWrite(MaterializedFrame frame, String variableName) {
-        return frame.getFrameDescriptor().findOrAddFrameSlot(variableName, FrameSlotKind.Object);
+        final FrameDescriptor descriptor = frame.getFrameDescriptor();
+        synchronized (descriptor) {
+            return descriptor.findOrAddFrameSlot(variableName, FrameSlotKind.Object);
+        }
     }
 
     @TruffleBoundary
