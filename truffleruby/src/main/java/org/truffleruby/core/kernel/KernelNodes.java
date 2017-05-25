@@ -483,6 +483,7 @@ public abstract class KernelNodes {
 
         @Child private CallDispatchHeadNode toStr;
         @Child private BindingNode bindingNode;
+        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
 
         @CreateCast("source")
         public RubyNode coerceSourceToString(RubyNode source) {
@@ -510,10 +511,16 @@ public abstract class KernelNodes {
             }
         }
 
+        // We always cache against the caller's frame descriptor to avoid breaking assumptions about
+        // the shapes of declaration frames made in other areas. Specifically other code in the
+        // runtime assumes that a frame with a particular shape will always have a chain of
+        // declaration frame also of stable shapes. This assumption could be broken by code such
+        // as eval("binding") which does not depend on a declaration context from the parses point
+        // of view but could produce frames that broke the assumption.
         @Specialization(guards = {
                 "isRubyString(source)",
                 "ropesEqual(source, cachedSource)",
-                "!parseDependsOnDeclarationFrame(cachedRootNode)"
+                "callerDescriptor == callerFrameNode.execute(frame).getFrameDescriptor()",
         }, limit = "getCacheLimit()")
         public Object evalNoBindingCached(
                 VirtualFrame frame,
@@ -522,13 +529,11 @@ public abstract class KernelNodes {
                 NotProvided file,
                 NotProvided line,
                 @Cached("privatizeRope(source)") Rope cachedSource,
-                @Cached("compileSource(frame, source)") RootNodeWrapper cachedRootNode,
+                @Cached("callerFrameNode.execute(frame).getFrameDescriptor()") FrameDescriptor callerDescriptor,
+                @Cached("compileSource(source, callerFrameNode.execute(frame).materialize())") RootNodeWrapper cachedRootNode,
                 @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
-                @Cached("create(cachedCallTarget)") DirectCallNode callNode
-        ) {
-            final DynamicObject callerBinding = getCallerBinding(frame);
-
-            final MaterializedFrame parentFrame = Layouts.BINDING.getFrame(callerBinding);
+                @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
+            final MaterializedFrame parentFrame = callerFrameNode.execute(frame).materialize();
             final Object callerSelf = RubyArguments.getSelf(frame);
 
             final InternalMethod method = new InternalMethod(
@@ -564,6 +569,38 @@ public abstract class KernelNodes {
         public Object evalNilBinding(VirtualFrame frame, DynamicObject source, DynamicObject noBinding, DynamicObject file, Object unusedLine,
                 @Cached("create()") IndirectCallNode callNode) {
             return evalNoBindingUncached(frame, source, NotProvided.INSTANCE, NotProvided.INSTANCE, NotProvided.INSTANCE, callNode);
+        }
+
+        @Specialization(guards = {
+                "isRubyString(source)",
+                "ropesEqual(source, cachedSource)",
+                "isRubyBinding(binding)",
+                "assignsNoNewVariables(cachedRootNode)",
+                "bindingDescriptor == getBindingDescriptor(binding)"
+        }, limit = "getCacheLimit()")
+        public Object evalBindingCached(
+                DynamicObject source,
+                DynamicObject binding,
+                NotProvided file,
+                NotProvided line,
+                @Cached("privatizeRope(source)") Rope cachedSource,
+                @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
+                @Cached("compileSource(source, getBindingFrame(binding))") RootNodeWrapper cachedRootNode,
+                @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
+                @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
+            final MaterializedFrame parentFrame = BindingNodes.getTopFrame(binding);
+            final Object bindingSelf = RubyArguments.getSelf(parentFrame);
+
+            final InternalMethod method = new InternalMethod(
+                    getContext(),
+                    cachedRootNode.getRootNode().getSharedMethodInfo(),
+                    RubyArguments.getMethod(parentFrame).getLexicalScope(),
+                    cachedRootNode.getRootNode().getSharedMethodInfo().getName(),
+                    RubyArguments.getMethod(parentFrame).getDeclaringModule(),
+                    Visibility.PUBLIC,
+                    cachedCallTarget);
+
+            return callNode.call(RubyArguments.pack(parentFrame, null, method, RubyArguments.getDeclarationContext(parentFrame), null, bindingSelf, null, new Object[]{}));
         }
 
         @Specialization(guards = {
@@ -661,18 +698,37 @@ public abstract class KernelNodes {
             return new RootNodeWrapper(translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
         }
 
-        protected boolean parseDependsOnDeclarationFrame(RootNodeWrapper rootNode) {
-            return rootNode.getRootNode().needsDeclarationFrame();
+        protected RootNodeWrapper compileSource(DynamicObject sourceText, MaterializedFrame parentFrame) {
+            assert RubyGuards.isRubyString(sourceText);
+
+            final Encoding encoding = Layouts.STRING.getRope(sourceText).getEncoding();
+            final Source source = Source.newBuilder(sourceText.toString()).name("(eval)").mimeType(RubyLanguage.MIME_TYPE).build();
+
+            final TranslatorDriver translator = new TranslatorDriver(getContext());
+
+            return new RootNodeWrapper(translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
         }
 
         protected CallTarget createCallTarget(RootNodeWrapper rootNode) {
             return Truffle.getRuntime().createCallTarget(rootNode.rootNode);
         }
 
+        protected FrameDescriptor getBindingDescriptor(DynamicObject binding) {
+            return BindingNodes.getFrameDescriptor(binding);
+        }
+
+        protected MaterializedFrame getBindingFrame(DynamicObject binding) {
+            return BindingNodes.getTopFrame(binding);
+        }
+
         protected int getCacheLimit() {
             return getContext().getOptions().EVAL_CACHE;
         }
 
+        protected boolean assignsNoNewVariables(RootNodeWrapper rootNode) {
+            FrameDescriptor descriptor = rootNode.getRootNode().getFrameDescriptor();
+            return descriptor.getSize() == 1 && "self".equals(descriptor.getSlots().get(0));
+        }
     }
 
     @CoreMethod(names = "freeze")

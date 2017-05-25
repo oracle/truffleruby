@@ -54,6 +54,10 @@ public abstract class BindingNodes {
         return Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), frame, null);
     }
 
+    public static DynamicObject createBinding(RubyContext context, MaterializedFrame frame, FrameDescriptor extrasDescriptor) {
+        return Layouts.BINDING.createBinding(context.getCoreLibrary().getBindingFactory(), frame, newExtrasFrame(frame, extrasDescriptor));
+    }
+
     @TruffleBoundary
     public static FrameDescriptor newFrameDescriptor(RubyContext context) {
         return new FrameDescriptor(context.getCoreLibrary().getNilObject());
@@ -85,6 +89,11 @@ public abstract class BindingNodes {
     }
 
     public static MaterializedFrame newExtrasFrame(RubyContext context, MaterializedFrame parent) {
+        FrameDescriptor descriptor = newFrameDescriptor(context);
+        return newExtrasFrame(parent, descriptor);
+    }
+
+    private static MaterializedFrame newExtrasFrame(MaterializedFrame parent, FrameDescriptor descriptor) {
         final MaterializedFrame frame = Truffle.getRuntime().createMaterializedFrame(
                 RubyArguments.pack(
                         parent,
@@ -95,7 +104,7 @@ public abstract class BindingNodes {
                         RubyArguments.getSelf(parent),
                         RubyArguments.getBlock(parent),
                         RubyArguments.getArguments(parent)),
-                newFrameDescriptor(context));
+                descriptor);
         return frame;
     }
 

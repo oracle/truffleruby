@@ -12,7 +12,7 @@ example "x = 14; binding.local_variable_get(:x)", 14
 # TODO DM 12-Apr-17 Proc creation is not constant, so bindings on procs cannot be yet.
 
 # Proc#binding
-tagged example "x = 14; p = Proc.new { }; p.binding.local_variable_get(:x)", 14
+example "x = 14; p = Proc.new { }; p.binding.local_variable_get(:x)", 14
 
 # set + get
 tagged example "b = binding; b.local_variable_set(:x, 14); b.local_variable_get(:x)", 14
