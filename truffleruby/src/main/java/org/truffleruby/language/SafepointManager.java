@@ -105,7 +105,7 @@ public class SafepointManager {
         }
     }
 
-    private static final int WAIT_TIME = 5;
+    private static final int WAIT_TIME = 5; // seconds
 
     @TruffleBoundary
     private SafepointAction step(Node currentNode, boolean isDrivingThread) {
@@ -114,17 +114,25 @@ public class SafepointManager {
         // Wait for other threads to reach their safepoint
         if (isDrivingThread) {
             int phase = phaser.arrive();
+            long t0 = System.nanoTime();
+            long max = t0 + WAIT_TIME * 1_000_000_000L;
             while (true) {
                 try {
-                    phaser.awaitAdvanceInterruptibly(phase, WAIT_TIME, TimeUnit.SECONDS);
+                    phaser.awaitAdvanceInterruptibly(phase, 100, TimeUnit.MILLISECONDS);
                     break;
                 } catch (InterruptedException e) {
                     // retry
                 } catch (TimeoutException e) {
-                    System.err.println("WARNING: Waited " + WAIT_TIME + " seconds in the SafepointManager but other threads did not arrive.\n" +
-                            "Some thread is likely doing some blocking native call which should be replaced with a non-blocking call. Check with jstack.");
-                    phaser.awaitAdvance(phase);
-                    break;
+                    if (System.nanoTime() >= max) {
+                        System.err.println("WARNING: Waited " + WAIT_TIME + " seconds in the SafepointManager but other threads did not arrive.\n" +
+                                "A thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult(). Check with jstack.");
+                        phaser.awaitAdvance(phase);
+                        break;
+                    } else {
+                        // Retry interrupting other threads, as they might not have been yet
+                        // in the blocking call when the signal was sent.
+                        interruptOtherThreads();
+                    }
                 }
             }
 
