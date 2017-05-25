@@ -249,7 +249,7 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = "block_given?", isModuleFunction = true, needsCallerFrame = CallerFrameAccess.ARGUMENTS)
+    @CoreMethod(names = "block_given?", isModuleFunction = true)
     public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
 
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.ARGUMENTS);

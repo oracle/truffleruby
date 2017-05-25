@@ -380,8 +380,6 @@ public abstract class ModuleNodes {
                     accessorName,
                     "attr_" + (isGetter ? "reader" : "writer"),
                     null,
-                    false,
-                    false,
                     false);
 
             final RubyNode self = new ProfileArgumentNode(new ReadSelfNode());

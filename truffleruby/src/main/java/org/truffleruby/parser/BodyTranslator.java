@@ -989,8 +989,6 @@ public class BodyTranslator extends Translator {
                     name,
                     sclass ? "class body" : "module body",
                     null,
-                    false,
-                    false,
                     false);
 
             final ReturnID returnId;
@@ -1394,9 +1392,7 @@ public class BodyTranslator extends Translator {
                 methodName,
                 null,
                 argumentDescriptors,
-                alwaysClone,
-                false,
-                false);
+                alwaysClone);
 
         final TranslatorEnvironment newEnvironment = new TranslatorEnvironment(
                         context, environment, environment.getParseEnvironment(), environment.getParseEnvironment().allocateReturnID(), true, true, false, sharedMethodInfo, methodName, 0, null);
@@ -1956,8 +1952,6 @@ public class BodyTranslator extends Translator {
                 null,
                 isLambda ? "lambda" : getIdentifierInNewEnvironment(true, currentCallMethodName),
                 Helpers.argsNodeToArgumentDescriptors(argsNode),
-                false,
-                false,
                 false);
 
         final String namedMethodName = isLambda ? sharedMethodInfo.getName(): environment.getNamedMethodName();

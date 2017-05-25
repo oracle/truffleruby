@@ -50,6 +50,11 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
     }
 
     @Override
+    protected void reassessSplittingInliningStrategy() {
+        applySplittingInliningStrategy(callNode, method);
+    }
+
+    @Override
     public boolean guard(Object methodName, Object receiver) {
         return guardName(methodName) &&
                 (receiver instanceof DynamicObject) &&

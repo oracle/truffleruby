@@ -92,5 +92,4 @@ public abstract class DispatchNode extends RubyNode {
     public DispatchAction getDispatchAction() {
         return dispatchAction;
     }
-
 }

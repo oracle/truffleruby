@@ -31,8 +31,6 @@ public class SharedMethodInfo {
     private final String notes;
     private final ArgumentDescriptor[] argumentDescriptors;
     private boolean alwaysClone;
-    private final boolean alwaysInline;
-    private final boolean needsCallerFrame;
     private String descriptiveNameAndSource;
 
     public SharedMethodInfo(
@@ -43,9 +41,7 @@ public class SharedMethodInfo {
             String name,
             String notes,
             ArgumentDescriptor[] argumentDescriptors,
-            boolean alwaysClone,
-            boolean alwaysInline,
-            boolean needsCallerFrame) {
+            boolean alwaysClone) {
         if (argumentDescriptors == null) {
             argumentDescriptors = new ArgumentDescriptor[]{};
         }
@@ -59,8 +55,6 @@ public class SharedMethodInfo {
         this.notes = notes;
         this.argumentDescriptors = argumentDescriptors;
         this.alwaysClone = alwaysClone;
-        this.alwaysInline = alwaysInline;
-        this.needsCallerFrame = needsCallerFrame;
     }
 
     public SourceSection getSourceSection() {
@@ -91,14 +85,6 @@ public class SharedMethodInfo {
         return alwaysClone;
     }
 
-    public boolean shouldAlwaysInline() {
-        return alwaysInline;
-    }
-
-    public boolean needsCallerFrame() {
-        return needsCallerFrame;
-    }
-
     public void setAlwaysClone(boolean alwaysClone) {
         this.alwaysClone = alwaysClone;
     }
@@ -112,9 +98,7 @@ public class SharedMethodInfo {
                 newName,
                 notes,
                 argumentDescriptors,
-                alwaysClone,
-                alwaysInline,
-                needsCallerFrame);
+                alwaysClone);
     }
 
     public String getDescriptiveName() {

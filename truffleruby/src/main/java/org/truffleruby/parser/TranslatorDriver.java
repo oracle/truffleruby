@@ -187,8 +187,6 @@ public class TranslatorDriver {
                 "<main>",
                 null,
                 null,
-                false,
-                false,
                 false);
 
         final boolean topLevel = parserContext == ParserContext.TOP_LEVEL_FIRST || parserContext == ParserContext.TOP_LEVEL;
@@ -322,8 +320,6 @@ public class TranslatorDriver {
                 null,
                 "external",
                 null,
-                false,
-                false,
                 false);
             // TODO(CS): how do we know if the frame is a block or not?
             return new TranslatorEnvironment(context, null, parseEnvironment,
@@ -342,8 +338,6 @@ public class TranslatorDriver {
                     null,
                     "external",
                     null,
-                    false,
-                    false,
                     false);
             final MaterializedFrame parent = RubyArguments.getDeclarationFrame(frame);
             // TODO(CS): how do we know if the frame is a block or not?

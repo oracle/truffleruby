@@ -42,8 +42,6 @@ public @interface CoreMethod {
      */
     boolean isModuleFunction() default false;
 
-    CallerFrameAccess needsCallerFrame() default CallerFrameAccess.NONE;
-
     boolean needsSelf() default true;
 
     int required() default 0;

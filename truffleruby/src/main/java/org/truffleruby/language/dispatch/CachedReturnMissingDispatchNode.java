@@ -42,6 +42,11 @@ public class CachedReturnMissingDispatchNode extends CachedDispatchNode {
     }
 
     @Override
+    protected void reassessSplittingInliningStrategy() {
+        // Do nothing, this node does not split or inline.
+    }
+
+    @Override
     protected boolean guard(Object methodName, Object receiver) {
         return guardName(methodName) &&
                 metaClassNode.executeMetaClass(receiver) == expectedClass;

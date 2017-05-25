@@ -31,6 +31,11 @@ public final class CachedForeignDispatchNode extends CachedDispatchNode {
     }
 
     @Override
+    protected void reassessSplittingInliningStrategy() {
+        // Do nothing, this node doesn't split or inline.
+    }
+
+    @Override
     protected boolean guard(Object methodName, Object receiver) {
         return guardName(methodName) && RubyGuards.isForeignObject(receiver);
     }
