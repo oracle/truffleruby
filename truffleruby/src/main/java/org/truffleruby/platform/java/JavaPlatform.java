@@ -110,7 +110,7 @@ public class JavaPlatform implements NativePlatform {
 
     @Override
     public long createSigAction(long handler) {
-        return 0L;
+        throw new UnsupportedOperationException();
     }
 
     // Since JavaPlatform does not do any native call, there is no need to interrupt with a native signal.
