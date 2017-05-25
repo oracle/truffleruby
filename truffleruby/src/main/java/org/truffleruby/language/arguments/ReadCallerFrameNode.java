@@ -13,8 +13,6 @@ import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CachedDispatchNode;
 
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -45,7 +43,6 @@ public class ReadCallerFrameNode extends RubyNode {
     }
 
     private void replaceDispatchNode() {
-        CompilerAsserts.neverPartOfCompilation("No fast path frame access changes after compilation.");
         Node callerNode = getContext().getCallStack().getCallerNode();
         if (callerNode instanceof DirectCallNode) {
             Node parent = callerNode.getParent();
@@ -57,9 +54,7 @@ public class ReadCallerFrameNode extends RubyNode {
 
     @TruffleBoundary
     private Frame getCallerFrame() {
-        if (!CompilerDirectives.inCompiledCode()) {
-            replaceDispatchNode();
-        }
+        replaceDispatchNode();
         return getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(accessMode.getFrameAccess());
     }
 
