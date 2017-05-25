@@ -25,6 +25,8 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
@@ -249,6 +251,19 @@ public abstract class MethodNodes {
 
         protected int getCacheLimit() {
             return getContext().getOptions().METHOD_TO_PROC_CACHE;
+        }
+
+    }
+
+    @Primitive(name = "method_unimplement")
+    public abstract static class MethodUnimplementNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject methodUnimplement(DynamicObject rubyMethod) {
+            final InternalMethod method = Layouts.METHOD.getMethod(rubyMethod);
+            Layouts.MODULE.getFields(method.getDeclaringModule()).addMethod(
+                    getContext(), this, method.unimplemented());
+            return nil();
         }
 
     }

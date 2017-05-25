@@ -36,6 +36,7 @@ public class InternalMethod implements ObjectGraphNode {
     private final DynamicObject declaringModule;
     private final Visibility visibility;
     private final boolean undefined;
+    private final boolean unimplemented; // similar to MRI's rb_f_notimplement
     private final boolean builtIn;
     private final DynamicObject proc; // only if method is created from a Proc
 
@@ -88,7 +89,7 @@ public class InternalMethod implements ObjectGraphNode {
             CallTarget callTarget,
             DynamicObject capturedBlock,
             DynamicObject capturedDefaultDefinee) {
-        this(sharedMethodInfo, lexicalScope, name, declaringModule, visibility, undefined,
+        this(sharedMethodInfo, lexicalScope, name, declaringModule, visibility, undefined, false,
                 !context.getCoreLibrary().isLoaded(), proc, callTarget, capturedBlock, capturedDefaultDefinee);
     }
 
@@ -99,10 +100,12 @@ public class InternalMethod implements ObjectGraphNode {
             DynamicObject declaringModule,
             Visibility visibility,
             boolean undefined,
+            boolean unimplemented,
             boolean builtIn,
             DynamicObject proc,
             CallTarget callTarget,
-            DynamicObject capturedBlock, DynamicObject capturedDefaultDefinee) {
+            DynamicObject capturedBlock,
+            DynamicObject capturedDefaultDefinee) {
         assert RubyGuards.isRubyModule(declaringModule);
         assert lexicalScope != null;
         this.sharedMethodInfo = sharedMethodInfo;
@@ -111,6 +114,7 @@ public class InternalMethod implements ObjectGraphNode {
         this.name = name;
         this.visibility = visibility;
         this.undefined = undefined;
+        this.unimplemented = unimplemented;
         this.builtIn = builtIn;
         this.proc = proc;
         this.callTarget = callTarget;
@@ -138,6 +142,10 @@ public class InternalMethod implements ObjectGraphNode {
         return undefined;
     }
 
+    public boolean isUnimplemented() {
+        return unimplemented;
+    }
+
     public boolean isBuiltIn() {
         return builtIn;
     }
@@ -159,6 +167,7 @@ public class InternalMethod implements ObjectGraphNode {
                     newDeclaringModule,
                     visibility,
                     undefined,
+                    unimplemented,
                     builtIn,
                     proc,
                     callTarget,
@@ -178,6 +187,7 @@ public class InternalMethod implements ObjectGraphNode {
                     declaringModule,
                     visibility,
                     undefined,
+                    unimplemented,
                     builtIn,
                     proc,
                     callTarget,
@@ -197,6 +207,7 @@ public class InternalMethod implements ObjectGraphNode {
                     declaringModule,
                     newVisibility,
                     undefined,
+                    unimplemented,
                     builtIn,
                     proc,
                     callTarget,
@@ -212,6 +223,23 @@ public class InternalMethod implements ObjectGraphNode {
                 name,
                 declaringModule,
                 visibility,
+                true,
+                unimplemented,
+                builtIn,
+                proc,
+                callTarget,
+                capturedBlock,
+                capturedDefaultDefinee);
+    }
+
+    public InternalMethod unimplemented() {
+        return new InternalMethod(
+                sharedMethodInfo,
+                lexicalScope,
+                name,
+                declaringModule,
+                visibility,
+                undefined,
                 true,
                 builtIn,
                 proc,

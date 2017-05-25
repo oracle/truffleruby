@@ -44,6 +44,8 @@ module Readline
     define_singleton_method(method_name) do |*|
       raise NotImplementedError, "function Readline.#{method_name}() is unimplemented on this machine"
     end
+
+    Truffle.invoke_primitive :method_unimplement, method(method_name)
   end
 
   def input=(input)
