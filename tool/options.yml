@@ -24,7 +24,7 @@ EXTERNAL_ENCODING: [external_encoding, string, null, External encoding]
 POLYGLOT_STDIO: [ployglot.stdio, boolean, true, Use standard IO streams from the PolyglotEngine]
 SYNC_STDIO: [sync.stdio, boolean, true, Sync operations on standard IO streams]
 PLATFORM_USE_JAVA: [platform.use_java, boolean, false, Use a pure-Java platform, so no native POSIX]
-NATIVE_INTERRUPT: [platform.native_interrupt, boolean, true, Use the SIGVTALRM signal to interrupt native blocking calls]
+NATIVE_INTERRUPT: [platform.native_interrupt, boolean, false, Use the SIGVTALRM signal to interrupt native blocking calls]
 
 TRACE_CALLS: [trace.calls, boolean, true, Support tracing (set_trace_func, TracePoint) of method calls]
 COVERAGE_GLOBAL: [coverage.global, boolean, false, Run coverage for all code and print results on exit]
