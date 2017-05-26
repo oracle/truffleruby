@@ -1137,6 +1137,60 @@ class << Truffle::CExt
     end
   end
 
+  def foreign_call_with_block(function, *args, &block)
+    Truffle::Interop.execute(function, *args)
+  end
+
+  # The idea of rb_protect and rb_jump_tag is to avoid unwinding the
+  # native stack in an uncontrolled manner. To do this we need to be
+  # able to run a piece of code and capture both its result (if it
+  # produces one), and any exception it generates. This is done by
+  # running the requested code in a block as follows
+  #
+  #   e = store_exception { res = requested_function(...) }
+  #
+  # leaving us with e containing any exception thrown from the block,
+  # and res containing the result of the function if it completed
+  # successfully. Since Ruby's API only allows us to use a number to
+  # indicate there was an exception we have to store it in a thread
+  # local array and provide a 1-based index into that array. Then once
+  # the native library has unwound its own stack by whatever method,
+  # and can allow the ruby error to propagate, it can call rb_jump_tag
+  # with the integer produced by rb_protect. rb_jump_tag then gets the
+  # exception out of the thread local and calls raise exception to
+  # throw it and allow normal error handling to continue.
+
+  def rb_protect_with_block(function, arg, block)
+    res = nil
+    pos = 0
+    e = capture_exception do
+      if block
+        res = foreign_call_with_block(function, arg, &block)
+      else
+        res = foreign_call_with_block(function, arg)
+      end
+    end
+    unless e == nil
+      store = (Thread.current[:__stored_exceptions__] ||= [])
+      pos = store.push(e).size
+    end
+    [res, pos]
+  end
+
+  def rb_jump_tag(pos)
+    if pos > 0
+      store = Thread.current[:__stored_exceptions__]
+      if pos == store.size
+        e = store.pop
+      else
+        # Can't disturb other positions or other rb_jump_tag calls might fail.
+        e = store[pos - 1]
+        store[pos - 1] = nil
+      end
+      raise_exception(e)
+    end
+  end
+
   def rb_yield(value)
     block = get_block
     Truffle::CExt.execute_with_mutex(block, value)

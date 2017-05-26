@@ -20,6 +20,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -34,6 +35,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
@@ -66,6 +68,7 @@ import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
@@ -1092,6 +1095,41 @@ public class CExtNodes {
             return ObjectIVarSetNodeGen.create(false, null, null, null);
         }
 
+    }
+
+    @CoreMethod(names = "capture_exception", onSingleton = true, needsBlock = true)
+    public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
+
+        @Specialization
+        public Object executeWithProtect(DynamicObject block,
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("create()") BranchProfile noExceptionProfile) {
+            try {
+                yield(block);
+                noExceptionProfile.enter();
+                return nil();
+            } catch (Throwable e) {
+                exceptionProfile.enter();
+                return e;
+            }
+        }
+    }
+
+    @CoreMethod(names = "raise_exception", onSingleton = true, required = 1)
+    public abstract static class RaiseExceptionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object executeThrow(Throwable e,
+                @Cached("createBinaryProfile()") ConditionProfile runtimeExceptionProfile,
+                @Cached("createBinaryProfile()") ConditionProfile errorProfile) {
+            if (runtimeExceptionProfile.profile(e instanceof RuntimeException)) {
+                throw (RuntimeException) e;
+            } else if (errorProfile.profile(e instanceof Error)) {
+                throw (Error) e;
+            } else {
+                throw new JavaException(e);
+            }
+        }
     }
 
 }
