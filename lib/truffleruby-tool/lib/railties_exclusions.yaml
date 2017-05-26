@@ -27,6 +27,8 @@ AppGeneratorTest:
 - test_template_is_executed_when_supplied
 - test_template_is_executed_when_supplied_an_https_path
 - test_web_console
+- test_after_bundle_callback
+- test_spring_binstubs
 GeneratorGeneratorTest:
 - test_generator_skeleton_is_created
 - test_generator_skeleton_is_created_without_file_name_namespace
