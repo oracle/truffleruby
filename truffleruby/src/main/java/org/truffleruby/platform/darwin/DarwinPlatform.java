@@ -24,6 +24,7 @@ import org.truffleruby.platform.java.JavaClockGetTime;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.MallocFree;
+import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
 import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.Threads;
@@ -46,13 +47,13 @@ public class DarwinPlatform implements NativePlatform {
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public DarwinPlatform(RubyContext context) {
-        nfi = new TruffleNFIPlatform(context);
+        nfi = context.getOptions().NATIVE_INTERRUPT ? new TruffleNFIPlatform(context) : null;
         posix = new JNRTrufflePosix(context, POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context)));
         memoryManager = Runtime.getSystemRuntime().getMemoryManager();
         signalManager = new SunMiscSignalManager();
         processName = new DarwinProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("c").load();
-        threads = LibraryLoader.create(Threads.class).library("c").library("pthread").load();
+        threads = context.getOptions().NATIVE_INTERRUPT ? LibraryLoader.create(Threads.class).library("c").library("pthread").load() : new NoopThreads();
         clockGetTime = new JavaClockGetTime();
         mallocFree = LibraryLoader.create(MallocFree.class).library("c").load();
         rubiniusConfiguration = new RubiniusConfiguration();

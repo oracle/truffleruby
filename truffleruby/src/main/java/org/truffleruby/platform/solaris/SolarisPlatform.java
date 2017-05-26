@@ -25,6 +25,7 @@ import org.truffleruby.platform.java.JavaProcessName;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.MallocFree;
+import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.PosixFDSet8Bytes;
 import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.Threads;
@@ -47,15 +48,14 @@ public class SolarisPlatform implements NativePlatform {
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public SolarisPlatform(RubyContext context) {
-        nfi = new TruffleNFIPlatform(context);
+        nfi = context.getOptions().NATIVE_INTERRUPT ? new TruffleNFIPlatform(context) : null;
         POSIX _posix = POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context));
         posix = new JNRTrufflePosix(context, _posix);
         memoryManager = Runtime.getSystemRuntime().getMemoryManager();
         signalManager = new SunMiscSignalManager();
         processName = new JavaProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("socket").load();
-        final SolarisThreads nativeThreads = LibraryLoader.create(SolarisThreads.class).library("libpthread.so.1").load();
-        threads = new SolarisThreadsImplementation(nativeThreads);
+        threads = context.getOptions().NATIVE_INTERRUPT ? new SolarisThreadsImplementation(LibraryLoader.create(SolarisThreads.class).library("libpthread.so.1").load()) : new NoopThreads();
         clockGetTime = LibraryLoader.create(ClockGetTime.class).library("c").library("rt").load();
         mallocFree = LibraryLoader.create(MallocFree.class).library("c").load();
         rubiniusConfiguration = new RubiniusConfiguration();

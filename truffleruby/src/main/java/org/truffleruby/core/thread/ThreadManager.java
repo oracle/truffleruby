@@ -64,7 +64,9 @@ public class ThreadManager {
     public ThreadManager(RubyContext context) {
         this.context = context;
         this.rootThread = createRubyThread(context, "main");
-        setupSignalHandler(context);
+        if (context.getOptions().NATIVE_INTERRUPT) {
+            setupSignalHandler(context);
+        }
 
         start(rootThread);
         FiberNodes.start(context, this, Layouts.THREAD.getFiberManager(rootThread).getRootFiber());

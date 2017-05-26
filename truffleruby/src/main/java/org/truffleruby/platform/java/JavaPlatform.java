@@ -21,6 +21,7 @@ import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.linux.LinuxRubiniusConfiguration;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.MallocFree;
+import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
 import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.Threads;
@@ -46,7 +47,7 @@ public class JavaPlatform implements NativePlatform {
         signalManager = new SunMiscSignalManager();
         processName = new JavaProcessName();
         sockets = new JavaSockets();
-        threads = new NoopThreads();
+        threads = new NoopThreads(); // Since JavaPlatform does not do any native call, there is no need to interrupt with a native signal.
         clockGetTime = new JavaClockGetTime();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -111,19 +112,6 @@ public class JavaPlatform implements NativePlatform {
     @Override
     public long createSigAction(long handler) {
         throw new UnsupportedOperationException();
-    }
-
-    // Since JavaPlatform does not do any native call, there is no need to interrupt with a native signal.
-    private static class NoopThreads implements Threads {
-
-        public long pthread_self() {
-            return 0L;
-        }
-
-        public int pthread_kill(long thread, int sig) {
-            return 0;
-        }
-
     }
 
 }
