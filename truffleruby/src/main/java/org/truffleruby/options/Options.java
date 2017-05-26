@@ -39,6 +39,7 @@ public class Options {
     public final boolean POLYGLOT_STDIO;
     public final boolean SYNC_STDIO;
     public final boolean PLATFORM_USE_JAVA;
+    public final boolean NATIVE_INTERRUPT;
     public final boolean TRACE_CALLS;
     public final boolean COVERAGE_GLOBAL;
     public final boolean INLINE_JS;
@@ -127,13 +128,14 @@ public class Options {
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
         RUBYGEMS = builder.getOrDefault(OptionsCatalog.RUBYGEMS);
         PATCHING = builder.getOrDefault(OptionsCatalog.PATCHING);
-        PATCHING_OPENSSL = builder.getOrDefault(OptionsCatalog.PATCHING_OPENSSL);
+        PATCHING_OPENSSL = builder.getOrDefault(OptionsCatalog.PATCHING_OPENSSL, PATCHING);
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
         POLYGLOT_STDIO = builder.getOrDefault(OptionsCatalog.POLYGLOT_STDIO);
         SYNC_STDIO = builder.getOrDefault(OptionsCatalog.SYNC_STDIO);
         PLATFORM_USE_JAVA = builder.getOrDefault(OptionsCatalog.PLATFORM_USE_JAVA);
+        NATIVE_INTERRUPT = builder.getOrDefault(OptionsCatalog.NATIVE_INTERRUPT);
         TRACE_CALLS = builder.getOrDefault(OptionsCatalog.TRACE_CALLS);
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
         INLINE_JS = builder.getOrDefault(OptionsCatalog.INLINE_JS);
@@ -252,6 +254,8 @@ public class Options {
                 return SYNC_STDIO;
             case "platform.use_java":
                 return PLATFORM_USE_JAVA;
+            case "platform.native_interrupt":
+                return NATIVE_INTERRUPT;
             case "trace.calls":
                 return TRACE_CALLS;
             case "coverage.global":

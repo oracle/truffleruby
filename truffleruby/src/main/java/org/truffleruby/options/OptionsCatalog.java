@@ -30,13 +30,14 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription("frozen_string_literals", "Use frozen string literals", false);
     public static final BooleanOptionDescription RUBYGEMS = new BooleanOptionDescription("rubygems", "Use RubyGems", true);
     public static final BooleanOptionDescription PATCHING = new BooleanOptionDescription("patching", "Use patching", true);
-    public static final BooleanOptionDescription PATCHING_OPENSSL = new BooleanOptionDescription("patching_openssl", "Use openssl patching", true);
+    public static final BooleanOptionDescription PATCHING_OPENSSL = new BooleanOptionDescription("patching_openssl", "Use openssl patching", PATCHING.getDefaultValue());
     public static final BooleanOptionDescription DID_YOU_MEAN = new BooleanOptionDescription("did_you_mean", "Use did_you_mean", true);
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription("internal_encoding", "Internal encoding", null);
     public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription("external_encoding", "External encoding", null);
     public static final BooleanOptionDescription POLYGLOT_STDIO = new BooleanOptionDescription("ployglot.stdio", "Use standard IO streams from the PolyglotEngine", true);
     public static final BooleanOptionDescription SYNC_STDIO = new BooleanOptionDescription("sync.stdio", "Sync operations on standard IO streams", true);
     public static final BooleanOptionDescription PLATFORM_USE_JAVA = new BooleanOptionDescription("platform.use_java", "Use a pure-Java platform", false);
+    public static final BooleanOptionDescription NATIVE_INTERRUPT = new BooleanOptionDescription("platform.native_interrupt", "Use the SIGVTALRM signal to interrupt native blocking calls", true);
     public static final BooleanOptionDescription TRACE_CALLS = new BooleanOptionDescription("trace.calls", "Support tracing (set_trace_func", true);
     public static final BooleanOptionDescription COVERAGE_GLOBAL = new BooleanOptionDescription("coverage.global", "Run coverage for all code and print results on exit", false);
     public static final BooleanOptionDescription INLINE_JS = new BooleanOptionDescription("inline_js", "Allow inline JavaScript", false);
@@ -154,6 +155,8 @@ public class OptionsCatalog {
                 return SYNC_STDIO;
             case "platform.use_java":
                 return PLATFORM_USE_JAVA;
+            case "platform.native_interrupt":
+                return NATIVE_INTERRUPT;
             case "trace.calls":
                 return TRACE_CALLS;
             case "coverage.global":
@@ -326,6 +329,7 @@ public class OptionsCatalog {
             POLYGLOT_STDIO,
             SYNC_STDIO,
             PLATFORM_USE_JAVA,
+            NATIVE_INTERRUPT,
             TRACE_CALLS,
             COVERAGE_GLOBAL,
             INLINE_JS,
