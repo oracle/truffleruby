@@ -42,7 +42,7 @@ module Truffle
       return name if File.exist?(name)
 
       # Fail otherwise
-      raise LoadError.new("No such file or directory -- #{name}")
+      raise LoadError, "No such file or directory -- #{name}"
     end
 
     private_class_method :find_s_file

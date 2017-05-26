@@ -401,7 +401,7 @@ module Rubinius
                 raise "command #{command} does not exist in PATH but posix_spawnp found it!"
               end
             end
-            raise Errno::ENOENT.new("No such file or directory - #{command}")
+            raise Errno::ENOENT, "No such file or directory - #{command}"
           end
           pid
         end
@@ -412,7 +412,7 @@ module Rubinius
             if resolved = resolve_in_path(command)
               command = resolved
             else
-              raise Errno::ENOENT.new("No such file or directory - #{command}")
+              raise Errno::ENOENT, "No such file or directory - #{command}"
             end
           end
           Truffle.invoke_primitive :vm_exec, command, args, env_array

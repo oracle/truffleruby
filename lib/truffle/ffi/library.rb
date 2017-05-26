@@ -64,7 +64,7 @@ module FFI
     # @raise {LoadError} if a library cannot be opened
     # Load native libraries.
     def ffi_lib(*names)
-      raise LoadError.new('library names list must not be empty') if names.empty?
+      raise LoadError, 'library names list must not be empty' if names.empty?
 
       lib_flags = defined?(@ffi_lib_flags) ? @ffi_lib_flags : FFI::DynamicLibrary::RTLD_LAZY | FFI::DynamicLibrary::RTLD_LOCAL
       ffi_libs = names.map do |name|
@@ -114,7 +114,7 @@ module FFI
           end
 
           if lib.nil?
-            raise LoadError.new(errors.values.join(".\n"))
+            raise LoadError, errors.values.join(".\n")
           end
 
           # return the found lib

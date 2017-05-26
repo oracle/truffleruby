@@ -46,7 +46,7 @@ module JavaUtilities
       e = catch :java do
         return invoke_with_catch(method, :java, *args)
       end
-      raise JavaException.new(JavaUtilities.wrap_java_value(e))
+      raise JavaException, JavaUtilities.wrap_java_value(e)
     end
 
     def self.java_class_by_name(a_name)

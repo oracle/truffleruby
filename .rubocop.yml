@@ -335,6 +335,12 @@ Style/IndentationConsistency:
 Style/IndentationWidth:
   Enabled: true
 
+# Supports --auto-correct
+Style/RaiseArgs:
+  Description: 'Checks the arguments passed to raise/fail.'
+  StyleGuide: '#exception-class-messages'
+  Enabled: true
+
 Style/RedundantReturn:
   Enabled: true
 

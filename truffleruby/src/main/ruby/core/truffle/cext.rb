@@ -1466,7 +1466,7 @@ class << Truffle::CExt
   end
 
   def rb_tr_error(message)
-    raise RubyTruffleError.new(message)
+    raise RubyTruffleError, message
   end
 
   def test_kwargs(kwargs, raise_error)
@@ -1573,7 +1573,7 @@ class << Truffle::CExt
     if message.nil?
       raise Errno::EPERM
     else
-      raise SystemCallError.new(message)
+      raise SystemCallError, message
     end
   end
 

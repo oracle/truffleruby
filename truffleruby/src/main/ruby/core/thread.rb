@@ -153,7 +153,7 @@ class Thread
 
     if rec[:__detect_outermost_recursion__]
       if detect_recursion(obj, paired_obj, &block)
-        raise InnerRecursionDetected.new
+        raise InnerRecursionDetected
       end
       false
     else

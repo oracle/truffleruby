@@ -89,7 +89,7 @@ module Process
       code = Rubinius::Type.coerce_to code, Integer, :to_int
     end
 
-    raise SystemExit.new(code)
+    raise SystemExit, code
   end
 
   def self.exit!(code=1)
