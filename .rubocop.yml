@@ -323,16 +323,16 @@ Lint/Void:
   Description: Possible use of operator/literal/variable in void context.
   Enabled: true
 
-
-
-Style/IndentationWidth:
-  Enabled: true
+#################### Style ###########################
 
 Style/CaseIndentation:
   Enabled: true
   EnforcedStyle: 'end'
 
 Style/IndentationConsistency:
+  Enabled: true
+
+Style/IndentationWidth:
   Enabled: true
 
 Style/RedundantReturn:
