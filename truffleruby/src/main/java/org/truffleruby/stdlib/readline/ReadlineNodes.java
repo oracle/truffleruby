@@ -61,6 +61,7 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
@@ -142,9 +143,7 @@ public abstract class ReadlineNodes {
             final ConsoleReader readline = getContext().getConsoleHolder().getReadline();
             readline.setExpandEvents(false);
 
-            DynamicObject line = nil();
             final String value;
-
             readline.getTerminal().setEchoEnabled(false);
             try {
                 value = readline.readLine(prompt);
@@ -154,7 +153,9 @@ public abstract class ReadlineNodes {
                 readline.getTerminal().setEchoEnabled(true);
             }
 
-            if (value != null) {
+            if (value == null) { // EOF
+                return nil();
+            } else {
                 if (addToHistory) {
                     readline.getHistory().add(value);
                 }
@@ -166,10 +167,9 @@ public abstract class ReadlineNodes {
                 // is that no al M17n encodings are valid encodings in java.lang.String.
                 // We clearly need a byte[]-version of JLine since we cannot totally
                 // behave properly using Java Strings.
-                line = createString(StringOperations.encodeRope(value, getContext().getEncodingManager().getDefaultExternalEncoding()));
+                final Rope rope = StringOperations.encodeRope(value, getContext().getEncodingManager().getDefaultExternalEncoding());
+                return taintNode.executeTaint(createString(rope));
             }
-
-            return taintNode.executeTaint(line);
         }
 
     }
