@@ -178,13 +178,13 @@ public class TranslatorDriver {
         }
         parseEnvironment.resetLexicalScope(lexicalScope);
 
-        // TODO (10 Feb. 2015): name should be "<top (required)> for the require-d/load-ed files.
+        final String toplevelName = parserContext == ParserContext.TOP_LEVEL_FIRST ? "<main>" : "<top (required)>";
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                 sourceSection,
                 parseEnvironment.getLexicalScope(),
                 Arity.NO_ARGUMENTS,
                 null,
-                "<main>",
+                toplevelName,
                 null,
                 null,
                 false);
