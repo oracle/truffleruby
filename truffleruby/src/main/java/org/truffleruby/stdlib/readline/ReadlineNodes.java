@@ -46,6 +46,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import jline.console.ConsoleReader;
 import jline.console.CursorBuffer;
 import jline.console.completer.Completer;
 import jline.console.completer.FileNameCompleter;
@@ -137,25 +139,26 @@ public abstract class ReadlineNodes {
         @TruffleBoundary
         @Specialization
         public Object readline(String prompt, boolean addToHistory) {
-            getContext().getConsoleHolder().getReadline().setExpandEvents(false);
+            final ConsoleReader readline = getContext().getConsoleHolder().getReadline();
+            readline.setExpandEvents(false);
 
             DynamicObject line = nil();
             String value = null;
             while (true) {
+                readline.getTerminal().setEchoEnabled(false);
                 try {
-                    getContext().getConsoleHolder().getReadline().getTerminal().setEchoEnabled(false);
-                    value = getContext().getConsoleHolder().getReadline().readLine(prompt);
+                    value = readline.readLine(prompt);
                     break;
                 } catch (IOException e) {
                     throw new RaiseException(coreExceptions().ioError(e.getMessage(), this));
                 } finally {
-                    getContext().getConsoleHolder().getReadline().getTerminal().setEchoEnabled(true);
+                    readline.getTerminal().setEchoEnabled(true);
                 }
             }
 
             if (value != null) {
                 if (addToHistory) {
-                    getContext().getConsoleHolder().getReadline().getHistory().add(value);
+                    readline.getHistory().add(value);
                 }
 
                 // Enebo: This is a little weird and a little broken.  We just ask
