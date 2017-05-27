@@ -91,9 +91,5 @@ describe "BasicSocket#recv" do
 
       socket.close
     end
-
-    it "foo" do
-      1.should == 1
-    end
   end
 end

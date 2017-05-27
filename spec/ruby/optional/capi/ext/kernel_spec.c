@@ -230,14 +230,14 @@ static VALUE kernel_spec_rb_yield(VALUE self, VALUE obj) {
   return rb_yield(obj);
 }
 
-static int kernel_cb(const int *a, const int *b) {
+static int kernel_cb(const void *a, const void *b) {
   rb_yield(Qtrue);
   return 0;
 }
 
-static VALUE kernel_indirected(void *(*func)(int)) {
+static VALUE kernel_indirected(int (*compar)(const void *, const void *)) {
   int bob[] = { 1, 1, 2, 3, 5, 8, 13 };
-  qsort(bob, 7, sizeof(int), kernel_cb);
+  qsort(bob, 7, sizeof(int), compar);
   return Qfalse;
 }
 
