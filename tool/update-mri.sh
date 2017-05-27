@@ -9,8 +9,8 @@ rm lib/mri/racc/rdoc/grammar.en.rdoc
 rm lib/mri/timeout.rb
 rm lib/mri/weakref.rb
 rm -r lib/mri/webrick*
-rm truffleruby/src/main/c/openssl/*.{c,h}
-cp ../ruby/ext/openssl/*.{c,h} truffleruby/src/main/c/openssl
+rm src/main/c/openssl/*.{c,h}
+cp ../ruby/ext/openssl/*.{c,h} src/main/c/openssl
 cp -r ../ruby/ext/openssl/lib/* lib/mri
 cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
 cp -r ../ruby/ext/psych/lib/psych lib/mri

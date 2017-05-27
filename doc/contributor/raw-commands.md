@@ -23,8 +23,8 @@ to use the `-J-cmd` option.
 
 ```
 >>> jt run -J-cmd -e 'puts "hello"'
-$ /Users/chrisseaton/Documents/ruby/truffleruby/bin/truffleruby -Xcore.load_path=/Users/chrisseaton/Documents/ruby/truffleruby/truffleruby/src/main/ruby -Xgraal.warn_unless=false -J-cmd -e 'puts "hello"'
-$ /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/java -Dfile.encoding=UTF-8 -Xbootclasspath/a:/Users/chrisseaton/Documents/ruby/truffleruby/lib/truffleruby.jar org.truffleruby.Main -Xhome=/Users/chrisseaton/Documents/ruby/truffleruby -Xlauncher=/Users/chrisseaton/Documents/ruby/truffleruby/bin/truffleruby -Xcore.load_path=/Users/chrisseaton/Documents/ruby/truffleruby/truffleruby/src/main/ruby -Xgraal.warn_unless=false -e puts "hello"
+$ /Users/chrisseaton/Documents/ruby/truffleruby/bin/truffleruby -Xcore.load_path=/Users/chrisseaton/Documents/ruby/truffleruby/src/main/ruby -Xgraal.warn_unless=false -J-cmd -e 'puts "hello"'
+$ /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/java -Dfile.encoding=UTF-8 -Xbootclasspath/a:/Users/chrisseaton/Documents/ruby/truffleruby/lib/truffleruby.jar org.truffleruby.Main -Xhome=/Users/chrisseaton/Documents/ruby/truffleruby -Xlauncher=/Users/chrisseaton/Documents/ruby/truffleruby/bin/truffleruby -Xcore.load_path=/Users/chrisseaton/Documents/ruby/truffleruby/src/main/ruby -Xgraal.warn_unless=false -e puts "hello"
 hello
 ```
 
@@ -40,8 +40,8 @@ to prefix it with `-T` to tell `mspec` to pass it to the command it launches.
 ```
 >>> jt test -T-J-cmd spec/ruby/language/if_spec.rb
 $ ruby spec/mspec/bin/mspec run --config spec/truffle.mspec --excl-tag fails -T-J-cmd spec/ruby/language/if_spec.rb
-$ /Users/chrisseaton/Documents/ruby/truffleruby/bin/truffleruby -J-ea -J-esa -J-Xmx2G -Xgraal.warn_unless=false -Xcore.load_path=/Users/chrisseaton/Documents/ruby/truffleruby/truffleruby/src/main/ruby -Xbacktraces.hide_core_files=false -J-cmd -v /Users/chrisseaton/Documents/ruby/truffleruby/spec/mspec/bin/mspec-run -B spec/truffle.mspec --excl-tag fails spec/ruby/language/if_spec.rb
-$ /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/java -Dfile.encoding=UTF-8 -Xbootclasspath/a:/Users/chrisseaton/Documents/ruby/truffleruby/lib/truffleruby.jar -ea -esa -Xmx2G org.truffleruby.Main -Xhome=/Users/chrisseaton/Documents/ruby/truffleruby -Xlauncher=/Users/chrisseaton/Documents/ruby/truffleruby/bin/truffleruby -Xgraal.warn_unless=false -Xcore.load_path=/Users/chrisseaton/Documents/ruby/truffleruby/truffleruby/src/main/ruby -Xbacktraces.hide_core_files=false -v /Users/chrisseaton/Documents/ruby/truffleruby/spec/mspec/bin/mspec-run -B spec/truffle.mspec --excl-tag fails spec/ruby/language/if_spec.rb
+$ /Users/chrisseaton/Documents/ruby/truffleruby/bin/truffleruby -J-ea -J-esa -J-Xmx2G -Xgraal.warn_unless=false -Xcore.load_path=/Users/chrisseaton/Documents/ruby/truffleruby/src/main/ruby -Xbacktraces.hide_core_files=false -J-cmd -v /Users/chrisseaton/Documents/ruby/truffleruby/spec/mspec/bin/mspec-run -B spec/truffle.mspec --excl-tag fails spec/ruby/language/if_spec.rb
+$ /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/java -Dfile.encoding=UTF-8 -Xbootclasspath/a:/Users/chrisseaton/Documents/ruby/truffleruby/lib/truffleruby.jar -ea -esa -Xmx2G org.truffleruby.Main -Xhome=/Users/chrisseaton/Documents/ruby/truffleruby -Xlauncher=/Users/chrisseaton/Documents/ruby/truffleruby/bin/truffleruby -Xgraal.warn_unless=false -Xcore.load_path=/Users/chrisseaton/Documents/ruby/truffleruby/src/main/ruby -Xbacktraces.hide_core_files=false -v /Users/chrisseaton/Documents/ruby/truffleruby/spec/mspec/bin/mspec-run -B spec/truffle.mspec --excl-tag fails spec/ruby/language/if_spec.rb
 truffleruby 0.SNAPSHOT, like ruby 2.3.3 <Java HotSpot(TM) 64-Bit Server VM 1.8.0_121-b13 without Graal> [darwin-x86_64]
 [/ | ==================100%================== | 00:00:00]      0F      0E
 

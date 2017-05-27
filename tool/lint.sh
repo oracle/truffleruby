@@ -2,7 +2,7 @@
 
 set -e
 
-bad=$(egrep -r ',\s*@Cached' truffleruby/src || exit 0)
+bad=$(egrep -r ',\s*@Cached' src || exit 0)
 
 if [ -n "$bad" ]; then
 	echo "@Cached arguments should be on their own line"
