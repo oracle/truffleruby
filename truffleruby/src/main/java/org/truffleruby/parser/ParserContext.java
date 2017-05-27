@@ -10,5 +10,14 @@
 package org.truffleruby.parser;
 
 public enum ParserContext {
-    TOP_LEVEL_FIRST, TOP_LEVEL, SHELL, MODULE, EVAL, INLINE
+    /** The main script */
+    TOP_LEVEL_FIRST,
+    /** required or loaded */
+    TOP_LEVEL,
+    /** class_eval */
+    MODULE,
+    /** eval */
+    EVAL,
+    /** SnippetNode and DebugHelpers.eval() */
+    INLINE
 }

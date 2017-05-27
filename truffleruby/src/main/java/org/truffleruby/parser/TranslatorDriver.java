@@ -140,7 +140,7 @@ public class TranslatorDriver {
 
         final DynamicScope dynamicScope = new DynamicScope(staticScope);
 
-        boolean isInlineSource = parserContext == ParserContext.SHELL;
+        boolean isInlineSource = source.getName().equals("-e");
         boolean isEvalParse = parserContext == ParserContext.EVAL || parserContext == ParserContext.INLINE || parserContext == ParserContext.MODULE;
         final ParserConfiguration parserConfiguration = new ParserConfiguration(context, 0, isInlineSource, !isEvalParse, false);
 
