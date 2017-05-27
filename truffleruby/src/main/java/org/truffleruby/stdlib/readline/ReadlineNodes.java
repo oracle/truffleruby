@@ -144,13 +144,10 @@ public abstract class ReadlineNodes {
             readline.setExpandEvents(false);
 
             final String value;
-            readline.getTerminal().setEchoEnabled(false);
             try {
                 value = readline.readLine(prompt);
             } catch (IOException e) {
                 throw new RaiseException(coreExceptions().ioError(e.getMessage(), this));
-            } finally {
-                readline.getTerminal().setEchoEnabled(true);
             }
 
             if (value == null) { // EOF
