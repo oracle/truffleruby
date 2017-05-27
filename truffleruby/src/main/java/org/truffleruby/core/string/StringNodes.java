@@ -4029,7 +4029,12 @@ public abstract class StringNodes {
                 return new SearchResult(index, base);
             } else if (base instanceof SubstringRope) {
                 final SubstringRope substringRope = (SubstringRope) base;
-                return searchForSingleByteOptimizableDescendant(substringRope.getChild(), index + substringRope.getOffset(), characterLength);
+                if (substringRope.isSingleByteOptimizable()) {
+                    // the substring byte offset is also a character offset
+                    return searchForSingleByteOptimizableDescendant(substringRope.getChild(), index + substringRope.getOffset(), characterLength);
+                } else {
+                    return new SearchResult(index, substringRope);
+                }
             } else if (base instanceof ConcatRope) {
                 final ConcatRope concatRope = (ConcatRope) base;
                 final Rope left = concatRope.getLeft();
