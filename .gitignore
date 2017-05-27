@@ -24,11 +24,11 @@ nbproject/private
 lib/cext/ruby.su
 lib/mri/openssl.su
 
-truffleruby/src/main/c/**/Makefile
-truffleruby/src/main/c/**/*.bc
-truffleruby/src/main/c/**/*.su
-truffleruby/src/main/c/**/extconf.h
-truffleruby/src/main/c/**/mkmf.log
+src/main/c/**/Makefile
+src/main/c/**/*.bc
+src/main/c/**/*.su
+src/main/c/**/extconf.h
+src/main/c/**/mkmf.log
 
 test/truffle/cexts/**/Makefile
 test/truffle/cexts/**/*.bc
@@ -38,6 +38,7 @@ test/truffle/cexts/**/mkmf.log
 
 # Maven
 lib/truffleruby.jar
+/target
 
 # mx
 /mx.truffleruby/*.pyc

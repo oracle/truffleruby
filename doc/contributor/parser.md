@@ -33,7 +33,7 @@ With Jay built you can now build the TruffleRuby parser. If you haven't yet, you
 through our [general developer guide](workflow.md). In particular, you'll want to ensure you
 have the `jt` command set up.
 
-The parser generator source file (YACC compatible) can be found at `truffleruby/src/main/java/org/truffleruby/parser/parser/RubyParser.y`.
+The parser generator source file (YACC compatible) can be found at `src/main/java/org/truffleruby/parser/parser/RubyParser.y`.
 
 Once you've modified the YACC file, you can build the parser by running:
 
@@ -41,5 +41,5 @@ Once you've modified the YACC file, you can build the parser by running:
 jt build parser
 ```
 
-You should see your changes reflected in `truffleruby/src/main/java/org/truffleruby/parser/parser/RubyParser.java`.
+You should see your changes reflected in `src/main/java/org/truffleruby/parser/parser/RubyParser.java`.
 At this point, all you need to do is build the TruffleRuby source (`jt build`).

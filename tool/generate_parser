@@ -30,7 +30,7 @@ fi
 
 echo "Generating Parser '$PARSER_BASE' w/ YYTable prefix of '$YYTABLE_PREFIX'"
 
-PARSER_DIR=truffleruby/src/main/java/org/truffleruby/parser/parser
+PARSER_DIR=src/main/java/org/truffleruby/parser/parser
 
 pushd $PARSER_DIR
 

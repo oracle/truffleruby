@@ -26,7 +26,7 @@ class MSpecScript
       -J-Xmx2G
       -Xgraal.warn_unless=false
     ]
-    core_path = "#{JRUBY_DIR}/truffleruby/src/main/ruby"
+    core_path = "#{JRUBY_DIR}/src/main/ruby"
     if File.directory?(core_path)
       flags << "-Xcore.load_path=#{core_path}"
       flags << "-Xbacktraces.hide_core_files=false"

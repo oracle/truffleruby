@@ -161,7 +161,7 @@ Lint/InheritException:
   - runtime_error
   - standard_error
   Exclude:
-  - truffleruby/src/main/ruby/core/exception.rb
+  - src/main/ruby/core/exception.rb
 
 Lint/InvalidCharacterLiteral:
   Description: Checks for invalid character literals with a non-escaped whitespace character.

@@ -237,7 +237,7 @@ module MakeMakefile
     if File.identical?(dir, topdir)
       # Modified for TruffleRuby
       # $extmk = true if %r"\A(?:ext|enc|tool|test)\z" =~ File.basename(path)
-      $extmk = true if %r"\A(?:ext|enc|tool|test|truffleruby)\z" =~ File.basename(path)
+      $extmk = true if %r"\A(?:ext|enc|tool|test|src)\z" =~ File.basename(path)
       break
     end
     path = dir
