@@ -4040,7 +4040,7 @@ public abstract class StringNodes {
                 final Rope left = concatRope.getLeft();
                 final Rope right = concatRope.getRight();
 
-                if (index + characterLength < left.characterLength()) {
+                if (index + characterLength <= left.characterLength()) {
                     return searchForSingleByteOptimizableDescendant(left, index, characterLength);
                 } else if (index >= left.characterLength()) {
                     return searchForSingleByteOptimizableDescendant(right, index - left.characterLength(), characterLength);
@@ -4050,7 +4050,7 @@ public abstract class StringNodes {
             } else if (base instanceof RepeatingRope) {
                 final RepeatingRope repeatingRope = (RepeatingRope) base;
 
-                if (index + characterLength < repeatingRope.getChild().characterLength()) {
+                if (index + characterLength <= repeatingRope.getChild().characterLength()) {
                     return searchForSingleByteOptimizableDescendant(repeatingRope.getChild(), index, characterLength);
                 } else {
                     return new SearchResult(index, repeatingRope);
