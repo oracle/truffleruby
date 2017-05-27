@@ -48,12 +48,16 @@ module Rubinius
       @variables.size
     end
 
-    def [](key)
+    private def lookup(key)
       value = Truffle::POSIX.getenv(StringValue(key))
       if value
         value = set_encoding(value)
       end
       value
+    end
+
+    def [](key)
+      lookup(key)
     end
 
     def []=(key, value)
@@ -73,12 +77,34 @@ module Rubinius
     end
     alias_method :store, :[]=
 
+    def delete(key)
+      existing_value = lookup(key)
+      if existing_value
+        Truffle::POSIX.unsetenv(key)
+        @variables.delete(key)
+      elsif block_given?
+        yield key
+      end
+      existing_value
+    end
+
+    def shift
+      key = @variables.first
+      return nil unless key
+      value = delete key
+
+      key = set_encoding key
+      value = set_encoding value
+
+      [key, value]
+    end
+
     def each
       return to_enum(:each) { size } unless block_given?
 
       @variables.each do |name|
         key = set_encoding(name)
-        value = self[name]
+        value = lookup(name)
         yield key, value
       end
 
@@ -96,36 +122,15 @@ module Rubinius
       each { |_k, v| yield v }
     end
 
-    def delete(key)
-      existing_value = self[key]
-      if existing_value
-        self[key] = nil
-      elsif block_given?
-        yield key
-      end
-      existing_value
-    end
-
     def delete_if(&block)
       return to_enum(:delete_if) { size } unless block_given?
       reject!(&block)
       self
     end
 
-    def shift
-      key = @variables.first
-      return nil unless key
-      value = delete key
-
-      key = set_encoding key
-      value = set_encoding value
-
-      [key, value]
-    end
-
     # More efficient than using the one from Enumerable
     def include?(key)
-      !self[key].nil?
+      !lookup(key).nil?
     end
     alias_method :has_key?, :include?
     alias_method :key?, :include?
@@ -136,7 +141,7 @@ module Rubinius
         warn 'block supersedes default value argument'
       end
 
-      if value = self[key]
+      if value = lookup(key)
         return value
       end
 
@@ -189,7 +194,7 @@ module Rubinius
     alias_method :value?, :has_value?
 
     def values_at(*params)
-      params.map{ |k| self[k] }
+      params.map{ |k| lookup(k) }
     end
 
     def index(value)
@@ -262,7 +267,7 @@ module Rubinius
 
     def update(other)
       if block_given?
-        other.each { |k, v| self[k] = yield(k, self[k], v) }
+        other.each { |k, v| self[k] = yield(k, lookup(k), v) }
       else
         other.each { |k, v| self[k] = v }
       end
@@ -281,7 +286,7 @@ module Rubinius
 
     def assoc(key)
       key = StringValue(key)
-      value = self[key]
+      value = lookup(key)
       value ? [key, value] : nil
     end
 
