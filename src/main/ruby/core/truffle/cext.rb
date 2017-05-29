@@ -13,30 +13,17 @@ class Data
 end
 
 module Truffle::CExt
-  class DataHolder
+  extend self
 
+  class DataHolder
     attr_accessor :data
 
     def initialize(data)
       @data = data
     end
-
-  end
-
-  SYNC = Mutex.new
-
-  def self.execute_with_mutex(function, *args)
-    mine = Truffle::CExt::SYNC.owned?
-    Truffle::CExt::SYNC.lock unless mine
-    begin
-      Truffle::Interop.execute(function, *args)
-    ensure
-      Truffle::CExt::SYNC.unlock unless mine
-    end
   end
 
   class RData
-
     DATA_FIELD_INDEX = 2
 
     def initialize(object)
@@ -56,11 +43,9 @@ module Truffle::CExt
     def data_holder
       Truffle::CExt.hidden_variable_get(@object, :data_holder)
     end
-
   end
 
   class RbEncoding
-
     NAME_FIELD_INDEX = 0
 
     attr_reader :encoding
@@ -73,11 +58,9 @@ module Truffle::CExt
       raise unless index == NAME_FIELD_INDEX
       @encoding.name
     end
-
   end
 
   class RStringPtr
-
     attr_reader :string
 
     def initialize(string)
@@ -102,11 +85,7 @@ module Truffle::CExt
 
     alias_method :to_str, :string
     alias_method :to_s, :string
-
   end
-end
-
-class << Truffle::CExt
 
   T_NONE     = 0x00
 
@@ -144,6 +123,18 @@ class << Truffle::CExt
   RUBY_ENC_CODERANGE_7BIT = 1
   RUBY_ENC_CODERANGE_VALID = 2
   RUBY_ENC_CODERANGE_BROKEN = 4
+
+  SYNC = Mutex.new
+
+  def execute_with_mutex(function, *args)
+    mine = SYNC.owned?
+    SYNC.lock unless mine
+    begin
+      Truffle::Interop.execute(function, *args)
+    ensure
+      SYNC.unlock unless mine
+    end
+  end
 
   def supported?
     Interop.mime_type_supported?('application/x-sulong-library')
@@ -1133,7 +1124,7 @@ class << Truffle::CExt
 
   def rb_proc_new(function, value)
     Proc.new do |*args|
-      Truffle::CExt.execute_with_mutex(function, *args)
+      execute_with_mutex(function, *args)
     end
   end
 
@@ -1193,12 +1184,12 @@ class << Truffle::CExt
 
   def rb_yield(value)
     block = get_block
-    Truffle::CExt.execute_with_mutex(block, value)
+    execute_with_mutex(block, value)
   end
 
   def rb_yield_splat(values)
     block = get_block
-    Truffle::CExt.execute_with_mutex(block, *values)
+    execute_with_mutex(block, *values)
   end
 
   def rb_ivar_lookup(object, name, default_value)
@@ -1464,7 +1455,7 @@ class << Truffle::CExt
 
   def rb_mutex_synchronize(mutex, func, arg)
     mutex.synchronize do
-      Truffle::CExt.execute_with_mutex(func, arg)
+      execute_with_mutex(func, arg)
     end
   end
 
@@ -1487,7 +1478,7 @@ class << Truffle::CExt
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object if Truffle::Interop.null?(ruby_class)
     object = ruby_class.internal_allocate
-    data_holder = Truffle::CExt::DataHolder.new(data)
+    data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_holder, data_holder
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder)
     object
@@ -1496,7 +1487,7 @@ class << Truffle::CExt
   def rb_data_typed_object_wrap(ruby_class, data, data_type, free)
     ruby_class = Object if Truffle::Interop.null?(ruby_class)
     object = ruby_class.internal_allocate
-    data_holder = Truffle::CExt::DataHolder.new(data)
+    data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
     hidden_variable_set object, :data_holder, data_holder
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder)
@@ -1507,7 +1498,7 @@ class << Truffle::CExt
     # In a separate method to avoid capturing the object
 
     proc {
-      Truffle::CExt.execute_with_mutex(free, data_holder.data)
+      execute_with_mutex(free, data_holder.data)
     }
   end
 
@@ -1545,25 +1536,25 @@ class << Truffle::CExt
 
   def rb_ensure(b_proc, data1, e_proc, data2)
     begin
-      Truffle::CExt.execute_with_mutex(b_proc, data1)
+      execute_with_mutex(b_proc, data1)
     ensure
-      Truffle::CExt.execute_with_mutex(e_proc, data2)
+      execute_with_mutex(e_proc, data2)
     end
   end
 
   def rb_rescue(b_proc, data1, r_proc, data2)
     begin
-      Truffle::CExt.execute_with_mutex(b_proc, data1)
+      execute_with_mutex(b_proc, data1)
     rescue StandardError => e
-      Truffle::CExt.execute_with_mutex(r_proc, data2, e)
+      execute_with_mutex(r_proc, data2, e)
     end
   end
 
   def rb_rescue2(b_proc, data1, r_proc, data2, rescued)
     begin
-      Truffle::CExt.execute_with_mutex(b_proc, data1)
+      execute_with_mutex(b_proc, data1)
     rescue *rescued => e
-      Truffle::CExt.execute_with_mutex(r_proc, data2, e)
+      execute_with_mutex(r_proc, data2, e)
     end
   end
 
@@ -1571,11 +1562,11 @@ class << Truffle::CExt
     result = nil
 
     recursive = Thread.detect_recursion(obj) {
-      result = Truffle::CExt.execute_with_mutex(func, obj, arg, 0)
+      result = execute_with_mutex(func, obj, arg, 0)
     }
 
     if recursive
-      Truffle::CExt.execute_with_mutex(func, obj, arg, 1)
+      execute_with_mutex(func, obj, arg, 1)
     else
       result
     end
@@ -1583,7 +1574,7 @@ class << Truffle::CExt
 
   def rb_catch_obj(tag, func, data)
     catch tag do |caught|
-      Truffle::CExt.execute_with_mutex(func, caught, data)
+      execute_with_mutex(func, caught, data)
     end
   end
 
@@ -1654,24 +1645,24 @@ class << Truffle::CExt
 
   def rb_thread_create(fn, args)
     Thread.new do
-      Truffle::CExt.execute_with_mutex(fn, args)
+      execute_with_mutex(fn, args)
     end
   end
 
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
     unblocker = proc {
-      Truffle::CExt.execute_with_mutex unblock, data2
+      execute_with_mutex unblock, data2
     }
 
     runner = proc {
-      Truffle::CExt.execute_with_mutex function, data1
+      execute_with_mutex function, data1
     }
 
     Thread.current.unblock unblocker, runner
   end
 
   def rb_iterate_call_block( iter_block, block_arg, arg2, &block)
-    Truffle::CExt.execute_with_mutex iter_block, block_arg, arg2, &block
+    execute_with_mutex iter_block, block_arg, arg2, &block
   end
 
   def rb_iterate(function, arg1, iter_block, arg2, block)
@@ -1683,7 +1674,7 @@ class << Truffle::CExt
       end
     else
       call_c_with_block function, arg1 do |block_arg|
-        Truffle::CExt.execute_with_mutex iter_block, block_arg, arg2
+        execute_with_mutex iter_block, block_arg, arg2
       end
     end
   end
@@ -1692,7 +1683,7 @@ class << Truffle::CExt
     old_c_block = Thread.current[:__C_BLOCK__]
     begin
       Thread.current[:__C_BLOCK__] = block
-      Truffle::CExt.execute_with_mutex function, arg, &block
+      execute_with_mutex function, arg, &block
     ensure
       Thread.current[:__C_BLOCK__] = old_c_block
     end
@@ -1748,11 +1739,11 @@ class << Truffle::CExt
     id = name.to_sym
 
     getter_proc = proc {
-      Truffle::CExt.execute_with_mutex getter, id, gvar, nil
+      execute_with_mutex getter, id, gvar, nil
     }
 
     setter_proc = proc { |value|
-      Truffle::CExt.execute_with_mutex setter, value, id, gvar, nil
+      execute_with_mutex setter, value, id, gvar, nil
     }
 
     rb_define_hooked_variable_inner id, getter_proc, setter_proc
@@ -1763,12 +1754,12 @@ class << Truffle::CExt
   end
 
   def RDATA(object)
-    Truffle::CExt::RData.new(object)
+    RData.new(object)
   end
 
   def rb_to_encoding(encoding)
     encoding = Encoding.find(encoding.to_str) unless encoding.is_a?(Encoding)
-    Truffle::CExt::RbEncoding.new(encoding)
+    RbEncoding.new(encoding)
   end
 
   def rb_enc_from_encoding(rb_encoding)
@@ -1776,7 +1767,7 @@ class << Truffle::CExt
   end
 
   def RSTRING_PTR(string)
-    Truffle::CExt::RStringPtr.new(string)
+    RStringPtr.new(string)
   end
 
   def rb_tr_obj_id(object)
