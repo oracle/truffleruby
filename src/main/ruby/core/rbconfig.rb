@@ -85,62 +85,58 @@ module RbConfig
 
   MAKEFILE_CONFIG = CONFIG.dup
 
-  CONFIG['RUBY_SO_NAME'] = ruby_base_name
-  MAKEFILE_CONFIG['RUBY_SO_NAME'] = '$(RUBY_BASE_NAME)'
+  expanded = CONFIG
+  mkconfig = MAKEFILE_CONFIG
+
+  expanded['RUBY_SO_NAME'] = ruby_base_name
+  mkconfig['RUBY_SO_NAME'] = '$(RUBY_BASE_NAME)'
 
   ruby_home = Truffle::Boot.ruby_home
 
   if ruby_home
-    bindir        = "#{ruby_home}/bin"
-    prefix        = ruby_home
-    exec_prefix   = prefix
-    libdir        = "#{exec_prefix}/lib"
-    rubylibprefix = "#{libdir}/#{ruby_base_name}"
-    rubylibdir    = "#{rubylibprefix}/#{ruby_version}"
-    rubyarchdir   = "#{rubylibdir}/#{arch}"
-    archdir       = rubyarchdir
-    sitearch      = arch
-    sitedir       = "#{rubylibprefix}/site_ruby"
-    sitelibdir    = "#{sitedir}/#{ruby_version}"
-    sitearchdir   = "#{sitelibdir}/#{sitearch}"
-    topdir        = archdir
+    prefix = ruby_home
 
-    CONFIG.merge!(
-        'prefix'         => prefix,
-        'exec_prefix'    => exec_prefix,
-        'libdir'         => libdir,
-        'rubylibprefix'  => rubylibprefix,
-        'rubylibdir'     => rubylibdir,
-        'rubyarchdir'    => rubyarchdir,
-        'archdir'        => archdir,
-        'bindir'         => bindir,
-        'hdrdir'         => "#{ruby_home}/lib/cext",
-        'sitearch'       => sitearch,
-        'sitedir'        => sitedir,
-        'sitelibdir'     => sitelibdir,
-        'sitearchdir'    => sitearchdir,
-        'rubyhdrdir'     => "#{libdir}/cext",
-        'topdir'         => topdir,
-        'rubyarchhdrdir' => "#{libdir}/cext",
-    )
-    MAKEFILE_CONFIG.merge!(
-        'prefix'         => ruby_home,
-        'exec_prefix'    => '$(prefix)',
-        'libdir'         => '$(exec_prefix)/lib',
-        'rubylibprefix'  => '$(libdir)/$(RUBY_BASE_NAME)',
-        'rubylibdir'     => '$(rubylibprefix)/$(ruby_version)',
-        'rubyarchdir'    => '$(rubylibdir)/$(arch)',
-        'archdir'        => '$(rubyarchdir)',
-        'bindir'         => bindir,
-        'hdrdir'         => "#{ruby_home}/lib/cext",
-        'sitearch'       => '$(arch)',
-        'sitedir'        => '$(rubylibprefix)/site_ruby',
-        'sitelibdir'     => '$(sitedir)/$(ruby_version)',
-        'sitearchdir'    => '$(sitelibdir)/$(sitearch)',
-        'rubyhdrdir'     => "#{libdir}/cext",
-        'topdir'         => '$(archdir)',
-        'rubyarchhdrdir' => "#{libdir}/cext",
-    )
+    common = {
+      'prefix' => prefix,
+      'bindir' => "#{prefix}/bin",
+      'hdrdir' => "#{prefix}/lib/cext",
+      'rubyhdrdir' => "#{prefix}/lib/cext",
+      'rubyarchhdrdir' => "#{prefix}/lib/cext",
+    }
+    expanded.merge!(common)
+    mkconfig.merge!(common)
+
+    exec_prefix = \
+    expanded['exec_prefix'] = prefix
+    mkconfig['exec_prefix'] = '$(prefix)'
+    libdir = \
+    expanded['libdir'] = "#{exec_prefix}/lib"
+    mkconfig['libdir'] = '$(exec_prefix)/lib'
+    rubylibprefix = \
+    expanded['rubylibprefix'] = "#{libdir}/#{ruby_base_name}"
+    mkconfig['rubylibprefix'] = '$(libdir)/$(RUBY_BASE_NAME)'
+    rubylibdir = \
+    expanded['rubylibdir'] = "#{rubylibprefix}/#{ruby_version}"
+    mkconfig['rubylibdir'] = '$(rubylibprefix)/$(ruby_version)'
+    rubyarchdir = \
+    expanded['rubyarchdir'] = "#{rubylibdir}/#{arch}"
+    mkconfig['rubyarchdir'] = '$(rubylibdir)/$(arch)'
+    archdir = \
+    expanded['archdir'] = rubyarchdir
+    mkconfig['archdir'] = '$(rubyarchdir)'
+    sitearch = \
+    expanded['sitearch'] = arch
+    mkconfig['sitearch'] = '$(arch)'
+    sitedir = \
+    expanded['sitedir'] = "#{rubylibprefix}/site_ruby"
+    mkconfig['sitedir'] = '$(rubylibprefix)/site_ruby'
+    sitelibdir = \
+    expanded['sitelibdir'] = "#{sitedir}/#{ruby_version}"
+    mkconfig['sitelibdir'] = '$(sitedir)/$(ruby_version)'
+    expanded['sitearchdir'] = "#{sitelibdir}/#{sitearch}"
+    mkconfig['sitearchdir'] = '$(sitelibdir)/$(sitearch)'
+    expanded['topdir'] = archdir
+    mkconfig['topdir'] = '$(archdir)'
   end
 
   sulong_home = ENV['SULONG_HOME']
@@ -159,25 +155,20 @@ module RbConfig
                       '-Wno-incompatible-pointer-types', # We define VALUE as void* rather than uint32_t
                       '-c', '-emit-llvm'].join(' ')
 
-    CONFIG.merge!(
-        'CC'        => cc,
-        'CPP'       => cpp,
-        'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG)" +
-            " -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
-        'CFLAGS'    => cflags,
-        'LINK_SO'   => "mx -v -p #{sulong_home} su-link -o $@ $(OBJS) #{libs}",
-        'TRY_LINK'  => "#{clang} $(src) $(INCFLAGS) #{cflags} -I#{sulong_include} #{libs}"
-    )
+    common = {
+      'CC' => cc,
+      'CPP' => cpp,
+      'CFLAGS' => cflags,
+    }
+    expanded.merge!(common)
+    mkconfig.merge!(common)
 
-    MAKEFILE_CONFIG.merge!(
-        'CC'        => cc,
-        'CPP'       => cpp,
-        'COMPILE_C' => "ruby #{libdir}/cext/preprocess.rb < $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)" +
-            " -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
-        'CFLAGS'    => cflags,
-        'LINK_SO'   => "mx -v -p #{sulong_home} su-link -o $@ $(OBJS) $(LIBS)",
-        'TRY_LINK'  => "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{sulong_include} $(LIBS)"
-    )
+    expanded['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb < $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
+    mkconfig['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb < $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
+    expanded['LINK_SO'] = "mx -v -p #{sulong_home} su-link -o $@ $(OBJS) #{libs}"
+    mkconfig['LINK_SO'] = "mx -v -p #{sulong_home} su-link -o $@ $(OBJS) $(LIBS)"
+    expanded['TRY_LINK'] = "#{clang} $(src) $(INCFLAGS) #{cflags} -I#{sulong_include} #{libs}"
+    mkconfig['TRY_LINK'] = "#{clang} $(src) $(INCFLAGS) $(CFLAGS) -I#{sulong_include} $(LIBS)"
   end
 
   def self.ruby
