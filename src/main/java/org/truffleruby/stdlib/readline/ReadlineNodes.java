@@ -52,11 +52,15 @@ import jline.console.CursorBuffer;
 import jline.console.completer.Completer;
 import jline.console.completer.FileNameCompleter;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringWithDefaultNodeGen;
@@ -64,6 +68,7 @@ import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.TaintNode;
@@ -98,8 +103,20 @@ public abstract class ReadlineNodes {
         @Specialization
         public DynamicObject setBasicWordBreakCharacters(DynamicObject characters) {
             ProcCompleter.setDelimiter(RopeOperations.decodeUTF8(StringOperations.rope(characters)));
-
             return characters;
+        }
+
+    }
+
+    @Primitive(name = "readline_set_completion_proc")
+    public abstract static class CompletionProcSetNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyProc(proc)")
+        public DynamicObject setCompletionProc(DynamicObject proc) {
+            final ProcCompleter completer = new ProcCompleter(getContext(), proc);
+            getContext().getConsoleHolder().setCurrentCompleter(completer);
+            return proc;
         }
 
     }
@@ -110,9 +127,10 @@ public abstract class ReadlineNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject getScreenSize() {
+            final ConsoleReader readline = getContext().getConsoleHolder().getReadline();
             final int[] store = {
-                    getContext().getConsoleHolder().getReadline().getTerminal().getHeight(),
-                    getContext().getConsoleHolder().getReadline().getTerminal().getWidth()
+                    readline.getTerminal().getHeight(),
+                    readline.getTerminal().getWidth()
             };
 
             return ArrayHelpers.createArray(getContext(), store, 2);
@@ -251,12 +269,17 @@ public abstract class ReadlineNodes {
 
     // Taken from org.jruby.ext.readline.Readline.ProcCompleter.
     // Complete using a Proc object
-    public static class ProcCompleter implements Completer {
+    private static class ProcCompleter implements Completer {
 
         //\t\n\"\\'`@$><=;|&{(
         static private String[] delimiters = {" ", "\t", "\n", "\"", "\\", "'", "`", "@", "$", ">", "<", "=", ";", "|", "&", "{", "("};
 
-        public ProcCompleter(DynamicObject procCompleter) {
+        private final RubyContext context;
+        private final DynamicObject proc;
+
+        public ProcCompleter(RubyContext context, DynamicObject proc) {
+            this.context = context;
+            this.proc = proc;
         }
 
         @TruffleBoundary
@@ -289,7 +312,20 @@ public abstract class ReadlineNodes {
         }
 
         public int complete(String buffer, int cursor, List<CharSequence> candidates) {
-            throw new UnsupportedOperationException("auto-completion via proc not yet supported");
+            buffer = buffer.substring(0, cursor);
+            int index = wordIndexOf(buffer);
+            if (index != -1) {
+                buffer = buffer.substring(index + 1);
+            }
+
+            DynamicObject string = StringOperations.createString(context, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
+            DynamicObject completions = (DynamicObject) context.send(proc, "call", null, string);
+            assert RubyGuards.isRubyArray(completions);
+            for (Object element : ArrayOperations.toIterable(completions)) {
+                assert RubyGuards.isRubyString(element);
+                candidates.add(StringOperations.getString((DynamicObject) element));
+            }
+            return cursor - buffer.length();
         }
     }
 

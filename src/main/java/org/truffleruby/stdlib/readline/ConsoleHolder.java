@@ -51,7 +51,7 @@ import java.io.IOException;
 public class ConsoleHolder {
 
     private final ConsoleReader readline;
-    private final Completer currentCompleter;
+    private Completer currentCompleter;
     private final History history;
 
     @TruffleBoundary
@@ -79,6 +79,12 @@ public class ConsoleHolder {
 
     public Completer getCurrentCompleter() {
         return currentCompleter;
+    }
+
+    public void setCurrentCompleter(Completer completer) {
+        readline.removeCompleter(currentCompleter);
+        currentCompleter = completer;
+        readline.addCompleter(completer);
     }
 
     public History getHistory() {

@@ -24,8 +24,6 @@ module Readline
     completion_append_character=
     completion_case_fold
     completion_case_fold=
-    completion_proc
-    completion_proc=
     emacs_editing_mode
     emacs_editing_mode?
     filename_quote_characters
@@ -45,6 +43,28 @@ module Readline
     end
 
     Truffle.invoke_primitive :method_unimplement, method(method_name)
+  end
+
+  @completion_proc = nil
+
+  def self.completion_proc
+    @completion_proc
+  end
+
+  def self.completion_proc=(proc)
+    raise ArgumentError, "argument must respond to `call'" unless proc.respond_to?(:call)
+
+    Truffle.invoke_primitive :readline_set_completion_proc, -> buffer {
+      result = proc.call(buffer)
+      unless Array === result
+        result = Array(result)
+      end
+      result.map { |e|
+        Rubinius::Type.coerce_to(e, String, :to_s)
+      }.sort
+    }
+
+    @completion_proc = proc
   end
 
   def self.input=(input)
