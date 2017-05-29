@@ -49,42 +49,6 @@ module RbConfig
   arch         = "#{host_cpu}-#{host_os}"
   cppflags     = ''
   libs         = ''
-  ruby_so_name = ruby_base_name
-
-  MAKEFILE_CONFIG = {
-      'arch'              => arch,
-      'configure_args'    => ' ',
-      'ARCH_FLAG'         => '',
-      'CPPFLAGS'          => cppflags,
-      'LDFLAGS'           => '',
-      'DLDFLAGS'          => '',
-      'DLEXT'             => 'su',
-      'host_os'           => host_os,
-      'host_cpu'          => host_cpu,
-      'LIBEXT'            => 'c',
-      'OBJEXT'            => 'bc',
-      'exeext'            => '',
-      'EXEEXT'            => '',
-      'EXECUTABLE_EXTS'   => '',
-      'includedir'        => '',
-      'LIBS'              => libs,
-      'DLDLIBS'           => '',
-      'LIBRUBYARG_STATIC' => '',
-      'LIBRUBYARG_SHARED' => '',
-      'libdirname'        => 'libdir',
-      'LIBRUBY'           => '',
-      'LIBRUBY_A'         => '',
-      'LIBRUBYARG'        => '',
-      'NULLCMD'           => ':',
-      'prefix'            => '',
-      'ruby_install_name' => ruby_install_name,
-      'RUBY_INSTALL_NAME' => ruby_install_name,
-      'ruby_version'      => ruby_version,
-      'RUBY_BASE_NAME'    => ruby_base_name,
-      'RUBY_SO_NAME'      => '$(RUBY_BASE_NAME)',
-      'target_cpu'        => host_cpu
-  }
-
 
   CONFIG = {
       'arch'              => arch,
@@ -116,9 +80,13 @@ module RbConfig
       'RUBY_INSTALL_NAME' => ruby_install_name,
       'ruby_version'      => ruby_api_version,
       'RUBY_BASE_NAME'    => ruby_base_name,
-      'RUBY_SO_NAME'      => ruby_so_name,
-      'target_cpu'        => host_cpu
+      'target_cpu'        => host_cpu,
   }
+
+  MAKEFILE_CONFIG = CONFIG.dup
+
+  CONFIG['RUBY_SO_NAME'] = ruby_base_name
+  MAKEFILE_CONFIG['RUBY_SO_NAME'] = '$(RUBY_BASE_NAME)'
 
   ruby_home = Truffle::Boot.ruby_home
 
