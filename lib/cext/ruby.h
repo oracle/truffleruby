@@ -1164,6 +1164,12 @@ VALUE *rb_ruby_verbose_ptr(void);
 VALUE *rb_ruby_debug_ptr(void);
 #define ruby_debug (*rb_ruby_debug_ptr())
 
+// Util
+
+char *ruby_strdup(const char *);
+#undef strdup
+#define strdup(s) ruby_strdup(s)
+
 // Inline implementations
 
 MUST_INLINE int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock) {
@@ -1394,8 +1400,3 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 #endif
 
 #endif
-
-// util
-char *ruby_strdup(const char *);
-#undef strdup
-#define strdup(s) ruby_strdup(s)
