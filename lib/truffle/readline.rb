@@ -20,8 +20,6 @@ module Readline
     completer_quote_characters=
     completer_word_break_characters
     completer_word_break_characters=
-    completion_append_character
-    completion_append_character=
     completion_case_fold
     completion_case_fold=
     emacs_editing_mode
@@ -45,10 +43,17 @@ module Readline
     Truffle.invoke_primitive :method_unimplement, method(method_name)
   end
 
+  @completion_append_character = " "
   @completion_proc = nil
 
-  def self.completion_proc
-    @completion_proc
+  class << self
+    attr_reader :completion_append_character, :completion_proc
+  end
+
+  def self.completion_append_character=(char)
+    char = "" if char == nil
+    char = String(char)
+    @completion_append_character = char.empty? ? nil : char[0]
   end
 
   def self.completion_proc=(proc)
