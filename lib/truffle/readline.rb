@@ -43,7 +43,7 @@ module Readline
     Truffle.invoke_primitive :method_unimplement, method(method_name)
   end
 
-  @completion_append_character = " "
+  @completion_append_character = ' '
   @completion_proc = nil
 
   class << self
@@ -51,7 +51,7 @@ module Readline
   end
 
   def self.completion_append_character=(char)
-    char = "" if char == nil
+    char = '' if char == nil
     char = String(char)
     @completion_append_character = char.empty? ? nil : char[0]
   end
