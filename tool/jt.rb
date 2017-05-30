@@ -511,6 +511,8 @@ module Commands
               jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt where repos ...                            find these repositories
       jt next                                       tell you what to work on next (give you a random core library spec)
+      jt pr [pr_number]                             finds in which GitHub's PR is the current HEAD and pushes the branch to bitbucket
+                                                    under github/pr/<number> name
 
       you can also put build or rebuild in front of any command
 
@@ -748,6 +750,42 @@ module Commands
       raw_sh("make")
       FileUtils.copy_file("#{gem_name}.su", copy_target)
     end
+  end
+
+  def pr(*args)
+    out, _err   = sh 'git remote', capture: true
+    remotes     = out.split
+    remote_urls = remotes.map do |remote|
+      out, _err = sh "git config --get remote.#{remote}.url", capture: true
+      [remote, out.chomp!]
+    end
+
+    upstream = remote_urls.find { |r, u| u.include? 'graalvm/truffleruby' }.first
+    bb       = remote_urls.find { |r, u| u.include? 'ol-bitbucket' }.first
+
+    pr_number = args.first
+    if pr_number
+      github_pr_branch = "#{upstream}/pr/#{pr_number}"
+    else
+      fetch     = "+refs/pull/*/head:refs/remotes/#{upstream}/pr/*"
+      out, _err = sh "git config --get-all remote.#{upstream}.fetch", capture: true
+      sh 'git', 'config', '--add', "remote.#{upstream}.fetch", fetch unless out.include? fetch
+      sh 'git', 'fetch', upstream
+
+      github_pr_branch = begin
+        out, _err = sh 'git branch -r --contains HEAD', capture: true
+        out.lines.find { |l| l.strip.start_with? "#{upstream}/pr/" }.strip.chomp
+      end
+
+      unless github_pr_branch
+        puts 'Could not find HEAD in a GitHub pull-request.'
+        exit 1
+      end
+
+      pr_number = github_pr_branch.split('/').last
+    end
+
+    sh "git push --force #{bb} #{github_pr_branch}:refs/heads/github/pr/#{pr_number}"
   end
 
   def test(*args)
