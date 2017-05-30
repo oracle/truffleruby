@@ -14,7 +14,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.ExecutionContext;
+import com.oracle.truffle.api.CompilerOptions;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -53,8 +53,8 @@ public class RubyRootNode extends RootNode {
     }
 
     @Override
-    public ExecutionContext getExecutionContext() {
-        return context;
+    public CompilerOptions getCompilerOptions() {
+        return context.getCompilerOptions();
     }
 
     @Override

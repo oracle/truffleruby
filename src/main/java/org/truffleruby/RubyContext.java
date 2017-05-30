@@ -11,7 +11,6 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerOptions;
-import com.oracle.truffle.api.ExecutionContext;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleOptions;
@@ -57,7 +56,7 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 
-public class RubyContext extends ExecutionContext {
+public class RubyContext {
 
     private final TruffleLanguage.Env env;
 
@@ -329,7 +328,6 @@ public class RubyContext extends ExecutionContext {
         return rootLexicalScope;
     }
 
-    @Override
     public CompilerOptions getCompilerOptions() {
         return compilerOptions;
     }
