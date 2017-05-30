@@ -208,7 +208,7 @@ public class RubyDebugTest {
             for (int i = 0; i < expectedFrame.length; i = i + 2) {
                 String expectedIdentifier = (String) expectedFrame[i];
                 Object expectedValue = expectedFrame[i + 1];
-                DebugValue value = frame.getValue(expectedIdentifier);
+                DebugValue value = frame.getScope().getDeclaredValue(expectedIdentifier);
                 assertNotNull(value);
                 String valueStr = value.as(String.class);
 
