@@ -511,8 +511,8 @@ module Commands
               jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt where repos ...                            find these repositories
       jt next                                       tell you what to work on next (give you a random core library spec)
-      jt pr [pr_number]                             finds in which GitHub's PR is the current HEAD and pushes the branch to bitbucket
-                                                    under github/pr/<number> name
+      jt pr [pr_number]                             pushes GitHub's PR to bitbucket to let CI run under github/pr/<number> name 
+                                                    if the pr_number is not supplied current HEAD is used to find a PR which contains it
 
       you can also put build or rebuild in front of any command
 
