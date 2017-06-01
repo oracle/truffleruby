@@ -153,7 +153,6 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
     protected void applySplittingInliningStrategy(DirectCallNode callNode, InternalMethod method) {
         if (callNode.isCallTargetCloningAllowed() && method.getSharedMethodInfo().shouldAlwaysClone()) {
-            insert(callNode);
             callNode.cloneCallTarget();
         }
 
