@@ -47,7 +47,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             final Object methodName,
             DynamicObject blockObject,
             final Object[] argumentsObjects) {
-        CompilerDirectives.transferToInterpreter();
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         // Useful debug aid to catch a running-away NotProvided or undefined
         assert !(receiverObject instanceof NotProvided) : RubyLanguage.fileLine(getEncapsulatingSourceSection());
 

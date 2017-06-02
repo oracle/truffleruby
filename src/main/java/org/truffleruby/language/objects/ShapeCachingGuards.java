@@ -21,7 +21,7 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 public abstract class ShapeCachingGuards {
 
     public static boolean updateShape(DynamicObject object) {
-        CompilerDirectives.transferToInterpreter();
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         boolean updated = object.updateShape();
         if (updated) {
             assert !SharedObjects.isShared(RubyContext.getInstance(), object);
