@@ -36,8 +36,6 @@ import org.truffleruby.core.string.KCode;
 import org.truffleruby.parser.ast.RegexpParseNode;
 import org.truffleruby.parser.parser.Tokens;
 
-import java.io.IOException;
-
 import static org.truffleruby.parser.lexer.RubyLexer.EOF;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_ESCAPE;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
@@ -169,7 +167,7 @@ public class StringTerm extends StrTerm {
     }
 
     @Override
-    public int parseString(RubyLexer lexer) throws IOException {
+    public int parseString(RubyLexer lexer) {
         boolean spaceSeen = false;
         int c;
 
@@ -268,7 +266,7 @@ public class StringTerm extends StrTerm {
     }
 
     // mri: parser_tokadd_string
-    public int parseStringIntoBuffer(RubyLexer lexer, RopeBuilder buffer, Encoding enc[]) throws IOException {
+    public int parseStringIntoBuffer(RubyLexer lexer, RopeBuilder buffer, Encoding enc[]) {
         boolean qwords = (flags & STR_FUNC_QWORDS) != 0;
         boolean expand = (flags & STR_FUNC_EXPAND) != 0;
         boolean escape = (flags & STR_FUNC_ESCAPE) != 0;
@@ -422,7 +420,7 @@ public class StringTerm extends StrTerm {
 
     // Was a goto in original ruby lexer
     @SuppressWarnings("fallthrough")
-    private void escaped(RubyLexer lexer, RopeBuilder buffer) throws IOException {
+    private void escaped(RubyLexer lexer, RopeBuilder buffer) {
         int c;
 
         switch (c = lexer.nextc()) {
@@ -437,7 +435,7 @@ public class StringTerm extends StrTerm {
     }
 
     @SuppressWarnings("fallthrough")
-    private void parseEscapeIntoBuffer(RubyLexer lexer, RopeBuilder buffer) throws IOException {
+    private void parseEscapeIntoBuffer(RubyLexer lexer, RopeBuilder buffer) {
         int c;
 
         switch (c = lexer.nextc()) {

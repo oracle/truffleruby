@@ -83,7 +83,6 @@ import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.parser.RubyParser;
 import org.truffleruby.parser.parser.Tokens;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -379,7 +378,7 @@ public class RubyLexer {
         flush();
     }
 
-    public int nextToken() throws IOException {
+    public int nextToken() {
         token = yylex();
         return token == EOF ? 0 : token;
     }
@@ -584,7 +583,7 @@ public class RubyLexer {
      * @param c first character the the quote construct
      * @return a token that specifies the quote type
      */
-    private int parseQuote(int c) throws IOException {
+    private int parseQuote(int c) {
         int begin, end;
         boolean shortHand;
 
@@ -671,7 +670,7 @@ public class RubyLexer {
         return -1; // not-reached
     }
 
-    private int hereDocumentIdentifier() throws IOException {
+    private int hereDocumentIdentifier() {
         int c = nextc();
         int term;
 
@@ -756,7 +755,7 @@ public class RubyLexer {
      *@return    Description of the Returned Value
      */
     @SuppressWarnings("fallthrough")
-    private int yylex() throws IOException {
+    private int yylex() {
         int c;
         boolean spaceSeen = false;
         boolean commandState;
@@ -1011,7 +1010,7 @@ public class RubyLexer {
         return result;
     }
 
-    private int ampersand(boolean spaceSeen) throws IOException {
+    private int ampersand(boolean spaceSeen) {
         int c = nextc();
 
         switch (c) {
@@ -1058,7 +1057,7 @@ public class RubyLexer {
     }
 
     // MRI: parser_magic_comment
-    public boolean parseMagicComment(Rope magicLine, int magicLineOffset, int magicLineLength) throws IOException {
+    public boolean parseMagicComment(Rope magicLine, int magicLineOffset, int magicLineLength) {
         int length = magicLineLength;
 
         if (length <= 7) return false;
@@ -1096,7 +1095,7 @@ public class RubyLexer {
         return true;
     }
 
-    private int at() throws IOException {
+    private int at() {
         newtok(true);
         int c = nextc();
         int result;
@@ -1129,7 +1128,7 @@ public class RubyLexer {
         return tokenize_ident(result);
     }
 
-    private int backtick(boolean commandState) throws IOException {
+    private int backtick(boolean commandState) {
         yaccValue = "`";
 
         if (isLexState(lex_state, EXPR_FNAME)) {
@@ -1146,7 +1145,7 @@ public class RubyLexer {
         return Tokens.tXSTRING_BEG;
     }
 
-    private int bang() throws IOException {
+    private int bang() {
         int c = nextc();
 
         if (isAfterOperator()) {
@@ -1176,7 +1175,7 @@ public class RubyLexer {
         }
     }
 
-    private int caret() throws IOException {
+    private int caret() {
         int c = nextc();
         if (c == '=') {
             setState(EXPR_BEG);
@@ -1191,7 +1190,7 @@ public class RubyLexer {
         return Tokens.tCARET;
     }
 
-    private int colon(boolean spaceSeen) throws IOException {
+    private int colon(boolean spaceSeen) {
         int c = nextc();
 
         if (c == ':') {
@@ -1230,7 +1229,7 @@ public class RubyLexer {
         return Tokens.tSYMBEG;
     }
 
-    private int comma(int c) throws IOException {
+    private int comma(int c) {
         setState(EXPR_BEG|EXPR_LABEL);
         yaccValue = ",";
 
@@ -1257,7 +1256,7 @@ public class RubyLexer {
     }
 
     @SuppressWarnings("fallthrough")
-    private int dollar() throws IOException {
+    private int dollar() {
         setState(EXPR_END);
         newtok(true);
         int c = nextc();
@@ -1367,7 +1366,7 @@ public class RubyLexer {
         }
     }
 
-    private int dot() throws IOException {
+    private int dot() {
         int c;
 
         setState(EXPR_BEG);
@@ -1389,7 +1388,7 @@ public class RubyLexer {
         return Tokens.tDOT;
     }
 
-    private int doubleQuote(boolean commandState) throws IOException {
+    private int doubleQuote(boolean commandState) {
         int label = isLabelPossible(commandState) ? str_label : 0;
         lex_strterm = new StringTerm(str_dquote|label, '\0', '"');
         yaccValue = "\"";
@@ -1397,7 +1396,7 @@ public class RubyLexer {
         return Tokens.tSTRING_BEG;
     }
 
-    private int greaterThan() throws IOException {
+    private int greaterThan() {
         setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG);
 
         int c = nextc();
@@ -1424,7 +1423,7 @@ public class RubyLexer {
         }
     }
 
-    private int identifier(int c, boolean commandState) throws IOException {
+    private int identifier(int c, boolean commandState) {
         if (!isIdentifierChar(c)) {
             String badChar = "\\" + Integer.toOctalString(c & 0xff);
             compile_error(SyntaxException.PID.CHARACTER_BAD, "Invalid char `" + badChar + "' ('" + (char) c + "') in expression");
@@ -1602,7 +1601,7 @@ public class RubyLexer {
         return Tokens.tJAVASCRIPT;
     }
 
-    private int leftBracket(boolean spaceSeen) throws IOException {
+    private int leftBracket(boolean spaceSeen) {
         parenNest++;
         int c = '[';
         if (isAfterOperator()) {
@@ -1666,7 +1665,7 @@ public class RubyLexer {
         return c;
     }
 
-    private int leftParen(boolean spaceSeen) throws IOException {
+    private int leftParen(boolean spaceSeen) {
         int result;
 
         if (isBEG()) {
@@ -1686,7 +1685,7 @@ public class RubyLexer {
         return result;
     }
 
-    private int lessThan(boolean spaceSeen) throws IOException {
+    private int lessThan(boolean spaceSeen) {
         last_state = lex_state;
         int c = nextc();
         if (c == '<' && !isLexState(lex_state, EXPR_DOT|EXPR_CLASS) &&
@@ -1729,7 +1728,7 @@ public class RubyLexer {
         }
     }
 
-    private int minus(boolean spaceSeen) throws IOException {
+    private int minus(boolean spaceSeen) {
         int c = nextc();
 
         if (isAfterOperator()) {
@@ -1768,7 +1767,7 @@ public class RubyLexer {
         return Tokens.tMINUS;
     }
 
-    private int percent(boolean spaceSeen) throws IOException {
+    private int percent(boolean spaceSeen) {
         if (isBEG()) return parseQuote(nextc());
 
         int c = nextc();
@@ -1789,7 +1788,7 @@ public class RubyLexer {
         return Tokens.tPERCENT;
     }
 
-    private int pipe() throws IOException {
+    private int pipe() {
         int c = nextc();
 
         switch (c) {
@@ -1816,7 +1815,7 @@ public class RubyLexer {
         }
     }
 
-    private int plus(boolean spaceSeen) throws IOException {
+    private int plus(boolean spaceSeen) {
         int c = nextc();
         if (isAfterOperator()) {
             setState(EXPR_ARG);
@@ -1853,7 +1852,7 @@ public class RubyLexer {
         return Tokens.tPLUS;
     }
 
-    private int questionMark() throws IOException {
+    private int questionMark() {
         int c;
 
         if (isEND()) {
@@ -1968,7 +1967,7 @@ public class RubyLexer {
         return Tokens.tRPAREN;
     }
 
-    private int singleQuote(boolean commandState) throws IOException {
+    private int singleQuote(boolean commandState) {
         int label = isLabelPossible(commandState) ? str_label : 0;
         lex_strterm = new StringTerm(str_squote|label, '\0', '\'');
         yaccValue = "'";
@@ -1976,7 +1975,7 @@ public class RubyLexer {
         return Tokens.tSTRING_BEG;
     }
 
-    private int slash(boolean spaceSeen) throws IOException {
+    private int slash(boolean spaceSeen) {
         if (isBEG()) {
             lex_strterm = new StringTerm(str_regexp, '\0', '/');
             yaccValue = "/";
@@ -2005,7 +2004,7 @@ public class RubyLexer {
         return Tokens.tDIVIDE;
     }
 
-    private int star(boolean spaceSeen) throws IOException {
+    private int star(boolean spaceSeen) {
         int c = nextc();
         
         switch (c) {
@@ -2053,7 +2052,7 @@ public class RubyLexer {
         return c;
     }
 
-    private int tilde() throws IOException {
+    private int tilde() {
         int c;
         
         if (isAfterOperator()) {
@@ -2075,7 +2074,7 @@ public class RubyLexer {
      *@return A int constant wich represents a token.
      */
     @SuppressWarnings("fallthrough")
-    private int parseNumber(int c) throws IOException {
+    private int parseNumber(int c) {
         setState(EXPR_END);
         newtok(true);
 
@@ -2281,7 +2280,7 @@ public class RubyLexer {
         }
     }
 
-    private int getNumberToken(String number, boolean seen_e, boolean seen_point, int nondigit) throws IOException {
+    private int getNumberToken(String number, boolean seen_e, boolean seen_point, int nondigit) {
         boolean isFloat = seen_e || seen_point;
         if (nondigit != '\0') {
             compile_error(SyntaxException.PID.TRAILING_UNDERSCORE_IN_NUMBER, "Trailing '_' in number.");
@@ -2294,7 +2293,7 @@ public class RubyLexer {
 
     // Note: parser_tokadd_utf8 variant just for regexp literal parsing.  This variant is to be
     // called when string_literal and regexp_literal.
-    public void readUTFEscapeRegexpLiteral(RopeBuilder buffer) throws IOException {
+    public void readUTFEscapeRegexpLiteral(RopeBuilder buffer) {
         buffer.append('\\');
         buffer.append('u');
 
@@ -2316,7 +2315,7 @@ public class RubyLexer {
     }
 
     // MRI: parser_tokadd_utf8 sans regexp literal parsing
-    public int readUTFEscape(RopeBuilder buffer, boolean stringLiteral, boolean symbolLiteral) throws IOException {
+    public int readUTFEscape(RopeBuilder buffer, boolean stringLiteral, boolean symbolLiteral) {
         int codepoint;
         int c;
 
@@ -2342,7 +2341,7 @@ public class RubyLexer {
         return codepoint;
     }
     
-    private void readUTF8EscapeIntoBuffer(int codepoint, RopeBuilder buffer, boolean stringLiteral) throws IOException {
+    private void readUTF8EscapeIntoBuffer(int codepoint, RopeBuilder buffer, boolean stringLiteral) {
         if (codepoint >= 0x80) {
             buffer.setEncoding(UTF8_ENCODING);
             if (stringLiteral) tokaddmbc(codepoint, buffer);
@@ -2352,7 +2351,7 @@ public class RubyLexer {
     }
 
     @SuppressWarnings("fallthrough")
-    public int readEscape() throws IOException {
+    public int readEscape() {
         int c = nextc();
 
         switch (c) {
@@ -2417,8 +2416,7 @@ public class RubyLexer {
      * exception will be thrown.  This will also return the codepoint as a value so codepoint
      * ranges can be checked.
      */
-    private char scanHexLiteral(RopeBuilder buffer, int count, boolean strict, String errorMessage)
-            throws IOException {
+    private char scanHexLiteral(RopeBuilder buffer, int count, boolean strict, String errorMessage) {
         int i = 0;
         char hexValue = '\0';
 
@@ -2448,7 +2446,7 @@ public class RubyLexer {
      * Read up to count hexadecimal digits.  If strict is provided then count number of hex
      * digits must be present. If no digits can be read a syntax exception will be thrown.
      */
-    private int scanHex(int count, boolean strict, String errorMessage) throws IOException {
+    private int scanHex(int count, boolean strict, String errorMessage) {
         int i = 0;
         int hexValue = '\0';
 

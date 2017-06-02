@@ -98,7 +98,7 @@ public class HeredocTerm extends StrTerm {
     }
 
     @Override
-    public int parseString(RubyLexer lexer) throws java.io.IOException {
+    public int parseString(RubyLexer lexer) {
         RopeBuilder str = null;
         Rope eos = nd_lit;
         boolean indent = (flags & STR_FUNC_INDENT) != 0;
