@@ -193,10 +193,6 @@ public abstract class FormatNode extends RubyBaseNode {
         return output;
     }
 
-    protected boolean isNil(Object object) {
-        return object == coreLibrary().getNilObject();
-    }
-
     public static int safeGet(ByteBuffer encode) {
         while (encode.hasRemaining()) {
             int got = encode.get() & 0xff;
