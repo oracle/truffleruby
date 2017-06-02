@@ -34,7 +34,7 @@ public class ReadBlockNode extends RubyNode {
             return valueIfAbsent;
         } else {
             if (!Layouts.PROC.isProc(block)) {
-                CompilerDirectives.transferToInterpreter();
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new UnsupportedOperationException("Method passed something that isn't a Proc as a block");
             }
 

@@ -53,7 +53,7 @@ public abstract class ReadGlobalVariableNode extends RubyNode {
         final GlobalVariableStorage storage = getStorage();
 
         if (storage.hasHooks()) {
-            CompilerDirectives.transferToInterpreter();
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new UnsupportedOperationException();
         }
 
