@@ -3191,17 +3191,21 @@ public class RubyLexer {
 
         final byte[] bytes = str.getBytes();
         while (i < len) {
-            switch ((int) bytes[i]) {
+            switch (bytes[i]) {
                 case '-':
-                    if (i >= 2 && (int) bytes[i - 1] == '*' && (int) bytes[i - 2] == '-') return i + 1;
+                    if (i >= 2 && bytes[i - 1] == '*' && bytes[i - 2] == '-') {
+                        return i + 1;
+                    }
                     i += 2;
                     break;
                 case '*':
-                    if (i + 1 >= len) return -1;
+                    if (i + 1 >= len) {
+                        return -1;
+                    }
 
-                    if ((int) bytes[i + 1] != '-') {
+                    if (bytes[i + 1] != '-') {
                         i += 4;
-                    } else if ((int) bytes[i - 1] != '-') {
+                    } else if (bytes[i - 1] != '-') {
                         i += 2;
                     } else {
                         return i + 2;

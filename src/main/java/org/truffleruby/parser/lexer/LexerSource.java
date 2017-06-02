@@ -106,7 +106,7 @@ public class LexerSource {
 
         final byte[] bytes = sourceBytes.getBytes();
         while (n < bytes.length) {
-            if ((int) bytes[n] == '\n') {
+            if (bytes[n] == '\n') {
                 return n;
             }
 
