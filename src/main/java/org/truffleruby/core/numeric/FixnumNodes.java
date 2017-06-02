@@ -410,7 +410,17 @@ public abstract class FixnumNodes {
 
         private final BranchProfile adjustProfile = BranchProfile.create();
 
-        @Specialization
+        @Specialization(guards = { "a >= 0", "b == cachedB", "isPowerOfTwo(cachedB)" })
+        public int modPowerOfTwo(int a, int b,
+                @Cached("b") int cachedB) {
+            return a & (cachedB - 1);
+        }
+
+        protected static boolean isPowerOfTwo(int n) {
+            return n > 0 && (n & (n - 1)) == 0;
+        }
+
+        @Specialization(replaces = "modPowerOfTwo")
         public int mod(int a, int b) {
             int mod = a % b;
 
