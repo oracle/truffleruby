@@ -85,6 +85,7 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+    <!-- In the mx build system, JLine is re-exported by Truffle, but not in the Maven artefacts -->
     <dependency>
       <groupId>jline</groupId>
       <artifactId>jline</artifactId>
