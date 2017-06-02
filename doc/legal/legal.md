@@ -114,8 +114,9 @@ files.
 
 #### pr-zlib
 
-TruffleRuby uses pr-zlib 1.0.3. pr-zlib is copyright Park Heesob and Daniel
-Berger and covered under the same license as zlib itself (see `zlib.txt`).
+TruffleRuby uses pr-zlib 1.0.3, with modifications. pr-zlib is copyright Park
+Heesob and Daniel Berger and covered under the same license as zlib itself (see
+`zlib.txt`).
 
 #### FFI
 

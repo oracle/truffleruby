@@ -3,6 +3,16 @@
 #
 # Ruby translation by Park Heesob
 
+# Modifications made by the Truffle team are:
+#
+# Copyright (c) 2015 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 1.0
+# GNU General Public License version 2
+# GNU Lesser General Public License version 2.1
+
 require_relative 'rbzlib'
 include Rbzlib
 
@@ -423,11 +433,13 @@ module Zlib
     end
 
     def total_in
+      # Truffle: @gz.z to @z
       raise GzipFile::Error,"closed gzip stream" unless @z.ZSTREAM_IS_READY()
       @z.stream.total_in
     end
 
     def total_out
+      # Truffle: @gz.z to @z
       raise GzipFile::Error,"closed gzip stream" unless @z.ZSTREAM_IS_READY()
       @z.stream.total_out
     end
@@ -877,14 +889,17 @@ module Zlib
     end
 
     def gzfile_get16(src)
+      # Truffle: S to v for consistent endianess
       src.unpack('v').first
     end
 
     def gzfile_get32(src)
+      # Truffle: L to V for consistent endianess
       src.unpack('V').first
     end
 
     def gzfile_set32(n)
+      # Truffle: L to V for consistent endianess
       [n].pack('V')
     end
 
@@ -1270,8 +1285,10 @@ module Zlib
     end
 
     def each_byte()
+      # Truffle: without a block should return an enumerator
       return to_enum(:each_byte) unless block_given?
       while (c = getc)
+        # Truffle: should yield the ordinal value
         yield(c.ord)
       end
       nil
@@ -1293,6 +1310,7 @@ module Zlib
     end
 
     def each(rs=$/)
+      # Truffle: without a block should return an enumerator
       return to_enum(:each, rs) unless block_given?
       while (str = gzreader_gets(rs))
         yield(str)

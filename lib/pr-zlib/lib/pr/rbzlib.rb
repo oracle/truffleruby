@@ -30,6 +30,16 @@
 #  Copyright (C) 2009 by Park Heesob phasis@gmail.com
 #
 
+# Modifications made by the Truffle team are:
+#
+# Copyright (c) 2015 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 1.0
+# GNU General Public License version 2
+# GNU Lesser General Public License version 2.1
+
 class Fixnum
   def ord
     self
@@ -241,18 +251,22 @@ module Rbzlib
     end
 
     def [](idx)
+      # Truffle: S switched to v for consistent endianess
       @buffer[(idx * 2) + @offset, 2].unpack('v').first
     end
 
     def []=(idx, val)
+      # Truffle: S switched to v for consistent endianess
       @buffer[(idx * 2) + @offset, 2] = [val].pack('v')
     end
 
     def get()
+      # Truffle: S switched to v for consistent endianess
       @buffer[@offset, 2].unpack('v').first
     end
 
     def set(val)
+      # Truffle: S switched to v for consistent endianess
       @buffer[@offset, 2] = [val].pack('v')
     end
   end
@@ -415,7 +429,7 @@ module Rbzlib
     crc = crc ^ 0xffffffff
     i = 0
 
-    # Commented out library code here because method specs were failing
+    # Truffle: explain why we have commented this out
     # while len >= 8
     #   while i < 8
     #     crc = @@crc_table[(crc ^ buf[i].ord) & 0xff] ^ (crc >> 8)
@@ -669,7 +683,8 @@ module Rbzlib
 
     s.z_err = Z_DATA_ERROR if (c == Z_EOF)
 
-    return (x.unpack('v').first)
+    # Truffle: switched from v to L for consistent endianess
+    return (x.unpack('L').first)
   end
 
   # Check the gzip header of a gz_stream opened for reading. Set the stream
