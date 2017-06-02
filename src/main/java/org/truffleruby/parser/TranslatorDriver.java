@@ -78,7 +78,6 @@ import org.truffleruby.parser.parser.RubyParserResult;
 import org.truffleruby.parser.scope.DynamicScope;
 import org.truffleruby.parser.scope.StaticScope;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -280,10 +279,6 @@ public class TranslatorDriver {
         RubyParserResult result;
         try {
             result = parser.parse(configuration);
-        } catch (IOException e) {
-            // Enebo: We may want to change this error to be more specific,
-            // but I am not sure which conditions leads to this...so lame message.
-            throw new RaiseException(context.getCoreExceptions().syntaxError("Problem reading source: " + e, null));
         } catch (SyntaxException e) {
             switch (e.getPid()) {
                 case UNKNOWN_ENCODING:

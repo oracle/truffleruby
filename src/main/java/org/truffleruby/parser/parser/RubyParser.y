@@ -127,8 +127,6 @@ import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.StrTerm;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
 
-import java.io.IOException;
-
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
@@ -2574,7 +2572,7 @@ none_block_pass : /* none */ {
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
      */
-    public RubyParserResult parse(ParserConfiguration configuration) throws IOException {
+    public RubyParserResult parse(ParserConfiguration configuration) {
         support.reset();
         support.setConfiguration(configuration);
         support.setResult(new RubyParserResult());

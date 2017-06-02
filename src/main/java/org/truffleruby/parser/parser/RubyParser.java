@@ -130,8 +130,6 @@ import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.StrTerm;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
 
-import java.io.IOException;
-
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
@@ -156,7 +154,7 @@ public class RubyParser {
         support.setWarnings(warnings);
         lexer.setWarnings(warnings);
     }
-					// line 160 "-"
+					// line 158 "-"
   // %token constants
   public static final int kCLASS = 257;
   public static final int kMODULE = 258;
@@ -898,8 +896,7 @@ public class RubyParser {
       @param yyLex scanner.
       @return result of the last reduction, if any.
     */
-  public Object yyparse (RubyLexer yyLex, Object ayydebug)
-				throws java.io.IOException {
+  public Object yyparse (RubyLexer yyLex, Object ayydebug) {
     return yyparse(yyLex);
   }
 
@@ -924,7 +921,7 @@ public class RubyParser {
       @param yyLex scanner.
       @return result of the last reduction, if any.
     */
-  public Object yyparse (RubyLexer yyLex) throws java.io.IOException {
+  public Object yyparse (RubyLexer yyLex) {
     if (yyMax <= 0) yyMax = 256;			// initial size
     int yyState = 0, yyStates[] = new int[yyMax];	// state stack
     Object yyVal = null, yyVals[] = new Object[yyMax];	// value stack
@@ -4662,12 +4659,12 @@ states[644] = new ParserState() {
   }
 };
 }
-					// line 2573 "RubyParser.y"
+					// line 2571 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
      */
-    public RubyParserResult parse(ParserConfiguration configuration) throws IOException {
+    public RubyParserResult parse(ParserConfiguration configuration) {
         support.reset();
         support.setConfiguration(configuration);
         support.setResult(new RubyParserResult());
@@ -4677,4 +4674,4 @@ states[644] = new ParserState() {
         return support.getResult();
     }
 }
-					// line 10083 "-"
+					// line 10080 "-"
