@@ -37,7 +37,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription POLYGLOT_STDIO = new BooleanOptionDescription("ployglot.stdio", "Use standard IO streams from the PolyglotEngine", true);
     public static final BooleanOptionDescription SYNC_STDIO = new BooleanOptionDescription("sync.stdio", "Sync operations on standard IO streams", true);
     public static final BooleanOptionDescription PLATFORM_USE_JAVA = new BooleanOptionDescription("platform.use_java", "Use a pure-Java platform", false);
-    public static final BooleanOptionDescription NATIVE_INTERRUPT = new BooleanOptionDescription("platform.native_interrupt", "Use the SIGVTALRM signal to interrupt native blocking calls", false);
+    public static final BooleanOptionDescription NATIVE_INTERRUPT = new BooleanOptionDescription("platform.native_interrupt", "Use the SIGVTALRM signal to interrupt native blocking calls", true);
     public static final BooleanOptionDescription TRACE_CALLS = new BooleanOptionDescription("trace.calls", "Support tracing (set_trace_func", true);
     public static final BooleanOptionDescription COVERAGE_GLOBAL = new BooleanOptionDescription("coverage.global", "Run coverage for all code and print results on exit", false);
     public static final BooleanOptionDescription INLINE_JS = new BooleanOptionDescription("inline_js", "Allow inline JavaScript", false);
