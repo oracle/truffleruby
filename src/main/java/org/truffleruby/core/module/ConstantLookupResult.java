@@ -19,7 +19,7 @@ import org.truffleruby.language.RubyConstant;
 public class ConstantLookupResult {
 
     private final RubyConstant constant;
-    @CompilationFinal private final Assumption[] assumptions;
+    @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 
     public ConstantLookupResult(RubyConstant constant, Assumption... assumptions) {
         this.constant = constant;

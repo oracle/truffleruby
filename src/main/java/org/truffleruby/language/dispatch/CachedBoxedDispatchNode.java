@@ -26,7 +26,7 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
 
     private final Shape expectedShape;
     private final Assumption validShape;
-    @CompilationFinal private final Assumption[] assumptions;
+    @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 
     private final InternalMethod method;
     @Child private DirectCallNode callNode;

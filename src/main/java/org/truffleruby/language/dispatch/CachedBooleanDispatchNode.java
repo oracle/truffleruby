@@ -23,13 +23,13 @@ import org.truffleruby.language.methods.InternalMethod;
 
 public class CachedBooleanDispatchNode extends CachedDispatchNode {
 
-    @CompilationFinal private final Assumption[] falseAssumptions;
+    @CompilationFinal(dimensions = 1) private final Assumption[] falseAssumptions;
     private final InternalMethod falseMethod;
     private final BranchProfile falseProfile = BranchProfile.create();
 
     @Child private DirectCallNode falseCallDirect;
 
-    @CompilationFinal private final Assumption[] trueAssumptions;
+    @CompilationFinal(dimensions = 1) private final Assumption[] trueAssumptions;
     private final InternalMethod trueMethod;
     private final BranchProfile trueProfile = BranchProfile.create();
 

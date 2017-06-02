@@ -24,7 +24,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 public class CachedUnboxedDispatchNode extends CachedDispatchNode {
 
     private final Class<?> expectedClass;
-    @CompilationFinal private final Assumption[] assumptions;
+    @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 
     private final InternalMethod method;
     @Child private DirectCallNode callNode;

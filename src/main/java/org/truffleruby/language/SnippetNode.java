@@ -28,9 +28,9 @@ import org.truffleruby.parser.ParserContext;
 public class SnippetNode extends RubyBaseNode {
 
     @CompilationFinal private String expression;
-    @CompilationFinal private String[] parameters;
+    @CompilationFinal(dimensions = 1) private String[] parameters;
     @CompilationFinal private FrameDescriptor frameDescriptor;
-    @CompilationFinal private FrameSlot[] parameterFrameSlots;
+    @CompilationFinal(dimensions = 1) private FrameSlot[] parameterFrameSlots;
 
     @Child private DirectCallNode directCallNode;
 

@@ -26,8 +26,8 @@ import org.truffleruby.language.objects.MetaClassNodeGen;
 public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
 
     private final DynamicObject expectedClass;
-    @CompilationFinal private final Assumption[] originalMethodAssumptions;
-    @CompilationFinal private final Assumption[] methodMissingAssumptions;
+    @CompilationFinal(dimensions = 1) private final Assumption[] originalMethodAssumptions;
+    @CompilationFinal(dimensions = 1) private final Assumption[] methodMissingAssumptions;
     private final InternalMethod methodMissing;
 
     @Child private MetaClassNode metaClassNode;

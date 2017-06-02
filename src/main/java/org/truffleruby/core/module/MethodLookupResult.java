@@ -18,7 +18,7 @@ import org.truffleruby.language.methods.InternalMethod;
 public class MethodLookupResult {
 
     private final InternalMethod method;
-    @CompilationFinal private final Assumption[] assumptions;
+    @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 
     public MethodLookupResult(InternalMethod method, Assumption... assumptions) {
         this.method = method;

@@ -23,7 +23,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 public class CachedReturnMissingDispatchNode extends CachedDispatchNode {
 
     private final DynamicObject expectedClass;
-    @CompilationFinal private final Assumption[] assumptions;
+    @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 
     @Child private MetaClassNode metaClassNode;
 

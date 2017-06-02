@@ -331,14 +331,12 @@ public abstract class KernelNodes {
         protected DynamicObject copyCached(VirtualFrame frame, DynamicObject self,
                 @Cached("self.getShape()") Shape cachedShape,
                 @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass,
-                @Cached("getUserProperties(cachedShape)") Property[] properties,
+                @Cached(value = "getUserProperties(cachedShape)", dimensions = 1) Property[] properties,
                 @Cached("createReadFieldNodes(properties)") ReadObjectFieldNode[] readFieldNodes,
                 @Cached("createWriteFieldNodes(properties)") WriteObjectFieldNode[] writeFieldNodes) {
             final DynamicObject newObject = (DynamicObject) allocateNode.call(frame, logicalClass, "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
-                // TODO (eregon, 2017-04-05): we can read directly from the property once we have CompilationFinal[] in DSL
-                // final Object value = properties[i].get(self, cachedShape);
                 final Object value = readFieldNodes[i].execute(self);
                 writeFieldNodes[i].execute(newObject, value);
             }

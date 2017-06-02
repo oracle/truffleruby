@@ -23,7 +23,7 @@ import org.truffleruby.language.methods.InternalMethod;
 
 public class CachedBoxedSymbolDispatchNode extends CachedDispatchNode {
 
-    @CompilationFinal private final Assumption[] assumptions;
+    @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 
     private final InternalMethod method;
     @Child private DirectCallNode callNode;
