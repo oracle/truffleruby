@@ -135,7 +135,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDFN;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FNAME;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
 
-@SuppressWarnings({"unchecked", "fallthrough"})
+@SuppressWarnings({"unchecked", "fallthrough", "cast"})
 public class RubyParser {
     protected final ParserSupport support;
     protected final RubyLexer lexer;
