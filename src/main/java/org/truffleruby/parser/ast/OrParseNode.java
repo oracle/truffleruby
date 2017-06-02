@@ -53,6 +53,7 @@ public class OrParseNode extends ParseNode implements BinaryOperatorParseNode {
         this.secondNode = secondNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ORNODE;
     }
@@ -61,6 +62,7 @@ public class OrParseNode extends ParseNode implements BinaryOperatorParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitOrNode(this);
     }
@@ -81,6 +83,7 @@ public class OrParseNode extends ParseNode implements BinaryOperatorParseNode {
         return secondNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(firstNode, secondNode);
     }

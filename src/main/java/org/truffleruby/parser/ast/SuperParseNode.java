@@ -54,6 +54,7 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
         this.iterNode = iterNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.SUPERNODE;
     }
@@ -62,6 +63,7 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitSuperNode(this);
     }
@@ -74,6 +76,7 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
         return argsNode;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return iterNode != null ? createList(argsNode, iterNode) : createList(argsNode); 
     }

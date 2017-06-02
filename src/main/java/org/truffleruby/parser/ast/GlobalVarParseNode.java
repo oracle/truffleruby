@@ -48,6 +48,7 @@ public class GlobalVarParseNode extends ParseNode implements INameNode, SideEffe
         this.name = name;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.GLOBALVARNODE;
     }
@@ -56,6 +57,7 @@ public class GlobalVarParseNode extends ParseNode implements INameNode, SideEffe
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitGlobalVarNode(this);
     }
@@ -68,6 +70,7 @@ public class GlobalVarParseNode extends ParseNode implements INameNode, SideEffe
         return name;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

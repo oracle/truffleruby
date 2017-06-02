@@ -58,6 +58,7 @@ public class BlockPassParseNode extends ParseNode {
         this.bodyNode = bodyNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.BLOCKPASSNODE;
     }
@@ -66,6 +67,7 @@ public class BlockPassParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitBlockPassNode(this);
     }
@@ -94,6 +96,7 @@ public class BlockPassParseNode extends ParseNode {
         this.argsNode = argsNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(argsNode, bodyNode);
     }

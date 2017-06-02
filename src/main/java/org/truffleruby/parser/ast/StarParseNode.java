@@ -48,6 +48,7 @@ public class StarParseNode extends ParseNode {
         super(position, false);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.STARNODE;
     }
@@ -55,10 +56,12 @@ public class StarParseNode extends ParseNode {
     /**
      * @see ParseNode#accept(NodeVisitor)
      */
+    @Override
     public <T> T accept(NodeVisitor<T> visitor) {
     	return visitor.visitStarNode(this);
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

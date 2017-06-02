@@ -84,6 +84,7 @@ public class ByteArrayBuilder {
         length = 0;
     }
 
+    @Override
     public String toString() {
         return toString(StandardCharsets.ISO_8859_1);
     }

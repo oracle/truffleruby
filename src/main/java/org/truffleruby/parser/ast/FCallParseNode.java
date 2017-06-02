@@ -56,6 +56,7 @@ public class FCallParseNode extends ParseNode implements INameNode, IArgumentNod
         this.iterNode = iterNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.FCALLNODE;
     }
@@ -64,6 +65,7 @@ public class FCallParseNode extends ParseNode implements INameNode, IArgumentNod
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitFCallNode(this);
     }
@@ -107,6 +109,7 @@ public class FCallParseNode extends ParseNode implements INameNode, IArgumentNod
         return name;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return createList(argsNode, iterNode);
     }

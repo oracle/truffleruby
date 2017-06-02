@@ -59,6 +59,7 @@ public class DotParseNode extends ParseNode {
         this.isLiteral = isLiteral;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.DOTNODE;
     }
@@ -67,6 +68,7 @@ public class DotParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDotNode(this);
     }
@@ -106,6 +108,7 @@ public class DotParseNode extends ParseNode {
         return isLiteral;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(beginNode, endNode);
     }

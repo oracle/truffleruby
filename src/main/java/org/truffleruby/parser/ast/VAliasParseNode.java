@@ -49,6 +49,7 @@ public class VAliasParseNode extends ParseNode {
         this.newName = newName;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.VALIASNODE;
     }
@@ -57,6 +58,7 @@ public class VAliasParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitVAliasNode(this);
     }
@@ -77,6 +79,7 @@ public class VAliasParseNode extends ParseNode {
         return oldName;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

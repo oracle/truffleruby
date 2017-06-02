@@ -30,10 +30,12 @@ public class LiteralParseNode extends ParseNode implements InvisibleNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitLiteralNode(this);
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

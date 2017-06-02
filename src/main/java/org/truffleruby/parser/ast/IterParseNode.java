@@ -70,6 +70,7 @@ public class IterParseNode extends ParseNode implements DefNode {
         this.scope = scope;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ITERNODE;
     }
@@ -78,6 +79,7 @@ public class IterParseNode extends ParseNode implements DefNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitIterNode(this);
     }
@@ -107,6 +109,7 @@ public class IterParseNode extends ParseNode implements DefNode {
         return varNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(varNode, bodyNode);
     }

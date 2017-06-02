@@ -53,10 +53,12 @@ public class AndParseNode extends ParseNode implements BinaryOperatorParseNode {
         this.secondNode = secondNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ANDNODE;
     }
 
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitAndNode(this);
     }
@@ -77,6 +79,7 @@ public class AndParseNode extends ParseNode implements BinaryOperatorParseNode {
         return firstNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(firstNode, secondNode);
     }

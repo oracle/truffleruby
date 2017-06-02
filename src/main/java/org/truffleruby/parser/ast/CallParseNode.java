@@ -68,6 +68,7 @@ public class CallParseNode extends ParseNode implements INameNode, IArgumentNode
         this.isLazy = isLazy;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.CALLNODE;
     }
@@ -76,6 +77,7 @@ public class CallParseNode extends ParseNode implements INameNode, IArgumentNode
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitCallNode(this);
     }
@@ -131,6 +133,7 @@ public class CallParseNode extends ParseNode implements INameNode, IArgumentNode
         return isLazy;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(receiverNode, argsNode, iterNode);
     }

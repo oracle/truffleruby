@@ -54,6 +54,7 @@ public class BackRefParseNode extends ParseNode {
         this.type = (char) type;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.BACKREFNODE;
     }
@@ -62,6 +63,7 @@ public class BackRefParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitBackRefNode(this);
     }
@@ -75,6 +77,7 @@ public class BackRefParseNode extends ParseNode {
         return type;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

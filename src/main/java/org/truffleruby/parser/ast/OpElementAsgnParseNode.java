@@ -63,6 +63,7 @@ public class OpElementAsgnParseNode extends ParseNode {
         this.operatorName = operatorName;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.OPELEMENTASGNNODE;
     }
@@ -71,6 +72,7 @@ public class OpElementAsgnParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitOpElementAsgnNode(this);
     }
@@ -115,6 +117,7 @@ public class OpElementAsgnParseNode extends ParseNode {
         return valueNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(receiverNode, argsNode, valueNode);
     }

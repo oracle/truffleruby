@@ -55,6 +55,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
         this.location = location;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.LOCALASGNNODE;
     }
@@ -63,6 +64,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitLocalAsgnNode(this);
     }
@@ -101,6 +103,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
         return location & 0xffff;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return createList(getValueNode());
     }

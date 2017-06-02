@@ -50,10 +50,12 @@ public class ArgsCatParseNode extends ParseNode {
         this.secondNode = secondNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ARGSCATNODE;
     }
 
+    @Override
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitArgsCatNode(this);
     }
@@ -66,6 +68,7 @@ public class ArgsCatParseNode extends ParseNode {
         return secondNode;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(firstNode, secondNode);
     }

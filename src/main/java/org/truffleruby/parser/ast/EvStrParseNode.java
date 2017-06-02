@@ -51,6 +51,7 @@ public class EvStrParseNode extends ParseNode {
         this.body = body;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.EVSTRNODE;
     }
@@ -59,6 +60,7 @@ public class EvStrParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitEvStrNode(this);
     }
@@ -71,6 +73,7 @@ public class EvStrParseNode extends ParseNode {
         return body;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return createList(body);
     }

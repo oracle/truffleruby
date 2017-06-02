@@ -60,6 +60,7 @@ public class FlipParseNode extends ParseNode {
         this.location = location;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.FLIPNODE;
     }
@@ -68,6 +69,7 @@ public class FlipParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitFlipNode(this);
     }
@@ -118,6 +120,7 @@ public class FlipParseNode extends ParseNode {
         return location & 0xffff;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(beginNode, endNode);
     }

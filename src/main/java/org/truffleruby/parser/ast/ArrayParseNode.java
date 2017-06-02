@@ -50,6 +50,7 @@ public class ArrayParseNode extends ListParseNode implements ILiteralNode {
         super(position);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ARRAYNODE;
     }

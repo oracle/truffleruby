@@ -47,6 +47,7 @@ public class UndefParseNode extends ParseNode {
         this.name = name;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.UNDEFNODE;
     }
@@ -55,6 +56,7 @@ public class UndefParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitUndefNode(this);
     }
@@ -67,6 +69,7 @@ public class UndefParseNode extends ParseNode {
         return name;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(name);
     }

@@ -50,6 +50,7 @@ public class OpAsgnAndParseNode extends ParseNode implements BinaryOperatorParse
         secondNode = valueNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.OPASGNANDNODE;
     }
@@ -58,6 +59,7 @@ public class OpAsgnAndParseNode extends ParseNode implements BinaryOperatorParse
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitOpAsgnAndNode(this);
     }
@@ -78,6 +80,7 @@ public class OpAsgnAndParseNode extends ParseNode implements BinaryOperatorParse
         return secondNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(firstNode, secondNode);
     }

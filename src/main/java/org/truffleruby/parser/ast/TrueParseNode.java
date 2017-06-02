@@ -45,6 +45,7 @@ public class TrueParseNode extends ParseNode implements INameNode, SideEffectFre
         super(position, false);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.TRUENODE;
     }
@@ -53,6 +54,7 @@ public class TrueParseNode extends ParseNode implements INameNode, SideEffectFre
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitTrueNode(this);
     }
@@ -64,6 +66,7 @@ public class TrueParseNode extends ParseNode implements INameNode, SideEffectFre
         return "true";
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

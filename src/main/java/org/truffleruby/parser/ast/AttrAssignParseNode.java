@@ -58,6 +58,7 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
         this.isLazy = isLazy;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ATTRASSIGNNODE;
     }
@@ -66,6 +67,7 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
      * Accept for the visitor pattern.
      * @param visitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitAttrAssignNode(this);
     }
@@ -112,6 +114,7 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
         return isLazy;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(receiverNode, argsNode);
     }

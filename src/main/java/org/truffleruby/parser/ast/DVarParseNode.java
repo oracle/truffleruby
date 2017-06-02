@@ -54,6 +54,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
         this.name = name;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.DVARNODE;
     }
@@ -62,6 +63,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDVarNode(this);
     }
@@ -101,6 +103,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
         this.name = name;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

@@ -48,6 +48,7 @@ public abstract class Colon2ParseNode extends Colon3ParseNode implements INameNo
         this.leftNode = leftNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.COLON2NODE;
     }

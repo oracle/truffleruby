@@ -77,10 +77,12 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
         }
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.SYMBOLNODE;
     }
 
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitSymbolNode(this);
     }
@@ -97,6 +99,7 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
         return rope;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

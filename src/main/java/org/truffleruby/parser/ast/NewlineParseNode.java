@@ -61,6 +61,7 @@ public class NewlineParseNode extends ParseNode {
         this.nextNode = nextNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.NEWLINENODE;
     }
@@ -70,6 +71,7 @@ public class NewlineParseNode extends ParseNode {
      * accepts the visitor
      * @param iVisitor the visitor to accept
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitNewlineNode(this);
     }
@@ -82,6 +84,7 @@ public class NewlineParseNode extends ParseNode {
         return nextNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return createList(nextNode);
     }

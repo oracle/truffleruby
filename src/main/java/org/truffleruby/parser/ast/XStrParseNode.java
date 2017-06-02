@@ -54,6 +54,7 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
         this.coderange = coderange;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.XSTRNODE;
     }
@@ -62,6 +63,7 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitXStrNode(this);
     }
@@ -78,6 +80,7 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
         return coderange;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

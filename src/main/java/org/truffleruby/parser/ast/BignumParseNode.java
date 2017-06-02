@@ -49,10 +49,12 @@ public class BignumParseNode extends NumericParseNode implements SideEffectFree 
         this.value = value;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.BIGNUMNODE;
     }
 
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitBignumNode(this);
     }
@@ -65,6 +67,7 @@ public class BignumParseNode extends NumericParseNode implements SideEffectFree 
         return value;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

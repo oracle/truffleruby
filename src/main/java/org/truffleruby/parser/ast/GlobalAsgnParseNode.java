@@ -51,6 +51,7 @@ public class GlobalAsgnParseNode extends AssignableParseNode implements INameNod
         this.name = name;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.GLOBALASGNNODE;
     }
@@ -60,6 +61,7 @@ public class GlobalAsgnParseNode extends AssignableParseNode implements INameNod
      * accepts the visitor 
      * @param iVisitor the visitor to accept
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitGlobalAsgnNode(this);
     }
@@ -71,6 +73,7 @@ public class GlobalAsgnParseNode extends AssignableParseNode implements INameNod
         return name;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return createList(getValueNode());
     }

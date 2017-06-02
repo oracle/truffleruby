@@ -48,10 +48,12 @@ public class FixnumParseNode extends NumericParseNode implements ILiteralNode, S
         this.value = value;
     }
 
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitFixnumNode(this);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.FIXNUMNODE;
     }
@@ -68,6 +70,7 @@ public class FixnumParseNode extends NumericParseNode implements ILiteralNode, S
         this.value = value;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

@@ -53,6 +53,7 @@ public class ClassVarAsgnParseNode extends AssignableParseNode implements INameN
         this.name = name;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.CLASSVARASGNNODE;
     }
@@ -61,6 +62,7 @@ public class ClassVarAsgnParseNode extends AssignableParseNode implements INameN
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitClassVarAsgnNode(this);
     }
@@ -73,6 +75,7 @@ public class ClassVarAsgnParseNode extends AssignableParseNode implements INameN
         return name;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return createList(getValueNode());
     }

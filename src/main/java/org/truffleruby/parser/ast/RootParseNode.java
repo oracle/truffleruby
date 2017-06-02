@@ -71,6 +71,7 @@ public class RootParseNode extends ParseNode {
         this(position, scope, bodyNode, file, endPosition, false);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ROOTNODE;
     }
@@ -112,10 +113,12 @@ public class RootParseNode extends ParseNode {
         return bodyNode;
     }
 
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitRootNode(this);
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return createList(bodyNode);
     }

@@ -66,6 +66,7 @@ public class ListParseNode extends ParseNode {
         list = EMPTY;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.LISTNODE;
     }
@@ -163,11 +164,13 @@ public class ListParseNode extends ParseNode {
         return properList;
     }
 
+    @Override
     @Deprecated
     public List<ParseNode> childNodes() {
         return Arrays.asList(children());
     }
     
+    @Override
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitListNode(this);
     }

@@ -55,6 +55,7 @@ public class RescueBodyParseNode extends ParseNode {
         this.optRescueNode = optRescueNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.RESCUEBODYNODE;
     }
@@ -63,6 +64,7 @@ public class RescueBodyParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitRescueBodyNode(this);
     }
@@ -90,6 +92,7 @@ public class RescueBodyParseNode extends ParseNode {
         return exceptionNodes;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
     	if (optRescueNode != null) return ParseNode.createList(exceptionNodes, bodyNode, optRescueNode);
 

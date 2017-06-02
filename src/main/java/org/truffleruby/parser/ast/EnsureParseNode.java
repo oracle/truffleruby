@@ -52,6 +52,7 @@ public class EnsureParseNode extends ParseNode {
         this.ensureNode = ensureNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ENSURENODE;
     }
@@ -60,6 +61,7 @@ public class EnsureParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitEnsureNode(this);
     }
@@ -80,6 +82,7 @@ public class EnsureParseNode extends ParseNode {
         return ensureNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(bodyNode, ensureNode);
     }

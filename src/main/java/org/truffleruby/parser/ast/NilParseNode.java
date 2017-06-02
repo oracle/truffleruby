@@ -45,6 +45,7 @@ public class NilParseNode extends ParseNode implements INameNode, SideEffectFree
         super(position, false);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.NILNODE;
     }
@@ -53,6 +54,7 @@ public class NilParseNode extends ParseNode implements INameNode, SideEffectFree
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitNilNode(this);
     }
@@ -64,10 +66,12 @@ public class NilParseNode extends ParseNode implements INameNode, SideEffectFree
         return "nil";
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }
 
+    @Override
     public boolean isNil() {
         return true;
     }

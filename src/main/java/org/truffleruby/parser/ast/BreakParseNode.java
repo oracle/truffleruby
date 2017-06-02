@@ -50,6 +50,7 @@ public class BreakParseNode extends ParseNode implements NonLocalControlFlowPars
         this.valueNode = valueNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.BREAKNODE;
     }
@@ -58,6 +59,7 @@ public class BreakParseNode extends ParseNode implements NonLocalControlFlowPars
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitBreakNode(this);
     }
@@ -74,6 +76,7 @@ public class BreakParseNode extends ParseNode implements NonLocalControlFlowPars
         return valueNode != NilImplicitParseNode.NIL;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return createList(valueNode);
     }

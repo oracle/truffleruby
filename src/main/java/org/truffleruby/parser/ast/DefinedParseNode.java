@@ -51,6 +51,7 @@ public class DefinedParseNode extends ParseNode {
         this.expressionNode = expressionNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.DEFINEDNODE;
     }
@@ -59,6 +60,7 @@ public class DefinedParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDefinedNode(this);
     }
@@ -71,6 +73,7 @@ public class DefinedParseNode extends ParseNode {
         return expressionNode;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return createList(expressionNode);
     }

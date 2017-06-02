@@ -62,6 +62,7 @@ public class SClassParseNode extends ParseNode {
         this.bodyNode = bodyNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.SCLASSNODE;
     }
@@ -70,6 +71,7 @@ public class SClassParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitSClassNode(this);
     }
@@ -100,6 +102,7 @@ public class SClassParseNode extends ParseNode {
         return receiverNode;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(receiverNode, bodyNode);
     }

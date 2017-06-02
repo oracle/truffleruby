@@ -55,6 +55,7 @@ public class ArgumentParseNode extends ParseNode implements INameNode {
         this.location = location; // All variables should be depth 0 in this case
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ARGUMENTNODE;
     }
@@ -91,6 +92,7 @@ public class ArgumentParseNode extends ParseNode implements INameNode {
         this.identifier = name;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

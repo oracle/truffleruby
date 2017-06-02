@@ -52,6 +52,7 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
         this.constNode = constNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.CONSTDECLNODE;
     }
@@ -60,6 +61,7 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitConstDeclNode(this);
     }
@@ -84,6 +86,7 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
         return (ParseNode) constNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return createList(getConstNode(), getValueNode());
     }

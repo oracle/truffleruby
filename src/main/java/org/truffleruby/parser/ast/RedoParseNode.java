@@ -44,6 +44,7 @@ public class RedoParseNode extends ParseNode implements NonLocalControlFlowParse
         super(position, false);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.REDONODE;
     }
@@ -60,10 +61,12 @@ public class RedoParseNode extends ParseNode implements NonLocalControlFlowParse
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitRedoNode(this);
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

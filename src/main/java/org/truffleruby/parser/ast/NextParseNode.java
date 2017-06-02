@@ -50,6 +50,7 @@ public class NextParseNode extends ParseNode implements NonLocalControlFlowParse
         this.valueNode = valueNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.NEXTNODE;
     }
@@ -58,6 +59,7 @@ public class NextParseNode extends ParseNode implements NonLocalControlFlowParse
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitNextNode(this);
     }
@@ -74,6 +76,7 @@ public class NextParseNode extends ParseNode implements NonLocalControlFlowParse
         return valueNode != NilImplicitParseNode.NIL;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return createList(valueNode);
     }

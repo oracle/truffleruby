@@ -47,10 +47,12 @@ public class MultipleAsgnParseNode extends AssignableParseNode {
         this.post = post;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.MULTIPLEASGNNODE;
     }
 
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitMultipleAsgnNode(this);
     }
@@ -75,6 +77,7 @@ public class MultipleAsgnParseNode extends AssignableParseNode {
         return post;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(pre, rest, getValueNode());
     }

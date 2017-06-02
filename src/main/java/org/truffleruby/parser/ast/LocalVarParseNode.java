@@ -54,6 +54,7 @@ public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNo
         this.name = name;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.LOCALVARNODE;
     }
@@ -62,6 +63,7 @@ public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNo
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitLocalVarNode(this);
     }
@@ -102,6 +104,7 @@ public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNo
         this.name = name;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

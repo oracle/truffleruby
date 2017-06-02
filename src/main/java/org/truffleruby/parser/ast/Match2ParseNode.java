@@ -50,6 +50,7 @@ public class Match2ParseNode extends ParseNode {
         this.valueNode = valueNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.MATCH2NODE;
     }
@@ -58,6 +59,7 @@ public class Match2ParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitMatch2Node(this);
     }
@@ -78,6 +80,7 @@ public class Match2ParseNode extends ParseNode {
         return valueNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(receiverNode, valueNode);
     }

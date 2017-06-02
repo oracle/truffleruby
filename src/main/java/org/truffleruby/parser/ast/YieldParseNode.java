@@ -54,6 +54,7 @@ public class YieldParseNode extends ParseNode {
         this.argsNode = argsNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.YIELDNODE;
     }
@@ -62,6 +63,7 @@ public class YieldParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitYieldNode(this);
     }

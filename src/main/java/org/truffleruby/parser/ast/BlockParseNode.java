@@ -44,6 +44,7 @@ public class BlockParseNode extends ListParseNode {
         super(position);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.BLOCKNODE;
     }

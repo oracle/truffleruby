@@ -48,14 +48,17 @@ public class DefnParseNode extends MethodDefParseNode implements INameNode {
         super(position, name, argsNode, scope, bodyNode);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.DEFNNODE;
     }
 
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDefnNode(this);
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(argsNode, bodyNode);
     }

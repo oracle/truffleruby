@@ -12,6 +12,7 @@ public class NilImplicitParseNode extends NilParseNode implements InvisibleNode 
         super(null);
     }
 
+    @Override
     public boolean isNil() {
         return true;
     }

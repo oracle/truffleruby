@@ -47,6 +47,7 @@ public class NthRefParseNode extends ParseNode {
         this.matchNumber = matchNumber;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.NTHREFNODE;
     }
@@ -55,6 +56,7 @@ public class NthRefParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitNthRefNode(this);
     }
@@ -67,6 +69,7 @@ public class NthRefParseNode extends ParseNode {
         return matchNumber;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

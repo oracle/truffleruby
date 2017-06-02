@@ -46,6 +46,7 @@ public class ZSuperParseNode extends ParseNode implements BlockAcceptingParseNod
         super(position, false);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ZSUPERNODE;
     }
@@ -54,10 +55,12 @@ public class ZSuperParseNode extends ParseNode implements BlockAcceptingParseNod
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitZSuperNode(this);
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return iterNode != null ? createList(iterNode) : EMPTY_LIST;
     }

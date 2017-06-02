@@ -56,6 +56,7 @@ public class IfParseNode extends ParseNode {
         this.elseBody = elseBody;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.IFNODE;
     }
@@ -64,6 +65,7 @@ public class IfParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitIfNode(this);
     }
@@ -92,6 +94,7 @@ public class IfParseNode extends ParseNode {
         return thenBody;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(condition, thenBody, elseBody);
     }

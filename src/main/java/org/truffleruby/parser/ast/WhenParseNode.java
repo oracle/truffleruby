@@ -56,6 +56,7 @@ public class WhenParseNode extends ParseNode {
         assert bodyNode != null : "bodyNode is not null";
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.WHENNODE;
     }
@@ -64,6 +65,7 @@ public class WhenParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitWhenNode(this);
     }
@@ -90,6 +92,7 @@ public class WhenParseNode extends ParseNode {
         return expressionNodes;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(expressionNodes, bodyNode, nextCase);
     }

@@ -45,6 +45,7 @@ public class ZArrayParseNode extends ListParseNode implements ILiteralNode {
         super(position);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ZARRAYNODE;
     }
@@ -54,6 +55,7 @@ public class ZArrayParseNode extends ListParseNode implements ILiteralNode {
      *
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitZArrayNode(this);
     }

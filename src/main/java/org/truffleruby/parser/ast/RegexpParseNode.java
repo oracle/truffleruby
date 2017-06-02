@@ -58,10 +58,12 @@ public class RegexpParseNode extends ParseNode implements ILiteralNode {
         return value.getEncoding();
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.REGEXPNODE;
     }
 
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitRegexpNode(this);
     }
@@ -81,6 +83,7 @@ public class RegexpParseNode extends ParseNode implements ILiteralNode {
         return value;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

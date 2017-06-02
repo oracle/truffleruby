@@ -48,6 +48,7 @@ public class ClassVarParseNode extends ParseNode implements INameNode, SideEffec
         this.name = name;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.CLASSVARNODE;
     }
@@ -56,6 +57,7 @@ public class ClassVarParseNode extends ParseNode implements INameNode, SideEffec
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitClassVarNode(this);
     }
@@ -68,6 +70,7 @@ public class ClassVarParseNode extends ParseNode implements INameNode, SideEffec
         return name;
     }
     
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

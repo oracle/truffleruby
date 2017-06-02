@@ -48,6 +48,7 @@ public class UntilParseNode extends ParseNode {
         this(position, conditionNode, bodyNode, true);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.UNTILNODE;
     }
@@ -67,6 +68,7 @@ public class UntilParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitUntilNode(this);
     }
@@ -87,6 +89,7 @@ public class UntilParseNode extends ParseNode {
         return conditionNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(conditionNode, bodyNode);
     }

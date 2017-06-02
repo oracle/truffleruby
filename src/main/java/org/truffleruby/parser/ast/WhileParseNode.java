@@ -68,6 +68,7 @@ public class WhileParseNode extends ParseNode {
         this.evaluateAtStart = evalAtStart;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.WHILENODE;
     }
@@ -76,6 +77,7 @@ public class WhileParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitWhileNode(this);
     }
@@ -104,6 +106,7 @@ public class WhileParseNode extends ParseNode {
         return evaluateAtStart;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(conditionNode, bodyNode);
     }

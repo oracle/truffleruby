@@ -48,10 +48,12 @@ public class ArgsPushParseNode extends ParseNode {
         this.secondNode = secondNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.ARGSPUSHNODE;
     }
 
+    @Override
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitArgsPushNode(this);
     }
@@ -64,6 +66,7 @@ public class ArgsPushParseNode extends ParseNode {
         return secondNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return Arrays.asList(firstNode, secondNode);
     }

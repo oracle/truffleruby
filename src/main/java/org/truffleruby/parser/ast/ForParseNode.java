@@ -58,6 +58,7 @@ public class ForParseNode extends IterParseNode {
         this.iterNode = iterNode;
     }
 
+    @Override
     public ArgsParseNode getArgsNode() {
         throw new IllegalArgumentException("For nodes are not technically def nodes so they do not have args");
     }

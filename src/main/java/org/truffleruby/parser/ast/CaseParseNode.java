@@ -67,6 +67,7 @@ public class CaseParseNode extends ParseNode {
         this.elseNode = elseNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.CASENODE;
     }
@@ -75,6 +76,7 @@ public class CaseParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitCaseNode(this);
     }
@@ -96,6 +98,7 @@ public class CaseParseNode extends ParseNode {
         return elseNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(caseNode, cases);
     }

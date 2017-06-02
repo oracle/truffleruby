@@ -45,6 +45,7 @@ public class OptArgParseNode extends ParseNode implements INameNode {
         this.value = value;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.OPTARGNODE;
     }

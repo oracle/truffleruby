@@ -61,6 +61,7 @@ public class OpAsgnParseNode extends ParseNode {
         this.isLazy = isLazy;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.OPASGNNODE;
     }
@@ -69,6 +70,7 @@ public class OpAsgnParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitOpAsgnNode(this);
     }
@@ -109,6 +111,7 @@ public class OpAsgnParseNode extends ParseNode {
         return variableNameAsgn;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(receiverNode, valueNode);
     }

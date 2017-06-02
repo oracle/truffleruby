@@ -52,6 +52,7 @@ public class DefsParseNode extends MethodDefParseNode implements INameNode {
         this.receiverNode = receiverNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.DEFSNODE;
     }
@@ -60,6 +61,7 @@ public class DefsParseNode extends MethodDefParseNode implements INameNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDefsNode(this);
     }
@@ -72,6 +74,7 @@ public class DefsParseNode extends MethodDefParseNode implements INameNode {
         return receiverNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(receiverNode, argsNode, bodyNode);
     }

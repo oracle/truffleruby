@@ -48,10 +48,12 @@ public class FloatParseNode extends NumericParseNode implements ILiteralNode, Si
         this.value = value;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.FLOATNODE;
     }
 
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitFloatNode(this);
     }
@@ -73,6 +75,7 @@ public class FloatParseNode extends NumericParseNode implements ILiteralNode, Si
     }
 
     
+    @Override
     public List<ParseNode> childNodes() {
         return EMPTY_LIST;
     }

@@ -47,6 +47,7 @@ public class MatchParseNode extends ParseNode {
         this.regexpNode = regexpNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.MATCHNODE;
     }
@@ -55,6 +56,7 @@ public class MatchParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitMatchNode(this);
     }
@@ -67,6 +69,7 @@ public class MatchParseNode extends ParseNode {
         return regexpNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return createList(regexpNode);
     }

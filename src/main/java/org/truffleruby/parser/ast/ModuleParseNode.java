@@ -57,6 +57,7 @@ public class ModuleParseNode extends ParseNode implements IScopingNode {
         this.bodyNode = bodyNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.MODULENODE;
     }
@@ -65,6 +66,7 @@ public class ModuleParseNode extends ParseNode implements IScopingNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitModuleNode(this);
     }
@@ -95,6 +97,7 @@ public class ModuleParseNode extends ParseNode implements IScopingNode {
         return cpath;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return ParseNode.createList(cpath, bodyNode);
     }

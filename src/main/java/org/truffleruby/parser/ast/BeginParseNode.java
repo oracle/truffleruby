@@ -50,6 +50,7 @@ public class BeginParseNode extends ParseNode {
         this.bodyNode = bodyNode;
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.BEGINNODE;
     }
@@ -58,6 +59,7 @@ public class BeginParseNode extends ParseNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitBeginNode(this);
     }
@@ -70,6 +72,7 @@ public class BeginParseNode extends ParseNode {
         return bodyNode;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         return createList(bodyNode);
     }

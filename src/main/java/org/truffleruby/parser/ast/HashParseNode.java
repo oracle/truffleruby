@@ -58,6 +58,7 @@ public class HashParseNode extends ParseNode implements ILiteralNode {
         pairs.add(pair);
     }
 
+    @Override
     public NodeType getNodeType() {
         return NodeType.HASHNODE;
     }
@@ -76,6 +77,7 @@ public class HashParseNode extends ParseNode implements ILiteralNode {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
+    @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitHashNode(this);
     }
@@ -88,6 +90,7 @@ public class HashParseNode extends ParseNode implements ILiteralNode {
         return pairs;
     }
 
+    @Override
     public List<ParseNode> childNodes() {
         List<ParseNode> children = new ArrayList<>();
 
