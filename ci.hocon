@@ -1,4 +1,14 @@
+overlay: "242afb821f347a8a7a3eb50c3133d7b1d235e44e"
+
 jt: [ruby, tool/jt.rb]
+
+curl-status-update: [curl, -X, POST,
+  "https://api.github.com/repos/graalvm/truffleruby/statuses/${TRUFFLE_RUBY_VERSION}",
+  -H, "authorization: token "${github-status-token},
+  -H, "cache-control: no-cache",
+  -H, "content-type: application/json",
+  -d
+]
 
 common-base: {
   downloads : {
@@ -16,8 +26,35 @@ common-base: {
   setup: [
     ["echo", "-n", "TRUFFLE_RUBY_VERSION=", ">setup-ci-env"],
     ["git", "rev-parse", "HEAD", ">>setup-ci-env"],
-    ["export", ["<setup-ci-env"]]
+    ["export", ["<setup-ci-env"]],
+
+    // TODO add an url
+    // "target_url": "${BUILD_URL}/builds/${BUILD_NUMBER}",
+
+    // Each build has to have its context, since only the last status posted for a given context is considered
+    // in the GitHub UI
+    ${curl-status-update} ["""
+          { "state": "pending",
+            "description": "${BUILD_NUMBER} is being executed.",
+            "context": "CI/${BUILD_NAME}" }
+          """],
     [mx, build, --force-javac]
+  ]
+
+  on_success: [
+    ${curl-status-update} ["""
+          { "state": "success",
+            "description": "${BUILD_NUMBER} passed.",
+            "context": "CI/${BUILD_NAME}" }
+          """],
+  ]
+
+  on_failure: [
+    ${curl-status-update} ["""
+          { "state": "failure",
+            "description": "${BUILD_NUMBER} failed.",
+            "context": "CI/${BUILD_NAME}" }
+          """],
   ]
 
   timelimit: "01:00:00"
@@ -395,7 +432,7 @@ gem-test-pack: {
   environment: {
     USE_GRAAL_GEM_TEST_PACK: "true"
   }
-  
+
   setup: [
     ${jt} [gem-test-pack]
   ]
