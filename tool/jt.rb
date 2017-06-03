@@ -511,7 +511,7 @@ module Commands
               jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt where repos ...                            find these repositories
       jt next                                       tell you what to work on next (give you a random core library spec)
-      jt pr [pr_number]                             pushes GitHub's PR to bitbucket to let CI run under github/pr/<number> name 
+      jt pr [pr_number]                             pushes GitHub's PR to bitbucket to let CI run under github/pr/<number> name
                                                     if the pr_number is not supplied current HEAD is used to find a PR which contains it
 
       you can also put build or rebuild in front of any command
@@ -753,10 +753,10 @@ module Commands
   end
 
   def pr(*args)
-    out, _err   = sh 'git remote', capture: true
+    out, _err   = sh 'git', 'remote', capture: true
     remotes     = out.split
     remote_urls = remotes.map do |remote|
-      out, _err = sh "git config --get remote.#{remote}.url", capture: true
+      out, _err = sh 'git', 'config', '--get', "remote.#{remote}.url", capture: true
       [remote, out.chomp!]
     end
 
@@ -767,13 +767,13 @@ module Commands
     if pr_number
       github_pr_branch = "#{upstream}/pr/#{pr_number}"
     else
-      fetch     = "+refs/pull/*/head:refs/remotes/#{upstream}/pr/*"
-      out, _err = sh "git config --get-all remote.#{upstream}.fetch", capture: true
+      fetch = "+refs/pull/*/head:refs/remotes/#{upstream}/pr/*"
+      out, _err = sh 'git', 'config', '--get-all', "remote.#{upstream}.fetch", capture: true
       sh 'git', 'config', '--add', "remote.#{upstream}.fetch", fetch unless out.include? fetch
       sh 'git', 'fetch', upstream
 
       github_pr_branch = begin
-        out, _err = sh 'git branch -r --contains HEAD', capture: true
+        out, _err = sh 'git', 'branch', '-r', '--contains', 'HEAD', capture: true
         out.lines.find { |l| l.strip.start_with? "#{upstream}/pr/" }.strip.chomp
       end
 
@@ -785,7 +785,7 @@ module Commands
       pr_number = github_pr_branch.split('/').last
     end
 
-    sh "git push --force #{bb} #{github_pr_branch}:refs/heads/github/pr/#{pr_number}"
+    sh 'git', 'push', '--force', bb, "#{github_pr_branch}:refs/heads/github/pr/#{pr_number}"
   end
 
   def test(*args)
