@@ -24,8 +24,8 @@ import org.jcodings.Encoding;
 import org.jcodings.Ptr;
 import org.jcodings.transcode.EConv;
 import org.jcodings.transcode.EConvResult;
-import org.jcodings.transcode.Transcoder;
 import org.jcodings.transcode.TranscodingManager;
+import org.jcodings.transcode.TranscodingManager.TranscoderReference;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -53,6 +53,7 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
@@ -92,13 +93,13 @@ public abstract class EncodingConverterNodes {
 
         @Specialization
         public Object transcodingMap(DynamicObject block) {
-            for (Map.Entry<String, Map<String, Transcoder>> sourceEntry : TranscodingManager.allTranscoders.entrySet()) {
+            for (Entry<String, Map<String, TranscoderReference>> sourceEntry : TranscodingManager.allTranscoders.entrySet()) {
                 final DynamicObject source = getContext().getSymbolTable().getSymbol(sourceEntry.getKey());
                 final int size = sourceEntry.getValue().size();
                 final Object[] destinations = new Object[size];
 
                 int i = 0;
-                for (Map.Entry<String, Transcoder> destinationEntry : sourceEntry.getValue().entrySet()) {
+                for (Entry<String, TranscoderReference> destinationEntry : sourceEntry.getValue().entrySet()) {
                     destinations[i++] = getContext().getSymbolTable().getSymbol(destinationEntry.getKey());
                 }
 
