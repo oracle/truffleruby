@@ -763,15 +763,16 @@ module Commands
     upstream = remote_urls.find { |r, u| u.include? 'graalvm/truffleruby' }.first
     bb       = remote_urls.find { |r, u| u.include? 'ol-bitbucket' }.first
 
+    # Fetch PRs on GitHub
+    fetch = "+refs/pull/*/head:refs/remotes/#{upstream}/pr/*"
+    out, _err = sh 'git', 'config', '--get-all', "remote.#{upstream}.fetch", capture: true
+    sh 'git', 'config', '--add', "remote.#{upstream}.fetch", fetch unless out.include? fetch
+    sh 'git', 'fetch', upstream
+
     pr_number = args.first
     if pr_number
       github_pr_branch = "#{upstream}/pr/#{pr_number}"
     else
-      fetch = "+refs/pull/*/head:refs/remotes/#{upstream}/pr/*"
-      out, _err = sh 'git', 'config', '--get-all', "remote.#{upstream}.fetch", capture: true
-      sh 'git', 'config', '--add', "remote.#{upstream}.fetch", fetch unless out.include? fetch
-      sh 'git', 'fetch', upstream
-
       github_pr_branch = begin
         out, _err = sh 'git', 'branch', '-r', '--contains', 'HEAD', capture: true
         out.lines.find { |l| l.strip.start_with? "#{upstream}/pr/" }.strip.chomp
