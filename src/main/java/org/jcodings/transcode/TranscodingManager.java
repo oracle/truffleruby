@@ -32,6 +32,7 @@
  */
 package org.jcodings.transcode;
 
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
@@ -60,7 +61,27 @@ import static org.jcodings.util.CaseInsensitiveBytesHash.caseInsensitiveEquals;
 
 public class TranscodingManager {
 
-    public static final Map<String, Map<String, Transcoder>> allTranscoders;
+    public static final class TranscoderReference {
+
+        private final Transcoder transcoder;
+        private final TranscoderDB.Entry entry;
+
+        public TranscoderReference(Transcoder transcoder, TranscoderDB.Entry entry) {
+            this.transcoder = transcoder;
+            this.entry = entry;
+        }
+
+        public Transcoder getTranscoder() {
+            if (TruffleOptions.AOT) {
+                return transcoder;
+            } else {
+                return entry.getTranscoder();
+            }
+        }
+
+    }
+
+    public static final Map<String, Map<String, TranscoderReference>> allTranscoders;
     private static final MethodHandle convertInternalMethodHandle;
 
     static {
@@ -72,10 +93,17 @@ public class TranscodingManager {
 
                 final String sourceName = new String(e.getSource()).toUpperCase();
                 final String destinationName = new String(e.getDestination()).toUpperCase();
-                final Transcoder transcoder = e.getTranscoder();
+
+                final TranscoderReference transcoder;
+                if (TruffleOptions.AOT) {
+                    // Load the classes eagerly
+                    transcoder = new TranscoderReference(e.getTranscoder(), null);
+                } else {
+                    transcoder = new TranscoderReference(null, e);
+                }
 
                 allTranscoders.putIfAbsent(sourceName, new HashMap<>());
-                final Map<String, Transcoder> fromSource = allTranscoders.get(sourceName);
+                final Map<String, TranscoderReference> fromSource = allTranscoders.get(sourceName);
                 fromSource.put(destinationName, transcoder);
             }
         }
@@ -187,10 +215,10 @@ public class TranscodingManager {
             return null;
         }
 
-        final Transcoder directMapping = allTranscoders.get(sourceEncodingName).get(destinationEncodingName);
+        final TranscoderReference directMapping = allTranscoders.get(sourceEncodingName).get(destinationEncodingName);
 
         if (directMapping != null) {
-            return Collections.singletonList(directMapping);
+            return Collections.singletonList(directMapping.getTranscoder());
         } else {
             final LinkedList<String> path = bfs(sourceEncodingName, destinationEncodingName);
 
@@ -198,7 +226,7 @@ public class TranscodingManager {
                 String sourceName = path.remove();
 
                 for (String destinationName : path) {
-                    ret.add(allTranscoders.get(sourceName).get(destinationName));
+                    ret.add(allTranscoders.get(sourceName).get(destinationName).getTranscoder());
                     sourceName = destinationName;
                 }
             }
@@ -270,12 +298,12 @@ public class TranscodingManager {
             return false;
         }
 
-        final Transcoder transcoder = allTranscoders.get("").get(new String(decorator).toUpperCase());
+        final TranscoderReference transcoder = allTranscoders.get("").get(new String(decorator).toUpperCase());
         if (transcoder == null) {
             return false;
         }
 
-        ec.addTranscoderAt(transcoder, n);
+        ec.addTranscoderAt(transcoder.getTranscoder(), n);
         return true;
     }
 
