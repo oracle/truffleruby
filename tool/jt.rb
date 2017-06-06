@@ -1654,6 +1654,16 @@ module Commands
     puts `cat spec/tags/core/**/**.txt | grep 'fails:'`.lines.sample
   end
 
+  def native_launcher
+    Dir.chdir("#{TRUFFLERUBY_DIR}/bin") do
+      sh = "truffleruby.sh"
+      raw_sh "git", "checkout", "HEAD", "truffleruby"
+      raw_sh "mv", "truffleruby", sh
+      raw_sh "cc", "-o", "truffleruby", "../tool/native_launcher.c"
+    end
+  end
+  alias :'native-launcher' :native_launcher
+
   def check_dsl_usage
     mx(TRUFFLERUBY_DIR, 'clean')
     # We need to build with -parameters to get parameter names
