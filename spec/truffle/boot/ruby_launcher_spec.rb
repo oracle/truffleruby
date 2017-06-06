@@ -19,7 +19,7 @@ describe "Truffle::Boot.ruby_launcher" do
 
   it "can be used to run a TruffleRuby subprocess" do
     launcher = Truffle::Boot.ruby_launcher
-    `#{launcher} -e "puts RUBY_ENGINE"`.chomp.should == RUBY_ENGINE
+    `#{launcher} -e "puts RUBY_ENGINE" 2>&1`.lines.last.chomp.should == RUBY_ENGINE
     $?.success?.should == true
   end
 end
