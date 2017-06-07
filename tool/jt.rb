@@ -647,9 +647,9 @@ module Commands
     if args.delete('--igv')
       Utilities.ensure_igv_running
       if args.delete('--full')
-        jruby_args << "-J-Dgraal.Dump=:3"
+        jruby_args << "-J-Dgraal.Dump=:2"
       else
-        jruby_args << "-J-Dgraal.Dump=TruffleTree,PartialEscape:3"
+        jruby_args << "-J-Dgraal.Dump=TruffleTree,PartialEscape:2"
       end
       jruby_args << "-J-Dgraal.PrintBackendCFG=false"
     end
