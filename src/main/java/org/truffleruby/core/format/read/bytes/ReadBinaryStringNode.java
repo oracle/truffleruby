@@ -19,6 +19,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.AsciiOnlyLeafRope;
+import org.truffleruby.core.string.StringOperations;
 
 import java.util.Arrays;
 
@@ -107,7 +108,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
         setSourcePosition(frame, start + length);
 
-        return Layouts.STRING.createString(getContext().getCoreLibrary().getStringFactory(),
+        return StringOperations.createString(getContext(),
                 new AsciiOnlyLeafRope(Arrays.copyOfRange(source, start, start + usedLength), ASCIIEncoding.INSTANCE));
     }
 

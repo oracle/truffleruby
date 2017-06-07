@@ -22,6 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 
 public class StringLiteralNode extends RubyNode {
@@ -34,7 +35,7 @@ public class StringLiteralNode extends RubyNode {
 
     @Override
     public DynamicObject execute(VirtualFrame frame) {
-        return Layouts.STRING.createString(coreLibrary().getStringFactory(), rope);
+        return StringOperations.createString(getContext(), rope);
     }
 
 }

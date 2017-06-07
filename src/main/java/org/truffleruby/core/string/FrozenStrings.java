@@ -34,7 +34,7 @@ public class FrozenStrings {
         DynamicObject string = frozenStrings.get(holder);
 
         if (string == null) {
-            string = Layouts.STRING.createString(context.getCoreLibrary().getFrozenStringFactory(), rope);
+            string = StringOperations.createFrozenString(context, rope);
             frozenStrings.put(holder, string);
         }
 

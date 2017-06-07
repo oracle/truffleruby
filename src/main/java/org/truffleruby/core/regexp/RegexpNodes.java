@@ -203,7 +203,7 @@ public abstract class RegexpNodes {
         final Rope sourceRope = StringOperations.rope(source);
         final Rope substringRope = makeSubstringNode.executeMake(sourceRope, start, length);
 
-        final DynamicObject ret = Layouts.STRING.createString(Layouts.CLASS.getInstanceFactory(Layouts.BASIC_OBJECT.getLogicalClass(source)), substringRope);
+        final DynamicObject ret = Layouts.CLASS.getInstanceFactory(Layouts.BASIC_OBJECT.getLogicalClass(source)).newInstance(Layouts.STRING.build(false, false, substringRope));
 
         return ret;
     }

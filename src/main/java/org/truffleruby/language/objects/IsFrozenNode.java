@@ -67,7 +67,7 @@ public abstract class IsFrozenNode extends RubyNode {
     @TruffleBoundary
     public static boolean isFrozen(Object object) {
         return !(object instanceof DynamicObject) ||
-                ((DynamicObject) object).containsKey(Layouts.FROZEN_IDENTIFIER);
+                (boolean) ((DynamicObject) object).get(Layouts.FROZEN_IDENTIFIER, false);
     }
 
 }

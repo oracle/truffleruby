@@ -57,6 +57,7 @@ import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.write.bytes.EncodeUM;
 import org.truffleruby.core.rope.AsciiOnlyLeafRope;
+import org.truffleruby.core.string.StringOperations;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -77,8 +78,7 @@ public abstract class ReadBase64StringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return Layouts.STRING.createString(getContext().getCoreLibrary().getStringFactory(),
-                new AsciiOnlyLeafRope(result, ASCIIEncoding.INSTANCE));
+        return StringOperations.createString(getContext(), new AsciiOnlyLeafRope(result, ASCIIEncoding.INSTANCE));
     }
 
     @TruffleBoundary
