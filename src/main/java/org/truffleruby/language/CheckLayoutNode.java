@@ -43,19 +43,8 @@ public class CheckLayoutNode extends RubyBaseNode {
         public abstract ObjectType executeGetObjectType(DynamicObject object);
 
         @Specialization(
-                guards = "object == cachedObject",
-                assumptions = "cachedShape.getLeafAssumption()",
-                limit = "getLimit()")
-        ObjectType cachedLeafShapeGetObjectType(DynamicObject object,
-                @Cached("object") DynamicObject cachedObject,
-                @Cached("cachedObject.getShape()") Shape cachedShape) {
-            return cachedShape.getObjectType();
-        }
-
-        @Specialization(
                 guards = "object.getShape() == cachedShape",
-                limit = "getLimit()",
-                replaces = "cachedLeafShapeGetObjectType")
+                limit = "getLimit()")
         ObjectType cachedShapeGetObjectType(DynamicObject object,
                 @Cached("object.getShape()") Shape cachedShape) {
             return cachedShape.getObjectType();
@@ -66,7 +55,7 @@ public class CheckLayoutNode extends RubyBaseNode {
             return executeGetObjectType(object);
         }
 
-        @Specialization(replaces = { "cachedLeafShapeGetObjectType", "cachedShapeGetObjectType", "updateShapeAndRetry" })
+        @Specialization(replaces = { "cachedShapeGetObjectType", "updateShapeAndRetry" })
         ObjectType uncachedGetObjectType(DynamicObject object) {
             return object.getShape().getObjectType();
         }
