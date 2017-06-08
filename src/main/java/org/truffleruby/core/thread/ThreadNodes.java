@@ -62,7 +62,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.exception.ExceptionOperations;
-import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -75,10 +74,7 @@ import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
-import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @CoreClass("Thread")
 public abstract class ThreadNodes {
@@ -446,27 +442,7 @@ public abstract class ThreadNodes {
                 DynamicObject rubyClass,
                 @Cached("create()") AllocateObjectNode allocateObjectNode,
                 @Cached("createReadAbortOnExceptionNode()") ReadObjectFieldNode readAbortOnException) {
-            final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(getContext().getThreadManager().getCurrentThread());
-            final DynamicObject object = allocateObjectNode.allocate(rubyClass, Layouts.THREAD.build(
-                    ThreadManager.createThreadLocals(getContext()),
-                    ThreadManager.DEFAULT_INTERRUPT_MODE,
-                    ThreadManager.DEFAULT_STATUS,
-                    new ArrayList<>(),
-                    null,
-                    new CountDownLatch(1),
-                    (boolean) readAbortOnException.execute(getContext().getCoreLibrary().getThreadClass()),
-                    null,
-                    null,
-                    null,
-                    new AtomicBoolean(false),
-                    Thread.NORM_PRIORITY,
-                    currentGroup,
-                    "<uninitialized>",
-                    nil()));
-
-            Layouts.THREAD.setFiberManagerUnsafe(object, new FiberManager(getContext(), object)); // Because it is cyclic
-
-            return object;
+            return getContext().getThreadManager().createThread(rubyClass, allocateObjectNode, readAbortOnException);
         }
 
         protected ReadObjectFieldNode createReadAbortOnExceptionNode() {

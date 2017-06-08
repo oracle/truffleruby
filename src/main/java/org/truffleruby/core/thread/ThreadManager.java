@@ -33,6 +33,7 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.control.ThreadExitException;
+import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -72,12 +73,11 @@ public class ThreadManager {
         FiberNodes.start(context, this, Layouts.THREAD.getFiberManager(rootThread).getRootFiber());
     }
 
-    public static final InterruptMode DEFAULT_INTERRUPT_MODE = InterruptMode.IMMEDIATE;
-    public static final ThreadStatus DEFAULT_STATUS = ThreadStatus.RUN;
+    private static final InterruptMode DEFAULT_INTERRUPT_MODE = InterruptMode.IMMEDIATE;
+    private static final ThreadStatus DEFAULT_STATUS = ThreadStatus.RUN;
 
     public static DynamicObject createRubyThread(RubyContext context, String info) {
-
-        final DynamicObject object = context.getCoreLibrary().getThreadFactory().newInstance(Layouts.THREAD.build(
+        final DynamicObject thread = context.getCoreLibrary().getThreadFactory().newInstance(Layouts.THREAD.build(
                 createThreadLocals(context),
                 DEFAULT_INTERRUPT_MODE,
                 DEFAULT_STATUS,
@@ -94,9 +94,35 @@ public class ThreadManager {
                 info,
                 context.getCoreLibrary().getNilObject()));
 
-        Layouts.THREAD.setFiberManagerUnsafe(object, new FiberManager(context, object)); // Because it is cyclic
+        Layouts.THREAD.setFiberManagerUnsafe(thread, new FiberManager(context, thread)); // Because it is cyclic
 
-        return object;
+        return thread;
+    }
+
+    public DynamicObject createThread(DynamicObject rubyClass, AllocateObjectNode allocateObjectNode, ReadObjectFieldNode readAbortOnException) {
+        final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(getCurrentThread());
+        final boolean abortOnException = (boolean) readAbortOnException.execute(context.getCoreLibrary().getThreadClass());
+
+        final DynamicObject thread = allocateObjectNode.allocate(rubyClass, Layouts.THREAD.build(
+                createThreadLocals(context),
+                DEFAULT_INTERRUPT_MODE,
+                DEFAULT_STATUS,
+                new ArrayList<>(),
+                null,
+                new CountDownLatch(1),
+                abortOnException,
+                null,
+                null,
+                null,
+                new AtomicBoolean(false),
+                Thread.NORM_PRIORITY,
+                currentGroup,
+                "<uninitialized>",
+                context.getCoreLibrary().getNilObject()));
+
+        Layouts.THREAD.setFiberManagerUnsafe(thread, new FiberManager(context, thread)); // Because it is cyclic
+
+        return thread;
     }
 
     private static void setupSignalHandler(RubyContext context) {
@@ -124,12 +150,12 @@ public class ThreadManager {
         }
     }
 
-    public static boolean getGlobalAbortOnException(RubyContext context) {
+    private static boolean getGlobalAbortOnException(RubyContext context) {
         final DynamicObject threadClass = context.getCoreLibrary().getThreadClass();
         return (boolean) ReadObjectFieldNode.read(threadClass, "@abort_on_exception", null);
     }
 
-    public static DynamicObject createThreadLocals(RubyContext context) {
+    private static DynamicObject createThreadLocals(RubyContext context) {
         final DynamicObject threadLocals = Layouts.BASIC_OBJECT.createBasicObject(context.getCoreLibrary().getObjectFactory());
         threadLocals.define("$!", context.getCoreLibrary().getNilObject());
         threadLocals.define("$?", context.getCoreLibrary().getNilObject());
