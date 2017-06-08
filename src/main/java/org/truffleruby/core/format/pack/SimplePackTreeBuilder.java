@@ -147,7 +147,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
 
         appendNode(WriteUUStringNodeGen.create(starLength.getLength(), starLength.isStar(),
                 ReadStringNodeGen.create(false, "to_str",
-                        false, context.getCoreLibrary().getNilObject(),
+                        false, context.getCoreLibrary().getNil(),
                         new SourceNode())));
     }
 
@@ -169,7 +169,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
 
         appendNode(WriteMIMEStringNodeGen.create(length,
                 ReadStringNodeGen.create(true, "to_s",
-                        true, context.getCoreLibrary().getNilObject(),
+                        true, context.getCoreLibrary().getNil(),
                         new SourceNode())));
     }
 
@@ -181,7 +181,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
 
         appendNode(WriteBase64StringNodeGen.create(starLength.getLength(), starLength.isStar(),
                 ReadStringNodeGen.create(false, "to_str",
-                        false, context.getCoreLibrary().getNilObject(),
+                        false, context.getCoreLibrary().getNil(),
                         new SourceNode())));
     }
 
@@ -354,7 +354,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
         appendNode(WriteBinaryStringNodeGen.create(pad, padOnNull,
                 width, padding, takeAll, appendNull,
                 ReadStringNodeGen.create(true, "to_str",
-                        false, context.getCoreLibrary().getNilObject(),
+                        false, context.getCoreLibrary().getNil(),
                         new SourceNode())));
 
     }
@@ -364,7 +364,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
 
         appendNode(WriteBitStringNodeGen.create(byteOrder, starLength.isStar(), starLength.getLength(),
                 ReadStringNodeGen.create(true, "to_str",
-                        false, context.getCoreLibrary().getNilObject(),
+                        false, context.getCoreLibrary().getNil(),
                         new SourceNode())));
     }
 
@@ -381,7 +381,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
 
         appendNode(WriteHexStringNodeGen.create(byteOrder, length,
                 ReadStringNodeGen.create(true, "to_str",
-                        false, context.getCoreLibrary().getNilObject(),
+                        false, context.getCoreLibrary().getNil(),
                         new SourceNode())));
 
     }

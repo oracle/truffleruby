@@ -29,7 +29,7 @@ public class InputStreamAdapter extends InputStream {
     public int read() throws IOException {
         final Object result = context.send(object, "getbyte", null);
 
-        if (result == context.getCoreLibrary().getNilObject()) {
+        if (result == context.getCoreLibrary().getNil()) {
             return -1;
         }
 

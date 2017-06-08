@@ -60,7 +60,7 @@ public abstract class BindingNodes {
 
     @TruffleBoundary
     public static FrameDescriptor newFrameDescriptor(RubyContext context) {
-        return new FrameDescriptor(context.getCoreLibrary().getNilObject());
+        return new FrameDescriptor(context.getCoreLibrary().getNil());
     }
 
     public static FrameDescriptor getFrameDescriptor(DynamicObject binding) {

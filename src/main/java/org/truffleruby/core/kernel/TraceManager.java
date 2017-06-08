@@ -145,9 +145,9 @@ public class TraceManager {
                 getYieldNode().dispatch(traceFunc, event,
                         getFile(),
                         getLine(),
-                        context.getCoreLibrary().getNilObject(),
+                        context.getCoreLibrary().getNil(),
                         BindingNodes.createBinding(context, frame.materialize()),
-                        context.getCoreLibrary().getNilObject());
+                        context.getCoreLibrary().getNil());
             } finally {
                 isInTraceFunc = false;
             }

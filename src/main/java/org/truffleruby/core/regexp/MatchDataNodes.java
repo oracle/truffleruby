@@ -65,7 +65,7 @@ public abstract class MatchDataNodes {
         int b = Layouts.MATCH_DATA.getRegion(matchData).beg[index];
 
         if (b < 0) {
-            return context.getCoreLibrary().getNilObject();
+            return context.getCoreLibrary().getNil();
         }
 
         if (!StringGuards.isSingleByteOptimizable(Layouts.MATCH_DATA.getSource(matchData))) {
@@ -80,7 +80,7 @@ public abstract class MatchDataNodes {
         int e = Layouts.MATCH_DATA.getRegion(matchData).end[index];
 
         if (e < 0) {
-            return context.getCoreLibrary().getNilObject();
+            return context.getCoreLibrary().getNil();
         }
 
         if (!StringGuards.isSingleByteOptimizable(Layouts.MATCH_DATA.getSource(matchData))) {
@@ -330,7 +330,7 @@ public abstract class MatchDataNodes {
         public Object byteBegin(DynamicObject matchData, int index) {
             int b = Layouts.MATCH_DATA.getRegion(matchData).beg[index];
             if (b < 0) {
-                return getContext().getCoreLibrary().getNilObject();
+                return nil();
             } else {
                 return b;
             }
@@ -349,7 +349,7 @@ public abstract class MatchDataNodes {
         public Object byteEnd(DynamicObject matchData, int index) {
             int e = Layouts.MATCH_DATA.getRegion(matchData).end[index];
             if (e < 0) {
-                return getContext().getCoreLibrary().getNilObject();
+                return nil();
             } else {
                 return e;
             }

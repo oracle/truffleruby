@@ -40,7 +40,7 @@ public class TimeZoneAndName {
 
     public DynamicObject getNameAsRubyObject(RubyContext context) {
         if (name == null) {
-            return context.getCoreLibrary().getNilObject();
+            return context.getCoreLibrary().getNil();
         } else {
             return StringOperations.createString(context, context.getRopeTable().getRope(name));
         }

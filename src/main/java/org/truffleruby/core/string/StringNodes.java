@@ -2490,7 +2490,7 @@ public abstract class StringNodes {
             final Rope ret = StringSupport.trTransHelper(rope(self), rope(fromStr), rope(toStr), e1, enc, sFlag);
 
             if (ret == null) {
-                return context.getCoreLibrary().getNilObject();
+                return context.getCoreLibrary().getNil();
             }
 
             StringOperations.setRope(self, ret);

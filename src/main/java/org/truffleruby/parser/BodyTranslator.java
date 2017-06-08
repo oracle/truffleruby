@@ -831,7 +831,7 @@ public class BodyTranslator extends Translator {
                 frameOnStackMarkerSlotStack.pop();
             }
 
-            if (blockTranslated instanceof ObjectLiteralNode && ((ObjectLiteralNode) blockTranslated).getObject() == context.getCoreLibrary().getNilObject()) {
+            if (blockTranslated instanceof ObjectLiteralNode && ((ObjectLiteralNode) blockTranslated).getObject() == context.getCoreLibrary().getNil()) {
                 blockTranslated = null;
             }
         } else {

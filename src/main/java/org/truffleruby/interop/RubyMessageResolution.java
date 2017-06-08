@@ -59,7 +59,7 @@ public class RubyMessageResolution {
         @CompilationFinal RubyContext context;
 
         protected Object access(DynamicObject object) {
-            return object == getContext().getCoreLibrary().getNilObject();
+            return object == getContext().getCoreLibrary().getNil();
         }
 
         private RubyContext getContext() {

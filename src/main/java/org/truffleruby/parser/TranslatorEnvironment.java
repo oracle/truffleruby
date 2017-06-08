@@ -77,7 +77,7 @@ public class TranslatorEnvironment {
             ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
             boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth, BreakID breakID) {
         this(context, parent, parseEnvironment, returnID, ownScopeForAssignments, neverAssignInParentScope, isModuleBody, sharedMethodInfo, namedMethodName, blockDepth,
-                breakID, new FrameDescriptor(context.getCoreLibrary().getNilObject()));
+                breakID, new FrameDescriptor(context.getCoreLibrary().getNil()));
     }
 
     public boolean isDynamicConstantLookup() {

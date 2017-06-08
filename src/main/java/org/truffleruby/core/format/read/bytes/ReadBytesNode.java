@@ -49,7 +49,7 @@ public abstract class ReadBytesNode extends FormatNode {
             if (consumePartial) {
                 return MissingValue.INSTANCE;
             } else {
-                return getContext().getCoreLibrary().getNilObject();
+                return nil();
             }
         }
 

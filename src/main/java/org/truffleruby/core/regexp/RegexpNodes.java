@@ -127,7 +127,7 @@ public abstract class RegexpNodes {
 
         int match = context.getThreadManager().runUntilResult(currentNode, () -> matcher.searchInterruptible(startPos, range, Option.DEFAULT));
 
-        final DynamicObject nil = context.getCoreLibrary().getNilObject();
+        final DynamicObject nil = context.getCoreLibrary().getNil();
 
         if (match == -1) {
             if (setNamedCaptures && Layouts.REGEXP.getRegex(regexp).numberOfNames() > 0) {
@@ -377,7 +377,7 @@ public abstract class RegexpNodes {
     }
 
     public static boolean isSuitableMatchDataType(RubyContext context, DynamicObject matchData) {
-        return matchData == context.getCoreLibrary().getNilObject() || RubyGuards.isRubyMatchData(matchData);
+        return matchData == context.getCoreLibrary().getNil() || RubyGuards.isRubyMatchData(matchData);
     }
 
     public static boolean frameIsNotSend(RubyContext context, Object callerFrame) {

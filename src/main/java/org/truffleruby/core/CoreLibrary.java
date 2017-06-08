@@ -271,7 +271,7 @@ public class CoreLibrary {
     private final DynamicObject argv;
     private final GlobalVariables globalVariables;
     private final DynamicObject mainObject;
-    private final DynamicObject nilObject;
+    private final DynamicObject nil;
     private final Object rubiniusUndefined;
     private final DynamicObject digestClass;
     private final DynamicObjectFactory digestFactory;
@@ -667,15 +667,15 @@ public class CoreLibrary {
         // Create some key objects
 
         mainObject = objectFactory.newInstance();
-        nilObject = nilFactory.newInstance();
+        nil = nilFactory.newInstance();
         argv = Layouts.ARRAY.createArray(arrayFactory, null, 0);
         rubiniusUndefined = NotProvided.INSTANCE;
 
-        globalVariables = new GlobalVariables(nilObject);
+        globalVariables = new GlobalVariables(nil);
 
         // No need for new version since it's null before which is not cached
         assert Layouts.CLASS.getSuperclass(basicObjectClass) == null;
-        Layouts.CLASS.setSuperclass(basicObjectClass, nilObject);
+        Layouts.CLASS.setSuperclass(basicObjectClass, nil);
     }
 
     private static DynamicObjectFactory alwaysFrozen(DynamicObjectFactory factory) {
@@ -741,13 +741,13 @@ public class CoreLibrary {
                 Layouts.ARRAY.createArray(arrayFactory, null, 0));
         globals.alias("$\"", loadedFeaturesStorage);
 
-        globals.put("$,", nilObject);
+        globals.put("$,", nil);
         globals.put("$*", argv);
 
         final Object dollarZeroValue;
 
         if (context.getOptions().DISPLAYED_FILE_NAME == null) {
-            dollarZeroValue = nilObject;
+            dollarZeroValue = nil;
         } else {
             dollarZeroValue = StringOperations.createString(context, StringOperations.encodeRope(context.getOptions().DISPLAYED_FILE_NAME, UTF8Encoding.INSTANCE));
         }
@@ -760,7 +760,7 @@ public class CoreLibrary {
 
         switch (context.getOptions().VERBOSITY) {
             case NIL:
-                verbose = getNilObject();
+                verbose = nil;
                 break;
             case FALSE:
                 verbose = false;
@@ -1286,7 +1286,7 @@ public class CoreLibrary {
     }
 
     public boolean warningsEnabled() {
-        return verboseStorage.getValue() != getNilObject();
+        return verboseStorage.getValue() != nil;
     }
 
     public boolean isVerbose() {
@@ -1301,8 +1301,8 @@ public class CoreLibrary {
         return mainObject;
     }
 
-    public DynamicObject getNilObject() {
-        return nilObject;
+    public DynamicObject getNil() {
+        return nil;
     }
 
     public DynamicObject getENV() {

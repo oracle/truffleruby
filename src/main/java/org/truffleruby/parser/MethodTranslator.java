@@ -416,7 +416,7 @@ public class MethodTranslator extends BodyTranslator {
         if (blockNode != null) {
             return blockNode;
         } else {
-            return new ReadBlockNode(context.getCoreLibrary().getNilObject());
+            return new ReadBlockNode(context.getCoreLibrary().getNil());
         }
     }
 

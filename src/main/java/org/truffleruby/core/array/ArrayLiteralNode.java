@@ -331,7 +331,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
                 final double[] store = new double[objects.length];
 
                 for (int n = 0; n < objects.length; n++) {
-                    store[n] = CoreLibrary.toDouble(objects[n], coreLibrary().getNilObject());
+                    store[n] = CoreLibrary.toDouble(objects[n], nil());
                 }
 
                 return store;

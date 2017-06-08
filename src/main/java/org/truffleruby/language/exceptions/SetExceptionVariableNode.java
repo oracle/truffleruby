@@ -74,7 +74,7 @@ public class SetExceptionVariableNode extends Node {
     private Object readDollarBang(DynamicObject threadLocals) {
         if (readDollarBang == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            readDollarBang = insert(ReadObjectFieldNodeGen.create("$!", context.getCoreLibrary().getNilObject()));
+            readDollarBang = insert(ReadObjectFieldNodeGen.create("$!", context.getCoreLibrary().getNil()));
         }
 
         return readDollarBang.execute(threadLocals);

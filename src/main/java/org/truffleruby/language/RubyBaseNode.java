@@ -66,7 +66,7 @@ public abstract class RubyBaseNode extends Node {
     // Helpers methods for terseness
 
     protected DynamicObject nil() {
-        return coreLibrary().getNilObject();
+        return coreLibrary().getNil();
     }
 
     protected DynamicObject getSymbol(String name) {

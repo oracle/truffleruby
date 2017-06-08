@@ -90,9 +90,9 @@ public class ThreadManager {
                 null,
                 new AtomicBoolean(false),
                 Thread.NORM_PRIORITY,
-                context.getCoreLibrary().getNilObject(),
+                context.getCoreLibrary().getNil(),
                 info,
-                context.getCoreLibrary().getNilObject()));
+                context.getCoreLibrary().getNil()));
 
         Layouts.THREAD.setFiberManagerUnsafe(thread, new FiberManager(context, thread)); // Because it is cyclic
 
@@ -118,7 +118,7 @@ public class ThreadManager {
                 Thread.NORM_PRIORITY,
                 currentGroup,
                 "<uninitialized>",
-                context.getCoreLibrary().getNilObject()));
+                context.getCoreLibrary().getNil()));
 
         Layouts.THREAD.setFiberManagerUnsafe(thread, new FiberManager(context, thread)); // Because it is cyclic
 
@@ -157,8 +157,8 @@ public class ThreadManager {
 
     private static DynamicObject createThreadLocals(RubyContext context) {
         final DynamicObject threadLocals = Layouts.BASIC_OBJECT.createBasicObject(context.getCoreLibrary().getObjectFactory());
-        threadLocals.define("$!", context.getCoreLibrary().getNilObject());
-        threadLocals.define("$?", context.getCoreLibrary().getNilObject());
+        threadLocals.define("$!", context.getCoreLibrary().getNil());
+        threadLocals.define("$?", context.getCoreLibrary().getNil());
         return threadLocals;
     }
 
@@ -196,7 +196,7 @@ public class ThreadManager {
         try {
             task.run();
         } catch (ThreadExitException e) {
-            setThreadValue(context, thread, context.getCoreLibrary().getNilObject());
+            setThreadValue(context, thread, context.getCoreLibrary().getNil());
             return;
         } catch (RaiseException e) {
             setException(context, thread, e.getException(), currentNode);
