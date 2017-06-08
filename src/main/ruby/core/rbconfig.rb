@@ -155,7 +155,8 @@ module RbConfig
                     '-Wno-unused-value',                      # RB_GC_GUARD leaves
                     '-Wno-incompatible-pointer-types',        # We define VALUE as void* rather than uint32_t
                     '-Wno-expansion-to-defined',              # The openssl C extension uses macros expanding to defined
-                    '-c', '-emit-llvm'].join(' ')
+                    '-c', '-emit-llvm',
+                    '-ferror-limit=500'].join(' ')
   # We do not have a launcher if we are embedded with the polyglot API
   ruby_launcher = Truffle::Boot.ruby_launcher
   ruby_launcher ||= "#{expanded['bindir']}/#{ruby_install_name}" if ruby_home
