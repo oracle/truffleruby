@@ -1297,6 +1297,10 @@ module Truffle::CExt
     $! = error
   end
 
+  def rb_errinfo
+    $!
+  end
+
   def rb_raise(object, name)
     raise 'not implemented'
   end

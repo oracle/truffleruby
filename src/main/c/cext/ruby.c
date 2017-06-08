@@ -1929,6 +1929,10 @@ void rb_set_errinfo(VALUE error) {
   truffle_invoke(RUBY_CEXT, "rb_set_errinfo", error);
 }
 
+VALUE rb_errinfo(void) {
+  return truffle_invoke(RUBY_CEXT, "rb_errinfo");
+}
+
 void rb_syserr_fail(int eno, const char *message) {
   truffle_invoke(RUBY_CEXT, "rb_syserr_fail", eno, message == NULL ? Qnil : rb_str_new_cstr(message));
 }

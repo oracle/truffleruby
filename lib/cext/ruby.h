@@ -915,6 +915,7 @@ NORETURN(void rb_exc_raise(VALUE exception));
 
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status);
 void rb_jump_tag(int status);
+VALUE rb_errinfo(void);
 void rb_set_errinfo(VALUE error);
 void rb_syserr_fail(int eno, const char *message);
 void rb_sys_fail(const char *message);
