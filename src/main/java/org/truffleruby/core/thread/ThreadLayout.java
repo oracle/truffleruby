@@ -31,8 +31,7 @@ public interface ThreadLayout extends BasicObjectLayout {
             DynamicObject logicalClass,
             DynamicObject metaClass);
 
-    DynamicObject createThread(
-            DynamicObjectFactory factory,
+    Object[] build(
             DynamicObject threadLocals,
             @Volatile InterruptMode interruptMode, // needs to be volatile for fibers implemented by threads
             @Volatile ThreadStatus status,

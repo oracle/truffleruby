@@ -79,8 +79,6 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 @CoreClass("Thread")
 public abstract class ThreadNodes {
@@ -447,25 +445,24 @@ public abstract class ThreadNodes {
         public DynamicObject allocate(
                 DynamicObject rubyClass,
                 @Cached("create()") AllocateObjectNode allocateObjectNode,
-                @Cached("createReadAbortOnExceptionNode()") ReadObjectFieldNode readAbortOnException ) {
+                @Cached("createReadAbortOnExceptionNode()") ReadObjectFieldNode readAbortOnException) {
             final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(getContext().getThreadManager().getCurrentThread());
-            final DynamicObject object = allocateObjectNode.allocate(
-                    rubyClass,
+            final DynamicObject object = allocateObjectNode.allocate(rubyClass, Layouts.THREAD.build(
                     ThreadManager.createThreadLocals(getContext()),
-                    new AtomicReference<>(ThreadManager.DEFAULT_INTERRUPT_MODE),
-                    new AtomicReference<>(ThreadManager.DEFAULT_STATUS),
+                    ThreadManager.DEFAULT_INTERRUPT_MODE,
+                    ThreadManager.DEFAULT_STATUS,
                     new ArrayList<>(),
                     null,
                     new CountDownLatch(1),
-                    readAbortOnException.execute(getContext().getCoreLibrary().getThreadClass()),
-                    new AtomicReference<>(null),
-                    new AtomicReference<>(null),
-                    new AtomicReference<>(null),
+                    (boolean) readAbortOnException.execute(getContext().getCoreLibrary().getThreadClass()),
+                    null,
+                    null,
+                    null,
                     new AtomicBoolean(false),
-                    new AtomicInteger(Thread.NORM_PRIORITY),
+                    Thread.NORM_PRIORITY,
                     currentGroup,
                     "<uninitialized>",
-                    nil());
+                    nil()));
 
             Layouts.THREAD.setFiberManagerUnsafe(object, new FiberManager(getContext(), object)); // Because it is cyclic
 

@@ -77,8 +77,7 @@ public class ThreadManager {
 
     public static DynamicObject createRubyThread(RubyContext context, String info) {
 
-        final DynamicObject object = Layouts.THREAD.createThread(
-                context.getCoreLibrary().getThreadFactory(),
+        final DynamicObject object = context.getCoreLibrary().getThreadFactory().newInstance(Layouts.THREAD.build(
                 createThreadLocals(context),
                 DEFAULT_INTERRUPT_MODE,
                 DEFAULT_STATUS,
@@ -93,7 +92,7 @@ public class ThreadManager {
                 Thread.NORM_PRIORITY,
                 context.getCoreLibrary().getNilObject(),
                 info,
-                context.getCoreLibrary().getNilObject());
+                context.getCoreLibrary().getNilObject()));
 
         Layouts.THREAD.setFiberManagerUnsafe(object, new FiberManager(context, object)); // Because it is cyclic
 
