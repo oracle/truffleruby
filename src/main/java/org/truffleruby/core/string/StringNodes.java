@@ -84,7 +84,6 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -136,7 +135,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
@@ -156,8 +154,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -175,7 +171,7 @@ public abstract class StringNodes {
 
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, EMPTY_ASCII_8BIT_ROPE);
+            return allocateObjectNode.allocate(rubyClass, Layouts.STRING.build(false, false, EMPTY_ASCII_8BIT_ROPE));
         }
 
     }
@@ -200,7 +196,7 @@ public abstract class StringNodes {
                                  @Cached("create()") StringAppendNode stringAppendNode) {
             final Rope concatRope = stringAppendNode.executeStringAppend(string, other);
 
-            final DynamicObject ret = allocateObjectNode.allocate(coreLibrary().getStringClass(), concatRope);
+            final DynamicObject ret = allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, concatRope));
 
             taintResultNode.maybeTaint(string, ret);
             taintResultNode.maybeTaint(other, ret);
@@ -234,7 +230,7 @@ public abstract class StringNodes {
             concatByteList.setEncoding(enc);
 
             final RopeBuffer concatRope = new RopeBuffer(concatByteList, left.getCodeRange(), left.isSingleByteOptimizable(), concatByteList.getLength());
-            final DynamicObject ret = Layouts.STRING.createString(coreLibrary().getStringFactory(), concatRope);
+            final DynamicObject ret = StringOperations.createString(getContext(), concatRope);
 
             taintResultNode.maybeTaint(string, ret);
             taintResultNode.maybeTaint(other, ret);
@@ -262,7 +258,7 @@ public abstract class StringNodes {
                                       @Cached("create()") MakeRepeatingNode makeRepeatingNode) {
             final Rope repeated = makeRepeatingNode.executeMake(rope(string), times);
 
-            return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), repeated);
+            return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, repeated));
         }
 
         @Specialization(guards = "isRubyBignum(times)")
@@ -442,7 +438,8 @@ public abstract class StringNodes {
                 if (begin == stringLength) {
                     final RopeBuilder byteList = new RopeBuilder();
                     byteList.setEncoding(encoding(string));
-                    return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), RopeOperations.withEncodingVerySlow(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string)));
+                    return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
+                            Layouts.STRING.build(false, false, RopeOperations.withEncodingVerySlow(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string))));
                 }
 
                 end = normalizeIndexNode.executeNormalize(end, stringLength);
@@ -1002,7 +999,7 @@ public abstract class StringNodes {
                 taintResultNode = insert(new TaintResultNode());
             }
 
-            final DynamicObject ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), substringRope);
+            final DynamicObject ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, substringRope));
 
             return taintResultNode.maybeTaint(string, ret);
         }
@@ -1531,7 +1528,8 @@ public abstract class StringNodes {
             RopeBuilder outputBytes = dumpCommon(string);
             outputBytes.setEncoding(encoding(string));
 
-            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), RopeOperations.ropeFromBuilder(outputBytes, CodeRange.CR_7BIT));
+            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
+                    Layouts.STRING.build(false, false, RopeOperations.ropeFromBuilder(outputBytes, CodeRange.CR_7BIT)));
 
             return result;
         }
@@ -1555,7 +1553,8 @@ public abstract class StringNodes {
 
             outputBytes.setEncoding(ASCIIEncoding.INSTANCE);
 
-            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), RopeOperations.ropeFromBuilder(outputBytes, CodeRange.CR_7BIT));
+            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
+                    Layouts.STRING.build(false, false, RopeOperations.ropeFromBuilder(outputBytes, CodeRange.CR_7BIT)));
 
             return result;
         }
@@ -2603,7 +2602,7 @@ public abstract class StringNodes {
 
             final Rope rope = makeSubstringNode.executeMake(rope(source), index, length);
 
-            final DynamicObject ret = Layouts.STRING.createString(Layouts.CLASS.getInstanceFactory(Layouts.BASIC_OBJECT.getLogicalClass(source)), rope);
+            final DynamicObject ret = Layouts.CLASS.getInstanceFactory(Layouts.BASIC_OBJECT.getLogicalClass(source)).newInstance(Layouts.STRING.build(false, false, rope));
             taintResultNode.maybeTaint(source, ret);
 
             return ret;
@@ -2679,7 +2678,7 @@ public abstract class StringNodes {
             }
 
             final Rope substringRope = makeSubstringNode.executeMake(rope, normalizedIndex, length);
-            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), substringRope);
+            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, substringRope));
 
             return taintResultNode.maybeTaint(string, result);
         }
@@ -3057,7 +3056,7 @@ public abstract class StringNodes {
 
             final Rope rope = rope(string);
 
-            final DynamicObject ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), makeSubstringNode.executeMake(rope, offset, 1));
+            final DynamicObject ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, makeSubstringNode.executeMake(rope, offset, 1)));
 
             return propagate(string, ret);
         }
@@ -3074,9 +3073,9 @@ public abstract class StringNodes {
 
             final DynamicObject ret;
             if (StringSupport.MBCLEN_CHARFOUND_P(clen)) {
-                ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), makeSubstringNode.executeMake(rope, offset, clen));
+                ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, makeSubstringNode.executeMake(rope, offset, clen)));
             } else {
-                ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), makeSubstringNode.executeMake(rope, offset, 1));
+                ret = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, makeSubstringNode.executeMake(rope, offset, 1)));
             }
 
             return propagate(string, ret);
@@ -3771,7 +3770,7 @@ public abstract class StringNodes {
         public DynamicObject stringPatternZero(DynamicObject stringClass, int size, int value) {
             final Rope repeatingRope = makeRepeatingNode.executeMake(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[value], size);
 
-            return allocateObjectNode.allocate(stringClass, repeatingRope);
+            return allocateObjectNode.allocate(stringClass, Layouts.STRING.build(false, false, repeatingRope));
         }
 
         @Specialization(guards = { "isRubyString(string)", "patternFitsEvenly(string, size)" })
@@ -3779,7 +3778,7 @@ public abstract class StringNodes {
             final Rope rope = rope(string);
             final Rope repeatingRope = makeRepeatingNode.executeMake(rope, size / rope.byteLength());
 
-            return allocateObjectNode.allocate(stringClass, repeatingRope);
+            return allocateObjectNode.allocate(stringClass, Layouts.STRING.build(false, false, repeatingRope));
         }
 
         @Specialization(guards = { "isRubyString(string)", "!patternFitsEvenly(string, size)" })
@@ -3801,7 +3800,7 @@ public abstract class StringNodes {
             final CodeRange codeRange = rope.getCodeRange() == CodeRange.CR_7BIT ? CodeRange.CR_7BIT : CodeRange.CR_UNKNOWN;
             final Object characterLength = codeRange == CodeRange.CR_7BIT ? size : NotProvided.INSTANCE;
 
-            return allocateObjectNode.allocate(stringClass, makeLeafRopeNode.executeMake(bytes, encoding(string), codeRange, characterLength));
+            return allocateObjectNode.allocate(stringClass, Layouts.STRING.build(false, false, makeLeafRopeNode.executeMake(bytes, encoding(string), codeRange, characterLength)));
         }
 
         protected boolean patternFitsEvenly(DynamicObject string, int size) {
@@ -4167,7 +4166,7 @@ public abstract class StringNodes {
 
             final DynamicObject ret = allocateNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(string),
-                    makeSubstringNode.executeMake(rope, beg, byteLength));
+                    Layouts.STRING.build(false, false, makeSubstringNode.executeMake(rope, beg, byteLength)));
 
             taintResultNode.maybeTaint(string, ret);
 
@@ -4191,7 +4190,7 @@ public abstract class StringNodes {
 
             final DynamicObject ret = allocateNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(string),
-                    new RopeBuffer(RopeBuilder.createRopeBuilder(buffer.getByteList(), beg, byteLength), buffer.getCodeRange(), buffer.isSingleByteOptimizable(), byteLength));
+                    Layouts.STRING.build(false, false, new RopeBuffer(RopeBuilder.createRopeBuilder(buffer.getByteList(), beg, byteLength), buffer.getCodeRange(), buffer.isSingleByteOptimizable(), byteLength)));
 
             taintResultNode.maybeTaint(string, ret);
 

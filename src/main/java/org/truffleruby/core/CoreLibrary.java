@@ -215,7 +215,6 @@ public class CoreLibrary {
     private final DynamicObject standardErrorClass;
     private final DynamicObject stringClass;
     private final DynamicObjectFactory stringFactory;
-    private final DynamicObjectFactory frozenStringFactory;
     private final DynamicObject symbolClass;
     private final DynamicObjectFactory symbolFactory;
     private final DynamicObject syntaxErrorClass;
@@ -537,7 +536,6 @@ public class CoreLibrary {
         stringClass = defineClass("String");
         stringFactory = Layouts.STRING.createStringShape(stringClass, stringClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(stringClass, stringFactory);
-        frozenStringFactory = alwaysShared(alwaysFrozen(stringFactory));
         symbolClass = defineClass("Symbol");
         symbolFactory = alwaysShared(alwaysFrozen(Layouts.SYMBOL.createSymbolShape(symbolClass, symbolClass)));
         Layouts.CLASS.setInstanceFactoryUnsafe(symbolClass, symbolFactory);
@@ -876,7 +874,7 @@ public class CoreLibrary {
 
     private DynamicObject frozenUSASCIIString(String string) {
         final Rope rope = StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE);
-        return Layouts.STRING.createString(context.getCoreLibrary().getFrozenStringFactory(), rope);
+        return StringOperations.createFrozenString(context, rope);
     }
 
     private DynamicObject defineClass(String name) {
@@ -1405,10 +1403,6 @@ public class CoreLibrary {
 
     public DynamicObjectFactory getStringFactory() {
         return stringFactory;
-    }
-
-    public DynamicObjectFactory getFrozenStringFactory() {
-        return frozenStringFactory;
     }
 
     public DynamicObjectFactory getHashFactory() {

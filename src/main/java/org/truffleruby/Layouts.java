@@ -101,6 +101,14 @@ import org.truffleruby.stdlib.psych.EmitterLayoutImpl;
 
 public abstract class Layouts {
 
+    // Standard identifiers
+    // These must appear before the generated layout list so the identifiers have been initialized by the time
+    // the layout singletons are created.
+
+    public static final HiddenKey OBJECT_ID_IDENTIFIER = new HiddenKey("object_id");
+    public static final HiddenKey TAINTED_IDENTIFIER = new HiddenKey("tainted?");
+    public static final HiddenKey FROZEN_IDENTIFIER = new HiddenKey("frozen?");
+
     // Generated layouts
 
     public static final ArrayLayout ARRAY = ArrayLayoutImpl.INSTANCE;
@@ -147,10 +155,4 @@ public abstract class Layouts {
     public static final DigestLayout DIGEST = DigestLayoutImpl.INSTANCE;
     public static final StatLayout STAT = StatLayoutImpl.INSTANCE;
     public static final SystemCallErrorLayout SYSTEM_CALL_ERROR = SystemCallErrorLayoutImpl.INSTANCE;
-
-    // Other standard identifiers
-
-    public static final HiddenKey OBJECT_ID_IDENTIFIER = new HiddenKey("object_id");
-    public static final HiddenKey TAINTED_IDENTIFIER = new HiddenKey("tainted?");
-    public static final HiddenKey FROZEN_IDENTIFIER = new HiddenKey("frozen?");
 }

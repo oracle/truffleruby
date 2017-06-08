@@ -54,6 +54,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.AsciiOnlyLeafRope;
+import org.truffleruby.core.string.StringOperations;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -120,7 +121,7 @@ public abstract class ReadMIMEStringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return Layouts.STRING.createString(getContext().getCoreLibrary().getStringFactory(),
+        return StringOperations.createString(getContext(),
                 new AsciiOnlyLeafRope(Arrays.copyOfRange(lElem, 0, index), USASCIIEncoding.INSTANCE));
     }
 

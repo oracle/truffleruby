@@ -55,6 +55,7 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.write.bytes.EncodeUM;
 import org.truffleruby.core.rope.AsciiOnlyLeafRope;
+import org.truffleruby.core.string.StringOperations;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -114,7 +115,7 @@ public abstract class ReadHexStringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return Layouts.STRING.createString(getContext().getCoreLibrary().getStringFactory(),
+        return StringOperations.createString(getContext(),
                 new AsciiOnlyLeafRope(lElem, USASCIIEncoding.INSTANCE));
     }
 

@@ -116,7 +116,10 @@ public abstract class ObjectIDOperations {
         Property property = object.getShape().getProperty(Layouts.OBJECT_ID_IDENTIFIER);
 
         if (property != null) {
-            return (long) property.get(object, false);
+            long value = (long) property.get(object, false);
+            if (value != 0) {
+                return value;
+            }
         }
 
         final long objectID = context.getObjectSpaceManager().getNextObjectID();
