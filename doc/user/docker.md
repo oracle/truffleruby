@@ -1,29 +1,8 @@
 # Using Docker
 
-Get the [GraalVM tarball](using-graalvm.md) (the Linux version, with Labs JDK) and put it in
-the current directory along with this `Dockerfile`:
+Oracle publishes a `Dockerfile` for GraalVM.
 
-```dockerfile
-FROM oracle/oraclelinux:7
+https://github.com/oracle/docker-images/tree/master/GraalVM
 
-WORKDIR /opt
-ENV LANG C.UTF-8
-
-# Update the 0.nn version number to the correct number
-ADD graalvm-0.nn-linux-amd64-jdk8.tar.gz .
-
-# Update the 0.nn version number to the correct number
-ENV PATH /opt/graalvm-0.nn/bin:$PATH
-
-# Do whatever you need with GraalVM here
-CMD irb
-```
-
-```
-$ docker build -t graalvm .
-$ docker run -it graalvm
-irb(main):001:0> ...
-```
-
-Make sure that you read the OTN licence agreement when you download GraalVM and keep
-it in mind when using a Docker image.
+The version of GraalVM in that repository may be out of date, so check what is
+available [on OTN at the time](using-graalvm.md).
