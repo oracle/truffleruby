@@ -76,7 +76,7 @@ public class ThreadManager {
     private static final InterruptMode DEFAULT_INTERRUPT_MODE = InterruptMode.IMMEDIATE;
     private static final ThreadStatus DEFAULT_STATUS = ThreadStatus.RUN;
 
-    public static DynamicObject createRubyThread(RubyContext context, String info) {
+    public DynamicObject createRubyThread(RubyContext context, String info) {
         final DynamicObject thread = context.getCoreLibrary().getThreadFactory().newInstance(Layouts.THREAD.build(
                 createThreadLocals(context),
                 DEFAULT_INTERRUPT_MODE,
