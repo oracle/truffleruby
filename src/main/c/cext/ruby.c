@@ -1705,6 +1705,12 @@ VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
 }
 
+void rb_check_arity(int argc, int min, int max)
+{
+    if ((argc < min) || (max != UNLIMITED_ARGUMENTS && argc > max))
+	    rb_tr_error("bad arity"); // TODO (pitr-ch 08-Jun-2017): fix error message
+}
+
 // Calls
 
 int rb_respond_to(VALUE object, ID name) {

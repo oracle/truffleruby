@@ -848,6 +848,9 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
 
+#define UNLIMITED_ARGUMENTS (-1)
+void rb_check_arity(int argc, int min, int max);
+
 // Calls
 
 int rb_respond_to(VALUE object, ID name);
