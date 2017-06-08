@@ -64,7 +64,7 @@ public class ThreadManager {
 
     public ThreadManager(RubyContext context) {
         this.context = context;
-        this.rootThread = createRubyThread(context, "main");
+        this.rootThread = createRubyThread("main");
         if (context.getOptions().NATIVE_INTERRUPT) {
             setupSignalHandler(context);
         }
@@ -76,7 +76,7 @@ public class ThreadManager {
     private static final InterruptMode DEFAULT_INTERRUPT_MODE = InterruptMode.IMMEDIATE;
     private static final ThreadStatus DEFAULT_STATUS = ThreadStatus.RUN;
 
-    public DynamicObject createRubyThread(RubyContext context, String info) {
+    public DynamicObject createRubyThread(String info) {
         final DynamicObject thread = context.getCoreLibrary().getThreadFactory().newInstance(Layouts.THREAD.build(
                 createThreadLocals(context),
                 DEFAULT_INTERRUPT_MODE,
