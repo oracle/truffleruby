@@ -38,3 +38,5 @@ openssl/openssl.su: openssl/Makefile openssl/*.c openssl/*.h
 
 $(ROOT)/lib/mri/openssl.su: openssl/openssl.su
 	cp $< $@
+
+# TODO (pitr-ch 16-Jul-2017): add zlib compilation
