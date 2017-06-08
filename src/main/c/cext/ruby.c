@@ -491,6 +491,10 @@ VALUE rb_int2inum(SIGNED_VALUE n) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", n);
 }
 
+VALUE rb_uint2inum(VALUE n) {
+  return (VALUE) truffle_invoke(RUBY_CEXT, "ULONG2NUM", n);
+}
+
 VALUE rb_ll2inum(LONG_LONG n) {
   /* Long and long long are both 64-bits with clang x86-64. */
   return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", n);
