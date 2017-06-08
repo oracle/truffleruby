@@ -21,7 +21,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <errno.h>
-#include <limits.h>
 #include <fcntl.h>
 
 // Private helper macros just for ruby.c
