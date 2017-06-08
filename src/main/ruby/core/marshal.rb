@@ -982,7 +982,7 @@ module Marshal
     end
 
     def serializable_instance_variables(obj, exclude_ivars)
-      ivars = obj.__instance_variables__
+      ivars = Truffle.invoke_primitive :object_ivars, obj
       ivars -= exclude_ivars if exclude_ivars
       ivars
     end

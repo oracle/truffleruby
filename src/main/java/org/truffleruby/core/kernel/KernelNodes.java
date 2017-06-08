@@ -65,6 +65,8 @@ import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.rubinius.TypeNodes.ObjectInstanceVariablesNode;
+import org.truffleruby.core.rubinius.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -975,11 +977,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = "instance_variables")
     public abstract static class InstanceVariablesNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private BasicObjectNodes.InstanceVariablesNode instanceVariablesNode = BasicObjectNodesFactory.InstanceVariablesNodeFactory.create(new RubyNode[] {});
+        @Child private ObjectInstanceVariablesNode instanceVariablesNode = ObjectInstanceVariablesNodeFactory.create(null);
 
         @Specialization
-        public DynamicObject instanceVariables(VirtualFrame frame, Object self) {
-            return instanceVariablesNode.execute(self);
+        public DynamicObject instanceVariables(Object self) {
+            return instanceVariablesNode.executeGetIVars(self);
         }
 
     }

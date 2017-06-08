@@ -278,7 +278,7 @@ module Kernel
     # method is overridden, the new Ruby method is never called. So, we inline
     # the code for Kernel#to_s here because we simply dispatch to Ruby
     # methods.
-    ivars = __instance_variables__
+    ivars = Truffle.invoke_primitive :object_ivars, self
 
     if ivars.empty?
       return Rubinius::Type.infect "#{prefix}>", self

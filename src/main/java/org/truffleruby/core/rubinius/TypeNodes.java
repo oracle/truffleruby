@@ -9,6 +9,10 @@
  */
 package org.truffleruby.core.rubinius;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -29,15 +33,19 @@ import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarGetNodeGen;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNodeGen;
+import org.truffleruby.language.objects.PropertyFlags;
 import org.truffleruby.language.objects.TaintNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Property;
+import com.oracle.truffle.api.object.Shape;
 
 @CoreClass("Rubinius::Type")
 public abstract class TypeNodes {
@@ -73,6 +81,68 @@ public abstract class TypeNodes {
         public boolean objectEqual(Object a, Object b,
                 @Cached("create()") ReferenceEqualNode referenceEqualNode) {
             return referenceEqualNode.executeReferenceEqual(a, b);
+        }
+
+    }
+
+    @Primitive(name = "object_ivars")
+    public abstract static class ObjectInstanceVariablesNode extends PrimitiveArrayArgumentsNode {
+
+        public abstract DynamicObject executeGetIVars(Object self);
+
+        @TruffleBoundary
+        @Specialization(guards = { "!isNil(self)", "!isRubySymbol(self)" })
+        public DynamicObject instanceVariables(DynamicObject self) {
+            Shape shape = self.getShape();
+            List<String> names = new ArrayList<>();
+
+            for (Property property : shape.getProperties()) {
+                Object name = property.getKey();
+                if (PropertyFlags.isDefined(property) && name instanceof String) {
+                    names.add((String) name);
+                }
+            }
+
+            final int size = names.size();
+            final String[] sortedNames = names.toArray(new String[size]);
+            Arrays.sort(sortedNames);
+
+            final Object[] nameSymbols = new Object[size];
+            for (int i = 0; i < sortedNames.length; i++) {
+                nameSymbols[i] = getSymbol(sortedNames[i]);
+            }
+
+            return createArray(nameSymbols, size);
+        }
+
+        @Specialization
+        public DynamicObject instanceVariables(int self) {
+            return createArray(null, 0);
+        }
+
+        @Specialization
+        public DynamicObject instanceVariables(long self) {
+            return createArray(null, 0);
+        }
+
+        @Specialization
+        public DynamicObject instanceVariables(boolean self) {
+            return createArray(null, 0);
+        }
+
+        @Specialization(guards = "isNil(object)")
+        public DynamicObject instanceVariablesNil(DynamicObject object) {
+            return createArray(null, 0);
+        }
+
+        @Specialization(guards = "isRubySymbol(object)")
+        public DynamicObject instanceVariablesSymbol(DynamicObject object) {
+            return createArray(null, 0);
+        }
+
+        @Fallback
+        public DynamicObject instanceVariables(Object object) {
+            return createArray(null, 0);
         }
 
     }

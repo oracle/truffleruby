@@ -22,8 +22,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Property;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.ASCIIEncoding;
@@ -57,7 +55,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
-import org.truffleruby.language.objects.PropertyFlags;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -65,10 +62,6 @@ import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.parser.ParserContext;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @CoreClass("BasicObject")
 public abstract class BasicObjectNodes {
@@ -311,69 +304,6 @@ public abstract class BasicObjectNodes {
         @Specialization
         public Object instanceExec(Object receiver, Object[] arguments, NotProvided block) {
             throw new RaiseException(coreExceptions().localJumpError("no block given", this));
-        }
-
-    }
-
-    @NonStandard
-    @CoreMethod(names = "__instance_variables__")
-    public abstract static class InstanceVariablesNode extends CoreMethodArrayArgumentsNode {
-
-        public abstract DynamicObject execute(Object self);
-
-        @TruffleBoundary
-        @Specialization(guards = {"!isNil(self)", "!isRubySymbol(self)"})
-        public DynamicObject instanceVariables(DynamicObject self) {
-            Shape shape = self.getShape();
-            List<String> names = new ArrayList<>();
-
-            for (Property property : shape.getProperties()) {
-                Object name = property.getKey();
-                if (PropertyFlags.isDefined(property) && name instanceof String) {
-                    names.add((String) name);
-                }
-            }
-
-            final int size = names.size();
-            final String[] sortedNames = names.toArray(new String[size]);
-            Arrays.sort(sortedNames);
-
-            final Object[] nameSymbols = new Object[size];
-            for (int i = 0; i < sortedNames.length; i++) {
-                nameSymbols[i] = getSymbol(sortedNames[i]);
-            }
-
-            return createArray(nameSymbols, size);
-        }
-
-        @Specialization
-        public DynamicObject instanceVariables(int self) {
-            return createArray(null, 0);
-        }
-
-        @Specialization
-        public DynamicObject instanceVariables(long self) {
-            return createArray(null, 0);
-        }
-
-        @Specialization
-        public DynamicObject instanceVariables(boolean self) {
-            return createArray(null, 0);
-        }
-
-        @Specialization(guards = "isNil(object)")
-        public DynamicObject instanceVariablesNil(DynamicObject object) {
-            return createArray(null, 0);
-        }
-
-        @Specialization(guards = "isRubySymbol(object)")
-        public DynamicObject instanceVariablesSymbol(DynamicObject object) {
-            return createArray(null, 0);
-        }
-
-        @Fallback
-        public DynamicObject instanceVariables(Object object) {
-            return createArray(null, 0);
         }
 
     }
