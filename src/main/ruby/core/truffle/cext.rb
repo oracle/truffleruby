@@ -1420,6 +1420,10 @@ module Truffle::CExt
     end
   end
 
+  def rb_undef_alloc_func(ruby_class)
+    ruby_class.singleton_class.send(:undef_method, :__allocate__)
+  end
+
   def rb_alias(mod, new_name, old_name)
     mod.send(:alias_method, new_name, old_name)
   end

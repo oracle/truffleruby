@@ -2081,6 +2081,10 @@ void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function) {
   truffle_invoke(RUBY_CEXT, "rb_define_alloc_func", ruby_class, truffle_address_to_function(alloc_function));
 }
 
+void rb_undef_alloc_func(VALUE ruby_class) {
+  truffle_invoke(RUBY_CEXT, "rb_undef_alloc_func", ruby_class);
+}
+
 VALUE rb_obj_method(VALUE obj, VALUE vid) {
   return (VALUE) truffle_invoke(obj, "method", rb_intern_str(vid));
 }
