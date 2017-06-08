@@ -509,6 +509,9 @@ VALUE rb_obj_frozen_p(VALUE object);
 #define OBJ_FREEZE_RAW(object)          rb_obj_freeze(object)
 #define OBJ_FREEZE(object)              rb_obj_freeze(object)
 
+VALUE rb_obj_hide(VALUE obj);
+VALUE rb_obj_reveal(VALUE obj, VALUE klass);
+
 // Integer
 
 VALUE rb_Integer(VALUE value);

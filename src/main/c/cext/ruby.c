@@ -80,6 +80,20 @@ bool SYMBOL_P(VALUE value) {
   return truffle_invoke_b(RUBY_CEXT, "SYMBOL_P", value);
 }
 
+VALUE rb_obj_hide(VALUE obj) {
+    // In MRI, this deletes the class information which is later set by rb_obj_reveal.
+    // It also hides the object from each_object, we do not hide it.
+    return obj;
+}
+
+VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
+    // In MRI, this sets the class of the object, we are not deleting the class in rb_obj_hide, so we
+    // ensure that class matches.
+    return truffle_invoke(RUBY_CEXT, "ensure_class", obj, klass,
+           rb_str_new_cstr("class %s supplied to rb_obj_reveal does not matches the obj's class %s"));
+    return obj;
+}
+
 // Constants
 
 // START from tool/generate-cext-constants.rb

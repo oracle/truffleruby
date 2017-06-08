@@ -267,6 +267,10 @@ module Truffle::CExt
     end
   end
 
+  def ensure_class(obj, klass, message = 'expected class %s, but object class is %s')
+    raise TypeError, format(message, klass, obj.class) unless obj.is_a? klass
+  end
+
   def rb_method_boundp(klass, id, ex)
     if ex == 0
       (klass.method_defined?(id) || klass.private_method_defined?(id) || klass.protected_method_defined?(id)) ? 1 : 0
