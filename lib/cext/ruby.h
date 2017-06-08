@@ -632,6 +632,7 @@ int rb_filesystem_encindex(void);
 rb_encoding *get_encoding(VALUE string);
 #define STR_ENC_GET(string) get_encoding(string)
 #define rb_str_dup(string) rb_obj_dup(string)
+#define rb_str_resurrect(string) rb_obj_dup(string)
 #define rb_str_freeze(string) rb_obj_freeze(string)
 #define rb_str_inspect(string) rb_inspect(string)
 VALUE rb_str_intern(VALUE string);
