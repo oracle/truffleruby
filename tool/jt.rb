@@ -28,7 +28,6 @@ TRUFFLERUBY_GEM_TEST_PACK_VERSION = 1
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
-JDEBUG_TEST = "-Dmaven.surefire.debug=-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=#{JDEBUG_PORT} -Xnoagent -Djava.compiler=NONE"
 JEXCEPTION = "-Xexceptions.print_uncaught_java=true"
 METRICS_REPS = 10
 
@@ -170,14 +169,6 @@ module Utilities
     jar = ENV['SL_JAR']
     return jar if jar
     raise "couldn't find truffle-sl.jar - build Truffle and find it in there"
-  end
-
-  def self.mx?
-    mx_jar = "#{TRUFFLERUBY_DIR}/mxbuild/dists/truffleruby.jar"
-    mvn_jar = "#{TRUFFLERUBY_DIR}/lib/truffleruby.jar"
-    mx_time = File.exist?(mx_jar) ? File.mtime(mx_jar) : Time.at(0)
-    mvn_time = File.exist?(mvn_jar) ? File.mtime(mvn_jar) : Time.at(0)
-    mx_time > mvn_time
   end
 
   def self.find_ruby
@@ -379,18 +370,6 @@ module ShellUtils
     end
   end
 
-  def mvn(*args)
-    if args.first.is_a? Hash
-      options = [args.shift]
-    else
-      options = []
-    end
-
-    args = ['-q', *args] unless VERBOSE
-
-    sh *options, 'mvn', *args
-  end
-
   def mx(dir, *args)
     command = ['mx', '-p', dir]
     command.push *args
@@ -470,7 +449,7 @@ module Commands
       jt puts 14 + 2                                 evaluate and print an expression
       jt cextc directory clang-args                  compile the C extension in directory, with optional extra clang arguments
       jt test                                        run all mri tests, specs and integration tests (set SULONG_HOME)
-      jt test tck [--jdebug]                         run the Truffle Compatibility Kit tests
+      jt test tck                                    run the Truffle Compatibility Kit tests
       jt test mri                                    run mri tests
           --openssl       runs openssl tests         use with --sulong
           --aot           use AOT TruffleRuby image (set AOT_BIN)
@@ -551,15 +530,14 @@ module Commands
     when 'options'
       sh 'tool/generate-options.rb'
     when nil
-      mvn 'package'
+      mx TRUFFLERUBY_DIR, 'build'
     else
       raise ArgumentError, project
     end
   end
 
   def clean
-    mx(TRUFFLERUBY_DIR, 'clean') if Utilities.mx?
-    mvn 'clean'
+    mx TRUFFLERUBY_DIR, 'clean'
   end
 
   def dis(file)
@@ -818,11 +796,7 @@ module Commands
     when 'ecosystem' then test_ecosystem({}, *rest)
     when 'specs' then test_specs('run', *rest)
     when 'tck' then
-      args = []
-      if rest.include? '--jdebug'
-        args << JDEBUG_TEST
-      end
-      test_tck *args
+      test_tck
     when 'mri' then test_mri(*rest)
     else
       if File.expand_path(path).start_with?("#{TRUFFLERUBY_DIR}/test")
@@ -1192,11 +1166,7 @@ module Commands
   private :test_specs
 
   def test_tck(*args)
-    if Utilities.mx?
-      raw_sh 'mx', 'rubytck'
-    else
-      mvn *args, '-Ptck'
-    end
+    raw_sh 'mx', 'rubytck'
   end
   private :test_tck
 

@@ -1,9 +1,7 @@
 # Legal Documentation
 
 This document applies to TruffleRuby as built and distributed as part of
-GraalVM, which is the only supported way to use TruffleRuby. When built using
-the included Maven build system, TruffleRuby may include additional transitive
-dependencies (as a concrete example, the jnr-x86asm may be included).
+GraalVM, which is the only supported way to use TruffleRuby.
 
 ## TruffleRuby
 
@@ -131,7 +129,7 @@ TruffleRuby includes parts of the FFI gem 1.9.18. The FFI gem is copyright
 
 # Java dependencies
 
-TruffleRuby has Maven dependencies on these modules, which are then included in
+TruffleRuby has Java dependencies on these modules, which are then included in
 the distribution:
 
 #### Java Native Runtime and associated libraries
