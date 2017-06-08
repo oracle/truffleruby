@@ -129,6 +129,12 @@ module Truffle::CExt
     alias_method :to_s, :string
   end
 
+  class RStringPtrEnd < RStringPtr
+    def to_native
+      Rubinius::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string) + size)
+    end
+  end
+
   T_NONE     = 0x00
 
   T_OBJECT   = 0x01
@@ -1830,6 +1836,10 @@ module Truffle::CExt
 
   def RSTRING_PTR(string)
     RStringPtr.new(string)
+  end
+
+  def RSTRING_END(string)
+    RStringPtrEnd.new(string)
   end
 
   def rb_tr_obj_id(object)

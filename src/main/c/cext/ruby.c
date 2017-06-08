@@ -901,6 +901,10 @@ char *RSTRING_PTR_IMPL(VALUE string) {
   return (char *)truffle_invoke(RUBY_CEXT, "RSTRING_PTR", string);
 }
 
+char *RSTRING_END(VALUE string) {
+  return (char *)truffle_invoke(RUBY_CEXT, "RSTRING_END", string);
+}
+
 int rb_str_len(VALUE string) {
   return truffle_invoke_i((void *)string, "bytesize");
 }

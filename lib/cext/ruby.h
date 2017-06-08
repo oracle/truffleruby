@@ -586,6 +586,7 @@ enum ruby_coderange_type {
 #define RSTRING_PTR(str) RSTRING_PTR_IMPL(str)
 
 char *RSTRING_PTR_IMPL(VALUE string);
+char *RSTRING_END(VALUE string);
 int rb_str_len(VALUE string);
 #define RSTRING_LEN(str) (long)rb_str_len(str)
 #define RSTRING_LENINT(str) rb_str_len(str)
