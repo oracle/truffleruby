@@ -12,18 +12,6 @@
 
 set -e
 
-function mtime {
-    uname_str=$(uname)
-    if [ "$uname_str" = 'Linux' ] || [ "$uname_str" = 'SunOS' ]; then
-        stat -c '%Y' "$1" 2>/dev/null || echo 0
-    elif [ "$uname_str" = 'Darwin' ]; then
-        stat -f '%m' "$1" 2>/dev/null || echo 0
-    else
-        echo "unknown platform $uname_str" 1>&2
-        exit 1
-    fi
-}
-
 function libext {
     uname_str=$(uname)
     if [ "$uname_str" = 'Linux' ] || [ "$uname_str" = 'SunOS' ]; then
@@ -99,42 +87,35 @@ CP=""
 if [ $on_graalvm = false ]; then
 
     mx_jar="$root/mxbuild/dists/truffleruby.jar"
-    mvn_jar="$root/lib/truffleruby.jar"
-    mx_time=$(mtime "$mx_jar")
-    mvn_time=$(mtime "$mvn_jar")
 
-    if [ "$mx_time" -gt "$mvn_time" ]; then
-        binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
-        if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
-            truffle="$binary_truffle"
-        else
-            for repo_name in graal compiler truffle
-            do
-                if [ -f "$(dirname "$root")/${repo_name}/truffle/mx.truffle/suite.py" ]; then
-                    if [ -n "$source_truffle" ]; then
-                        echo "Found truffle suite in multiple locations: '$source_truffle'" \
-                             "and '$(dirname "$root")/${repo_name}/truffle/mxbuild'" 1>&2
-                        exit 1
-                    fi
-                    source_truffle="$(dirname "$root")/${repo_name}/truffle/mxbuild"
-                fi
-            done
-            if [ -n "$source_truffle" -a -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
-                truffle="$source_truffle"
-            fi
-        fi
-        if [ -z "$truffle" ]; then
-            echo "Could not find Truffle jars" 1>&2
-            exit 1
-        fi
-        java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar")
-        # This hash is Truffle's JLINE sha1
-        CP="$CP:$HOME/.mx/cache/JLINE_9504d5e2da5d78237239c5226e8200ec21182040.jar"
-        CP="$CP:$truffle/dists/truffle-debug.jar:$truffle/dists/truffle-nfi.jar:$mx_jar"
-        java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.$(libext)")
+    binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
+    if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
+        truffle="$binary_truffle"
     else
-        java_args+=("-Xbootclasspath/a:$mvn_jar") # Contains Truffle and TruffleRuby
+        for repo_name in graal compiler truffle
+        do
+            if [ -f "$(dirname "$root")/${repo_name}/truffle/mx.truffle/suite.py" ]; then
+                if [ -n "$source_truffle" ]; then
+                    echo "Found truffle suite in multiple locations: '$source_truffle'" \
+                         "and '$(dirname "$root")/${repo_name}/truffle/mxbuild'" 1>&2
+                    exit 1
+                fi
+                source_truffle="$(dirname "$root")/${repo_name}/truffle/mxbuild"
+            fi
+        done
+        if [ -n "$source_truffle" -a -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
+            truffle="$source_truffle"
+        fi
     fi
+    if [ -z "$truffle" ]; then
+        echo "Could not find Truffle jars" 1>&2
+        exit 1
+    fi
+    java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar")
+    # This hash is Truffle's JLINE sha1
+    CP="$CP:$HOME/.mx/cache/JLINE_9504d5e2da5d78237239c5226e8200ec21182040.jar"
+    CP="$CP:$truffle/dists/truffle-debug.jar:$truffle/dists/truffle-nfi.jar:$mx_jar"
+    java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.$(libext)")
 
 fi
 

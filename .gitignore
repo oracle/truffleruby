@@ -36,10 +36,6 @@ test/truffle/cexts/**/*.su
 test/truffle/cexts/**/extconf.h
 test/truffle/cexts/**/mkmf.log
 
-# Maven
-lib/truffleruby.jar
-/target
-
 # mx
 /mx.truffleruby/*.pyc
 /mx.truffleruby/env

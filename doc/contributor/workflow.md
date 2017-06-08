@@ -6,25 +6,41 @@ You will need:
 
 * Java 8 (not 9 EA)
 * Ruby 2
+* The `mx` build system
+
+## Installing `mx`
+
+`mx` is a Python package that you can clone and then run from the repository.
+
+```bash
+$ git clone https://github.com/graalvm/mx
+export PATH=$PATH:/absolute/path/to/mx
+```
 
 ## Developer tool
 
-We use a Ruby script to run most commands.
+We then use a Ruby script to run most commands.
 
-```
+```bash
 $ ruby tool/jt.rb --help
 ```
 
 Most of us create a symlink to this executable somewhere on our `$PATH` so
-that we can simply run.
+that we can simply run `jt`.
 
-```
+```bash
 $ jt --help
 ```
 
 ## Building
 
+We recommend configuring the build to use the Truffle framework as a binary dependency rather than importing it as source code.
+
+```bash
+$ echo MX_BINARY_SUITES=truffle > mx.truffleruby/env
 ```
+
+```bash
 $ jt build
 ```
 
@@ -40,13 +56,13 @@ small number of key Ruby 3rd party modules.
 The basic test to run every time you make changes is a subset of specs which
 runs in reasonable time.
 
-```
+```bash
 $ jt test fast
 ```
 
 You may also want to regularly run the integration tests.
 
-```
+```bash
 $ jt test integration
 ```
 
@@ -60,7 +76,7 @@ command. Although it does set a couple of extra options to help you when
 developing, such as loading the core lirbary from disk rather than the JAR. `jt
 ruby` prints the real command it's running as it starts.
 
-```
+```bash
 $ ruby ...
 $ jt ruby ...
 ```
@@ -69,7 +85,7 @@ $ jt ruby ...
 
 Specify JVM options with `-J-option`.
 
-```
+```bash
 $ jt ruby -J-Xmx1G test.rb
 ```
 
@@ -88,28 +104,28 @@ set in `RUBYOPT`.
 To run with a GraalVM binary tarball, set the `GRAALVM_BIN` environment variable
 and run with the `--graal` option.
 
-```
+```bash
 $ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
 $ jt ruby --graal ...
 ```
 
 You can check this is working by printing the value of `Truffle::Graal.graal?`.
 
-```
+```bash
 $ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
 $ jt ruby --graal -e 'p Truffle::Graal.graal?'
 ```
 
 To run with Graal built from source, set `GRAAL_HOME`.
 
-```
+```bash
 $ export GRAAL_HOME=.../graal-core
 $ jt ruby --graal ...
 ```
 
 Set Graal options as any other JVM option.
 
-```
+```bash
 $ jt ruby --graal -J-Dgraal.TraceTruffleCompilation=true ...
 ```
 
@@ -123,24 +139,16 @@ The basic test for Graal is to run our compiler tests. This includes tests that
 things partially evaluate as we expect, that things optimise as we'd expect,
 that on-stack-replacement works and so on.
 
-```
+```bash
 $ jt test compiler
 ```
-
-## mx and integrating with other Graal projects
-
-TruffleRuby can also be built and run using `mx`, like the other Graal projects.
-This is intended for special cases such as integrating with other Graal
-projects, and we wouldn't recommend using it for normal development. If you do
-use it, you should clean before using `jt` again as having built it with `mx`
-will change some behaviour.
 
 ## How to fix a failing spec
 
 We usually use the `jt untag` command to work on failing specs. It runs only
 specs that are marked as failing.
 
-```
+```bash
 $ jt untag spec/ruby/core/string
 ```
 

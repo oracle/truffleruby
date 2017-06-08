@@ -4,21 +4,11 @@ Eclipse is one of the best supported IDE for editing TruffleRuby.
 It provides excellent feedback from the Truffle DSL annotation processor
 and actually keeps the project built at all times by rebuilding it incrementally.
 
-### Get Mx
-
-If you do not already have mx, clone it and add it to `$PATH`:
-```bash
-$ git clone https://github.com/graalvm/mx.git ../mx
-$ export PATH="../mx:$PATH"
-```
-
 ### Build the project
 
 First, make sure the project is already built from the command line:
+
 ```bash
-$ mx update
-# Consider the truffle framework as a binary dependency
-$ echo MX_BINARY_SUITES=truffle >> mx.truffleruby/env
 $ mx build
 ```
 
@@ -38,7 +28,6 @@ We can now import the projects:
 * Select this repository as root directory
 * Click `Finish`
 
-You shall be set!
 There should be now 4 projects in your workspace:
 * `truffleruby`
 * `truffleruby-test`
@@ -47,10 +36,7 @@ There should be now 4 projects in your workspace:
 
 ### Running from the Eclipse files directly
 
-The [jt workflow tool](workflow.md)
-automatically picks up the version compiled by mx and Eclipse oven Maven-compiled files.
-
 ```bash
-$ tool/jt.rb ruby -e 'p Truffle'
+$ jt ruby -e 'p Truffle'
 Truffle
 ```
