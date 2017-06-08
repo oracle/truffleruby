@@ -21,7 +21,6 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -31,7 +30,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.Log;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -94,10 +92,7 @@ import org.truffleruby.platform.FDSet;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
@@ -1166,4 +1161,43 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "MBCLEN_NEEDMORE_P", onSingleton = true, required = 1)
+    public abstract static class MBCLEN_NEEDMORE_PNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object mbclenNeedMoreP(int r) {
+            return StringSupport.MBCLEN_NEEDMORE_P(r);
+        }
+
+    }
+
+    @CoreMethod(names = "MBCLEN_NEEDMORE_LEN", onSingleton = true, required = 1)
+    public abstract static class MBCLEN_NEEDMORE_LENNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object mbclenNeedMoreLen(int r) {
+            return StringSupport.MBCLEN_NEEDMORE_LEN(r);
+        }
+
+    }
+
+    @CoreMethod(names = "MBCLEN_CHARFOUND_P", onSingleton = true, required = 1)
+    public abstract static class MBCLEN_CHARFOUND_PNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object mbclenCharFoundP(int r) {
+            return StringSupport.MBCLEN_CHARFOUND_P(r);
+        }
+
+    }
+
+    @CoreMethod(names = "MBCLEN_CHARFOUND_LEN", onSingleton = true, required = 1)
+    public abstract static class MBCLEN_CHARFOUND_LENNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object mbclenCharFoundLen(int r) {
+            return StringSupport.MBCLEN_CHARFOUND_LEN(r);
+        }
+
+    }
 }

@@ -79,6 +79,11 @@ public final class StringSupport {
         return r < -1;
     }
 
+    // MBCLEN_NEEDMORE_LEN, ONIGENC_MBCLEN_NEEDMORE_LEN
+    public static int MBCLEN_NEEDMORE_LEN(int r) {
+        return -1-r;
+    }
+
     // MBCLEN_NEEDMORE, ONIGENC_MBCLEN_NEEDMORE
     public static int MBCLEN_NEEDMORE(int n) {
         return -1 - n;

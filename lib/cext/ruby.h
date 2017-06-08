@@ -647,6 +647,11 @@ enum ruby_econv_flag_type {
 
 #define RSTRING_PTR(str) RSTRING_PTR_IMPL(str)
 
+int MBCLEN_NEEDMORE_P(int r);
+int MBCLEN_CHARFOUND_P(int r);
+int MBCLEN_CHARFOUND_LEN(int r);
+int MBCLEN_NEEDMORE_LEN(int r);
+
 char *RSTRING_PTR_IMPL(VALUE string);
 char *RSTRING_END(VALUE string);
 int rb_str_len(VALUE string);
