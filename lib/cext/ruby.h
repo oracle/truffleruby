@@ -850,6 +850,11 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
 
+#define RETURN_ENUMERATOR_NAME(obj, meth, argc, argv) do {      \
+    if (!rb_block_given_p())					                \
+        return rb_enumeratorize((obj), (meth), (argc), (argv)); \
+} while (0)
+
 #define UNLIMITED_ARGUMENTS (-1)
 void rb_check_arity(int argc, int min, int max);
 
