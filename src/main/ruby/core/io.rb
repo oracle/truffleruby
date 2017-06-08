@@ -1881,12 +1881,14 @@ class IO
       args.each do |arg|
         if arg.equal? nil
           str = ''
-        elsif Thread.guarding? arg
-          str = '[...]'
         elsif arg.kind_of?(Array)
-          Thread.recursion_guard arg do
-            arg.each do |a|
-              puts a
+          if Thread.guarding? arg
+            str = '[...]'
+          else
+            Thread.recursion_guard arg do
+              arg.each do |a|
+                puts a
+              end
             end
           end
         else
