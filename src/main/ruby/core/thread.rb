@@ -233,7 +233,6 @@ class Thread
     loc = Truffle.invoke_primitive(:thread_source_location, self)
     "#<#{self.class}:0x#{object_id.to_s(16)}@#{loc} #{stat}>"
   end
-
   alias_method :to_s, :inspect
 
   def self.exit
@@ -354,8 +353,32 @@ class Thread
     __thread_local_variables_lock { __thread_local_variables.keys }
   end
 
-  def self.start(*args, &block)
-    Thread.new(*args, &block)
+  class << self
+    def new(*args, &block)
+      thread = Truffle.invoke_primitive(:thread_allocate, self)
+      thread.send(:initialize, *args, &block)
+      unless Truffle.invoke_primitive(:thread_initialized?, thread)
+        Kernel.raise ThreadError, "uninitialized thread - check `#{thread.class}#initialize'"
+      end
+      thread
+    end
+
+    def start(*args, &block)
+      Kernel.raise ArgumentError, "tried to create Proc object without a block" unless block
+
+      thread = Truffle.invoke_primitive(:thread_allocate, self)
+      Truffle.invoke_primitive(:thread_initialize, thread, args, block)
+      thread
+    end
+    alias_method :fork, :start
+  end
+
+  def initialize(*args, &block)
+    Kernel.raise ThreadError, "must be called with a block" unless block
+    if Truffle.invoke_primitive(:thread_initialized?, self)
+      Kernel.raise ThreadError, "already initialized thread"
+    end
+    Truffle.invoke_primitive(:thread_initialize, self, args, block)
   end
 
   @abort_on_exception = false

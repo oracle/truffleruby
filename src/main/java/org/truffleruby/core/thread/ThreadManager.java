@@ -162,19 +162,6 @@ public class ThreadManager {
         return threadLocals;
     }
 
-    public static void initialize(DynamicObject thread, RubyContext context, Node currentNode, Object[] arguments, DynamicObject block) {
-        if (context.getOptions().SHARED_OBJECTS_ENABLED) {
-            SharedObjects.shareDeclarationFrame(context, block);
-        }
-
-        final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-        final String info = RubyLanguage.fileLine(sourceSection);
-        initialize(thread, context, currentNode, info, () -> {
-            final Object value = ProcOperations.rootCall(block, arguments);
-            Layouts.THREAD.setValue(thread, value);
-        });
-    }
-
     public static void initialize(DynamicObject thread, RubyContext context, Node currentNode, String info, Runnable task) {
         assert RubyGuards.isRubyThread(thread);
         new Thread(() -> run(thread, context, currentNode, info, task)).start();
