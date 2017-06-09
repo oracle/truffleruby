@@ -34,7 +34,7 @@ import org.truffleruby.parser.TranslatorDriver;
 
 import java.util.List;
 
-public class LazyRubyRootNode extends RootNode implements InternalRootNode {
+public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final SourceSection sourceSection;
     private final Source source;

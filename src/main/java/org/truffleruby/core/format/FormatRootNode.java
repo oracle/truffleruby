@@ -18,12 +18,13 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.language.RubyBaseRootNode;
 import org.truffleruby.language.backtrace.InternalRootNode;
 
 /**
  * The node at the root of a pack expression.
  */
-public class FormatRootNode extends RootNode implements InternalRootNode {
+public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final RubyContext context;
     private final SourceSection sourceSection;

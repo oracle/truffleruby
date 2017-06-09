@@ -22,7 +22,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class RubyRootNode extends RootNode {
+public class RubyRootNode extends RubyBaseRootNode {
 
     private final RubyContext context;
     private final SourceSection sourceSection;
