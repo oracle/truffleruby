@@ -24,7 +24,7 @@ public abstract class ShapeCachingGuards {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         boolean updated = object.updateShape();
         if (updated) {
-            assert !SharedObjects.isShared(RubyContext.FIRST_INSTANCE, object);
+            assert !SharedObjects.isShared(RubyContext.LATEST_INSTANCE, object);
         }
         return updated;
     }

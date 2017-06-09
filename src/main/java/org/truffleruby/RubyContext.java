@@ -57,7 +57,7 @@ import java.security.CodeSource;
 
 public class RubyContext {
 
-    public static RubyContext FIRST_INSTANCE = null;
+    public static RubyContext LATEST_INSTANCE = null;
 
     private boolean setupFinished = false;
 
@@ -102,9 +102,7 @@ public class RubyContext {
     private final Object classVariableDefinitionLock = new Object();
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
-        if (FIRST_INSTANCE == null) {
-            FIRST_INSTANCE = this;
-        }
+        LATEST_INSTANCE = this;
 
         this.language = language;
         this.env = env;
