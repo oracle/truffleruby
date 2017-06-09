@@ -57,10 +57,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String CEXT_MIME_TYPE = "application/x-sulong-library";
     public static final String CEXT_EXTENSION = ".su";
 
-    private RubyLanguage() {
+    public RubyLanguage() {
     }
-
-    public static final RubyLanguage INSTANCE = new RubyLanguage();
 
     @TruffleBoundary
     public static String fileLine(FrameInstance frameInstance) {
@@ -97,7 +95,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     @Override
     public RubyContext createContext(Env env) {
         // TODO CS 3-Dec-16 need to parse RUBY_OPT here if it hasn't been already?
-        return new RubyContext(env);
+        return new RubyContext(this, env);
     }
 
     @Override
@@ -107,7 +105,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected CallTarget parse(ParsingRequest request) throws Exception {
-        return Truffle.getRuntime().createCallTarget(new LazyRubyRootNode(null, null, request.getSource(), request.getArgumentNames()));
+        return Truffle.getRuntime().createCallTarget(new LazyRubyRootNode(this, null, null, request.getSource(), request.getArgumentNames()));
     }
 
     @Override
