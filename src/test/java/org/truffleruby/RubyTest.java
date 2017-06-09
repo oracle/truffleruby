@@ -39,20 +39,20 @@ public abstract class RubyTest {
     protected void testWithAST(String text, Consumer<RubyRootNode> test) {
         final Source source = Source.newBuilder(text).name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build();
 
-        testInEngine((context) -> {
-            final TranslatorDriver translator = new TranslatorDriver(context);
+        testInEngine(() -> {
+            final TranslatorDriver translator = new TranslatorDriver(RubyContext.FIRST_INSTANCE);
             final RubyRootNode rootNode = translator.parse(source, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, null, null, true, null);
             rootNode.adoptChildren();
             test.accept(rootNode);
         });
     }
 
-    protected void testInEngine(Consumer<RubyContext> test) {
+    protected void testInEngine(Runnable test) {
         final PolyglotEngine engine = PolyglotEngine.newBuilder()
                 .config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), false)
                 .config(RubyLanguage.MIME_TYPE, OptionsCatalog.BASICOPS_INLINE.getName(), false)
                 .globalSymbol("action", JavaInterop.asTruffleFunction(Runnable.class, () ->
-                    test.accept(RubyContext.getInstance())
+                    test.run()
                 )).build();
 
         engine.eval(Source.newBuilder("Truffle::Interop.import('action').call").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());

@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -36,6 +37,7 @@ import java.util.List;
 
 public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNode {
 
+    private final TruffleLanguage.ContextReference<RubyContext> contextReference;
     private final SourceSection sourceSection;
     private final Source source;
     private final List<String> argumentNames;
@@ -49,6 +51,7 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
     public LazyRubyRootNode(RubyLanguage language, SourceSection sourceSection, FrameDescriptor frameDescriptor, Source source,
                             List<String> argumentNames) {
         super(language, frameDescriptor);
+        contextReference = language.getContextReference();
         this.sourceSection = sourceSection;
         this.source = source;
         this.argumentNames = argumentNames;
@@ -56,7 +59,7 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final RubyContext context = RubyContext.getInstance();
+        final RubyContext context = contextReference.get();
 
         if (cachedContext == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
