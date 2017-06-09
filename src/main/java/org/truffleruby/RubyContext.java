@@ -97,8 +97,6 @@ public class RubyContext {
 
     private final Object classVariableDefinitionLock = new Object();
 
-    private String currentDirectory;
-
     public static ThreadLocal<RubyContext> contextsBeingCreated = new ThreadLocal<>();
 
     public RubyContext(TruffleLanguage.Env env) {
@@ -114,8 +112,6 @@ public class RubyContext {
 
             rubyHome = findRubyHome();
             Log.LOGGER.config(() -> String.format("ruby home: %s", rubyHome));
-
-            currentDirectory = System.getProperty("user.dir");
 
             // Stuff that needs to be loaded before we load any code
 
@@ -189,59 +185,6 @@ public class RubyContext {
         } finally {
             contextsBeingCreated.remove();
         }
-    }
-
-    private String findRubyHome() {
-        // Use the option if it was set
-
-        if (options.HOME != null) {
-            return new File(options.HOME).getAbsolutePath();
-        }
-
-        // Try to find it automatically from the location of the JAR, but this won't work from the JRuby launcher as it uses the boot classpath
-
-        if (TruffleOptions.AOT) {
-            final String executablePath = (String) Compiler.command(new Object[]{"com.oracle.svm.core.posix.GetExecutableName"});
-            final String parentDirectory = new File(executablePath).getParent();
-
-            // Root of the GraalVM distribution.
-            File candidate = Paths.get(parentDirectory, "language", "ruby").toFile();
-            if (candidate.exists()) {
-                return candidate.toString();
-            }
-
-            // Root of the TruffleRuby source tree.
-            candidate = Paths.get(parentDirectory, "lib", "ruby").toFile();
-            if (candidate.exists()) {
-                return parentDirectory;
-            }
-
-            // Nested mx build.
-            candidate = Paths.get(parentDirectory, "..", "..", "..", "truffleruby").toFile();
-            if (candidate.exists()) {
-                try {
-                    return candidate.getCanonicalPath();
-                } catch (IOException e) {
-                    return null;
-                }
-            }
-        } else {
-            final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
-
-            if (codeSource != null && codeSource.getLocation().getProtocol().equals("file")) {
-                final File jar = new File(codeSource.getLocation().getFile());
-                final File jarDir = jar.getParentFile();
-
-                if (jarDir.getName().equals("ruby") && new File(jarDir, "lib").exists()) {
-                    // GraalVM build or distribution
-                    return jarDir.getAbsolutePath();
-                }
-            }
-        }
-
-        Log.LOGGER.config("home not explicitly set, and couldn't determine it from the source of the Java classfiles or the TruffleRuby launcher");
-
-        return null;
     }
 
     public Object send(Object object, String methodName, DynamicObject block, Object... arguments) {
@@ -402,10 +345,6 @@ public class RubyContext {
         return encodingManager;
     }
 
-    public String getCurrentDirectory() {
-        return currentDirectory;
-    }
-
     public void setOriginalInputFile(String originalInputFile) {
         this.originalInputFile = originalInputFile;
     }
@@ -437,5 +376,60 @@ public class RubyContext {
 
         return consoleHolder;
     }
+
+
+    private String findRubyHome() {
+        // Use the option if it was set
+
+        if (options.HOME != null) {
+            return new File(options.HOME).getAbsolutePath();
+        }
+
+        // Try to find it automatically from the location of the JAR, but this won't work from the JRuby launcher as it uses the boot classpath
+
+        if (TruffleOptions.AOT) {
+            final String executablePath = (String) Compiler.command(new Object[]{"com.oracle.svm.core.posix.GetExecutableName"});
+            final String parentDirectory = new File(executablePath).getParent();
+
+            // Root of the GraalVM distribution.
+            File candidate = Paths.get(parentDirectory, "language", "ruby").toFile();
+            if (candidate.exists()) {
+                return candidate.toString();
+            }
+
+            // Root of the TruffleRuby source tree.
+            candidate = Paths.get(parentDirectory, "lib", "ruby").toFile();
+            if (candidate.exists()) {
+                return parentDirectory;
+            }
+
+            // Nested mx build.
+            candidate = Paths.get(parentDirectory, "..", "..", "..", "truffleruby").toFile();
+            if (candidate.exists()) {
+                try {
+                    return candidate.getCanonicalPath();
+                } catch (IOException e) {
+                    return null;
+                }
+            }
+        } else {
+            final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
+
+            if (codeSource != null && codeSource.getLocation().getProtocol().equals("file")) {
+                final File jar = new File(codeSource.getLocation().getFile());
+                final File jarDir = jar.getParentFile();
+
+                if (jarDir.getName().equals("ruby") && new File(jarDir, "lib").exists()) {
+                    // GraalVM build or distribution
+                    return jarDir.getAbsolutePath();
+                }
+            }
+        }
+
+        Log.LOGGER.config("home not explicitly set, and couldn't determine it from the source of the Java classfiles or the TruffleRuby launcher");
+
+        return null;
+    }
+
 
 }
