@@ -23,10 +23,10 @@ import jnr.ffi.provider.MemoryManager;
 import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.CoreExceptions;
-import org.truffleruby.core.format.FormatRootNode;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.rope.CodeRange;
@@ -143,35 +143,16 @@ public abstract class RubyBaseNode extends Node {
         if (context == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
 
-            Node parent = getParent();
+            final RootNode rootNode = getRootNode();
 
-            while (true) {
-                if (parent == null) {
-                    context = RubyContext.getInstance();
-                    break;
-                }
-
-                if (parent instanceof RubyBaseNode) {
-                    context = ((RubyBaseNode) parent).getContext();
-                    break;
-                }
-
-                if (parent instanceof RubyRootNode) {
-                    context = ((RubyRootNode) parent).getContext();
-                    break;
-                }
-
-                if (parent instanceof FormatRootNode) {
-                    context = ((FormatRootNode) parent).getContext();
-                    break;
-                }
-
-                parent = parent.getParent();
+            if (rootNode instanceof RubyBaseRootNode) {
+                context = rootNode.getLanguage(RubyLanguage.class).getContextReference().get();
+            } else {
+                // For example in a foreign node
+                return RubyContext.FIRST_INSTANCE;
             }
-
         }
 
-        assert context != null: "getContext() has to always return a context";
         return context;
     }
 

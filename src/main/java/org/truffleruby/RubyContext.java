@@ -57,6 +57,8 @@ import java.security.CodeSource;
 
 public class RubyContext {
 
+    public static RubyContext FIRST_INSTANCE = null;
+
     private boolean setupFinished = false;
 
     private final RubyLanguage language;
@@ -99,30 +101,23 @@ public class RubyContext {
 
     private final Object classVariableDefinitionLock = new Object();
 
-    public static ThreadLocal<RubyContext> contextsBeingCreated = new ThreadLocal<>();
-
-    private static RubyContext fallbackGlobalContext = null;
-
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
-        contextsBeingCreated.set(this);
-
-        if (fallbackGlobalContext == null) {
-            fallbackGlobalContext = this;
+        if (FIRST_INSTANCE == null) {
+            FIRST_INSTANCE = this;
         }
 
-        try {
-            this.language = language;
-            this.env = env;
+        this.language = language;
+        this.env = env;
 
-            final OptionsBuilder optionsBuilder = new OptionsBuilder();
-            optionsBuilder.set(System.getProperties());
-            optionsBuilder.set(env.getConfig());
-            options = optionsBuilder.build();
+        final OptionsBuilder optionsBuilder = new OptionsBuilder();
+        optionsBuilder.set(System.getProperties());
+        optionsBuilder.set(env.getConfig());
+        options = optionsBuilder.build();
 
-            rubyHome = findRubyHome();
-            Log.LOGGER.config(() -> String.format("ruby home: %s", rubyHome));
+        rubyHome = findRubyHome();
+        Log.LOGGER.config(() -> String.format("ruby home: %s", rubyHome));
 
-            // Stuff that needs to be loaded before we load any code
+        // Stuff that needs to be loaded before we load any code
 
             /*
              * The Graal option TimeThreshold sets how long a method has to become hot after it has started running, in ms.
@@ -131,9 +126,9 @@ public class RubyContext {
              * produces poor benchmark results. Here we just set it to a very high value, to effectively disable it.
              */
 
-            if (compilerOptions.supportsOption("MinTimeThreshold")) {
-                compilerOptions.setOption("MinTimeThreshold", 100000000);
-            }
+        if (compilerOptions.supportsOption("MinTimeThreshold")) {
+            compilerOptions.setOption("MinTimeThreshold", 100000000);
+        }
 
             /*
              * The Graal option InliningMaxCallerSize sets the maximum size of a method for where we consider to inline
@@ -142,34 +137,31 @@ public class RubyContext {
              * key methods from the core library from inlining other methods.
              */
 
-            if (compilerOptions.supportsOption("MinInliningMaxCallerSize")) {
-                compilerOptions.setOption("MinInliningMaxCallerSize", 5000);
-            }
-
-            // Load the core library classes
-
-            coreLibrary = new CoreLibrary(this);
-            coreLibrary.initialize();
-
-            symbolTable = new SymbolTable(coreLibrary.getSymbolFactory());
-
-            // Create objects that need core classes
-
-            nativePlatform = NativePlatformFactory.createPlatform(this);
-            rootLexicalScope = new LexicalScope(null, coreLibrary.getObjectClass());
-
-            // The encoding manager relies on POSIX having been initialized, so we can't process it during
-            // normal core library initialization.
-            coreLibrary.initializeEncodingManager();
-
-            threadManager = new ThreadManager(this);
-
-            final Instrumenter instrumenter = env.lookup(Instrumenter.class);
-            traceManager = new TraceManager(this, instrumenter);
-            coverageManager = new CoverageManager(this, instrumenter);
-        } finally {
-            contextsBeingCreated.remove();
+        if (compilerOptions.supportsOption("MinInliningMaxCallerSize")) {
+            compilerOptions.setOption("MinInliningMaxCallerSize", 5000);
         }
+
+        // Load the core library classes
+
+        coreLibrary = new CoreLibrary(this);
+        coreLibrary.initialize();
+
+        symbolTable = new SymbolTable(coreLibrary.getSymbolFactory());
+
+        // Create objects that need core classes
+
+        nativePlatform = NativePlatformFactory.createPlatform(this);
+        rootLexicalScope = new LexicalScope(null, coreLibrary.getObjectClass());
+
+        // The encoding manager relies on POSIX having been initialized, so we can't process it during
+        // normal core library initialization.
+        coreLibrary.initializeEncodingManager();
+
+        threadManager = new ThreadManager(this);
+
+        final Instrumenter instrumenter = env.lookup(Instrumenter.class);
+        traceManager = new TraceManager(this, instrumenter);
+        coverageManager = new CoverageManager(this, instrumenter);
     }
 
     public void ensureSetupFinished() {
@@ -301,16 +293,6 @@ public class RubyContext {
 
     public CoverageManager getCoverageManager() {
         return coverageManager;
-    }
-
-    public static RubyContext getInstance() {
-        final RubyContext ret = contextsBeingCreated.get();
-
-        if (ret != null) {
-            return ret;
-        }
-
-        return fallbackGlobalContext;
     }
 
     public SourceLoader getSourceLoader() {
