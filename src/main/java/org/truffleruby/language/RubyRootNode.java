@@ -25,6 +25,7 @@ import com.oracle.truffle.api.source.SourceSection;
 public class RubyRootNode extends RootNode {
 
     private final RubyContext context;
+    private final SourceSection sourceSection;
     private final SharedMethodInfo sharedMethodInfo;
     private final boolean needsDeclarationFrame;
 
@@ -34,10 +35,11 @@ public class RubyRootNode extends RootNode {
 
     public RubyRootNode(RubyContext context, SourceSection sourceSection, FrameDescriptor frameDescriptor,
                         SharedMethodInfo sharedMethodInfo, RubyNode body, boolean needsDeclarationFrame) {
-        super(RubyLanguage.class, sourceSection, frameDescriptor);
+        super(context.getLanguage(), frameDescriptor);
         assert sourceSection != null;
         assert body != null;
         this.context = context;
+        this.sourceSection = sourceSection;
         this.sharedMethodInfo = sharedMethodInfo;
         this.needsDeclarationFrame = needsDeclarationFrame;
         this.body = body;
@@ -50,6 +52,11 @@ public class RubyRootNode extends RootNode {
     public Object execute(VirtualFrame frame) {
         context.getSafepointManager().poll(this);
         return body.execute(frame);
+    }
+
+    @Override
+    public SourceSection getSourceSection() {
+        return sourceSection;
     }
 
     @Override

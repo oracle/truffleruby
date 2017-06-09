@@ -36,6 +36,7 @@ import java.util.List;
 
 public class LazyRubyRootNode extends RootNode implements InternalRootNode {
 
+    private final SourceSection sourceSection;
     private final Source source;
     private final List<String> argumentNames;
 
@@ -45,9 +46,10 @@ public class LazyRubyRootNode extends RootNode implements InternalRootNode {
 
     @Child private DirectCallNode callNode;
 
-    public LazyRubyRootNode(SourceSection sourceSection, FrameDescriptor frameDescriptor, Source source,
+    public LazyRubyRootNode(RubyLanguage language, SourceSection sourceSection, FrameDescriptor frameDescriptor, Source source,
                             List<String> argumentNames) {
-        super(RubyLanguage.class, sourceSection, frameDescriptor);
+        super(language, frameDescriptor);
+        this.sourceSection = sourceSection;
         this.source = source;
         this.argumentNames = argumentNames;
     }
@@ -106,4 +108,8 @@ public class LazyRubyRootNode extends RootNode implements InternalRootNode {
         return value;
     }
 
+    @Override
+    public SourceSection getSourceSection() {
+        return sourceSection;
+    }
 }

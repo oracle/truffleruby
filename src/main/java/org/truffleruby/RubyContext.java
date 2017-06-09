@@ -57,6 +57,7 @@ import java.security.CodeSource;
 
 public class RubyContext {
 
+    private final RubyLanguage language;
     private final TruffleLanguage.Env env;
 
     private final Options options;
@@ -100,7 +101,7 @@ public class RubyContext {
 
     private static RubyContext fallbackGlobalContext = null;
 
-    public RubyContext(TruffleLanguage.Env env) {
+    public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         contextsBeingCreated.set(this);
 
         if (fallbackGlobalContext == null) {
@@ -108,6 +109,7 @@ public class RubyContext {
         }
 
         try {
+            this.language = language;
             this.env = env;
 
             final OptionsBuilder optionsBuilder = new OptionsBuilder();
@@ -222,6 +224,10 @@ public class RubyContext {
         if (options.COVERAGE_GLOBAL) {
             coverageManager.print(System.out);
         }
+    }
+
+    public RubyLanguage getLanguage() {
+        return language;
     }
 
     public Options getOptions() {

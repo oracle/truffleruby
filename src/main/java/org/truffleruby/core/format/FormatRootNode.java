@@ -26,6 +26,7 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 public class FormatRootNode extends RootNode implements InternalRootNode {
 
     private final RubyContext context;
+    private final SourceSection sourceSection;
     private final FormatEncoding encoding;
 
     @Child private FormatNode child;
@@ -33,8 +34,9 @@ public class FormatRootNode extends RootNode implements InternalRootNode {
     @CompilationFinal private int expectedLength = 0;
 
     public FormatRootNode(RubyContext context, SourceSection sourceSection, FormatEncoding encoding, FormatNode child) {
-        super(RubyLanguage.class, sourceSection, FormatFrameDescriptor.FRAME_DESCRIPTOR);
+        super(context.getLanguage(), FormatFrameDescriptor.FRAME_DESCRIPTOR);
         this.context = context;
+        this.sourceSection = sourceSection;
         this.encoding = encoding;
         this.child = child;
     }
@@ -109,6 +111,11 @@ public class FormatRootNode extends RootNode implements InternalRootNode {
         }
 
         return new BytesResult(output, outputLength, stringLength, stringCodeRange, taint, encoding);
+    }
+
+    @Override
+    public SourceSection getSourceSection() {
+        return sourceSection;
     }
 
     @Override
