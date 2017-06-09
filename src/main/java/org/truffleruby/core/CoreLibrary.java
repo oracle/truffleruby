@@ -708,7 +708,7 @@ public class CoreLibrary {
         final CoreMethodNodeManager coreMethodNodeManager =
                 new CoreMethodNodeManager(context, node.getSingletonClassNode(), primitiveManager);
 
-        for (List<? extends NodeFactory<? extends RubyNode>> factory : CORE_NODE_FACTORIES) {
+        for (List<? extends NodeFactory<? extends RubyNode>> factory : getCoreNodeFactories()) {
             coreMethodNodeManager.addCoreMethodNodes(factory);
         }
 
@@ -1526,7 +1526,8 @@ public class CoreLibrary {
     }
 
     // Sorted alphabetically to avoid duplicates
-    private static final List<List<? extends NodeFactory<? extends RubyNode>>> CORE_NODE_FACTORIES = Arrays.asList(
+    private List<List<? extends NodeFactory<? extends RubyNode>>> getCoreNodeFactories() {
+        return Arrays.asList(
             ArrayNodesFactory.getFactories(),
             AtomicReferenceNodesFactory.getFactories(),
             BasicObjectNodesFactory.getFactories(),
@@ -1606,6 +1607,7 @@ public class CoreLibrary {
             UndefinedPrimitiveNodesFactory.getFactories(),
             VMPrimitiveNodesFactory.getFactories(),
             WeakRefNodesFactory.getFactories());
+    }
 
     public static final String[] CORE_FILES = {
             "/core/pre.rb",
