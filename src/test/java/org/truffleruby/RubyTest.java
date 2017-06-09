@@ -51,9 +51,7 @@ public abstract class RubyTest {
         final PolyglotEngine engine = PolyglotEngine.newBuilder()
                 .config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), false)
                 .config(RubyLanguage.MIME_TYPE, OptionsCatalog.BASICOPS_INLINE.getName(), false)
-                .globalSymbol("action", JavaInterop.asTruffleFunction(Runnable.class, () ->
-                    test.run()
-                )).build();
+                .globalSymbol("action", JavaInterop.asTruffleFunction(Runnable.class, test)).build();
 
         engine.eval(Source.newBuilder("Truffle::Interop.import('action').call").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());
     }
