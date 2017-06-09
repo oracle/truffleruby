@@ -176,7 +176,7 @@ public class RubyContext {
 
             coreMethods = new CoreMethods(this);
 
-            // Load the reset of the core library
+            // Load the part of the core library defined in Ruby
 
             Main.printTruffleTimeMetric("before-load-core");
             coreLibrary.loadRubyCore();
