@@ -48,20 +48,26 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.source.SourceSection;
+
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
+import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -74,10 +80,21 @@ import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @CoreClass("Thread")
 public abstract class ThreadNodes {
+
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    public abstract static class AllocateNode extends UnaryCoreMethodNode {
+
+        @Specialization
+        public DynamicObject allocate(DynamicObject rubyClass) {
+            throw new RaiseException(coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
+        }
+
+    }
 
     @CoreMethod(names = "alive?")
     public abstract static class AliveNode extends CoreMethodArrayArgumentsNode {
@@ -221,13 +238,36 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "initialize", rest = true, needsBlock = true)
-    public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "thread_initialized?")
+    public abstract static class ThreadIsInitializedNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject initialize(DynamicObject thread, Object[] arguments, DynamicObject block) {
-            ThreadManager.initialize(thread, getContext(), this, arguments, block);
+        public boolean isInitialized(DynamicObject thread) {
+            final DynamicObject rootFiber = Layouts.THREAD.getFiberManager(thread).getRootFiber();
+            final CountDownLatch initializedLatch = Layouts.FIBER.getInitializedLatch(rootFiber);
+            return initializedLatch.getCount() == 0;
+        }
+
+    }
+
+    @Primitive(name = "thread_initialize")
+    public abstract static class ThreadInitializeNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block) {
+            if (getContext().getOptions().SHARED_OBJECTS_ENABLED) {
+                SharedObjects.shareDeclarationFrame(getContext(), block);
+            }
+
+            final Object[] args = ArrayOperations.toObjectArray(arguments);
+            final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
+            final String info = RubyLanguage.fileLine(sourceSection);
+            ThreadManager.initialize(thread, getContext(), this, info, () -> {
+                final Object value = ProcOperations.rootCall(block, args);
+                Layouts.THREAD.setValue(thread, value);
+            });
             return nil();
         }
 
@@ -433,9 +473,8 @@ public abstract class ThreadNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "thread_allocate")
+    public abstract static class ThreadAllocateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         public DynamicObject allocate(
