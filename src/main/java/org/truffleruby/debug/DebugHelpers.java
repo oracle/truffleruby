@@ -29,7 +29,7 @@ public abstract class DebugHelpers {
 
     @Deprecated
     public static Object eval(String code, Object... arguments) {
-        return eval(RubyContext.FIRST_INSTANCE, code, arguments);
+        return eval(RubyContext.LATEST_INSTANCE, code, arguments);
     }
 
     @Deprecated

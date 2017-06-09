@@ -64,7 +64,7 @@ public class RubyMessageResolution {
         private RubyContext getContext() {
             if (context == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                context = RubyContext.FIRST_INSTANCE;
+                context = RubyContext.LATEST_INSTANCE;
             }
 
             return context;
@@ -241,7 +241,7 @@ public class RubyMessageResolution {
         private RubyContext getContext() {
             if (context == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                context = RubyContext.FIRST_INSTANCE;
+                context = RubyContext.LATEST_INSTANCE;
             }
 
             return context;

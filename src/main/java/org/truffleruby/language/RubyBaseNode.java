@@ -149,7 +149,7 @@ public abstract class RubyBaseNode extends Node {
                 context = rootNode.getLanguage(RubyLanguage.class).getContextReference().get();
             } else {
                 // For example in a foreign node
-                return RubyContext.FIRST_INSTANCE;
+                return RubyContext.LATEST_INSTANCE;
             }
         }
 
