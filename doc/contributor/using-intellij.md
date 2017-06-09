@@ -23,3 +23,8 @@ There should be now 2 projects in your workspace:
 
 * `truffleruby`
 * `truffleruby-test`
+
+To import other files that aren't part of Java projects, go to 'File', 'Project
+Structure...', 'Modules', '+', 'New Module', 'Ruby', 'Next', set the 'Module
+name' to 'truffleruby-support', set the 'Content root' to the repository, select
+any 2.0 Ruby version, 'Finish'.
