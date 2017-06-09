@@ -60,6 +60,7 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
 
         if (cachedContext == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
+            context.ensureSetupFinished();
             cachedContext = context;
         }
 

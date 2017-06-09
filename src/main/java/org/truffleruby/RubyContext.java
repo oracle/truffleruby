@@ -57,6 +57,8 @@ import java.security.CodeSource;
 
 public class RubyContext {
 
+    private boolean setupFinished = false;
+
     private final RubyLanguage language;
     private final TruffleLanguage.Env env;
 
@@ -89,7 +91,7 @@ public class RubyContext {
 
     private final NativePlatform nativePlatform;
     private final CoreLibrary coreLibrary;
-    private final CoreMethods coreMethods;
+    private CoreMethods coreMethods;
     private final ThreadManager threadManager;
     private final LexicalScope rootLexicalScope;
     private final CoverageManager coverageManager;
@@ -162,6 +164,16 @@ public class RubyContext {
 
             threadManager = new ThreadManager(this);
 
+            final Instrumenter instrumenter = env.lookup(Instrumenter.class);
+            traceManager = new TraceManager(this, instrumenter);
+            coverageManager = new CoverageManager(this, instrumenter);
+        } finally {
+            contextsBeingCreated.remove();
+        }
+    }
+
+    public void ensureSetupFinished() {
+        if (!setupFinished) {
             // Load the nodes
 
             Main.printTruffleTimeMetric("before-load-nodes");
@@ -170,10 +182,7 @@ public class RubyContext {
 
             // Capture known builtin methods
 
-            final Instrumenter instrumenter = env.lookup(Instrumenter.class);
-            traceManager = new TraceManager(this, instrumenter);
             coreMethods = new CoreMethods(this);
-            coverageManager = new CoverageManager(this, instrumenter);
 
             // Load the reset of the core library
 
@@ -189,8 +198,8 @@ public class RubyContext {
             if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {
                 sharedObjects.startSharing();
             }
-        } finally {
-            contextsBeingCreated.remove();
+
+            setupFinished = true;
         }
     }
 
