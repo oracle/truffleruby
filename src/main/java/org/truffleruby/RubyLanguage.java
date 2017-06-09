@@ -158,14 +158,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
     }
 
-    public Node unprotectedCreateFindContextNode() {
-        return super.createFindContextNode();
-    }
-
-    public RubyContext unprotectedFindContext(Node node) {
-        return super.findContext(node);
-    }
-
     public static String getVersionString() {
 
         return String.format(

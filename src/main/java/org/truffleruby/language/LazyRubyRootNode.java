@@ -39,8 +39,6 @@ public class LazyRubyRootNode extends RootNode implements InternalRootNode {
     private final Source source;
     private final List<String> argumentNames;
 
-    @Child private Node findContextNode = RubyLanguage.INSTANCE.unprotectedCreateFindContextNode();
-
     @CompilationFinal private RubyContext cachedContext;
     @CompilationFinal private DynamicObject mainObject;
     @CompilationFinal private InternalMethod method;
@@ -56,7 +54,7 @@ public class LazyRubyRootNode extends RootNode implements InternalRootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final RubyContext context = RubyLanguage.INSTANCE.unprotectedFindContext(findContextNode);
+        final RubyContext context = RubyContext.getInstance();
 
         if (cachedContext == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

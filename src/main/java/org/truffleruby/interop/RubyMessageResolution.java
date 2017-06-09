@@ -55,7 +55,6 @@ public class RubyMessageResolution {
     @Resolve(message = "IS_NULL")
     public static abstract class ForeignIsNullNode extends Node {
 
-        @Child private Node findContextNode;
         @CompilationFinal RubyContext context;
 
         protected Object access(DynamicObject object) {
@@ -65,8 +64,7 @@ public class RubyMessageResolution {
         private RubyContext getContext() {
             if (context == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                findContextNode = insert(RubyLanguage.INSTANCE.unprotectedCreateFindContextNode());
-                context = RubyLanguage.INSTANCE.unprotectedFindContext(findContextNode);
+                context = RubyContext.getInstance();
             }
 
             return context;
@@ -234,7 +232,6 @@ public class RubyMessageResolution {
 
         @CompilationFinal private RubyContext context;
 
-        @Child private Node findContextNode;
         @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
@@ -244,8 +241,7 @@ public class RubyMessageResolution {
         private RubyContext getContext() {
             if (context == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                findContextNode = insert(RubyLanguage.INSTANCE.unprotectedCreateFindContextNode());
-                context = RubyLanguage.INSTANCE.unprotectedFindContext(findContextNode);
+                context = RubyContext.getInstance();
             }
 
             return context;

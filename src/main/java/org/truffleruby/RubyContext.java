@@ -44,7 +44,6 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.options.Options;
 import org.truffleruby.options.OptionsBuilder;
-import org.truffleruby.options.Verbosity;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.NativePlatformFactory;
 import org.truffleruby.stdlib.CoverageManager;
@@ -99,8 +98,14 @@ public class RubyContext {
 
     public static ThreadLocal<RubyContext> contextsBeingCreated = new ThreadLocal<>();
 
+    private static RubyContext fallbackGlobalContext = null;
+
     public RubyContext(TruffleLanguage.Env env) {
         contextsBeingCreated.set(this);
+
+        if (fallbackGlobalContext == null) {
+            fallbackGlobalContext = this;
+        }
 
         try {
             this.env = env;
@@ -290,11 +295,7 @@ public class RubyContext {
             return ret;
         }
 
-        try {
-            return RubyLanguage.INSTANCE.unprotectedFindContext(RubyLanguage.INSTANCE.unprotectedCreateFindContextNode());
-        } catch (IllegalStateException e) {
-            return null;
-        }
+        return fallbackGlobalContext;
     }
 
     public SourceLoader getSourceLoader() {
