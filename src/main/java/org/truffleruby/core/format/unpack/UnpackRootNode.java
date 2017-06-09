@@ -20,9 +20,10 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.language.RubyBaseRootNode;
 import org.truffleruby.language.backtrace.InternalRootNode;
 
-public class UnpackRootNode extends RootNode implements InternalRootNode {
+public class UnpackRootNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final RubyContext context;
     private final SourceSection sourceSection;
