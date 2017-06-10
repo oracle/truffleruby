@@ -178,12 +178,6 @@ class Thread
     nil
   end
 
-  def raise_prim(exc)
-    Truffle.primitive :thread_raise
-    Kernel.raise PrimitiveFailure, 'Thread#raise primitive failed'
-  end
-  private :raise_prim
-
   # Java goes from 1 to 10 (default 5), Ruby from -3 to 3 (default 0)
   PRIORITIES_RUBY_TO_JAVA = {
     -3 => 1, -2 => 2, -1 => 4, 0 => 5,
@@ -266,7 +260,7 @@ class Thread
     if self == Thread.current
       Kernel.raise exc
     else
-      raise_prim exc
+      Truffle.invoke_primitive :thread_raise, self, exc
     end
   end
 
