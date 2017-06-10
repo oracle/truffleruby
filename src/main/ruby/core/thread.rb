@@ -60,6 +60,8 @@
 
 class Thread
 
+  # Utilities
+
   # Implementation note: ideally, the recursive_objects
   # lookup table would be different per method call.
   # Currently it doesn't cause problems, but if ever
@@ -173,9 +175,99 @@ class Thread
     end
   end
 
+  # Class methods
+
+  def self.exit
+    Thread.current.kill
+  end
+
+  def self.kill(thread)
+    thread.kill
+  end
+
   def self.stop
     sleep
     nil
+  end
+
+  MUTEX_FOR_THREAD_EXCLUSIVE = Mutex.new
+
+  def self.exclusive
+    MUTEX_FOR_THREAD_EXCLUSIVE.synchronize { yield }
+  end
+
+  def self.handle_interrupt(config, &block)
+    unless config.is_a?(Hash) and config.size == 1
+      raise ArgumentError, 'unknown mask signature'
+    end
+    exception, timing = config.first
+    Truffle.privately do
+      current.handle_interrupt(exception, timing, &block)
+    end
+  end
+
+  @abort_on_exception = false
+
+  class << self
+    attr_accessor :abort_on_exception
+
+    def new(*args, &block)
+      thread = Truffle.invoke_primitive(:thread_allocate, self)
+      thread.send(:initialize, *args, &block)
+      unless Truffle.invoke_primitive(:thread_initialized?, thread)
+        Kernel.raise ThreadError, "uninitialized thread - check `#{thread.class}#initialize'"
+      end
+      thread
+    end
+
+    def start(*args, &block)
+      Kernel.raise ArgumentError, "tried to create Proc object without a block" unless block
+
+      thread = Truffle.invoke_primitive(:thread_allocate, self)
+      thread.send(:internal_thread_initialize)
+      Truffle.invoke_primitive(:thread_initialize, thread, args, block)
+      thread
+    end
+    alias_method :fork, :start
+  end
+
+  # Instance methods
+
+  attr_reader :recursive_objects, :randomizer
+
+  def initialize(*args, &block)
+    Kernel.raise ThreadError, "must be called with a block" unless block
+    if Truffle.invoke_primitive(:thread_initialized?, self)
+      Kernel.raise ThreadError, "already initialized thread"
+    end
+    internal_thread_initialize
+    Truffle.invoke_primitive(:thread_initialize, self, args, block)
+  end
+
+  private def internal_thread_initialize
+    @thread_local_variables = {}
+    @recursive_objects = {}
+    @randomizer = Rubinius::Randomizer.new
+  end
+
+  def freeze
+    Rubinius.synchronize(self) { @thread_local_variables.freeze }
+    super
+  end
+
+  def name
+    Truffle.primitive :thread_get_name
+    Kernel.raise ThreadError, 'Thread#name primitive failed'
+  end
+
+  def name=(val)
+    unless val.nil?
+      val = Rubinius::Type.check_null_safe(StringValue(val))
+      raise ArgumentError, "ASCII incompatible encoding #{val.encoding.name}" unless val.encoding.ascii_compatible?
+      # TODO BJF Aug 27, 2016 Need to rb_str_new_frozen the val here and SET_ANOTHER_THREAD_NAME
+    end
+    Truffle.invoke_primitive :thread_set_name, self, val
+    val
   end
 
   # Java goes from 1 to 10 (default 5), Ruby from -3 to 3 (default 0)
@@ -202,21 +294,6 @@ class Thread
     priority
   end
 
-  def name
-    Truffle.primitive :thread_get_name
-    Kernel.raise ThreadError, 'Thread#name primitive failed'
-  end
-
-  def name=(val)
-    unless val.nil?
-      val = Rubinius::Type.check_null_safe(StringValue(val))
-      raise ArgumentError, "ASCII incompatible encoding #{val.encoding.name}" unless val.encoding.ascii_compatible?
-      # TODO BJF Aug 27, 2016 Need to rb_str_new_frozen the val here and SET_ANOTHER_THREAD_NAME
-    end
-    Truffle.invoke_primitive :thread_set_name, self, val
-    val
-  end
-
   def inspect
     stat = status()
     stat = 'dead' unless stat
@@ -224,14 +301,6 @@ class Thread
     "#<#{self.class}:0x#{object_id.to_s(16)}@#{loc} #{stat}>"
   end
   alias_method :to_s, :inspect
-
-  def self.exit
-    Thread.current.kill
-  end
-
-  def self.kill(thread)
-    thread.kill
-  end
 
   def raise(exc=undefined, msg=nil, trace=nil)
     return self unless alive?
@@ -262,12 +331,6 @@ class Thread
     else
       Truffle.invoke_primitive :thread_raise, self, exc
     end
-  end
-
-  MUTEX_FOR_THREAD_EXCLUSIVE = Mutex.new
-
-  def self.exclusive
-    MUTEX_FOR_THREAD_EXCLUSIVE.synchronize { yield }
   end
 
   # Fiber-local variables
@@ -333,69 +396,6 @@ class Thread
 
   def thread_variables
     Rubinius.synchronize(self) { @thread_local_variables.keys }
-  end
-
-  class << self
-    def new(*args, &block)
-      thread = Truffle.invoke_primitive(:thread_allocate, self)
-      thread.send(:initialize, *args, &block)
-      unless Truffle.invoke_primitive(:thread_initialized?, thread)
-        Kernel.raise ThreadError, "uninitialized thread - check `#{thread.class}#initialize'"
-      end
-      thread
-    end
-
-    def start(*args, &block)
-      Kernel.raise ArgumentError, "tried to create Proc object without a block" unless block
-
-      thread = Truffle.invoke_primitive(:thread_allocate, self)
-      thread.send(:internal_thread_initialize)
-      Truffle.invoke_primitive(:thread_initialize, thread, args, block)
-      thread
-    end
-    alias_method :fork, :start
-  end
-
-  def initialize(*args, &block)
-    Kernel.raise ThreadError, "must be called with a block" unless block
-    if Truffle.invoke_primitive(:thread_initialized?, self)
-      Kernel.raise ThreadError, "already initialized thread"
-    end
-    internal_thread_initialize
-    Truffle.invoke_primitive(:thread_initialize, self, args, block)
-  end
-
-  attr_reader :recursive_objects, :randomizer
-
-  private def internal_thread_initialize
-    @thread_local_variables = {}
-    @recursive_objects = {}
-    @randomizer = Rubinius::Randomizer.new
-  end
-
-  @abort_on_exception = false
-
-  def self.abort_on_exception
-    @abort_on_exception
-  end
-
-  def self.abort_on_exception=(value)
-    @abort_on_exception = value
-  end
-
-  def self.handle_interrupt(config, &block)
-    unless config.is_a?(Hash) and config.size == 1
-      raise ArgumentError, 'unknown mask signature'
-    end
-    exception, timing = config.first
-    Truffle.privately do
-      current.handle_interrupt(exception, timing, &block)
-    end
-  end
-
-  def freeze
-    Rubinius.synchronize(self) { @thread_local_variables.freeze }
-    super
   end
 end
 
