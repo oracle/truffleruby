@@ -220,10 +220,9 @@ public class ThreadManager {
     public void cleanup(DynamicObject thread) {
         assert RubyGuards.isRubyThread(thread);
 
-        Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
-        unregisterThread(thread);
-
         Layouts.THREAD.setStatus(thread, ThreadStatus.DEAD);
+
+        unregisterThread(thread);
         Layouts.THREAD.setThread(thread, null);
         assert RubyGuards.isRubyThread(thread);
         for (Lock lock : Layouts.THREAD.getOwnedLocks(thread)) {
