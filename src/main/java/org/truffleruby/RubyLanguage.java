@@ -99,6 +99,11 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
+    protected void initializeContext(RubyContext context) throws Exception {
+        context.initialize();
+    }
+
+    @Override
     protected void disposeContext(RubyContext context) {
         context.shutdown();
     }
