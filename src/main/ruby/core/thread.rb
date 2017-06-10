@@ -330,45 +330,23 @@ class Thread
 
   # Thread-local variables
 
-  # TODO (pitr-ch 06-Apr-2016): thread local variables do not have to be synchronized,
-  # they are only to protect against non-thread-safe Hash implementation
-
   def thread_variable_get(name)
-    __thread_local_variables_lock { __thread_local_variables[name.to_sym] }
+    var = convert_to_local_name(name)
+    Rubinius.synchronize(self) { @thread_local_variables[var] }
   end
 
   def thread_variable_set(name, value)
-    __thread_local_variables_lock { __thread_local_variables[name.to_sym] = value }
+    var = convert_to_local_name(name)
+    Rubinius.synchronize(self) { @thread_local_variables[var] = value }
   end
 
-  def thread_variable?(symbol)
-    __thread_local_variables_lock { __thread_local_variables.has_key? symbol.to_sym }
-  end
-
-  LOCK = Mutex.new
-
-  def __thread_local_variables
-    if defined?(@__thread_local_variables)
-      @__thread_local_variables
-    else
-      LOCK.synchronize do
-        @__thread_local_variables ||= {}
-      end
-    end
-  end
-
-  def __thread_local_variables_lock
-    if defined?(@__thread_local_variables_lock)
-      @__thread_local_variables_lock
-    else
-      LOCK.synchronize do
-        @__thread_local_variables_lock ||= Mutex.new
-      end
-    end.synchronize { yield }
+  def thread_variable?(name)
+    var = convert_to_local_name(name)
+    Rubinius.synchronize(self) { @thread_local_variables.key? var }
   end
 
   def thread_variables
-    __thread_local_variables_lock { __thread_local_variables.keys }
+    Rubinius.synchronize(self) { @thread_local_variables.keys }
   end
 
   class << self
@@ -385,6 +363,7 @@ class Thread
       Kernel.raise ArgumentError, "tried to create Proc object without a block" unless block
 
       thread = Truffle.invoke_primitive(:thread_allocate, self)
+      thread.send(:internal_thread_initialize)
       Truffle.invoke_primitive(:thread_initialize, thread, args, block)
       thread
     end
@@ -396,7 +375,12 @@ class Thread
     if Truffle.invoke_primitive(:thread_initialized?, self)
       Kernel.raise ThreadError, "already initialized thread"
     end
+    internal_thread_initialize
     Truffle.invoke_primitive(:thread_initialize, self, args, block)
+  end
+
+  private def internal_thread_initialize
+    @thread_local_variables = {}
   end
 
   @abort_on_exception = false
@@ -420,11 +404,12 @@ class Thread
   end
 
   def freeze
-    __thread_local_variables_lock { __thread_local_variables.freeze }
+    Rubinius.synchronize(self) { @thread_local_variables.freeze }
     super
   end
-
 end
+
+Thread.current.send :internal_thread_initialize
 
 class ThreadGroup
   def initialize
@@ -457,6 +442,6 @@ class ThreadGroup
   end
 
   Default = ThreadGroup.new
-
 end
+
 Truffle.invoke_primitive :thread_set_group, Thread.current, ThreadGroup::Default
