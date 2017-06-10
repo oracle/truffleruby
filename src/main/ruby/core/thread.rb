@@ -68,12 +68,11 @@ class Thread
   # a method :foo calls a method :bar which could
   # recurse back to :foo, it could require making
   # the tables independant.
-
   def self.recursion_guard(obj)
     id = obj.object_id
     objects = current.recursive_objects
-    objects[id] = true
 
+    objects[id] = true
     begin
       yield
     ensure
@@ -89,7 +88,6 @@ class Thread
   # on obj (or the pair obj+paired_obj).
   # If there is one, it returns true.
   # Otherwise, it will yield once and return false.
-
   def self.detect_recursion(obj, paired_obj=nil)
     unless Truffle.invoke_primitive :object_can_contain_object, obj
       yield
@@ -115,8 +113,8 @@ class Thread
     # with it, so check the pair and yield if there is no recursion.
     when Hash
       return true if objects[id][pair_id]
-      objects[id][pair_id] = true
 
+      objects[id][pair_id] = true
       begin
         yield
       ensure
@@ -133,7 +131,6 @@ class Thread
       return true if previous == pair_id
 
       objects[id] = { previous => true, pair_id => true }
-
       begin
         yield
       ensure
@@ -145,11 +142,9 @@ class Thread
   end
   Truffle::Graal.always_split method(:detect_recursion)
 
-  # Similar to detect_recursion, but will short circuit all inner recursion
-  # levels (using a throw)
-
   class InnerRecursionDetected < Exception; end # rubocop:disable Lint/InheritException
 
+  # Similar to detect_recursion, but will short circuit all inner recursion levels
   def self.detect_outermost_recursion(obj, paired_obj=nil, &block)
     rec = current.recursive_objects
 
@@ -159,15 +154,13 @@ class Thread
       end
       false
     else
+      rec[:__detect_outermost_recursion__] = true
       begin
-        rec[:__detect_outermost_recursion__] = true
-
         begin
           detect_recursion(obj, paired_obj, &block)
         rescue InnerRecursionDetected
           return true
         end
-
         return nil
       ensure
         rec.delete :__detect_outermost_recursion__
