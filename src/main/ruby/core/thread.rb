@@ -286,8 +286,18 @@ class Thread
 
   # Fiber-local variables
 
+  private def convert_to_local_name(name)
+    if Symbol === name
+      name
+    elsif String === name
+      name.to_sym
+    else
+      Kernel.raise TypeError, "#{name.inspect} is not a symbol nor a string"
+    end
+  end
+
   def [](name)
-    var = name.to_sym
+    var = convert_to_local_name(name)
     Rubinius.synchronize(self) do
       locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
       Truffle.invoke_primitive :object_ivar_get, locals, var
@@ -295,11 +305,19 @@ class Thread
   end
 
   def []=(name, value)
-    var = name.to_sym
+    var = convert_to_local_name(name)
     Rubinius.synchronize(self) do
       Truffle.check_frozen
       locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
       Truffle.invoke_primitive :object_ivar_set, locals, var, value
+    end
+  end
+
+  def key?(name)
+    var = convert_to_local_name(name)
+    Rubinius.synchronize(self) do
+      locals = Truffle.invoke_primitive :thread_get_fiber_locals, self
+      Truffle.invoke_primitive :object_ivar_defined?, locals, var
     end
   end
 

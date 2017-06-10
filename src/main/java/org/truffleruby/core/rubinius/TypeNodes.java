@@ -147,6 +147,19 @@ public abstract class TypeNodes {
 
     }
 
+    @Primitive(name = "object_ivar_defined?")
+    public abstract static class ObjectIVarIsDefinedNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public Object ivarIsDefined(DynamicObject object, DynamicObject name) {
+            final String ivar = Layouts.SYMBOL.getString(name);
+            final Property property = object.getShape().getProperty(ivar);
+            return PropertyFlags.isDefined(property);
+        }
+
+    }
+
     @Primitive(name = "object_ivar_get")
     public abstract static class ObjectIVarGetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
