@@ -212,7 +212,7 @@ def exclusions_for(name, ignore_missing: false)
 end
 
 rails_basic = { setup: { without: %w(db job) },
-                run:   { environment: { 'N' => 1 } } }
+                run:   { environment: { 'N' => 0 } } }
 
 use_bundler_environment = { run: { require: %w(bundler/setup) } }
 
@@ -432,7 +432,7 @@ begin # not tested in CI
                          deep_merge(
                              use_bundler_environment,
                              { setup: { without: %w(db) },
-                               run:   { environment: { 'N' => 1 } } }
+                               run:   { environment: { 'N' => 0 } } }
                          )
   TruffleTool.add_ci_definition :activejob do
     subdir 'activejob'
