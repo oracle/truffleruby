@@ -173,10 +173,6 @@ class Thread
     end
   end
 
-  def recursive_objects
-    @recursive_objects ||= {}
-  end
-
   def self.stop
     sleep
     nil
@@ -280,10 +276,6 @@ class Thread
     MUTEX_FOR_THREAD_EXCLUSIVE.synchronize { yield }
   end
 
-  def randomizer
-    @randomizer ||= Rubinius::Randomizer.new
-  end
-
   # Fiber-local variables
 
   private def convert_to_local_name(name)
@@ -379,8 +371,12 @@ class Thread
     Truffle.invoke_primitive(:thread_initialize, self, args, block)
   end
 
+  attr_reader :recursive_objects, :randomizer
+
   private def internal_thread_initialize
     @thread_local_variables = {}
+    @recursive_objects = {}
+    @randomizer = Rubinius::Randomizer.new
   end
 
   @abort_on_exception = false
