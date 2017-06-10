@@ -59,8 +59,6 @@ public class RubyContext {
 
     public static RubyContext LATEST_INSTANCE = null;
 
-    private boolean setupFinished = false;
-
     private final RubyLanguage language;
     private final TruffleLanguage.Env env;
 
@@ -162,34 +160,30 @@ public class RubyContext {
         coverageManager = new CoverageManager(this, instrumenter);
     }
 
-    public void ensureSetupFinished() {
-        if (!setupFinished) {
-            // Load the nodes
+    public void initialize() {
+        // Load the nodes
 
-            Main.printTruffleTimeMetric("before-load-nodes");
-            coreLibrary.loadCoreNodes(primitiveManager);
-            Main.printTruffleTimeMetric("after-load-nodes");
+        Main.printTruffleTimeMetric("before-load-nodes");
+        coreLibrary.loadCoreNodes(primitiveManager);
+        Main.printTruffleTimeMetric("after-load-nodes");
 
-            // Capture known builtin methods
+        // Capture known builtin methods
 
-            coreMethods = new CoreMethods(this);
+        coreMethods = new CoreMethods(this);
 
-            // Load the part of the core library defined in Ruby
+        // Load the part of the core library defined in Ruby
 
-            Main.printTruffleTimeMetric("before-load-core");
-            coreLibrary.loadRubyCore();
-            Main.printTruffleTimeMetric("after-load-core");
+        Main.printTruffleTimeMetric("before-load-core");
+        coreLibrary.loadRubyCore();
+        Main.printTruffleTimeMetric("after-load-core");
 
-            // Load other subsystems
+        // Load other subsystems
 
-            coreLibrary.initializePostBoot();
+        coreLibrary.initializePostBoot();
 
-            // Share once everything is loaded
-            if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {
-                sharedObjects.startSharing();
-            }
-
-            setupFinished = true;
+        // Share once everything is loaded
+        if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {
+            sharedObjects.startSharing();
         }
     }
 

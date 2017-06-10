@@ -17,8 +17,6 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -63,7 +61,6 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
 
         if (cachedContext == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            context.ensureSetupFinished();
             cachedContext = context;
         }
 
