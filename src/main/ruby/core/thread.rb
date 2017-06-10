@@ -221,7 +221,7 @@ class Thread
     end
 
     def start(*args, &block)
-      Kernel.raise ArgumentError, "tried to create Proc object without a block" unless block
+      Kernel.raise ArgumentError, 'tried to create Proc object without a block' unless block
 
       thread = Truffle.invoke_primitive(:thread_allocate, self)
       thread.send(:internal_thread_initialize)
@@ -236,9 +236,9 @@ class Thread
   attr_reader :recursive_objects, :randomizer
 
   def initialize(*args, &block)
-    Kernel.raise ThreadError, "must be called with a block" unless block
+    Kernel.raise ThreadError, 'must be called with a block' unless block
     if Truffle.invoke_primitive(:thread_initialized?, self)
-      Kernel.raise ThreadError, "already initialized thread"
+      Kernel.raise ThreadError, 'already initialized thread'
     end
     internal_thread_initialize
     Truffle.invoke_primitive(:thread_initialize, self, args, block)
