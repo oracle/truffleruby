@@ -1385,11 +1385,12 @@ int rb_enc_mbminlen(rb_encoding *enc) {
 }
 
 int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc) {
+  int length = e-p;
   return truffle_invoke_i(RUBY_CEXT, "rb_enc_mbclen",
       rb_enc_from_encoding(enc),
-      rb_str_new(p, e-p),
+      rb_str_new(p, length),
       0,
-      e-p);
+      length);
 }
 
 // Symbol
@@ -1763,8 +1764,8 @@ VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
 
 void rb_check_arity(int argc, int min, int max)
 {
-    if ((argc < min) || (max != UNLIMITED_ARGUMENTS && argc > max))
-	    rb_tr_error("bad arity"); // TODO (pitr-ch 08-Jun-2017): fix error message
+  if ((argc < min) || (max != UNLIMITED_ARGUMENTS && argc > max))
+    rb_tr_error("bad arity"); // TODO (pitr-ch 08-Jun-2017): fix error message
 }
 
 char* ruby_strdup(const char *str)
