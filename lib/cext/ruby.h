@@ -455,7 +455,7 @@ int rb_method_boundp(VALUE klass, ID id, int ex);
 
 VALUE rb_obj_dup(VALUE object);
 VALUE rb_any_to_s(VALUE object);
-#define rb_obj_as_string(object) rb_any_to_s(VALUE object)
+#define rb_obj_as_string(object) rb_any_to_s(object)
 VALUE rb_obj_instance_variables(VALUE object);
 VALUE rb_check_convert_type(VALUE object, int type, const char *type_name, const char *method);
 VALUE rb_check_to_integer(VALUE object, const char *method);
