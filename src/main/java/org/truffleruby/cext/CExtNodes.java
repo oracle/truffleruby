@@ -1232,4 +1232,18 @@ public class CExtNodes {
         }
 
     }
+
+    @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 3)
+    public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
+        public Object rbEncMbLen(DynamicObject enc, DynamicObject str, int p, int e) {
+            return StringSupport.length(
+                    EncodingOperations.getEncoding(enc),
+                    StringOperations.rope(str).getBytes(),
+                    p,
+                    e);
+        }
+
+    }
 }

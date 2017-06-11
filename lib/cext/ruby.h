@@ -771,6 +771,8 @@ int rb_enc_get_index(VALUE obj);
 int rb_enc_dummy_p(rb_encoding *enc);
 int rb_enc_mbmaxlen(rb_encoding *enc);
 int rb_enc_mbminlen(rb_encoding *enc);
+int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc);
+
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer);
 MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer);
 MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer);
