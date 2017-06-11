@@ -1359,6 +1359,15 @@ char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc){
   return start+position;
 }
 
+int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc) {
+  int length = p-e;
+  return truffle_invoke_i(RUBY_CEXT, "rb_enc_precise_mbclen",
+      rb_enc_from_encoding(enc),
+      rb_str_new(p, length),
+      0,
+      length);
+}
+
 VALUE rb_str_times(VALUE string, VALUE times) {
   rb_tr_error("rb_str_times not implemented");
 }

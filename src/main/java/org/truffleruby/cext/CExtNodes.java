@@ -1257,4 +1257,15 @@ public class CExtNodes {
         }
 
     }
+
+    @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 3)
+    public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
+        public Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end) {
+            return StringSupport.preciseLength(
+                    EncodingOperations.getEncoding(enc), StringOperations.rope(str).getBytes(), p, end);
+        }
+
+    }
 }
