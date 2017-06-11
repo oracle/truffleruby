@@ -563,10 +563,10 @@ typedef struct {
 } rb_encoding;
 
 enum ruby_coderange_type {
-    RUBY_ENC_CODERANGE_UNKNOWN	= 0,
-    RUBY_ENC_CODERANGE_7BIT	    = 1,
+    RUBY_ENC_CODERANGE_UNKNOWN  = 0,
+    RUBY_ENC_CODERANGE_7BIT     = 1,
     RUBY_ENC_CODERANGE_VALID    = 2,
-    RUBY_ENC_CODERANGE_BROKEN	  = 4
+    RUBY_ENC_CODERANGE_BROKEN   = 4
 };
 
 #define ENC_CODERANGE_UNKNOWN   RUBY_ENC_CODERANGE_UNKNOWN
@@ -744,7 +744,7 @@ VALUE rb_str_resize(VALUE string, long length);
 #define RSTRING_GETMEM(string, data_pointer, length_pointer) ((data_pointer) = RSTRING_PTR(string), (length_pointer) = rb_str_len(string))
 VALUE rb_str_split(VALUE string, const char *split);
 void rb_str_modify(VALUE string);
-#define ENC_CODERANGE_7BIT	RUBY_ENC_CODERANGE_7BIT
+#define ENC_CODERANGE_7BIT RUBY_ENC_CODERANGE_7BIT
 enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj);
 #define RB_ENC_CODERANGE_ASCIIONLY(obj) (RB_ENC_CODERANGE(obj) == RUBY_ENC_CODERANGE_7BIT)
 #define ENC_CODERANGE_ASCIIONLY(obj) RB_ENC_CODERANGE_ASCIIONLY(obj)
@@ -916,7 +916,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
 
 #define RETURN_ENUMERATOR_NAME(obj, meth, argc, argv) do {      \
-    if (!rb_block_given_p())					                \
+    if (!rb_block_given_p())                                    \
         return rb_enumeratorize((obj), (meth), (argc), (argv)); \
 } while (0)
 
