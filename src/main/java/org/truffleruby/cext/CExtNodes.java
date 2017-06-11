@@ -39,6 +39,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
@@ -52,6 +53,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodesFactory;
 import org.truffleruby.core.rope.SubstringRope;
+import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodesFactory;
 import org.truffleruby.core.string.StringOperations;
@@ -1197,6 +1199,16 @@ public class CExtNodes {
         @Specialization
         public Object mbclenCharFoundLen(int r) {
             return StringSupport.MBCLEN_CHARFOUND_LEN(r);
+        }
+
+    }
+
+    @CoreMethod(names = "rb_enc_dummy_p", onSingleton = true, required = 1)
+    public abstract static class RbEncDummyPNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyEncoding(value)")
+        public Object rbEncDummyP(DynamicObject value) {
+            return EncodingUtils.encDummy(EncodingOperations.getEncoding(value));
         }
 
     }
