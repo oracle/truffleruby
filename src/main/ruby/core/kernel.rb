@@ -464,6 +464,14 @@ module Kernel
     self
   end
 
+  def yield_self
+    if block_given?
+      yield self
+    else
+      [self].to_enum { 1 }
+    end
+  end
+
   def test(cmd, file1, file2=nil)
     case cmd
     when ?d
