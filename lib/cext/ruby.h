@@ -768,6 +768,7 @@ int rb_to_encoding_index(VALUE enc);
 char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc);
 #define rb_enc_name(enc) ((enc)->name)
 int rb_enc_get_index(VALUE obj);
+char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc);
 int rb_enc_dummy_p(rb_encoding *enc);
 int rb_enc_mbmaxlen(rb_encoding *enc);
 int rb_enc_mbminlen(rb_encoding *enc);

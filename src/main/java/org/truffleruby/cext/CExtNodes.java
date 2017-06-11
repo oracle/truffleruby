@@ -1246,4 +1246,15 @@ public class CExtNodes {
         }
 
     }
+
+    @CoreMethod(names = "rb_enc_left_char_head", onSingleton = true, required = 3)
+    public abstract static class RbEncLeftCharHeadNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
+        public Object rbEncLeftCharHead(DynamicObject enc, DynamicObject str, int start, int p, int end) {
+            return EncodingOperations.getEncoding(enc).leftAdjustCharHead(
+                    StringOperations.rope(str).getBytes(), start, p, end);
+        }
+
+    }
 }

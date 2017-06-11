@@ -1348,6 +1348,17 @@ int rb_enc_get_index(VALUE obj) {
   return truffle_invoke_i(RUBY_CEXT, "rb_enc_get_index", obj);
 }
 
+char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc){
+  int length = start-end;
+  int position = truffle_invoke_i(RUBY_CEXT, "rb_enc_left_char_head",
+      rb_enc_from_encoding(enc),
+      rb_str_new(start, length),
+      0,
+      p-start,
+      length);
+  return start+position;
+}
+
 VALUE rb_str_times(VALUE string, VALUE times) {
   rb_tr_error("rb_str_times not implemented");
 }
