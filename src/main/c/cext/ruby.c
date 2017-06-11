@@ -1356,6 +1356,14 @@ int rb_enc_dummy_p(rb_encoding *enc) {
   return truffle_invoke_i(RUBY_CEXT, "rb_enc_dummy_p", rb_enc_from_encoding(enc));
 }
 
+int rb_enc_mbmaxlen(rb_encoding *enc) {
+  return truffle_invoke_i(RUBY_CEXT, "rb_enc_mbmaxlen", rb_enc_from_encoding(enc));
+}
+
+int rb_enc_mbminlen(rb_encoding *enc) {
+  return truffle_invoke_i(RUBY_CEXT, "rb_enc_mbminlen", rb_enc_from_encoding(enc));
+}
+
 // Symbol
 
 ID rb_to_id(VALUE name) {

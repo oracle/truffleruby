@@ -1212,4 +1212,24 @@ public class CExtNodes {
         }
 
     }
+
+    @CoreMethod(names = "rb_enc_mbmaxlen", onSingleton = true, required = 1)
+    public abstract static class RbEncMaxLenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyEncoding(value)")
+        public Object rbEncMaxLen(DynamicObject value) {
+            return EncodingOperations.getEncoding(value).maxLength();
+        }
+
+    }
+
+    @CoreMethod(names = "rb_enc_mbminlen", onSingleton = true, required = 1)
+    public abstract static class RbEncMinLenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyEncoding(value)")
+        public Object rbEncMinLen(DynamicObject value) {
+            return EncodingOperations.getEncoding(value).minLength();
+        }
+
+    }
 }
