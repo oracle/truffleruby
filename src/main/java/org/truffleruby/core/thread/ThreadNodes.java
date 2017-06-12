@@ -428,10 +428,8 @@ public abstract class ThreadNodes {
 
             Layouts.THREAD.getWakeUp(rubyThread).set(true);
 
-            if (thread != null) {
-                // TODO: should only interrupt sleep
-                getContext().getThreadManager().interrupt(thread);
-            }
+            // TODO: should only interrupt sleep
+            getContext().getThreadManager().interrupt(thread);
 
             return rubyThread;
         }
