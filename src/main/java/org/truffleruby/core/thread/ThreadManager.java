@@ -13,7 +13,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.SourceSection;
 
 import jnr.constants.platform.Errno;
 import jnr.constants.platform.Signal;
@@ -21,11 +20,9 @@ import jnr.posix.DefaultNativeTimeval;
 import jnr.posix.Timeval;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.fiber.FiberNodes;
-import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.SafepointManager;
@@ -37,6 +34,7 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.platform.TruffleNFIPlatform;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -70,7 +68,6 @@ public class ThreadManager {
         }
 
         start(rootThread);
-        FiberNodes.start(context, this, Layouts.THREAD.getFiberManager(rootThread).getRootFiber());
     }
 
     private static final InterruptMode DEFAULT_INTERRUPT_MODE = InterruptMode.IMMEDIATE;
@@ -176,10 +173,8 @@ public class ThreadManager {
         Layouts.THREAD.setSourceLocation(thread, info);
         final String name = "Ruby Thread@" + info;
         Thread.currentThread().setName(name);
-        DynamicObject fiber = Layouts.THREAD.getFiberManager(thread).getRootFiber();
 
         context.getThreadManager().start(thread);
-        FiberNodes.start(context, context.getThreadManager(), fiber);
         try {
             task.run();
         } catch (ThreadExitException e) {
@@ -190,7 +185,6 @@ public class ThreadManager {
         } catch (ReturnException e) {
             setException(context, thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
         } finally {
-            FiberNodes.cleanup(context, context.getThreadManager(), fiber);
             context.getThreadManager().cleanup(thread);
         }
     }
@@ -215,12 +209,19 @@ public class ThreadManager {
     public void start(DynamicObject thread) {
         Layouts.THREAD.setThread(thread, Thread.currentThread());
         registerThread(thread);
+
+        final DynamicObject rootFiber = Layouts.THREAD.getFiberManager(thread).getRootFiber();
+        FiberNodes.start(context, this, rootFiber);
     }
 
     public void cleanup(DynamicObject thread) {
         assert RubyGuards.isRubyThread(thread);
 
+        // First mark as dead for Thread#status
         Layouts.THREAD.setStatus(thread, ThreadStatus.DEAD);
+
+        final DynamicObject rootFiber = Layouts.THREAD.getFiberManager(thread).getRootFiber();
+        FiberNodes.cleanup(context, this, rootFiber);
 
         unregisterThread(thread);
         Layouts.THREAD.setThread(thread, null);
@@ -468,7 +469,6 @@ public class ThreadManager {
             }
         } finally {
             Layouts.THREAD.getFiberManager(rootThread).shutdown();
-            FiberNodes.cleanup(context, this, Layouts.THREAD.getFiberManager(rootThread).getRootFiber());
             cleanup(rootThread);
         }
     }
