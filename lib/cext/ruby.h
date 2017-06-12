@@ -775,6 +775,28 @@ int rb_enc_mbmaxlen(rb_encoding *enc);
 int rb_enc_mbminlen(rb_encoding *enc);
 int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc);
 
+struct rb_econv_t {};
+typedef enum {
+    econv_invalid_byte_sequence,
+    econv_undefined_conversion,
+    econv_destination_buffer_full,
+    econv_source_buffer_empty,
+    econv_finished,
+    econv_after_output,
+    econv_incomplete_input
+} rb_econv_result_t;
+typedef struct rb_econv_t rb_econv_t;
+
+void rb_econv_close(rb_econv_t *ec);
+rb_econv_t *rb_econv_open_opts(const char *source_encoding, const char *destination_encoding, int ecflags, VALUE opthash);
+VALUE rb_econv_str_convert(rb_econv_t *ec, VALUE src, int flags);
+rb_econv_result_t rb_econv_convert(rb_econv_t *ec,
+    const unsigned char **input_ptr, const unsigned char *input_stop,
+    unsigned char **output_ptr, unsigned char *output_stop,
+    int flags);
+void rb_econv_check_error(rb_econv_t *ec);
+int rb_econv_prepare_opts(VALUE opthash, VALUE *opts);
+
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer);
 MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer);
 MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer);

@@ -3434,10 +3434,12 @@ rb_gzfile_ecopts(struct gzfile *gz, VALUE opts)
 	rb_io_extract_encoding_option(opts, &gz->enc, &gz->enc2, NULL);
     }
     if (gz->enc2) {
-	gz->ecflags = rb_econv_prepare_opts(opts, &opts);
-	gz->ec = rb_econv_open_opts(gz->enc2->name, gz->enc->name,
-				    gz->ecflags, opts);
-	gz->ecopts = opts;
+      rb_tr_error("external encoding set, requites rb_econv_* methods which are not implemented");
+      // # TODO (pitr-ch 12-Jun-2017): enable
+      //	gz->ecflags = rb_econv_prepare_opts(opts, &opts);
+      //	gz->ec = rb_econv_open_opts(gz->enc2->name, gz->enc->name,
+      //				    gz->ecflags, opts);
+      //	gz->ecopts = opts;
     }
 }
 

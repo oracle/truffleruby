@@ -1393,6 +1393,34 @@ int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc) {
       length);
 }
 
+void rb_econv_close(rb_econv_t *ec) {
+  rb_tr_error("rb_econv_close not implemented");
+}
+
+rb_econv_t *rb_econv_open_opts(const char *source_encoding, const char *destination_encoding, int ecflags, VALUE opthash) {
+  rb_tr_error("rb_econv_open_opts not implemented");
+}
+
+VALUE rb_econv_str_convert(rb_econv_t *ec, VALUE src, int flags) {
+  rb_tr_error("rb_econv_str_convert not implemented");
+}
+
+rb_econv_result_t rb_econv_convert(rb_econv_t *ec,
+    const unsigned char **input_ptr, const unsigned char *input_stop,
+    unsigned char **output_ptr, unsigned char *output_stop,
+    int flags) {
+  rb_tr_error("rb_econv_convert not implemented");
+}
+
+void rb_econv_check_error(rb_econv_t *ec) {
+  rb_tr_error("rb_econv_check_error not implemented");
+}
+
+int rb_econv_prepare_opts(VALUE opthash, VALUE *opts) {
+  rb_tr_error("rb_ary_each not implemented");
+}
+
+
 // Symbol
 
 ID rb_to_id(VALUE name) {
