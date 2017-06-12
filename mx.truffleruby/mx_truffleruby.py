@@ -68,9 +68,14 @@ def ruby_testdownstream(args):
     mx.command_function('build')([])
     mx.run(['ruby', 'tool/jt.rb', 'test', 'fast'])
 
+def ruby_testdownstream_hello(args):
+    mx.command_function('build')([])
+    mx.run(['bin/truffleruby', '-e', 'puts "Hello Ruby!"'])
+
 
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],
     'deploy-binary-if-master': [deploy_binary_if_master, ''],
-    'ruby_testdownstream': [ruby_testdownstream, '']
+    'ruby_testdownstream': [ruby_testdownstream, ''],
+    'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
 })
