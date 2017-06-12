@@ -37,7 +37,7 @@ $ jt --help
 We recommend configuring the build to use the Truffle framework as a binary dependency rather than importing it as source code.
 
 ```bash
-$ echo MX_BINARY_SUITES=truffle > mx.truffleruby/env
+$ echo MX_BINARY_SUITES=truffle,sdk > mx.truffleruby/env
 ```
 
 ```bash
