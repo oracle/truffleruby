@@ -18,7 +18,8 @@ matrix:
 
   - env: JT='test specs :command_line'
   - env: JT='test specs :language :security'
-  - env: JT='test specs :core'
+  - env: JT='test specs :core_a'
+  - env: JT='test specs :core_b'
   - env: JT='test specs :library'
   - env: JT='test specs :truffle'
   - env: JT='test integration'
