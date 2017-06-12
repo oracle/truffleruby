@@ -5,9 +5,11 @@ platform_is_not :windows do
   describe "UNIXServer#accept" do
     before :each do
       @path = SocketSpecs.socket_path
+      @server = UNIXServer.open(@path)
     end
 
     after :each do
+      @server.close if @server
       SocketSpecs.rm_socket @path
     end
 
@@ -18,20 +20,20 @@ platform_is_not :windows do
       client.send('hello', 0)
 
       sock = server.accept
-      data, info = sock.recvfrom(5)
+      begin
+        data, info = sock.recvfrom(5)
 
-      data.should == 'hello'
-      info.should_not be_empty
-
-      server.close
-      client.close
-      sock.close
+        data.should == 'hello'
+        info.should_not be_empty
+      ensure
+        sock.close
+        client.close
+      end
     end
 
     it "can be interrupted by Thread#kill" do
-      server = UNIXServer.new(@path)
       t = Thread.new {
-        server.accept
+        @server.accept
       }
       Thread.pass while t.status and t.status != "sleep"
 
@@ -43,14 +45,11 @@ platform_is_not :windows do
         a += 1
       end
       a.should < 5000
-
-      server.close
     end
 
     it "can be interrupted by Thread#raise" do
-      server = UNIXServer.new(@path)
       t = Thread.new {
-        server.accept
+        @server.accept
       }
       Thread.pass while t.status and t.status != "sleep"
 
@@ -58,7 +57,6 @@ platform_is_not :windows do
       ex = Exception.new
       t.raise ex
       lambda { t.join }.should raise_error(Exception)
-      server.close
     end
   end
 end
