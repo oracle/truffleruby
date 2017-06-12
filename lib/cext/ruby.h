@@ -1180,6 +1180,7 @@ VALUE rb_get_path(VALUE object);
 int rb_tr_readable(int mode);
 int rb_tr_writable(int mode);
 #define FilePathValue(v) (v = rb_get_path(v))
+int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **enc2_p, int *fmode_p);
 
 #define GetOpenFile(file, pointer) ( \
     (pointer) = truffle_managed_malloc(sizeof(rb_io_t)), \
