@@ -386,8 +386,6 @@ other-benchmarks-svm: {
   ] ${post-process-and-upload-results-wait} [
     ${bench.cmd} [optcarrot]
   ] ${post-process-and-upload-results-wait} [
-    ${bench.cmd} [savina]
-  ] ${post-process-and-upload-results-wait} [
     ${bench.cmd} [synthetic]
   ] ${post-process-and-upload-results-wait}
   timelimit: "00:40:00"
