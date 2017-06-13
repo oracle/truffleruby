@@ -91,6 +91,7 @@ if [ $on_graalvm = false ]; then
     binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
     if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
         truffle="$binary_truffle"
+        graal_sdk="$(dirname "$binary_truffle")/mx.imports/binary/sdk/mxbuild/dists/graal-sdk.jar"
     else
         for repo_name in graal compiler truffle
         do
@@ -101,6 +102,7 @@ if [ $on_graalvm = false ]; then
                     exit 1
                 fi
                 source_truffle="$(dirname "$root")/${repo_name}/truffle/mxbuild"
+                graal_sdk="$(dirname "$root")/${repo_name}/sdk/mxbuild/dists/graal-sdk.jar"
             fi
         done
         if [ -n "$source_truffle" -a -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
@@ -111,7 +113,7 @@ if [ $on_graalvm = false ]; then
         echo "Could not find Truffle jars" 1>&2
         exit 1
     fi
-    java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar")
+    java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar:$graal_sdk")
     # This hash is Truffle's JLINE sha1
     CP="$CP:$HOME/.mx/cache/JLINE_9504d5e2da5d78237239c5226e8200ec21182040.jar"
     CP="$CP:$truffle/dists/truffle-debug.jar:$truffle/dists/truffle-nfi.jar:$mx_jar"
