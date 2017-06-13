@@ -93,5 +93,5 @@ bin/*
 !bin/rdoc
 !bin/ri
 !bin/ruby
-!bin/truffleruby
+!bin/truffleruby.sh
 !bin/testrb
