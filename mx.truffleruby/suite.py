@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -15,8 +15,7 @@ suite = {
             {
                 "name": "truffle",
                 "subdir": True,
-                # Must be the same as in truffleruby/pom.xml (except for the -SNAPSHOT part only in pom.xml, and there we can use a release name)
-                "version": "47a54025f59cf3e93514ac5d4c351b8e7b10e35b",
+                "version": "52ad45ee68e4715463ebe731d94153e6eff5f2bf",
                 "urls": [
                     {"url": "https://github.com/graalvm/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
