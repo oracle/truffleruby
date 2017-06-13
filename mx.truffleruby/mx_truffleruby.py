@@ -8,7 +8,9 @@
 
 import glob
 import os
-from os.path import join
+from os.path import exists, join
+import shutil
+import sys
 
 import mx
 import mx_unittest
@@ -43,6 +45,21 @@ class TruffleRubyDocsProject(ArchiveProject):
 
     def getResults(self):
         return [join(_suite.dir, f) for f in self.doc_files]
+
+class TruffleRubyLauncherProject(ArchiveProject):
+    def link_launcher(self):
+        launcher = join(_suite.dir, 'bin', 'truffleruby')
+        if sys.platform.startswith('darwin'):
+            binary = join(_suite.dir, 'tool', 'native_launcher_darwin')
+            if mx.TimeStampFile(launcher).isOlderThan(binary):
+                shutil.copy(binary, launcher)
+        else:
+            if not exists(launcher):
+                os.symlink("truffleruby.sh", launcher)
+
+    def getResults(self):
+        self.link_launcher()
+        return ArchiveProject.getResults(self)
 
 # Commands
 
