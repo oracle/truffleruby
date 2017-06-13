@@ -108,6 +108,10 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         context.shutdown();
     }
 
+    public static RubyContext getCurrentContext() {
+        return getCurrentContext(RubyLanguage.class);
+    }
+
     @Override
     protected CallTarget parse(ParsingRequest request) throws Exception {
         return Truffle.getRuntime().createCallTarget(new LazyRubyRootNode(this, null, null, request.getSource(), request.getArgumentNames()));
