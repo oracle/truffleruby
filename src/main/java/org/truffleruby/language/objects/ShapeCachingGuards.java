@@ -16,7 +16,6 @@ import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 public abstract class ShapeCachingGuards {
@@ -25,7 +24,7 @@ public abstract class ShapeCachingGuards {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         boolean updated = object.updateShape();
         if (updated) {
-            assert !SharedObjects.isShared(RubyLanguage.getCurrentContext(), object);
+            assert !SharedObjects.isShared(RubyContext.LATEST_INSTANCE, object);
         }
         return updated;
     }
