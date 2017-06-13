@@ -153,10 +153,10 @@ suite = {
             "maven": {
                 "groupId": "org.jruby.jcodings",
                 "artifactId": "jcodings",
-                "version": "1.0.18"
+                "version": "1.0.19"
             },
-            "sha1": "e2c76a19f00128bb1806207e2989139bfb45f49d",
-            "sourceSha1": "201985f0f15af95f03494ab9ef0400e849090d6c",
+            "sha1": "7f0faf6f2d5eaf0b036ca322c297dbeb9dd168ec",
+            "sourceSha1": "083069b97e1a3e20284940849880da0a54b2640c",
             "licence": "MIT"
         },
     },
