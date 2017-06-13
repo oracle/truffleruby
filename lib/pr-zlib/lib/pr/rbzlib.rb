@@ -251,22 +251,18 @@ module Rbzlib
     end
 
     def [](idx)
-      # Truffle: S switched to v for consistent endianess
       @buffer[(idx * 2) + @offset, 2].unpack('v').first
     end
 
     def []=(idx, val)
-      # Truffle: S switched to v for consistent endianess
       @buffer[(idx * 2) + @offset, 2] = [val].pack('v')
     end
 
     def get()
-      # Truffle: S switched to v for consistent endianess
       @buffer[@offset, 2].unpack('v').first
     end
 
     def set(val)
-      # Truffle: S switched to v for consistent endianess
       @buffer[@offset, 2] = [val].pack('v')
     end
   end

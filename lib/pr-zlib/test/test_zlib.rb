@@ -21,7 +21,7 @@ class TC_Zlib < Test::Unit::TestCase
 
    def test_zlib_version
       assert_equal('1.2.3', Zlib::ZLIB_VERSION)
-      assert_equal('1.0.2', Zlib::PR_ZLIB_VERSION)
+      assert_equal('1.0.4', Zlib::PR_ZLIB_VERSION)
    end
 
    def test_zlib_included_constants
