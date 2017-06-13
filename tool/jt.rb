@@ -33,9 +33,9 @@ METRICS_REPS = 10
 
 VERBOSE = ENV.include? 'V'
 
-uname = `uname`.chomp
-MAC = uname == 'Darwin'
-LINUX = uname == 'Linux'
+UNAME = `uname`.chomp
+MAC = UNAME == 'Darwin'
+LINUX = UNAME == 'Linux'
 
 SO = MAC ? 'dylib' : 'so'
 
@@ -1625,12 +1625,8 @@ module Commands
   end
 
   def native_launcher
-    Dir.chdir("#{TRUFFLERUBY_DIR}/bin") do
-      sh = "truffleruby.sh"
-      raw_sh "git", "checkout", "HEAD", "truffleruby"
-      raw_sh "mv", "truffleruby", sh
-      raw_sh "cc", "-o", "truffleruby", "../tool/native_launcher.c"
-    end
+    platform = UNAME.downcase
+    sh "cc", "-o", "tool/native_launcher_#{platform}", "tool/native_launcher.c"
   end
   alias :'native-launcher' :native_launcher
 
