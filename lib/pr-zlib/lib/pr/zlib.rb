@@ -18,8 +18,8 @@ include Rbzlib
 
 module Zlib
 
-  RUBY_ZLIB_VERSION = '0.6.0'
-  PR_ZLIB_VERSION   = '1.0.2'
+  RUBY_ZLIB_VERSION = '0.6.0'.freeze
+  PR_ZLIB_VERSION   = '1.0.4'.freeze
 
   class Error < StandardError
   end
@@ -889,17 +889,14 @@ module Zlib
     end
 
     def gzfile_get16(src)
-      # Truffle: S to v for consistent endianess
       src.unpack('v').first
     end
 
     def gzfile_get32(src)
-      # Truffle: L to V for consistent endianess
       src.unpack('V').first
     end
 
     def gzfile_set32(n)
-      # Truffle: L to V for consistent endianess
       [n].pack('V')
     end
 

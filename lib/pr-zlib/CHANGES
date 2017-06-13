@@ -1,3 +1,8 @@
+= 1.0.4 - 15-Nov-2016
+* Fixed an endian bug. Thanks go to Benoit Daloze for the patch.
+* The version constants are now frozen (and fixed the version number).
+* Updated the cert.
+
 = 1.0.3 - 3-Dec-2015
 * Added a license. This library is now covered under the zlib license.
 * Some performance tuning. Reads are 2-3 times faster, while writes are

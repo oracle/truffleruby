@@ -2,7 +2,7 @@ require 'rubygems'
 
 Gem::Specification.new do |spec|
   spec.name             = 'pr-zlib'
-  spec.version          = '1.0.3'
+  spec.version          = '1.0.4'
   spec.authors          = ['Park Heesob', 'Daniel Berger']
   spec.email            = 'phasis@gmail.com'
   spec.homepage         = 'https://github.com/djberg96/pr-zlib'
