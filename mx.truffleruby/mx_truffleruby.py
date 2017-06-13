@@ -46,6 +46,10 @@ class TruffleRubyDocsProject(ArchiveProject):
 
 # Commands
 
+def build_truffleruby():
+    mx.command_function('sversions')([])
+    mx.command_function('build')([])
+
 def ruby_tck(args):
     for var in ['GEM_HOME', 'GEM_PATH', 'GEM_ROOT']:
         if var in os.environ:
@@ -65,11 +69,11 @@ def deploy_binary_if_master(args):
 def ruby_testdownstream(args):
     os.environ['CI'] = 'true'
 
-    mx.command_function('build')([])
+    build_truffleruby()
     mx.run(['ruby', 'tool/jt.rb', 'test', 'fast'])
 
 def ruby_testdownstream_hello(args):
-    mx.command_function('build')([])
+    build_truffleruby()
     mx.run(['bin/truffleruby', '-e', 'puts "Hello Ruby!"'])
 
 
