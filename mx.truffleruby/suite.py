@@ -224,7 +224,7 @@ suite = {
         },
 
         "truffleruby-bin": {
-            "class": "ArchiveProject",
+            "class": "TruffleRubyLauncherProject",
             "outputDir": "bin",
             "prefix": "bin",
             "license": ["EPL-1.0", "GPLv2", "LGPLv21"],
