@@ -40,7 +40,7 @@ public abstract class RubyTest {
         final Source source = Source.newBuilder(text).name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build();
 
         testInEngine(() -> {
-            final TranslatorDriver translator = new TranslatorDriver(RubyLanguage.getCurrentContext());
+            final TranslatorDriver translator = new TranslatorDriver(RubyContext.LATEST_INSTANCE);
             final RubyRootNode rootNode = translator.parse(source, UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, null, null, true, null);
             rootNode.adoptChildren();
             test.accept(rootNode);
