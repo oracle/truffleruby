@@ -1060,13 +1060,18 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_tr_debug", onSingleton = true, required = 1)
+    @CoreMethod(names = "rb_tr_debug", onSingleton = true, rest = true)
     public abstract static class DebugNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        public Object debug(Object object) {
-            System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), object);
+        public Object debug(Object... objects) {
+            if(objects.length > 1) {
+                System.err.printf("Printing %d values%n", objects.length);
+            }
+            for (Object object: objects) {
+                System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), object);
+            }
             return nil();
         }
     }
