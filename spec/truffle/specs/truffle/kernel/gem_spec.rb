@@ -10,6 +10,7 @@ require_relative '../../../../ruby/spec_helper'
 
 describe "Kernel#gem" do
   it "returns true for included gems" do
+    require "rubygems"
     gem("json").should == true
     gem("minitest").should == true
     gem("power_assert").should == true
