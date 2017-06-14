@@ -111,6 +111,7 @@ module Enumerable
   def count(item = undefined)
     seq = 0
     if !undefined.equal?(item)
+      warn 'warning: given block not used' if block_given?
       each { |o| seq += 1 if item == o }
     elsif block_given?
       each { |o| seq += 1 if yield(o) }
