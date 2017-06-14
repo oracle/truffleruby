@@ -382,13 +382,11 @@ module ShellUtils
   end
 
   def clang(*args)
-    clang = ENV['JT_CLANG'] || 'clang'
-    sh clang, *args
+    sh 'clang', *args
   end
 
   def llvm_opt(*args)
-    opt = ENV['JT_OPT'] || 'opt'
-    sh opt, *args
+    sh 'opt', *args
   end
 
   def sulong_run(*args)
@@ -507,7 +505,6 @@ module Commands
         SL_JAR                                       The location of truffle-sl.jar
         LIBXML_HOME, LIBXML_INCLUDE, LIBXML_LIB      The location of libxml2 (the directory containing include etc), and the direct include directory and library file
         OPENSSL_HOME, OPENSSL_INCLUDE, OPENSSL_LIB               ... OpenSSL ...
-        JT_CLANG, JT_OPT                             LLVM binaries to use
         AOT_BIN                                      TruffleRuby/SVM executable
     TXT
   end

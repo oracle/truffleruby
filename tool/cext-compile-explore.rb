@@ -32,5 +32,5 @@ run "#{RbConfig::CONFIG['CC']} -Werror=implicit-function-declaration -Wno-int-co
 run 'llvm-dis-3.8 explore-frontend.bc'
 
 opt_passes = %w[-always-inline -mem2reg -constprop]
-run "#{ENV['JT_OPT'] || 'opt'} #{opt_passes.join(' ')} explore-frontend.bc -o explore-opt.bc"
-run 'llvm-dis-3.8 explore-opt.bc'
+run "opt #{opt_passes.join(' ')} explore-frontend.bc -o explore-opt.bc"
+run 'llvm-dis explore-opt.bc'
