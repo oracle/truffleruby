@@ -25,6 +25,7 @@ class MSpecScript
       -J-da:com.oracle.truffle.api.interop.ForeignAccess
       -J-Xmx2G
       -Xgraal.warn_unless=false
+      --disable-gems
     ]
     core_path = "#{TRUFFLERUBY_DIR}/src/main/ruby"
     if File.directory?(core_path)
