@@ -142,8 +142,8 @@ module RbConfig
 
   sulong_home = ENV['SULONG_HOME']
   if sulong_home
-    clang          = ENV['JT_CLANG'] || 'clang'
-    opt            = ENV['JT_OPT'] || 'opt'
+    clang          = 'clang'
+    opt            = 'opt'
     opt_passes     = ['-always-inline', '-mem2reg', '-constprop'].join(' ')
     sulong_include = File.join sulong_home, 'include'
     cc             = "#{clang} -I#{sulong_include}"

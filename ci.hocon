@@ -164,7 +164,6 @@ sulong: ${labsjdk8} {
     CPPFLAGS: "-I$LIBGMP/include",
     LD_LIBRARY_PATH: "$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH",
     PATH: "$LLVM/bin:$PATH",
-    SULONG_VERSION: "3.8",
     GRAAL_HOME: "$PWD/../sulong",
     SULONG_HOME: "$PWD/../sulong",
     SULONG_NO_LIBRARY: "true",
