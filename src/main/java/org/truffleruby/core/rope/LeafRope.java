@@ -11,7 +11,7 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 
-public abstract class LeafRope extends Rope {
+public abstract class LeafRope extends OnHeapRope {
 
     public LeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int characterLength) {
         super(encoding, codeRange, singleByteOptimizable, bytes.length, characterLength, 1, bytes);

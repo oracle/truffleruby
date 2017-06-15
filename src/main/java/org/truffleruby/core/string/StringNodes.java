@@ -2848,9 +2848,8 @@ public abstract class StringNodes {
         public boolean fullEqual(DynamicObject string, DynamicObject other,
                                  @Cached("createBinaryProfile()") ConditionProfile hashCodesCalculatedProfile,
                                  @Cached("createBinaryProfile()") ConditionProfile differentHashCodesProfile,
-                                 @Cached("createBinaryProfile()") ConditionProfile aHasRawBytesProfile,
-                @Cached("createBinaryProfile()") ConditionProfile bHasRawBytesProfile,
-                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.BytesNode aBytesNode,
+                @Cached("create()") RopeNodes.BytesNode bBytesNode,
                 @Cached("create()") RopeNodes.HashNode hashNode) {
             final Rope a = rope(string);
             final Rope b = rope(other);
@@ -2861,19 +2860,8 @@ public abstract class StringNodes {
                 }
             }
 
-            final byte[] aBytes;
-            if (aHasRawBytesProfile.profile(a.getRawBytes() != null)) {
-                aBytes = a.getRawBytes();
-            } else {
-                aBytes = bytesNode.execute(a);
-            }
-
-            final byte[] bBytes;
-            if (bHasRawBytesProfile.profile(b.getRawBytes() != null)) {
-                bBytes = b.getRawBytes();
-            } else {
-                bBytes = b.getBytes();
-            }
+            final byte[] aBytes = aBytesNode.execute(a);
+            final byte[] bBytes = bBytesNode.execute(b);
 
             return arraysEquals(aBytes, bBytes);
         }

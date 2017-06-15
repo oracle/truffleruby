@@ -59,13 +59,7 @@ public abstract class Rope {
         return bytes;
     }
 
-    public byte[] getBytes() {
-        if (bytes == null) {
-            bytes = getBytesSlow();
-        }
-
-        return bytes;
-    }
+    public abstract byte[] getBytes();
 
     protected byte[] getBytesSlow() {
         return RopeOperations.flattenBytes(this);

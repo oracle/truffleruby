@@ -12,7 +12,7 @@ package org.truffleruby.core.rope;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.Encoding;
 
-public class ConcatRope extends Rope {
+public class ConcatRope extends OnHeapRope {
 
     private final Rope left;
     private final Rope right;

@@ -975,9 +975,10 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "rope.getRawBytes() == null")
         public int getByteSubstringRope(SubstringRope rope, int index,
-                                        @Cached("createBinaryProfile()") ConditionProfile childRawBytesNullProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile childRawBytesNullProfile,
+                @Cached("create()") ByteSlowNode slowByte) {
             if (childRawBytesNullProfile.profile(rope.getChild().getRawBytes() == null)) {
-                return rope.getByteSlow(index) & 0xff;
+                return slowByte.execute(rope, index) & 0xff;
             }
 
             return rope.getChild().getRawBytes()[index + rope.getOffset()] & 0xff;
@@ -1152,11 +1153,13 @@ public abstract class RopeNodes {
 
         public abstract byte[] execute(Rope rope);
 
-        @Specialization(guards = "ropeClass == rope.getClass()")
-        public byte[] getBytesFromRope(Rope rope,
-                @Cached("rope.getClass()") Class<?> ropeClass,
-                @Cached("createClassProfile()") ValueProfile ropeProfile) {
-            return ropeProfile.profile(rope).getBytes();
+        @Specialization(guards = "rope.bytesSet()")
+        public byte[] getBytesOnHeap(OnHeapRope rope) {
+            return rope.getBytesFast();
+        }
+
+        public byte[] getBytesNative(NativeRope rope) {
+            return rope.getBytes();
         }
 
         @Specialization
@@ -1177,16 +1180,24 @@ public abstract class RopeNodes {
 
         public abstract byte[] execute(Rope rope);
 
-        @Specialization(guards = "ropeClass == rope.getClass()")
-        public byte[] getBytesFromRope(Rope rope,
-                @Cached("rope.getClass()") Class<?> ropeClass) {
+        @Specialization
+        public byte[] getNativeBytesSlow(NativeRope rope) {
+            return rope.getBytes();
+        }
+
+        @Specialization
+        public byte[] getNativeBytesSlow(RepeatingRope rope) {
             return rope.getBytesSlow();
         }
 
         @Specialization
-        @TruffleBoundary
-        public byte[] getBytesFromRope(Rope rope) {
+        public byte[] getNativeBytesSlow(SubstringRope rope) {
             return rope.getBytesSlow();
+        }
+
+        @Specialization
+        public byte[] getBytesFromRope(Rope rope) {
+            return RopeOperations.flattenBytes(rope);
         }
     }
 
@@ -1202,22 +1213,19 @@ public abstract class RopeNodes {
 
         public abstract byte execute(Rope rope, int index);
 
-        @Specialization(guards = "childClass == rope.getChild().getClass()")
         public byte getByteFromSubString(SubstringRope rope,
                 int index,
-                @Cached("rope.getChild().getClass()") Class<?> childClass,
-                @Cached("createClassProfile()") ValueProfile childProfile) {
-            return childProfile.profile(rope.getChild()).getByteSlow(rope.getOffset() + index);
+                @Cached("create()") ByteSlowNode childNode) {
+            return childNode.execute(rope.getChild(), rope.getOffset() + index);
         }
 
-        @Specialization
-        @TruffleBoundary
-        public byte getByteFromRope(SubstringRope rope, int index) {
-            return rope.getByteSlow(index);
+        @Specialization(guards = "rope.bytesSet()")
+        public byte fastByte(OnHeapRope rope, int index) {
+            return rope.getBytesFast()[index];
         }
 
-        @Specialization(guards = "ropeClass == rope.getClass()")
-        public byte getByteFromRope(Rope rope,
+        @Specialization(guards = { "ropeClass == rope.getClass()", "!isSubstring(rope)", "!rope.bytesSet()" })
+        public byte getByteFromRope(OnHeapRope rope,
                 int index,
                 @Cached("rope.getClass()") Class<?> ropeClass,
                 @Cached("createClassProfile()") ValueProfile ropeProfile) {
@@ -1225,9 +1233,18 @@ public abstract class RopeNodes {
         }
 
         @Specialization
-        @TruffleBoundary
-        public byte getByteFromRope(Rope rope, int index) {
+        public byte getByteFromNativeRope(NativeRope rope, int index) {
             return rope.getByteSlow(index);
+        }
+
+        @Specialization(guards = "!rope.bytesSet()")
+        @TruffleBoundary
+        public byte getByteFromRope(OnHeapRope rope, int index) {
+            return rope.getByteSlow(index);
+        }
+
+        protected static boolean isSubstring(OnHeapRope rope) {
+            return rope instanceof SubstringRope;
         }
     }
 
@@ -1242,16 +1259,26 @@ public abstract class RopeNodes {
 
         public abstract byte[] execute(Rope rope);
 
-        @Specialization(guards = "ropeClass == rope.getClass()")
-        public byte[] getBytesCopyFromRope(Rope rope,
+        @Specialization
+        public byte[] getBytesFromNative(NativeRope rope) {
+            return rope.getBytes();
+        }
+
+        @Specialization(guards = "rope.bytesSet()")
+        public byte[] getBytesOnHeap(OnHeapRope rope) {
+            return rope.getBytesFast().clone();
+        }
+
+        @Specialization(guards = { "ropeClass == rope.getClass()", "!rope.bytesSet()" })
+        public byte[] getBytesCopyFromRope(OnHeapRope rope,
                 @Cached("rope.getClass()") Class<?> ropeClass,
                 @Cached("createClassProfile()") ValueProfile ropeProfile) {
             return ropeProfile.profile(rope).getBytesCopy();
         }
 
-        @Specialization
+        @Specialization(guards = "!rope.bytesSet()")
         @TruffleBoundary
-        public byte[] getBytesFromRope(Rope rope) {
+        public byte[] getBytesFromRope(OnHeapRope rope) {
             return rope.getBytesCopy();
         }
     }

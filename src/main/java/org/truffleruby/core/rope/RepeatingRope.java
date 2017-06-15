@@ -12,7 +12,7 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 
-public class RepeatingRope extends Rope {
+public class RepeatingRope extends OnHeapRope {
 
     private final Rope child;
     private final int times;
