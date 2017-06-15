@@ -143,7 +143,7 @@ public class Main {
                     if (config.shouldUsePathScript()) {
                         context.setOriginalInputFile(config.getScriptFileName());
                         //language=ruby
-                        bootCode = "Truffle::Boot.main_s";
+                        bootCode = "exit Truffle::Boot.main_s";
                     } else {
                         context.setOriginalInputFile(filename);
                         //language=ruby
