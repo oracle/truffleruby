@@ -22,6 +22,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -210,7 +211,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization(guards = "isRubyString(value)")
     public DynamicObject createString(VirtualFrame frame, DynamicObject value, DynamicObject self, int digits) {
-        return executeInitialize(frame, getValueFromString(value.toString(), digits), self, digits);
+        return executeInitialize(frame, getValueFromString(StringOperations.getString(value), digits), self, digits);
     }
 
     @Specialization(guards = {
