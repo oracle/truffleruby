@@ -14,7 +14,6 @@ module Truffle
     def self.main_s
       $0 = find_s_file(original_input_file)
       main $0
-      0
     end
 
     def self.check_syntax
