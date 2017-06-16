@@ -24,11 +24,13 @@ modules = [
 describe "Public methods on" do
   modules.each do |mod|
     it "#{mod.name} are the same as on MRI" do
-      methods = mod.public_instance_methods(false).sort
+      methods = ruby_exe("puts #{mod}.public_instance_methods(false).sort")
+      methods = methods.lines.map { |line| line.chomp.to_sym }
+
       file = File.expand_path("../methods/#{mod.name}.txt", __FILE__)
 
       if RUBY_ENGINE == "ruby"
-        contents = methods.join("\n") + "\n"
+        contents = methods.map { |meth| "#{meth}\n" }.join
         File.write file, contents
         1.should == 1
       else
