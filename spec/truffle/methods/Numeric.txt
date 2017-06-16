@@ -28,8 +28,6 @@ numerator
 phase
 polar
 positive?
-pretty_print
-pretty_print_cycle
 quo
 real
 real?
