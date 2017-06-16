@@ -143,11 +143,11 @@ public class Main {
                     if (config.shouldUsePathScript()) {
                         context.setOriginalInputFile(config.getScriptFileName());
                         //language=ruby
-                        bootCode = "Kernel.exit Truffle::Boot.main_s";
+                        bootCode = "Truffle::Boot.main_s";
                     } else {
                         context.setOriginalInputFile(filename);
                         //language=ruby
-                        bootCode = "Kernel.exit Truffle::Boot.main";
+                        bootCode = "Truffle::Boot.main";
                     }
                     exitCode = engine.eval(context.getCoreLibrary().createMainBootSource(bootCode, "main")).as(Integer.class);
                 }

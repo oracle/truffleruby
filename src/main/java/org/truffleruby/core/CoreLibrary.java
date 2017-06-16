@@ -717,7 +717,8 @@ public class CoreLibrary {
         basicObjectSendMethod = getMethod(basicObjectClass, "__send__");
         truffleBootMainMethod = getMethod(node.getSingletonClass(truffleBootModule), "main");
 
-        cloningEnabled = Truffle.getRuntime().createDirectCallNode(getMethod(kernelModule, "lambda").getCallTarget()).isCallTargetCloningAllowed();
+        final CallTarget kernelLamba = getMethod(kernelModule, "lambda").getCallTarget();
+        cloningEnabled = Truffle.getRuntime().createDirectCallNode(kernelLamba).isCallTargetCloningAllowed();
     }
 
     private InternalMethod getMethod(DynamicObject module, String name) {

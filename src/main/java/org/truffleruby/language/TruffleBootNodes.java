@@ -83,7 +83,7 @@ public abstract class TruffleBootNodes {
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object main(VirtualFrame frame, NotProvided path,
+        public int main(VirtualFrame frame, NotProvided path,
                 @Cached("create()") IndirectCallNode callNode) {
 
             final String inputFile = getContext().getOriginalInputFile();
@@ -91,13 +91,13 @@ public abstract class TruffleBootNodes {
         }
 
         @Specialization(guards = "isRubyString(path)")
-        public Object loadMain(VirtualFrame frame, DynamicObject path,
+        public int loadMain(VirtualFrame frame, DynamicObject path,
                 @Cached("create()") IndirectCallNode callNode) {
             final String inputFile = StringOperations.getString(path);
             return loadMain(callNode, inputFile);
         }
 
-        private Object loadMain(IndirectCallNode callNode, String inputFile) {
+        private int loadMain(IndirectCallNode callNode, String inputFile) {
             final Source source = getMainSource(inputFile);
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
@@ -109,13 +109,14 @@ public abstract class TruffleBootNodes {
                     null);
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
-                    ParserContext.TOP_LEVEL,
+                    ParserContext.TOP_LEVEL_FIRST,
                     DeclarationContext.TOP_LEVEL,
                     rootNode,
                     null,
                     coreLibrary().getMainObject());
 
-            return deferredCall.call(callNode);
+            // The TopLevelRaiseHandler returns an int
+            return (int) deferredCall.call(callNode);
         }
 
         @TruffleBoundary
