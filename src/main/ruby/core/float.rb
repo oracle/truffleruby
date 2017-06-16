@@ -127,7 +127,7 @@ class Float < Numeric
   def arg
     if nan?
       self
-    elsif signbit?
+    elsif self < 0 or equal?(-0.0)
       Math::PI
     else
       0
