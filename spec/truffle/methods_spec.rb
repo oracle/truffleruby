@@ -12,6 +12,9 @@ require_relative '../ruby/spec_helper'
 # jt test spec/truffle/methods_specs.rb -t ruby
 # to regenerate the files under methods/.
 
+# Only set to true for faster development if this spec is run alone
+run_directly = false
+
 modules = [
   BasicObject, Object,
   Enumerable, Enumerator,
@@ -24,8 +27,12 @@ modules = [
 describe "Public methods on" do
   modules.each do |mod|
     it "#{mod.name} are the same as on MRI" do
-      methods = ruby_exe("puts #{mod}.public_instance_methods(false).sort")
-      methods = methods.lines.map { |line| line.chomp.to_sym }
+      if run_directly
+        methods = mod.public_instance_methods(false).sort
+      else
+        methods = ruby_exe("puts #{mod}.public_instance_methods(false).sort")
+        methods = methods.lines.map { |line| line.chomp.to_sym }
+      end
 
       file = File.expand_path("../methods/#{mod.name}.txt", __FILE__)
 
