@@ -256,6 +256,7 @@ class Numeric
     b, a = math_coerce(right, :compare_error)
     a.__send__ meth, b
   end
+  private :redo_compare
 
   def div(other)
     raise ZeroDivisionError, 'divided by 0' if other == 0
