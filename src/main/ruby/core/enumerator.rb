@@ -71,6 +71,11 @@ class Enumerator
   end
   private :initialize
 
+  def inspect
+    args = @args.empty? ? '' : "(#{@args.map(&:inspect).join(', ')})"
+    "#<#{self.class}: #{@object.inspect}:#{@iter}#{args}>"
+  end
+
   def each(*args)
     enumerator = self
     new_args = @args
