@@ -838,15 +838,4 @@ public abstract class FloatNodes {
 
     }
 
-    @CoreMethod(names = "signbit?")
-    public static abstract class FloatSignBitNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public boolean floatSignBit(double value) {
-            // Edge-cases: 0, NaN and infinity can all be negative
-            return (Double.doubleToLongBits(value) >>> 63) == 1;
-        }
-
-    }
-
 }
