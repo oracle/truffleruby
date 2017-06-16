@@ -678,8 +678,6 @@ module Enumerable
   end
   private :min_n
 
-  alias_method :min_internal, :min
-
   def max(n = undefined, &block)
     return max_n(n, &block) if !undefined.equal?(n) && !n.nil?
     max = undefined
@@ -709,8 +707,6 @@ module Enumerable
     self.sort(&block).reverse.first(n)
   end
   private :max_n
-
-  alias_method :max_internal, :max
 
   def max_by
     return to_enum(:max_by) { enumerator_size } unless block_given?
