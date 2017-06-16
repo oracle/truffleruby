@@ -33,7 +33,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class BasicObject
-  def __marshal__(ms, strip_ivars = false)
+  private def __marshal__(ms, strip_ivars = false)
     out = ms.serialize_extended_object self
     out << 'o'
     cls = ::Rubinius::Type.object_class self
@@ -44,7 +44,7 @@ class BasicObject
 end
 
 class Class
-  def __marshal__(ms)
+  private def __marshal__(ms)
     if singleton_class?
       raise TypeError, "singleton class can't be dumped"
     elsif name.nil? || name.empty?
@@ -56,14 +56,14 @@ class Class
 end
 
 class Module
-  def __marshal__(ms)
+  private def __marshal__(ms)
     raise TypeError, "can't dump anonymous module #{self}" if name.nil? || name.empty?
     "m#{ms.serialize_integer(name.length)}#{name}"
   end
 end
 
 class Float
-  def __marshal__(ms)
+  private def __marshal__(ms)
     if nan?
       str = 'nan'
     elsif zero?
@@ -100,7 +100,7 @@ class Exception
   # Custom marshal dumper for Exception. Rubinius exposes the exception message as an instance variable and their
   # dumper takes advantage of that. This dumper instead calls Exception#message to get the message, but is otherwise
   # identical.
-  def __marshal__(ms)
+  private def __marshal__(ms)
     out = ms.serialize_extended_object self
     out << 'o'
     cls = Rubinius::Type.object_class self
@@ -235,7 +235,7 @@ class Range
   # we do something more along the lines of MRI and as such, the default Rubinius handler for dumping Range doesn't
   # work for us because there are no instance variables to dump. This custom dumper explicitly encodes the three main
   # values so we generate the correct dump data.
-  def __marshal__(ms)
+  private def __marshal__(ms)
     out = ms.serialize_extended_object self
     out << 'o'
     cls = Rubinius::Type.object_class self
@@ -253,25 +253,25 @@ class Range
 end
 
 class NilClass
-  def __marshal__(ms)
+  private def __marshal__(ms)
     Rubinius::Type.binary_string('0')
   end
 end
 
 class TrueClass
-  def __marshal__(ms)
+  private def __marshal__(ms)
     Rubinius::Type.binary_string('T')
   end
 end
 
 class FalseClass
-  def __marshal__(ms)
+  private def __marshal__(ms)
     Rubinius::Type.binary_string('F')
   end
 end
 
 class Symbol
-  def __marshal__(ms)
+  private def __marshal__(ms)
     if idx = ms.find_symlink(self)
       Rubinius::Type.binary_string(";#{ms.serialize_integer(idx)}")
     else
@@ -282,7 +282,7 @@ class Symbol
 end
 
 class String
-  def __marshal__(ms)
+  private def __marshal__(ms)
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, String)
@@ -293,19 +293,19 @@ class String
 end
 
 class Fixnum
-  def __marshal__(ms)
+  private def __marshal__(ms)
     ms.serialize_integer(self, 'i')
   end
 end
 
 class Bignum
-  def __marshal__(ms)
+  private def __marshal__(ms)
     ms.serialize_bignum(self)
   end
 end
 
 class Regexp
-  def __marshal__(ms)
+  private def __marshal__(ms)
     str = self.source
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
@@ -320,7 +320,7 @@ class Regexp
 end
 
 class Struct
-  def __marshal__(ms)
+  private def __marshal__(ms)
     exclude = _attrs.map { |a| "@#{a}".to_sym }
 
     out =  ms.serialize_instance_variables_prefix(self, exclude)
@@ -343,7 +343,7 @@ class Struct
 end
 
 class Array
-  def __marshal__(ms)
+  private def __marshal__(ms)
     out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Array)
@@ -361,7 +361,7 @@ class Array
 end
 
 class Hash
-  def __marshal__(ms)
+  private def __marshal__(ms)
     raise TypeError, "can't dump hash with default proc" if default_proc
 
     excluded_ivars = %w[
@@ -410,7 +410,7 @@ class Time
 end
 
 module Unmarshalable
-  def __marshal__(ms)
+  private def __marshal__(ms)
     raise TypeError, "marshaling is undefined for class #{self.class}"
   end
 end
