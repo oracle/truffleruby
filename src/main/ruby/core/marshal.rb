@@ -871,9 +871,8 @@ module Marshal
         @has_ivar[ivar_index] = false
       end
 
-      obj = nil
-      Truffle.privately do
-        obj = klass._load data
+      obj = Truffle.privately do
+        klass._load data
       end
 
       add_object obj
@@ -1110,9 +1109,8 @@ module Marshal
         return obj.__custom_marshal__(self)
       end
 
-      str = nil
-      Truffle.privately do
-        str = obj._dump @depth
+      str = Truffle.privately do
+        obj._dump @depth
       end
 
       unless Rubinius::Type.object_kind_of? str, String
