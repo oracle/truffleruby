@@ -54,8 +54,6 @@ class MSpecScript
   set :core_a, [
     "spec/ruby/core",
     "^spec/ruby/core/argf",
-    "^spec/ruby/core/encoding",
-    "^spec/ruby/core/file",
     "^spec/ruby/core/io",
     "^spec/ruby/core/kernel",
     "^spec/ruby/core/process",
@@ -63,8 +61,6 @@ class MSpecScript
   
   set :core_b, [
     "spec/ruby/core/argf",
-    "spec/ruby/core/encoding",
-    "spec/ruby/core/file",
     "spec/ruby/core/io",
     "spec/ruby/core/kernel",
     "spec/ruby/core/process",
