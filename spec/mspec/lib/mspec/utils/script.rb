@@ -247,9 +247,7 @@ class MSpecScript
     end
 
     unless ENV['RUBY_FLAGS']
-      if config[:flags] && !config[:flags].empty?
-        ENV['RUBY_FLAGS'] = config[:flags].join(" ")
-      end
+      ENV['RUBY_FLAGS'] = config[:flags].join(" ") if config[:flags]
     end
   end
 
