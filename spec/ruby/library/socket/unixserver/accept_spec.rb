@@ -14,12 +14,11 @@ platform_is_not :windows do
     end
 
     it "accepts what is written by the client" do
-      server = UNIXServer.open(@path)
       client = UNIXSocket.open(@path)
 
       client.send('hello', 0)
 
-      sock = server.accept
+      sock = @server.accept
       begin
         data, info = sock.recvfrom(5)
 
