@@ -12,9 +12,12 @@ require_relative '../ruby/spec_helper'
 # jt test spec/truffle/methods_specs.rb -t ruby
 # to regenerate the files under methods/.
 
-modules = [BasicObject, Object]
+modules = [
+  BasicObject, Object,
+  Enumerable, Enumerator,
+]
 # Kernel
-# Array, Hash, Range, String, Enumerable, Enumerator
+# Array, Hash, Range, String
 # Numeric, Fixnum, Bignum, Integer, Float, Rational, Complex
 
 describe "Public methods on" do
