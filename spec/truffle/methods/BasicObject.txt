@@ -1,0 +1,8 @@
+!
+!=
+==
+__id__
+__send__
+equal?
+instance_eval
+instance_exec
