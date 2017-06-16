@@ -2,6 +2,10 @@ require 'rbconfig'
 
 class MSpecScript
 
+  def self.child_process?
+    ENV.key? "MSPEC_RUNNER"
+  end
+
   def self.windows?
     ENV.key?('WINDIR') || ENV.key?('windir')
   end
@@ -18,7 +22,8 @@ class MSpecScript
 
   set :target, "#{TRUFFLERUBY_DIR}/bin/truffleruby"
 
-  unless ARGV.include?('-t')  # No flags set if Ruby binary specified via -t.
+  # No flags set if a Ruby binary is specified via -t
+  if !child_process? and !ARGV.include?('-t')
     flags = %w[
       -J-ea
       -J-esa
@@ -148,8 +153,7 @@ class MSpecScript
   set :files, get(:language) + get(:core) + get(:library) + get(:truffle)
 end
 
-is_child_process = ENV.key? "MSPEC_RUNNER"
-if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and is_child_process
+if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_process?
   require 'mspec'
 
   class SlowSpecsTagger
