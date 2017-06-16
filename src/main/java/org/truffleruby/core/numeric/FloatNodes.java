@@ -200,7 +200,7 @@ public abstract class FloatNodes {
 
     }
 
-    @CoreMethod(names = { "/", "__slash__" }, required = 1)
+    @CoreMethod(names = "/", required = 1)
     public abstract static class DivNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode redoCoercedNode;

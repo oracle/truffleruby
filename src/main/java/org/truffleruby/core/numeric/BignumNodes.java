@@ -137,7 +137,7 @@ public abstract class BignumNodes {
 
     }
 
-    @CoreMethod(names = { "/", "__slash__" }, required = 1)
+    @CoreMethod(names = "/", required = 1)
     public abstract static class DivNode extends BignumCoreMethodNode {
 
         public abstract Object executeDiv(VirtualFrame frame, Object a, Object b);
