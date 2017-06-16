@@ -1076,21 +1076,6 @@ public abstract class FixnumNodes {
 
     }
 
-    @CoreMethod(names = "floor")
-    public abstract static class FloorNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int floor(int n) {
-            return n;
-        }
-
-        @Specialization
-        public long floor(long n) {
-            return n;
-        }
-
-    }
-
     @CoreMethod(names = "inspect")
     public abstract static class InspectNode extends CoreMethodArrayArgumentsNode {
 
