@@ -241,7 +241,7 @@ public class CoreLibrary {
     private final DynamicObject truffleBootModule;
     private final DynamicObject truffleInteropModule;
     private final DynamicObject truffleInteropJavaModule;
-    private final DynamicObject truffleKernelModule;
+    private final DynamicObject truffleKernelOperationsModule;
     private final DynamicObject bigDecimalClass;
     private final DynamicObject encodingCompatibilityErrorClass;
     private final DynamicObject encodingUndefinedConversionErrorClass;
@@ -608,7 +608,7 @@ public class CoreLibrary {
         truffleBootModule = defineModule(truffleModule, "Boot");
         defineModule(truffleModule, "Fixnum");
         defineModule(truffleModule, "System");
-        truffleKernelModule = defineModule(truffleModule, "Kernel");
+        truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
         defineModule(truffleModule, "Process");
         defineModule(truffleModule, "Binding");
         defineModule(truffleModule, "POSIX");
@@ -1521,8 +1521,8 @@ public class CoreLibrary {
         return truffleInteropJavaModule;
     }
 
-    public Object getTruffleKernelModule() {
-        return truffleKernelModule;
+    public Object getTruffleKernelOperationsModule() {
+        return truffleKernelOperationsModule;
     }
 
     // Sorted alphabetically to avoid duplicates

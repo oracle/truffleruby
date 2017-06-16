@@ -314,29 +314,29 @@ module Kernel
 
     # load absolute path
     if filename.start_with? File::SEPARATOR
-      return Truffle::Kernel.load File.expand_path(filename), wrap
+      return Truffle::KernelOperations.load File.expand_path(filename), wrap
     end
 
     # if path starts with . only try relative paths
     if filename.start_with? '.'
-      return Truffle::Kernel.load File.expand_path(filename), wrap
+      return Truffle::KernelOperations.load File.expand_path(filename), wrap
     end
 
     # try to resolve with current working directory
     if File.exist? filename
-      return Truffle::Kernel.load File.expand_path(filename), wrap
+      return Truffle::KernelOperations.load File.expand_path(filename), wrap
     end
 
     # try to find relative path in $LOAD_PATH
     $LOAD_PATH.each do |dir|
       path = File.expand_path(File.join(dir, filename))
       if File.exist? path
-        return Truffle::Kernel.load path, wrap
+        return Truffle::KernelOperations.load path, wrap
       end
     end
 
     # file not found trigger an error
-    Truffle::Kernel.load filename, wrap
+    Truffle::KernelOperations.load filename, wrap
   end
   module_function :load
 
@@ -627,7 +627,7 @@ module Kernel
   module_function :caller
 
   def at_exit(&block)
-    Truffle::Kernel.at_exit false, &block
+    Truffle::KernelOperations.at_exit false, &block
   end
   module_function :at_exit
 

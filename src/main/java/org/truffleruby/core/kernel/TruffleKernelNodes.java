@@ -35,7 +35,7 @@ import org.truffleruby.parser.ParserContext;
 
 import java.io.IOException;
 
-@CoreClass("Truffle::Kernel")
+@CoreClass("Truffle::KernelOperations")
 public abstract class TruffleKernelNodes {
 
     @CoreMethod(names = "at_exit", isModuleFunction = true, needsBlock = true, required = 1)

@@ -2739,7 +2739,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitPostExeNode(PostExeParseNode node) {
         // END blocks run after any other code - not just code in the same file
 
-        // Turn into a call to Truffle::Kernel.at_exit
+        // Turn into a call to Truffle::KernelOperations.at_exit
 
         // The scope is empty - we won't be able to access local variables
         // TODO fix this
@@ -2748,7 +2748,7 @@ public class BodyTranslator extends Translator {
 
         return translateCallNode(
                 new CallParseNode(node.getPosition(),
-                        new TruffleFragmentParseNode(node.getPosition(), false, new ObjectLiteralNode(context.getCoreLibrary().getTruffleKernelModule())),
+                        new TruffleFragmentParseNode(node.getPosition(), false, new ObjectLiteralNode(context.getCoreLibrary().getTruffleKernelOperationsModule())),
                         "at_exit",
                         new ListParseNode(node.getPosition(), new TrueParseNode(node.getPosition())),
                         new IterParseNode(node.getPosition(), node.getArgsNode(), scope, node.getBodyNode())),
