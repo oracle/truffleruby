@@ -12,8 +12,8 @@ require_relative '../ruby/spec_helper'
 # jt test spec/truffle/methods_specs.rb -t ruby
 # to regenerate the files under methods/.
 
-modules = [Object]
-# BasicObject, Kernel
+modules = [BasicObject, Object]
+# Kernel
 # Array, Hash, Range, String, Enumerable, Enumerator
 # Numeric, Fixnum, Bignum, Integer, Float, Rational, Complex
 
