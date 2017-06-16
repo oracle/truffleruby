@@ -120,6 +120,17 @@ class Enumerator
     end
   end
 
+  def each_with_object(memo)
+    return to_enum(:each_with_object, memo) { size } unless block_given?
+
+    each do
+      obj = Truffle.single_block_arg
+      yield obj, memo
+    end
+    memo
+  end
+  alias_method :with_object, :each_with_object
+
   def next
     return @lookahead.shift unless @lookahead.empty?
 
