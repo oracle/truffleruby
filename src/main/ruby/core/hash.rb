@@ -265,7 +265,6 @@ class Hash
     end
     self
   end
-
   alias_method :update, :merge!
 
   def rassoc(value)
@@ -350,7 +349,6 @@ class Hash
     end
     nil
   end
-
   alias_method :key, :index
 
   def inspect
@@ -368,13 +366,11 @@ class Hash
     Rubinius::Type.infect(ret, self) unless empty?
     ret
   end
-
   alias_method :to_s, :inspect
 
   def key?(key)
     !undefined.equal?(_get_or_undefined(key))
   end
-
   alias_method :has_key?, :key?
   alias_method :include?, :key?
   alias_method :member?, :key?
@@ -430,7 +426,6 @@ class Hash
     end
     false
   end
-
   alias_method :has_value?, :value?
 
   def values
@@ -446,10 +441,6 @@ class Hash
   def values_at(*args)
     args.map { |key| self[key] }
   end
-
-  # NOT standard??
-  alias_method :indices, :values_at
-  alias_method :indexes, :values_at
 
   def invert
     inverted = {}
