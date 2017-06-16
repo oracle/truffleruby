@@ -120,7 +120,7 @@ class Float < Numeric
   def arg
     if nan?
       self
-    elsif self < 0 or equal?(-0.0)
+    elsif self < 0 || equal?(-0.0)
       Math::PI
     else
       0
