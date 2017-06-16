@@ -87,10 +87,7 @@ class Float < Numeric
       return other == self
     end
   end
-
   private :equal_fallback
-
-  FFI = Rubinius::FFI
 
   def numerator
     if nan?
