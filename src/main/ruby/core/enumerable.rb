@@ -138,8 +138,6 @@ module Enumerable
     memo
   end
 
-  alias_method :with_object, :each_with_object
-
   def flat_map
     return to_enum(:flat_map) { enumerator_size } unless block_given?
 
