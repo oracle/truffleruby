@@ -92,10 +92,6 @@ class Float < Numeric
 
   FFI = Rubinius::FFI
 
-  def imaginary
-    0
-  end
-
   def numerator
     if nan?
       NAN
