@@ -1355,7 +1355,7 @@ end
 if STDOUT.tty? || Truffle::Boot.sync_stdio?
   STDOUT.sync = true
 else
-  Truffle::Kernel.at_exit true do
+  Truffle::KernelOperations.at_exit true do
     STDOUT.flush
   end
 end
@@ -1363,7 +1363,7 @@ end
 if STDERR.tty? || Truffle::Boot.sync_stdio?
   STDERR.sync = true
 else
-  Truffle::Kernel.at_exit true do
+  Truffle::KernelOperations.at_exit true do
     STDERR.flush
   end
 end
