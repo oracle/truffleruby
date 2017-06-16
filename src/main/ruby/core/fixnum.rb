@@ -57,10 +57,6 @@ class Fixnum < Integer
     end
   end
 
-  def imaginary
-    0
-  end
-
   def **(o)
     Truffle.primitive :fixnum_pow
 
