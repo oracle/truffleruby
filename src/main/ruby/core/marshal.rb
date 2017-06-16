@@ -169,13 +169,16 @@ module Marshal
     end
 
     def serialize_encoding(obj)
-      case enc = Rubinius::Type.object_encoding(obj)
-      when Encoding::US_ASCII
-        :E.__marshal__(self) + false.__marshal__(self)
-      when Encoding::UTF_8
-        :E.__marshal__(self) + true.__marshal__(self)
-      else
-        :encoding.__marshal__(self) + serialize_string(enc.name)
+      enc = Rubinius::Type.object_encoding(obj)
+      Truffle.privately do
+        case enc
+        when Encoding::US_ASCII
+          :E.__marshal__(self) + false.__marshal__(self)
+        when Encoding::UTF_8
+          :E.__marshal__(self) + true.__marshal__(self)
+        else
+          :encoding.__marshal__(self) + serialize_string(enc.name)
+        end
       end
     end
 
@@ -962,7 +965,9 @@ module Marshal
         elsif Rubinius::Type.object_respond_to__dump? obj
           str = serialize_user_defined obj
         else
-          str = obj.__marshal__ self
+          Truffle.privately do
+            str = obj.__marshal__ self
+          end
         end
       end
 
@@ -1123,16 +1128,19 @@ module Marshal
     end
 
     def serialize_user_marshal(obj)
-      val = nil
-      Truffle.privately do
-        val = obj.marshal_dump
+      val = Truffle.privately do
+        obj.marshal_dump
       end
 
       add_non_immediate_object val
 
       cls = Rubinius::Type.object_class obj
       name = Rubinius::Type.module_name cls
-      Rubinius::Type.binary_string("U#{serialize(name.to_sym)}#{val.__marshal__(self)}")
+      name = serialize(name.to_sym)
+      marshaled = Truffle.privately do
+        val.__marshal__(self)
+      end
+      Rubinius::Type.binary_string("U#{name}#{marshaled}")
     end
 
     def store_unique_object(obj)
