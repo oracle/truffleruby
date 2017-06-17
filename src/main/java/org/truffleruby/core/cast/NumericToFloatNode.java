@@ -33,12 +33,6 @@ public abstract class NumericToFloatNode extends RubyNode {
     @Child private IsANode isANode = IsANodeGen.create(null, null);
     @Child private CallDispatchHeadNode toFloatCallNode;
 
-    private final String method;
-
-    public NumericToFloatNode(String method) {
-        this.method = method;
-    }
-
     public abstract double executeDouble(VirtualFrame frame, DynamicObject value);
 
     private Object callToFloat(VirtualFrame frame, DynamicObject value) {
@@ -46,7 +40,7 @@ public abstract class NumericToFloatNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toFloatCallNode = insert(new CallDispatchHeadNode(false, MissingBehavior.RETURN_MISSING));
         }
-        return toFloatCallNode.call(frame, value, method);
+        return toFloatCallNode.call(frame, value, "to_f");
     }
 
     @Specialization(guards = "isNumeric(frame, value)")
@@ -58,7 +52,7 @@ public abstract class NumericToFloatNode extends RubyNode {
             return (double) result;
         } else {
             errorProfile.enter();
-            throw new RaiseException(coreExceptions().typeErrorCantConvertTo(value, "Float", method, result, this));
+            throw new RaiseException(coreExceptions().typeErrorCantConvertTo(value, "Float", "to_f", result, this));
         }
     }
 
