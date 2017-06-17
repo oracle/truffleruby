@@ -20,7 +20,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.MissingBehavior;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsANodeGen;
 
@@ -38,7 +37,7 @@ public abstract class NumericToFloatNode extends RubyNode {
     private Object callToFloat(VirtualFrame frame, DynamicObject value) {
         if (toFloatCallNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toFloatCallNode = insert(new CallDispatchHeadNode(false, MissingBehavior.RETURN_MISSING));
+            toFloatCallNode = insert(CallDispatchHeadNode.createOnSelf());
         }
         return toFloatCallNode.call(frame, value, "to_f");
     }
