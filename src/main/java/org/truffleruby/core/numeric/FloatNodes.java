@@ -228,7 +228,7 @@ public abstract class FloatNodes {
         public Object div(VirtualFrame frame, double a, Object b) {
             if (redoCoercedNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                redoCoercedNode = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
+                redoCoercedNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
             return redoCoercedNode.call(frame, a, "redo_coerced", getSymbol("/"), b);
@@ -417,7 +417,7 @@ public abstract class FloatNodes {
         public Object equal(VirtualFrame frame, double a, DynamicObject b) {
             if (fallbackCallNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackCallNode = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
+                fallbackCallNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
             return fallbackCallNode.call(frame, a, "equal_fallback", b);

@@ -93,7 +93,7 @@ public abstract class IntegerNodes {
         public Object downto(VirtualFrame frame, Object from, Object to, DynamicObject block) {
             if (downtoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                downtoInternalCall = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
+                downtoInternalCall = insert(CallDispatchHeadNode.createOnSelf());
             }
 
             return downtoInternalCall.callWithBlock(frame, from, "downto_internal", block, to);
@@ -248,7 +248,7 @@ public abstract class IntegerNodes {
         public Object upto(VirtualFrame frame, Object from, Object to, DynamicObject block) {
             if (uptoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                uptoInternalCall = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
+                uptoInternalCall = insert(CallDispatchHeadNode.createOnSelf());
             }
 
             return uptoInternalCall.callWithBlock(frame, from, "upto_internal", block, to);

@@ -1654,7 +1654,7 @@ public abstract class ModuleNodes {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
-        @Child private CallDispatchHeadNode methodRemovedNode = DispatchHeadNodeFactory.createMethodCallOnSelf();
+        @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createOnSelf();
 
         @Specialization
         public DynamicObject removeMethods(VirtualFrame frame, DynamicObject module, Object[] names) {
@@ -1723,7 +1723,7 @@ public abstract class ModuleNodes {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private RaiseIfFrozenNode raiseIfFrozenNode = new RaiseIfFrozenNode(new ProfileArgumentNode(new ReadSelfNode()));
-        @Child private CallDispatchHeadNode methodUndefinedNode = DispatchHeadNodeFactory.createMethodCallOnSelf();
+        @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createOnSelf();
 
         @Specialization
         public DynamicObject undefMethods(VirtualFrame frame, DynamicObject module, Object[] names) {
