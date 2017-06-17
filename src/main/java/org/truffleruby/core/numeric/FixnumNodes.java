@@ -79,9 +79,9 @@ public abstract class FixnumNodes {
     }
 
     @CoreMethod(names = "+", required = 1)
-    public abstract static class AddNode extends BignumNodes.BignumCoreMethodNode implements InlinableBuiltin {
+    public abstract static class AddNode extends BignumNodes.BignumCoreMethodNode {
 
-        public abstract Object executeBuiltin(VirtualFrame frame, Object... arguments);
+        public abstract Object executeAdd(Object a, Object b);
 
         @Specialization(rewriteOn = ArithmeticException.class)
         public int add(int a, int b) {
@@ -128,9 +128,9 @@ public abstract class FixnumNodes {
     }
 
     @CoreMethod(names = "-", required = 1)
-    public abstract static class SubNode extends BignumNodes.BignumCoreMethodNode implements InlinableBuiltin {
+    public abstract static class SubNode extends BignumNodes.BignumCoreMethodNode {
 
-        public abstract Object executeBuiltin(VirtualFrame frame, Object... arguments);
+        public abstract Object executeSub(Object a, Object b);
 
         @Specialization(rewriteOn = ArithmeticException.class)
         public int sub(int a, int b) {
@@ -143,12 +143,9 @@ public abstract class FixnumNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object subCoerced(
-                VirtualFrame frame,
-                int a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :-, b", "b", b);
+        public Object subCoerced(int a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MINUS.getSymbol(), b);
         }
 
         @Specialization(rewriteOn = ArithmeticException.class)
@@ -172,20 +169,17 @@ public abstract class FixnumNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object subCoerced(
-                VirtualFrame frame,
-                long a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :-, b", "b", b);
+        public Object subCoerced(long a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MINUS.getSymbol(), b);
         }
 
     }
 
     @CoreMethod(names = "*", required = 1)
-    public abstract static class MulNode extends BignumNodes.BignumCoreMethodNode implements InlinableBuiltin {
+    public abstract static class MulNode extends BignumNodes.BignumCoreMethodNode {
 
-        public abstract Object executeBuiltin(VirtualFrame frame, Object... arguments);
+        public abstract Object executeMul(Object a, Object b);
 
         @Specialization(rewriteOn = ArithmeticException.class)
         public int mul(int a, int b) {
@@ -198,12 +192,9 @@ public abstract class FixnumNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object mulCoerced(
-                VirtualFrame frame,
-                int a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :*, b", "b", b);
+        public Object mulCoerced(int a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
         }
 
         @Specialization(rewriteOn = ArithmeticException.class)
@@ -229,12 +220,9 @@ public abstract class FixnumNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object mulCoerced(
-                VirtualFrame frame,
-                long a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :*, b", "b", b);
+        public Object mulCoerced(long a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
         }
     }
 
