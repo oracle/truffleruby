@@ -842,13 +842,13 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, DynamicObject array, Object[] args, NotProvided block,
-                @Cached("createMethodCall()") CallDispatchHeadNode callFillInternal) {
+                @Cached("create()") CallDispatchHeadNode callFillInternal) {
             return callFillInternal.call(frame, array, "fill_internal", args);
         }
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, DynamicObject array, Object[] args, DynamicObject block,
-                @Cached("createMethodCall()") CallDispatchHeadNode callFillInternal) {
+                @Cached("create()") CallDispatchHeadNode callFillInternal) {
             return callFillInternal.callWithBlock(frame, array, "fill_internal", block, args);
         }
 
@@ -864,7 +864,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
         public long hash(VirtualFrame frame, DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("createMethodCall()") CallDispatchHeadNode toHashNode) {
+                @Cached("create()") CallDispatchHeadNode toHashNode) {
             final int size = strategy.getSize(array);
             long h = Hashing.start(size);
             h = Hashing.update(h, MURMUR_ARRAY_SEED);

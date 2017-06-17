@@ -19,7 +19,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
 
     @Child private BooleanCastNode booleanCastNode;
 
-    public static CallDispatchHeadNode createMethodCall() {
+    public static CallDispatchHeadNode create() {
         return new CallDispatchHeadNode(
                 false,
                 MissingBehavior.CALL_METHOD_MISSING);

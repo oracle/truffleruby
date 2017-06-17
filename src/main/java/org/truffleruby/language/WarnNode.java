@@ -17,7 +17,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 public class WarnNode extends RubyBaseNode {
 
-    @Child private CallDispatchHeadNode warnMethod = CallDispatchHeadNode.createMethodCall();
+    @Child private CallDispatchHeadNode warnMethod = CallDispatchHeadNode.create();
 
     public Object execute(VirtualFrame frame, String... arguments) {
         final String warningMessage = concatArgumentsToString(arguments);

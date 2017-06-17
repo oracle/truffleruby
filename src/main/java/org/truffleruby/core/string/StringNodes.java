@@ -364,7 +364,7 @@ public abstract class StringNodes {
                 VirtualFrame frame,
                 DynamicObject string,
                 Object other,
-                @Cached("createMethodCall()") CallDispatchHeadNode callNode) {
+                @Cached("create()") CallDispatchHeadNode callNode) {
             return callNode.call(frame, string, "concat_internal", other);
         }
 

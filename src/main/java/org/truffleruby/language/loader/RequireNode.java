@@ -48,8 +48,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class RequireNode extends RubyNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
-    @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.createMethodCall();
-    @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.createMethodCall();
+    @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.create();
+    @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.create();
 
     @Child private Node isExecutableNode = Message.IS_EXECUTABLE.createNode();
     @Child private Node executeNode = Message.createExecute(0).createNode();

@@ -1216,7 +1216,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "p", isModuleFunction = true, required = 1)
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.createMethodCall();
+        @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.create();
 
         @Specialization
         public Object p(VirtualFrame frame, Object value) {
