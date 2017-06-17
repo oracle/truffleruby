@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 
 public class CoreStrings {
 
+    public final CoreString AMPERSTAND;
     public final CoreString ASSIGNMENT;
     public final CoreString BACKTRACE_OMITTED_LIMIT;
     public final CoreString BACKTRACE_OMITTED_UNUSED;
@@ -51,6 +52,7 @@ public class CoreStrings {
     public final CoreString YIELD;
 
     public CoreStrings(RubyContext context) {
+        AMPERSTAND = new CoreString(context, "&");
         ASSIGNMENT = new CoreString(context, "assignment");
         BACKTRACE_OMITTED_LIMIT = new CoreString(context, "(omitted due to -Xbacktraces.limit)");
         BACKTRACE_OMITTED_UNUSED = new CoreString(context, "(omitted as the rescue expression was pure; use -Xbacktraces.omit_unused=false to disable)");
