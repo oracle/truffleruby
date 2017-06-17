@@ -26,6 +26,9 @@ public class CoreMethods {
     final Assumption fixnumSubAssumption, floatSubAssumption;
     final Assumption fixnumMulAssumption, floatMulAssumption;
 
+    final Assumption fixnumLeftShiftAssumption;
+    final Assumption fixnumRightShiftAssumption;
+
     final Assumption fixnumEqualAssumption;
 
     public CoreMethods(RubyContext context) {
@@ -41,6 +44,10 @@ public class CoreMethods {
 
         fixnumMulAssumption = registerAssumption(fixnumClass, "*");
         floatMulAssumption = registerAssumption(floatClass, "*");
+
+        fixnumLeftShiftAssumption = registerAssumption(fixnumClass, "<<");
+
+        fixnumRightShiftAssumption = registerAssumption(fixnumClass, ">>");
 
         fixnumEqualAssumption = registerAssumption(fixnumClass, "==");
     }
@@ -67,6 +74,10 @@ public class CoreMethods {
                     return InlinedSubNodeGen.create(context, callParameters, self, args[0]);
                 case "*":
                     return InlinedMulNodeGen.create(context, callParameters, self, args[0]);
+                case "<<":
+                    return InlinedLeftShiftNodeGen.create(context, callParameters, self, args[0]);
+                case ">>":
+                    return InlinedRightShiftNodeGen.create(context, callParameters, self, args[0]);
                 case "==":
                     return InlinedEqualNodeGen.create(context, callParameters, self, args[0]);
                 default:
