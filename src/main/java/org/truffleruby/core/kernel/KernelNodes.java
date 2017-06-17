@@ -324,7 +324,7 @@ public abstract class KernelNodes {
     @ImportStatic(ShapeCachingGuards.class)
     public abstract static class CopyNode extends UnaryCoreMethodNode {
 
-        @Child private CallDispatchHeadNode allocateNode = DispatchHeadNodeFactory.createMethodCall(true);
+        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createOnSelf();
 
         public abstract DynamicObject executeCopy(VirtualFrame frame, DynamicObject self);
 
@@ -1107,7 +1107,7 @@ public abstract class KernelNodes {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private LookupMethodNode lookupMethodNode = LookupMethodNodeGen.create(true, false, null, null);
-        @Child private CallDispatchHeadNode respondToMissingNode = DispatchHeadNodeFactory.createMethodCall(true);
+        @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createOnSelf();
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
@@ -1498,7 +1498,7 @@ public abstract class KernelNodes {
         private boolean respondToMissing(VirtualFrame frame, Object object, DynamicObject name, boolean includeProtectedAndPrivate) {
             if (respondToMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToMissingNode = insert(DispatchHeadNodeFactory.createMethodCall(true));
+                respondToMissingNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
             return respondToMissingNode.callBoolean(frame, object, "respond_to_missing?", null, name, includeProtectedAndPrivate);

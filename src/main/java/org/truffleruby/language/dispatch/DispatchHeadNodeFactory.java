@@ -11,12 +11,6 @@ package org.truffleruby.language.dispatch;
 
 public class DispatchHeadNodeFactory {
 
-    public static CallDispatchHeadNode createMethodCall(boolean ignoreVisibility) {
-        return createMethodCall(
-                ignoreVisibility,
-                MissingBehavior.CALL_METHOD_MISSING);
-    }
-
     public static CallDispatchHeadNode createMethodCall(MissingBehavior missingBehavior) {
         return createMethodCall(
                 false,
