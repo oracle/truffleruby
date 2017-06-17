@@ -9,55 +9,61 @@
  */
 package org.truffleruby.core.inlined;
 
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.numeric.FixnumNodesFactory;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
-import org.truffleruby.language.methods.InternalMethod;
 
 public class CoreMethods {
 
     private final RubyContext context;
 
-    private final InternalMethod fixnumPlus;
-    private final InternalMethod fixnumMinus;
-    private final InternalMethod fixnumMul;
+    final Assumption fixnumAddAssumption, floatAddAssumption;
+    final Assumption fixnumSubAssumption, floatSubAssumption;
+    final Assumption fixnumMulAssumption, floatMulAssumption;
 
     public CoreMethods(RubyContext context) {
         this.context = context;
-        fixnumPlus = getMethod(context.getCoreLibrary().getFixnumClass(), "+");
-        fixnumMinus = getMethod(context.getCoreLibrary().getFixnumClass(), "-");
-        fixnumMul = getMethod(context.getCoreLibrary().getFixnumClass(), "*");
+        final DynamicObject fixnumClass = context.getCoreLibrary().getFixnumClass();
+        final DynamicObject floatClass = context.getCoreLibrary().getFloatClass();
+
+        fixnumAddAssumption = registerAssumption(fixnumClass, "+");
+        floatAddAssumption = registerAssumption(floatClass, "+");
+
+        fixnumSubAssumption = registerAssumption(fixnumClass, "-");
+        floatSubAssumption = registerAssumption(floatClass, "-");
+
+        fixnumMulAssumption = registerAssumption(fixnumClass, "*");
+        floatMulAssumption = registerAssumption(floatClass, "*");
     }
 
-    private InternalMethod getMethod(DynamicObject module, String name) {
-        InternalMethod method = Layouts.MODULE.getFields(module).getMethod(name);
-        if (method == null) {
-            throw new AssertionError();
-        }
-        return method;
+    private Assumption registerAssumption(DynamicObject klass, String methodName) {
+        return Layouts.MODULE.getFields(klass).registerAssumption(methodName);
     }
 
     public RubyNode createCallNode(RubyCallNodeParameters callParameters) {
-        if (!context.getOptions().BASICOPS_INLINE || callParameters.getBlock() != null || callParameters.isSplatted() || callParameters.isSafeNavigation()) {
+        if (!context.getOptions().BASICOPS_INLINE ||
+                callParameters.getBlock() != null || callParameters.isSplatted() || callParameters.isSafeNavigation()) {
             return new RubyCallNode(callParameters);
         }
 
-        int n = 1 /* self */ + callParameters.getArguments().length;
+        final RubyNode self = callParameters.getReceiver();
+        final RubyNode[] args = callParameters.getArguments();
+        int n = 1 /* self */ + args.length;
 
         if (n == 2) {
             switch (callParameters.getMethodName()) {
-            case "+":
-                return InlinedCoreMethodNode.inlineBuiltin(context, callParameters, fixnumPlus, FixnumNodesFactory.AddNodeFactory.getInstance());
-            case "-":
-                return InlinedCoreMethodNode.inlineBuiltin(context, callParameters, fixnumMinus, FixnumNodesFactory.SubNodeFactory.getInstance());
-            case "*":
-                return InlinedCoreMethodNode.inlineBuiltin(context, callParameters, fixnumMul, FixnumNodesFactory.MulNodeFactory.getInstance());
-            default:
+                case "+":
+                    return InlinedAddNodeGen.create(context, callParameters, self, args[0]);
+                case "-":
+                    return InlinedSubNodeGen.create(context, callParameters, self, args[0]);
+                case "*":
+                    return InlinedMulNodeGen.create(context, callParameters, self, args[0]);
+                default:
             }
         }
 
