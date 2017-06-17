@@ -11,12 +11,14 @@ package org.truffleruby.core.module;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
@@ -35,6 +37,7 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -82,6 +85,9 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
     private final CyclicAssumption methodsUnmodifiedAssumption;
     private final CyclicAssumption constantsUnmodifiedAssumption;
+
+    // Concurrency: only modified during boot
+    private final Map<String, Assumption> inlinedBuiltinsAssumptions = new HashMap<>();
 
     public ModuleFields(RubyContext context, SourceSection sourceSection, DynamicObject lexicalParent, String givenBaseName) {
         assert lexicalParent == null || RubyGuards.isRubyModule(lexicalParent);
@@ -283,6 +289,8 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         } else {
             this.newHierarchyVersion();
         }
+
+        prependInvalidation();
     }
 
     /**
@@ -369,6 +377,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
         if (!context.getCoreLibrary().isInitializing()) {
             newMethodsVersion();
+            changedMethod(method.getName());
         }
 
         if (context.getCoreLibrary().isLoaded() && !method.isUndefined()) {
@@ -393,6 +402,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
     public void removeMethod(String methodName) {
         methods.remove(methodName);
         newMethodsVersion();
+        changedMethod(methodName);
     }
 
     @TruffleBoundary
@@ -709,5 +719,28 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
     public SourceSection getSourceSection() {
         return sourceSection;
+    }
+
+    public Assumption registerAssumption(String methodName) {
+        assert context.getCoreLibrary().isInitializing();
+        Assumption assumption = Truffle.getRuntime().createAssumption("inlined " + getName() + "#" + methodName);
+        Assumption old = inlinedBuiltinsAssumptions.put(methodName, assumption);
+        assert old == null;
+        return assumption;
+    }
+
+    private void changedMethod(String name) {
+        Assumption assumption = inlinedBuiltinsAssumptions.get(name);
+        if (assumption != null) {
+            assumption.invalidate();
+        }
+    }
+
+    private void prependInvalidation() {
+        if (!inlinedBuiltinsAssumptions.isEmpty()) {
+            for (Assumption assumption : inlinedBuiltinsAssumptions.values()) {
+                assumption.invalidate();
+            }
+        }
     }
 }
