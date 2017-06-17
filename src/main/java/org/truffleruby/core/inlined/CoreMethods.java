@@ -28,6 +28,8 @@ public class CoreMethods {
 
     final Assumption fixnumLeftShiftAssumption;
     final Assumption fixnumRightShiftAssumption;
+    final Assumption fixnumBitOrAssumption;
+    final Assumption fixnumBitAndAssumption;
 
     final Assumption fixnumEqualAssumption;
 
@@ -46,8 +48,9 @@ public class CoreMethods {
         floatMulAssumption = registerAssumption(floatClass, "*");
 
         fixnumLeftShiftAssumption = registerAssumption(fixnumClass, "<<");
-
         fixnumRightShiftAssumption = registerAssumption(fixnumClass, ">>");
+        fixnumBitOrAssumption = registerAssumption(fixnumClass, "|");
+        fixnumBitAndAssumption = registerAssumption(fixnumClass, "&");
 
         fixnumEqualAssumption = registerAssumption(fixnumClass, "==");
     }
@@ -78,6 +81,10 @@ public class CoreMethods {
                     return InlinedLeftShiftNodeGen.create(context, callParameters, self, args[0]);
                 case ">>":
                     return InlinedRightShiftNodeGen.create(context, callParameters, self, args[0]);
+                case "&":
+                    return InlinedBitAndNodeGen.create(context, callParameters, self, args[0]);
+                case "|":
+                    return InlinedBitOrNodeGen.create(context, callParameters, self, args[0]);
                 case "==":
                     return InlinedEqualNodeGen.create(context, callParameters, self, args[0]);
                 default:
