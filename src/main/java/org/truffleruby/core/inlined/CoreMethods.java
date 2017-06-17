@@ -26,6 +26,8 @@ public class CoreMethods {
     final Assumption fixnumSubAssumption, floatSubAssumption;
     final Assumption fixnumMulAssumption, floatMulAssumption;
 
+    final Assumption fixnumEqualAssumption;
+
     public CoreMethods(RubyContext context) {
         this.context = context;
         final DynamicObject fixnumClass = context.getCoreLibrary().getFixnumClass();
@@ -39,6 +41,8 @@ public class CoreMethods {
 
         fixnumMulAssumption = registerAssumption(fixnumClass, "*");
         floatMulAssumption = registerAssumption(floatClass, "*");
+
+        fixnumEqualAssumption = registerAssumption(fixnumClass, "==");
     }
 
     private Assumption registerAssumption(DynamicObject klass, String methodName) {
@@ -63,6 +67,8 @@ public class CoreMethods {
                     return InlinedSubNodeGen.create(context, callParameters, self, args[0]);
                 case "*":
                     return InlinedMulNodeGen.create(context, callParameters, self, args[0]);
+                case "==":
+                    return InlinedEqualNodeGen.create(context, callParameters, self, args[0]);
                 default:
             }
         }
