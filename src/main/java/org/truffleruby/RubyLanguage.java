@@ -31,6 +31,7 @@ import org.truffleruby.stdlib.CoverageManager;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
+        id = "ruby",
         version = RubyLanguage.RUBY_VERSION,
         mimeType = RubyLanguage.MIME_TYPE)
 @ProvidedTags({
