@@ -20,7 +20,6 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.CallInternalMethodNodeGen;
 import org.truffleruby.language.methods.DeclarationContext;

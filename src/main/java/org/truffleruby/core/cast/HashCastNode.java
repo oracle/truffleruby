@@ -19,7 +19,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.MissingBehavior;
 
@@ -28,7 +27,7 @@ import org.truffleruby.language.dispatch.MissingBehavior;
 @NodeChild("child")
 public abstract class HashCastNode extends RubyNode {
 
-    @Child private CallDispatchHeadNode toHashNode = DispatchHeadNodeFactory.createMethodCall(MissingBehavior.RETURN_MISSING);
+    @Child private CallDispatchHeadNode toHashNode = new CallDispatchHeadNode(false, MissingBehavior.RETURN_MISSING);
 
     protected abstract RubyNode getChild();
 

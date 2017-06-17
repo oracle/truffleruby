@@ -19,7 +19,6 @@ import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFact
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 public class HashNode extends RubyBaseNode {
 

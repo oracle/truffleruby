@@ -18,7 +18,6 @@ import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.IntegerCastNodeGen;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

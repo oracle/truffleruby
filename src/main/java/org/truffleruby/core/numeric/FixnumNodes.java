@@ -34,7 +34,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 import java.math.BigInteger;

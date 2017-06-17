@@ -20,7 +20,6 @@ import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 @NodeChild(type = RubyNode.class)
 public abstract class ToSNode extends RubyNode {

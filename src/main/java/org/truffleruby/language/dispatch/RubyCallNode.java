@@ -166,7 +166,7 @@ public class RubyCallNode extends RubyNode {
 
         private final DynamicObject methodNameSymbol = getContext().getSymbolTable().getSymbol(methodName);
 
-        @Child private CallDispatchHeadNode respondToMissing = DispatchHeadNodeFactory.createMethodCall(true, MissingBehavior.RETURN_MISSING);
+        @Child private CallDispatchHeadNode respondToMissing = new CallDispatchHeadNode(true, MissingBehavior.RETURN_MISSING);
         @Child private BooleanCastNode respondToMissingCast = BooleanCastNodeGen.create(null);
 
         // TODO CS-10-Apr-17 see below
