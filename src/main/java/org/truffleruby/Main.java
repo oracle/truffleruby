@@ -53,7 +53,6 @@ import org.truffleruby.options.CommandLineParser;
 import org.truffleruby.options.MainExitException;
 import org.truffleruby.options.OptionsBuilder;
 import org.truffleruby.options.OptionsCatalog;
-import org.truffleruby.platform.graal.Graal;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -135,7 +134,7 @@ public class Main {
                     // check syntax only and exit
                     exitCode = checkSyntax(engine, context, getScriptSource(config), filename);
                 } else {
-                    if (!Graal.isGraal() && context.getOptions().GRAAL_WARNING_UNLESS) {
+                    if (!RubyLanguage.isGraal() && context.getOptions().GRAAL_WARNING_UNLESS) {
                         Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
                     }
 

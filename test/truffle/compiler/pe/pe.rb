@@ -26,7 +26,7 @@
 #
 #   jt run --graal -J-Dgraal.TraceTruffleCompilation=true -J-Dgraal.TruffleCompilationExceptionsAreFatal=true -J-Dgraal.TruffleIterativePartialEscape=true test.rb
 
-unless Truffle::Graal.graal?
+unless Truffle.graal?
   puts 'not running Graal'
   exit 1
 end

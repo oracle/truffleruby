@@ -1609,7 +1609,7 @@ module Commands
 
       puts "Running with Graal"
       env = { "GRAAL_HOME" => "#{dir}/graal/compiler" }
-      sh env, "tool/jt.rb", "ruby", "--graal", "-e", "p Truffle::Graal.graal?"
+      sh env, "tool/jt.rb", "ruby", "--graal", "-e", "p Truffle.graal?"
 
       puts
       puts "To run with graal, run:"

@@ -14,7 +14,7 @@ describe "Truffle::Graal.assert_constant" do
     lambda{ Truffle::Graal.send(:assert_constant, 14 + 2) }.should raise_error(RuntimeError)
   end
 
-  unless Truffle::Graal.graal?
+  unless Truffle.graal?
     it "returns the value of the argument" do
       Truffle::Graal.assert_constant(14 + 2).should == 16
     end

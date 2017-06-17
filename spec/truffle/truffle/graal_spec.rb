@@ -8,10 +8,10 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle::Graal.version" do
+describe "Truffle.graal?" do
   
-  it "returns a String" do
-    Truffle::Graal.version.should be_kind_of(String)
+  it "returns a Boolean value" do
+    Truffle.graal?.should be_true_or_false
   end
   
 end

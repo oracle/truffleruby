@@ -130,7 +130,7 @@ module Process
   #
   def self.setproctitle(title)
     val = Rubinius::Type.coerce_to(title, String, :to_str)
-    if !Truffle::Graal.substrate? and RbConfig::CONFIG['host_os'] == 'linux' and File.readable?('/proc/self/maps')
+    if !Truffle.aot? and RbConfig::CONFIG['host_os'] == 'linux' and File.readable?('/proc/self/maps')
       setproctitle_linux_from_proc_maps(val)
     else
       Truffle.invoke_primitive(:vm_set_process_title, val)
