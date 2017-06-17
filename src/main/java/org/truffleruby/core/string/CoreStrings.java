@@ -34,6 +34,7 @@ public class CoreStrings {
     public final CoreString NIL;
     public final CoreString ONE_HASH_REQUIRED;
     public final CoreString OUT_OF_RANGE;
+    public final CoreString PLUS;
     public final CoreString PROC_WITHOUT_BLOCK;
     public final CoreString REPLACEMENT_CHARACTER_SETUP_FAILED;
     public final CoreString RESOURCE_TEMP_UNAVAIL_READ;
@@ -69,6 +70,7 @@ public class CoreStrings {
         NIL = new CoreString(context, "nil");
         ONE_HASH_REQUIRED = new CoreString(context, "one hash required");
         OUT_OF_RANGE = new CoreString(context, "out of range");
+        PLUS = new CoreString(context, "+");
         PROC_WITHOUT_BLOCK = new CoreString(context, "tried to create Proc object without a block");
         REPLACEMENT_CHARACTER_SETUP_FAILED = new CoreString(context, "replacement character setup failed");
         RESOURCE_TEMP_UNAVAIL_READ = new CoreString(context, "Resource temporarily unavailable - read would block");

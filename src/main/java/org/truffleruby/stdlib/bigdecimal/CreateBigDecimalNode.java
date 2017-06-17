@@ -117,7 +117,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             Object digits,
             @Cached("createBooleanCastNode()") BooleanCastNode booleanCastNode,
             @Cached("createGetIntegerConstantNode()") GetIntegerConstantNode getIntegerConstantNode,
-            @Cached("createMethodCallIgnoreVisibility()") CallDispatchHeadNode modeCallNode,
+            @Cached("createOnSelf()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
@@ -143,7 +143,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             Object digits,
             @Cached("createBooleanCastNode()") BooleanCastNode booleanCastNode,
             @Cached("createGetIntegerConstantNode()") GetIntegerConstantNode getIntegerConstantNode,
-            @Cached("createMethodCallIgnoreVisibility()") CallDispatchHeadNode modeCallNode,
+            @Cached("createOnSelf()") CallDispatchHeadNode modeCallNode,
             @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
