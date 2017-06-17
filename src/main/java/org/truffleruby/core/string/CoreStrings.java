@@ -28,8 +28,12 @@ public class CoreStrings {
     public final CoreString EXPRESSION;
     public final CoreString FALSE;
     public final CoreString GLOBAL_VARIABLE;
+    public final CoreString GREATER_THAN;
+    public final CoreString GREATER_OR_EQUAL;
     public final CoreString INSTANCE_VARIABLE;
     public final CoreString INVALID_VALUE_FOR_FLOAT;
+    public final CoreString LESS_THAN;
+    public final CoreString LESS_OR_EQUAL;
     public final CoreString LINE;
     public final CoreString LOCAL_VARIABLE;
     public final CoreString METHOD;
@@ -69,8 +73,12 @@ public class CoreStrings {
         EXPRESSION = new CoreString(context, "expression");
         FALSE = new CoreString(context, "false");
         GLOBAL_VARIABLE = new CoreString(context, "global-variable");
+        GREATER_THAN = new CoreString(context, ">");
+        GREATER_OR_EQUAL = new CoreString(context, ">=");
         INSTANCE_VARIABLE = new CoreString(context, "instance-variable");
         INVALID_VALUE_FOR_FLOAT = new CoreString(context, "invalid value for Float()");
+        LESS_THAN = new CoreString(context, "<");
+        LESS_OR_EQUAL = new CoreString(context, "<=");
         LINE = new CoreString(context, "line");
         LOCAL_VARIABLE = new CoreString(context, "local-variable");
         METHOD = new CoreString(context, "method");

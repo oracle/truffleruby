@@ -509,12 +509,9 @@ public abstract class FixnumNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)" })
-        public Object lessCoerced(
-                VirtualFrame frame,
-                long a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce other, :compare_error; a < b", "other", b);
+        public Object lessCoerced(long a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_THAN.getSymbol(), b);
         }
     }
 
@@ -551,12 +548,9 @@ public abstract class FixnumNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)" })
-        public Object lessEqualCoerced(
-                VirtualFrame frame,
-                long a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce other, :compare_error; a <= b", "other", b);
+        public Object lessEqualCoerced(long a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().LESS_OR_EQUAL.getSymbol(), b);
         }
     }
 
@@ -694,12 +688,9 @@ public abstract class FixnumNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)" })
-        public Object greaterEqualCoerced(
-                VirtualFrame frame,
-                long a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce other, :compare_error; a >= b", "other", b);
+        public Object greaterEqualCoerced(long a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_OR_EQUAL.getSymbol(), b);
         }
     }
 
@@ -713,8 +704,7 @@ public abstract class FixnumNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         public boolean greater(int a, DynamicObject b) {
-            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)
-            ) > 0;
+            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)) > 0;
         }
 
         @Specialization
@@ -737,12 +727,9 @@ public abstract class FixnumNodes {
                 "!isInteger(b)",
                 "!isLong(b)",
                 "!isDouble(b)" })
-        public Object greaterCoerced(
-                VirtualFrame frame,
-                long a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "b, a = math_coerce(other, :compare_error); a > b", "other", b);
+        public Object greaterCoerced(long a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(null, a, "redo_compare", coreStrings().GREATER_THAN.getSymbol(), b);
         }
     }
 
