@@ -182,8 +182,8 @@ In all cases where a call is made no block is passed.
 
 `Truffle::Interop.keys(value)`
 
-JRuby will convert the returned value from a foreign object of Java `String`
-objects, to a Ruby `Array` of Ruby `String` objects.
+TruffleRuby will convert the returned value from a foreign object of Java
+`String` objects, to a Ruby `Array` of Ruby `String` objects.
 
 ### `READ`
 
@@ -294,3 +294,15 @@ an integer, or anything else
 ## Interop Eval
 
 `Truffle::Interop.eval(mime_type, source)`
+
+`Truffle::Interop.import_file(path)` evals an entire file, guessing the correct
+language MIME type.
+
+## Additional methods
+
+`Truffle::Interop.mime_type_supported?(mime_type)` reports if a language's MIME
+type is supported for interop.
+
+`Truffle::Interop.to_java_string(ruby_string)`
+
+`Truffle::Interop.from_java_string(java_string)`

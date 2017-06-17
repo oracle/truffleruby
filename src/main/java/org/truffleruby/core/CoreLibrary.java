@@ -101,6 +101,7 @@ import org.truffleruby.core.time.TimeNodesFactory;
 import org.truffleruby.core.tracepoint.TracePointNodesFactory;
 import org.truffleruby.debug.TruffleDebugNodesFactory;
 import org.truffleruby.extra.TruffleGraalNodesFactory;
+import org.truffleruby.extra.TruffleNodesFactory;
 import org.truffleruby.extra.TrufflePosixNodesFactory;
 import org.truffleruby.extra.ffi.PointerNodesFactory;
 import org.truffleruby.gem.bcrypt.BCryptNodesFactory;
@@ -803,10 +804,10 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(rubiniusFFIModule).setConstant(context, node, "TYPE_VARARGS", RubiniusTypes.TYPE_VARARGS);
 
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_VERSION", frozenUSASCIIString(RubyLanguage.RUBY_VERSION));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "TRUFFLERUBY_VERSION", frozenUSASCIIString(System.getProperty("graalvm.version", "0.unknown")));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PATCHLEVEL", 0);
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_REVISION", RubyLanguage.RUBY_REVISION);
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE", frozenUSASCIIString(RubyLanguage.ENGINE));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE_VERSION", frozenUSASCIIString(RubyLanguage.ENGINE_VERSION));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PLATFORM", frozenUSASCIIString(RubyLanguage.PLATFORM));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_RELEASE_DATE", frozenUSASCIIString(RubyLanguage.COMPILE_DATE));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", frozenUSASCIIString(RubyLanguage.getVersionString()));
@@ -1596,6 +1597,7 @@ public class CoreLibrary {
             TruffleEncodingNodesFactory.getFactories(),
             TruffleFixnumNodesFactory.getFactories(),
             TruffleGCNodesFactory.getFactories(),
+            TruffleNodesFactory.getFactories(),
             TruffleGraalNodesFactory.getFactories(),
             TruffleKernelNodesFactory.getFactories(),
             TrufflePosixNodesFactory.getFactories(),

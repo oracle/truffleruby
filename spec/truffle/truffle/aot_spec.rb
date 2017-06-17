@@ -8,10 +8,10 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle::Graal.substrate?" do
+describe "Truffle.aot?" do
   
   it "returns a Boolean value" do
-    Truffle::Graal.substrate?.should be_true_or_false
+    Truffle.aot?.should be_true_or_false
   end
   
 end

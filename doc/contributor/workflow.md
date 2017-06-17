@@ -109,11 +109,11 @@ $ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
 $ jt ruby --graal ...
 ```
 
-You can check this is working by printing the value of `Truffle::Graal.graal?`.
+You can check this is working by printing the value of `Truffle.graal?`.
 
 ```bash
 $ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
-$ jt ruby --graal -e 'p Truffle::Graal.graal?'
+$ jt ruby --graal -e 'p Truffle.graal?'
 ```
 
 To run with Graal built from source, set `GRAAL_HOME`.

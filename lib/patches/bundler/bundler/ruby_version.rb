@@ -20,7 +20,7 @@ module Bundler
                               JRUBY_VERSION.dup
                             when 'truffleruby'
                               # TruffleRuby: added case branch
-                              TRUFFLERUBY_VERSION
+                              RUBY_ENGINE_VERSION
                             else
                               raise BundlerError, "RUBY_ENGINE value #{RUBY_ENGINE} is not recognized"
                             end

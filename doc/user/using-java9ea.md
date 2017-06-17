@@ -23,5 +23,5 @@ $ JAVACMD=.../jdk-9-ea/bin/java \
     -J-XX:+EnableJVMCI \
     -J--add-exports=java.base/jdk.internal.module=com.oracle.graal.graal_core \
     -J--module-path=.../truffle/mxbuild/modules/com.oracle.truffle.truffle_api.jar:.../compiler/mxbuild/modules/com.oracle.graal.graal_core.jar \
-    --no-bootclasspath -e 'p Truffle::Graal.graal?'
+    --no-bootclasspath -e 'p Truffle.graal?'
 ```

@@ -17,7 +17,6 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -26,8 +25,9 @@ import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.platform.Platform;
-import org.truffleruby.platform.graal.Graal;
 import org.truffleruby.stdlib.CoverageManager;
+
+import java.util.Locale;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
@@ -51,6 +51,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final int    RUBY_REVISION = 0;
     public static final String COMPILE_DATE = "2017";
     public static final String ENGINE = "truffleruby";
+    public static final String ENGINE_VERSION = System.getProperty("graal.version", "0.0");
 
     public static final String MIME_TYPE = "application/x-ruby";
     public static final String EXTENSION = ".rb";
@@ -174,7 +175,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
                 RUBY_VERSION,
                 TruffleOptions.AOT ? "AOT" : System.getProperty("java.vm.name", "unknown JVM"),
                 TruffleOptions.AOT ? "build" : System.getProperty("java.runtime.version", System.getProperty("java.version", "unknown runtime version")),
-                Graal.isGraal() ? "with Graal" : "without Graal",
+                isGraal() ? "with Graal" : "without Graal",
                 Platform.getOSName(),
                 Platform.getArchitecture()
         );
@@ -182,6 +183,10 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static String getCopyrightString() {
         return "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
+    }
+
+    public static boolean isGraal() {
+        return Truffle.getRuntime().getName().toLowerCase(Locale.ENGLISH).contains("graal");
     }
 
 }
