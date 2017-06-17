@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.core;
+package org.truffleruby.core.inlined;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -18,6 +18,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethodNodeManager;
+import org.truffleruby.core.InlinableBuiltin;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
