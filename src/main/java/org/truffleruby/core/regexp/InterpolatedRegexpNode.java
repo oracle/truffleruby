@@ -22,7 +22,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.parser.BodyTranslator;
 
 public class InterpolatedRegexpNode extends RubyNode {

@@ -38,7 +38,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 

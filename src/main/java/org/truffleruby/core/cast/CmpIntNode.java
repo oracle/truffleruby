@@ -32,7 +32,6 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 /**
  * This is a port of MRI's rb_cmpint, as taken from RubyComparable and broken out into specialized nodes.

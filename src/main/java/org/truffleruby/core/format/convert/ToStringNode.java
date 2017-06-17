@@ -25,7 +25,6 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.dispatch.MissingBehavior;
 import org.truffleruby.language.objects.IsTaintedNode;
 
@@ -89,13 +88,7 @@ public abstract class ToStringNode extends FormatNode {
             setTainted(frame);
         }
         if ("inspect".equals(conversionMethod)) {
-            if (toStrNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toStrNode = insert(DispatchHeadNodeFactory.createMethodCall(true,
-                    MissingBehavior.RETURN_MISSING));
-            }
-
-            final Object value = toStrNode.call(frame, string, conversionMethod);
+            final Object value = getToStrNode().call(frame, string, conversionMethod);
 
             if (RubyGuards.isRubyString(value)) {
                 if (taintedProfile.profile(isTaintedNode.executeIsTainted(value))) {
@@ -114,8 +107,7 @@ public abstract class ToStringNode extends FormatNode {
     public byte[] toString(VirtualFrame frame, DynamicObject array) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toSNode = insert(DispatchHeadNodeFactory.createMethodCall(true,
-                    MissingBehavior.RETURN_MISSING));
+            toSNode = insert(new CallDispatchHeadNode(true, MissingBehavior.RETURN_MISSING));
         }
 
         final Object value = toSNode.call(frame, array, "to_s");
@@ -133,13 +125,7 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization(guards = {"!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)"})
     public byte[] toString(VirtualFrame frame, Object object) {
-        if (toStrNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStrNode = insert(DispatchHeadNodeFactory.createMethodCall(true,
-                    MissingBehavior.RETURN_MISSING));
-        }
-
-        final Object value = toStrNode.call(frame, object, conversionMethod);
+        final Object value = getToStrNode().call(frame, object, conversionMethod);
 
         if (RubyGuards.isRubyString(value)) {
             if (taintedProfile.profile(isTaintedNode.executeIsTainted(value))) {
@@ -167,5 +153,12 @@ public abstract class ToStringNode extends FormatNode {
         return object.toString().getBytes(StandardCharsets.UTF_8);
     }
 
+    private CallDispatchHeadNode getToStrNode() {
+        if (toStrNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            toStrNode = insert(new CallDispatchHeadNode(true, MissingBehavior.RETURN_MISSING));
+        }
+        return toStrNode;
+    }
 
 }

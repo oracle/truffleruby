@@ -23,7 +23,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.dispatch.MissingBehavior;
 
 /**
@@ -43,7 +42,7 @@ public abstract class SplatCastNode extends RubyNode {
     private final DynamicObject conversionMethod;
 
     @Child private ArrayDupNode dup = ArrayDupNodeGen.create(null);
-    @Child private CallDispatchHeadNode toA = DispatchHeadNodeFactory.createMethodCall(true, MissingBehavior.RETURN_MISSING);
+    @Child private CallDispatchHeadNode toA = new CallDispatchHeadNode(true, MissingBehavior.RETURN_MISSING);
 
     public SplatCastNode(NilBehavior nilBehavior, boolean useToAry) {
         this.nilBehavior = nilBehavior;

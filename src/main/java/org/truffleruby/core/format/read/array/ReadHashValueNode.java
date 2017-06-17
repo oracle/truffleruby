@@ -21,7 +21,6 @@ import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 @NodeChildren({
         @NodeChild(value = "source", type = SourceNode.class),

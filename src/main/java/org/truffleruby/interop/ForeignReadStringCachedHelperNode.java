@@ -20,7 +20,6 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;

@@ -46,7 +46,6 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.dispatch.MissingBehavior;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.loader.CodeLoader;

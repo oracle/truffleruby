@@ -16,7 +16,6 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 public class SymbolProcNode extends RubyNode {
 

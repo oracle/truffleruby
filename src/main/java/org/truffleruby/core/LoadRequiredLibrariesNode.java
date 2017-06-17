@@ -15,7 +15,6 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 /** Load libraries required from the command line (-r LIBRARY) */
 public class LoadRequiredLibrariesNode extends RubyNode {

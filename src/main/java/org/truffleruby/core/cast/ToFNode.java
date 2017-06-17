@@ -21,7 +21,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToFNode extends RubyNode {

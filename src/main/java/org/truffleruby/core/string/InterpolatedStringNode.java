@@ -17,7 +17,6 @@ import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.TaintNode;
 
