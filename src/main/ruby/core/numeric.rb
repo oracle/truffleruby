@@ -258,6 +258,12 @@ class Numeric
   end
   private :redo_compare
 
+  def redo_bit_coerced(meth, right)
+    b, a = bit_coerce(right)
+    a.__send__ meth, b
+  end
+  private :redo_bit_coerced
+
   def div(other)
     raise ZeroDivisionError, 'divided by 0' if other == 0
     (self / other).floor
