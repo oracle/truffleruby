@@ -22,6 +22,7 @@ public class CoreStrings {
     public final CoreString CHARACTER_INDEX_NEGATIVE;
     public final CoreString CLASS;
     public final CoreString CLASS_VARIABLE;
+    public final CoreString DIVIDE;
     public final CoreString EMPTY_STRING;
     public final CoreString EXPRESSION;
     public final CoreString FALSE;
@@ -61,6 +62,7 @@ public class CoreStrings {
         CHARACTER_INDEX_NEGATIVE = new CoreString(context, "character index is negative");
         CLASS = new CoreString(context, "class");
         CLASS_VARIABLE = new CoreString(context, "class variable");
+        DIVIDE = new CoreString(context, "/");
         EMPTY_STRING = new CoreString(context, "");
         EXPRESSION = new CoreString(context, "expression");
         FALSE = new CoreString(context, "false");

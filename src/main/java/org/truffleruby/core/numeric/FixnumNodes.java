@@ -27,7 +27,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.Hashing;
-import org.truffleruby.core.InlinableBuiltin;
 import org.truffleruby.core.numeric.FixnumNodesFactory.DivNodeFactory;
 import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.language.NotProvided;
@@ -227,7 +226,7 @@ public abstract class FixnumNodes {
     }
 
     @CoreMethod(names = "/", required = 1)
-    public abstract static class DivNode extends CoreMethodArrayArgumentsNode implements InlinableBuiltin {
+    public abstract static class DivNode extends CoreMethodArrayArgumentsNode {
 
         private final BranchProfile bGreaterZero = BranchProfile.create();
         private final BranchProfile bGreaterZeroAGreaterEqualZero = BranchProfile.create();
@@ -238,9 +237,7 @@ public abstract class FixnumNodes {
         private final BranchProfile bMinusOneANotMinimum = BranchProfile.create();
         private final BranchProfile finalCase = BranchProfile.create();
 
-        public abstract Object executeBuiltin(VirtualFrame frame, Object... arguments);
-
-        public abstract Object executeDiv(VirtualFrame frame, Object a, Object b);
+        public abstract Object executeDiv(Object a, Object b);
 
         // int
 
@@ -284,12 +281,9 @@ public abstract class FixnumNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object divCoerced(
-                VirtualFrame frame,
-                int a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :/, b", "b", b);
+        public Object divCoerced(int a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().DIVIDE.getSymbol(), b);
         }
 
         // long
@@ -349,12 +343,9 @@ public abstract class FixnumNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object divCoerced(
-                VirtualFrame frame,
-                long a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :/, b", "b", b);
+        public Object divCoerced(long a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().DIVIDE.getSymbol(), b);
         }
 
         protected static boolean isLongMinValue(long a) {
@@ -371,9 +362,9 @@ public abstract class FixnumNodes {
         @Child private FloatNodes.FloorNode floorNode = FloatNodesFactory.FloorNodeFactory.create(null);
 
         @Specialization
-        public Object idiv(VirtualFrame frame, Object a, Object b,
+        public Object idiv(Object a, Object b,
                 @Cached("createBinaryProfile()") ConditionProfile zeroProfile) {
-            Object quotient = divNode.executeDiv(frame, a, b);
+            Object quotient = divNode.executeDiv(a, b);
             if (quotient instanceof Double) {
                 if (zeroProfile.profile((double) b == 0.0)) {
                     throw new RaiseException(coreExceptions().zeroDivisionError(this));
