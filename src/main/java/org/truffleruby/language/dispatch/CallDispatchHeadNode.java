@@ -25,7 +25,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
                 MissingBehavior.CALL_METHOD_MISSING);
     }
 
-    public static CallDispatchHeadNode createMethodCallIgnoreVisibility() {
+    public static CallDispatchHeadNode createOnSelf() {
         return new CallDispatchHeadNode(
                 true,
                 MissingBehavior.CALL_METHOD_MISSING);

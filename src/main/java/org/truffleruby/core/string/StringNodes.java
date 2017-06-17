@@ -483,7 +483,7 @@ public abstract class StringNodes {
                 DynamicObject string,
                 DynamicObject regexp,
                 NotProvided capture,
-                @Cached("createMethodCallIgnoreVisibility()") CallDispatchHeadNode callNode,
+                @Cached("createOnSelf()") CallDispatchHeadNode callNode,
                 @Cached("create()") RegexpSetLastMatchPrimitiveNode setLastMatchNode) {
             return sliceCapture(frame, string, regexp, 0, callNode, setLastMatchNode);
         }
@@ -494,7 +494,7 @@ public abstract class StringNodes {
                 DynamicObject string,
                 DynamicObject regexp,
                 Object capture,
-                @Cached("createMethodCallIgnoreVisibility()") CallDispatchHeadNode callNode,
+                @Cached("createOnSelf()") CallDispatchHeadNode callNode,
                 @Cached("create()") RegexpSetLastMatchPrimitiveNode setLastMatchNode) {
             final Object matchStrPair = callNode.call(frame, string, "subpattern", regexp, capture);
 

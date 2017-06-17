@@ -95,12 +95,9 @@ public abstract class FixnumNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object addCoerced(
-                VirtualFrame frame,
-                int a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :+, b", "b", b);
+        public Object addCoerced(int a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
         }
 
         @Specialization(rewriteOn = ArithmeticException.class)
@@ -124,12 +121,9 @@ public abstract class FixnumNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object addCoerced(
-                VirtualFrame frame,
-                long a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :+, b", "b", b);
+        public Object addCoerced(long a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
         }
 
     }
