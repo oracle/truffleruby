@@ -585,7 +585,7 @@ public abstract class FixnumNodes {
     @CoreMethod(names = { "==", "===" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode reverseCallNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode reverseCallNode = CallDispatchHeadNode.create();
 
         @Specialization
         public boolean equal(int a, int b) {
@@ -924,7 +924,7 @@ public abstract class FixnumNodes {
         public Object leftShiftFallback(VirtualFrame frame, Object a, Object b) {
             if (fallbackCallNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackCallNode = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
+                fallbackCallNode = insert(CallDispatchHeadNode.createOnSelf());
             }
             return fallbackCallNode.call(frame, a, "left_shift_fallback", b);
         }
@@ -1004,7 +1004,7 @@ public abstract class FixnumNodes {
         public Object rightShiftFallback(VirtualFrame frame, Object a, Object b) {
             if (fallbackCallNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackCallNode = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
+                fallbackCallNode = insert(CallDispatchHeadNode.createOnSelf());
             }
             return fallbackCallNode.call(frame, a, "right_shift_fallback", b);
         }

@@ -20,7 +20,7 @@ import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 /** Load libraries required from the command line (-r LIBRARY) */
 public class LoadRequiredLibrariesNode extends RubyNode {
 
-    @Child private CallDispatchHeadNode requireNode = DispatchHeadNodeFactory.createMethodCallOnSelf();
+    @Child private CallDispatchHeadNode requireNode = CallDispatchHeadNode.createOnSelf();
 
     @Override
     public Object execute(VirtualFrame frame) {

@@ -412,7 +412,7 @@ public abstract class KernelNodes {
     public abstract static class CloneNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CopyNode copyNode = CopyNodeFactory.create(null);
-        @Child private CallDispatchHeadNode initializeCloneNode = DispatchHeadNodeFactory.createMethodCallOnSelf();
+        @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createOnSelf();
         @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
         @Child private FreezeNode freezeNode;
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
@@ -458,7 +458,7 @@ public abstract class KernelNodes {
     public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CopyNode copyNode = CopyNodeFactory.create(null);
-        @Child private CallDispatchHeadNode initializeDupNode = DispatchHeadNodeFactory.createMethodCallOnSelf();
+        @Child private CallDispatchHeadNode initializeDupNode = CallDispatchHeadNode.createOnSelf();
 
         @Specialization
         public DynamicObject dup(VirtualFrame frame, DynamicObject self) {
@@ -815,7 +815,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "initialize_dup", "initialize_clone" }, required = 1)
     public abstract static class InitializeDupCloneNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode initializeCopyNode = DispatchHeadNodeFactory.createMethodCallOnSelf();
+        @Child private CallDispatchHeadNode initializeCopyNode = CallDispatchHeadNode.createOnSelf();
 
         @Specialization
         public Object initializeDup(VirtualFrame frame, DynamicObject self, DynamicObject from) {

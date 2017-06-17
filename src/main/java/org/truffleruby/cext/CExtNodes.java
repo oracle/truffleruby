@@ -1046,7 +1046,7 @@ public class CExtNodes {
         public DynamicObject classNew(VirtualFrame frame, DynamicObject superclass) {
             if (allocateNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateNode = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
+                allocateNode = insert(CallDispatchHeadNode.createOnSelf());
                 initializeClassNode = insert(InitializeClassNodeGen.create(false, null, null, null));
             }
 

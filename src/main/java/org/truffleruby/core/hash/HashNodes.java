@@ -493,7 +493,7 @@ public abstract class HashNodes {
         public Object each(VirtualFrame frame, DynamicObject hash, NotProvided block) {
             if (toEnumNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEnumNode = insert(DispatchHeadNodeFactory.createMethodCallOnSelf());
+                toEnumNode = insert(CallDispatchHeadNode.createOnSelf());
             }
 
             InternalMethod method = RubyArguments.getMethod(frame);
