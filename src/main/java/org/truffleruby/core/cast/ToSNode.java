@@ -25,7 +25,7 @@ import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 @NodeChild(type = RubyNode.class)
 public abstract class ToSNode extends RubyNode {
 
-    @Child private CallDispatchHeadNode callToSNode = DispatchHeadNodeFactory.createMethodCall(true);
+    @Child private CallDispatchHeadNode callToSNode = CallDispatchHeadNode.createOnSelf();
     @Child private KernelNodes.ToSNode kernelToSNode;
 
     protected DynamicObject kernelToS(Object object) {

@@ -172,7 +172,7 @@ public abstract class FloatNodes {
             if (complexProfile.profile(a < 0 && b != Math.round(b))) {
                 if (complexConvertNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    complexConvertNode = insert(DispatchHeadNodeFactory.createMethodCall(true));
+                    complexConvertNode = insert(CallDispatchHeadNode.createOnSelf());
                     complexPowNode = insert(CallDispatchHeadNode.create());
                 }
 

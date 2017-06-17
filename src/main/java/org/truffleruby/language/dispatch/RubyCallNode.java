@@ -95,7 +95,7 @@ public class RubyCallNode extends RubyNode {
 
         if (dispatchHead == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dispatchHead = insert(DispatchHeadNodeFactory.createMethodCall(ignoreVisibility));
+            dispatchHead = insert(new CallDispatchHeadNode(ignoreVisibility, MissingBehavior.CALL_METHOD_MISSING));
         }
 
         final Object returnValue = dispatchHead.dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);

@@ -1045,7 +1045,7 @@ public abstract class ArrayNodes {
         protected Object callToAry(VirtualFrame frame, Object object) {
             if (toAryNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toAryNode = insert(DispatchHeadNodeFactory.createMethodCall(true));
+                toAryNode = insert(CallDispatchHeadNode.createOnSelf());
             }
             return toAryNode.call(frame, object, "to_ary");
         }
@@ -1097,7 +1097,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InjectNode extends YieldingCoreMethodNode {
 
-        @Child private CallDispatchHeadNode dispatch = DispatchHeadNodeFactory.createMethodCall(MissingBehavior.CALL_METHOD_MISSING);
+        @Child private CallDispatchHeadNode dispatch = CallDispatchHeadNode.create();
 
         // With block
 
