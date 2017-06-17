@@ -773,6 +773,8 @@ public abstract class FixnumNodes {
     @CoreMethod(names = "&", required = 1)
     public abstract static class BitAndNode extends BignumNodes.BignumCoreMethodNode {
 
+        public abstract Object executeBitAnd(Object a, Object b);
+
         @Specialization
         public int bitAndIntInt(int a, int b) {
             return a & b;
@@ -820,6 +822,8 @@ public abstract class FixnumNodes {
 
     @CoreMethod(names = "|", required = 1)
     public abstract static class BitOrNode extends BignumNodes.BignumCoreMethodNode {
+
+        public abstract Object executeBitOr(Object a, Object b);
 
         @Specialization
         public int bitOr(int a, int b) {
