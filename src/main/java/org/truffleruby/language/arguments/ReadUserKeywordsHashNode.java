@@ -74,7 +74,7 @@ public class ReadUserKeywordsHashNode extends RubyNode {
     private Object callToHash(VirtualFrame frame, final Object lastArgument) {
         if (callToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callToHashNode = insert(CallDispatchHeadNode.createMethodCall());
+            callToHashNode = insert(CallDispatchHeadNode.create());
         }
         return callToHashNode.call(frame, lastArgument, "to_hash");
     }

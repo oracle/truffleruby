@@ -975,7 +975,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isRubyHash(other)")
         public Object merge(VirtualFrame frame, DynamicObject hash, Object other, Object maybeBlock,
-                        @Cached("createMethodCall()") CallDispatchHeadNode fallbackCallNode) {
+                @Cached("create()") CallDispatchHeadNode fallbackCallNode) {
             final DynamicObject block;
             if (maybeBlock == NotProvided.INSTANCE) {
                 block = null;

@@ -112,9 +112,9 @@ public abstract class PsychEmitterNodes {
                 DynamicObject emitter,
                 DynamicObject io,
                 DynamicObject optionsSet,
-                @Cached("createMethodCall()") CallDispatchHeadNode lineWidthCallNode,
-                @Cached("createMethodCall()") CallDispatchHeadNode canonicalCallNode,
-                @Cached("createMethodCall()") CallDispatchHeadNode indentationCallNode) {
+                @Cached("create()") CallDispatchHeadNode lineWidthCallNode,
+                @Cached("create()") CallDispatchHeadNode canonicalCallNode,
+                @Cached("create()") CallDispatchHeadNode indentationCallNode) {
             final DumperOptions options = new DumperOptions();
             options.setWidth((int) lineWidthCallNode.call(frame, optionsSet, "line_width"));
             options.setCanonical((boolean) canonicalCallNode.call(frame, optionsSet, "canonical"));
