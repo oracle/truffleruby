@@ -20,6 +20,7 @@ public class CoreStrings {
     public final CoreString CALL;
     public final CoreString CANT_COMPRESS_NEGATIVE;
     public final CoreString CHARACTER_INDEX_NEGATIVE;
+    public final CoreString CIRCUMFLEX;
     public final CoreString CLASS;
     public final CoreString CLASS_VARIABLE;
     public final CoreString DIVIDE;
@@ -60,6 +61,7 @@ public class CoreStrings {
         CALL = new CoreString(context, "call");
         CANT_COMPRESS_NEGATIVE = new CoreString(context, "can't compress negative numbers");
         CHARACTER_INDEX_NEGATIVE = new CoreString(context, "character index is negative");
+        CIRCUMFLEX = new CoreString(context, "^");
         CLASS = new CoreString(context, "class");
         CLASS_VARIABLE = new CoreString(context, "class variable");
         DIVIDE = new CoreString(context, "/");

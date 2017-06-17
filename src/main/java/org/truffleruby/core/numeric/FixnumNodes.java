@@ -851,12 +851,9 @@ public abstract class FixnumNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object bitXOr(
-                VirtualFrame frame,
-                Object a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :^, b", "b", b);
+        public Object bitXOr(Object a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().CIRCUMFLEX.getSymbol(), b);
         }
 
     }
