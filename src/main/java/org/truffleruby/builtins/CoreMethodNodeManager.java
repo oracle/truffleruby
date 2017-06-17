@@ -14,7 +14,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.GeneratedBy;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
@@ -197,7 +196,7 @@ public class CoreMethodNodeManager {
         final SourceSection sourceSection = sharedMethodInfo.getSourceSection();
         final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());
 
-        final RubyNode methodNode = createCoreMethodNode(context, sourceSection.getSource(), sourceIndexLength, methodDetails.getNodeFactory(), method);
+        final RubyNode methodNode = createCoreMethodNode(context, methodDetails.getNodeFactory(), method);
 
         if (CHECK_DSL_USAGE) {
             AmbiguousOptionalArgumentChecker.verifyNoAmbiguousOptionalArguments(methodDetails);
@@ -216,7 +215,7 @@ public class CoreMethodNodeManager {
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
-    public static RubyNode createCoreMethodNode(RubyContext context, Source source, SourceIndexLength sourceSection, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method) {
+    public static RubyNode createCoreMethodNode(RubyContext context, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method) {
         final List<RubyNode> argumentsNodes = new ArrayList<>();
 
         final boolean needsSelf = needsSelf(method);
@@ -247,47 +246,27 @@ public class CoreMethodNodeManager {
             argumentsNodes.add(new ReadBlockNode(NotProvided.INSTANCE));
         }
 
-        return createNodeFromFactory(context, source, sourceSection, nodeFactory, argumentsNodes);
+        return createNodeFromFactory(context, nodeFactory, argumentsNodes);
     }
 
-    public static <T> T createNodeFromFactory(RubyContext context, Source source, SourceIndexLength sourceSection, NodeFactory<? extends T> nodeFactory, List<RubyNode> argumentsNodes) {
-        final T methodNode;
-        List<List<Class<?>>> signatures = nodeFactory.getNodeSignatures();
+    public static <T> T createNodeFromFactory(RubyContext context, NodeFactory<? extends T> nodeFactory, List<RubyNode> argumentsNodes) {
+        final List<List<Class<?>>> signatures = nodeFactory.getNodeSignatures();
 
         assert signatures.size() == 1;
-        List<Class<?>> signature = signatures.get(0);
+        final List<Class<?>> signature = signatures.get(0);
 
         if (signature.size() == 0) {
-            methodNode = nodeFactory.createNode();
+            return nodeFactory.createNode();
         } else {
             final RubyNode[] argumentsArray = argumentsNodes.toArray(new RubyNode[argumentsNodes.size()]);
             if (signature.size() == 1 && signature.get(0) == RubyNode[].class) {
-                methodNode = nodeFactory.createNode(new Object[] { argumentsArray });
-            } else if (signature.size() >= 2 && signature.get(1) == RubyNode[].class) {
-                if (signature.get(0) == SourceIndexLength.class) {
-                    methodNode = nodeFactory.createNode(sourceSection, argumentsArray);
-                } else {
-                    throw new UnsupportedOperationException();
-                }
-            } else if (signature.get(0) != SourceIndexLength.class) {
-                Object[] args = argumentsArray;
-                methodNode = nodeFactory.createNode(args);
+                Object args = argumentsArray;
+                return nodeFactory.createNode(args);
             } else {
-                Object[] args = new Object[1 + argumentsNodes.size()];
-                args[0] = context;
-
-                if (signature.get(0) == SourceIndexLength.class) {
-                    args[0] = sourceSection;
-                } else {
-                    throw new UnsupportedOperationException();
-                }
-
-                System.arraycopy(argumentsArray, 0, args, 1, argumentsNodes.size());
-                methodNode = nodeFactory.createNode(args);
+                Object[] args = argumentsArray;
+                return nodeFactory.createNode(args);
             }
         }
-
-        return methodNode;
     }
 
     public static boolean needsSelf(CoreMethod method) {
