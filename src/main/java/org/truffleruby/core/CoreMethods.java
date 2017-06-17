@@ -10,7 +10,7 @@
 package org.truffleruby.core;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.numeric.FixnumNodesFactory;
@@ -42,7 +42,7 @@ public class CoreMethods {
         return method;
     }
 
-    public RubyNode createCallNode(Source source, RubyCallNodeParameters callParameters) {
+    public RubyNode createCallNode(RubyCallNodeParameters callParameters) {
         if (!context.getOptions().BASICOPS_INLINE || callParameters.getBlock() != null || callParameters.isSplatted() || callParameters.isSafeNavigation()) {
             return new RubyCallNode(callParameters);
         }
@@ -52,11 +52,11 @@ public class CoreMethods {
         if (n == 2) {
             switch (callParameters.getMethodName()) {
             case "+":
-                return InlinedCoreMethodNode.inlineBuiltin(context, source, callParameters, fixnumPlus, FixnumNodesFactory.AddNodeFactory.getInstance());
+                return InlinedCoreMethodNode.inlineBuiltin(context, callParameters, fixnumPlus, FixnumNodesFactory.AddNodeFactory.getInstance());
             case "-":
-                return InlinedCoreMethodNode.inlineBuiltin(context, source, callParameters, fixnumMinus, FixnumNodesFactory.SubNodeFactory.getInstance());
+                return InlinedCoreMethodNode.inlineBuiltin(context, callParameters, fixnumMinus, FixnumNodesFactory.SubNodeFactory.getInstance());
             case "*":
-                return InlinedCoreMethodNode.inlineBuiltin(context, source, callParameters, fixnumMul, FixnumNodesFactory.MulNodeFactory.getInstance());
+                return InlinedCoreMethodNode.inlineBuiltin(context, callParameters, fixnumMul, FixnumNodesFactory.MulNodeFactory.getInstance());
             default:
             }
         }

@@ -15,7 +15,7 @@ import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.source.Source;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.core.array.ArrayUtils;
@@ -101,10 +101,10 @@ public class InlinedCoreMethodNode extends RubyNode {
         });
     }
 
-    public static InlinedCoreMethodNode inlineBuiltin(RubyContext context, Source source, RubyCallNodeParameters callParameters, InternalMethod method, NodeFactory<? extends InlinableBuiltin> builtinFactory) {
+    public static InlinedCoreMethodNode inlineBuiltin(RubyContext context, RubyCallNodeParameters callParameters, InternalMethod method, NodeFactory<? extends InlinableBuiltin> builtinFactory) {
         // Let arguments to null as we need to execute the receiver ourselves to lookup the method
         final List<RubyNode> arguments = Arrays.asList(new RubyNode[1 + callParameters.getArguments().length]);
-        final InlinableBuiltin builtinNode = CoreMethodNodeManager.createNodeFromFactory(context, source, null, builtinFactory, arguments);
+        final InlinableBuiltin builtinNode = CoreMethodNodeManager.createNodeFromFactory(context, builtinFactory, arguments);
         return new InlinedCoreMethodNode(callParameters, method, builtinNode);
     }
 

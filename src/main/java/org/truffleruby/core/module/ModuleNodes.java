@@ -1468,7 +1468,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "public_method_defined?", required = 1)
     public abstract static class PublicMethodDefinedNode extends AbstractMethodDefinedNode {
 
-        public PublicMethodDefinedNode(SourceIndexLength sourceSection) {
+        public PublicMethodDefinedNode() {
             super(Visibility.PUBLIC);
         }
 
@@ -1477,7 +1477,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "protected_method_defined?", required = 1)
     public abstract static class ProtectedMethodDefinedNode extends AbstractMethodDefinedNode {
 
-        public ProtectedMethodDefinedNode(SourceIndexLength sourceSection) {
+        public ProtectedMethodDefinedNode() {
             super(Visibility.PROTECTED);
         }
 
@@ -1486,7 +1486,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "private_method_defined?", required = 1)
     public abstract static class PrivateMethodDefinedNode extends AbstractMethodDefinedNode {
 
-        public PrivateMethodDefinedNode(SourceIndexLength sourceSection) {
+        public PrivateMethodDefinedNode() {
             super(Visibility.PRIVATE);
         }
 
