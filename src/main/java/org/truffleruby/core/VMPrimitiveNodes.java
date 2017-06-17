@@ -141,8 +141,8 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_extended_modules", needsSelf = false)
     public static abstract class VMExtendedModulesNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode newArrayNode = DispatchHeadNodeFactory.createMethodCall();
-        @Child private CallDispatchHeadNode arrayAppendNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode newArrayNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode arrayAppendNode = CallDispatchHeadNode.create();
 
         @Specialization
         public Object vmExtendedModules(VirtualFrame frame, Object object) {

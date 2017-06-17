@@ -100,7 +100,7 @@ public abstract class GetConstantNode extends RubyNode {
 
         if (constMissingNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            constMissingNode = insert(DispatchHeadNodeFactory.createMethodCall());
+            constMissingNode = insert(CallDispatchHeadNode.create());
         }
 
         return constMissingNode.call(frame, module, "const_missing", symbolName);

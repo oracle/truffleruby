@@ -159,7 +159,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callDefaultNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.create();
 
         @CompilationFinal protected Object undefinedValue = null;
 
@@ -1036,7 +1036,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callDefaultNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.create();
 
         @Specialization(guards = "isEmptyHash(hash)")
         public Object shiftEmpty(VirtualFrame frame, DynamicObject hash) {

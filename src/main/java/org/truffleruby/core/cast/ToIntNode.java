@@ -109,7 +109,7 @@ public abstract class ToIntNode extends RubyNode {
     private Object coerceObject(VirtualFrame frame, Object object, BranchProfile errorProfile) {
         if (toIntNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toIntNode = insert(DispatchHeadNodeFactory.createMethodCall());
+            toIntNode = insert(CallDispatchHeadNode.create());
         }
 
         final Object coerced;

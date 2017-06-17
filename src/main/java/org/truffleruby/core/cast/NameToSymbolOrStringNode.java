@@ -30,7 +30,7 @@ import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class NameToSymbolOrStringNode extends RubyNode {
 
-    @Child private CallDispatchHeadNode toStr = DispatchHeadNodeFactory.createMethodCall();
+    @Child private CallDispatchHeadNode toStr = CallDispatchHeadNode.create();
 
     public abstract DynamicObject executeToSymbolOrString(VirtualFrame frame, Object name);
 

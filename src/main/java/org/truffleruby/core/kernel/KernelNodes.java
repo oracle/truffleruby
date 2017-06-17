@@ -182,7 +182,7 @@ public abstract class KernelNodes {
         private boolean areEqual(VirtualFrame frame, Object left, Object right) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(DispatchHeadNodeFactory.createMethodCall());
+                equalNode = insert(CallDispatchHeadNode.create());
             }
 
             return equalNode.callBoolean(frame, left, "==", null, right);
@@ -212,7 +212,7 @@ public abstract class KernelNodes {
         private boolean areEql(VirtualFrame frame, Object left, Object right) {
             if (eqlNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eqlNode = insert(DispatchHeadNodeFactory.createMethodCall());
+                eqlNode = insert(CallDispatchHeadNode.create());
             }
             return eqlNode.callBoolean(frame, left, "eql?", null, right);
         }
@@ -1148,7 +1148,7 @@ public abstract class KernelNodes {
         private static class CallMethodMissingWithStaticName extends RubyNode {
 
             private final DynamicObject methodName;
-            @Child private CallDispatchHeadNode methodMissing = DispatchHeadNodeFactory.createMethodCall();
+            @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.create();
 
             public CallMethodMissingWithStaticName(DynamicObject methodName) {
                 this.methodName = methodName;

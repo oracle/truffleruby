@@ -29,7 +29,7 @@ public class InterpolatedRegexpNode extends RubyNode {
 
     @Children private final RubyNode[] children;
     private final RegexpOptions options;
-    @Child private CallDispatchHeadNode toS = DispatchHeadNodeFactory.createMethodCall();
+    @Child private CallDispatchHeadNode toS = CallDispatchHeadNode.create();
 
     public InterpolatedRegexpNode(RubyNode[] children, RegexpOptions options) {
         this.children = children;
