@@ -84,7 +84,7 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "!=", required = 1)
     public abstract static class NotEqualNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode equalNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode equalNode = CallDispatchHeadNode.create();
 
         @Specialization
         public boolean equal(VirtualFrame frame, Object a, Object b) {

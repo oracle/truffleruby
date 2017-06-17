@@ -388,7 +388,7 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "=~", required = 1)
     public abstract static class MatchOperatorNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dupNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
         @Child private RegexpSetLastMatchPrimitiveNode setLastMatchNode = RegexpSetLastMatchPrimitiveNodeFactory.create(null);
         @Child private CallDispatchHeadNode toSNode;
@@ -405,7 +405,7 @@ public abstract class RegexpNodes {
         public Object matchSymbol(VirtualFrame frame, DynamicObject regexp, DynamicObject symbol) {
             if (toSNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toSNode = insert(DispatchHeadNodeFactory.createMethodCall());
+                toSNode = insert(CallDispatchHeadNode.create());
             }
 
             return matchWithStringCopy(frame, regexp, (DynamicObject) toSNode.call(frame, symbol, "to_s"));
@@ -468,7 +468,7 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "match_start", required = 2, lowerFixnum = 2)
     public abstract static class MatchStartNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dupNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
 
         @Specialization(guards = "isRubyString(string)")
@@ -693,7 +693,7 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "search_from", required = 2, lowerFixnum = 2)
     public abstract static class SearchFromNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dupNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
 
         @Specialization(guards = "isRubyString(string)")

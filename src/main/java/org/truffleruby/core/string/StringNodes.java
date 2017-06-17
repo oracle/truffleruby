@@ -301,7 +301,7 @@ public abstract class StringNodes {
             if (respondToNode.doesRespondToString(frame, b, create7BitString("to_str", UTF8Encoding.INSTANCE), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    objectEqualNode = insert(DispatchHeadNodeFactory.createMethodCall());
+                    objectEqualNode = insert(CallDispatchHeadNode.create());
                 }
 
                 return objectEqualNode.callBoolean(frame, b, "==", null, a);
@@ -514,7 +514,7 @@ public abstract class StringNodes {
         public Object slice2(VirtualFrame frame, DynamicObject string, DynamicObject matchStr, NotProvided length) {
             if (includeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                includeNode = insert(DispatchHeadNodeFactory.createMethodCall());
+                includeNode = insert(CallDispatchHeadNode.create());
             }
 
             boolean result = includeNode.callBoolean(frame, string, "include?", null, matchStr);
@@ -522,7 +522,7 @@ public abstract class StringNodes {
             if (result) {
                 if (dupNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    dupNode = insert(DispatchHeadNodeFactory.createMethodCall());
+                    dupNode = insert(CallDispatchHeadNode.create());
                 }
 
                 throw new TaintResultNode.DoNotTaint(dupNode.call(frame, matchStr, "dup"));
@@ -1974,10 +1974,10 @@ public abstract class StringNodes {
     @CoreMethod(names = "sum", optional = 1)
     public abstract static class SumNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode addNode = DispatchHeadNodeFactory.createMethodCall();
-        @Child private CallDispatchHeadNode subNode = DispatchHeadNodeFactory.createMethodCall();
-        @Child private CallDispatchHeadNode shiftNode = DispatchHeadNodeFactory.createMethodCall();
-        @Child private CallDispatchHeadNode andNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode addNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode subNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode shiftNode = CallDispatchHeadNode.create();
+        @Child private CallDispatchHeadNode andNode = CallDispatchHeadNode.create();
 
         @Specialization
         public Object sum(VirtualFrame frame, DynamicObject string, int bits) {

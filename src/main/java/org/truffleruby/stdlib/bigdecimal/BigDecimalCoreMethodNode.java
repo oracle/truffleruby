@@ -119,7 +119,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     private CallDispatchHeadNode getLimitCall() {
         if (limitCall == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            limitCall = insert(DispatchHeadNodeFactory.createMethodCall());
+            limitCall = insert(CallDispatchHeadNode.create());
         }
 
         return limitCall;
@@ -137,7 +137,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     private CallDispatchHeadNode getRoundModeCall() {
         if (roundModeCall == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            roundModeCall = insert(DispatchHeadNodeFactory.createMethodCall());
+            roundModeCall = insert(CallDispatchHeadNode.create());
         }
 
         return roundModeCall;

@@ -45,7 +45,7 @@ public class SymbolProcNode extends RubyNode {
     private CallDispatchHeadNode getCallNode() {
         if (callNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callNode = insert(DispatchHeadNodeFactory.createMethodCall());
+            callNode = insert(CallDispatchHeadNode.create());
         }
 
         return callNode;

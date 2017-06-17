@@ -52,7 +52,7 @@ public class ReadLastBacktraceNode extends RubyNode {
     private CallDispatchHeadNode getGetBacktraceNode() {
         if (getBacktraceNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            getBacktraceNode = insert(DispatchHeadNodeFactory.createMethodCall());
+            getBacktraceNode = insert(CallDispatchHeadNode.create());
         }
 
         return getBacktraceNode;

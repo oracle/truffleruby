@@ -20,7 +20,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchHeadNodeFactory;
 
 /**
  * Casts an object to a Ruby Proc object.
@@ -40,7 +39,7 @@ public abstract class ToProcNode extends RubyNode {
 
     @Specialization(guards = "!isRubyProc(object)")
     public DynamicObject doObject(VirtualFrame frame, Object object,
-            @Cached("createCallNode()") CallDispatchHeadNode toProc,
+            @Cached("create()") CallDispatchHeadNode toProc,
             @Cached("create()") BranchProfile errorProfile) {
         final Object coerced;
         try {
@@ -60,10 +59,6 @@ public abstract class ToProcNode extends RubyNode {
             errorProfile.enter();
             throw new RaiseException(coreExceptions().typeErrorBadCoercion(object, "Proc", "to_proc", coerced, this));
         }
-    }
-
-    protected CallDispatchHeadNode createCallNode() {
-        return DispatchHeadNodeFactory.createMethodCall();
     }
 
 }

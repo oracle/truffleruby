@@ -11,10 +11,6 @@ package org.truffleruby.language.dispatch;
 
 public class DispatchHeadNodeFactory {
 
-    public static CallDispatchHeadNode createMethodCall() {
-        return createMethodCall(false);
-    }
-
     public static CallDispatchHeadNode createMethodCallOnSelf() {
         return createMethodCall(true);
     }

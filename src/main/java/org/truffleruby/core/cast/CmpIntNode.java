@@ -101,7 +101,7 @@ public abstract class CmpIntNode extends RubyNode {
     public int cmpObject(VirtualFrame frame, Object value, Object receiver, Object other) {
         if (gtNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            gtNode = insert(DispatchHeadNodeFactory.createMethodCall());
+            gtNode = insert(CallDispatchHeadNode.create());
         }
 
         if (gtNode.callBoolean(frame, value, ">", null, 0)) {
@@ -110,7 +110,7 @@ public abstract class CmpIntNode extends RubyNode {
 
         if (ltNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            ltNode = insert(DispatchHeadNodeFactory.createMethodCall());
+            ltNode = insert(CallDispatchHeadNode.create());
         }
 
         if (ltNode.callBoolean(frame, value, "<", null, 0)) {

@@ -288,7 +288,7 @@ public abstract class MatchDataNodes {
     @CoreMethod(names = "captures")
     public abstract static class CapturesNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dupNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
 
         @Specialization
         public DynamicObject toA(VirtualFrame frame, DynamicObject matchData) {

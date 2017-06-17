@@ -1702,7 +1702,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "sort", needsBlock = true)
     public abstract static class SortNode extends ArrayCoreMethodNode {
 
-        @Child private CallDispatchHeadNode compareDispatchNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode compareDispatchNode = CallDispatchHeadNode.create();
         @Child private YieldNode yieldNode = new YieldNode();
 
         private final BranchProfile errorProfile = BranchProfile.create();

@@ -148,7 +148,7 @@ public abstract class IONodes {
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
-        @Child private CallDispatchHeadNode newBufferNode = DispatchHeadNodeFactory.createMethodCall();
+        @Child private CallDispatchHeadNode newBufferNode = CallDispatchHeadNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         @Specialization
