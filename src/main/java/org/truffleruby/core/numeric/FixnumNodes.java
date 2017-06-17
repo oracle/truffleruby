@@ -803,14 +803,14 @@ public abstract class FixnumNodes {
             return fixnumOrBignum(BigInteger.valueOf(a).and(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = "!isRubyBignum(b)")
-        public Object bitAndNotBignum(int a, Object b,
+        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
+        public Object bitAndCoerce(int a, Object b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().AMPERSTAND.getSymbol(), b);
         }
 
-        @Specialization(guards = "!isRubyBignum(b)")
-        public Object bitAndNotBignum(long a, Object b,
+        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
+        public Object bitAndCoerce(long a, Object b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().AMPERSTAND.getSymbol(), b);
         }
