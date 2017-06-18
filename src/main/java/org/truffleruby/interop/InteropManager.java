@@ -27,6 +27,7 @@ public class InteropManager {
 
     public void exportObject(String name, TruffleObject object) {
         exported.put(name, object);
+        context.getEnv().exportSymbol(name, object);
     }
 
     public Object findExportedObject(String name) {
