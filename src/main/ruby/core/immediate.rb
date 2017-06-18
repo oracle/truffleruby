@@ -28,6 +28,16 @@
 # Mixin used to identify classes which have no memory storage.
 
 module ImmediateValue
+  def self.included(klass)
+    def klass.__allocate__
+      raise TypeError, "allocator undefined for #{self}"
+    end
+
+    Truffle.privately do
+      klass.singleton_class.undef_method(:new)
+    end
+  end
+
   def singleton_methods(all=true)
     []
   end
@@ -70,4 +80,3 @@ end
 class Fixnum
   include ImmediateValue
 end
-
