@@ -218,7 +218,7 @@ public class CallStackManager {
                 && DisablingBacktracesNode.areBacktracesDisabled()
                 && ModuleOperations.assignableTo(Layouts.BASIC_OBJECT.getLogicalClass(exception),
                     context.getCoreLibrary().getStandardErrorClass())) {
-            return new Backtrace(new Activation[] { Activation.OMITTED_UNUSED }, null);
+            return new Backtrace(currentNode, new Activation[] { Activation.OMITTED_UNUSED }, null);
         }
 
         final int limit = context.getOptions().BACKTRACES_LIMIT;
@@ -283,7 +283,7 @@ public class CallStackManager {
             javaThrowable = null;
         }
 
-        return new Backtrace(activations.toArray(new Activation[activations.size()]), javaThrowable);
+        return new Backtrace(currentNode, activations.toArray(new Activation[activations.size()]), javaThrowable);
     }
 
     private boolean ignoreFrame(FrameInstance frameInstance) {
