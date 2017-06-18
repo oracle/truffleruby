@@ -23,7 +23,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -673,17 +672,6 @@ public abstract class BignumNodes {
             }
 
             return create7BitString(Layouts.BIGNUM.getValue(value).toString(base), USASCIIEncoding.INSTANCE);
-        }
-
-    }
-
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends UnaryCoreMethodNode {
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
-            throw new RaiseException(coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
     }
