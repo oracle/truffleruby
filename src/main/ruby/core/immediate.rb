@@ -80,3 +80,7 @@ end
 class Fixnum
   include ImmediateValue
 end
+
+class Bignum
+  include ImmediateValue
+end
