@@ -21,15 +21,22 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
+import org.graalvm.options.OptionDescriptor;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.options.OptionDescription;
+import org.truffleruby.options.OptionsCatalog;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
 
+import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
@@ -182,6 +189,21 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         } else {
             return null;
         }
+    }
+
+    @Override
+    protected List<OptionDescriptor> describeOptions() {
+        final List<OptionDescriptor> options = new ArrayList<>();
+
+        for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
+            // TODO CS 19-Jun-17 default value of null isn't supported
+
+            if (option.getDefaultValue() != null) {
+                options.add(option.toDescriptor());
+            }
+        }
+
+        return options;
     }
 
     public static String getVersionString() {

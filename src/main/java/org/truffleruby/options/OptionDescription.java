@@ -9,6 +9,10 @@
  */
 package org.truffleruby.options;
 
+import org.graalvm.options.OptionDescriptor;
+import org.graalvm.options.OptionKey;
+import org.graalvm.options.OptionType;
+
 public abstract class OptionDescription<T> {
 
     private final String name;
@@ -21,6 +25,10 @@ public abstract class OptionDescription<T> {
 
     public String getName() {
         return name;
+    }
+
+    public String getSDKName() {
+        return "ruby." + name;
     }
 
     public String getDescription() {
@@ -43,5 +51,11 @@ public abstract class OptionDescription<T> {
             return value.toString();
         }
     }
+
+    public OptionDescriptor toDescriptor() {
+        return OptionDescriptor.newBuilder(new OptionKey<T>(getDefaultValue(), getOptionType()), getSDKName()).help(getDescription()).build();
+    }
+
+    protected abstract OptionType<T> getOptionType();
 
 }

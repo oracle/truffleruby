@@ -9,9 +9,12 @@
  */
 package org.truffleruby.options;
 
+import org.graalvm.options.OptionType;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 public class StringArrayOptionDescription extends OptionDescription<String[]> {
 
@@ -52,6 +55,14 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
     // Allows input such as foo,bar,baz. You can escape commas.
 
     private String[] parseStringArray(String string) {
+        try {
+            return parseStringArrayInner(string);
+        } catch (IllegalStateException e) {
+            throw new OptionTypeException(getName(), string);
+        }
+    }
+
+    private static String[] parseStringArrayInner(String string) {
         final List<String> values = new ArrayList<>();
 
         final int startOfString = 0;
@@ -89,7 +100,7 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
 
                 case escape:
                     if (string.charAt(n) != ',') {
-                        throw new OptionTypeException(getName(), string);
+                        throw new IllegalArgumentException();
                     }
                     state = withinString;
                     builder.append(string.charAt(n));
@@ -103,7 +114,7 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
                 break;
 
             case escape:
-                throw new OptionTypeException(getName(), string);
+                throw new IllegalArgumentException();
         }
 
         return values.toArray(new String[values.size()]);
@@ -112,6 +123,13 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
     @Override
     public String toString(Object value) {
         return String.join(",", (String[]) value);
+    }
+
+    private static final OptionType<String[]> OPTION_TYPE = new OptionType<>("String[]", new String[]{}, StringArrayOptionDescription::parseStringArrayInner);
+
+    @Override
+    protected OptionType<String[]> getOptionType() {
+        return OPTION_TYPE;
     }
 
 }

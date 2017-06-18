@@ -9,6 +9,8 @@
  */
 package org.truffleruby.options;
 
+import org.graalvm.options.OptionType;
+
 public class StringOptionDescription extends OptionDescription<String> {
 
     private final String defaultValue;
@@ -30,6 +32,11 @@ public class StringOptionDescription extends OptionDescription<String> {
         } else {
             return value.toString();
         }
+    }
+
+    @Override
+    protected OptionType<String> getOptionType() {
+        return OptionType.defaultType("");
     }
 
 }

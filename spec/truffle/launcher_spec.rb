@@ -72,4 +72,46 @@ describe "The launcher" do
     end
   end
 
+  it "takes options from TRUFFLERUBYOPT" do
+    out = `TRUFFLERUBYOPT=-W2 #{RbConfig.ruby} -e 'puts $VERBOSE'`
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes options from RUBYOPT" do
+    out = `RUBYOPT=-W2 #{RbConfig.ruby} -e 'puts $VERBOSE'`
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes options from system properties set in JAVA_OPTS" do
+    out = `JAVA_OPTS=-Dtruffleruby.verbosity=2 #{RbConfig.ruby} -e 'puts $VERBOSE'`
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes options from system properties set on the command line using -J" do
+    out = `#{RbConfig.ruby} -J-Dtruffleruby.verbosity=2 -e 'puts $VERBOSE'`
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "takes options from system properties set on the command line using -X" do
+    out = `#{RbConfig.ruby} -Xverbosity=2 -e 'puts $VERBOSE'`
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "prioritises options on the command line over system properties" do
+    out = `JAVA_OPTS=-Dtruffleruby.verbosity=0 #{RbConfig.ruby} -W2 -e 'puts $VERBOSE'`
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
+  it "prioritises options on the command line using -X over system properties" do
+    out = `JAVA_OPTS=-Dtruffleruby.verbosity=0 #{RbConfig.ruby} -Xverbosity=2 -e 'puts $VERBOSE'`
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
 end
