@@ -84,3 +84,7 @@ end
 class Bignum
   include ImmediateValue
 end
+
+class Float
+  include ImmediateValue
+end
