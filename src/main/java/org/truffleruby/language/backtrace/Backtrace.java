@@ -22,13 +22,19 @@ import java.util.List;
 
 public class Backtrace {
 
+    private final Node location;
     private final Activation[] activations;
     private final Throwable javaThrowable;
     private DynamicObject backtraceStringArray;
 
-    public Backtrace(Activation[] activations, Throwable javaThrowable) {
+    public Backtrace(Node location, Activation[] activations, Throwable javaThrowable) {
+        this.location = location;
         this.activations = activations;
         this.javaThrowable = javaThrowable;
+    }
+
+    public Node getLocation() {
+        return location;
     }
 
     public List<Activation> getActivations() {
@@ -70,4 +76,5 @@ public class Backtrace {
     public void setBacktraceStringArray(DynamicObject backtraceStringArray) {
         this.backtraceStringArray = backtraceStringArray;
     }
+
 }
