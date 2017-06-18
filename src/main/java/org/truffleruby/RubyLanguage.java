@@ -21,7 +21,9 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
@@ -119,8 +121,23 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
-    protected Object findExportedSymbol(RubyContext context, String s, boolean b) {
-        return context.getInteropManager().findExportedObject(s);
+    protected Object findExportedSymbol(RubyContext context, String symbolName, boolean onlyExplicit) {
+        final Object explicit = context.getInteropManager().findExportedObject(symbolName);
+
+        if (explicit != null) {
+            return explicit;
+        }
+
+        if (onlyExplicit) {
+            return null;
+        }
+
+        return lookupSymbol(context, symbolName);
+    }
+
+    @Override
+    protected Object lookupSymbol(RubyContext context, String symbolName) {
+        return context.send(context.getCoreLibrary().getMainObject(), "method", null,  StringOperations.createString(context, StringOperations.encodeRope(symbolName, UTF8Encoding.INSTANCE)));
     }
 
     @Override
