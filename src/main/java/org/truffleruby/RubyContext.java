@@ -102,8 +102,9 @@ public class RubyContext {
         this.env = env;
 
         final OptionsBuilder optionsBuilder = new OptionsBuilder();
-        optionsBuilder.set(System.getProperties());
-        optionsBuilder.set(env.getConfig());
+        optionsBuilder.set(env.getOptions());           // Options from the SDK first as they always overwrite everything
+        optionsBuilder.set(System.getProperties());     // Then system properties
+        optionsBuilder.set(env.getConfig());            // Then from the command line
         options = optionsBuilder.build();
 
         rubyHome = findRubyHome();

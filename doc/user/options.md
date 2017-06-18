@@ -71,11 +71,11 @@ TruffleRuby switches:
 As well as being set at the command line, options can be set as JVM system
 properties, where they have a prefix `truffleruby.`. For example
 `-J-Dtruffleruby.inline_js=true`, or via any other way of setting JVM system
-properties. Finally, options can be set as `PolyglotEngine` configuration
+properties. Finally, options can be set as `PolyglotEngine` or SDK configuration
 options.
 
-The priority for options is the command line first, `PolyglotEngine`, then JVM
-system properties last (so the command line overrides system properties).
+The priority for options is the command line first, then the `PolyglotEngine`
+configuration, then system properties, then the SDK configuration last.
 
 The logging level is not a TruffleRuby option like the others and so cannot be
 set with a JVM system property. This is because the logger is once per VM,

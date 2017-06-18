@@ -9,6 +9,7 @@
  */
 package org.truffleruby.options;
 
+import org.graalvm.options.OptionValues;
 import org.truffleruby.Log;
 
 import java.util.Arrays;
@@ -42,6 +43,16 @@ public class OptionsBuilder {
     public void set(Map<String, Object> properties) {
         for (Map.Entry<String, Object> property : properties.entrySet()) {
             set(property.getKey(), property.getValue());
+        }
+    }
+
+    public void set(OptionValues optionValues) {
+        for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
+            // TODO CS 19-Jun-17 default value of null isn't supported
+
+            if (option.getDefaultValue() != null) {
+                set(option.getName(), optionValues.get(optionValues.getDescriptors().get(option.getSDKName()).getKey()));
+            }
         }
     }
 

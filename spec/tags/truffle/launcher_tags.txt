@@ -4,3 +4,10 @@ slow:The launcher prints the full java command with -cmd in JAVA_OTPS
 slow:The launcher adds options from $JAVA_OPTS to the command
 slow:The launcher preserve spaces in options
 slow:The launcher warns when not using Graal
+slow:The launcher takes options from TRUFFLERUBYOPT
+slow:The launcher takes options from RUBYOPT
+slow:The launcher takes options from system properties set in JAVA_OPTS
+slow:The launcher takes options from system properties set on the command line using -J
+slow:The launcher takes options from system properties set on the command line using -X
+slow:The launcher prioritises options on the command line over system properties
+slow:The launcher prioritises options on the command line using -X over system properties

@@ -9,6 +9,10 @@
  */
 package org.truffleruby.options;
 
+import org.graalvm.options.OptionType;
+
+import java.util.function.Function;
+
 public class VerbosityOptionDescription extends OptionDescription<Verbosity> {
 
     private final Verbosity defaultValue;
@@ -25,6 +29,14 @@ public class VerbosityOptionDescription extends OptionDescription<Verbosity> {
 
     @Override
     public Verbosity checkValue(Object value) {
+        try {
+            return checkValueInner(value);
+        } catch (IllegalArgumentException e) {
+            throw new OptionTypeException(getName(), value.toString());
+        }
+    }
+
+    private static Verbosity checkValueInner(Object value) {
         if (value == null) {
             return Verbosity.NIL;
         } else if (value instanceof Boolean) {
@@ -42,7 +54,7 @@ public class VerbosityOptionDescription extends OptionDescription<Verbosity> {
                 case 2:
                     return Verbosity.TRUE;
                 default:
-                    throw new OptionTypeException(getName(), value.toString());
+                    throw new IllegalArgumentException();
             }
         } else if (value instanceof String) {
             switch ((String) value) {
@@ -59,13 +71,20 @@ public class VerbosityOptionDescription extends OptionDescription<Verbosity> {
                 case "2":
                     return Verbosity.TRUE;
                 default:
-                    throw new OptionTypeException(getName(), value.toString());
+                    throw new IllegalArgumentException();
             }
         } else if (value instanceof Verbosity) {
             return (Verbosity) value;
         } else {
-            throw new OptionTypeException(getName(), value.toString());
+            throw new IllegalArgumentException();
         }
+    }
+
+    private static final OptionType<Verbosity> OPTION_TYPE = new OptionType<>("Verbosity", Verbosity.FALSE, VerbosityOptionDescription::checkValueInner);
+
+    @Override
+    protected OptionType<Verbosity> getOptionType() {
+        return OPTION_TYPE;
     }
 
 }

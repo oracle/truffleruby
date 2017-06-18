@@ -9,6 +9,8 @@
  */
 package org.truffleruby.options;
 
+import org.graalvm.options.OptionType;
+
 public class BooleanOptionDescription extends OptionDescription<Boolean> {
 
     private final boolean defaultValue;
@@ -41,6 +43,11 @@ public class BooleanOptionDescription extends OptionDescription<Boolean> {
         } else {
             throw new OptionTypeException(getName(), value.toString());
         }
+    }
+
+    @Override
+    protected OptionType<Boolean> getOptionType() {
+        return OptionType.defaultType(true);
     }
 
 }

@@ -9,7 +9,10 @@
  */
 package org.truffleruby.options;
 
+import org.graalvm.options.OptionType;
+
 import java.nio.charset.Charset;
+import java.util.function.Function;
 
 public class ByteStringOptionDescription extends OptionDescription<byte[]> {
 
@@ -30,12 +33,16 @@ public class ByteStringOptionDescription extends OptionDescription<byte[]> {
         if (value == null) {
             return null;
         } else if (value instanceof String) {
-            return ((String) value).getBytes(Charset.defaultCharset());
+            return parseString((String) value);
         } else if (value instanceof byte[]) {
             return (byte[]) value;
         } else {
             throw new OptionTypeException(getName(), value.toString());
         }
+    }
+
+    private static byte[] parseString(String text) {
+        return text.getBytes(Charset.defaultCharset());
     }
 
     @Override
@@ -45,6 +52,13 @@ public class ByteStringOptionDescription extends OptionDescription<byte[]> {
         } else {
             return new String((byte[]) value, Charset.defaultCharset());
         }
+    }
+
+    private static final OptionType<byte[]> OPTION_TYPE = new OptionType<>("byte[]", new byte[]{}, ByteStringOptionDescription::parseString);
+
+    @Override
+    protected OptionType<byte[]> getOptionType() {
+        return OPTION_TYPE;
     }
 
 }
