@@ -2,7 +2,8 @@ overlay: "59eb9fe7034622824fccb7ddfbb2a3f06099ac1d"
 
 jt: [ruby, tool/jt.rb]
 
-curl-status-update: [curl, -X, POST,
+curl-status-update: [test, -n, "${GITHUB_STATUS}", "&&",
+  curl, -X, POST,
   "https://api.github.com/repos/graalvm/truffleruby/statuses/${TRUFFLE_RUBY_VERSION}",
   -H, "authorization: token "${github-status-token},
   -H, "cache-control: no-cache",
@@ -227,27 +228,42 @@ truffleruby-cexts: {
 gate-caps: {
   capabilities: [linux, amd64]
   targets: [gate, post-push]
+  environment: {
+    GITHUB_STATUS: "true"
+  }
 }
 
 gate-caps-darwin: {
   capabilities: [darwin, amd64]
   targets: [gate, post-push]
+  environment: {
+    GITHUB_STATUS: "true"
+  }
 }
 
 gate-caps-solaris: {
   capabilities: [solaris, sparcv9]
   targets: [gate, post-push]
+  environment: {
+    GITHUB_STATUS: "true"
+  }
 }
 
 daily-gate-caps: {
   capabilities: [linux, amd64]
   targets: [gate, post-push, daily]
+  environment: {
+    GITHUB_STATUS: "true"
+  }
 }
 
 bench-caps: {
   capabilities: [x52, linux, amd64, no_frequency_scaling]
   targets: [bench, post-push]
   timelimit: "02:00:00"
+  environment: {
+    GITHUB_STATUS: "true"
+  }
 }
 
 svm-bench-caps: ${bench-caps} {
