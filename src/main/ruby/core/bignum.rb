@@ -26,6 +26,9 @@
 
 class Bignum < Integer
 
+  # Have a copy in Bignum of the Numeric version, as MRI does
+  public :remainder
+
   def [](index)
     index = Rubinius::Type.coerce_to(index, Integer, :to_int)
     return 0 if index.is_a?(Bignum)
