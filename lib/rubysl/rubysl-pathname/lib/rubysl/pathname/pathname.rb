@@ -1064,4 +1064,5 @@ module Kernel
   def Pathname(path) # :doc:
     Pathname.new(path)
   end
+  private :Pathname # Truffle: private as in MRI
 end
