@@ -907,7 +907,7 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = { "instance_variable_set", "__instance_variable_set__" }, raiseIfFrozenSelf = true, required = 2)
+    @CoreMethod(names = "instance_variable_set", raiseIfFrozenSelf = true, required = 2)
     @NodeChildren({
             @NodeChild(type = RubyNode.class, value = "object"),
             @NodeChild(type = RubyNode.class, value = "name"),

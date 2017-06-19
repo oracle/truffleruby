@@ -147,7 +147,7 @@ class Time
 
     ivars.each do |ivar|
       sym = ivar.to_sym
-      val = __instance_variable_get__(sym)
+      val = Truffle.invoke_primitive :object_ivar_get, self, sym
       out << ms.serialize(sym)
       out << ms.serialize(val)
     end
@@ -213,7 +213,7 @@ module Marshal
           end
         end
 
-        obj.__instance_variable_set__ prepare_ivar(ivar), value
+        Truffle.invoke_primitive :object_ivar_set, obj, prepare_ivar(ivar), value
       end
     end
 
@@ -1016,7 +1016,7 @@ module Marshal
 
       ivars.each do |ivar|
         sym = ivar.to_sym
-        val = obj.__instance_variable_get__(sym)
+        val = Truffle.invoke_primitive :object_ivar_get, obj, sym
         if strip_ivars
           str << serialize(ivar.to_s[1..-1].to_sym)
         else
@@ -1156,7 +1156,7 @@ module Marshal
         value = construct
         case ivar
         when :bt
-          obj.__instance_variable_set__ :@custom_backtrace, value
+          Truffle.invoke_primitive :object_ivar_set, obj, :@custom_backtrace, value
         when :mesg
           Truffle.invoke_primitive :exception_set_message, obj, value
         end
@@ -1212,7 +1212,9 @@ module Marshal
       range = klass.new(range_begin, range_end, range_exclude_end)
       store_unique_object range
 
-      ivars.each { |name, value| range.__instance_variable_set__ name, value }
+      ivars.each { |name, value|
+        Truffle.invoke_primitive :object_ivar_set, range, name, value
+      }
 
       range
     end
