@@ -26,6 +26,12 @@
 
 class Bignum < Integer
 
+  def [](index)
+    index = Rubinius::Type.coerce_to(index, Integer, :to_int)
+    return 0 if index.is_a?(Bignum)
+    index < 0 ? 0 : (self >> index) & 1
+  end
+
   def coerce(other)
     # NOTE (eregon, 16 Feb. 2015): In other implementations, other is converted to a Bignum here,
     # even if it fits in a Fixnum. We avoid it for implementation sanity

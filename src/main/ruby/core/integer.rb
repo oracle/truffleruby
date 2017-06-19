@@ -146,16 +146,9 @@ class Integer < Numeric
     end
   end
 
-  def [](index)
-    index = Rubinius::Type.coerce_to(index, Integer, :to_int)
-    return 0 if index.is_a?(Bignum)
-    index < 0 ? 0 : (self >> index) & 1
-  end
-
   def next
     self + 1
   end
-
   alias_method :succ, :next
 
   def integer?
