@@ -33,13 +33,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class BasicObject
-  private def __marshal__(ms, strip_ivars = false)
+  private def __marshal__(ms)
     out = ms.serialize_extended_object self
     out << 'o'
     cls = ::Rubinius::Type.object_class self
     name = ::Rubinius::Type.module_name cls
     out << ms.serialize(name.to_sym)
-    out << ms.serialize_instance_variables_suffix(self, true, strip_ivars)
+    out << ms.serialize_instance_variables_suffix(self, true)
   end
 end
 
