@@ -146,9 +146,8 @@ class Time
     out << ms.serialize_integer(count)
 
     ivars.each do |ivar|
-      sym = ivar.to_sym
-      val = Truffle.invoke_primitive :object_ivar_get, self, sym
-      out << ms.serialize(sym)
+      val = Truffle.invoke_primitive :object_ivar_get, self, ivar
+      out << ms.serialize(ivar)
       out << ms.serialize(val)
     end
 
@@ -321,7 +320,7 @@ end
 
 class Struct
   private def __marshal__(ms)
-    exclude = _attrs.map { |a| "@#{a}".to_sym }
+    exclude = _attrs.map { |a| :"@#{a}" }
 
     out =  ms.serialize_instance_variables_prefix(self, exclude)
     out << ms.serialize_extended_object(self)
@@ -364,10 +363,10 @@ class Hash
   private def __marshal__(ms)
     raise TypeError, "can't dump hash with default proc" if default_proc
 
-    excluded_ivars = %w[
+    excluded_ivars = %i[
       @capacity @mask @max_entries @size @entries @default_proc @default
       @state @compare_by_identity @head @tail @table
-    ].map { |a| a.to_sym }
+    ]
 
     out =  ms.serialize_instance_variables_prefix(self, excluded_ivars)
     out << ms.serialize_extended_object(self)
@@ -944,7 +943,7 @@ module Marshal
     end
 
     def prepare_ivar(ivar)
-      ivar.to_s =~ /\A@/ ? ivar : "@#{ivar}".to_sym
+      ivar.to_s =~ /\A@/ ? ivar : :"@#{ivar}"
     end
 
     def serialize(obj)
@@ -1015,12 +1014,11 @@ module Marshal
       end
 
       ivars.each do |ivar|
-        sym = ivar.to_sym
-        val = Truffle.invoke_primitive :object_ivar_get, obj, sym
+        val = Truffle.invoke_primitive :object_ivar_get, obj, ivar
         if strip_ivars
           str << serialize(ivar.to_s[1..-1].to_sym)
         else
-          str << serialize(sym)
+          str << serialize(ivar)
         end
         str << serialize(val)
       end
