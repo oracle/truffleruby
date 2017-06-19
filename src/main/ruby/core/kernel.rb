@@ -255,8 +255,6 @@ module Kernel
     self
   end
 
-  alias_method :__extend__, :extend
-
   def getc
     $stdin.getc
   end

@@ -904,7 +904,13 @@ module Marshal
     end
 
     def extend_object(obj)
-      obj.__extend__(@modules.pop) until @modules.empty?
+      until @modules.empty?
+        mod = @modules.pop
+        Truffle.privately do
+          mod.extend_object obj
+          mod.extended obj
+        end
+      end
     end
 
     def find_link(obj)
