@@ -265,7 +265,7 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "__callee__", needsSelf = false)
+    @CoreMethod(names = "__callee__", isModuleFunction = true)
     public abstract static class CalleeNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1075,7 +1075,7 @@ public abstract class KernelNodes {
         }
     }
 
-    @CoreMethod(names = "local_variables", needsSelf = false)
+    @CoreMethod(names = "local_variables", isModuleFunction = true)
     public abstract static class LocalVariablesNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -1087,7 +1087,7 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "__method__", needsSelf = false)
+    @CoreMethod(names = "__method__", isModuleFunction = true)
     public abstract static class MethodNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1213,7 +1213,7 @@ public abstract class KernelNodes {
 
     // A basic Kernel#p for debugging core, overridden later in kernel.rb
     @NonStandard
-    @CoreMethod(names = "p", needsSelf = false, required = 1)
+    @CoreMethod(names = "p", isModuleFunction = true, required = 1)
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.createMethodCall();
