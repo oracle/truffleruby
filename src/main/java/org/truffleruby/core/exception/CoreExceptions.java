@@ -530,7 +530,13 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject nameErrorUndefinedMethod(String name, DynamicObject module, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
-        return nameError(StringUtils.format("undefined method `%s' for %s", name, Layouts.MODULE.getFields(module).getName()), module, name,  currentNode);
+        return nameError(StringUtils.format("undefined method `%s' for %s", name, Layouts.MODULE.getFields(module).getName()), module, name, currentNode);
+    }
+
+    @TruffleBoundary
+    public DynamicObject nameErrorUndefinedSingletonMethod(String name, Object receiver, Node currentNode) {
+        String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(receiver)).getName();
+        return nameError(StringUtils.format("undefined singleton method `%s' for %s", name, className), receiver, name, currentNode);
     }
 
     @TruffleBoundary
