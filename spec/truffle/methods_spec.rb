@@ -16,11 +16,10 @@ require_relative '../ruby/spec_helper'
 run_directly = false
 
 modules = [
-  BasicObject, Object,
+  BasicObject, Kernel, Object,
   Enumerable, Enumerator,
   Numeric, Integer, Fixnum, Bignum,
 ]
-# Kernel
 # Array, Hash, Range, String
 # Float, Rational, Complex
 
@@ -41,6 +40,8 @@ describe "Public methods on" do
         File.write file, contents
         1.should == 1
       else
+        methods.delete(:yield_self) if mod == Kernel
+
         expected = File.readlines(file).map { |line| line.chomp.to_sym }
         unless methods == expected
           (methods - expected).should == []
