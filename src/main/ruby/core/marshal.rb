@@ -342,7 +342,7 @@ class Struct
       out << ms.serialize(value)
     end
 
-    out << ms.serialize_instance_variables_suffix(self, false, false, exclude)
+    out << ms.serialize_instance_variables_suffix(self, false, exclude)
 
     out
   end
@@ -996,9 +996,7 @@ module Marshal
       Rubinius::Type.binary_string(!ivars.empty? || serialize_encoding?(obj) ? 'I' : '')
     end
 
-    def serialize_instance_variables_suffix(obj, force=false,
-                                            strip_ivars=false,
-                                            exclude_ivars=false)
+    def serialize_instance_variables_suffix(obj, force=false, exclude_ivars=false)
       ivars = serializable_instance_variables(obj, exclude_ivars)
 
       unless force or !ivars.empty? or serialize_encoding?(obj)
@@ -1016,11 +1014,7 @@ module Marshal
 
       ivars.each do |ivar|
         val = Truffle.invoke_primitive :object_ivar_get, obj, ivar
-        if strip_ivars
-          str << serialize(ivar.to_s[1..-1].to_sym)
-        else
-          str << serialize(ivar)
-        end
+        str << serialize(ivar)
         str << serialize(val)
       end
 
