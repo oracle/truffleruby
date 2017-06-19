@@ -292,7 +292,8 @@ module Kernel
 
     Thread.recursion_guard self do
       ivars.each do |var|
-        parts << "#{var}=#{__instance_variable_get__(var).inspect}"
+        value = Truffle.invoke_primitive :object_ivar_get, self, var
+        parts << "#{var}=#{value.inspect}"
       end
     end
 
@@ -306,8 +307,6 @@ module Kernel
 
     str
   end
-
-  alias_method :__instance_variable_get__, :instance_variable_get
 
   def load(filename, wrap = false)
     filename = Rubinius::Type.coerce_to_path filename
