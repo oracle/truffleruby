@@ -18,11 +18,11 @@ run_directly = false
 modules = [
   BasicObject, Object,
   Enumerable, Enumerator,
-  Numeric,
+  Numeric, Integer, Fixnum, Bignum,
 ]
 # Kernel
 # Array, Hash, Range, String
-# Fixnum, Bignum, Integer, Float, Rational, Complex
+# Float, Rational, Complex
 
 describe "Public methods on" do
   modules.each do |mod|
