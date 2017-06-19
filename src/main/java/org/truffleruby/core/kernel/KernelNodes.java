@@ -1548,6 +1548,40 @@ public abstract class KernelNodes {
 
     }
 
+    @CoreMethod(names = "singleton_method", required = 1)
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "object"),
+            @NodeChild(type = RubyNode.class, value = "name")
+    })
+    public abstract static class SingletonMethodNode extends CoreMethodNode {
+
+        @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
+
+        @CreateCast("name")
+        public RubyNode coerceToString(RubyNode name) {
+            return NameToJavaStringNodeGen.create(name);
+        }
+
+        @Specialization
+        public DynamicObject singletonMethod(Object self, String name,
+                @Cached("create()") BranchProfile errorProfile,
+                @Cached("createBinaryProfile()") ConditionProfile singletonProfile,
+                @Cached("createBinaryProfile()") ConditionProfile methodProfile) {
+            final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
+
+            if (singletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
+                final InternalMethod method = Layouts.MODULE.getFields(metaClass).getMethod(name);
+                if (methodProfile.profile(method != null && !method.isUndefined())) {
+                    return Layouts.METHOD.createMethod(coreLibrary().getMethodFactory(), self, method);
+                }
+            }
+
+            errorProfile.enter();
+            throw new RaiseException(coreExceptions().nameErrorUndefinedSingletonMethod(name, self, this));
+        }
+
+    }
+
     @CoreMethod(names = "singleton_methods", optional = 1)
     @NodeChildren({
             @NodeChild(type = RubyNode.class, value = "object"),
