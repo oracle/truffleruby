@@ -370,12 +370,7 @@ class Hash
   private def __marshal__(ms)
     raise TypeError, "can't dump hash with default proc" if default_proc
 
-    excluded_ivars = %i[
-      @capacity @mask @max_entries @size @entries @default_proc @default
-      @state @compare_by_identity @head @tail @table
-    ]
-
-    out =  ms.serialize_instance_variables_prefix(self, excluded_ivars)
+    out =  ms.serialize_instance_variables_prefix(self)
     out << ms.serialize_extended_object(self)
     out << ms.serialize_user_class(self, Hash)
     out << (self.default ? '}' : '{')
@@ -387,8 +382,7 @@ class Hash
       end
     end
     out << (self.default ? ms.serialize(self.default) : '')
-    out << ms.serialize_instance_variables_suffix(self, false, false,
-                                                  excluded_ivars)
+    out << ms.serialize_instance_variables_suffix(self)
 
     out
   end
