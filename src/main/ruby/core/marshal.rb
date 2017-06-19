@@ -240,14 +240,21 @@ class Range
     cls = Rubinius::Type.object_class self
     name = Rubinius::Type.module_name cls
     out << ms.serialize(name.to_sym)
-    out << ms.serialize_integer(3 + self.instance_variables.size)
+
+    ivars = self.instance_variables
+    out << ms.serialize_integer(3 + ivars.size)
     out << ms.serialize(:begin)
     out << ms.serialize(self.begin)
     out << ms.serialize(:end)
     out << ms.serialize(self.end)
     out << ms.serialize(:excl)
     out << ms.serialize(self.exclude_end?)
-    out << ms.serialize_instance_variables_suffix(self, true, true)
+    ivars.each do |ivar|
+      val = Truffle.invoke_primitive :object_ivar_get, self, ivar
+      out << ms.serialize(ivar)
+      out << ms.serialize(val)
+    end
+    out
   end
 end
 
