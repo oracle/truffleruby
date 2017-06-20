@@ -167,7 +167,6 @@ sulong: ${labsjdk8} {
     PATH: "$LLVM/bin:$PATH",
     GRAAL_HOME: "$PWD/../sulong",
     SULONG_HOME: "$PWD/../sulong",
-    SULONG_NO_LIBRARY: "true",
     LIBXML_LIB: "/usr/lib64/libxml2.so.2",
     OPENSSL_LIB: "/usr/lib64/libssl.so.10",
     HOST_VM: server,
