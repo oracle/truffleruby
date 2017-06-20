@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/common', __FILE__)
 
 newline = "\n"
 platform_is :windows do
@@ -31,6 +32,8 @@ describe :process_spawn_does_not_close_std_streams, shared: true do
 end
 
 describe "Process.spawn" do
+  ProcessSpecs.use_system_ruby(self)
+
   before :each do
     @name = tmp("process_spawn.txt")
     @var = "$FOO"
