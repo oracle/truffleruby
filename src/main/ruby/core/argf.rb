@@ -74,7 +74,7 @@ module Rubinius
     #
     def binmode
       @binmode = true
-      @external = Encoding::ASCII_8BIT
+      set_encoding(Encoding::ASCII_8BIT)
       self
     end
 
@@ -91,7 +91,6 @@ module Rubinius
       @advance = true unless @use_stdin_only
       @lineno = 0
       @binmode = false
-      @external = nil
       self
     end
 
@@ -104,7 +103,7 @@ module Rubinius
     end
 
     def default_value
-      ''.encode(encoding)
+      ''.encode(external_encoding)
     end
 
     #
@@ -177,8 +176,12 @@ module Rubinius
     end
     alias_method :codepoints, :each_codepoint
 
-    def encoding
+    def external_encoding
       @external || Encoding.default_external
+    end
+
+    def internal_encoding
+      @internal || Encoding.default_internal
     end
 
     #
@@ -465,10 +468,12 @@ module Rubinius
     end
 
     def set_encoding(*args)
+      advance! unless @stream
+      @stream.set_encoding(*args)
+
       @encoding_args = args
-      if @stream and !@stream.closed?
-        @stream.set_encoding(*args)
-      end
+      @internal = @stream.internal_encoding
+      @external = @stream.external_encoding
     end
 
     #
@@ -485,12 +490,12 @@ module Rubinius
     end
 
     def stream(file)
-      stream = file == '-' ? STDIN : File.open(file, 'r', :external_encoding => encoding)
+      stream = file == '-' ? STDIN : File.open(file, 'r', :external_encoding => external_encoding)
 
       if @encoding_args
         stream.set_encoding(*@encoding_args)
-      elsif encoding
-        stream.set_encoding encoding
+      elsif external_encoding
+        stream.set_encoding external_encoding
       end
 
       stream
