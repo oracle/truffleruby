@@ -910,9 +910,11 @@ public abstract class StringNodes {
 
         @Specialization
         public DynamicObject eachByte(DynamicObject string, DynamicObject block,
-                                      @Cached("createBinaryProfile()") ConditionProfile ropeChangedProfile) {
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.BytesNode updatedBytesNode,
+                @Cached("createBinaryProfile()") ConditionProfile ropeChangedProfile) {
             Rope rope = rope(string);
-            byte[] bytes = rope.getBytes();
+            byte[] bytes = bytesNode.execute(rope);
 
             for (int i = 0; i < bytes.length; i++) {
                 yield(block, bytes[i] & 0xff);
@@ -920,7 +922,7 @@ public abstract class StringNodes {
                 Rope updatedRope = rope(string);
                 if (ropeChangedProfile.profile(rope != updatedRope)) {
                     rope = updatedRope;
-                    bytes = updatedRope.getBytes();
+                    bytes = updatedBytesNode.execute(updatedRope);
                 }
             }
 
@@ -938,9 +940,10 @@ public abstract class StringNodes {
         @Child private TaintResultNode taintResultNode;
 
         @Specialization(guards = "!isBrokenCodeRange(string)")
-        public DynamicObject eachChar(DynamicObject string, DynamicObject block) {
+        public DynamicObject eachChar(DynamicObject string, DynamicObject block,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
-            final byte[] ptrBytes = rope.getBytes();
+            final byte[] ptrBytes = bytesNode.execute(rope);
             final int len = ptrBytes.length;
             final Encoding enc = rope.getEncoding();
 
@@ -956,9 +959,10 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isBrokenCodeRange(string)")
-        public DynamicObject eachCharMultiByteEncoding(DynamicObject string, DynamicObject block) {
+        public DynamicObject eachCharMultiByteEncoding(DynamicObject string, DynamicObject block,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
-            final byte[] ptrBytes = rope.getBytes();
+            final byte[] ptrBytes = bytesNode.execute(rope);
             final int len = ptrBytes.length;
             final Encoding enc = rope.getEncoding();
 

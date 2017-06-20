@@ -1276,7 +1276,7 @@ public abstract class RopeNodes {
             return ropeProfile.profile(rope).getBytesCopy();
         }
 
-        @Specialization(guards = "!rope.bytesSet()")
+        @Specialization(guards = "!rope.bytesSet()", replaces = "getBytesCopyFromRope")
         @TruffleBoundary
         public byte[] getBytesFromRope(OnHeapRope rope) {
             return rope.getBytesCopy();

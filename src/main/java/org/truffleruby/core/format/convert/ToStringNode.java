@@ -98,7 +98,7 @@ public abstract class ToStringNode extends FormatNode {
                     setTainted(frame);
                 }
 
-                return Layouts.STRING.getRope((DynamicObject) value).getBytes();
+                return bytesNode.execute(Layouts.STRING.getRope((DynamicObject) value));
             } else {
                 throw new NoImplicitConversionException(string, "String");
             }
