@@ -18,6 +18,13 @@ class MSpecScript
     RbConfig::CONFIG['host_os'] == 'solaris'
   end
 
+  if child_process?
+    system_ruby = `which ruby`.chomp
+    if !system_ruby.empty? and `#{system_ruby} --version`.start_with?('ruby ')
+      SYSTEM_RUBY = system_ruby
+    end
+  end
+
   TRUFFLERUBY_DIR = File.expand_path('../..', __FILE__)
 
   set :target, "#{TRUFFLERUBY_DIR}/bin/truffleruby"

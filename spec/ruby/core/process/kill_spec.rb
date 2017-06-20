@@ -2,6 +2,8 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/common', __FILE__)
 
 describe "Process.kill" do
+  ProcessSpecs.use_system_ruby(self)
+
   before :each do
     @pid = Process.pid
   end
@@ -33,6 +35,8 @@ end
 
 platform_is_not :windows do
   describe "Process.kill" do
+    ProcessSpecs.use_system_ruby(self)
+
     before :each do
       @sp = ProcessSpecs::Signalizer.new
     end
@@ -73,6 +77,8 @@ platform_is_not :windows do
   end
 
   describe "Process.kill" do
+    ProcessSpecs.use_system_ruby(self)
+
     before :each do
       @sp1 = ProcessSpecs::Signalizer.new
       @sp2 = ProcessSpecs::Signalizer.new
