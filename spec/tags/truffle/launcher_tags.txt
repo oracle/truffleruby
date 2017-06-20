@@ -11,3 +11,5 @@ slow:The launcher takes options from system properties set on the command line u
 slow:The launcher takes options from system properties set on the command line using -X
 slow:The launcher prioritises options on the command line over system properties
 slow:The launcher prioritises options on the command line using -X over system properties
+fails:The launcher allows -cp in JAVA_OPTS
+fails:The launcher allows -classpath in JAVA_OPTS
