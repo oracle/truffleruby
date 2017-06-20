@@ -148,12 +148,13 @@ module RbConfig
     sulong_include = File.join sulong_home, 'include'
     cc             = "#{clang} -I#{sulong_include}"
     cpp            = cc
-    cflags         = ['-Werror=implicit-function-declaration', # To make missing C ext functions very clear
-                      '-Wno-int-conversion', # MRI has VALUE defined as long while we have it as void*
-                      '-Wno-int-to-pointer-cast', # Same as above
-                      '-Wno-macro-redefined', # We redefine __DARWIN_ALIAS_C
-                      '-Wno-unused-value', # RB_GC_GUARD leaves
-                      '-Wno-incompatible-pointer-types', # We define VALUE as void* rather than uint32_t
+    cflags         = ['-Werror=implicit-function-declaration',  # To make missing C ext functions very clear
+                      '-Wno-int-conversion',                    # MRI has VALUE defined as long while we have it as void*
+                      '-Wno-int-to-pointer-cast',               # Same as above
+                      '-Wno-macro-redefined',                   # We redefine __DARWIN_ALIAS_C
+                      '-Wno-unused-value',                      # RB_GC_GUARD leaves
+                      '-Wno-incompatible-pointer-types',        # We define VALUE as void* rather than uint32_t
+                      '-Wno-expansion-to-defined',              # The openssl C extension uses macros expanding to defined
                       '-c', '-emit-llvm'].join(' ')
 
     common = {
