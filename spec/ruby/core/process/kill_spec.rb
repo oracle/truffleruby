@@ -95,57 +95,27 @@ platform_is_not :windows do
   end
 
   describe "Process.kill" do
-    before :each do
-      @sp = ProcessSpecs::Signalizer.new "self"
-    end
-
     after :each do
-      @sp.cleanup
+      @sp.cleanup if @sp
     end
 
     it "signals the process group if the PID is zero" do
+      @sp = ProcessSpecs::Signalizer.new "self"
       @sp.result.should == "signaled"
-    end
-  end
-
-  describe "Process.kill" do
-    before :each do
-      @sp = ProcessSpecs::Signalizer.new "group_numeric"
-    end
-
-    after :each do
-      @sp.cleanup
     end
 
     it "signals the process group if the signal number is negative" do
+      @sp = ProcessSpecs::Signalizer.new "group_numeric"
       @sp.result.should == "signaled"
-    end
-  end
-
-  describe "Process.kill" do
-    before :each do
-      @sp = ProcessSpecs::Signalizer.new "group_short_string"
-    end
-
-    after :each do
-      @sp.cleanup
     end
 
     it "signals the process group if the short signal name starts with a minus sign" do
+      @sp = ProcessSpecs::Signalizer.new "group_short_string"
       @sp.result.should == "signaled"
-    end
-  end
-
-  describe "Process.kill" do
-    before :each do
-      @sp = ProcessSpecs::Signalizer.new "group_full_string"
-    end
-
-    after :each do
-      @sp.cleanup
     end
 
     it "signals the process group if the full signal name starts with a minus sign" do
+      @sp = ProcessSpecs::Signalizer.new "group_full_string"
       @sp.result.should == "signaled"
     end
   end
