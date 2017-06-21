@@ -79,9 +79,7 @@ if [ -z "$JAVACMD" ]; then
     fi
 fi
 
-declare -a java_args
-declare -a ruby_args
-
+java_args=()
 CP=""
 
 if [ $on_graalvm = false ]; then
@@ -138,6 +136,8 @@ while [ ${#java_opts[@]} -gt 0 ]; do
     esac
     java_opts=("${java_opts[@]:1}")
 done
+
+ruby_args=()
 
 # Parse command line arguments
 while [ $# -gt 0 ]
