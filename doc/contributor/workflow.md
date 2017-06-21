@@ -143,6 +143,14 @@ that on-stack-replacement works and so on.
 $ jt test compiler
 ```
 
+## Using Docker
+
+Docker can be a useful tool for creating isolated environments for development
+and testing. Dockerfiles can also serve as executable documentation of how to
+set up a development environment. See `test/truffle/docker` and `tool/docker`.
+
+For end-users, see `../user/docker.md`.
+
 ## How to fix a failing spec
 
 We usually use the `jt untag` command to work on failing specs. It runs only
