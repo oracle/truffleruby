@@ -103,7 +103,7 @@ if [ $on_graalvm = false ]; then
                 graal_sdk="$root_parent/${repo_name}/sdk/mxbuild/dists/graal-sdk.jar"
             fi
         done
-        if [ -n "$source_truffle" -a -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
+        if [ -n "$source_truffle" ] && [ -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
             truffle="$source_truffle"
         fi
     fi
