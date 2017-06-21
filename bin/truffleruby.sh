@@ -122,7 +122,22 @@ if [ $on_graalvm = false ]; then
 fi
 
 # no " to split $JAVA_OPTS into array elements
-java_args+=($JAVA_OPTS)
+java_opts=($JAVA_OPTS)
+
+# Extract -cp/-classpath arguments as we need to merge them
+while [ ${#java_opts[@]} -gt 0 ]; do
+    val="${java_opts[0]}"
+    case "$val" in
+    -cp|-classpath)
+        java_opts=("${java_opts[@]:1}")
+        CP="$CP:${java_opts[0]}"
+        ;;
+    *)
+        java_args+=("$val")
+        ;;
+    esac
+    java_opts=("${java_opts[@]:1}")
+done
 
 while [ $# -gt 0 ]
 do
