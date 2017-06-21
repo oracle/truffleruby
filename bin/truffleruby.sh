@@ -121,8 +121,21 @@ if [ $on_graalvm = false ]; then
 
 fi
 
-# no " to split $JAVA_OPTS into array elements
-java_args+=($JAVA_OPTS)
+java_opts=($JAVA_OPTS) # no " to split $JAVA_OPTS into array elements
+
+# Extract classpath options from JAVA_OPTS
+for (( i = 0; i < "${#java_opts[@]}"; i++ )); do
+    case "${java_opts[$i]}" in
+        -cp|-classpath)
+            CP="$CP:${java_opts[$i+1]}"
+            unset 'java_opts[i]'
+            unset 'java_opts[i+1]'
+            (( i++ ))
+            ;;
+    esac
+done
+# add remaining none classpath options to java_args
+java_args+=("${java_opts[@]}")
 
 while [ $# -gt 0 ]
 do
