@@ -54,6 +54,7 @@ test/truffle/cexts/**/mkmf.log
 # Tests
 /test/truffle/integration/gem-testing
 /truffleruby-gem-test-pack-*
+/test/truffle/docker/*/graalvm-*.tar.gz
 
 # Findbugs
 truffle-findbugs-report.html
