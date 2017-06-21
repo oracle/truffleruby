@@ -139,32 +139,33 @@ while [ ${#java_opts[@]} -gt 0 ]; do
     java_opts=("${java_opts[@]:1}")
 done
 
+# Parse command line arguments
 while [ $# -gt 0 ]
 do
     case "$1" in
-    -J*)
-        val=${1:2}
-        if [ "${val:0:1}" = ":" ]; then # -J:
-            val=-${val:1}
-        fi
-        if [ "${val}" = "-classpath" ]; then
-            CP="$CP:$2"
-            shift
-        elif [ "${val}" = "-cp" ]; then
-            CP="$CP:$2"
-            shift
-        else
-            java_args=("${java_args[@]}" "$val")
-        fi
+    -J:)
+        val=-${val:3}
         ;;
-     # Match switches that take an argument
-     -C|-e|-I|-S) ruby_args=("${ruby_args[@]}" "$1" "$2"); shift ;;
-     # Abort processing on the double dash
-     --) break ;;
-     # Other opts go to ruby
-     -*) ruby_args=("${ruby_args[@]}" "$1") ;;
-     # Abort processing on first non-opt arg
-     *) break ;;
+    -J-cp|-J-classpath)
+        CP="$CP:$2"
+        shift
+        ;;
+    -J*)
+        java_args+=("${1:2}")
+        ;;
+    -C|-e|-I|-S) # Match switches that take an argument
+        ruby_args+=("$1" "$2")
+        shift
+        ;;
+    --) # Abort processing on the double dash
+        break
+        ;;
+    -*) # Other options go to ruby
+        ruby_args+=("$1")
+        ;;
+    *) # Abort processing on first non-opt arg
+        break
+        ;;
     esac
     shift
 done
