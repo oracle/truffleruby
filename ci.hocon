@@ -2,14 +2,8 @@ overlay: "59eb9fe7034622824fccb7ddfbb2a3f06099ac1d"
 
 jt: [ruby, tool/jt.rb]
 
-curl-status-update: [test, -n, "${GITHUB_STATUS}", "&&",
-  curl, -X, POST,
-  "https://api.github.com/repos/graalvm/truffleruby/statuses/${TRUFFLE_RUBY_VERSION}",
-  -H, "authorization: token "${github-status-token},
-  -H, "cache-control: no-cache",
-  -H, "content-type: application/json",
-  -d
-]
+report-github-status: ["${BUILD_DIR}/tool/report-github-status.sh", "${REPORT_GITHUB_STATUS}", "${TRUFFLE_RUBY_VERSION}",
+  "${BUILD_NAME}", "${BUILD_NUMBER}", ${github-status-token}]
 
 common-base: {
   downloads : {
@@ -25,37 +19,21 @@ common-base: {
   }
 
   setup: [
+    [export, "BUILD_DIR=$PWD"],
     ["echo", "-n", "TRUFFLE_RUBY_VERSION=", ">setup-ci-env"],
     ["git", "rev-parse", "HEAD", ">>setup-ci-env"],
     ["export", ["<setup-ci-env"]],
 
-    // TODO add an url
-    // "target_url": "${BUILD_URL}/builds/${BUILD_NUMBER}",
-
-    // Each build has to have its context, since only the last status posted for a given context is considered
-    // in the GitHub UI
-    ${curl-status-update} ["""
-          { "state": "pending",
-            "description": "${BUILD_NUMBER} is being executed.",
-            "context": "CI/${BUILD_NAME}" }
-          """],
+    ${report-github-status} ["pending"],
     [mx, build, --force-javac]
   ]
 
   on_success: [
-    ${curl-status-update} ["""
-          { "state": "success",
-            "description": "${BUILD_NUMBER} passed.",
-            "context": "CI/${BUILD_NAME}" }
-          """],
+    ${report-github-status} ["success"]
   ]
 
   on_failure: [
-    ${curl-status-update} ["""
-          { "state": "failure",
-            "description": "${BUILD_NUMBER} failed.",
-            "context": "CI/${BUILD_NAME}" }
-          """],
+    ${report-github-status} ["failure"]
   ]
 
   timelimit: "01:00:00"
@@ -228,7 +206,7 @@ gate-caps: {
   capabilities: [linux, amd64]
   targets: [gate, post-push]
   environment: {
-    GITHUB_STATUS: "true"
+    REPORT_GITHUB_STATUS: "true"
   }
 }
 
@@ -236,7 +214,7 @@ gate-caps-darwin: {
   capabilities: [darwin, amd64]
   targets: [gate, post-push]
   environment: {
-    GITHUB_STATUS: "true"
+    REPORT_GITHUB_STATUS: "true"
   }
 }
 
@@ -244,7 +222,7 @@ gate-caps-solaris: {
   capabilities: [solaris, sparcv9]
   targets: [gate, post-push]
   environment: {
-    GITHUB_STATUS: "true"
+    REPORT_GITHUB_STATUS: "true"
   }
 }
 
@@ -252,7 +230,7 @@ daily-gate-caps: {
   capabilities: [linux, amd64]
   targets: [gate, post-push, daily]
   environment: {
-    GITHUB_STATUS: "true"
+    REPORT_GITHUB_STATUS: "true"
   }
 }
 
@@ -261,7 +239,7 @@ bench-caps: {
   targets: [bench, post-push]
   timelimit: "02:00:00"
   environment: {
-    GITHUB_STATUS: "true"
+    REPORT_GITHUB_STATUS: "true"
   }
 }
 
