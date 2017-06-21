@@ -115,15 +115,17 @@ describe "The launcher" do
   end
 
   it "allows -cp in JAVA_OPTS" do
-    out = `JAVA_OPTS='-cp does-not-exist.jar' #{RbConfig.ruby} -e 'puts 14'`
+    out = `JAVA_OPTS='-cp does-not-exist.jar' #{RbConfig.ruby} -J-cmd -e 'puts 14'`
     $?.success?.should == true
-    out.should == "14\n"
+    out.lines[0].should include(":does-not-exist.jar")
+    out.lines[1].should == "14\n"
   end
 
   it "allows -classpath in JAVA_OPTS" do
-    out = `JAVA_OPTS='-classpath does-not-exist.jar' #{RbConfig.ruby} -e 'puts 14'`
+    out = `JAVA_OPTS='-classpath does-not-exist.jar' #{RbConfig.ruby} -J-cmd -e 'puts 14'`
     $?.success?.should == true
-    out.should == "14\n"
+    out.lines[0].should include(":does-not-exist.jar")
+    out.lines[1].should == "14\n"
   end
 
 end
