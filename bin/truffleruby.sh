@@ -84,8 +84,6 @@ CP=""
 
 if [ $on_graalvm = false ]; then
 
-    mx_jar="$root/mxbuild/dists/truffleruby.jar"
-
     binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
     if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
         truffle="$binary_truffle"
@@ -112,7 +110,8 @@ if [ $on_graalvm = false ]; then
         exit 1
     fi
     java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar:$graal_sdk")
-    CP="$CP:$truffle/dists/truffle-debug.jar:$truffle/dists/truffle-nfi.jar:$mx_jar"
+    CP="$CP:$truffle/dists/truffle-debug.jar:$truffle/dists/truffle-nfi.jar"
+    CP="$CP:$root/mxbuild/dists/truffleruby.jar"
     java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.$(libext)")
 
 fi
