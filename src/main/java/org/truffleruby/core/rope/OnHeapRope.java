@@ -8,14 +8,6 @@ public abstract class OnHeapRope extends Rope {
         super(encoding, codeRange, singleByteOptimizable, byteLength, characterLength, ropeDepth, bytes);
     }
 
-    public final boolean bytesSet() {
-        return bytes != null;
-    }
-
-    public final byte[] getBytesFast() {
-        return bytes;
-    }
-
     @Override
     public final byte[] getBytes() {
         if (bytes == null) {

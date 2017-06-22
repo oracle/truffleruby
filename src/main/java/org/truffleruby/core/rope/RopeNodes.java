@@ -1154,18 +1154,18 @@ public abstract class RopeNodes {
 
         public abstract byte[] execute(Rope rope);
 
-        @Specialization(guards = "rope.bytesSet()")
+        @Specialization(guards = "rope.getRawBytes() != null")
         public byte[] getBytesOnHeap(OnHeapRope rope) {
-            return rope.getBytesFast();
+            return rope.getRawBytes();
         }
 
         public byte[] getBytesNative(NativeRope rope) {
             return rope.getBytes();
         }
 
-        @Specialization
+        @Specialization(guards = "rope.getRawBytes() == null")
         @TruffleBoundary
-        public byte[] getBytesFromRope(Rope rope) {
+        public byte[] getBytesFromRope(OnHeapRope rope) {
             return rope.getBytes();
         }
     }
@@ -1214,23 +1214,16 @@ public abstract class RopeNodes {
 
         public abstract byte execute(Rope rope, int index);
 
+        @Specialization
         public byte getByteFromSubString(SubstringRope rope,
                 int index,
                 @Cached("create()") ByteSlowNode childNode) {
             return childNode.execute(rope.getChild(), rope.getOffset() + index);
         }
 
-        @Specialization(guards = "rope.bytesSet()")
+        @Specialization(guards = "rope.getRawBytes() != null")
         public byte fastByte(OnHeapRope rope, int index) {
-            return rope.getBytesFast()[index];
-        }
-
-        @Specialization(guards = { "ropeClass == rope.getClass()", "!isSubstring(rope)", "!rope.bytesSet()" })
-        public byte getByteFromRope(OnHeapRope rope,
-                int index,
-                @Cached("rope.getClass()") Class<?> ropeClass,
-                @Cached("createClassProfile()") ValueProfile ropeProfile) {
-            return ropeProfile.profile(rope).getByteSlow(index);
+            return rope.getRawBytes()[index];
         }
 
         @Specialization
@@ -1238,7 +1231,7 @@ public abstract class RopeNodes {
             return rope.getByteSlow(index);
         }
 
-        @Specialization(guards = "!rope.bytesSet()")
+        @Specialization(guards = "rope.getRawBytes() == null")
         @TruffleBoundary
         public byte getByteFromRope(OnHeapRope rope, int index) {
             return rope.getByteSlow(index);
@@ -1265,19 +1258,12 @@ public abstract class RopeNodes {
             return rope.getBytes();
         }
 
-        @Specialization(guards = "rope.bytesSet()")
+        @Specialization(guards = "rope.getRawBytes() != null")
         public byte[] getBytesOnHeap(OnHeapRope rope) {
-            return rope.getBytesFast().clone();
+            return rope.getRawBytes().clone();
         }
 
-        @Specialization(guards = { "ropeClass == rope.getClass()", "!rope.bytesSet()" })
-        public byte[] getBytesCopyFromRope(OnHeapRope rope,
-                @Cached("rope.getClass()") Class<?> ropeClass,
-                @Cached("createClassProfile()") ValueProfile ropeProfile) {
-            return ropeProfile.profile(rope).getBytesCopy();
-        }
-
-        @Specialization(guards = "!rope.bytesSet()", replaces = "getBytesCopyFromRope")
+        @Specialization(guards = "rope.getRawBytes() == null")
         @TruffleBoundary
         public byte[] getBytesFromRope(OnHeapRope rope) {
             return rope.getBytesCopy();
