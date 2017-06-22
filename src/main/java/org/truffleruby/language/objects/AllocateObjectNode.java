@@ -18,6 +18,7 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumentable;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -96,7 +97,7 @@ public abstract class AllocateObjectNode extends RubyNode {
             @Cached("classToAllocate") DynamicObject cachedClassToAllocate,
             @Cached("isSingleton(classToAllocate)") boolean cachedIsSingleton,
             @Cached("getInstanceFactory(classToAllocate)") DynamicObjectFactory factory) {
-        return factory.newInstance(values);
+        return allocate(factory, values);
     }
 
     @CompilerDirectives.TruffleBoundary
@@ -105,14 +106,14 @@ public abstract class AllocateObjectNode extends RubyNode {
             guards = {"!isSingleton(classToAllocate)", "!isTracing()"},
             assumptions = "getTracingAssumption()")
     public DynamicObject allocateUncached(DynamicObject classToAllocate, Object[] values) {
-        return getInstanceFactory(classToAllocate).newInstance(values);
+        return allocate(getInstanceFactory(classToAllocate), values);
     }
 
     @CompilerDirectives.TruffleBoundary
     @Specialization(guards = {"!isSingleton(classToAllocate)", "isTracing()"},
                     assumptions = "getTracingAssumption()")
     public DynamicObject allocateTracing(DynamicObject classToAllocate, Object[] values) {
-        final DynamicObject object = getInstanceFactory(classToAllocate).newInstance(values);
+        final DynamicObject object = allocate(getInstanceFactory(classToAllocate), values);
 
         final FrameInstance allocatingFrameInstance;
         final Node allocatingNode;
@@ -168,6 +169,22 @@ public abstract class AllocateObjectNode extends RubyNode {
 
     protected int getCacheLimit() {
         return getContext().getOptions().ALLOCATE_CLASS_CACHE;
+    }
+
+    private DynamicObject allocate(DynamicObjectFactory factory, Object[] values) {
+        final AllocationReporter allocationReporter = getContext().getAllocationReporter();
+
+        if (allocationReporter.isActive()) {
+            allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        }
+
+        final DynamicObject object = factory.newInstance(values);
+
+        if (allocationReporter.isActive()) {
+            allocationReporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
+        }
+
+        return object;
     }
 
 }
