@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CallerFrameAccess;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
@@ -46,6 +47,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
     private final boolean cachedNameIsRubyString;
 
     @Child protected DispatchNode next;
+    @Child private RopeNodes.EqualNode equalsNode = RopeNodes.EqualNode.create();
 
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
 

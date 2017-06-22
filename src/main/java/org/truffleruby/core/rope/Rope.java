@@ -11,6 +11,9 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.Hashing;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 import java.util.Arrays;
 
 public abstract class Rope {
@@ -95,6 +98,7 @@ public abstract class Rope {
     protected static final int MURMUR_SEED = System.identityHashCode(Rope.class);
 
     @Override
+    @TruffleBoundary
     public int hashCode() {
         if (!isHashCodeCalculated()) {
             long hash = Hashing.hash(MURMUR_SEED, RopeOperations.hashForRange(this, 1, 0, byteLength));
@@ -106,6 +110,14 @@ public abstract class Rope {
 
     public final boolean isHashCodeCalculated() {
         return hashCode != 0;
+    }
+
+    public final int calculatedHashCode() {
+        return hashCode;
+    }
+
+    public final boolean hashesMatch(Rope other) {
+        return (isHashCodeCalculated() && hashCode == other.hashCode) || (hashCode() == other.hashCode());
     }
 
     @Override

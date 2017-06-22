@@ -580,9 +580,10 @@ public abstract class StringNodes {
     public abstract static class BytesNode extends YieldingCoreMethodNode {
 
         @Specialization
-        public DynamicObject bytes(VirtualFrame frame, DynamicObject string, NotProvided block) {
+        public DynamicObject bytes(VirtualFrame frame, DynamicObject string, NotProvided block,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
-            final byte[] bytes = rope.getBytes();
+            final byte[] bytes = bytesNode.execute(rope);
 
             final int[] store = new int[bytes.length];
 
@@ -851,9 +852,10 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isEmpty(string)", "isSingleByteOptimizable(string)" })
         public DynamicObject downcaseSingleByte(DynamicObject string,
-                                                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile,
+                @Cached("create()") RopeNodes.BytesCopyNode copyNode) {
             final Rope rope = rope(string);
-            final byte[] outputBytes = rope.getBytesCopy();
+            final byte[] outputBytes = copyNode.execute(rope);
 
             final boolean modified = singleByteDowncase(outputBytes, 0, outputBytes.length);
             if (modifiedProfile.profile(modified)) {
@@ -1077,8 +1079,9 @@ public abstract class StringNodes {
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int hash(DynamicObject string) {
-            return rope(string).hashCode();
+        public int hash(DynamicObject string,
+                @Cached("create()") RopeNodes.HashNode hashNode) {
+            return hashNode.execute(rope(string));
         }
 
     }
@@ -2232,7 +2235,7 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "unpack", required = 1, taintFrom = 1)
-    @ImportStatic(StringCachingGuards.class)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class UnpackNode extends ArrayCoreMethodNode {
 
         @Child private TaintNode taintNode;
@@ -2242,21 +2245,23 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "isRubyString(format)",
-                        "ropesEqual(format, cachedFormat)"
+                        "equalNode.execute(rope(format), cachedFormat)"
                 },
                 limit = "getCacheLimit()")
         public DynamicObject unpackCached(
                 DynamicObject string,
                 DynamicObject format,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
-                @Cached("create(compileFormat(format))") DirectCallNode callUnpackNode) {
+                @Cached("create(compileFormat(format))") DirectCallNode callUnpackNode,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.EqualNode equalNode) {
             final Rope rope = rope(string);
 
             final ArrayResult result;
 
             try {
                 result = (ArrayResult) callUnpackNode.call(
-                        new Object[]{ rope.getBytes(), rope.byteLength() });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength() });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -2334,14 +2339,15 @@ public abstract class StringNodes {
         @Specialization(guards = "isSingleByteOptimizable(string)")
         public DynamicObject upcaseSingleByte(DynamicObject string,
                                               @Cached("createBinaryProfile()") ConditionProfile isEmptyProfile,
-                                              @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile,
+                @Cached("create()") RopeNodes.BytesCopyNode bytesCopy) {
             final Rope rope = rope(string);
 
             if (isEmptyProfile.profile(rope.isEmpty())) {
                 return nil();
             }
 
-            final byte[] bytes = rope.getBytesCopy();
+            final byte[] bytes = bytesCopy.execute(rope);
             final boolean modified = singleByteUpcase(bytes, 0, bytes.length);
 
             if (modifiedProfile.profile(modified)) {
@@ -2843,12 +2849,14 @@ public abstract class StringNodes {
                                  @Cached("createBinaryProfile()") ConditionProfile hashCodesCalculatedProfile,
                                  @Cached("createBinaryProfile()") ConditionProfile differentHashCodesProfile,
                                  @Cached("createBinaryProfile()") ConditionProfile aHasRawBytesProfile,
-                                 @Cached("createBinaryProfile()") ConditionProfile bHasRawBytesProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile bHasRawBytesProfile,
+                @Cached("create()") RopeNodes.BytesNode bytesNode,
+                @Cached("create()") RopeNodes.HashNode hashNode) {
             final Rope a = rope(string);
             final Rope b = rope(other);
 
             if (hashCodesCalculatedProfile.profile(a.isHashCodeCalculated() && b.isHashCodeCalculated())) {
-                if (differentHashCodesProfile.profile(a.hashCode() != b.hashCode())) {
+                if (differentHashCodesProfile.profile(hashNode.execute(a) != hashNode.execute(a))) {
                     return false;
                 }
             }
@@ -2857,7 +2865,7 @@ public abstract class StringNodes {
             if (aHasRawBytesProfile.profile(a.getRawBytes() != null)) {
                 aBytes = a.getRawBytes();
             } else {
-                aBytes = a.getBytes();
+                aBytes = bytesNode.execute(a);
             }
 
             final byte[] bBytes;
@@ -3696,7 +3704,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isRubyString(pattern)")
         public Object stringRindex(DynamicObject string, DynamicObject pattern, int start,
-                @Cached("create()") BranchProfile errorProfile) {
+                @Cached("create()") BranchProfile errorProfile,
+                @Cached("create()") RopeNodes.BytesNode stringBytes,
+                @Cached("create()") RopeNodes.BytesNode patternBytes) {
             // Taken from Rubinius's String::rindex.
 
             int pos = start;
@@ -3743,7 +3753,7 @@ public abstract class StringNodes {
 
                     while (cur >= 0) {
                         // TODO (nirvdrum 21-Jan-16): Investigate a more rope efficient memcmp.
-                        if (ArrayUtils.memcmp(stringRope.getBytes(), cur, patternRope.getBytes(), 0, matchSize) == 0) {
+                        if (ArrayUtils.memcmp(stringBytes.execute(stringRope), cur, patternBytes.execute(patternRope), 0, matchSize) == 0) {
                             return cur;
                         }
 

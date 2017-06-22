@@ -26,6 +26,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -402,14 +403,15 @@ public abstract class TimeNodes {
     }
 
     @Primitive(name = "time_strftime")
-    @ImportStatic(StringCachingGuards.class)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public static abstract class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyString(format)",
-                "ropesEqual(format, cachedFormat)" }, limit = "getContext().getOptions().TIME_FORMAT_CACHE")
+                "equalNode.execute(rope(format), cachedFormat)" }, limit = "getContext().getOptions().TIME_FORMAT_CACHE")
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format,
                                           @Cached("privatizeRope(format)") Rope cachedFormat,
-                                          @Cached("compilePattern(cachedFormat)") List<Token> pattern) {
+                @Cached("compilePattern(cachedFormat)") List<Token> pattern,
+                @Cached("create()") RopeNodes.EqualNode equalNode) {
             return createString(formatTime(time, pattern));
         }
 

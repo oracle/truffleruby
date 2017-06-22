@@ -24,6 +24,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.ValueProfile;
+
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -993,19 +995,21 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "rope.getRawBytes() == null")
         public int getByteConcatRope(ConcatRope rope, int index,
-                                     @Cached("createBinaryProfile()") ConditionProfile chooseLeftChildProfile,
-                                     @Cached("createBinaryProfile()") ConditionProfile leftChildRawBytesNullProfile,
-                                     @Cached("createBinaryProfile()") ConditionProfile rightChildRawBytesNullProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile chooseLeftChildProfile,
+                @Cached("createBinaryProfile()") ConditionProfile leftChildRawBytesNullProfile,
+                @Cached("createBinaryProfile()") ConditionProfile rightChildRawBytesNullProfile,
+                @Cached("create()") ByteSlowNode byteSlowLeft,
+                @Cached("create()") ByteSlowNode byteSlowRight) {
             if (chooseLeftChildProfile.profile(index < rope.getLeft().byteLength())) {
                 if (leftChildRawBytesNullProfile.profile(rope.getLeft().getRawBytes() == null)) {
-                    return rope.getLeft().getByteSlow(index) & 0xff;
+                    return byteSlowLeft.execute(rope.getLeft(), index) & 0xff;
                 }
 
                 return rope.getLeft().getRawBytes()[index] & 0xff;
             }
 
             if (rightChildRawBytesNullProfile.profile(rope.getRight().getRawBytes() == null)) {
-                return rope.getRight().getByteSlow(index - rope.getLeft().byteLength()) & 0xff;
+                return byteSlowRight.execute(rope.getRight(), index - rope.getLeft().byteLength()) & 0xff;
             }
 
             return rope.getRight().getRawBytes()[index - rope.getLeft().byteLength()] & 0xff;
@@ -1107,4 +1111,169 @@ public abstract class RopeNodes {
 
     }
 
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "a"),
+            @NodeChild(type = RubyNode.class, value = "b")
+    })
+    public abstract static class EqualNode extends RubyNode {
+
+        public static EqualNode create() {
+            return RopeNodesFactory.EqualNodeGen.create(null, null);
+        }
+
+        public abstract boolean execute(Rope a, Rope b);
+
+        @Specialization(guards = "a == b")
+        public boolean sameRopeEqual(Rope a, Rope b) {
+            return true;
+        }
+
+        @Specialization
+        public boolean ropesEqual(Rope a, Rope b,
+                @Cached("create()") BytesNode aBytes,
+                @Cached("create()") BytesNode bBytes) {
+            return a.hashesMatch(b) && a.byteLength() == b.byteLength() && Arrays.equals(aBytes.execute(a), bBytes.execute(b));
+        }
+
+        @Specialization
+        public boolean ropeEqualNonRope(Rope a, Object b) {
+            return false;
+        }
+    }
+
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "rope")
+    })
+    public abstract static class BytesNode extends RubyNode {
+
+        public static BytesNode create() {
+            return RopeNodesFactory.BytesNodeGen.create(null);
+        }
+
+        public abstract byte[] execute(Rope rope);
+
+        @Specialization(guards = "ropeClass == rope.getClass()")
+        public byte[] getBytesFromRope(Rope rope,
+                @Cached("rope.getClass()") Class<?> ropeClass,
+                @Cached("createClassProfile()") ValueProfile ropeProfile) {
+            return ropeProfile.profile(rope).getBytes();
+        }
+
+        @Specialization
+        @TruffleBoundary
+        public byte[] getBytesFromRope(Rope rope) {
+            return rope.getBytes();
+        }
+    }
+
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "rope")
+    })
+    public abstract static class BytesSlowNode extends RubyNode {
+
+        public static BytesSlowNode create() {
+            return RopeNodesFactory.BytesSlowNodeGen.create(null);
+        }
+
+        public abstract byte[] execute(Rope rope);
+
+        @Specialization(guards = "ropeClass == rope.getClass()")
+        public byte[] getBytesFromRope(Rope rope,
+                @Cached("rope.getClass()") Class<?> ropeClass) {
+            return rope.getBytesSlow();
+        }
+
+        @Specialization
+        @TruffleBoundary
+        public byte[] getBytesFromRope(Rope rope) {
+            return rope.getBytesSlow();
+        }
+    }
+
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "rope"),
+            @NodeChild(type = RubyNode.class, value = "index")
+    })
+    public abstract static class ByteSlowNode extends RubyNode {
+
+    public static ByteSlowNode create() {
+            return RopeNodesFactory.ByteSlowNodeGen.create(null, null);
+        }
+
+        public abstract byte execute(Rope rope, int index);
+
+        @Specialization(guards = "childClass == rope.getChild().getClass()")
+        public byte getByteFromSubString(SubstringRope rope,
+                int index,
+                @Cached("rope.getChild().getClass()") Class<?> childClass,
+                @Cached("createClassProfile()") ValueProfile childProfile) {
+            return childProfile.profile(rope.getChild()).getByteSlow(rope.getOffset() + index);
+        }
+
+        @Specialization
+        @TruffleBoundary
+        public byte getByteFromRope(SubstringRope rope, int index) {
+            return rope.getByteSlow(index);
+        }
+
+        @Specialization(guards = "ropeClass == rope.getClass()")
+        public byte getByteFromRope(Rope rope,
+                int index,
+                @Cached("rope.getClass()") Class<?> ropeClass,
+                @Cached("createClassProfile()") ValueProfile ropeProfile) {
+            return ropeProfile.profile(rope).getByteSlow(index);
+        }
+
+        @Specialization
+        @TruffleBoundary
+        public byte getByteFromRope(Rope rope, int index) {
+            return rope.getByteSlow(index);
+        }
+    }
+
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "rope")
+    })
+    public abstract static class BytesCopyNode extends RubyNode {
+
+        public static BytesCopyNode create() {
+            return RopeNodesFactory.BytesCopyNodeGen.create(null);
+        }
+
+        public abstract byte[] execute(Rope rope);
+
+        @Specialization(guards = "ropeClass == rope.getClass()")
+        public byte[] getBytesCopyFromRope(Rope rope,
+                @Cached("rope.getClass()") Class<?> ropeClass,
+                @Cached("createClassProfile()") ValueProfile ropeProfile) {
+            return ropeProfile.profile(rope).getBytesCopy();
+        }
+
+        @Specialization
+        @TruffleBoundary
+        public byte[] getBytesFromRope(Rope rope) {
+            return rope.getBytesCopy();
+        }
+    }
+
+    @NodeChildren({
+        @NodeChild(type = RubyNode.class, value = "rope")
+    })
+    public abstract static class HashNode extends RubyNode {
+        public static HashNode create() {
+            return RopeNodesFactory.HashNodeGen.create(null);
+        }
+
+        public abstract int execute(Rope rope);
+
+        @Specialization(guards = "rope.isHashCodeCalculated()")
+        public int executeHashCalculated(Rope rope) {
+            return rope.calculatedHashCode();
+        }
+
+        @Specialization(guards = "!rope.isHashCodeCalculated()")
+        public int executeHashNotCalculated(Rope rope) {
+            return rope.hashCode();
+        }
+    }
 }
