@@ -112,8 +112,6 @@ if [ $on_graalvm = false ]; then
         exit 1
     fi
     java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar:$graal_sdk")
-    # This hash is Truffle's JLINE sha1
-    CP="$CP:$HOME/.mx/cache/JLINE_9504d5e2da5d78237239c5226e8200ec21182040.jar"
     CP="$CP:$truffle/dists/truffle-debug.jar:$truffle/dists/truffle-nfi.jar:$mx_jar"
     java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.$(libext)")
 
