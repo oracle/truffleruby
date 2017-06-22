@@ -25,21 +25,6 @@ public abstract class StringCachingGuards {
         }
     }
 
-    public static boolean ropesEqual(DynamicObject string, Rope rope) {
-        if (RubyGuards.isRubyString(string)) {
-            final Rope stringRope = StringOperations.rope(string);
-
-            // equal below does not check encoding
-            if (stringRope.getEncoding() != rope.getEncoding()) {
-                return false;
-            }
-
-            return stringRope.equals(rope);
-        } else {
-            return false;
-        }
-    }
-
     public static int ropeLength(Rope rope) {
         return rope.byteLength();
     }

@@ -107,7 +107,8 @@ public abstract class ToStringNode extends FormatNode {
     }
 
     @Specialization(guards = "isRubyArray(array)")
-    public byte[] toString(VirtualFrame frame, DynamicObject array) {
+    public byte[] toString(VirtualFrame frame, DynamicObject array,
+            @Cached("create()") RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toSNode = insert(new CallDispatchHeadNode(true, MissingBehavior.RETURN_MISSING));
@@ -120,7 +121,7 @@ public abstract class ToStringNode extends FormatNode {
                 setTainted(frame);
             }
 
-            return Layouts.STRING.getRope((DynamicObject) value).getBytes();
+            return bytesNode.execute(Layouts.STRING.getRope((DynamicObject) value));
         } else {
             throw new NoImplicitConversionException(array, "String");
         }

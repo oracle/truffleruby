@@ -528,8 +528,9 @@ public class CExtNodes {
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding) {
-            final byte[] bytes = StringOperations.rope(string).getBytes();
+        public DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            final byte[] bytes = bytesNode.execute(StringOperations.rope(string));
             final Encoding enc = Layouts.ENCODING.getEncoding(encoding);
             final int r = StringSupport.preciseLength(enc, bytes, 0, bytes.length);
             if (!StringSupport.MBCLEN_CHARFOUND_P(r)) {
@@ -981,7 +982,8 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public long toNative(DynamicObject string,
-                          @Cached("createBinaryProfile()") ConditionProfile convertProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile convertProfile,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope currentRope = rope(string);
 
             final NativeRope nativeRope;
@@ -989,7 +991,7 @@ public class CExtNodes {
             if (convertProfile.profile(currentRope instanceof NativeRope)) {
                 nativeRope = (NativeRope) currentRope;
             } else {
-                nativeRope = new NativeRope(getContext().getNativePlatform().getMemoryManager(), currentRope.getBytes(), currentRope.getEncoding(), currentRope.characterLength());
+                nativeRope = new NativeRope(getContext().getNativePlatform().getMemoryManager(), bytesNode.execute(currentRope), currentRope.getEncoding(), currentRope.characterLength());
                 Layouts.STRING.setRope(string, nativeRope);
             }
 

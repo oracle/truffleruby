@@ -932,8 +932,9 @@ public abstract class RopeNodes {
                 "!isAsciiCompatibleChange(rope, encoding)"
         })
         public Rope withEncoding(Rope rope, Encoding encoding, CodeRange codeRange,
-                                 @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
-            return makeLeafRopeNode.executeMake(rope.getBytes(), encoding, codeRange, NotProvided.INSTANCE);
+                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
         }
 
         protected static boolean isAsciiCompatibleChange(Rope rope, Encoding encoding) {

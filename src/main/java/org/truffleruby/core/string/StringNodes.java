@@ -206,7 +206,8 @@ public abstract class StringNodes {
         @Specialization(guards = { "isRopeBuffer(string)", "is7Bit(string)", "is7Bit(other)" })
         public DynamicObject addRopeBuffer(DynamicObject string, DynamicObject other,
                                            @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile,
-                                           @Cached("create()") EncodingNodes.CheckEncodingNode checkEncodingNode) {
+                @Cached("create()") EncodingNodes.CheckEncodingNode checkEncodingNode,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Encoding enc = checkEncodingNode.executeCheckEncoding(string, other);
 
             final RopeBuffer left = (RopeBuffer) rope(string);
@@ -223,7 +224,7 @@ public abstract class StringNodes {
                 concatByteList = RopeBuilder.createRopeBuilder(newLength);
                 concatByteList.setLength(newLength);
                 System.arraycopy(leftByteList.getUnsafeBytes(), 0, concatByteList.getUnsafeBytes(), 0, leftByteList.getLength());
-                System.arraycopy(right.getBytes(), 0, concatByteList.getUnsafeBytes(), leftByteList.getLength(), right.byteLength());
+                System.arraycopy(bytesNode.execute(right), 0, concatByteList.getUnsafeBytes(), leftByteList.getLength(), right.byteLength());
             }
 
             concatByteList.setEncoding(enc);
@@ -595,9 +596,10 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        public DynamicObject bytes(DynamicObject string, DynamicObject block) {
+        public DynamicObject bytes(DynamicObject string, DynamicObject block,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             Rope rope = rope(string);
-            byte[] bytes = rope.getBytes();
+            byte[] bytes = bytesNode.execute(rope);
 
             for (int i = 0; i < bytes.length; i++) {
                 yield(block, bytes[i] & 0xff);
@@ -1340,12 +1342,13 @@ public abstract class StringNodes {
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "isAsciiCompatible(string)" })
-        public DynamicObject scrubAsciiCompat(VirtualFrame frame, DynamicObject string, DynamicObject block) {
+        public DynamicObject scrubAsciiCompat(VirtualFrame frame, DynamicObject string, DynamicObject block,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
             Rope buf = RopeConstants.EMPTY_ASCII_8BIT_ROPE;
 
-            final byte[] pBytes = rope.getBytes();
+            final byte[] pBytes = bytesNode.execute(rope);
             final int e = pBytes.length;
 
             int p = 0;
@@ -1409,12 +1412,13 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "!isAsciiCompatible(string)" })
-        public DynamicObject scrubAscciIncompatible(VirtualFrame frame, DynamicObject string, DynamicObject block) {
+        public DynamicObject scrubAscciIncompatible(VirtualFrame frame, DynamicObject string, DynamicObject block,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
             Rope buf = RopeConstants.EMPTY_ASCII_8BIT_ROPE;
 
-            final byte[] pBytes = rope.getBytes();
+            final byte[] pBytes = bytesNode.execute(rope);
             final int e = pBytes.length;
 
             int p = 0;
@@ -1986,16 +1990,18 @@ public abstract class StringNodes {
         @Child private CallDispatchHeadNode andNode = CallDispatchHeadNode.create();
 
         @Specialization
-        public Object sum(VirtualFrame frame, DynamicObject string, int bits) {
-            return sum(frame, string, (long) bits);
+        public Object sum(VirtualFrame frame, DynamicObject string, int bits,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            return sum(frame, string, (long) bits, bytesNode);
         }
 
         @Specialization
-        public Object sum(VirtualFrame frame, DynamicObject string, long bits) {
+        public Object sum(VirtualFrame frame, DynamicObject string, long bits,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             // Copied from JRuby
 
             final Rope rope = rope(string);
-            final byte[] bytes = rope.getBytes();
+            final byte[] bytes = bytesNode.execute(rope);
             int p = 0;
             final int len = rope.byteLength();
             final int end = p + len;
@@ -2020,8 +2026,9 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        public Object sum(VirtualFrame frame, DynamicObject string, NotProvided bits) {
-            return sum(frame, string, 16);
+        public Object sum(VirtualFrame frame, DynamicObject string, NotProvided bits,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            return sum(frame, string, 16, bytesNode);
         }
 
         @Specialization(guards = { "!isInteger(bits)", "!isLong(bits)", "wasProvided(bits)" })
@@ -2096,9 +2103,10 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!reverseIsEqualToSelf(string)", "isSingleByteOptimizable(string)" })
-        public DynamicObject reverseSingleByteOptimizable(DynamicObject string) {
+        public DynamicObject reverseSingleByteOptimizable(DynamicObject string,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
-            final byte[] originalBytes = rope.getBytes();
+            final byte[] originalBytes = bytesNode.execute(rope);
             final int len = originalBytes.length;
             final byte[] reversedBytes = new byte[len];
 
@@ -2112,11 +2120,12 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!reverseIsEqualToSelf(string)", "!isSingleByteOptimizable(string)" })
-        public DynamicObject reverse(DynamicObject string) {
+        public DynamicObject reverse(DynamicObject string,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             // Taken from org.jruby.RubyString#reverse!
 
             final Rope rope = rope(string);
-            final byte[] originalBytes = rope.getBytes();
+            final byte[] originalBytes = bytesNode.execute(rope);
             int p = 0;
             final int len = originalBytes.length;
 
@@ -2278,14 +2287,15 @@ public abstract class StringNodes {
         public DynamicObject unpackUncached(
                 DynamicObject string,
                 DynamicObject format,
-                @Cached("create()") IndirectCallNode callUnpackNode) {
+                @Cached("create()") IndirectCallNode callUnpackNode,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
 
             final ArrayResult result;
 
             try {
                 result = (ArrayResult) callUnpackNode.call(compileFormat(format),
-                        new Object[]{ rope.getBytes(), rope.byteLength() });
+                        new Object[]{ bytesNode.execute(rope), rope.byteLength() });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(this, e);
@@ -2717,12 +2727,13 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!indexOutOfBounds(string, byteIndex)", "!isSingleByteOptimizable(string)" })
         public Object stringChrAt(DynamicObject string, int byteIndex,
-                                  @Cached("create()") StringByteSubstringPrimitiveNode stringByteSubstringNode) {
+                @Cached("create()") StringByteSubstringPrimitiveNode stringByteSubstringNode,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             // Taken from Rubinius's Character::create_from.
 
             final Rope rope = rope(string);
             final int end = rope.byteLength();
-            final int c = StringSupport.preciseLength(rope.getEncoding(), rope.getBytes(), byteIndex, end);
+            final int c = StringSupport.preciseLength(rope.getEncoding(), bytesNode.execute(rope), byteIndex, end);
 
             if (! StringSupport.MBCLEN_CHARFOUND_P(c)) {
                 return nil();
@@ -3519,7 +3530,8 @@ public abstract class StringNodes {
         protected Object multiBytes(DynamicObject string, int characterIndex,
                                     @Cached("createBinaryProfile()") ConditionProfile indexTooLargeProfile,
                                     @Cached("createBinaryProfile()") ConditionProfile invalidByteProfile,
-                                    @Cached("create()") BranchProfile errorProfile) {
+                @Cached("create()") BranchProfile errorProfile,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             // Taken from Rubinius's String::byte_index.
 
             final Rope rope = rope(string);
@@ -3530,7 +3542,7 @@ public abstract class StringNodes {
             int i, k = characterIndex;
 
             for (i = 0; i < k && p < e; i++) {
-                final int c = StringSupport.preciseLength(enc, rope.getBytes(), p, e);
+                final int c = StringSupport.preciseLength(enc, bytesNode.execute(rope), p, e);
 
                 // TODO (nirvdrum 22-Dec-16): Consider having a specialized version for CR_BROKEN strings to avoid these checks.
                 // If it's an invalid byte, just treat it as a single byte
@@ -3574,7 +3586,9 @@ public abstract class StringNodes {
                               @Cached("createBinaryProfile()") ConditionProfile emptyPatternProfile,
                               @Cached("createBinaryProfile()") ConditionProfile brokenCodeRangeProfile,
                               @Cached("create()") BranchProfile errorProfile,
-                              @Cached("create()")EncodingNodes.CheckEncodingNode checkEncodingNode) {
+                @Cached("create()") EncodingNodes.CheckEncodingNode checkEncodingNode,
+                @Cached("create()") RopeNodes.BytesNode stringBytesNode,
+                @Cached("create()") RopeNodes.BytesNode patternBytesNode) {
             // Taken from Rubinius's String::byte_index.
 
             if (offset < 0) {
@@ -3599,8 +3613,8 @@ public abstract class StringNodes {
             int s;
             int ss;
 
-            final byte[] stringBytes = stringRope.getBytes();
-            final byte[] patternBytes = patternRope.getBytes();
+            final byte[] stringBytes = stringBytesNode.execute(stringRope);
+            final byte[] patternBytes = patternBytesNode.execute(patternRope);
 
             for(s = p, ss = pp; p < e; s = ++p) {
                 if (stringBytes[p] != patternBytes[pp]) continue;
