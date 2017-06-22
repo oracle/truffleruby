@@ -14,8 +14,10 @@ import com.oracle.truffle.api.CompilerOptions;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleOptions;
+import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.encoding.EncodingManager;
@@ -60,6 +62,8 @@ public class RubyContext {
     private final RubyLanguage language;
     private final TruffleLanguage.Env env;
 
+    private final AllocationReporter allocationReporter;
+
     private final Options options;
 
     private final String rubyHome;
@@ -100,6 +104,8 @@ public class RubyContext {
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         this.language = language;
         this.env = env;
+
+        allocationReporter = env.lookup(AllocationReporter.class);
 
         final OptionsBuilder optionsBuilder = new OptionsBuilder();
         optionsBuilder.set(env.getOptions());           // Options from the SDK first as they always overwrite everything
@@ -226,6 +232,10 @@ public class RubyContext {
 
     public TruffleLanguage.Env getEnv() {
         return env;
+    }
+
+    public AllocationReporter getAllocationReporter() {
+        return allocationReporter;
     }
 
     public NativePlatform getNativePlatform() {
