@@ -21,7 +21,6 @@ RUN apt-get install -y clang=1:4.0-36ubuntu3 llvm-dev=1:4.0-36ubuntu3 libc++-dev
 
 # To build TruffleRuby
 RUN apt-get install -y ruby=1:2.3.3 libssl-dev=1.0.2g-1ubuntu13
-ENV OPENSSL_LIB=/usr/lib/x86_64-linux-gnu/libssl.so
 
 # Create a user and working directory
 WORKDIR /build

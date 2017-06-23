@@ -49,11 +49,6 @@ LIBXML_LIB_HOME = ENV['LIBXML_LIB_HOME'] = ENV['LIBXML_LIB_HOME'] || "#{LIBXML_H
 LIBXML_INCLUDE = ENV['LIBXML_INCLUDE'] = ENV['LIBXML_INCLUDE'] || "#{LIBXML_HOME}/include/libxml2"
 LIBXML_LIB = ENV['LIBXML_LIB'] = ENV['LIBXML_LIB'] || "#{LIBXML_LIB_HOME}/libxml2.#{SO}"
 
-OPENSSL_HOME = ENV['OPENSSL_HOME'] = ENV['OPENSSL_HOME'] || '/usr'
-OPENSSL_LIB_HOME = ENV['OPENSSL_LIB_HOME'] = ENV['OPENSSL_LIB_HOME'] || "#{OPENSSL_HOME}/lib"
-OPENSSL_INCLUDE = ENV['OPENSSL_INCLUDE'] = ENV['OPENSSL_INCLUDE'] || "#{OPENSSL_HOME}/include"
-OPENSSL_LIB = ENV['OPENSSL_LIB'] = ENV['OPENSSL_LIB'] || "#{OPENSSL_LIB_HOME}/libssl.#{SO}"
-
 # wait for sub-processes to handle the interrupt
 trap(:INT) {}
 
@@ -504,7 +499,7 @@ module Commands
         GRAAL_JS_JAR                                 The location of trufflejs.jar
         SL_JAR                                       The location of truffle-sl.jar
         LIBXML_HOME, LIBXML_INCLUDE, LIBXML_LIB      The location of libxml2 (the directory containing include etc), and the direct include directory and library file
-        OPENSSL_HOME, OPENSSL_INCLUDE, OPENSSL_LIB               ... OpenSSL ...
+        OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         AOT_BIN                                      TruffleRuby/SVM executable
     TXT
   end
@@ -893,6 +888,14 @@ module Commands
     sh RbConfig.ruby, 'test/truffle/cexts/test-preprocess.rb'
 
     # Test that we can compile and run some basic C code that uses libxml and openssl
+    
+    if ENV['OPENSSL_PREFIX']
+      openssl_cflags = ['-I', "#{ENV['OPENSSL_PREFIX']}/include"]
+      openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{SO}"
+    else
+      openssl_cflags = []
+      openssl_lib = "libssl.#{SO}"
+    end
 
     unless no_libxml
       clang '-c', '-emit-llvm', "-I#{LIBXML_INCLUDE}", 'test/truffle/cexts/xml/main.c', '-o', 'test/truffle/cexts/xml/main.bc'
@@ -901,8 +904,8 @@ module Commands
     end
 
     unless no_openssl
-      clang '-c', '-emit-llvm', "-I#{OPENSSL_INCLUDE}", 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
-      out, _ = sulong_run("-l#{OPENSSL_LIB}", 'test/truffle/cexts/xopenssl/main.bc', {capture: true})
+      clang '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
+      out, _ = sulong_run("-l#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', {capture: true})
       raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
     end
 
@@ -915,7 +918,7 @@ module Commands
     end
 
     unless no_openssl
-      sulong_link '-o', 'test/truffle/cexts/xopenssl/main.su', '-l', "#{OPENSSL_LIB}", 'test/truffle/cexts/xopenssl/main.bc'
+      sulong_link '-o', 'test/truffle/cexts/xopenssl/main.su', '-l', openssl_lib, 'test/truffle/cexts/xopenssl/main.bc'
       out, _ = sulong_run('test/truffle/cexts/xopenssl/main.su', {capture: true})
       raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
     end

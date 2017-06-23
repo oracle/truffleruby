@@ -5,20 +5,28 @@
 TruffleRuby runs C extension using Sulong. You should build Sulong from source.
 Clone from https://github.com/graalvm/sulong
 
-You need LLVM installed - version 3.8 or above.
+You need LLVM installed - version 3.8 or above we think but we haven't tested
+many versions.
 
 We need the `opt` command, so you can't just use what is installed by Xcode if
 you are on macOS. We would recommend that you install LLVM via Homebrew (`brew
 install llvm`) and then manually set your path in shells where you are building
 Sulong or TruffleRuby (`export PATH="/usr/local/opt/llvm/bin:$PATH"`).
 
-You can now build the C extension support. Building the OpenSSL C extension is
-incomplete, so most people probably want to disable that with `--no-openssl`.
+You also need OpenSSL - version 1.0.1 or above we think but we haven't tested
+many versions. The system version of OpenSSL on macOS is too old, so you should
+install a new version, again via Homebrew (`brew install openssl`). If you are
+on macOS, or otherwise even if you just want to use a different version of
+OpenSSL you then need to set `OPENSSL_PREFIX` to tell us where to find it (for
+example `export OPENSSL_PREFIX=/usr/local/opt/openssl`
+if you installed from Homebrew).
+
+You can now build the C extension support.
 
 ```bash
 export SULONG_HOME=/absolute/path/to/sulong
 export PATH="/usr/local/opt/llvm/bin:$PATH"
-jt build cexts --no-openssl
+jt build cexts
 ```
 
 ## Testing
@@ -32,17 +40,28 @@ jt gem-test-pack
 You can then test C extension support.
 
 ```bash
-GEM_HOME=$(jt gem-test-pack)/gems jt test cexts --no-libxml --no-openssl
+export GEM_HOME=$(jt gem-test-pack)/gems
+jt test cexts --no-libxml
 ```
 
 If you want to test `libxml`, remove that flag and set either `LIBXML_HOME` or
-`LIBXML_INCLUDE` and `LIBXML_LIB`. Try the same with `OPENSSL_` if you are
-adventurous.
+`LIBXML_INCLUDE` and `LIBXML_LIB`.
 
 You can also runs specs:
 
 ```bash
 jt test --sulong :capi
+```
+
+### OpenSSL
+
+The `openssl` specs and tests are currently segregated and are run separately.
+We have patches to workaround `openssl` so you need to disable these to
+actually test it, with `-T-Xpatching=false`.
+
+```bash
+jt test -T-Xpatching=false --sulong :openssl
+jt test mri --openssl --sulong
 ```
 
 ## Benchmarking
@@ -64,38 +83,6 @@ C extension is actually being used by looking for these log lines.
 
 ```
 [ruby] INFO loading cext module ...
-```
-
-## OpenSSL
-
-To build the `openssl` gem you need to install the OpenSSL system library and configure the
-location to the OpenSSL header and library files. On macOS we use Homebrew and 1.0.2g.
-On Linux, it's probably safe to use your package manager's version of the OpenSSL dev package
-(just note that we currently test with 1.0.2g).
-For Homebrew you can simply set the `OPENSSL_HOME` variable to the Cellar location.
-For Linux users installing system packages, you may need
-to set one or more of `OPENSSL_LIB_HOME`, `OPENSSL_INCLUDE`, or `OPENSSL_LIB`.
-On Ubuntu, setting `OPENSSL_LIB_HOME` is sufficient.
-Once your environment variables are set, you can build the C extensions, including support for `openssl`.
-Note that if you do change any of the aforementioned environment variables you will need to recompile the extension.
-
-```bash
-# macOS
-OPENSSL_HOME=/usr/local/Cellar/openssl/1.0.2g jt build cexts
-
-# Linux, Ubuntu
-OPENSSL_LIB_HOME=/usr/lib/x86_64-linux-gnu jt build cexts
-# Linux, Fedora
-OPENSSL_LIB_HOME=/usr/lib64 jt build cexts
-```
-
-The `openssl` specs and tests are currently segregated and are run separately.
-We have patches to workaround `openssl` so you need to disable these to
-actually test it, with `-T-Xpatching=false`.
-
-```bash
-jt test -T-Xpatching=false --sulong :openssl
-jt test mri --openssl --sulong
 ```
 
 ## Tools
