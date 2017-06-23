@@ -9,6 +9,9 @@ ENV LANG=en_US.UTF-8
 RUN apt-get update
 RUN apt-get install -y git=1:2.11.0-4
 
+# We need a system libssl for openssl
+RUN apt-get install -y libssl-dev=1.0.2g-1ubuntu13
+
 # Create a user and working directory
 WORKDIR /test
 RUN useradd -ms /bin/bash test

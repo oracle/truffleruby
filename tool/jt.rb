@@ -49,6 +49,10 @@ LIBXML_LIB_HOME = ENV['LIBXML_LIB_HOME'] = ENV['LIBXML_LIB_HOME'] || "#{LIBXML_H
 LIBXML_INCLUDE = ENV['LIBXML_INCLUDE'] = ENV['LIBXML_INCLUDE'] || "#{LIBXML_HOME}/include/libxml2"
 LIBXML_LIB = ENV['LIBXML_LIB'] = ENV['LIBXML_LIB'] || "#{LIBXML_LIB_HOME}/libxml2.#{SO}"
 
+if MAC && !ENV['OPENSSL_PREFIX']
+  ENV['OPENSSL_PREFIX'] = '/usr/local/opt/openssl'
+end
+
 # wait for sub-processes to handle the interrupt
 trap(:INT) {}
 

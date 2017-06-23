@@ -39,6 +39,17 @@ or email chris.seaton@oracle.com.
 Announcements about GraalVM, including TruffleRuby, are made on the
 [graalvm-dev](https://oss.oracle.com/mailman/listinfo/graalvm-dev) mailing list.
 
+## System Compatibility
+
+TruffleRuby is actively tested on these systems:
+
+* Oracle Linux 7.3
+* Ubuntu 17.10
+* macOS 10.12
+
+You may need to [install `libssl`](doc/user/installing-libssl.md) on your system
+to use the `openssl` module.
+
 ## Current Status
 
 TruffleRuby is progressing fast but is currently probably not ready for you to
@@ -93,9 +104,7 @@ instructions.
 
 ## Documentation
 
-User documentation is in [`doc/user`](https://github.com/graalvm/truffleruby/tree/master/doc/user).
-
-Contributor documentation is in [`doc/contributor`](https://github.com/graalvm/truffleruby/tree/master/doc/contributor).
+Documentation is in [`doc`](doc).
 
 ## Licence
 
@@ -113,4 +122,5 @@ with copyright owned by other people. See `doc/legal` for full documentation.
 
 TruffleRuby is a fork of [JRuby](https://github.com/jruby/jruby), combining it
 with code from the [Rubinius](https://github.com/rubinius/rubinius) project, and
-also containing code from the standard implementation of Ruby, [MRI](https://github.com/ruby/ruby).
+also containing code from the standard implementation of Ruby,
+[MRI](https://github.com/ruby/ruby).

@@ -8,6 +8,9 @@ ENV LANG=en_US.UTF-8
 # Tools we will need to get and run our tests
 RUN yum install -y git-1.8.3.1 which-2.20
 
+# We need a system libssl for openssl
+RUN yum install -y openssl-devel-1.0.1e
+
 # Create a user and working directory
 WORKDIR /test
 RUN useradd -ms /bin/bash test

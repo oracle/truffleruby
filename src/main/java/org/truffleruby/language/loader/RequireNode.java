@@ -130,10 +130,37 @@ public abstract class RequireNode extends RubyNode {
                     featureLoader.ensureCExtImplementationLoaded(feature, callNode);
 
                     if (getContext().getOptions().CEXTS_LOG_LOAD) {
-                        Log.info("loading cext module %s", expandedPath);
+                        Log.info("loading cext module %s (requested as %s)", expandedPath, feature);
                     }
 
-                    final CallTarget callTarget = featureLoader.parseSource(source);
+                    final CallTarget callTarget;
+
+                    try {
+                        callTarget = featureLoader.parseSource(source);
+                    } catch (JavaException e) {
+                        final UnsatisfiedLinkError linkErrorException = searchForException(UnsatisfiedLinkError.class, e);
+
+                        if (linkErrorException != null) {
+                            final String linkError = linkErrorException.getMessage();
+
+                            if (getContext().getOptions().CEXTS_LOG_LOAD) {
+                                Log.info("unsatisfied link error %s", linkError);
+                            }
+
+                            final String message;
+
+                            if (feature.equals("openssl.so")) {
+                                message = String.format("%s (%s)", "You need to install the system OpenSSL library libssl - see doc/user/installing-libssl.md", linkError);
+                            } else {
+                                message = linkError;
+                            }
+
+                            throw new RaiseException(getContext().getCoreExceptions().runtimeError(message, this));
+                        }
+
+                        throw e;
+                    }
+
                     callNode.call(callTarget, new Object[] {});
 
                     final TruffleObject initFunction = getInitFunction(expandedPath);
@@ -166,6 +193,18 @@ public abstract class RequireNode extends RubyNode {
                 fileLocks.unlock(expandedPath, lock);
             }
         }
+    }
+
+    private <T extends Throwable> T searchForException(Class<T> exceptionClass, Throwable exception) {
+        while (exception != null) {
+            if (exceptionClass.isInstance(exception)) {
+                return (T) exception;
+            } else {
+                exception = exception.getCause();
+            }
+        }
+
+        return null;
     }
 
     @TruffleBoundary
