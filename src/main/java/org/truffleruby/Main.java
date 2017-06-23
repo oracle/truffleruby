@@ -97,36 +97,8 @@ public class Main {
 
         if (config.getShouldRunInterpreter()) {
             final String filename = displayedFileName(config);
-
-            final PolyglotEngine.Builder builder = PolyglotEngine.newBuilder();
-
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.LOAD_PATHS.getName(), config.getLoadPaths().toArray(new String[]{}));
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.REQUIRED_LIBRARIES.getName(), config.getRequiredLibraries().toArray(new String[]{}));
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
-
-            /*
-             * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
-             * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and
-             * blocking behaviour. We also turn off sync on stdio and so revert to Ruby's default logic for looking
-             * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
-             */
-
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.POLYGLOT_STDIO.getName(), false);
-            builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.SYNC_STDIO.getName(), false);
-
-            for (Map.Entry<String, Object> option : config.getOptions().entrySet()) {
-                builder.config(RubyLanguage.MIME_TYPE, option.getKey(), option.getValue());
-            }
-
-            final PolyglotEngine engine = builder.build();
-
-            Main.printTruffleTimeMetric("before-load-context");
-            final RubyContext context = engine.eval(loadBootSource(
-                    //language=ruby
-                    "Truffle::Boot.context",
-                    "context")).as(RubyContext.class);
-            Main.printTruffleTimeMetric("after-load-context");
+            final PolyglotEngine engine = createPolyglotEngine(config, filename);
+            final RubyContext context = loadContext(engine);
 
             printTruffleTimeMetric("before-run");
             try {
@@ -166,6 +138,41 @@ public class Main {
         printTruffleTimeMetric("after-main");
         printTruffleMemoryMetric();
         System.exit(exitCode);
+    }
+
+    private static PolyglotEngine createPolyglotEngine(CommandLineOptions config, String filename) {
+        final PolyglotEngine.Builder builder = PolyglotEngine.newBuilder();
+
+        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.LOAD_PATHS.getName(), config.getLoadPaths().toArray(new String[]{}));
+        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.REQUIRED_LIBRARIES.getName(), config.getRequiredLibraries().toArray(new String[]{}));
+        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
+        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
+
+        /*
+         * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
+         * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and
+         * blocking behaviour. We also turn off sync on stdio and so revert to Ruby's default logic for looking
+         * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
+         */
+
+        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.POLYGLOT_STDIO.getName(), false);
+        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.SYNC_STDIO.getName(), false);
+
+        for (Map.Entry<String, Object> option : config.getOptions().entrySet()) {
+            builder.config(RubyLanguage.MIME_TYPE, option.getKey(), option.getValue());
+        }
+
+        return builder.build();
+    }
+
+    private static RubyContext loadContext(PolyglotEngine engine) {
+        Main.printTruffleTimeMetric("before-load-context");
+        final RubyContext context = engine.eval(loadBootSource(
+                // language=ruby
+                "Truffle::Boot.context",
+                "context")).as(RubyContext.class);
+        Main.printTruffleTimeMetric("after-load-context");
+        return context;
     }
 
     public static void processArguments(CommandLineOptions config, String[] arguments) {
