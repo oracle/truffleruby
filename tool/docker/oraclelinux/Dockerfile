@@ -24,7 +24,6 @@ RUN yum install -y clang-3.4.2
 
 # To build TruffleRuby
 RUN yum install -y ruby-2.0.0.648 openssl-devel-1.0.1e which-2.20
-ENV OPENSSL_LIB_HOME=/usr/lib64
 
 # Create a user and working directory
 WORKDIR /build
@@ -53,6 +52,7 @@ ENV SULONG_HOME=/build/sulong
 
 # Build TruffleRuby
 RUN git clone https://github.com/graalvm/truffleruby.git
+RUN cd truffleruby && git checkout system-libssl
 RUN cd truffleruby && mx build
 RUN cd truffleruby && ruby tool/jt.rb build cexts
 

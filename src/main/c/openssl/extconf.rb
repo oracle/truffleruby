@@ -26,8 +26,15 @@ have_flags = %w[
   OPENSSL_OCSP_H
 ]
 
-$CFLAGS += " -I #{ENV['OPENSSL_INCLUDE']} #{have_flags.map { |h| "-DHAVE_#{h}" }.join(' ')}"
-$LIBS += " -l #{ENV['OPENSSL_LIB']}"
+$CFLAGS += " #{have_flags.map { |h| "-DHAVE_#{h}" }.join(' ')}"
+
+if ENV['OPENSSL_PREFIX']
+  $CFLAGS += " -I #{ENV['OPENSSL_PREFIX']}/include"
+  $LIBS += " -l #{ENV['OPENSSL_PREFIX']}/lib/libssl.#{RbConfig::CONFIG['NATIVE_DLEXT']}"
+else
+  $LIBS += " -l libssl.#{RbConfig::CONFIG['NATIVE_DLEXT']}"
+end
+
 create_makefile('openssl')
 
 _not_applied_have_flags = %w[
