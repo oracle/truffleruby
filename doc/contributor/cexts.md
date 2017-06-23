@@ -15,11 +15,10 @@ Sulong or TruffleRuby (`export PATH="/usr/local/opt/llvm/bin:$PATH"`).
 
 You also need OpenSSL - version 1.0.1 or above we think but we haven't tested
 many versions. The system version of OpenSSL on macOS is too old, so you should
-install a new version, again via Homebrew (`brew install openssl`). If you are
-on macOS, or otherwise even if you just want to use a different version of
-OpenSSL you then need to set `OPENSSL_PREFIX` to tell us where to find it (for
-example `export OPENSSL_PREFIX=/usr/local/opt/openssl`
-if you installed from Homebrew).
+install a new version, again via Homebrew (`brew install openssl`).
+
+If you want to use a different version of OpenSSL you then need to set
+`OPENSSL_PREFIX` to tell us where to find it.
 
 You can now build the C extension support.
 
