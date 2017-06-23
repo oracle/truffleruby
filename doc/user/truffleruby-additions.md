@@ -9,7 +9,7 @@ other Ruby implementations.
 
 ## Detecting if you are running on TruffleRuby
 
-You can use the `-version` command-line option. TruffleRuby will report for
+You can use the `--version` command-line option. TruffleRuby will report for
 example:
 
 ```
