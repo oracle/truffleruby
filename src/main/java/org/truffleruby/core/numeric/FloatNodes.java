@@ -273,7 +273,7 @@ public abstract class FloatNodes {
                 double a,
                 DynamicObject b,
                 @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :mod, b", "b", b);
+            return snippetNode.execute(frame, "redo_coerced :%, b", "b", b);
         }
 
     }
