@@ -32,6 +32,8 @@ public class CoreMethods {
     final Assumption fixnumBitAndAssumption;
 
     final Assumption fixnumEqualAssumption;
+    final Assumption fixnumLessThanAssumption, fixnumLessOrEqualAssumption;
+    final Assumption fixnumGreaterThanAssumption, fixnumGreaterOrEqualAssumption;
 
     public CoreMethods(RubyContext context) {
         this.context = context;
@@ -53,6 +55,10 @@ public class CoreMethods {
         fixnumBitAndAssumption = registerAssumption(fixnumClass, "&");
 
         fixnumEqualAssumption = registerAssumption(fixnumClass, "==");
+        fixnumLessThanAssumption = registerAssumption(fixnumClass, "<");
+        fixnumLessOrEqualAssumption = registerAssumption(fixnumClass, "<=");
+        fixnumGreaterThanAssumption = registerAssumption(fixnumClass, ">");
+        fixnumGreaterOrEqualAssumption = registerAssumption(fixnumClass, ">=");
     }
 
     private Assumption registerAssumption(DynamicObject klass, String methodName) {
@@ -87,6 +93,14 @@ public class CoreMethods {
                     return InlinedBitOrNodeGen.create(context, callParameters, self, args[0]);
                 case "==":
                     return InlinedEqualNodeGen.create(context, callParameters, self, args[0]);
+                case "<":
+                    return InlinedLessThanNodeGen.create(context, callParameters, self, args[0]);
+                case "<=":
+                    return InlinedLessOrEqualNodeGen.create(context, callParameters, self, args[0]);
+                case ">":
+                    return InlinedGreaterThanNodeGen.create(context, callParameters, self, args[0]);
+                case ">=":
+                    return InlinedGreaterOrEqualNodeGen.create(context, callParameters, self, args[0]);
                 default:
             }
         }
