@@ -31,6 +31,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.cast.DefaultValueNodeGen;
+import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
@@ -222,7 +223,13 @@ public abstract class FloatNodes {
 
         private final ConditionProfile lessThanZeroProfile = ConditionProfile.createBinaryProfile();
         private final BranchProfile zeroProfile = BranchProfile.create();
+
+        public static ModNode create() {
+            return ModNodeFactory.create(null);
+        }
         
+        public abstract Object executeMod(Object a, Object b);
+
         @Specialization
         public double mod(double a, long b) {
             return mod(a, (double) b);

@@ -382,6 +382,8 @@ public abstract class FixnumNodes {
 
         private final BranchProfile adjustProfile = BranchProfile.create();
 
+        public abstract Object executeMod(Object a, Object b);
+
         @Specialization(guards = { "a >= 0", "b == cachedB", "isPowerOfTwo(cachedB)" })
         public int modPowerOfTwo(int a, int b,
                 @Cached("b") int cachedB) {

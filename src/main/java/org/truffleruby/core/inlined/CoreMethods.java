@@ -26,6 +26,7 @@ public class CoreMethods {
     final Assumption fixnumSubAssumption, floatSubAssumption;
     final Assumption fixnumMulAssumption, floatMulAssumption;
     final Assumption fixnumDivAssumption, floatDivAssumption;
+    final Assumption fixnumModAssumption, floatModAssumption;
 
     final Assumption fixnumLeftShiftAssumption;
     final Assumption fixnumRightShiftAssumption;
@@ -52,6 +53,9 @@ public class CoreMethods {
 
         fixnumDivAssumption = registerAssumption(fixnumClass, "/");
         floatDivAssumption = registerAssumption(floatClass, "/");
+
+        fixnumModAssumption = registerAssumption(fixnumClass, "%");
+        floatModAssumption = registerAssumption(floatClass, "%");
 
         fixnumLeftShiftAssumption = registerAssumption(fixnumClass, "<<");
         fixnumRightShiftAssumption = registerAssumption(fixnumClass, ">>");
@@ -89,6 +93,8 @@ public class CoreMethods {
                     return InlinedMulNodeGen.create(context, callParameters, self, args[0]);
                 case "/":
                     return InlinedDivNodeGen.create(context, callParameters, self, args[0]);
+                case "%":
+                    return InlinedModNodeGen.create(context, callParameters, self, args[0]);
                 case "<<":
                     return InlinedLeftShiftNodeGen.create(context, callParameters, self, args[0]);
                 case ">>":
