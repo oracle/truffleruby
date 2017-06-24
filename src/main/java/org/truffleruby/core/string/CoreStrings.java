@@ -24,6 +24,7 @@ public class CoreStrings {
     public final CoreString CLASS;
     public final CoreString CLASS_VARIABLE;
     public final CoreString DIVIDE;
+    public final CoreString DIVMOD;
     public final CoreString EMPTY_STRING;
     public final CoreString EXPRESSION;
     public final CoreString FALSE;
@@ -38,12 +39,14 @@ public class CoreStrings {
     public final CoreString LOCAL_VARIABLE;
     public final CoreString METHOD;
     public final CoreString MINUS;
+    public final CoreString MODULO;
     public final CoreString MULTIPLY;
     public final CoreString NEGATIVE_ARRAY_SIZE;
     public final CoreString NIL;
     public final CoreString ONE_HASH_REQUIRED;
     public final CoreString OUT_OF_RANGE;
     public final CoreString PLUS;
+    public final CoreString POWER;
     public final CoreString PROC_WITHOUT_BLOCK;
     public final CoreString REPLACEMENT_CHARACTER_SETUP_FAILED;
     public final CoreString RESOURCE_TEMP_UNAVAIL_READ;
@@ -69,6 +72,7 @@ public class CoreStrings {
         CLASS = new CoreString(context, "class");
         CLASS_VARIABLE = new CoreString(context, "class variable");
         DIVIDE = new CoreString(context, "/");
+        DIVMOD = new CoreString(context, "divmod");
         EMPTY_STRING = new CoreString(context, "");
         EXPRESSION = new CoreString(context, "expression");
         FALSE = new CoreString(context, "false");
@@ -83,12 +87,14 @@ public class CoreStrings {
         LOCAL_VARIABLE = new CoreString(context, "local-variable");
         METHOD = new CoreString(context, "method");
         MINUS = new CoreString(context, "-");
+        MODULO = new CoreString(context, "%");
         MULTIPLY = new CoreString(context, "*");
         NEGATIVE_ARRAY_SIZE = new CoreString(context, "negative array size");
         NIL = new CoreString(context, "nil");
         ONE_HASH_REQUIRED = new CoreString(context, "one hash required");
         OUT_OF_RANGE = new CoreString(context, "out of range");
         PLUS = new CoreString(context, "+");
+        POWER = new CoreString(context, "**");
         PROC_WITHOUT_BLOCK = new CoreString(context, "tried to create Proc object without a block");
         REPLACEMENT_CHARACTER_SETUP_FAILED = new CoreString(context, "replacement character setup failed");
         RESOURCE_TEMP_UNAVAIL_READ = new CoreString(context, "Resource temporarily unavailable - read would block");

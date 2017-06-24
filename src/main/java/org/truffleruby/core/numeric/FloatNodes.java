@@ -72,12 +72,9 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object addCoerced(
-                VirtualFrame frame,
-                double a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :+, b", "b", b);
+        public Object addCoerced(double a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
         }
     }
 
@@ -100,12 +97,9 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object subCoerced(
-                VirtualFrame frame,
-                double a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :-, b", "b", b);
+        public Object subCoerced(double a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MINUS.getSymbol(), b);
         }
 
     }
@@ -129,12 +123,9 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object mulCoerced(
-                VirtualFrame frame,
-                double a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :*, b", "b", b);
+        public Object mulCoerced(double a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
         }
 
     }
@@ -189,20 +180,15 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object powCoerced(
-                VirtualFrame frame,
-                double a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :**, b", "b", b);
+        public Object powCoerced(double a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().POWER.getSymbol(), b);
         }
 
     }
 
     @CoreMethod(names = "/", required = 1)
     public abstract static class DivNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private CallDispatchHeadNode redoCoercedNode;
 
         @Specialization
         public double div(double a, long b) {
@@ -224,13 +210,9 @@ public abstract class FloatNodes {
                 "!isLong(b)",
                 "!isDouble(b)",
                 "!isRubyBignum(b)" })
-        public Object div(VirtualFrame frame, double a, Object b) {
-            if (redoCoercedNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                redoCoercedNode = insert(CallDispatchHeadNode.createOnSelf());
-            }
-
-            return redoCoercedNode.call(frame, a, "redo_coerced", getSymbol("/"), b);
+        public Object div(double a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().DIVIDE.getSymbol(), b);
         }
 
     }
@@ -268,12 +250,9 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object modCoerced(
-                VirtualFrame frame,
-                double a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :%, b", "b", b);
+        public Object modCoerced(double a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MODULO.getSymbol(), b);
         }
 
     }
@@ -299,12 +278,9 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        public Object divModCoerced(
-                VirtualFrame frame,
-                double a,
-                DynamicObject b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :divmod, b", "b", b);
+        public Object divModCoerced(double a, DynamicObject b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().DIVMOD.getSymbol(), b);
         }
 
     }
