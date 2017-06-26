@@ -2,9 +2,9 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 
-public abstract class OnHeapRope extends Rope {
+public abstract class ManagedRope extends Rope {
 
-    protected OnHeapRope(Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int byteLength, int characterLength, int ropeDepth, byte[] bytes) {
+    protected ManagedRope(Encoding encoding, CodeRange codeRange, boolean singleByteOptimizable, int byteLength, int characterLength, int ropeDepth, byte[] bytes) {
         super(encoding, codeRange, singleByteOptimizable, byteLength, characterLength, ropeDepth, bytes);
     }
 

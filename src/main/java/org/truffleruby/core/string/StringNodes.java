@@ -2375,7 +2375,8 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "!isSingleByteOptimizable(string)")
-        public DynamicObject upcase(DynamicObject string) {
+        public DynamicObject upcase(DynamicObject string,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
 
@@ -2387,7 +2388,7 @@ public abstract class StringNodes {
                 return nil();
             }
 
-            final RopeBuilder bytes = RopeOperations.toByteListCopy(rope);
+            final RopeBuilder bytes = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
             if (modified) {
                 StringOperations.setRope(string, RopeOperations.ropeFromByteList(bytes, rope.getCodeRange()));

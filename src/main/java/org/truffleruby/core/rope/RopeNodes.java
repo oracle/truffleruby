@@ -1041,19 +1041,21 @@ public abstract class RopeNodes {
         public int getCodePointUTF8(Rope rope, int index,
                                     @Cached("create()") GetByteNode getByteNode,
                                     @Cached("createBinaryProfile()") ConditionProfile singleByteCharProfile,
-                                    @Cached("create()") BranchProfile errorProfile) {
+                @Cached("create()") BranchProfile errorProfile,
+                @Cached("create()") BytesNode bytesNode) {
             final int firstByte = getByteNode.executeGetByte(rope, index);
             if (singleByteCharProfile.profile(firstByte < 128)) {
                 return firstByte;
             }
 
-            return getCodePointMultiByte(rope, index, errorProfile);
+            return getCodePointMultiByte(rope, index, errorProfile, bytesNode);
         }
 
         @Specialization(guards = { "!rope.isSingleByteOptimizable()", "!rope.getEncoding().isUTF8()" })
         public int getCodePointMultiByte(Rope rope, int index,
-                                         @Cached("create()") BranchProfile errorProfile) {
-            final byte[] bytes = rope.getBytes();
+                @Cached("create()") BranchProfile errorProfile,
+                @Cached("create()") BytesNode bytesNode) {
+            final byte[] bytes = bytesNode.execute(rope);
             final Encoding encoding = rope.getEncoding();
 
             final int characterLength = preciseCharacterLength(encoding, bytes, index, rope.byteLength());
@@ -1134,7 +1136,7 @@ public abstract class RopeNodes {
         public boolean ropesEqual(Rope a, Rope b,
                 @Cached("create()") BytesNode aBytes,
                 @Cached("create()") BytesNode bBytes) {
-            return a.hashesMatch(b) && a.byteLength() == b.byteLength() && Arrays.equals(aBytes.execute(a), bBytes.execute(b));
+            return a.getEncoding() == b.getEncoding() && a.hashesMatch(b) && a.byteLength() == b.byteLength() && Arrays.equals(aBytes.execute(a), bBytes.execute(b));
         }
 
         @Specialization
@@ -1155,7 +1157,7 @@ public abstract class RopeNodes {
         public abstract byte[] execute(Rope rope);
 
         @Specialization(guards = "rope.getRawBytes() != null")
-        public byte[] getBytesOnHeap(OnHeapRope rope) {
+        public byte[] getBytesOnHeap(ManagedRope rope) {
             return rope.getRawBytes();
         }
 
@@ -1165,7 +1167,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "rope.getRawBytes() == null")
         @TruffleBoundary
-        public byte[] getBytesFromRope(OnHeapRope rope) {
+        public byte[] getBytesFromRope(ManagedRope rope) {
             return rope.getBytes();
         }
     }
@@ -1222,7 +1224,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "rope.getRawBytes() != null")
-        public byte fastByte(OnHeapRope rope, int index) {
+        public byte fastByte(ManagedRope rope, int index) {
             return rope.getRawBytes()[index];
         }
 
@@ -1233,11 +1235,11 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "rope.getRawBytes() == null")
         @TruffleBoundary
-        public byte getByteFromRope(OnHeapRope rope, int index) {
+        public byte getByteFromRope(ManagedRope rope, int index) {
             return rope.getByteSlow(index);
         }
 
-        protected static boolean isSubstring(OnHeapRope rope) {
+        protected static boolean isSubstring(ManagedRope rope) {
             return rope instanceof SubstringRope;
         }
     }
@@ -1259,13 +1261,13 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "rope.getRawBytes() != null")
-        public byte[] getBytesOnHeap(OnHeapRope rope) {
+        public byte[] getBytesOnHeap(ManagedRope rope) {
             return rope.getRawBytes().clone();
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
         @TruffleBoundary
-        public byte[] getBytesFromRope(OnHeapRope rope) {
+        public byte[] getBytesFromRope(ManagedRope rope) {
             return rope.getBytesCopy();
         }
     }

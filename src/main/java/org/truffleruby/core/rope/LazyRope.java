@@ -11,7 +11,7 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 
-public abstract class LazyRope extends OnHeapRope {
+public abstract class LazyRope extends ManagedRope {
 
     protected LazyRope(Encoding encoding, int byteLength, int characterLength) {
         super(encoding, CodeRange.CR_7BIT, true, byteLength, characterLength, 1, null);

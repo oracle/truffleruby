@@ -136,7 +136,7 @@ public abstract class ToStringNode extends FormatNode {
                 setTainted(frame);
             }
 
-            return Layouts.STRING.getRope((DynamicObject) value).getBytes();
+            return bytesNode.execute(Layouts.STRING.getRope((DynamicObject) value));
         }
 
         if (inspectOnConversionFailure) {
@@ -145,7 +145,7 @@ public abstract class ToStringNode extends FormatNode {
                 inspectNode = insert(KernelNodesFactory.ToSNodeFactory.create(null));
             }
 
-            return Layouts.STRING.getRope(inspectNode.toS(object)).getBytes();
+            return bytesNode.execute(Layouts.STRING.getRope(inspectNode.toS(object)));
         } else {
             throw new NoImplicitConversionException(object, "String");
         }
