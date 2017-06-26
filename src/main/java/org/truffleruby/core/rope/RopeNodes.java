@@ -1210,15 +1210,14 @@ public abstract class RopeNodes {
     })
     public abstract static class ByteSlowNode extends RubyNode {
 
-    public static ByteSlowNode create() {
+        public static ByteSlowNode create() {
             return RopeNodesFactory.ByteSlowNodeGen.create(null, null);
         }
 
         public abstract byte execute(Rope rope, int index);
 
         @Specialization
-        public byte getByteFromSubString(SubstringRope rope,
-                int index,
+        public byte getByteFromSubString(SubstringRope rope, int index,
                 @Cached("create()") ByteSlowNode childNode) {
             return childNode.execute(rope.getChild(), rope.getOffset() + index);
         }
@@ -1233,8 +1232,8 @@ public abstract class RopeNodes {
             return rope.getByteSlow(index);
         }
 
-        @Specialization(guards = "rope.getRawBytes() == null")
         @TruffleBoundary
+        @Specialization(guards = "rope.getRawBytes() == null")
         public byte getByteFromRope(ManagedRope rope, int index) {
             return rope.getByteSlow(index);
         }
@@ -1265,8 +1264,8 @@ public abstract class RopeNodes {
             return rope.getRawBytes().clone();
         }
 
-        @Specialization(guards = "rope.getRawBytes() == null")
         @TruffleBoundary
+        @Specialization(guards = "rope.getRawBytes() == null")
         public byte[] getBytesFromRope(ManagedRope rope) {
             return rope.getBytesCopy();
         }

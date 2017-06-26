@@ -111,7 +111,7 @@ public abstract class Rope {
     }
 
     public final boolean hashesMatch(Rope other) {
-        return (isHashCodeCalculated() && hashCode == other.hashCode) || (hashCode() == other.hashCode());
+        return !isHashCodeCalculated() || !other.isHashCodeCalculated() || (hashCode == other.hashCode);
     }
 
     @Override

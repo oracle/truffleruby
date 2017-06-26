@@ -245,6 +245,7 @@ public abstract class BasicObjectNodes {
 
         @Child private YieldNode yield = new YieldNode(DeclarationContext.INSTANCE_EVAL);
 
+        @TruffleBoundary
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
         public Object instanceEval(Object receiver, DynamicObject string, DynamicObject fileName, int line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
@@ -277,18 +278,15 @@ public abstract class BasicObjectNodes {
             return yield.dispatchWithModifiedSelf(block, receiver, receiver);
         }
 
-        @TruffleBoundary
         private String getSpace(int line) {
             final String s = new String(new char[Math.max(line - 1, 0)]);
             return StringUtils.replace(s, "\0", "\n");
         }
 
-        @TruffleBoundary
         private String ropeToString(Rope rope) {
             return rope.toString();
         }
 
-        @TruffleBoundary
         private Source loadFragment(String fragment, String name) {
             return Source.newBuilder(fragment).name(name).mimeType(RubyLanguage.MIME_TYPE).build();
         }
