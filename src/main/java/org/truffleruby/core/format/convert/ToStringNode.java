@@ -128,7 +128,8 @@ public abstract class ToStringNode extends FormatNode {
     }
 
     @Specialization(guards = {"!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)"})
-    public byte[] toString(VirtualFrame frame, Object object) {
+    public byte[] toString(VirtualFrame frame, Object object,
+            @Cached("create()") RopeNodes.BytesNode bytesNode) {
         final Object value = getToStrNode().call(frame, object, conversionMethod);
 
         if (RubyGuards.isRubyString(value)) {
