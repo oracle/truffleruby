@@ -44,7 +44,7 @@ Announcements about GraalVM, including TruffleRuby, are made on the
 TruffleRuby is actively tested on these systems:
 
 * Oracle Linux 7.3
-* Ubuntu 17.10
+* Ubuntu 16.04 LTS
 * macOS 10.12
 
 You may need to [install `libssl`](doc/user/installing-libssl.md) on your system
