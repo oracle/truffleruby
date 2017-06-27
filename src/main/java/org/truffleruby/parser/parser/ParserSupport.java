@@ -565,67 +565,82 @@ public class ParserSupport {
     public void checkUselessStatement(ParseNode node) {
         if (!warnings.isVerbose() || (!configuration.isInlineSource() && configuration.isEvalParse())) return;
 
-        do { // uselessLoop:
-            if (node == null) return;
+        if (node == null) {
+            return;
+        }
 
-            switch (node.getNodeType()) {
+        switch (node.getNodeType()) {
             case CALLNODE:
                 String name = ((CallParseNode) node).getName();
                 switch (name) {
-                case "+":
-                case "-":
-                case "*":
-                case "/":
-                case "%":
-                case "**":
-                case "+@":
-                case "-@":
-                case "|":
-                case "^":
-                case "&":
-                case "<=>":
-                case ">":
-                case ">=":
-                case "<":
-                case "<=":
-                case "==":
-                case "!=":
-                    handleUselessWarn(node, name);
-                    break;
-                default:
-                    break;
+                    case "+":
+                    case "-":
+                    case "*":
+                    case "/":
+                    case "%":
+                    case "**":
+                    case "+@":
+                    case "-@":
+                    case "|":
+                    case "^":
+                    case "&":
+                    case "<=>":
+                    case ">":
+                    case ">=":
+                    case "<":
+                    case "<=":
+                    case "==":
+                    case "!=":
+                        handleUselessWarn(node, name);
+                        break;
+                    default:
+                        break;
                 }
-                return;
-            case BACKREFNODE: case DVARNODE: case GLOBALVARNODE:
-            case LOCALVARNODE: case NTHREFNODE: case CLASSVARNODE:
+                break;
+            case BACKREFNODE:
+            case DVARNODE:
+            case GLOBALVARNODE:
+            case LOCALVARNODE:
+            case NTHREFNODE:
+            case CLASSVARNODE:
             case INSTVARNODE:
-                handleUselessWarn(node, "a variable"); return;
-            // FIXME: Temporarily disabling because this fires way too much running Rails tests. JRUBY-518
-            /*case CONSTNODE:
-                handleUselessWarn(node, "a constant"); return;*/
-            case BIGNUMNODE: case DREGEXPNODE: case DSTRNODE: case DSYMBOLNODE:
-            case FIXNUMNODE: case FLOATNODE: case REGEXPNODE:
-            case STRNODE: case SYMBOLNODE:
-                handleUselessWarn(node, "a literal"); return;
-            // FIXME: Temporarily disabling because this fires way too much running Rails tests. JRUBY-518
-            /*case CLASSNODE: case COLON2NODE:
-                handleUselessWarn(node, "::"); return;*/
+                handleUselessWarn(node, "a variable");
+                break;
+            // FIXME: Temporarily disabling because this fires way too much running Rails tests.
+            // case CONSTNODE: handleUselessWarn(node, "a constant"); break;
+            case BIGNUMNODE:
+            case DREGEXPNODE:
+            case DSTRNODE:
+            case DSYMBOLNODE:
+            case FIXNUMNODE:
+            case FLOATNODE:
+            case REGEXPNODE:
+            case STRNODE:
+            case SYMBOLNODE:
+                handleUselessWarn(node, "a literal");
+                break;
+            // FIXME: Temporarily disabling because this fires way too much running Rails tests.
+            // case CLASSNODE: case COLON2NODE: handleUselessWarn(node, "::"); break;
             case DOTNODE:
-                handleUselessWarn(node, ((DotParseNode) node).isExclusive() ? "..." : ".."); return;
+                handleUselessWarn(node, ((DotParseNode) node).isExclusive() ? "..." : "..");
+                break;
             case DEFINEDNODE:
-                handleUselessWarn(node, "defined?"); return;
+                handleUselessWarn(node, "defined?");
+                break;
             case FALSENODE:
-                handleUselessWarn(node, "false"); return;
+                handleUselessWarn(node, "false");
+                break;
             case NILNODE:
-                handleUselessWarn(node, "nil"); return;
-            // FIXME: Temporarily disabling because this fires way too much running Rails tests. JRUBY-518
-            /*case SELFNODE:
-                handleUselessWarn(node, "self"); return;*/
+                handleUselessWarn(node, "nil");
+                break;
+            // FIXME: Temporarily disabling because this fires way too much running Rails tests.
+            // case SELFNODE: handleUselessWarn(node, "self"); break;
             case TRUENODE:
-                handleUselessWarn(node, "true"); return;
-            default: return;
-            }
-        } while (true);
+                handleUselessWarn(node, "true");
+                break;
+            default:
+                break;
+        }
     }
 
     /**
