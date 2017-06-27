@@ -156,7 +156,7 @@ public class CommandLineParser {
             }
         }
         // Remaining arguments are for the script itself
-        arglist.addAll(Arrays.asList(OptionsCatalog.ARGUMENTS.checkValue(config.getOptions().get(OptionsCatalog.ARGUMENTS))));
+        arglist.addAll(Arrays.asList(OptionsCatalog.ARGUMENTS.checkValue(config.getOptions().get(OptionsCatalog.ARGUMENTS.getName()))));
         config.getOptions().put(OptionsCatalog.ARGUMENTS.getName(), arglist.toArray(new String[arglist.size()]));
     }
 
