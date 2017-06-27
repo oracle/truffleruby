@@ -189,10 +189,9 @@ public class SizedQueue {
     }
 
     public Collection<Object> getContents() {
-        lock.lock();
-
         final Collection<Object> objects = new ArrayList<>();
 
+        lock.lock();
         try {
             int takePoint = takeEnd;
 

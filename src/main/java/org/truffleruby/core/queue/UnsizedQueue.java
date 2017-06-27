@@ -142,10 +142,9 @@ public class UnsizedQueue {
     }
 
     public Collection<Object> getContents() {
-        lock.lock();
-
         final Collection<Object> objects = new ArrayList<>();
 
+        lock.lock();
         try {
             Item iterator = takeEnd;
 
