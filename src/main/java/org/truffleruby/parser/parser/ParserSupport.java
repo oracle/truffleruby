@@ -569,17 +569,33 @@ public class ParserSupport {
             if (node == null) return;
 
             switch (node.getNodeType()) {
-            case CALLNODE: {
+            case CALLNODE:
                 String name = ((CallParseNode) node).getName();
-
-                if (name == "+" || name == "-" || name == "*" || name == "/" || name == "%" ||
-                    name == "**" || name == "+@" || name == "-@" || name == "|" || name == "^" ||
-                    name == "&" || name == "<=>" || name == ">" || name == ">=" || name == "<" ||
-                    name == "<=" || name == "==" || name == "!=") {
+                switch (name) {
+                case "+":
+                case "-":
+                case "*":
+                case "/":
+                case "%":
+                case "**":
+                case "+@":
+                case "-@":
+                case "|":
+                case "^":
+                case "&":
+                case "<=>":
+                case ">":
+                case ">=":
+                case "<":
+                case "<=":
+                case "==":
+                case "!=":
                     handleUselessWarn(node, name);
+                    break;
+                default:
+                    break;
                 }
                 return;
-            }
             case BACKREFNODE: case DVARNODE: case GLOBALVARNODE:
             case LOCALVARNODE: case NTHREFNODE: case CLASSVARNODE:
             case INSTVARNODE:
