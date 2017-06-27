@@ -66,6 +66,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ProfileArgumentNode;
+import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -381,12 +382,12 @@ public abstract class ModuleNodes {
                     null,
                     false);
 
-            final RubyNode self = new ProfileArgumentNode(new ReadSelfNode());
+            final RubyNode self = ProfileArgumentNodeGen.create(new ReadSelfNode());
             final RubyNode accessInstanceVariable;
             if (isGetter) {
                 accessInstanceVariable = new ReadInstanceVariableNode(ivar, self);
             } else {
-                RubyNode readArgument = new ProfileArgumentNode(new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
+                RubyNode readArgument = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
                 accessInstanceVariable = new WriteInstanceVariableNode(ivar, self, readArgument);
             }
             final RubyNode sequence = Translator.sequence(sourceIndexLength, Arrays.asList(checkArity, accessInstanceVariable));
@@ -1721,7 +1722,7 @@ public abstract class ModuleNodes {
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private RaiseIfFrozenNode raiseIfFrozenNode = new RaiseIfFrozenNode(new ProfileArgumentNode(new ReadSelfNode()));
+        @Child private RaiseIfFrozenNode raiseIfFrozenNode = new RaiseIfFrozenNode(ProfileArgumentNodeGen.create(new ReadSelfNode()));
         @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createOnSelf();
 
         @Specialization
