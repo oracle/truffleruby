@@ -198,10 +198,9 @@ public abstract class RequireNode extends RubyNode {
     private <T extends Throwable> T searchForException(Class<T> exceptionClass, Throwable exception) {
         while (exception != null) {
             if (exceptionClass.isInstance(exception)) {
-                return (T) exception;
-            } else {
-                exception = exception.getCause();
+                return exceptionClass.cast(exception);
             }
+            exception = exception.getCause();
         }
 
         return null;
