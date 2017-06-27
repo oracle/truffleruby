@@ -138,6 +138,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDFN;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FNAME;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
 
+@SuppressFBWarnings("IP")
 @SuppressWarnings({"unchecked", "fallthrough", "cast"})
 public class RubyParser {
     protected final ParserSupport support;
@@ -154,7 +155,7 @@ public class RubyParser {
         support.setWarnings(warnings);
         lexer.setWarnings(warnings);
     }
-					// line 158 "-"
+					// line 159 "-"
   // %token constants
   public static final int kCLASS = 257;
   public static final int kMODULE = 258;
@@ -4659,7 +4660,7 @@ states[644] = new ParserState() {
   }
 };
 }
-					// line 2571 "RubyParser.y"
+					// line 2572 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -4674,4 +4675,4 @@ states[644] = new ParserState() {
         return support.getResult();
     }
 }
-					// line 10080 "-"
+					// line 10081 "-"
