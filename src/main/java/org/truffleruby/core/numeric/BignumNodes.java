@@ -167,9 +167,6 @@ public abstract class BignumNodes {
         public Object div(DynamicObject a, DynamicObject b) {
             final BigInteger aBigInt = Layouts.BIGNUM.getValue(a);
             final BigInteger bBigInt = Layouts.BIGNUM.getValue(b);
-            if (b.equals(BigInteger.ZERO)) {
-                throw new RaiseException(coreExceptions().zeroDivisionError(this));
-            }
             final BigInteger result = aBigInt.divide(bBigInt);
             if (result.signum() == -1 && !aBigInt.mod(bBigInt.abs()).equals(BigInteger.ZERO)) {
                 return fixnumOrBignum(result.subtract(BigInteger.ONE));
