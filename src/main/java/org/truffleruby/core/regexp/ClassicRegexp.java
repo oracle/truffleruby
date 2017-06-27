@@ -235,7 +235,8 @@ public class ClassicRegexp implements ReOptions {
                                 int pbeg = p;
                                 p = readEscapedByte(context, buf, 0, bytes, p, end, str, mode);
                                 c = buf[0];
-                                if (c == (char)-1) return false;
+                                if (c == -1)
+                                    return false;
                                 if (to != null) {
                                     to.append(bytes, pbeg, p - pbeg);
                                 }
