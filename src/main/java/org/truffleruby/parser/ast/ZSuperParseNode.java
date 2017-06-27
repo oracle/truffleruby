@@ -43,7 +43,7 @@ public class ZSuperParseNode extends ParseNode implements BlockAcceptingParseNod
     private ParseNode iterNode;
 
     public ZSuperParseNode(SourceIndexLength position) {
-        super(position, false);
+        super(position);
     }
 
     @Override

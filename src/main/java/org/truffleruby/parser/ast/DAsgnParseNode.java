@@ -49,7 +49,7 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
     private int location;
 
     public DAsgnParseNode(SourceIndexLength position, String name, int location, ParseNode valueNode) {
-        super(position, valueNode, true);
+        super(position, valueNode);
         this.name = name;
         this.location = location;
     }

@@ -46,8 +46,7 @@ public class IfParseNode extends ParseNode {
     private final ParseNode elseBody;
 
     public IfParseNode(SourceIndexLength position, ParseNode condition, ParseNode thenBody, ParseNode elseBody) {
-        super(position, condition.containsVariableAssignment || thenBody != null && thenBody.containsVariableAssignment ||
-                elseBody != null && elseBody.containsVariableAssignment);
+        super(position);
 
         assert condition != null : "condition is not null";
 

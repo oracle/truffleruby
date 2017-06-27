@@ -44,7 +44,7 @@ public class AndParseNode extends ParseNode implements BinaryOperatorParseNode {
     private final ParseNode secondNode;
 
     public AndParseNode(SourceIndexLength position, ParseNode firstNode, ParseNode secondNode) {
-        super(position, firstNode.containsVariableAssignment() || secondNode.containsVariableAssignment());
+        super(position);
 
         assert firstNode != null : "AndParseNode.first == null";
         assert secondNode != null : "AndParseNode.second == null";

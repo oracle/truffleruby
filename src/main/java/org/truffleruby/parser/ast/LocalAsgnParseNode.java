@@ -50,7 +50,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
     private final int location;
 
     public LocalAsgnParseNode(SourceIndexLength position, String name, int location, ParseNode valueNode) {
-        super(position, valueNode, true);
+        super(position, valueNode);
         this.name = name;
         this.location = location;
     }

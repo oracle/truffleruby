@@ -40,7 +40,7 @@ import java.util.List;
  */
 public class RetryParseNode extends ParseNode implements NonLocalControlFlowParseNode {
     public RetryParseNode(SourceIndexLength position) {
-        super(position, false);
+        super(position);
     }
 
     @Override

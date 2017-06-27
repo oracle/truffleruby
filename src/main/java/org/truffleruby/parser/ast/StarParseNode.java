@@ -45,7 +45,7 @@ public class StarParseNode extends ParseNode {
      * Constructor for StarParseNode.
      */
     public StarParseNode(SourceIndexLength position) {
-        super(position, false);
+        super(position);
     }
 
     @Override

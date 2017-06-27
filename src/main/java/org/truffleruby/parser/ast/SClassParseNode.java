@@ -52,7 +52,7 @@ public class SClassParseNode extends ParseNode {
     private final ParseNode bodyNode;
 
     public SClassParseNode(SourceIndexLength position, ParseNode recvNode, StaticScope scope, ParseNode bodyNode) {
-        super(position, recvNode.containsVariableAssignment() || bodyNode.containsVariableAssignment());
+        super(position);
         
         assert scope != null : "scope is not null";
         assert recvNode != null : "receiverNode is not null";

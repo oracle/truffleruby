@@ -39,7 +39,7 @@ public class ArgsPushParseNode extends ParseNode {
     private ParseNode secondNode;
 
     public ArgsPushParseNode(SourceIndexLength position, ParseNode firstNode, ParseNode secondNode) {
-        super(position, firstNode.containsVariableAssignment() || secondNode.containsVariableAssignment());
+        super(position);
 
         assert firstNode != null : "ArgsPushParseNode.first == null";
         assert secondNode != null : "ArgsPushParseNode.second == null";

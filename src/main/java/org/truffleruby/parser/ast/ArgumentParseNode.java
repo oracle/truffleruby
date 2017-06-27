@@ -44,7 +44,7 @@ public class ArgumentParseNode extends ParseNode implements INameNode {
     private int location;
 
     public ArgumentParseNode(SourceIndexLength position, String identifier) {
-        super(position, false);
+        super(position);
 
         this.identifier = identifier;
     }

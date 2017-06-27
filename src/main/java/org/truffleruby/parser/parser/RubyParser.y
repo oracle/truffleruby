@@ -509,7 +509,7 @@ stmt            : kALIAS fitem {
                     $1.setPosition(support.getPosition($1));
                 }
                 | tJAVASCRIPT {
-                    $$ = new TruffleFragmentParseNode(lexer.getPosition(), false, new ForeignCodeNode(support.getContext(), "application/javascript", $1));
+                    $$ = new TruffleFragmentParseNode(lexer.getPosition(), new ForeignCodeNode(support.getContext(), "application/javascript", $1));
                 }
                 | expr
 

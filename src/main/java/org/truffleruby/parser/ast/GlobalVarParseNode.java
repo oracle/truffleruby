@@ -44,7 +44,7 @@ public class GlobalVarParseNode extends ParseNode implements INameNode, SideEffe
     private String name;
 
     public GlobalVarParseNode(SourceIndexLength position, String name) {
-        super(position, false);
+        super(position);
         this.name = name;
     }
 

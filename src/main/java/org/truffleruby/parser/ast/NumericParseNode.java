@@ -8,6 +8,6 @@ import org.truffleruby.parser.ast.types.ILiteralNode;
  */
 public abstract class NumericParseNode extends ParseNode implements ILiteralNode {
     public NumericParseNode(SourceIndexLength position) {
-        super(position, false);
+        super(position);
     }
 }

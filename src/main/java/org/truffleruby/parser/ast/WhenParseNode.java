@@ -45,9 +45,7 @@ public class WhenParseNode extends ParseNode {
     private final ParseNode nextCase;
 
     public WhenParseNode(SourceIndexLength position, ParseNode expressionNodes, ParseNode bodyNode, ParseNode nextCase) {
-        super(position, expressionNodes != null && expressionNodes.containsVariableAssignment() ||
-                bodyNode != null && bodyNode.containsVariableAssignment() ||
-                nextCase != null && nextCase.containsVariableAssignment());
+        super(position);
 
         this.expressionNodes = expressionNodes;
         this.bodyNode = bodyNode;

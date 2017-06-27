@@ -48,8 +48,7 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
     }
     
     public SuperParseNode(SourceIndexLength position, ParseNode argsNode, ParseNode iterNode) {
-        super(position, argsNode != null && argsNode.containsVariableAssignment() ||
-                iterNode != null && iterNode.containsVariableAssignment());
+        super(position);
         this.argsNode = argsNode;
         this.iterNode = iterNode;
     }

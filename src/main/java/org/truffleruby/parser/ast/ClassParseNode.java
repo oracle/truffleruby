@@ -47,7 +47,7 @@ public class ClassParseNode extends ParseNode implements IScopingNode {
     private final ParseNode superNode;
 
     public ClassParseNode(SourceIndexLength position, Colon3ParseNode cpath, StaticScope scope, ParseNode bodyNode, ParseNode superNode) {
-        super(position, cpath.containsVariableAssignment() || bodyNode.containsVariableAssignment() || superNode != null && superNode.containsVariableAssignment());
+        super(position);
 
         assert cpath != null : "cpath is not null";
         assert scope != null : "scope is not null";

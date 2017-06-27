@@ -45,7 +45,7 @@ public class InstVarParseNode extends ParseNode implements INameNode, SideEffect
     private String name;
 
     public InstVarParseNode(SourceIndexLength position, String name) {
-        super(position, false);
+        super(position);
         this.name = name;
     }
 

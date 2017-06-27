@@ -41,7 +41,7 @@ public class Match2ParseNode extends ParseNode {
     private final ParseNode valueNode;
 
     public Match2ParseNode(SourceIndexLength position, ParseNode receiverNode, ParseNode valueNode) {
-        super(position, receiverNode.containsVariableAssignment() || valueNode.containsVariableAssignment());
+        super(position);
 
         assert receiverNode != null : "receiverNode is not null";
         assert valueNode != null : "valueNode is not null";

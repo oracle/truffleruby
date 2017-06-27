@@ -54,7 +54,7 @@ public class BlockPassParseNode extends ParseNode {
     private ParseNode argsNode;
 
     public BlockPassParseNode(SourceIndexLength position, ParseNode bodyNode) {
-        super(position, bodyNode != null && bodyNode.containsVariableAssignment());
+        super(position);
         this.bodyNode = bodyNode;
     }
 

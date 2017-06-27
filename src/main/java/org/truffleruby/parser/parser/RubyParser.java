@@ -1318,7 +1318,7 @@ states[42] = new ParserState() {
 };
 states[43] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
-                    yyVal = new TruffleFragmentParseNode(lexer.getPosition(), false, new ForeignCodeNode(support.getContext(), "application/javascript", ((String)yyVals[0+yyTop])));
+                    yyVal = new TruffleFragmentParseNode(lexer.getPosition(), new ForeignCodeNode(support.getContext(), "application/javascript", ((String)yyVals[0+yyTop])));
     return yyVal;
   }
 };

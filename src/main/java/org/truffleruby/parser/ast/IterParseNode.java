@@ -52,7 +52,7 @@ public class IterParseNode extends ParseNode implements DefNode {
      * This is to support 1.8-style assignments which only 'for' expressions use.
      */
     public IterParseNode(SourceIndexLength position, ParseNode args, StaticScope scope, ParseNode body) {
-        super(position, args != null && args.containsVariableAssignment || body != null && body.containsVariableAssignment);
+        super(position);
 
         this.varNode = args;
         this.scope = scope;
@@ -63,7 +63,7 @@ public class IterParseNode extends ParseNode implements DefNode {
      * Used for all non-for types of blocks.
      */
     public IterParseNode(SourceIndexLength position, ArgsParseNode args, ParseNode body, StaticScope scope) {
-        super(position, args != null && args.containsVariableAssignment || body != null && body.containsVariableAssignment);
+        super(position);
 
         this.varNode = args;
         this.bodyNode = body == null ? NilImplicitParseNode.NIL : body;

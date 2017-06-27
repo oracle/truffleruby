@@ -1642,7 +1642,7 @@ public class BodyTranslator extends Translator {
             // Nothing to assign to, just execute the RHS
             return rhs;
         } else if (dummyAssignment instanceof AssignableParseNode || dummyAssignment instanceof org.truffleruby.parser.ast.IArgumentNode) {
-            final ParseNode wrappedRHS = new ParseNode(dummyAssignment.getPosition(), false) {
+            final ParseNode wrappedRHS = new ParseNode(dummyAssignment.getPosition()) {
                 @SuppressWarnings("unchecked")
                 @Override
                 public <T> T accept(NodeVisitor<T> visitor) {
@@ -2748,7 +2748,7 @@ public class BodyTranslator extends Translator {
 
         return translateCallNode(
                 new CallParseNode(node.getPosition(),
-                        new TruffleFragmentParseNode(node.getPosition(), false, new ObjectLiteralNode(context.getCoreLibrary().getTruffleKernelOperationsModule())),
+                        new TruffleFragmentParseNode(node.getPosition(), new ObjectLiteralNode(context.getCoreLibrary().getTruffleKernelOperationsModule())),
                         "at_exit",
                         new ListParseNode(node.getPosition(), new TrueParseNode(node.getPosition())),
                         new IterParseNode(node.getPosition(), node.getArgsNode(), scope, node.getBodyNode())),

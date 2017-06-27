@@ -44,7 +44,7 @@ public class EnsureParseNode extends ParseNode {
     private final ParseNode ensureNode;
 
     public EnsureParseNode(SourceIndexLength position, ParseNode bodyNode, ParseNode ensureNode) {
-        super(position, bodyNode.containsVariableAssignment() || ensureNode != null && ensureNode.containsVariableAssignment());
+        super(position);
 
         assert bodyNode != null : "bodyNode is not null";
 

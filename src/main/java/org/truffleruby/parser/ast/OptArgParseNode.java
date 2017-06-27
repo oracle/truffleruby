@@ -41,7 +41,7 @@ public class OptArgParseNode extends ParseNode implements INameNode {
     private ParseNode value;
 
     public OptArgParseNode(SourceIndexLength position, ParseNode value) {
-        super(position, value != null && value.containsVariableAssignment());
+        super(position);
         this.value = value;
     }
 

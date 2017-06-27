@@ -49,7 +49,7 @@ public class YieldParseNode extends ParseNode {
      * @param argsNode the arguments to the yield (null == no args)
      */
     public YieldParseNode(SourceIndexLength position, ParseNode argsNode) {
-        super(position, argsNode != null && argsNode.containsVariableAssignment());
+        super(position);
 
         this.argsNode = argsNode;
     }

@@ -40,7 +40,7 @@ public class MatchParseNode extends ParseNode {
     private final ParseNode regexpNode;
 
     public MatchParseNode(SourceIndexLength position, ParseNode regexpNode) {
-        super(position, regexpNode.containsVariableAssignment());
+        super(position);
 
         assert regexpNode != null : "regexpNode is not null";
 

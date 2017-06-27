@@ -43,7 +43,7 @@ public class BreakParseNode extends ParseNode implements NonLocalControlFlowPars
     private final ParseNode valueNode;
 
     public BreakParseNode(SourceIndexLength position, ParseNode valueNode) {
-        super(position, valueNode != null && valueNode.containsVariableAssignment());
+        super(position);
 
         assert valueNode != null : "valueNode is not null";
 

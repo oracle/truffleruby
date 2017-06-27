@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class NilParseNode extends ParseNode implements INameNode, SideEffectFree {
     public NilParseNode(SourceIndexLength position) {
-        super(position, false);
+        super(position);
     }
 
     @Override

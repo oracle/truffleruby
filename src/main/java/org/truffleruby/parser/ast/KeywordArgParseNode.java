@@ -17,7 +17,7 @@ public class KeywordArgParseNode extends ParseNode {
     private AssignableParseNode assignable;
 
     public KeywordArgParseNode(SourceIndexLength position, AssignableParseNode assignable) {
-        super(position, true);
+        super(position);
         this.assignable = assignable;
     }
 

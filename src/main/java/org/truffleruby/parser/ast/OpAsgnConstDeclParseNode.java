@@ -14,7 +14,7 @@ public class OpAsgnConstDeclParseNode extends ParseNode implements BinaryOperato
     private ParseNode rhs;
 
     public OpAsgnConstDeclParseNode(SourceIndexLength position, ParseNode lhs, String operator, ParseNode rhs) {
-        super(position, lhs.containsVariableAssignment() || rhs.containsVariableAssignment());
+        super(position);
 
         this.lhs = lhs;
         this.operator = operator;

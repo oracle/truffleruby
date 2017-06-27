@@ -20,8 +20,8 @@ public class TruffleFragmentParseNode extends ParseNode {
 
     private final RubyNode fragment;
 
-    public TruffleFragmentParseNode(SourceIndexLength position, boolean containsAssignment, RubyNode fragment) {
-        super(position, containsAssignment);
+    public TruffleFragmentParseNode(SourceIndexLength position, RubyNode fragment) {
+        super(position);
         this.fragment = fragment;
     }
 

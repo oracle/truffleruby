@@ -77,13 +77,7 @@ public class ArgsParseNode extends ParseNode {
      */
     public ArgsParseNode(SourceIndexLength position, ListParseNode pre, ListParseNode optionalArguments,
                          RestArgParseNode rest, ListParseNode post, ListParseNode keywords, KeywordRestArgParseNode keyRest, BlockArgParseNode blockArgNode) {
-        super(position, pre != null && pre.containsVariableAssignment() ||
-                        optionalArguments != null && optionalArguments.containsVariableAssignment() ||
-                        rest != null && rest.containsVariableAssignment() ||
-                        post != null && post.containsVariableAssignment() ||
-                        keywords != null && keywords.containsVariableAssignment() ||
-                        keyRest != null && keyRest.containsVariableAssignment() ||
-                        blockArgNode != null && blockArgNode.containsVariableAssignment());
+        super(position);
 
         int preSize = pre != null ? pre.size() : 0;
         int optSize = optionalArguments != null ? optionalArguments.size() : 0;

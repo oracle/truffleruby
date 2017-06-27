@@ -45,11 +45,7 @@ public class Colon3ParseNode extends ParseNode implements INameNode {
     protected String name;
 
     public Colon3ParseNode(SourceIndexLength position, String name) {
-        this(position, name, false);
-    }
-
-    protected Colon3ParseNode(SourceIndexLength position, String name, boolean containsAssignment) {
-        super(position, containsAssignment);
+        super(position);
         this.name = name;
     }
 

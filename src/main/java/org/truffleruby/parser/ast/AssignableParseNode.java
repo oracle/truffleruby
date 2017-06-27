@@ -39,11 +39,11 @@ public abstract class AssignableParseNode extends ParseNode {
     private ParseNode valueNode;
 
     public AssignableParseNode(SourceIndexLength position) {
-        super(position, true);
+        super(position);
     }
 
-    public AssignableParseNode(SourceIndexLength position, ParseNode valueNode, boolean containsAssignment) {
-        super(position, containsAssignment);
+    public AssignableParseNode(SourceIndexLength position, ParseNode valueNode) {
+        super(position);
 
         assert valueNode != null : "valueNode is not null";
 

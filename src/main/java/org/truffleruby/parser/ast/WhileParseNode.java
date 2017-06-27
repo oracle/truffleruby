@@ -58,7 +58,7 @@ public class WhileParseNode extends ParseNode {
 
     public WhileParseNode(SourceIndexLength position, ParseNode conditionNode, ParseNode bodyNode,
                           boolean evalAtStart) {
-        super(position, conditionNode.containsVariableAssignment() || bodyNode.containsVariableAssignment());
+        super(position);
         
         assert conditionNode != null : "conditionNode is not null";
         assert bodyNode != null : "bodyNode is not null";

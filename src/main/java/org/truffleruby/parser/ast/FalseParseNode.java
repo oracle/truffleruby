@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class FalseParseNode extends ParseNode implements INameNode, SideEffectFree {
     public FalseParseNode(SourceIndexLength position) {
-        super(position, false);
+        super(position);
     }
 
     @Override
