@@ -798,7 +798,6 @@ public abstract class BigDecimalNodes {
 
         public abstract Object executeSqrt(VirtualFrame frame, DynamicObject value, int precision);
 
-        @TruffleBoundary
         private BigDecimal sqrt(BigDecimal value, MathContext mathContext) {
             return bigSqrt(value, mathContext);
         }
@@ -806,7 +805,8 @@ public abstract class BigDecimalNodes {
         private static final BigDecimal TWO = new BigDecimal(2);
         private static final double SQRT_10 = 3.162277660168379332;
 
-        public static BigDecimal bigSqrt(BigDecimal squarD, MathContext rootMC) {
+        @TruffleBoundary
+        private static BigDecimal bigSqrt(BigDecimal squarD, MathContext rootMC) {
             // General number and precision checking
             int sign = squarD.signum();
             if (sign == -1) throw new ArithmeticException("Square root of a negative number: " + squarD);
