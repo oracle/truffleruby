@@ -44,8 +44,6 @@ public class DSymbolParseNode extends DParseNode {
     public DSymbolParseNode(SourceIndexLength position, DStrParseNode node) {
         super(position, node.getEncoding());
 
-        assert node != null : "node is not null";
-
         addAll(node);
     }
 

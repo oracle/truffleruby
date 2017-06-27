@@ -61,7 +61,7 @@ public abstract class LookupForExistingModuleNode extends RubyNode {
             getRequireNode().executeRequire(frame, StringOperations.getString((DynamicObject) constant.getValue()));
             final RubyConstant autoConstant = deepConstantSearch(name, lexicalScope, lexicalParent);
 
-            if (warnProfile.profile(constant != null && constant.isDeprecated())) {
+            if (warnProfile.profile(constant.isDeprecated())) {
                 warnDeprecatedConstant(frame, name);
             }
 
