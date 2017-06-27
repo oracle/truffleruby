@@ -1,4 +1,4 @@
-FROM ubuntu:17.10
+FROM ubuntu:16.04
 
 MAINTAINER chris.seaton@oracle.com
 
@@ -7,10 +7,10 @@ ENV LANG=en_US.UTF-8
 
 # Tools we will need to get and run our tests
 RUN apt-get update
-RUN apt-get install -y git=1:2.11.0-4
+RUN apt-get install -y git=1:2.7.4-0ubuntu1.1
 
 # We need a system libssl for openssl
-RUN apt-get install -y libssl-dev=1.0.2g-1ubuntu13
+RUN apt-get install -y libssl-dev=1.0.2g-1ubuntu4.8
 
 # Create a user and working directory
 WORKDIR /test
