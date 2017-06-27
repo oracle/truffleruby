@@ -583,6 +583,8 @@ public abstract class RubyDateFormatter {
                 after = sb.toString();
                 defaultWidth = after.length() + 3;
                 break;
+            default:
+                throw new UnsupportedOperationException(colons + " colons");
         }
 
         int minWidth = defaultWidth - 1;
