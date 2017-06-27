@@ -43,7 +43,7 @@ public class AliasParseNode extends ParseNode {
     private ParseNode newName;
 
     public AliasParseNode(SourceIndexLength position, ParseNode newName, ParseNode oldName) {
-        super(position, newName.containsVariableAssignment() || oldName.containsVariableAssignment());
+        super(position);
         this.oldName = oldName;
         this.newName = newName;
     }

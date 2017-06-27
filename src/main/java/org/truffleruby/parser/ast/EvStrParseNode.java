@@ -47,7 +47,7 @@ public class EvStrParseNode extends ParseNode {
     private final ParseNode body;
 
     public EvStrParseNode(SourceIndexLength position, ParseNode body) {
-        super(position,  body != null && body.containsVariableAssignment());
+        super(position);
         this.body = body;
     }
 

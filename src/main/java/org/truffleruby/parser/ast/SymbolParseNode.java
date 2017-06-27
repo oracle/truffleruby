@@ -55,7 +55,7 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
 
     // Interned ident path (e.g. [':', ident]).
     public SymbolParseNode(SourceIndexLength position, String name, Encoding encoding, CodeRange cr) {
-        super(position, false);
+        super(position);
         this.name = name;  // Assumed all names are already intern'd by lexer.
 
         if (encoding == USASCIIEncoding.INSTANCE || cr == CodeRange.CR_7BIT) {
@@ -67,7 +67,7 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
 
     // String path (e.g. [':', str_beg, str_content, str_end])
     public SymbolParseNode(SourceIndexLength position, Rope value) {
-        super(position, false);
+        super(position);
         this.name = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, value).intern();
 
         if (value.getCodeRange() == CodeRange.CR_7BIT) {

@@ -49,7 +49,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
     private int location;
 
     public DVarParseNode(SourceIndexLength position, int location, String name) {
-        super(position, false);
+        super(position);
         this.location = location;
         this.name = name;
     }

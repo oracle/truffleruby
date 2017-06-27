@@ -44,7 +44,7 @@ public abstract class Colon2ParseNode extends Colon3ParseNode implements INameNo
     protected final ParseNode leftNode;
 
     public Colon2ParseNode(SourceIndexLength position, ParseNode leftNode, String name) {
-        super(position, name, leftNode != null && leftNode.containsVariableAssignment);
+        super(position, name);
         this.leftNode = leftNode;
     }
 

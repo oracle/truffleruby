@@ -42,7 +42,7 @@ import java.util.List;
  */
 public class SelfParseNode extends ParseNode implements INameNode, SideEffectFree {
     public SelfParseNode(SourceIndexLength position) {
-        super(position, false);
+        super(position);
     }
 
     @Override

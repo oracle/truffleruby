@@ -44,7 +44,7 @@ public class DefinedParseNode extends ParseNode {
     private final ParseNode expressionNode;
 
     public DefinedParseNode(SourceIndexLength position, ParseNode expressionNode) {
-        super(position, expressionNode.containsVariableAssignment());
+        super(position);
 
         assert expressionNode != null : "expressionNode is not null";
 

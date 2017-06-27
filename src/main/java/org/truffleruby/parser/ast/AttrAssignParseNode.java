@@ -44,7 +44,7 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
     private final boolean isLazy;
 
     public AttrAssignParseNode(SourceIndexLength position, ParseNode receiverNode, String name, ParseNode argsNode, boolean isLazy) {
-        super(position, receiverNode != null && receiverNode.containsVariableAssignment() || argsNode != null && argsNode.containsVariableAssignment());
+        super(position);
 
         assert receiverNode != null : "receiverNode is not null";
         // TODO: At least ParserSupport.attrset passes argsNode as null.  ImplicitNil is wrong magic for

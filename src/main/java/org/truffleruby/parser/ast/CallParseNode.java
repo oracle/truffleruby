@@ -55,9 +55,7 @@ public class CallParseNode extends ParseNode implements INameNode, IArgumentNode
 
     public CallParseNode(SourceIndexLength position, ParseNode receiverNode, String name, ParseNode argsNode,
                          ParseNode iterNode, boolean isLazy) {
-        super(position, receiverNode.containsVariableAssignment() ||
-                argsNode != null && argsNode.containsVariableAssignment() ||
-                iterNode != null && iterNode.containsVariableAssignment());
+        super(position);
 
         assert receiverNode != null : "receiverNode is not null";
 

@@ -46,7 +46,7 @@ public class GlobalAsgnParseNode extends AssignableParseNode implements INameNod
     private String name;
 
     public GlobalAsgnParseNode(SourceIndexLength position, String name, ParseNode valueNode) {
-        super(position, valueNode, valueNode != null && valueNode.containsVariableAssignment());
+        super(position, valueNode);
 
         this.name = name;
     }

@@ -44,7 +44,7 @@ public class Match3ParseNode extends ParseNode {
     private final ParseNode valueNode;
 
     public Match3ParseNode(SourceIndexLength position, ParseNode receiverNode, ParseNode valueNode) {
-        super(position, receiverNode.containsVariableAssignment() || valueNode.containsVariableAssignment());
+        super(position);
 
         assert receiverNode != null : "receiverNode is not null";
         assert valueNode != null : "valueNode is not null";

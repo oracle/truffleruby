@@ -48,7 +48,7 @@ public class ClassVarAsgnParseNode extends AssignableParseNode implements INameN
      * @param valueNode  ParseNode used to compute the new value when the assignment is evaled
      */
     public ClassVarAsgnParseNode(SourceIndexLength position, String name, ParseNode valueNode) {
-        super(position, valueNode, valueNode != null && valueNode.containsVariableAssignment());
+        super(position, valueNode);
         
         this.name = name;
     }

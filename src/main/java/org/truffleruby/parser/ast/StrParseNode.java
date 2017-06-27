@@ -54,14 +54,14 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
     }
 
     public StrParseNode(SourceIndexLength position, Rope value, CodeRange codeRange) {
-        super(position, false);
+        super(position);
 
         this.value = value;
         this.codeRange = codeRange;
     }
 
     public StrParseNode(SourceIndexLength position, StrParseNode head, StrParseNode tail) {
-        super(position, false);
+        super(position);
 
         Rope headBL = head.getValue();
         Rope tailBL = tail.getValue();

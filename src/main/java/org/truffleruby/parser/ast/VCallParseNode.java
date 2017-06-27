@@ -46,7 +46,7 @@ public class VCallParseNode extends ParseNode implements INameNode {
     private String name;
 
     public VCallParseNode(SourceIndexLength position, String name) {
-        super(position, false);
+        super(position);
 
         this.name = name;
     }

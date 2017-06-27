@@ -41,7 +41,7 @@ public class EncodingParseNode extends ParseNode {
     private final Encoding encoding;
 
     public EncodingParseNode(SourceIndexLength position, Encoding encoding) {
-        super(position, false);
+        super(position);
 
         this.encoding = encoding;
     }

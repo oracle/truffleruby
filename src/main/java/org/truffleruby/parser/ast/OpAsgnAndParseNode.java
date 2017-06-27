@@ -41,7 +41,7 @@ public class OpAsgnAndParseNode extends ParseNode implements BinaryOperatorParse
     private final ParseNode secondNode;
 
     public OpAsgnAndParseNode(SourceIndexLength position, ParseNode headNode, ParseNode valueNode) {
-        super(position, headNode.containsVariableAssignment() || valueNode.containsVariableAssignment());
+        super(position);
 
         assert headNode != null : "headNode is not null";
         assert valueNode != null : "valueNode is not null";

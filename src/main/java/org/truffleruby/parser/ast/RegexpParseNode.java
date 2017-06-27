@@ -48,7 +48,7 @@ public class RegexpParseNode extends ParseNode implements ILiteralNode {
     private final RegexpOptions options;
 
     public RegexpParseNode(SourceIndexLength position, Rope value, RegexpOptions options) {
-        super(position, false);
+        super(position);
 
         this.value = value;
         this.options = options;

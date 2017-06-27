@@ -52,7 +52,7 @@ public class OpElementAsgnParseNode extends ParseNode {
     private final String operatorName;
 
     public OpElementAsgnParseNode(SourceIndexLength position, ParseNode receiverNode, String operatorName, ParseNode argsNode, ParseNode valueNode) {
-        super(position, receiverNode.containsVariableAssignment() || argsNode != null && argsNode.containsVariableAssignment() || valueNode.containsVariableAssignment());
+        super(position);
 
         assert receiverNode != null : "receiverNode is not null";
         assert valueNode != null : "valueNode is not null";

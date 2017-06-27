@@ -46,9 +46,7 @@ public class RescueParseNode extends ParseNode {
     private final ParseNode elseNode;
 
     public RescueParseNode(SourceIndexLength position, ParseNode bodyNode, RescueBodyParseNode rescueNode, ParseNode elseNode) {
-        super(position, bodyNode != null && bodyNode.containsVariableAssignment() ||
-                rescueNode != null && rescueNode.containsVariableAssignment() ||
-                elseNode != null && elseNode.containsVariableAssignment());
+        super(position);
         this.bodyNode = bodyNode;
         this.rescueNode = rescueNode;
         this.elseNode = elseNode;

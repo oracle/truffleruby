@@ -17,7 +17,7 @@ public class LiteralParseNode extends ParseNode implements InvisibleNode {
     private String name;
 
     public LiteralParseNode(SourceIndexLength position, String name) {
-        super(position, false);
+        super(position);
 
         this.name = name;
     }

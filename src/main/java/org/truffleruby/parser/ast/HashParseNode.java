@@ -47,7 +47,7 @@ public class HashParseNode extends ParseNode implements ILiteralNode {
     private final List<ParseNodeTuple> pairs;
 
     public HashParseNode(SourceIndexLength position) {
-        super(position, false);
+        super(position);
 
         pairs = new ArrayList<>();
     }
@@ -64,10 +64,6 @@ public class HashParseNode extends ParseNode implements ILiteralNode {
     }
 
     public HashParseNode add(ParseNodeTuple pair) {
-        if (pair.getKey() != null && pair.getKey().containsVariableAssignment() ||
-                pair.getValue() != null && pair.getValue().containsVariableAssignment()) {
-            containsVariableAssignment = true;
-        }
         pairs.add(pair);
 
         return this;

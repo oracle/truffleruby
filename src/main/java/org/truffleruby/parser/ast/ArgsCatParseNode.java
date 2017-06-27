@@ -41,7 +41,7 @@ public class ArgsCatParseNode extends ParseNode {
     private final ParseNode secondNode;
 
     public ArgsCatParseNode(SourceIndexLength position, ParseNode firstNode, ParseNode secondNode) {
-        super(position, firstNode.containsVariableAssignment() || secondNode.containsVariableAssignment());
+        super(position);
         
         assert firstNode != null : "ArgsCatParseNode.first == null";
         assert secondNode != null : "ArgsCatParseNode.second == null";

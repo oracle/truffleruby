@@ -45,7 +45,7 @@ public class BlockArgParseNode extends ParseNode implements INameNode {
     private String name;
 
     public BlockArgParseNode(SourceIndexLength position, int count, String name) {
-        super(position, false);
+        super(position);
         this.count = count;
         this.name = name;
     }

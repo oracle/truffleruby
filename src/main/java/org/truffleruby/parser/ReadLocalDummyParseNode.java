@@ -25,7 +25,7 @@ public class ReadLocalDummyParseNode extends ParseNode {
     final FrameSlot frameSlot;
 
     public ReadLocalDummyParseNode(SourceIndexLength sourcePosition, SourceSection sourceSection, FrameSlot frameSlot) {
-        super(sourcePosition, false);
+        super(sourcePosition);
         this.sourceSection = sourceSection;
         this.frameSlot = frameSlot;
     }

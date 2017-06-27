@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class RequiredKeywordArgumentValueParseNode extends ParseNode implements InvisibleNode {
     public RequiredKeywordArgumentValueParseNode() {
-        super(null, false);
+        super(null);
     }
 
     @Override

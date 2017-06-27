@@ -54,7 +54,7 @@ public class NewlineParseNode extends ParseNode {
 
     @Deprecated
     public NewlineParseNode(SourceIndexLength position, ParseNode nextNode) {
-        super(position, nextNode.containsVariableAssignment());
+        super(position);
 
         assert nextNode != null : "nextNode is not null";
 

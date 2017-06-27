@@ -50,7 +50,7 @@ public class FCallParseNode extends ParseNode implements INameNode, IArgumentNod
         this(position, name, null, null);
     }
     public FCallParseNode(SourceIndexLength position, String name, ParseNode argsNode, ParseNode iterNode) {
-        super(position, argsNode != null && argsNode.containsVariableAssignment() || iterNode != null && iterNode.containsVariableAssignment());
+        super(position);
         this.name = name;
         this.argsNode = argsNode;
         this.iterNode = iterNode;

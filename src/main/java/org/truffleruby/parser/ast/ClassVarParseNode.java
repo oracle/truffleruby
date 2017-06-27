@@ -44,7 +44,7 @@ public class ClassVarParseNode extends ParseNode implements INameNode, SideEffec
     private String name;
 
     public ClassVarParseNode(SourceIndexLength position, String name) {
-        super(position, false);
+        super(position);
         this.name = name;
     }
 

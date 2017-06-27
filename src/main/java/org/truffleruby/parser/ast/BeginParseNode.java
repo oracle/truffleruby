@@ -43,7 +43,7 @@ public class BeginParseNode extends ParseNode {
     private final ParseNode bodyNode;
 
     public BeginParseNode(SourceIndexLength position, ParseNode bodyNode) {
-        super(position, bodyNode.containsVariableAssignment());
+        super(position);
 
         assert bodyNode != null : "bodyNode is not null";
 

@@ -49,7 +49,7 @@ public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNo
     private final int location;
 
     public LocalVarParseNode(SourceIndexLength position, int location, String name) {
-        super(position, false);
+        super(position);
         this.location = location;
         this.name = name;
     }

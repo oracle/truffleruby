@@ -44,7 +44,7 @@ public abstract class MethodDefParseNode extends ParseNode implements INameNode,
 
     public MethodDefParseNode(SourceIndexLength position, String name, ArgsParseNode argsNode,
                               StaticScope scope, ParseNode bodyNode) {
-        super(position, bodyNode.containsVariableAssignment());
+        super(position);
 
         assert bodyNode != null : "bodyNode must not be null";
             

@@ -45,8 +45,7 @@ public class RescueBodyParseNode extends ParseNode {
     private final RescueBodyParseNode optRescueNode;
 
     public RescueBodyParseNode(SourceIndexLength position, ParseNode exceptionNodes, ParseNode bodyNode, RescueBodyParseNode optRescueNode) {
-        super(position, exceptionNodes != null && exceptionNodes.containsVariableAssignment() ||
-                bodyNode.containsVariableAssignment() || optRescueNode != null && optRescueNode.containsVariableAssignment());
+        super(position);
 
        assert bodyNode != null : "bodyNode is not null";
 

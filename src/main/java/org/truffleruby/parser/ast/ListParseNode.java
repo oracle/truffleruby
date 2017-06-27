@@ -54,14 +54,14 @@ public class ListParseNode extends ParseNode {
      * @param firstNode first element of the list
      */
     public ListParseNode(SourceIndexLength position, ParseNode firstNode) {
-        super(position, firstNode != null && firstNode.containsVariableAssignment);
+        super(position);
 
         list = new ParseNode[INITIAL_SIZE];
         addInternal(firstNode);
     }
 
     public ListParseNode(SourceIndexLength position) {
-        super(position, false);
+        super(position);
 
         list = EMPTY;
     }
@@ -103,7 +103,6 @@ public class ListParseNode extends ParseNode {
             return this;
         }
 
-        if (node.containsVariableAssignment()) containsVariableAssignment = true;
         addInternal(node);
 
         if (getPosition() == null) setPosition(node.getPosition());
@@ -124,7 +123,6 @@ public class ListParseNode extends ParseNode {
      */
     public ListParseNode addAll(ListParseNode other) {
         if (other != null && other.size() > 0) {
-            if (other.containsVariableAssignment()) containsVariableAssignment = true;
             addAllInternal(other);
 
             if (getPosition() == null) setPosition(other.getPosition());

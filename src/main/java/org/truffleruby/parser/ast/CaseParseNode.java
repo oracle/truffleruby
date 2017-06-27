@@ -52,7 +52,7 @@ public class CaseParseNode extends ParseNode {
     private ParseNode elseNode = null;
 
     public CaseParseNode(SourceIndexLength position, ParseNode caseNode, ListParseNode cases) {
-        super(position, caseNode != null && caseNode.containsVariableAssignment() || cases.containsVariableAssignment());
+        super(position);
 
         assert cases != null : "caseBody is not null";
         // TODO: Rewriter and compiler assume case when empty expression.  In MRI this is just

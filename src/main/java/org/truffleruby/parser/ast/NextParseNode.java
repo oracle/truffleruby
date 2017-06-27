@@ -43,7 +43,7 @@ public class NextParseNode extends ParseNode implements NonLocalControlFlowParse
     private final ParseNode valueNode;
 
     public NextParseNode(SourceIndexLength position, ParseNode valueNode) {
-        super(position, valueNode.containsVariableAssignment());
+        super(position);
 
         assert valueNode != null : "valueNode is not null";
 

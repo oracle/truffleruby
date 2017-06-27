@@ -44,7 +44,7 @@ public class VAliasParseNode extends ParseNode {
     private String newName;
 
     public VAliasParseNode(SourceIndexLength position, String newName, String oldName) {
-        super(position, false);
+        super(position);
         this.oldName = oldName;
         this.newName = newName;
     }

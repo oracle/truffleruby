@@ -43,7 +43,7 @@ public class NthRefParseNode extends ParseNode {
     private final int matchNumber;
 
     public NthRefParseNode(SourceIndexLength position, int matchNumber) {
-        super(position, false);
+        super(position);
         this.matchNumber = matchNumber;
     }
 

@@ -51,15 +51,9 @@ public abstract class ParseNode {
     private int sourceCharIndex;
     private int sourceLength;
 
-    // Does this node contain a node which is an assignment.  We can use this knowledge when emitting IR
-    // instructions to do more or less depending on whether we have to cope with scenarios like:
-    //    a = 1; [a, a = 2];
-    // in IR, we can see that ArrayParseNode contains an assignment and emit its individual elements differently
-    // so that the two values of a end up being different.
-    protected boolean containsVariableAssignment;
     protected boolean newline;
 
-    public ParseNode(SourceIndexLength position, boolean containsAssignment) {
+    public ParseNode(SourceIndexLength position) {
         if (position == null) {
             sourceCharIndex = -1;
             sourceLength = -1;
@@ -67,7 +61,6 @@ public abstract class ParseNode {
             sourceCharIndex = position.getCharIndex();
             sourceLength = position.getLength();
         }
-        this.containsVariableAssignment = containsAssignment;
     }
 
     public void setNewline() {
@@ -221,12 +214,5 @@ public abstract class ParseNode {
      */
     public boolean needsDefinitionCheck() {
         return true;
-    }
-
-    /**
-     * Does this node or one of its children contain an assignment?
-     */
-    public boolean containsVariableAssignment() {
-        return containsVariableAssignment;
     }
 }

@@ -49,7 +49,7 @@ public class FlipParseNode extends ParseNode {
     private final int location;
 
     public FlipParseNode(SourceIndexLength position, ParseNode beginNode, ParseNode endNode, boolean exclusive, int location) {
-        super(position, beginNode.containsVariableAssignment() || endNode.containsVariableAssignment());
+        super(position);
 
         assert beginNode != null : "beginNode is not null";
         assert endNode != null : "endNode is not null";

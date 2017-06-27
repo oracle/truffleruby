@@ -43,7 +43,7 @@ public class UndefParseNode extends ParseNode {
     private ParseNode name;
 
     public UndefParseNode(SourceIndexLength position, ParseNode name) {
-        super(position, false);
+        super(position);
         this.name = name;
     }
 

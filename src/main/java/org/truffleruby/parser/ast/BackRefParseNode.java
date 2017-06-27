@@ -50,7 +50,7 @@ public class BackRefParseNode extends ParseNode {
     private final char type;
 
     public BackRefParseNode(SourceIndexLength position, int type) {
-        super(position, false);
+        super(position);
         this.type = (char) type;
     }
 

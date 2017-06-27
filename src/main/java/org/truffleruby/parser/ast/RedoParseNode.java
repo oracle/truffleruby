@@ -41,7 +41,7 @@ import java.util.List;
  */
 public class RedoParseNode extends ParseNode implements NonLocalControlFlowParseNode {
     public RedoParseNode(SourceIndexLength position) {
-        super(position, false);
+        super(position);
     }
 
     @Override

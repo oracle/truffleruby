@@ -56,7 +56,7 @@ public class RootParseNode extends ParseNode {
     }
 
     public RootParseNode(SourceIndexLength position, DynamicScope scope, ParseNode bodyNode, String file, int endPosition, boolean needsCodeCoverage) {
-        super(position, bodyNode.containsVariableAssignment());
+        super(position);
         
         this.scope = scope;
         this.staticScope = scope.getStaticScope();

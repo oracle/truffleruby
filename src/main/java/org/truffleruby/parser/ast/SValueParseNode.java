@@ -38,7 +38,7 @@ public class SValueParseNode extends ParseNode {
     protected final ParseNode node;
 
     public SValueParseNode(SourceIndexLength position, ParseNode node) {
-        super(position, node.containsVariableAssignment());
+        super(position);
 
         assert node != null : "node is not null";
 

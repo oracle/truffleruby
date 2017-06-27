@@ -38,7 +38,7 @@ public class SplatParseNode extends ParseNode {
     protected final ParseNode node;
 
     public SplatParseNode(SourceIndexLength position, ParseNode node) {
-        super(position, node.containsVariableAssignment());
+        super(position);
 
         assert node != null : "node is not null";
 
