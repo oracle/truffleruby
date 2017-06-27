@@ -19,6 +19,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.CheckArityNode;
 import org.truffleruby.language.arguments.CheckKeywordArityNode;
 import org.truffleruby.language.arguments.ProfileArgumentNode;
+import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.language.control.SequenceNode;
 import org.truffleruby.language.literal.NilLiteralNode;
@@ -166,7 +167,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
 
     public static RubyNode loadSelf(RubyContext context, TranslatorEnvironment environment) {
         final FrameSlot slot = environment.getFrameDescriptor().findOrAddFrameSlot(SelfNode.SELF_IDENTIFIER);
-        return new WriteLocalVariableNode(slot, new ProfileArgumentNode(new ReadSelfNode()));
+        return new WriteLocalVariableNode(slot, ProfileArgumentNodeGen.create(new ReadSelfNode()));
     }
 
     public static <T extends RubyNode> T withSourceSection(SourceIndexLength sourceSection, T node) {

@@ -21,6 +21,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ProfileArgumentNode;
+import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
 import org.truffleruby.parser.Translator;
@@ -47,12 +48,12 @@ public class PrimitiveNodeConstructor {
         final List<RubyNode> arguments = new ArrayList<>(argumentsCount);
 
         if (annotation.needsSelf()) {
-            arguments.add(transformArgument(new ProfileArgumentNode(new ReadSelfNode()), 0));
+            arguments.add(transformArgument(ProfileArgumentNodeGen.create(new ReadSelfNode()), 0));
             argumentsCount--;
         }
 
         for (int n = 0; n < argumentsCount; n++) {
-            RubyNode readArgumentNode = new ProfileArgumentNode(new ReadPreArgumentNode(n, MissingArgumentBehavior.UNDEFINED));
+            RubyNode readArgumentNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(n, MissingArgumentBehavior.UNDEFINED));
             arguments.add(transformArgument(readArgumentNode, n + 1));
         }
 

@@ -27,6 +27,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.ProfileArgumentNode;
+import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadBlockNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ShouldDestructureNode;
@@ -111,7 +112,7 @@ public class MethodTranslator extends BodyTranslator {
 
         final RubyNode preludeProc;
         if (shouldConsiderDestructuringArrayArg(arity)) {
-            final RubyNode readArrayNode = new ProfileArgumentNode(new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
+            final RubyNode readArrayNode = ProfileArgumentNodeGen.create(new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
             final RubyNode castArrayNode = ArrayCastNodeGen.create(readArrayNode);
 
             final FrameSlot arraySlot = environment.declareVar(environment.allocateLocalTemp("destructure"));
