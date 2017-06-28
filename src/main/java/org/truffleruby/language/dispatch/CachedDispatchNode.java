@@ -140,8 +140,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
         if (cachedName instanceof String) {
             return cachedName.equals(methodName);
         } else if (RubyGuards.isRubySymbol(cachedName)) {
-            // TODO(CS, 11-Jan-15) this just repeats the above guard...
-            return cachedName == methodName;
+            // The above guard already proved they are different
+            return false;
         } else if (cachedNameIsRubyString) {
             return RubyGuards.isRubyString(methodName) && StringOperations.rope((DynamicObject) cachedName).equals(StringOperations.rope((DynamicObject) methodName));
         } else {
