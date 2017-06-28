@@ -80,15 +80,6 @@ public abstract class CachedDispatchNode extends DispatchNode {
         this.next = next;
     }
 
-    private void resetNeedsCallerAssumption() {
-        Node root = getRootNode();
-        if (root instanceof RubyRootNode && !sendingFrames()) {
-            needsCallerAssumption = ((RubyRootNode) root).getNeedsCallerAssumption();
-        } else {
-            needsCallerAssumption = AlwaysValidAssumption.INSTANCE;
-        }
-    }
-
     protected boolean sendingFrames() {
         return sendsFrame != SendsFrame.NO_FRAME;
     }
@@ -116,6 +107,15 @@ public abstract class CachedDispatchNode extends DispatchNode {
             ((RubyRootNode) root).invalidateNeedsCallerAssumption();
         } else {
             throw new Error();
+        }
+    }
+
+    private synchronized void resetNeedsCallerAssumption() {
+        Node root = getRootNode();
+        if (root instanceof RubyRootNode && !sendingFrames()) {
+            needsCallerAssumption = ((RubyRootNode) root).getNeedsCallerAssumption();
+        } else {
+            needsCallerAssumption = AlwaysValidAssumption.INSTANCE;
         }
     }
 
