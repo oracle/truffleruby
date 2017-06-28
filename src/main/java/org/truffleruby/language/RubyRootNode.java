@@ -10,17 +10,15 @@
 package org.truffleruby.language;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerOptions;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 public class RubyRootNode extends RubyBaseRootNode {
 
@@ -31,7 +29,7 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     @Child private RubyNode body;
 
-    private volatile Assumption needsCallerAssumption = Truffle.getRuntime().createAssumption();
+    private CyclicAssumption needsCallerAssumption = new CyclicAssumption("needs caller frame");
 
     public RubyRootNode(RubyContext context, SourceSection sourceSection, FrameDescriptor frameDescriptor,
                         SharedMethodInfo sharedMethodInfo, RubyNode body, boolean needsDeclarationFrame) {
@@ -99,21 +97,18 @@ public class RubyRootNode extends RubyBaseRootNode {
         return context;
     }
 
-    public synchronized Assumption getNeedsCallerAssumption() {
-        return needsCallerAssumption;
+    public Assumption getNeedsCallerAssumption() {
+        return needsCallerAssumption.getAssumption();
     }
 
-    public synchronized void invalidateNeedsCallerAssumption(Assumption assumption) {
-        Assumption oldAssumption = needsCallerAssumption;
-        needsCallerAssumption = Truffle.getRuntime().createAssumption();
-        oldAssumption.invalidate();
-        assumption.invalidate();
+    public void invalidateNeedsCallerAssumption() {
+        needsCallerAssumption.invalidate();
     }
 
     @Override
     public Node copy() {
         RubyRootNode root = (RubyRootNode) super.copy();
-        root.needsCallerAssumption = Truffle.getRuntime().createAssumption();
+        root.needsCallerAssumption = new CyclicAssumption("needs caller frame");
         return root;
     }
 
