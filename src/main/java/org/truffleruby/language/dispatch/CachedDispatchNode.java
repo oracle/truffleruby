@@ -111,7 +111,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
         }
         Node root = getRootNode();
         if (root instanceof RubyRootNode) {
-            ((RubyRootNode) root).invalidateNeedsCallerAssumption(needsCallerAssumption);
+            ((RubyRootNode) root).invalidateNeedsCallerAssumption();
         } else {
             throw new Error();
         }
