@@ -80,7 +80,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
         this.next = next;
     }
 
-    protected boolean sendingFrames() {
+    private boolean sendingFrames() {
         return sendsFrame != SendsFrame.NO_FRAME;
     }
 
@@ -93,7 +93,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
     }
 
     private synchronized void startSendingFrame(SendsFrame frameToSend) {
-        if (sendsFrame != SendsFrame.NO_FRAME) {
+        if (sendingFrames()) {
             assert sendsFrame == frameToSend;
             return;
         }
