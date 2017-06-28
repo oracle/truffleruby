@@ -1134,7 +1134,8 @@ module Commands
 
       options += %w[--excl-tag graalvm]
       options << '-t' << ENV['AOT_BIN']
-      options << '-T-XX:OldGenerationSize=2G'
+      options << '-T-XX:YoungGenerationSize=2G'
+      options << '-T-XX:OldGenerationSize=4G'
       options << "-T-Xhome=#{TRUFFLERUBY_DIR}"
     end
 
