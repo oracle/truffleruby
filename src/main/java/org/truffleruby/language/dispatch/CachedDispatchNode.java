@@ -139,14 +139,11 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
         if (cachedName instanceof String) {
             return cachedName.equals(methodName);
-        } else if (cachedName == cachedNameAsSymbol) { // If cachedName is a Symbol
-            // The above guard already proved they are different
-            return false;
         } else if (cachedNameIsRubyString) {
             return RubyGuards.isRubyString(methodName) && StringOperations.rope((DynamicObject) cachedName).equals(StringOperations.rope((DynamicObject) methodName));
-        } else {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException();
+        } else { // cachedName is a Symbol
+            // The above guard already proved they are different
+            return false;
         }
     }
 
