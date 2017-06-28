@@ -43,6 +43,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
     private final Object cachedName;
     private final DynamicObject cachedNameAsSymbol;
+    private final boolean cachedNameIsRubyString;
 
     @Child protected DispatchNode next;
 
@@ -63,10 +64,13 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
         if (RubyGuards.isRubySymbol(cachedName)) {
             cachedNameAsSymbol = (DynamicObject) cachedName;
+            cachedNameIsRubyString = false;
         } else if (RubyGuards.isRubyString(cachedName)) {
             cachedNameAsSymbol = context.getSymbolTable().getSymbol(StringOperations.rope((DynamicObject) cachedName));
+            cachedNameIsRubyString = true;
         } else if (cachedName instanceof String) {
             cachedNameAsSymbol = context.getSymbolTable().getSymbol((String) cachedName);
+            cachedNameIsRubyString = false;
         } else {
             throw new UnsupportedOperationException();
         }
@@ -138,7 +142,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
         } else if (RubyGuards.isRubySymbol(cachedName)) {
             // TODO(CS, 11-Jan-15) this just repeats the above guard...
             return cachedName == methodName;
-        } else if (RubyGuards.isRubyString(cachedName)) {
+        } else if (cachedNameIsRubyString) {
             return (RubyGuards.isRubyString(methodName)) && StringOperations.rope((DynamicObject) cachedName).equals(StringOperations.rope((DynamicObject) methodName));
         } else {
             CompilerDirectives.transferToInterpreterAndInvalidate();
