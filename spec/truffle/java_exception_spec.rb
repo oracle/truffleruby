@@ -34,7 +34,7 @@ describe "Java exceptions" do
     message.chomp!
 
     lambda { Truffle::Debug.throw_java_exception_with_cause 'message' }.should raise_error { |e|
-      e.message.gsub(/:\d+/, ':LINE') .should == message
+      e.message.gsub(/:\d+/, ':LINE').should == message
     }
   end
 
