@@ -141,6 +141,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
         } else if (RubyGuards.isRubyString(cachedName)) {
             return (RubyGuards.isRubyString(methodName)) && StringOperations.rope((DynamicObject) cachedName).equals(StringOperations.rope((DynamicObject) methodName));
         } else {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new UnsupportedOperationException();
         }
     }
