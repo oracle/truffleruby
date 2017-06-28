@@ -139,7 +139,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
         if (cachedName instanceof String) {
             return cachedName.equals(methodName);
-        } else if (RubyGuards.isRubySymbol(cachedName)) {
+        } else if (cachedName == cachedNameAsSymbol) { // If cachedName is a Symbol
             // The above guard already proved they are different
             return false;
         } else if (cachedNameIsRubyString) {
