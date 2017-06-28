@@ -48,9 +48,11 @@ public abstract class CachedDispatchNode extends DispatchNode {
     @Child protected DispatchNode next;
 
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
-    @CompilationFinal protected SendsFrame sendsFrame = SendsFrame.NO_FRAME;
-    @Child private ReadCallerFrameNode readCaller;
+
+    @CompilationFinal private SendsFrame sendsFrame = SendsFrame.NO_FRAME;
     @CompilationFinal private Assumption needsCallerAssumption;
+
+    @Child private ReadCallerFrameNode readCaller;
 
     public CachedDispatchNode(
             RubyContext context,
