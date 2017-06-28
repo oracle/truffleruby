@@ -25,7 +25,7 @@ common-base: {
     ["export", ["<setup-ci-env"]],
 
     ${report-github-status} ["pending"],
-    [mx, build, --force-javac]
+    [mx, build, --force-javac, --warning-as-error]
   ]
 
   on_success: [

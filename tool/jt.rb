@@ -526,7 +526,7 @@ module Commands
     when 'options'
       sh 'tool/generate-options.rb'
     when nil
-      mx TRUFFLERUBY_DIR, 'build'
+      mx TRUFFLERUBY_DIR, 'build', '--force-javac', '--warning-as-error'
     else
       raise ArgumentError, project
     end
