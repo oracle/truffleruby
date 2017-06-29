@@ -11,6 +11,7 @@ package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -19,6 +20,7 @@ import jnr.constants.platform.Signal;
 import jnr.posix.DefaultNativeTimeval;
 import jnr.posix.Timeval;
 import org.truffleruby.Layouts;
+import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
@@ -27,6 +29,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.control.ThreadExitException;
@@ -131,7 +134,20 @@ public class ThreadManager {
 
             TruffleObject libC = nfi.getDefaultLibrary();
             // We use abs() as a function taking a int and having no side effects
-            TruffleObject abs = nfi.lookup(libC, "abs");
+
+            TruffleObject abs;
+
+            try {
+                abs = nfi.lookup(libC, "abs");
+            } catch (JavaException e) {
+                if (e.getCause() instanceof UnknownIdentifierException) {
+                    Log.LOGGER.warning("not able to set up a native signal handler - maybe the NFI was not available");
+                    return;
+                }
+
+                throw e;
+            }
+
             TruffleObject sigaction = (TruffleObject) nfi.invoke(nfi.lookup(libC, "sigaction"), "bind", "(SINT32,POINTER,POINTER):SINT32");
 
             // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
