@@ -1,0 +1,16 @@
+fails:GzipReader#ungetc at the start of the stream with a multi-byte character decrements pos
+fails:GzipReader#ungetc at the start of the stream with a multi-character string prepends the characters to the stream
+fails:GzipReader#ungetc at the start of the stream with a multi-character string decrements pos
+fails:GzipReader#ungetc at the start of the stream with an empty string does not prepend anything to the stream
+fails:GzipReader#ungetc at the start of the stream with an empty string does not decrement pos
+fails:GzipReader#ungetc in the middle of the stream with a multi-byte character decrements pos
+fails:GzipReader#ungetc in the middle of the stream with a multi-character string inserts the characters into the stream
+fails:GzipReader#ungetc in the middle of the stream with a multi-character string decrements pos
+fails:GzipReader#ungetc in the middle of the stream with an empty string does not insert anything into the stream
+fails:GzipReader#ungetc in the middle of the stream with an empty string does not decrement pos
+fails:GzipReader#ungetc at the end of the stream with a multi-byte character decrements pos
+fails:GzipReader#ungetc at the end of the stream with a multi-character string appends the characters to the stream
+fails:GzipReader#ungetc at the end of the stream with a multi-character string decrements pos
+fails:GzipReader#ungetc at the end of the stream with an empty string does not append anything to the stream
+fails:GzipReader#ungetc at the end of the stream with an empty string does not decrement pos
+fails:GzipReader#ungetc at the end of the stream with an empty string does not make eof? false

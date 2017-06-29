@@ -1,0 +1,7 @@
+fails:GzipReader#ungetbyte at the start of the stream with an integer prepends the byte to the stream
+fails:GzipReader#ungetbyte at the start of the stream with an integer decrements pos
+fails:GzipReader#ungetbyte in the middle of the stream with an integer inserts the corresponding character into the stream
+fails:GzipReader#ungetbyte in the middle of the stream with an integer decrements pos
+fails:GzipReader#ungetbyte at the end of the stream with an integer appends the corresponding character to the stream
+fails:GzipReader#ungetbyte at the end of the stream with an integer decrements pos
+fails:GzipReader#ungetbyte at the end of the stream with an integer makes eof? false
