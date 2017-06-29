@@ -749,11 +749,12 @@ module Commands
     else
       github_pr_branch = begin
         out, _err = sh 'git', 'branch', '-r', '--contains', 'HEAD', capture: true
-        out.lines.find { |l| l.strip.start_with? "#{upstream}/pr/" }.strip.chomp
+        candidate = out.lines.find { |l| l.strip.start_with? "#{upstream}/pr/" }
+        candidate && candidate.strip.chomp
       end
 
       unless github_pr_branch
-        puts 'Could not find HEAD in a GitHub pull-request.'
+        puts 'Could not find HEAD in any of the GitHub pull-requests.'
         exit 1
       end
 
