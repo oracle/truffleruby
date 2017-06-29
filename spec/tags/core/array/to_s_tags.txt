@@ -1,0 +1,1 @@
+fails:Array#to_s does not call #to_str on the object returned from #to_s when it is not a String

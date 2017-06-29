@@ -1,0 +1,3 @@
+fails:SecureRandom.random_number generates a random value in given (integer) range limits
+fails:SecureRandom.random_number generates a random value in given big (integer) range limits
+fails:SecureRandom.random_number generates a random value in given (float) range limits
