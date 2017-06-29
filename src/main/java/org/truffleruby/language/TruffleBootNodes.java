@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -61,10 +62,15 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject rubyLauncher() {
-            if (getContext().getOptions().LAUNCHER == null) {
-                return nil();
+            if (TruffleOptions.AOT) {
+                final String path = (String) Compiler.command(new Object[]{"com.oracle.svm.core.posix.GetExecutableName"});
+                return createString(StringOperations.encodeRope(path, UTF8Encoding.INSTANCE));
             } else {
-                return createString(StringOperations.encodeRope(getContext().getOptions().LAUNCHER, UTF8Encoding.INSTANCE));
+                if (getContext().getOptions().LAUNCHER == null) {
+                    return nil();
+                } else {
+                    return createString(StringOperations.encodeRope(getContext().getOptions().LAUNCHER, UTF8Encoding.INSTANCE));
+                }
             }
         }
 

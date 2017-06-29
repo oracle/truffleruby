@@ -1132,9 +1132,10 @@ module Commands
     if args.delete('--aot')
       verify_aot_bin!
 
-      options += %w[--excl-tag graalvm]
+      options += %w[--excl-tag graalvm --excl-tag aot]
       options << '-t' << ENV['AOT_BIN']
-      options << '-T-XX:OldGenerationSize=2G'
+      options << '-T-XX:YoungGenerationSize=2G'
+      options << '-T-XX:OldGenerationSize=4G'
       options << "-T-Xhome=#{TRUFFLERUBY_DIR}"
     end
 
