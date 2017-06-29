@@ -144,7 +144,10 @@ public abstract class CachedDispatchNode extends DispatchNode {
         } else if (cachedNameIsRubyString) {
             return RubyGuards.isRubyString(methodName) && StringOperations.rope((DynamicObject) cachedName).equals(StringOperations.rope((DynamicObject) methodName));
         } else { // cachedName is a Symbol
-            // The above guard already proved they are different
+            // cachedName == methodName was checked above and was not true,
+            // and since Symbols are compared by identity we know they don't match.
+            // We also want to keep the fast-path identity comparison above for non-Symbols,
+            // as it is more efficient than a full comparison.
             return false;
         }
     }
