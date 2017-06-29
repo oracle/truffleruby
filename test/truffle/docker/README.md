@@ -19,3 +19,6 @@ Dockerfile, and update the Dockerfile for the version.
 ```
 $ docker build -t truffleruby-test-oraclelinux .
 ```
+
+Docker will need to run the container with at least 8 GB of RAM if you are using
+virtualisation, to give enough space for the AOT image to build.
