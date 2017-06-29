@@ -51,14 +51,14 @@ describe "Process.spawn" do
   end
 
   it "returns the process ID of the new process as a Fixnum" do
-    pid = Process.spawn(ruby_cmd("exit"))
+    pid = Process.spawn(*ruby_exe, "-e", "exit")
     Process.wait pid
     pid.should be_an_instance_of(Fixnum)
   end
 
   it "returns immediately" do
     start = Time.now
-    pid = Process.spawn(ruby_cmd("sleep 10"))
+    pid = Process.spawn(*ruby_exe, "-e", "sleep 10")
     (Time.now - start).should < 5
     Process.kill :KILL, pid
     Process.wait pid

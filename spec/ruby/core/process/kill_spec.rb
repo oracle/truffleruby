@@ -24,7 +24,7 @@ describe "Process.kill" do
   end
 
   it "raises Errno::ESRCH if the process does not exist" do
-    pid = Process.spawn(ruby_cmd("sleep 10"))
+    pid = Process.spawn(*ruby_exe, "-e", "sleep 10")
     Process.kill("SIGKILL", pid)
     Process.wait(pid)
     lambda {
