@@ -11,8 +11,6 @@ package org.truffleruby.options;
 
 import org.graalvm.options.OptionType;
 
-import java.util.function.Function;
-
 public class VerbosityOptionDescription extends OptionDescription<Verbosity> {
 
     private final Verbosity defaultValue;

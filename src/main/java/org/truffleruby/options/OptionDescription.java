@@ -53,7 +53,7 @@ public abstract class OptionDescription<T> {
     }
 
     public OptionDescriptor toDescriptor() {
-        return OptionDescriptor.newBuilder(new OptionKey<T>(getDefaultValue(), getOptionType()), getSDKName()).help(getDescription()).build();
+        return OptionDescriptor.newBuilder(new OptionKey<>(getDefaultValue(), getOptionType()), getSDKName()).help(getDescription()).build();
     }
 
     protected abstract OptionType<T> getOptionType();
