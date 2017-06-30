@@ -15,20 +15,17 @@ wait = ARGV[1] == '--wait'
 failures = []
 
 known_failures = [
-  ["server", "graal-enterprise-no-om", "jruby", "truffle", "asciidoctor", "asciidoctor:load-file"],
-  ["server", "graal-enterprise-no-om", "jruby", "truffle", "server", "tcp-server"],
-  ["server", "graal-enterprise", "jruby", "truffle", "asciidoctor", "asciidoctor:load-file"],
-  ["server", "graal-enterprise", "jruby", "truffle", "classic", "binary-trees"],
-  ["server", "graal-enterprise", "jruby", "truffle", "micro", "micro/core/file.rb:core-read-gigabyte"],
-  ["server", "graal-enterprise", "jruby", "truffle", "server", "tcp-server"],
-  ["server", "graal-core", "jruby", "truffle", "server", "tcp-server"],
-  ["server", "graal-core", "jruby", "truffle", "asciidoctor", "asciidoctor:load-file"],
-  ["server", "graal-vm-snap", "jruby", "truffle", "server", "tcp-server"],
-  ["server", "graal-vm-snap", "jruby", "truffle", "asciidoctor", "asciidoctor:load-file"],
-  ["server", "graal-vm-snap", "jruby", "truffle", "chunky", "chunky-decode-png-image-pass"],
+  # OOM in flattenBytes
   ["server", "graal-core", "jruby", "truffle", "micro", "micro/core/file.rb:core-read-gigabyte"],
-  ["server", "graal-core", "jruby", "truffle", "asciidoctor", "asciidoctor:load-string"],
-  ["server", "graal-core", "jruby", "truffle", "chunky", "chunky-operations-compose"],
+  ["server", "graal-enterprise", "jruby", "truffle", "micro", "micro/core/file.rb:core-read-gigabyte"],
+
+  # Harness not found
+  ["server", "graal-core", "jruby", "truffle", "server", "tcp-server"],
+  ["server", "graal-enterprise-no-om", "jruby", "truffle", "server", "tcp-server"],
+  ["server", "graal-enterprise", "jruby", "truffle", "server", "tcp-server"],
+  ["server", "graal-vm-snap", "jruby", "truffle", "server", "tcp-server"],
+
+  # C-exts
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-color-r"],
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-color-g"],
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-color-b"],
@@ -42,6 +39,8 @@ known_failures = [
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-encode-png-image-pass-to-stream"],
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-operations-compose"],
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-operations-replace"],
+
+  # SVM
   ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:file-lines"],
   ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:load-string"],
   ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:load-file"],
@@ -63,7 +62,7 @@ known_failures = [
   ["svm", "default", "jruby", "truffle", "psd", "psd-renderer-blender-compose"],
   ["svm", "default", "jruby", "truffle", "savina", "savina-radix-sort"],
   ["svm", "default", "jruby", "truffle", "server", "tcp-server"],
-  ["svm", "default", "jruby", "truffle", "server", "webrick"]
+  ["svm", "default", "jruby", "truffle", "server", "webrick"],
 ]
 
 if File.exist?('failures')
