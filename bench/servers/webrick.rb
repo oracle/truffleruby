@@ -11,7 +11,7 @@ require 'webrick'
 server = WEBrick::HTTPServer.new(
   :BindAddress => '127.0.0.1',
   :Port => 14873,
-  :Logger => WEBrick::Log.new(File::NULL))
+  :AccessLog => [])
 
 server.mount_proc '/' do |req, res|
   res.body = "Hello, world!\n"
