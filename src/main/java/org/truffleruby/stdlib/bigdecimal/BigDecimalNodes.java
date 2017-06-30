@@ -26,7 +26,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.core.cast.IntegerCastNode;
-import org.truffleruby.core.cast.IntegerCastNodeGen;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
@@ -511,7 +510,7 @@ public abstract class BigDecimalNodes {
                 DynamicObject a,
                 DynamicObject b,
                 @Cached("create()") CallDispatchHeadNode signCall,
-                @Cached("createIntegerCastNode()") IntegerCastNode signIntegerCast,
+                @Cached("create()") IntegerCastNode signIntegerCast,
                 @Cached("createBinaryProfile()") ConditionProfile nanProfile,
                 @Cached("createBinaryProfile()") ConditionProfile normalNegProfile,
                 @Cached("createBinaryProfile()") ConditionProfile negNormalProfile,
@@ -550,10 +549,6 @@ public abstract class BigDecimalNodes {
             }
 
             throw new UnsupportedOperationException("unreachable code branch");
-        }
-
-        protected IntegerCastNode createIntegerCastNode() {
-            return IntegerCastNodeGen.create(null);
         }
 
     }

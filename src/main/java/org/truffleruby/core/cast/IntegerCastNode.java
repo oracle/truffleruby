@@ -13,15 +13,21 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 /**
  * Casts a value into an int.
  */
-@ImportStatic(Integer.class)
+@ImportStatic(CoreLibrary.class)
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class IntegerCastNode extends RubyNode {
+
+    public static IntegerCastNode create() {
+        return IntegerCastNodeGen.create(null);
+    }
 
     public abstract int executeCastInt(Object value);
 
@@ -30,7 +36,7 @@ public abstract class IntegerCastNode extends RubyNode {
         return value;
     }
 
-    @Specialization(guards = {"value >= MIN_VALUE", "value <= MAX_VALUE"})
+    @Specialization(guards = "fitsIntoInteger(value)")
     public int doLong(long value) {
         return (int) value;
     }

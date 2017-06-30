@@ -1121,21 +1121,6 @@ public class CoreLibrary {
         return (int) value;
     }
 
-    @TruffleBoundary
-    public static int lowerToInt(Object value) {
-        if (value instanceof Integer) {
-            return (int) value;
-        } else if (value instanceof Long) {
-            if (fitsIntoInteger((long) value)) {
-                return long2int((long) value);
-            } else {
-                throw new UnsupportedOperationException("long value does not fit int: " + value);
-            }
-        } else {
-            throw new UnsupportedOperationException(value.getClass() + " cannot be cast to an int");
-        }
-    }
-
     public RubyContext getContext() {
         return context;
     }

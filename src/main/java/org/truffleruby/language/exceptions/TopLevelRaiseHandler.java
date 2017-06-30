@@ -14,7 +14,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.IntegerCastNode;
-import org.truffleruby.core.cast.IntegerCastNodeGen;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.ExitException;
@@ -66,7 +65,7 @@ public class TopLevelRaiseHandler extends RubyNode {
     private int castToInt(Object value) {
         if (integerCastNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            integerCastNode = insert(IntegerCastNodeGen.create(null));
+            integerCastNode = insert(IntegerCastNode.create());
         }
 
         return integerCastNode.executeCastInt(value);

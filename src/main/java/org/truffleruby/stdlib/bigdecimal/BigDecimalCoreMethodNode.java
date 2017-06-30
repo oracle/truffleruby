@@ -15,7 +15,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.cast.IntegerCastNode;
-import org.truffleruby.core.cast.IntegerCastNodeGen;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -127,7 +126,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     private IntegerCastNode getLimitIntegerCast() {
         if (limitIntegerCast == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            limitIntegerCast = insert(IntegerCastNodeGen.create(null));
+            limitIntegerCast = insert(IntegerCastNode.create());
         }
 
         return limitIntegerCast;
@@ -145,7 +144,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     private IntegerCastNode getRoundModeIntegerCast() {
         if (roundModeIntegerCast == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            roundModeIntegerCast = insert(IntegerCastNodeGen.create(null));
+            roundModeIntegerCast = insert(IntegerCastNode.create());
         }
 
         return roundModeIntegerCast;
