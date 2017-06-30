@@ -88,8 +88,8 @@ public abstract class TruffleProcessNodes {
                     assert size % 2 == 0;
                     final Object[] store = ArrayOperations.toObjectArray(array);
                     for (int i = 0; i < size; i += 2) {
-                        int from = (int) store[i];
-                        int to = (int) store[i + 1];
+                        int from = CoreLibrary.lowerToInt(store[i]);
+                        int to = CoreLibrary.lowerToInt(store[i + 1]);
                         if (to < 0) { // :child fd
                             to = -to - 1;
                         }
