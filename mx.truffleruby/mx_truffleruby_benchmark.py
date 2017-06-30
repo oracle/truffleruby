@@ -579,8 +579,8 @@ class ServerBenchmarkSuite(RubyBenchmarkSuite):
     def runBenchmark(self, benchmark, bmSuiteArgs):
         arguments = ['ruby']
         if 'MX_NO_GRAAL' not in os.environ:
-            arguments.extend(['--graal', '-J-G:+TruffleCompilationExceptionsAreFatal'])
-        arguments.extend(['ruby-benchmarks/servers/' + benchmark + '.rb'])
+            arguments.extend(['--graal', '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'])
+        arguments.extend(['bench/servers/' + benchmark + '.rb'])
         
         server = BackgroundJT(arguments)
         
@@ -588,7 +588,7 @@ class ServerBenchmarkSuite(RubyBenchmarkSuite):
             time.sleep(10)
             out = mx.OutputCapture()
             if mx.run(
-                    ['ruby', 'ruby-benchmarks/servers/harness.rb', str(server_benchmark_time)],
+                    ['ruby', 'bench/servers/harness.rb', str(server_benchmark_time)],
                     out=out,
                     nonZeroIsFatal=False) == 0 and server.is_running():
                 samples = [float(s) for s in out.data.split('\n')[0:-1]]
