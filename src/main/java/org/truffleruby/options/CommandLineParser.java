@@ -37,12 +37,12 @@ package org.truffleruby.options;
 import com.oracle.truffle.api.TruffleOptions;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.Log;
-import org.truffleruby.core.string.StringSupport;
 
 import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -482,8 +482,34 @@ public class CommandLineParser {
         throw mee;
     }
 
+    /**
+     * Split string into (limited) sub-parts.
+     * @param str the string
+     * @param sep the separator
+     * @param lim has same effect as with {@link String#split(String, int)}
+     */
+    private static List<String> split(final String str, final char sep, final int lim) {
+        final int len = str.length();
+        if ( len == 0 ) return Collections.singletonList(str);
+
+        final ArrayList<String> result = new ArrayList<>(lim <= 0 ? 8 : lim);
+
+        int e; int s = 0; int count = 0;
+        while ( (e = str.indexOf(sep, s)) != -1 ) {
+            if ( lim == ++count ) { // limited (lim > 0) case
+                result.add(str.substring(s));
+                return result;
+            }
+            result.add(str.substring(s, e));
+            s = e + 1;
+        }
+        if ( s < len || ( s == len && lim > 0 ) ) result.add(str.substring(s));
+
+        return result;
+    }
+
     private void processEncodingOption(String value) {
-        List<String> encodings = StringSupport.split(value, ':', 3);
+        List<String> encodings = split(value, ':', 3);
 
         if (encodings.size() >= 3) {
             throw new MainExitException(1, "extra argument for -E: " + encodings.get(2));
