@@ -12,7 +12,6 @@ package org.truffleruby.options;
 import org.graalvm.options.OptionType;
 
 import java.nio.charset.Charset;
-import java.util.function.Function;
 
 public class ByteStringOptionDescription extends OptionDescription<byte[]> {
 
