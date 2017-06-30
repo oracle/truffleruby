@@ -1133,7 +1133,7 @@ public abstract class FixnumNodes {
     }
 
 
-    @Primitive(name = "fixnum_coerce")
+    @Primitive(name = "fixnum_coerce", lowerFixnum = 1)
     public static abstract class FixnumCoercePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

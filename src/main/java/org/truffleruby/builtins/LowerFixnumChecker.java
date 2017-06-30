@@ -24,7 +24,7 @@ public class LowerFixnumChecker {
 
     public static boolean SUCCESS = true;
 
-    public static void checkLowerFixnumArguments(NodeFactory<? extends RubyNode> nodeFactory, int initialSkip, CoreMethod methodAnnotation) {
+    public static void checkLowerFixnumArguments(NodeFactory<? extends RubyNode> nodeFactory, int initialSkip, int[] lowerFixnum) {
         final Class<? extends RubyNode> nodeClass = nodeFactory.getNodeClass();
         byte[] lowerArgs = null;
         for (Method specialization : nodeClass.getDeclaredMethods()) {
@@ -64,7 +64,6 @@ public class LowerFixnumChecker {
         }
 
         // Verify against the lowerFixnum annotation
-        final int[] lowerFixnum = methodAnnotation.lowerFixnum();
         for (int i = 0; i < lowerArgs.length; i++) {
             boolean shouldLower = lowerArgs[i] == 0b01; // int without long
             if (shouldLower && !ArrayUtils.contains(lowerFixnum, i + 1)) {

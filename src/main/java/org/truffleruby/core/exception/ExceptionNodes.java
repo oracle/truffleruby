@@ -146,15 +146,12 @@ public abstract class ExceptionNodes {
 
     }
 
-    @Primitive(name = "exception_errno_error", needsSelf = false)
+    @Primitive(name = "exception_errno_error", needsSelf = false, lowerFixnum = 2)
     public static abstract class ExceptionErrnoErrorPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject exceptionErrnoError(
-                DynamicObject message,
-                int errno,
-                DynamicObject location) {
+        public DynamicObject exceptionErrnoError(DynamicObject message, int errno, DynamicObject location) {
             final String errorMessage;
             if (message != nil()) {
                 if (RubyGuards.isRubyString(location)) {

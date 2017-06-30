@@ -123,7 +123,7 @@ public abstract class EncodingConverterNodes {
 
     }
 
-    @Primitive(name = "encoding_converter_primitive_convert")
+    @Primitive(name = "encoding_converter_primitive_convert", lowerFixnum = { 3, 4, 5 })
     public static abstract class PrimitiveConvertNode extends PrimitiveArrayArgumentsNode {
 
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
@@ -234,7 +234,7 @@ public abstract class EncodingConverterNodes {
 
     }
 
-    @Primitive(name = "encoding_converter_putback")
+    @Primitive(name = "encoding_converter_putback", lowerFixnum = 1)
     public static abstract class EncodingConverterPutbackNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

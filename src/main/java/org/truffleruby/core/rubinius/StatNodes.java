@@ -76,7 +76,7 @@ public abstract class StatNodes {
 
     }
 
-    @Primitive(name = "stat_fstat")
+    @Primitive(name = "stat_fstat", lowerFixnum = 1)
     public static abstract class StatFStatPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
