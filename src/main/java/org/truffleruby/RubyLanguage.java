@@ -22,6 +22,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.graalvm.options.OptionDescriptor;
+import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LazyRubyNode;
@@ -34,9 +35,7 @@ import org.truffleruby.stdlib.CoverageManager;
 
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
@@ -192,7 +191,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
-    protected List<OptionDescriptor> describeOptions() {
+    protected OptionDescriptors getOptionDescriptors() {
         final List<OptionDescriptor> options = new ArrayList<>();
 
         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
@@ -203,7 +202,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             }
         }
 
-        return options;
+        return OptionDescriptors.create(options);
     }
 
     public static String getVersionString() {
