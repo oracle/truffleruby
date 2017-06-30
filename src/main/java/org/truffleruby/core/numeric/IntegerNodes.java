@@ -100,7 +100,7 @@ public abstract class IntegerNodes {
 
     }
 
-    @CoreMethod(names = "times", needsBlock = true)
+    @CoreMethod(names = "times", needsBlock = true, lowerFixnum = 0)
     public abstract static class TimesNode extends YieldingCoreMethodNode {
 
         // TODO CS 2-May-15 we badly need OSR in this node
