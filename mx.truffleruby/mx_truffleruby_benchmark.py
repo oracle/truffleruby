@@ -9,6 +9,7 @@
 import os
 import json
 import pipes
+import signal
 import subprocess
 import sys
 import time
@@ -39,11 +40,11 @@ class BackgroundServerTask:
         preexec_fn, creationflags = mx._get_new_progress_group_args()
         if mx._opts.verbose:
             mx.log(' '.join(['(background)'] + map(pipes.quote, self.args)))
-        self.process = subprocess.Popen(self.args, preexec_fn=preexec_fn, creationflags=creationflags, stdout=FNULL, stderr=FNULL)
+        self.process = subprocess.Popen(self.args, preexec_fn=preexec_fn, creationflags=creationflags)
         mx._addSubprocess(self.process, self.args)
 
     def __exit__(self, type, value, traceback):
-        self.process.terminate()
+        self.process.send_signal(signal.SIGINT)
         self.process.wait()
 
     def is_running(self):

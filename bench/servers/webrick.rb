@@ -8,10 +8,14 @@
 
 require 'webrick'
 
-server = WEBrick::HTTPServer.new(:Port => 14873)
+server = WEBrick::HTTPServer.new(:Port => 14873, :Logger => WEBrick::Log.new(File::NULL))
 
 server.mount_proc '/' do |req, res|
   res.body = "Hello, world!\n"
+end
+
+trap 'INT' do
+  server.shutdown
 end
 
 server.start

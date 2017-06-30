@@ -8,23 +8,26 @@
 
 require 'socket'
 
-server = TCPServer.new('0.0.0.0', 14873)
-
 request = "Hello, world!\n"
 
-loop do
-  socket = server.accept
+server = TCPServer.new('0.0.0.0', 14873)
+begin
+  loop do
+    socket = server.accept
 
-  begin
-    socket.gets
-    
-    socket.print "HTTP/1.1 200 OK\r\n" +
-                 "Content-Type: text/plain\r\n" +
-                 "Content-Length: #{request.bytesize}\r\n" +
-                 "Connection: close\r\n\r\n"
-    socket.print request
-    socket.print "\n"
-  ensure
-    socket.close
+    begin
+      socket.gets
+
+      socket.print "HTTP/1.1 200 OK\r\n" +
+                   "Content-Type: text/plain\r\n" +
+                   "Content-Length: #{request.bytesize}\r\n" +
+                   "Connection: close\r\n\r\n"
+      socket.print request
+      socket.print "\n"
+    ensure
+      socket.close
+    end
   end
+ensure
+  server.close
 end
