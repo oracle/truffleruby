@@ -20,10 +20,10 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.KeyValue;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.control.RaiseException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +34,8 @@ public abstract class TruffleProcessNodes {
 
     @CoreMethod(names = "spawn", onSingleton = true, required = 4)
     public abstract static class SpawnNode extends CoreMethodArrayArgumentsNode {
+
+        @Child IntegerCastNode integerCastNode = IntegerCastNode.create();
 
         @TruffleBoundary
         @Specialization(guards = {
@@ -56,6 +58,10 @@ public abstract class TruffleProcessNodes {
                 toStringArray(environmentVariables),
                 fileActions,
                 spawnAttributes);
+        }
+
+        private int castToInt(Object value) {
+            return integerCastNode.executeCastInt(value);
         }
 
         private String[] toStringArray(DynamicObject rubyStrings) {
@@ -88,8 +94,8 @@ public abstract class TruffleProcessNodes {
                     assert size % 2 == 0;
                     final Object[] store = ArrayOperations.toObjectArray(array);
                     for (int i = 0; i < size; i += 2) {
-                        int from = CoreLibrary.lowerToInt(store[i]);
-                        int to = CoreLibrary.lowerToInt(store[i + 1]);
+                        int from = castToInt(store[i]);
+                        int to = castToInt(store[i + 1]);
                         if (to < 0) { // :child fd
                             to = -to - 1;
                         }
@@ -102,14 +108,14 @@ public abstract class TruffleProcessNodes {
                     assert size % 4 == 0;
                     final Object[] store = ArrayOperations.toObjectArray(array);
                     for (int i = 0; i < size; i += 4) {
-                        int fd = (int) store[i];
+                        int fd = castToInt(store[i]);
                         String path = StringOperations.getString((DynamicObject) store[i + 1]);
-                        int flags = (int) store[i + 2];
-                        int perms = (int) store[i + 3];
+                        int flags = castToInt(store[i + 2]);
+                        int perms = castToInt(store[i + 3]);
                         fileActions.add(SpawnFileAction.open(path, fd, flags, perms));
                     }
                 } else if (key == getSymbol("pgroup")) {
-                    long pgroup = (int) value;
+                    long pgroup = castToInt(value);
                     if (pgroup >= 0) {
                         spawnAttributes.add(SpawnAttribute.flags((short) SpawnAttribute.SETPGROUP));
                         spawnAttributes.add(SpawnAttribute.pgroup(pgroup));
