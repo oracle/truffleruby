@@ -10,7 +10,7 @@ require 'socket'
 
 request = "Hello, world!\n"
 
-server = TCPServer.new('0.0.0.0', 14873)
+server = TCPServer.new('127.0.0.1', 14873)
 begin
   loop do
     socket = server.accept
