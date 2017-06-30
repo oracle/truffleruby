@@ -19,12 +19,6 @@ known_failures = [
   ["server", "graal-core", "jruby", "truffle", "micro", "micro/core/file.rb:core-read-gigabyte"],
   ["server", "graal-enterprise", "jruby", "truffle", "micro", "micro/core/file.rb:core-read-gigabyte"],
 
-  # Harness not found
-  ["server", "graal-core", "jruby", "truffle", "server", "tcp-server"],
-  ["server", "graal-enterprise-no-om", "jruby", "truffle", "server", "tcp-server"],
-  ["server", "graal-enterprise", "jruby", "truffle", "server", "tcp-server"],
-  ["server", "graal-vm-snap", "jruby", "truffle", "server", "tcp-server"],
-
   # C-exts
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-color-r"],
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-color-g"],
