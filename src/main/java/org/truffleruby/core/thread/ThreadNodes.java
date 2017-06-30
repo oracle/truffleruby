@@ -569,7 +569,7 @@ public abstract class ThreadNodes {
 
     }
 
-    @Primitive(name = "thread_set_priority")
+    @Primitive(name = "thread_set_priority", lowerFixnum = 1)
     public static abstract class ThreadSetPriorityPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyThread(thread)")

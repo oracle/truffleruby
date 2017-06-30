@@ -1767,7 +1767,7 @@ public abstract class KernelNodes {
 
     }
 
-    @Primitive(name = "kernel_global_variables")
+    @Primitive(name = "kernel_global_variables", needsSelf = false)
     public abstract static class KernelGlobalVariablesPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

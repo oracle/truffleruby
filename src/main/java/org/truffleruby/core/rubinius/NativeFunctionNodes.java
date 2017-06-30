@@ -16,7 +16,7 @@ import org.truffleruby.platform.RubiniusTypes;
 
 public abstract class NativeFunctionNodes {
 
-    @Primitive(name = "nativefunction_type_size", needsSelf = false)
+    @Primitive(name = "nativefunction_type_size", needsSelf = false, lowerFixnum = 1)
     public static abstract class NativeFunctionTypeSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization

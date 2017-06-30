@@ -2534,7 +2534,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "string_awk_split")
+    @Primitive(name = "string_awk_split", lowerFixnum = 1)
     public static abstract class StringAwkSplitPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
@@ -2608,7 +2608,7 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "string_byte_substring")
+    @Primitive(name = "string_byte_substring", lowerFixnum = { 1, 2 })
     @NodeChildren({
             @NodeChild(type = RubyNode.class, value = "string"),
             @NodeChild(type = RubyNode.class, value = "index"),
@@ -3309,7 +3309,7 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "string_character_byte_index", needsSelf = false, lowerFixnum = { 1, 2 })
+    @Primitive(name = "string_character_byte_index", needsSelf = false, lowerFixnum = { 2, 3 })
     @ImportStatic(StringGuards.class)
     public static abstract class CharacterByteIndexNode extends PrimitiveArrayArgumentsNode {
 
@@ -3633,7 +3633,7 @@ public abstract class StringNodes {
     //
     // This method takes a byte index, finds the corresponding character the byte index belongs to, and then returns
     // the byte index marking the start of the previous character in the string.
-    @Primitive(name = "string_previous_byte_index")
+    @Primitive(name = "string_previous_byte_index", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
     public static abstract class StringPreviousByteIndexNode extends PrimitiveArrayArgumentsNode {
 
@@ -3928,7 +3928,7 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "string_to_inum")
+    @Primitive(name = "string_to_inum", lowerFixnum = 1)
     public static abstract class StringToInumPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary

@@ -37,6 +37,9 @@ public class PrimitiveNodeConstructor {
     public PrimitiveNodeConstructor(Primitive annotation, NodeFactory<? extends RubyNode> factory) {
         this.annotation = annotation;
         this.factory = factory;
+        if (CoreMethodNodeManager.CHECK_DSL_USAGE) {
+            LowerFixnumChecker.checkLowerFixnumArguments(factory, annotation.needsSelf() ? 1 : 0, annotation.lowerFixnum());
+        }
     }
 
     public int getPrimitiveArity() {

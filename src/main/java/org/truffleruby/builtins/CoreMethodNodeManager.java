@@ -53,7 +53,7 @@ import java.util.List;
 
 public class CoreMethodNodeManager {
 
-    private static final boolean CHECK_DSL_USAGE = System.getenv("TRUFFLE_CHECK_DSL_USAGE") != null;
+    public static final boolean CHECK_DSL_USAGE = System.getenv("TRUFFLE_CHECK_DSL_USAGE") != null;
     private final RubyContext context;
     private final SingletonClassNode singletonClassNode;
     private final PrimitiveManager primitiveManager;
@@ -231,7 +231,7 @@ public class CoreMethodNodeManager {
         final int nArgs = required + optional;
 
         if (CHECK_DSL_USAGE) {
-            LowerFixnumChecker.checkLowerFixnumArguments(nodeFactory, needsSelf ? 1 : 0, method);
+            LowerFixnumChecker.checkLowerFixnumArguments(nodeFactory, needsSelf ? 1 : 0, method.lowerFixnum());
         }
 
         for (int n = 0; n < nArgs; n++) {

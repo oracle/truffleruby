@@ -251,7 +251,7 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "file_fnmatch", needsSelf = false)
+    @Primitive(name = "file_fnmatch", needsSelf = false, lowerFixnum = 3)
     public static abstract class FileFNMatchPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
