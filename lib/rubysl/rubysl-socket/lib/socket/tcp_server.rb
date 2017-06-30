@@ -37,6 +37,11 @@ class TCPServer < TCPSocket
 
       next if descriptor < 0
 
+      # Truffle: set REUSEADDR *before* bind
+      IO.setup(self, descriptor, nil, true)
+      binmode
+      setsockopt(:SOCKET, :REUSEADDR, true)
+
       status = RubySL::Socket::Foreign
         .bind(descriptor, Socket.sockaddr_in(port, address))
 
@@ -45,10 +50,6 @@ class TCPServer < TCPSocket
 
         Errno.handle('bind(2)')
       else
-        IO.setup(self, descriptor, nil, true)
-        binmode
-        setsockopt(:SOCKET, :REUSEADDR, true)
-
         break
       end
     end
