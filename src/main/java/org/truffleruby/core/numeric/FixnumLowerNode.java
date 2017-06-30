@@ -23,6 +23,12 @@ import org.truffleruby.language.RubyNode;
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class FixnumLowerNode extends RubyNode {
 
+    public static FixnumLowerNode create() {
+        return FixnumLowerNodeGen.create(null);
+    }
+
+    public abstract Object executeLower(Object value);
+
     @Specialization
     public int lower(int value) {
         return value;
