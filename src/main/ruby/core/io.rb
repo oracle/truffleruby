@@ -237,7 +237,8 @@ class IO
     ##
     # Resets the buffer state so the buffer can be filled again.
     def reset!
-      @start = @used = 0
+      @start = 0
+      self.used = 0
       @eof = false
       @write_synced = true
     end
