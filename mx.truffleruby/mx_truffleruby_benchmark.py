@@ -43,7 +43,7 @@ class BackgroundServerTask:
         mx._addSubprocess(self.process, self.args)
 
     def __exit__(self, type, value, traceback):
-        self.process.kill()
+        self.process.terminate()
         self.process.wait()
 
     def is_running(self):
