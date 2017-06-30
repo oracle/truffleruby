@@ -52,6 +52,7 @@ import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
+import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.Rope;
@@ -1703,6 +1704,7 @@ public abstract class ArrayNodes {
 
         @Child private CallDispatchHeadNode compareDispatchNode = CallDispatchHeadNode.create();
         @Child private YieldNode yieldNode = new YieldNode();
+        @Child private FixnumLowerNode fixnumLowerNode = FixnumLowerNode.create();
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
@@ -1776,6 +1778,8 @@ public abstract class ArrayNodes {
         }
 
         private int castSortValue(Object value) {
+            value = fixnumLowerNode.executeLower(value);
+
             if (value instanceof Integer) {
                 return (int) value;
             }
