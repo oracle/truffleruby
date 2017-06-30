@@ -577,7 +577,7 @@ class ServerBenchmarkSuite(RubyBenchmarkSuite):
         return 'server'
 
     def runBenchmark(self, benchmark, bmSuiteArgs):
-        arguments = ['run', '--exec']
+        arguments = ['ruby']
         if 'MX_NO_GRAAL' not in os.environ:
             arguments.extend(['--graal', '-J-G:+TruffleCompilationExceptionsAreFatal'])
         arguments.extend(['ruby-benchmarks/servers/' + benchmark + '.rb'])
