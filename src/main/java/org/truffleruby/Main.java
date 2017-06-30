@@ -49,7 +49,6 @@ import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotContext;
 import org.graalvm.polyglot.Source;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.options.CommandLineOptions;
 import org.truffleruby.options.CommandLineParser;
 import org.truffleruby.options.MainExitException;
@@ -202,7 +201,7 @@ public class Main {
                 return new FileInputStream(script);
             }
         } catch (IOException e) {
-            throw new JavaException(e);
+            throw new RuntimeException(e);
         }
     }
 
