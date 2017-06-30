@@ -10,7 +10,7 @@
 
 query = /Requests per second:\s+(\d+\.\d+)\s+\[#\/sec\] \(mean\)/
 
-budget = (ARGV[0] || 240).to_i
+budget = Integer(ARGV[0] || 240)
 url = ARGV[1] || 'http://0.0.0.0:14873/'
 
 tenth_budget = budget / 10
