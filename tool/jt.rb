@@ -913,20 +913,6 @@ module Commands
       raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
     end
 
-    # Test that we can run those same test when they're build as a .su and we load the code and libraries from that
-
-    unless no_libxml
-      sulong_link '-o', 'test/truffle/cexts/xml/main.su', '-l', "#{LIBXML_LIB}", 'test/truffle/cexts/xml/main.bc'
-      out, _ = sulong_run('test/truffle/cexts/xml/main.su', {capture: true})
-      raise out.inspect unless out == "7\n"
-    end
-
-    unless no_openssl
-      sulong_link '-o', 'test/truffle/cexts/xopenssl/main.su', '-l', openssl_lib, 'test/truffle/cexts/xopenssl/main.bc'
-      out, _ = sulong_run('test/truffle/cexts/xopenssl/main.su', {capture: true})
-      raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
-    end
-
     # Test that we can compile and run some very basic C extensions
 
     begin
