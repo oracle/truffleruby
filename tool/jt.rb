@@ -1128,6 +1128,7 @@ module Commands
     if args.delete('--graal')
       javacmd, javacmd_options = Utilities.find_graal_javacmd_and_options
       env_vars["JAVACMD"] = javacmd
+      options.concat %w[--excl-tag graalvm]
       options.concat javacmd_options.map { |o| "-T#{o}" }
     end
 
