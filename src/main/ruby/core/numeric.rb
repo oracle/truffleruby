@@ -77,17 +77,14 @@ class Numeric
              1
            end
 
-
     unless block_given?
       return to_enum(:step, limit, step) do
-        Rubinius::Mirror::Numeric.reflect(self).step_size(limit, step)
+        Rubinius::Mirror::Numeric.reflect(self).step_size(limit, step, by)
       end
     end
 
-    raise ArgumentError, 'step cannot be 0' if step == 0
-
     m = Rubinius::Mirror::Numeric.reflect(self)
-    values = m.step_fetch_args(limit, step)
+    values = m.step_fetch_args(limit, step, by)
     value = values[0]
     limit = values[1]
     step = values[2]

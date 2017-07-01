@@ -47,15 +47,17 @@ module Rubinius
         end
       end
 
-      def step_size(limit, step)
-        values = step_fetch_args(limit, step)
+      def step_size(limit, step, by)
+        values = step_fetch_args(limit, step, by)
         value = values[0]
         limit = values[1]
         step = values[2]
         asc = values[3]
         is_float = values[4]
 
-        if is_float
+        if step.zero? || !limit || step != Float::INFINITY && limit == Float::INFINITY
+          Float::INFINITY
+        elsif is_float
           # Ported from MRI
           step_float_size(value, limit, step, asc)
         else
@@ -67,8 +69,8 @@ module Rubinius
         end
       end
 
-      def step_fetch_args(limit, step)
-        raise ArgumentError, 'step cannot be 0' if step == 0
+      def step_fetch_args(limit, step, by)
+        raise ArgumentError, 'step cannot be 0' if undefined.equal?(by) && step == 0
 
         value = @object
         asc = step > 0
