@@ -948,7 +948,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "isNormal(a)")
         public int compare(DynamicObject a, double b) {
-            return compareBigDecimal(a, BigDecimal.valueOf(b));
+            return compareBigDecimal(a, valueOf(b));
         }
 
         @Specialization(guards = {
@@ -974,7 +974,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isNormal(a)")
         public Object compareSpecial(VirtualFrame frame, DynamicObject a, double b) {
-            return compareSpecial(a, createBigDecimal(frame, BigDecimal.valueOf(b)));
+            return compareSpecial(a, createBigDecimal(frame, valueOf(b)));
         }
 
         @Specialization(guards = {
@@ -1049,6 +1049,11 @@ public abstract class BigDecimalNodes {
                 DynamicObject b,
                 @Cached("new()") SnippetNode snippetNode) {
             return snippetNode.execute(frame, "redo_coerced :<=>, b", "b", b);
+        }
+
+        @TruffleBoundary
+        private BigDecimal valueOf(double val) {
+            return BigDecimal.valueOf(val);
         }
 
     }

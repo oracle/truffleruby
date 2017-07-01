@@ -173,7 +173,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization
     public DynamicObject create(VirtualFrame frame, BigDecimal value, DynamicObject self, int digits) {
-        Layouts.BIG_DECIMAL.setValue(self, value.round(new MathContext(digits, getRoundMode(frame))));
+        Layouts.BIG_DECIMAL.setValue(self, round(value, new MathContext(digits, getRoundMode(frame))));
         return self;
     }
 
@@ -185,8 +185,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     @Specialization(guards = "isRubyBignum(value)")
     public DynamicObject createBignum(VirtualFrame frame, DynamicObject value, DynamicObject self, int digits) {
         Layouts.BIG_DECIMAL.setValue(self,
-                new BigDecimal(Layouts.BIGNUM.getValue(value))
-                        .round(new MathContext(digits, getRoundMode(frame))));
+                round(new BigDecimal(Layouts.BIGNUM.getValue(value)), new MathContext(digits, getRoundMode(frame))));
         return self;
     }
 
@@ -198,8 +197,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     @Specialization(guards = "isRubyBigDecimal(value)")
     public DynamicObject createBigDecimal(VirtualFrame frame, DynamicObject value, DynamicObject self, int digits) {
         Layouts.BIG_DECIMAL.setValue(self,
-                Layouts.BIG_DECIMAL.getValue(value)
-                        .round(new MathContext(digits, getRoundMode(frame))));
+                round(Layouts.BIG_DECIMAL.getValue(value), new MathContext(digits, getRoundMode(frame))));
         return self;
     }
 
@@ -231,7 +229,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             throw new RaiseException(coreExceptions().typeErrorCantBeCastedToBigDecimal(this));
         }
 
-        Layouts.BIG_DECIMAL.setValue(self, ((BigDecimal) castedValue).round(new MathContext(digits, getRoundMode(frame))));
+        Layouts.BIG_DECIMAL.setValue(self, round(((BigDecimal) castedValue), new MathContext(digits, getRoundMode(frame))));
 
         return self;
     }
