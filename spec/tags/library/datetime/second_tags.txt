@@ -1,1 +1,1 @@
-aot:DateTime#second returns the absolute value of a float
+graalvm:DateTime#second returns the absolute value of a float
