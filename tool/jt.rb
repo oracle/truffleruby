@@ -140,7 +140,7 @@ module Utilities
     sulong_home = File.expand_path(sulong_home)
     mx = find_mx(sulong_home)
     output = `#{mx} -v -p #{sulong_home} su-run 2>&1`.lines.to_a
-    command_line = output.select { |line| line.include? 'DynamicNativeLibraryPath' }
+    command_line = output.select { |line| line.include? '/sulong.jar' }
     if command_line.size == 1
       command_line = command_line[0]
     else
@@ -892,7 +892,7 @@ module Commands
     sh RbConfig.ruby, 'test/truffle/cexts/test-preprocess.rb'
 
     # Test that we can compile and run some basic C code that uses libxml and openssl
-    
+
     if ENV['OPENSSL_PREFIX']
       openssl_cflags = ['-I', "#{ENV['OPENSSL_PREFIX']}/include"]
       openssl_lib = "#{ENV['OPENSSL_PREFIX']}/lib/libssl.#{SO}"
