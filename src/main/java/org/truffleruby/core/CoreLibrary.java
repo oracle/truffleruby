@@ -716,7 +716,7 @@ public class CoreLibrary {
 
     private InternalMethod getMethod(DynamicObject module, String name) {
         InternalMethod method = Layouts.MODULE.getFields(module).getMethod(name);
-        if (method == null) {
+        if (method == null || method.isUndefined()) {
             throw new AssertionError();
         }
         return method;

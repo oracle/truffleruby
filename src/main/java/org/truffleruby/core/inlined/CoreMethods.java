@@ -17,6 +17,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
+import org.truffleruby.language.methods.InternalMethod;
 
 public class CoreMethods {
 
@@ -37,10 +38,13 @@ public class CoreMethods {
     final Assumption fixnumLessThanAssumption, fixnumLessOrEqualAssumption;
     final Assumption fixnumGreaterThanAssumption, fixnumGreaterOrEqualAssumption;
 
+    public final InternalMethod BLOCK_GIVEN;
+
     public CoreMethods(RubyContext context) {
         this.context = context;
         final DynamicObject fixnumClass = context.getCoreLibrary().getFixnumClass();
         final DynamicObject floatClass = context.getCoreLibrary().getFloatClass();
+        final DynamicObject kernelModule = context.getCoreLibrary().getKernelModule();
 
         fixnumAddAssumption = registerAssumption(fixnumClass, "+");
         floatAddAssumption = registerAssumption(floatClass, "+");
@@ -67,10 +71,20 @@ public class CoreMethods {
         fixnumLessOrEqualAssumption = registerAssumption(fixnumClass, "<=");
         fixnumGreaterThanAssumption = registerAssumption(fixnumClass, ">");
         fixnumGreaterOrEqualAssumption = registerAssumption(fixnumClass, ">=");
+
+        BLOCK_GIVEN = getMethod(kernelModule, "block_given?");
     }
 
     private Assumption registerAssumption(DynamicObject klass, String methodName) {
         return Layouts.MODULE.getFields(klass).registerAssumption(methodName);
+    }
+
+    private InternalMethod getMethod(DynamicObject module, String name) {
+        InternalMethod method = Layouts.MODULE.getFields(module).getMethod(name);
+        if (method == null || method.isUndefined()) {
+            throw new AssertionError();
+        }
+        return method;
     }
 
     public RubyNode createCallNode(RubyCallNodeParameters callParameters) {
@@ -83,7 +97,16 @@ public class CoreMethods {
         final RubyNode[] args = callParameters.getArguments();
         int n = 1 /* self */ + args.length;
 
-        if (n == 2) {
+        if (n == 1) {
+            switch (callParameters.getMethodName()) {
+                case "block_given?":
+                    if (callParameters.isIgnoreVisibility()) {
+                        return InlinedBlockGivenNodeGen.create(context, callParameters, self);
+                    }
+                    break;
+                default:
+            }
+        } else if (n == 2) {
             switch (callParameters.getMethodName()) {
                 case "+":
                     return InlinedAddNodeGen.create(context, callParameters, self, args[0]);

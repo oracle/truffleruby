@@ -61,6 +61,10 @@ public abstract class InlinedOperationNode extends RubyNode {
         return rewriteToCallNode().executeWithArgumentsEvaluated(frame, receiver, arguments);
     }
 
+    protected CoreMethods coreMethods() {
+        return getContext().getCoreMethods();
+    }
+
     @Override
     public Object isDefined(VirtualFrame frame) {
         return rewriteToCallNode().isDefined(frame);
