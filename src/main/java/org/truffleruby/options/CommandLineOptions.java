@@ -46,7 +46,6 @@ public class CommandLineOptions {
     private boolean usePathScript;
     private String scriptFileName;
     private Collection<String> requiredLibraries = new LinkedHashSet<>();
-    private boolean argvGlobalsOn;
     private Map<String, String> optionGlobals = new HashMap<>();
     private boolean split;
     private boolean showVersion;
@@ -171,14 +170,6 @@ public class CommandLineOptions {
 
     public Map<String, String> getOptionGlobals() {
         return optionGlobals;
-    }
-
-    public boolean isArgvGlobalsOn() {
-        return argvGlobalsOn;
-    }
-
-    public void setArgvGlobalsOn(boolean argvGlobalsOn) {
-        this.argvGlobalsOn = argvGlobalsOn;
     }
 
     public boolean doesHaveScriptArgv() {
