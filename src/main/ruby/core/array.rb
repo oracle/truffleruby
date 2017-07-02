@@ -406,6 +406,8 @@ class Array
 
     if idx < 0 or idx >= size
       if block_given?
+        warn 'block supersedes default value argument' unless undefined.equal?(default)
+
         return yield(orig)
       end
 
