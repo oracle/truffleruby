@@ -108,9 +108,9 @@ public class RubyContext {
         allocationReporter = env.lookup(AllocationReporter.class);
 
         final OptionsBuilder optionsBuilder = new OptionsBuilder();
-        optionsBuilder.set(env.getOptions());           // Options from the SDK first as they always overwrite everything
+        optionsBuilder.set(env.getConfig());            // First legacy config - used by unit tests for example
         optionsBuilder.set(System.getProperties());     // Then system properties
-        optionsBuilder.set(env.getConfig());            // Then from the command line
+        optionsBuilder.set(env.getOptions());           // Then the command line and the polyglot engine
         options = optionsBuilder.build();
 
         rubyHome = findRubyHome();
@@ -378,7 +378,7 @@ public class RubyContext {
     private String findRubyHome() {
         // Use the option if it was set
 
-        if (options.HOME != null) {
+        if (!options.HOME.isEmpty()) {
             return new File(options.HOME).getAbsolutePath();
         }
 

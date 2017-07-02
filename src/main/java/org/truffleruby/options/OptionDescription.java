@@ -12,6 +12,7 @@ package org.truffleruby.options;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionType;
+import org.truffleruby.RubyLanguage;
 
 public abstract class OptionDescription<T> {
 
@@ -28,7 +29,7 @@ public abstract class OptionDescription<T> {
     }
 
     public String getSDKName() {
-        return "ruby." + name;
+        return RubyLanguage.ID + "." + name;
     }
 
     public String getDescription() {

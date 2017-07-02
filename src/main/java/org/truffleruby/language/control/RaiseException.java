@@ -74,13 +74,13 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
 
     @Override
     public int getExitStatus() {
-        final Object status = ReadObjectFieldNode.read(exception, "@status", null);
+        final Object status = ReadObjectFieldNode.read(exception, "@status", 1);
 
         if (status instanceof Integer) {
             return (int) status;
         }
 
-        throw new UnsupportedOperationException("Ruby exit exception status is not an integer");
+        throw new UnsupportedOperationException(String.format("Ruby exit exception status is not an integer (%s)", status.getClass()));
     }
 
     private boolean isA(RubyContext context, DynamicObject rubyClass) {

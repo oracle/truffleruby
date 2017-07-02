@@ -22,8 +22,7 @@ public class Options {
     public final String LAUNCHER;
     @CompilationFinal(dimensions=1) public final String[] LOAD_PATHS;
     @CompilationFinal(dimensions=1) public final String[] REQUIRED_LIBRARIES;
-    @CompilationFinal(dimensions=1) public final byte[] INLINE_SCRIPT;
-    @CompilationFinal(dimensions=1) public final String[] ARGUMENTS;
+    public final String INLINE_SCRIPT;
     public final String DISPLAYED_FILE_NAME;
     public final boolean READ_RUBYOPT;
     public final boolean IGNORE_LINES_BEFORE_RUBY_SHEBANG;
@@ -119,7 +118,6 @@ public class Options {
         LOAD_PATHS = builder.getOrDefault(OptionsCatalog.LOAD_PATHS);
         REQUIRED_LIBRARIES = builder.getOrDefault(OptionsCatalog.REQUIRED_LIBRARIES);
         INLINE_SCRIPT = builder.getOrDefault(OptionsCatalog.INLINE_SCRIPT);
-        ARGUMENTS = builder.getOrDefault(OptionsCatalog.ARGUMENTS);
         DISPLAYED_FILE_NAME = builder.getOrDefault(OptionsCatalog.DISPLAYED_FILE_NAME);
         READ_RUBYOPT = builder.getOrDefault(OptionsCatalog.READ_RUBYOPT);
         IGNORE_LINES_BEFORE_RUBY_SHEBANG = builder.getOrDefault(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG);
@@ -222,8 +220,6 @@ public class Options {
                 return REQUIRED_LIBRARIES;
             case "inline_script":
                 return INLINE_SCRIPT;
-            case "arguments":
-                return ARGUMENTS;
             case "displayed_file_name":
                 return DISPLAYED_FILE_NAME;
             case "read_rubyopt":

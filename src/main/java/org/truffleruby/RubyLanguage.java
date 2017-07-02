@@ -38,8 +38,8 @@ import java.util.Locale;
 import java.util.List;
 
 @TruffleLanguage.Registration(
-        name = "Ruby",
-        id = "ruby",
+        name = RubyLanguage.NAME,
+        id = RubyLanguage.ID,
         version = RubyLanguage.RUBY_VERSION,
         mimeType = RubyLanguage.MIME_TYPE)
 @ProvidedTags({
@@ -53,6 +53,9 @@ import java.util.List;
         StandardTags.CallTag.class
 })
 public class RubyLanguage extends TruffleLanguage<RubyContext> {
+
+    public static final String NAME = "Ruby";
+    public static final String ID = "ruby";
 
     public static final String PLATFORM = String.format("%s-%s", Platform.getArchitecture(), Platform.getOSName());
     public static final String RUBY_VERSION = "2.3.3";
@@ -195,11 +198,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         final List<OptionDescriptor> options = new ArrayList<>();
 
         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-            // TODO CS 19-Jun-17 default value of null isn't supported
-
-            if (option.getDefaultValue() != null) {
-                options.add(option.toDescriptor());
-            }
+            options.add(option.toDescriptor());
         }
 
         return OptionDescriptors.create(options);

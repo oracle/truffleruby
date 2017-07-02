@@ -292,6 +292,8 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableStorage verboseStorage;
     @CompilationFinal private GlobalVariableStorage stderrStorage;
 
+    public static final String MAIN_BOOT_SOURCE_NAME = "main_boot_source";
+
     private Source mainBootSource = null;
 
     private final String coreLoadPath;
@@ -299,16 +301,6 @@ public class CoreLibrary {
     @TruffleBoundary
     private static Source initCoreSource() {
         return Source.newBuilder("").name("(core)").mimeType(RubyLanguage.MIME_TYPE).build();
-    }
-
-    public Source createMainBootSource(String code, String name) {
-        assert mainBootSource == null;
-        mainBootSource = Source.newBuilder(code).name(name).internal().mimeType(RubyLanguage.MIME_TYPE).build();
-        return mainBootSource;
-    }
-
-    public Source getMainBootSource() {
-        return mainBootSource;
     }
 
     private String buildCoreLoadPath() {
@@ -746,7 +738,7 @@ public class CoreLibrary {
 
         final Object dollarZeroValue;
 
-        if (context.getOptions().DISPLAYED_FILE_NAME == null) {
+        if (context.getOptions().DISPLAYED_FILE_NAME.isEmpty()) {
             dollarZeroValue = nil;
         } else {
             dollarZeroValue = StringOperations.createString(context, StringOperations.encodeRope(context.getOptions().DISPLAYED_FILE_NAME, UTF8Encoding.INSTANCE));
@@ -1018,7 +1010,7 @@ public class CoreLibrary {
 
         // External should always have a value, but Encoding.external_encoding{,=} will lazily setup
         final String externalEncodingName = getContext().getOptions().EXTERNAL_ENCODING;
-        if (externalEncodingName != null && !externalEncodingName.isEmpty()) {
+        if (!externalEncodingName.isEmpty()) {
             final DynamicObject loadedEncoding = getContext().getEncodingManager().getRubyEncoding(externalEncodingName);
             if (loadedEncoding == null) {
                 // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit with a status code of 1 -- it's essentially an input validation error -- no need to show the user a full trace.
@@ -1031,7 +1023,7 @@ public class CoreLibrary {
         }
 
         final String internalEncodingName = getContext().getOptions().INTERNAL_ENCODING;
-        if (internalEncodingName != null && !internalEncodingName.isEmpty()) {
+        if (!internalEncodingName.isEmpty()) {
             final DynamicObject rubyEncoding = getContext().getEncodingManager().getRubyEncoding(internalEncodingName);
             if (rubyEncoding == null) {
                 // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit with a status code of 1 -- it's essentially an input validation error -- no need to show the user a full trace.

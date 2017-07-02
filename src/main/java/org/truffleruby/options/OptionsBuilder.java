@@ -9,8 +9,10 @@
  */
 package org.truffleruby.options;
 
+import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionValues;
 import org.truffleruby.Log;
+import org.truffleruby.RubyLanguage;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,15 +50,19 @@ public class OptionsBuilder {
 
     public void set(OptionValues optionValues) {
         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-            // TODO CS 19-Jun-17 default value of null isn't supported
+            final OptionKey<?> key = optionValues.getDescriptors().get(option.getSDKName()).getKey();
 
-            if (option.getDefaultValue() != null) {
-                set(option.getName(), optionValues.get(optionValues.getDescriptors().get(option.getSDKName()).getKey()));
+            if (optionValues.hasBeenSet(key)) {
+                set(option.getName(), optionValues.get(key));
             }
         }
     }
 
     private void set(String name, Object value) {
+        if (name.startsWith(RubyLanguage.ID + ".")) {
+            name = name.substring(RubyLanguage.ID.length() + 1);
+        }
+
         final OptionDescription<?> description = OptionsCatalog.fromName(name);
 
         if (description == null) {
