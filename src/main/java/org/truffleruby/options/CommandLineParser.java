@@ -82,6 +82,7 @@ public class CommandLineParser {
     final CommandLineOptions config;
     private boolean endOfArguments = false;
     private int characterIndex = 0;
+    private boolean argvGlobalsOn;
 
     public CommandLineParser(String[] arguments, CommandLineOptions config) {
         this(arguments, true, false, false, config);
@@ -138,7 +139,7 @@ public class CommandLineParser {
         ArrayList<String> arglist = new ArrayList<>();
         for (; argumentIndex < arguments.size(); argumentIndex++) {
             String arg = arguments.get(argumentIndex).originalValue;
-            if (config.isArgvGlobalsOn() && arg.startsWith("-")) {
+            if (argvGlobalsOn && arg.startsWith("-")) {
                 arg = arg.substring(1);
                 int split = arg.indexOf('=');
                 if (split > 0) {
@@ -151,7 +152,7 @@ public class CommandLineParser {
                     config.getOptionGlobals().put(arg, null);
                 }
             } else {
-                config.setArgvGlobalsOn(false);
+                argvGlobalsOn = false;
                 arglist.add(arg);
             }
         }
@@ -285,7 +286,7 @@ public class CommandLineParser {
                     break FOR;
                 case 's':
                     disallowedInRubyOpts(argument);
-                    config.setArgvGlobalsOn(true);
+                    argvGlobalsOn = true;
                     break;
                 case 'G':
                     throw new UnsupportedOperationException();
