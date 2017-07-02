@@ -16,13 +16,12 @@ import javax.annotation.Generated;
 @Generated("tool/generate-options.rb")
 public class OptionsCatalog {
 
-    public static final StringOptionDescription HOME = new StringOptionDescription("home", "The location of the TruffleRuby installation files", null);
-    public static final StringOptionDescription LAUNCHER = new StringOptionDescription("launcher", "The location of the TruffleRuby launcher program", null);
+    public static final StringOptionDescription HOME = new StringOptionDescription("home", "The location of the TruffleRuby installation files", "");
+    public static final StringOptionDescription LAUNCHER = new StringOptionDescription("launcher", "The location of the TruffleRuby launcher program", "");
     public static final StringArrayOptionDescription LOAD_PATHS = new StringArrayOptionDescription("load_paths", "Load paths", new String[]{});
     public static final StringArrayOptionDescription REQUIRED_LIBRARIES = new StringArrayOptionDescription("required_libraries", "Required libraries", new String[]{});
-    public static final ByteStringOptionDescription INLINE_SCRIPT = new ByteStringOptionDescription("inline_script", "Inline script", null);
-    public static final StringArrayOptionDescription ARGUMENTS = new StringArrayOptionDescription("arguments", "Command line arguments for the Ruby program", new String[]{});
-    public static final StringOptionDescription DISPLAYED_FILE_NAME = new StringOptionDescription("displayed_file_name", "Displayed file name", null);
+    public static final StringOptionDescription INLINE_SCRIPT = new StringOptionDescription("inline_script", "Inline script", "");
+    public static final StringOptionDescription DISPLAYED_FILE_NAME = new StringOptionDescription("displayed_file_name", "Displayed file name", "");
     public static final BooleanOptionDescription READ_RUBYOPT = new BooleanOptionDescription("read_rubyopt", "Read RUBYOPT and TRUFFLERUBYOPT environment variables", true);
     public static final BooleanOptionDescription IGNORE_LINES_BEFORE_RUBY_SHEBANG = new BooleanOptionDescription("ignore_lines_before_ruby_shebang", "strip off text before #!ruby line", false);
     public static final BooleanOptionDescription DEBUG = new BooleanOptionDescription("debug", "Debug", false);
@@ -32,8 +31,8 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription PATCHING = new BooleanOptionDescription("patching", "Use patching", true);
     public static final BooleanOptionDescription PATCHING_OPENSSL = new BooleanOptionDescription("patching_openssl", "Use openssl patching", PATCHING.getDefaultValue());
     public static final BooleanOptionDescription DID_YOU_MEAN = new BooleanOptionDescription("did_you_mean", "Use did_you_mean", true);
-    public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription("internal_encoding", "Internal encoding", null);
-    public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription("external_encoding", "External encoding", null);
+    public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription("internal_encoding", "Internal encoding", "");
+    public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription("external_encoding", "External encoding", "");
     public static final BooleanOptionDescription POLYGLOT_STDIO = new BooleanOptionDescription("ployglot.stdio", "Use standard IO streams from the PolyglotEngine", true);
     public static final BooleanOptionDescription SYNC_STDIO = new BooleanOptionDescription("sync.stdio", "Sync operations on standard IO streams", true);
     public static final BooleanOptionDescription PLATFORM_USE_JAVA = new BooleanOptionDescription("platform.use_java", "Use a pure-Java platform", false);
@@ -123,8 +122,6 @@ public class OptionsCatalog {
                 return REQUIRED_LIBRARIES;
             case "inline_script":
                 return INLINE_SCRIPT;
-            case "arguments":
-                return ARGUMENTS;
             case "displayed_file_name":
                 return DISPLAYED_FILE_NAME;
             case "read_rubyopt":
@@ -313,7 +310,6 @@ public class OptionsCatalog {
             LOAD_PATHS,
             REQUIRED_LIBRARIES,
             INLINE_SCRIPT,
-            ARGUMENTS,
             DISPLAYED_FILE_NAME,
             READ_RUBYOPT,
             IGNORE_LINES_BEFORE_RUBY_SHEBANG,

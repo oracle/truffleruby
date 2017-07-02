@@ -46,7 +46,7 @@ public class SourceLoader {
     public Source loadMain(RubyNode currentNode, String path) throws IOException {
         switch (path) {
             case "-e":
-                return Source.newBuilder(new String(context.getOptions().INLINE_SCRIPT, StandardCharsets.UTF_8)).name(
+                return Source.newBuilder(context.getOptions().INLINE_SCRIPT).name(
                         "-e").mimeType(RubyLanguage.MIME_TYPE).build();
             case "-":
                 return Source.newBuilder(xOptionStrip(

@@ -66,7 +66,7 @@ public abstract class TruffleBootNodes {
                 final String path = (String) Compiler.command(new Object[]{"com.oracle.svm.core.posix.GetExecutableName"});
                 return createString(StringOperations.encodeRope(path, UTF8Encoding.INSTANCE));
             } else {
-                if (getContext().getOptions().LAUNCHER == null) {
+                if (getContext().getOptions().LAUNCHER.isEmpty()) {
                     return nil();
                 } else {
                     return createString(StringOperations.encodeRope(getContext().getOptions().LAUNCHER, UTF8Encoding.INSTANCE));
@@ -142,7 +142,7 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject originalArgv() {
-            final String[] argv = getContext().getOptions().ARGUMENTS;
+            final String[] argv = getContext().getEnv().getApplicationArguments();
             final Object[] array = new Object[argv.length];
 
             for (int n = 0; n < array.length; n++) {

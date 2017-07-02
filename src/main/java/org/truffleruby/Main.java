@@ -45,8 +45,10 @@
 package org.truffleruby;
 
 import com.oracle.truffle.api.TruffleOptions;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.vm.PolyglotEngine;
+import org.graalvm.polyglot.Engine;
+import org.graalvm.polyglot.PolyglotContext;
+import org.graalvm.polyglot.Source;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.options.CommandLineOptions;
 import org.truffleruby.options.CommandLineParser;
@@ -61,6 +63,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 public class Main {
@@ -97,34 +100,35 @@ public class Main {
 
         if (config.getShouldRunInterpreter()) {
             final String filename = displayedFileName(config);
-            final PolyglotEngine engine = createPolyglotEngine(config, filename);
-            final RubyContext context = loadContext(engine);
+            try (final Engine engine = createEngine(config, filename);
+                 final PolyglotContext polyglotContext = engine.newPolyglotContextBuilder().setArguments(RubyLanguage.ID, config.getArguments()).build();) {
+                final RubyContext context = loadContext(polyglotContext);
 
-            printTruffleTimeMetric("before-run");
-            try {
-                if (config.getShouldCheckSyntax()) {
-                    // check syntax only and exit
-                    exitCode = checkSyntax(engine, context, getScriptSource(config), filename);
-                } else {
-                    if (!RubyLanguage.isGraal() && context.getOptions().GRAAL_WARNING_UNLESS) {
-                        Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
-                    }
-
-                    final String bootCode;
-                    if (config.shouldUsePathScript()) {
-                        context.setOriginalInputFile(config.getScriptFileName());
-                        //language=ruby
-                        bootCode = "Truffle::Boot.main_s";
+                printTruffleTimeMetric("before-run");
+                try {
+                    if (config.getShouldCheckSyntax()) {
+                        // check syntax only and exit
+                        exitCode = checkSyntax(config, polyglotContext, context, getScriptSource(config), filename);
                     } else {
-                        context.setOriginalInputFile(filename);
-                        //language=ruby
-                        bootCode = "Truffle::Boot.main";
+                        if (!RubyLanguage.isGraal() && context.getOptions().GRAAL_WARNING_UNLESS) {
+                            Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
+                        }
+
+                        final String bootCode;
+                        if (config.shouldUsePathScript()) {
+                            context.setOriginalInputFile(config.getScriptFileName());
+                            //language=ruby
+                            bootCode = "Truffle::Boot.main_s";
+                        } else {
+                            context.setOriginalInputFile(filename);
+                            //language=ruby
+                            bootCode = "Truffle::Boot.main";
+                        }
+                        exitCode = polyglotContext.eval(RubyLanguage.ID, Source.newBuilder(bootCode).name(CoreLibrary.MAIN_BOOT_SOURCE_NAME).build()).asInt();
                     }
-                    exitCode = engine.eval(context.getCoreLibrary().createMainBootSource(bootCode, "main")).as(Integer.class);
+                } finally {
+                    printTruffleTimeMetric("after-run");
                 }
-            } finally {
-                printTruffleTimeMetric("after-run");
-                engine.dispose();
             }
         } else {
             if (config.getShouldPrintShortUsage()) {
@@ -140,13 +144,14 @@ public class Main {
         System.exit(exitCode);
     }
 
-    private static PolyglotEngine createPolyglotEngine(CommandLineOptions config, String filename) {
-        final PolyglotEngine.Builder builder = PolyglotEngine.newBuilder();
+    private static Engine createEngine(CommandLineOptions config, String filename) {
+        final Engine.Builder builder = Engine.newBuilder();
 
-        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.LOAD_PATHS.getName(), config.getLoadPaths().toArray(new String[]{}));
-        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.REQUIRED_LIBRARIES.getName(), config.getRequiredLibraries().toArray(new String[]{}));
-        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
-        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
+        // TODO CS 2-Jul-17 some of these values are going back and forth from string and array representation
+        builder.setOption(OptionsCatalog.LOAD_PATHS.getSDKName(), OptionsCatalog.LOAD_PATHS.toString(config.getLoadPaths().toArray(new String[]{})));
+        builder.setOption(OptionsCatalog.REQUIRED_LIBRARIES.getSDKName(), OptionsCatalog.LOAD_PATHS.toString(config.getRequiredLibraries().toArray(new String[]{})));
+        builder.setOption(OptionsCatalog.INLINE_SCRIPT.getSDKName(), config.inlineScript());
+        builder.setOption(OptionsCatalog.DISPLAYED_FILE_NAME.getSDKName(), filename);
 
         /*
          * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
@@ -155,22 +160,23 @@ public class Main {
          * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
          */
 
-        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.POLYGLOT_STDIO.getName(), false);
-        builder.config(RubyLanguage.MIME_TYPE, OptionsCatalog.SYNC_STDIO.getName(), false);
+        builder.setOption(OptionsCatalog.POLYGLOT_STDIO.getSDKName(), Boolean.FALSE.toString());
+        builder.setOption(OptionsCatalog.SYNC_STDIO.getSDKName(), Boolean.FALSE.toString());
 
-        for (Map.Entry<String, Object> option : config.getOptions().entrySet()) {
-            builder.config(RubyLanguage.MIME_TYPE, option.getKey(), option.getValue());
+        for (Map.Entry<String, String> option : config.getOptions().entrySet()) {
+            builder.setOption(RubyLanguage.ID + "." + option.getKey(), option.getValue());
         }
 
         return builder.build();
     }
 
-    private static RubyContext loadContext(PolyglotEngine engine) {
+    private static RubyContext loadContext(PolyglotContext polyglotContext) {
         Main.printTruffleTimeMetric("before-load-context");
-        final RubyContext context = engine.eval(loadBootSource(
+        // TODO CS 2-Jul-17 I really don't think we need the context externally any more - see if we can remove users of this
+        final RubyContext context = polyglotContext.eval(RubyLanguage.ID, Source.newBuilder(
                 // language=ruby
-                "Truffle::Boot.context",
-                "context")).as(RubyContext.class);
+                "Truffle::Boot.context"
+        ).name("context").build()).asHostObject();
         Main.printTruffleTimeMetric("after-load-context");
         return context;
     }
@@ -178,7 +184,7 @@ public class Main {
     public static void processArguments(CommandLineOptions config, String[] arguments) {
         new CommandLineParser(arguments, config).processArguments();
 
-        if ((boolean) config.getOptions().getOrDefault(OptionsCatalog.READ_RUBYOPT.getName(), OptionsCatalog.READ_RUBYOPT.getDefaultValue())) {
+        if (config.getOptions().getOrDefault(OptionsCatalog.READ_RUBYOPT.getSDKName(), OptionsCatalog.READ_RUBYOPT.getDefaultValue().toString()).equals(Boolean.TRUE.toString())) {
             CommandLineParser.processEnvironmentVariable("RUBYOPT", config, true);
             CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config, false);
         }
@@ -191,7 +197,7 @@ public class Main {
     public static InputStream getScriptSource(CommandLineOptions config) {
         try {
             if (config.isInlineScript()) {
-                return new ByteArrayInputStream(config.inlineScript());
+                return new ByteArrayInputStream(config.inlineScript().getBytes(Charset.defaultCharset()));
             } else if (config.isForceStdin() || config.getScriptFileName() == null) {
                 return System.in;
             } else {
@@ -243,28 +249,24 @@ public class Main {
         }
     }
 
-    private static Source loadBootSource(String source, String name) {
-        return Source.newBuilder(source).name(name).internal().mimeType(RubyLanguage.MIME_TYPE).build();
-    }
-
-    private static int checkSyntax(PolyglotEngine engine, RubyContext context, InputStream in, String filename) {
+    private static int checkSyntax(CommandLineOptions config, PolyglotContext polyglotContext, RubyContext context, InputStream in, String filename) {
         // check primary script
-        boolean status = runCheckSyntax(engine, context, in, filename);
+        boolean status = runCheckSyntax(polyglotContext, context, in, filename);
 
         // check other scripts specified on argv
-        for (String arg : context.getOptions().ARGUMENTS) {
-            status = status && checkFileSyntax(engine, context, arg);
+        for (String arg : config.getArguments()) {
+            status = status && checkFileSyntax(polyglotContext, context, arg);
         }
 
         return status ? 0 : 1;
     }
 
 
-    private static boolean checkFileSyntax(PolyglotEngine engine, RubyContext context, String filename) {
+    private static boolean checkFileSyntax(PolyglotContext polyglotContext, RubyContext context, String filename) {
         File file = new File(filename);
         if (file.exists()) {
             try {
-                return runCheckSyntax(engine, context, new FileInputStream(file), filename);
+                return runCheckSyntax(polyglotContext, context, new FileInputStream(file), filename);
             } catch (FileNotFoundException fnfe) {
                 System.err.println("File not found: " + filename);
                 return false;
@@ -274,14 +276,14 @@ public class Main {
         }
     }
 
-    private static boolean runCheckSyntax(PolyglotEngine engine, RubyContext context, InputStream in, String filename) {
+    private static boolean runCheckSyntax(PolyglotContext polyglotContext, RubyContext context, InputStream in, String filename) {
         context.setSyntaxCheckInputStream(in);
         context.setOriginalInputFile(filename);
 
-        return engine.eval(loadBootSource(
-                //language=ruby
-                "Truffle::Boot.check_syntax",
-                "check_syntax")).as(Boolean.class);
+        return polyglotContext.eval(RubyLanguage.ID, Source.newBuilder(
+                // language=ruby
+                "Truffle::Boot.check_syntax"
+        ).name("check_syntax").build()).asBoolean();
     }
 
 }

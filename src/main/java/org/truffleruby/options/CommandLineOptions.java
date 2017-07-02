@@ -37,9 +37,10 @@ import java.util.Map;
 
 public class CommandLineOptions {
 
-    private Map<String, Object> options = new HashMap<>();
+    private Map<String, String> options = new HashMap<>();
 
     private List<String> loadPaths = new ArrayList<>();
+    private String[] arguments = new String[]{};
     private StringBuffer inlineScript = new StringBuffer();
     private boolean hasInlineScript;
     private boolean usePathScript;
@@ -58,12 +59,20 @@ public class CommandLineOptions {
     private boolean forceStdin;
     private boolean shouldPrintShortUsage;
 
-    public Map<String, Object> getOptions() {
+    public Map<String, String> getOptions() {
         return options;
     }
 
-    public byte[] inlineScript() {
-        return inlineScript.toString().getBytes();
+    public String[] getArguments() {
+        return arguments;
+    }
+
+    public void setArguments(String[] arguments) {
+        this.arguments = arguments;
+    }
+
+    public String inlineScript() {
+        return inlineScript.toString();
     }
 
     public StringBuffer getInlineScript() {
