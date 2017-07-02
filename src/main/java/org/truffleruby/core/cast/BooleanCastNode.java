@@ -23,6 +23,10 @@ import org.truffleruby.language.RubyNode;
 @Instrumentable(factory = BooleanCastNodeWrapper.class)
 public abstract class BooleanCastNode extends RubyNode {
 
+    public static BooleanCastNode create() {
+        return BooleanCastNodeGen.create(null);
+    }
+
     public BooleanCastNode() {
     }
 

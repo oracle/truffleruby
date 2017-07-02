@@ -38,6 +38,10 @@ public abstract class LookupMethodNode extends RubyNode {
 
     @Child private MetaClassNode metaClassNode = MetaClassNodeGen.create(null);
 
+    public static LookupMethodNode create() {
+        return LookupMethodNodeGen.create(false, false, null, null);
+    }
+
     public static LookupMethodNode createIgnoreVisibility() {
         return LookupMethodNodeGen.create(true, false, null, null);
     }
