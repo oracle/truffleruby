@@ -39,12 +39,14 @@ public class CoreMethods {
     final Assumption fixnumGreaterThanAssumption, fixnumGreaterOrEqualAssumption;
 
     public final InternalMethod BLOCK_GIVEN;
+    public final InternalMethod NOT;
 
     public CoreMethods(RubyContext context) {
         this.context = context;
+        final DynamicObject basicObjectClass = context.getCoreLibrary().getBasicObjectClass();
+        final DynamicObject kernelModule = context.getCoreLibrary().getKernelModule();
         final DynamicObject fixnumClass = context.getCoreLibrary().getFixnumClass();
         final DynamicObject floatClass = context.getCoreLibrary().getFloatClass();
-        final DynamicObject kernelModule = context.getCoreLibrary().getKernelModule();
 
         fixnumAddAssumption = registerAssumption(fixnumClass, "+");
         floatAddAssumption = registerAssumption(floatClass, "+");
@@ -73,6 +75,7 @@ public class CoreMethods {
         fixnumGreaterOrEqualAssumption = registerAssumption(fixnumClass, ">=");
 
         BLOCK_GIVEN = getMethod(kernelModule, "block_given?");
+        NOT = getMethod(basicObjectClass, "!");
     }
 
     private Assumption registerAssumption(DynamicObject klass, String methodName) {
@@ -99,6 +102,8 @@ public class CoreMethods {
 
         if (n == 1) {
             switch (callParameters.getMethodName()) {
+                case "!":
+                    return InlinedNotNodeGen.create(context, callParameters, self);
                 case "block_given?":
                     if (callParameters.isIgnoreVisibility()) {
                         return InlinedBlockGivenNodeGen.create(context, callParameters, self);
