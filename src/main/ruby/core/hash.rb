@@ -220,7 +220,12 @@ class Hash
       return value
     end
 
-    return yield(key) if block_given?
+    if block_given?
+      warn 'block supersedes default value argument' unless undefined.equal?(default)
+
+      return yield(key)
+    end
+
     return default unless undefined.equal?(default)
     raise KeyError, "key #{key} not found"
   end
