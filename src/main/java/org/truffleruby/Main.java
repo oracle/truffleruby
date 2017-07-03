@@ -105,30 +105,27 @@ public class Main {
                 final RubyContext context = loadContext(polyglotContext);
 
                 printTruffleTimeMetric("before-run");
-                try {
-                    if (config.getShouldCheckSyntax()) {
-                        // check syntax only and exit
-                        exitCode = checkSyntax(config, polyglotContext, context, getScriptSource(config), filename);
-                    } else {
-                        if (!RubyLanguage.isGraal() && context.getOptions().GRAAL_WARNING_UNLESS) {
-                            Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
-                        }
-
-                        final String bootCode;
-                        if (config.shouldUsePathScript()) {
-                            context.setOriginalInputFile(config.getScriptFileName());
-                            //language=ruby
-                            bootCode = "Truffle::Boot.main_s";
-                        } else {
-                            context.setOriginalInputFile(filename);
-                            //language=ruby
-                            bootCode = "Truffle::Boot.main";
-                        }
-                        exitCode = polyglotContext.eval(RubyLanguage.ID, Source.newBuilder(bootCode).name(CoreLibrary.MAIN_BOOT_SOURCE_NAME).build()).asInt();
+                if (config.getShouldCheckSyntax()) {
+                    // check syntax only and exit
+                    exitCode = checkSyntax(config, polyglotContext, context, getScriptSource(config), filename);
+                } else {
+                    if (!RubyLanguage.isGraal() && context.getOptions().GRAAL_WARNING_UNLESS) {
+                        Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
                     }
-                } finally {
-                    printTruffleTimeMetric("after-run");
+
+                    final String bootCode;
+                    if (config.shouldUsePathScript()) {
+                        context.setOriginalInputFile(config.getScriptFileName());
+                        // language=ruby
+                        bootCode = "Truffle::Boot.main_s";
+                    } else {
+                        context.setOriginalInputFile(filename);
+                        // language=ruby
+                        bootCode = "Truffle::Boot.main";
+                    }
+                    exitCode = polyglotContext.eval(RubyLanguage.ID, Source.newBuilder(bootCode).name(CoreLibrary.MAIN_BOOT_SOURCE_NAME).build()).asInt();
                 }
+                printTruffleTimeMetric("after-run");
             }
         } else {
             if (config.getShouldPrintShortUsage()) {
