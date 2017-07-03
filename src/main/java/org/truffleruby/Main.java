@@ -101,7 +101,7 @@ public class Main {
         if (config.getShouldRunInterpreter()) {
             final String filename = displayedFileName(config);
             try (Engine engine = createEngine(config, filename);
-                 PolyglotContext polyglotContext = engine.newPolyglotContextBuilder().setArguments(RubyLanguage.ID, config.getArguments()).build()) {
+                final PolyglotContext polyglotContext = engine.newPolyglotContextBuilder().setArguments(RubyLanguage.ID, config.getArguments()).build()) {
                 final RubyContext context = loadContext(polyglotContext);
 
                 printTruffleTimeMetric("before-run");
@@ -170,12 +170,12 @@ public class Main {
     private static RubyContext loadContext(PolyglotContext polyglotContext) {
         Main.printTruffleTimeMetric("before-load-context");
         // TODO CS 2-Jul-17 I really don't think we need the context externally any more - see if we can remove users of this
-        final RubyContext context = polyglotContext.eval(RubyLanguage.ID, Source.newBuilder(
-                // language=ruby
-                "Truffle::Boot.context"
-        ).name("context").build()).asHostObject();
+        polyglotContext.eval(RubyLanguage.ID, Source.newBuilder(
+                //language=ruby
+                "Truffle::Boot.force_context"
+        ).name("context").build());
         Main.printTruffleTimeMetric("after-load-context");
-        return context;
+        return RubyContext.FIRST_INSTANCE;
     }
 
     public static void processArguments(CommandLineOptions config, String[] arguments) {
