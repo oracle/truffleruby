@@ -76,12 +76,12 @@ public abstract class TruffleBootNodes {
 
     }
 
-    @CoreMethod(names = "context", onSingleton = true)
-    public abstract static class ContextNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "force_context", onSingleton = true)
+    public abstract static class ForceContextNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public RubyContext context() {
-            return getContext();
+        public DynamicObject forceContext() {
+            return nil();
         }
     }
 
