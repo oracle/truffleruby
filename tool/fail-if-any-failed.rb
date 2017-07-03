@@ -51,6 +51,7 @@ known_failures = [
   ["svm", "default", "jruby", "truffle", "psd", "psd-compose-overlay"],
   ["svm", "default", "jruby", "truffle", "psd", "psd-compose-screen"],
   ["svm", "default", "jruby", "truffle", "psd", "psd-compose-vivid-light"],
+  ["svm", "default", "jruby", "truffle", "psd", "psd-imagemode-cmyk-combine-cmyk-channel"],
   ["svm", "default", "jruby", "truffle", "psd", "psd-renderer-blender-compose"],
   ["svm", "default", "jruby", "truffle", "savina", "savina-radix-sort"],
   ["svm", "default", "jruby", "truffle", "server", "tcp-server"],
