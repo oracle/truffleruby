@@ -100,8 +100,8 @@ public class Main {
 
         if (config.getShouldRunInterpreter()) {
             final String filename = displayedFileName(config);
-            try (final Engine engine = createEngine(config, filename);
-                 final PolyglotContext polyglotContext = engine.newPolyglotContextBuilder().setArguments(RubyLanguage.ID, config.getArguments()).build();) {
+            try (Engine engine = createEngine(config, filename);
+                 PolyglotContext polyglotContext = engine.newPolyglotContextBuilder().setArguments(RubyLanguage.ID, config.getArguments()).build()) {
                 final RubyContext context = loadContext(polyglotContext);
 
                 printTruffleTimeMetric("before-run");
@@ -116,11 +116,11 @@ public class Main {
                     final String bootCode;
                     if (config.shouldUsePathScript()) {
                         context.setOriginalInputFile(config.getScriptFileName());
-                        // language=ruby
+                        //language=ruby
                         bootCode = "Truffle::Boot.main_s";
                     } else {
                         context.setOriginalInputFile(filename);
-                        // language=ruby
+                        //language=ruby
                         bootCode = "Truffle::Boot.main";
                     }
                     exitCode = polyglotContext.eval(RubyLanguage.ID, Source.newBuilder(bootCode).name(CoreLibrary.MAIN_BOOT_SOURCE_NAME).build()).asInt();
@@ -278,7 +278,7 @@ public class Main {
         context.setOriginalInputFile(filename);
 
         return polyglotContext.eval(RubyLanguage.ID, Source.newBuilder(
-                // language=ruby
+                //language=ruby
                 "Truffle::Boot.check_syntax"
         ).name("check_syntax").build()).asBoolean();
     }
