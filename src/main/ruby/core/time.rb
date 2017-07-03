@@ -152,7 +152,6 @@ class Time
     if offset
       offset = Rubinius::Type.coerce_to_utc_offset(offset)
     end
-
     Truffle.invoke_primitive(:time_localtime, self, offset)
   end
 
@@ -394,6 +393,8 @@ class Time
         self.now
       elsif utc_offset == nil
         compose(:local, year, month, day, hour, minute, second)
+      elsif utc_offset.instance_of?(String) && !valid_utc_offset_string?(utc_offset)
+        raise ArgumentError, '"+HH:MM" or "-HH:MM" expected for utc_offset'
       elsif utc_offset == :std
         compose(:local, second, minute, hour, day, month, year, nil, nil, false, nil)
       elsif utc_offset == :dst
@@ -403,6 +404,12 @@ class Time
         compose(utc_offset, year, month, day, hour, minute, second)
       end
     end
+
+    def valid_utc_offset_string?(utc_offset)
+      return false unless utc_offset.encoding.ascii_compatible?
+      utc_offset =~ /\A[+-](\d{2}):(\d{2})\z/ && $1.to_i < 24 && $2.to_i < 60
+    end
+    private :valid_utc_offset_string?
 
     def local(*args)
       compose(:local, *args)
