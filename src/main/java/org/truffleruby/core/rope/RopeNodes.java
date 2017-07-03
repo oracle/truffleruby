@@ -1150,6 +1150,44 @@ public abstract class RopeNodes {
 
     }
 
+    // This node type checks for the equality of the bytes owned by a rope but does not pay
+    // attention to the encoding. It matches the behaviour of the equals method on the rope class
+    // itself.
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "a"),
+            @NodeChild(type = RubyNode.class, value = "b")
+    })
+    public abstract static class BytesEqualNode extends RubyNode {
+
+        public static BytesEqualNode create() {
+            return RopeNodesFactory.BytesEqualNodeGen.create(null, null);
+        }
+
+        public abstract boolean execute(Rope a, Rope b);
+
+        @Specialization(guards = "a == b")
+        public boolean sameRopeEqual(Rope a, Rope b) {
+            return true;
+        }
+
+        @Specialization
+        public boolean ropesEqual(Rope a, Rope b,
+                @Cached("create()") BytesNode aBytes,
+                @Cached("create()") BytesNode bBytes) {
+            return a.byteLength() == b.byteLength() && a.hashesMatch(b) && Arrays.equals(aBytes.execute(a), bBytes.execute(b));
+        }
+
+        @Specialization(guards = "!isRope(b)")
+        public boolean ropeEqualNonRope(Rope a, Object b) {
+            return false;
+        }
+
+        protected static boolean isRope(Object obj) {
+            return !(obj instanceof Rope);
+        }
+
+    }
+
     @NodeChildren({
             @NodeChild(type = RubyNode.class, value = "rope")
     })
