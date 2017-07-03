@@ -37,6 +37,7 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
@@ -253,7 +254,7 @@ public abstract class BasicObjectNodes {
 
             // TODO (pitr 15-Oct-2015): fix this ugly hack, required for AS, copy-paste
             final String space = getSpace(line);
-            final Source source = loadFragment(space + ropeToString(code), ropeToString(StringOperations.rope(fileName)));
+            final Source source = loadFragment(space + RopeOperations.decodeRope(code), RopeOperations.decodeRope(StringOperations.rope(fileName)));
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(source, code.getEncoding(), ParserContext.EVAL, null, true, this);
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(ParserContext.EVAL, DeclarationContext.INSTANCE_EVAL, rootNode, null, receiver);
@@ -281,10 +282,6 @@ public abstract class BasicObjectNodes {
         private String getSpace(int line) {
             final String s = new String(new char[Math.max(line - 1, 0)]);
             return StringUtils.replace(s, "\0", "\n");
-        }
-
-        private String ropeToString(Rope rope) {
-            return rope.toString();
         }
 
         private Source loadFragment(String fragment, String name) {

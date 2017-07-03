@@ -1136,13 +1136,18 @@ public abstract class RopeNodes {
         public boolean ropesEqual(Rope a, Rope b,
                 @Cached("create()") BytesNode aBytes,
                 @Cached("create()") BytesNode bBytes) {
-            return a.getEncoding() == b.getEncoding() && a.hashesMatch(b) && a.byteLength() == b.byteLength() && Arrays.equals(aBytes.execute(a), bBytes.execute(b));
+            return a.getEncoding() == b.getEncoding() && a.byteLength() == b.byteLength() && a.hashesMatch(b) && Arrays.equals(aBytes.execute(a), bBytes.execute(b));
         }
 
-        @Specialization
+        @Specialization(guards = "!isRope(b)")
         public boolean ropeEqualNonRope(Rope a, Object b) {
             return false;
         }
+
+        protected static boolean isRope(Object obj) {
+            return !(obj instanceof Rope);
+        }
+
     }
 
     @NodeChildren({
@@ -1157,7 +1162,7 @@ public abstract class RopeNodes {
         public abstract byte[] execute(Rope rope);
 
         @Specialization(guards = "rope.getRawBytes() != null")
-        public byte[] getBytesOnHeap(ManagedRope rope) {
+        public byte[] getBytesManaged(ManagedRope rope) {
             return rope.getRawBytes();
         }
 
@@ -1183,24 +1188,20 @@ public abstract class RopeNodes {
 
         public abstract byte[] execute(Rope rope);
 
-        @Specialization
-        public byte[] getNativeBytesSlow(NativeRope rope) {
-            return rope.getBytes();
+        @Specialization(guards = "rope.getClass() == cachedRopeClass", limit = "getCacheLimit()")
+        public byte[] getManagedBytesSlow(Rope rope,
+                @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass) {
+            return cachedRopeClass.cast(rope).getBytesSlow();
         }
 
-        @Specialization
-        public byte[] getNativeBytesSlow(RepeatingRope rope) {
-            return rope.getBytesSlow();
-        }
-
-        @Specialization
-        public byte[] getNativeBytesSlow(SubstringRope rope) {
-            return rope.getBytesSlow();
-        }
-
+        @TruffleBoundary
         @Specialization
         public byte[] getBytesFromRope(Rope rope) {
-            return RopeOperations.flattenBytes(rope);
+            return rope.getBytesSlow();
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().ROPE_CLASS_CACHE;
         }
     }
 
@@ -1260,7 +1261,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "rope.getRawBytes() != null")
-        public byte[] getBytesOnHeap(ManagedRope rope) {
+        public byte[] getBytesManaged(ManagedRope rope) {
             return rope.getRawBytes().clone();
         }
 
