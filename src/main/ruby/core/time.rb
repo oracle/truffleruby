@@ -152,10 +152,13 @@ class Time
     if offset
       offset = Rubinius::Type.coerce_to_utc_offset(offset)
     end
+
     Truffle.invoke_primitive(:time_localtime, self, offset)
   end
 
   def succ
+    warn 'Time#succ is obsolete'
+
     self + 1
   end
 
