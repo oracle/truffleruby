@@ -630,6 +630,8 @@ module Enumerable
         i += 1
       end
     else
+      warn 'given block not used' if block_given?
+
       i = 0
       each do
         e = Truffle.single_block_arg
