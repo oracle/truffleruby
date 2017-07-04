@@ -22,7 +22,7 @@ RUN chown test /test
 USER test
 
 # Extract the GraalVM binary tarball
-ENV GRAALVM_VERSION=0.24
+ENV GRAALVM_VERSION=0.25
 ADD graalvm-$GRAALVM_VERSION-linux-amd64-jdk8.tar.gz /test
 ENV PATH=/test/graalvm-$GRAALVM_VERSION/bin:$PATH
 ENV RUBY_HOME=/test/graalvm-$GRAALVM_VERSION/language/ruby
@@ -36,7 +36,7 @@ RUN ruby --version
 RUN aot-ruby -Xhome=$RUBY_HOME --version
 
 # Clone the TruffleRuby source code to get tests
-RUN git clone --depth 1 https://github.com/graalvm/truffleruby.git
+RUN git clone --branch vm-enterprise-$GRAALVM_VERSION --depth 1 https://github.com/graalvm/truffleruby.git
 
 # We just want specs and tests - we don't want to accidentally use anything else so we're actually going to delete the rest
 RUN cp -r truffleruby/spec .
