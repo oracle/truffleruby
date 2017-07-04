@@ -1574,7 +1574,7 @@ module Commands
           java_home = Dir["#{dir}/jdk1.8.0*"].sort.first
         end
       elsif MAC
-        jvmci_version = "jvmci-0.24"
+        jvmci_version = "jvmci-0.29"
         puts "You need to download manually the latest JVMCI-enabled JDK at"
         puts "http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html"
         puts "Download the file named labsjdk-8u121-#{jvmci_version}-darwin-amd64.tar.gz"
