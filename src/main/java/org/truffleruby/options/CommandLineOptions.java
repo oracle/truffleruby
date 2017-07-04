@@ -58,8 +58,28 @@ public class CommandLineOptions {
     private boolean forceStdin;
     private boolean shouldPrintShortUsage;
 
+    public String getDisplayedFileName() {
+        if (isInlineScript()) {
+            if (getScriptFileName() != null) {
+                return getScriptFileName();
+            } else {
+                return "-e";
+            }
+        } else if (shouldUsePathScript()) {
+            return "-S";
+        } else if (isForceStdin() || getScriptFileName() == null) {
+            return "-";
+        } else {
+            return getScriptFileName();
+        }
+    }
+
     public Map<String, String> getOptions() {
         return options;
+    }
+
+    public void setOption(OptionDescription<?> key, String value) {
+        options.put(key.getName(), value);
     }
 
     public String[] getArguments() {

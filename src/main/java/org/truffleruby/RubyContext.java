@@ -17,7 +17,6 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.encoding.EncodingManager;
@@ -53,7 +52,6 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 
@@ -70,8 +68,6 @@ public class RubyContext {
 
     private final String rubyHome;
     private String originalInputFile;
-
-    private InputStream syntaxCheckInputStream;
 
     private final RopeTable ropeTable = new RopeTable();
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
@@ -358,14 +354,6 @@ public class RubyContext {
 
     public String getRubyHome() {
         return rubyHome;
-    }
-
-    public InputStream getSyntaxCheckInputStream() {
-        return syntaxCheckInputStream;
-    }
-
-    public void setSyntaxCheckInputStream(InputStream syntaxCheckInputStream) {
-        this.syntaxCheckInputStream = syntaxCheckInputStream;
     }
 
     public ConsoleHolder getConsoleHolder() {

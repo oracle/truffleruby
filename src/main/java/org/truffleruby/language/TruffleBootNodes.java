@@ -19,8 +19,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -35,8 +33,6 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 @CoreClass("Truffle::Boot")
 public abstract class TruffleBootNodes {
@@ -92,8 +88,7 @@ public abstract class TruffleBootNodes {
         public int main(VirtualFrame frame, NotProvided path,
                 @Cached("create()") IndirectCallNode callNode) {
 
-            final String inputFile = getContext().getOriginalInputFile();
-            return loadMain(callNode, inputFile);
+            return loadMain(callNode, getContext().getOptions().ORIGINAL_INPUT_FILE);
         }
 
         @Specialization(guards = "isRubyString(path)")
@@ -160,7 +155,7 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject originalInputFile() {
-            return createString(StringOperations.encodeRope(getContext().getOriginalInputFile(), UTF8Encoding.INSTANCE));
+            return createString(StringOperations.encodeRope(getContext().getOptions().ORIGINAL_INPUT_FILE, UTF8Encoding.INSTANCE));
         }
 
     }
@@ -255,19 +250,16 @@ public abstract class TruffleBootNodes {
 
     }
 
-    @CoreMethod(names = "inner_check_syntax", onSingleton = true)
+    @CoreMethod(names = "inner_check_syntax", onSingleton = true, required = 1)
     public abstract static class InnerCheckSyntaxNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject innerCheckSyntax() {
-            final String inputFile = getContext().getOriginalInputFile();
-            final InputStream inputStream = getContext().getSyntaxCheckInputStream();
-
+        public DynamicObject innerCheckSyntax(DynamicObject path) {
             final Source source;
 
             try {
-                source = Source.newBuilder(new InputStreamReader(inputStream)).name(inputFile).mimeType(RubyLanguage.MIME_TYPE).build();
+                source = getContext().getSourceLoader().loadMain(this, StringOperations.getString(path));
             } catch (IOException e) {
                 throw new JavaException(e);
             }
