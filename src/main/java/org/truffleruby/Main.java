@@ -100,7 +100,8 @@ public class Main {
         if (config.getShouldRunInterpreter()) {
             final String filename = displayedFileName(config);
             try (Engine engine = createEngine(config, filename);
-                final PolyglotContext polyglotContext = engine.newPolyglotContextBuilder().setArguments(RubyLanguage.ID, config.getArguments()).build()) {
+                 final PolyglotContext polyglotContext = engine.newPolyglotContextBuilder().
+                         setArguments(RubyLanguage.ID, config.getArguments()).build()) {
                 final RubyContext context = loadContext(polyglotContext);
 
                 printTruffleTimeMetric("before-run");
@@ -109,7 +110,8 @@ public class Main {
                     exitCode = checkSyntax(config, polyglotContext, context, getScriptSource(config), filename);
                 } else {
                     if (!RubyLanguage.isGraal() && context.getOptions().GRAAL_WARNING_UNLESS) {
-                        Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
+                        Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited" +
+                                " - see doc/user/using-graalvm.md");
                     }
 
                     final String bootCode;
@@ -122,7 +124,9 @@ public class Main {
                         //language=ruby
                         bootCode = "Truffle::Boot.main";
                     }
-                    exitCode = polyglotContext.eval(RubyLanguage.ID, Source.newBuilder(bootCode).name(CoreLibrary.MAIN_BOOT_SOURCE_NAME).build()).asInt();
+                    exitCode = polyglotContext.eval(
+                            RubyLanguage.ID,
+                            Source.newBuilder(bootCode).name(CoreLibrary.MAIN_BOOT_SOURCE_NAME).build()).asInt();
                 }
                 printTruffleTimeMetric("after-run");
             }
@@ -144,8 +148,12 @@ public class Main {
         final Engine.Builder builder = Engine.newBuilder();
 
         // TODO CS 2-Jul-17 some of these values are going back and forth from string and array representation
-        builder.setOption(OptionsCatalog.LOAD_PATHS.getSDKName(), OptionsCatalog.LOAD_PATHS.toString(config.getLoadPaths().toArray(new String[]{})));
-        builder.setOption(OptionsCatalog.REQUIRED_LIBRARIES.getSDKName(), OptionsCatalog.LOAD_PATHS.toString(config.getRequiredLibraries().toArray(new String[]{})));
+        builder.setOption(
+                OptionsCatalog.LOAD_PATHS.getSDKName(),
+                OptionsCatalog.LOAD_PATHS.toString(config.getLoadPaths().toArray(new String[]{})));
+        builder.setOption(
+                OptionsCatalog.REQUIRED_LIBRARIES.getSDKName(),
+                OptionsCatalog.LOAD_PATHS.toString(config.getRequiredLibraries().toArray(new String[]{})));
         builder.setOption(OptionsCatalog.INLINE_SCRIPT.getSDKName(), config.inlineScript());
         builder.setOption(OptionsCatalog.DISPLAYED_FILE_NAME.getSDKName(), filename);
 
@@ -180,7 +188,10 @@ public class Main {
     public static void processArguments(CommandLineOptions config, String[] arguments) {
         new CommandLineParser(arguments, config).processArguments();
 
-        if (config.getOptions().getOrDefault(OptionsCatalog.READ_RUBYOPT.getSDKName(), OptionsCatalog.READ_RUBYOPT.getDefaultValue().toString()).equals(Boolean.TRUE.toString())) {
+        if (config.getOptions().
+                getOrDefault(
+                        OptionsCatalog.READ_RUBYOPT.getSDKName(),
+                        OptionsCatalog.READ_RUBYOPT.getDefaultValue().toString()).equals(Boolean.TRUE.toString())) {
             CommandLineParser.processEnvironmentVariable("RUBYOPT", config, true);
             CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config, false);
         }
@@ -245,7 +256,13 @@ public class Main {
         }
     }
 
-    private static int checkSyntax(CommandLineOptions config, PolyglotContext polyglotContext, RubyContext context, InputStream in, String filename) {
+    private static int checkSyntax(
+            CommandLineOptions config,
+            PolyglotContext polyglotContext,
+            RubyContext context,
+            InputStream in,
+            String filename) {
+
         // check primary script
         boolean status = runCheckSyntax(polyglotContext, context, in, filename);
 
@@ -256,7 +273,6 @@ public class Main {
 
         return status ? 0 : 1;
     }
-
 
     private static boolean checkFileSyntax(PolyglotContext polyglotContext, RubyContext context, String filename) {
         File file = new File(filename);
@@ -272,7 +288,11 @@ public class Main {
         }
     }
 
-    private static boolean runCheckSyntax(PolyglotContext polyglotContext, RubyContext context, InputStream in, String filename) {
+    private static boolean runCheckSyntax(
+            PolyglotContext polyglotContext,
+            RubyContext context,
+            InputStream in,
+            String filename) {
         context.setSyntaxCheckInputStream(in);
         context.setOriginalInputFile(filename);
 
