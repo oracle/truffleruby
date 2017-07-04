@@ -13,16 +13,15 @@ import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.specific.UTF8Encoding;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionDescriptors;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LazyRubyNode;
@@ -34,7 +33,6 @@ import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
 
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.List;
 
 @TruffleLanguage.Registration(
@@ -55,10 +53,10 @@ import java.util.List;
 public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final String NAME = "Ruby";
-    public static final String ID = "ruby";
+    public static final String ID = Main.LANGUAGE_ID;
 
     public static final String PLATFORM = String.format("%s-%s", Platform.getArchitecture(), Platform.getOSName());
-    public static final String RUBY_VERSION = "2.3.3";
+    public static final String RUBY_VERSION = Main.LANGUAGE_VERSION;
     public static final int    RUBY_REVISION = 0;
     public static final String COMPILE_DATE = "2017";
     public static final String ENGINE = "truffleruby";
@@ -198,32 +196,10 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         final List<OptionDescriptor> options = new ArrayList<>();
 
         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-            options.add(option.toDescriptor());
+            options.add(option.toDescriptor(ID));
         }
 
         return OptionDescriptors.create(options);
-    }
-
-    public static String getVersionString() {
-
-        return String.format(
-                "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",
-                System.getProperty("graalvm.version", "unknown version"),
-                RUBY_VERSION,
-                TruffleOptions.AOT ? "AOT" : System.getProperty("java.vm.name", "unknown JVM"),
-                TruffleOptions.AOT ? "build" : System.getProperty("java.runtime.version", System.getProperty("java.version", "unknown runtime version")),
-                isGraal() ? "with Graal" : "without Graal",
-                Platform.getOSName(),
-                Platform.getArchitecture()
-        );
-    }
-
-    public static String getCopyrightString() {
-        return "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
-    }
-
-    public static boolean isGraal() {
-        return Truffle.getRuntime().getName().toLowerCase(Locale.ENGLISH).contains("graal");
     }
 
 }

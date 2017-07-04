@@ -102,6 +102,9 @@ public class Options {
     public final boolean BACKTRACES_OMIT_UNUSED;
     public final boolean BASICOPS_INLINE;
     public final boolean GRAAL_WARNING_UNLESS;
+    public final boolean GRAAL_PRESENT;
+    public final String RUBY_COPYRIGHT;
+    public final String RUBY_DESCRIPTION;
     public final boolean SHARED_OBJECTS_ENABLED;
     public final boolean SHARED_OBJECTS_DEBUG;
     public final boolean SHARED_OBJECTS_FORCE;
@@ -198,6 +201,9 @@ public class Options {
         BACKTRACES_OMIT_UNUSED = builder.getOrDefault(OptionsCatalog.BACKTRACES_OMIT_UNUSED);
         BASICOPS_INLINE = builder.getOrDefault(OptionsCatalog.BASICOPS_INLINE);
         GRAAL_WARNING_UNLESS = builder.getOrDefault(OptionsCatalog.GRAAL_WARNING_UNLESS);
+        GRAAL_PRESENT = builder.getOrDefault(OptionsCatalog.GRAAL_PRESENT);
+        RUBY_COPYRIGHT = builder.getOrDefault(OptionsCatalog.RUBY_COPYRIGHT);
+        RUBY_DESCRIPTION = builder.getOrDefault(OptionsCatalog.RUBY_DESCRIPTION);
         SHARED_OBJECTS_ENABLED = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_ENABLED);
         SHARED_OBJECTS_DEBUG = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_DEBUG);
         SHARED_OBJECTS_FORCE = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_FORCE);
@@ -380,6 +386,12 @@ public class Options {
                 return BASICOPS_INLINE;
             case "graal.warn_unless":
                 return GRAAL_WARNING_UNLESS;
+            case "graal.present":
+                return GRAAL_PRESENT;
+            case "ruby_copyright":
+                return RUBY_COPYRIGHT;
+            case "ruby_description":
+                return RUBY_DESCRIPTION;
             case "shared.objects":
                 return SHARED_OBJECTS_ENABLED;
             case "shared.objects.debug":

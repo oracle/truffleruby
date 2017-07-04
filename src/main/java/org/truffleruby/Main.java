@@ -44,6 +44,7 @@
  */
 package org.truffleruby;
 
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotContext;
@@ -51,17 +52,21 @@ import org.graalvm.polyglot.Source;
 import org.truffleruby.options.CommandLineOptions;
 import org.truffleruby.options.CommandLineParser;
 import org.truffleruby.options.MainExitException;
-import org.truffleruby.options.OptionsBuilder;
 import org.truffleruby.options.OptionsCatalog;
+import org.truffleruby.platform.Platform;
 
 import java.lang.management.ManagementFactory;
+import java.util.Locale;
 import java.util.Map;
 
 public class Main {
 
+    public static final String LANGUAGE_ID = "ruby";
+    public static final String LANGUAGE_VERSION = "2.3.3";
+    public static final String PREFIX = "truffleruby.";
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
-    private static final boolean METRICS_TIME = Boolean.getBoolean(OptionsBuilder.PREFIX + "metrics.time");
-    private static final boolean METRICS_MEMORY_USED_ON_EXIT = Boolean.getBoolean(OptionsBuilder.PREFIX + "metrics.memory_used_on_exit");
+    private static final boolean METRICS_TIME = Boolean.getBoolean(PREFIX + "metrics.time");
+    private static final boolean METRICS_MEMORY_USED_ON_EXIT = Boolean.getBoolean(PREFIX + "metrics.memory_used_on_exit");
 
     public static void main(String[] args) {
         printTruffleTimeMetric("before-main");
@@ -80,21 +85,37 @@ public class Main {
             System.exit(mee.getStatus());
         }
 
+        final int exitCode;
+
+        final String filename = config.getDisplayedFileName();
+
+        config.setOption(
+                OptionsCatalog.ORIGINAL_INPUT_FILE,
+                config.shouldUsePathScript() ? config.getScriptFileName() : filename);
+        config.setOption(
+                OptionsCatalog.GRAAL_PRESENT,
+                String.valueOf(Truffle.getRuntime().getName().toLowerCase(
+                        Locale.ENGLISH).contains("graal")));
+        config.setOption(
+                OptionsCatalog.RUBY_COPYRIGHT,
+                "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates");
+        config.setOption(
+                OptionsCatalog.RUBY_DESCRIPTION,
+                getVersionString(config.getOption(OptionsCatalog.GRAAL_PRESENT)));
+
         if (config.isShowVersion()) {
-            System.out.println(RubyLanguage.getVersionString());
+            System.out.println(config.getOption(OptionsCatalog.RUBY_DESCRIPTION));
         }
 
         if (config.isShowCopyright()) {
-            System.out.println(RubyLanguage.getCopyrightString());
+            System.out.println(config.getOption(OptionsCatalog.RUBY_COPYRIGHT));
         }
 
-        final int exitCode;
-
         if (config.getShouldRunInterpreter()) {
-            final String filename = config.getDisplayedFileName();
             try (Engine engine = createEngine(config, filename);
                  final PolyglotContext polyglotContext = engine.newPolyglotContextBuilder().
-                         setArguments(getLanguageId(), config.getArguments()).build()) {
+                         setArguments(LANGUAGE_ID, config.getArguments()).build()) {
+
 
                 printTruffleTimeMetric("before-run");
                 if (config.getShouldCheckSyntax()) {
@@ -102,14 +123,10 @@ public class Main {
                     final Source source = Source.newBuilder(
                             //language=ruby
                             "Truffle::Boot.check_syntax").name("check_syntax").build();
-                    boolean status = polyglotContext.eval(getLanguageId(), source).asBoolean();
+                    boolean status = polyglotContext.eval(LANGUAGE_ID, source).asBoolean();
                     exitCode = status ? 0 : 1;
                 } else {
-                    final Boolean graalWarning = OptionsCatalog.GRAAL_WARNING_UNLESS.checkValue(
-                            config.getOptions().getOrDefault(
-                                    OptionsCatalog.GRAAL_WARNING_UNLESS.getName(),
-                                    String.valueOf(OptionsCatalog.GRAAL_WARNING_UNLESS.getDefaultValue())));
-                    if (!RubyLanguage.isGraal() && graalWarning) {
+                    if (!config.getOption(OptionsCatalog.GRAAL_PRESENT) && config.getOption(OptionsCatalog.GRAAL_WARNING_UNLESS)) {
                         Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited" +
                                 " - see doc/user/using-graalvm.md");
                     }
@@ -118,7 +135,7 @@ public class Main {
                             //language=ruby
                             config.shouldUsePathScript() ? "Truffle::Boot.main_s" : "Truffle::Boot.main").name(
                             BOOT_SOURCE_NAME).build();
-                    exitCode = polyglotContext.eval(getLanguageId(), source).asInt();
+                    exitCode = polyglotContext.eval(LANGUAGE_ID, source).asInt();
                 }
                 printTruffleTimeMetric("after-run");
             }
@@ -141,13 +158,13 @@ public class Main {
 
         // TODO CS 2-Jul-17 some of these values are going back and forth from string and array representation
         builder.setOption(
-                OptionsCatalog.LOAD_PATHS.getSDKName(),
+                OptionsCatalog.LOAD_PATHS.getSDKName(LANGUAGE_ID),
                 OptionsCatalog.LOAD_PATHS.toString(config.getLoadPaths().toArray(new String[]{})));
         builder.setOption(
-                OptionsCatalog.REQUIRED_LIBRARIES.getSDKName(),
+                OptionsCatalog.REQUIRED_LIBRARIES.getSDKName(LANGUAGE_ID),
                 OptionsCatalog.LOAD_PATHS.toString(config.getRequiredLibraries().toArray(new String[]{})));
-        builder.setOption(OptionsCatalog.INLINE_SCRIPT.getSDKName(), config.inlineScript());
-        builder.setOption(OptionsCatalog.DISPLAYED_FILE_NAME.getSDKName(), filename);
+        builder.setOption(OptionsCatalog.INLINE_SCRIPT.getSDKName(LANGUAGE_ID), config.inlineScript());
+        builder.setOption(OptionsCatalog.DISPLAYED_FILE_NAME.getSDKName(LANGUAGE_ID), filename);
 
         /*
          * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
@@ -156,27 +173,23 @@ public class Main {
          * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
          */
 
-        builder.setOption(OptionsCatalog.POLYGLOT_STDIO.getSDKName(), Boolean.FALSE.toString());
-        builder.setOption(OptionsCatalog.SYNC_STDIO.getSDKName(), Boolean.FALSE.toString());
+        builder.setOption(OptionsCatalog.POLYGLOT_STDIO.getSDKName(LANGUAGE_ID), Boolean.FALSE.toString());
+        builder.setOption(OptionsCatalog.SYNC_STDIO.getSDKName(LANGUAGE_ID), Boolean.FALSE.toString());
 
         for (Map.Entry<String, String> option : config.getOptions().entrySet()) {
-            builder.setOption(getLanguageId() + "." + option.getKey(), option.getValue());
+            builder.setOption(LANGUAGE_ID + "." + option.getKey(), option.getValue());
         }
 
         return builder.build();
     }
 
-    private static String getLanguageId() {
-        return "ruby";
-    }
-
     public static void processArguments(CommandLineOptions config, String[] arguments) {
+
+        // TODO (pitr-ch 04-Jul-2017): Process System.properties here as well?, currently done in RubyContext
+
         new CommandLineParser(arguments, config).processArguments();
 
-        if (config.getOptions().
-                getOrDefault(
-                        OptionsCatalog.READ_RUBYOPT.getSDKName(),
-                        OptionsCatalog.READ_RUBYOPT.getDefaultValue().toString()).equals(Boolean.TRUE.toString())) {
+        if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
             CommandLineParser.processEnvironmentVariable("RUBYOPT", config, true);
             CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config, false);
         }
@@ -184,10 +197,6 @@ public class Main {
         if (!config.doesHaveScriptArgv() && !config.shouldUsePathScript() && System.console() != null) {
             config.setUsePathScript("irb");
         }
-
-        config.setOption(
-                OptionsCatalog.ORIGINAL_INPUT_FILE,
-                config.shouldUsePathScript() ? config.getScriptFileName() : config.getDisplayedFileName());
     }
 
     public static void printTruffleTimeMetric(String id) {
@@ -214,4 +223,18 @@ public class Main {
         }
     }
 
+    private static String getVersionString(boolean isGraal) {
+        return String.format(
+                "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",
+                System.getProperty("graalvm.version", "unknown version"),
+                LANGUAGE_VERSION,
+                TruffleOptions.AOT ? "AOT" : System.getProperty("java.vm.name", "unknown JVM"),
+                TruffleOptions.AOT ? "build" : System.getProperty(
+                        "java.runtime.version",
+                        System.getProperty("java.version", "unknown runtime version")),
+                isGraal ? "with Graal" : "without Graal",
+                Platform.getOSName(),
+                Platform.getArchitecture()
+        );
+    }
 }

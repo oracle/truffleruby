@@ -12,6 +12,7 @@ package org.truffleruby.options;
 import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionValues;
 import org.truffleruby.Log;
+import org.truffleruby.Main;
 import org.truffleruby.RubyLanguage;
 
 import java.util.Arrays;
@@ -23,7 +24,7 @@ import java.util.logging.Level;
 
 public class OptionsBuilder {
 
-    public static final String PREFIX = "truffleruby.";
+    public static final String PREFIX = Main.PREFIX;
 
     public static final Collection<String> ignoredProperties = Arrays.asList(
             PREFIX + "metrics.memory_used_on_exit",
@@ -50,7 +51,7 @@ public class OptionsBuilder {
 
     public void set(OptionValues optionValues) {
         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-            final OptionKey<?> key = optionValues.getDescriptors().get(option.getSDKName()).getKey();
+            final OptionKey<?> key = optionValues.getDescriptors().get(option.getSDKName(RubyLanguage.ID)).getKey();
 
             if (optionValues.hasBeenSet(key)) {
                 set(option.getName(), optionValues.get(key));

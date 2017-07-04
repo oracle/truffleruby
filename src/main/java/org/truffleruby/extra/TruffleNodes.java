@@ -11,14 +11,9 @@ package org.truffleruby.extra;
 
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.methods.InternalMethod;
 
 @CoreClass("Truffle")
 public abstract class TruffleNodes {
@@ -28,7 +23,7 @@ public abstract class TruffleNodes {
 
         @Specialization
         public boolean graal() {
-            return RubyLanguage.isGraal();
+            return getContext().getOptions().GRAAL_PRESENT;
         }
 
     }
