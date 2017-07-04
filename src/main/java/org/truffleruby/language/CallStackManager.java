@@ -19,9 +19,9 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
+import org.truffleruby.Main;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.Memo;
-import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Activation;
@@ -271,7 +271,7 @@ public class CallStackManager {
 
         if (!activations.isEmpty()) {
             final Activation last = activations.get(activations.size() - 1);
-            if (last.getCallNode().getRootNode().getSourceSection().getSource().getName() == CoreLibrary.MAIN_BOOT_SOURCE_NAME) {
+            if (last.getCallNode().getRootNode().getSourceSection().getSource().getName() == Main.BOOT_SOURCE_NAME) {
                 activations.remove(activations.size() - 1);
             }
         }

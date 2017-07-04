@@ -48,7 +48,6 @@ import com.oracle.truffle.api.TruffleOptions;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotContext;
 import org.graalvm.polyglot.Source;
-import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.options.CommandLineOptions;
 import org.truffleruby.options.CommandLineParser;
 import org.truffleruby.options.MainExitException;
@@ -67,6 +66,7 @@ import java.util.Map;
 
 public class Main {
 
+    public static final String BOOT_SOURCE_NAME = "main_boot_source";
     private static final boolean METRICS_TIME = Boolean.getBoolean(OptionsBuilder.PREFIX + "metrics.time");
     private static final boolean METRICS_MEMORY_USED_ON_EXIT = Boolean.getBoolean(OptionsBuilder.PREFIX + "metrics.memory_used_on_exit");
 
@@ -126,7 +126,7 @@ public class Main {
                     }
                     exitCode = polyglotContext.eval(
                             RubyLanguage.ID,
-                            Source.newBuilder(bootCode).name(CoreLibrary.MAIN_BOOT_SOURCE_NAME).build()).asInt();
+                            Source.newBuilder(bootCode).name(BOOT_SOURCE_NAME).build()).asInt();
                 }
                 printTruffleTimeMetric("after-run");
             }
