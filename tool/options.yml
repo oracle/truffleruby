@@ -99,10 +99,6 @@ BACKTRACES_OMIT_UNUSED: [backtraces.omit_unused, boolean, true, Omit backtraces 
 BASICOPS_INLINE: [basic_ops.inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
 
 GRAAL_WARNING_UNLESS: [graal.warn_unless, boolean, true, Warn unless the JVM has the Graal compiler]
-GRAAL_PRESENT: [graal.present, boolean, true, "On graal?"]
-
-RUBY_COPYRIGHT: [ruby_copyright, string, '', Copyright]
-RUBY_DESCRIPTION: [ruby_description, string, '', Ruby description]
 
 SHARED_OBJECTS_ENABLED: [shared.objects, boolean, true, Enable shared objects]
 SHARED_OBJECTS_DEBUG: [shared.objects.debug, boolean, false, Print information about shared objects]

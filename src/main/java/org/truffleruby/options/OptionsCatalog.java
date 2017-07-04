@@ -100,9 +100,6 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription BACKTRACES_OMIT_UNUSED = new BooleanOptionDescription("backtraces.omit_unused", "Omit backtraces that should be unused as they have pure rescue expressions", true);
     public static final BooleanOptionDescription BASICOPS_INLINE = new BooleanOptionDescription("basic_ops.inline", "Inline basic operations (like Fixnum operators) in the AST without a call", true);
     public static final BooleanOptionDescription GRAAL_WARNING_UNLESS = new BooleanOptionDescription("graal.warn_unless", "Warn unless the JVM has the Graal compiler", true);
-    public static final BooleanOptionDescription GRAAL_PRESENT = new BooleanOptionDescription("graal.present", "On graal?", true);
-    public static final StringOptionDescription RUBY_COPYRIGHT = new StringOptionDescription("ruby_copyright", "Copyright", "");
-    public static final StringOptionDescription RUBY_DESCRIPTION = new StringOptionDescription("ruby_description", "Ruby description", "");
     public static final BooleanOptionDescription SHARED_OBJECTS_ENABLED = new BooleanOptionDescription("shared.objects", "Enable shared objects", true);
     public static final BooleanOptionDescription SHARED_OBJECTS_DEBUG = new BooleanOptionDescription("shared.objects.debug", "Print information about shared objects", false);
     public static final BooleanOptionDescription SHARED_OBJECTS_FORCE = new BooleanOptionDescription("shared.objects.force", "Force sharing of objects roots at startup", false);
@@ -284,12 +281,6 @@ public class OptionsCatalog {
                 return BASICOPS_INLINE;
             case "graal.warn_unless":
                 return GRAAL_WARNING_UNLESS;
-            case "graal.present":
-                return GRAAL_PRESENT;
-            case "ruby_copyright":
-                return RUBY_COPYRIGHT;
-            case "ruby_description":
-                return RUBY_DESCRIPTION;
             case "shared.objects":
                 return SHARED_OBJECTS_ENABLED;
             case "shared.objects.debug":
@@ -401,9 +392,6 @@ public class OptionsCatalog {
             BACKTRACES_OMIT_UNUSED,
             BASICOPS_INLINE,
             GRAAL_WARNING_UNLESS,
-            GRAAL_PRESENT,
-            RUBY_COPYRIGHT,
-            RUBY_DESCRIPTION,
             SHARED_OBJECTS_ENABLED,
             SHARED_OBJECTS_DEBUG,
             SHARED_OBJECTS_FORCE,

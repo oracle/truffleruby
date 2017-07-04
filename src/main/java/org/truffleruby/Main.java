@@ -65,6 +65,7 @@ public class Main {
     public static final String LANGUAGE_VERSION = "2.3.3";
     public static final String PREFIX = "truffleruby.";
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
+    public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
     private static final boolean METRICS_TIME = Boolean.getBoolean(PREFIX + "metrics.time");
     private static final boolean METRICS_MEMORY_USED_ON_EXIT = Boolean.getBoolean(PREFIX + "metrics.memory_used_on_exit");
 
@@ -92,23 +93,13 @@ public class Main {
         config.setOption(
                 OptionsCatalog.ORIGINAL_INPUT_FILE,
                 config.shouldUsePathScript() ? config.getScriptFileName() : filename);
-        config.setOption(
-                OptionsCatalog.GRAAL_PRESENT,
-                String.valueOf(Truffle.getRuntime().getName().toLowerCase(
-                        Locale.ENGLISH).contains("graal")));
-        config.setOption(
-                OptionsCatalog.RUBY_COPYRIGHT,
-                "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates");
-        config.setOption(
-                OptionsCatalog.RUBY_DESCRIPTION,
-                getVersionString(config.getOption(OptionsCatalog.GRAAL_PRESENT)));
 
         if (config.isShowVersion()) {
-            System.out.println(config.getOption(OptionsCatalog.RUBY_DESCRIPTION));
+            System.out.println(getVersionString());
         }
 
         if (config.isShowCopyright()) {
-            System.out.println(config.getOption(OptionsCatalog.RUBY_COPYRIGHT));
+            System.out.println(RUBY_COPYRIGHT);
         }
 
         if (config.getShouldRunInterpreter()) {
@@ -126,7 +117,7 @@ public class Main {
                     boolean status = polyglotContext.eval(LANGUAGE_ID, source).asBoolean();
                     exitCode = status ? 0 : 1;
                 } else {
-                    if (!config.getOption(OptionsCatalog.GRAAL_PRESENT) && config.getOption(OptionsCatalog.GRAAL_WARNING_UNLESS)) {
+                    if (!isGraal() && config.getOption(OptionsCatalog.GRAAL_WARNING_UNLESS)) {
                         Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited" +
                                 " - see doc/user/using-graalvm.md");
                     }
@@ -151,6 +142,10 @@ public class Main {
         printTruffleTimeMetric("after-main");
         printTruffleMemoryMetric();
         System.exit(exitCode);
+    }
+
+    public static boolean isGraal() {
+        return Truffle.getRuntime().getName().toLowerCase(Locale.ENGLISH).contains("graal");
     }
 
     private static Engine createEngine(CommandLineOptions config, String filename) {
@@ -223,7 +218,7 @@ public class Main {
         }
     }
 
-    private static String getVersionString(boolean isGraal) {
+    public static String getVersionString() {
         return String.format(
                 "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",
                 System.getProperty("graalvm.version", "unknown version"),
@@ -232,7 +227,7 @@ public class Main {
                 TruffleOptions.AOT ? "build" : System.getProperty(
                         "java.runtime.version",
                         System.getProperty("java.version", "unknown runtime version")),
-                isGraal ? "with Graal" : "without Graal",
+                isGraal() ? "with Graal" : "without Graal",
                 Platform.getOSName(),
                 Platform.getArchitecture()
         );
