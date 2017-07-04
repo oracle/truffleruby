@@ -292,8 +292,6 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableStorage verboseStorage;
     @CompilationFinal private GlobalVariableStorage stderrStorage;
 
-    public static final String MAIN_BOOT_SOURCE_NAME = "main_boot_source";
-
     private Source mainBootSource = null;
 
     private final String coreLoadPath;
