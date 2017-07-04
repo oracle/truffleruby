@@ -82,6 +82,12 @@ public class CommandLineOptions {
         options.put(key.getName(), value);
     }
 
+    public <T> T getOption(OptionDescription<T> key) {
+        return key.checkValue(options.getOrDefault(
+                key.getName(),
+                String.valueOf(key.getDefaultValue())));
+    }
+
     public String[] getArguments() {
         return arguments;
     }
