@@ -11,6 +11,7 @@ package org.truffleruby.extra;
 
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.Main;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -23,7 +24,7 @@ public abstract class TruffleNodes {
 
         @Specialization
         public boolean graal() {
-            return getContext().getOptions().GRAAL_PRESENT;
+            return Main.isGraal();
         }
 
     }
