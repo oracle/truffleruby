@@ -16,9 +16,18 @@ module Truffle::Boot
   end
 
   def self.check_syntax
-    inner_check_syntax
-    STDOUT.puts 'Syntax OK'
-    true
+    check_syntax_file(original_input_file) && ARGV.all? { |arg| check_syntax_file arg }
+  end
+
+  def self.check_syntax_file(file)
+    if File.exist?(file) || file == '-e' || file == '-'
+      inner_check_syntax file
+      STDOUT.puts 'Syntax OK'
+      true
+    else
+      STDERR.puts "File not found: #{file}"
+      false
+    end
   rescue SyntaxError => e
     STDERR.puts "SyntaxError in #{e.message}"
     false
@@ -42,6 +51,7 @@ module Truffle::Boot
     # Fail otherwise
     raise LoadError, "No such file or directory -- #{name}"
   end
+
   private_class_method :find_s_file
 
   def self.find_in_environment_paths(name, env_value)
@@ -51,6 +61,7 @@ module Truffle::Boot
     end
     nil
   end
+
   private_class_method :find_in_environment_paths
 
 end
