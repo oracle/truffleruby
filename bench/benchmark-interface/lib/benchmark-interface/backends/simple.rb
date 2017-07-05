@@ -13,6 +13,10 @@ module BenchmarkInterface
       INITIAL_ITERATIONS = 1
       MAX_ITERATIONS = 2147483647
 
+      def self.get_time
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+
       def self.run(benchmark_set, names, options)
         full_time = options['--time']
         freq = options['--freq']
@@ -25,17 +29,17 @@ module BenchmarkInterface
           puts benchmark.name
           block = benchmark.block
 
-          start_time = Time.now
+          start_time = get_time
           iterations = INITIAL_ITERATIONS
 
-          while Time.now - start_time < full_time
-            start_round_time = Time.now
+          while get_time - start_time < full_time
+            start_round_time = get_time
             
             iterations.times do
               block.call
             end
             
-            round_time = Time.now - start_round_time
+            round_time = get_time - start_round_time
             
             # If the round time was very low and so very imprecise then we may
             # get a wild number of iterations next time.
@@ -49,7 +53,7 @@ module BenchmarkInterface
               # can print an ips and adjust for the next round to try to make
               # it take a second.
               ips = iterations / round_time
-              puts Time.now - start_time if elapsed
+              puts get_time - start_time if elapsed
               puts iterations if print_iterations
               puts ips * inner_iterations
               iterations = (ips * freq).to_i
