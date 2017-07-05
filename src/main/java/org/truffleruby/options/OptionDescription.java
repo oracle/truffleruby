@@ -27,10 +27,6 @@ public abstract class OptionDescription<T> {
         return name;
     }
 
-    public String getSDKName(String languageId) {
-        return languageId + "." + name;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -52,8 +48,8 @@ public abstract class OptionDescription<T> {
         }
     }
 
-    public OptionDescriptor toDescriptor(String languageId) {
-        return OptionDescriptor.newBuilder(new OptionKey<>(getDefaultValue(), getOptionType()), getSDKName(languageId)).help(getDescription()).build();
+    public OptionDescriptor toDescriptor() {
+        return OptionDescriptor.newBuilder(new OptionKey<>(getDefaultValue(), getOptionType()), getName()).help(getDescription()).build();
     }
 
     protected abstract OptionType<T> getOptionType();

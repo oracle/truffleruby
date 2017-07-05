@@ -12,14 +12,10 @@ package org.truffleruby.options;
 import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionValues;
 import org.truffleruby.Log;
-import org.truffleruby.Main;
 import org.truffleruby.RubyLanguage;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Level;
 
 public class OptionsBuilder {
@@ -34,7 +30,7 @@ public class OptionsBuilder {
 
     public void set(OptionValues optionValues) {
         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-            final OptionKey<?> key = optionValues.getDescriptors().get(option.getSDKName(RubyLanguage.ID)).getKey();
+            final OptionKey<?> key = optionValues.getDescriptors().get(option.getName()).getKey();
 
             if (optionValues.hasBeenSet(key)) {
                 set(option.getName(), optionValues.get(key));
@@ -43,10 +39,6 @@ public class OptionsBuilder {
     }
 
     private void set(String name, Object value) {
-        if (name.startsWith(RubyLanguage.ID + ".")) {
-            name = name.substring(RubyLanguage.ID.length() + 1);
-        }
-
         final OptionDescription<?> description = OptionsCatalog.fromName(name);
 
         if (description == null) {

@@ -196,7 +196,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         final List<OptionDescriptor> options = new ArrayList<>();
 
         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-            options.add(option.toDescriptor(ID));
+            options.add(option.toDescriptor());
         }
 
         return OptionDescriptors.create(options);

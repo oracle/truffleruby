@@ -133,11 +133,11 @@ import javax.annotation.Generated;
 @Generated("tool/generate-options.rb")
 public class OptionsCatalog {
 
-    <% options.each do |o| %>public static final <%= o.type_cons %> <%= o.constant %> = new <%= o.type_cons %>("<%= o.name %>", "<%= o.description %>", <%= o.reference_default ? o.default + '.getDefaultValue()' : o.default %>);
+    <% options.each do |o| %>public static final <%= o.type_cons %> <%= o.constant %> = new <%= o.type_cons %>("ruby.<%= o.name %>", "<%= o.description %>", <%= o.reference_default ? o.default + '.getDefaultValue()' : o.default %>);
     <% end %>
     public static OptionDescription<?> fromName(String name) {
         switch (name) {
-            <% options.each do |o| %>case "<%= o.name %>":
+            <% options.each do |o| %>case "ruby.<%= o.name %>":
                 return <%= o.constant %>;
             <% end %>default:
                 return null;

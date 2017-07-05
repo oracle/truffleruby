@@ -37,6 +37,7 @@ package org.truffleruby.options;
 import com.oracle.truffle.api.TruffleOptions;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.Log;
+import org.truffleruby.RubyLanguage;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -376,7 +377,7 @@ public class CommandLineParser {
                             extendedOption = extendedOption.substring(0, equals);
                         }
 
-                        config.getOptions().put(extendedOption, value);
+                        config.getOptions().put(RubyLanguage.ID + "." + extendedOption, value);
                     }
                     break FOR;
                 case '-':

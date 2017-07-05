@@ -63,11 +63,13 @@ public class Main {
 
     public static final String LANGUAGE_ID = "ruby";
     public static final String LANGUAGE_VERSION = "2.3.3";
-    public static final String PREFIX = "truffleruby.";
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
-    private static final boolean METRICS_TIME = Boolean.getBoolean(PREFIX + "metrics.time");
-    private static final boolean METRICS_MEMORY_USED_ON_EXIT = Boolean.getBoolean(PREFIX + "metrics.memory_used_on_exit");
+
+    // These system properties are used before outside the SDK option system
+
+    private static final boolean METRICS_TIME = Boolean.getBoolean("truffleruby.metrics.time");
+    private static final boolean METRICS_MEMORY_USED_ON_EXIT = Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
 
     public static void main(String[] args) {
         printTruffleTimeMetric("before-main");
@@ -153,13 +155,13 @@ public class Main {
 
         // TODO CS 2-Jul-17 some of these values are going back and forth from string and array representation
         builder.setOption(
-                OptionsCatalog.LOAD_PATHS.getSDKName(LANGUAGE_ID),
+                OptionsCatalog.LOAD_PATHS.getName(),
                 OptionsCatalog.LOAD_PATHS.toString(config.getLoadPaths().toArray(new String[]{})));
         builder.setOption(
-                OptionsCatalog.REQUIRED_LIBRARIES.getSDKName(LANGUAGE_ID),
+                OptionsCatalog.REQUIRED_LIBRARIES.getName(),
                 OptionsCatalog.LOAD_PATHS.toString(config.getRequiredLibraries().toArray(new String[]{})));
-        builder.setOption(OptionsCatalog.INLINE_SCRIPT.getSDKName(LANGUAGE_ID), config.inlineScript());
-        builder.setOption(OptionsCatalog.DISPLAYED_FILE_NAME.getSDKName(LANGUAGE_ID), filename);
+        builder.setOption(OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
+        builder.setOption(OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
 
         /*
          * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
@@ -168,11 +170,11 @@ public class Main {
          * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
          */
 
-        builder.setOption(OptionsCatalog.POLYGLOT_STDIO.getSDKName(LANGUAGE_ID), Boolean.FALSE.toString());
-        builder.setOption(OptionsCatalog.SYNC_STDIO.getSDKName(LANGUAGE_ID), Boolean.FALSE.toString());
+        builder.setOption(OptionsCatalog.POLYGLOT_STDIO.getName(), Boolean.FALSE.toString());
+        builder.setOption(OptionsCatalog.SYNC_STDIO.getName(), Boolean.FALSE.toString());
 
         for (Map.Entry<String, String> option : config.getOptions().entrySet()) {
-            builder.setOption(LANGUAGE_ID + "." + option.getKey(), option.getValue());
+            builder.setOption(option.getKey(), option.getValue());
         }
 
         return builder.build();
