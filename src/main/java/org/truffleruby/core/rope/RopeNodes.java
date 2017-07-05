@@ -1204,6 +1204,7 @@ public abstract class RopeNodes {
             return rope.getRawBytes();
         }
 
+        @Specialization
         public byte[] getBytesNative(NativeRope rope) {
             return rope.getBytes();
         }
