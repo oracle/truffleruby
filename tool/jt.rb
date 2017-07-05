@@ -795,7 +795,11 @@ module Commands
   private :test_mri
 
   def run_mri_tests(extra_args, test_files, run_options = {})
-    truffle_args = %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
+    truffle_args =  if extra_args.include?('--aot')
+                      %W[-XX:YoungGenerationSize=2G -XX:OldGenerationSize=4G -Xhome=#{TRUFFLERUBY_DIR}]
+                    else
+                      %w[-J-Xmx2G -J-ea -J-esa --jexceptions]
+                    end
 
     env_vars = {
       "EXCLUDES" => "test/mri/excludes",
