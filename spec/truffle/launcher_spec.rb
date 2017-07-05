@@ -42,7 +42,7 @@ describe "The launcher" do
     should_print_full_java_command "#{RbConfig.ruby} -J-cmd --version"
   end
 
-  it "prints the full java command with -cmd in JAVA_OTPS" do
+  it "prints the full java command with -cmd in JAVA_OPTS" do
     should_print_full_java_command "JAVA_OPTS=-cmd #{RbConfig.ruby} --version"
   end
 
