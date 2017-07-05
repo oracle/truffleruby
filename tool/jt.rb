@@ -135,33 +135,11 @@ module Utilities
   end
 
   def self.find_sulong_options
-    sulong_home = ENV['SULONG_HOME']
-    raise 'set $SULONG_HOME to a built checkout of the Sulong repository' unless sulong_home
-    sulong_home = File.expand_path(sulong_home)
-    mx = find_mx(sulong_home)
-    output = `#{mx} -v -p #{sulong_home} su-run 2>&1`.lines.to_a
-    command_line = output.select { |line| line.include? '/sulong.jar' }
-    if command_line.size == 1
-      command_line = command_line[0]
-    else
-      $stderr.puts "Error in mx for setting up Sulong:"
-      $stderr.puts output
-      abort
-    end
-    sulong_options = command_line.split
-    options = []
-    until sulong_options.empty?
-      option = sulong_options.shift
-      if option.start_with?('-') && option != '-d64' && !option.start_with?('-Dgraal.')
-        options.push "-J#{option}"
-        if option == '-cp'
-          cp = sulong_options.shift.split(File::PATH_SEPARATOR)
-          cp.delete_if { |p| p.end_with?('truffle-api.jar') }
-          options.push cp.join(File::PATH_SEPARATOR)
-        end
-      end
-    end
-    options
+    raise 'set $SULONG_HOME to a built checkout of the Sulong repository' unless SULONG_HOME
+    [
+      "-J-Dpolyglot.llvm.libraryPath=#{SULONG_HOME}/mxbuild/sulong-libs",
+      '-J-cp', "#{SULONG_HOME}/build/sulong.jar",
+    ]
   end
 
   def self.find_sl
