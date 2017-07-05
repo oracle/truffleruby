@@ -44,13 +44,6 @@ module BenchmarkInterface
               # so without printing the ips (as otherwise you'll see a storm of
               # them as it scales up).
               iterations *= 2
-            
-              # If we're running 2^31 iterations and it's still not enough
-              # then we need to give up.
-              if iterations > MAX_ITERATIONS
-                puts 'optimised away'
-                break
-              end
             else
               # If the iteration time is at least a hundredth of a second, we
               # can print an ips and adjust for the next round to try to make
@@ -60,6 +53,13 @@ module BenchmarkInterface
               puts iterations if print_iterations
               puts ips * inner_iterations
               iterations = (ips * freq).to_i
+            end
+
+            # If we're running 2^31 iterations and it's still not enough
+            # then we need to give up.
+            if iterations > MAX_ITERATIONS
+              puts 'optimised away'
+              break
             end
             
             # If we rounded to zero, run at least one iteration.
