@@ -2,10 +2,10 @@
 
 -   Configure `config/database.yml` (Postgresql required)
 -   Start Postgres (eg `postgres -D /usr/local/var/postgres`)
--   Setup environment: `jruby-truffle-tool setup --offline`
--   Create database: `jruby-truffle-tool run bin/rake db:create`   
--   Migrate database: `jruby-truffle-tool run bin/rake db:migrate`   
--   Run Rails server: `jruby-truffle-tool run bin/rails server`
+-   Setup environment: `truffleruby-tool setup --offline`
+-   Create database: `truffleruby-tool run bin/rake db:create`   
+-   Migrate database: `truffleruby-tool run bin/rake db:migrate`   
+-   Run Rails server: `truffleruby-tool run bin/rails server`
 -   Go to <http://localhost:3000>
 -   Create a new post with:
 
@@ -34,7 +34,7 @@
 ## Alternatively using `bundler`
 
 -   _Omitting first 2 steps from above._     
--   Install stubs `jruby-truffle-tool setup --no-bundler` (used by bundle exec)
+-   Install stubs `truffleruby-tool setup --no-bundler` (used by bundle exec)
 -   Setup environment variables
     -   `export JRUBY_OTPS='-X+T'` (fish: `set -x JRUBY_OPTS '-X+T'`)
     -   `export RUBYOTP='-r ./workarounds'` (fish: `set -x RUBYOPT '-r ./workarounds'`)

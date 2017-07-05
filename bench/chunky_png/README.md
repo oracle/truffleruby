@@ -47,5 +47,3 @@ index e3d97ca..58c234a 100644
 ```
 
 OilyPNG is at revision `705202d54c891c709a2c9075e6d0cd4bba04f209`.
-
-Modified to use `rb_jt_scan_args_12` in `operations.c`.

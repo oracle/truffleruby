@@ -9,7 +9,7 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-# A workflow tool for JRuby+Truffle development
+# A workflow tool for TruffleRuby development
 
 # Recommended: function jt { ruby tool/jt.rb "$@"; }
 
@@ -435,7 +435,7 @@ module Commands
       jt tag all spec/ruby/language                  tag all specs in this file, without running them
       jt untag spec/ruby/language                    untag passing specs in this directory
       jt untag spec/ruby/language/while_spec.rb      untag passing specs in this file
-      jt mspec ...                                   run MSpec with the JRuby+Truffle configuration and custom arguments
+      jt mspec ...                                   run MSpec with the TruffleRuby configuration and custom arguments
       jt metrics alloc [--json] ...                  how much memory is allocated running a program (use -Xclassic to test normal JRuby on this metric and others)
       jt metrics instructions ...                    how many CPU instructions are used to run a program
       jt metrics minheap ...                         what is the smallest heap you can use to run an application
@@ -456,7 +456,7 @@ module Commands
 
       recognised environment variables:
 
-        RUBY_BIN                                     The JRuby+Truffle executable to use (normally just bin/truffleruby)
+        RUBY_BIN                                     The TruffleRuby executable to use (normally just bin/truffleruby)
         GRAALVM_BIN                                  GraalVM executable (java command)
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled (so JDK 9 EA build) java command (aslo set JVMCI_GRAAL_HOME)
@@ -1661,6 +1661,6 @@ class JT
 end
 
 if $0 == __FILE__
-  abort "Do not run #{$0} with JRuby+Truffle itself, use MRI or some other Ruby." if RUBY_ENGINE == "truffleruby"
+  abort "Do not run #{$0} with TruffleRuby itself, use MRI or some other Ruby." if RUBY_ENGINE == "truffleruby"
   JT.new.main(ARGV)
 end

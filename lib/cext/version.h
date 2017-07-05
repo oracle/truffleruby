@@ -9,7 +9,7 @@
  *
  * This file contains code that is based on the Ruby API headers,
  * copyright (C) Yukihiro Matsumoto, licensed under the 2-clause BSD licence
- * as described in the file BSDL included with JRuby+Truffle.
+ * as described in the file BSDL included with TruffleRuby.
  */
 
 #ifndef TRUFFLE_VERSION_H

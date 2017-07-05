@@ -61,7 +61,7 @@ excludes = %w[
 ]
 
 # Until those all have copyright headers
-excludes << "src/main/java/org/jruby/truffle/parser"
+excludes << "src/main/java/org/truffleruby/parser"
 
 truffle_paths.each do |path|
   puts "WARNING: incorrect path #{path}" unless File.exist? path
