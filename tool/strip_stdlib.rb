@@ -1,4 +1,4 @@
-# Deletes files form stdlib-2.2.2 directory which are not used by JRuby+Truffle.
+# Deletes files form stdlib-2.2.2 directory which are not used by TruffleRuby.
 
 require 'pathname'
 require 'fileutils'

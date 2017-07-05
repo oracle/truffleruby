@@ -230,7 +230,7 @@ end
 class Range
   # Custom marshal dumper for Range. Rubinius exposes the three main values in Range (begin, end, excl) as
   # instance variables. MRI does not, but the values are encoded as instance variables within the marshal output from
-  # MRI, so they both generate the same output, with the exception of the ordering of the variables. In JRuby+Truffle,
+  # MRI, so they both generate the same output, with the exception of the ordering of the variables. In TruffleRuby,
   # we do something more along the lines of MRI and as such, the default Rubinius handler for dumping Range doesn't
   # work for us because there are no instance variables to dump. This custom dumper explicitly encodes the three main
   # values so we generate the correct dump data.
@@ -1185,7 +1185,7 @@ module Marshal
     end
 
     # Rubinius stores three main values in Range (begin, end, excl) as instance variables and as such, can use the
-    # normal, generic object deserializer. In JRuby+Truffle, we do not expose these values as instance variables, in
+    # normal, generic object deserializer. In TruffleRuby, we do not expose these values as instance variables, in
     # keeping with MRI. Moreover, we have specialized versions of Ranges depending on these values, so changing them
     # after object construction would create optimization problems. Instead, we patch the Rubinius marshal loader here
     # to specifically handle Ranges by constructing a Range of the proper type using the deserialized main values and

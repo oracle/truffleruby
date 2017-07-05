@@ -224,7 +224,7 @@ class TruffleTool
   attr_reader :options
 
   EXECUTABLE        = File.basename($PROGRAM_NAME)
-  BRANDING          = EXECUTABLE.include?('jruby') ? 'JRuby+Truffle' : 'RubyTruffle'
+  BRANDING          = 'TruffleRuby'
   LOCAL_CONFIG_FILE = '.truffleruby-tool.yaml'
   ROOT              = Pathname(__FILE__).dirname.parent.expand_path
   TRUFFLERUBY_PATH  = ROOT.join('../..').expand_path

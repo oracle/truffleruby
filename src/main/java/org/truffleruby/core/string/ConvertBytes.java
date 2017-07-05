@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  *
- * This is a port of org.jruby.util.ConvertBytes to work with the JRuby+Truffle backend.
+ * This is a port of org.jruby.util.ConvertBytes to work with the TruffleRuby backend.
  * The original class is licensed under the same EPL1.0/GPL 2.0/LGPL 2.1 used throughout.
  */
 

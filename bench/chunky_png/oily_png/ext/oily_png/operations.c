@@ -21,11 +21,7 @@ VALUE oily_png_compose_bang(int argc, VALUE *argv, VALUE self) {
   
   // Scan the passed in arguments, and populate the above-declared variables. Notice that '12'
   // specifies that oily_png_compose_bang takes in 1 required parameter, and 2 optional ones (the offsets)
-  #ifdef JRUBY_TRUFFLE
-  rb_jt_scan_args_12(argc, argv, "12", &other,&opt_offset_x,&opt_offset_y);
-  #else
   rb_scan_args(argc, argv, "12", &other,&opt_offset_x,&opt_offset_y);
-  #endif
   
   // Regardless of whether offsets were provided, we must specify a default value for them since they will
   // be used in calculating the position of the composed element.
@@ -81,11 +77,7 @@ VALUE oily_png_replace_bang(int argc, VALUE *argv, VALUE self) {
   
   // Scan the passed in arguments, and populate the above-declared variables. Notice that '12'
   // specifies that oily_png_compose_bang takes in 1 required parameter, and 2 optional ones (the offsets)
-  #ifdef JRUBY_TRUFFLE
-  rb_jt_scan_args_12(argc, argv, "12", &other,&opt_offset_x,&opt_offset_y);
-  #else
   rb_scan_args(argc, argv, "12", &other,&opt_offset_x,&opt_offset_y);
-  #endif
   
   // Regardless of whether offsets were provided, we must specify a default value for them since they will
   // be used in calculating the position of the composed element.
