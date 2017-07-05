@@ -358,22 +358,6 @@ module ShellUtils
     mx SULONG_HOME, *args
   end
 
-  def clang(*args)
-    sh 'clang', *args
-  end
-
-  def llvm_opt(*args)
-    sh 'opt', *args
-  end
-
-  def sulong_run(*args)
-    mx_sulong 'su-run', *args
-  end
-
-  def sulong_link(*args)
-    mx_sulong 'su-link', *args
-  end
-
   def mspec(command, *args)
     env_vars = {}
     if command.is_a?(Hash)
@@ -881,14 +865,14 @@ module Commands
     end
 
     unless no_libxml
-      clang '-c', '-emit-llvm', "-I#{LIBXML_INCLUDE}", 'test/truffle/cexts/xml/main.c', '-o', 'test/truffle/cexts/xml/main.bc'
-      out, _ = sulong_run("-Dpolyglot.llvm.libraries=#{LIBXML_LIB}", 'test/truffle/cexts/xml/main.bc', {capture: true})
+      sh 'clang', '-c', '-emit-llvm', "-I#{LIBXML_INCLUDE}", 'test/truffle/cexts/xml/main.c', '-o', 'test/truffle/cexts/xml/main.bc'
+      out, _ = mx_sulong('su-run', "-Dpolyglot.llvm.libraries=#{LIBXML_LIB}", 'test/truffle/cexts/xml/main.bc', {capture: true})
       raise out.inspect unless out == "7\n"
     end
 
     unless no_openssl
-      clang '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
-      out, _ = sulong_run("-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', {capture: true})
+      sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
+      out, _ = mx_sulong('su-run', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', {capture: true})
       raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
     end
 
