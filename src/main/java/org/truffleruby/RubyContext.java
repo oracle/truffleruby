@@ -110,9 +110,8 @@ public class RubyContext {
         allocationReporter = env.lookup(AllocationReporter.class);
 
         final OptionsBuilder optionsBuilder = new OptionsBuilder();
-        optionsBuilder.set(env.getConfig());            // First legacy config - used by unit tests for example
-        optionsBuilder.set(System.getProperties());     // Then system properties
-        optionsBuilder.set(env.getOptions());           // Then the command line and the polyglot engine
+        optionsBuilder.set(env.getConfig());            // Legacy config - used by unit tests for example
+        optionsBuilder.set(env.getOptions());           // SDK options
         options = optionsBuilder.build();
 
         rubyHome = findRubyHome();

@@ -24,24 +24,7 @@ import java.util.logging.Level;
 
 public class OptionsBuilder {
 
-    public static final String PREFIX = Main.PREFIX;
-
-    public static final Collection<String> ignoredProperties = Arrays.asList(
-            PREFIX + "metrics.memory_used_on_exit",
-            PREFIX + "metrics.time"
-    );
-
     private final Map<OptionDescription<?>, Object> options = new HashMap<>();
-
-    public void set(Properties properties) {
-        for (Map.Entry<Object, Object> property : properties.entrySet()) {
-            final String name = (String) property.getKey();
-
-            if (name.startsWith(PREFIX) && !ignoredProperties.contains(name)) {
-                set(name.substring(PREFIX.length()), property.getValue());
-            }
-        }
-    }
 
     public void set(Map<String, Object> properties) {
         for (Map.Entry<String, Object> property : properties.entrySet()) {
