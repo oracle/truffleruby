@@ -30,10 +30,10 @@ $ .../graalvm/bin/javac -classpath .../graalvm/lib/truffle/truffle-api.jar Ascii
 And then run the Java program. We need to put the `asciidoctor/lib` directory on
 the load path, but we don't have a Ruby command line. Instead, we use the
 `load_paths` option, which as a Java system property is written
-`truffleruby.load_paths`.
+`polyglot.ruby.load_paths`.
 
 ```bash
 $ cp asciidoctor/benchmark/sample-data/mdbasics.adoc sample.adoc
-$ .../graalvm/bin/java -polyglot -classpath . -Dtruffleruby.load_paths=asciidoctor/lib Asciidoctor sample.adoc
+$ .../graalvm/bin/java -polyglot -classpath . -Dpolyglot.ruby.load_paths=asciidoctor/lib Asciidoctor sample.adoc
 $ open sample.html
 ```

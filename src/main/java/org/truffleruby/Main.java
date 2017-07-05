@@ -179,9 +179,6 @@ public class Main {
     }
 
     public static void processArguments(CommandLineOptions config, String[] arguments) {
-
-        // TODO (pitr-ch 04-Jul-2017): Process System.properties here as well?, currently done in RubyContext
-
         new CommandLineParser(arguments, config).processArguments();
 
         if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {

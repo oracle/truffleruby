@@ -71,7 +71,7 @@ def ruby_tck(args):
     for var in ['GEM_HOME', 'GEM_PATH', 'GEM_ROOT']:
         if var in os.environ:
             del os.environ[var]
-    mx_unittest.unittest(['-Dtruffleruby.home='+_suite.dir, '--verbose', '--suite', 'truffleruby'])
+    mx_unittest.unittest(['-Dpolyglot.ruby.home='+_suite.dir, '--verbose', '--suite', 'truffleruby'])
 
 def deploy_binary_if_master(args):
     """If the active branch is 'master', deploy binaries for the primary suite to remote maven repository."""
