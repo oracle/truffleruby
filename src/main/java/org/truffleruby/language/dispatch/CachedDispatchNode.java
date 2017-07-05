@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CallerFrameAccess;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
@@ -46,6 +47,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
     private final boolean cachedNameIsRubyString;
 
     @Child protected DispatchNode next;
+    @Child private RopeNodes.BytesEqualNode equalsNode = RopeNodes.BytesEqualNode.create();
 
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
 
@@ -142,7 +144,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
         if (cachedName instanceof String) {
             return cachedName.equals(methodName);
         } else if (cachedNameIsRubyString) {
-            return RubyGuards.isRubyString(methodName) && StringOperations.rope((DynamicObject) cachedName).equals(StringOperations.rope((DynamicObject) methodName));
+            return RubyGuards.isRubyString(methodName) && equalsNode.execute(StringOperations.rope((DynamicObject) cachedName), StringOperations.rope((DynamicObject) methodName));
         } else { // cachedName is a Symbol
             // cachedName == methodName was checked above and was not true,
             // and since Symbols are compared by identity we know they don't match.

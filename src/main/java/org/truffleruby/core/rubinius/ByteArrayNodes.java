@@ -23,6 +23,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -62,13 +63,14 @@ public abstract class ByteArrayNodes {
     public abstract static class PrependNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public DynamicObject prepend(DynamicObject bytes, DynamicObject string) {
+        public DynamicObject prepend(DynamicObject bytes, DynamicObject string,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(string);
             final int prependLength = rope.byteLength();
             final int originalLength = Layouts.BYTE_ARRAY.getBytes(bytes).getUnsafeBytes().length;
             final int newLength = prependLength + originalLength;
             final byte[] prependedBytes = new byte[newLength];
-            System.arraycopy(rope.getBytes(), 0, prependedBytes, 0, prependLength);
+            System.arraycopy(bytesNode.execute(rope), 0, prependedBytes, 0, prependLength);
             System.arraycopy(Layouts.BYTE_ARRAY.getBytes(bytes).getUnsafeBytes(), 0, prependedBytes, prependLength, originalLength);
             return ByteArrayNodes.createByteArray(coreLibrary().getByteArrayFactory(), RopeBuilder.createRopeBuilder(prependedBytes));
         }

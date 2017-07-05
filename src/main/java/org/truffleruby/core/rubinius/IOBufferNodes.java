@@ -55,6 +55,7 @@ import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuffer;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -86,7 +87,8 @@ public abstract class IOBufferNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public int unshift(DynamicObject ioBuffer, DynamicObject string, int startPosition, int used,
-                           @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(string);
             final int available = IOBUFFER_SIZE - used;
 
@@ -99,7 +101,7 @@ public abstract class IOBufferNodes {
                 bytes = byteList.getUnsafeBytes();
                 written = byteList.getLength() - startPosition;
             } else {
-                bytes = rope.getBytes();
+                bytes = bytesNode.execute(rope);
                 written = rope.byteLength() - startPosition;
             }
 

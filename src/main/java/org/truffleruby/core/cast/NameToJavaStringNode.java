@@ -19,6 +19,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
@@ -30,7 +31,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
  * Take a Symbol or some object accepting #to_str
  * and convert it to a Java String.
  */
-@ImportStatic(StringCachingGuards.class)
+@ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class NameToJavaStringNode extends RubyNode {
 
@@ -40,10 +41,11 @@ public abstract class NameToJavaStringNode extends RubyNode {
 
     public abstract String executeToJavaString(VirtualFrame frame, Object name);
 
-    @Specialization(guards = { "isRubyString(value)", "ropesEqual(value, cachedRope)" }, limit = "getLimit()")
+    @Specialization(guards = { "isRubyString(value)", "equalsNode.execute(rope(value), cachedRope)" }, limit = "getLimit()")
     String stringCached(DynamicObject value,
             @Cached("privatizeRope(value)") Rope cachedRope,
-            @Cached("value.toString()") String convertedString) {
+            @Cached("value.toString()") String convertedString,
+            @Cached("create()") RopeNodes.EqualNode equalsNode) {
         return convertedString;
     }
 

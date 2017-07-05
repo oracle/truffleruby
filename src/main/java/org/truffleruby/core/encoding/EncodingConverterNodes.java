@@ -389,12 +389,13 @@ public abstract class EncodingConverterNodes {
 
         @Specialization
         public DynamicObject setReplacement(DynamicObject encodingConverter, DynamicObject replacement,
-                                            @Cached("create()") BranchProfile errorProfile) {
+                @Cached("create()") BranchProfile errorProfile,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
             final Rope rope = StringOperations.rope(replacement);
             final Encoding encoding = rope.getEncoding();
 
-            final int ret = TranscodingManager.setReplacement(ec, rope.getBytes(), 0, rope.byteLength(), encoding.getName());
+            final int ret = TranscodingManager.setReplacement(ec, bytesNode.execute(rope), 0, rope.byteLength(), encoding.getName());
 
             if (ret == -1) {
                 errorProfile.enter();

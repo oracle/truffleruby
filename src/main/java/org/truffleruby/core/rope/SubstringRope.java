@@ -12,7 +12,7 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 
-public class SubstringRope extends Rope {
+public class SubstringRope extends ManagedRope {
 
     private final Rope child;
     private final int offset;

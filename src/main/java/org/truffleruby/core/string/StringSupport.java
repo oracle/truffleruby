@@ -51,11 +51,13 @@ public final class StringSupport {
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
 
     // rb_enc_fast_mbclen
+    @TruffleBoundary
     public static int encFastMBCLen(byte[] bytes, int p, int e, Encoding enc) {
         return enc.length(bytes, p, e);
     }
 
     // rb_enc_mbclen
+    @TruffleBoundary
     public static int length(Encoding enc, byte[]bytes, int p, int end) {
         int n = enc.length(bytes, p, end);
         if (MBCLEN_CHARFOUND_P(n) && MBCLEN_CHARFOUND_LEN(n) <= end - p) return MBCLEN_CHARFOUND_LEN(n);

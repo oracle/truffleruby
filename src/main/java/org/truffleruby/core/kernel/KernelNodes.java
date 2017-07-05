@@ -477,7 +477,7 @@ public abstract class KernelNodes {
             @NodeChild(value = "file", type = RubyNode.class),
             @NodeChild(value = "line", type = RubyNode.class)
     })
-    @ImportStatic(StringCachingGuards.class)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class EvalNode extends CoreMethodNode {
 
         @Child private CallDispatchHeadNode toStr;
@@ -518,7 +518,7 @@ public abstract class KernelNodes {
         // of view but could produce frames that broke the assumption.
         @Specialization(guards = {
                 "isRubyString(source)",
-                "ropesEqual(source, cachedSource)",
+                "equalNode.execute(rope(source), cachedSource)",
                 "callerDescriptor == callerFrameNode.execute(frame).getFrameDescriptor()",
         }, limit = "getCacheLimit()")
         public Object evalNoBindingCached(
@@ -531,7 +531,8 @@ public abstract class KernelNodes {
                 @Cached("callerFrameNode.execute(frame).getFrameDescriptor()") FrameDescriptor callerDescriptor,
                 @Cached("compileSource(source, callerFrameNode.execute(frame).materialize())") RootNodeWrapper cachedRootNode,
                 @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
-                @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
+                @Cached("create(cachedCallTarget)") DirectCallNode callNode,
+                @Cached("create()") RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = callerFrameNode.execute(frame).materialize();
             final Object callerSelf = RubyArguments.getSelf(frame);
 
@@ -572,7 +573,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = {
                 "isRubyString(source)",
-                "ropesEqual(source, cachedSource)",
+                "equalNode.execute(rope(source), cachedSource)",
                 "isRubyBinding(binding)",
                 "assignsNoNewVariables(cachedRootNode)",
                 "bindingDescriptor == getBindingDescriptor(binding)"
@@ -586,7 +587,8 @@ public abstract class KernelNodes {
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
                 @Cached("compileSource(source, getBindingFrame(binding))") RootNodeWrapper cachedRootNode,
                 @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
-                @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
+                @Cached("create(cachedCallTarget)") DirectCallNode callNode,
+                @Cached("create()") RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.getTopFrame(binding);
             final Object bindingSelf = RubyArguments.getSelf(parentFrame);
 
@@ -1666,7 +1668,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = { "format", "sprintf" }, isModuleFunction = true, rest = true, required = 1, taintFrom = 1)
-    @ImportStatic(StringCachingGuards.class)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
@@ -1676,7 +1678,7 @@ public abstract class KernelNodes {
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.createBinaryProfile();
 
-        @Specialization(guards = { "isRubyString(format)", "ropesEqual(format, cachedFormat)", "isDebug(frame) == cachedIsDebug" })
+        @Specialization(guards = { "isRubyString(format)", "equalNode.execute(rope(format), cachedFormat)", "isDebug(frame) == cachedIsDebug" })
         public DynamicObject formatCached(
                 VirtualFrame frame,
                 DynamicObject format,
@@ -1684,7 +1686,8 @@ public abstract class KernelNodes {
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
-                @Cached("create(compileFormat(format, arguments, isDebug(frame)))") DirectCallNode callPackNode) {
+                @Cached("create(compileFormat(format, arguments, isDebug(frame)))") DirectCallNode callPackNode,
+                @Cached("create()") RopeNodes.EqualNode equalNode) {
             final BytesResult result;
 
             try {

@@ -40,6 +40,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
@@ -439,7 +440,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "read", isModuleFunction = true, required = 2)
-    @ImportStatic(StringCachingGuards.class)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class ReadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = {"!isRubySymbol(identifier)", "!isRubyString(identifier)"})
@@ -477,7 +478,7 @@ public abstract class InteropNodes {
         @Specialization(
                 guards = {
                         "isRubyString(identifier)",
-                        "ropesEqual(identifier, cachedIdentifier)"
+                        "equalNode.execute(rope(identifier), cachedIdentifier)"
                 },
                 limit = "getCacheLimit()"
         )
@@ -488,7 +489,8 @@ public abstract class InteropNodes {
                 @Cached("privatizeRope(identifier)") Rope cachedIdentifier,
                 @Cached("cachedIdentifier.toString()") String identifierString,
                 @Cached("createReadNode()") Node readNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("create()") RopeNodes.EqualNode equalNode) {
             try {
                 return ForeignAccess.sendRead(readNode, receiver, identifierString);
             } catch (UnknownIdentifierException | UnsupportedMessageException e) {
@@ -531,7 +533,7 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "write", isModuleFunction = true, required = 3)
-    @ImportStatic(StringCachingGuards.class)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class WriteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = {"!isRubySymbol(identifier)", "!isRubyString(identifier)"})
@@ -571,7 +573,7 @@ public abstract class InteropNodes {
         @Specialization(
                 guards = {
                         "isRubyString(identifier)",
-                        "ropesEqual(identifier, cachedIdentifier)"
+                        "equalNode.execute(rope(identifier), cachedIdentifier)"
                 },
                 limit = "getCacheLimit()"
         )
@@ -583,7 +585,8 @@ public abstract class InteropNodes {
                 @Cached("privatizeRope(identifier)") Rope cachedIdentifier,
                 @Cached("cachedIdentifier.toString()") String identifierString,
                 @Cached("createWriteNode()") Node writeNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("create()") RopeNodes.EqualNode equalNode) {
             try {
                 return ForeignAccess.sendWrite(writeNode, receiver, identifierString, value);
             } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
@@ -704,21 +707,23 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "eval", isModuleFunction = true, required = 2)
-    @ImportStatic(StringCachingGuards.class)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = {
                 "isRubyString(mimeType)",
                 "isRubyString(source)",
-                "ropesEqual(mimeType, cachedMimeType)",
-                "ropesEqual(source, cachedSource)"
+                "mimeTypeEqualNode.execute(rope(mimeType), cachedMimeType)",
+                "sourceEqualNode.execute(rope(source), cachedSource)"
         }, limit = "getCacheLimit()")
         public Object evalCached(
                 DynamicObject mimeType,
                 DynamicObject source,
                 @Cached("privatizeRope(mimeType)") Rope cachedMimeType,
                 @Cached("privatizeRope(source)") Rope cachedSource,
-                @Cached("create(parse(mimeType, source))") DirectCallNode callNode
+                @Cached("create(parse(mimeType, source))") DirectCallNode callNode,
+                @Cached("create()") RopeNodes.EqualNode mimeTypeEqualNode,
+                @Cached("create()") RopeNodes.EqualNode sourceEqualNode
         ) {
             return callNode.call(new Object[]{});
         }

@@ -58,6 +58,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -677,8 +678,6 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
-        @Child private CallDispatchHeadNode toEnumNode;
-
         @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
         public Object eachOther(DynamicObject array, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy) {
@@ -1247,7 +1246,7 @@ public abstract class ArrayNodes {
     }
 
     @CoreMethod(names = "pack", required = 1, taintFrom = 1)
-    @ImportStatic(StringCachingGuards.class)
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class PackNode extends ArrayCoreMethodNode {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
@@ -1258,14 +1257,15 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = {
                 "isRubyString(format)",
-                "ropesEqual(format, cachedFormat)"
+                "equalNode.execute(rope(format), cachedFormat)"
         }, limit = "getCacheLimit()")
         public DynamicObject packCached(
                 DynamicObject array,
                 DynamicObject format,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
-                @Cached("create(compileFormat(format))") DirectCallNode callPackNode) {
+                @Cached("create(compileFormat(format))") DirectCallNode callPackNode,
+                @Cached("create()") RopeNodes.EqualNode equalNode) {
             final BytesResult result;
 
             try {

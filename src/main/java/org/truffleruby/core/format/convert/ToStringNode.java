@@ -11,6 +11,7 @@ package org.truffleruby.core.format.convert;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -23,6 +24,7 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.MissingBehavior;
@@ -83,7 +85,8 @@ public abstract class ToStringNode extends FormatNode {
     }
 
     @Specialization(guards = "isRubyString(string)")
-    public byte[] toStringString(VirtualFrame frame, DynamicObject string) {
+    public byte[] toStringString(VirtualFrame frame, DynamicObject string,
+            @Cached("create()") RopeNodes.BytesNode bytesNode) {
         if (taintedProfile.profile(isTaintedNode.executeIsTainted(string))) {
             setTainted(frame);
         }
@@ -95,16 +98,17 @@ public abstract class ToStringNode extends FormatNode {
                     setTainted(frame);
                 }
 
-                return Layouts.STRING.getRope((DynamicObject) value).getBytes();
+                return bytesNode.execute(Layouts.STRING.getRope((DynamicObject) value));
             } else {
                 throw new NoImplicitConversionException(string, "String");
             }
         }
-        return Layouts.STRING.getRope(string).getBytes();
+        return bytesNode.execute(Layouts.STRING.getRope(string));
     }
 
     @Specialization(guards = "isRubyArray(array)")
-    public byte[] toString(VirtualFrame frame, DynamicObject array) {
+    public byte[] toString(VirtualFrame frame, DynamicObject array,
+            @Cached("create()") RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toSNode = insert(new CallDispatchHeadNode(true, MissingBehavior.RETURN_MISSING));
@@ -117,14 +121,15 @@ public abstract class ToStringNode extends FormatNode {
                 setTainted(frame);
             }
 
-            return Layouts.STRING.getRope((DynamicObject) value).getBytes();
+            return bytesNode.execute(Layouts.STRING.getRope((DynamicObject) value));
         } else {
             throw new NoImplicitConversionException(array, "String");
         }
     }
 
     @Specialization(guards = {"!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)"})
-    public byte[] toString(VirtualFrame frame, Object object) {
+    public byte[] toString(VirtualFrame frame, Object object,
+            @Cached("create()") RopeNodes.BytesNode bytesNode) {
         final Object value = getToStrNode().call(frame, object, conversionMethod);
 
         if (RubyGuards.isRubyString(value)) {
@@ -132,7 +137,7 @@ public abstract class ToStringNode extends FormatNode {
                 setTainted(frame);
             }
 
-            return Layouts.STRING.getRope((DynamicObject) value).getBytes();
+            return bytesNode.execute(Layouts.STRING.getRope((DynamicObject) value));
         }
 
         if (inspectOnConversionFailure) {
@@ -141,7 +146,7 @@ public abstract class ToStringNode extends FormatNode {
                 inspectNode = insert(KernelNodesFactory.ToSNodeFactory.create(null));
             }
 
-            return Layouts.STRING.getRope(inspectNode.toS(object)).getBytes();
+            return bytesNode.execute(Layouts.STRING.getRope(inspectNode.toS(object)));
         } else {
             throw new NoImplicitConversionException(object, "String");
         }
