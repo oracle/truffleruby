@@ -12,7 +12,7 @@
  * rights and limitations under the License.
  *
  * Copyright (C) 2008 JRuby project
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -286,19 +286,36 @@ public class Platform {
             || s1.toLowerCase(java.util.Locale.ENGLISH).startsWith(s2.toLowerCase(java.util.Locale.ENGLISH));
     }
 
+    // compatible with jnr.posix.util.Platform.getOSName()
+    private static String getJNRCompatibleOSName() {
+        final String osNameProperty = System.getProperty("os.name");
+        switch (osNameProperty) {
+            case "Mac OS X":
+            case "Darwin":
+                return "darwin";
+            case "Linux":
+                return "linux";
+            default:
+                return osNameProperty;
+        }
+    }
+
+    // compatible with jnr.posix.util.Platform.IS_WINDOWS
+    private static boolean isJNRCompatibleWindows() {
+        return System.getProperty("os.name").toLowerCase().contains("windows");
+    }
+
     public static String getOSName() {
-        if (jnr.posix.util.Platform.IS_WINDOWS) {
+        if (isJNRCompatibleWindows()) {
             return RUBY_WIN32;
         }
 
-        String OSName = jnr.posix.util.Platform.getOSName();
-        String theOSName = RUBY_OS_NAMES.get(OSName);
-
-        return theOSName == null ? OSName : theOSName;
+        final String osName = getJNRCompatibleOSName();
+        return RUBY_OS_NAMES.getOrDefault(osName, osName);
     }
 
     public static String getArchitecture() {
-        String architecture = jnr.posix.util.Platform.ARCH;
+        String architecture = System.getProperty("os.arch");
         if (architecture == null) architecture = "unknown";
         if (architecture.equals("amd64")) architecture = "x86_64";
 

@@ -68,8 +68,10 @@ public class Main {
 
     // These system properties are used before outside the SDK option system
 
-    private static final boolean METRICS_TIME = Boolean.getBoolean("truffleruby.metrics.time");
-    private static final boolean METRICS_MEMORY_USED_ON_EXIT = Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
+    private static final boolean METRICS_TIME =
+            Boolean.getBoolean("truffleruby.metrics.time");
+    private static final boolean METRICS_MEMORY_USED_ON_EXIT =
+            Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
 
     public static void main(String[] args) {
         printTruffleTimeMetric("before-main");
