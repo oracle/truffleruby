@@ -170,7 +170,6 @@ suite = {
             "sourceDirs": ["java"],
             "dependencies": [
                 "truffle:TRUFFLE_API",
-                "truffle:TRUFFLE_DEBUG",
                 "truffle:JLINE",
                 "ASM",
                 "JNR_POSIX",
@@ -249,7 +248,6 @@ suite = {
             ],
             "distDependencies": [
                 "truffle:TRUFFLE_API",
-                "truffle:TRUFFLE_DEBUG",
                 "truffle:TRUFFLE_NFI",
             ],
             "description": "TruffleRuby",
