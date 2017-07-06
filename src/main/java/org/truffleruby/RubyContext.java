@@ -189,6 +189,10 @@ public class RubyContext {
         if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {
             sharedObjects.startSharing();
         }
+
+        if (!options.WORKING_DIRECTORY.isEmpty()) {
+            getNativePlatform().getPosix().chdir(options.WORKING_DIRECTORY);
+        }
     }
 
     public Object send(Object object, String methodName, DynamicObject block, Object... arguments) {

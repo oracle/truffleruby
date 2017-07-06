@@ -35,9 +35,8 @@
 package org.truffleruby.options;
 
 import com.oracle.truffle.api.TruffleOptions;
-import jnr.posix.POSIXFactory;
 import org.truffleruby.Log;
-import org.truffleruby.RubyLanguage;
+import org.truffleruby.Main;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -218,8 +217,7 @@ public class CommandLineParser {
                 case 'C':
                     disallowedInRubyOpts(argument);
                     final String dir = grabValue(getArgumentError(" -C must be followed by a directory expression"));
-                    // We haven't created the context yet, so we don't have a POSIX from there
-                    POSIXFactory.getNativePOSIX(null).chdir(dir);
+                    config.setOption(OptionsCatalog.WORKING_DIRECTORY, dir);
                     break;
                 case 'd':
                     config.setOption(OptionsCatalog.DEBUG, "true");
@@ -377,7 +375,7 @@ public class CommandLineParser {
                             extendedOption = extendedOption.substring(0, equals);
                         }
 
-                        config.getOptions().put(RubyLanguage.ID + "." + extendedOption, value);
+                        config.getOptions().put(Main.LANGUAGE_ID + "." + extendedOption, value);
                     }
                     break FOR;
                 case '-':

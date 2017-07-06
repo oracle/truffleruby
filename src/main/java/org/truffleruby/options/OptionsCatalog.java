@@ -25,6 +25,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription READ_RUBYOPT = new BooleanOptionDescription("ruby.read_rubyopt", "Read RUBYOPT and TRUFFLERUBYOPT environment variables", true);
     public static final BooleanOptionDescription IGNORE_LINES_BEFORE_RUBY_SHEBANG = new BooleanOptionDescription("ruby.ignore_lines_before_ruby_shebang", "strip off text before #!ruby line", false);
     public static final StringOptionDescription ORIGINAL_INPUT_FILE = new StringOptionDescription("ruby.original_input_file", "Original input file for the Ruby interpreter", "");
+    public static final StringOptionDescription WORKING_DIRECTORY = new StringOptionDescription("ruby.working_directory", "Interpreter will switch to this directory", "");
     public static final BooleanOptionDescription DEBUG = new BooleanOptionDescription("ruby.debug", "Debug", false);
     public static final VerbosityOptionDescription VERBOSITY = new VerbosityOptionDescription("ruby.verbosity", "Verbosity", Verbosity.FALSE);
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription("ruby.frozen_string_literals", "Use frozen string literals", false);
@@ -131,6 +132,8 @@ public class OptionsCatalog {
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "ruby.original_input_file":
                 return ORIGINAL_INPUT_FILE;
+            case "ruby.working_directory":
+                return WORKING_DIRECTORY;
             case "ruby.debug":
                 return DEBUG;
             case "ruby.verbosity":
@@ -317,6 +320,7 @@ public class OptionsCatalog {
             READ_RUBYOPT,
             IGNORE_LINES_BEFORE_RUBY_SHEBANG,
             ORIGINAL_INPUT_FILE,
+            WORKING_DIRECTORY,
             DEBUG,
             VERBOSITY,
             FROZEN_STRING_LITERALS,
