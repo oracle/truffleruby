@@ -34,8 +34,7 @@
  */
 package org.truffleruby.options;
 
-import com.oracle.truffle.api.TruffleOptions;
-import org.truffleruby.Log;
+import org.truffleruby.LogWithoutTruffle;
 import org.truffleruby.Main;
 
 import java.io.File;
@@ -258,7 +257,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'y':
                     disallowedInRubyOpts(argument);
-                    Log.LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
+                    LogWithoutTruffle.LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
                     break FOR;
                 case 'J':
                     String js = grabOptionalValue();
@@ -343,7 +342,7 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     String extendedOption = grabValue("-X must be followed by an option");
                     if (new File(extendedOption).isDirectory()) {
-                        Log.LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
+                        LogWithoutTruffle.LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
                     }
                     if (extendedOption.equals("options")) {
                         System.out.println("TruffleRuby options and their default values:");
@@ -358,12 +357,12 @@ public class CommandLineParser {
                         final Level level;
 
                         if (levelString.equals("PERFORMANCE")) {
-                            level = Log.PERFORMANCE;
+                            level = LogWithoutTruffle.PERFORMANCE;
                         } else {
                             level = Level.parse(levelString.toUpperCase());
                         }
 
-                        Log.LOGGER.setLevel(level);
+                        LogWithoutTruffle.LOGGER.setLevel(level);
                     } else {
                         final String value;
 
@@ -388,7 +387,7 @@ public class CommandLineParser {
                         throw new UnsupportedOperationException();
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
-                        Log.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
+                        LogWithoutTruffle.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
                         break FOR;
                     } else if (argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
@@ -432,7 +431,7 @@ public class CommandLineParser {
                         config.setOption(OptionsCatalog.VERBOSITY, "true");
                         break FOR;
                     } else if (argument.startsWith("--dump=")) {
-                        Log.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
+                        LogWithoutTruffle.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
                         break FOR;
                     } else {
                         if (argument.equals("--")) {
@@ -599,7 +598,7 @@ public class CommandLineParser {
         out.println("  -Xoptions       print available TrufleRuby options");
         out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
 
-        if (TruffleOptions.AOT) {
+        if (Main.IS_AOT) {
             out.println("SVM switches:");
             out.println("  -XX:arg         pass arg to the SVM");
             out.println("  -Dname=value    set a system property");

@@ -45,7 +45,6 @@
 package org.truffleruby;
 
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleOptions;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.PolyglotContext;
 import org.graalvm.polyglot.Source;
@@ -61,6 +60,9 @@ import java.util.Map;
 
 public class Main {
 
+    public static final boolean IS_AOT = Boolean.logicalOr(
+            Boolean.getBoolean("com.oracle.graalvm.isaot"),
+            Boolean.getBoolean("com.oracle.truffle.aot"));
     public static final String LANGUAGE_ID = "ruby";
     public static final String LANGUAGE_VERSION = "2.3.3";
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
@@ -122,8 +124,9 @@ public class Main {
                     exitCode = status ? 0 : 1;
                 } else {
                     if (!isGraal() && config.getOption(OptionsCatalog.GRAAL_WARNING_UNLESS)) {
-                        Log.performanceOnce("this JVM does not have the Graal compiler - performance will be limited" +
-                                " - see doc/user/using-graalvm.md");
+                        LogWithoutTruffle.performanceOnce(
+                                "this JVM does not have the Graal compiler - performance will be limited" +
+                                        " - see doc/user/using-graalvm.md");
                     }
 
                     final Source source = Source.newBuilder(
@@ -149,6 +152,7 @@ public class Main {
     }
 
     public static boolean isGraal() {
+        // TODO (pitr-ch 06-Jul-2017): last remaining dependency on TruffleAPI remove in new launcher
         return Truffle.getRuntime().getName().toLowerCase(Locale.ENGLISH).contains("graal");
     }
 
@@ -204,7 +208,7 @@ public class Main {
 
     private static void printTruffleMemoryMetric() {
         // Memory stats aren't available on AOT.
-        if (!TruffleOptions.AOT && METRICS_MEMORY_USED_ON_EXIT) {
+        if (!IS_AOT && METRICS_MEMORY_USED_ON_EXIT) {
             for (int n = 0; n < 10; n++) {
                 System.gc();
             }
@@ -224,8 +228,8 @@ public class Main {
                 "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",
                 System.getProperty("graalvm.version", "unknown version"),
                 LANGUAGE_VERSION,
-                TruffleOptions.AOT ? "AOT" : System.getProperty("java.vm.name", "unknown JVM"),
-                TruffleOptions.AOT ? "build" : System.getProperty(
+                IS_AOT ? "AOT" : System.getProperty("java.vm.name", "unknown JVM"),
+                IS_AOT ? "build" : System.getProperty(
                         "java.runtime.version",
                         System.getProperty("java.version", "unknown runtime version")),
                 isGraal() ? "with Graal" : "without Graal",
