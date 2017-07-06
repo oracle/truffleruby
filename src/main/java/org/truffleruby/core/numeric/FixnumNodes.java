@@ -82,7 +82,12 @@ public abstract class FixnumNodes {
 
         public abstract Object executeAdd(Object a, Object b);
 
-        @Specialization(rewriteOn = ArithmeticException.class)
+        @Specialization(guards = "b == 1", rewriteOn = ArithmeticException.class)
+        public int incInt(int a, int b) {
+            return Math.incrementExact(a);
+        }
+
+        @Specialization(rewriteOn = ArithmeticException.class, replaces = "incInt")
         public int add(int a, int b) {
             return Math.addExact(a, b);
         }
