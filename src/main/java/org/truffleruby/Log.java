@@ -12,64 +12,9 @@ package org.truffleruby;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 
-public class Log {
-
-    private static class RubyLevel extends Level {
-
-        private static final long serialVersionUID = 3759389129096588683L;
-
-        public RubyLevel(String name, Level parent) {
-            super(name, parent.intValue(), parent.getResourceBundleName());
-        }
-
-    }
-
-    public static final Level PERFORMANCE = new RubyLevel("PERFORMANCE", Level.WARNING);
-    public static final Level PATCH = new RubyLevel("PATCH", Level.CONFIG);
-    public static final Level[] LEVELS = new Level[]{PERFORMANCE, PATCH};
-
-    public static final Logger LOGGER = createLogger();
-
-    public static class RubyHandler extends Handler {
-
-        @Override
-        public void publish(LogRecord record) {
-            System.err.printf("[ruby] %s %s%n", record.getLevel().getName(), record.getMessage());
-        }
-
-        @Override
-        public void flush() {
-        }
-
-        @Override
-        public void close() throws SecurityException {
-        }
-
-    }
-
-    private static Logger createLogger() {
-        final Logger logger = Logger.getLogger("org.truffleruby");
-
-        if (LogManager.getLogManager().getProperty("org.truffleruby.handlers") == null) {
-            logger.setUseParentHandlers(false);
-            logger.addHandler(new RubyHandler());
-        }
-
-        return logger;
-    }
-
-    private static final Set<String> displayedWarnings = Collections.newSetFromMap(new ConcurrentHashMap<>());
-
-    public static final String KWARGS_NOT_OPTIMIZED_YET = "keyword arguments are not yet optimized";
+public class Log extends LogWithoutTruffle {
 
     /**
      * Warn about code that works but is not yet optimized as Truffle code normally would be. Only
@@ -90,24 +35,22 @@ public class Log {
      */
     @TruffleBoundary
     public static void performanceOnce(String message) {
-        if (displayedWarnings.add(message)) {
-            LOGGER.log(PERFORMANCE, message);
-        }
+        LogWithoutTruffle.performanceOnce(message);
     }
 
     @TruffleBoundary
     public static void warning(String format, Object... args) {
-        LOGGER.warning(String.format(format, args));
+        LogWithoutTruffle.warning(format, args);
     }
 
     @TruffleBoundary
     public static void info(String format, Object... args) {
-        LOGGER.info(String.format(format, args));
+        LogWithoutTruffle.info(format, args);
     }
 
     @TruffleBoundary
     public static void log(Level level, String message) {
-        LOGGER.log(level, message);
+        LogWithoutTruffle.log(level, message);
     }
 
 }

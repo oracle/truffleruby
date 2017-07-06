@@ -11,8 +11,7 @@ package org.truffleruby.options;
 
 import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionValues;
-import org.truffleruby.Log;
-import org.truffleruby.RubyLanguage;
+import org.truffleruby.LogWithoutTruffle;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,9 +50,9 @@ public class OptionsBuilder {
     public Options build() {
         final Options options = new Options(this);
 
-        if (options.OPTIONS_LOG && Log.LOGGER.isLoggable(Level.CONFIG)) {
+        if (options.OPTIONS_LOG && LogWithoutTruffle.LOGGER.isLoggable(Level.CONFIG)) {
             for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-                Log.LOGGER.config("option " + option.getName() + "=" + option.toString(options.fromDescription(option)));
+                LogWithoutTruffle.LOGGER.config("option " + option.getName() + "=" + option.toString(options.fromDescription(option)));
             }
         }
 
