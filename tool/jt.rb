@@ -214,6 +214,15 @@ module Utilities
     File.read("#{TRUFFLERUBY_DIR}/VERSION").strip
   end
 
+  def self.no_gem_vars_env
+    {
+      'TRUFFLERUBY_RESILIENT_GEM_HOME' => nil,
+      'GEM_HOME' => nil,
+      'GEM_PATH' => nil,
+      'GEM_ROOT' => nil,
+    }
+  end
+
   def self.human_size(bytes)
     if bytes < 1024
       "#{bytes} B"
@@ -1035,9 +1044,10 @@ module Commands
         Dir.chdir(gem_checkout = File.join(temp_dir, gem_name)) do
           raw_sh('git', 'checkout', gem.fetch(:commit)) if gem.key?(:commit)
 
-          environment = { 'GEM_HOME' => gem_home,
-                          # add bin from gem_home to PATH
-                          'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR) }
+          environment = Utilities.no_gem_vars_env.merge(
+            'GEM_HOME' => gem_home,
+            # add bin from gem_home to PATH
+            'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR))
 
           openssl_options = openssl ? %w[--sulong -Xpatching_openssl=false -Xexceptions.print_java=true] : []
 
