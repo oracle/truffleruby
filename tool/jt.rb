@@ -210,10 +210,6 @@ module Utilities
     abort "I can't see IGV running - go to your checkout of Graal and run 'mx igv' in a separate shell, then run this command again" unless igv_running?
   end
 
-  def self.jruby_version
-    File.read("#{TRUFFLERUBY_DIR}/VERSION").strip
-  end
-
   def self.no_gem_vars_env
     {
       'TRUFFLERUBY_RESILIENT_GEM_HOME' => nil,
