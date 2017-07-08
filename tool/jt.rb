@@ -851,6 +851,7 @@ module Commands
   def test_cexts(*args)
     no_libxml = args.delete('--no-libxml')
     no_openssl = args.delete('--no-openssl')
+    no_gems = args.delete('--no-gems')
 
     # Test tools
 
@@ -900,14 +901,18 @@ module Commands
 
     # Test that we can compile and run some real C extensions
 
-    if ENV['GEM_HOME']
+    unless no_gems
+      gem_home = gem_test_pack
+      ENV['GEM_HOME'] = gem_home # For cextc()
+
       tests = [
           ['oily_png', ['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
           ['psd_native', ['chunky_png-1.3.6', 'oily_png-1.2.0', 'bindata-2.3.1', 'hashie-3.4.4', 'psd-enginedata-1.1.1', 'psd-2.1.2', 'psd_native-1.1.3'], ['oily_png', 'psd_native']],
           ['nokogiri', [], ['nokogiri']]
       ]
 
-      tests.each do |gem_name, dependencies, libs, gem_root|
+      tests.each do |gem_name, dependencies, libs|
+        puts "", gem_name
         next if gem_name == 'nokogiri' # nokogiri totally excluded
         next if gem_name == 'nokogiri' && no_libxml
         gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
@@ -915,7 +920,7 @@ module Commands
 
         next if gem_name == 'psd_native' # psd_native is excluded just for running
         run '--sulong',
-            *dependencies.map { |d| "-I#{ENV['GEM_HOME']}/gems/#{d}/lib" },
+            *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
             *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
             "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root
       end
@@ -1145,6 +1150,7 @@ module Commands
       sh 'tar', '-zxf', "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
     end
     puts test_pack
+    File.expand_path("#{test_pack}/gems", TRUFFLERUBY_DIR)
   end
   alias_method :'gem-test-pack', :gem_test_pack
 

@@ -39,7 +39,6 @@ jt gem-test-pack
 You can then test C extension support.
 
 ```bash
-export GEM_HOME=$(jt gem-test-pack)/gems
 jt test cexts --no-libxml
 ```
 
