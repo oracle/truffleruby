@@ -1032,7 +1032,7 @@ module Commands
       begin
         gem_home = File.join(temp_dir, 'gem_home')
 
-        FileUtils.mkpath(gem_home)
+        Dir.mkdir(gem_home)
         gem_home = File.realpath gem_home # remove symlinks
         puts "Using temporary GEM_HOME:#{gem_home}"
 
