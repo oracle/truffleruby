@@ -482,7 +482,7 @@ module Commands
       no_openssl = options.delete('--no-openssl')
       build_ruby_su
       unless no_openssl
-        cextc "#{TRUFFLERUBY_DIR}/src/main/c/openssl"
+        compile_cext "openssl", "#{TRUFFLERUBY_DIR}/src/main/c/openssl", "#{TRUFFLERUBY_DIR}/lib/mri/openssl.su"
       end
     when 'parser'
       jay = Utilities.find_repo('jay')
@@ -643,7 +643,7 @@ module Commands
     e 'p begin', *args, 'end'
   end
 
-  def build_ruby_su(cext_dir=nil)
+  def build_ruby_su
     abort "You need to set SULONG_HOME" unless SULONG_HOME
 
     # Ensure ruby.su is up-to-date
@@ -651,45 +651,32 @@ module Commands
     ruby_c = "#{TRUFFLERUBY_DIR}/src/main/c/cext/ruby.c"
     ruby_h = "#{TRUFFLERUBY_DIR}/lib/cext/ruby.h"
     ruby_su = "#{TRUFFLERUBY_DIR}/lib/cext/ruby.su"
-    if cext_dir != ruby_cext_api and (newer?(ruby_h, ruby_su) or newer?(ruby_c, ruby_su))
+    if newer?(ruby_h, ruby_su) or newer?(ruby_c, ruby_su)
       puts "Compiling outdated ruby.su"
-      cextc ruby_cext_api
+      compile_cext "ruby", ruby_cext_api, ruby_su
     end
   end
   private :build_ruby_su
 
-  def cextc(cext_dir, test_gem=false, *clang_opts)
-    build_ruby_su(cext_dir)
+  def cextc(cext_dir, *clang_opts)
+    cext_dir = File.expand_path(cext_dir)
+    name = File.basename(cext_dir)
+    ext_dir = "#{cext_dir}/ext/#{name}"
+    target = "#{cext_dir}/lib/#{name}/#{name}.su"
+    compile_cext(name, ext_dir, target, *clang_opts)
+  end
 
-    is_ruby = cext_dir == "#{TRUFFLERUBY_DIR}/src/main/c/cext"
-    gem_name = if is_ruby
-                 "ruby"
-               else
-                 File.basename(cext_dir)
-               end
+  def compile_cext(name, ext_dir, target, *clang_opts)
+    extconf = "#{ext_dir}/extconf.rb"
+    raise "#{extconf} does not exist" unless File.exist?(extconf)
 
-    gem_dir = if cext_dir.start_with?("#{TRUFFLERUBY_DIR}/src/main/c")
-                cext_dir
-              elsif test_gem
-                "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/ext/#{gem_name}/"
-              elsif cext_dir.start_with?(TRUFFLERUBY_DIR)
-                Dir.glob(ENV['GEM_HOME'] + "/gems/#{gem_name}*/")[0] + "ext/#{gem_name}/"
-              else
-                cext_dir + "/ext/#{gem_name}/"
-              end
-    copy_target = if is_ruby
-                    "#{TRUFFLERUBY_DIR}/lib/cext/ruby.su"
-                  elsif cext_dir == "#{TRUFFLERUBY_DIR}/src/main/c/openssl"
-                    "#{TRUFFLERUBY_DIR}/lib/mri/openssl.su"
-                  else
-                    "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/lib/#{gem_name}/#{gem_name}.su"
-                  end
+    build_ruby_su unless name == "ruby"
 
-    Dir.chdir(gem_dir) do
-      STDERR.puts "in #{gem_dir} ..."
+    Dir.chdir(ext_dir) do
+      STDERR.puts "in #{ext_dir} ..."
       run("extconf.rb")
       raw_sh("make")
-      FileUtils.copy_file("#{gem_name}.su", copy_target)
+      FileUtils::Verbose.cp("#{name}.su", target)
     end
   end
 
@@ -887,10 +874,10 @@ module Commands
         next if gem_name == 'xml' && no_libxml
         next if gem_name == 'xopenssl' && no_openssl
         dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
-        cextc dir, true
-        name = File.basename(dir)
+        ext_dir = "#{dir}/ext/#{gem_name}/"
+        compile_cext gem_name, ext_dir, "#{dir}/lib/#{gem_name}/#{gem_name}.su"
         next if gem_name == 'globals' # globals is excluded just for running
-        run '--sulong', "-I#{dir}/lib", "#{dir}/bin/#{name}", :out => output_file
+        run '--sulong', "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", :out => output_file
         unless File.read(output_file) == File.read("#{dir}/expected.txt")
           abort "c extension #{dir} didn't work as expected"
         end
@@ -903,7 +890,6 @@ module Commands
 
     unless no_gems
       gem_home = gem_test_pack
-      ENV['GEM_HOME'] = gem_home # For cextc()
 
       tests = [
           ['oily_png', ['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
@@ -916,7 +902,8 @@ module Commands
         next if gem_name == 'nokogiri' # nokogiri totally excluded
         next if gem_name == 'nokogiri' && no_libxml
         gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
-        cextc gem_root, false, '-Werror=implicit-function-declaration'
+        ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
+        compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'
 
         next if gem_name == 'psd_native' # psd_native is excluded just for running
         run '--sulong',
