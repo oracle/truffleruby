@@ -55,7 +55,7 @@ module Rubinius
         asc = values[3]
         is_float = values[4]
 
-        if step.zero? || !limit || step != Float::INFINITY && limit == Float::INFINITY
+        if stepping_forever?(limit, step, asc)
           Float::INFINITY
         elsif is_float
           # Ported from MRI
@@ -68,6 +68,16 @@ module Rubinius
           end
         end
       end
+
+      def stepping_forever?(limit, step, asc)
+        return true if limit.nil? || step.zero?
+        if asc
+          limit == Float::INFINITY  && step != Float::INFINITY
+        else
+          limit == -Float::INFINITY && step != -Float::INFINITY
+        end
+      end
+      private :stepping_forever?
 
       def step_fetch_args(limit, step, by)
         raise ArgumentError, 'step cannot be 0' if undefined.equal?(by) && step == 0
