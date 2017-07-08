@@ -1033,7 +1033,7 @@ module Commands
           openssl_options = openssl ? %w[--sulong -Xpatching_openssl=false -Xexceptions.print_java=true] : []
 
           run(environment, *openssl_options,
-              '-S', 'gem', 'install', 'bundler', '-v', '1.14.6', '--backtrace')
+              '-S', 'gem', 'install', '--no-document', 'bundler', '-v', '1.14.6', '--backtrace')
           run(environment, *openssl_options,
               '-J-Xmx512M','-S', 'bundle', 'install')
           run(environment, *openssl_options,
