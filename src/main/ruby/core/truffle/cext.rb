@@ -623,7 +623,7 @@ module Truffle::CExt
 
   def rb_num_coerce_bin(x, y, func)
     a, b = do_coerce(x, y, true)
-    a.send(func, b)
+    a.__send__(func, b)
   end
 
   def rb_num_coerce_cmp(x, y, func)
@@ -631,14 +631,16 @@ module Truffle::CExt
     if ary.nil?
       nil
     else
-      ary[0].send(func, ary[1])
+      a, b = ary
+      a.__send__(func, b)
     end
   end
 
   def rb_num_coerce_relop(x, y, func)
     ary = do_coerce(x, y, false)
     unless ary.nil?
-      res = ary[0].send(func, ary[1])
+      a, b = ary
+      res = a.__send__(func, b)
     end
     raise ArgumentError, "comparison of #{x.class} with #{y.class} failed" if res.nil?
     res
@@ -1053,9 +1055,9 @@ module Truffle::CExt
       block = Thread.current[:__C_BLOCK__]
       Thread.current[:__C_BLOCK__] = nil
       if block
-        recv.send(meth, *args, &block)
+        recv.__send__(meth, *args, &block)
       else
-        recv.send(meth, *args)
+        recv.__send__(meth, *args)
       end
     ensure
       Thread.current[:__C_BLOCK__] = old_c_block
@@ -1063,7 +1065,7 @@ module Truffle::CExt
   end
 
   def rb_apply(recv, meth, args)
-    recv.send(meth, *args)
+    recv.__send__(meth, *args)
   end
 
   def rb_define_attr(klass, name, read, write)
@@ -1328,7 +1330,9 @@ module Truffle::CExt
   end
 
   def rb_obj_call_init(obj, args)
-    obj.send(:initialize, *args)
+    Truffle.privately do
+      obj.initialize(*args)
+    end
   end
 
   def rb_obj_instance_eval(obj, args, block)
@@ -1374,18 +1378,22 @@ module Truffle::CExt
     end
 
     if read
-      ruby_class.send :attr_reader, name
-      ruby_class.send :private, name if private
-      ruby_class.send :protected, name if protected
-      ruby_class.send :module_function, name if module_function
+      ruby_class.class_exec do
+        attr_reader name
+        private name if private
+        protected name if protected
+        module_function name if module_function
+      end
     end
 
     if write
-      ruby_class.send :attr_writer, name
-      setter_name = :"#{name}="
-      ruby_class.send :private, setter_name if private
-      ruby_class.send :protected, setter_name if protected
-      ruby_class.send :module_function, setter_name if module_function
+      ruby_class.class_exec do
+        attr_writer name
+        setter_name = :"#{name}="
+        private setter_name if private
+        protected setter_name if protected
+        module_function setter_name if module_function
+      end
     end
   end
 
@@ -1525,11 +1533,11 @@ module Truffle::CExt
   end
 
   def send_splatted(object, method, args)
-    object.send(method, *args)
+    object.__send__(method, *args)
   end
 
   def rb_block_call(object, method, args, func, data)
-    object.send(method, *args) do |*block_args|
+    object.__send__(method, *args) do |*block_args|
       Truffle::CExt.execute_with_mutex(func, block_args.first, data, block_args.size, block_args, nil)
     end
   end
