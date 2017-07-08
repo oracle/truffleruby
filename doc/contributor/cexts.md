@@ -67,7 +67,7 @@ jt test mri --openssl --sulong
 To run C extension benchmarks, you first need to compile them.
 
 ```bash
-jt cextc bench/chunky_png/oily_png/
+jt cextc bench/chunky_png/oily_png
 ```
 
 Then follow the instructions for benchmarking above, and then try:
