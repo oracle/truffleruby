@@ -20,7 +20,6 @@ if 'RUBY_BENCHMARKS' in os.environ:
 
 _suite = mx.suite('truffleruby')
 root = _suite.dir
-rubyDists = ['TRUFFLERUBY', 'TRUFFLERUBY-TEST']
 
 # Project classes
 
