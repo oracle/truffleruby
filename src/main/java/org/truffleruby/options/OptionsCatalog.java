@@ -53,7 +53,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription ROPE_LAZY_SUBSTRINGS = new BooleanOptionDescription("ruby.rope.lazy_substrings", "Indicates whether a substring operation on a rope should be performed lazily", true);
     public static final BooleanOptionDescription ROPE_PRINT_INTERN_STATS = new BooleanOptionDescription("ruby.rope.print_intern_stats", "Print interned rope stats at application exit", false);
     public static final IntegerOptionDescription ROPE_DEPTH_THRESHOLD = new IntegerOptionDescription("ruby.rope.depth_threshold", "Threshold value at which ropes will be rebalanced (indirectly controls flattening as well)", 128);
-    public static final IntegerOptionDescription GLOBAL_VARIABLE_MAX_INVALIDATIONS = new IntegerOptionDescription("ruby.global_variable.max_invalidations", "Maximum number of times a global variable can be changed to be considered constant", 10);
+    public static final IntegerOptionDescription GLOBAL_VARIABLE_MAX_INVALIDATIONS = new IntegerOptionDescription("ruby.global_variable.max_invalidations", "Maximum number of times a global variable can be changed to be considered constant", 1);
     public static final IntegerOptionDescription DEFAULT_CACHE = new IntegerOptionDescription("ruby.default_cache", "Default size for caches", 8);
     public static final IntegerOptionDescription METHOD_LOOKUP_CACHE = new IntegerOptionDescription("ruby.method_lookup.cache", "Method lookup cache size", DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription DISPATCH_CACHE = new IntegerOptionDescription("ruby.dispatch.cache", "Dispatch (various forms of method call) cache size", DEFAULT_CACHE.getDefaultValue());
