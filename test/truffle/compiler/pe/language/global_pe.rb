@@ -16,6 +16,12 @@ $almost_stable_global = 2
 example "$almost_stable_global", 2
 
 100.times { |i|
+  $same_value_global = 21
+}
+
+example "$same_value_global", 21
+
+100.times { |i|
   $unstable_global = i
 }
 
