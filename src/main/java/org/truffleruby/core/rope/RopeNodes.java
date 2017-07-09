@@ -24,7 +24,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.profiles.ValueProfile;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
@@ -1134,9 +1133,14 @@ public abstract class RopeNodes {
 
         @Specialization
         public boolean ropesEqual(Rope a, Rope b,
-                @Cached("create()") BytesNode aBytes,
-                @Cached("create()") BytesNode bBytes) {
-            return a.getEncoding() == b.getEncoding() && a.byteLength() == b.byteLength() && a.hashesMatch(b) && Arrays.equals(aBytes.execute(a), bBytes.execute(b));
+                @Cached("create()") BranchProfile differentEncodingProfile,
+                @Cached("create()") BytesEqualNode bytesEqualNode) {
+            if (a.getEncoding() != b.getEncoding()) {
+                differentEncodingProfile.enter();
+                return false;
+            }
+
+            return bytesEqualNode.execute(a, b);
         }
 
     }
@@ -1157,15 +1161,75 @@ public abstract class RopeNodes {
         public abstract boolean execute(Rope a, Rope b);
 
         @Specialization(guards = "a == b")
-        public boolean sameRopeEqual(Rope a, Rope b) {
+        public boolean sameRopes(Rope a, Rope b) {
             return true;
         }
 
-        @Specialization
-        public boolean ropesEqual(Rope a, Rope b,
-                @Cached("create()") BytesNode aBytes,
-                @Cached("create()") BytesNode bBytes) {
-            return a.byteLength() == b.byteLength() && a.hashesMatch(b) && Arrays.equals(aBytes.execute(a), bBytes.execute(b));
+        @Specialization(guards = {
+                "a != b",
+                "a.getRawBytes() != null",
+                "a.getRawBytes() == b.getRawBytes()" })
+        public boolean sameByteArrays(Rope a, Rope b) {
+            return true;
+        }
+
+        @Specialization(guards = {
+                "a != b",
+                "a.getRawBytes() != null",
+                "b.getRawBytes() != null",
+                "a.byteLength() == 1",
+                "b.byteLength() == 1" })
+        public boolean characterEqual(Rope a, Rope b) {
+            return a.getRawBytes()[0] == b.getRawBytes()[0];
+        }
+
+        @Specialization(guards = "a != b", replaces = { "sameByteArrays", "characterEqual" })
+        public boolean fullRopeEqual(Rope a, Rope b,
+                @Cached("createBinaryProfile()") ConditionProfile aRawBytesProfile,
+                @Cached("create()") BranchProfile sameByteArraysProfile,
+                @Cached("create()") BranchProfile differentLengthProfile,
+                @Cached("createBinaryProfile()") ConditionProfile aCalculatedHashProfile,
+                @Cached("createBinaryProfile()") ConditionProfile bCalculatedHashProfile,
+                @Cached("create()") BranchProfile calculatedHashCodesProfile,
+                @Cached("create()") BranchProfile differentHashCodeProfile,
+                @Cached("create()") BranchProfile compareBytesProfile,
+                @Cached("create()") BytesNode aBytesNode,
+                @Cached("create()") BytesNode bBytesNode,
+                @Cached("create()") BranchProfile notEqualProfile,
+                @Cached("create()") BranchProfile equalProfile) {
+            if (aRawBytesProfile.profile(a.getRawBytes() != null) && a.getRawBytes() == b.getRawBytes()) {
+                sameByteArraysProfile.enter();
+                return true;
+            }
+
+            if (a.byteLength() != b.byteLength()) {
+                differentLengthProfile.enter();
+                return false;
+            }
+
+            if (aCalculatedHashProfile.profile(a.isHashCodeCalculated()) &&
+                    bCalculatedHashProfile.profile(b.isHashCodeCalculated())) {
+                if (a.calculatedHashCode() != b.calculatedHashCode()) {
+                    differentHashCodeProfile.enter();
+                    return false;
+                }
+            }
+
+            compareBytesProfile.enter();
+
+            final byte[] aBytes = aBytesNode.execute(a);
+            final byte[] bBytes = bBytesNode.execute(b);
+            assert aBytes.length == bBytes.length;
+
+            for (int i = 0; i < aBytes.length; i++) {
+                if (aBytes[i] != bBytes[i]) {
+                    notEqualProfile.enter();
+                    return false;
+                }
+            }
+
+            equalProfile.enter();
+            return true;
         }
 
     }

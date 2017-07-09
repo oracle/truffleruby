@@ -2814,7 +2814,7 @@ public abstract class StringNodes {
 
     }
 
-    @ImportStatic(StringGuards.class)
+    @ImportStatic({ StringGuards.class, StringOperations.class })
     @NodeChildren({ @NodeChild("first"), @NodeChild("second") })
     public static abstract class StringEqualNode extends RubyNode {
 
@@ -2822,88 +2822,21 @@ public abstract class StringNodes {
 
         public abstract boolean executeStringEqual(DynamicObject string, DynamicObject other);
 
-        @Specialization(guards = {
-                "ropeReferenceEqual(string, other)"
-        })
-        public boolean stringEqualsRopeEquals(DynamicObject string, DynamicObject other) {
+        // Same Rope implies same Encoding and therefore comparable
+        @Specialization(guards = "rope(string) == rope(other)")
+        public boolean sameRope(DynamicObject string, DynamicObject other) {
             return true;
         }
 
-        @Specialization(guards = {
-                "!areComparable(string, other)"
-        })
-        public boolean stringEqualNotComparable(DynamicObject string, DynamicObject other) {
+        @Specialization(guards = "!areComparable(string, other)")
+        public boolean notComparable(DynamicObject string, DynamicObject other) {
             return false;
         }
 
-        @Specialization(guards = {
-                "areComparable(string, other)",
-                "byteLength(string) != byteLength(other)"
-        })
-        public boolean stringEqualDifferentLength(DynamicObject string, DynamicObject other) {
-            return false;
-        }
-
-        @Specialization(guards = {
-                "areComparable(string, other)",
-                "!ropeReferenceEqual(string, other)",
-                "bytesReferenceEqual(string, other)"
-        })
-        public boolean stringEqualsBytesEquals(DynamicObject string, DynamicObject other) {
-            return true;
-        }
-
-        @Specialization(guards = {
-                "areComparable(string, other)",
-                "!ropeReferenceEqual(string, other)",
-                "byteLength(string) == 1",
-                "byteLength(other) == 1",
-                "hasRawBytes(string)",
-                "hasRawBytes(other)"
-        })
-        public boolean equalCharacters(DynamicObject string, DynamicObject other) {
-            final Rope a = rope(string);
-            final Rope b = rope(other);
-
-            return a.getRawBytes()[0] == b.getRawBytes()[0];
-        }
-
-        @Specialization(guards = {
-                "areComparable(string, other)",
-                "!ropeReferenceEqual(string, other)",
-                "!bytesReferenceEqual(string, other)",
-                "byteLength(string) == byteLength(other)"
-        }, replaces = "equalCharacters")
-        public boolean fullEqual(DynamicObject string, DynamicObject other,
-                                 @Cached("createBinaryProfile()") ConditionProfile hashCodesCalculatedProfile,
-                                 @Cached("createBinaryProfile()") ConditionProfile differentHashCodesProfile,
-                @Cached("create()") RopeNodes.BytesNode aBytesNode,
-                @Cached("create()") RopeNodes.BytesNode bBytesNode) {
-            final Rope a = rope(string);
-            final Rope b = rope(other);
-
-            if (hashCodesCalculatedProfile.profile(a.isHashCodeCalculated() && b.isHashCodeCalculated())) {
-                if (differentHashCodesProfile.profile(a.calculatedHashCode() != b.calculatedHashCode())) {
-                    return false;
-                }
-            }
-
-            final byte[] aBytes = aBytesNode.execute(a);
-            final byte[] bBytes = bBytesNode.execute(b);
-
-            return arraysEquals(aBytes, bBytes);
-        }
-
-        private boolean arraysEquals(byte[] a, byte[] b) {
-            assert a.length == b.length;
-
-            for (int i = 0; i < a.length; i++) {
-                if (a[i] != b[i]) {
-                    return false;
-                }
-            }
-
-            return true;
+        @Specialization(guards = "areComparable(string, other)")
+        public boolean stringEquals(DynamicObject string, DynamicObject other,
+                @Cached("create()") RopeNodes.BytesEqualNode bytesEqualNode) {
+            return bytesEqualNode.execute(rope(string), rope(other));
         }
 
         protected boolean areComparable(DynamicObject first, DynamicObject second) {
@@ -2911,28 +2844,7 @@ public abstract class StringNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 areComparableNode = insert(StringAreComparableNodeGen.create(null, null));
             }
-
             return areComparableNode.executeAreComparable(first, second);
-        }
-
-        protected static boolean ropeReferenceEqual(DynamicObject first, DynamicObject second) {
-            return rope(first) == rope(second);
-        }
-
-        protected static boolean bytesReferenceEqual(DynamicObject first, DynamicObject second) {
-            final Rope firstRope = rope(first);
-            final Rope secondRope = rope(second);
-
-            return firstRope.getRawBytes() != null &&
-                    firstRope.getRawBytes() == secondRope.getRawBytes();
-        }
-
-        protected static int byteLength(DynamicObject string) {
-            return rope(string).byteLength();
-        }
-
-        protected static boolean hasRawBytes(DynamicObject string) {
-            return rope(string).getRawBytes() != null;
         }
 
     }
