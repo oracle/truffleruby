@@ -215,8 +215,22 @@ suite = {
             "license": "EPL-1.0",
         },
 
+        "truffleruby-cext": {
+            "native": True,
+            "dir": "src/main/c",
+            "buildDependencies": [
+              "TRUFFLERUBY", # We need truffleruby.jar to run extconf.rb
+            ],
+            "output": ".",
+            "results": [], # Empty results as they overlap with truffleruby-lib
+            "license": ["EPL-1.0", "GPLv2", "LGPLv21", "BSD-simplified"],
+        },
+
         "truffleruby-lib": {
             "class": "ArchiveProject",
+            "dependencies": [
+                "truffleruby-cext",
+            ],
             "outputDir": "lib",
             "prefix": "lib",
             "license": ["EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib"],
