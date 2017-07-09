@@ -19,6 +19,7 @@ if 'RUBY_BENCHMARKS' in os.environ:
     import mx_truffleruby_benchmark
 
 _suite = mx.suite('truffleruby')
+root = _suite.dir
 rubyDists = ['TRUFFLERUBY', 'TRUFFLERUBY-TEST']
 
 # Project classes
@@ -39,18 +40,18 @@ class ArchiveProject(mx.ArchivableProject):
         return mx.ArchivableProject.walk(self.output_dir())
 
 class TruffleRubyDocsProject(ArchiveProject):
-    doc_files = (glob.glob(join(_suite.dir, 'doc', 'legal', '*')) +
-        glob.glob(join(_suite.dir, 'doc', 'user', '*')) +
-        glob.glob(join(_suite.dir, '*.md')))
+    doc_files = (glob.glob(join(root, 'doc', 'legal', '*')) +
+        glob.glob(join(root, 'doc', 'user', '*')) +
+        glob.glob(join(root, '*.md')))
 
     def getResults(self):
-        return [join(_suite.dir, f) for f in self.doc_files]
+        return [join(root, f) for f in self.doc_files]
 
 class TruffleRubyLauncherProject(ArchiveProject):
     def link_launcher(self):
-        launcher = join(_suite.dir, 'bin', 'truffleruby')
+        launcher = join(root, 'bin', 'truffleruby')
         if sys.platform.startswith('darwin'):
-            binary = join(_suite.dir, 'tool', 'native_launcher_darwin')
+            binary = join(root, 'tool', 'native_launcher_darwin')
             if mx.TimeStampFile(launcher).isOlderThan(binary):
                 shutil.copy(binary, launcher)
         else:
@@ -71,12 +72,12 @@ def ruby_tck(args):
     for var in ['GEM_HOME', 'GEM_PATH', 'GEM_ROOT']:
         if var in os.environ:
             del os.environ[var]
-    mx_unittest.unittest(['-Dpolyglot.ruby.home='+_suite.dir, '--verbose', '--suite', 'truffleruby'])
+    mx_unittest.unittest(['-Dpolyglot.ruby.home='+root, '--verbose', '--suite', 'truffleruby'])
 
 def deploy_binary_if_master(args):
     """If the active branch is 'master', deploy binaries for the primary suite to remote maven repository."""
     primary_branch = 'master'
-    active_branch = mx.VC.get_vc(_suite.dir).active_branch(_suite.dir)
+    active_branch = mx.VC.get_vc(root).active_branch(root)
     if active_branch == primary_branch:
         return mx.command_function('deploy-binary')(args)
     else:
