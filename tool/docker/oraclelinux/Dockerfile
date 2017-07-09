@@ -52,7 +52,6 @@ ENV SULONG_HOME=/build/sulong
 
 # Build TruffleRuby
 RUN git clone https://github.com/graalvm/truffleruby.git
-RUN cd truffleruby && git checkout system-libssl
 RUN cd truffleruby && mx build
 
 # Run a basic set of tests
