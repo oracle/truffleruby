@@ -1139,15 +1139,6 @@ public abstract class RopeNodes {
             return a.getEncoding() == b.getEncoding() && a.byteLength() == b.byteLength() && a.hashesMatch(b) && Arrays.equals(aBytes.execute(a), bBytes.execute(b));
         }
 
-        @Specialization(guards = "!isRope(b)")
-        public boolean ropeEqualNonRope(Rope a, Object b) {
-            return false;
-        }
-
-        protected static boolean isRope(Object obj) {
-            return !(obj instanceof Rope);
-        }
-
     }
 
     // This node type checks for the equality of the bytes owned by a rope but does not pay
@@ -1175,15 +1166,6 @@ public abstract class RopeNodes {
                 @Cached("create()") BytesNode aBytes,
                 @Cached("create()") BytesNode bBytes) {
             return a.byteLength() == b.byteLength() && a.hashesMatch(b) && Arrays.equals(aBytes.execute(a), bBytes.execute(b));
-        }
-
-        @Specialization(guards = "!isRope(b)")
-        public boolean ropeEqualNonRope(Rope a, Object b) {
-            return false;
-        }
-
-        protected static boolean isRope(Object obj) {
-            return !(obj instanceof Rope);
         }
 
     }
