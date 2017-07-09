@@ -51,19 +51,34 @@ class TruffleRubyDocsProject(ArchiveProject):
         return [join(root, f) for f in self.doc_files]
 
 class TruffleRubyLauncherProject(ArchiveProject):
-    def link_launcher(self):
-        launcher = join(root, 'bin', 'truffleruby')
-        if sys.platform.startswith('darwin'):
-            binary = join(root, 'tool', 'native_launcher_darwin')
-            if mx.TimeStampFile(launcher).isOlderThan(binary):
-                shutil.copy(binary, launcher)
-        else:
-            if not exists(launcher):
-                os.symlink("truffleruby.sh", launcher)
+    def getBuildTask(self, args):
+        return TruffleRubyLauncherBuildTask(self, args, 1)
 
     def getResults(self):
-        self.link_launcher()
         return ArchiveProject.getResults(self)
+
+
+class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
+    def __init__(self, *args):
+        mx.ArchivableBuildTask.__init__(self, *args)
+        self.launcher = join(root, 'bin', 'truffleruby')
+        self.binary = join(root, 'tool', 'native_launcher_darwin')
+
+    def needsBuild(self, newestInput):
+        if sys.platform.startswith('darwin'):
+            return (mx.TimeStampFile(self.launcher).isOlderThan(self.binary), self.launcher)
+        else:
+            return (not exists(self.launcher), self.launcher)
+
+    def build(self):
+        if sys.platform.startswith('darwin'):
+            shutil.copy(self.binary, self.launcher)
+        else:
+            os.symlink("truffleruby.sh", self.launcher)
+
+    def clean(self, forBuild=False):
+        if exists(self.launcher):
+            os.remove(self.launcher)
 
 # Commands
 

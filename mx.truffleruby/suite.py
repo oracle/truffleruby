@@ -220,6 +220,7 @@ suite = {
             "dir": "src/main/c",
             "buildDependencies": [
               "TRUFFLERUBY", # We need truffleruby.jar to run extconf.rb
+              "truffleruby-bin", # And bin/truffleruby
             ],
             "output": ".",
             "results": [], # Empty results as they overlap with truffleruby-lib
