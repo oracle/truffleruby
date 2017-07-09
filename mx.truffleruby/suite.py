@@ -29,32 +29,32 @@ suite = {
             "name": "Eclipse Public License 1.0",
             "url": "https://opensource.org/licenses/EPL-1.0",
         },
-        "BSD-simplified" : {
-          "name" : "Simplified BSD License (2-clause BSD license)",
-          "url" : "http://opensource.org/licenses/BSD-2-Clause"
+        "BSD-simplified": {
+          "name": "Simplified BSD License (2-clause BSD license)",
+          "url": "http://opensource.org/licenses/BSD-2-Clause"
         },
-        "MIT" : {
-          "name" : "MIT License",
-          "url" : "http://opensource.org/licenses/MIT"
+        "MIT": {
+          "name": "MIT License",
+          "url": "http://opensource.org/licenses/MIT"
         },
-        "Apache-2.0" : {
-          "name" : "Apache License 2.0",
-          "url" : "https://opensource.org/licenses/Apache-2.0"
+        "Apache-2.0": {
+          "name": "Apache License 2.0",
+          "url": "https://opensource.org/licenses/Apache-2.0"
         },
-        "GPLv2" : {
-          "name" : "GNU General Public License, version 2",
-          "url" : "http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html"
+        "GPLv2": {
+          "name": "GNU General Public License, version 2",
+          "url": "http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html"
         },
-        "zlib" : {
-          "name" : "The zlib License",
-          "url" : "https://opensource.org/licenses/zlib"
+        "zlib": {
+          "name": "The zlib License",
+          "url": "https://opensource.org/licenses/zlib"
         },
     },
 
-    "repositories" : {
-         "truffleruby-binary-snapshots" : {
-             "url" : "https://curio.ssw.jku.at/nexus/content/repositories/snapshots",
-             "licenses" : ["EPL-1.0", "BSD-simplified", "BSD-new", "MIT", "Apache-2.0", "GPLv2", "LGPLv21", "zlib"]
+    "repositories": {
+         "truffleruby-binary-snapshots": {
+             "url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots",
+             "licenses": ["EPL-1.0", "BSD-simplified", "BSD-new", "MIT", "Apache-2.0", "GPLv2", "LGPLv21", "zlib"]
           },
      },
 
@@ -286,7 +286,7 @@ suite = {
                 "truffleruby-test",
                 "truffleruby-test-ruby",
             ],
-            "exclude" : [
+            "exclude": [
                 "mx:HAMCREST",
                 "mx:JUNIT"
             ],
