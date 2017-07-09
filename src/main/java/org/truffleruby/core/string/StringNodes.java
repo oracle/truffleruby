@@ -2878,13 +2878,12 @@ public abstract class StringNodes {
                                  @Cached("createBinaryProfile()") ConditionProfile hashCodesCalculatedProfile,
                                  @Cached("createBinaryProfile()") ConditionProfile differentHashCodesProfile,
                 @Cached("create()") RopeNodes.BytesNode aBytesNode,
-                @Cached("create()") RopeNodes.BytesNode bBytesNode,
-                @Cached("create()") RopeNodes.HashNode hashNode) {
+                @Cached("create()") RopeNodes.BytesNode bBytesNode) {
             final Rope a = rope(string);
             final Rope b = rope(other);
 
             if (hashCodesCalculatedProfile.profile(a.isHashCodeCalculated() && b.isHashCodeCalculated())) {
-                if (differentHashCodesProfile.profile(hashNode.execute(a) != hashNode.execute(a))) {
+                if (differentHashCodesProfile.profile(a.calculatedHashCode() != b.calculatedHashCode())) {
                     return false;
                 }
             }
