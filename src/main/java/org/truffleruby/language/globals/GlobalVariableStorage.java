@@ -76,6 +76,7 @@ public class GlobalVariableStorage {
                 return;
             }
 
+            // <= because the initial assignment is counted as an invalidation
             if (changes <= context.getOptions().GLOBAL_VARIABLE_MAX_INVALIDATIONS) {
                 changes++;
                 unchangedAssumption.invalidate();
