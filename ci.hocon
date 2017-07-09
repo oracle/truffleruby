@@ -157,8 +157,7 @@ sulong: ${labsjdk8} {
     [mx, sversions],
     [mx, build],
     [cd, ../main],
-    ${jt} [build, cexts],
-    [mx, build], # copy compiled libraries to TRUFFLERUBY-ZIP
+    [mx, build], # compile cexts as SULONG_HOME was not set on first mx build
   ]
 }
 
