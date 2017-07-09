@@ -25,7 +25,7 @@ You can now build the C extension support.
 ```bash
 export SULONG_HOME=/absolute/path/to/sulong
 export PATH="/usr/local/opt/llvm/bin:$PATH"
-jt build cexts
+jt build
 ```
 
 ## Testing

@@ -387,7 +387,6 @@ module Commands
       jt build [options]                             build
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt rebuild [options]                           clean and build
-          cexts [--no-openssl]                       build the cext backend (set SULONG_HOME)
           parser                                     build the parser
           options                                    build the options
       jt clean                                       clean
@@ -466,7 +465,7 @@ module Commands
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled (so JDK 9 EA build) java command (aslo set JVMCI_GRAAL_HOME)
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
-        SULONG_HOME                                  The Sulong source repository, if you want to run cexts
+        SULONG_HOME                                  The Sulong source repository, if you want to build and run cexts
         GRAAL_JS_JAR                                 The location of trufflejs.jar
         SL_JAR                                       The location of truffle-sl.jar
         LIBXML_HOME, LIBXML_INCLUDE, LIBXML_LIB      The location of libxml2 (the directory containing include etc), and the direct include directory and library file
@@ -478,12 +477,6 @@ module Commands
   def build(*options)
     project = options.first
     case project
-    when 'cexts'
-      no_openssl = options.delete('--no-openssl')
-      build_ruby_su
-      unless no_openssl
-        compile_cext "openssl", "#{TRUFFLERUBY_DIR}/src/main/c/openssl", "#{TRUFFLERUBY_DIR}/lib/mri/openssl.su"
-      end
     when 'parser'
       jay = Utilities.find_repo('jay')
       ENV['PATH'] = "#{jay}/src:#{ENV['PATH']}"
@@ -643,21 +636,6 @@ module Commands
     e 'p begin', *args, 'end'
   end
 
-  def build_ruby_su
-    abort "You need to set SULONG_HOME" unless SULONG_HOME
-
-    # Ensure ruby.su is up-to-date
-    ruby_cext_api = "#{TRUFFLERUBY_DIR}/src/main/c/cext"
-    ruby_c = "#{TRUFFLERUBY_DIR}/src/main/c/cext/ruby.c"
-    ruby_h = "#{TRUFFLERUBY_DIR}/lib/cext/ruby.h"
-    ruby_su = "#{TRUFFLERUBY_DIR}/lib/cext/ruby.su"
-    if newer?(ruby_h, ruby_su) or newer?(ruby_c, ruby_su)
-      puts "Compiling outdated ruby.su"
-      compile_cext "ruby", ruby_cext_api, ruby_su
-    end
-  end
-  private :build_ruby_su
-
   def cextc(cext_dir, *clang_opts)
     cext_dir = File.expand_path(cext_dir)
     name = File.basename(cext_dir)
@@ -667,10 +645,13 @@ module Commands
   end
 
   def compile_cext(name, ext_dir, target, *clang_opts)
+    abort "You need to set SULONG_HOME" unless SULONG_HOME
+
     extconf = "#{ext_dir}/extconf.rb"
     raise "#{extconf} does not exist" unless File.exist?(extconf)
 
-    build_ruby_su unless name == "ruby"
+    # Make sure ruby.su is built
+    raw_sh "make", chdir: "src/main/c"
 
     Dir.chdir(ext_dir) do
       STDERR.puts "in #{ext_dir} ..."

@@ -50,7 +50,6 @@ ENV SULONG_HOME=/build/sulong
 # Build TruffleRuby
 RUN git clone https://github.com/graalvm/truffleruby.git
 RUN cd truffleruby && mx build
-RUN cd truffleruby && ruby tool/jt.rb build cexts
 
 # Run a basic set of tests
 RUN cd truffleruby && ruby tool/jt.rb test fast :language
