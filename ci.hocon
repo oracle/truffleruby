@@ -145,6 +145,7 @@ sulong: ${labsjdk8} {
     LD_LIBRARY_PATH: "$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH",
     PATH: "$LLVM/bin:$PATH",
     GRAAL_HOME: "$PWD/../sulong",
+    SULONG_HOME: "$PWD/../sulong",
     LIBXML_LIB: "/usr/lib64/libxml2.so.2",
     HOST_VM: server,
     HOST_VM_CONFIG: graal-core
@@ -155,9 +156,7 @@ sulong: ${labsjdk8} {
     [cd, ../sulong],
     [mx, sversions],
     [mx, build],
-    [export, "SULONG_HOME=$PWD/../sulong"],
     [cd, ../main],
-    [mx, build], # compile cexts as SULONG_HOME was not set on first mx build
   ]
 }
 
