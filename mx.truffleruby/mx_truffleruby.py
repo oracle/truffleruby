@@ -21,10 +21,6 @@ if 'RUBY_BENCHMARKS' in os.environ:
 _suite = mx.suite('truffleruby')
 root = _suite.dir
 
-# Automatically set SULONG_HOME if it is a sibling suite
-if exists('../sulong/mx.sulong/mx_sulong.py'):
-    os.environ['SULONG_HOME'] = os.path.abspath('../sulong')
-
 # Project classes
 
 class ArchiveProject(mx.ArchivableProject):

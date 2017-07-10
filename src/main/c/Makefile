@@ -1,15 +1,6 @@
 ROOT := $(realpath ../../..)
 RUBY := $(ROOT)/bin/truffleruby
 
-ifdef SULONG_HOME
-goal: all
-else
-goal: no_sulong
-endif
-
-no_sulong: clean
-	@echo "WARNING: SULONG_HOME not set - not building cexts" 1>&2
-
 all: $(ROOT)/lib/cext/ruby.su $(ROOT)/lib/mri/openssl.su
 
 clean:
