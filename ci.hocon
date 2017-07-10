@@ -44,6 +44,11 @@ common: ${common-base} {
     git:        ">=1.8.3"
     mercurial:  ">=3.2.4"
     ruby:       ">=2.1.0"
+    llvm:       "==3.8"
+  }
+
+  environment: {
+    PATH: "$LLVM/bin:$PATH",
   }
 }
 
@@ -52,6 +57,12 @@ common-darwin: ${common-base} {
     # Homebrew doesn't support versions.
     mercurial: ""
     ruby: ""
+    llvm: ""
+  }
+
+  environment: {
+    # Homebrew does not put llvm on the PATH by default
+    PATH: "$LLVM/bin:$PATH",
   }
 }
 
@@ -128,10 +139,6 @@ graal-enterprise-no-om: {
 }
 
 sulong: ${labsjdk8} {
-  packages: {
-    llvm: "==3.8"
-  }
-
   downloads: {
     LIBGMP: {
       name: libgmp,
@@ -143,7 +150,6 @@ sulong: ${labsjdk8} {
   environment: {
     CPPFLAGS: "-I$LIBGMP/include",
     LD_LIBRARY_PATH: "$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH",
-    PATH: "$LLVM/bin:$PATH",
     GRAAL_HOME: "$PWD/../sulong",
     SULONG_HOME: "$PWD/../sulong",
     LIBXML_LIB: "/usr/lib64/libxml2.so.2",
