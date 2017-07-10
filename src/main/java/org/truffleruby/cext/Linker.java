@@ -38,7 +38,7 @@ public class Linker {
 
     private static final String LLVM_BITCODE_EXTENSION = "bc";
 
-    public static void link(String outputFileName, Collection<String> libraryNames, Collection<String> bitcodeFileNames) throws IOException, NoSuchAlgorithmException {
+    public static void link(String outputFileName, Collection<String> libraryNames, Collection<String> bitcodeFileNames) throws IOException {
         final byte[] buffer = new byte[BUFFER_SIZE];
 
         try (ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(outputFileName))) {
@@ -57,7 +57,12 @@ public class Linker {
             for (String bitcodeFileName : bitcodeFileNames) {
                 final File bitcodeFile = new File(bitcodeFileName);
 
-                final MessageDigest digest = MessageDigest.getInstance("SHA-1");
+                final MessageDigest digest;
+                try {
+                    digest = MessageDigest.getInstance("SHA-1");
+                } catch (NoSuchAlgorithmException e) {
+                    throw new RuntimeException(e);
+                }
 
                 try (RandomAccessFile inputFile = new RandomAccessFile(bitcodeFile, "r")) {
                     while (true) {
