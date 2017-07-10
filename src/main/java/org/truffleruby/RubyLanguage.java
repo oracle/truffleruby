@@ -65,7 +65,9 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String MIME_TYPE = "application/x-ruby";
     public static final String EXTENSION = ".rb";
 
-    public static final String CEXT_MIME_TYPE = "application/x-sulong-library";
+    public static final String SULONG_BITCODE_BASE64_MIME_TYPE = "application/x-llvm-ir-bitcode-base64";
+
+    public static final String CEXT_MIME_TYPE = "application/x-ruby-cext-library";
     public static final String CEXT_EXTENSION = ".su";
 
     public RubyLanguage() {
