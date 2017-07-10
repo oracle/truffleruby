@@ -75,7 +75,7 @@ public class Main {
     private static final boolean METRICS_MEMORY_USED_ON_EXIT =
             Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         printTruffleTimeMetric("before-main");
 
         final CommandLineOptions config = new CommandLineOptions();
