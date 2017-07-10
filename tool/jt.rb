@@ -465,7 +465,7 @@ module Commands
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled (so JDK 9 EA build) java command (aslo set JVMCI_GRAAL_HOME)
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
-        SULONG_HOME                                  The Sulong source repository, if you want to build and run cexts
+        SULONG_HOME                                  The Sulong source repository, if you want to run cexts
         GRAAL_JS_JAR                                 The location of trufflejs.jar
         SL_JAR                                       The location of truffle-sl.jar
         LIBXML_HOME, LIBXML_INCLUDE, LIBXML_LIB      The location of libxml2 (the directory containing include etc), and the direct include directory and library file
@@ -645,8 +645,6 @@ module Commands
   end
 
   def compile_cext(name, ext_dir, target, *clang_opts)
-    abort "You need to set SULONG_HOME" unless SULONG_HOME
-
     extconf = "#{ext_dir}/extconf.rb"
     raise "#{extconf} does not exist" unless File.exist?(extconf)
 

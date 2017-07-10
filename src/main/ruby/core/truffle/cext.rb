@@ -15,6 +15,36 @@ end
 module Truffle::CExt
   extend self
 
+  class Linker
+    def self.main(argv = ARGV)
+      argv = argv.dup
+      output = 'out.su'
+      libraries = []
+      files = []
+      while arg = argv.shift
+        case arg
+        when '-h', '-help', '--help', '/?', '/help'
+          puts "#{$0} -e Truffle::CExt::Linker.main [-o out.su] [-l one.so -l two.so ...] one.bc two.bc ..."
+          puts '  Links zero or more LLVM binary bitcode files into a single file which can be loaded by Sulong.'
+        when '-o'
+          raise '-o needs to be followed by a file name' if argv.empty?
+          output = argv.shift
+        when '-l'
+          raise '-l needs to be followed by a file name' if argv.empty?
+          libraries << argv.shift
+        else
+          if arg.start_with?('-')
+            raise "Unknown argument: #{arg}"
+          else
+            files << arg
+          end
+        end
+      end
+
+      Truffle::CExt.linker(output, libraries, files)
+    end
+  end
+
   class DataHolder
     attr_accessor :data
 

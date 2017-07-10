@@ -10,11 +10,6 @@ require 'shellwords'
 # For TruffleRuby
 require 'pathname'
 
-# For TruffleRuby
-unless ENV['SULONG_HOME']
-  raise 'You need to set $SULONG_HOME to a built checkout of the Sulong repository to use mkmf'
-end
-
 # :stopdoc:
 class String
   # Wraps a string in escaped quotes if it contains whitespace.

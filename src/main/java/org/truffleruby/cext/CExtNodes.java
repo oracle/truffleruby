@@ -38,6 +38,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes;
@@ -89,8 +90,13 @@ import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.platform.FDSet;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.truffleruby.core.string.StringOperations.rope;
@@ -1130,6 +1136,32 @@ public class CExtNodes {
             } else {
                 throw new JavaException(e);
             }
+        }
+    }
+
+    @CoreMethod(names = "linker", onSingleton = true, required = 3)
+    public abstract static class LinkerNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyString(outputFileName)", "isRubyArray(libraries)", "isRubyArray(bitcodeFiles)" })
+        public Object linker(DynamicObject outputFileName, DynamicObject libraries, DynamicObject bitcodeFiles) {
+            try {
+                Linker.link(
+                        StringOperations.getString(outputFileName),
+                        array2StringList(libraries),
+                        array2StringList(bitcodeFiles));
+            } catch (NoSuchAlgorithmException | IOException e) {
+                throw new JavaException(e);
+            }
+            return outputFileName;
+        }
+
+        private static List<String> array2StringList(DynamicObject array) {
+            Object[] objectArray = ArrayOperations.toObjectArray(array);
+            List<String> list = new ArrayList<>(objectArray.length);
+            for (int i = 0; i < objectArray.length; i++) {
+                list.add(StringOperations.getString((DynamicObject) objectArray[i]));
+            }
+            return list;
         }
     }
 
