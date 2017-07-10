@@ -2566,6 +2566,11 @@ void rb_tr_release_handle(void *handle) {
   truffle_release_handle(handle);
 }
 
+void rb_tr_load_library(const char *library) {
+  const char *real_c_string = ruby_strdup(library);
+  truffle_load_library(real_c_string);
+}
+
 // util
 char *
 ruby_strdup(const char *str)

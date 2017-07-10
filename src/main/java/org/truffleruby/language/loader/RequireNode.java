@@ -10,7 +10,6 @@
 
 package org.truffleruby.language.loader;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -127,55 +126,7 @@ public abstract class RequireNode extends RubyNode {
 
                     deferredCall.call(callNode);
                 } else if (RubyLanguage.CEXT_MIME_TYPE.equals(mimeType)) {
-                    featureLoader.ensureCExtImplementationLoaded(feature, callNode);
-
-                    if (getContext().getOptions().CEXTS_LOG_LOAD) {
-                        Log.info("loading cext module %s (requested as %s)", expandedPath, feature);
-                    }
-
-                    final CallTarget callTarget;
-
-                    try {
-                        callTarget = featureLoader.parseSource(source);
-                    } catch (JavaException e) {
-                        final UnsatisfiedLinkError linkErrorException = searchForException(UnsatisfiedLinkError.class, e);
-
-                        if (linkErrorException != null) {
-                            final String linkError = linkErrorException.getMessage();
-
-                            if (getContext().getOptions().CEXTS_LOG_LOAD) {
-                                Log.info("unsatisfied link error %s", linkError);
-                            }
-
-                            final String message;
-
-                            if (feature.equals("openssl.so")) {
-                                message = String.format("%s (%s)", "You need to install the system OpenSSL library libssl - see doc/user/installing-libssl.md", linkError);
-                            } else {
-                                message = linkError;
-                            }
-
-                            throw new RaiseException(getContext().getCoreExceptions().runtimeError(message, this));
-                        }
-
-                        throw e;
-                    }
-
-                    callNode.call(callTarget, new Object[] {});
-
-                    final TruffleObject initFunction = getInitFunction(expandedPath);
-
-                    if (!ForeignAccess.sendIsExecutable(isExecutableNode, initFunction)) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        throw new UnsupportedOperationException();
-                    }
-
-                    try {
-                        ForeignAccess.sendExecute(executeNode, initFunction);
-                    } catch (InteropException e) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        throw new JavaException(e);
-                    }
+                    requireCExtension(feature, expandedPath);
                 } else {
                     errorProfile.enter();
 
@@ -192,6 +143,56 @@ public abstract class RequireNode extends RubyNode {
             } finally {
                 fileLocks.unlock(expandedPath, lock);
             }
+        }
+    }
+
+    private void requireCExtension(String feature, String expandedPath) {
+        final FeatureLoader featureLoader = getContext().getFeatureLoader();
+
+        featureLoader.ensureCExtImplementationLoaded(feature);
+
+        if (getContext().getOptions().CEXTS_LOG_LOAD) {
+            Log.info("loading cext module %s (requested as %s)", expandedPath, feature);
+        }
+
+        try {
+            featureLoader.loadCExtLibrary(expandedPath);
+        } catch (JavaException e) {
+            final UnsatisfiedLinkError linkErrorException = searchForException(UnsatisfiedLinkError.class, e);
+
+            if (linkErrorException != null) {
+                final String linkError = linkErrorException.getMessage();
+
+                if (getContext().getOptions().CEXTS_LOG_LOAD) {
+                    Log.info("unsatisfied link error %s", linkError);
+                }
+
+                final String message;
+
+                if (feature.equals("openssl.so")) {
+                    message = String.format("%s (%s)", "You need to install the system OpenSSL library libssl - see doc/user/installing-libssl.md", linkError);
+                } else {
+                    message = linkError;
+                }
+
+                throw new RaiseException(getContext().getCoreExceptions().runtimeError(message, this));
+            }
+
+            throw e;
+        }
+
+        final TruffleObject initFunction = getInitFunction(expandedPath);
+
+        if (!ForeignAccess.sendIsExecutable(isExecutableNode, initFunction)) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw new UnsupportedOperationException();
+        }
+
+        try {
+            ForeignAccess.sendExecute(executeNode, initFunction);
+        } catch (InteropException e) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw new JavaException(e);
         }
     }
 
@@ -219,31 +220,16 @@ public abstract class RequireNode extends RubyNode {
     }
 
     @TruffleBoundary
-    private DynamicObject unknownLanguage(String expandedPath, final String mimeType) {
+    private DynamicObject unknownLanguage(String expandedPath, String mimeType) {
         return getContext().getCoreExceptions().internalError(
                 "unknown language " + mimeType + " for " + expandedPath,
                 callNode);
     }
 
     @TruffleBoundary
-    private TruffleObject getInitFunction(final String expandedPath) {
-        final String initFunctionName = "@Init_" + getBaseName(expandedPath);
-
-        final Object initFunction = getContext().getEnv().importSymbol(initFunctionName);
-
-        if (!(initFunction instanceof TruffleObject)) {
-            if (initFunction == null) {
-                throw new RaiseException(getContext().getCoreExceptions().internalError(
-                        String.format("Couldn't find the cext initialise function %s in %s", initFunctionName, expandedPath),
-                        callNode));
-            } else {
-                throw new RaiseException(getContext().getCoreExceptions().internalError(
-                        String.format("The cext initialise function %s in %s was not a Truffle object", initFunctionName, expandedPath),
-                        callNode));
-            }
-        }
-
-        return (TruffleObject) initFunction;
+    private TruffleObject getInitFunction(String expandedPath) {
+        final String initFunctionName = "Init_" + getBaseName(expandedPath);
+        return getContext().getFeatureLoader().getCExtFunction(initFunctionName, expandedPath);
     }
 
     @TruffleBoundary

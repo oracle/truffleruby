@@ -28,6 +28,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.truffleruby.RubyLanguage;
+
 import com.oracle.truffle.api.source.Source;
 
 public class Linker {
@@ -35,7 +37,6 @@ public class Linker {
     private static final int BUFFER_SIZE = 4096;
 
     private static final String LLVM_BITCODE_EXTENSION = "bc";
-    private static final String LLVM_BITCODE_BASE64_MIME_TYPE = "application/x-llvm-ir-bitcode-base64";
 
     public static void link(String outputFileName, Collection<String> libraryNames, Collection<String> bitcodeFileNames) throws IOException, NoSuchAlgorithmException {
         final byte[] buffer = new byte[BUFFER_SIZE];
@@ -125,7 +126,7 @@ public class Linker {
                     }
                 } else if (zipEntry.getName().endsWith("." + LLVM_BITCODE_EXTENSION)) {
                     final String sourceCode = Base64.getEncoder().encodeToString(bytes);
-                    final Source source = Source.newBuilder(sourceCode).name(file.getPath() + "@" + zipEntry.getName()).mimeType(LLVM_BITCODE_BASE64_MIME_TYPE).build();
+                    final Source source = Source.newBuilder(sourceCode).name(file.getPath() + "@" + zipEntry.getName()).mimeType(RubyLanguage.SULONG_BITCODE_BASE64_MIME_TYPE).build();
                     handleSource.accept(source);
                 }
 
