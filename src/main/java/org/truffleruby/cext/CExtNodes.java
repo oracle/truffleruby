@@ -92,7 +92,6 @@ import org.truffleruby.platform.FDSet;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -1150,7 +1149,7 @@ public class CExtNodes {
                         StringOperations.getString(outputFileName),
                         array2StringList(libraries),
                         array2StringList(bitcodeFiles));
-            } catch (NoSuchAlgorithmException | IOException e) {
+            } catch (IOException e) {
                 throw new JavaException(e);
             }
             return outputFileName;
