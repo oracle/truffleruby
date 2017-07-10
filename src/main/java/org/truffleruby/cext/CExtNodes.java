@@ -1142,6 +1142,7 @@ public class CExtNodes {
     @CoreMethod(names = "linker", onSingleton = true, required = 3)
     public abstract static class LinkerNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = { "isRubyString(outputFileName)", "isRubyArray(libraries)", "isRubyArray(bitcodeFiles)" })
         public Object linker(DynamicObject outputFileName, DynamicObject libraries, DynamicObject bitcodeFiles) {
             try {
