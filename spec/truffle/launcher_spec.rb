@@ -134,4 +134,10 @@ describe "The launcher" do
     out.should_not include("polyglot.ruby")
   end
 
+  it "logs options if -Xoptions.log=true is set" do
+    out = `#{RbConfig.ruby} -Xoptions.log=true -Xlog=config -e 14 2>&1`
+    $?.success?.should == true
+    out.should include("CONFIG option home=")
+  end
+
 end
