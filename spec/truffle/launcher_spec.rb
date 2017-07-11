@@ -128,10 +128,10 @@ describe "The launcher" do
     out.lines[1].should == "14\n"
   end
 
-  it "doesn't include the polyglot.ruby prefix in the list of options" do
+  it "prints available options for -Xoptions" do
     out = `#{RbConfig.ruby} -Xoptions`
     $?.success?.should == true
-    out.should_not include("polyglot.ruby")
+    out.should include("-Xverbosity=")
   end
 
   it "logs options if -Xoptions.log=true is set" do
