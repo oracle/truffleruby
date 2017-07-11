@@ -347,7 +347,9 @@ public class CommandLineParser {
                     if (extendedOption.equals("options")) {
                         System.out.println("TruffleRuby options and their default values:");
                         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-                            final String nameValue = String.format("-X%s=%s", option.getName(), option.toString(option.getDefaultValue()));
+                            assert option.getName().startsWith(Main.LANGUAGE_ID);
+                            final String xName = option.getName().substring(Main.LANGUAGE_ID.length() + 1);
+                            final String nameValue = String.format("-X%s=%s", xName, option.toString(option.getDefaultValue()));
                             System.out.printf("  %s%" + (50 - nameValue.length()) + "s# %s%n", nameValue, "", option.getDescription());
                         }
                         config.setShouldRunInterpreter(false);
