@@ -91,4 +91,5 @@ hello
   66744320  maximum resident set size
 ```
 
-(`real` is the number of actual seconds which have elapsed while the command runs, `resident set size` is the total memory occupied while the command runs)
+(`real` is the number of actual seconds which have elapsed while the command
+runs, `resident set size` is the total memory occupied while the command runs)
