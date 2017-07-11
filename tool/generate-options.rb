@@ -105,7 +105,7 @@ public class Options {
 
     public Object fromDescription(OptionDescription<?> description) {
         switch (description.getName()) {
-            <% options.each do |o| %>case "<%= o.name %>":
+            <% options.each do |o| %>case "ruby.<%= o.name %>":
                 return <%= o.constant %>;
             <% end %>default:
                 return null;
