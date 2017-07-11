@@ -98,12 +98,12 @@ def deploy_binary_if_master(args):
         mx.log('The active branch is "%s". Binaries are deployed only if the active branch is "%s".' % (active_branch, primary_branch))
         return 0
 
-def ruby_run_specs(args):
-    mx.run(['bin/truffleruby', 'spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', 'specdoc', '--excl-tag', 'fails'] + args)
+def ruby_run_specs(launcher, format, args):
+    mx.run([launcher, 'spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args)
 
 def ruby_testdownstream(args):
     build_truffleruby()
-    ruby_run_specs(['--excl-tag', 'slow'])
+    ruby_run_specs('bin/truffleruby', 'specdoc', ['--excl-tag', 'slow'])
 
 def ruby_testdownstream_hello(args):
     build_truffleruby()
@@ -113,15 +113,13 @@ def ruby_testdownstream_aot(args):
     if len(args) != 1:
         mx.abort("Missing path to AOT image: mx ruby_testdownstream_aot <aot_bin>")
 
-    mx.run([args[0], 'spec/mspec/bin/mspec', 'run',
-           '--config', 'spec/truffle.mspec',
-           '--excl-tag', 'fails',
-           '--excl-tag', 'graalvm',
-           '--excl-tag', 'aot',
-           '-t', args[0],
-           '-T-XX:YoungGenerationSize=2G', '-T-XX:OldGenerationSize=4G',
-           '-T-Xhome=' + os.getcwd(),
-           ':language'])
+    ruby_run_specs(args[0], 'dot', [
+        '--excl-tag', 'graalvm',
+        '--excl-tag', 'aot',
+        '-t', args[0],
+        '-T-XX:YoungGenerationSize=2G', '-T-XX:OldGenerationSize=4G',
+        '-T-Xhome=' + os.getcwd(),
+        ':language'])
 
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],
