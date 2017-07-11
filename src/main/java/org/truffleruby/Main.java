@@ -44,9 +44,10 @@
  */
 package org.truffleruby;
 
-import com.oracle.truffle.api.Truffle;
-import org.graalvm.polyglot.Engine;
-import org.graalvm.polyglot.PolyglotContext;
+import java.lang.management.ManagementFactory;
+import java.util.Locale;
+
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.truffleruby.options.CommandLineOptions;
 import org.truffleruby.options.CommandLineParser;
@@ -54,9 +55,7 @@ import org.truffleruby.options.MainExitException;
 import org.truffleruby.options.OptionsCatalog;
 import org.truffleruby.platform.Platform;
 
-import java.lang.management.ManagementFactory;
-import java.util.Locale;
-import java.util.Map;
+import com.oracle.truffle.api.Truffle;
 
 public class Main {
 
@@ -109,18 +108,13 @@ public class Main {
         }
 
         if (config.getShouldRunInterpreter()) {
-            try (Engine engine = createEngine(config, filename);
-                 final PolyglotContext polyglotContext = engine.newPolyglotContextBuilder().
-                         setArguments(LANGUAGE_ID, config.getArguments()).build()) {
-
-
+            try (Context context = createContext(config, filename)) {
                 printTruffleTimeMetric("before-run");
                 if (config.getShouldCheckSyntax()) {
                     // check syntax only and exit
                     final Source source = Source.newBuilder(
-                            //language=ruby
-                            "Truffle::Boot.check_syntax").name("check_syntax").build();
-                    boolean status = polyglotContext.eval(LANGUAGE_ID, source).asBoolean();
+                            LANGUAGE_ID, "Truffle::Boot.check_syntax", "check_syntax").buildLiteral();
+                    boolean status = context.eval(source).asBoolean();
                     exitCode = status ? 0 : 1;
                 } else {
                     if (!isGraal() && config.getOption(OptionsCatalog.GRAAL_WARNING_UNLESS)) {
@@ -129,11 +123,9 @@ public class Main {
                                         " - see doc/user/using-graalvm.md");
                     }
 
-                    final Source source = Source.newBuilder(
-                            //language=ruby
-                            config.shouldUsePathScript() ? "Truffle::Boot.main_s" : "Truffle::Boot.main").name(
-                            BOOT_SOURCE_NAME).build();
-                    exitCode = polyglotContext.eval(LANGUAGE_ID, source).asInt();
+                    final Source source = Source.newBuilder(LANGUAGE_ID,
+                            config.shouldUsePathScript() ? "Truffle::Boot.main_s" : "Truffle::Boot.main", BOOT_SOURCE_NAME).build();
+                    exitCode = context.eval(source).asInt();
                 }
                 printTruffleTimeMetric("after-run");
             }
@@ -156,18 +148,18 @@ public class Main {
         return Truffle.getRuntime().getName().toLowerCase(Locale.ENGLISH).contains("graal");
     }
 
-    private static Engine createEngine(CommandLineOptions config, String filename) {
-        final Engine.Builder builder = Engine.newBuilder();
+    private static Context createContext(CommandLineOptions config, String filename) {
+        final Context.Builder builder = Context.newBuilder();
 
         // TODO CS 2-Jul-17 some of these values are going back and forth from string and array representation
-        builder.setOption(
+        builder.option(
                 OptionsCatalog.LOAD_PATHS.getName(),
                 OptionsCatalog.LOAD_PATHS.toString(config.getLoadPaths().toArray(new String[]{})));
-        builder.setOption(
+        builder.option(
                 OptionsCatalog.REQUIRED_LIBRARIES.getName(),
                 OptionsCatalog.LOAD_PATHS.toString(config.getRequiredLibraries().toArray(new String[]{})));
-        builder.setOption(OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
-        builder.setOption(OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
+        builder.option(OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
+        builder.option(OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
 
         /*
          * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
@@ -176,12 +168,10 @@ public class Main {
          * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
          */
 
-        builder.setOption(OptionsCatalog.POLYGLOT_STDIO.getName(), Boolean.FALSE.toString());
-        builder.setOption(OptionsCatalog.SYNC_STDIO.getName(), Boolean.FALSE.toString());
-
-        for (Map.Entry<String, String> option : config.getOptions().entrySet()) {
-            builder.setOption(option.getKey(), option.getValue());
-        }
+        builder.option(OptionsCatalog.POLYGLOT_STDIO.getName(), Boolean.FALSE.toString());
+        builder.option(OptionsCatalog.SYNC_STDIO.getName(), Boolean.FALSE.toString());
+        builder.options(config.getOptions());
+        builder.arguments(LANGUAGE_ID, config.getArguments());
 
         return builder.build();
     }
