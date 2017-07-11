@@ -119,7 +119,7 @@ def ruby_testdownstream_aot(args):
         '--excl-tag', 'aot',
         '-t', aot_bin,
         '-T-XX:YoungGenerationSize=2G', '-T-XX:OldGenerationSize=4G',
-        '-T-Xhome=' + os.getcwd(),
+        '-T-Xhome=' + root,
         ':language'])
 
 mx.update_commands(_suite, {
