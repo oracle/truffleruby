@@ -113,10 +113,11 @@ def ruby_testdownstream_aot(args):
     if len(args) != 1:
         mx.abort("Missing path to AOT image: mx ruby_testdownstream_aot <aot_bin>")
 
-    ruby_run_specs(args[0], 'dot', [
+    aot_bin = args[0]
+    ruby_run_specs(aot_bin, 'dot', [
         '--excl-tag', 'graalvm',
         '--excl-tag', 'aot',
-        '-t', args[0],
+        '-t', aot_bin,
         '-T-XX:YoungGenerationSize=2G', '-T-XX:OldGenerationSize=4G',
         '-T-Xhome=' + os.getcwd(),
         ':language'])
