@@ -13,6 +13,8 @@ slow:The launcher prioritises options on the command line over system properties
 slow:The launcher prioritises options on the command line using -X over system properties
 slow:The launcher allows -cp in JAVA_OPTS
 slow:The launcher allows -classpath in JAVA_OPTS
+slow:The launcher doesn't include the polyglot.ruby prefix in the list of options
+slow:The launcher logs options if -Xoptions.log=true is set
 aot:The launcher prints the full java command with -J-cmd
 aot:The launcher prints the full java command with -cmd in JAVA_OPTS
 aot:The launcher adds options from $JAVA_OPTS to the command
