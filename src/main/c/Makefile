@@ -1,5 +1,15 @@
 ROOT := $(realpath ../../..)
 RUBY := $(ROOT)/bin/truffleruby
+OS := $(shell uname)
+
+ifeq ($(OS),SunOS)
+goal: no_clang
+else
+goal: all
+endif
+
+no_clang:
+	@echo "WARNING: clang is not avaiable on this platform - not building cexts" 1>&2
 
 all: $(ROOT)/lib/cext/ruby.su $(ROOT)/lib/mri/openssl.su
 
