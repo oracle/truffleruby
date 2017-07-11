@@ -157,7 +157,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected boolean isObjectOfLanguage(Object object) {
-        throw new UnsupportedOperationException();
+        return RubyGuards.isRubyBasicObject(object);
     }
 
     @Override
