@@ -114,6 +114,7 @@ import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.PropertyFlags;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
+import org.truffleruby.language.objects.SelfNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
@@ -139,6 +140,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -146,6 +148,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -674,7 +677,8 @@ public abstract class KernelNodes {
             // TODO (pitr 15-Oct-2015): fix this ugly hack, required for AS, copy-paste
             final String s = new String(new char[Math.max(line - 1, 0)]);
             final String space = StringUtils.replace(s, "\0", "\n");
-            // TODO CS 14-Apr-15 concat space + code as a rope, otherwise the string will be copied after the rope is converted
+            // TODO CS 14-Apr-15 concat space + code as a rope, otherwise the string will be copied
+            // after the rope is converted
             final Source source = Source.newBuilder(space + RopeOperations.decodeRope(code)).name(file).mimeType(RubyLanguage.MIME_TYPE).build();
 
             final MaterializedFrame frame = BindingNodes.getExtrasFrame(getContext(), binding);
@@ -728,7 +732,11 @@ public abstract class KernelNodes {
 
         protected boolean assignsNoNewVariables(RootNodeWrapper rootNode) {
             FrameDescriptor descriptor = rootNode.getRootNode().getFrameDescriptor();
-            return descriptor.getSize() == 1 && "self".equals(descriptor.getSlots().get(0));
+            if (descriptor.getSize() != 1) {
+                return false;
+            }
+            Object key = descriptor.getSlots().get(0).getIdentifier();
+            return SelfNode.SELF_IDENTIFIER.equals(key);
         }
     }
 
