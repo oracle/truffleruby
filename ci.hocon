@@ -62,7 +62,7 @@ common-darwin: ${common-base} {
 
   environment: {
     # Homebrew does not put llvm on the PATH by default
-    PATH: "$LLVM/bin:$PATH",
+    PATH: "$PWD/homebrew/opt/llvm/bin:$PATH"
   }
 }
 
