@@ -124,8 +124,8 @@ Heesob and Daniel Berger and covered under the same license as zlib itself (see
 #### FFI
 
 TruffleRuby includes parts of the FFI gem 1.9.18. The FFI gem is copyright
-2008-2010 Wayne Meissner and covered by the three-clause BSD licence (see
-`ffi.txt`).
+2008-2016, Ruby FFI project contributors, and covered by the three-clause BSD
+licence (see `ffi.txt`).
 
 # Java dependencies
 

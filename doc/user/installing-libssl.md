@@ -1,7 +1,7 @@
 # Installing `libssl`
 
-TruffleRuby provides the `openssl` module but not the native `libssl` system library
-that the module uses.
+TruffleRuby provides the `openssl` module but not the native `libssl` system
+library that the module uses.
 
 TruffleRuby requires version 1.0.1 or above (tested compatible versions include
 `1.0.2e` and `1.0.2g`).

@@ -4,9 +4,9 @@ MRI tests are located in the `test/mri` directory.
 
 ## Running
 
-MRI tests are run using the `jt` tool. By default these commands will not
-run tests that are ignored using test exclude files in the
-`test/mri/excludes` directory (more exclude details below).
+MRI tests are run using the `jt` tool. By default these commands will not run
+tests that are ignored using test exclude files in the `test/mri/excludes`
+directory (more exclude details below).
 
 ### Run test suite
 

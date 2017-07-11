@@ -8,7 +8,8 @@ You can debug Ruby programs running in TruffleRuby using the NetBeans IDE.
 * Via Tools, Plugins, install 'Truffle Debugging Support'
 * [Download GraalVM](using-graalvm.md)
 
-We then need a project to debug. An example project that works well and demonstrates features is available on GitHub:
+We then need a project to debug. An example project that works well and
+demonstrates features is available on GitHub:
 
 ```
 $ git clone https://github.com/jtulach/sieve.git
@@ -19,7 +20,8 @@ Open `ruby+js/fromjava` as a NetBeans project.
 * Right click on the project
 * Open Properties, Build, Compile, Java Platform
 * Manage Java Platforms, Add Platform, and select the GraalVM directory
-* Now we can set a breakpoint in Ruby by opening `sieve.rb` and clicking on the line in `Natural#next`
+* Now we can set a breakpoint in Ruby by opening `sieve.rb` and clicking on the
+  line in `Natural#next`
 * Finally, 'Debug Project'
 
 You will be able to debug the Ruby program as normal, and if you look at the

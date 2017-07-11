@@ -26,7 +26,8 @@ Additionally:
 
 Collaborations with:
 
-* [Institut für Systemsoftware at Johannes Kepler University Linz](http://ssw.jku.at)
+* [Institut für Systemsoftware at Johannes Kepler University
+   Linz](http://ssw.jku.at)
 
 And others.
 
@@ -116,7 +117,8 @@ affiliates, and is made available to you under the terms of three licenses:
 * GNU Lesser General Public License version 2.1
 
 TruffleRuby contains additional code not always covered by these licences, and
-with copyright owned by other people. See `doc/legal` for full documentation.
+with copyright owned by other people. See
+[doc/legal/legal.md](doc/legal/legal.md) for full documentation.
 
 ## Attribution
 

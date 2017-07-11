@@ -65,9 +65,9 @@ rescue Gem::SystemExitException => e
 end
 ```
 
-If executed directly, bash interprets the file. It looks up correct ruby executable 
-(`truffleruby` in the same directory) and executes the same file with it. When Ruby 
-interpreter executes the file it ignores the first 2 lines running only the Ruby 
-portion of the file.
+If executed directly, bash interprets the file. It looks up correct ruby
+executable  (`truffleruby` in the same directory) and executes the same file
+with it. When Ruby  interpreter executes the file it ignores the first 2 lines
+running only the Ruby  portion of the file.
 
 -   [ ] `lib/bin/*` files can be removed

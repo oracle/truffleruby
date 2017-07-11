@@ -1,8 +1,8 @@
 # Using the Eclipse IDE for Development
 
-Eclipse is one of the best supported IDE for editing TruffleRuby.
-It provides excellent feedback from the Truffle DSL annotation processor
-and actually keeps the project built at all times by rebuilding it incrementally.
+Eclipse is one of the best supported IDE for editing TruffleRuby. It provides
+excellent feedback from the Truffle DSL annotation processor and actually keeps
+the project built at all times by rebuilding it incrementally.
 
 ### Build the project
 

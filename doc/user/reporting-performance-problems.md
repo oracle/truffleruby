@@ -1,8 +1,9 @@
 # Reporting Performance Problems
 
 We are interested to hear from you if performance of TruffleRuby is lower than
-other implementations of Ruby for code that you care about. [Compatibility](compatibility.md)
-lists some features which we know are slow and are unlikely to get faster.
+other implementations of Ruby for code that you care about.
+[Compatibility](compatibility.md) lists some features which we know are slow and
+are unlikely to get faster.
 
 TruffleRuby uses extremely sophisticated techniques to optimise your Ruby
 program. These optimisations take time to apply, so TruffleRuby is often a lot
@@ -21,7 +22,10 @@ show them so it may be a new problem to some people in the Ruby community.
 
 ## How to write a performance benchmark
 
-We recommend that you use [`benchmark-ips`](https://github.com/evanphx/benchmark-ips), by Evan Phoenix, to check the performance of TruffleRuby, and it makes things easier for us if you report any potential performance problems using a report from `benchmark-ips`. 
+We recommend that you use
+[`benchmark-ips`](https://github.com/evanphx/benchmark-ips), by Evan Phoenix, to
+check the performance of TruffleRuby, and it makes things easier for us if you
+report any potential performance problems using a report from `benchmark-ips`. 
 
 A benchmark could look like this:
 

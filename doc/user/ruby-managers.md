@@ -13,8 +13,8 @@ ln -s path/to/graalvm/language/ruby "$RBENV_ROOT/versions/truffleruby"
 
 ## chruby
 
-To add TruffleRuby to `chruby` a symbolic link has to be added to the `$HOME/.rubies` 
-directory:
+To add TruffleRuby to `chruby` a symbolic link has to be added to the
+`$HOME/.rubies`  directory:
 
 ```bash
 ln -s path/to/graalvm/language/ruby "$HOME/.rubies/truffleruby"
@@ -22,8 +22,8 @@ ln -s path/to/graalvm/language/ruby "$HOME/.rubies/truffleruby"
 
 ## RVM
 
-RVM has a command for adding a precompiled Ruby to the list of available rubies. RVM has to temporarily be patched, 
-due to unsupported openssl.
+RVM has a command for adding a precompiled Ruby to the list of available rubies.
+RVM has to temporarily be patched, due to unsupported openssl.
 
 ```bash
 cd path/to/rvm
@@ -52,13 +52,11 @@ The name passed with `-n` option has to contain `truffleruby`.
 
 ## Using TruffleRuby without a Ruby manager
 
-If you are using a Ruby manager like `rvm`, `rbenv`, or `chruby` and wish
-not to add TruffleRuby to one of them 
-make sure that the manager does not set environment variables 
-`GEM_HOME`, `GEM_PATH`, and `GEM_ROOT`. 
-The variables are picked up by truffleruby (as any other Ruby 
-implementation would do) causing truffleruby to pickup the wrong gem-home 
-directory instead of its own.
+If you are using a Ruby manager like `rvm`, `rbenv`, or `chruby` and wish not to
+add TruffleRuby to one of them  make sure that the manager does not set
+environment variables  `GEM_HOME`, `GEM_PATH`, and `GEM_ROOT`.  The variables
+are picked up by truffleruby (as any other Ruby  implementation would do)
+causing truffleruby to pickup the wrong gem-home  directory instead of its own.
 
 It can be easily fixed by clearing the environment with one of the following 
 commands:
@@ -74,5 +72,5 @@ Otherwise, unset the variables with:
 ```bash
 unset GEM_HOME GEM_PATH GEM_ROOT
 ```
-Next step: [Installing gems](installing-gems.md).
 
+Next step: [Installing gems](installing-gems.md).
