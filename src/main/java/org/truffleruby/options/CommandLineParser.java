@@ -597,7 +597,7 @@ public class CommandLineParser {
         out.println("TruffleRuby switches:");
         out.println("  -Xlog=severe,warning,performance,info,config,fine,finer,finest");
         out.println("                  set the TruffleRuby logging level");
-        out.println("  -Xoptions       print available TrufleRuby options");
+        out.println("  -Xoptions       print available TruffleRuby options");
         out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
 
         if (Main.IS_AOT) {

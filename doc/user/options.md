@@ -64,7 +64,7 @@ switches specific to TruffleRuby.
 TruffleRuby switches:
   -Xlog=severe,warning,performance,info,config,fine,finer,finest
                   set the TruffleRuby logging level
-  -Xoptions       print available TrufleRuby options
+  -Xoptions       print available TruffleRuby options
   -Xname=value    set a TruffleRuby option (omit value to set to true)
 ```
 
