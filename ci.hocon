@@ -58,11 +58,13 @@ common-darwin: ${common-base} {
     mercurial: ""
     ruby: ""
     llvm: ""
+    openssl: ""
   }
 
   environment: {
     # Homebrew does not put llvm on the PATH by default
     PATH: "$PWD/homebrew/opt/llvm/bin:$PATH"
+    OPENSSL_PREFIX: "$PWD/homebrew/opt/openssl"
   }
 }
 
