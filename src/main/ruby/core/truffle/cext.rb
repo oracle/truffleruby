@@ -1323,7 +1323,7 @@ module Truffle::CExt
   end
 
   def rb_define_method(mod, name, function, argc)
-    mod.send(:define_method, name) do |*args, &block|
+    method_body = Truffle::Graal.copy_captured_locals -> *args, &block do
       if argc == -1
         args = [args.size, args, self]
       else
@@ -1337,6 +1337,8 @@ module Truffle::CExt
         Truffle::CExt.execute_with_mutex(function, *args)
       end
     end
+
+    mod.send(:define_method, name, method_body)
   end
 
   def rb_define_method_undefined(mod, name)
