@@ -26,7 +26,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.options.OptionDescription;
@@ -151,17 +150,6 @@ public abstract class TruffleBootNodes {
 
     }
 
-    @CoreMethod(names = "original_input_file", onSingleton = true)
-    public abstract static class OriginalInputFileNode extends CoreMethodNode {
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject originalInputFile() {
-            return createString(StringOperations.encodeRope(getContext().getOptions().ORIGINAL_INPUT_FILE, UTF8Encoding.INSTANCE));
-        }
-
-    }
-
     @CoreMethod(names = "original_load_path", onSingleton = true)
     public abstract static class OriginalLoadPathNode extends CoreMethodNode {
 
@@ -179,52 +167,6 @@ public abstract class TruffleBootNodes {
         }
 
     }
-
-    @CoreMethod(names = "rubygems_enabled?", onSingleton = true)
-    public abstract static class RubygemsEnabledNode extends CoreMethodNode {
-
-        @Specialization
-        public boolean isRubygemsEnabled() {
-            return getContext().getOptions().RUBYGEMS;
-        }
-
-    }
-
-    @CoreMethod(names = "patching_enabled?", onSingleton = true)
-    public abstract static class PatchingEnabledNode extends CoreMethodNode {
-
-        @Specialization
-        public boolean isPatchingEnabled() {
-            return getContext().getOptions().PATCHING;
-        }
-
-    }
-
-    @CoreMethod(names = "patching_openssl_enabled?", onSingleton = true)
-    public abstract static class PatchingOpensslEnabledNode extends CoreMethodNode {
-
-        @Specialization
-        public boolean isPatchingEnabled() {
-            final boolean patching_openssl = getContext().getOptions().PATCHING_OPENSSL;
-            if (patching_openssl && !getContext().getOptions().PATCHING) {
-                throw new RaiseException(getContext().getCoreExceptions().runtimeError(
-                        "Cannot patch openssl without patching enabled", this));
-            }
-            return patching_openssl;
-        }
-
-    }
-
-    @CoreMethod(names = "did_you_mean_enabled?", onSingleton = true)
-    public abstract static class DidYouMeanEnabledNode extends CoreMethodNode {
-
-        @Specialization
-        public boolean isDidYouMeanEnabled() {
-            return getContext().getOptions().DID_YOU_MEAN;
-        }
-
-    }
-
 
     @CoreMethod(names = "source_of_caller", isModuleFunction = true)
     public abstract static class SourceOfCallerNode extends CoreMethodArrayArgumentsNode {
@@ -273,16 +215,6 @@ public abstract class TruffleBootNodes {
 
             return nil();
         }
-    }
-
-    @CoreMethod(names = "sync_stdio?", onSingleton = true)
-    public abstract static class SyncStdioNode extends CoreMethodNode {
-
-        @Specialization
-        public boolean syncStdio() {
-            return getContext().getOptions().SYNC_STDIO;
-        }
-
     }
 
     @CoreMethod(names = "get_option", onSingleton = true, required = 1)
