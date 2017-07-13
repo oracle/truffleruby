@@ -41,6 +41,7 @@ public class Options {
     public final boolean SYNC_STDIO;
     public final boolean PLATFORM_USE_JAVA;
     public final boolean NATIVE_INTERRUPT;
+    public final boolean CEXT_LOCK;
     public final boolean TRACE_CALLS;
     public final boolean COVERAGE_GLOBAL;
     public final boolean INLINE_JS;
@@ -138,6 +139,7 @@ public class Options {
         SYNC_STDIO = builder.getOrDefault(OptionsCatalog.SYNC_STDIO);
         PLATFORM_USE_JAVA = builder.getOrDefault(OptionsCatalog.PLATFORM_USE_JAVA);
         NATIVE_INTERRUPT = builder.getOrDefault(OptionsCatalog.NATIVE_INTERRUPT);
+        CEXT_LOCK = builder.getOrDefault(OptionsCatalog.CEXT_LOCK);
         TRACE_CALLS = builder.getOrDefault(OptionsCatalog.TRACE_CALLS);
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
         INLINE_JS = builder.getOrDefault(OptionsCatalog.INLINE_JS);
@@ -260,6 +262,8 @@ public class Options {
                 return PLATFORM_USE_JAVA;
             case "ruby.platform.native_interrupt":
                 return NATIVE_INTERRUPT;
+            case "ruby.cexts.lock":
+                return CEXT_LOCK;
             case "ruby.trace.calls":
                 return TRACE_CALLS;
             case "ruby.coverage.global":

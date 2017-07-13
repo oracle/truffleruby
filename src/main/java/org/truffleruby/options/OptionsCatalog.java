@@ -39,6 +39,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription SYNC_STDIO = new BooleanOptionDescription("ruby.sync.stdio", "Sync operations on standard IO streams", true);
     public static final BooleanOptionDescription PLATFORM_USE_JAVA = new BooleanOptionDescription("ruby.platform.use_java", "Use a pure-Java platform", false);
     public static final BooleanOptionDescription NATIVE_INTERRUPT = new BooleanOptionDescription("ruby.platform.native_interrupt", "Use the SIGVTALRM signal to interrupt native blocking calls", true);
+    public static final BooleanOptionDescription CEXT_LOCK = new BooleanOptionDescription("ruby.cexts.lock", "Use a Global Lock when running C extensions", true);
     public static final BooleanOptionDescription TRACE_CALLS = new BooleanOptionDescription("ruby.trace.calls", "Support tracing (set_trace_func", true);
     public static final BooleanOptionDescription COVERAGE_GLOBAL = new BooleanOptionDescription("ruby.coverage.global", "Run coverage for all code and print results on exit", false);
     public static final BooleanOptionDescription INLINE_JS = new BooleanOptionDescription("ruby.inline_js", "Allow inline JavaScript", false);
@@ -160,6 +161,8 @@ public class OptionsCatalog {
                 return PLATFORM_USE_JAVA;
             case "ruby.platform.native_interrupt":
                 return NATIVE_INTERRUPT;
+            case "ruby.cexts.lock":
+                return CEXT_LOCK;
             case "ruby.trace.calls":
                 return TRACE_CALLS;
             case "ruby.coverage.global":
@@ -334,6 +337,7 @@ public class OptionsCatalog {
             SYNC_STDIO,
             PLATFORM_USE_JAVA,
             NATIVE_INTERRUPT,
+            CEXT_LOCK,
             TRACE_CALLS,
             COVERAGE_GLOBAL,
             INLINE_JS,

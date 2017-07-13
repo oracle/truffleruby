@@ -29,6 +29,8 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.options.OptionDescription;
+import org.truffleruby.options.OptionsCatalog;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
@@ -279,6 +281,24 @@ public abstract class TruffleBootNodes {
         @Specialization
         public boolean syncStdio() {
             return getContext().getOptions().SYNC_STDIO;
+        }
+
+    }
+
+    @CoreMethod(names = "get_option", onSingleton = true, required = 1)
+    public abstract static class GetOptionNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(optionName)")
+        public Object getOption(DynamicObject optionName) {
+            final OptionDescription<?> description = OptionsCatalog.fromName("ruby." + StringOperations.getString(optionName));
+            final Object value = getContext().getOptions().fromDescription(description);
+            if (value instanceof String) {
+                return createString(StringOperations.encodeRope((String) value, UTF8Encoding.INSTANCE));
+            } else {
+                assert value instanceof Integer || value instanceof Boolean;
+                return value;
+            }
         }
 
     }
