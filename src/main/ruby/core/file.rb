@@ -1352,7 +1352,7 @@ class << STDIN
   end
 end
 
-if STDOUT.tty? || Truffle::Boot.sync_stdio?
+if STDOUT.tty? || Truffle::Boot.get_option('sync.stdio')
   STDOUT.sync = true
 else
   Truffle::KernelOperations.at_exit true do
@@ -1360,7 +1360,7 @@ else
   end
 end
 
-if STDERR.tty? || Truffle::Boot.sync_stdio?
+if STDERR.tty? || Truffle::Boot.get_option('sync.stdio')
   STDERR.sync = true
 else
   Truffle::KernelOperations.at_exit true do

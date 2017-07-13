@@ -13,7 +13,7 @@ begin
   require 'rational'
   require 'complex'
   require 'unicode_normalize'
-  if Truffle::Boot.patching_enabled?
+  if Truffle::Boot.get_option 'patching'
     require 'truffle/patching'
     Truffle::Patching.insert_patching_dir 'stdlib', File.join(Truffle::Boot.ruby_home, 'lib/mri')
   end
@@ -21,7 +21,7 @@ rescue LoadError => e
   Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
 end
 
-if Truffle::Boot.rubygems_enabled?
+if Truffle::Boot.get_option 'rubygems'
   begin
     require 'rubygems'
   rescue LoadError => e
@@ -51,7 +51,7 @@ if Truffle::Boot.rubygems_enabled?
 
     require 'truffle/patching'
 
-    if Truffle::Boot.did_you_mean_enabled?
+    if Truffle::Boot.get_option 'did_you_mean'
       begin
         gem 'did_you_mean'
         require 'did_you_mean'
