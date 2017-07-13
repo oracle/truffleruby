@@ -86,7 +86,7 @@ TruffleRuby-specific options, as well as conventional Ruby options, can also
 bet set in the `TRUFFLERUBYOPT` environment variable.
 
 `--` or the first non-option argument both stop processing of Truffle-specific
-arguments in the same was it stops processing of Ruby arguments.
+arguments in the same way it stops processing of Ruby arguments.
 
 ## JVM- and SVM-specific switches
 
@@ -102,7 +102,7 @@ JVM switches:
 ```
 
 `--` or the first non-option argument both stop processing of JVM-specific
-arguments in the same was it stops processing of Ruby arguments.
+arguments in the same way it stops processing of Ruby arguments.
 
 TruffleRuby also supports the `JAVA_HOME`, `JAVACMD` and `JAVA_OPTS` environment
 variables when running on a JVM (except for `JAVACMD` on the GraalVM).
