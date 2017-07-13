@@ -154,15 +154,21 @@ module Truffle::CExt
   RUBY_ENC_CODERANGE_VALID = 2
   RUBY_ENC_CODERANGE_BROKEN = 4
 
-  SYNC = Mutex.new
+  if Truffle::Boot.get_option 'cexts.lock'
+    SYNC = Mutex.new
 
-  def execute_with_mutex(function, *args)
-    mine = SYNC.owned?
-    SYNC.lock unless mine
-    begin
+    def execute_with_mutex(function, *args)
+      mine = SYNC.owned?
+      SYNC.lock unless mine
+      begin
+        Truffle::Interop.execute(function, *args)
+      ensure
+        SYNC.unlock unless mine
+      end
+    end
+  else
+    def execute_with_mutex(function, *args)
       Truffle::Interop.execute(function, *args)
-    ensure
-      SYNC.unlock unless mine
     end
   end
 
