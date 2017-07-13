@@ -25,21 +25,19 @@ public class RubyRootNode extends RubyBaseRootNode {
     private final RubyContext context;
     private final SourceSection sourceSection;
     private final SharedMethodInfo sharedMethodInfo;
-    private final boolean needsDeclarationFrame;
 
     @Child private RubyNode body;
 
     private CyclicAssumption needsCallerAssumption = new CyclicAssumption("needs caller frame");
 
     public RubyRootNode(RubyContext context, SourceSection sourceSection, FrameDescriptor frameDescriptor,
-                        SharedMethodInfo sharedMethodInfo, RubyNode body, boolean needsDeclarationFrame) {
+                        SharedMethodInfo sharedMethodInfo, RubyNode body) {
         super(context.getLanguage(), frameDescriptor);
         assert sourceSection != null;
         assert body != null;
         this.context = context;
         this.sourceSection = sourceSection;
         this.sharedMethodInfo = sharedMethodInfo;
-        this.needsDeclarationFrame = needsDeclarationFrame;
         this.body = body;
 
         body.unsafeSetIsCall();
@@ -87,10 +85,6 @@ public class RubyRootNode extends RubyBaseRootNode {
 
     public RubyNode getBody() {
         return body;
-    }
-
-    public boolean needsDeclarationFrame() {
-        return needsDeclarationFrame;
     }
 
     public RubyContext getContext() {
