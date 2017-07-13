@@ -108,8 +108,8 @@ public abstract class BindingNodes {
         return newExtrasFrame(parent, descriptor);
     }
 
-    private static MaterializedFrame newExtrasFrame(MaterializedFrame parent, FrameDescriptor descriptor) {
-        final MaterializedFrame frame = Truffle.getRuntime().createMaterializedFrame(
+    public static MaterializedFrame newExtrasFrame(MaterializedFrame parent, FrameDescriptor descriptor) {
+        final MaterializedFrame frame = Truffle.getRuntime().createVirtualFrame(
                 RubyArguments.pack(
                         parent,
                         null,
@@ -119,7 +119,7 @@ public abstract class BindingNodes {
                         RubyArguments.getSelf(parent),
                         RubyArguments.getBlock(parent),
                         RubyArguments.getArguments(parent)),
-                descriptor);
+                descriptor).materialize();
         return frame;
     }
 

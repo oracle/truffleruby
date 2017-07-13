@@ -537,18 +537,7 @@ public abstract class KernelNodes {
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = callerFrameNode.execute(frame).materialize();
-            final Object callerSelf = RubyArguments.getSelf(frame);
-
-            final InternalMethod method = new InternalMethod(
-                    getContext(),
-                    cachedRootNode.getRootNode().getSharedMethodInfo(),
-                    RubyArguments.getMethod(parentFrame).getLexicalScope(),
-                    cachedRootNode.getRootNode().getSharedMethodInfo().getName(),
-                    RubyArguments.getMethod(parentFrame).getDeclaringModule(),
-                    Visibility.PUBLIC,
-                    cachedCallTarget);
-
-            return callNode.call(RubyArguments.pack(parentFrame, null, method, RubyArguments.getDeclarationContext(parentFrame), null, callerSelf, null, new Object[]{}));
+            return eval(cachedRootNode, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(guards = {
@@ -593,18 +582,48 @@ public abstract class KernelNodes {
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.getTopFrame(binding);
+            return eval(cachedRootNode, cachedCallTarget, callNode, parentFrame);
+        }
+
+        private Object eval(final RootNodeWrapper rootNode, final CallTarget callTarget, final DirectCallNode callNode, final MaterializedFrame parentFrame) {
             final Object bindingSelf = RubyArguments.getSelf(parentFrame);
 
             final InternalMethod method = new InternalMethod(
                     getContext(),
-                    cachedRootNode.getRootNode().getSharedMethodInfo(),
+                    rootNode.getRootNode().getSharedMethodInfo(),
                     RubyArguments.getMethod(parentFrame).getLexicalScope(),
-                    cachedRootNode.getRootNode().getSharedMethodInfo().getName(),
+                    rootNode.getRootNode().getSharedMethodInfo().getName(),
                     RubyArguments.getMethod(parentFrame).getDeclaringModule(),
                     Visibility.PUBLIC,
-                    cachedCallTarget);
+                    callTarget);
 
             return callNode.call(RubyArguments.pack(parentFrame, null, method, RubyArguments.getDeclarationContext(parentFrame), null, bindingSelf, null, new Object[]{}));
+        }
+
+        @Specialization(guards = {
+                "isRubyString(source)",
+                "equalNode.execute(rope(source), cachedSource)",
+                "isRubyBinding(binding)",
+                "!assignsNoNewVariables(cachedRootNode)",
+                "assignsNoNewVariables(rootNodeToEval)",
+                "bindingDescriptor == getBindingDescriptor(binding)"
+        }, limit = "getCacheLimit()")
+        public Object evalBindingAddsVarsCached(
+                DynamicObject source,
+                DynamicObject binding,
+                NotProvided file,
+                NotProvided line,
+                @Cached("privatizeRope(source)") Rope cachedSource,
+                @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
+                @Cached("compileSource(source, getBindingFrame(binding))") RootNodeWrapper cachedRootNode,
+                @Cached("newBindingDescriptor(getContext(), cachedRootNode)") FrameDescriptor newBindingDescriptor,
+                @Cached("compileSource(source, getBindingFrame(binding), newBindingDescriptor)") RootNodeWrapper rootNodeToEval,
+                @Cached("createCallTarget(rootNodeToEval)") CallTarget cachedCallTarget,
+                @Cached("create(cachedCallTarget)") DirectCallNode callNode,
+                @Cached("create()") RopeNodes.EqualNode equalNode) {
+            final MaterializedFrame parentFrame = BindingNodes.newExtrasFrame(binding,
+                    newBindingDescriptor);
+            return eval(rootNodeToEval, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(guards = {
@@ -714,12 +733,25 @@ public abstract class KernelNodes {
             return new RootNodeWrapper(translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
         }
 
+        protected RootNodeWrapper compileSource(DynamicObject sourceText, MaterializedFrame parentFrame, FrameDescriptor additionalVariables) {
+            return compileSource(sourceText, BindingNodes.newExtrasFrame(parentFrame, additionalVariables));
+        }
+
         protected CallTarget createCallTarget(RootNodeWrapper rootNode) {
             return Truffle.getRuntime().createCallTarget(rootNode.rootNode);
         }
 
         protected FrameDescriptor getBindingDescriptor(DynamicObject binding) {
             return BindingNodes.getFrameDescriptor(binding);
+        }
+
+        protected FrameDescriptor newBindingDescriptor(RubyContext context, RootNodeWrapper rootNode) {
+            FrameDescriptor descriptor = rootNode.getRootNode().getFrameDescriptor();
+            FrameDescriptor newDescriptor = new FrameDescriptor(context.getCoreLibrary().getNil());
+            for (FrameSlot s : descriptor.getSlots()) {
+                newDescriptor.findOrAddFrameSlot(s.getIdentifier());
+            }
+            return newDescriptor;
         }
 
         protected MaterializedFrame getBindingFrame(DynamicObject binding) {
@@ -732,11 +764,7 @@ public abstract class KernelNodes {
 
         protected boolean assignsNoNewVariables(RootNodeWrapper rootNode) {
             FrameDescriptor descriptor = rootNode.getRootNode().getFrameDescriptor();
-            if (descriptor.getSize() != 1) {
-                return false;
-            }
-            Object key = descriptor.getSlots().get(0).getIdentifier();
-            return SelfNode.SELF_IDENTIFIER.equals(key);
+            return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
         }
     }
 
