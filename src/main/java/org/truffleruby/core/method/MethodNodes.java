@@ -245,7 +245,7 @@ public abstract class MethodNodes {
             final RootNode oldRootNode = ((RootCallTarget) method.getCallTarget()).getRootNode();
 
             final SetReceiverNode setReceiverNode = new SetReceiverNode(Layouts.METHOD.getReceiver(methodObject), method.getCallTarget());
-            final RootNode newRootNode = new RubyRootNode(getContext(), sourceSection, oldRootNode.getFrameDescriptor(), method.getSharedMethodInfo(), setReceiverNode, false);
+            final RootNode newRootNode = new RubyRootNode(getContext(), sourceSection, oldRootNode.getFrameDescriptor(), method.getSharedMethodInfo(), setReceiverNode);
             return Truffle.getRuntime().createCallTarget(newRootNode);
         }
 

@@ -211,7 +211,7 @@ public class CoreMethodNodeManager {
 
         final RubyNode bodyNode = new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
 
-        final RubyRootNode rootNode = new RubyRootNode(context, sourceSection, null, sharedMethodInfo, bodyNode, false);
+        final RubyRootNode rootNode = new RubyRootNode(context, sourceSection, null, sharedMethodInfo, bodyNode);
 
         return Truffle.getRuntime().createCallTarget(rootNode);
     }

@@ -1033,7 +1033,7 @@ public class BodyTranslator extends Translator {
 
         final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
 
-        final RubyRootNode rootNode = new RubyRootNode(context, fullSourceSection, environment.getFrameDescriptor(), environment.getSharedMethodInfo(), body, environment.needsDeclarationFrame());
+        final RubyRootNode rootNode = new RubyRootNode(context, fullSourceSection, environment.getFrameDescriptor(), environment.getSharedMethodInfo(), body);
 
         final ModuleBodyDefinitionNode definitionNode = new ModuleBodyDefinitionNode(
                 environment.getSharedMethodInfo().getName(),

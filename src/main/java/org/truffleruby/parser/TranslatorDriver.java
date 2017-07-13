@@ -264,7 +264,7 @@ public class TranslatorDriver {
             truffleNode = new TopLevelRaiseHandler(truffleNode);
         }
 
-        return new RubyRootNode(context, sourceIndexLength.toSourceSection(source), environment.getFrameDescriptor(), sharedMethodInfo, truffleNode, environment.needsDeclarationFrame());
+        return new RubyRootNode(context, sourceIndexLength.toSourceSection(source), environment.getFrameDescriptor(), sharedMethodInfo, truffleNode);
     }
 
     public RootParseNode parse(Source source, DynamicScope blockScope, ParserConfiguration configuration) {
