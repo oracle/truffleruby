@@ -835,13 +835,13 @@ module Commands
 
     unless no_libxml
       sh 'clang', '-c', '-emit-llvm', "-I#{LIBXML_INCLUDE}", 'test/truffle/cexts/xml/main.c', '-o', 'test/truffle/cexts/xml/main.bc'
-      out, _ = mx_sulong('su-run', "-Dpolyglot.llvm.libraries=#{LIBXML_LIB}", 'test/truffle/cexts/xml/main.bc', {capture: true})
+      out, _ = mx_sulong('lli', "-Dpolyglot.llvm.libraries=#{LIBXML_LIB}", 'test/truffle/cexts/xml/main.bc', {capture: true})
       raise out.inspect unless out == "7\n"
     end
 
     unless no_openssl
       sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
-      out, _ = mx_sulong('su-run', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', {capture: true})
+      out, _ = mx_sulong('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', {capture: true})
       raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
     end
 
