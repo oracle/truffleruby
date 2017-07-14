@@ -3,7 +3,7 @@
 TruffleRuby has the same command line interface as MRI 2.3.3.
 
 ```
-Usage: ruby [switches] [--] [programfile] [arguments]
+Usage: truffleruby [switches] [--] [programfile] [arguments]
   -0[octal]       specify record separator (\0, if no argument)
   -a              autosplit mode with -n or -p (splits $_ into $F)
   -c              check syntax only

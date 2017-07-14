@@ -82,7 +82,7 @@ public class Main {
         try {
             processArguments(config, args);
         } catch (CommandLineException commandLineException) {
-            System.err.println("ruby: " + commandLineException.getMessage());
+            System.err.println("truffleruby: " + commandLineException.getMessage());
             if (commandLineException.isUsageError()) {
                 CommandLineParser.printHelp(System.err);
             }
