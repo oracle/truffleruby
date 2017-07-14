@@ -185,23 +185,20 @@ public class CommandLineParser {
                         String temp = grabOptionalValue();
                         if (null == temp) {
                             //config.setRecordSeparator("\u0000");
-                            throw new UnsupportedOperationException();
                         } else if (temp.equals("0")) {
                             //config.setRecordSeparator("\n\n");
-                            throw new UnsupportedOperationException();
                         } else if (temp.equals("777")) {
                             //config.setRecordSeparator("\uffff"); // Specify something that can't separate
-                            throw new UnsupportedOperationException();
                         } else {
                             try {
                                 Integer.parseInt(temp, 8);
                                 //config.setRecordSeparator(String.valueOf((char) val));
-                                throw new UnsupportedOperationException();
                             } catch (Exception e) {
                                 throw new CommandLineException(getArgumentError(" -0 must be followed by either 0, 777, or a valid octal value"), true);
                             }
                         }
                         //break FOR;
+                        throw notImplemented("-0");
                     }
                 case 'a':
                     disallowedInRubyOpts(argument);
@@ -231,7 +228,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'F':
                     disallowedInRubyOpts(argument);
-                    throw new UnsupportedOperationException();
+                    throw new CommandLineException("the -F option is not implemented");
                 case 'h':
                     disallowedInRubyOpts(argument);
                     config.setShouldPrintShortUsage(true);
@@ -266,16 +263,16 @@ public class CommandLineParser {
                     }
                     break FOR;
                 case 'K':
-                    throw new UnsupportedOperationException();
+                    throw notImplemented("-K");
                 case 'l':
                     disallowedInRubyOpts(argument);
-                    throw new UnsupportedOperationException();
+                    throw notImplemented("-l");
                 case 'n':
                     disallowedInRubyOpts(argument);
-                    throw new UnsupportedOperationException();
+                    throw notImplemented("-n");
                 case 'p':
                     disallowedInRubyOpts(argument);
-                    throw new UnsupportedOperationException();
+                    throw notImplemented("-p");
                 case 'r':
                     config.getRequiredLibraries().add(grabValue(getArgumentError("-r must be followed by a package to require")));
                     break FOR;
@@ -284,7 +281,7 @@ public class CommandLineParser {
                     argvGlobalsOn = true;
                     break;
                 case 'G':
-                    throw new UnsupportedOperationException();
+                    throw notImplemented("-G");
                 case 'S':
                     disallowedInRubyOpts(argument);
                     runBinScript();
@@ -331,7 +328,7 @@ public class CommandLineParser {
                     config.setOption(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG, "true");
                     String directory = grabOptionalValue();
                     if (directory != null) {
-                        throw new UnsupportedOperationException();
+                        throw notImplemented("-x with directory");
                     }
                     break FOR;
                 case 'X':
@@ -382,7 +379,7 @@ public class CommandLineParser {
                         config.setShouldRunInterpreter(false);
                         break FOR;
                     } else if (argument.equals("--debug")) {
-                        throw new UnsupportedOperationException();
+                        throw notImplemented("--debug");
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
                         LogWithoutTruffle.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
@@ -398,9 +395,9 @@ public class CommandLineParser {
                         config.setShouldRunInterpreter(false);
                         break FOR;
                     } else if (argument.startsWith("--profile")) {
-                        throw new UnsupportedOperationException();
+                        throw notImplemented("--profile");
                     } else if (argument.equals("--debug-frozen-string-literal")) {
-                        throw new UnsupportedOperationException();
+                        throw notImplemented("--debug-frozen-string-literal");
                     } else if (argument.startsWith("--disable")) {
                         final int len = argument.length();
                         if (len == "--disable".length()) {
@@ -424,7 +421,7 @@ public class CommandLineParser {
                         }
                         break FOR;
                     } else if (argument.equals("--gemfile")) {
-                        throw new UnsupportedOperationException();
+                        throw notImplemented("--gemfile");
                     } else if (argument.equals("--verbose")) {
                         config.setOption(OptionsCatalog.VERBOSITY, "true");
                         break FOR;
@@ -546,6 +543,10 @@ public class CommandLineParser {
             return argValue.substring(characterIndex);
         }
         return null;
+    }
+
+    private CommandLineException notImplemented(String option) {
+        return new CommandLineException(String.format("the %s option is not implemented", option));
     }
 
     public static void printHelp(PrintStream out) {
