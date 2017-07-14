@@ -117,6 +117,7 @@ graal-enterprise: ${labsjdk8} {
     [cd, ../graal-enterprise/graal-enterprise],
     [mx, sforceimports],
     [mx, sversions],
+    [mx, clean], # Workaround for NFI
     [mx, build],
     [cd, ../../main]
   ]
