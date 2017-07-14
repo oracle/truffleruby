@@ -44,10 +44,9 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
     private final Object cachedName;
     private final DynamicObject cachedNameAsSymbol;
-    private final boolean cachedNameIsRubyString;
 
     @Child protected DispatchNode next;
-    @Child private RopeNodes.BytesEqualNode equalsNode;
+    @Child private RopeNodes.BytesEqualNode ropeEqualsNode;
 
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
 
@@ -68,14 +67,11 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
         if (RubyGuards.isRubySymbol(cachedName)) {
             cachedNameAsSymbol = (DynamicObject) cachedName;
-            cachedNameIsRubyString = false;
         } else if (RubyGuards.isRubyString(cachedName)) {
             cachedNameAsSymbol = context.getSymbolTable().getSymbol(StringOperations.rope((DynamicObject) cachedName));
-            cachedNameIsRubyString = true;
-            equalsNode = RopeNodes.BytesEqualNode.create();
+            ropeEqualsNode = RopeNodes.BytesEqualNode.create();
         } else if (cachedName instanceof String) {
             cachedNameAsSymbol = context.getSymbolTable().getSymbol((String) cachedName);
-            cachedNameIsRubyString = false;
         } else {
             throw new UnsupportedOperationException();
         }
@@ -144,8 +140,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
 
         if (cachedName instanceof String) {
             return cachedName.equals(methodName);
-        } else if (cachedNameIsRubyString) {
-            return RubyGuards.isRubyString(methodName) && equalsNode.execute(StringOperations.rope((DynamicObject) cachedName), StringOperations.rope((DynamicObject) methodName));
+        } else if (ropeEqualsNode != null) { // cachedName is a Ruby String
+            return RubyGuards.isRubyString(methodName) && ropeEqualsNode.execute(StringOperations.rope((DynamicObject) cachedName), StringOperations.rope((DynamicObject) methodName));
         } else { // cachedName is a Symbol
             // cachedName == methodName was checked above and was not true,
             // and since Symbols are compared by identity we know they don't match.
