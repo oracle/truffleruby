@@ -101,7 +101,7 @@ public class CommandLineParser {
         this.rubyOpts = rubyOpts;
     }
 
-    public static void processEnvironmentVariable(String name, CommandLineOptions commandLineOptions, boolean rubyOpts) {
+    public static void processEnvironmentVariable(String name, CommandLineOptions commandLineOptions, boolean rubyOpts) throws CommandLineException {
         String value = System.getenv(name);
 
         if (value != null && value.length() != 0) {
@@ -113,11 +113,11 @@ public class CommandLineParser {
         }
     }
 
-    public void processArguments() {
+    public void processArguments() throws CommandLineException {
         processArguments(true);
     }
 
-    public void processArguments(boolean inline) {
+    public void processArguments(boolean inline) throws CommandLineException {
         while (argumentIndex < arguments.size() && isInterpreterArgument(arguments.get(argumentIndex).originalValue)) {
             processArgument();
             argumentIndex++;
@@ -166,7 +166,7 @@ public class CommandLineParser {
         return "truffleruby: invalid argument\n" + additionalError + "\n";
     }
 
-    private void processArgument() {
+    private void processArgument() throws CommandLineException {
         String argument = arguments.get(argumentIndex).getDashedValue();
 
         if (argument.length() == 1) {
@@ -456,7 +456,7 @@ public class CommandLineParser {
         }
     }
 
-    private static String[] valueListFor(String argument, String key) {
+    private static String[] valueListFor(String argument, String key) throws CommandLineException {
         int length = key.length() + 3; // 3 is from -- and = (e.g. --disable=)
         String[] values = argument.substring(length).split(",");
 
@@ -465,13 +465,13 @@ public class CommandLineParser {
         return values;
     }
 
-    private void disallowedInRubyOpts(CharSequence option) {
+    private void disallowedInRubyOpts(CharSequence option) throws CommandLineException {
         if (rubyOpts) {
             throw new CommandLineException("truffleruby: invalid switch in RUBYOPT: " + option + " (RuntimeError)");
         }
     }
 
-    private static void errorMissingEquals(String label) {
+    private static void errorMissingEquals(String label) throws CommandLineException {
         throw new CommandLineException("missing argument for --" + label + "\n", true);
     }
 
@@ -501,7 +501,7 @@ public class CommandLineParser {
         return result;
     }
 
-    private void processEncodingOption(String value) {
+    private void processEncodingOption(String value) throws CommandLineException {
         List<String> encodings = split(value, ':', 3);
 
         if (encodings.size() >= 3) {
@@ -517,17 +517,17 @@ public class CommandLineParser {
         }
     }
 
-    private void runBinScript() {
+    private void runBinScript() throws CommandLineException {
         String scriptName = grabValue("truffleruby: provide a bin script to execute");
         config.setUsePathScript(scriptName);
         endOfArguments = true;
     }
 
-    private String grabValue(String errorMessage) {
+    private String grabValue(String errorMessage) throws CommandLineException {
         return grabValue(errorMessage, true);
     }
 
-    private String grabValue(String errorMessage, boolean usageError) {
+    private String grabValue(String errorMessage, boolean usageError) throws CommandLineException {
         String optValue = grabOptionalValue();
         if (optValue != null) {
             return optValue;
