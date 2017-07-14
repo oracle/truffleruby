@@ -81,9 +81,9 @@ public class Main {
 
         try {
             processArguments(config, args);
-        } catch (CommandLineException mee) {
-            System.err.println("ruby: " + mee.getMessage());
-            if (mee.isUsageError()) {
+        } catch (CommandLineException commandLineException) {
+            System.err.println("ruby: " + commandLineException.getMessage());
+            if (commandLineException.isUsageError()) {
                 CommandLineParser.printHelp(System.err);
             }
             System.exit(1);
