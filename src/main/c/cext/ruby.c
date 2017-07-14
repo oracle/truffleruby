@@ -1152,6 +1152,10 @@ void rb_str_update(VALUE string, long beg, long len, VALUE value) {
   truffle_invoke(string, "[]=", beg, len, value);
 }
 
+VALUE rb_str_replace(VALUE str, VALUE by) {
+  return truffle_invoke(str, "replace", by);
+}
+
 VALUE rb_str_equal(VALUE a, VALUE b) {
   return (VALUE) truffle_invoke(a, "==", b);
 }
@@ -2220,6 +2224,9 @@ VALUE rb_mutex_synchronize(VALUE mutex, VALUE (*func)(VALUE arg), VALUE arg) {
 // GC
 
 void rb_gc_register_address(VALUE *address) {
+}
+
+void rb_gc_mark(VALUE ptr) {
 }
 
 VALUE rb_gc_enable() {

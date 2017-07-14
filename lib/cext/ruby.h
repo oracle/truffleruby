@@ -108,10 +108,15 @@ void rb_tr_release_handle(void *handle);
 
 // Memory
 
-#define xmalloc       malloc    // TODO CS 4-Mar-17 malloc and all these macros should be a version that throws an exception on failure
-#define xfree         free
-#define ruby_xfree    free
+#define xmalloc       ruby_xmalloc
+#define xcalloc       ruby_xcalloc
+#define xrealloc      ruby_xrealloc
+#define xfree         ruby_xfree
+// TODO CS 4-Mar-17 malloc and all these macros should be a version that throws an exception on failure
+#define ruby_xmalloc  malloc
 #define ruby_xcalloc  calloc
+#define ruby_xrealloc realloc
+#define ruby_xfree    free
 
 #define ALLOC_N(type, n)            ((type *)malloc(sizeof(type) * (n)))
 #define ALLOCA_N(type, n)           ((type *)alloca(sizeof(type) * (n)))
@@ -618,6 +623,7 @@ VALUE rb_str_subseq(VALUE string, long beg, long len);
 VALUE rb_str_substr(VALUE string, long beg, long len);
 st_index_t rb_str_hash(VALUE string);
 void rb_str_update(VALUE string, long beg, long len, VALUE value);
+VALUE rb_str_replace(VALUE str, VALUE by);
 VALUE rb_str_equal(VALUE a, VALUE b);
 void rb_str_free(VALUE string);
 unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_encoding *encoding);
@@ -998,6 +1004,7 @@ VALUE rb_marshal_load(VALUE port);
 
 void rb_gc_register_address(VALUE *address);
 #define rb_global_variable(address) ;
+void rb_gc_mark(VALUE ptr);
 VALUE rb_gc_enable();
 VALUE rb_gc_disable();
 
