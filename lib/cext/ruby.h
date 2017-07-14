@@ -561,7 +561,9 @@ enum ruby_coderange_type {
 #define PRIXVALUE               PRI_VALUE_PREFIX"X"
 #define PRIsVALUE               PRI_VALUE_PREFIX"i" RUBY_PRI_VALUE_MARK
 
-char *RSTRING_PTR(VALUE string);
+#define RSTRING_PTR(str) RSTRING_PTR_IMPL(str)
+
+char *RSTRING_PTR_IMPL(VALUE string);
 int rb_str_len(VALUE string);
 #define RSTRING_LEN(str) (long)rb_str_len(str)
 #define RSTRING_LENINT(str) rb_str_len(str)
