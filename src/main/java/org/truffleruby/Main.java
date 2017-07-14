@@ -82,13 +82,11 @@ public class Main {
         try {
             processArguments(config, args);
         } catch (MainExitException mee) {
-            if (!mee.isAborted()) {
-                System.err.println(mee.getMessage());
-                if (mee.isUsageError()) {
-                    CommandLineParser.printHelp(System.err);
-                }
+            System.err.println(mee.getMessage());
+            if (mee.isUsageError()) {
+                CommandLineParser.printHelp(System.err);
             }
-            System.exit(mee.getStatus());
+            System.exit(1);
         }
 
         final int exitCode;
