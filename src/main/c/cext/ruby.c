@@ -426,6 +426,10 @@ long FIX2LONG(VALUE value) {
   return truffle_invoke_l(RUBY_CEXT, "FIX2LONG", value);
 }
 
+unsigned long FIX2ULONG(VALUE value) {
+  return truffle_invoke_l(RUBY_CEXT, "FIX2ULONG", value);
+}
+
 VALUE INT2NUM(long value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "INT2NUM", value);
 }
@@ -492,6 +496,10 @@ VALUE rb_ll2inum(LONG_LONG n) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", n);
 }
 
+VALUE rb_ull2inum(unsigned LONG_LONG val) {
+  return (VALUE) truffle_invoke(RUBY_CEXT, "ULL2NUM", val);
+}
+
 double rb_num2dbl(VALUE val) {
   return truffle_invoke_d(RUBY_CEXT, "rb_num2dbl", val);
 }
@@ -522,10 +530,6 @@ VALUE rb_num_coerce_relop(VALUE x, VALUE y, ID func) {
 
 void rb_num_zerodiv(void) {
   rb_raise(rb_eZeroDivError, "divided by 0");
-}
-
-VALUE LL2NUM(LONG_LONG n) {
-  return truffle_invoke(RUBY_CEXT, "LL2NUM", n);
 }
 
 // Type checks
@@ -833,6 +837,10 @@ VALUE rb_dbl2big(double d) {
 
 LONG_LONG rb_big2ll(VALUE x) {
   return truffle_invoke_l(RUBY_CEXT, "rb_num2long", x);
+}
+
+unsigned LONG_LONG rb_big2ull(VALUE x) {
+  return truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", x);
 }
 
 long rb_big2long(VALUE x) {
@@ -1594,6 +1602,10 @@ VALUE CLASS_OF(VALUE object) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "CLASS_OF", object);
 }
 
+VALUE rb_singleton_class(VALUE object) {
+  return truffle_invoke(object, "singleton_class");
+}
+
 VALUE rb_class_of(VALUE object) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_class_of", object);
 }
@@ -1710,6 +1722,10 @@ int rb_block_given_p() {
 
 VALUE rb_block_proc(void) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_block_proc");
+}
+
+VALUE rb_block_lambda(void) {
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_block_lambda");
 }
 
 VALUE rb_yield(VALUE value) {

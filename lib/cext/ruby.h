@@ -26,6 +26,7 @@ extern "C" {
 #define __DARWIN_ALIAS_C(sym)
 
 #include <ctype.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -385,6 +386,7 @@ double NUM2DBL(VALUE value);
 int FIX2INT(VALUE value);
 unsigned int FIX2UINT(VALUE value);
 long FIX2LONG(VALUE value);
+unsigned long FIX2ULONG(VALUE value);
 VALUE INT2NUM(long value);
 VALUE INT2FIX(long value);
 VALUE UINT2NUM(unsigned int value);
@@ -403,6 +405,7 @@ char RB_NUM2CHR(VALUE x);
 int rb_cmpint(VALUE val, VALUE a, VALUE b);
 VALUE rb_int2inum(SIGNED_VALUE n);
 VALUE rb_ll2inum(LONG_LONG n);
+VALUE rb_ull2inum(unsigned LONG_LONG val);
 double rb_num2dbl(VALUE val);
 long rb_num2int(VALUE val);
 unsigned long rb_num2uint(VALUE val);
@@ -412,7 +415,11 @@ VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func);
 VALUE rb_num_coerce_cmp(VALUE x, VALUE y, ID func);
 VALUE rb_num_coerce_relop(VALUE x, VALUE y, ID func);
 void rb_num_zerodiv(void);
-VALUE LL2NUM(LONG_LONG n);
+#define LL2NUM(v) rb_ll2inum(v)
+#define ULL2NUM(v) rb_ull2inum(v)
+
+#define NUM2SIZET(x) NUM2ULONG(x)
+#define NUM2SSIZET(x) NUM2LONG(x)
 
 // Type checks
 
@@ -522,9 +529,14 @@ VALUE rb_integer_unpack(const void *words, size_t numwords, size_t wordsize, siz
 size_t rb_absint_size(VALUE value, int *nlz_bits_ret);
 VALUE rb_cstr_to_inum(const char* string, int base, int raise);
 
+#define RBIGNUM_SIGN(b) (FIX2LONG(rb_big_cmp((b), INT2FIX(0))) >= 0)
+#define RBIGNUM_POSITIVE_P(b) (FIX2LONG(rb_big_cmp((b), INT2FIX(0))) >= 0)
+#define RBIGNUM_NEGATIVE_P(b) (FIX2LONG(rb_big_cmp((b), INT2FIX(0))) < 0)
+
 double rb_big2dbl(VALUE x);
 VALUE rb_dbl2big(double d);
 LONG_LONG rb_big2ll(VALUE x);
+unsigned LONG_LONG rb_big2ull(VALUE x);
 long rb_big2long(VALUE x);
 VALUE rb_big2str(VALUE x, int base);
 unsigned long rb_big2ulong(VALUE x);
@@ -762,7 +774,12 @@ VALUE rb_hash_delete(VALUE hash, VALUE key);
 VALUE rb_hash_delete_if(VALUE hash);
 void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg);
 VALUE rb_hash_size(VALUE hash);
+#define RHASH_SIZE(h) NUM2SIZET(rb_hash_size(h))
 #define rb_hash_dup(array) rb_obj_dup(array)
+
+// st.h
+
+enum st_retval {ST_CONTINUE, ST_STOP, ST_DELETE, ST_CHECK};
 
 // Class
 
@@ -772,6 +789,7 @@ VALUE rb_class_superclass(VALUE ruby_class);
 VALUE rb_class_of(VALUE object);
 VALUE rb_obj_class(VALUE object);
 VALUE CLASS_OF(VALUE object);
+VALUE rb_singleton_class(VALUE object);
 VALUE rb_obj_alloc(VALUE ruby_class);
 VALUE rb_class_path(VALUE ruby_class);
 VALUE rb_path2class(const char *string);
@@ -840,6 +858,7 @@ VALUE rb_block_call(VALUE object, ID name, int args_count, const VALUE *args, rb
 VALUE rb_call_super(int args_count, const VALUE *args);
 int rb_block_given_p();
 VALUE rb_block_proc(void);
+VALUE rb_block_lambda(void);
 VALUE rb_yield(VALUE value);
 VALUE rb_funcall_with_block(VALUE recv, ID mid, int argc, const VALUE *argv, VALUE pass_procval);
 VALUE rb_yield_splat(VALUE values);
