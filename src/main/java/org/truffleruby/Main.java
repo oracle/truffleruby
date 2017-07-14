@@ -174,7 +174,7 @@ public class Main {
         return builder.build();
     }
 
-    public static void processArguments(CommandLineOptions config, String[] arguments) {
+    public static void processArguments(CommandLineOptions config, String[] arguments) throws CommandLineException {
         new CommandLineParser(arguments, config).processArguments();
 
         if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
