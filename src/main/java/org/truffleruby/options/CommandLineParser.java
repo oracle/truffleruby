@@ -163,7 +163,7 @@ public class CommandLineParser {
     }
 
     private String getArgumentError(String additionalError) {
-        return "truffleruby: invalid argument\n" + additionalError + "\n";
+        return "invalid argument\n" + additionalError + "\n";
     }
 
     private void processArgument() throws CommandLineException {
@@ -436,9 +436,9 @@ public class CommandLineParser {
                             break;
                         }
                     }
-                    throw new CommandLineException("truffleruby: unknown option " + argument);
+                    throw new CommandLineException("unknown option " + argument);
                 default:
-                    throw new CommandLineException("truffleruby: unknown option " + argument);
+                    throw new CommandLineException("unknown option " + argument);
             }
         }
     }
@@ -464,7 +464,7 @@ public class CommandLineParser {
 
     private void disallowedInRubyOpts(CharSequence option) throws CommandLineException {
         if (rubyOpts) {
-            throw new CommandLineException("truffleruby: invalid switch in RUBYOPT: " + option + " (RuntimeError)");
+            throw new CommandLineException("invalid switch in RUBYOPT: " + option + " (RuntimeError)");
         }
     }
 
@@ -515,7 +515,7 @@ public class CommandLineParser {
     }
 
     private void runBinScript() throws CommandLineException {
-        String scriptName = grabValue("truffleruby: provide a bin script to execute");
+        String scriptName = grabValue("provide a bin script to execute");
         config.setUsePathScript(scriptName);
         endOfArguments = true;
     }
@@ -550,7 +550,7 @@ public class CommandLineParser {
     }
 
     public static void printHelp(PrintStream out) {
-        out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
+        out.println("Usage: ruby [switches] [--] [programfile] [arguments]");
         out.println("  -0[octal]       specify record separator (\0, if no argument)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
@@ -603,7 +603,7 @@ public class CommandLineParser {
     }
 
     public static void printShortHelp(PrintStream out) {
-        out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
+        out.println("Usage: ruby [switches] [--] [programfile] [arguments]");
         out.println("  -0[octal]       specify record separator (\0, if no argument)");
         out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
         out.println("  -c              check syntax only");
