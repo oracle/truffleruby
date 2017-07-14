@@ -51,7 +51,7 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
 import org.truffleruby.options.CommandLineOptions;
 import org.truffleruby.options.CommandLineParser;
-import org.truffleruby.options.MainExitException;
+import org.truffleruby.options.CommandLineException;
 import org.truffleruby.options.OptionsCatalog;
 import org.truffleruby.platform.Platform;
 
@@ -81,7 +81,7 @@ public class Main {
 
         try {
             processArguments(config, args);
-        } catch (MainExitException mee) {
+        } catch (CommandLineException mee) {
             System.err.println(mee.getMessage());
             if (mee.isUsageError()) {
                 CommandLineParser.printHelp(System.err);

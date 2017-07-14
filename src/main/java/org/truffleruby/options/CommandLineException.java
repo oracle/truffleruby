@@ -26,16 +26,16 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.options;
 
-public class MainExitException extends RuntimeException {
+public class CommandLineException extends RuntimeException {
 
     private static final long serialVersionUID = -8585821821150293755L;
     private final boolean usageError;
 
-    public MainExitException(String message) {
+    public CommandLineException(String message) {
         this(message, false);
     }
 
-    public MainExitException(String message, boolean usageError) {
+    public CommandLineException(String message, boolean usageError) {
         super(message);
         this.usageError = usageError;
     }
