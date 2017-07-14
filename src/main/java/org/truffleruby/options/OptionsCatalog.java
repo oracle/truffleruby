@@ -48,7 +48,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription LAZY_TRANSLATION_CORE = new BooleanOptionDescription("ruby.lazy_translation.core", "Lazily translation of core source files", true);
     public static final BooleanOptionDescription LAZY_TRANSLATION_USER = new BooleanOptionDescription("ruby.lazy_translation.user", "Lazily translation of stdlib", false);
     public static final BooleanOptionDescription LAZY_TRANSLATION_LOG = new BooleanOptionDescription("ruby.lazy_translation.log", "Log lazy translations from the parser AST to the Truffle AST", false);
-    public static final IntegerOptionDescription ARRAY_UNINITIALIZED_SIZE = new IntegerOptionDescription("ruby.array.uninitialized_size", "How large an Array to allocate when we have no other information to go on", 32);
+    public static final IntegerOptionDescription ARRAY_UNINITIALIZED_SIZE = new IntegerOptionDescription("ruby.array.uninitialized_size", "How large an Array to allocate when we have no other information to go on", 16);
     public static final IntegerOptionDescription ARRAY_SMALL = new IntegerOptionDescription("ruby.array.small", "Maximum size of an Array to consider small for optimisations", 3);
     public static final IntegerOptionDescription HASH_PACKED_ARRAY_MAX = new IntegerOptionDescription("ruby.hash.packed_array.max", "Maximum size of a Hash to consider using the packed array storage strategy for", 3);
     public static final BooleanOptionDescription ROPE_LAZY_SUBSTRINGS = new BooleanOptionDescription("ruby.rope.lazy_substrings", "Indicates whether a substring operation on a rope should be performed lazily", true);

@@ -39,7 +39,7 @@ LAZY_TRANSLATION_CORE: [lazy_translation.core, boolean, true, Lazily translation
 LAZY_TRANSLATION_USER: [lazy_translation.user, boolean, false, Lazily translation of stdlib, gem and user source files]
 LAZY_TRANSLATION_LOG: [lazy_translation.log, boolean, false, Log lazy translations from the parser AST to the Truffle AST]
 
-ARRAY_UNINITIALIZED_SIZE: [array.uninitialized_size, integer, 32, How large an Array to allocate when we have no other information to go on]
+ARRAY_UNINITIALIZED_SIZE: [array.uninitialized_size, integer, 16, How large an Array to allocate when we have no other information to go on]
 ARRAY_SMALL: [array.small, integer, 3, Maximum size of an Array to consider small for optimisations]
 HASH_PACKED_ARRAY_MAX: [hash.packed_array.max, integer, 3, Maximum size of a Hash to consider using the packed array storage strategy for]
 
