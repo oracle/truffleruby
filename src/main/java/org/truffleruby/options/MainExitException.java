@@ -29,40 +29,9 @@ package org.truffleruby.options;
 public class MainExitException extends RuntimeException {
     private static final long serialVersionUID = -8585821821150293755L;
     boolean usageError;
-    int status;
-    private boolean aborted;
 
-    public MainExitException(int status) {
-        this(status, true);
-    }
-
-    public MainExitException(int status, String message) {
+    public MainExitException(String message) {
         super(message);
-
-        this.status = status;
-    }
-
-    public MainExitException(int status, boolean aborted) {
-        super("aborted");
-
-        this.status = status;
-        this.aborted = aborted;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public void setAborted(boolean aborted) {
-        this.aborted = aborted;
-    }
-
-    public boolean isAborted() {
-        return this.aborted;
     }
 
     public boolean isUsageError() {
@@ -73,9 +42,4 @@ public class MainExitException extends RuntimeException {
         this.usageError = usageError;
     }
 
-    @SuppressWarnings("sync-override")
-    @Override
-    public Throwable fillInStackTrace() {
-        return this;
-    }
 }

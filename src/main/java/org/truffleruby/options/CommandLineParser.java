@@ -198,7 +198,7 @@ public class CommandLineParser {
                                 //config.setRecordSeparator(String.valueOf((char) val));
                                 throw new UnsupportedOperationException();
                             } catch (Exception e) {
-                                MainExitException mee = new MainExitException(1, getArgumentError(" -0 must be followed by either 0, 777, or a valid octal value"));
+                                MainExitException mee = new MainExitException(getArgumentError(" -0 must be followed by either 0, 777, or a valid octal value"));
                                 mee.setUsageError(true);
                                 throw mee;
                             }
@@ -323,7 +323,7 @@ public class CommandLineParser {
                                     config.setOption(OptionsCatalog.VERBOSITY, "2");
                                     break;
                                 default:
-                                    MainExitException mee = new MainExitException(1, getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"));
+                                    MainExitException mee = new MainExitException(getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"));
                                     mee.setUsageError(true);
                                     throw mee;
                             }
@@ -443,9 +443,9 @@ public class CommandLineParser {
                             break;
                         }
                     }
-                    throw new MainExitException(1, "truffleruby: unknown option " + argument);
+                    throw new MainExitException("truffleruby: unknown option " + argument);
                 default:
-                    throw new MainExitException(1, "truffleruby: unknown option " + argument);
+                    throw new MainExitException("truffleruby: unknown option " + argument);
             }
         }
     }
@@ -471,13 +471,13 @@ public class CommandLineParser {
 
     private void disallowedInRubyOpts(CharSequence option) {
         if (rubyOpts) {
-            throw new MainExitException(1, "truffleruby: invalid switch in RUBYOPT: " + option + " (RuntimeError)");
+            throw new MainExitException("truffleruby: invalid switch in RUBYOPT: " + option + " (RuntimeError)");
         }
     }
 
     private static void errorMissingEquals(String label) {
         MainExitException mee;
-        mee = new MainExitException(1, "missing argument for --" + label + "\n");
+        mee = new MainExitException("missing argument for --" + label + "\n");
         mee.setUsageError(true);
         throw mee;
     }
@@ -512,7 +512,7 @@ public class CommandLineParser {
         List<String> encodings = split(value, ':', 3);
 
         if (encodings.size() >= 3) {
-            throw new MainExitException(1, "extra argument for -E: " + encodings.get(2));
+            throw new MainExitException("extra argument for -E: " + encodings.get(2));
         }
 
         if (encodings.size() >= 2) {
@@ -543,7 +543,7 @@ public class CommandLineParser {
         if (argumentIndex < arguments.size()) {
             return arguments.get(argumentIndex).originalValue;
         }
-        MainExitException mee = new MainExitException(1, errorMessage);
+        MainExitException mee = new MainExitException(errorMessage);
         if (usageError) mee.setUsageError(true);
         throw mee;
     }
