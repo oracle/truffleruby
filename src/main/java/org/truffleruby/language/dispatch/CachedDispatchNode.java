@@ -47,7 +47,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
     private final boolean cachedNameIsRubyString;
 
     @Child protected DispatchNode next;
-    @Child private RopeNodes.BytesEqualNode equalsNode = RopeNodes.BytesEqualNode.create();
+    @Child private RopeNodes.BytesEqualNode equalsNode;
 
     private final BranchProfile moreThanReferenceCompare = BranchProfile.create();
 
@@ -72,6 +72,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
         } else if (RubyGuards.isRubyString(cachedName)) {
             cachedNameAsSymbol = context.getSymbolTable().getSymbol(StringOperations.rope((DynamicObject) cachedName));
             cachedNameIsRubyString = true;
+            equalsNode = RopeNodes.BytesEqualNode.create();
         } else if (cachedName instanceof String) {
             cachedNameAsSymbol = context.getSymbolTable().getSymbol((String) cachedName);
             cachedNameIsRubyString = false;
