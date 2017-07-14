@@ -198,9 +198,7 @@ public class CommandLineParser {
                                 //config.setRecordSeparator(String.valueOf((char) val));
                                 throw new UnsupportedOperationException();
                             } catch (Exception e) {
-                                MainExitException mee = new MainExitException(getArgumentError(" -0 must be followed by either 0, 777, or a valid octal value"));
-                                mee.setUsageError(true);
-                                throw mee;
+                                throw new MainExitException(getArgumentError(" -0 must be followed by either 0, 777, or a valid octal value"), true);
                             }
                         }
                         //break FOR;
@@ -323,9 +321,7 @@ public class CommandLineParser {
                                     config.setOption(OptionsCatalog.VERBOSITY, "2");
                                     break;
                                 default:
-                                    MainExitException mee = new MainExitException(getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"));
-                                    mee.setUsageError(true);
-                                    throw mee;
+                                    throw new MainExitException(getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"), true);
                             }
                         }
                         break FOR;
@@ -476,10 +472,7 @@ public class CommandLineParser {
     }
 
     private static void errorMissingEquals(String label) {
-        MainExitException mee;
-        mee = new MainExitException("missing argument for --" + label + "\n");
-        mee.setUsageError(true);
-        throw mee;
+        throw new MainExitException("missing argument for --" + label + "\n", true);
     }
 
     /**
@@ -543,9 +536,7 @@ public class CommandLineParser {
         if (argumentIndex < arguments.size()) {
             return arguments.get(argumentIndex).originalValue;
         }
-        MainExitException mee = new MainExitException(errorMessage);
-        if (usageError) mee.setUsageError(true);
-        throw mee;
+        throw new MainExitException(errorMessage, usageError);
     }
 
     private String grabOptionalValue() {
