@@ -872,7 +872,7 @@ double RFLOAT_VALUE(VALUE value){
 
 // String
 
-char *RSTRING_PTR(VALUE string) {
+char *RSTRING_PTR_IMPL(VALUE string) {
   return (char *)truffle_invoke(RUBY_CEXT, "RSTRING_PTR", string);
 }
 
