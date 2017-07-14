@@ -172,8 +172,8 @@ module RbConfig
   mkconfig['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb < $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
   expanded['LINK_SO'] = "#{ruby_launcher} -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) #{libs}"
   mkconfig['LINK_SO'] = "#{ruby_launcher} -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) $(LIBS)"
-  expanded['TRY_LINK'] = "#{clang} $(src) $(INCFLAGS) #{cflags} #{libs}"
-  mkconfig['TRY_LINK'] = "#{clang} $(src) $(INCFLAGS) $(CFLAGS) $(LIBS)"
+  expanded['TRY_LINK'] = "#{clang} -o conftest $(src) $(INCFLAGS) #{cflags} #{libs}"
+  mkconfig['TRY_LINK'] = "#{clang} -o conftest $(src) $(INCFLAGS) $(CFLAGS) $(LIBS)"
 
   def self.ruby
     Truffle::Boot.ruby_launcher or
