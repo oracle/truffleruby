@@ -76,14 +76,6 @@ public class NewlineParseNode extends ParseNode {
         return iVisitor.visitNewlineNode(this);
     }
 
-    /**
-     * Gets the nextNode.
-     * @return Returns a ParseNode
-     */
-    public ParseNode getNextNode() {
-        return nextNode;
-    }
-
     @Override
     public List<ParseNode> childNodes() {
         return createList(nextNode);
