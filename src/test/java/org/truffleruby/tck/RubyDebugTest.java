@@ -19,6 +19,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.api.vm.PolyglotEngine.Value;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.RubyTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,7 +65,7 @@ public class RubyDebugTest {
     public void before() {
         suspendedEvent = null;
 
-        engine = PolyglotEngine.newBuilder().setOut(out).setErr(err).build();
+        engine = RubyTest.setupConfig(PolyglotEngine.newBuilder()).setOut(out).setErr(err).build();
         debugger = Debugger.find(engine);
         debuggerSession = debugger.startSession(event -> {
             suspendedEvent = event;
@@ -99,7 +100,7 @@ public class RubyDebugTest {
         // Init before eval:
         performWork();
         engine.eval(factorial);
-        engine.eval(Source.newBuilder("Truffle::Debug.resolve_lazy_nodes").mimeType(RubyLanguage.MIME_TYPE).name("resolve_lazy_nodes").build());
+        engine.eval(RubyTest.RESOLVE_LAZY_NODES);
 
         assertExecutedOK("Algorithm loaded");
 
@@ -124,7 +125,7 @@ public class RubyDebugTest {
     public void stepInStepOver() throws Throwable {
         final Source factorial = createFactorial();
         engine.eval(factorial);
-        engine.eval(Source.newBuilder("Truffle::Debug.resolve_lazy_nodes").mimeType(RubyLanguage.MIME_TYPE).name("resolve_lazy_nodes").build());
+        engine.eval(RubyTest.RESOLVE_LAZY_NODES);
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
