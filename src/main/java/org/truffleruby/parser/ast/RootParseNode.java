@@ -31,7 +31,6 @@ package org.truffleruby.parser.ast;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.DynamicScope;
-import org.truffleruby.parser.scope.StaticScope;
 
 import java.util.List;
 
@@ -45,30 +44,17 @@ import java.util.List;
 // TODO: Store BEGIN and END information into this node
 public class RootParseNode extends ParseNode {
     private transient DynamicScope scope;
-    private StaticScope staticScope;
     private ParseNode bodyNode;
     private String file;
     private int endPosition;
-    private boolean needsCodeCoverage;
 
-    public RootParseNode(SourceIndexLength position, DynamicScope scope, ParseNode bodyNode, String file) {
-        this(position, scope, bodyNode, file, -1, false);
-    }
-
-    public RootParseNode(SourceIndexLength position, DynamicScope scope, ParseNode bodyNode, String file, int endPosition, boolean needsCodeCoverage) {
+    public RootParseNode(SourceIndexLength position, DynamicScope scope, ParseNode bodyNode, String file, int endPosition) {
         super(position);
         
         this.scope = scope;
-        this.staticScope = scope.getStaticScope();
         this.bodyNode = bodyNode;
         this.file = file;
         this.endPosition = endPosition;
-        this.needsCodeCoverage = needsCodeCoverage;
-    }
-
-    @Deprecated
-    public RootParseNode(SourceIndexLength position, DynamicScope scope, ParseNode bodyNode, String file, int endPosition) {
-        this(position, scope, bodyNode, file, endPosition, false);
     }
 
     @Override
@@ -86,18 +72,6 @@ public class RootParseNode extends ParseNode {
      */
     public DynamicScope getScope() {
         return scope;
-    }
-    
-    /**
-     * The static scoping relationships that should get set first thing before interpretation
-     * of the code represented by this AST.  Actually, we use getScope first since that also
-     * can contain a live dynamic scope.  We rely on this method only for interpreting a root
-     * node from a serialized format.
-     * 
-     * @return the top static scope for the AST
-     */
-    public StaticScope getStaticScope() {
-        return staticScope;
     }
 
     public String getFile() {
@@ -131,8 +105,4 @@ public class RootParseNode extends ParseNode {
         return endPosition;
     }
 
-    // Is coverage enabled and is this a valid source file for coverage to apply?
-    public boolean needsCoverage() {
-        return needsCodeCoverage;
-    }
 }
