@@ -114,7 +114,4 @@ public class IterParseNode extends ParseNode implements DefNode {
         return ParseNode.createList(varNode, bodyNode);
     }
 
-    public int getEndLine() {
-        return -1;
-    }
 }
