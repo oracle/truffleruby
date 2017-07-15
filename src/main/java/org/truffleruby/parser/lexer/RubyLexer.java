@@ -418,17 +418,6 @@ public class RubyLexer {
         }
     }
 
-    /**
-     * Parse must pass its support object for some check at bottom of
-     * yylex().  Ruby does it this way as well (i.e. a little parsing
-     * logic in the lexer).
-     *
-     * @param parserSupport
-     */
-    public void setParserSupport(ParserSupport parserSupport) {
-        this.parserSupport = parserSupport;
-    }
-
     protected void setCompileOptionFlag(String name, Rope value) {
         if (tokenSeen) {
             warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`" + name + "' is ignored after any tokens");
@@ -2522,10 +2511,6 @@ public class RubyLexer {
     private int ruby_sourceline_when_tokline_created;
     public int tokp = 0;                   // Where last token started
     protected Object yaccValue;               // Value of last token which had a value associated with it.
-
-    public int column() {
-        return tokp - lex_pbeg;
-    }
 
     protected boolean comment_at_top() {
         int p = lex_pbeg;
