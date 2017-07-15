@@ -14,6 +14,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
+import com.oracle.truffle.api.vm.PolyglotEngine.Builder;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.options.OptionsCatalog;
@@ -26,6 +28,9 @@ import java.util.function.Consumer;
 import static org.junit.Assert.assertEquals;
 
 public abstract class RubyTest {
+
+    public static final Source RESOLVE_LAZY_NODES =
+            Source.newBuilder("Truffle::Debug.resolve_lazy_nodes").mimeType(RubyLanguage.MIME_TYPE).name("resolve_lazy_nodes").build();
 
     protected <T extends Node> void testWithNode(String text, Class<T> nodeClass, Consumer<T> test) {
         testWithAST(text, (root) -> {
@@ -48,12 +53,18 @@ public abstract class RubyTest {
     }
 
     protected void testInEngine(Runnable test) {
-        final PolyglotEngine engine = PolyglotEngine.newBuilder()
-                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), false)
-                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.BASICOPS_INLINE.getName(), false)
+        final PolyglotEngine engine = setupConfig(PolyglotEngine.newBuilder())
                 .globalSymbol("action", JavaInterop.asTruffleFunction(Runnable.class, test)).build();
 
         engine.eval(Source.newBuilder("Truffle::Interop.import('action').call").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());
+    }
+
+    public static Builder setupConfig(PolyglotEngine.Builder builder) {
+        String cwd = System.getProperty("user.dir");
+        return builder
+                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), false)
+                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.HOME.getName(), cwd)
+                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.BASICOPS_INLINE.getName(), false);
     }
 
 }

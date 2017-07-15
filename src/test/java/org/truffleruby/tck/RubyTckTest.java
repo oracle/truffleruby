@@ -13,7 +13,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.tck.TruffleTCK;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.options.OptionsCatalog;
+import org.truffleruby.RubyTest;
 import org.junit.Test;
 
 import java.io.File;
@@ -55,13 +55,9 @@ public class RubyTckTest extends TruffleTCK {
 
     @Override
     protected PolyglotEngine prepareVM(PolyglotEngine.Builder preparedBuilder) throws Exception {
-        String cwd = System.getProperty("user.dir");
-        final PolyglotEngine engine = preparedBuilder
-                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), false)
-                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.HOME.getName(), cwd)
-                .build();
+        final PolyglotEngine engine = RubyTest.setupConfig(preparedBuilder).build();
         engine.eval(getSource("src/test/ruby/tck.rb"));
-        engine.eval(Source.newBuilder("Truffle::Debug.resolve_lazy_nodes").mimeType(RubyLanguage.MIME_TYPE).name("resolve_lazy_nodes").build());
+        engine.eval(RubyTest.RESOLVE_LAZY_NODES);
         return engine;
     }
 

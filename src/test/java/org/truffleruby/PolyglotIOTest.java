@@ -12,8 +12,6 @@ package org.truffleruby;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import org.junit.Test;
-import org.truffleruby.options.OptionsCatalog;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
@@ -26,8 +24,7 @@ public class PolyglotIOTest extends RubyTest {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final ByteArrayInputStream in = new ByteArrayInputStream("abc".getBytes());
 
-        final PolyglotEngine engine = PolyglotEngine.newBuilder()
-                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), false)
+        final PolyglotEngine engine = RubyTest.setupConfig(PolyglotEngine.newBuilder())
                 .setOut(out)
                 .setIn(in)
                 .build();
@@ -43,8 +40,7 @@ public class PolyglotIOTest extends RubyTest {
     public void testPolyglotOut() {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        final PolyglotEngine engine = PolyglotEngine.newBuilder()
-                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), false)
+        final PolyglotEngine engine = RubyTest.setupConfig(PolyglotEngine.newBuilder())
                 .setOut(out)
                 .build();
 
@@ -59,8 +55,7 @@ public class PolyglotIOTest extends RubyTest {
     public void testPolyglotErr() {
         final ByteArrayOutputStream err = new ByteArrayOutputStream();
 
-        final PolyglotEngine engine = PolyglotEngine.newBuilder()
-                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), false)
+        final PolyglotEngine engine = RubyTest.setupConfig(PolyglotEngine.newBuilder())
                 .setErr(err)
                 .build();
 
