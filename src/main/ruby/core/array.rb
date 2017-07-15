@@ -419,7 +419,7 @@ class Array
     at(idx)
   end
 
-  def fill_internal(a=undefined, b=undefined, c=undefined)
+  private def fill_internal(a=undefined, b=undefined, c=undefined)
     Truffle.check_frozen
 
     if block_given?
@@ -549,7 +549,7 @@ class Array
       begin
         objects[id] = true
 
-        hash_val = self.hash_internal
+        hash_val = hash_internal
       ensure
         objects.delete id
       end
@@ -561,7 +561,7 @@ class Array
         objects[:__detect_outermost_recursion__] = true
         objects[id] = true
 
-        hash_val = self.hash_internal
+        hash_val = hash_internal
 
         # An inner version will raise to return back here, indicating that
         # the whole structure is recursive. In which case, abondon most of

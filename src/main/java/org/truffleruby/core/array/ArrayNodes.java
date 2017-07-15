@@ -841,19 +841,19 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, DynamicObject array, Object[] args, NotProvided block,
-                @Cached("create()") CallDispatchHeadNode callFillInternal) {
+                @Cached("createOnSelf()") CallDispatchHeadNode callFillInternal) {
             return callFillInternal.call(frame, array, "fill_internal", args);
         }
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, DynamicObject array, Object[] args, DynamicObject block,
-                @Cached("create()") CallDispatchHeadNode callFillInternal) {
+                @Cached("createOnSelf()") CallDispatchHeadNode callFillInternal) {
             return callFillInternal.callWithBlock(frame, array, "fill_internal", block, args);
         }
 
     }
 
-    @CoreMethod(names = "hash_internal")
+    @CoreMethod(names = "hash_internal", visibility = Visibility.PRIVATE)
     public abstract static class HashNode extends ArrayCoreMethodNode {
 
         private static final int MURMUR_ARRAY_SEED = System.identityHashCode(ArrayNodes.class);
