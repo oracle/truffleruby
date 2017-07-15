@@ -52,10 +52,6 @@ public class RetryParseNode extends ParseNode implements NonLocalControlFlowPars
         return null; // Needed for non local control flow node marker
     }
 
-    public boolean hasValue() {
-        return false; // Retry never allows a value
-    }
-
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor

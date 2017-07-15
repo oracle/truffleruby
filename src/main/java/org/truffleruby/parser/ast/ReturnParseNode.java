@@ -67,10 +67,6 @@ public class ReturnParseNode extends ParseNode implements NonLocalControlFlowPar
     public ParseNode getValueNode() {
         return valueNode;
     }
-
-    public boolean hasValue() {
-        return valueNode != NilImplicitParseNode.NIL;
-    }
     
     @Override
     public List<ParseNode> childNodes() {
