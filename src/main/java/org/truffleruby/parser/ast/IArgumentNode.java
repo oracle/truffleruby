@@ -32,6 +32,6 @@ package org.truffleruby.parser.ast;
  * Does the node contain an argument list?
  */
 public interface IArgumentNode {
-    public ParseNode getArgsNode();
-    public ParseNode setArgsNode(ParseNode argsNode);
+    ParseNode getArgsNode();
+    ParseNode setArgsNode(ParseNode argsNode);
 }
