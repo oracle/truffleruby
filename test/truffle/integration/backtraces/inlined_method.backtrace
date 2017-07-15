@@ -1,0 +1,5 @@
+/inlined_method.rb:13:in `method_missing'
+/inlined_method.rb:13:in `meth_with_inlined_plus'
+/inlined_method.rb:17:in `block in <main>'
+/backtraces.rb:17:in `check'
+/inlined_method.rb:16:in `<main>'
