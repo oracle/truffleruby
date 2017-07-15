@@ -920,7 +920,14 @@ module Enumerable
     each { return true if Truffle.single_block_arg == obj }
     false
   end
-
   alias_method :member?, :include?
 
+end
+
+class Array
+  # Copy methods from Enumerable that should also be defined on Array
+  public :any?
+  public :take
+  public :drop_while, :take_while
+  public :frozen?
 end

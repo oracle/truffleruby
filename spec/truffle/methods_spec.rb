@@ -19,8 +19,9 @@ modules = [
   BasicObject, Kernel, Object,
   Enumerable, Enumerator,
   Numeric, Integer, Fixnum, Bignum,
+  Array,
 ]
-# Array, Hash, Range, String
+# Hash, Range, String
 # Float, Rational, Complex
 
 describe "Public methods on" do
