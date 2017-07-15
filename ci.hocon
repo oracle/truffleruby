@@ -233,14 +233,6 @@ gate-caps-solaris: {
   }
 }
 
-daily-gate-caps: {
-  capabilities: [linux, amd64]
-  targets: [gate, post-push, daily]
-  environment: {
-    REPORT_GITHUB_STATUS: "true"
-  }
-}
-
 bench-caps: {
   capabilities: [x52, linux, amd64, no_frequency_scaling]
   targets: [bench, post-push]
@@ -252,11 +244,6 @@ bench-caps: {
 
 svm-bench-caps: ${bench-caps} {
   capabilities: [x52_18, linux, amd64, no_frequency_scaling]
-}
-
-daily-caps: {
-  capabilities: [linux, amd64]
-  targets: [daily]
 }
 
 daily-bench-caps: {
@@ -491,7 +478,7 @@ builds: [
   {name: ruby-test-specs-truffle} ${common} ${gate-caps} {run: [${jt} [test, specs, ":truffle"]]},
   {name: ruby-test-mri} ${common} ${gate-caps} {run: [${jt} [test, mri]]},
   {name: ruby-test-integration} ${common} ${gate-caps} {run: [${jt} [test, integration]]},
-  {name: ruby-test-cexts} ${common} ${daily-gate-caps} ${test-cexts},
+  {name: ruby-test-cexts} ${common} ${gate-caps} ${test-cexts},
   {name: ruby-test-gems} ${common} ${gate-caps} ${test-gems},
   {name: ruby-test-bundle} ${common} ${gate-caps} {run: [${jt} [test, bundle]]},
   {name: ruby-test-ecosystem} ${common} ${gate-caps} ${test-ecosystem},
