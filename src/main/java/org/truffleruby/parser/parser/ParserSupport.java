@@ -143,9 +143,6 @@ import static org.truffleruby.parser.lexer.RubyLexer.ASCII8BIT_ENCODING;
 import static org.truffleruby.parser.lexer.RubyLexer.USASCII_ENCODING;
 import static org.truffleruby.parser.lexer.RubyLexer.UTF8_ENCODING;
 
-/** 
- *
- */
 public class ParserSupport {
     // Parser states:
     protected StaticScope currentScope;
@@ -261,11 +258,6 @@ public class ParserSupport {
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
     public AssignableParseNode assignableLabelOrIdentifier(String name, ParseNode value) {
         return currentScope.assign(lexer.getPosition(), name.intern(), makeNullNil(value));
-    }
-
-    // Only calls via f_kw so we know it has to be tLABEL
-    public AssignableParseNode assignableLabel(String name, ParseNode value) {
-        return currentScope.assign(lexer.getPosition(), name, makeNullNil(value));
     }
 
     protected void getterIdentifierError(SourceIndexLength position, String identifier) {
@@ -527,20 +519,6 @@ public class ParserSupport {
         }
 
         return true;
-    }
-
-    /**
-     * Is this a literal in the sense that MRI has a NODE_LIT for.  This is different than
-     * ILiteralNode.  We should pick a different name since ILiteralNode is something we created
-     * which is similiar but used for a slightly different condition (can I do singleton things).
-     *
-     * @param node to be tested
-     * @return true if it is a literal
-     */
-    public boolean isLiteral(ParseNode node) {
-        return node != null && (node instanceof FixnumParseNode || node instanceof BignumParseNode ||
-                node instanceof FloatParseNode || node instanceof SymbolParseNode ||
-                (node instanceof RegexpParseNode && ((RegexpParseNode) node).getOptions().toJoniOptions() == 0));
     }
 
     private void handleUselessWarn(ParseNode node, String useless) {
@@ -1084,7 +1062,7 @@ public class ParserSupport {
                 new DSymbolParseNode(position, (DStrParseNode) value);
     }
 
-    public ParseNode literal_concat(SourceIndexLength position, ParseNode head, ParseNode tail) {
+    public ParseNode literal_concat(ParseNode head, ParseNode tail) {
         if (head == null) return tail;
         if (tail == null) return head;
 
