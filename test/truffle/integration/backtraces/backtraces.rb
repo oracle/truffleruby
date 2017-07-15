@@ -8,37 +8,39 @@
 
 def check(file)
   expected = nil
-  
+
   File.open('test/truffle/integration/backtraces/' + file) do |f|
     expected = f.each_line.map(&:strip)
   end
-  
+
   begin
     yield
   rescue Exception => exception
     actual = exception.backtrace
   end
-  
+
   while actual.size < expected.size
     actual.push '(missing)'
   end
-  
+
   while expected.size < actual.size
     expected.push '(missing)'
   end
-  
+
   success = true
-  
+
   print = []
   expected.zip(actual).each do |e, a|
+    a = a.sub(/^.*test\/truffle\/integration\/backtraces/, "")
     unless a.end_with?(e)
-      print << "E #{a} Expected: #{e}"
+      print << "Actual:   #{a}"
+      print << "Expected: #{e}"
       success = false
     else
       print << ". #{a}"
     end
   end
-  
+
   unless success
     puts print.join("\n")
     exit 1
