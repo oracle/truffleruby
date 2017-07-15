@@ -36,7 +36,6 @@ public class ArgumentDescriptor {
     /** The name of the argument */
     public final String name;
 
-    public static final ArgumentDescriptor[] EMPTY_ARRAY = new ArgumentDescriptor[0];
     public static final ArgumentDescriptor[] ANON_REST = {new ArgumentDescriptor(ArgumentType.anonrest)};
 
     public ArgumentDescriptor(ArgumentType type, String name) {
@@ -50,15 +49,6 @@ public class ArgumentDescriptor {
 
     public ArgumentDescriptor(ArgumentType type) {
         this(type, null);
-    }
-
-    /**
-     * Generate the prefixed version of this descriptor.
-     *
-     * See org.jruby.internal.runtime.methods.MethodArgs2
-     */
-    public String toPrefixForm() {
-        return type.renderPrefixForm(name);
     }
 
 }
