@@ -313,7 +313,7 @@ public class ParserSupport {
             topOfAST = newTopOfAST;
         }
 
-        return new RootParseNode(position, result.getScope(), topOfAST, lexer.getFile(), endPosition, false);
+        return new RootParseNode(position, result.getScope(), topOfAST, lexer.getFile(), endPosition);
     }
 
     /* MRI: block_append */
