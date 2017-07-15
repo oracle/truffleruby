@@ -260,28 +260,6 @@ public class StaticScope {
         return assign(position, name, value, this, 0);
     }
 
-    /**
-     * Get all visible variables that we can see from this scope that have been assigned
-     * (e.g. seen so far)
-     *
-     * @return a list of all names (sans $~ and $_ which are special names)
-     */
-    public String[] getAllNamesInScope() {
-        String[] names = getVariables();
-        if (isBlockOrEval) {
-            String[] ourVariables = names;
-            String[] variables = enclosingScope.getAllNamesInScope();
-
-            // we know variables cannot be null since this IRStaticScope always returns a non-null array
-            names = new String[variables.length + ourVariables.length];
-
-            System.arraycopy(variables, 0, names, 0, variables.length);
-            System.arraycopy(ourVariables, 0, names, variables.length, ourVariables.length);
-        }
-
-        return names;
-    }
-
     public int isDefined(String name, int depth) {
         if (isBlockOrEval) {
             int slot = exists(name);
