@@ -331,17 +331,21 @@ module Enumerable
     results
   end
 
-  def each_with_index(*args)
+  def each_with_index(*args, &block)
     return to_enum(:each_with_index, *args) { enumerator_size } unless block_given?
 
-    idx = 0
-    each(*args) do
-      o = Truffle.single_block_arg
-      yield o, idx
-      idx += 1
-    end
+    if Array === self
+      Truffle.invoke_primitive(:array_each_with_index, self, block)
+    else
+      idx = 0
+      each(*args) do
+        o = Truffle.single_block_arg
+        yield o, idx
+        idx += 1
+      end
 
-    self
+      self
+    end
   end
 
   def grep(pattern, &block)
