@@ -39,7 +39,7 @@ package org.truffleruby.parser.ast;
  *  the callable node during construction.
  */
 public interface BlockAcceptingParseNode {
-    public ParseNode getIterNode();
+    ParseNode getIterNode();
 
-    public ParseNode setIterNode(ParseNode iterNode);
+    ParseNode setIterNode(ParseNode iterNode);
 }
