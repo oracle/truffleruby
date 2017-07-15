@@ -30,7 +30,6 @@
 package org.truffleruby.parser.parser;
 
 public interface Tokens {
-    int yyErrorCode = RubyParser.yyErrorCode;
     int kCLASS      = RubyParser.kCLASS;
     int kMODULE     = RubyParser.kMODULE;
     int kDEF        = RubyParser.kDEF;
@@ -167,7 +166,4 @@ public interface Tokens {
     int tANDDOT = RubyParser.tANDDOT;
 
     int tJAVASCRIPT = RubyParser.tJAVASCRIPT;
-    
-    String[] operators = {"+@", "-@", "**", "<=>", "==", "===", "!=", ">=", "<=", "&&",
-                          "||", "=~", "!~", "..", "...", "[]", "[]=", "<<", ">>", "::"};
 }
