@@ -234,7 +234,7 @@ public class ParserSupport {
         case LOCALASGNNODE:
             String name = ((INameNode) node).getName();
             if (name.equals(lexer.getCurrentArg())) {
-                warn(RubyWarnings.ID.AMBIGUOUS_ARGUMENT, node.getPosition(), "circular argument reference - " + name);
+                warn(node.getPosition(), "circular argument reference - " + name);
             }
             return currentScope.declare(node.getPosition(), name);
         case CONSTDECLNODE: // CONSTANT
@@ -254,7 +254,7 @@ public class ParserSupport {
 
     public ParseNode declareIdentifier(String name) {
         if (name.equals(lexer.getCurrentArg())) {
-            warn(RubyWarnings.ID.AMBIGUOUS_ARGUMENT, lexer.getPosition(), "circular argument reference - " + name);
+            warn(lexer.getPosition(), "circular argument reference - " + name);
         }
         return currentScope.declare(lexer.tokline, name);
     }
@@ -327,7 +327,7 @@ public class ParserSupport {
         }
 
         if (warnings.isVerbose() && isBreakStatement(((ListParseNode) head).getLast())) {
-            warnings.warning(RubyWarnings.ID.STATEMENT_NOT_REACHED, file, tail.getPosition().toSourceSection(lexer.getSource()).getStartLine(), "statement not reached");
+            warnings.warning(file, tail.getPosition().toSourceSection(lexer.getSource()).getStartLine(), "statement not reached");
         }
 
         // Assumption: tail is never a list node
@@ -494,15 +494,15 @@ public class ParserSupport {
         } while (true);
     }
 
-    public void warnUnlessEOption(RubyWarnings.ID id, ParseNode node, String message) {
+    public void warnUnlessEOption(ParseNode node, String message) {
         if (!configuration.isInlineSource()) {
-            warnings.warn(id, file, node.getPosition().toSourceSection(lexer.getSource()).getStartLine(), message);
+            warnings.warn(file, node.getPosition().toSourceSection(lexer.getSource()).getStartLine(), message);
         }
     }
 
-    public void warningUnlessEOption(RubyWarnings.ID id, ParseNode node, String message) {
+    public void warningUnlessEOption(ParseNode node, String message) {
         if (warnings.isVerbose() && !configuration.isInlineSource()) {
-            warnings.warning(id, file, node.getPosition().toSourceSection(lexer.getSource()).getStartLine(), message);
+            warnings.warning(file, node.getPosition().toSourceSection(lexer.getSource()).getStartLine(), message);
         }
     }
 
@@ -554,7 +554,7 @@ public class ParserSupport {
     }
 
     private void handleUselessWarn(ParseNode node, String useless) {
-        warnings.warn(RubyWarnings.ID.USELESS_EXPRESSION, file, node.getPosition().toSourceSection(lexer.getSource()).getStartLine(), "Useless use of " + useless + " in void context.");
+        warnings.warn(file, node.getPosition().toSourceSection(lexer.getSource()).getStartLine(), "Useless use of " + useless + " in void context.");
     }
 
     /**
@@ -671,7 +671,7 @@ public class ParserSupport {
         } else if (node instanceof LocalAsgnParseNode || node instanceof DAsgnParseNode || node instanceof GlobalAsgnParseNode || node instanceof InstAsgnParseNode) {
             ParseNode valueNode = ((AssignableParseNode) node).getValueNode();
             if (isStaticContent(valueNode)) {
-                warnings.warn(RubyWarnings.ID.ASSIGNMENT_IN_CONDITIONAL, file, node.getPosition().toSourceSection(lexer.getSource()).getStartLine(), "found = in conditional, should be ==");
+                warnings.warn(file, node.getPosition().toSourceSection(lexer.getSource()).getStartLine(), "found = in conditional, should be ==");
             }
             return true;
         }
@@ -745,7 +745,7 @@ public class ParserSupport {
                     dotNode.isExclusive(), slot);
         }
         case REGEXPNODE:
-            warningUnlessEOption(RubyWarnings.ID.REGEXP_LITERAL_IN_CONDITION, node, "regex literal in condition");
+            warningUnlessEOption(node, "regex literal in condition");
             return new MatchParseNode(node.getPosition(), node);
         }
 
@@ -767,7 +767,7 @@ public class ParserSupport {
         node = getConditionNode(node);
 
         if (node instanceof FixnumParseNode) {
-            warnUnlessEOption(RubyWarnings.ID.LITERAL_IN_CONDITIONAL_RANGE, node, "integer literal in conditional range");
+            warnUnlessEOption(node, "integer literal in conditional range");
             return getOperatorCallNode(node, "==", new GlobalVarParseNode(node.getPosition(), "$."));
         }
 
@@ -1262,7 +1262,7 @@ public class ParserSupport {
             if (key == null) continue;
             int index = encounteredKeys.indexOf(key);
             if (index >= 0) {
-                warn(RubyWarnings.ID.AMBIGUOUS_ARGUMENT, hash.getPosition(), "key " + key +
+                warn(hash.getPosition(), "key " + key +
                         " is duplicated and overwritten on line " + (encounteredKeys.get(index).getPosition().toSourceSection(lexer.getSource()).getStartLine()));
             } else {
                 encounteredKeys.add(key);
@@ -1306,12 +1306,12 @@ public class ParserSupport {
         }
     }
 
-    public void warn(RubyWarnings.ID id, SourceIndexLength position, String message, Object... data) {
-        warnings.warn(id, file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
+    public void warn(SourceIndexLength position, String message) {
+        warnings.warn(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
     }
 
-    public void warning(RubyWarnings.ID id, SourceIndexLength position, String message, Object... data) {
-        if (warnings.isVerbose()) warnings.warning(id, file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
+    public void warning(SourceIndexLength position, String message) {
+        if (warnings.isVerbose()) warnings.warning(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
     }
 
     // ENEBO: Totally weird naming (in MRI is not allocated and is a local var name) [1.9]
@@ -1372,7 +1372,7 @@ public class ParserSupport {
             if (warnings.isVerbose() && current.isDefined(name) >= 0 &&
                     !skipTruffleRubiniusWarnings(lexer)) {
 
-                warnings.warning(RubyWarnings.ID.STATEMENT_NOT_REACHED, file, lexer.getPosition().toSourceSection(lexer.getSource()).getStartLine(),
+                warnings.warning(file, lexer.getPosition().toSourceSection(lexer.getSource()).getStartLine(),
                         "shadowing outer local variable - " + name);
             }
         } else if (current.exists(name) >= 0) {
@@ -1449,7 +1449,7 @@ public class ParserSupport {
                 if (slot >= 0) {
                     // If verbose and the variable is not just another named capture, warn
                     if (warnings.isVerbose() && !scope.isNamedCapture(slot)) {
-                        warn(RubyWarnings.ID.AMBIGUOUS_ARGUMENT, getPosition(regexpNode), "named capture conflicts a local variable - " + names[i]);
+                        warn(getPosition(regexpNode), "named capture conflicts a local variable - " + names[i]);
                     }
                     locals.add(slot);
                 } else {

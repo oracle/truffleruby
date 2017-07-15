@@ -34,86 +34,9 @@ import org.joni.WarnCallback;
 import org.truffleruby.RubyContext;
 import org.truffleruby.debug.DebugHelpers;
 
-import java.util.EnumSet;
-import java.util.Set;
-
-/**
- *
- */
 public class RubyWarnings implements WarnCallback {
 
-    public enum ID {
-        AMBIGUOUS_ARGUMENT,
-        ACCESSOR_NOT_INITIALIZED,
-        ACCESSOR_MODULE_FUNCTION,
-        ARGUMENT_AS_PREFIX,
-        ARGUMENT_EXTRA_SPACE,
-        ASSIGNMENT_IN_CONDITIONAL,
-        BIGNUM_FROM_FLOAT_RANGE,
-        BLOCK_BEATS_DEFAULT_VALUE,
-        BLOCK_NOT_ACCEPTED,
-        BLOCK_UNUSED,
-        CONSTANT_ALREADY_INITIALIZED,
-        CONSTANT_DEPRECATED,
-        CONSTANT_BAD_REFERENCE,
-        CVAR_FROM_TOPLEVEL_SINGLETON_METHOD,
-        DECLARING_SCLASS_VARIABLE,
-        DEPRECATED_METHOD,
-        DUMMY_VALUE_USED,
-        END_IN_METHOD,
-        ELSE_WITHOUT_RESCUE,
-        EMPTY_IMPLEMENTATION,
-        ENV_VARS_FROM_CLI_METHOD,
-        FIXNUMS_NOT_SYMBOLS,
-        FLOAT_OUT_OF_RANGE,
-        GLOBAL_NOT_INITIALIZED,
-        GROUPED_EXPRESSION,
-        INEFFECTIVE_GLOBAL,
-        INVALID_CHAR_SEQUENCE,
-        IVAR_NOT_INITIALIZED,
-        MAY_BE_TOO_BIG,
-        MISCELLANEOUS,
-        MULTIPLE_VALUES_FOR_BLOCK,
-        NEGATIVE_NUMBER_FOR_U,
-        NO_SUPER_CLASS,
-        NOT_IMPLEMENTED,
-        OBSOLETE_ARGUMENT,
-        PARENTHISE_ARGUMENTS,
-        PROXY_EXTENDED_LATE,
-        STATEMENT_NOT_REACHED,
-        LITERAL_IN_CONDITIONAL_RANGE,
-        REDEFINING_DANGEROUS,
-        REGEXP_IGNORED_FLAGS,
-        REGEXP_LITERAL_IN_CONDITION,
-        REGEXP_MATCH_AGAINST_STRING,
-        SAFE_NOT_SUPPORTED,
-        STRUCT_CONSTANT_REDEFINED,
-        SYMBOL_AS_INTEGER,
-        SYSSEEK_BUFFERED_IO,
-        SYSWRITE_BUFFERED_IO,
-        SWALLOWED_IO_EXCEPTION,
-        TOO_MANY_ARGUMENTS,
-        UNDEFINING_BAD,
-        USELESS_EXPRESSION,
-        VOID_VALUE_EXPRESSION,
-        NAMED_CAPTURE_CONFLICT,
-        NON_PERSISTENT_JAVA_PROXY,
-        LISTEN_SERVER_SOCKET,
-        PROFILE_MAX_METHODS_EXCEEDED,
-        UNSUPPORTED_SUBPROCESS_OPTION,
-        GC_STRESS_UNIMPLEMENTED,
-        GC_ENABLE_UNIMPLEMENTED,
-        GC_DISABLE_UNIMPLEMENTED,
-        TRUFFLE,
-        RATIONAL_OUT_OF_RANGE,; // TODO(CS): divide up the Truffle warnings
-
-        public String getID() {
-            return name();
-        }
-    }
-
     private final RubyContext runtime;
-    private final Set<ID> oncelers = EnumSet.allOf(ID.class);
 
     public RubyWarnings(RubyContext runtime) {
         this.runtime = runtime;
@@ -129,14 +52,14 @@ public class RubyWarnings implements WarnCallback {
 
     @Override
     public void warn(String message) {
-        warn(ID.MISCELLANEOUS, message);
+        warn(null, message);
     }
 
     /**
      * Prints a warning, unless $VERBOSE is nil.
      */
     @SuppressWarnings("deprecation")
-    public void warn(ID id, String fileName, int lineNumber, String message) {
+    public void warn(String fileName, int lineNumber, String message) {
         if (!warningsEnabled()) {
             return;
         }
@@ -147,12 +70,9 @@ public class RubyWarnings implements WarnCallback {
         buffer.append("warning: ").append(message).append('\n');
         DebugHelpers.eval(runtime, "$stderr.write Truffle::Interop.from_java_string(message)", "message", buffer.toString());
     }
-
-    /**
-     * Prints a warning, unless $VERBOSE is nil.
-     */
+    
     @SuppressWarnings("deprecation")
-    public void warn(ID id, String fileName, String message) {
+    public void warn(String fileName, String message) {
         if (!warningsEnabled()) {
             return;
         }
@@ -170,43 +90,15 @@ public class RubyWarnings implements WarnCallback {
                 buffer.toString());
     }
 
-    public void warn(ID id, String message) {
-        warn(id, null, message);
-    }
-
-    public void warnOnce(ID id, String message) {
-        if (!warningsEnabled()) {
-            return;
-        }
-        if (oncelers.contains(id)) {
-            return;
-        }
-
-        oncelers.add(id);
-        warn(id, message);
-    }
-
-    /**
-     * Verbose mode warning methods, their contract is that consumer must explicitly check for runtime.isVerbose()
-     * before calling them
-     */
-    public void warning(String message) {
-        if (!isVerbose()) {
-            return;
-        }
-
-        throw new UnsupportedOperationException();
-    }
-
     /**
      * Prints a warning, only in verbose mode.
      */
-    public void warning(ID id, String fileName, int lineNumber, String message) {
+    public void warning(String fileName, int lineNumber, String message) {
         if (!isVerbose()) {
             return;
         }
 
-        warn(id, fileName, lineNumber, message);
+        warn(fileName, lineNumber, message);
     }
 
 }
