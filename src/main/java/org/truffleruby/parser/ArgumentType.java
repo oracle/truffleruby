@@ -26,9 +26,6 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser;
 
-/**
- * Created by headius on 5/8/15.
- */
 public enum ArgumentType {
 
     key("key", 'k', false),
@@ -43,11 +40,7 @@ public enum ArgumentType {
     anonrest("rest", 'R', true),
     anonkeyrest("keyrest", 'N', true);
 
-    public static final String ANONOPT = Character.toString( anonopt.prefix );
-    public static final String ANONREST = Character.toString( anonrest.prefix );
-    public static final String REQ = Character.toString( req.prefix );
-
-    private ArgumentType(String symbolicName, char prefix, boolean anonymous) {
+    ArgumentType(String symbolicName, char prefix, boolean anonymous) {
         this.symbolicName = symbolicName;
         this.prefix = prefix;
         this.anonymous = anonymous;
@@ -72,16 +65,6 @@ public enum ArgumentType {
 
     public String renderPrefixForm(String name) {
         return anonymous ? String.valueOf(prefix) : prefix + name;
-    }
-
-    public ArgumentType anonymousForm() {
-        switch (this) {
-            case opt: return anonopt;
-            case req: return anonreq;
-            case rest: return anonrest;
-            case keyrest: return anonkeyrest;
-        }
-        return this;
     }
 
     public final String symbolicName;
