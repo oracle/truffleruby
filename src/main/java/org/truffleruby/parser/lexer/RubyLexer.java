@@ -167,8 +167,8 @@ public class RubyLexer {
     }
 
     protected void ambiguousOperator(String op, String syn) {
-        warnings.warn(RubyWarnings.ID.AMBIGUOUS_ARGUMENT, getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`" + op + "' after local variable or literal is interpreted as binary operator");
-        warnings.warn(RubyWarnings.ID.AMBIGUOUS_ARGUMENT, getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "even though it seems like " + syn);
+        warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`" + op + "' after local variable or literal is interpreted as binary operator");
+        warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "even though it seems like " + syn);
     }
 
     public Source getSource() {
@@ -321,7 +321,7 @@ public class RubyLexer {
                 c = '\n';
             } else if (ruby_sourceline > last_cr_line) {
                 last_cr_line = ruby_sourceline;
-                warnings.warn(RubyWarnings.ID.VOID_VALUE_EXPRESSION, getFile(), ruby_sourceline, "encountered \\r in middle of line, treated as a mere space");
+                warnings.warn(getFile(), ruby_sourceline, "encountered \\r in middle of line, treated as a mere space");
                 c = ' ';
             }
         }
@@ -431,7 +431,7 @@ public class RubyLexer {
 
     protected void setCompileOptionFlag(String name, Rope value) {
         if (tokenSeen) {
-            warnings.warn(RubyWarnings.ID.ACCESSOR_MODULE_FUNCTION, getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`" + name + "' is ignored after any tokens");
+            warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`" + name + "' is ignored after any tokens");
             return;
         }
 
@@ -453,7 +453,7 @@ public class RubyLexer {
         result = RopeOperations.caseInsensitiveCmp(value, FALSE);
         if (result == 0) return 0;
 
-        warnings.warn(RubyWarnings.ID.ACCESSOR_MODULE_FUNCTION, "invalid value for " + name + ": " + value);
+        warnings.warn("invalid value for " + name + ": " + value);
         return -1;
     }
 
@@ -511,7 +511,7 @@ public class RubyLexer {
         try {
             d = SafeDoubleParser.parseDouble(number);
         } catch (NumberFormatException e) {
-            warnings.warn(RubyWarnings.ID.FLOAT_OUT_OF_RANGE, getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "Float " + number + " out of range.");
+            warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "Float " + number + " out of range.");
 
             d = number.startsWith("-") ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
         }
@@ -744,7 +744,7 @@ public class RubyLexer {
 
     private boolean arg_ambiguous() {
         if (warnings.isVerbose() && !parserSupport.skipTruffleRubiniusWarnings(this)) {
-            warnings.warning(RubyWarnings.ID.AMBIGUOUS_ARGUMENT, getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "Ambiguous first argument; make sure.");
+            warnings.warning(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "Ambiguous first argument; make sure.");
         }
         return true;
     }
@@ -1041,7 +1041,7 @@ public class RubyLexer {
         SourceIndexLength tmpPosition = getPosition();
         if (isSpaceArg(c, spaceSeen)) {
             if (warnings.isVerbose())
-                warnings.warning(RubyWarnings.ID.ARGUMENT_AS_PREFIX, getFile(), tmpPosition.toSourceSection(src.getSource()).getStartLine(), "`&' interpreted as argument prefix");
+                warnings.warning(getFile(), tmpPosition.toSourceSection(src.getSource()).getStartLine(), "`&' interpreted as argument prefix");
             c = Tokens.tAMPER;
         } else if (isBEG()) {
             c = Tokens.tAMPER;
@@ -1337,7 +1337,7 @@ public class RubyLexer {
             try {
                 ref = Integer.parseInt(refAsString.substring(1).intern());
             } catch (NumberFormatException e) {
-                warnings.warn(RubyWarnings.ID.AMBIGUOUS_ARGUMENT, "`" + refAsString + "' is too big for a number variable, always nil");
+                warnings.warn("`" + refAsString + "' is too big for a number variable, always nil");
                 ref = 0;
             }
 
@@ -1890,7 +1890,7 @@ public class RubyLexer {
                     break;
                 }
                 if (c2 != 0) {
-                    warnings.warn(RubyWarnings.ID.INVALID_CHAR_SEQUENCE, getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "invalid character syntax; use ?\\" + c2);
+                    warnings.warn(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "invalid character syntax; use ?\\" + c2);
                 }
             }
             pushback(c);
@@ -2020,7 +2020,7 @@ public class RubyLexer {
 
             if (isSpaceArg(c, spaceSeen)) {
                 if (warnings.isVerbose())
-                    warnings.warning(RubyWarnings.ID.ARGUMENT_AS_PREFIX, getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`**' interpreted as argument prefix");
+                    warnings.warning(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`**' interpreted as argument prefix");
                 c = Tokens.tDSTAR;
             } else if (isBEG()) {
                 c = Tokens.tDSTAR;
@@ -2037,7 +2037,7 @@ public class RubyLexer {
             pushback(c);
             if (isSpaceArg(c, spaceSeen)) {
                 if (warnings.isVerbose() && !parserSupport.skipTruffleRubiniusWarnings(this))
-                    warnings.warning(RubyWarnings.ID.ARGUMENT_AS_PREFIX, getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`*' interpreted as argument prefix");
+                    warnings.warning(getFile(), getPosition().toSourceSection(src.getSource()).getStartLine(), "`*' interpreted as argument prefix");
                 c = Tokens.tSTAR;
             } else if (isBEG()) {
                 c = Tokens.tSTAR;

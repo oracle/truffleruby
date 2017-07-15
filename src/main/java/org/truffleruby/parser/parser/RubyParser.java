@@ -1093,7 +1093,7 @@ states[11] = new ParserState() {
                   if (((RescueBodyParseNode)yyVals[-2+yyTop]) != null) {
                       node = new RescueParseNode(support.getPosition(((ParseNode)yyVals[-3+yyTop])), ((ParseNode)yyVals[-3+yyTop]), ((RescueBodyParseNode)yyVals[-2+yyTop]), ((ParseNode)yyVals[-1+yyTop]));
                   } else if (((ParseNode)yyVals[-1+yyTop]) != null) {
-                      support.warn(RubyWarnings.ID.ELSE_WITHOUT_RESCUE, support.getPosition(((ParseNode)yyVals[-3+yyTop])), "else without rescue is useless");
+                      support.warn(support.getPosition(((ParseNode)yyVals[-3+yyTop])), "else without rescue is useless");
                       node = support.appendToBlock(((ParseNode)yyVals[-3+yyTop]), ((ParseNode)yyVals[-1+yyTop]));
                   }
                   if (((ParseNode)yyVals[0+yyTop]) != null) {
@@ -1230,7 +1230,7 @@ states[30] = new ParserState() {
 states[31] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
                     if (support.isInDef() || support.isInSingle()) {
-                        support.warn(RubyWarnings.ID.END_IN_METHOD, ((SourceIndexLength)yyVals[-3+yyTop]), "END in method; use at_exit");
+                        support.warn(((SourceIndexLength)yyVals[-3+yyTop]), "END in method; use at_exit");
                     }
                     yyVal = new PostExeParseNode(((SourceIndexLength)yyVals[-3+yyTop]), ((ParseNode)yyVals[-1+yyTop]));
     return yyVal;
