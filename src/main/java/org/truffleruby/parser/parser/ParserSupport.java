@@ -97,7 +97,6 @@ import org.truffleruby.parser.ast.KeywordArgParseNode;
 import org.truffleruby.parser.ast.KeywordRestArgParseNode;
 import org.truffleruby.parser.ast.ListParseNode;
 import org.truffleruby.parser.ast.LocalAsgnParseNode;
-import org.truffleruby.parser.ast.Match2CaptureParseNode;
 import org.truffleruby.parser.ast.Match2ParseNode;
 import org.truffleruby.parser.ast.Match3ParseNode;
 import org.truffleruby.parser.ast.MatchParseNode;
@@ -367,17 +366,8 @@ public class ParserSupport {
         if (firstNode instanceof DRegexpParseNode) {
             return new Match2ParseNode(firstNode.getPosition(), firstNode, secondNode);
         } else if (firstNode instanceof RegexpParseNode) {
-            List<Integer> locals = allocateNamedLocals((RegexpParseNode) firstNode);
-
-            if (locals.size() > 0) {
-                int[] primitiveLocals = new int[locals.size()];
-                for (int i = 0; i < primitiveLocals.length; i++) {
-                    primitiveLocals[i] = locals.get(i);
-                }
-                return new Match2CaptureParseNode(firstNode.getPosition(), firstNode, secondNode, primitiveLocals);
-            } else {
-                return new Match2ParseNode(firstNode.getPosition(), firstNode, secondNode);
-            }
+            allocateNamedLocals((RegexpParseNode) firstNode);
+            return new Match2ParseNode(firstNode.getPosition(), firstNode, secondNode);
         } else if (secondNode instanceof DRegexpParseNode || secondNode instanceof RegexpParseNode) {
             return new Match3ParseNode(firstNode.getPosition(), firstNode, secondNode);
         }
@@ -1434,12 +1424,11 @@ public class ParserSupport {
         return value;
     }        // 1.9 mode overrides to do extra checking...
 
-    private List<Integer> allocateNamedLocals(RegexpParseNode regexpNode) {
+    private void allocateNamedLocals(RegexpParseNode regexpNode) {
         ClassicRegexp pattern = ClassicRegexp.newRegexp(configuration.getContext(), regexpNode.getValue(), regexpNode.getOptions());
         pattern.setLiteral();
         String[] names = pattern.getNames();
         int length = names.length;
-        List<Integer> locals = new ArrayList<>();
         StaticScope scope = getCurrentScope();
 
         for (int i = 0; i < length; i++) {
@@ -1451,14 +1440,11 @@ public class ParserSupport {
                     if (warnings.isVerbose() && !scope.isNamedCapture(slot)) {
                         warn(getPosition(regexpNode), "named capture conflicts a local variable - " + names[i]);
                     }
-                    locals.add(slot);
                 } else {
-                    locals.add(getCurrentScope().addNamedCaptureVariable(names[i]));
+                    getCurrentScope().addNamedCaptureVariable(names[i]);
                 }
             }
         }
-
-        return locals;
     }
 
     private boolean is7BitASCII(Rope value) {
