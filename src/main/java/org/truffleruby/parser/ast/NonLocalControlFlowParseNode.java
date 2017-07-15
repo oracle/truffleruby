@@ -9,6 +9,5 @@ package org.truffleruby.parser.ast;
  * Marker interface for return, break, next, redo, retry
  */
 public interface NonLocalControlFlowParseNode {
-    public ParseNode getValueNode();
-    public boolean hasValue();
+    ParseNode getValueNode();
 }

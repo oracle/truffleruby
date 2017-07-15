@@ -53,10 +53,6 @@ public class RedoParseNode extends ParseNode implements NonLocalControlFlowParse
         return null; // Needed for non local control flow node marker
     }
 
-    public boolean hasValue() {
-        return false; // Redo never allows a value
-    }
-
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
