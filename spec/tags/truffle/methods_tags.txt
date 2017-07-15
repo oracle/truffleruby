@@ -7,3 +7,4 @@ slow:Public methods on Kernel are the same as on MRI
 slow:Public methods on Integer are the same as on MRI
 slow:Public methods on Fixnum are the same as on MRI
 slow:Public methods on Bignum are the same as on MRI
+slow:Public methods on Array are the same as on MRI
