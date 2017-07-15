@@ -1697,11 +1697,11 @@ module Truffle::CExt
 
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
     unblocker = proc {
-      execute_with_mutex unblock, data2
+      Truffle::Interop.execute(unblock, data2)
     }
 
     runner = proc {
-      execute_with_mutex function, data1
+      Truffle::Interop.execute(function, data1)
     }
 
     Thread.current.unblock unblocker, runner
