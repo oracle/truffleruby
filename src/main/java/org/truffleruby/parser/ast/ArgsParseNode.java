@@ -61,7 +61,6 @@ public class ArgsParseNode extends ParseNode {
     protected final ArgumentParseNode restArgNode;
     private final KeywordRestArgParseNode keyRest;
     private final BlockArgParseNode blockArgNode;
-    private ListParseNode blockLocalVariables = null;
 
     private static final ParseNode[] NO_ARGS = new ParseNode[] {};
     /**
@@ -159,20 +158,12 @@ public class ArgsParseNode extends ParseNode {
         return new ListParseNode(getPosition()).addAll(args, 0, getPreCount());
     }
 
-    public int getRequiredArgsCount() {
-        return getPreCount() + getPostCount();
-    }
-
     public int getOptionalArgsCount() {
         return postIndex - optIndex;
     }
 
     public ListParseNode getPost() {
         return new ListParseNode(getPosition()).addAll(args, postIndex, getPostCount());
-    }
-
-    public int getMaxArgumentsCount() {
-        return hasRestArg() ? -1 : getRequiredArgsCount() + getOptionalArgsCount();
     }
 
     /**
@@ -267,11 +258,4 @@ public class ArgsParseNode extends ParseNode {
         return count;
     }
 
-    public ListParseNode getBlockLocalVariables() {
-        return blockLocalVariables;
-    }
-
-    public void setBlockLocalVariables(ListParseNode blockLocalVariables) {
-        this.blockLocalVariables = blockLocalVariables;
-    }
 }
