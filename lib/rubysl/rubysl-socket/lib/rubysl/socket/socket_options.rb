@@ -3,8 +3,8 @@ module RubySL
     module SocketOptions
       def self.socket_level(level, family = nil)
         if level.is_a?(Symbol) or level.is_a?(String)
-          if ::Socket.const_defined?(level)
-            ::Socket.const_get(level)
+          if ::Socket.const_defined?(level, false) # Truffle: added inherit false
+            ::Socket.const_get(level, false) # Truffle: added inherit false
           else
             if family and is_ip_family?(family)
               ip_level_to_int(level)
@@ -24,8 +24,8 @@ module RubySL
       def self.socket_option(level, optname)
         case optname
         when Symbol, String
-          if ::Socket.const_defined?(optname)
-            ::Socket.const_get(optname)
+          if ::Socket.const_defined?(optname, false) # Truffle: added inherit false
+            ::Socket.const_get(optname, false) # Truffle: added inherit false
           else
             case level
             when ::Socket::SOL_SOCKET
@@ -36,7 +36,7 @@ module RubySL
               constant("TCP", optname)
             when ::Socket::IPPROTO_UDP
               constant("UDP", optname)
-            when ::Socket.const_defined?(:IPPROTO_IPV6) && ::Socket::IPPROTO_IPV6
+            when ::Socket.const_defined?(:IPPROTO_IPV6, false) && ::Socket::IPPROTO_IPV6 # Truffle: added inherit false
               constant("IPV6", optname)
             else
               raise SocketError,
@@ -62,8 +62,8 @@ module RubySL
         prefixes.each do |prefix|
           const = "#{prefix}_#{level}"
 
-          if ::Socket.const_defined?(const)
-            return ::Socket.const_get(const)
+          if ::Socket.const_defined?(const, false) # Truffle: added inherit false
+            return ::Socket.const_get(const, false) # Truffle: added inherit false
           end
         end
 
@@ -73,8 +73,8 @@ module RubySL
       def self.constant(prefix, suffix)
         const = "#{prefix}_#{suffix}"
 
-        if ::Socket.const_defined?(const)
-          ::Socket.const_get(const)
+        if ::Socket.const_defined?(const, false) # Truffle: added inherit false
+          ::Socket.const_get(const, false) # Truffle: added inherit false
         else
           raise SocketError, "Undefined socket constant: #{const}"
         end
