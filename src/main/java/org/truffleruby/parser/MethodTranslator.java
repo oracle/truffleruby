@@ -374,11 +374,6 @@ public class MethodTranslator extends BodyTranslator {
     public RubyNode visitZSuperNode(ZSuperParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
 
-        if (environment.isBlock()) {
-            // We need the declaration frame to get the arguments to use
-            environment.setNeedsDeclarationFrame();
-        }
-
         currentCallMethodName = environment.getNamedMethodName();
 
         final RubyNode blockNode;
@@ -422,7 +417,6 @@ public class MethodTranslator extends BodyTranslator {
     @Override
     protected FlipFlopStateNode createFlipFlopState(SourceIndexLength sourceSection, int depth) {
         if (isBlock) {
-            environment.setNeedsDeclarationFrame();
             return parent.createFlipFlopState(sourceSection, depth + 1);
         } else {
             return super.createFlipFlopState(sourceSection, depth);

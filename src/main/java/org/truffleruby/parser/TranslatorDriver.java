@@ -55,7 +55,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
-import org.truffleruby.language.arguments.ProfileArgumentNode;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -318,7 +317,7 @@ public class TranslatorDriver {
                 null,
                 false);
             // TODO(CS): how do we know if the frame is a block or not?
-            return new TranslatorEnvironment(context, null, parseEnvironment,
+            return new TranslatorEnvironment(null, parseEnvironment,
                         parseEnvironment.allocateReturnID(), true, true, false, sharedMethodInfo, sharedMethodInfo.getName(), 0, null, frameDescriptor);
     }
 
@@ -337,7 +336,7 @@ public class TranslatorDriver {
                     false);
             final MaterializedFrame parent = RubyArguments.getDeclarationFrame(frame);
             // TODO(CS): how do we know if the frame is a block or not?
-            return new TranslatorEnvironment(context, environmentForFrame(context, parent), parseEnvironment,
+            return new TranslatorEnvironment(environmentForFrame(context, parent), parseEnvironment,
                             parseEnvironment.allocateReturnID(), true, true, false, sharedMethodInfo, sharedMethodInfo.getName(), 0, null, frame.getFrameDescriptor());
         }
     }

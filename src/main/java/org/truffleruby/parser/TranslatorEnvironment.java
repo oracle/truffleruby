@@ -28,8 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TranslatorEnvironment {
 
-    private final RubyContext context;
-
     private final ParseEnvironment parseEnvironment;
 
     private final FrameDescriptor frameDescriptor;
@@ -45,7 +43,6 @@ public class TranslatorEnvironment {
     private final boolean isModuleBody;
 
     protected final TranslatorEnvironment parent;
-    private boolean needsDeclarationFrame = false; // We keep the logic as we might do it differently one day.
     private final SharedMethodInfo sharedMethodInfo;
 
     private final String namedMethodName;
@@ -55,11 +52,10 @@ public class TranslatorEnvironment {
 
     public boolean hasRestParameter = false;
 
-    public TranslatorEnvironment(RubyContext context, TranslatorEnvironment parent, ParseEnvironment parseEnvironment,
-            ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
-            boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth,
-            BreakID breakID, FrameDescriptor frameDescriptor) {
-        this.context = context;
+    public TranslatorEnvironment(TranslatorEnvironment parent, ParseEnvironment parseEnvironment,
+                                 ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
+                                 boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth,
+                                 BreakID breakID, FrameDescriptor frameDescriptor) {
         this.parent = parent;
         this.frameDescriptor = frameDescriptor;
         this.parseEnvironment = parseEnvironment;
@@ -76,7 +72,7 @@ public class TranslatorEnvironment {
     public TranslatorEnvironment(RubyContext context, TranslatorEnvironment parent, ParseEnvironment parseEnvironment,
             ReturnID returnID, boolean ownScopeForAssignments, boolean neverAssignInParentScope,
             boolean isModuleBody, SharedMethodInfo sharedMethodInfo, String namedMethodName, int blockDepth, BreakID breakID) {
-        this(context, parent, parseEnvironment, returnID, ownScopeForAssignments, neverAssignInParentScope, isModuleBody, sharedMethodInfo, namedMethodName, blockDepth,
+        this(parent, parseEnvironment, returnID, ownScopeForAssignments, neverAssignInParentScope, isModuleBody, sharedMethodInfo, namedMethodName, blockDepth,
                 breakID, new FrameDescriptor(context.getCoreLibrary().getNil()));
     }
 
@@ -172,21 +168,12 @@ public class TranslatorEnvironment {
             if (current != null) {
                 current = this;
                 while (level-- > 0) {
-                    current.needsDeclarationFrame = true;
                     current = current.parent;
                 }
             }
         }
 
         return null;
-    }
-
-    public void setNeedsDeclarationFrame() {
-        needsDeclarationFrame = true;
-    }
-
-    public boolean needsDeclarationFrame() {
-        return needsDeclarationFrame;
     }
 
     public FrameDescriptor getFrameDescriptor() {
