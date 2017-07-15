@@ -30,5 +30,5 @@
 package org.truffleruby.parser.ast;
 
 public interface IScopingNode {
-    public Colon3ParseNode getCPath();
+    Colon3ParseNode getCPath();
 }
