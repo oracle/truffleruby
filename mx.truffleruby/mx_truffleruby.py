@@ -82,11 +82,19 @@ def build_truffleruby():
     mx.command_function('sversions')([])
     mx.command_function('build')([])
 
+def run_unittest(*args):
+    mx_unittest.unittest(['-Dpolyglot.ruby.home='+root, '--verbose', '--suite', 'truffleruby'] + list(args))
+
 def ruby_tck(args):
     for var in ['GEM_HOME', 'GEM_PATH', 'GEM_ROOT']:
         if var in os.environ:
             del os.environ[var]
-    mx_unittest.unittest(['-Dpolyglot.ruby.home='+root, '--verbose', '--suite', 'truffleruby'])
+    if args:
+        run_unittest(*args)
+    else:
+        # Run the TCK in isolation
+        run_unittest('--blacklist', 'mx.truffleruby/tck.blacklist')
+        run_unittest('RubyTckTest')
 
 def deploy_binary_if_master(args):
     """If the active branch is 'master', deploy binaries for the primary suite to remote maven repository."""
