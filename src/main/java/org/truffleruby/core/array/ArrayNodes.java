@@ -66,7 +66,6 @@ import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.MissingBehavior;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsFrozenNodeGen;
@@ -1092,7 +1091,7 @@ public abstract class ArrayNodes {
 
     }
 
-    @CoreMethod(names = { "inject", "reduce" }, needsBlock = true, optional = 2)
+    @Primitive(name = "array_inject")
     @ImportStatic(ArrayGuards.class)
     public abstract static class InjectNode extends YieldingCoreMethodNode {
 
@@ -1100,24 +1099,24 @@ public abstract class ArrayNodes {
 
         // With block
 
-        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initial)" })
+        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initial)", "block != nil()" })
         public Object injectEmptyArray(DynamicObject array, Object initial, NotProvided unused, DynamicObject block) {
             return initial;
         }
 
-        @Specialization(guards = "isEmptyArray(array)")
+        @Specialization(guards = { "isEmptyArray(array)", "block != nil()" })
         public Object injectEmptyArrayNoInitial(DynamicObject array, NotProvided initial, NotProvided unused, DynamicObject block) {
             return nil();
         }
 
-        @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)", "wasProvided(initial)" }, limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)", "wasProvided(initial)", "block != nil()" }, limit = "ARRAY_STRATEGIES")
         public Object injectWithInitial(DynamicObject array, Object initial, NotProvided unused, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final ArrayMirror store = strategy.newMirror(array);
             return injectBlockHelper(array, block, store, initial, 0);
         }
 
-        @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)", "block != nil()" }, limit = "ARRAY_STRATEGIES")
         public Object injectNoInitial(DynamicObject array, NotProvided initial, NotProvided unused, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final ArrayMirror store = strategy.newMirror(array);
@@ -1142,25 +1141,25 @@ public abstract class ArrayNodes {
 
         // With Symbol
 
-        @Specialization(guards = { "isRubySymbol(symbol)", "isEmptyArray(array)", "wasProvided(initial)" })
-        public Object injectSymbolEmptyArray(DynamicObject array, Object initial, DynamicObject symbol, NotProvided block) {
+        @Specialization(guards = { "isRubySymbol(symbol)", "isEmptyArray(array)", "wasProvided(initial)", "block == nil()" })
+        public Object injectSymbolEmptyArray(DynamicObject array, Object initial, DynamicObject symbol, DynamicObject block) {
             return initial;
         }
 
-        @Specialization(guards = { "isRubySymbol(symbol)", "isEmptyArray(array)" })
-        public Object injectSymbolEmptyArrayNoInitial(DynamicObject array, DynamicObject symbol, NotProvided unused, NotProvided block) {
+        @Specialization(guards = { "isRubySymbol(symbol)", "isEmptyArray(array)", "block == nil()" })
+        public Object injectSymbolEmptyArrayNoInitial(DynamicObject array, DynamicObject symbol, NotProvided unused, DynamicObject block) {
             return nil();
         }
 
-        @Specialization(guards = { "isRubySymbol(symbol)", "strategy.matches(array)", "!isEmptyArray(array)", "wasProvided(initial)" }, limit = "ARRAY_STRATEGIES")
-        public Object injectSymbolWithInitial(VirtualFrame frame, DynamicObject array, Object initial, DynamicObject symbol, NotProvided block,
+        @Specialization(guards = { "isRubySymbol(symbol)", "strategy.matches(array)", "!isEmptyArray(array)", "wasProvided(initial)", "block == nil()" }, limit = "ARRAY_STRATEGIES")
+        public Object injectSymbolWithInitial(VirtualFrame frame, DynamicObject array, Object initial, DynamicObject symbol, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final ArrayMirror store = strategy.newMirror(array);
             return injectSymbolHelper(frame, array, symbol, store, initial, 0);
         }
 
-        @Specialization(guards = { "isRubySymbol(symbol)", "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "ARRAY_STRATEGIES")
-        public Object injectSymbolNoInitial(VirtualFrame frame, DynamicObject array, DynamicObject symbol, NotProvided unused, NotProvided block,
+        @Specialization(guards = { "isRubySymbol(symbol)", "strategy.matches(array)", "!isEmptyArray(array)", "block == nil()" }, limit = "ARRAY_STRATEGIES")
+        public Object injectSymbolNoInitial(VirtualFrame frame, DynamicObject array, DynamicObject symbol, NotProvided unused, DynamicObject block,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final ArrayMirror store = strategy.newMirror(array);
             return injectSymbolHelper(frame, array, symbol, store, store.get(0), 1);
