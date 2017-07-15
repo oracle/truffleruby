@@ -431,7 +431,11 @@ module Enumerable
     sort_values.map! { |ary| ary.value }
   end
 
-  def inject(initial=undefined, sym=undefined)
+  def inject(initial=undefined, sym=undefined, &block)
+    if Array === self
+      return Truffle.invoke_primitive(:array_inject, self, initial, sym, block)
+    end
+
     if !block_given? or !undefined.equal?(sym)
       if undefined.equal?(sym)
         sym = initial
