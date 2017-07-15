@@ -8,8 +8,8 @@
 
 require_relative '../ruby/spec_helper'
 
-# Run
-# jt test spec/truffle/methods_specs.rb -t ruby
+# Switch to MRI 2.3.3 and run:
+# $ jt test spec/truffle/methods_spec.rb -t ruby
 # to regenerate the files under methods/.
 
 # Only set to true for faster development if this spec is run alone
