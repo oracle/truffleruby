@@ -656,6 +656,8 @@ module Marshal
       obj
     end
 
+    ARRAY_APPEND = Array.instance_method(:<<)
+
     def construct_array
       obj = []
       store_unique_object obj
@@ -671,7 +673,7 @@ module Marshal
       end
 
       construct_integer.times do |_i|
-        obj.__append__ construct
+        ARRAY_APPEND.bind(obj).call(construct)
       end
 
       obj
