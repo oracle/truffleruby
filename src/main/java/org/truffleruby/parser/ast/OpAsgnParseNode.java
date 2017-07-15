@@ -36,15 +36,11 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import java.util.List;
 
-/**
- *
- */
 public class OpAsgnParseNode extends ParseNode {
     private final ParseNode receiverNode;
     private final ParseNode valueNode;
     private final String variableName;
     private final String operatorName;
-    private final String variableNameAsgn;
     private final boolean isLazy;
 
     public OpAsgnParseNode(SourceIndexLength position, ParseNode receiverNode, ParseNode valueNode, String variableName, String operatorName, boolean isLazy) {
@@ -57,7 +53,6 @@ public class OpAsgnParseNode extends ParseNode {
         this.valueNode = valueNode;
         this.variableName = variableName;
         this.operatorName = operatorName;
-        this.variableNameAsgn = (variableName + "=").intern();
         this.isLazy = isLazy;
     }
 
@@ -105,10 +100,6 @@ public class OpAsgnParseNode extends ParseNode {
      */
     public String getVariableName() {
         return variableName;
-    }
-
-    public String getVariableNameAsgn() {
-        return variableNameAsgn;
     }
 
     @Override
