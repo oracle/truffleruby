@@ -28,5 +28,5 @@
 package org.truffleruby.parser.ast.types;
 
 public interface INameNode {
-    public String getName();
+    String getName();
 }
