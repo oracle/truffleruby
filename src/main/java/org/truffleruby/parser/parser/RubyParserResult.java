@@ -45,8 +45,6 @@ public class RubyParserResult {
 
     private List<ParseNode> beginNodes;
     private ParseNode ast;
-    // __END__ marker offset (-1 means none present)
-    private int endOffset = -1;
     private DynamicScope scope;
     
     public ParseNode getAST() {
@@ -77,12 +75,5 @@ public class RubyParserResult {
     public List<ParseNode> getBeginNodes() {
         return beginNodes == null ? EMPTY_BEGIN_LIST : beginNodes;
     }
-    
-    public int getEndOffset() {
-    	return endOffset;
-    }
-    
-    public void setEndOffset(int endOffset) {
-    	this.endOffset = endOffset;
-    }
+
 }
