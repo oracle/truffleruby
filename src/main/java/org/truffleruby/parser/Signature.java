@@ -55,47 +55,12 @@ public class Signature {
         this.restKwargs = restKwargs;
     }
 
-    public int getRequiredKeywordForArityCount() {
-        return requiredKwargs > 0 ? 1 : 0;
-    }
-
-    public boolean restKwargs() {
-        return restKwargs;
-    }
-
     public int pre() { return pre; }
     public int opt() { return opt; }
     public Rest rest() { return rest; }
     public int post() { return post; }
-    public boolean hasKwargs() { return kwargs > 0 || restKwargs; }
-    public boolean hasRest() { return rest != Rest.NONE; }
-
-    /**
-     * Are there an exact (fixed) number of parameters to this signature?
-     */
-    public boolean isFixed() {
-        return arityValue() >= 0;
-    }
 
     public int required() { return pre + post; }
-
-    /**
-     * Best attempt at breaking the code of arity values!  We figure out how many fixed/required parameters
-     * must be supplied.  Then we figure out if we need to mark the value as optional.  Optional is indicated
-     * by multiplying -1 * (fixed + 1).  Keyword args optional and rest values can indicate this optional
-     * condition but only if no required keyword arguments are present.
-     */
-    public int arityValue() {
-        int oneForKeywords = requiredKwargs > 0 ? 1 : 0;
-        int fixedValue = pre() + post() + oneForKeywords;
-        boolean hasOptionalKeywords = kwargs - requiredKwargs > 0;
-
-        if (opt() > 0 || rest() != Rest.NONE || (hasOptionalKeywords || restKwargs()) && oneForKeywords == 0) {
-            return -1 * (fixedValue + 1);
-        }
-
-        return fixedValue;
-    }
 
     public static Signature from(int pre, int opt, int post, int kwargs, int requiredKwargs, Rest rest, boolean restKwargs) {
         if (opt == 0 && post == 0 && kwargs == 0 && !restKwargs) {
@@ -147,8 +112,8 @@ public class Signature {
 
     public static Signature from(IterParseNode iter) {
         if (iter instanceof ForParseNode) return from((ForParseNode)iter);
-        if (iter instanceof PreExeParseNode) return from((PreExeParseNode)iter);
-        if (iter instanceof PostExeParseNode) return from((PostExeParseNode)iter);
+        if (iter instanceof PreExeParseNode) return Signature.NO_ARGUMENTS;
+        if (iter instanceof PostExeParseNode) return Signature.NO_ARGUMENTS;
 
         return from((ArgsParseNode) iter.getVarNode());
     }
@@ -185,14 +150,6 @@ public class Signature {
             return Signature.from(masgn.getPreCount(), 0, masgn.getPostCount(), 0, 0, rest, false);
         }
         return Signature.ONE_ARGUMENT;
-    }
-
-    public static Signature from(PreExeParseNode iter) {
-        return Signature.NO_ARGUMENTS;
-    }
-
-    public static Signature from(PostExeParseNode iter) {
-        return Signature.NO_ARGUMENTS;
     }
 
     private static final int MAX_ENCODED_ARGS_EXPONENT = 8;
