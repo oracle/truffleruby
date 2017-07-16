@@ -1124,7 +1124,26 @@ struct RData {
   void *data;
 };
 
+struct RData *RDATA(VALUE value);
+#define DATA_PTR(value) (RDATA(value)->data)
+#define rb_data_object_get DATA_PTR
+
 VALUE rb_data_object_wrap(VALUE ruby_class, void *data, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC free);
+VALUE rb_data_object_zalloc(VALUE,size_t,RUBY_DATA_FUNC,RUBY_DATA_FUNC);
+
+#define Data_Wrap_Struct(klass,mark,free,sval) \
+    rb_data_object_wrap((klass),(sval),(RUBY_DATA_FUNC)(mark),(RUBY_DATA_FUNC)(free))
+
+#define Data_Make_Struct0(result, klass, type, size, mark, free, sval) \
+    VALUE result = rb_data_object_zalloc((klass), (size), \
+         (RUBY_DATA_FUNC)(mark), \
+         (RUBY_DATA_FUNC)(free)); \
+    (void)((sval) = (type *)DATA_PTR(result));
+
+#define Data_Make_Struct(klass,type,mark,free,sval) ({\
+    Data_Make_Struct0(data_struct_obj, klass, type, sizeof(type), mark, free, sval); \
+    data_struct_obj; \
+})
 
 #define Data_Wrap_Struct(ruby_class, mark, free, data) \
     rb_data_object_wrap((ruby_class), (data), (RUBY_DATA_FUNC)(mark), (RUBY_DATA_FUNC)(free))
@@ -1132,9 +1151,11 @@ VALUE rb_data_object_wrap(VALUE ruby_class, void *data, RUBY_DATA_FUNC dmark, RU
 #define Data_Get_Struct(obj, type, sval) \
     ((sval) = (type *)rb_data_object_get(obj))
 
-struct RData *RDATA(VALUE value);
-#define DATA_PTR(value) (RDATA(value)->data)
-#define rb_data_object_get DATA_PTR
+static inline VALUE
+rb_data_object_make(VALUE klass, RUBY_DATA_FUNC mark_func, RUBY_DATA_FUNC free_func, void **datap, size_t size) {
+    Data_Make_Struct0(result, klass, void, size, mark_func, free_func, *datap);
+    return result;
+}
 
 // Typed data
 

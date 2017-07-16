@@ -2489,12 +2489,18 @@ VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
 
 // Data
 
+struct RData *RDATA(VALUE value) {
+  return (struct RData *)truffle_invoke(RUBY_CEXT, "RDATA", value);
+}
+
 VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, datap, dmark, dfree);
 }
 
-struct RData *RDATA(VALUE value) {
-  return (struct RData *)truffle_invoke(RUBY_CEXT, "RDATA", value);
+VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
+    VALUE obj = rb_data_object_wrap(klass, 0, dmark, dfree);
+    DATA_PTR(obj) = xcalloc(1, size);
+    return obj;
 }
 
 // Typed data
