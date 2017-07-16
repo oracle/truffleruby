@@ -177,6 +177,15 @@ module Utilities
     raise "Can't find the #{name} repo - clone it into the repository directory or its parent"
   end
 
+  def self.find_or_clone_repo(url)
+    name = File.basename url, '.git'
+    path = File.expand_path("../#{name}", TRUFFLERUBY_DIR)
+    unless Dir.exist? path
+      ShellUtils.sh "git", "clone", url, "../#{name}"
+    end
+    path
+  end
+
   def self.find_benchmark(benchmark)
     if File.exist?(benchmark)
       benchmark
@@ -244,7 +253,7 @@ module Utilities
 end
 
 module ShellUtils
-  private
+  module_function
 
   def system_timeout(timeout, *args)
     begin
@@ -478,7 +487,8 @@ module Commands
     project = options.first
     case project
     when 'parser'
-      jay = Utilities.find_repo('jay')
+      jay = Utilities.find_or_clone_repo('https://github.com/jruby/jay.git')
+      raw_sh 'make', chdir: "#{jay}/src"
       ENV['PATH'] = "#{jay}/src:#{ENV['PATH']}"
       sh 'bash', 'tool/generate_parser'
       yytables = 'src/main/java/org/truffleruby/parser/parser/YyTables.java'
