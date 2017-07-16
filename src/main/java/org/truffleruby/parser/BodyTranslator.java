@@ -1681,12 +1681,6 @@ public class BodyTranslator extends Translator {
         switch (name) {
             case "$~":
                 rhs = new CheckMatchVariableTypeNode(rhs);
-                environment.declareVarInMethodScope(name);
-                // The right hand side must be built using the resolved variable.
-                break;
-            case "$_":
-                environment.declareVarInMethodScope(name);
-                // The right hand side must be built using the resolved variable.
                 break;
             case "$0":
                 rhs = new CheckProgramNameVariableTypeNode(rhs);
@@ -1725,13 +1719,7 @@ public class BodyTranslator extends Translator {
             threadLocalVariablesObjectNode.unsafeSetSourceSection(sourceSection);
             return addNewlineIfNeeded(node, withSourceSection(sourceSection, new WriteInstanceVariableNode(name, threadLocalVariablesObjectNode, rhs)));
         } else if (FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-            ReadLocalNode localVarNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
-
-            if (localVarNode == null) {
-                environment.declareVarInMethodScope(name);
-                localVarNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
-            }
-
+            final ReadLocalNode localVarNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
             final RubyNode assignment;
             if (THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
                 assignment = new SetInThreadAndFrameLocalStorageNode(localVarNode, rhs);
@@ -1775,11 +1763,6 @@ public class BodyTranslator extends Translator {
             // Assignment is implicit for many of these, so we need to declare when we use
 
             RubyNode readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
-
-            if (readNode == null) {
-                environment.declareVarInMethodScope(name);
-                readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
-            }
 
             if (THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
                 readNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
@@ -2473,8 +2456,6 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitNthRefNode(NthRefParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
-
-        environment.declareVarInMethodScope("$~");
 
         final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
         final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
@@ -3227,8 +3208,6 @@ public class BodyTranslator extends Translator {
         }
 
         final SourceIndexLength sourceSection = node.getPosition();
-
-        environment.declareVarInMethodScope("$~");
 
         final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
         final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
