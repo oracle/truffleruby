@@ -1,6 +1,7 @@
 #include "ruby.h"
 #include "rubyspec.h"
 #include "ruby/io.h"
+#include <errno.h>
 #include <fcntl.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -143,23 +144,29 @@ VALUE io_spec_rb_io_wait_readable(VALUE self, VALUE io, VALUE read_p) {
   int fd = io_spec_get_fd(io);
   char buf[RB_IO_WAIT_READABLE_BUF];
   wait_bool ret;
+  int r, saved_errno;
 
   if (set_non_blocking(fd) == -1)
     rb_sys_fail("set_non_blocking failed");
 
   if(RTEST(read_p)) {
-    if(read(fd, buf, RB_IO_WAIT_READABLE_BUF) != -1) {
+    if (read(fd, buf, RB_IO_WAIT_READABLE_BUF) != -1) {
       return Qnil;
     }
+    saved_errno = errno;
     rb_ivar_set(self, rb_intern("@write_data"), Qtrue);
   }
 
+  errno = saved_errno;
   ret = rb_io_wait_readable(fd);
 
   if(RTEST(read_p)) {
-    if(read(fd, buf, RB_IO_WAIT_READABLE_BUF) != 13) {
-      return Qnil;
+    r = read(fd, buf, RB_IO_WAIT_READABLE_BUF);
+    if (r != RB_IO_WAIT_READABLE_BUF) {
+      perror("read");
+      return INT2FIX(r);
     }
+    buf[r] = '\0';
     rb_ivar_set(self, rb_intern("@read_data"),
         rb_str_new(buf, RB_IO_WAIT_READABLE_BUF));
   }
