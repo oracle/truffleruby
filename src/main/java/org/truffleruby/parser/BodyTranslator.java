@@ -1307,7 +1307,8 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitDVarNode(DVarParseNode node) {
-        RubyNode readNode = environment.findLocalVarNode(node.getName(), source, node.getPosition());
+        final String name = node.getName();
+        RubyNode readNode = environment.findLocalVarNode(name, source, node.getPosition());
 
         if (readNode == null) {
             // If we haven't seen this dvar before it's possible that it's a block local variable
@@ -1320,13 +1321,13 @@ public class BodyTranslator extends Translator {
                 e = e.getParent();
             }
 
-            e.declareVar(node.getName());
+            e.declareVar(name);
 
             // Searching for a local variable must start at the base environment, even though we may have determined
             // the variable should be declared in a parent frame descriptor.  This is so the search can determine
             // whether to return a ReadLocalVariableNode or a ReadDeclarationVariableNode and potentially record the
             // fact that a declaration frame is needed.
-            readNode = environment.findLocalVarNode(node.getName(), source, node.getPosition());
+            readNode = environment.findLocalVarNode(name, source, node.getPosition());
         }
 
         return addNewlineIfNeeded(node, readNode);
@@ -1957,16 +1958,17 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitLocalAsgnNode(LocalAsgnParseNode node) {
         final SourceIndexLength sourceSection = node.getPosition();
+        final String name = node.getName();
 
         if (environment.getNeverAssignInParentScope()) {
-            environment.declareVar(node.getName());
+            environment.declareVar(name);
         }
 
-        ReadLocalNode lhs = environment.findLocalVarNode(node.getName(), source, sourceSection);
+        ReadLocalNode lhs = environment.findLocalVarNode(name, source, sourceSection);
 
         if (lhs == null) {
             if (environment.hasOwnScopeForAssignments()) {
-                environment.declareVar(node.getName());
+                environment.declareVar(name);
             } else {
                 TranslatorEnvironment environmentToDeclareIn = environment;
 
@@ -1974,10 +1976,10 @@ public class BodyTranslator extends Translator {
                     environmentToDeclareIn = environmentToDeclareIn.getParent();
                 }
 
-                environmentToDeclareIn.declareVar(node.getName());
+                environmentToDeclareIn.declareVar(name);
             }
 
-            lhs = environment.findLocalVarNode(node.getName(), source, sourceSection);
+            lhs = environment.findLocalVarNode(name, source, sourceSection);
 
             if (lhs == null) {
                 throw new RuntimeException("shouldn't be here");
@@ -2018,7 +2020,7 @@ public class BodyTranslator extends Translator {
                We're going to just assume that it should be there and add it...
              */
 
-            environment.declareVar(node.getName());
+            environment.declareVar(name);
             readNode = environment.findLocalVarNode(name, source, sourceSection);
         }
 
