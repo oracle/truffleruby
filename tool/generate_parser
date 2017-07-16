@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+set -e
+set -x
+
 # Run using jt build parser
 
 ###### Change these to tastes ######
@@ -9,6 +12,8 @@ PARSER_BASE=RubyParser
 YYTABLE_PREFIX=
 #DEBUG=true
 ###### Do not change below ######
+
+unset GEM_HOME GEM_PATH GEM_ROOT
 
 if [ "$1" != "" ]; then
   PARSER_BASE=$1
