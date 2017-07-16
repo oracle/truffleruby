@@ -131,13 +131,13 @@ public class TranslatorEnvironment {
 
     public ReadLocalNode findLocalVarNode(String name, Source source, SourceIndexLength sourceSection) {
         TranslatorEnvironment current = this;
-        int level = -1;
-        do {
-            level++;
-            FrameSlot slot = current.getFrameDescriptor().findFrameSlot(name);
+        int level = 0;
+
+        while (current != null) {
+            final FrameSlot slot = current.getFrameDescriptor().findFrameSlot(name);
+
             if (slot != null) {
                 final LocalVariableType type;
-
                 if (Translator.FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
                     if (Translator.ALWAYS_DEFINED_GLOBALS.contains(name)) {
                         type = LocalVariableType.ALWAYS_DEFINED_GLOBAL;
@@ -149,7 +149,6 @@ public class TranslatorEnvironment {
                 }
 
                 final ReadLocalNode node;
-
                 if (level == 0) {
                     node = new ReadLocalVariableNode(type, slot);
                 } else {
@@ -157,12 +156,12 @@ public class TranslatorEnvironment {
                 }
 
                 node.unsafeSetSourceSection(sourceSection);
-
                 return node;
             }
 
             current = current.parent;
-        } while (current != null);
+            level++;
+        }
 
         return null;
     }
