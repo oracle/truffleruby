@@ -218,6 +218,7 @@ void rb_check_safe_obj(VALUE object);
 bool SYMBOL_P(VALUE value);
 
 // Constants
+#define RUBY_VM 1
 
 // START from tool/generate-cext-constants.rb
 
