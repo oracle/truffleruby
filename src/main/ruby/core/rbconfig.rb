@@ -146,7 +146,8 @@ module RbConfig
   opt_passes     = ['-always-inline', '-mem2reg', '-constprop'].join(' ')
   cc             = clang
   cpp            = cc
-  cflags         = ['-Werror=implicit-function-declaration',  # To make missing C ext functions very clear
+  cflags         = ['-g', # Show debug information such as line numbers in backtrace
+                    '-Werror=implicit-function-declaration',  # To make missing C ext functions very clear
                     '-Wno-unknown-warning-option',            # If we're on an earlier version of clang without a warning option, ignore it
                     '-Wno-int-conversion',                    # MRI has VALUE defined as long while we have it as void*
                     '-Wno-int-to-pointer-cast',               # Same as above
