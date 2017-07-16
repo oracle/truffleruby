@@ -23,6 +23,7 @@ nbproject/private
 # C extensions
 lib/cext/ruby.su
 lib/mri/openssl.su
+lib/mri/zlib.su
 
 bench/chunky_png/oily_png/ext/oily_png/Makefile
 bench/chunky_png/oily_png/ext/oily_png/*.bc

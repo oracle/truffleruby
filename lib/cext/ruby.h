@@ -109,17 +109,17 @@ void rb_tr_release_handle(void *handle);
 
 // Memory
 
-#define xmalloc       ruby_xmalloc
-#define xmalloc2      ruby_xmalloc2
-#define xcalloc       ruby_xcalloc
-#define xrealloc      ruby_xrealloc
-#define xfree         ruby_xfree
+#define xmalloc                     ruby_xmalloc
+#define xmalloc2                    ruby_xmalloc2
+#define xcalloc                     ruby_xcalloc
+#define xrealloc                    ruby_xrealloc
+#define xfree                       ruby_xfree
 // TODO CS 4-Mar-17 malloc and all these macros should be a version that throws an exception on failure
-#define ruby_xmalloc  malloc
-#define ruby_xmalloc2 malloc((items)*(size))
-#define ruby_xcalloc  calloc
-#define ruby_xrealloc realloc
-#define ruby_xfree    free
+#define ruby_xmalloc                malloc
+#define ruby_xmalloc2(items, size)  malloc((items)*(size))
+#define ruby_xcalloc                calloc
+#define ruby_xrealloc               realloc
+#define ruby_xfree                  free
 
 #define ALLOC_N(type, n)            ((type *)malloc(sizeof(type) * (n)))
 #define ALLOCA_N(type, n)           ((type *)alloca(sizeof(type) * (n)))
