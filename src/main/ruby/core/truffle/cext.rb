@@ -31,9 +31,11 @@ module Truffle::CExt
           output = argv.shift
         when '-l'
           raise '-l needs to be followed by a file name' if argv.empty?
-          libraries << argv.shift
+          lib = argv.shift
+          libraries << standardize_lib_name(lib)
         when /\A-l(.+)\z/ # -llib as a single argument
-          libraries << $1
+          lib = $1
+          libraries << standardize_lib_name(lib)
         else
           if arg.start_with?('-')
             raise "Unknown argument: #{arg}"
@@ -44,6 +46,14 @@ module Truffle::CExt
       end
 
       Truffle::CExt.linker(output, libraries, files)
+    end
+
+    def self.standardize_lib_name(lib)
+      if lib.start_with?('lib') or lib.start_with?('/')
+        lib
+      else
+        "lib#{lib}.#{RbConfig::CONFIG['NATIVE_DLEXT']}"
+      end
     end
   end
 
