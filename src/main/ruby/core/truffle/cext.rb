@@ -32,6 +32,8 @@ module Truffle::CExt
         when '-l'
           raise '-l needs to be followed by a file name' if argv.empty?
           libraries << argv.shift
+        when /\A-l(.+)\z/ # -llib as a single argument
+          libraries << $1
         else
           if arg.start_with?('-')
             raise "Unknown argument: #{arg}"
