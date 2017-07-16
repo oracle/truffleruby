@@ -70,7 +70,9 @@ public class RubyWarnings implements WarnCallback {
         buffer.append("warning: ").append(message).append('\n');
         DebugHelpers.eval(runtime, "$stderr.write Truffle::Interop.from_java_string(message)", "message", buffer.toString());
     }
-    
+    /**
+     * Prints a warning, unless $VERBOSE is nil.
+     */
     @SuppressWarnings("deprecation")
     public void warn(String fileName, String message) {
         if (!warningsEnabled()) {
