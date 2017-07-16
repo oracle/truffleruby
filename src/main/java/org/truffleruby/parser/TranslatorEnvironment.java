@@ -110,14 +110,6 @@ public class TranslatorEnvironment {
         return getFrameDescriptor().findOrAddFrameSlot(name);
     }
 
-    public FrameSlot declareVarInMethodScope(String name) {
-        if (isBlock()) {
-            return parent.declareVarInMethodScope(name);
-        } else {
-            return declareVar(name);
-        }
-    }
-
     public ReadLocalNode findOrAddLocalVarNodeDangerous(String name, Source source, SourceIndexLength sourceSection) {
         ReadLocalNode localVar = findLocalVarNode(name, source, sourceSection);
 
@@ -156,36 +148,33 @@ public class TranslatorEnvironment {
     }
 
     public ReadLocalNode findFrameLocalGlobalVarNode(String name, Source source, SourceIndexLength sourceSection) {
-        TranslatorEnvironment current = this;
+        // Frame-local globals are always defined in the method scope
+        TranslatorEnvironment methodScope = this;
         int level = 0;
 
-        while (current != null) {
-            final FrameSlot slot = current.getFrameDescriptor().findFrameSlot(name);
-
-            if (slot != null) {
-                final LocalVariableType type;
-                if (Translator.ALWAYS_DEFINED_GLOBALS.contains(name)) {
-                    type = LocalVariableType.ALWAYS_DEFINED_GLOBAL;
-                } else {
-                    type = LocalVariableType.FRAME_LOCAL_GLOBAL;
-                }
-
-                final ReadLocalNode node;
-                if (level == 0) {
-                    node = new ReadLocalVariableNode(type, slot);
-                } else {
-                    node = new ReadDeclarationVariableNode(type, level, slot);
-                }
-
-                node.unsafeSetSourceSection(sourceSection);
-                return node;
-            }
-
-            current = current.parent;
+        while (methodScope.isBlock()) {
+            methodScope = methodScope.getParent();
             level++;
         }
 
-        return null;
+        final FrameSlot slot = methodScope.declareVar(name);
+
+        final LocalVariableType type;
+        if (Translator.ALWAYS_DEFINED_GLOBALS.contains(name)) {
+            type = LocalVariableType.ALWAYS_DEFINED_GLOBAL;
+        } else {
+            type = LocalVariableType.FRAME_LOCAL_GLOBAL;
+        }
+
+        final ReadLocalNode node;
+        if (level == 0) {
+            node = new ReadLocalVariableNode(type, slot);
+        } else {
+            node = new ReadDeclarationVariableNode(type, level, slot);
+        }
+
+        node.unsafeSetSourceSection(sourceSection);
+        return node;
     }
 
     public FrameDescriptor getFrameDescriptor() {
