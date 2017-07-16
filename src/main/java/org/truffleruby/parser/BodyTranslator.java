@@ -1725,25 +1725,11 @@ public class BodyTranslator extends Translator {
             threadLocalVariablesObjectNode.unsafeSetSourceSection(sourceSection);
             return addNewlineIfNeeded(node, withSourceSection(sourceSection, new WriteInstanceVariableNode(name, threadLocalVariablesObjectNode, rhs)));
         } else if (FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-            if (environment.getNeverAssignInParentScope()) {
-                environment.declareVar(name);
-            }
-
-            ReadLocalNode localVarNode = environment.findFrameLocalGlobalVarNode(node.getName(), source, sourceSection);
+            ReadLocalNode localVarNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
 
             if (localVarNode == null) {
-                TranslatorEnvironment environmentToDeclareIn = environment;
-
-                while (!environmentToDeclareIn.hasOwnScopeForAssignments()) {
-                    environmentToDeclareIn = environmentToDeclareIn.getParent();
-                }
-
-                environmentToDeclareIn.declareVar(node.getName());
-                localVarNode = environment.findFrameLocalGlobalVarNode(node.getName(), source, sourceSection);
-
-                if (localVarNode == null) {
-                    throw new RuntimeException("shouldn't be here");
-                }
+                environment.declareVarInMethodScope(name);
+                localVarNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
             }
 
             final RubyNode assignment;
