@@ -585,7 +585,7 @@ public abstract class KernelNodes {
             return eval(cachedRootNode, cachedCallTarget, callNode, parentFrame);
         }
 
-        private Object eval(final RootNodeWrapper rootNode, final CallTarget callTarget, final DirectCallNode callNode, final MaterializedFrame parentFrame) {
+        private Object eval(RootNodeWrapper rootNode, CallTarget callTarget, DirectCallNode callNode, MaterializedFrame parentFrame) {
             final Object bindingSelf = RubyArguments.getSelf(parentFrame);
 
             final InternalMethod method = new InternalMethod(
@@ -748,8 +748,8 @@ public abstract class KernelNodes {
         protected FrameDescriptor newBindingDescriptor(RubyContext context, RootNodeWrapper rootNode) {
             FrameDescriptor descriptor = rootNode.getRootNode().getFrameDescriptor();
             FrameDescriptor newDescriptor = new FrameDescriptor(context.getCoreLibrary().getNil());
-            for (FrameSlot s : descriptor.getSlots()) {
-                newDescriptor.findOrAddFrameSlot(s.getIdentifier());
+            for (FrameSlot frameSlot : descriptor.getSlots()) {
+                newDescriptor.findOrAddFrameSlot(frameSlot.getIdentifier());
             }
             return newDescriptor;
         }
