@@ -132,46 +132,37 @@ public class TranslatorEnvironment {
     public ReadLocalNode findLocalVarNode(String name, Source source, SourceIndexLength sourceSection) {
         TranslatorEnvironment current = this;
         int level = -1;
-        try {
-            do {
-                level++;
-                FrameSlot slot = current.getFrameDescriptor().findFrameSlot(name);
-                if (slot != null) {
-                    final LocalVariableType type;
+        do {
+            level++;
+            FrameSlot slot = current.getFrameDescriptor().findFrameSlot(name);
+            if (slot != null) {
+                final LocalVariableType type;
 
-                    if (Translator.FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-                        if (Translator.ALWAYS_DEFINED_GLOBALS.contains(name)) {
-                            type = LocalVariableType.ALWAYS_DEFINED_GLOBAL;
-                        } else {
-                            type = LocalVariableType.FRAME_LOCAL_GLOBAL;
-                        }
+                if (Translator.FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+                    if (Translator.ALWAYS_DEFINED_GLOBALS.contains(name)) {
+                        type = LocalVariableType.ALWAYS_DEFINED_GLOBAL;
                     } else {
-                        type = LocalVariableType.FRAME_LOCAL;
+                        type = LocalVariableType.FRAME_LOCAL_GLOBAL;
                     }
-
-                    final ReadLocalNode node;
-
-                    if (level == 0) {
-                        node = new ReadLocalVariableNode(type, slot);
-                    } else {
-                        node = new ReadDeclarationVariableNode(type, level, slot);
-                    }
-
-                    node.unsafeSetSourceSection(sourceSection);
-
-                    return node;
+                } else {
+                    type = LocalVariableType.FRAME_LOCAL;
                 }
 
-                current = current.parent;
-            } while (current != null);
-        } finally {
-            if (current != null) {
-                current = this;
-                while (level-- > 0) {
-                    current = current.parent;
+                final ReadLocalNode node;
+
+                if (level == 0) {
+                    node = new ReadLocalVariableNode(type, slot);
+                } else {
+                    node = new ReadDeclarationVariableNode(type, level, slot);
                 }
+
+                node.unsafeSetSourceSection(sourceSection);
+
+                return node;
             }
-        }
+
+            current = current.parent;
+        } while (current != null);
 
         return null;
     }
