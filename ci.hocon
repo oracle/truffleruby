@@ -20,9 +20,7 @@ common-base: {
 
   setup: [
     [export, "BUILD_DIR=$PWD"],
-    ["echo", "-n", "TRUFFLE_RUBY_VERSION=", ">setup-ci-env"],
-    ["git", "rev-parse", "HEAD", ">>setup-ci-env"],
-    ["export", ["<setup-ci-env"]],
+    ["export", ["echo", "TRUFFLE_RUBY_VERSION=", ["git", "rev-parse", "HEAD"], "|", "tr", "-d", "' '"]]
 
     ${report-github-status} ["pending"],
     [mx, build, --force-javac, --warning-as-error]
