@@ -368,7 +368,7 @@ bodystmt      : compstmt opt_rescue opt_else opt_ensure {
                   if ($2 != null) {
                       node = new RescueParseNode(support.getPosition($1), $1, $2, $3);
                   } else if ($3 != null) {
-                      support.warn(RubyWarnings.ID.ELSE_WITHOUT_RESCUE, support.getPosition($1), "else without rescue is useless");
+                      support.warn(support.getPosition($1), "else without rescue is useless");
                       node = support.appendToBlock($1, $3);
                   }
                   if ($4 != null) {
@@ -452,7 +452,7 @@ stmt            : kALIAS fitem {
                 }
                 | klEND tLCURLY compstmt tRCURLY {
                     if (support.isInDef() || support.isInSingle()) {
-                        support.warn(RubyWarnings.ID.END_IN_METHOD, $1, "END in method; use at_exit");
+                        support.warn($1, "END in method; use at_exit");
                     }
                     $$ = new PostExeParseNode($1, $3);
                 }
@@ -1904,7 +1904,7 @@ string          : tCHAR {
                     $$ = $1;
                 }
                 | string string1 {
-                    $$ = support.literal_concat($1.getPosition(), $1, $2);
+                    $$ = support.literal_concat($1, $2);
                 }
 
 string1         : tSTRING_BEG string_contents tSTRING_END {
@@ -1954,7 +1954,7 @@ word            : string_content {
                      $$ = $<ParseNode>1;
                 }
                 | word string_content {
-                     $$ = support.literal_concat(support.getPosition($1), $1, $<ParseNode>2);
+                     $$ = support.literal_concat($1, $<ParseNode>2);
                 }
 
 symbols         : tSYMBOLS_BEG ' ' tSTRING_END {
@@ -2004,14 +2004,14 @@ string_contents : /* none */ {
                     $$ = lexer.createStr(RopeOperations.create(new byte[]{}, lexer.getEncoding(), CR_UNKNOWN), 0);
                 }
                 | string_contents string_content {
-                    $$ = support.literal_concat($1.getPosition(), $1, $<ParseNode>2);
+                    $$ = support.literal_concat($1, $<ParseNode>2);
                 }
 
 xstring_contents: /* none */ {
                     $$ = null;
                 }
                 | xstring_contents string_content {
-                    $$ = support.literal_concat(support.getPosition($1), $1, $<ParseNode>2);
+                    $$ = support.literal_concat($1, $<ParseNode>2);
                 }
 
 regexp_contents :  /* none */ {
@@ -2019,7 +2019,7 @@ regexp_contents :  /* none */ {
                 }
                 | regexp_contents string_content {
     // FIXME: mri is different here.
-                    $$ = support.literal_concat(support.getPosition($1), $1, $<ParseNode>2);
+                    $$ = support.literal_concat($1, $<ParseNode>2);
                 }
 
 string_content  : tSTRING_CONTENT {
