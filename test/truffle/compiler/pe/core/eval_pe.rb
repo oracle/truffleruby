@@ -15,3 +15,7 @@ example "eval('[1, 2, 3]')[1]", 2
 example "eval([1, 2, 3].inspect)[1]", 2
 
 tagged counter example "eval(rand.to_s)"
+
+example "eval('14', binding)", 14
+
+example "b = binding; eval('temp = 14', b); b = eval('temp', b)", 14

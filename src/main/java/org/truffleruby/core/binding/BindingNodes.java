@@ -151,7 +151,7 @@ public abstract class BindingNodes {
         return null;
     }
 
-    public static FrameSlotAndDepth findFrameSlotOrNull(String identifier, FrameDescriptor frameDescriptor) {
+    public static FrameSlotAndDepth findFrameSlot(String identifier, FrameDescriptor frameDescriptor) {
         final FrameSlot frameSlot = frameDescriptor.findFrameSlot(identifier);
         assert frameSlot != null;
         return new FrameSlotAndDepth(frameSlot, 0);
@@ -305,7 +305,7 @@ public abstract class BindingNodes {
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, getTopFrame(binding))") FrameSlotAndDepth cachedFrameSlot,
                 @Cached("newFrameDescriptor(getContext(), name)") FrameDescriptor newDescriptor,
-                @Cached("findFrameSlotOrNull(name, newDescriptor)") FrameSlotAndDepth newFrameSlot,
+                @Cached("findFrameSlot(name, newDescriptor)") FrameSlotAndDepth newFrameSlot,
                 @Cached("createWriteNode(newFrameSlot)") WriteFrameSlotNode writeLocalVariableNode) {
             final MaterializedFrame frame = newExtrasFrame(binding, newDescriptor);
             return writeLocalVariableNode.executeWrite(frame, value);
