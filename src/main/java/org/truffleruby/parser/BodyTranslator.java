@@ -1729,13 +1729,9 @@ public class BodyTranslator extends Translator {
                 environment.declareVar(name);
             }
 
-            ReadLocalNode localVarNode = environment.findLocalVarNode(node.getName(), source, sourceSection);
+            ReadLocalNode localVarNode = environment.findFrameLocalGlobalVarNode(node.getName(), source, sourceSection);
 
             if (localVarNode == null) {
-                if (environment.hasOwnScopeForAssignments()) {
-                    environment.declareVar(node.getName());
-                }
-
                 TranslatorEnvironment environmentToDeclareIn = environment;
 
                 while (!environmentToDeclareIn.hasOwnScopeForAssignments()) {
@@ -1743,7 +1739,7 @@ public class BodyTranslator extends Translator {
                 }
 
                 environmentToDeclareIn.declareVar(node.getName());
-                localVarNode = environment.findLocalVarNode(node.getName(), source, sourceSection);
+                localVarNode = environment.findFrameLocalGlobalVarNode(node.getName(), source, sourceSection);
 
                 if (localVarNode == null) {
                     throw new RuntimeException("shouldn't be here");
@@ -1792,11 +1788,11 @@ public class BodyTranslator extends Translator {
         if (FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             // Assignment is implicit for many of these, so we need to declare when we use
 
-            RubyNode readNode = environment.findLocalVarNode(name, source, sourceSection);
+            RubyNode readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
 
             if (readNode == null) {
                 environment.declareVarInMethodScope(name);
-                readNode = environment.findLocalVarNode(name, source, sourceSection);
+                readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
             }
 
             if (THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
@@ -2494,7 +2490,8 @@ public class BodyTranslator extends Translator {
 
         environment.declareVarInMethodScope("$~");
 
-        final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(environment.findLocalVarNode("$~", source, sourceSection));
+        final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
+        final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
         final RubyNode ret = new ReadMatchReferenceNode(readMatchNode, node.getMatchNumber());
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
@@ -3247,7 +3244,8 @@ public class BodyTranslator extends Translator {
 
         environment.declareVarInMethodScope("$~");
 
-        final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(environment.findLocalVarNode("$~", source, sourceSection));
+        final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
+        final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
         final RubyNode ret = new ReadMatchReferenceNode(readMatchNode, index);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
