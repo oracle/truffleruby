@@ -1967,17 +1967,11 @@ public class BodyTranslator extends Translator {
         ReadLocalNode lhs = environment.findLocalVarNode(name, source, sourceSection);
 
         if (lhs == null) {
-            if (environment.hasOwnScopeForAssignments()) {
-                environment.declareVar(name);
-            } else {
-                TranslatorEnvironment environmentToDeclareIn = environment;
-
-                while (!environmentToDeclareIn.hasOwnScopeForAssignments()) {
-                    environmentToDeclareIn = environmentToDeclareIn.getParent();
-                }
-
-                environmentToDeclareIn.declareVar(name);
+            TranslatorEnvironment environmentToDeclareIn = environment;
+            while (!environmentToDeclareIn.hasOwnScopeForAssignments()) {
+                environmentToDeclareIn = environmentToDeclareIn.getParent();
             }
+            environmentToDeclareIn.declareVar(name);
 
             lhs = environment.findLocalVarNode(name, source, sourceSection);
 
