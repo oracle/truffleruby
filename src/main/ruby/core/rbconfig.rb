@@ -55,6 +55,7 @@ module RbConfig
       'configure_args'    => ' ',
       'ARCH_FLAG'         => '',
       'CPPFLAGS'          => cppflags,
+      'CPPOUTFILE'        => '-o conftest.i',
       'LDFLAGS'           => '',
       'DLDFLAGS'          => '',
       'DLEXT'             => 'su',
