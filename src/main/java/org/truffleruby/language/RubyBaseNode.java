@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.instrumentation.StandardTags;
@@ -209,6 +210,7 @@ public abstract class RubyBaseNode extends Node {
         return null;
     }
 
+    @TruffleBoundary
     @Override
     public SourceSection getSourceSection() {
         if (sourceCharIndex == -1) {

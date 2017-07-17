@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
@@ -41,6 +42,7 @@ public class DeclarationContext {
         this.defaultDefinee = defaultDefinee;
     }
 
+    @TruffleBoundary
     private static Frame lookupVisibility(Frame frame) {
         while (frame != null) {
             final Visibility visibility = RubyArguments.getDeclarationContext(frame).visibility;
@@ -49,14 +51,17 @@ public class DeclarationContext {
             }
             frame = RubyArguments.getDeclarationFrame(frame);
         }
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         throw new UnsupportedOperationException("No declaration frame with visibility found");
     }
 
+    @TruffleBoundary
     public static Visibility findVisibility(Frame frame) {
         final Frame visibilityFrame = lookupVisibility(frame);
         return RubyArguments.getDeclarationContext(visibilityFrame).visibility;
     }
 
+    @TruffleBoundary
     public static void changeVisibility(Frame frame, Visibility newVisibility) {
         final Frame visibilityFrame = lookupVisibility(frame);
         final DeclarationContext oldDeclarationContext = RubyArguments.getDeclarationContext(visibilityFrame);
@@ -70,6 +75,7 @@ public class DeclarationContext {
         return new DeclarationContext(visibility, defaultDefinee);
     }
 
+    @TruffleBoundary
     public DynamicObject getModuleToDefineMethods(Object self, InternalMethod method, RubyContext context, SingletonClassNode singletonClassNode) {
         switch (defaultDefinee) {
         case LEXICAL_SCOPE:
@@ -79,7 +85,6 @@ public class DeclarationContext {
         case SELF:
             return (DynamicObject) self;
         default:
-            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new UnsupportedOperationException();
         }
     }

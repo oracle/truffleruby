@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -22,6 +23,7 @@ public class SourceIndexLength {
         this.length = length;
     }
 
+    @TruffleBoundary
     public SourceSection toSourceSection(Source source) {
         return source.createSection(charIndex, length);
     }

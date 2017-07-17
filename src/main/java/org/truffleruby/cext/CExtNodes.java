@@ -19,6 +19,7 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
@@ -707,7 +708,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(visibility)")
         public boolean toRubyString(DynamicObject visibility) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.MATERIALIZE);
+            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
             final Visibility callerVisibility = DeclarationContext.findVisibility(callerFrame);
 
             switch (visibility.toString()) {

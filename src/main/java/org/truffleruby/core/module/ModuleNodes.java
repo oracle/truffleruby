@@ -1775,7 +1775,7 @@ public abstract class ModuleNodes {
         }
 
         private void setCurrentVisibility(Visibility visibility) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_WRITE);
+            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_WRITE);
             DeclarationContext.changeVisibility(callerFrame, visibility);
         }
 
