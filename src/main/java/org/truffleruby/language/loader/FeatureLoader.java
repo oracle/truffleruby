@@ -281,22 +281,24 @@ public class FeatureLoader {
     }
 
     private synchronized Map<String, String> getNativeLibraryMap() {
-        nativeLibraryMap = new HashMap<>();
+        if (nativeLibraryMap == null) {
+            nativeLibraryMap = new HashMap<>();
 
-        // Default remapping of libssl to use Homebrew on macOS (ignored on other platforms, thanks to dylib extension)
-        nativeLibraryMap.put("libssl.dylib", "/usr/local/opt/openssl/lib/libssl.dylib");
+            // Default remapping of libssl to use Homebrew on macOS (ignored on other platforms, thanks to dylib extension)
+            nativeLibraryMap.put("libssl.dylib", "/usr/local/opt/openssl/lib/libssl.dylib");
 
-        for (String mapPair : context.getOptions().CEXTS_LIBRARY_REMAP) {
-            final int divider = mapPair.indexOf(':');
+            for (String mapPair : context.getOptions().CEXTS_LIBRARY_REMAP) {
+                final int divider = mapPair.indexOf(':');
 
-            if (divider == -1) {
-                throw new RuntimeException(OptionsCatalog.CEXTS_LIBRARY_REMAP.getName() + " entry does not contain a : divider");
+                if (divider == -1) {
+                    throw new RuntimeException(OptionsCatalog.CEXTS_LIBRARY_REMAP.getName() + " entry does not contain a : divider");
+                }
+
+                final String library = mapPair.substring(0, divider);
+                final String remap = mapPair.substring(divider + 1);
+
+                nativeLibraryMap.put(library, remap);
             }
-
-            final String library = mapPair.substring(0, divider);
-            final String remap = mapPair.substring(divider + 1);
-
-            nativeLibraryMap.put(library, remap);
         }
 
         return nativeLibraryMap;
