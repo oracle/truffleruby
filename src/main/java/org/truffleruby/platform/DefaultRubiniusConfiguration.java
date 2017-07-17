@@ -52,9 +52,9 @@ import java.util.Arrays;
 
 public abstract class DefaultRubiniusConfiguration {
 
-    public static final int SIZE_OF_INT = 4;
-    public static final int SIZE_OF_LONG = 8;
-    public static final int SIZE_OF_POINTER = 8;
+    private static final int SIZE_OF_INT = 4;
+    private static final int SIZE_OF_LONG = 8;
+    private static final int SIZE_OF_POINTER = 8;
 
     public static void load(RubiniusConfiguration configuration, RubyContext context) {
         configuration.config("rbx.platform.file.S_IRUSR", FileStat.S_IRUSR);
