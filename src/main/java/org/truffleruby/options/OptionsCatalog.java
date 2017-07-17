@@ -107,6 +107,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription SHARED_OBJECTS_FORCE = new BooleanOptionDescription("ruby.shared.objects.force", "Force sharing of objects roots at startup", false);
     public static final BooleanOptionDescription SHARED_OBJECTS_SHARE_ALL = new BooleanOptionDescription("ruby.shared.objects.share_all", "Consider all objects as shared", false);
     public static final BooleanOptionDescription CEXTS_LOG_LOAD = new BooleanOptionDescription("ruby.cexts.log.load", "Log loading of cexts", false);
+    public static final StringArrayOptionDescription CEXTS_LIBRARY_REMAP = new StringArrayOptionDescription("ruby.cexts.remap", "Remap the name of native libraries", new String[]{});
     public static final BooleanOptionDescription LOG_DYNAMIC_CONSTANT_LOOKUP = new BooleanOptionDescription("ruby.constant.dynamic_lookup.log", "Log source code positions where dynamic constant lookup is performed", false);
     public static final BooleanOptionDescription OPTIONS_LOG = new BooleanOptionDescription("ruby.options.log", "Log the final value of all options", false);
     public static final BooleanOptionDescription LOG_LOAD = new BooleanOptionDescription("ruby.log.load", "Log loading files", false);
@@ -297,6 +298,8 @@ public class OptionsCatalog {
                 return SHARED_OBJECTS_SHARE_ALL;
             case "ruby.cexts.log.load":
                 return CEXTS_LOG_LOAD;
+            case "ruby.cexts.remap":
+                return CEXTS_LIBRARY_REMAP;
             case "ruby.constant.dynamic_lookup.log":
                 return LOG_DYNAMIC_CONSTANT_LOOKUP;
             case "ruby.options.log":
@@ -405,6 +408,7 @@ public class OptionsCatalog {
             SHARED_OBJECTS_FORCE,
             SHARED_OBJECTS_SHARE_ALL,
             CEXTS_LOG_LOAD,
+            CEXTS_LIBRARY_REMAP,
             LOG_DYNAMIC_CONSTANT_LOOKUP,
             OPTIONS_LOG,
             LOG_LOAD,
