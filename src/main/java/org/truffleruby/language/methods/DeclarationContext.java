@@ -12,6 +12,7 @@ package org.truffleruby.language.methods;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.Visibility;
@@ -62,12 +63,18 @@ public class DeclarationContext {
     }
 
     @TruffleBoundary
-    public static void changeVisibility(Frame frame, Visibility newVisibility) {
+    private static void changeVisibility(Frame frame, Visibility newVisibility) {
         final Frame visibilityFrame = lookupVisibility(frame);
         final DeclarationContext oldDeclarationContext = RubyArguments.getDeclarationContext(visibilityFrame);
         if (newVisibility != oldDeclarationContext.visibility) {
             RubyArguments.setDeclarationContext(visibilityFrame, oldDeclarationContext.withVisibility(newVisibility));
         }
+    }
+
+    @TruffleBoundary
+    public static void setCurrentVisibility(RubyContext context, Visibility visibility) {
+        final Frame callerFrame = context.getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_WRITE);
+        changeVisibility(callerFrame, visibility);
     }
 
     private DeclarationContext withVisibility(Visibility visibility) {
