@@ -13,7 +13,7 @@ You can use the `--version` command-line option. TruffleRuby will report for
 example:
 
 ```
-truffleruby 0.25, like ruby 2.3.3 <Java HotSpot(TM) 64-Bit Server VM 1.8.0_121-b13 with Graal> [darwin-x86_64]
+truffleruby 0.26, like ruby 2.3.3 <Java HotSpot(TM) 64-Bit Graal VM 1.8.0_121-b13 with Graal> [darwin-x86_64]
 ```
 
 In Ruby code, you can look at the standard `RUBY_ENGINE` constant, which will be

@@ -23,7 +23,7 @@ To use the SVM you need a release of GraalVM, as described in
 [Using GraalVM](using-graalvm.md). You can then run:
 
 ```
-$ graalvm-0.nn/bin/aot-image --ruby
+$ graalvm/bin/native-image --ruby
 ```
 
 This command will take a few minutes to run, and it requires about 6 GB of
