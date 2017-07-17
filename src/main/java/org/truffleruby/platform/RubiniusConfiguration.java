@@ -46,9 +46,6 @@ public class RubiniusConfiguration {
 
     private final Map<String, Object> configuration = new HashMap<>(); // Only written to by create() once per RubyContext.
 
-    public RubiniusConfiguration() {
-    }
-
     public void config(String key, Object value) {
         configuration.put(key, value);
     }
