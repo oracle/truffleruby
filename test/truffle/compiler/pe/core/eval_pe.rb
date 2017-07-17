@@ -18,4 +18,4 @@ tagged counter example "eval(rand.to_s)"
 
 example "eval('14', binding)", 14
 
-example "b = binding; eval('temp = 14', b); b = eval('temp', b)", 14
+example "b = binding; eval('temp = 14', b); eval('temp', b)", 14
