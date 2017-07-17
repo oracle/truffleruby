@@ -34,9 +34,6 @@ public class SnippetNode extends RubyBaseNode {
 
     @Child private DirectCallNode directCallNode;
 
-    public SnippetNode() {
-    }
-
     public Object execute(VirtualFrame frame, String expression, Object... arguments) {
         if (directCallNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
