@@ -157,7 +157,7 @@ public abstract class RequireNode extends RubyNode {
 
         try {
             featureLoader.loadCExtLibrary(expandedPath);
-        } catch (JavaException e) {
+        } catch (Exception e) {
             final UnsatisfiedLinkError linkErrorException = searchForException(UnsatisfiedLinkError.class, e);
 
             if (linkErrorException != null) {
