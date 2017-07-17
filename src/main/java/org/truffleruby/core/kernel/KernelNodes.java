@@ -537,7 +537,7 @@ public abstract class KernelNodes {
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = callerFrameNode.execute(frame).materialize();
-            return eval(cachedRootNode, cachedCallTarget, callNode, parentFrame);
+            return eval(RubyArguments.getSelf(frame), cachedRootNode, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(guards = {
@@ -582,12 +582,10 @@ public abstract class KernelNodes {
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.getTopFrame(binding);
-            return eval(cachedRootNode, cachedCallTarget, callNode, parentFrame);
+            return eval(RubyArguments.getSelf(parentFrame), cachedRootNode, cachedCallTarget, callNode, parentFrame);
         }
 
-        private Object eval(RootNodeWrapper rootNode, CallTarget callTarget, DirectCallNode callNode, MaterializedFrame parentFrame) {
-            final Object bindingSelf = RubyArguments.getSelf(parentFrame);
-
+        private Object eval(Object self, RootNodeWrapper rootNode, CallTarget callTarget, DirectCallNode callNode, MaterializedFrame parentFrame) {
             final InternalMethod method = new InternalMethod(
                     getContext(),
                     rootNode.getRootNode().getSharedMethodInfo(),
@@ -597,7 +595,7 @@ public abstract class KernelNodes {
                     Visibility.PUBLIC,
                     callTarget);
 
-            return callNode.call(RubyArguments.pack(parentFrame, null, method, RubyArguments.getDeclarationContext(parentFrame), null, bindingSelf, null, new Object[]{}));
+            return callNode.call(RubyArguments.pack(parentFrame, null, method, RubyArguments.getDeclarationContext(parentFrame), null, self, null, new Object[]{}));
         }
 
         @Specialization(guards = {
@@ -623,7 +621,7 @@ public abstract class KernelNodes {
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.newExtrasFrame(binding,
                     newBindingDescriptor);
-            return eval(rootNodeToEval, cachedCallTarget, callNode, parentFrame);
+            return eval(RubyArguments.getSelf(parentFrame), rootNodeToEval, cachedCallTarget, callNode, parentFrame);
         }
 
         @Specialization(guards = {
