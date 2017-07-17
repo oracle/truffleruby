@@ -33,9 +33,12 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.options.OptionsCatalog;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FeatureLoader {
 
@@ -46,6 +49,7 @@ public class FeatureLoader {
     private final Object cextImplementationLock = new Object();
     private boolean cextImplementationLoaded = false;
     private TruffleObject sulongLoadLibraryFunction;
+    private Map<String, String> nativeLibraryMap;
 
     public FeatureLoader(RubyContext context) {
         this.context = context;
@@ -253,12 +257,46 @@ public class FeatureLoader {
 
     private void loadNativeLibrary(String path, String library) {
         ensureCExtImplementationLoaded(path);
-        DynamicObject libraryRubyString = StringOperations.createString(context, StringOperations.encodeRope(library, UTF8Encoding.INSTANCE));
+
+        final String remapped = remapNativeLibrary(library);
+
+        if (context.getOptions().CEXTS_LOG_LOAD) {
+            if (remapped.equals(library)) {
+                Log.LOGGER.info(() -> String.format("loading native library %s", library));
+            } else {
+                Log.LOGGER.info(() -> String.format("loading native library %s, remapped from %s", remapped, library));
+            }
+        }
+
+        DynamicObject libraryRubyString = StringOperations.createString(context, StringOperations.encodeRope(remapNativeLibrary(library), UTF8Encoding.INSTANCE));
         try {
             ForeignAccess.sendExecute(executeSulongLoadLibraryNode, sulongLoadLibraryFunction, libraryRubyString);
         } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
             throw new JavaException(e);
         }
+    }
+
+    private String remapNativeLibrary(String library) {
+        return getNativeLibraryMap().getOrDefault(library, library);
+    }
+
+    private synchronized Map<String, String> getNativeLibraryMap() {
+        nativeLibraryMap = new HashMap<>();
+
+        for (String mapPair : context.getOptions().CEXTS_LIBRARY_REMAP) {
+            final int divider = mapPair.indexOf(':');
+
+            if (divider == -1) {
+                throw new RuntimeException(OptionsCatalog.CEXTS_LIBRARY_REMAP.getName() + " entry does not contain a : divider");
+            }
+
+            final String library = mapPair.substring(0, divider);
+            final String remap = mapPair.substring(divider + 1);
+
+            nativeLibraryMap.put(library, remap);
+        }
+
+        return nativeLibraryMap;
     }
 
     @TruffleBoundary
