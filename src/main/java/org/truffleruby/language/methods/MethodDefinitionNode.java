@@ -10,10 +10,9 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -37,29 +36,27 @@ public class MethodDefinitionNode extends RubyNode {
         this.callTarget = callTarget;
     }
 
-    public InternalMethod executeMethod(VirtualFrame frame) {
+    @TruffleBoundary
+    public InternalMethod createMethod(InternalMethod method, Object self, DeclarationContext declarationContext) {
         final DynamicObject dummyModule = coreLibrary().getObjectClass();
         final Visibility dummyVisibility = Visibility.PUBLIC;
 
         final DynamicObject capturedDefaultDefinee;
-        if (RubyArguments.getDeclarationContext(frame) == DeclarationContext.INSTANCE_EVAL) {
+        if (declarationContext == DeclarationContext.INSTANCE_EVAL) {
             if (getDefaultDefineeNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
                 getDefaultDefineeNode = insert(new GetDefaultDefineeNode());
             }
-            capturedDefaultDefinee = getDefaultDefineeNode.execute(frame);
+            capturedDefaultDefinee = getDefaultDefineeNode.getDefaultDefinee(method, self, declarationContext);
         } else {
             capturedDefaultDefinee = null;
         }
 
-        final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
-        return new InternalMethod(getContext(), sharedMethodInfo, lexicalScope, name, dummyModule, dummyVisibility, false, null, callTarget,
-                        null, capturedDefaultDefinee);
+        return new InternalMethod(getContext(), sharedMethodInfo, method.getLexicalScope(), name, dummyModule, dummyVisibility, false, null, callTarget, null, capturedDefaultDefinee);
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return executeMethod(frame);
+        return createMethod(RubyArguments.getMethod(frame), RubyArguments.getSelf(frame), RubyArguments.getDeclarationContext(frame));
     }
 
 }
