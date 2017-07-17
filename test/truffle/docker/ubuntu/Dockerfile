@@ -22,18 +22,18 @@ RUN chown test /test
 USER test
 
 # Extract the GraalVM binary tarball
-ENV GRAALVM_VERSION=0.25
+ENV GRAALVM_VERSION=0.26
 ADD graalvm-$GRAALVM_VERSION-linux-amd64-jdk8.tar.gz /test
 ENV PATH=/test/graalvm-$GRAALVM_VERSION/bin:$PATH
-ENV RUBY_HOME=/test/graalvm-$GRAALVM_VERSION/language/ruby
+ENV RUBY_HOME=/test/graalvm-$GRAALVM_VERSION/jre/languages/ruby
 
-# Build the AOT image
-RUN aot-image -H:Name=aot-ruby --ruby
+# Build the native image
+RUN native-image -H:Name=native-ruby --ruby
 ENV PATH=/test:$PATH
 
 # Straight away, just run the ruby executable as the most basic test
 RUN ruby --version
-RUN aot-ruby -Xhome=$RUBY_HOME --version
+RUN native-ruby -Xhome=$RUBY_HOME --version
 
 # Clone the TruffleRuby source code to get tests
 RUN git clone --branch vm-enterprise-$GRAALVM_VERSION --depth 1 https://github.com/graalvm/truffleruby.git
@@ -53,13 +53,13 @@ spec/mspec/bin/mspec \
 -t ruby \
 :language
 
-# ...and in AOT
+# ...and in native
 RUN ruby \
 spec/mspec/bin/mspec \
 --config spec/truffle.mspec \
 --excl-tag slow \
 --excl-tag fails \
 --excl-tag graalvm \
--t aot-ruby \
+-t native-ruby \
 -T -Xhome=$RUBY_HOME \
 :language
