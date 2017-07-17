@@ -19,3 +19,6 @@ On macOS the system version is too old. We recommend installing via
 ```
 brew install openssl
 ```
+
+If `libssl` is in a non-standard location for your system, you can use the
+option `-Xcexts.remap=libssl.so:path/to/libssl.so`.
