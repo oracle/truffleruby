@@ -1764,7 +1764,7 @@ public abstract class ModuleNodes {
         @Specialization
         public DynamicObject setVisibility(VirtualFrame frame, DynamicObject module, Object[] names) {
             if (names.length == 0) {
-                setCurrentVisibility(visibility);
+                DeclarationContext.setCurrentVisibility(getContext(), visibility);
             } else {
                 for (Object name : names) {
                     setMethodVisibilityNode.executeSetMethodVisibility(frame, module, name);
@@ -1772,11 +1772,6 @@ public abstract class ModuleNodes {
             }
 
             return module;
-        }
-
-        private void setCurrentVisibility(Visibility visibility) {
-            final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_WRITE);
-            DeclarationContext.changeVisibility(callerFrame, visibility);
         }
 
     }
