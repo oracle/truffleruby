@@ -30,10 +30,9 @@ $CFLAGS += " #{have_flags.map { |h| "-DHAVE_#{h}" }.join(' ')}"
 
 if ENV['OPENSSL_PREFIX']
   $CFLAGS += " -I #{ENV['OPENSSL_PREFIX']}/include"
-  $LIBS += " -l #{ENV['OPENSSL_PREFIX']}/lib/libssl.#{RbConfig::CONFIG['NATIVE_DLEXT']}"
-else
-  $LIBS += " -l libssl.#{RbConfig::CONFIG['NATIVE_DLEXT']}"
 end
+
+$LIBS += " -l libssl.#{RbConfig::CONFIG['NATIVE_DLEXT']}"
 
 create_makefile('openssl')
 
