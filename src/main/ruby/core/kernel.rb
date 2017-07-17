@@ -211,6 +211,11 @@ module Kernel
   end
   private :autoload?
 
+  def binding
+    Truffle.invoke_primitive(:caller_binding)
+  end
+  module_function :binding
+
   alias_method :iterator?, :block_given?
 
   def define_singleton_method(*args, &block)

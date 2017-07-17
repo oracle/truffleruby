@@ -38,6 +38,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.binding.BindingNodesFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
@@ -235,22 +236,6 @@ public abstract class KernelNodes {
             }
         }
 
-    }
-
-    @CoreMethod(names = "binding", isModuleFunction = true)
-    public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
-
-        public abstract DynamicObject executeBinding(VirtualFrame frame);
-        
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
-
-        @Specialization
-        public DynamicObject binding(VirtualFrame frame) {
-            // Materialize the caller's frame - false means don't use a slow path to get it - we want to optimize it
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
-
-            return BindingNodes.createBinding(getContext(), callerFrame);
-        }
     }
 
     @CoreMethod(names = "block_given?", isModuleFunction = true)
@@ -484,7 +469,7 @@ public abstract class KernelNodes {
     public abstract static class EvalNode extends CoreMethodNode {
 
         @Child private CallDispatchHeadNode toStr;
-        @Child private BindingNode bindingNode;
+        @Child private BindingNodes.CallerBindingNode bindingNode;
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
 
         @CreateCast("source")
@@ -495,7 +480,7 @@ public abstract class KernelNodes {
         protected DynamicObject getCallerBinding(VirtualFrame frame) {
             if (bindingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                bindingNode = insert(KernelNodesFactory.BindingNodeFactory.create(null));
+                bindingNode = insert(BindingNodesFactory.CallerBindingNodeFactory.create(null));
             }
 
             return bindingNode.executeBinding(frame);

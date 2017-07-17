@@ -1627,6 +1627,7 @@ public class CoreLibrary {
             "/core/truffle/ffi/ffi_file.rb",
             "/core/truffle/ffi/ffi_struct.rb",
             "/core/truffle/support.rb",
+            "/core/kernel.rb", // Needed before boot.rb since binding is now in Ruby.
             "/core/truffle/boot.rb",
             "/core/truffle/debug.rb",
             "/core/truffle/string_operations.rb",
@@ -1643,7 +1644,6 @@ public class CoreLibrary {
             "/core/argf.rb",
             "/core/exception.rb",
             "/core/hash.rb",
-            "/core/kernel.rb",
             "/core/comparable.rb",
             "/core/numeric_mirror.rb",
             "/core/numeric.rb",
