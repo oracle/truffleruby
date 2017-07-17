@@ -66,7 +66,7 @@ public abstract class BindingNodes {
     @TruffleBoundary
     public static FrameDescriptor newFrameDescriptor(RubyContext context, String name) {
         FrameDescriptor frameDescriptor = new FrameDescriptor(context.getCoreLibrary().getNil());
-        frameDescriptor.findOrAddFrameSlot(name);
+        frameDescriptor.addFrameSlot(name);
         return frameDescriptor;
     }
 
