@@ -394,13 +394,12 @@ module Commands
   def help
     puts <<-TXT.gsub(/^#{' '*6}/, '')
       jt build [options]                             build
-      jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
-      jt rebuild [options]                           clean and build
           parser                                     build the parser
           options                                    build the options
+      jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
+      jt rebuild                                     clean, sforceimports, and build
       jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
-      jt rebuild                                     clean and build
       jt run [options] args...                       run JRuby with args
           --graal         use Graal (set either GRAALVM_BIN or GRAAL_HOME)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
