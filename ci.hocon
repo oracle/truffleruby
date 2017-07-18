@@ -482,9 +482,19 @@ deploy-binaries: {
   timelimit: "30:00"
 }
 
+deploy-and-test-fast: {
+  run: ${deploy-binaries.run} [
+    ${jt} [test, fast]
+  ]
+  timelimit: "30:00"
+}
+
+
 builds: [
-  {name: ruby-test-fast} ${common} ${gate-caps} {run: [${jt} [test, fast]]},
-  {name: ruby-test-fast-solaris} ${common} ${gate-caps-solaris} {run: [${jt} [test, fast]]},
+  {name: ruby-deploy-and-test-fast-linux} ${common} ${gate-caps} ${deploy-and-test-fast},
+  {name: ruby-deploy-and-test-fast-darwin} ${common-darwin} ${gate-caps-darwin} ${deploy-and-test-fast},
+  {name: ruby-deploy-and-test-fast-solaris} ${common} ${gate-caps-solaris} ${deploy-and-test-fast},
+
   {name: ruby-test-tck} ${common} ${gate-caps} {run: [[mx, rubytck]]},
   {name: ruby-test-specs-command-line} ${common} ${gate-caps} {run: [${jt} [test, specs, ":command_line"]]},
   {name: ruby-test-specs-language} ${common} ${gate-caps} {run: [${jt} [test, specs, ":language", ":security"]]},
@@ -563,6 +573,4 @@ builds: [
   {name: ruby-benchmarks-server-svm} ${common} ${svm-bench} ${bench-caps} ${truffleruby} ${server-benchmarks},
 
   {name: ruby-benchmarks-cext} ${common} ${daily-bench-caps} ${truffleruby-cexts} ${cext-benchmarks},
-
-  {name: ruby-deploy-binaries} ${common} ${gate-caps} ${deploy-binaries},
 ]
