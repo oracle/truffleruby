@@ -129,9 +129,17 @@ module Truffle::CExt
     alias_method :to_s, :string
   end
 
-  class RStringPtrEnd < RStringPtr
+  class RStringPtrEnd
+    def initialize(string)
+      @string = string
+    end
+
+    def size
+      0
+    end
+
     def to_native
-      Rubinius::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string) + size)
+      Rubinius::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize)
     end
   end
 
