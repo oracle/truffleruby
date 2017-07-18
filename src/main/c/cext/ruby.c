@@ -906,19 +906,19 @@ char *RSTRING_END(VALUE string) {
 }
 
 int MBCLEN_NEEDMORE_P(int r) {
-  return (int)truffle_invoke(RUBY_CEXT, "MBCLEN_NEEDMORE_P", r);
+  return truffle_invoke_i(RUBY_CEXT, "MBCLEN_NEEDMORE_P", r);
 }
 
 int MBCLEN_NEEDMORE_LEN(int r) {
-  return (int)truffle_invoke(RUBY_CEXT, "MBCLEN_NEEDMORE_LEN", r);
+  return truffle_invoke_i(RUBY_CEXT, "MBCLEN_NEEDMORE_LEN", r);
 }
 
 int MBCLEN_CHARFOUND_P(int r) {
-  return (int)truffle_invoke(RUBY_CEXT, "MBCLEN_CHARFOUND_P", r);
+  return truffle_invoke_i(RUBY_CEXT, "MBCLEN_CHARFOUND_P", r);
 }
 
 int MBCLEN_CHARFOUND_LEN(int r) {
-  return (int)truffle_invoke(RUBY_CEXT, "MBCLEN_CHARFOUND_LEN", r);
+  return truffle_invoke_i(RUBY_CEXT, "MBCLEN_CHARFOUND_LEN", r);
 }
 
 int rb_str_len(VALUE string) {
