@@ -19,7 +19,6 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
@@ -53,7 +52,6 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodesFactory;
 import org.truffleruby.core.rope.SubstringRope;
-import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodesFactory;
 import org.truffleruby.core.string.StringOperations;
@@ -1204,16 +1202,6 @@ public class CExtNodes {
         @Specialization
         public Object mbclenCharFoundLen(int r) {
             return StringSupport.MBCLEN_CHARFOUND_LEN(r);
-        }
-
-    }
-
-    @CoreMethod(names = "rb_enc_dummy_p", onSingleton = true, required = 1)
-    public abstract static class RbEncDummyPNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isRubyEncoding(value)")
-        public Object rbEncDummyP(DynamicObject value) {
-            return EncodingUtils.encDummy(EncodingOperations.getEncoding(value));
         }
 
     }

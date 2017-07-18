@@ -1373,7 +1373,7 @@ VALUE rb_str_times(VALUE string, VALUE times) {
 }
 
 int rb_enc_dummy_p(rb_encoding *enc) {
-  return truffle_invoke_i(RUBY_CEXT, "rb_enc_dummy_p", rb_enc_from_encoding(enc));
+  return truffle_invoke_i(rb_enc_from_encoding(enc), "dummy?");
 }
 
 int rb_enc_mbmaxlen(rb_encoding *enc) {
