@@ -1,5 +1,9 @@
 overlay: "d717dcdfe76191e50843cab4ce29e3a3edd839f0"
 
+# Empty definitions to allow resolving the full file
+github-status-token: ""
+svm-bench: {}
+
 jt: [ruby, tool/jt.rb]
 
 report-github-status: ["${BUILD_DIR}/tool/report-github-status.sh", "${REPORT_GITHUB_STATUS}", "${TRUFFLE_RUBY_VERSION}",
