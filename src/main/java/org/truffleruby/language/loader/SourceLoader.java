@@ -202,9 +202,13 @@ public class SourceLoader {
         }
     }
 
-    private static void ensureReadable(String path, File file) throws IOException {
+    private void ensureReadable(String path, File file) throws IOException {
+        if (!file.exists()) {
+            throw new RaiseException(context.getCoreExceptions().loadError("No such file or directory -- " + path, path, null));
+        }
+
         if (!file.canRead()) {
-            throw new IOException("Can't read file " + path);
+            throw new RaiseException(context.getCoreExceptions().loadError("Permission denied -- " + path, path, null));
         }
     }
 

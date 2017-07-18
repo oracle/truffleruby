@@ -140,4 +140,10 @@ describe "The launcher" do
     out.should include("CONFIG option home=")
   end
 
+  it "prints an error for an unknown option" do
+    out = `#{RbConfig.ruby} -Xunknown 2>&1`
+    $?.success?.should == false
+    out.should include("unknown option")
+  end
+
 end

@@ -38,7 +38,7 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
     public String getMessage() {
         Object message = Layouts.EXCEPTION.getMessage(exception);
         if (message != null) {
-            return message.toString();
+            return String.format("%s (%s)", message.toString(), Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception)).getName());
         } else {
             return null;
         }
