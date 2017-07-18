@@ -273,6 +273,7 @@ suite = {
         "TRUFFLERUBY-ZIP": {
             "native": True, # Not Java
             "relpath": True,
+            "platformDependent": True, # truffleruby-cext
             "dependencies": [
                 "truffleruby-bin",
                 "truffleruby-lib",
