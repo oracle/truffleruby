@@ -1354,16 +1354,18 @@ end
 
 if STDOUT.tty? || Truffle::Boot.get_option('sync.stdio')
   STDOUT.sync = true
-else
-  Truffle::KernelOperations.at_exit true do
-    STDOUT.flush
-  end
 end
 
 if STDERR.tty? || Truffle::Boot.get_option('sync.stdio')
   STDERR.sync = true
-else
-  Truffle::KernelOperations.at_exit true do
-    STDERR.flush
-  end
+end
+
+# Always flush standard streams on exit
+
+Truffle::KernelOperations.at_exit true do
+  STDOUT.flush
+end
+
+Truffle::KernelOperations.at_exit true do
+  STDERR.flush
 end
