@@ -410,8 +410,6 @@ public abstract class BindingNodes {
 
         @Specialization
         public DynamicObject binding(VirtualFrame frame) {
-            // Materialize the caller's frame - false means don't use a slow path to get it - we
-            // want to optimize it
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
 
             return BindingNodes.createBinding(getContext(), callerFrame);
