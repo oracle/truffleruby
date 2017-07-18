@@ -722,7 +722,7 @@ public abstract class BignumNodes {
                 return null; // Primitive failure
             } else {
                 // TODO CS 15-Feb-15 what about this cast?
-                return createBignum(Layouts.BIGNUM.getValue(a).pow((int) b));
+                return createBignum(pow(Layouts.BIGNUM.getValue(a), (int) b));
             }
         }
 
@@ -735,6 +735,11 @@ public abstract class BignumNodes {
         @Specialization(guards = "isRubyBignum(b)")
         public Void pow(DynamicObject a, DynamicObject b) {
             throw new UnsupportedOperationException();
+        }
+
+        @TruffleBoundary
+        private static BigInteger pow(BigInteger bigInteger, int exponent) {
+            return bigInteger.pow(exponent);
         }
 
     }
