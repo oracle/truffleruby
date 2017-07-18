@@ -165,6 +165,11 @@ public abstract class RubyDateFormatter {
             this(conversion);
             CONVERSION2TOKEN[alias] = CONVERSION2TOKEN[conversion];
         }
+
+        // Needs to be defined here to populate CONVERSION2TOKEN first
+        private static Token findToken(char c) {
+            return CONVERSION2TOKEN[c];
+        }
     }
 
     public static class Token {
@@ -185,7 +190,7 @@ public abstract class RubyDateFormatter {
         }
 
         public static Token format(char c) {
-            return CONVERSION2TOKEN[c];
+            return Format.findToken(c);
         }
 
         public static Token zoneOffsetColons(int colons) {
