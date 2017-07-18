@@ -1066,10 +1066,10 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         public Object debug(Object... objects) {
-            if(objects.length > 1) {
+            if (objects.length > 1) {
                 System.err.printf("Printing %d values%n", objects.length);
             }
-            for (Object object: objects) {
+            for (Object object : objects) {
                 System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), object);
             }
             return nil();
