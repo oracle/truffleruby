@@ -516,6 +516,7 @@ module Commands
 
   def rebuild
     clean
+    mx TRUFFLERUBY_DIR, 'sforceimports'
     build
   end
 
