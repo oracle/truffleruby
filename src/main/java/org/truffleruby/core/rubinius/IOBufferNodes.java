@@ -168,11 +168,11 @@ public abstract class IOBufferNodes {
                         // Treat as seeing eof
                         bytesRead = 0;
                         break;
-                    } else if (errno == Errno.EAGAIN.intValue() || errno == Errno.EINTR.intValue()) {
+                    } else if (errno == Errno.EAGAIN.intValue()) {
                         //if (!state -> check_async(calling_environment))
                         //    return NULL;
                         //io -> ensure_open(state);
-                        getContext().getSafepointManager().poll(this);
+                        getContext().getSafepointManager().pollFromBlockingCall(this);
                         continue;
                     } else {
                         throw new RaiseException(ExceptionOperations.createSystemCallError(coreLibrary().getErrnoClass(Errno.valueOf(errno)), nil(), null, errno));
