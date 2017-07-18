@@ -462,20 +462,24 @@ test-compilation-flags: {
   }
 }
 
-deploy-binaries: {
+deploy-binaries-with-rewrites: {
   run: [
     [mx, deploy-binary-if-master, truffleruby-binary-snapshots]
   ]
-  timelimit: "30:00"
 }
 
-deploy-binaries-no-rewrites: ${deploy-binaries} {
+deploy-binaries-no-rewrites: {
   run: [
     [export, "PREV_MX_URLREWRITES=$MX_URLREWRITES"]
     [unset, "MX_URLREWRITES"]
-  ] ${deploy-binaries.run} [
+  ] ${deploy-binaries-with-rewrites.run} [
     [export, "MX_URLREWRITES=$PREV_MX_URLREWRITES"]
   ]
+}
+
+deploy-binaries: {
+  run: ${deploy-binaries-with-rewrites.run} ${deploy-binaries-no-rewrites.run}
+  timelimit: "30:00"
 }
 
 builds: [
@@ -561,5 +565,4 @@ builds: [
   {name: ruby-benchmarks-cext} ${common} ${daily-bench-caps} ${truffleruby-cexts} ${cext-benchmarks},
 
   {name: ruby-deploy-binaries} ${common} ${gate-caps} ${deploy-binaries},
-  {name: ruby-deploy-binaries-no-rewrites} ${common} ${gate-caps} ${deploy-binaries-no-rewrites},
 ]
