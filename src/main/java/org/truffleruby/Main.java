@@ -48,7 +48,9 @@ import java.lang.management.ManagementFactory;
 import java.util.Locale;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.options.CommandLineOptions;
 import org.truffleruby.options.CommandLineParser;
 import org.truffleruby.options.CommandLineException;
@@ -77,63 +79,67 @@ public class Main {
     public static void main(String[] args) throws Exception {
         printTruffleTimeMetric("before-main");
 
-        final CommandLineOptions config = new CommandLineOptions();
+        int exitCode = 0;
 
         try {
-            processArguments(config, args);
-        } catch (CommandLineException commandLineException) {
-            System.err.println("truffleruby: " + commandLineException.getMessage());
-            if (commandLineException.isUsageError()) {
-                CommandLineParser.printHelp(System.err);
-            }
-            System.exit(1);
-        }
+            final CommandLineOptions config = new CommandLineOptions();
 
-        final int exitCode;
-
-        final String filename = config.getDisplayedFileName();
-
-        config.setOption(
-                OptionsCatalog.ORIGINAL_INPUT_FILE,
-                config.shouldUsePathScript() ? config.getScriptFileName() : filename);
-
-        if (config.isShowVersion()) {
-            System.out.println(getVersionString());
-        }
-
-        if (config.isShowCopyright()) {
-            System.out.println(RUBY_COPYRIGHT);
-        }
-
-        if (config.getShouldRunInterpreter()) {
-            try (Context context = createContext(config, filename)) {
-                printTruffleTimeMetric("before-run");
-                if (config.getShouldCheckSyntax()) {
-                    // check syntax only and exit
-                    final Source source = Source.newBuilder(
-                            LANGUAGE_ID, "Truffle::Boot.check_syntax", "check_syntax").buildLiteral();
-                    boolean status = context.eval(source).asBoolean();
-                    exitCode = status ? 0 : 1;
-                } else {
-                    if (!isGraal() && config.getOption(OptionsCatalog.GRAAL_WARNING_UNLESS)) {
-                        LogWithoutTruffle.performanceOnce(
-                                "this JVM does not have the Graal compiler - performance will be limited" +
-                                        " - see doc/user/using-graalvm.md");
-                    }
-
-                    final Source source = Source.newBuilder(LANGUAGE_ID,
-                            config.shouldUsePathScript() ? "Truffle::Boot.main_s" : "Truffle::Boot.main", BOOT_SOURCE_NAME).build();
-                    exitCode = context.eval(source).asInt();
+            try {
+                processArguments(config, args);
+            } catch (CommandLineException commandLineException) {
+                System.err.println("truffleruby: " + commandLineException.getMessage());
+                if (commandLineException.isUsageError()) {
+                    CommandLineParser.printHelp(System.err);
                 }
-                printTruffleTimeMetric("after-run");
+                System.exit(1);
             }
-        } else {
-            if (config.getShouldPrintShortUsage()) {
-                CommandLineParser.printShortHelp(System.out);
-            } else if (config.getShouldPrintUsage()) {
-                CommandLineParser.printHelp(System.out);
+
+            final String filename = config.getDisplayedFileName();
+
+            config.setOption(
+                    OptionsCatalog.ORIGINAL_INPUT_FILE,
+                    config.shouldUsePathScript() ? config.getScriptFileName() : filename);
+
+            if (config.isShowVersion()) {
+                System.out.println(getVersionString());
             }
-            exitCode = 0;
+
+            if (config.isShowCopyright()) {
+                System.out.println(RUBY_COPYRIGHT);
+            }
+
+            if (config.getShouldRunInterpreter()) {
+                try (Context context = createContext(config, filename)) {
+                    printTruffleTimeMetric("before-run");
+                    if (config.getShouldCheckSyntax()) {
+                        // check syntax only and exit
+                        final Source source = Source.newBuilder(
+                                LANGUAGE_ID, "Truffle::Boot.check_syntax", "check_syntax").buildLiteral();
+                        boolean status = context.eval(source).asBoolean();
+                        exitCode = status ? 0 : 1;
+                    } else {
+                        if (!isGraal() && config.getOption(OptionsCatalog.GRAAL_WARNING_UNLESS)) {
+                            LogWithoutTruffle.performanceOnce(
+                                    "this JVM does not have the Graal compiler - performance will be limited" +
+                                            " - see doc/user/using-graalvm.md");
+                        }
+
+                        final Source source = Source.newBuilder(LANGUAGE_ID,
+                                config.shouldUsePathScript() ? "Truffle::Boot.main_s" : "Truffle::Boot.main", BOOT_SOURCE_NAME).build();
+                        exitCode = context.eval(source).asInt();
+                    }
+                    printTruffleTimeMetric("after-run");
+                }
+            } else {
+                if (config.getShouldPrintShortUsage()) {
+                    CommandLineParser.printShortHelp(System.out);
+                } else if (config.getShouldPrintUsage()) {
+                    CommandLineParser.printHelp(System.out);
+                }
+            }
+        } catch (PolyglotException e) {
+            System.err.println("truffleruby: " + e.getMessage());
+            exitCode = 1;
         }
 
         printTruffleTimeMetric("after-main");

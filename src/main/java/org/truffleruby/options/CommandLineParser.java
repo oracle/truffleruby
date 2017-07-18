@@ -369,7 +369,13 @@ public class CommandLineParser {
                             extendedOption = extendedOption.substring(0, equals);
                         }
 
-                        config.getOptions().put(Main.LANGUAGE_ID + "." + extendedOption, value);
+                        final String fullName = Main.LANGUAGE_ID + "." + extendedOption;
+
+                        if (OptionsCatalog.fromName(fullName) == null) {
+                            throw new CommandLineException("unknown option " + extendedOption);
+                        }
+
+                        config.getOptions().put(fullName, value);
                     }
                     break FOR;
                 case '-':
