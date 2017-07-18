@@ -667,14 +667,15 @@ public abstract class IONodes {
             final int fd = Layouts.IO.getDescriptor(file);
 
             final Rope rope = rope(string);
+            final IOWritePrimitiveNode currentNode = this;
 
             RopeOperations.visitBytes(rope, (bytes, offset, length) -> {
                 final ByteBuffer buffer = ByteBuffer.wrap(bytes, offset, length);
 
                 while (buffer.hasRemaining()) {
-                    getContext().getSafepointManager().poll(IOWritePrimitiveNode.this);
-
-                    int written = ensureSuccessful(posix().write(fd, buffer, buffer.remaining()));
+                    int written = getContext().getThreadManager().runBlockingSystemCallUntilResult(currentNode,
+                            () -> posix().write(fd, buffer, buffer.remaining()));
+                    ensureSuccessful(written);
                     buffer.position(buffer.position() + written);
                 }
             });
@@ -717,9 +718,8 @@ public abstract class IONodes {
                         final ByteBuffer buffer = ByteBuffer.wrap(bytes, offset, length);
 
                         while (buffer.hasRemaining()) {
-                            getContext().getSafepointManager().poll(currentNode);
-
-                            final int result = posix().write(fd, buffer, buffer.remaining());
+                            final int result = getContext().getThreadManager().runBlockingSystemCallUntilResult(currentNode,
+                                    () -> posix().write(fd, buffer, buffer.remaining()));
                             if (result <= 0) {
                                 int errno = posix().errno();
                                 if (errno == Errno.EAGAIN.intValue() || errno == Errno.EWOULDBLOCK.intValue()) {
@@ -833,9 +833,11 @@ public abstract class IONodes {
             int toRead = length;
 
             while (toRead > 0) {
-                getContext().getSafepointManager().poll(this);
+                final int finalToRead = toRead;
+                final int bytesRead = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
+                        () -> posix().read(fd, buffer, finalToRead));
 
-                final int bytesRead = ensureSuccessful(posix().read(fd, buffer, toRead));
+                ensureSuccessful(bytesRead);
 
                 if (bytesRead == 0) { // EOF
                     if (toRead == length) { // if EOF at first iteration
