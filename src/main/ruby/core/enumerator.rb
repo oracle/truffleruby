@@ -541,11 +541,3 @@ class Enumerator
     end
   end
 end
-
-module Kernel
-  def to_enum(method=:each, *args)
-    Enumerator.new(self, method, *args)
-  end
-
-  alias_method :enum_for, :to_enum
-end
