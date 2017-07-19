@@ -211,6 +211,11 @@ module Kernel
   end
   private :autoload?
 
+  def binding
+    Truffle.invoke_primitive(:caller_binding)
+  end
+  module_function :binding
+
   alias_method :iterator?, :block_given?
 
   def define_singleton_method(*args, &block)
@@ -220,6 +225,30 @@ module Kernel
   def display(port=$>)
     port.write self
   end
+
+  def eval(str, a_binding=nil, file=nil, line=nil)
+    file = '(eval)' unless file
+    line = 0 unless line
+    str = str.to_str unless str.class == String
+    file = file.to_str unless file.class == String
+    line = line.to_i unless line.class == Fixnum
+    unless a_binding
+      receiver = self
+      a_binding = Truffle.invoke_primitive(:caller_binding)
+    else
+      unless a_binding.class == Binding
+        raise TypeError, "Wrong argument type #{a_binding.class} (expected binding)"
+      end
+      receiver = a_binding.receiver
+    end
+
+    Truffle.invoke_primitive(:kernel_eval, receiver, str, a_binding, file, line)
+  end
+  module_function :eval
+
+  # It is important that eval is always cloned so that the primitive
+  # inside can be specialised efficiently.
+  Truffle::Graal.always_split(method(:eval))
 
   def exec(*args)
     Process.exec(*args)

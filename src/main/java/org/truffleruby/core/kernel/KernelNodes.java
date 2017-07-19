@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.kernel;
 
+import static org.truffleruby.core.string.StringOperations.rope;
+
 import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayUtils;
@@ -38,6 +41,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.binding.BindingNodesFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
@@ -235,22 +239,6 @@ public abstract class KernelNodes {
             }
         }
 
-    }
-
-    @CoreMethod(names = "binding", isModuleFunction = true)
-    public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
-
-        public abstract DynamicObject executeBinding(VirtualFrame frame);
-        
-        @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
-
-        @Specialization
-        public DynamicObject binding(VirtualFrame frame) {
-            // Materialize the caller's frame - false means don't use a slow path to get it - we want to optimize it
-            final MaterializedFrame callerFrame = callerFrameNode.execute(frame).materialize();
-
-            return BindingNodes.createBinding(getContext(), callerFrame);
-        }
     }
 
     @CoreMethod(names = "block_given?", isModuleFunction = true)
@@ -473,33 +461,12 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "eval", isModuleFunction = true, required = 1, optional = 3, lowerFixnum = 4)
-    @NodeChildren({
-            @NodeChild(value = "source", type = RubyNode.class),
-            @NodeChild(value = "binding", type = RubyNode.class),
-            @NodeChild(value = "file", type = RubyNode.class),
-            @NodeChild(value = "line", type = RubyNode.class)
-    })
+    @Primitive(name = "kernel_eval", needsSelf = false, lowerFixnum = 5)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
-    public abstract static class EvalNode extends CoreMethodNode {
+    public abstract static class EvalNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode toStr;
-        @Child private BindingNode bindingNode;
+        @Child private BindingNodes.CallerBindingNode bindingNode;
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);
-
-        @CreateCast("source")
-        public RubyNode coerceSourceToString(RubyNode source) {
-            return ToStrNodeGen.create(source);
-        }
-
-        protected DynamicObject getCallerBinding(VirtualFrame frame) {
-            if (bindingNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                bindingNode = insert(KernelNodesFactory.BindingNodeFactory.create(null));
-            }
-
-            return bindingNode.executeBinding(frame);
-        }
 
         protected static class RootNodeWrapper {
             private final RubyRootNode rootNode;
@@ -513,76 +480,67 @@ public abstract class KernelNodes {
             }
         }
 
-        // We always cache against the caller's frame descriptor to avoid breaking assumptions about
-        // the shapes of declaration frames made in other areas. Specifically other code in the
-        // runtime assumes that a frame with a particular shape will always have a chain of
-        // declaration frame also of stable shapes. This assumption could be broken by code such
-        // as eval("binding") which does not depend on a declaration context from the parses point
-        // of view but could produce frames that broke the assumption.
+        public abstract Object execute(VirtualFrame frame, Object self, DynamicObject str, DynamicObject binding, DynamicObject file, int line);
+
         @Specialization(guards = {
-                "isRubyString(source)",
                 "equalNode.execute(rope(source), cachedSource)",
-                "callerDescriptor == callerFrameNode.execute(frame).getFrameDescriptor()",
-        }, limit = "getCacheLimit()")
-        public Object evalNoBindingCached(
-                VirtualFrame frame,
-                DynamicObject source,
-                NotProvided binding,
-                NotProvided file,
-                NotProvided line,
-                @Cached("privatizeRope(source)") Rope cachedSource,
-                @Cached("callerFrameNode.execute(frame).getFrameDescriptor()") FrameDescriptor callerDescriptor,
-                @Cached("compileSource(source, callerFrameNode.execute(frame).materialize())") RootNodeWrapper cachedRootNode,
-                @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
-                @Cached("create(cachedCallTarget)") DirectCallNode callNode,
-                @Cached("create()") RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = callerFrameNode.execute(frame).materialize();
-            return eval(RubyArguments.getSelf(frame), cachedRootNode, cachedCallTarget, callNode, parentFrame);
-        }
-
-        @Specialization(guards = {
-                "isRubyString(source)"
-        }, replaces = "evalNoBindingCached")
-        public Object evalNoBindingUncached(VirtualFrame frame, DynamicObject source, NotProvided noBinding, NotProvided file, NotProvided line,
-                @Cached("create()") IndirectCallNode callNode) {
-            final DynamicObject binding = getCallerBinding(frame);
-            final MaterializedFrame topFrame = Layouts.BINDING.getFrame(binding);
-            RubyArguments.setSelf(topFrame, RubyArguments.getSelf(frame));
-            final CodeLoader.DeferredCall deferredCall = doEvalX(source, binding, "(eval)", 1, true);
-            return deferredCall.call(callNode);
-
-        }
-
-        @Specialization(guards = {
-                "isRubyString(source)",
-                "isNil(noBinding)",
-                "isRubyString(file)"
-        })
-        public Object evalNilBinding(VirtualFrame frame, DynamicObject source, DynamicObject noBinding, DynamicObject file, Object unusedLine,
-                @Cached("create()") IndirectCallNode callNode) {
-            return evalNoBindingUncached(frame, source, NotProvided.INSTANCE, NotProvided.INSTANCE, NotProvided.INSTANCE, callNode);
-        }
-
-        @Specialization(guards = {
-                "isRubyString(source)",
-                "equalNode.execute(rope(source), cachedSource)",
-                "isRubyBinding(binding)",
+                "equalNode.execute(rope(file), cachedFile)",
+                "line == cachedLine",
                 "assignsNoNewVariables(cachedRootNode)",
                 "bindingDescriptor == getBindingDescriptor(binding)"
         }, limit = "getCacheLimit()")
-        public Object evalBindingCached(
+        public Object evalBindingNoAddsVarsCached(
+                Object self,
                 DynamicObject source,
                 DynamicObject binding,
-                NotProvided file,
-                NotProvided line,
+                DynamicObject file,
+                int line,
                 @Cached("privatizeRope(source)") Rope cachedSource,
+                @Cached("privatizeRope(file)") Rope cachedFile,
+                @Cached("line") int cachedLine,
                 @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(source, getBindingFrame(binding))") RootNodeWrapper cachedRootNode,
+                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootNodeWrapper cachedRootNode,
                 @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
             final MaterializedFrame parentFrame = BindingNodes.getTopFrame(binding);
-            return eval(RubyArguments.getSelf(parentFrame), cachedRootNode, cachedCallTarget, callNode, parentFrame);
+            return eval(self, cachedRootNode, cachedCallTarget, callNode, parentFrame);
+        }
+
+        @Specialization(guards = {
+                "equalNode.execute(rope(source), cachedSource)",
+                "equalNode.execute(rope(file), cachedFile)",
+                "line == cachedLine",
+                "!assignsNoNewVariables(cachedRootNode)",
+                "assignsNoNewVariables(rootNodeToEval)",
+                "bindingDescriptor == getBindingDescriptor(binding)"
+        }, limit = "getCacheLimit()")
+        public Object evalBindingAddsVarsCached(
+                Object self,
+                DynamicObject source,
+                DynamicObject binding,
+                DynamicObject file,
+                int line,
+                @Cached("privatizeRope(source)") Rope cachedSource,
+                @Cached("privatizeRope(file)") Rope cachedFile,
+                @Cached("line") int cachedLine,
+                @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
+                @Cached("compileSource(cachedSource, getBindingFrame(binding), cachedFile, cachedLine)") RootNodeWrapper cachedRootNode,
+                @Cached("newBindingDescriptor(getContext(), cachedRootNode)") FrameDescriptor newBindingDescriptor,
+                @Cached("compileSource(cachedSource, getBindingFrame(binding), newBindingDescriptor, cachedFile, cachedLine)") RootNodeWrapper rootNodeToEval,
+                @Cached("createCallTarget(rootNodeToEval)") CallTarget cachedCallTarget,
+                @Cached("create(cachedCallTarget)") DirectCallNode callNode,
+                @Cached("create()") RopeNodes.EqualNode equalNode) {
+            final MaterializedFrame parentFrame = BindingNodes.newExtrasFrame(binding,
+                    newBindingDescriptor);
+            return eval(self, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
+        }
+
+        @Specialization
+        public Object evalBindingUncached(Object self, DynamicObject source, DynamicObject binding, DynamicObject file, int line,
+                @Cached("create()") IndirectCallNode callNode) {
+            final CodeLoader.DeferredCall deferredCall = doEvalX(self, rope(source), binding, rope(file), line, false);
+            return deferredCall.call(callNode);
         }
 
         private Object eval(Object self, RootNodeWrapper rootNode, CallTarget callTarget, DirectCallNode callNode, MaterializedFrame parentFrame) {
@@ -598,141 +556,46 @@ public abstract class KernelNodes {
             return callNode.call(RubyArguments.pack(parentFrame, null, method, RubyArguments.getDeclarationContext(parentFrame), null, self, null, new Object[]{}));
         }
 
-        @Specialization(guards = {
-                "isRubyString(source)",
-                "equalNode.execute(rope(source), cachedSource)",
-                "isRubyBinding(binding)",
-                "!assignsNoNewVariables(cachedRootNode)",
-                "assignsNoNewVariables(rootNodeToEval)",
-                "bindingDescriptor == getBindingDescriptor(binding)"
-        }, limit = "getCacheLimit()")
-        public Object evalBindingAddsVarsCached(
-                DynamicObject source,
-                DynamicObject binding,
-                NotProvided file,
-                NotProvided line,
-                @Cached("privatizeRope(source)") Rope cachedSource,
-                @Cached("getBindingDescriptor(binding)") FrameDescriptor bindingDescriptor,
-                @Cached("compileSource(source, getBindingFrame(binding))") RootNodeWrapper cachedRootNode,
-                @Cached("newBindingDescriptor(getContext(), cachedRootNode)") FrameDescriptor newBindingDescriptor,
-                @Cached("compileSource(source, getBindingFrame(binding), newBindingDescriptor)") RootNodeWrapper rootNodeToEval,
-                @Cached("createCallTarget(rootNodeToEval)") CallTarget cachedCallTarget,
-                @Cached("create(cachedCallTarget)") DirectCallNode callNode,
-                @Cached("create()") RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = BindingNodes.newExtrasFrame(binding,
-                    newBindingDescriptor);
-            return eval(RubyArguments.getSelf(parentFrame), rootNodeToEval, cachedCallTarget, callNode, parentFrame);
-        }
-
-        @Specialization(guards = {
-                "isRubyString(source)",
-                "isRubyBinding(binding)"
-        })
-        public Object evalBinding(VirtualFrame frame, DynamicObject source, DynamicObject binding, NotProvided file, NotProvided line,
-                @Cached("create()") IndirectCallNode callNode) {
-            final CodeLoader.DeferredCall deferredCall = doEvalX(source, binding, "(eval)", 1, false);
-            return deferredCall.call(callNode);
-        }
-
-        @Specialization(guards = {
-                "isRubyString(source)",
-                "isRubyBinding(binding)",
-                "isNil(noFile)",
-                "isNil(noLine)"
-        })
-        public Object evalBinding(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject noFile, DynamicObject noLine,
-                @Cached("create()") IndirectCallNode callNode) {
-            return evalBinding(frame, source, binding, NotProvided.INSTANCE, NotProvided.INSTANCE, callNode);
-        }
-
-        @Specialization(guards = {
-                "isRubyString(source)",
-                "isRubyBinding(binding)",
-                "isRubyString(file)" })
-        public Object evalBindingFilename(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject file, NotProvided line,
-                @Cached("create()") IndirectCallNode callNode) {
-            return evalBindingFilenameLine(frame, source, binding, file, 0, callNode);
-        }
-
-        @Specialization(guards = {
-                "isRubyString(source)",
-                "isRubyBinding(binding)",
-                "isRubyString(file)",
-                "isNil(noLine)"
-        })
-        public Object evalBindingFilename(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject file, DynamicObject noLine,
-                @Cached("create()") IndirectCallNode callNode) {
-            return evalBindingFilename(frame, source, binding, file, NotProvided.INSTANCE, callNode);
-        }
-
-        @Specialization(guards = {
-                "isRubyString(source)",
-                "isRubyBinding(binding)",
-                "isRubyString(file)" })
-        public Object evalBindingFilenameLine(VirtualFrame frame, DynamicObject source, DynamicObject binding, DynamicObject file, int line,
-                @Cached("create()") IndirectCallNode callNode) {
-            final CodeLoader.DeferredCall deferredCall = doEvalX(source, binding, file.toString(), line, false);
-            return deferredCall.call(callNode);
-        }
-
         @TruffleBoundary
-        @Specialization(guards = {
-                "isRubyString(source)",
-                "!isRubyBinding(badBinding)" })
-        public Object evalBadBinding(DynamicObject source, DynamicObject badBinding, NotProvided file, NotProvided line) {
-            throw new RaiseException(coreExceptions().typeErrorWrongArgumentType(badBinding, "binding", this));
-        }
-
-        @TruffleBoundary
-        private CodeLoader.DeferredCall doEvalX(DynamicObject rubySource,
+        private CodeLoader.DeferredCall doEvalX(Object self, Rope source,
                 DynamicObject binding,
-                String file,
+                Rope file,
                 int line,
                 boolean ownScopeForAssignments) {
-            final Rope code = StringOperations.rope(rubySource);
-
-            // TODO (pitr 15-Oct-2015): fix this ugly hack, required for AS, copy-paste
-            final String s = new String(new char[Math.max(line - 1, 0)]);
-            final String space = StringUtils.replace(s, "\0", "\n");
-            // TODO CS 14-Apr-15 concat space + code as a rope, otherwise the string will be copied
-            // after the rope is converted
-            final Source source = Source.newBuilder(space + RopeOperations.decodeRope(code)).name(file).mimeType(RubyLanguage.MIME_TYPE).build();
-
-            final MaterializedFrame frame = BindingNodes.getExtrasFrame(getContext(), binding);
+            final MaterializedFrame frame = BindingNodes.newExtrasFrame(getContext(), BindingNodes.getTopFrame(binding));
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
-            final RubyRootNode rootNode = getContext().getCodeLoader().parse(
-                    source, code.getEncoding(), ParserContext.EVAL, frame, ownScopeForAssignments, this);
+            final FrameDescriptor descriptor = frame.getFrameDescriptor();
+            RubyRootNode rootNode = buildRootNode(source, frame, file, line, false);
+            if (!frameHasOnlySelf(descriptor)) {
+                Layouts.BINDING.setExtras(binding, frame);
+            }
             return getContext().getCodeLoader().prepareExecute(
-                    ParserContext.EVAL, declarationContext, rootNode, frame, RubyArguments.getSelf(frame));
+                    ParserContext.EVAL, declarationContext, rootNode, frame, self);
         }
 
-        protected RootNodeWrapper compileSource(VirtualFrame frame, DynamicObject sourceText) {
-            assert RubyGuards.isRubyString(sourceText);
+        protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
 
-            final DynamicObject callerBinding = getCallerBinding(frame);
-            final MaterializedFrame parentFrame = Layouts.BINDING.getFrame(callerBinding);
-
-            final Encoding encoding = Layouts.STRING.getRope(sourceText).getEncoding();
-            final Source source = Source.newBuilder(sourceText.toString()).name("(eval)").mimeType(RubyLanguage.MIME_TYPE).build();
+            String sourceString;
+            if (line > 0) {
+                String s = StringUtils.replace(new String(new char[Math.max(line - 1, 0)]), '\0', '\n');
+                sourceString = s + sourceText.toString();
+            } else {
+                sourceString = sourceText.toString();
+            }
+            final Encoding encoding = sourceText.getEncoding();
+            final Source source = Source.newBuilder(sourceString).name(file.toString()).mimeType(RubyLanguage.MIME_TYPE).build();
 
             final TranslatorDriver translator = new TranslatorDriver(getContext());
 
-            return new RootNodeWrapper(translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
+            return translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, ownScopeForAssignments, this);
         }
 
-        protected RootNodeWrapper compileSource(DynamicObject sourceText, MaterializedFrame parentFrame) {
-            assert RubyGuards.isRubyString(sourceText);
-
-            final Encoding encoding = Layouts.STRING.getRope(sourceText).getEncoding();
-            final Source source = Source.newBuilder(sourceText.toString()).name("(eval)").mimeType(RubyLanguage.MIME_TYPE).build();
-
-            final TranslatorDriver translator = new TranslatorDriver(getContext());
-
-            return new RootNodeWrapper(translator.parse(source, encoding, ParserContext.EVAL, null, null, parentFrame, true, this));
+        protected RootNodeWrapper compileSource(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line) {
+            return new RootNodeWrapper(buildRootNode(sourceText, parentFrame, file, line, true));
         }
 
-        protected RootNodeWrapper compileSource(DynamicObject sourceText, MaterializedFrame parentFrame, FrameDescriptor additionalVariables) {
-            return compileSource(sourceText, BindingNodes.newExtrasFrame(parentFrame, additionalVariables));
+        protected RootNodeWrapper compileSource(Rope sourceText, MaterializedFrame parentFrame, FrameDescriptor additionalVariables, Rope file, int line) {
+            return compileSource(sourceText, BindingNodes.newExtrasFrame(parentFrame, additionalVariables), file, line);
         }
 
         protected CallTarget createCallTarget(RootNodeWrapper rootNode) {
@@ -762,6 +625,10 @@ public abstract class KernelNodes {
 
         protected boolean assignsNoNewVariables(RootNodeWrapper rootNode) {
             FrameDescriptor descriptor = rootNode.getRootNode().getFrameDescriptor();
+            return frameHasOnlySelf(descriptor);
+        }
+
+        private boolean frameHasOnlySelf(final FrameDescriptor descriptor) {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
         }
     }
