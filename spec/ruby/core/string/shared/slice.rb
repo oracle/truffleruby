@@ -85,6 +85,21 @@ describe :string_slice_index_length, shared: true do
     str.send(@method, 2,1).tainted?.should == true
   end
 
+  it "returns a string with the same encoding" do
+    s = "hello there"
+    s.send(@method, 1, 9).encoding.should == s.encoding
+
+    a = "hello".force_encoding("binary")
+    b = " there".force_encoding("ISO-8859-1")
+    c = (a + b).force_encoding(Encoding::US_ASCII)
+
+    c.send(@method, 0, 5).encoding.should == Encoding::US_ASCII
+    c.send(@method, 5, 6).encoding.should == Encoding::US_ASCII
+    c.send(@method, 1, 3).encoding.should == Encoding::US_ASCII
+    c.send(@method, 8, 2).encoding.should == Encoding::US_ASCII
+    c.send(@method, 1, 10).encoding.should == Encoding::US_ASCII
+  end
+
   it "returns nil if the offset falls outside of self" do
     "hello there".send(@method, 20,3).should == nil
     "hello there".send(@method, -20,3).should == nil
