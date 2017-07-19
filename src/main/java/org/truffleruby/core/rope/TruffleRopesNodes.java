@@ -91,6 +91,7 @@ public abstract class TruffleRopesNodes {
             System.err.println("D = Depth");
             System.err.println("LD = Left Depth (ConcatRope only)");
             System.err.println("RD = Right Depth (ConcatRope only)");
+            System.err.println("E = Encoding");
 
             return debugPrintRopeNode.executeDebugPrint(StringOperations.rope(string), 0, printString);
         }
