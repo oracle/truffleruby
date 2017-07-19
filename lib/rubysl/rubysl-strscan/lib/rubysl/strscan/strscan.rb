@@ -115,10 +115,11 @@ class StringScanner
     reset_state
   end
 
+  # Truffle: fix to use self.class instead of hard-coded StringScanner
   def inspect
     if defined? @string
       if eos?
-        str = "#<StringScanner fin>"
+        str = "#<#{self.class} fin>"
       else
         if string.bytesize - pos > 5
           rest = "#{string[pos..pos+4]}..."
@@ -133,16 +134,16 @@ class StringScanner
             prev = string[0...pos]
           end
 
-          str = "#<StringScanner #{pos}/#{string.bytesize} #{prev.inspect} @ #{rest.inspect}>"
+          str = "#<#{self.class} #{pos}/#{string.bytesize} #{prev.inspect} @ #{rest.inspect}>"
         else
-          str = "#<StringScanner #{pos}/#{string.bytesize} @ #{rest.inspect}>"
+          str = "#<#{self.class} #{pos}/#{string.bytesize} @ #{rest.inspect}>"
         end
       end
 
       str.taint if @string.tainted?
       return str
     else
-      "#<StringScanner (uninitialized)>"
+      "#<#{self.class} (uninitialized)>"
     end
   end
 
