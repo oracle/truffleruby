@@ -401,7 +401,7 @@ public abstract class BindingNodes {
 
     }
 
-    @Primitive(name = "caller_binding")
+    @Primitive(name = "caller_binding", needsSelf = false)
     public abstract static class CallerBindingNode extends PrimitiveArrayArgumentsNode {
 
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode(CallerFrameAccess.MATERIALIZE);

@@ -48,6 +48,10 @@ public class LowerFixnumChecker {
                     }
                 }
                 if (lowerArgs == null) {
+                    if (end < skip) {
+                        reportError(nodeFactory, "should have needsSelf = false");
+                        return;
+                    }
                     lowerArgs = new byte[end - skip];
                 } else {
                     assert lowerArgs.length == end - skip;
@@ -67,9 +71,13 @@ public class LowerFixnumChecker {
         for (int i = 0; i < lowerArgs.length; i++) {
             boolean shouldLower = lowerArgs[i] == 0b01; // int without long
             if (shouldLower && !ArrayUtils.contains(lowerFixnum, i + 1)) {
-                SUCCESS = false;
-                Log.LOGGER.warning("node " + nodeFactory.getNodeClass().getCanonicalName() + " should use lowerFixnum for argument " + (i + 1));
+                reportError(nodeFactory, "should use lowerFixnum for argument " + (i + 1));
             }
         }
+    }
+
+    private static void reportError(NodeFactory<? extends RubyNode> nodeFactory, String message) {
+        SUCCESS = false;
+        Log.LOGGER.warning("node " + nodeFactory.getNodeClass().getCanonicalName() + " " + message);
     }
 }
