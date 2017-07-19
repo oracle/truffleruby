@@ -118,12 +118,6 @@ public class Main {
                         boolean status = context.eval(source).asBoolean();
                         exitCode = status ? 0 : 1;
                     } else {
-                        if (!isGraal() && config.getOption(OptionsCatalog.GRAAL_WARNING_UNLESS)) {
-                            LogWithoutTruffle.performanceOnce(
-                                    "this JVM does not have the Graal compiler - performance will be limited" +
-                                            " - see doc/user/using-graalvm.md");
-                        }
-
                         final Source source = Source.newBuilder(LANGUAGE_ID,
                                 config.shouldUsePathScript() ? "Truffle::Boot.main_s" : "Truffle::Boot.main", BOOT_SOURCE_NAME).build();
                         exitCode = context.eval(source).asInt();

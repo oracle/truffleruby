@@ -114,6 +114,11 @@ public class RubyContext {
         optionsBuilder.set(env.getOptions());           // SDK options
         options = optionsBuilder.build();
 
+        if (!Main.isGraal() && options.GRAAL_WARNING_UNLESS) {
+            Log.performanceOnce(
+                    "this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
+        }
+
         rubyHome = findRubyHome();
         Log.LOGGER.config(() -> String.format("ruby home: %s", rubyHome));
 
