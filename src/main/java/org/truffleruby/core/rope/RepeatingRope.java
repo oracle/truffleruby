@@ -12,6 +12,9 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 
+/**
+ * A RepeatingRope always has the same encoding as its child
+ */
 public class RepeatingRope extends ManagedRope {
 
     private final Rope child;

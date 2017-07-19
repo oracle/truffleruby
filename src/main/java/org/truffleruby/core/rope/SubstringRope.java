@@ -15,16 +15,11 @@ import org.jcodings.Encoding;
 public class SubstringRope extends ManagedRope {
 
     private final Rope child;
-    private final int offset;
+    private final int offset; // in bytes
 
-    public SubstringRope(Rope child, int offset, int byteLength, int characterLength, CodeRange codeRange) {
+    public SubstringRope(Encoding encoding, Rope child, boolean singleByteOptimizable, int offset, int byteLength, int characterLength, CodeRange codeRange) {
         // TODO (nirvdrum 07-Jan-16) Verify that this rope is only used for character substrings and not arbitrary byte slices. The former should always have the child's code range while the latter may not.
-        this(child, child.getEncoding(), child.isSingleByteOptimizable(), offset, byteLength, characterLength, codeRange);
-    }
-
-    public SubstringRope(Rope child, boolean singleByteOptimizable, int offset, int byteLength, int characterLength, CodeRange codeRange) {
-        // TODO (nirvdrum 07-Jan-16) Verify that this rope is only used for character substrings and not arbitrary byte slices. The former should always have the child's code range while the latter may not.
-        this(child, child.getEncoding(), singleByteOptimizable, offset, byteLength, characterLength, codeRange);
+        this(child, encoding, singleByteOptimizable, offset, byteLength, characterLength, codeRange);
     }
 
     private SubstringRope(Rope child, Encoding encoding, boolean singleByteOptimizable, int offset, int byteLength, int characterLength, CodeRange codeRange) {
