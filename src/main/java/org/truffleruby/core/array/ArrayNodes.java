@@ -169,6 +169,12 @@ public abstract class ArrayNodes {
             return result;
         }
 
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject mulLong(DynamicObject array, long size) {
+            throw new RaiseException(coreExceptions().argumentError("array size too big", this));
+        }
+
         @Specialization(guards = "!isInteger(object)")
         public Object fallback(DynamicObject array, Object object) {
             return FAILURE;
