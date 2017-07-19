@@ -241,6 +241,7 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "*", required = 1, lowerFixnum = 1, taintFrom = 0)
+    @ImportStatic(StringGuards.class)
     public abstract static class MulNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
@@ -249,16 +250,11 @@ public abstract class StringNodes {
         public abstract DynamicObject executeInt(VirtualFrame frame, DynamicObject string, int times);
 
         @Specialization(guards = "times < 0")
-        public DynamicObject multiplyTimesNegative(DynamicObject string, int times) {
-            throw new RaiseException(coreExceptions().argumentError("negative argument", this));
-        }
-
-        @Specialization(guards = "times < 0")
         public DynamicObject multiplyTimesNegative(DynamicObject string, long times) {
             throw new RaiseException(coreExceptions().argumentError("negative argument", this));
         }
 
-        @Specialization(guards = "times >= 0")
+        @Specialization(guards = { "times >= 0", "!isEmpty(string)" })
         public DynamicObject multiply(DynamicObject string, int times,
                                       @Cached("create()") MakeRepeatingNode makeRepeatingNode) {
             final Rope repeated = makeRepeatingNode.executeMake(rope(string), times);
@@ -266,9 +262,17 @@ public abstract class StringNodes {
             return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, repeated));
         }
 
-        @Specialization(guards = "times >= 0")
+        @Specialization(guards = { "times >= 0", "!isEmpty(string)", "!fitsInInteger(times)" })
         public DynamicObject multiply(DynamicObject string, long times) {
             throw new RaiseException(coreExceptions().argumentError("'long' is too big to convert into 'int'", this));
+        }
+
+        @Specialization(guards = { "times >= 0", "isEmpty(string)" })
+        public DynamicObject multiplyEmpty(DynamicObject string, long times,
+                @Cached("create()") MakeRepeatingNode makeRepeatingNode) {
+            final Rope repeated = makeRepeatingNode.executeMake(rope(string), 0);
+
+            return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, repeated));
         }
 
         @Specialization(guards = "isRubyBignum(times)")
@@ -285,7 +289,6 @@ public abstract class StringNodes {
 
             return executeInt(frame, string, toIntNode.doInt(frame, times));
         }
-
     }
 
     @CoreMethod(names = {"==", "===", "eql?"}, required = 1)

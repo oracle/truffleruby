@@ -12,6 +12,7 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.extra.ffi.PointerNodes;
 import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 
@@ -33,6 +34,10 @@ public abstract class RubyGuards {
 
     public static boolean isInteger(Object value) {
         return value instanceof Integer;
+    }
+
+    public static boolean fitsInInteger(long value) {
+        return CoreLibrary.fitsIntoInteger(value);
     }
 
     public static boolean isLong(Object value) {
