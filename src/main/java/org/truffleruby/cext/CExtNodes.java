@@ -1166,7 +1166,7 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "MBCLEN_NEEDMORE_P", onSingleton = true, required = 1)
+    @CoreMethod(names = "MBCLEN_NEEDMORE_P", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class MBCLEN_NEEDMORE_PNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1176,7 +1176,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "MBCLEN_NEEDMORE_LEN", onSingleton = true, required = 1)
+    @CoreMethod(names = "MBCLEN_NEEDMORE_LEN", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class MBCLEN_NEEDMORE_LENNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1186,7 +1186,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "MBCLEN_CHARFOUND_P", onSingleton = true, required = 1)
+    @CoreMethod(names = "MBCLEN_CHARFOUND_P", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class MBCLEN_CHARFOUND_PNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1196,7 +1196,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "MBCLEN_CHARFOUND_LEN", onSingleton = true, required = 1)
+    @CoreMethod(names = "MBCLEN_CHARFOUND_LEN", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class MBCLEN_CHARFOUND_LENNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1226,7 +1226,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 3)
+    @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 3, lowerFixnum = { 3, 4 })
     public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
@@ -1240,7 +1240,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_enc_left_char_head", onSingleton = true, required = 3)
+    @CoreMethod(names = "rb_enc_left_char_head", onSingleton = true, required = 3, lowerFixnum = { 3, 4, 5 })
     public abstract static class RbEncLeftCharHeadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
@@ -1251,7 +1251,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 3)
+    @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 3, lowerFixnum = { 3, 4 })
     public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
