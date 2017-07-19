@@ -157,7 +157,12 @@ public abstract class ArrayNodes {
             }
 
             final int size = strategy.getSize(array);
-            final int newSize = size * count;
+            final int newSize;
+            try {
+                newSize = Math.multiplyExact(size, count);
+            } catch (ArithmeticException e) {
+                throw new RaiseException(coreExceptions().rangeError("new array size too large", this));
+            }
             final ArrayMirror store = strategy.newMirror(array);
             final ArrayMirror newStore = strategy.newArray(newSize);
             for (int n = 0; n < count; n++) {
@@ -172,7 +177,7 @@ public abstract class ArrayNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject mulLong(DynamicObject array, long size) {
-            throw new RaiseException(coreExceptions().argumentError("array size too big", this));
+            throw new RaiseException(coreExceptions().rangeError("array size too big", this));
         }
 
         @Specialization(guards = "!isInteger(object)")

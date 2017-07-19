@@ -253,6 +253,11 @@ public abstract class StringNodes {
             throw new RaiseException(coreExceptions().argumentError("negative argument", this));
         }
 
+        @Specialization(guards = "times < 0")
+        public DynamicObject multiplyTimesNegative(DynamicObject string, long times) {
+            throw new RaiseException(coreExceptions().argumentError("negative argument", this));
+        }
+
         @Specialization(guards = "times >= 0")
         public DynamicObject multiply(DynamicObject string, int times,
                                       @Cached("create()") MakeRepeatingNode makeRepeatingNode) {
@@ -261,12 +266,17 @@ public abstract class StringNodes {
             return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string), Layouts.STRING.build(false, false, repeated));
         }
 
-        @Specialization(guards = "isRubyBignum(times)")
-        public DynamicObject multiply(DynamicObject string, DynamicObject times) {
-            throw new RaiseException(coreExceptions().rangeError("bignum too big to convert into `long'", this));
+        @Specialization(guards = "times >= 0")
+        public DynamicObject multiply(DynamicObject string, long times) {
+            throw new RaiseException(coreExceptions().argumentError("'long' is too big to convert into 'int'", this));
         }
 
-        @Specialization(guards = { "!isRubyBignum(times)", "!isInteger(times)" })
+        @Specialization(guards = "isRubyBignum(times)")
+        public DynamicObject multiply(DynamicObject string, DynamicObject times) {
+            throw new RaiseException(coreExceptions().rangeError("bignum too big to convert into `int'", this));
+        }
+
+        @Specialization(guards = { "!isRubyBignum(times)", "!isInteger(times)", "!isLong(times)" })
         public DynamicObject multiply(VirtualFrame frame, DynamicObject string, Object times) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
