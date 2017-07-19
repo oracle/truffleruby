@@ -21,7 +21,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <errno.h>
-#include <limits.h>
 #include <fcntl.h>
 
 // Private helper macros just for ruby.c
@@ -79,6 +78,20 @@ void rb_check_safe_obj(VALUE object) {
 
 bool SYMBOL_P(VALUE value) {
   return truffle_invoke_b(RUBY_CEXT, "SYMBOL_P", value);
+}
+
+VALUE rb_obj_hide(VALUE obj) {
+    // In MRI, this deletes the class information which is later set by rb_obj_reveal.
+    // It also hides the object from each_object, we do not hide it.
+    return obj;
+}
+
+VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
+    // In MRI, this sets the class of the object, we are not deleting the class in rb_obj_hide, so we
+    // ensure that class matches.
+    return truffle_invoke(RUBY_CEXT, "ensure_class", obj, klass,
+           rb_str_new_cstr("class %s supplied to rb_obj_reveal does not matches the obj's class %s"));
+    return obj;
 }
 
 // Constants
@@ -491,6 +504,10 @@ VALUE rb_int2inum(SIGNED_VALUE n) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", n);
 }
 
+VALUE rb_uint2inum(VALUE n) {
+  return (VALUE) truffle_invoke(RUBY_CEXT, "ULONG2NUM", n);
+}
+
 VALUE rb_ll2inum(LONG_LONG n) {
   /* Long and long long are both 64-bits with clang x86-64. */
   return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", n);
@@ -882,6 +899,26 @@ double RFLOAT_VALUE(VALUE value){
 
 char *RSTRING_PTR_IMPL(VALUE string) {
   return (char *)truffle_invoke(RUBY_CEXT, "RSTRING_PTR", string);
+}
+
+char *RSTRING_END(VALUE string) {
+  return (char *)truffle_invoke(RUBY_CEXT, "RSTRING_END", string);
+}
+
+int MBCLEN_NEEDMORE_P(int r) {
+  return truffle_invoke_i(RUBY_CEXT, "MBCLEN_NEEDMORE_P", r);
+}
+
+int MBCLEN_NEEDMORE_LEN(int r) {
+  return truffle_invoke_i(RUBY_CEXT, "MBCLEN_NEEDMORE_LEN", r);
+}
+
+int MBCLEN_CHARFOUND_P(int r) {
+  return truffle_invoke_i(RUBY_CEXT, "MBCLEN_CHARFOUND_P", r);
+}
+
+int MBCLEN_CHARFOUND_LEN(int r) {
+  return truffle_invoke_i(RUBY_CEXT, "MBCLEN_CHARFOUND_LEN", r);
 }
 
 int rb_str_len(VALUE string) {
@@ -1311,9 +1348,78 @@ int rb_enc_get_index(VALUE obj) {
   return truffle_invoke_i(RUBY_CEXT, "rb_enc_get_index", obj);
 }
 
+char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc){
+  int length = start-end;
+  int position = truffle_invoke_i(RUBY_CEXT, "rb_enc_left_char_head",
+      rb_enc_from_encoding(enc),
+      rb_str_new(start, length),
+      0,
+      p-start,
+      length);
+  return start+position;
+}
+
+int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc) {
+  int length = p-e;
+  return truffle_invoke_i(RUBY_CEXT, "rb_enc_precise_mbclen",
+      rb_enc_from_encoding(enc),
+      rb_str_new(p, length),
+      0,
+      length);
+}
+
 VALUE rb_str_times(VALUE string, VALUE times) {
   rb_tr_error("rb_str_times not implemented");
 }
+
+int rb_enc_dummy_p(rb_encoding *enc) {
+  return truffle_invoke_i(rb_enc_from_encoding(enc), "dummy?");
+}
+
+int rb_enc_mbmaxlen(rb_encoding *enc) {
+  return truffle_invoke_i(RUBY_CEXT, "rb_enc_mbmaxlen", rb_enc_from_encoding(enc));
+}
+
+int rb_enc_mbminlen(rb_encoding *enc) {
+  return truffle_invoke_i(RUBY_CEXT, "rb_enc_mbminlen", rb_enc_from_encoding(enc));
+}
+
+int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc) {
+  int length = e-p;
+  return truffle_invoke_i(RUBY_CEXT, "rb_enc_mbclen",
+      rb_enc_from_encoding(enc),
+      rb_str_new(p, length),
+      0,
+      length);
+}
+
+void rb_econv_close(rb_econv_t *ec) {
+  rb_tr_error("rb_econv_close not implemented");
+}
+
+rb_econv_t *rb_econv_open_opts(const char *source_encoding, const char *destination_encoding, int ecflags, VALUE opthash) {
+  rb_tr_error("rb_econv_open_opts not implemented");
+}
+
+VALUE rb_econv_str_convert(rb_econv_t *ec, VALUE src, int flags) {
+  rb_tr_error("rb_econv_str_convert not implemented");
+}
+
+rb_econv_result_t rb_econv_convert(rb_econv_t *ec,
+    const unsigned char **input_ptr, const unsigned char *input_stop,
+    unsigned char **output_ptr, unsigned char *output_stop,
+    int flags) {
+  rb_tr_error("rb_econv_convert not implemented");
+}
+
+void rb_econv_check_error(rb_econv_t *ec) {
+  rb_tr_error("rb_econv_check_error not implemented");
+}
+
+int rb_econv_prepare_opts(VALUE opthash, VALUE *opts) {
+  rb_tr_error("rb_ary_each not implemented");
+}
+
 
 // Symbol
 
@@ -1684,6 +1790,23 @@ VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
 }
 
+void rb_check_arity(int argc, int min, int max)
+{
+  if ((argc < min) || (max != UNLIMITED_ARGUMENTS && argc > max))
+    rb_tr_error("bad arity"); // TODO (pitr-ch 08-Jun-2017): fix error message
+}
+
+char* ruby_strdup(const char *str)
+{
+    char *tmp;
+    size_t len = strlen(str) + 1;
+
+    tmp = xmalloc(len);
+    memcpy(tmp, str, len);
+
+    return tmp;
+}
+
 // Calls
 
 int rb_respond_to(VALUE object, ID name) {
@@ -1908,6 +2031,10 @@ void rb_set_errinfo(VALUE error) {
   truffle_invoke(RUBY_CEXT, "rb_set_errinfo", error);
 }
 
+VALUE rb_errinfo(void) {
+  return truffle_invoke(RUBY_CEXT, "rb_errinfo");
+}
+
 void rb_syserr_fail(int eno, const char *message) {
   truffle_invoke(RUBY_CEXT, "rb_syserr_fail", eno, message == NULL ? Qnil : rb_str_new_cstr(message));
 }
@@ -2037,6 +2164,10 @@ void rb_attr(VALUE ruby_class, ID name, int read, int write, int ex) {
 
 void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function) {
   truffle_invoke(RUBY_CEXT, "rb_define_alloc_func", ruby_class, truffle_address_to_function(alloc_function));
+}
+
+void rb_undef_alloc_func(VALUE ruby_class) {
+  truffle_invoke(RUBY_CEXT, "rb_undef_alloc_func", ruby_class);
 }
 
 VALUE rb_obj_method(VALUE obj, VALUE vid) {
@@ -2438,6 +2569,16 @@ int rb_tr_writable(int mode) {
   return truffle_invoke_i(RUBY_CEXT, "rb_tr_writable", mode);
 }
 
+int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **enc2_p, int *fmode_p) {
+  // TODO (pitr-ch 12-Jun-2017): review, just approximate implementation
+  VALUE IO = rb_tr_get_IO();
+  VALUE external_encoding = truffle_invoke(IO, "external_encoding");
+  VALUE internal_encoding = truffle_invoke(IO, "internal_encoding");
+  *enc_p = rb_to_encoding(external_encoding);
+  *enc2_p = rb_to_encoding(internal_encoding);
+  return 1;
+}
+
 // Structs
 
 VALUE rb_struct_aref(VALUE s, VALUE idx) {
@@ -2598,17 +2739,4 @@ void rb_tr_release_handle(void *handle) {
 void rb_tr_load_library(const char *library) {
   const char *real_c_string = ruby_strdup(library);
   truffle_load_library(real_c_string);
-}
-
-// util
-char *
-ruby_strdup(const char *str)
-{
-    char *tmp;
-    size_t len = strlen(str) + 1;
-
-    tmp = xmalloc(len);
-    memcpy(tmp, str, len);
-
-    return tmp;
 }

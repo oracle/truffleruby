@@ -129,6 +129,20 @@ module Truffle::CExt
     alias_method :to_s, :string
   end
 
+  class RStringPtrEnd
+    def initialize(string)
+      @string = string
+    end
+
+    def size
+      0
+    end
+
+    def to_native
+      Rubinius::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize)
+    end
+  end
+
   T_NONE     = 0x00
 
   T_OBJECT   = 0x01
@@ -165,6 +179,20 @@ module Truffle::CExt
   RUBY_ENC_CODERANGE_7BIT = 1
   RUBY_ENC_CODERANGE_VALID = 2
   RUBY_ENC_CODERANGE_BROKEN = 4
+
+  RUBY_ECONV_INVALID_MASK = Encoding::Converter::INVALID_MASK
+  RUBY_ECONV_INVALID_REPLACE = Encoding::Converter::INVALID_REPLACE
+  RUBY_ECONV_UNDEF_MASK = Encoding::Converter::UNDEF_MASK
+  RUBY_ECONV_UNDEF_REPLACE = Encoding::Converter::UNDEF_REPLACE
+  RUBY_ECONV_UNDEF_HEX_CHARREF = Encoding::Converter::UNDEF_HEX_CHARREF
+  RUBY_ECONV_UNIVERSAL_NEWLINE_DECORATOR = Encoding::Converter::UNIVERSAL_NEWLINE_DECORATOR
+  RUBY_ECONV_CRLF_NEWLINE_DECORATOR = Encoding::Converter::CRLF_NEWLINE_DECORATOR
+  RUBY_ECONV_CR_NEWLINE_DECORATOR = Encoding::Converter::CR_NEWLINE_DECORATOR
+  RUBY_ECONV_XML_TEXT_DECORATOR = Encoding::Converter::XML_TEXT_DECORATOR
+  RUBY_ECONV_XML_ATTR_CONTENT_DECORATOR = Encoding::Converter::XML_ATTR_CONTENT_DECORATOR
+  RUBY_ECONV_XML_ATTR_QUOTE_DECORATOR = Encoding::Converter::XML_ATTR_QUOTE_DECORATOR
+  RUBY_ECONV_PARTIAL_INPUT = Encoding::Converter::PARTIAL_INPUT
+  RUBY_ECONV_AFTER_OUTPUT = Encoding::Converter::AFTER_OUTPUT
 
   if Truffle::Boot.get_option 'cexts.lock'
     SYNC = Mutex.new
@@ -265,6 +293,10 @@ module Truffle::CExt
     if rb_type(value) != type
       raise 'unexpected type'
     end
+  end
+
+  def ensure_class(obj, klass, message = 'expected class %s, but object class is %s')
+    raise TypeError, format(message, klass, obj.class) unless obj.is_a? klass
   end
 
   def rb_method_boundp(klass, id, ex)
@@ -1287,6 +1319,10 @@ module Truffle::CExt
     $! = error
   end
 
+  def rb_errinfo
+    $!
+  end
+
   def rb_raise(object, name)
     raise 'not implemented'
   end
@@ -1404,6 +1440,10 @@ module Truffle::CExt
     class << ruby_class
       private :__allocate__
     end
+  end
+
+  def rb_undef_alloc_func(ruby_class)
+    ruby_class.singleton_class.send(:undef_method, :__allocate__)
   end
 
   def rb_alias(mod, new_name, old_name)
@@ -1826,6 +1866,10 @@ module Truffle::CExt
 
   def RSTRING_PTR(string)
     RStringPtr.new(string)
+  end
+
+  def RSTRING_END(string)
+    RStringPtrEnd.new(string)
   end
 
   def rb_tr_obj_id(object)

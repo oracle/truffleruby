@@ -94,7 +94,7 @@ NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object
 
 NORETURN(void rb_tr_error(const char *message));
 void rb_tr_log_warning(const char *message);
-#define rb_tr_debug(object) truffle_invoke(RUBY_CEXT, "rb_tr_debug", object)
+#define rb_tr_debug(args...) truffle_invoke(RUBY_CEXT, "rb_tr_debug", args)
 long rb_tr_obj_id(VALUE object);
 void rb_tr_hidden_variable_set(VALUE object, const char *name, VALUE value);
 VALUE rb_tr_hidden_variable_get(VALUE object, const char *name);
@@ -109,15 +109,17 @@ void rb_tr_release_handle(void *handle);
 
 // Memory
 
-#define xmalloc       ruby_xmalloc
-#define xcalloc       ruby_xcalloc
-#define xrealloc      ruby_xrealloc
-#define xfree         ruby_xfree
+#define xmalloc                     ruby_xmalloc
+#define xmalloc2                    ruby_xmalloc2
+#define xcalloc                     ruby_xcalloc
+#define xrealloc                    ruby_xrealloc
+#define xfree                       ruby_xfree
 // TODO CS 4-Mar-17 malloc and all these macros should be a version that throws an exception on failure
-#define ruby_xmalloc  malloc
-#define ruby_xcalloc  calloc
-#define ruby_xrealloc realloc
-#define ruby_xfree    free
+#define ruby_xmalloc                malloc
+#define ruby_xmalloc2(items, size)  malloc((items)*(size))
+#define ruby_xcalloc                calloc
+#define ruby_xrealloc               realloc
+#define ruby_xfree                  free
 
 #define ALLOC_N(type, n)            ((type *)malloc(sizeof(type) * (n)))
 #define ALLOCA_N(type, n)           ((type *)alloca(sizeof(type) * (n)))
@@ -405,6 +407,7 @@ char RB_NUM2CHR(VALUE x);
 #define NUM2CHR(x) RB_NUM2CHR(x)
 int rb_cmpint(VALUE val, VALUE a, VALUE b);
 VALUE rb_int2inum(SIGNED_VALUE n);
+VALUE rb_uint2inum(VALUE n);
 VALUE rb_ll2inum(LONG_LONG n);
 VALUE rb_ull2inum(unsigned LONG_LONG val);
 double rb_num2dbl(VALUE val);
@@ -453,6 +456,7 @@ int rb_method_boundp(VALUE klass, ID id, int ex);
 
 VALUE rb_obj_dup(VALUE object);
 VALUE rb_any_to_s(VALUE object);
+#define rb_obj_as_string(object) rb_any_to_s(object)
 VALUE rb_obj_instance_variables(VALUE object);
 VALUE rb_check_convert_type(VALUE object, int type, const char *type_name, const char *method);
 VALUE rb_check_to_integer(VALUE object, const char *method);
@@ -509,6 +513,9 @@ VALUE rb_obj_frozen_p(VALUE object);
 #define OBJ_FREEZE_RAW(object)          rb_obj_freeze(object)
 #define OBJ_FREEZE(object)              rb_obj_freeze(object)
 
+VALUE rb_obj_hide(VALUE obj);
+VALUE rb_obj_reveal(VALUE obj, VALUE klass);
+
 // Integer
 
 VALUE rb_Integer(VALUE value);
@@ -557,16 +564,76 @@ typedef struct {
 } rb_encoding;
 
 enum ruby_coderange_type {
-    RUBY_ENC_CODERANGE_UNKNOWN	= 0,
-    RUBY_ENC_CODERANGE_7BIT	    = 1,
+    RUBY_ENC_CODERANGE_UNKNOWN  = 0,
+    RUBY_ENC_CODERANGE_7BIT     = 1,
     RUBY_ENC_CODERANGE_VALID    = 2,
-    RUBY_ENC_CODERANGE_BROKEN	  = 4
+    RUBY_ENC_CODERANGE_BROKEN   = 4
 };
 
 #define ENC_CODERANGE_UNKNOWN   RUBY_ENC_CODERANGE_UNKNOWN
 #define ENC_CODERANGE_7BIT      RUBY_ENC_CODERANGE_7BIT
 #define ENC_CODERANGE_VALID     RUBY_ENC_CODERANGE_VALID
 #define ENC_CODERANGE_BROKEN    RUBY_ENC_CODERANGE_BROKEN
+
+enum ruby_econv_flag_type {
+/* flags for rb_econv_open */
+    RUBY_ECONV_ERROR_HANDLER_MASK               = 0x000000ff,
+
+    RUBY_ECONV_INVALID_MASK                     = 0x0000000f,
+    RUBY_ECONV_INVALID_REPLACE                  = 0x00000002,
+
+    RUBY_ECONV_UNDEF_MASK                       = 0x000000f0,
+    RUBY_ECONV_UNDEF_REPLACE                    = 0x00000020,
+    RUBY_ECONV_UNDEF_HEX_CHARREF                = 0x00000030,
+
+    RUBY_ECONV_DECORATOR_MASK                   = 0x0000ff00,
+    RUBY_ECONV_NEWLINE_DECORATOR_MASK           = 0x00003f00,
+    RUBY_ECONV_NEWLINE_DECORATOR_READ_MASK      = 0x00000f00,
+    RUBY_ECONV_NEWLINE_DECORATOR_WRITE_MASK     = 0x00003000,
+
+    RUBY_ECONV_UNIVERSAL_NEWLINE_DECORATOR      = 0x00000100,
+    RUBY_ECONV_CRLF_NEWLINE_DECORATOR           = 0x00001000,
+    RUBY_ECONV_CR_NEWLINE_DECORATOR             = 0x00002000,
+    RUBY_ECONV_XML_TEXT_DECORATOR               = 0x00004000,
+    RUBY_ECONV_XML_ATTR_CONTENT_DECORATOR       = 0x00008000,
+
+    RUBY_ECONV_STATEFUL_DECORATOR_MASK          = 0x00f00000,
+    RUBY_ECONV_XML_ATTR_QUOTE_DECORATOR         = 0x00100000,
+
+    RUBY_ECONV_DEFAULT_NEWLINE_DECORATOR        = 0x00000000,
+    /* end of flags for rb_econv_open */
+
+    /* flags for rb_econv_convert */
+    RUBY_ECONV_PARTIAL_INPUT                    = 0x00010000,
+    RUBY_ECONV_AFTER_OUTPUT                     = 0x00020000,
+    /* end of flags for rb_econv_convert */
+};
+
+//#define ECONV_ERROR_HANDLER_MASK                RUBY_ECONV_ERROR_HANDLER_MASK
+#define ECONV_INVALID_MASK                      RUBY_ECONV_INVALID_MASK
+#define ECONV_INVALID_REPLACE                   RUBY_ECONV_INVALID_REPLACE
+#define ECONV_UNDEF_MASK                        RUBY_ECONV_UNDEF_MASK
+#define ECONV_UNDEF_REPLACE                     RUBY_ECONV_UNDEF_REPLACE
+#define ECONV_UNDEF_HEX_CHARREF                 RUBY_ECONV_UNDEF_HEX_CHARREF
+//#define ECONV_DECORATOR_MASK                    RUBY_ECONV_DECORATOR_MASK
+//#define ECONV_NEWLINE_DECORATOR_MASK            RUBY_ECONV_NEWLINE_DECORATOR_MASK
+//#define ECONV_NEWLINE_DECORATOR_READ_MASK       RUBY_ECONV_NEWLINE_DECORATOR_READ_MASK
+//#define ECONV_NEWLINE_DECORATOR_WRITE_MASK      RUBY_ECONV_NEWLINE_DECORATOR_WRITE_MASK
+#define ECONV_UNIVERSAL_NEWLINE_DECORATOR       RUBY_ECONV_UNIVERSAL_NEWLINE_DECORATOR
+#define ECONV_CRLF_NEWLINE_DECORATOR            RUBY_ECONV_CRLF_NEWLINE_DECORATOR
+#define ECONV_CR_NEWLINE_DECORATOR              RUBY_ECONV_CR_NEWLINE_DECORATOR
+#define ECONV_XML_TEXT_DECORATOR                RUBY_ECONV_XML_TEXT_DECORATOR
+#define ECONV_XML_ATTR_CONTENT_DECORATOR        RUBY_ECONV_XML_ATTR_CONTENT_DECORATOR
+//#define ECONV_STATEFUL_DECORATOR_MASK           RUBY_ECONV_STATEFUL_DECORATOR_MASK
+#define ECONV_XML_ATTR_QUOTE_DECORATOR          RUBY_ECONV_XML_ATTR_QUOTE_DECORATOR
+//#define ECONV_DEFAULT_NEWLINE_DECORATOR         RUBY_ECONV_DEFAULT_NEWLINE_DECORATOR
+/* end of flags for rb_econv_open */
+
+/* flags for rb_econv_convert */
+#define ECONV_PARTIAL_INPUT 0
+//#define ECONV_PARTIAL_INPUT                     RUBY_ECONV_PARTIAL_INPUT
+#define ECONV_AFTER_OUTPUT                      RUBY_ECONV_AFTER_OUTPUT
+/* end of flags for rb_econv_convert */
 
 #define PRI_VALUE_PREFIX        "l"
 #define PRI_LONG_PREFIX         "l"
@@ -581,7 +648,13 @@ enum ruby_coderange_type {
 
 #define RSTRING_PTR(str) RSTRING_PTR_IMPL(str)
 
+int MBCLEN_NEEDMORE_P(int r);
+int MBCLEN_CHARFOUND_P(int r);
+int MBCLEN_CHARFOUND_LEN(int r);
+int MBCLEN_NEEDMORE_LEN(int r);
+
 char *RSTRING_PTR_IMPL(VALUE string);
+char *RSTRING_END(VALUE string);
 int rb_str_len(VALUE string);
 #define RSTRING_LEN(str) (long)rb_str_len(str)
 #define RSTRING_LENINT(str) rb_str_len(str)
@@ -627,6 +700,7 @@ int rb_filesystem_encindex(void);
 rb_encoding *get_encoding(VALUE string);
 #define STR_ENC_GET(string) get_encoding(string)
 #define rb_str_dup(string) rb_obj_dup(string)
+#define rb_str_resurrect(string) rb_obj_dup(string)
 #define rb_str_freeze(string) rb_obj_freeze(string)
 #define rb_str_inspect(string) rb_inspect(string)
 VALUE rb_str_intern(VALUE string);
@@ -671,7 +745,7 @@ VALUE rb_str_resize(VALUE string, long length);
 #define RSTRING_GETMEM(string, data_pointer, length_pointer) ((data_pointer) = RSTRING_PTR(string), (length_pointer) = rb_str_len(string))
 VALUE rb_str_split(VALUE string, const char *split);
 void rb_str_modify(VALUE string);
-#define ENC_CODERANGE_7BIT	RUBY_ENC_CODERANGE_7BIT
+#define ENC_CODERANGE_7BIT RUBY_ENC_CODERANGE_7BIT
 enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj);
 #define RB_ENC_CODERANGE_ASCIIONLY(obj) (RB_ENC_CODERANGE(obj) == RUBY_ENC_CODERANGE_7BIT)
 #define ENC_CODERANGE_ASCIIONLY(obj) RB_ENC_CODERANGE_ASCIIONLY(obj)
@@ -695,6 +769,35 @@ int rb_to_encoding_index(VALUE enc);
 char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc);
 #define rb_enc_name(enc) ((enc)->name)
 int rb_enc_get_index(VALUE obj);
+char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc);
+int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc);
+int rb_enc_dummy_p(rb_encoding *enc);
+int rb_enc_mbmaxlen(rb_encoding *enc);
+int rb_enc_mbminlen(rb_encoding *enc);
+int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc);
+
+struct rb_econv_t {};
+typedef enum {
+    econv_invalid_byte_sequence,
+    econv_undefined_conversion,
+    econv_destination_buffer_full,
+    econv_source_buffer_empty,
+    econv_finished,
+    econv_after_output,
+    econv_incomplete_input
+} rb_econv_result_t;
+typedef struct rb_econv_t rb_econv_t;
+
+void rb_econv_close(rb_econv_t *ec);
+rb_econv_t *rb_econv_open_opts(const char *source_encoding, const char *destination_encoding, int ecflags, VALUE opthash);
+VALUE rb_econv_str_convert(rb_econv_t *ec, VALUE src, int flags);
+rb_econv_result_t rb_econv_convert(rb_econv_t *ec,
+    const unsigned char **input_ptr, const unsigned char *input_stop,
+    unsigned char **output_ptr, unsigned char *output_stop,
+    int flags);
+void rb_econv_check_error(rb_econv_t *ec);
+int rb_econv_prepare_opts(VALUE opthash, VALUE *opts);
+
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer);
 MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer);
 MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer);
@@ -842,6 +945,14 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv);
 
+#define RETURN_ENUMERATOR_NAME(obj, meth, argc, argv) do {      \
+    if (!rb_block_given_p())                                    \
+        return rb_enumeratorize((obj), (meth), (argc), (argv)); \
+} while (0)
+
+#define UNLIMITED_ARGUMENTS (-1)
+void rb_check_arity(int argc, int min, int max);
+
 // Calls
 
 int rb_respond_to(VALUE object, ID name);
@@ -910,6 +1021,7 @@ NORETURN(void rb_exc_raise(VALUE exception));
 
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status);
 void rb_jump_tag(int status);
+VALUE rb_errinfo(void);
 void rb_set_errinfo(VALUE error);
 void rb_syserr_fail(int eno, const char *message);
 void rb_sys_fail(const char *message);
@@ -943,6 +1055,8 @@ void rb_undef(VALUE module, ID name);
 void rb_attr(VALUE ruby_class, ID name, int read, int write, int ex);
 typedef VALUE (*rb_alloc_func_t)(VALUE ruby_class);
 void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function);
+void rb_undef_alloc_func(VALUE klass);
+
 VALUE rb_obj_method(VALUE obj, VALUE vid);
 
 // Mutexes
@@ -1089,6 +1203,7 @@ VALUE rb_get_path(VALUE object);
 int rb_tr_readable(int mode);
 int rb_tr_writable(int mode);
 #define FilePathValue(v) (v = rb_get_path(v))
+int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **enc2_p, int *fmode_p);
 
 #define GetOpenFile(file, pointer) ( \
     (pointer) = truffle_managed_malloc(sizeof(rb_io_t)), \

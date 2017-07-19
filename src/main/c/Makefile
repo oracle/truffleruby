@@ -11,13 +11,15 @@ endif
 no_clang:
 	@echo "WARNING: clang is not avaiable on this platform - not building cexts" 1>&2
 
-all: $(ROOT)/lib/cext/ruby.su $(ROOT)/lib/mri/openssl.su
+all: $(ROOT)/lib/cext/ruby.su $(ROOT)/lib/mri/openssl.su $(ROOT)/lib/mri/zlib.su
 
 clean:
 	rm -f $(ROOT)/lib/cext/ruby.su
 	rm -f cext/Makefile cext/*.bc cext/ruby.su
 	rm -f $(ROOT)/lib/mri/openssl.su
 	rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
+	rm -f $(ROOT)/lib/mri/zlib.su
+	rm -f zlib/Makefile zlib/*.bc zlib/zlib.su
 
 # ruby.su
 cext/Makefile: cext/extconf.rb
@@ -30,7 +32,7 @@ $(ROOT)/lib/cext/ruby.su: cext/ruby.su
 	cp $< $@
 
 # openssl.su
-openssl/Makefile: openssl/extconf.rb
+openssl/Makefile: $(ROOT)/lib/cext/ruby.su openssl/extconf.rb
 	cd openssl && $(RUBY) extconf.rb
 
 openssl/openssl.su: openssl/Makefile openssl/*.c openssl/*.h
@@ -38,3 +40,14 @@ openssl/openssl.su: openssl/Makefile openssl/*.c openssl/*.h
 
 $(ROOT)/lib/mri/openssl.su: openssl/openssl.su
 	cp $< $@
+
+# zlib.su
+zlib/Makefile: $(ROOT)/lib/cext/ruby.su zlib/extconf.rb
+	cd zlib && $(RUBY) extconf.rb
+
+zlib/zlib.su: zlib/Makefile zlib/zlib.c
+	cd zlib && $(MAKE)
+
+$(ROOT)/lib/mri/zlib.su: zlib/zlib.su
+	cp $< $@
+

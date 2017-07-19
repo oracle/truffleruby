@@ -19,9 +19,7 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -31,7 +29,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.Log;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -41,6 +38,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
@@ -94,10 +92,7 @@ import org.truffleruby.platform.FDSet;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
@@ -1063,13 +1058,18 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_tr_debug", onSingleton = true, required = 1)
+    @CoreMethod(names = "rb_tr_debug", onSingleton = true, rest = true)
     public abstract static class DebugNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        public Object debug(Object object) {
-            System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), object);
+        public Object debug(Object... objects) {
+            if (objects.length > 1) {
+                System.err.printf("Printing %d values%n", objects.length);
+            }
+            for (Object object : objects) {
+                System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), object);
+            }
             return nil();
         }
     }
@@ -1166,4 +1166,99 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "MBCLEN_NEEDMORE_P", onSingleton = true, required = 1, lowerFixnum = 1)
+    public abstract static class MBCLEN_NEEDMORE_PNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object mbclenNeedMoreP(int r) {
+            return StringSupport.MBCLEN_NEEDMORE_P(r);
+        }
+
+    }
+
+    @CoreMethod(names = "MBCLEN_NEEDMORE_LEN", onSingleton = true, required = 1, lowerFixnum = 1)
+    public abstract static class MBCLEN_NEEDMORE_LENNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object mbclenNeedMoreLen(int r) {
+            return StringSupport.MBCLEN_NEEDMORE_LEN(r);
+        }
+
+    }
+
+    @CoreMethod(names = "MBCLEN_CHARFOUND_P", onSingleton = true, required = 1, lowerFixnum = 1)
+    public abstract static class MBCLEN_CHARFOUND_PNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object mbclenCharFoundP(int r) {
+            return StringSupport.MBCLEN_CHARFOUND_P(r);
+        }
+
+    }
+
+    @CoreMethod(names = "MBCLEN_CHARFOUND_LEN", onSingleton = true, required = 1, lowerFixnum = 1)
+    public abstract static class MBCLEN_CHARFOUND_LENNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object mbclenCharFoundLen(int r) {
+            return StringSupport.MBCLEN_CHARFOUND_LEN(r);
+        }
+
+    }
+
+    @CoreMethod(names = "rb_enc_mbmaxlen", onSingleton = true, required = 1)
+    public abstract static class RbEncMaxLenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyEncoding(value)")
+        public Object rbEncMaxLen(DynamicObject value) {
+            return EncodingOperations.getEncoding(value).maxLength();
+        }
+
+    }
+
+    @CoreMethod(names = "rb_enc_mbminlen", onSingleton = true, required = 1)
+    public abstract static class RbEncMinLenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyEncoding(value)")
+        public Object rbEncMinLen(DynamicObject value) {
+            return EncodingOperations.getEncoding(value).minLength();
+        }
+
+    }
+
+    @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 3, lowerFixnum = { 3, 4 })
+    public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
+        public Object rbEncMbLen(DynamicObject enc, DynamicObject str, int p, int e) {
+            return StringSupport.length(
+                    EncodingOperations.getEncoding(enc),
+                    StringOperations.rope(str).getBytes(),
+                    p,
+                    e);
+        }
+
+    }
+
+    @CoreMethod(names = "rb_enc_left_char_head", onSingleton = true, required = 3, lowerFixnum = { 3, 4, 5 })
+    public abstract static class RbEncLeftCharHeadNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
+        public Object rbEncLeftCharHead(DynamicObject enc, DynamicObject str, int start, int p, int end) {
+            return EncodingOperations.getEncoding(enc).leftAdjustCharHead(
+                    StringOperations.rope(str).getBytes(), start, p, end);
+        }
+
+    }
+
+    @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 3, lowerFixnum = { 3, 4 })
+    public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
+        public Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end) {
+            return StringSupport.preciseLength(
+                    EncodingOperations.getEncoding(enc), StringOperations.rope(str).getBytes(), p, end);
+        }
+
+    }
 }
