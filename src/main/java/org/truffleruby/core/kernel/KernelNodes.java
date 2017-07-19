@@ -562,9 +562,13 @@ public abstract class KernelNodes {
                 Rope file,
                 int line,
                 boolean ownScopeForAssignments) {
-            final MaterializedFrame frame = BindingNodes.getExtrasFrame(getContext(), binding);
+            final MaterializedFrame frame = BindingNodes.newExtrasFrame(getContext(), BindingNodes.getTopFrame(binding));
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
+            final FrameDescriptor descriptor = frame.getFrameDescriptor();
             RubyRootNode rootNode = buildRootNode(source, frame, file, line, false);
+            if (!frameHasOnlySelf(descriptor)) {
+                Layouts.BINDING.setExtras(binding, frame);
+            }
             return getContext().getCodeLoader().prepareExecute(
                     ParserContext.EVAL, declarationContext, rootNode, frame, self);
         }
@@ -621,6 +625,10 @@ public abstract class KernelNodes {
 
         protected boolean assignsNoNewVariables(RootNodeWrapper rootNode) {
             FrameDescriptor descriptor = rootNode.getRootNode().getFrameDescriptor();
+            return frameHasOnlySelf(descriptor);
+        }
+
+        private boolean frameHasOnlySelf(final FrameDescriptor descriptor) {
             return descriptor.getSize() == 1 && SelfNode.SELF_IDENTIFIER.equals(descriptor.getSlots().get(0).getIdentifier());
         }
     }
