@@ -90,7 +90,6 @@ class Regexp
     Truffle.primitive :regexp_initialize
     raise PrimitiveFailure, "Regexp.compile(#{pattern.inspect}, #{opts}) primitive failed"
   end
-
   private :compile
 
   def search_region(str, start, finish, forward) # equiv to MRI's re_search
