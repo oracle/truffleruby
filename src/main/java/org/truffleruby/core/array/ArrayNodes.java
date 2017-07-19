@@ -147,14 +147,9 @@ public abstract class ArrayNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
 
-        @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = { "!isEmptyArray(array)", "strategy.matches(array)", "count >= 0" }, limit = "ARRAY_STRATEGIES")
         public DynamicObject mulOther(DynamicObject array, int count,
-                @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("create()") BranchProfile errorProfile) {
-            if (count < 0) {
-                errorProfile.enter();
-                throw new RaiseException(coreExceptions().argumentError("negative argument", this));
-            }
+                @Cached("of(array)") ArrayStrategy strategy) {
 
             final int size = strategy.getSize(array);
             final int newSize;
@@ -174,17 +169,30 @@ public abstract class ArrayNodes {
             return result;
         }
 
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject mulLong(DynamicObject array, long size) {
+        @Specialization(guards = "count < 0")
+        public DynamicObject mulNeg(DynamicObject array, long count) {
+            throw new RaiseException(coreExceptions().argumentError("negative argument", this));
+        }
+
+        @Specialization(guards = { "!isEmptyArray(array)", "count >= 0", "!fitsInInteger(count)" })
+        public DynamicObject mulLong(DynamicObject array, long count) {
             throw new RaiseException(coreExceptions().rangeError("array size too big", this));
         }
 
-        @Specialization(guards = "!isInteger(object)")
+        @Specialization(guards = { "isEmptyArray(array)", "strategy.matches(array)" })
+        public DynamicObject mulEmpty(DynamicObject array, long count,
+                @Cached("of(array)") ArrayStrategy strategy) {
+            final ArrayMirror newStore = strategy.newArray(0);
+
+            final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), newStore.getArray(), 0);
+            propagateTaintNode.propagate(array, result);
+            return result;
+        }
+
+        @Specialization(guards = { "!isInteger(object)", "!isLong(object)" })
         public Object fallback(DynamicObject array, Object object) {
             return FAILURE;
         }
-
     }
 
     @Primitive(name = "array_aref", lowerFixnum = { 1, 2 })
