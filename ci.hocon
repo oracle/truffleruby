@@ -11,7 +11,6 @@ report-github-status: ["${BUILD_DIR}/tool/report-github-status.sh", "${REPORT_GI
 
 common-base: {
   downloads : {
-    JAVA_HOME : {name : oraclejdk, version : "8u60", platformspecific: true}
     MAVEN_HOME : {name : maven, version : "3.3.9"}
   }
 
@@ -49,12 +48,16 @@ common: ${common-base} {
     llvm:       "==3.8"
   }
 
+  downloads : {
+    JAVA_HOME : {name : oraclejdk, version : "8u60", platformspecific: true}
+  }
+
   environment: {
     PATH: "$LLVM/bin:$PATH",
   }
 }
 
-common-darwin: ${common-base} {
+common-darwin: ${common-base} ${labsjdk8} {
   packages: {
     # Homebrew doesn't support versions.
     mercurial: ""
