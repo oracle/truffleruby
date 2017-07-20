@@ -76,7 +76,7 @@ no-graal: {
 labsjdk8: {
   downloads: {
     JAVA_HOME: {
-      name: openjdk,
+      name: labsjdk,
       version: "8u121-jvmci-0.30",
       platformspecific: true
     }
