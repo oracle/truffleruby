@@ -3970,7 +3970,7 @@ public abstract class StringNodes {
                 final SubstringRope substringRope = (SubstringRope) base;
                 if (substringRope.isSingleByteOptimizable()) {
                     // the substring byte offset is also a character offset
-                    return searchForSingleByteOptimizableDescendant(substringRope.getChild(), index + substringRope.getOffset(), characterLength);
+                    return searchForSingleByteOptimizableDescendant(substringRope.getChild(), index + substringRope.getByteOffset(), characterLength);
                 } else {
                     return new SearchResult(index, substringRope);
                 }

@@ -15,18 +15,18 @@ import org.jcodings.Encoding;
 public class SubstringRope extends ManagedRope {
 
     private final Rope child;
-    private final int offset; // in bytes
+    private final int byteOffset;
 
     public SubstringRope(Encoding encoding, Rope child, boolean singleByteOptimizable, int offset, int byteLength, int characterLength, CodeRange codeRange) {
         // TODO (nirvdrum 07-Jan-16) Verify that this rope is only used for character substrings and not arbitrary byte slices. The former should always have the child's code range while the latter may not.
         this(child, encoding, singleByteOptimizable, offset, byteLength, characterLength, codeRange);
     }
 
-    private SubstringRope(Rope child, Encoding encoding, boolean singleByteOptimizable, int offset, int byteLength, int characterLength, CodeRange codeRange) {
+    private SubstringRope(Rope child, Encoding encoding, boolean singleByteOptimizable, int byteOffset, int byteLength, int characterLength, CodeRange codeRange) {
         // TODO (nirvdrum 07-Jan-16) Verify that this rope is only used for character substrings and not arbitrary byte slices. The former should always have the child's code range while the latter may not.
         super(encoding, codeRange, singleByteOptimizable, byteLength, characterLength, child.depth() + 1, null);
         this.child = child;
-        this.offset = offset;
+        this.byteOffset = byteOffset;
 
         assert byteLength <= child.byteLength();
     }
@@ -37,7 +37,7 @@ public class SubstringRope extends ManagedRope {
             throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
         }
 
-        return new SubstringRope(getChild(), newEncoding, getChild().isSingleByteOptimizable(), getOffset(), byteLength(), characterLength(), newCodeRange);
+        return new SubstringRope(getChild(), newEncoding, getChild().isSingleByteOptimizable(), getByteOffset(), byteLength(), characterLength(), newCodeRange);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class SubstringRope extends ManagedRope {
         if (child.getRawBytes() != null) {
             final byte[] ret = new byte[byteLength()];
 
-            System.arraycopy(child.getRawBytes(), offset, ret, 0, byteLength());
+            System.arraycopy(child.getRawBytes(), byteOffset, ret, 0, byteLength());
 
             return ret;
         }
@@ -55,21 +55,21 @@ public class SubstringRope extends ManagedRope {
 
     @Override
     public byte getByteSlow(int index) {
-        return child.getByteSlow(index + offset);
+        return child.getByteSlow(index + byteOffset);
     }
 
     public Rope getChild() {
         return child;
     }
 
-    public int getOffset() {
-        return offset;
+    public int getByteOffset() {
+        return byteOffset;
     }
 
     @Override
     public String toString() {
         // This should be used for debugging only.
-        final byte[] childBytes = RopeOperations.extractRange(child, offset, byteLength());
+        final byte[] childBytes = RopeOperations.extractRange(child, byteOffset, byteLength());
         return RopeOperations.decodeUTF8(childBytes, 0, childBytes.length);
     }
 
