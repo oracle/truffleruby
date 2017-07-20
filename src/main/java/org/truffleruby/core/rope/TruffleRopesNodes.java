@@ -135,7 +135,9 @@ public abstract class TruffleRopesNodes {
         }
 
         private static String getStructure(SubstringRope rope) {
-            return getStructure(rope.getChild()) + "[" + rope.getByteOffset() + ", " + rope.characterLength() + "]";
+            final Rope child = rope.getChild();
+            final int characterOffset = RopeOperations.strLength(child.getEncoding(), child.getBytes(), 0, rope.getByteOffset());
+            return getStructure(child) + "[" + characterOffset + ", " + rope.characterLength() + "]";
         }
 
         private static String getStructure(RepeatingRope rope) {
