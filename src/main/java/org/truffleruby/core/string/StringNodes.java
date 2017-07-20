@@ -95,7 +95,6 @@ import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.cast.ArrayAttributeCastNodeGen;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -2672,14 +2671,6 @@ public abstract class StringNodes {
             return StringNodesFactory.StringByteSubstringPrimitiveNodeFactory.create(null, null, null);
         }
 
-        @CreateCast("index") public RubyNode coerceIndexToInt(RubyNode index) {
-            return ArrayAttributeCastNodeGen.create("index", index);
-        }
-
-        @CreateCast("length") public RubyNode coerceLengthToInt(RubyNode length) {
-            return ArrayAttributeCastNodeGen.create("length", length);
-        }
-
         public Object executeStringByteSubstring(DynamicObject string, Object index, Object length) { return nil(); }
 
         @Specialization
@@ -2729,9 +2720,9 @@ public abstract class StringNodes {
             return taintResultNode.maybeTaint(string, result);
         }
 
-        @Specialization(guards = "isRubyRange(range)")
-        public Object stringByteSubstring(DynamicObject string, DynamicObject range, NotProvided length) {
-            return null;
+        @Fallback
+        public Object stringByteSubstring(Object string, Object range, Object length) {
+            return FAILURE;
         }
 
     }
