@@ -86,7 +86,7 @@ public abstract class TruffleRopesNodes {
             System.err.println("BL = Byte Length");
             System.err.println("CL = Character Length");
             System.err.println("CR = Code Range");
-            System.err.println("O = Offset (SubstringRope only)");
+            System.err.println("O = Byte Offset (SubstringRope only)");
             System.err.println("T = Times (RepeatingRope only)");
             System.err.println("D = Depth");
             System.err.println("LD = Left Depth (ConcatRope only)");
@@ -135,7 +135,7 @@ public abstract class TruffleRopesNodes {
         }
 
         private static String getStructure(SubstringRope rope) {
-            return getStructure(rope.getChild()) + "[" + rope.getOffset() + ", " + rope.characterLength() + "]";
+            return getStructure(rope.getChild()) + "[" + rope.getByteOffset() + ", " + rope.characterLength() + "]";
         }
 
         private static String getStructure(RepeatingRope rope) {

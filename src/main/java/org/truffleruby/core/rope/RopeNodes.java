@@ -49,7 +49,7 @@ public abstract class RopeNodes {
     // Preserves encoding of the top-level Rope
     @NodeChildren({
             @NodeChild(type = RubyNode.class, value = "base"),
-            @NodeChild(type = RubyNode.class, value = "offset"), // in bytes
+            @NodeChild(type = RubyNode.class, value = "byteOffset"),
             @NodeChild(type = RubyNode.class, value = "byteLength")
     })
     public abstract static class MakeSubstringNode extends RubyNode {
@@ -60,10 +60,10 @@ public abstract class RopeNodes {
             return RopeNodesFactory.MakeSubstringNodeGen.create(null, null, null);
         }
 
-        public abstract Rope executeMake(Rope base, int offset, int byteLength);
+        public abstract Rope executeMake(Rope base, int byteOffset, int byteLength);
 
         @Specialization(guards = "byteLength == 0")
-        public Rope substringZeroBytes(Rope base, int offset, int byteLength,
+        public Rope substringZeroBytes(Rope base, int byteOffset, int byteLength,
                                         @Cached("createBinaryProfile()") ConditionProfile isUTF8,
                                         @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
                                         @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
@@ -84,12 +84,12 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "byteLength == 1")
-        public Rope substringOneByte(Rope base, int offset, int byteLength,
+        public Rope substringOneByte(Rope base, int byteOffset, int byteLength,
                                         @Cached("createBinaryProfile()") ConditionProfile isUTF8,
                                         @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
                                         @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
                                         @Cached("create()") GetByteNode getByteNode) {
-            final int index = getByteNode.executeGetByte(base, offset);
+            final int index = getByteNode.executeGetByte(base, byteOffset);
 
             if (isUTF8.profile(base.getEncoding() == UTF8Encoding.INSTANCE)) {
                 return RopeConstants.UTF8_SINGLE_BYTE_ROPES[index];
@@ -107,39 +107,39 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "byteLength > 1", "sameAsBase(base, byteLength)" })
-        public Rope substringSameAsBase(Rope base, int offset, int byteLength) {
+        public Rope substringSameAsBase(Rope base, int byteOffset, int byteLength) {
             return base;
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringLeafRope(LeafRope base, int offset, int byteLength,
+        public Rope substringLeafRope(LeafRope base, int byteOffset, int byteLength,
                                   @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
                                   @Cached("createBinaryProfile()") ConditionProfile isBinaryStringProfile) {
-            return makeSubstring(base.getEncoding(), base, offset, byteLength, is7BitProfile, isBinaryStringProfile);
+            return makeSubstring(base.getEncoding(), base, byteOffset, byteLength, is7BitProfile, isBinaryStringProfile);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringSubstringRope(SubstringRope base, int offset, int byteLength,
+        public Rope substringSubstringRope(SubstringRope base, int byteOffset, int byteLength,
                                       @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
                                       @Cached("createBinaryProfile()") ConditionProfile isBinaryStringProfile) {
-            return substringSubstringRopeWithEncoding(base.getEncoding(), base, offset, byteLength, is7BitProfile, isBinaryStringProfile);
+            return substringSubstringRopeWithEncoding(base.getEncoding(), base, byteOffset, byteLength, is7BitProfile, isBinaryStringProfile);
         }
 
-        private Rope substringSubstringRopeWithEncoding(Encoding encoding, SubstringRope base, int offset, int byteLength, ConditionProfile is7BitProfile, ConditionProfile isBinaryStringProfile) {
-            return makeSubstring(encoding, base.getChild(), offset + base.getOffset(), byteLength, is7BitProfile, isBinaryStringProfile);
+        private Rope substringSubstringRopeWithEncoding(Encoding encoding, SubstringRope base, int byteOffset, int byteLength, ConditionProfile is7BitProfile, ConditionProfile isBinaryStringProfile) {
+            return makeSubstring(encoding, base.getChild(), byteOffset + base.getByteOffset(), byteLength, is7BitProfile, isBinaryStringProfile);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringRepeatingRope(RepeatingRope base, int offset, int byteLength,
+        public Rope substringRepeatingRope(RepeatingRope base, int byteOffset, int byteLength,
                                           @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
                                           @Cached("createBinaryProfile()") ConditionProfile isBinaryStringProfile,
                                           @Cached("createBinaryProfile()") ConditionProfile matchesChildProfile) {
-            return substringRepeatingRopeWithEncoding(base.getEncoding(), base, offset, byteLength, is7BitProfile, isBinaryStringProfile, matchesChildProfile);
+            return substringRepeatingRopeWithEncoding(base.getEncoding(), base, byteOffset, byteLength, is7BitProfile, isBinaryStringProfile, matchesChildProfile);
         }
 
-        private Rope substringRepeatingRopeWithEncoding(Encoding encoding, RepeatingRope base, int offset, int byteLength, ConditionProfile is7BitProfile, ConditionProfile isBinaryStringProfile,
+        private Rope substringRepeatingRopeWithEncoding(Encoding encoding, RepeatingRope base, int byteOffset, int byteLength, ConditionProfile is7BitProfile, ConditionProfile isBinaryStringProfile,
                 ConditionProfile matchesChildProfile) {
-            final boolean offsetFitsChild = offset % base.getChild().byteLength() == 0;
+            final boolean offsetFitsChild = byteOffset % base.getChild().byteLength() == 0;
             final boolean byteLengthFitsChild = byteLength == base.getChild().byteLength();
 
             // TODO (nirvdrum 07-Apr-16) We can specialize any number of children that fit perfectly into the length, not just count == 1. But we may need to create a new RepeatingNode to handle count > 1.
@@ -148,25 +148,25 @@ public abstract class RopeNodes {
                 return base.getChild();
             }
 
-            return makeSubstring(encoding, base, offset, byteLength, is7BitProfile, isBinaryStringProfile);
+            return makeSubstring(encoding, base, byteOffset, byteLength, is7BitProfile, isBinaryStringProfile);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringLazyRope(LazyRope base, int offset, int byteLength,
+        public Rope substringLazyRope(LazyRope base, int byteOffset, int byteLength,
                                            @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
                                            @Cached("createBinaryProfile()") ConditionProfile isBinaryStringProfile) {
-            return makeSubstring(base.getEncoding(), base, offset, byteLength, is7BitProfile, isBinaryStringProfile);
+            return makeSubstring(base.getEncoding(), base, byteOffset, byteLength, is7BitProfile, isBinaryStringProfile);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringNativeRope(NativeRope base, int offset, int byteLength,
+        public Rope substringNativeRope(NativeRope base, int byteOffset, int byteLength,
                                         @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
                                         @Cached("createBinaryProfile()") ConditionProfile isBinaryStringProfile) {
-            return makeSubstring(base.getEncoding(), base.toLeafRope(), offset, byteLength, is7BitProfile, isBinaryStringProfile);
+            return makeSubstring(base.getEncoding(), base.toLeafRope(), byteOffset, byteLength, is7BitProfile, isBinaryStringProfile);
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        public Rope substringConcatRope(ConcatRope base, int offset, int byteLength,
+        public Rope substringConcatRope(ConcatRope base, int byteOffset, int byteLength,
                                       @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
                                       @Cached("createBinaryProfile()") ConditionProfile isBinaryStringProfile,
                                       @Cached("createBinaryProfile()") ConditionProfile matchesChildProfile) {
@@ -178,14 +178,14 @@ public abstract class RopeNodes {
                 Rope right = concatRoot.getRight();
 
                 // CASE 1: Fits in left.
-                if (offset + byteLength <= left.byteLength()) {
+                if (byteOffset + byteLength <= left.byteLength()) {
                     root = left;
                     continue;
                 }
 
                 // CASE 2: Fits in right.
-                if (offset >= left.byteLength()) {
-                    offset -= left.byteLength();
+                if (byteOffset >= left.byteLength()) {
+                    byteOffset -= left.byteLength();
                     root = right;
                     continue;
                 }
@@ -194,34 +194,34 @@ public abstract class RopeNodes {
                 if (byteLength == root.byteLength()) {
                     return root;
                 } else {
-                    return makeSubstring(base.getEncoding(), root, offset, byteLength, is7BitProfile, isBinaryStringProfile);
+                    return makeSubstring(base.getEncoding(), root, byteOffset, byteLength, is7BitProfile, isBinaryStringProfile);
                 }
             }
 
             if (root instanceof SubstringRope) {
-                return substringSubstringRopeWithEncoding(base.getEncoding(), (SubstringRope) root, offset, byteLength, is7BitProfile, isBinaryStringProfile);
+                return substringSubstringRopeWithEncoding(base.getEncoding(), (SubstringRope) root, byteOffset, byteLength, is7BitProfile, isBinaryStringProfile);
             } else if (root instanceof RepeatingRope) {
-                return substringRepeatingRopeWithEncoding(base.getEncoding(), (RepeatingRope) root, offset, byteLength, is7BitProfile, isBinaryStringProfile, matchesChildProfile);
+                return substringRepeatingRopeWithEncoding(base.getEncoding(), (RepeatingRope) root, byteOffset, byteLength, is7BitProfile, isBinaryStringProfile, matchesChildProfile);
             }
 
-            return makeSubstring(base.getEncoding(), root, offset, byteLength, is7BitProfile, isBinaryStringProfile);
+            return makeSubstring(base.getEncoding(), root, byteOffset, byteLength, is7BitProfile, isBinaryStringProfile);
         }
 
-        private Rope makeSubstring(Encoding encoding, Rope base, int offset, int byteLength, ConditionProfile is7BitProfile, ConditionProfile isBinaryStringProfile) {
+        private Rope makeSubstring(Encoding encoding, Rope base, int byteOffset, int byteLength, ConditionProfile is7BitProfile, ConditionProfile isBinaryStringProfile) {
             if (is7BitProfile.profile(base.getCodeRange() == CR_7BIT)) {
                 if (getContext().getOptions().ROPE_LAZY_SUBSTRINGS) {
-                    return new SubstringRope(encoding, base, true, offset, byteLength, byteLength, CR_7BIT);
+                    return new SubstringRope(encoding, base, true, byteOffset, byteLength, byteLength, CR_7BIT);
                 } else {
-                    return new AsciiOnlyLeafRope(RopeOperations.extractRange(base, offset, byteLength), encoding);
+                    return new AsciiOnlyLeafRope(RopeOperations.extractRange(base, byteOffset, byteLength), encoding);
                 }
             }
 
-            return makeSubstringNon7Bit(encoding, base, offset, byteLength);
+            return makeSubstringNon7Bit(encoding, base, byteOffset, byteLength);
         }
 
         @TruffleBoundary
-        private Rope makeSubstringNon7Bit(Encoding encoding, Rope base, int offset, int byteLength) {
-            final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(encoding, base.getBytes(), offset, offset + byteLength);
+        private Rope makeSubstringNon7Bit(Encoding encoding, Rope base, int byteOffset, int byteLength) {
+            final long packedLengthAndCodeRange = RopeOperations.calculateCodeRangeAndLength(encoding, base.getBytes(), byteOffset, byteOffset + byteLength);
             final CodeRange codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
             final int characterLength = StringSupport.unpackResult(packedLengthAndCodeRange);
             final boolean singleByteOptimizable = base.isSingleByteOptimizable() || (codeRange == CR_7BIT);
@@ -233,14 +233,14 @@ public abstract class RopeNodes {
             */
 
             if (getContext().getOptions().ROPE_LAZY_SUBSTRINGS) {
-                return new SubstringRope(encoding, base, singleByteOptimizable, offset, byteLength, characterLength, codeRange);
+                return new SubstringRope(encoding, base, singleByteOptimizable, byteOffset, byteLength, characterLength, codeRange);
             } else {
                 if (makeLeafRopeNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     makeLeafRopeNode = insert(RopeNodes.MakeLeafRopeNode.create());
                 }
 
-                final byte[] bytes = RopeOperations.extractRange(base, offset, byteLength);
+                final byte[] bytes = RopeOperations.extractRange(base, byteOffset, byteLength);
 
                 return makeLeafRopeNode.executeMake(bytes, encoding, codeRange, characterLength);
             }
@@ -813,7 +813,7 @@ public abstract class RopeNodes {
                     rope.byteLength(),
                     rope.characterLength(),
                     rope.getCodeRange(),
-                    rope.getOffset(),
+                    rope.getByteOffset(),
                     rope.depth(),
                     rope.getEncoding()));
 
@@ -997,7 +997,7 @@ public abstract class RopeNodes {
                 return slowByte.execute(rope, index) & 0xff;
             }
 
-            return rope.getChild().getRawBytes()[index + rope.getOffset()] & 0xff;
+            return rope.getChild().getRawBytes()[index + rope.getByteOffset()] & 0xff;
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
@@ -1321,7 +1321,7 @@ public abstract class RopeNodes {
         @Specialization
         public byte getByteFromSubString(SubstringRope rope, int index,
                 @Cached("create()") ByteSlowNode childNode) {
-            return childNode.execute(rope.getChild(), rope.getOffset() + index);
+            return childNode.execute(rope.getChild(), rope.getByteOffset() + index);
         }
 
         @Specialization(guards = "rope.getRawBytes() != null")
