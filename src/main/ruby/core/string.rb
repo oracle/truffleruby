@@ -43,11 +43,11 @@ class String
     Truffle.primitive :string_byte_substring
 
     if index_or_range.kind_of? Range
-      index = Rubinius::Type.coerce_to index_or_range.begin, Fixnum, :to_int
+      index = Rubinius::Type.rb_num2int(index_or_range.begin)
       index += bytesize if index < 0
       return if index < 0 or index > bytesize
 
-      finish = Rubinius::Type.coerce_to index_or_range.end, Fixnum, :to_int
+      finish = Rubinius::Type.rb_num2int(index_or_range.end)
       finish += bytesize if finish < 0
 
       finish += 1 unless index_or_range.exclude_end?
@@ -55,14 +55,14 @@ class String
 
       return byteslice 0, 0 if length < 0
     else
-      index = Rubinius::Type.coerce_to index_or_range, Fixnum, :to_int
+      index = Rubinius::Type.rb_num2int(index_or_range)
       index += bytesize if index < 0
 
       if undefined.equal?(length)
         return if index == bytesize
         length = 1
       else
-        length = Rubinius::Type.coerce_to length, Fixnum, :to_int
+        length = Rubinius::Type.rb_num2int(length)
         return if length < 0
       end
 
