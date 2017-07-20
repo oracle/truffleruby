@@ -91,7 +91,8 @@ class StringScanner
   end
 
   def get_byte
-    scan(/./mn)
+    # Truffle: correct get_byte with non-ascii strings
+    _get_byte
   end
 
   def getbyte
@@ -310,4 +311,21 @@ class StringScanner
     @string.byteslice(@prev_pos, width)
   end
   private :_scan
+
+  # Truffle: correct get_byte with non-ascii strings
+  def _get_byte
+    if eos?
+      @match = nil
+      return nil
+    end
+
+    # We need to match one byte, regardless of the string encoding
+    @match = Truffle.invoke_primitive :regexp_search_from_binary, /./mn, @string, pos
+
+    @prev_pos = @pos
+    @pos += 1
+
+    @string.byteslice(@prev_pos, 1)
+  end
+  private :_get_byte
 end
