@@ -327,7 +327,7 @@ module Kernel
     if parts.empty?
       str = "#{prefix}>"
     else
-      str = "#{prefix} #{parts.join(' ')}>"
+      str = "#{prefix} #{parts.join(', ')}>"
     end
 
     Rubinius::Type.infect(str, self)
