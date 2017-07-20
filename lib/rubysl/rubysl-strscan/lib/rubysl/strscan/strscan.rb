@@ -159,7 +159,11 @@ class StringScanner
   end
 
   def matched
-    @match.to_s if @match
+    if @match
+      matched = @match.to_s
+      matched.taint if @string.tainted? # Truffle: propagate taint
+      matched
+    end
   end
 
   def matched?
