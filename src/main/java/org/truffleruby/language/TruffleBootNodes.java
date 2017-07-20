@@ -28,8 +28,8 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
-import org.truffleruby.options.OptionDescription;
-import org.truffleruby.options.OptionsCatalog;
+import org.truffleruby.launcher.options.OptionDescription;
+import org.truffleruby.launcher.options.OptionsCatalog;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 

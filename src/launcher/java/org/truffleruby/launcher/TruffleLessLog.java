@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby;
+package org.truffleruby.launcher;
 
 import java.util.Collections;
 import java.util.Set;
@@ -18,7 +18,7 @@ import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-public class LogWithoutTruffle {
+public class TruffleLessLog {
 
     private static class RubyLevel extends Level {
 

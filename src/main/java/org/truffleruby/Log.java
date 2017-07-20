@@ -11,10 +11,11 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.launcher.TruffleLessLog;
 
 import java.util.logging.Level;
 
-public class Log extends LogWithoutTruffle {
+public class Log extends TruffleLessLog {
 
     /**
      * Warn about code that works but is not yet optimized as Truffle code normally would be. Only
@@ -35,22 +36,22 @@ public class Log extends LogWithoutTruffle {
      */
     @TruffleBoundary
     public static void performanceOnce(String message) {
-        LogWithoutTruffle.performanceOnce(message);
+        TruffleLessLog.performanceOnce(message);
     }
 
     @TruffleBoundary
     public static void warning(String format, Object... args) {
-        LogWithoutTruffle.warning(format, args);
+        TruffleLessLog.warning(format, args);
     }
 
     @TruffleBoundary
     public static void info(String format, Object... args) {
-        LogWithoutTruffle.info(format, args);
+        TruffleLessLog.info(format, args);
     }
 
     @TruffleBoundary
     public static void log(Level level, String message) {
-        LogWithoutTruffle.log(level, message);
+        TruffleLessLog.log(level, message);
     }
 
 }

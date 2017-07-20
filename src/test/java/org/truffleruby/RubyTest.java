@@ -18,7 +18,7 @@ import com.oracle.truffle.api.vm.PolyglotEngine.Builder;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.options.OptionsCatalog;
+import org.truffleruby.launcher.options.OptionsCatalog;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 

@@ -111,6 +111,7 @@ if [ $on_graalvm = false ]; then
     fi
     java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar:$graal_sdk")
     CP="$CP:$truffle/dists/truffle-nfi.jar"
+    CP="$CP:$root/mxbuild/dists/truffleruby-launcher.jar"
     CP="$CP:$root/mxbuild/dists/truffleruby.jar"
     java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.$(libext)")
 
