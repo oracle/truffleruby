@@ -83,6 +83,7 @@ class StringScanner
   end
 
   def eos?
+    raise ArgumentError, "uninitialized StringScanner object" unless @string # Truffle
     @pos >= @string.bytesize
   end
 
@@ -283,6 +284,7 @@ class StringScanner
     unless pattern.kind_of? Regexp
       raise TypeError, "bad pattern argument: #{pattern.inspect}"
     end
+    raise ArgumentError, "uninitialized StringScanner object" unless @string # Truffle
 
     @match = nil
 
