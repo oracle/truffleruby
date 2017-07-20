@@ -283,11 +283,8 @@ class StringScanner
     raise ArgumentError if len < 0
     return "" if len.zero?
 
-    begin
-      return @string[pos, len]
-    rescue TypeError
-      raise RangeError, "offset outside of possible range"
-    end
+    # Truffle: correctly use byte offsets and no rescue
+    @string.byteslice(pos, len)
   end
 
   def peep(len)
