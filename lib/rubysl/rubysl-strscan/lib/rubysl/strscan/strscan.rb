@@ -48,8 +48,14 @@ class StringScanner
   alias_method :pointer=, :pos=
 
   def [](n)
-    raise TypeError, "Bad argument #{n.inspect}" unless n.respond_to? :to_int
-    @match[n] if @match
+    # Truffle: no eager check
+    if @match
+      # Truffle: follow MRI
+      raise TypeError, "no implicit conversion of #{n.class} into Integer" if Range === n
+      str = @match[n]
+      str.taint if @string.tainted? # Truffle: propagate taint
+      str
+    end
   end
 
   def bol?
