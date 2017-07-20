@@ -257,6 +257,7 @@ public final class StringSupport {
      * @param singlebyte whether the byte contents are in a single byte encoding
      * @return the offset of the nth character in the string, or -1 if nth is out of the string
      */
+    @TruffleBoundary
     public static int nth(Encoding enc, byte[]bytes, int p, int end, int n, boolean singlebyte) {
         if (singlebyte) {
             p += n;
