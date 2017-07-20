@@ -47,10 +47,6 @@ common: ${common-base} {
     ruby:       ">=2.1.0"
     llvm:       "==3.8"
   }
-
-  environment: {
-    PATH: "$LLVM/bin:$PATH",
-  }
 }
 
 common-darwin: ${common-base} {
