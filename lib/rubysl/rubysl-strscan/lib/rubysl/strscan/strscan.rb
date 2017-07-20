@@ -58,6 +58,11 @@ class StringScanner
 
   alias_method :beginning_of_line?, :bol?
 
+  # Truffle: added
+  def charpos
+    @string.byteslice(0, @pos).length
+  end
+
   def check(pattern)
     _scan pattern, false, true, true
   end
