@@ -9,7 +9,7 @@ jt: [ruby, tool/jt.rb]
 report-github-status: ["${BUILD_DIR}/tool/report-github-status.sh", "${REPORT_GITHUB_STATUS}", "${TRUFFLE_RUBY_VERSION}",
   "${BUILD_NAME}", "${BUILD_NUMBER}", ${github-status-token}]
 
-common-base: {
+common-base: ${labsjdk8} {
   downloads : {
     MAVEN_HOME : {name : maven, version : "3.3.9"}
   }
@@ -48,16 +48,12 @@ common: ${common-base} {
     llvm:       "==3.8"
   }
 
-  downloads : {
-    JAVA_HOME : {name : oraclejdk, version : "8u60", platformspecific: true}
-  }
-
   environment: {
     PATH: "$LLVM/bin:$PATH",
   }
 }
 
-common-darwin: ${common-base} ${labsjdk8} {
+common-darwin: ${common-base} {
   packages: {
     # Homebrew doesn't support versions.
     mercurial: ""
