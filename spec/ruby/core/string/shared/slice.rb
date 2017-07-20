@@ -29,6 +29,10 @@ describe :string_slice, shared: true do
     lambda { "hello".send(@method, {})        }.should raise_error(TypeError)
     lambda { "hello".send(@method, [])        }.should raise_error(TypeError)
   end
+
+  it "raises a RangeError if the index is too big" do
+    lambda { "hello".send(@method, bignum_value) }.should raise_error(RangeError)
+  end
 end
 
 describe :string_slice_index_length, shared: true do
@@ -148,6 +152,11 @@ describe :string_slice_index_length, shared: true do
     lambda { "hello".send(@method, 1, nil)   }.should raise_error(TypeError)
     lambda { "hello".send(@method, nil, 1)   }.should raise_error(TypeError)
     lambda { "hello".send(@method, nil, nil) }.should raise_error(TypeError)
+  end
+
+  it "raises a RangeError if the index or length is too big" do
+    lambda { "hello".send(@method, bignum_value, 1) }.should raise_error(RangeError)
+    lambda { "hello".send(@method, 0, bignum_value) }.should raise_error(RangeError)
   end
 
   it "returns subclass instances" do
