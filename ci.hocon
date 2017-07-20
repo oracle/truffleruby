@@ -492,10 +492,16 @@ deploy-and-test-fast: {
   timelimit: "30:00"
 }
 
+deploy-and-test-fast-darwin: {
+  run: ${deploy-binaries.run} [
+    ${jt} [test, fast, -GdarwinCI]
+  ]
+  timelimit: "30:00"
+}
 
 builds: [
   {name: ruby-deploy-and-test-fast-linux} ${common} ${gate-caps} ${deploy-and-test-fast},
-  {name: ruby-deploy-and-test-fast-darwin} ${common-darwin} ${gate-caps-darwin} ${deploy-and-test-fast},
+  {name: ruby-deploy-and-test-fast-darwin} ${common-darwin} ${gate-caps-darwin} ${deploy-and-test-fast-darwin},
   {name: ruby-deploy-and-test-fast-solaris} ${common} ${gate-caps-solaris} ${deploy-and-test-fast},
 
   {name: ruby-test-tck} ${common} ${gate-caps} {run: [[mx, rubytck]]},
