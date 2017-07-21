@@ -2,14 +2,14 @@ ROOT := $(realpath ../../..)
 RUBY := $(ROOT)/bin/truffleruby
 OS := $(shell uname)
 
-ifeq ($(OS),SunOS)
-goal: no_clang
+ifeq ($(TRUFFLERUBY_CEXT_ENABLED),false)
+goal: no_cexts
 else
 goal: all
 endif
 
-no_clang:
-	@echo "WARNING: clang is not avaiable on this platform - not building cexts" 1>&2
+no_cexts: clean
+	@echo "WARNING: TRUFFLERUBY_CEXT_ENABLED is set to false - not building cexts" 1>&2
 
 all: $(ROOT)/lib/cext/ruby.su $(ROOT)/lib/mri/openssl.su $(ROOT)/lib/mri/zlib.su
 
@@ -50,4 +50,3 @@ zlib/zlib.su: zlib/Makefile zlib/zlib.c
 
 $(ROOT)/lib/mri/zlib.su: zlib/zlib.su
 	cp $< $@
-

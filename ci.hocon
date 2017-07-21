@@ -49,6 +49,13 @@ common: ${common-base} {
   }
 }
 
+common-solaris: ${common-base} {
+  environment: {
+    # LLVM is currently not available on Solaris
+    TRUFFLERUBY_CEXT_ENABLED: "false"
+  }
+}
+
 common-darwin: ${common-base} {
   packages: {
     # Homebrew doesn't support versions.
@@ -493,7 +500,7 @@ deploy-and-test-fast-darwin: {
 builds: [
   {name: ruby-deploy-and-test-fast-linux} ${common} ${gate-caps} ${deploy-and-test-fast},
   {name: ruby-deploy-and-test-fast-darwin} ${common-darwin} ${gate-caps-darwin} ${deploy-and-test-fast-darwin},
-  {name: ruby-deploy-and-test-fast-solaris} ${common} ${gate-caps-solaris} ${deploy-and-test-fast},
+  {name: ruby-deploy-and-test-fast-solaris} ${common-solaris} ${gate-caps-solaris} ${deploy-and-test-fast},
 
   {name: ruby-test-tck} ${common} ${gate-caps} {run: [[mx, rubytck]]},
   {name: ruby-test-specs-command-line} ${common} ${gate-caps} {run: [${jt} [test, specs, ":command_line"]]},
@@ -526,9 +533,9 @@ builds: [
   //{name: ruby-benchmarks-classic-mri} ${common} ${weekly-bench-caps} ${mri-benchmark} ${classic-benchmarks},
   //{name: ruby-benchmarks-classic-no-graal} ${common} ${no-graal} ${weekly-bench-caps} ${truffleruby} ${classic-benchmarks},
   {name: ruby-benchmarks-classic-graal-core} ${common} ${graal-core} ${bench-caps} ${truffleruby} ${classic-benchmarks},
-  {name: ruby-benchmarks-classic-graal-core-solaris} ${common} ${graal-core} ${daily-bench-caps-solaris} ${truffleruby} ${classic-benchmarks-solaris},
+  {name: ruby-benchmarks-classic-graal-core-solaris} ${common-solaris} ${graal-core} ${daily-bench-caps-solaris} ${truffleruby} ${classic-benchmarks-solaris},
   {name: ruby-benchmarks-classic-graal-enterprise} ${common} ${graal-enterprise} ${daily-bench-caps} ${truffleruby} ${classic-benchmarks},
-  {name: ruby-benchmarks-classic-graal-enterprise-solaris} ${common} ${graal-enterprise} ${daily-bench-caps-solaris} ${truffleruby} ${classic-benchmarks-solaris},
+  {name: ruby-benchmarks-classic-graal-enterprise-solaris} ${common-solaris} ${graal-enterprise} ${daily-bench-caps-solaris} ${truffleruby} ${classic-benchmarks-solaris},
   {name: ruby-benchmarks-classic-graal-enterprise-no-om} ${common} ${graal-enterprise-no-om} ${daily-bench-caps} ${truffleruby} ${classic-benchmarks},
   //{name: ruby-benchmarks-classic-graal-vm-snapshot} ${common} ${graal-vm-snapshot} ${bench-caps} ${truffleruby} ${classic-benchmarks},
   {name: ruby-benchmarks-classic-svm} ${common} ${svm-bench} ${bench-caps} ${truffleruby} ${classic-benchmarks} {timelimit: "01:10:00"},
