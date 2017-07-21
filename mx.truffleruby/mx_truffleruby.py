@@ -130,10 +130,16 @@ def ruby_testdownstream_aot(args):
         '-T-Xhome=' + root,
         ':language'])
 
+def ruby_testdownstream_sulong(args):
+    build_truffleruby()
+    mx.run(['ruby', 'tool/jt.rb',
+        'test', '--sulong', ':capi'])
+
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],
     'deploy-binary-if-master': [deploy_binary_if_master, ''],
     'ruby_testdownstream': [ruby_testdownstream, ''],
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
+    'ruby_testdownstream_sulong': [ruby_testdownstream_sulong, ''],
 })
