@@ -1,6 +1,6 @@
 Truffle::Patching.require_original __FILE__
 
-unless ENV['TRUFFLERUBY_CEXT_ENABLED']
+if !ENV['TRUFFLERUBY_CEXT_ENABLED'] || ENV['TRUFFLERUBY_CEXT_ENABLED'] == "false"
   module Truffle::Patching::NoWarnIfBuildingCextDisabled
     def contains_requirable_file? file
       if @ignored then

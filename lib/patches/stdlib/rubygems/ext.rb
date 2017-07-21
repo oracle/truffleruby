@@ -6,7 +6,7 @@ module Truffle::Patching::ConditionallyBuildNativeExtensions
   def build_extensions
     return if @spec.extensions.empty?
 
-    if ENV['TRUFFLERUBY_CEXT_ENABLED']
+    if ENV['TRUFFLERUBY_CEXT_ENABLED'] && ENV['TRUFFLERUBY_CEXT_ENABLED'] != "false"
       super
     else
       puts "WORKAROUND: Not building native extensions for #{@spec.name}.\n" +
