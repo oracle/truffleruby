@@ -41,7 +41,7 @@ extern "C" {
 // Support
 
 #define RUBY_CEXT (void *)truffle_import_cached("ruby_cext")
-#define MUST_INLINE __attribute__((always_inline))
+#define MUST_INLINE __attribute__((always_inline)) inline
 
 // Configuration
 
