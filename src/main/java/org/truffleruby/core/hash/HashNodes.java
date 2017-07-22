@@ -757,7 +757,6 @@ public abstract class HashNodes {
 
         // Merge non-empty packed with non-empty packed, without a block
 
-        @ExplodeLoop
         @Specialization(guards = {"isPackedHash(hash)", "!isEmptyHash(hash)", "isRubyHash(other)", "isPackedHash(other)", "!isEmptyHash(other)"})
         public DynamicObject mergePackedPacked(VirtualFrame frame, DynamicObject hash, DynamicObject other, NotProvided block,
                         @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile,
@@ -777,30 +776,7 @@ public abstract class HashNodes {
             // Go through and figure out what gets merged from each hash
 
             final boolean[] mergeFromA = new boolean[storeASize];
-            int mergeFromACount = 0;
-
-            for (int a = 0; a < getContext().getOptions().HASH_PACKED_ARRAY_MAX; a++) {
-                if (a < storeASize) {
-                    boolean merge = true;
-
-                    for (int b = 0; b < getContext().getOptions().HASH_PACKED_ARRAY_MAX; b++) {
-                        if (b < storeBSize) {
-                            if (equalKeys(frame, compareByIdentity,
-                                            PackedArrayStrategy.getKey(storeA, a), PackedArrayStrategy.getHashed(storeA, a),
-                                            PackedArrayStrategy.getKey(storeB, b), PackedArrayStrategy.getHashed(storeB, b))) {
-                                merge = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (merge) {
-                        mergeFromACount++;
-                    }
-
-                    mergeFromA[a] = merge;
-                }
-            }
+            final int mergeFromACount = mergedPackedHashes(frame, compareByIdentity, storeA, storeASize, storeB, storeBSize, mergeFromA);
 
             // If nothing comes from A, it's easy
 
@@ -857,6 +833,35 @@ public abstract class HashNodes {
 
             assert HashOperations.verifyStore(getContext(), hash);
             return merged;
+        }
+
+        @ExplodeLoop
+        private int mergedPackedHashes(VirtualFrame frame, boolean compareByIdentity, Object[] storeA, int storeASize,
+                                       Object[] storeB, int storeBSize, boolean[] mergeFromA) {
+            int mergeFromACount = 0;
+            for (int a = 0; a < getContext().getOptions().HASH_PACKED_ARRAY_MAX; a++) {
+                if (a < storeASize) {
+                    boolean merge = true;
+
+                    for (int b = 0; b < getContext().getOptions().HASH_PACKED_ARRAY_MAX; b++) {
+                        if (b < storeBSize) {
+                            if (equalKeys(frame, compareByIdentity,
+                                    PackedArrayStrategy.getKey(storeA, a), PackedArrayStrategy.getHashed(storeA, a),
+                                    PackedArrayStrategy.getKey(storeB, b), PackedArrayStrategy.getHashed(storeB, b))) {
+                                merge = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (merge) {
+                        mergeFromACount++;
+                    }
+
+                    mergeFromA[a] = merge;
+                }
+            }
+            return mergeFromACount;
         }
 
         // Merge non-empty buckets with non-empty buckets, without a block
