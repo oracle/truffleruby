@@ -370,7 +370,8 @@ module ShellUtils
 
     if i = args.index('-t')
       launcher = args[i+1]
-      sh env_vars, launcher, *mspec_args
+      flags = args.select { |arg| arg.start_with?('-T') }.map { |arg| arg[2..-1] }
+      sh env_vars, launcher, *flags, *mspec_args
     else
       run env_vars, *mspec_args
     end
