@@ -44,7 +44,7 @@ common: ${common-base} {
   packages: {
     git:        ">=1.8.3"
     mercurial:  ">=3.2.4"
-    ruby:       ">=2.1.0"
+    ruby:       ">=2.0.0"
     llvm:       "==3.8"
   }
 }
@@ -59,7 +59,6 @@ common-solaris: ${common-base} {
 common-darwin: ${common-base} {
   packages: {
     # Homebrew doesn't support versions.
-    ruby: ""
     llvm: ""
     openssl: ""
   }

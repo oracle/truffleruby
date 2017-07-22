@@ -148,19 +148,6 @@ module Utilities
     raise "couldn't find truffle-sl.jar - build Truffle and find it in there"
   end
 
-  def self.find_ruby
-    if ENV["RUBY_BIN"]
-      ENV["RUBY_BIN"]
-    else
-      version = `ruby -e 'print RUBY_VERSION' 2>/dev/null`
-      if version.start_with?("2.")
-        "ruby"
-      else
-        find_launcher
-      end
-    end
-  end
-
   def self.find_launcher
     if ENV['RUBY_BIN']
       ENV['RUBY_BIN']
@@ -379,7 +366,14 @@ module ShellUtils
       command, *args = args
     end
 
-    sh env_vars, Utilities.find_ruby, 'spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec', *args
+    mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec', *args]
+
+    if i = args.index('-t')
+      launcher = args[i+1]
+      sh env_vars, launcher, *mspec_args
+    else
+      run env_vars, *mspec_args
+    end
   end
 
   def newer?(input, output)
