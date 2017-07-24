@@ -42,11 +42,6 @@ SO = MAC ? 'dylib' : 'so'
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
-SULONG_HOME = ENV['SULONG_HOME'] = ENV['SULONG_HOME'] && File.expand_path(ENV['SULONG_HOME'])
-if SULONG_HOME and File.dirname(TRUFFLERUBY_DIR) != File.dirname(SULONG_HOME)
-  abort 'SULONG_HOME must be a sibling of TRUFFLERUBY_DIR to allow for --dynamicimports'
-end
-
 LIBXML_HOME = ENV['LIBXML_HOME'] = ENV['LIBXML_HOME'] || '/usr'
 LIBXML_LIB_HOME = ENV['LIBXML_LIB_HOME'] = ENV['LIBXML_LIB_HOME'] || "#{LIBXML_HOME}/lib"
 LIBXML_INCLUDE = ENV['LIBXML_INCLUDE'] = ENV['LIBXML_INCLUDE'] || "#{LIBXML_HOME}/include/libxml2"
@@ -138,10 +133,14 @@ module Utilities
   end
 
   def self.find_sulong_options
-    raise 'set $SULONG_HOME to a built checkout of the Sulong repository' unless SULONG_HOME
+    sulong = File.expand_path('../sulong', TRUFFLERUBY_DIR)
+    sulong_jar = "#{sulong}/build/sulong.jar"
+    unless File.exist?(sulong_jar)
+      raise "Sulong needs to be cloned as a sibling directory of TruffleRuby and built"
+    end
     [
-      "-J-Dpolyglot.llvm.libraryPath=#{SULONG_HOME}/mxbuild/sulong-libs",
-      '-J-cp', "#{SULONG_HOME}/build/sulong.jar",
+      "-J-Dpolyglot.llvm.libraryPath=#{sulong}/mxbuild/sulong-libs",
+      '-J-cp', sulong_jar,
     ]
   end
 
@@ -414,7 +413,7 @@ module Commands
       jt e 14 + 2                                    evaluate an expression
       jt puts 14 + 2                                 evaluate and print an expression
       jt cextc directory clang-args                  compile the C extension in directory, with optional extra clang arguments
-      jt test                                        run all mri tests, specs and integration tests (set SULONG_HOME)
+      jt test                                        run all mri tests, specs and integration tests
       jt test tck                                    run the Truffle Compatibility Kit tests
       jt test mri                                    run mri tests
           --openssl       runs openssl tests         use with --sulong
@@ -431,7 +430,7 @@ module Commands
       jt test gems                                   tests using gems
       jt test ecosystem [TESTS]                      tests using the wider ecosystem such as bundler, Rails, etc
       jt test cexts [--no-libxml --no-openssl]       run C extension tests
-                                                         (implies --sulong, set SULONG_HOME to a built checkout of Sulong, and set GEM_HOME)
+                                                         (implies --sulong, clone Sulong as a sibling and build it, and set GEM_HOME)
       jt test report :language                       build a report on language specs
                      :core                               (results go into test/target/mspec-html-report)
                      :library
@@ -468,7 +467,6 @@ module Commands
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
         JVMCI_BIN                                    JVMCI-enabled (so JDK 9 EA build) java command (aslo set JVMCI_GRAAL_HOME)
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
-        SULONG_HOME                                  The Sulong source repository, if you want to run cexts
         GRAAL_JS_JAR                                 The location of trufflejs.jar
         SL_JAR                                       The location of truffle-sl.jar
         LIBXML_HOME, LIBXML_INCLUDE, LIBXML_LIB      The location of libxml2 (the directory containing include etc), and the direct include directory and library file

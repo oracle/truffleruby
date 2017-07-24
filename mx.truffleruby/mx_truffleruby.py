@@ -136,8 +136,8 @@ def ruby_testdownstream_aot(args):
 
 def ruby_testdownstream_sulong(args):
     build_truffleruby()
-    sulong = mx.suite('sulong')
-    os.environ['SULONG_HOME'] = sulong.dir
+    # Ensure Sulong is available
+    mx.suite('sulong')
 
     jt('test', 'cexts')
     jt('test', 'specs', '--sulong', ':capi')

@@ -48,7 +48,6 @@ ENV GRAAL_HOME=/build/graal/compiler
 # Build Sulong
 RUN git clone https://github.com/graalvm/sulong.git
 RUN cd sulong && mx build
-ENV SULONG_HOME=/build/sulong
 
 # Build TruffleRuby
 RUN git clone https://github.com/graalvm/truffleruby.git
