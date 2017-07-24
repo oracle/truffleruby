@@ -155,10 +155,7 @@ sulong: ${labsjdk8} {
   environment: {
     CPPFLAGS: "-I$LIBGMP/include",
     LD_LIBRARY_PATH: "$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH",
-    GRAAL_HOME: "$PWD/../sulong",
     LIBXML_LIB: "/usr/lib64/libxml2.so.2",
-    HOST_VM: server,
-    HOST_VM_CONFIG: graal-core
   }
 
   setup: ${common.setup} [
@@ -573,5 +570,5 @@ builds: [
   //{name: ruby-benchmarks-server-graal-vm-snapshot} ${common} ${graal-vm-snapshot} ${bench-caps} ${truffleruby} ${server-benchmarks},
   {name: ruby-benchmarks-server-svm} ${common} ${svm-bench} ${bench-caps} ${truffleruby} ${server-benchmarks},
 
-  {name: ruby-benchmarks-cext} ${common} ${daily-bench-caps} ${truffleruby-cexts} ${cext-benchmarks},
+  {name: ruby-benchmarks-cext} ${common} ${graal-core} ${daily-bench-caps} ${truffleruby-cexts} ${cext-benchmarks},
 ]
