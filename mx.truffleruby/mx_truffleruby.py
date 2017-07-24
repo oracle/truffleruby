@@ -147,11 +147,11 @@ def ruby_testdownstream_sulong(args):
     sulong = mx.suite('sulong')
     os.environ['SULONG_HOME'] = sulong.dir
 
-    jt('test', 'bundle', '--openssl')
     jt('test', 'cexts')
     jt('test', 'specs', '--sulong', ':capi')
     jt('test', 'specs', '--sulong', '-T-Xpatching=false', ':openssl')
     jt('test', 'mri', '--openssl', '--sulong')
+    jt('test', 'bundle', '--openssl')
 
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],
