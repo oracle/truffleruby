@@ -43,6 +43,9 @@ SO = MAC ? 'dylib' : 'so'
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
 SULONG_HOME = ENV['SULONG_HOME'] = ENV['SULONG_HOME'] && File.expand_path(ENV['SULONG_HOME'])
+if SULONG_HOME and File.dirname(TRUFFLERUBY_DIR) != File.dirname(SULONG_HOME)
+  abort 'SULONG_HOME must be a sibling of TRUFFLERUBY_DIR to allow for --dynamicimports'
+end
 
 LIBXML_HOME = ENV['LIBXML_HOME'] = ENV['LIBXML_HOME'] || '/usr'
 LIBXML_LIB_HOME = ENV['LIBXML_LIB_HOME'] = ENV['LIBXML_LIB_HOME'] || "#{LIBXML_HOME}/lib"
@@ -348,15 +351,12 @@ module ShellUtils
     end
   end
 
-  def mx(dir, *args)
-    command = ['mx', '-p', dir]
-    command.push *args
-    sh *command
+  def mx(*args)
+    sh 'mx', *args
   end
 
   def mx_sulong(*args)
-    abort "You need to set SULONG_HOME" unless SULONG_HOME
-    mx SULONG_HOME, *args
+    mx '--dynamicimports', 'sulong', *args
   end
 
   def mspec(command, *args)
@@ -1566,9 +1566,9 @@ module Commands
   alias :'native-launcher' :native_launcher
 
   def check_dsl_usage
-    mx(TRUFFLERUBY_DIR, 'clean')
+    mx('clean')
     # We need to build with -parameters to get parameter names
-    mx(TRUFFLERUBY_DIR, 'build', '-A-parameters')
+    mx('build', '-A-parameters')
     run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-e', 'exit')
   end
 
