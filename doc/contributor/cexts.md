@@ -43,11 +43,8 @@ jt gem-test-pack
 You can then test C extension support.
 
 ```bash
-jt test cexts --no-libxml
+jt test cexts
 ```
-
-If you want to test `libxml`, remove that flag and set either `LIBXML_HOME` or
-`LIBXML_INCLUDE` and `LIBXML_LIB`.
 
 You can also runs specs:
 
