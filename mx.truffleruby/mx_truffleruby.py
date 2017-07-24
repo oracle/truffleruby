@@ -78,6 +78,10 @@ class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
 
 # Commands
 
+def jt(*args):
+    mx.log("\n$ " + ' '.join(['jt'] + list(args)) + "\n")
+    mx.run(['ruby', join(root, 'tool/jt.rb')] + list(args))
+
 def build_truffleruby():
     mx.command_function('sversions')([])
     mx.command_function('build')([])
@@ -142,7 +146,12 @@ def ruby_testdownstream_sulong(args):
     build_truffleruby()
     sulong = mx.suite('sulong')
     os.environ['SULONG_HOME'] = sulong.dir
-    mx.run(['ruby', 'tool/jt.rb', 'test', '--sulong', ':capi'])
+
+    jt('test', 'bundle', '--openssl')
+    jt('test', 'cexts')
+    jt('test', 'specs', '--sulong', ':capi')
+    jt('test', 'specs', '--sulong', '-T-Xpatching=false', ':openssl')
+    jt('test', 'mri', '--openssl', '--sulong')
 
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],
