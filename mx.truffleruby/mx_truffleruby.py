@@ -118,17 +118,25 @@ def ruby_testdownstream_hello(args):
     mx.run(['bin/truffleruby', '-e', 'puts "Hello Ruby!"'])
 
 def ruby_testdownstream_aot(args):
-    if len(args) != 1:
-        mx.abort("Missing path to AOT image: mx ruby_testdownstream_aot <aot_bin>")
+    if len(args) > 3:
+        mx.abort("Incorrect argument count: mx ruby_testdownstream_aot <aot_bin> [<format>] [<build_type>]")
 
     aot_bin = args[0]
-    ruby_run_specs(aot_bin, 'dot', [
+    format = args[1] if len(args) >= 2 else 'dot'
+    debug_build = args[2] == 'debug' if len(args) >= 3 else False
+
+    mspec_args = [
         '--excl-tag', 'graalvm',
         '--excl-tag', 'aot',
         '-t', aot_bin,
         '-T-XX:YoungGenerationSize=2G', '-T-XX:OldGenerationSize=4G',
-        '-T-Xhome=' + root,
-        ':language'])
+        '-T-Xhome=' + root
+    ]
+
+    if debug_build:
+        mspec_args.append(':language')
+
+    ruby_run_specs(aot_bin, format, mspec_args)
 
 def ruby_testdownstream_sulong(args):
     build_truffleruby()
