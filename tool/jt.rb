@@ -42,11 +42,6 @@ SO = MAC ? 'dylib' : 'so'
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
-LIBXML_HOME = ENV['LIBXML_HOME'] = ENV['LIBXML_HOME'] || '/usr'
-LIBXML_LIB_HOME = ENV['LIBXML_LIB_HOME'] = ENV['LIBXML_LIB_HOME'] || "#{LIBXML_HOME}/lib"
-LIBXML_INCLUDE = ENV['LIBXML_INCLUDE'] = ENV['LIBXML_INCLUDE'] || "#{LIBXML_HOME}/include/libxml2"
-LIBXML_LIB = ENV['LIBXML_LIB'] = ENV['LIBXML_LIB'] || "#{LIBXML_LIB_HOME}/libxml2.#{SO}"
-
 if MAC && !ENV['OPENSSL_PREFIX']
   ENV['OPENSSL_PREFIX'] = '/usr/local/opt/openssl'
 end
@@ -429,7 +424,7 @@ module Commands
       jt test bundle                                 tests using bundler
       jt test gems                                   tests using gems
       jt test ecosystem [TESTS]                      tests using the wider ecosystem such as bundler, Rails, etc
-      jt test cexts [--no-libxml --no-openssl]       run C extension tests
+      jt test cexts [--no-openssl]                   run C extension tests
                                                          (implies --sulong, clone Sulong as a sibling and build it, and set GEM_HOME)
       jt test report :language                       build a report on language specs
                      :core                               (results go into test/target/mspec-html-report)
@@ -469,7 +464,6 @@ module Commands
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
         GRAAL_JS_JAR                                 The location of trufflejs.jar
         SL_JAR                                       The location of truffle-sl.jar
-        LIBXML_HOME, LIBXML_INCLUDE, LIBXML_LIB      The location of libxml2 (the directory containing include etc), and the direct include directory and library file
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         AOT_BIN                                      TruffleRuby/SVM executable
     TXT
@@ -818,7 +812,6 @@ module Commands
   private :test_compiler
 
   def test_cexts(*args)
-    no_libxml = args.delete('--no-libxml')
     no_openssl = args.delete('--no-openssl')
     no_gems = args.delete('--no-gems')
 
@@ -826,7 +819,7 @@ module Commands
 
     sh RbConfig.ruby, 'test/truffle/cexts/test-preprocess.rb'
 
-    # Test that we can compile and run some basic C code that uses libxml and openssl
+    # Test that we can compile and run some basic C code that uses openssl
 
     if ENV['OPENSSL_PREFIX']
       openssl_cflags = ['-I', "#{ENV['OPENSSL_PREFIX']}/include"]
@@ -834,12 +827,6 @@ module Commands
     else
       openssl_cflags = []
       openssl_lib = "libssl.#{SO}"
-    end
-
-    unless no_libxml
-      sh 'clang', '-c', '-emit-llvm', "-I#{LIBXML_INCLUDE}", 'test/truffle/cexts/xml/main.c', '-o', 'test/truffle/cexts/xml/main.bc'
-      out, _ = mx_sulong('lli', "-Dpolyglot.llvm.libraries=#{LIBXML_LIB}", 'test/truffle/cexts/xml/main.bc', {capture: true})
-      raise out.inspect unless out == "7\n"
     end
 
     unless no_openssl
@@ -852,8 +839,7 @@ module Commands
 
     begin
       output_file = 'cext-output.txt'
-      ['minimum', 'method', 'module', 'globals', 'xml', 'xopenssl'].each do |gem_name|
-        next if gem_name == 'xml' && no_libxml
+      ['minimum', 'method', 'module', 'globals', 'xopenssl'].each do |gem_name|
         next if gem_name == 'xopenssl' && no_openssl
         dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
         ext_dir = "#{dir}/ext/#{gem_name}/"
@@ -882,7 +868,6 @@ module Commands
       tests.each do |gem_name, dependencies, libs|
         puts "", gem_name
         next if gem_name == 'nokogiri' # nokogiri totally excluded
-        next if gem_name == 'nokogiri' && no_libxml
         gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
         ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
         compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'

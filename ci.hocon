@@ -155,7 +155,6 @@ sulong: ${labsjdk8} {
   environment: {
     CPPFLAGS: "-I$LIBGMP/include",
     LD_LIBRARY_PATH: "$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH",
-    LIBXML_LIB: "/usr/lib64/libxml2.so.2",
   }
 
   setup: ${common.setup} [
