@@ -1092,16 +1092,16 @@ module Commands
     unless Dir.exist?(test_pack)
       $stderr.puts "Downloading latest gem test pack..."
 
-      # To update these files contact Manuel Zach for graal.us.oracle.com and Gilles Duboscq for lafo
-
-      if ENV['USE_GRAAL_GEM_TEST_PACK']
-        url = "http://graal.us.oracle.com/slavefiles2/truffleruby/truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
+      # To update these files contact Manuel Zach for infra and Gilles Duboscq for lafo
+      if build_url = ENV['BUILD_URL']
+        base = build_url[%r{^https?://[^/]+/}] + "slavefiles2/truffleruby"
       else
-        url = "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
+        base = "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/"
       end
 
+      url = "#{base}/#{test_pack}.tar.gz"
       sh 'curl', '-OL', url
-      sh 'tar', '-zxf', "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}.tar.gz"
+      sh 'tar', '-zxf', "#{test_pack}.tar.gz"
     end
     puts test_pack
     File.expand_path("#{test_pack}/gems", TRUFFLERUBY_DIR)
