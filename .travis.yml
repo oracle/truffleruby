@@ -42,5 +42,4 @@ services:
 
 branches:
   only:
-    - master
     - /^try/
