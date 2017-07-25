@@ -699,14 +699,10 @@ module Commands
 
     case path
     when nil
-      test_tck
-      test_specs('run')
-      test_mri
-      test_integration
-      test_gems
-      test_ecosystem 'HAS_REDIS' => 'true'
-      test_compiler
-      test_cexts
+      ENV['HAS_REDIS'] = 'true'
+      %w[tck specs mri integration gems ecosystem compiler cexts].each do |kind|
+        jt('test', kind)
+      end
     when 'bundle' then test_bundle(*rest)
     when 'compiler' then test_compiler(*rest)
     when 'cexts' then test_cexts(*rest)
@@ -726,6 +722,11 @@ module Commands
       end
     end
   end
+
+  def jt(*args)
+    sh RbConfig.ruby, 'tool/jt.rb', *args
+  end
+  private :jt
 
   def test_mri(*args)
     if args.delete('--openssl')
