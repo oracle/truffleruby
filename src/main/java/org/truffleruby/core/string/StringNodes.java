@@ -2319,7 +2319,7 @@ public abstract class StringNodes {
             final ArrayResult result;
 
             try {
-                result = (ArrayResult) callUnpackNode.call(compileFormat(format),
+                result = (ArrayResult) indirectCall(callUnpackNode, compileFormat(format),
                         new Object[]{ bytesNode.execute(rope), rope.byteLength() });
             } catch (FormatException e) {
                 exceptionProfile.enter();
@@ -2327,6 +2327,13 @@ public abstract class StringNodes {
             }
 
             return finishUnpack(result);
+        }
+
+        // For IndirectCallNode#call which deopts when seeing new uninitialized CallTargets
+        // (GR-5309)
+        @TruffleBoundary(throwsControlFlowException = true)
+        public static Object indirectCall(IndirectCallNode callNode, CallTarget callTarget, Object... arguments) {
+            return callNode.call(callTarget, arguments);
         }
 
         private DynamicObject finishUnpack(ArrayResult result) {
