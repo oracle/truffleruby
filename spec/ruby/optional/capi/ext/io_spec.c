@@ -151,9 +151,9 @@ VALUE io_spec_rb_io_wait_readable(VALUE self, VALUE io, VALUE read_p) {
     }
     saved_errno = errno;
     rb_ivar_set(self, rb_intern("@write_data"), Qtrue);
+    errno = saved_errno;
   }
 
-  errno = saved_errno;
   ret = rb_io_wait_readable(fd);
 
   if(RTEST(read_p)) {
@@ -162,7 +162,6 @@ VALUE io_spec_rb_io_wait_readable(VALUE self, VALUE io, VALUE read_p) {
       perror("read");
       return INT2FIX(r);
     }
-    buf[r] = '\0';
     rb_ivar_set(self, rb_intern("@read_data"),
         rb_str_new(buf, RB_IO_WAIT_READABLE_BUF));
   }
