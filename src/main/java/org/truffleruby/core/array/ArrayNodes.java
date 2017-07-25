@@ -58,6 +58,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes.UnpackNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -1305,7 +1306,7 @@ public abstract class ArrayNodes {
             final BytesResult result;
 
             try {
-                result = (BytesResult) callPackNode.call(compileFormat(format),
+                result = (BytesResult) UnpackNode.indirectCall(callPackNode, compileFormat(format),
                         new Object[] { getStore(array), getSize(array) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
