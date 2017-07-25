@@ -90,13 +90,18 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             }
 
             first.replace(newDispathNode);
+
+            if (newDispathNode instanceof CachedDispatchNode) {
+                ((CachedDispatchNode) newDispathNode).reassessSplittingInliningStrategy();
+            }
+
             return newDispathNode;
         });
 
         return dispatch.executeDispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
     }
 
-    private DispatchNode doUnboxedObject(
+    private CachedDispatchNode doUnboxedObject(
             VirtualFrame frame,
             DispatchNode first,
             Object receiverObject,
@@ -125,7 +130,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
         }
     }
 
-    private DispatchNode doDynamicObject(
+    private CachedDispatchNode doDynamicObject(
             VirtualFrame frame,
             DispatchNode first,
             Object receiverObject,
@@ -162,7 +167,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
         }
     }
 
-    private DispatchNode createMethodMissingNode(
+    private CachedDispatchNode createMethodMissingNode(
             DispatchNode first,
             Object methodName,
             Object receiverObject,

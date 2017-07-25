@@ -49,18 +49,15 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
         this.methodMissing = methodMissingLookup.getMethod();
         this.metaClassNode = MetaClassNodeGen.create(null);
         this.callNode = Truffle.getRuntime().createDirectCallNode(methodMissing.getCallTarget());
-
-        /*
-         * The way that #method_missing is used is usually as an indirection to call some other method, and
-         * possibly to modify the arguments. In both cases, but especially the latter, it makes a lot of sense
-         * to manually clone the call target and to inline it.
-         */
-
-        applySplittingInliningStrategy(callNode, methodMissing);
     }
 
     @Override
     protected void applySplittingInliningStrategy(DirectCallNode callNode, InternalMethod method) {
+        /*
+         * The way that #method_missing is used is usually as an indirection to call some other
+         * method, and possibly to modify the arguments. In both cases, but especially the latter,
+         * it makes a lot of sense to manually clone the call target and to inline it.
+         */
         if (callNode.isCallTargetCloningAllowed()
                 && (getContext().getOptions().METHODMISSING_ALWAYS_CLONE || method.getSharedMethodInfo().shouldAlwaysClone())) {
             insert(callNode);
