@@ -42,7 +42,6 @@ public class CachedUnboxedDispatchNode extends CachedDispatchNode {
         this.assumptions = methodLookup.getAssumptions();
         this.method = methodLookup.getMethod();
         this.callNode = Truffle.getRuntime().createDirectCallNode(method.getCallTarget());
-        applySplittingInliningStrategy(callNode, method);
     }
 
     @Override
