@@ -175,10 +175,9 @@ public abstract class BindingNodes {
         @Specialization
         public DynamicObject dup(DynamicObject binding) {
             MaterializedFrame frame = getTopFrame(binding);
-            Layouts.BINDING.setExtras(binding, newExtrasFrame(getContext(), frame));
             DynamicObject copy = allocateObjectNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(binding),
-                    newExtrasFrame(getContext(), frame),
+                    frame,
                     null);
             return copy;
         }
