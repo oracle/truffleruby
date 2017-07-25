@@ -365,9 +365,9 @@ module ShellUtils
     if i = args.index('-t')
       launcher = args[i+1]
       flags = args.select { |arg| arg.start_with?('-T') }.map { |arg| arg[2..-1] }
-      sh env_vars, launcher, *flags, *mspec_args
+      sh env_vars, launcher, *flags, *mspec_args, { use_exec: true }
     else
-      run env_vars, *mspec_args
+      ruby env_vars, *mspec_args
     end
   end
 
