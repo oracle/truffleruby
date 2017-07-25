@@ -31,14 +31,11 @@ public interface BindingLayout extends BasicObjectLayout {
                                             DynamicObject metaClass);
 
     DynamicObject createBinding(DynamicObjectFactory factory,
-            MaterializedFrame frame,
-            @Nullable MaterializedFrame extras);
+            MaterializedFrame frame);
 
     boolean isBinding(DynamicObject object);
 
     MaterializedFrame getFrame(DynamicObject object);
 
-    MaterializedFrame getExtras(DynamicObject object);
-
-    void setExtras(DynamicObject object, MaterializedFrame value);
+    void setFrame(DynamicObject object, MaterializedFrame value);
 }

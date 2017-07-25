@@ -503,7 +503,7 @@ public abstract class KernelNodes {
                 @Cached("createCallTarget(cachedRootNode)") CallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = BindingNodes.getTopFrame(binding);
+            final MaterializedFrame parentFrame = BindingNodes.getFrame(binding);
             return eval(self, cachedRootNode, cachedCallTarget, callNode, parentFrame);
         }
 
@@ -531,7 +531,7 @@ public abstract class KernelNodes {
                 @Cached("createCallTarget(rootNodeToEval)") CallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = BindingNodes.newExtrasFrame(binding,
+            final MaterializedFrame parentFrame = BindingNodes.newFrame(binding,
                     newBindingDescriptor);
             return eval(self, rootNodeToEval, cachedCallTarget, callNode, parentFrame);
         }
@@ -562,12 +562,12 @@ public abstract class KernelNodes {
                 Rope file,
                 int line,
                 boolean ownScopeForAssignments) {
-            final MaterializedFrame frame = BindingNodes.newExtrasFrame(getContext(), BindingNodes.getTopFrame(binding));
+            final MaterializedFrame frame = BindingNodes.newFrame(getContext(), BindingNodes.getFrame(binding));
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
             RubyRootNode rootNode = buildRootNode(source, frame, file, line, false);
             if (!frameHasOnlySelf(descriptor)) {
-                Layouts.BINDING.setExtras(binding, frame);
+                Layouts.BINDING.setFrame(binding, frame);
             }
             return getContext().getCodeLoader().prepareExecute(
                     ParserContext.EVAL, declarationContext, rootNode, frame, self);
@@ -595,7 +595,7 @@ public abstract class KernelNodes {
         }
 
         protected RootNodeWrapper compileSource(Rope sourceText, MaterializedFrame parentFrame, FrameDescriptor additionalVariables, Rope file, int line) {
-            return compileSource(sourceText, BindingNodes.newExtrasFrame(parentFrame, additionalVariables), file, line);
+            return compileSource(sourceText, BindingNodes.newFrame(parentFrame, additionalVariables), file, line);
         }
 
         protected CallTarget createCallTarget(RootNodeWrapper rootNode) {
@@ -616,7 +616,7 @@ public abstract class KernelNodes {
         }
 
         protected MaterializedFrame getBindingFrame(DynamicObject binding) {
-            return BindingNodes.getTopFrame(binding);
+            return BindingNodes.getFrame(binding);
         }
 
         protected int getCacheLimit() {
