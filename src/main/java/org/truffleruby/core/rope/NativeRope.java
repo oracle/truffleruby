@@ -14,6 +14,8 @@ import jnr.ffi.provider.MemoryManager;
 import org.jcodings.Encoding;
 import org.truffleruby.core.Hashing;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 public class NativeRope extends Rope {
 
     private Pointer pointer;
@@ -21,6 +23,11 @@ public class NativeRope extends Rope {
     public NativeRope(MemoryManager memoryManager, byte[] bytes, Encoding encoding, int characterLength) {
         super(encoding, CodeRange.CR_UNKNOWN, false, bytes.length, characterLength, 1, null);
 
+        allocatePointer(memoryManager, bytes);
+    }
+
+    @TruffleBoundary
+    private void allocatePointer(MemoryManager memoryManager, byte[] bytes) {
         pointer = memoryManager.allocateDirect(bytes.length + 1 /* trailing \0 */, false);
         pointer.put(0, bytes, 0, bytes.length);
         pointer.putByte(bytes.length, (byte) 0);
@@ -34,6 +41,7 @@ public class NativeRope extends Rope {
         return bytes;
     }
 
+    @TruffleBoundary
     public void copyTo(int from, byte[] buffer, int bufferPos) {
         pointer.get(from, buffer, bufferPos, byteLength());
     }
@@ -43,6 +51,7 @@ public class NativeRope extends Rope {
         return get(index);
     }
 
+    @TruffleBoundary
     @Override
     public byte get(int index) {
         assert 0 <= index && index < byteLength();
