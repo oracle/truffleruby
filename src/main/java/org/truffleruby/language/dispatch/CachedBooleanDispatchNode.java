@@ -67,7 +67,7 @@ public class CachedBooleanDispatchNode extends CachedDispatchNode {
             applySplittingInliningStrategy(falseCallDirect, falseMethod);
         }
 
-        if (falseCallDirect != null) {
+        if (trueCallDirect != null) {
             applySplittingInliningStrategy(trueCallDirect, trueMethod);
         }
     }
