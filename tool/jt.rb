@@ -700,7 +700,7 @@ module Commands
     case path
     when nil
       ENV['HAS_REDIS'] = 'true'
-      %w[tck specs mri integration gems ecosystem compiler cexts].each do |kind|
+      %w[bundle compiler cexts integration gems ecosystem specs tck mri].each do |kind|
         jt('test', kind)
       end
     when 'bundle' then test_bundle(*rest)
