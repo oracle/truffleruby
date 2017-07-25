@@ -1484,6 +1484,7 @@ class String
       end
     end
   end
+  Truffle::Graal.always_split instance_method(:%)
 
   def capitalize
     s = dup
