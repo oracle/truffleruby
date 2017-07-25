@@ -158,8 +158,7 @@ public class RubyCallNode extends RubyNode {
     }
 
     public boolean hasLiteralBlock() {
-        assert block != null;
-        return block.getChild() instanceof BlockDefinitionNode;
+        return block != null && block.getChild() instanceof BlockDefinitionNode;
     }
 
     private class DefinedNode extends Node {
