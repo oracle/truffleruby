@@ -707,9 +707,9 @@ module Commands
     when 'compiler' then test_compiler(*rest)
     when 'cexts' then test_cexts(*rest)
     when 'report' then test_report(*rest)
-    when 'integration' then test_integration({}, *rest)
-    when 'gems' then test_gems({}, *rest)
-    when 'ecosystem' then test_ecosystem({}, *rest)
+    when 'integration' then test_integration(*rest)
+    when 'gems' then test_gems(*rest)
+    when 'ecosystem' then test_ecosystem(*rest)
     when 'specs' then test_specs('run', *rest)
     when 'tck' then
       test_tck
@@ -898,9 +898,7 @@ module Commands
     end
   end
 
-  def test_integration(env={}, *args)
-    env = env.dup
-
+  def test_integration(*args)
     classpath = []
 
     if ENV['GRAAL_JS_JAR']
@@ -911,6 +909,7 @@ module Commands
       classpath << Utilities.find_sl
     end
 
+    env = {}
     unless classpath.empty?
       env['JAVA_OPTS'] = "-cp #{classpath.join(':')}"
     end
@@ -926,11 +925,10 @@ module Commands
   end
   private :test_integration
 
-  def test_gems(env={}, *args)
+  def test_gems(*args)
     gem_test_pack
 
-    env = env.dup
-
+    env = {}
     if ENV['GRAAL_JS_JAR']
       env['JAVA_OPTS'] = "-cp #{Utilities.find_graal_js}"
     end
@@ -946,7 +944,7 @@ module Commands
   end
   private :test_gems
 
-  def test_ecosystem(env={}, *args)
+  def test_ecosystem(*args)
     gem_test_pack
 
     tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/ecosystem"
@@ -954,9 +952,9 @@ module Commands
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
     success = Dir["#{tests_path}/#{test_names}.sh"].sort.all? do |test_script|
-      sh env, test_script, continue_on_failure: true
+      sh test_script, continue_on_failure: true
     end
-    exit success ? 0 : 1
+    exit success
   end
   private :test_ecosystem
 
