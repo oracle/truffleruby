@@ -482,14 +482,14 @@ module Commands
     when 'options'
       sh 'tool/generate-options.rb'
     when nil
-      mx TRUFFLERUBY_DIR, 'build', '--force-javac', '--warning-as-error'
+      mx 'build', '--force-javac', '--warning-as-error'
     else
       raise ArgumentError, project
     end
   end
 
   def clean
-    mx TRUFFLERUBY_DIR, 'clean'
+    mx 'clean'
   end
 
   def dis(file)
@@ -502,7 +502,7 @@ module Commands
 
   def rebuild
     clean
-    mx TRUFFLERUBY_DIR, 'sforceimports'
+    mx 'sforceimports'
     build
   end
 
@@ -711,8 +711,7 @@ module Commands
     when 'gems' then test_gems(*rest)
     when 'ecosystem' then test_ecosystem(*rest)
     when 'specs' then test_specs('run', *rest)
-    when 'tck' then
-      test_tck
+    when 'tck' then test_tck(*rest)
     when 'mri' then test_mri(*rest)
     else
       if File.expand_path(path).start_with?("#{TRUFFLERUBY_DIR}/test")
@@ -1082,7 +1081,7 @@ module Commands
   private :test_specs
 
   def test_tck(*args)
-    raw_sh 'mx', 'rubytck'
+    mx 'rubytck', *args
   end
   private :test_tck
 
@@ -1548,9 +1547,9 @@ module Commands
   alias :'native-launcher' :native_launcher
 
   def check_dsl_usage
-    mx('clean')
+    mx 'clean'
     # We need to build with -parameters to get parameter names
-    mx('build', '-A-parameters')
+    mx 'build', '-A-parameters'
     run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-e', 'exit')
   end
 
