@@ -1298,7 +1298,7 @@ public abstract class FixnumNodes {
         @Specialization(guards = {
                 "isIntOrLong(base)", "exponent == cachedExponent",
                 "cachedExponent >= 0", "cachedExponent <= 10"
-        }, limit = "11") // TODO (eregon, 26 July 2017): make it an option
+        }, limit = "getLimit()")
         public Object powConstantExponent(Object base, int exponent,
                 @Cached("exponent") int cachedExponent,
                 @Cached("create()") IntegerMulNode mulNode) {
@@ -1399,6 +1399,10 @@ public abstract class FixnumNodes {
         @TruffleBoundary
         private int compareTo(BigInteger a, BigInteger b) {
             return a.compareTo(b);
+        }
+
+        protected int getLimit() {
+            return getContext().getOptions().POW_CACHE;
         }
 
     }

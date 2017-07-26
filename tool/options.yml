@@ -76,6 +76,7 @@ INTEROP_READ_CACHE: [interop.read.cache, integer, DEFAULT_CACHE, Cache size for 
 INTEROP_WRITE_CACHE: [interop.write.cache, integer, DEFAULT_CACHE, Cache size for interop WRITE messages]
 INTEROP_INVOKE_CACHE: [interop.invoke.cache, integer, DEFAULT_CACHE, Cache size for interop INVOKE messages]
 TIME_FORMAT_CACHE: [time.format.cache, integer, DEFAULT_CACHE, Cache size for parsed time format specifiers]
+POW_CACHE: [integer.pow.cache, integer, DEFAULT_CACHE, Cache size for Integer#** with a constant exponent]
 
 CLONE_DEFAULT: [clone.default, boolean, true, Default option for cloning]
 INLINE_DEFAULT: [inline.default, boolean, true, Default option for inlining]
