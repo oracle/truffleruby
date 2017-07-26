@@ -146,4 +146,31 @@ describe "The launcher" do
     out.should include("unknown option")
   end
 
+  describe 'StringArray option' do
+    it 'appends multiple options' do
+      out       = `#{RbConfig.ruby} -I a -I b -e 'p $LOAD_PATH' 2>&1`
+      $?.success?.should == true
+      line = out.lines.find { |l| /^\[.*\]$/ =~ l }
+      load_path = eval line
+      load_path.should include(*%w[a b])
+    end
+
+    it 'parses ,' do
+      out       = `#{RbConfig.ruby} -Xload_paths=a,b -e 'p $LOAD_PATH' 2>&1`
+      $?.success?.should == true
+      line = out.lines.find { |l| /^\[.*\]$/ =~ l }
+      load_path = eval line
+      load_path.should include(*%w[a b])
+    end
+
+    it 'parses , respecting escaping' do
+      # \\\\ translates to one \
+      out       = `#{RbConfig.ruby} -Xload_paths=a\\\\,b,,\\\\c -e 'p $LOAD_PATH' 2>&1`
+      $?.success?.should == true
+      line = out.lines.find { |l| /^\[.*\]$/ =~ l }
+      load_path = eval line
+      load_path.should include('a,b', '', '\c')
+    end
+  end
+
 end
