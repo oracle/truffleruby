@@ -168,7 +168,8 @@ public abstract class ThreadNodes {
                 return rubyThread;
             }
 
-            getContext().getSafepointManager().pauseThreadAndExecuteLater(toKill, this, (currentThread, currentNode) -> ThreadManager.shutdown(getContext(), currentThread, currentNode));
+            getContext().getSafepointManager().pauseThreadAndExecuteLater(toKill, this,
+                    (currentThread, currentNode) -> ThreadManager.shutdown(getContext(), currentThread, currentNode));
 
             return rubyThread;
         }
