@@ -34,6 +34,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
@@ -976,18 +977,6 @@ public abstract class KernelNodes {
         protected boolean isCloningEnabled() {
             return coreLibrary().isCloningEnabled();
         }
-    }
-
-    @CoreMethod(names = "local_variables", isModuleFunction = true)
-    public abstract static class LocalVariablesNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject localVariables() {
-            final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameInstance.FrameAccess.READ_ONLY);
-            return BindingNodes.LocalVariablesNode.listLocalVariables(getContext(), frame);
-        }
-
     }
 
     @CoreMethod(names = "__method__", isModuleFunction = true)

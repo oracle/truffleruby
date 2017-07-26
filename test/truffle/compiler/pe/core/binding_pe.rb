@@ -30,3 +30,15 @@ example "x = 14; 1.times { binding.local_variable_set(:x, 15) }; x", 15
 
 # get + set (2 levels)
 example "x = 14; y = nil; 1.times { binding.local_variable_set(:x, 15); y = binding.local_variable_get(:x) }; y", 15
+
+# defined
+
+example "x = 14; b = binding; b.local_variable_defined?(:x)", true
+
+# not defined
+
+example "x = 14; b = binding; b.local_variable_defined?(:y)", false
+
+# local_variables
+
+tagged example "x = 14; y = 15; binding.local_variables[1]", :x

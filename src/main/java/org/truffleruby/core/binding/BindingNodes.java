@@ -179,6 +179,32 @@ public abstract class BindingNodes {
             return NameToJavaStringNodeGen.create(name);
         }
 
+        @Specialization(guards = {
+                "name == cachedName",
+                "!hiddenVariable(cachedName)",
+                "cachedFrameSlot != null",
+                "getFrameDescriptor(binding) == descriptor"
+        }, limit = "getCacheLimit()")
+        public Object localVariableDefinedCached(DynamicObject binding, String name,
+                @Cached("name") String cachedName,
+                @Cached("getFrameDescriptor(binding)") FrameDescriptor descriptor,
+                @Cached("findFrameSlotOrNull(name, getFrame(binding))") FrameSlotAndDepth cachedFrameSlot) {
+            return true;
+        }
+
+        @Specialization(guards = {
+                "name == cachedName",
+                "!hiddenVariable(cachedName)",
+                "cachedFrameSlot == null",
+                "getFrameDescriptor(binding) == descriptor"
+        }, limit = "getCacheLimit()")
+        public Object localVariableNotDefinedCached(DynamicObject binding, String name,
+                @Cached("name") String cachedName,
+                @Cached("getFrameDescriptor(binding)") FrameDescriptor descriptor,
+                @Cached("findFrameSlotOrNull(name, getFrame(binding))") FrameSlotAndDepth cachedFrameSlot) {
+            return false;
+        }
+
         @TruffleBoundary
         @Specialization(guards = "!hiddenVariable(name)")
         public boolean localVariableDefinedUncached(DynamicObject binding, String name) {
@@ -189,6 +215,10 @@ public abstract class BindingNodes {
         @Specialization(guards = "hiddenVariable(name)")
         public Object localVariableDefinedLastLine(DynamicObject binding, String name) {
             throw new RaiseException(coreExceptions().nameError("Bad local variable name", binding, name, this));
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().BINDING_LOCAL_VARIABLE_CACHE;
         }
 
     }
@@ -331,8 +361,16 @@ public abstract class BindingNodes {
         }
     }
 
-    @CoreMethod(names = "local_variables")
-    public abstract static class LocalVariablesNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "local_variable_names", needsSelf = true)
+    @ImportStatic(BindingNodes.class)
+    public abstract static class LocalVariablesNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "getFrameDescriptor(binding) == cachedFrameDescriptor", limit = "getCacheLimit()")
+        public DynamicObject localVariablesCached(DynamicObject binding,
+                @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
+                @Cached("listLocalVariables(getContext(), getFrame(binding))") DynamicObject names) {
+            return names;
+        }
 
         @Specialization
         public DynamicObject localVariables(DynamicObject binding) {
@@ -340,7 +378,7 @@ public abstract class BindingNodes {
         }
 
         @TruffleBoundary
-        public static DynamicObject listLocalVariables(RubyContext context, Frame frame) {
+        public static DynamicObject listLocalVariables(RubyContext context, MaterializedFrame frame) {
             final Set<Object> names = new LinkedHashSet<>();
             while (frame != null) {
                 addNamesFromFrame(context, frame, names);
@@ -361,6 +399,9 @@ public abstract class BindingNodes {
             }
         }
 
+        protected int getCacheLimit() {
+            return getContext().getOptions().BINDING_LOCAL_VARIABLE_CACHE;
+        }
     }
 
     @CoreMethod(names = "receiver")
