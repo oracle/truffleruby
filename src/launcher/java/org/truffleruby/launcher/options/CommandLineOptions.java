@@ -89,7 +89,7 @@ public class CommandLineOptions {
     public <T> String getOptionRaw(OptionDescription<T> key) {
         return options.getOrDefault(
                 key.getName(),
-                String.valueOf(key.<T>getDefaultValue()));
+                key.toString(key.<T>getDefaultValue()));
     }
 
     public String[] getArguments() {
