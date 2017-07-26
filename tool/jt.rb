@@ -847,7 +847,9 @@ module Commands
         case gem_name
         when 'backtraces'
           run '--sulong', "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", err: output_file, continue_on_failure: true
-          unless File.read(output_file).gsub(TRUFFLERUBY_DIR, '') == File.read("#{dir}/expected.txt")
+          unless File.read(output_file)
+              .gsub(TRUFFLERUBY_DIR, '')
+              .gsub(/\/cext\.rb:(\d+)/, '/cext.rb:n') == File.read("#{dir}/expected.txt")
             abort "c extension #{dir} didn't work as expected"
           end
         else
