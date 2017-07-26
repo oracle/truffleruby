@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require 'backtraces'
+
+class Bar
+
+  def bar(baz)
+    baz.call(proc { raise 'error' })
+  end
+
+end
+
+puts Backtraces.foo(Bar.new)
