@@ -39,28 +39,29 @@ public abstract class LookupConstantWithLexicalScopeNode extends RubyNode implem
         return lexicalScope.getLiveModule();
     }
 
-    public abstract RubyConstant executeLookupConstant(VirtualFrame frame);
+    public abstract RubyConstant executeLookupConstant();
 
+    @Override
     public RubyConstant lookupConstant(VirtualFrame frame, Object module, String name) {
         assert name == this.name;
-        return executeLookupConstant(frame);
+        return executeLookupConstant();
     }
 
     @Specialization(assumptions = "constant.getAssumptions()")
-    protected RubyConstant lookupConstant(VirtualFrame frame,
+    protected RubyConstant lookupConstant(
             @Cached("doLookup()") ConstantLookupResult constant,
             @Cached("isVisible(constant)") boolean isVisible) {
         if (!isVisible) {
             throw new RaiseException(coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
         }
         if (constant.isDeprecated()) {
-            warnDeprecatedConstant(frame, name);
+            warnDeprecatedConstant(name);
         }
         return constant.getConstant();
     }
 
     @Specialization
-    protected RubyConstant lookupConstantUncached(VirtualFrame frame,
+    protected RubyConstant lookupConstantUncached(
             @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile,
             @Cached("createBinaryProfile()") ConditionProfile isDeprecatedProfile) {
         ConstantLookupResult constant = doLookup();
@@ -68,7 +69,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends RubyNode implem
             throw new RaiseException(coreExceptions().nameErrorPrivateConstant(getModule(), name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
-            warnDeprecatedConstant(frame, name);
+            warnDeprecatedConstant(name);
         }
         return constant.getConstant();
     }
@@ -83,12 +84,12 @@ public abstract class LookupConstantWithLexicalScopeNode extends RubyNode implem
         return constant.isVisibleTo(getContext(), lexicalScope, getModule());
     }
 
-    private void warnDeprecatedConstant(VirtualFrame frame, String name) {
+    private void warnDeprecatedConstant(String name) {
         if (warnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnNode = insert(new WarnNode());
         }
-        warnNode.execute(frame, "constant ", name, " is deprecated");
+        warnNode.warn("constant ", name, " is deprecated");
     }
 
 }
