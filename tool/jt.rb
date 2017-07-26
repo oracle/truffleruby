@@ -839,15 +839,24 @@ module Commands
 
     begin
       output_file = 'cext-output.txt'
-      ['minimum', 'method', 'module', 'globals', 'xopenssl'].each do |gem_name|
+      ['minimum', 'method', 'module', 'globals', 'backtraces', 'xopenssl'].each do |gem_name|
         next if gem_name == 'xopenssl' && no_openssl
         dir = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
         ext_dir = "#{dir}/ext/#{gem_name}/"
         compile_cext gem_name, ext_dir, "#{dir}/lib/#{gem_name}/#{gem_name}.su"
-        next if gem_name == 'globals' # globals is excluded just for running
-        run '--sulong', "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", :out => output_file
-        unless File.read(output_file) == File.read("#{dir}/expected.txt")
-          abort "c extension #{dir} didn't work as expected"
+        case gem_name
+        when 'globals'
+          next # globals is excluded just for running
+        when 'backtraces'
+          run '--sulong', "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", err: output_file, continue_on_failure: true
+          unless File.read(output_file).gsub(TRUFFLERUBY_DIR, '') == File.read("#{dir}/expected.txt")
+            abort "c extension #{dir} didn't work as expected"
+          end
+        else
+          run '--sulong', "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", out: output_file
+          unless File.read(output_file) == File.read("#{dir}/expected.txt")
+            abort "c extension #{dir} didn't work as expected"
+          end
         end
       end
     ensure
