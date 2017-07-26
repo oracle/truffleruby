@@ -327,7 +327,7 @@ public class ThreadManager {
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> blockingAction, UnblockingAction unblockingAction) {
         assert unblockingAction != null;
-        final Thread thread = Layouts.THREAD.getThread(getCurrentThread());
+        final Thread thread = Thread.currentThread();
 
         final UnblockingAction oldUnblockingAction = unblockingActions.put(thread, unblockingAction);
         try {
