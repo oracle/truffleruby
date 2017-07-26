@@ -48,7 +48,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
             boolean isIVar,
             Object value,
             @Cached("createWriteObjectFieldNode(stringName)") WriteObjectFieldNode writeObjectFieldNode) {
-        writeObjectFieldNode.execute(receiver, value);
+        writeObjectFieldNode.write(receiver, value);
         return value;
     }
 
