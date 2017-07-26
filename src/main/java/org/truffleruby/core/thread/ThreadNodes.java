@@ -45,6 +45,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -137,8 +138,9 @@ public abstract class ThreadNodes {
     public abstract static class CurrentNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject current() {
-            return getContext().getThreadManager().getCurrentThread();
+        public DynamicObject current(VirtualFrame frame,
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+            return getCurrentRubyThreadNode.executeGetRubyThread(frame);
         }
 
     }
