@@ -182,27 +182,13 @@ public abstract class BindingNodes {
         @Specialization(guards = {
                 "name == cachedName",
                 "!hiddenVariable(cachedName)",
-                "cachedFrameSlot != null",
                 "getFrameDescriptor(binding) == descriptor"
         }, limit = "getCacheLimit()")
-        public Object localVariableDefinedCached(DynamicObject binding, String name,
+        public boolean localVariableDefinedCached(DynamicObject binding, String name,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor descriptor,
                 @Cached("findFrameSlotOrNull(name, getFrame(binding))") FrameSlotAndDepth cachedFrameSlot) {
-            return true;
-        }
-
-        @Specialization(guards = {
-                "name == cachedName",
-                "!hiddenVariable(cachedName)",
-                "cachedFrameSlot == null",
-                "getFrameDescriptor(binding) == descriptor"
-        }, limit = "getCacheLimit()")
-        public Object localVariableNotDefinedCached(DynamicObject binding, String name,
-                @Cached("name") String cachedName,
-                @Cached("getFrameDescriptor(binding)") FrameDescriptor descriptor,
-                @Cached("findFrameSlotOrNull(name, getFrame(binding))") FrameSlotAndDepth cachedFrameSlot) {
-            return false;
+            return cachedFrameSlot != null;
         }
 
         @TruffleBoundary
@@ -372,7 +358,7 @@ public abstract class BindingNodes {
             return names;
         }
 
-        @Specialization
+        @Specialization(replaces = "localVariablesCached")
         public DynamicObject localVariables(DynamicObject binding) {
             return listLocalVariables(getContext(), getFrame(binding));
         }
