@@ -44,7 +44,6 @@ public class CommandLineOptions {
     private String scriptFileName;
     private Collection<String> requiredLibraries = new LinkedHashSet<>();
     private Map<String, String> optionGlobals = new HashMap<>();
-    private boolean split;
     private boolean showVersion;
     private boolean showCopyright;
     private boolean shouldRunInterpreter = true;
@@ -145,14 +144,6 @@ public class CommandLineOptions {
 
     public String getScriptFileName() {
         return scriptFileName;
-    }
-
-    public void setSplit(boolean split) {
-        this.split = split;
-    }
-
-    public boolean isSplit() {
-        return split;
     }
 
     public void setShowVersion(boolean showVersion) {
