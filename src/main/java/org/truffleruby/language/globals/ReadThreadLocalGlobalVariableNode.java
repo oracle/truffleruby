@@ -15,15 +15,15 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
-import org.truffleruby.language.threadlocal.ThreadLocalObjectNode;
-import org.truffleruby.language.threadlocal.ThreadLocalObjectNodeGen;
+import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNode;
+import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNodeGen;
 
 public class ReadThreadLocalGlobalVariableNode extends RubyNode {
 
     private final String name;
     private final boolean alwaysDefined;
 
-    @Child private ThreadLocalObjectNode threadLocalVariablesObjectNode;
+    @Child private GetThreadLocalsObjectNode getThreadLocalsObjectNode;
     @Child private ReadObjectFieldNode readNode;
 
     public ReadThreadLocalGlobalVariableNode(String name, boolean alwaysDefined) {
@@ -33,7 +33,7 @@ public class ReadThreadLocalGlobalVariableNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final DynamicObject threadLocalVariablesObject = getThreadLocalVariablesObjectNode().executeDynamicObject(frame);
+        final DynamicObject threadLocalVariablesObject = getThreadLocalsObject(frame);
         return getReadNode().execute(threadLocalVariablesObject);
     }
 
@@ -46,13 +46,13 @@ public class ReadThreadLocalGlobalVariableNode extends RubyNode {
         }
     }
 
-    private ThreadLocalObjectNode getThreadLocalVariablesObjectNode() {
-        if (threadLocalVariablesObjectNode == null) {
+    private DynamicObject getThreadLocalsObject(VirtualFrame frame) {
+        if (getThreadLocalsObjectNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            threadLocalVariablesObjectNode = insert(ThreadLocalObjectNodeGen.create());
+            getThreadLocalsObjectNode = insert(GetThreadLocalsObjectNodeGen.create());
         }
 
-        return threadLocalVariablesObjectNode;
+        return getThreadLocalsObjectNode.executeGetThreadLocalsObject(frame);
     }
 
     private ReadObjectFieldNode getReadNode() {

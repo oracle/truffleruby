@@ -155,8 +155,8 @@ import org.truffleruby.language.objects.WriteClassVariableNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
 import org.truffleruby.language.threadlocal.GetFromThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.threadlocal.SetInThreadAndFrameLocalStorageNode;
-import org.truffleruby.language.threadlocal.ThreadLocalObjectNode;
-import org.truffleruby.language.threadlocal.ThreadLocalObjectNodeGen;
+import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNode;
+import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNodeGen;
 import org.truffleruby.language.yield.YieldExpressionNode;
 import org.truffleruby.parser.ast.AliasParseNode;
 import org.truffleruby.parser.ast.AndParseNode;
@@ -1716,9 +1716,9 @@ public class BodyTranslator extends Translator {
         }
 
         if (THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-            final ThreadLocalObjectNode threadLocalVariablesObjectNode = ThreadLocalObjectNodeGen.create();
-            threadLocalVariablesObjectNode.unsafeSetSourceSection(sourceSection);
-            return addNewlineIfNeeded(node, withSourceSection(sourceSection, new WriteInstanceVariableNode(name, threadLocalVariablesObjectNode, rhs)));
+            final GetThreadLocalsObjectNode getThreadLocalsObjectNode = GetThreadLocalsObjectNodeGen.create();
+            getThreadLocalsObjectNode.unsafeSetSourceSection(sourceSection);
+            return addNewlineIfNeeded(node, withSourceSection(sourceSection, new WriteInstanceVariableNode(name, getThreadLocalsObjectNode, rhs)));
         } else if (FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             final ReadLocalNode localVarNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
             final RubyNode assignment;

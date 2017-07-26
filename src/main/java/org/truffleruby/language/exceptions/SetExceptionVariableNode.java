@@ -20,14 +20,14 @@ import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNodeGen;
-import org.truffleruby.language.threadlocal.ThreadLocalObjectNode;
-import org.truffleruby.language.threadlocal.ThreadLocalObjectNodeGen;
+import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNode;
+import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNodeGen;
 
 public class SetExceptionVariableNode extends Node {
 
     private final RubyContext context;
 
-    @Child private ThreadLocalObjectNode threadLocalNode;
+    @Child private GetThreadLocalsObjectNode getThreadLocalsObjectNode;
     @Child private ReadObjectFieldNode readDollarBang;
     @Child private WriteObjectFieldNode writeDollarBang;
 
@@ -54,12 +54,12 @@ public class SetExceptionVariableNode extends Node {
     }
 
     private DynamicObject getThreadLocalsObject(VirtualFrame frame) {
-        if (threadLocalNode == null) {
+        if (getThreadLocalsObjectNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            threadLocalNode = insert(ThreadLocalObjectNodeGen.create());
+            getThreadLocalsObjectNode = insert(GetThreadLocalsObjectNodeGen.create());
         }
 
-        return threadLocalNode.executeDynamicObject(frame);
+        return getThreadLocalsObjectNode.executeGetThreadLocalsObject(frame);
     }
 
     private void writeDollarBang(DynamicObject threadLocals, Object value) {
