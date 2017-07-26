@@ -89,6 +89,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription YIELD_ALWAYS_INLINE = new BooleanOptionDescription("ruby.yield.always_inline", "Always inline yields", INLINE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription METHODMISSING_ALWAYS_CLONE = new BooleanOptionDescription("ruby.method_missing.always_clone", "Always clone #method_missing", CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription METHODMISSING_ALWAYS_INLINE = new BooleanOptionDescription("ruby.method_missing.always_inline", "Always inline #method_missing", INLINE_DEFAULT.getDefaultValue());
+    public static final BooleanOptionDescription CALL_WITH_BLOCK_ALWAYS_CLONE = new BooleanOptionDescription("ruby.call_with_block.always_clone", "Always clone calls with a literal block", CLONE_DEFAULT.getDefaultValue());
     public static final IntegerOptionDescription PACK_UNROLL_LIMIT = new IntegerOptionDescription("ruby.pack.unroll", "If a pack or unpack expression has a loop less than this many iterations", 4);
     public static final IntegerOptionDescription PACK_RECOVER_LOOP_MIN = new IntegerOptionDescription("ruby.pack.recover", "If a pack or unpack expression is longer than this", 32);
     public static final BooleanOptionDescription EXCEPTIONS_STORE_JAVA = new BooleanOptionDescription("ruby.exceptions.store_java", "Store the Java exception with the Ruby backtrace", false);
@@ -262,6 +263,8 @@ public class OptionsCatalog {
                 return METHODMISSING_ALWAYS_CLONE;
             case "ruby.method_missing.always_inline":
                 return METHODMISSING_ALWAYS_INLINE;
+            case "ruby.call_with_block.always_clone":
+                return CALL_WITH_BLOCK_ALWAYS_CLONE;
             case "ruby.pack.unroll":
                 return PACK_UNROLL_LIMIT;
             case "ruby.pack.recover":
@@ -390,6 +393,7 @@ public class OptionsCatalog {
             YIELD_ALWAYS_INLINE,
             METHODMISSING_ALWAYS_CLONE,
             METHODMISSING_ALWAYS_INLINE,
+            CALL_WITH_BLOCK_ALWAYS_CLONE,
             PACK_UNROLL_LIMIT,
             PACK_RECOVER_LOOP_MIN,
             EXCEPTIONS_STORE_JAVA,

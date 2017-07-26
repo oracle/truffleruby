@@ -85,6 +85,7 @@ YIELD_ALWAYS_CLONE: [yield.always_clone, boolean, CLONE_DEFAULT, Always clone yi
 YIELD_ALWAYS_INLINE: [yield.always_inline, boolean, INLINE_DEFAULT, Always inline yields]
 METHODMISSING_ALWAYS_CLONE: [method_missing.always_clone, boolean, CLONE_DEFAULT, 'Always clone #method_missing']
 METHODMISSING_ALWAYS_INLINE: [method_missing.always_inline, boolean, INLINE_DEFAULT, 'Always inline #method_missing']
+CALL_WITH_BLOCK_ALWAYS_CLONE: [call_with_block.always_clone, boolean, CLONE_DEFAULT, Always clone calls with a literal block]
 
 PACK_UNROLL_LIMIT: [pack.unroll, integer, 4, If a pack or unpack expression has a loop less than this many iterations, unroll it]
 PACK_RECOVER_LOOP_MIN: [pack.recover, integer, 32, If a pack or unpack expression is longer than this, attempt to recover loops]
