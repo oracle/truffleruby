@@ -169,6 +169,7 @@ suite = {
             "dir": "src/main",
             "sourceDirs": ["java"],
             "dependencies": [
+                "truffleruby:TRUFFLERUBY-LAUNCHER",
                 "truffle:TRUFFLE_API",
                 "truffle:JLINE",
                 "ASM",
@@ -186,6 +187,18 @@ suite = {
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
             "license": ["EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0"],
+        },
+
+        "truffleruby-launcher": {
+            "dir": "src/launcher",
+            "sourceDirs": ["java"],
+            "dependencies": [
+                "sdk:GRAAL_SDK"
+            ],
+            "javaCompliance": "1.8",
+            "workingSets": "TruffleRuby",
+            "checkPackagePrefix": "false",
+            "license": ["EPL-1.0"],
         },
 
         "truffleruby-core": {
@@ -264,9 +277,21 @@ suite = {
             "distDependencies": [
                 "truffle:TRUFFLE_API",
                 "truffle:TRUFFLE_NFI",
+                "truffleruby:TRUFFLERUBY-LAUNCHER",
             ],
             "description": "TruffleRuby",
             "license": ["EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0"],
+        },
+
+        "TRUFFLERUBY-LAUNCHER": {
+            "dependencies": [
+                "truffleruby-launcher"
+            ],
+            "distDependencies": [
+                "sdk:GRAAL_SDK",
+            ],
+            "description": "TruffleRuby Launcher",
+            "license": ["EPL-1.0"]
         },
 
         # Set of extra files to extract to run Ruby

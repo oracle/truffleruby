@@ -43,8 +43,9 @@ import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.options.Options;
-import org.truffleruby.options.OptionsBuilder;
+import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.options.Options;
+import org.truffleruby.launcher.options.OptionsBuilder;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.NativePlatformFactory;
 import org.truffleruby.stdlib.CoverageManager;
@@ -114,7 +115,7 @@ public class RubyContext {
         optionsBuilder.set(env.getOptions());           // SDK options
         options = optionsBuilder.build();
 
-        if (!Main.isGraal() && options.GRAAL_WARNING_UNLESS) {
+        if (!org.truffleruby.Main.isGraal() && options.GRAAL_WARNING_UNLESS) {
             Log.performanceOnce(
                     "this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
         }
@@ -172,9 +173,9 @@ public class RubyContext {
     public void initialize() {
         // Load the nodes
 
-        Main.printTruffleTimeMetric("before-load-nodes");
+        Launcher.printTruffleTimeMetric("before-load-nodes");
         coreLibrary.loadCoreNodes(primitiveManager);
-        Main.printTruffleTimeMetric("after-load-nodes");
+        Launcher.printTruffleTimeMetric("after-load-nodes");
 
         // Capture known builtin methods
 
@@ -182,9 +183,9 @@ public class RubyContext {
 
         // Load the part of the core library defined in Ruby
 
-        Main.printTruffleTimeMetric("before-load-core");
+        Launcher.printTruffleTimeMetric("before-load-core");
         coreLibrary.loadRubyCore();
-        Main.printTruffleTimeMetric("after-load-core");
+        Launcher.printTruffleTimeMetric("after-load-core");
 
         // Load other subsystems
 

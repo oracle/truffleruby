@@ -32,10 +32,10 @@
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
  */
-package org.truffleruby.options;
+package org.truffleruby.launcher.options;
 
-import org.truffleruby.LogWithoutTruffle;
-import org.truffleruby.Main;
+import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.TruffleLessLog;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -252,7 +252,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'y':
                     disallowedInRubyOpts(argument);
-                    LogWithoutTruffle.LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
+                    TruffleLessLog.LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
                     break FOR;
                 case 'J':
                     String js = grabOptionalValue();
@@ -335,13 +335,13 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     String extendedOption = grabValue("-X must be followed by an option");
                     if (new File(extendedOption).isDirectory()) {
-                        LogWithoutTruffle.LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
+                        TruffleLessLog.LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
                     }
                     if (extendedOption.equals("options")) {
                         System.out.println("TruffleRuby options and their default values:");
                         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-                            assert option.getName().startsWith(Main.LANGUAGE_ID);
-                            final String xName = option.getName().substring(Main.LANGUAGE_ID.length() + 1);
+                            assert option.getName().startsWith(Launcher.LANGUAGE_ID);
+                            final String xName = option.getName().substring(Launcher.LANGUAGE_ID.length() + 1);
                             final String nameValue = String.format("-X%s=%s", xName, option.toString(option.getDefaultValue()));
                             System.out.printf("  %s%" + (50 - nameValue.length()) + "s# %s%n", nameValue, "", option.getDescription());
                         }
@@ -352,12 +352,12 @@ public class CommandLineParser {
                         final Level level;
 
                         if (levelString.equals("PERFORMANCE")) {
-                            level = LogWithoutTruffle.PERFORMANCE;
+                            level = TruffleLessLog.PERFORMANCE;
                         } else {
                             level = Level.parse(levelString.toUpperCase());
                         }
 
-                        LogWithoutTruffle.LOGGER.setLevel(level);
+                        TruffleLessLog.LOGGER.setLevel(level);
                     } else {
                         final String value;
 
@@ -369,7 +369,7 @@ public class CommandLineParser {
                             extendedOption = extendedOption.substring(0, equals);
                         }
 
-                        final String fullName = Main.LANGUAGE_ID + "." + extendedOption;
+                        final String fullName = Launcher.LANGUAGE_ID + "." + extendedOption;
 
                         if (OptionsCatalog.fromName(fullName) == null) {
                             throw new CommandLineException("unknown option " + extendedOption);
@@ -388,7 +388,7 @@ public class CommandLineParser {
                         throw notImplemented("--debug");
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
-                        LogWithoutTruffle.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
+                        TruffleLessLog.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
                         break FOR;
                     } else if (argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
@@ -432,7 +432,7 @@ public class CommandLineParser {
                         config.setOption(OptionsCatalog.VERBOSITY, "true");
                         break FOR;
                     } else if (argument.startsWith("--dump=")) {
-                        LogWithoutTruffle.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
+                        TruffleLessLog.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
                         break FOR;
                     } else {
                         if (argument.equals("--")) {
@@ -598,7 +598,7 @@ public class CommandLineParser {
         out.println("  -Xoptions       print available TruffleRuby options");
         out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
 
-        if (Main.IS_AOT) {
+        if (Launcher.IS_AOT) {
             out.println("SVM switches:");
             out.println("  -XX:arg         pass arg to the SVM");
             out.println("  -Dname=value    set a system property");

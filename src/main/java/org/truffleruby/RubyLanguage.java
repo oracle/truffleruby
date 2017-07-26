@@ -27,8 +27,9 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.options.OptionDescription;
-import org.truffleruby.options.OptionsCatalog;
+import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.options.OptionDescription;
+import org.truffleruby.launcher.options.OptionsCatalog;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
 
@@ -53,10 +54,10 @@ import java.util.List;
 public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final String NAME = "Ruby";
-    public static final String ID = Main.LANGUAGE_ID;
+    public static final String ID = Launcher.LANGUAGE_ID;
 
     public static final String PLATFORM = String.format("%s-%s", Platform.getArchitecture(), Platform.getOSName());
-    public static final String RUBY_VERSION = Main.LANGUAGE_VERSION;
+    public static final String RUBY_VERSION = Launcher.LANGUAGE_VERSION;
     public static final int    RUBY_REVISION = 0;
     public static final String COMPILE_DATE = "2017";
     public static final String ENGINE = "truffleruby";

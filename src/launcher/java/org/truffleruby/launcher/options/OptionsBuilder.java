@@ -7,12 +7,12 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.options;
+package org.truffleruby.launcher.options;
 
 import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionValues;
-import org.truffleruby.LogWithoutTruffle;
-import org.truffleruby.Main;
+import org.truffleruby.launcher.Launcher;
+import org.truffleruby.launcher.TruffleLessLog;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,11 +51,11 @@ public class OptionsBuilder {
     public Options build() {
         final Options options = new Options(this);
 
-        if (options.OPTIONS_LOG && LogWithoutTruffle.LOGGER.isLoggable(Level.CONFIG)) {
+        if (options.OPTIONS_LOG && TruffleLessLog.LOGGER.isLoggable(Level.CONFIG)) {
             for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
-                assert option.getName().startsWith(Main.LANGUAGE_ID);
-                final String xName = option.getName().substring(Main.LANGUAGE_ID.length() + 1);
-                LogWithoutTruffle.LOGGER.config("option " + xName + "=" + option.toString(options.fromDescription(option)));
+                assert option.getName().startsWith(Launcher.LANGUAGE_ID);
+                final String xName = option.getName().substring(Launcher.LANGUAGE_ID.length() + 1);
+                TruffleLessLog.LOGGER.config("option " + xName + "=" + option.toString(options.fromDescription(option)));
             }
         }
 

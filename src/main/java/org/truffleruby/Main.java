@@ -44,185 +44,18 @@
  */
 package org.truffleruby;
 
-import java.lang.management.ManagementFactory;
-import java.util.Locale;
-
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.PolyglotException;
-import org.graalvm.polyglot.Source;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.options.CommandLineOptions;
-import org.truffleruby.options.CommandLineParser;
-import org.truffleruby.options.CommandLineException;
-import org.truffleruby.options.OptionsCatalog;
-import org.truffleruby.platform.Platform;
-
 import com.oracle.truffle.api.Truffle;
+import org.truffleruby.launcher.Launcher;
+
+import java.util.Locale;
 
 public class Main {
 
-    public static final boolean IS_AOT = Boolean.logicalOr(
-            Boolean.getBoolean("com.oracle.graalvm.isaot"),
-            Boolean.getBoolean("com.oracle.truffle.aot"));
-    public static final String LANGUAGE_ID = "ruby";
-    public static final String LANGUAGE_VERSION = "2.3.3";
-    public static final String BOOT_SOURCE_NAME = "main_boot_source";
-    public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2017 Oracle and/or its affiliates";
-
-    // These system properties are used before outside the SDK option system
-
-    private static final boolean METRICS_TIME =
-            Boolean.getBoolean("truffleruby.metrics.time");
-    private static final boolean METRICS_MEMORY_USED_ON_EXIT =
-            Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
-
     public static void main(String[] args) throws Exception {
-        printTruffleTimeMetric("before-main");
-
-        int exitCode = 0;
-
-        try {
-            final CommandLineOptions config = new CommandLineOptions();
-
-            try {
-                processArguments(config, args);
-            } catch (CommandLineException commandLineException) {
-                System.err.println("truffleruby: " + commandLineException.getMessage());
-                if (commandLineException.isUsageError()) {
-                    CommandLineParser.printHelp(System.err);
-                }
-                System.exit(1);
-            }
-
-            final String filename = config.getDisplayedFileName();
-
-            config.setOption(
-                    OptionsCatalog.ORIGINAL_INPUT_FILE,
-                    config.shouldUsePathScript() ? config.getScriptFileName() : filename);
-
-            if (config.isShowVersion()) {
-                System.out.println(getVersionString());
-            }
-
-            if (config.isShowCopyright()) {
-                System.out.println(RUBY_COPYRIGHT);
-            }
-
-            if (config.getShouldRunInterpreter()) {
-                try (Context context = createContext(config, filename)) {
-                    printTruffleTimeMetric("before-run");
-                    if (config.getShouldCheckSyntax()) {
-                        // check syntax only and exit
-                        final Source source = Source.newBuilder(
-                                LANGUAGE_ID, "Truffle::Boot.check_syntax", "check_syntax").buildLiteral();
-                        boolean status = context.eval(source).asBoolean();
-                        exitCode = status ? 0 : 1;
-                    } else {
-                        final Source source = Source.newBuilder(LANGUAGE_ID,
-                                config.shouldUsePathScript() ? "Truffle::Boot.main_s" : "Truffle::Boot.main", BOOT_SOURCE_NAME).build();
-                        exitCode = context.eval(source).asInt();
-                    }
-                    printTruffleTimeMetric("after-run");
-                }
-            } else {
-                if (config.getShouldPrintShortUsage()) {
-                    CommandLineParser.printShortHelp(System.out);
-                } else if (config.getShouldPrintUsage()) {
-                    CommandLineParser.printHelp(System.out);
-                }
-            }
-        } catch (PolyglotException e) {
-            System.err.println("truffleruby: " + e.getMessage());
-            exitCode = 1;
-        }
-
-        printTruffleTimeMetric("after-main");
-        printTruffleMemoryMetric();
-        System.exit(exitCode);
+        Launcher.main(isGraal(), args);
     }
 
     public static boolean isGraal() {
-        // TODO (pitr-ch 06-Jul-2017): last remaining dependency on TruffleAPI remove in new launcher
         return Truffle.getRuntime().getName().toLowerCase(Locale.ENGLISH).contains("graal");
-    }
-
-    private static Context createContext(CommandLineOptions config, String filename) {
-        final Context.Builder builder = Context.newBuilder();
-
-        // TODO CS 2-Jul-17 some of these values are going back and forth from string and array representation
-        builder.option(
-                OptionsCatalog.LOAD_PATHS.getName(),
-                OptionsCatalog.LOAD_PATHS.toString(config.getLoadPaths().toArray(new String[]{})));
-        builder.option(
-                OptionsCatalog.REQUIRED_LIBRARIES.getName(),
-                OptionsCatalog.LOAD_PATHS.toString(config.getRequiredLibraries().toArray(new String[]{})));
-        builder.option(OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
-        builder.option(OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
-
-        /*
-         * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
-         * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and
-         * blocking behaviour. We also turn off sync on stdio and so revert to Ruby's default logic for looking
-         * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
-         */
-
-        builder.option(OptionsCatalog.POLYGLOT_STDIO.getName(), Boolean.FALSE.toString());
-        builder.option(OptionsCatalog.SYNC_STDIO.getName(), Boolean.FALSE.toString());
-        builder.options(config.getOptions());
-        builder.arguments(LANGUAGE_ID, config.getArguments());
-
-        return builder.build();
-    }
-
-    public static void processArguments(CommandLineOptions config, String[] arguments) throws CommandLineException {
-        new CommandLineParser(arguments, config).processArguments();
-
-        if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
-            CommandLineParser.processEnvironmentVariable("RUBYOPT", config, true);
-            CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config, false);
-        }
-
-        if (!config.doesHaveScriptArgv() && !config.shouldUsePathScript() && System.console() != null) {
-            config.setUsePathScript("irb");
-        }
-    }
-
-    public static void printTruffleTimeMetric(String id) {
-        if (METRICS_TIME) {
-            final long millis = System.currentTimeMillis();
-            System.err.printf("%s %d.%03d%n", id, millis / 1000, millis % 1000);
-        }
-    }
-
-    private static void printTruffleMemoryMetric() {
-        // Memory stats aren't available on AOT.
-        if (!IS_AOT && METRICS_MEMORY_USED_ON_EXIT) {
-            for (int n = 0; n < 10; n++) {
-                System.gc();
-            }
-
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-            System.err.printf("allocated %d%n", ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed());
-        }
-    }
-
-    public static String getVersionString() {
-        return String.format(
-                "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",
-                System.getProperty("graalvm.version", "unknown version"),
-                LANGUAGE_VERSION,
-                IS_AOT ? "AOT" : System.getProperty("java.vm.name", "unknown JVM"),
-                IS_AOT ? "build" : System.getProperty(
-                        "java.runtime.version",
-                        System.getProperty("java.version", "unknown runtime version")),
-                isGraal() ? "with Graal" : "without Graal",
-                Platform.getOSName(),
-                Platform.getArchitecture()
-        );
     }
 }

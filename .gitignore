@@ -9,7 +9,7 @@
 *.iml
 
 # NetBeans
-nbproject/private
+nbproject
 
 # Eclipse
 /.metadata

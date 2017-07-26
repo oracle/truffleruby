@@ -14,7 +14,7 @@ import com.oracle.truffle.api.source.Source;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.loader.SourceLoader;
-import org.truffleruby.options.OptionsCatalog;
+import org.truffleruby.launcher.options.OptionsCatalog;
 import org.truffleruby.parser.TranslatorDriver;
 import org.truffleruby.parser.ast.RootParseNode;
 import org.truffleruby.parser.parser.ParserConfiguration;

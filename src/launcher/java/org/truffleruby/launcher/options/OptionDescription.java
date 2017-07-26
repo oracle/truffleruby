@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.options;
+package org.truffleruby.launcher.options;
 
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionKey;

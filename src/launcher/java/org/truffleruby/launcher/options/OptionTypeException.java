@@ -7,16 +7,16 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.options;
+package org.truffleruby.launcher.options;
 
-public class UnknownOptionException extends UnsupportedOperationException {
+public class OptionTypeException extends UnsupportedOperationException {
 
-    private static final long serialVersionUID = 94889894853948L;
+    private static final long serialVersionUID = 9479324724903L;
 
     private final String name;
 
-    public UnknownOptionException(String name) {
-        super(String.format("Unknown option %s", name));
+    public OptionTypeException(String name, String value) {
+        super(String.format("Unsupported value '%s' for option %s", value, name));
         this.name = name;
     }
 

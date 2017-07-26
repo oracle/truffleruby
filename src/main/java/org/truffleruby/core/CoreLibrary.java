@@ -125,6 +125,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.language.objects.SingletonClassNodeGen;
+import org.truffleruby.launcher.Launcher;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.RubiniusTypes;
@@ -800,8 +801,9 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_ENGINE_VERSION", frozenUSASCIIString(RubyLanguage.ENGINE_VERSION));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_PLATFORM", frozenUSASCIIString(RubyLanguage.PLATFORM));
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_RELEASE_DATE", frozenUSASCIIString(RubyLanguage.COMPILE_DATE));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", frozenUSASCIIString(Main.getVersionString()));
-        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", frozenUSASCIIString(Main.RUBY_COPYRIGHT));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_DESCRIPTION", frozenUSASCIIString(
+                Launcher.getVersionString(Main.isGraal())));
+        Layouts.MODULE.getFields(objectClass).setConstant(context, node, "RUBY_COPYRIGHT", frozenUSASCIIString(Launcher.RUBY_COPYRIGHT));
 
         // BasicObject knows itself
         Layouts.MODULE.getFields(basicObjectClass).setConstant(context, node, "BasicObject", basicObjectClass);
@@ -943,7 +945,7 @@ public class CoreLibrary {
         // Load code that can't be run until everything else is boostrapped, such as pre-loaded Ruby stdlib.
 
         try {
-            Main.printTruffleTimeMetric("before-post-boot");
+            Launcher.printTruffleTimeMetric("before-post-boot");
 
             try {
                 final RubyRootNode rootNode = context.getCodeLoader().parse(context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb"), UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
@@ -953,7 +955,7 @@ public class CoreLibrary {
                 throw new JavaException(e);
             }
 
-            Main.printTruffleTimeMetric("after-post-boot");
+            Launcher.printTruffleTimeMetric("after-post-boot");
         } catch (RaiseException e) {
             final DynamicObject rubyException = e.getException();
             BacktraceFormatter.createDefaultFormatter(getContext()).printBacktrace(context, rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
