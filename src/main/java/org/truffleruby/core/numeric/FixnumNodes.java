@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -1277,7 +1278,7 @@ public abstract class FixnumNodes {
     }
 
     @Primitive(name = "fixnum_pow", lowerFixnum = { 0, 1 })
-    public abstract static class PowNode extends BignumNodes.BignumCoreMethodNode {
+    public abstract static class PowNode extends PrimitiveArrayArgumentsNode {
 
         public abstract Object executePow(Object a, Object b);
 
@@ -1293,22 +1294,55 @@ public abstract class FixnumNodes {
             return 1L << b;
         }
 
-        @Specialization
-        public Object pow(long a, long b,
-                @Cached("createBinaryProfile()") ConditionProfile negativeProfile) {
-            if (negativeProfile.profile(b < 0)) {
-                return null; // Primitive failure
-            } else {
-                // TODO CS 15-Feb-15 - what to do about this cast?
-                return fixnumOrBignum(bigPow(a, (int) b));
+        @ExplodeLoop
+        @Specialization(guards = {
+                "isIntOrLong(base)", "exponent == cachedExponent",
+                "cachedExponent >= 0", "cachedExponent <= 10"
+        }, limit = "11") // TODO (eregon, 26 July 2017): make it an option
+        public Object powConstantExponent(Object base, int exponent,
+                @Cached("exponent") int cachedExponent,
+                @Cached("create()") IntegerMulNode mulNode) {
+            Object result = 1;
+            int exp = cachedExponent;
+            while (exp > 0) {
+                if ((exp & 1) == 0) {
+                    base = mulNode.executeMul(base, base);
+                    exp >>= 1;
+                } else {
+                    result = mulNode.executeMul(base, result);
+                    exp--;
+                }
             }
+            return result;
+        }
+
+        @Specialization(guards = { "isIntOrLong(base)", "exponent >= 0" })
+        public Object powLoop(Object base, long exponent,
+                @Cached("create()") IntegerMulNode mulNode) {
+            Object result = 1;
+            long exp = exponent;
+            while (exp > 0) {
+                if ((exp & 1) == 0) {
+                    base = mulNode.executeMul(base, base);
+                    exp >>= 1;
+                } else {
+                    result = mulNode.executeMul(base, result);
+                    exp--;
+                }
+            }
+            return result;
+        }
+
+        @Specialization(guards = "exponent < 0")
+        public Object pow(long a, long exponent) {
+            return FAILURE;
         }
 
         @Specialization
-        public Object pow(long a, double b,
+        public Object powDouble(long a, double b,
                 @Cached("createBinaryProfile()") ConditionProfile complexProfile) {
             if (complexProfile.profile(a < 0)) {
-                return null; // Primitive failure
+                return FAILURE;
             } else {
                 return Math.pow(a, b);
             }
@@ -1334,7 +1368,7 @@ public abstract class FixnumNodes {
             }
 
             if (compareTo(Layouts.BIGNUM.getValue(b), BigInteger.ZERO) < 0) {
-                return null; // Primitive failure
+                return FAILURE;
             }
 
             warnNode.warn("warn('in a**b, b may be too big')");
@@ -1345,7 +1379,11 @@ public abstract class FixnumNodes {
 
         @Specialization(guards = "!isRubyBignum(b)")
         public Object pow(long a, DynamicObject b) {
-            return null; // Primitive failure
+            return FAILURE;
+        }
+
+        protected static boolean isIntOrLong(Object value) {
+            return value instanceof Integer || value instanceof Long;
         }
 
         @TruffleBoundary
