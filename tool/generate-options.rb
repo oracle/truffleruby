@@ -14,7 +14,9 @@ require 'erb'
 
 options = YAML.load_file('tool/options.yml')
 
-options = options.map do |constant, (name, type, default, description)|
+options = options.map do |constant, (name, type, default, *description)|
+  description = description.join(', ')
+
   case type
     when 'boolean'
       type = 'boolean'
