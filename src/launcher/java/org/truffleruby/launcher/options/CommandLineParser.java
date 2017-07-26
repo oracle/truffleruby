@@ -35,7 +35,7 @@
 package org.truffleruby.launcher.options;
 
 import org.truffleruby.launcher.Launcher;
-import org.truffleruby.launcher.TruffleLessLog;
+import org.truffleruby.launcher.RubyLogger;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -252,7 +252,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'y':
                     disallowedInRubyOpts(argument);
-                    TruffleLessLog.LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
+                    RubyLogger.LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
                     break FOR;
                 case 'J':
                     String js = grabOptionalValue();
@@ -335,7 +335,7 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     String extendedOption = grabValue("-X must be followed by an option");
                     if (new File(extendedOption).isDirectory()) {
-                        TruffleLessLog.LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
+                        RubyLogger.LOGGER.warning("the -X option supplied also appears to be a directory name - did you intend to use -X like -C?");
                     }
                     if (extendedOption.equals("options")) {
                         System.out.println("TruffleRuby options and their default values:");
@@ -352,12 +352,12 @@ public class CommandLineParser {
                         final Level level;
 
                         if (levelString.equals("PERFORMANCE")) {
-                            level = TruffleLessLog.PERFORMANCE;
+                            level = RubyLogger.PERFORMANCE;
                         } else {
                             level = Level.parse(levelString.toUpperCase());
                         }
 
-                        TruffleLessLog.LOGGER.setLevel(level);
+                        RubyLogger.LOGGER.setLevel(level);
                     } else {
                         final String value;
 
@@ -388,7 +388,7 @@ public class CommandLineParser {
                         throw notImplemented("--debug");
                     } else if (argument.equals("--yydebug")) {
                         disallowedInRubyOpts(argument);
-                        TruffleLessLog.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
+                        RubyLogger.LOGGER.warning("the --yydebug switch is silently ignored as it is an internal development tool");
                         break FOR;
                     } else if (argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
@@ -432,7 +432,7 @@ public class CommandLineParser {
                         config.setOption(OptionsCatalog.VERBOSITY, "true");
                         break FOR;
                     } else if (argument.startsWith("--dump=")) {
-                        TruffleLessLog.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
+                        RubyLogger.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
                         break FOR;
                     } else {
                         if (argument.equals("--")) {

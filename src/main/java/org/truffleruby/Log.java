@@ -11,11 +11,14 @@ package org.truffleruby;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.launcher.TruffleLessLog;
+import org.truffleruby.launcher.RubyLogger;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
-public class Log extends TruffleLessLog {
+public class Log extends RubyLogger {
 
     /**
      * Warn about code that works but is not yet optimized as Truffle code normally would be. Only
@@ -30,28 +33,33 @@ public class Log extends TruffleLessLog {
         }
     }
 
+    private static final Set<String> displayedWarnings = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    public static final String KWARGS_NOT_OPTIMIZED_YET = "keyword arguments are not yet optimized";
+
     /**
      * Warn about something that has lower performance than might be expected. Only prints the
      * warning once.
      */
     @TruffleBoundary
     public static void performanceOnce(String message) {
-        TruffleLessLog.performanceOnce(message);
+        if (displayedWarnings.add(message)) {
+            LOGGER.log(PERFORMANCE, message);
+        }
     }
 
     @TruffleBoundary
     public static void warning(String format, Object... args) {
-        TruffleLessLog.warning(format, args);
+        LOGGER.warning(String.format(format, args));
     }
 
     @TruffleBoundary
     public static void info(String format, Object... args) {
-        TruffleLessLog.info(format, args);
+        LOGGER.info(String.format(format, args));
     }
 
     @TruffleBoundary
     public static void log(Level level, String message) {
-        TruffleLessLog.log(level, message);
+        LOGGER.log(level, message);
     }
-
 }

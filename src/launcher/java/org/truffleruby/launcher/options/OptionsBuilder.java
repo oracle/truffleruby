@@ -12,7 +12,7 @@ package org.truffleruby.launcher.options;
 import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionValues;
 import org.truffleruby.launcher.Launcher;
-import org.truffleruby.launcher.TruffleLessLog;
+import org.truffleruby.launcher.RubyLogger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,11 +51,11 @@ public class OptionsBuilder {
     public Options build() {
         final Options options = new Options(this);
 
-        if (options.OPTIONS_LOG && TruffleLessLog.LOGGER.isLoggable(Level.CONFIG)) {
+        if (options.OPTIONS_LOG && RubyLogger.LOGGER.isLoggable(Level.CONFIG)) {
             for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
                 assert option.getName().startsWith(Launcher.LANGUAGE_ID);
                 final String xName = option.getName().substring(Launcher.LANGUAGE_ID.length() + 1);
-                TruffleLessLog.LOGGER.config("option " + xName + "=" + option.toString(options.fromDescription(option)));
+                RubyLogger.LOGGER.config("option " + xName + "=" + option.toString(options.fromDescription(option)));
             }
         }
 

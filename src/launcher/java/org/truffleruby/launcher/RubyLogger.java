@@ -9,16 +9,13 @@
  */
 package org.truffleruby.launcher;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-public class TruffleLessLog {
+public class RubyLogger {
 
     private static class RubyLevel extends Level {
 
@@ -62,32 +59,6 @@ public class TruffleLessLog {
         }
 
         return logger;
-    }
-
-    private static final Set<String> displayedWarnings = Collections.newSetFromMap(new ConcurrentHashMap<>());
-
-    public static final String KWARGS_NOT_OPTIMIZED_YET = "keyword arguments are not yet optimized";
-
-    /**
-     * Warn about something that has lower performance than might be expected. Only prints the
-     * warning once.
-     */
-    public static void performanceOnce(String message) {
-        if (displayedWarnings.add(message)) {
-            LOGGER.log(PERFORMANCE, message);
-        }
-    }
-
-    public static void warning(String format, Object... args) {
-        LOGGER.warning(String.format(format, args));
-    }
-
-    public static void info(String format, Object... args) {
-        LOGGER.info(String.format(format, args));
-    }
-
-    public static void log(Level level, String message) {
-        LOGGER.log(level, message);
     }
 
 }
