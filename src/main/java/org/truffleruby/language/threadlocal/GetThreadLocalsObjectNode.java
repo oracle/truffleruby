@@ -16,9 +16,9 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyNode;
 
-public abstract class ThreadLocalObjectNode extends RubyNode {
+public abstract class GetThreadLocalsObjectNode extends RubyNode {
 
-    public abstract DynamicObject executeDynamicObject(VirtualFrame frame);
+    public abstract DynamicObject executeGetThreadLocalsObject(VirtualFrame frame);
 
     @Specialization(
             guards = "cachedThread == getCurrentThread(frame)",
