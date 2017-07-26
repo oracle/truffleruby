@@ -11,6 +11,7 @@ package org.truffleruby.core.numeric;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
@@ -21,7 +22,9 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.numeric.IntegerNodesFactory.IntegerMulNodeGen;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
@@ -251,6 +254,36 @@ public abstract class IntegerNodes {
             }
 
             return uptoInternalCall.callWithBlock(frame, from, "upto_internal", block, to);
+        }
+
+    }
+
+    @NodeChild
+    @NodeChild
+    public abstract static class IntegerMulNode extends RubyNode {
+
+        public static IntegerMulNode create() {
+            return IntegerMulNodeGen.create(null, null);
+        }
+
+        public abstract Object executeMul(Object a, Object b);
+
+        @Specialization
+        public Object mul(int a, Object b,
+                @Cached("create()") FixnumNodes.MulNode fixnumMulNode) {
+            return fixnumMulNode.executeMul(a, b);
+        }
+
+        @Specialization
+        public Object mul(long a, Object b,
+                @Cached("create()") FixnumNodes.MulNode fixnumMulNode) {
+            return fixnumMulNode.executeMul(a, b);
+        }
+
+        @Specialization(guards = "isRubyBignum(a)")
+        public Object mul(DynamicObject a, Object b,
+                @Cached("create()") BignumNodes.MulNode bignumMulNode) {
+            return bignumMulNode.executeMul(a, b);
         }
 
     }

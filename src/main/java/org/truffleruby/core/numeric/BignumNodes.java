@@ -29,6 +29,7 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.numeric.BignumNodesFactory.DivNodeFactory;
+import org.truffleruby.core.numeric.BignumNodesFactory.MulNodeFactory;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
@@ -107,6 +108,12 @@ public abstract class BignumNodes {
     @CoreMethod(names = "*", required = 1)
     public abstract static class MulNode extends BignumCoreMethodNode {
 
+        public static MulNode create() {
+            return MulNodeFactory.create(null);
+        }
+
+        public abstract Object executeMul(Object a, Object b);
+
         @TruffleBoundary
         @Specialization
         public Object mul(DynamicObject a, long b) {
@@ -124,13 +131,10 @@ public abstract class BignumNodes {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(a).multiply(Layouts.BIGNUM.getValue(b)));
         }
 
-        @Specialization(guards = {"!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)"})
-        public Object mul(
-                VirtualFrame frame,
-                DynamicObject a,
-                Object b,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame, "redo_coerced :*, other", "other", b);
+        @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isDouble(b)", "!isRubyBignum(b)" })
+        public Object mul(DynamicObject a, Object b,
+                @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
+            return redoCoerced.call(null, a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
         }
 
     }

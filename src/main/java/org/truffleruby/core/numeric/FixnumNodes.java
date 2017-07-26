@@ -28,6 +28,8 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.numeric.FixnumNodesFactory.DivNodeFactory;
+import org.truffleruby.core.numeric.FixnumNodesFactory.MulNodeFactory;
+import org.truffleruby.core.numeric.IntegerNodes.IntegerMulNode;
 import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.SnippetNode;
@@ -183,6 +185,10 @@ public abstract class FixnumNodes {
 
     @CoreMethod(names = "*", required = 1)
     public abstract static class MulNode extends BignumNodes.BignumCoreMethodNode {
+
+        public static MulNode create() {
+            return MulNodeFactory.create(null);
+        }
 
         public abstract Object executeMul(Object a, Object b);
 
