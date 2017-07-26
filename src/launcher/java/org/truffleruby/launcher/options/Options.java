@@ -89,6 +89,7 @@ public class Options {
     public final boolean YIELD_ALWAYS_INLINE;
     public final boolean METHODMISSING_ALWAYS_CLONE;
     public final boolean METHODMISSING_ALWAYS_INLINE;
+    public final boolean CALL_WITH_BLOCK_ALWAYS_CLONE;
     public final int PACK_UNROLL_LIMIT;
     public final int PACK_RECOVER_LOOP_MIN;
     public final boolean EXCEPTIONS_STORE_JAVA;
@@ -188,6 +189,7 @@ public class Options {
         YIELD_ALWAYS_INLINE = builder.getOrDefault(OptionsCatalog.YIELD_ALWAYS_INLINE, INLINE_DEFAULT);
         METHODMISSING_ALWAYS_CLONE = builder.getOrDefault(OptionsCatalog.METHODMISSING_ALWAYS_CLONE, CLONE_DEFAULT);
         METHODMISSING_ALWAYS_INLINE = builder.getOrDefault(OptionsCatalog.METHODMISSING_ALWAYS_INLINE, INLINE_DEFAULT);
+        CALL_WITH_BLOCK_ALWAYS_CLONE = builder.getOrDefault(OptionsCatalog.CALL_WITH_BLOCK_ALWAYS_CLONE, CLONE_DEFAULT);
         PACK_UNROLL_LIMIT = builder.getOrDefault(OptionsCatalog.PACK_UNROLL_LIMIT);
         PACK_RECOVER_LOOP_MIN = builder.getOrDefault(OptionsCatalog.PACK_RECOVER_LOOP_MIN);
         EXCEPTIONS_STORE_JAVA = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_STORE_JAVA);
@@ -362,6 +364,8 @@ public class Options {
                 return METHODMISSING_ALWAYS_CLONE;
             case "ruby.method_missing.always_inline":
                 return METHODMISSING_ALWAYS_INLINE;
+            case "ruby.call_with_block.always_clone":
+                return CALL_WITH_BLOCK_ALWAYS_CLONE;
             case "ruby.pack.unroll":
                 return PACK_UNROLL_LIMIT;
             case "ruby.pack.recover":
