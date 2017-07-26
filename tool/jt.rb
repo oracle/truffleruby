@@ -845,8 +845,6 @@ module Commands
         ext_dir = "#{dir}/ext/#{gem_name}/"
         compile_cext gem_name, ext_dir, "#{dir}/lib/#{gem_name}/#{gem_name}.su"
         case gem_name
-        when 'globals'
-          next # globals is excluded just for running
         when 'backtraces'
           run '--sulong', "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", err: output_file, continue_on_failure: true
           unless File.read(output_file).gsub(TRUFFLERUBY_DIR, '') == File.read("#{dir}/expected.txt")
