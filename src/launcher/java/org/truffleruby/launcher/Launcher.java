@@ -142,11 +142,8 @@ public class Launcher {
 
         // TODO CS 2-Jul-17 some of these values are going back and forth from string and array representation
         builder.option(
-                OptionsCatalog.LOAD_PATHS.getName(),
-                OptionsCatalog.LOAD_PATHS.toString(config.getLoadPaths().toArray(new String[]{})));
-        builder.option(
                 OptionsCatalog.REQUIRED_LIBRARIES.getName(),
-                OptionsCatalog.LOAD_PATHS.toString(config.getRequiredLibraries().toArray(new String[]{})));
+                OptionsCatalog.REQUIRED_LIBRARIES.toString(config.getRequiredLibraries().toArray(new String[]{})));
         builder.option(OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
         builder.option(OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
 

@@ -247,7 +247,11 @@ public class CommandLineParser {
                         if (path.startsWith("~" + File.separator)) {
                             path = System.getProperty("user.home") + File.separator + path.substring(2);
                         }
-                        config.getLoadPaths().add(path);
+                        String[] currentPaths = config.getOption(OptionsCatalog.LOAD_PATHS);
+                        String[] newPaths = new String[currentPaths.length + 1];
+                        System.arraycopy(currentPaths, 0, newPaths, 0, currentPaths.length);
+                        newPaths[currentPaths.length] = path;
+                        config.setOption(OptionsCatalog.LOAD_PATHS, newPaths);
                     }
                     break FOR;
                 case 'y':

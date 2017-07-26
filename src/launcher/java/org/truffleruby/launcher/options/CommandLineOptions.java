@@ -28,18 +28,15 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.launcher.options;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 
 public class CommandLineOptions {
 
     private Map<String, String> options = new HashMap<>();
 
-    private List<String> loadPaths = new ArrayList<>();
     private String[] arguments = new String[]{};
     private StringBuffer inlineScript = new StringBuffer();
     private boolean hasInlineScript;
@@ -119,10 +116,6 @@ public class CommandLineOptions {
 
     public Collection<String> getRequiredLibraries() {
         return requiredLibraries;
-    }
-
-    public List<String> getLoadPaths() {
-        return loadPaths;
     }
 
     public void setShouldPrintUsage(boolean shouldPrintUsage) {
