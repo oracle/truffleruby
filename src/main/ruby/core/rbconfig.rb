@@ -171,8 +171,8 @@ module RbConfig
   expanded.merge!(common)
   mkconfig.merge!(common)
 
-  expanded['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb < $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
-  mkconfig['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb < $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
+  expanded['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
+  mkconfig['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
   expanded['LINK_SO'] = "#{ruby_launcher} -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) #{libs}"
   mkconfig['LINK_SO'] = "#{ruby_launcher} -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) $(LIBS)"
   expanded['TRY_LINK'] = "#{clang} -o conftest $(src) $(INCFLAGS) #{cflags} #{libs}"

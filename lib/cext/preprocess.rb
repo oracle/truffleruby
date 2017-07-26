@@ -55,6 +55,8 @@ def preprocess(line)
 end
 
 if __FILE__ == $0
+  puts "#line 1 \"#{ARGF.filename}\""
+  
   ARGF.each do |line|
     puts preprocess(line)
   end
