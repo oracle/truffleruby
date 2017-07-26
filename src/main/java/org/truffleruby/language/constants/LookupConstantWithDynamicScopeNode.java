@@ -55,7 +55,7 @@ public abstract class LookupConstantWithDynamicScopeNode extends RubyNode implem
             throw new RaiseException(coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
         }
         if (constant.isDeprecated()) {
-            warnDeprecatedConstant(frame, name);
+            warnDeprecatedConstant(name);
         }
         return constant.getConstant();
     }
@@ -70,7 +70,7 @@ public abstract class LookupConstantWithDynamicScopeNode extends RubyNode implem
             throw new RaiseException(coreExceptions().nameErrorPrivateConstant(constant.getConstant().getDeclaringModule(), name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
-            warnDeprecatedConstant(frame, name);
+            warnDeprecatedConstant(name);
         }
         return constant.getConstant();
     }
@@ -85,12 +85,12 @@ public abstract class LookupConstantWithDynamicScopeNode extends RubyNode implem
         return constant.isVisibleTo(getContext(), lexicalScope, lexicalScope.getLiveModule());
     }
 
-    private void warnDeprecatedConstant(VirtualFrame frame, String name) {
+    private void warnDeprecatedConstant(String name) {
         if (warnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnNode = insert(new WarnNode());
         }
-        warnNode.execute(frame, "constant ", name, " is deprecated");
+        warnNode.warn("constant ", name, " is deprecated");
     }
 
     protected int getCacheLimit() {

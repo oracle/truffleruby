@@ -53,14 +53,11 @@ public abstract class LookupConstantNode extends RubyNode implements LookupConst
         this.lookInObject = lookInObject;
     }
 
-    public abstract RubyConstant executeLookupConstant(
-            VirtualFrame frame,
-            Object module,
-            String name);
+    public abstract RubyConstant executeLookupConstant(Object module, String name);
 
     @Override
     public RubyConstant lookupConstant(VirtualFrame frame, Object module, String name) {
-        return executeLookupConstant(frame, module, name);
+        return executeLookupConstant(module, name);
     }
 
     @Specialization(
@@ -70,8 +67,7 @@ public abstract class LookupConstantNode extends RubyNode implements LookupConst
                     "guardName(name, cachedName, sameNameProfile)" },
             assumptions = "constant.getAssumptions()",
             limit = "getCacheLimit()")
-    protected RubyConstant lookupConstant(
-            VirtualFrame frame, DynamicObject module, String name,
+    protected RubyConstant lookupConstant(DynamicObject module, String name,
             @Cached("module") DynamicObject cachedModule,
             @Cached("name") String cachedName,
             @Cached("doLookup(cachedModule, cachedName)") ConstantLookupResult constant,
@@ -81,21 +77,21 @@ public abstract class LookupConstantNode extends RubyNode implements LookupConst
             throw new RaiseException(coreExceptions().nameErrorPrivateConstant(module, name, this));
         }
         if (constant.isDeprecated()) {
-            warnDeprecatedConstant(frame, name);
+            warnDeprecatedConstant(name);
         }
         return constant.getConstant();
     }
 
-    private void warnDeprecatedConstant(VirtualFrame frame, String name) {
+    private void warnDeprecatedConstant(String name) {
         if (warnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnNode = insert(new WarnNode());
         }
-        warnNode.execute(frame, "constant ", name, " is deprecated");
+        warnNode.warn("constant ", name, " is deprecated");
     }
 
     @Specialization(guards = "isRubyModule(module)")
-    protected RubyConstant lookupConstantUncached(VirtualFrame frame, DynamicObject module, String name,
+    protected RubyConstant lookupConstantUncached(DynamicObject module, String name,
             @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile,
             @Cached("createBinaryProfile()") ConditionProfile isDeprecatedProfile) {
         ConstantLookupResult constant = doLookup(module, name);
@@ -105,7 +101,7 @@ public abstract class LookupConstantNode extends RubyNode implements LookupConst
             throw new RaiseException(coreExceptions().nameErrorPrivateConstant(module, name, this));
         }
         if (isDeprecatedProfile.profile(constant.isDeprecated())) {
-            warnDeprecatedConstant(frame, name);
+            warnDeprecatedConstant(name);
         }
         return constant.getConstant();
     }

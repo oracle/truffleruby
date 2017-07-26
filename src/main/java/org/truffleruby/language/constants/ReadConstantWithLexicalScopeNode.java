@@ -35,7 +35,7 @@ public class ReadConstantWithLexicalScopeNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final RubyConstant constant = lookupConstantNode.executeLookupConstant(frame);
+        final RubyConstant constant = lookupConstantNode.executeLookupConstant();
         final DynamicObject module = lexicalScope.getLiveModule();
 
         return getConstantNode.executeGetConstant(frame, module, name, constant, lookupConstantNode);
@@ -49,7 +49,7 @@ public class ReadConstantWithLexicalScopeNode extends RubyNode {
     public Object isDefined(VirtualFrame frame) {
         final RubyConstant constant;
         try {
-            constant = lookupConstantNode.executeLookupConstant(frame);
+            constant = lookupConstantNode.executeLookupConstant();
         } catch (RaiseException e) {
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNameErrorClass()) {
                 // private constant
