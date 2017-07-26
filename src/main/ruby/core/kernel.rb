@@ -366,6 +366,12 @@ module Kernel
   end
   module_function :load
 
+  def local_variables
+    Truffle::invoke_primitive(:caller_binding).local_variables
+  end
+  module_function :local_variables
+  Truffle::Graal.always_split(method(:local_variables))
+
   def loop
     return to_enum(:loop) { Float::INFINITY } unless block_given?
 

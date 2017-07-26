@@ -10,4 +10,9 @@ class Binding
   def eval(code, file = nil, line = nil)
     Kernel.eval(code, self, file, line)
   end
+
+  def local_variables
+    Truffle.invoke_primitive(:local_variable_names, self).dup
+  end
+  Truffle::Graal.always_split(method(:local_variables))
 end
