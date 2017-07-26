@@ -78,14 +78,22 @@ public class CommandLineOptions {
         return options;
     }
 
-    public void setOption(OptionDescription<?> key, String value) {
+    public <T> void setOption(OptionDescription<T> key, T value) {
+        setOptionRaw(key, key.toString(value));
+    }
+
+    public void setOptionRaw(OptionDescription<?> key, String value) {
         options.put(key.getName(), value);
     }
 
     public <T> T getOption(OptionDescription<T> key) {
-        return key.checkValue(options.getOrDefault(
+        return key.checkValue(getOptionRaw(key));
+    }
+
+    public <T> String getOptionRaw(OptionDescription<T> key) {
+        return options.getOrDefault(
                 key.getName(),
-                String.valueOf(key.getDefaultValue())));
+                String.valueOf(key.<T>getDefaultValue()));
     }
 
     public String[] getArguments() {

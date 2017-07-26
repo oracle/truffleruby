@@ -57,10 +57,13 @@ public class VerbosityOptionDescription extends OptionDescription<Verbosity> {
         } else if (value instanceof String) {
             switch ((String) value) {
                 case "nil":
+                case "NIL":
                     return Verbosity.NIL;
                 case "false":
+                case "FALSE":
                     return Verbosity.FALSE;
                 case "true":
+                case "TRUE":
                     return Verbosity.TRUE;
                 case "0":
                     return Verbosity.NIL;

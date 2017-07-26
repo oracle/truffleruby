@@ -214,8 +214,8 @@ public class CommandLineParser {
                     config.setOption(OptionsCatalog.WORKING_DIRECTORY, dir);
                     break;
                 case 'd':
-                    config.setOption(OptionsCatalog.DEBUG, "true");
-                    config.setOption(OptionsCatalog.VERBOSITY, "true");
+                    config.setOption(OptionsCatalog.DEBUG, true);
+                    config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                     break;
                 case 'e':
                     disallowedInRubyOpts(argument);
@@ -295,27 +295,27 @@ public class CommandLineParser {
                     config.setOption(OptionsCatalog.INTERNAL_ENCODING, "UTF-8");
                     break;
                 case 'v':
-                    config.setOption(OptionsCatalog.VERBOSITY, "true");
+                    config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                     config.setShowVersion(true);
                     break;
                 case 'w':
-                    config.setOption(OptionsCatalog.VERBOSITY, "true");
+                    config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                     break;
                 case 'W':
                     {
                         String temp = grabOptionalValue();
                         if (temp == null) {
-                            config.setOption(OptionsCatalog.VERBOSITY, "true");
+                            config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                         } else {
                             switch (temp) {
                                 case "0":
-                                    config.setOption(OptionsCatalog.VERBOSITY, "0");
+                                    config.setOption(OptionsCatalog.VERBOSITY, Verbosity.NIL);
                                     break;
                                 case "1":
-                                    config.setOption(OptionsCatalog.VERBOSITY, "1");
+                                    config.setOption(OptionsCatalog.VERBOSITY, Verbosity.FALSE);
                                     break;
                                 case "2":
-                                    config.setOption(OptionsCatalog.VERBOSITY, "2");
+                                    config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                                     break;
                                 default:
                                     throw new CommandLineException(getArgumentError(" -W must be followed by either 0, 1, 2 or nothing"), true);
@@ -325,7 +325,7 @@ public class CommandLineParser {
                     }
                 case 'x':
                     disallowedInRubyOpts(argument);
-                    config.setOption(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG, "true");
+                    config.setOption(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG, true);
                     String directory = grabOptionalValue();
                     if (directory != null) {
                         throw notImplemented("-x with directory");
@@ -429,7 +429,7 @@ public class CommandLineParser {
                     } else if (argument.equals("--gemfile")) {
                         throw notImplemented("--gemfile");
                     } else if (argument.equals("--verbose")) {
-                        config.setOption(OptionsCatalog.VERBOSITY, "true");
+                        config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                         break FOR;
                     } else if (argument.startsWith("--dump=")) {
                         RubyLogger.LOGGER.warning("the --dump= switch is silently ignored as it is an internal development tool");
@@ -646,13 +646,13 @@ public class CommandLineParser {
         });
 
         FEATURES.put("did_you_mean",
-                (processor, enable) -> processor.config.setOption(OptionsCatalog.DID_YOU_MEAN, enable.toString()));
+                (processor, enable) -> processor.config.setOption(OptionsCatalog.DID_YOU_MEAN, enable));
 
         FEATURES.put("did-you-mean",
             FEATURES.get("did_you_mean"));
 
         FEATURES.put("gem",
-                (processor, enable) -> processor.config.setOption(OptionsCatalog.RUBYGEMS, enable.toString()));
+                (processor, enable) -> processor.config.setOption(OptionsCatalog.RUBYGEMS, enable));
 
         FEATURES.put("gems",
                 FEATURES.get("gem"));
@@ -660,13 +660,13 @@ public class CommandLineParser {
         FEATURES.put("frozen-string-literal",
                 (processor, enable) -> processor.config.setOption(
                         OptionsCatalog.FROZEN_STRING_LITERALS,
-                        enable.toString()));
+                        enable));
 
         FEATURES.put("frozen_string_literal",
                 FEATURES.get("frozen-string-literal"));
 
         FEATURES.put("rubyopt",
-                (processor, enable) -> processor.config.setOption(OptionsCatalog.READ_RUBYOPT, enable.toString()));
+                (processor, enable) -> processor.config.setOption(OptionsCatalog.READ_RUBYOPT, enable));
     }
 
 }
