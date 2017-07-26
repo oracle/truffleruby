@@ -68,7 +68,7 @@ public class SetExceptionVariableNode extends Node {
             writeDollarBang = insert(WriteObjectFieldNodeGen.create("$!"));
         }
 
-        writeDollarBang.execute(threadLocals, value);
+        writeDollarBang.write(threadLocals, value);
     }
 
     private Object readDollarBang(DynamicObject threadLocals) {

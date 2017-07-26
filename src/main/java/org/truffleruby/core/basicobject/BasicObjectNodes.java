@@ -209,7 +209,7 @@ public abstract class BasicObjectNodes {
 
             if (id == 0) {
                 final long newId = getContext().getObjectSpaceManager().getNextObjectID();
-                writeObjectIdNode.execute(object, newId);
+                writeObjectIdNode.write(object, newId);
                 return newId;
             }
 

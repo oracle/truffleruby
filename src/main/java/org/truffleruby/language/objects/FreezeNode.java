@@ -61,7 +61,7 @@ public abstract class FreezeNode extends RubyNode {
     public Object freeze(
             DynamicObject object,
             @Cached("createWriteFrozenNode()") WriteObjectFieldNode writeFrozenNode) {
-        writeFrozenNode.execute(object, true);
+        writeFrozenNode.write(object, true);
         return object;
     }
 

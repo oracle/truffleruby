@@ -331,7 +331,7 @@ public abstract class KernelNodes {
 
             for (int i = 0; i < properties.length; i++) {
                 final Object value = readFieldNodes[i].execute(self);
-                writeFieldNodes[i].execute(newObject, value);
+                writeFieldNodes[i].write(newObject, value);
             }
 
             return newObject;
@@ -1804,7 +1804,7 @@ public abstract class KernelNodes {
             }
 
             checkFrozen(object);
-            writeTaintNode.execute(object, false);
+            writeTaintNode.write(object, false);
             return object;
         }
 

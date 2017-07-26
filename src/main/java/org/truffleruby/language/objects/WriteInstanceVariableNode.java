@@ -43,7 +43,7 @@ public class WriteInstanceVariableNode extends RubyNode {
                 writeNode = insert(WriteObjectFieldNodeGen.create(name));
             }
 
-            writeNode.execute((DynamicObject) object, value);
+            writeNode.write((DynamicObject) object, value);
         } else {
             throw new RaiseException(coreExceptions().frozenError(object, this));
         }

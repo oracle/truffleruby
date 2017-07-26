@@ -76,7 +76,7 @@ public abstract class TaintNode extends RubyNode {
             }
         }
 
-        writeTaintNode.execute(object, true);
+        writeTaintNode.write(object, true);
         return object;
     }
 

@@ -34,7 +34,7 @@ public abstract class ObjectIVarSetNode extends RubyNode {
     public Object ivarSetCached(DynamicObject object, Object name, Object value,
             @Cached("name") Object cachedName,
             @Cached("createWriteFieldNode(checkName(cachedName, object))") WriteObjectFieldNode writeObjectFieldNode) {
-        writeObjectFieldNode.execute(object, value);
+        writeObjectFieldNode.write(object, value);
         return value;
     }
 
