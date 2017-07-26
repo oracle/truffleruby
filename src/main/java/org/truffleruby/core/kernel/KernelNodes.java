@@ -76,6 +76,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.StringNodes.UnpackNode;
 import org.truffleruby.core.symbol.SymbolTable;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -1526,29 +1527,26 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        public long sleep(long duration) {
-            return doSleepMillis(duration);
-        }
-
-        @TruffleBoundary
-        private long doSleepMillis(final long durationInMillis) {
+        public long sleep(VirtualFrame frame, long durationInMillis,
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached("create()") BranchProfile errorProfile) {
             if (durationInMillis < 0) {
+                errorProfile.enter();
                 throw new RaiseException(coreExceptions().argumentError("time interval must be positive", this));
             }
 
-            final DynamicObject thread = getContext().getThreadManager().getCurrentThread();
+            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
 
             // Clear the wakeUp flag, following Ruby semantics:
             // it should only be considered if we are inside the sleep when Thread#{run,wakeup} is called.
             Layouts.THREAD.getWakeUp(thread).set(false);
 
-            return sleepFor(this, getContext(), durationInMillis);
+            return sleepFor(this, getContext(), thread, durationInMillis);
         }
 
-        public static long sleepFor(Node currentNode, RubyContext context, final long durationInMillis) {
+        @TruffleBoundary
+        public static long sleepFor(Node currentNode, RubyContext context, DynamicObject thread, long durationInMillis) {
             assert durationInMillis >= 0;
-
-            final DynamicObject thread = context.getThreadManager().getCurrentThread();
 
             final long start = System.currentTimeMillis();
 

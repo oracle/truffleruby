@@ -31,6 +31,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyGuards;
@@ -223,13 +224,14 @@ public abstract class FiberNodes {
 
         @Specialization(guards = "isRubyFiber(fiber)")
         protected Object transfer(VirtualFrame frame, DynamicObject fiber, boolean isYield, Object[] args,
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached("create()") BranchProfile errorProfile) {
             if (!Layouts.FIBER.getAlive(fiber)) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().deadFiberCalledError(this));
             }
 
-            DynamicObject currentThread = getContext().getThreadManager().getCurrentThread();
+            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             if (Layouts.FIBER.getRubyThread(fiber) != currentThread) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().fiberError("fiber called across threads", this));
@@ -273,8 +275,9 @@ public abstract class FiberNodes {
 
         @Specialization
         public Object yield(VirtualFrame frame, Object[] args,
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached("create()") BranchProfile errorProfile) {
-            final DynamicObject currentThread = getContext().getThreadManager().getCurrentThread();
+            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             final DynamicObject yieldingFiber = Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
             final DynamicObject fiberYieldedTo = Layouts.FIBER.getLastResumedByFiber(yieldingFiber);
 
@@ -350,8 +353,9 @@ public abstract class FiberNodes {
     public abstract static class CurrentNode extends CoreMethodNode {
 
         @Specialization
-        public DynamicObject current() {
-            final DynamicObject currentThread = getContext().getThreadManager().getCurrentThread();
+        public DynamicObject current(VirtualFrame frame,
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             return Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
         }
 
