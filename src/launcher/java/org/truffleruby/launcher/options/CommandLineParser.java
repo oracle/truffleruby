@@ -259,7 +259,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'J':
                     String js = grabOptionalValue();
-                    System.err.println("warning: " + argument + " argument ignored (launched in same VM?)");
+                    TruffleLessLog.LOGGER.warning("warning: " + argument + " argument ignored (launched in same VM?)");
                     if (js.equals("-cp") || js.equals("-classpath")) {
                         for(;grabOptionalValue() != null;) {}
                         grabValue(getArgumentError(" -J-cp must be followed by a path expression"));
@@ -456,7 +456,7 @@ public class CommandLineParser {
         final BiConsumer<CommandLineParser, Boolean> feature = FEATURES.get(name);
 
         if (feature == null) {
-            System.err.println("warning: unknown argument for --" + (enable ? "enable" : "disable") + ": `" + name + "'");
+            TruffleLessLog.LOGGER.warning("warning: unknown argument for --" + (enable ? "enable" : "disable") + ": `" + name + "'");
         } else {
             feature.accept(this, enable);
         }
