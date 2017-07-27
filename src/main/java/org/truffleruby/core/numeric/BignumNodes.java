@@ -30,6 +30,8 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.numeric.BignumNodesFactory.DivNodeFactory;
 import org.truffleruby.core.numeric.BignumNodesFactory.MulNodeFactory;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.Visibility;
@@ -658,10 +660,12 @@ public abstract class BignumNodes {
     @CoreMethod(names = { "to_s", "inspect" }, optional = 1, lowerFixnum = 1)
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject toS(DynamicObject value, NotProvided base) {
-            return create7BitString(Layouts.BIGNUM.getValue(value).toString(), USASCIIEncoding.INSTANCE);
+            return makeStringNode.executeMake(Layouts.BIGNUM.getValue(value).toString(), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
         @TruffleBoundary
@@ -671,7 +675,7 @@ public abstract class BignumNodes {
                 throw new RaiseException(coreExceptions().argumentErrorInvalidRadix(base, this));
             }
 
-            return create7BitString(Layouts.BIGNUM.getValue(value).toString(base), USASCIIEncoding.INSTANCE);
+            return makeStringNode.executeMake(Layouts.BIGNUM.getValue(value).toString(base), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
     }

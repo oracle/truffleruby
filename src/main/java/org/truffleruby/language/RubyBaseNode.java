@@ -86,10 +86,6 @@ public abstract class RubyBaseNode extends Node {
         return StringOperations.createString(getContext(), bytes);
     }
 
-    protected DynamicObject create7BitString(CharSequence value, Encoding encoding) {
-        return StringOperations.createString(getContext(), StringOperations.encodeRope(value, encoding, CodeRange.CR_7BIT));
-    }
-
     protected DynamicObject createString(Rope rope) {
         return StringOperations.createString(getContext(), rope);
     }

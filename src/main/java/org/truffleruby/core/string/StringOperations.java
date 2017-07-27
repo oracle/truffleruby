@@ -76,7 +76,7 @@ public abstract class StringOperations {
     }
 
     @TruffleBoundary
-    public static Rope encodeRope(CharSequence value, Encoding encoding, CodeRange codeRange) {
+    public static byte[] encodeBytes(CharSequence value, Encoding encoding) {
         // Taken from org.jruby.RubyString#encodeByteList.
 
         Charset charset = encoding.getCharset();
@@ -89,6 +89,13 @@ public abstract class StringOperations {
         final ByteBuffer buffer = charset.encode(CharBuffer.wrap(value));
         final byte[] bytes = new byte[buffer.limit()];
         buffer.get(bytes);
+
+        return bytes;
+    }
+
+    @TruffleBoundary
+    public static Rope encodeRope(CharSequence value, Encoding encoding, CodeRange codeRange) {
+        final byte[] bytes = encodeBytes(value, encoding);
 
         return RopeOperations.create(bytes, encoding, codeRange);
     }

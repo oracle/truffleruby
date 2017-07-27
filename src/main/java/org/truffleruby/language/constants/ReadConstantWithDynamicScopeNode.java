@@ -58,7 +58,7 @@ public class ReadConstantWithDynamicScopeNode extends RubyNode {
         if (constant == null) {
             return nil();
         } else {
-            return create7BitString("constant", UTF8Encoding.INSTANCE);
+            return coreStrings().CONSTANT.createInstance();
         }
     }
 

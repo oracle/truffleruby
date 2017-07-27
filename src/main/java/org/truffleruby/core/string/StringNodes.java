@@ -168,14 +168,22 @@ public abstract class StringNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
-        public abstract DynamicObject executeMake(byte[] bytes, Encoding encoding, CodeRange codeRange);
+        public abstract DynamicObject executeMake(Object payload, Encoding encoding, CodeRange codeRange);
 
         public static MakeStringNode create() {
             return StringNodesFactory.MakeStringNodeGen.create(null, null, null);
         }
 
         @Specialization
-        protected DynamicObject makeString(byte[] bytes, Encoding encoding, CodeRange codeRange) {
+        protected DynamicObject makeStringFromBytes(byte[] bytes, Encoding encoding, CodeRange codeRange) {
+            final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
+
+            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+        }
+
+        @Specialization
+        protected DynamicObject makeStringFromString(String string, Encoding encoding, CodeRange codeRange) {
+            final byte[] bytes = StringOperations.encodeBytes(string, encoding);
             final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
 
             return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
@@ -331,7 +339,7 @@ public abstract class StringNodes {
                 respondToNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
             }
 
-            if (respondToNode.doesRespondToString(frame, b, create7BitString("to_str", UTF8Encoding.INSTANCE), false)) {
+            if (respondToNode.doesRespondToString(frame, b, coreStrings().TO_STR.createInstance(), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     objectEqualNode = insert(CallDispatchHeadNode.create());

@@ -687,7 +687,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = {"isNil(hostName)", "isRubyString(serviceName)"})
         public int getaddrinfoNil(DynamicObject hostName, DynamicObject serviceName, DynamicObject hintsPointer, DynamicObject resultsPointer) {
-            return getaddrinfoString(create7BitString("0.0.0.0", UTF8Encoding.INSTANCE), serviceName, hintsPointer, resultsPointer);
+            return getaddrinfoString(coreStrings().BIND_ALL_IPV4_ADDR.createInstance(), serviceName, hintsPointer, resultsPointer);
         }
 
         @TruffleBoundary

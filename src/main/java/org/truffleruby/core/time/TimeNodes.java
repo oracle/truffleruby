@@ -24,10 +24,12 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.time.RubyDateFormatter.Token;
@@ -150,13 +152,15 @@ public abstract class TimeNodes {
     @CoreMethod(names = { "gmtime", "utc" })
     public abstract static class GmTimeNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject gmtime(DynamicObject time) {
             final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
 
             Layouts.TIME.setIsUtc(time, true);
             Layouts.TIME.setRelativeOffset(time, false);
-            Layouts.TIME.setZone(time, create7BitString(getUTCDisplayName(), USASCIIEncoding.INSTANCE));
+            Layouts.TIME.setZone(time, makeStringNode.executeMake(getUTCDisplayName(), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
             Layouts.TIME.setDateTime(time, inUTC(dateTime));
 
             return time;
@@ -487,7 +491,7 @@ public abstract class TimeNodes {
                 if (isutc) {
                     zone = UTC;
                     relativeOffset = false;
-                    zoneToStore = create7BitString("UTC", USASCIIEncoding.INSTANCE);
+                    zoneToStore = coreStrings().UTC.createInstance();
                 } else if (utcoffset == nil()) {
                     zone = envZone.getZone();
                     zoneToStore = getShortZoneName(getContext(), dt, envZone);
