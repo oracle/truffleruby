@@ -377,7 +377,8 @@ public class CommandLineParser {
                         final String fullName = Launcher.LANGUAGE_ID + "." + extendedOption;
 
                         if (OptionsCatalog.fromName(fullName) == null) {
-                            throw new CommandLineException("unknown option " + extendedOption);
+                            config.getUnknownArguments().add(extendedOption);
+                            break FOR;
                         }
 
                         config.getOptions().put(fullName, value);
@@ -447,9 +448,11 @@ public class CommandLineParser {
                             break;
                         }
                     }
-                    throw new CommandLineException("unknown option " + argument);
+                    config.getUnknownArguments().add(argument);
+                    break FOR;
                 default:
-                    throw new CommandLineException("unknown option " + argument);
+                    config.getUnknownArguments().add(argument);
+                    break FOR;
             }
         }
     }

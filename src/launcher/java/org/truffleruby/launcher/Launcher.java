@@ -164,6 +164,9 @@ public class Launcher {
 
     public static void processArguments(CommandLineOptions config, String[] arguments) throws CommandLineException {
         new CommandLineParser(arguments, config).processArguments();
+        if (!config.getUnknownArguments().isEmpty()) {
+            throw new CommandLineException("unknown option " + config.getUnknownArguments().get(0));
+        }
 
         if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
             CommandLineParser.processEnvironmentVariable("RUBYOPT", config, true);
