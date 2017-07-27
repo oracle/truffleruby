@@ -173,7 +173,7 @@ public class Launcher {
             CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config, false);
         }
 
-        if (!config.doesHaveScriptArgv() && !config.shouldUsePathScript() && System.console() != null) {
+        if (!config.doesHaveScriptToRun() && !config.shouldUsePathScript() && System.console() != null) {
             config.setUsePathScript("irb");
         }
     }

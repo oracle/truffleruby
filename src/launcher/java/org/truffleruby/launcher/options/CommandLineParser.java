@@ -78,7 +78,7 @@ public class CommandLineParser {
     private boolean processArgv;
     private final boolean rubyOpts;
     final CommandLineOptions config;
-    private boolean endOfArguments = false;
+    private boolean endOfInterpreterArguments = false;
     private int characterIndex = 0;
     private boolean argvGlobalsOn;
 
@@ -159,7 +159,7 @@ public class CommandLineParser {
     }
 
     private boolean isInterpreterArgument(String argument) {
-        return argument.length() > 0 && (argument.charAt(0) == '-' || argument.charAt(0) == '+') && !endOfArguments;
+        return argument.length() > 0 && (argument.charAt(0) == '-' || argument.charAt(0) == '+') && !endOfInterpreterArguments;
     }
 
     private String getArgumentError(String additionalError) {
@@ -171,7 +171,7 @@ public class CommandLineParser {
 
         if (argument.length() == 1) {
             // sole "-" means read from stdin and pass remaining args as ARGV
-            endOfArguments = true;
+            endOfInterpreterArguments = true;
             config.setForceStdin(true);
             return;
         }
@@ -444,7 +444,7 @@ public class CommandLineParser {
                         if (argument.equals("--")) {
                             // ruby interpreter compatibilty
                             // Usage: ruby [switches] [--] [programfile] [arguments])
-                            endOfArguments = true;
+                            endOfInterpreterArguments = true;
                             break;
                         }
                     }
@@ -531,7 +531,7 @@ public class CommandLineParser {
     private void runBinScript() throws CommandLineException {
         String scriptName = grabValue("provide a bin script to execute");
         config.setUsePathScript(scriptName);
-        endOfArguments = true;
+        endOfInterpreterArguments = true;
     }
 
     private String grabValue(String errorMessage) throws CommandLineException {

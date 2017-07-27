@@ -54,7 +54,7 @@ public class CommandLineOptions {
     private boolean shouldPrintUsage;
     private boolean shouldCheckSyntax;
     private String inPlaceBackupExtension;
-    private boolean hasScriptArgv;
+    private boolean hasScriptToRun; // -e or a file
     private boolean forceStdin;
     private boolean shouldPrintShortUsage;
 
@@ -117,7 +117,7 @@ public class CommandLineOptions {
     }
 
     public void setHasInlineScript(boolean hasInlineScript) {
-        this.hasScriptArgv = true;
+        this.hasScriptToRun = true;
         this.hasInlineScript = hasInlineScript;
     }
 
@@ -146,7 +146,7 @@ public class CommandLineOptions {
     }
 
     public void setScriptFileName(String scriptFileName) {
-        this.hasScriptArgv = true;
+        this.hasScriptToRun = true;
         this.scriptFileName = scriptFileName;
     }
 
@@ -174,8 +174,8 @@ public class CommandLineOptions {
         this.shouldRunInterpreter = shouldRunInterpreter;
     }
 
-    public boolean getShouldRunInterpreter() {
-        return shouldRunInterpreter && (hasScriptArgv || !showVersion);
+    public boolean shouldRunInterpreter() {
+        return shouldRunInterpreter && (hasScriptToRun || !showVersion);
     }
 
     public void setShouldCheckSyntax(boolean shouldSetSyntax) {
@@ -198,8 +198,8 @@ public class CommandLineOptions {
         return optionGlobals;
     }
 
-    public boolean doesHaveScriptArgv() {
-        return hasScriptArgv;
+    public boolean doesHaveScriptToRun() {
+        return hasScriptToRun;
     }
 
     public void setUsePathScript(String name) {
