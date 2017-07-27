@@ -24,7 +24,6 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
-import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreClass;
@@ -270,8 +269,7 @@ public abstract class BasicObjectNodes {
         @Specialization(guards = { "isRubyString(string)" })
         public Object instanceEval(Object receiver, DynamicObject string, NotProvided fileName, NotProvided line, NotProvided block,
                 @Cached("create()") IndirectCallNode callNode) {
-            final DynamicObject eval = StringOperations.createString(getContext(), StringOperations.encodeRope("(eval)", ASCIIEncoding.INSTANCE));
-            return instanceEval(receiver, string, eval, 1, block, callNode);
+            return instanceEval(receiver, string, coreStrings().EVAL_FILENAME_STRING.createInstance(), 1, block, callNode);
         }
 
         @Specialization

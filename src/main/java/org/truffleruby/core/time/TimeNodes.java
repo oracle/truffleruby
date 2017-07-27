@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.time;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -18,7 +19,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -57,9 +57,9 @@ public abstract class TimeNodes {
     private static final ZonedDateTime ZERO = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault());
     private static final ZoneId UTC = ZoneId.of("UTC");
 
-    public static DynamicObject getShortZoneName(RubyContext context, ZonedDateTime dt, TimeZoneAndName zoneAndName) {
+    public static DynamicObject getShortZoneName(StringNodes.MakeStringNode makeStringNode, ZonedDateTime dt, TimeZoneAndName zoneAndName) {
         final String shortZoneName = TimeZoneParser.getShortZoneName(dt, zoneAndName);
-        return StringOperations.createString(context, StringOperations.encodeRope(shortZoneName, UTF8Encoding.INSTANCE));
+        return makeStringNode.executeMake(shortZoneName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
@@ -95,10 +95,11 @@ public abstract class TimeNodes {
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
 
         @Specialization(guards = "isNil(offset)")
-        public DynamicObject localtime(VirtualFrame frame, DynamicObject time, DynamicObject offset) {
+        public DynamicObject localtime(VirtualFrame frame, DynamicObject time, DynamicObject offset,
+                                       @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
             final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
-            final DynamicObject zone = getShortZoneName(getContext(), dateTime, timeZoneAndName);
+            final DynamicObject zone = getShortZoneName(makeStringNode, dateTime, timeZoneAndName);
 
             Layouts.TIME.setIsUtc(time, false);
             Layouts.TIME.setRelativeOffset(time, false);
@@ -183,12 +184,13 @@ public abstract class TimeNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
         public DynamicObject timeNow(VirtualFrame frame, DynamicObject timeClass) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
             final ZonedDateTime dt = now(zoneAndName.getZone());
-            final DynamicObject zone = getShortZoneName(getContext(), dt, zoneAndName);
+            final DynamicObject zone = getShortZoneName(makeStringNode, dt, zoneAndName);
             return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(dt, zone, nil(), false, false));
         }
 
@@ -204,12 +206,13 @@ public abstract class TimeNodes {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
         public DynamicObject timeAt(VirtualFrame frame, DynamicObject timeClass, long seconds, int nanoseconds) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
             final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
-            final DynamicObject zone = getShortZoneName(getContext(), dateTime, zoneAndName);
+            final DynamicObject zone = getShortZoneName(makeStringNode, dateTime, zoneAndName);
             return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
                     dateTime, zone, nil(), false, false));
         }
@@ -442,6 +445,7 @@ public abstract class TimeNodes {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private StringNodes.MakeStringNode makeStringNode;
 
         @Specialization(guards = "(isutc || !isDynamicObject(utcoffset)) || isNil(utcoffset)")
         public DynamicObject timeSFromArray(VirtualFrame frame, DynamicObject timeClass,
@@ -493,8 +497,13 @@ public abstract class TimeNodes {
                     relativeOffset = false;
                     zoneToStore = coreStrings().UTC.createInstance();
                 } else if (utcoffset == nil()) {
+                    if (makeStringNode == null) {
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        makeStringNode = insert(StringNodes.MakeStringNode.create());
+                    }
+
                     zone = envZone.getZone();
-                    zoneToStore = getShortZoneName(getContext(), dt, envZone);
+                    zoneToStore = getShortZoneName(makeStringNode, dt, envZone);
                     relativeOffset = false;
                 } else if (utcoffset instanceof Integer || utcoffset instanceof Long) {
                     zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds(((Number) utcoffset).intValue()));

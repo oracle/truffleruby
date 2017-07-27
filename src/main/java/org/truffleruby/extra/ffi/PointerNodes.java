@@ -352,12 +352,9 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "type == TYPE_STRING")
         public DynamicObject getAtOffsetString(DynamicObject pointer, int offset, int type,
-                                               @Cached("create()") AllocateObjectNode allocateObjectNode) {
-            final Rope rope = StringOperations.encodeRope(
-                    PointerOperations.getString(Layouts.POINTER.getPointer(pointer), offset),
-                    UTF8Encoding.INSTANCE);
-
-            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+                                               @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            return makeStringNode.executeMake(PointerOperations.getString(Layouts.POINTER.getPointer(pointer), offset),
+                    UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
         @Specialization(guards = "type == TYPE_PTR")

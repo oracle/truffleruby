@@ -71,7 +71,6 @@ import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -535,10 +534,11 @@ public abstract class ThreadNodes {
     @Primitive(name = "thread_source_location")
     public static abstract class ThreadSourceLocationNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization(guards = "isRubyThread(thread)")
         public DynamicObject sourceLocation(DynamicObject thread) {
-            return StringOperations.createString(getContext(), StringOperations.encodeRope(
-                    Layouts.THREAD.getSourceLocation(thread), UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(Layouts.THREAD.getSourceLocation(thread), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
 

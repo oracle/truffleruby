@@ -141,6 +141,8 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "original_argv", onSingleton = true)
     public abstract static class OriginalArgvNode extends CoreMethodNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject originalArgv() {
@@ -148,7 +150,7 @@ public abstract class TruffleBootNodes {
             final Object[] array = new Object[argv.length];
 
             for (int n = 0; n < array.length; n++) {
-                array[n] = StringOperations.createString(getContext(), StringOperations.encodeRope(argv[n], getContext().getEncodingManager().getDefaultExternalEncoding()));
+                array[n] = makeStringNode.executeMake(argv[n], getContext().getEncodingManager().getDefaultExternalEncoding(), CodeRange.CR_UNKNOWN);
             }
 
             return createArray(array, array.length);
@@ -159,6 +161,8 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "original_load_path", onSingleton = true)
     public abstract static class OriginalLoadPathNode extends CoreMethodNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject originalLoadPath() {
@@ -166,7 +170,7 @@ public abstract class TruffleBootNodes {
             final Object[] array = new Object[paths.length];
 
             for (int n = 0; n < array.length; n++) {
-                array[n] = StringOperations.createString(getContext(), StringOperations.encodeRope(paths[n], UTF8Encoding.INSTANCE));
+                array[n] = makeStringNode.executeMake(paths[n], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             }
 
             return createArray(array, array.length);

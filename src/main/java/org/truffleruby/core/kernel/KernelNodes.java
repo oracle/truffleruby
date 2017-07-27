@@ -31,18 +31,13 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
-import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
-import org.truffleruby.core.basicobject.BasicObjectNodesFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.core.binding.BindingNodesFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
@@ -52,7 +47,6 @@ import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.NameToSymbolOrStringNodeGen;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
-import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
@@ -67,12 +61,13 @@ import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcNodesFactory.ProcNewNodeFactory;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rubinius.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.rubinius.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.string.StringNodes.UnpackNode;
@@ -145,7 +140,6 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -155,7 +149,6 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -1733,6 +1726,7 @@ public abstract class KernelNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Child private LogicalClassNode classNode = LogicalClassNodeGen.create(null);
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private ObjectIDNode objectIDNode = ObjectIDNodeFactory.create(null);
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private ToHexStringNode toHexStringNode = ToHexStringNodeFactory.create(null);
@@ -1745,14 +1739,9 @@ public abstract class KernelNodes {
             Object id = objectIDNode.executeObjectID(self);
             String hexID = toHexStringNode.executeToHexString(id);
 
-            final DynamicObject string = createString(formatToS(className, hexID));
+            final DynamicObject string = makeStringNode.executeMake("#<" + className + ":0x" + hexID + ">", UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             taintResultNode.maybeTaint(self, string);
             return string;
-        }
-
-        @TruffleBoundary
-        private Rope formatToS(String className, String hexID) {
-            return StringOperations.encodeRope("#<" + className + ":0x" + hexID + ">", UTF8Encoding.INSTANCE);
         }
 
     }

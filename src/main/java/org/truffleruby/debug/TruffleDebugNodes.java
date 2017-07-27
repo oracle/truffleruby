@@ -241,11 +241,13 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "array_storage", onSingleton = true, required = 1)
     public abstract static class ArrayStorageNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization(guards = "isRubyArray(array)")
         public DynamicObject arrayStorage(DynamicObject array) {
             String storage = ArrayStrategy.of(array).toString();
-            return StringOperations.createString(getContext(), StringOperations.encodeRope(storage, USASCIIEncoding.INSTANCE));
+            return makeStringNode.executeMake(storage, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -253,12 +255,14 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "hash_storage", onSingleton = true, required = 1)
     public abstract static class HashStorageNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization(guards = "isRubyHash(hash)")
         public DynamicObject hashStorage(DynamicObject hash) {
             Object store = Layouts.HASH.getStore(hash);
             String storage = store == null ? "null" : store.getClass().toString();
-            return StringOperations.createString(getContext(), StringOperations.encodeRope(storage, USASCIIEncoding.INSTANCE));
+            return makeStringNode.executeMake(storage, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
     }

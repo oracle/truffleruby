@@ -39,9 +39,11 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
@@ -320,11 +322,13 @@ public abstract class InteropNodes {
     @CoreMethod(names = "unbox", isModuleFunction = true, required = 1)
     public abstract static class UnboxNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject unbox(CharSequence receiver) {
             // TODO CS-21-Dec-15 this shouldn't be needed - we need to convert j.l.String to Ruby's String automatically
-            return StringOperations.createString(getContext(), StringOperations.encodeRope(receiver, ASCIIEncoding.INSTANCE));
+            return makeStringNode.executeMake(receiver, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
         @Specialization
