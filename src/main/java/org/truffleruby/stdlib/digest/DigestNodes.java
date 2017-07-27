@@ -23,6 +23,7 @@ import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
 
@@ -164,11 +165,15 @@ public abstract class DigestNodes {
     @CoreMethod(names = "bubblebabble", onSingleton = true, required = 1)
     public abstract static class BubbleBabbleNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization(guards = "isRubyString(message)")
         public DynamicObject bubblebabble(DynamicObject message) {
             final Rope rope = StringOperations.rope(message);
-            return create7BitString(bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes(), USASCIIEncoding.INSTANCE);
+            final byte[] bubblebabbleBytes = bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes();
+
+            return makeStringNode.executeMake(bubblebabbleBytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
         /**
