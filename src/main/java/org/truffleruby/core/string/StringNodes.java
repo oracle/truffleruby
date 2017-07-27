@@ -162,6 +162,27 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreClass("String")
 public abstract class StringNodes {
 
+    @NodeChildren({ @NodeChild("bytes"), @NodeChild("encoding"), @NodeChild("codeRange") })
+    public abstract static class MakeStringNode extends RubyNode {
+
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
+
+        public abstract DynamicObject executeMake(byte[] bytes, Encoding encoding, CodeRange codeRange);
+
+        public static MakeStringNode create() {
+            return StringNodesFactory.MakeStringNodeGen.create(null, null, null);
+        }
+
+        @Specialization
+        protected DynamicObject makeString(byte[] bytes, Encoding encoding, CodeRange codeRange) {
+            final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
+
+            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+        }
+
+    }
+
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 

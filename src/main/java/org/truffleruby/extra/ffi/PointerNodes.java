@@ -13,6 +13,7 @@ import com.kenai.jffi.MemoryIO;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleOptions;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -31,9 +32,10 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -143,11 +145,14 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_read_string", lowerFixnum = 1)
     public static abstract class PointerReadStringPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject readString(DynamicObject pointer, int length) {
             final byte[] bytes = new byte[length];
             PointerOperations.readPointer(Layouts.POINTER.getPointer(pointer), bytes, length);
-            return createString(RopeBuilder.createRopeBuilder(bytes));
+
+            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -156,23 +161,27 @@ public abstract class PointerNodes {
     public static abstract class PointerReadStringToNullPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isNullPointer(pointer)")
-        public DynamicObject readNullPointer(DynamicObject pointer) {
-            return createString(RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+        public DynamicObject readNullPointer(DynamicObject pointer,
+                                             @Cached("create()") AllocateObjectNode allocateObjectNode) {
+            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
         }
 
         @Specialization(guards = "!isNullPointer(pointer)")
-        public DynamicObject readStringToNull(DynamicObject pointer) {
+        public DynamicObject readStringToNull(DynamicObject pointer,
+                                              @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            final byte[] bytes;
+
             if (TruffleOptions.AOT) {
                 final jnr.ffi.Pointer ptr = Layouts.POINTER.getPointer(pointer);
                 final int nullOffset = findNullOffset(ptr);
-                final byte[] bytes = new byte[nullOffset];
+                bytes = new byte[nullOffset];
 
                 PointerOperations.readPointer(ptr, bytes, nullOffset);
-
-                return createString(bytes, ASCIIEncoding.INSTANCE);
+            } else {
+                bytes = MemoryIO.getInstance().getZeroTerminatedByteArray(Layouts.POINTER.getPointer(pointer).address());
             }
 
-            return createString(MemoryIO.getInstance().getZeroTerminatedByteArray(Layouts.POINTER.getPointer(pointer).address()), ASCIIEncoding.INSTANCE);
+            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
         @TruffleBoundary
@@ -291,8 +300,6 @@ public abstract class PointerNodes {
     @ImportStatic(RubiniusTypes.class)
     public static abstract class PointerGetAtOffsetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateObjectNode;
-
         @Specialization(guards = "type == TYPE_CHAR")
         public int getAtOffsetChar(DynamicObject pointer, int offset, int type) {
             return PointerOperations.getByte(Layouts.POINTER.getPointer(pointer), offset);
@@ -344,20 +351,18 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "type == TYPE_STRING")
-        public DynamicObject getAtOffsetString(DynamicObject pointer, int offset, int type) {
-            return createString(
-                    StringOperations.encodeRope(
-                            PointerOperations.getString(Layouts.POINTER.getPointer(pointer), offset),
-                            UTF8Encoding.INSTANCE));
+        public DynamicObject getAtOffsetString(DynamicObject pointer, int offset, int type,
+                                               @Cached("create()") AllocateObjectNode allocateObjectNode) {
+            final Rope rope = StringOperations.encodeRope(
+                    PointerOperations.getString(Layouts.POINTER.getPointer(pointer), offset),
+                    UTF8Encoding.INSTANCE);
+
+            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
         }
 
         @Specialization(guards = "type == TYPE_PTR")
-        public DynamicObject getAtOffsetPointer(DynamicObject pointer, int offset, int type) {
-            if (allocateObjectNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateObjectNode = insert(AllocateObjectNode.create());
-            }
-
+        public DynamicObject getAtOffsetPointer(DynamicObject pointer, int offset, int type,
+                                                @Cached("create()") AllocateObjectNode allocateObjectNode) {
             final Pointer readPointer = PointerOperations.getPointer(Layouts.POINTER.getPointer(pointer), offset);
 
             if (readPointer == null) {
