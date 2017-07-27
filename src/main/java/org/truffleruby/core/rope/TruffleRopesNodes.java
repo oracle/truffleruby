@@ -17,6 +17,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
@@ -39,6 +40,8 @@ public abstract class TruffleRopesNodes {
     @CoreMethod(names = "dump_string", onSingleton = true, required = 1)
     public abstract static class DumpStringNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization(guards = "isRubyString(string)")
         public DynamicObject dumpString(DynamicObject string) {
@@ -50,7 +53,7 @@ public abstract class TruffleRopesNodes {
                 builder.append(StringUtils.format("\\x%02x", rope.get(i)));
             }
 
-            return createString(StringOperations.encodeRope(builder.toString(), UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(builder.toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -104,12 +107,14 @@ public abstract class TruffleRopesNodes {
     @CoreMethod(names = "debug_get_structure_creation", onSingleton = true, required = 1)
     public abstract static class DebugGetStructureCreationNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization(guards = "isRubyString(string)")
         public DynamicObject getStructure(DynamicObject string) {
             Rope rope = StringOperations.rope(string);
             String result = getStructure(rope);
-            return createString(RopeOperations.create(result.getBytes(), rope.getEncoding(), CodeRange.CR_7BIT));
+            return makeStringNode.executeMake(result.getBytes(), rope.getEncoding(), CodeRange.CR_7BIT);
         }
 
         protected static String getStructure(Rope rope) {

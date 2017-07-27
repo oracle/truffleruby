@@ -56,6 +56,8 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.ToIntNodeGen;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -89,6 +91,7 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = "pop", needsSelf = false)
     public abstract static class PopNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private TaintNode taintNode = TaintNode.create();
 
         @TruffleBoundary
@@ -101,7 +104,7 @@ public abstract class ReadlineHistoryNodes {
             }
 
             final String lastLine = consoleHolder.getHistory().removeLast().toString();
-            final DynamicObject ret = createString(StringOperations.encodeRope(lastLine, getLocaleEncoding()));
+            final DynamicObject ret = makeStringNode.executeMake(lastLine, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
 
             return taintNode.executeTaint(ret);
         }
@@ -111,6 +114,7 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = "shift", needsSelf = false)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private TaintNode taintNode = TaintNode.create();
 
         @TruffleBoundary
@@ -123,7 +127,7 @@ public abstract class ReadlineHistoryNodes {
             }
 
             final String lastLine = consoleHolder.getHistory().removeFirst().toString();
-            final DynamicObject ret = createString(StringOperations.encodeRope(lastLine, getLocaleEncoding()));
+            final DynamicObject ret = makeStringNode.executeMake(lastLine, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
 
             return taintNode.executeTaint(ret);
         }
@@ -157,6 +161,7 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = "each", needsBlock = true)
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private TaintNode taintNode = TaintNode.create();
 
         @Specialization
@@ -164,7 +169,7 @@ public abstract class ReadlineHistoryNodes {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             for (final History.Entry e : consoleHolder.getHistory()) {
-                final DynamicObject line = createString(StringOperations.encodeRope(historyEntryToString(e), getLocaleEncoding()));
+                final DynamicObject line = makeStringNode.executeMake(historyEntryToString(e), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
 
                 yield(block, taintNode.executeTaint(line));
             }
@@ -182,6 +187,7 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = "[]", needsSelf = false, required = 1, lowerFixnum = 1)
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private TaintNode taintNode = TaintNode.create();
 
         @TruffleBoundary
@@ -193,7 +199,7 @@ public abstract class ReadlineHistoryNodes {
 
             try {
                 final String line = consoleHolder.getHistory().get(normalizedIndex).toString();
-                final DynamicObject ret = createString(StringOperations.encodeRope(line, getLocaleEncoding()));
+                final DynamicObject ret = makeStringNode.executeMake(line, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
 
                 return taintNode.executeTaint(ret);
             } catch (IndexOutOfBoundsException e) {
@@ -239,6 +245,7 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = "delete_at", needsSelf = false, required = 1, lowerFixnum = 1)
     public abstract static class DeleteAtNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private TaintNode taintNode = TaintNode.create();
 
         @TruffleBoundary
@@ -250,7 +257,7 @@ public abstract class ReadlineHistoryNodes {
 
             try {
                 final String line = consoleHolder.getHistory().remove(normalizedIndex).toString();
-                final DynamicObject ret = createString(StringOperations.encodeRope(line, getLocaleEncoding()));
+                final DynamicObject ret = makeStringNode.executeMake(line, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
 
                 return taintNode.executeTaint(ret);
             } catch (IndexOutOfBoundsException e) {

@@ -48,7 +48,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.Visibility;
 
 import java.math.BigInteger;
@@ -315,6 +315,8 @@ public abstract class RandomizerNodes {
     @Primitive(name = "randomizer_bytes", lowerFixnum = 1)
     public static abstract class RandomizerBytesPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject genRandBytes(DynamicObject randomizer, int length) {
@@ -335,7 +337,8 @@ public abstract class RandomizerNodes {
                     r >>>= 8;
                 }
             }
-            return createString(RopeOperations.create(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
+
+            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
 

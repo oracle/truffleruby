@@ -59,6 +59,7 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.proc.ProcSignalHandler;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.ExitException;
@@ -81,7 +82,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static jnr.constants.platform.Errno.ECHILD;
-import static jnr.constants.platform.Errno.EINTR;
 import static jnr.constants.platform.WaitFlags.WNOHANG;
 
 public abstract class VMPrimitiveNodes {
@@ -165,6 +165,8 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_get_user_home", needsSelf = false)
     public abstract static class VMGetUserHomePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization(guards = "isRubyString(username)")
         public DynamicObject vmGetUserHome(DynamicObject username) {
@@ -173,7 +175,8 @@ public abstract class VMPrimitiveNodes {
             if (passwd == null) {
                 throw new RaiseException(coreExceptions().argumentError("user " + username.toString() + " does not exist", this));
             }
-            return createString(StringOperations.encodeRope(passwd.getHome(), UTF8Encoding.INSTANCE));
+
+            return makeStringNode.executeMake(passwd.getHome(), UTF8Encoding.INSTANCE, org.truffleruby.core.rope.CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -398,6 +401,8 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_get_config_section", needsSelf = false)
     public abstract static class VMGetConfigSectionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private org.truffleruby.core.string.StringNodes.MakeStringNode makeStringNode = org.truffleruby.core.string.StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization(guards = "isRubyString(section)")
         public DynamicObject getSection(DynamicObject section) {
@@ -413,9 +418,9 @@ public abstract class VMPrimitiveNodes {
                     stringValue = value.toString();
                 }
 
-                Object[] objects = new Object[]{
-                        createString(StringOperations.encodeRope(key, UTF8Encoding.INSTANCE)),
-                        createString(StringOperations.encodeRope(stringValue, UTF8Encoding.INSTANCE)) };
+                Object[] objects = new Object[] {
+                        makeStringNode.executeMake(key, UTF8Encoding.INSTANCE, org.truffleruby.core.rope.CodeRange.CR_UNKNOWN),
+                        makeStringNode.executeMake(stringValue, UTF8Encoding.INSTANCE, org.truffleruby.core.rope.CodeRange.CR_UNKNOWN) };
                 sectionKeyValues.add(createArray(objects, objects.length));
             }
 

@@ -15,7 +15,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 
@@ -40,8 +42,9 @@ public abstract class ForeignToRubyNode extends RubyNode {
     }
 
     @Specialization(replaces = "convertStringCached")
-    public DynamicObject convertStringUncached(String value) {
-        return createString(getRope(value));
+    public DynamicObject convertStringUncached(String value,
+                                               @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+        return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
     protected boolean stringsEquals(String a, String b) {

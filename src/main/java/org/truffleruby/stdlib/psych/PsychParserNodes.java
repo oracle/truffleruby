@@ -74,7 +74,6 @@ import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.TaintNode;
-import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.error.Mark;
 import org.yaml.snakeyaml.events.AliasEvent;
 import org.yaml.snakeyaml.events.DocumentEndEvent;
@@ -332,7 +331,7 @@ public abstract class PsychParserNodes {
         }
 
         private DynamicObject createUTF8String(String value) {
-            return createString(StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
         @TruffleBoundary

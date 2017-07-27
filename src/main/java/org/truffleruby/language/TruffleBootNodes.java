@@ -24,6 +24,8 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.collections.Memo;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.loader.CodeLoader;
@@ -41,13 +43,15 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "ruby_home", onSingleton = true)
     public abstract static class RubyHomeNode extends CoreMethodNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject rubyHome() {
             if (getContext().getRubyHome() == null) {
                 return nil();
             } else {
-                return createString(StringOperations.encodeRope(getContext().getRubyHome(), UTF8Encoding.INSTANCE));
+                return makeStringNode.executeMake(getContext().getRubyHome(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             }
         }
 
@@ -56,17 +60,19 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "ruby_launcher", onSingleton = true)
     public abstract static class RubyLauncherNode extends CoreMethodNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject rubyLauncher() {
             if (TruffleOptions.AOT) {
                 final String path = (String) Compiler.command(new Object[]{"com.oracle.svm.core.posix.GetExecutableName"});
-                return createString(StringOperations.encodeRope(path, UTF8Encoding.INSTANCE));
+                return makeStringNode.executeMake(path, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             } else {
                 if (getContext().getOptions().LAUNCHER.isEmpty()) {
                     return nil();
                 } else {
-                    return createString(StringOperations.encodeRope(getContext().getOptions().LAUNCHER, UTF8Encoding.INSTANCE));
+                    return makeStringNode.executeMake(getContext().getOptions().LAUNCHER, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                 }
             }
         }
@@ -171,6 +177,8 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "source_of_caller", isModuleFunction = true)
     public abstract static class SourceOfCallerNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject sourceOfCaller() {
@@ -189,7 +197,7 @@ public abstract class TruffleBootNodes {
                 return nil();
             }
 
-            return createString(StringOperations.encodeRope(source, UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(source, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -220,13 +228,15 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "get_option", onSingleton = true, required = 1)
     public abstract static class GetOptionNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization(guards = "isRubyString(optionName)")
         public Object getOption(DynamicObject optionName) {
             final OptionDescription<?> description = OptionsCatalog.fromName("ruby." + StringOperations.getString(optionName));
             final Object value = getContext().getOptions().fromDescription(description);
             if (value instanceof String) {
-                return createString(StringOperations.encodeRope((String) value, UTF8Encoding.INSTANCE));
+                return makeStringNode.executeMake((String) value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             } else {
                 assert value instanceof Integer || value instanceof Boolean;
                 return value;

@@ -24,7 +24,8 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
@@ -158,6 +159,8 @@ public abstract class UnboundMethodNodes {
     @CoreMethod(names = "source_location")
     public abstract static class SourceLocationNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public Object sourceLocation(DynamicObject unboundMethod) {
@@ -166,7 +169,7 @@ public abstract class UnboundMethodNodes {
             if (sourceSection.getSource() == null) {
                 return nil();
             } else {
-                DynamicObject file = createString(StringOperations.encodeRope(sourceSection.getSource().getName(), UTF8Encoding.INSTANCE));
+                DynamicObject file = makeStringNode.executeMake(sourceSection.getSource().getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                 Object[] objects = new Object[]{file, sourceSection.getStartLine()};
                 return createArray(objects, objects.length);
             }

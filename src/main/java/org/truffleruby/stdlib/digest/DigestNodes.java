@@ -127,12 +127,13 @@ public abstract class DigestNodes {
     @CoreMethod(names = "digest", onSingleton = true, required = 1)
     public abstract static class DigestNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject digest(DynamicObject digestObject) {
             final MessageDigest digest = Layouts.DIGEST.getDigest(digestObject);
 
-            return createString(RopeOperations.create(
-                    cloneAndDigest(digest), ASCIIEncoding.INSTANCE, CodeRange.CR_VALID));
+            return makeStringNode.executeMake(cloneAndDigest(digest), ASCIIEncoding.INSTANCE, CodeRange.CR_VALID);
         }
 
         // TODO CS 10-Apr-17 the Ruby code for digest also clones in some cases! Are we cloning redundantly?

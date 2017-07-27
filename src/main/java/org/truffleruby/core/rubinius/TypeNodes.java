@@ -23,7 +23,8 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsANodeGen;
 import org.truffleruby.language.objects.IsTaintedNode;
@@ -247,10 +248,12 @@ public abstract class TypeNodes {
     @CoreMethod(names = "module_name", onSingleton = true, required = 1)
     public static abstract class ModuleNameNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject moduleName(DynamicObject module) {
             final String name = Layouts.MODULE.getFields(module).getName();
-            return createString(StringOperations.encodeRope(name, UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(name, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

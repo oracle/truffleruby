@@ -26,10 +26,10 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LazyRubyNode;
-import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
@@ -99,9 +99,11 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "java_class_of", onSingleton = true, required = 1)
     public abstract static class JavaClassOfNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject javaClassOf(Object value) {
-            return createString(StringOperations.encodeRope(value.getClass().getSimpleName(), UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(value.getClass().getSimpleName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -109,9 +111,11 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "java_to_string", onSingleton = true, required = 1)
     public abstract static class JavaToStringNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject javaToString(Object value) {
-            return createString(StringOperations.encodeRope(String.valueOf(value), UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(String.valueOf(value), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -225,9 +229,11 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "shape", onSingleton = true, required = 1)
     public abstract static class ShapeNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject shape(DynamicObject object) {
-            return createString(StringOperations.encodeRope(object.getShape().toString(), UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(object.getShape().toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

@@ -17,7 +17,8 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.control.RaiseException;
 
 import java.util.ArrayList;
@@ -52,6 +53,8 @@ public abstract class CoverageNodes {
     @CoreMethod(names = "result_array", onSingleton = true)
     public abstract static class CoverageResultNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject resultArray() {
@@ -73,7 +76,7 @@ public abstract class CoverageNodes {
                 }
 
                 results.add(createArray(new Object[] {
-                        createString(StringOperations.encodeRope(source.getKey().getName(), UTF8Encoding.INSTANCE)),
+                        makeStringNode.executeMake(source.getKey().getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN),
                         createArray(countsStore, countsStore.length)
                 }, 2));
             }

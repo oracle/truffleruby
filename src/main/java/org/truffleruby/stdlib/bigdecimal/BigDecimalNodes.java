@@ -27,7 +27,8 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
@@ -1414,10 +1415,12 @@ public abstract class BigDecimalNodes {
     @CoreMethod(names = "unscaled", visibility = Visibility.PRIVATE)
     public abstract static class UnscaledNode extends BigDecimalCoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization(guards = "isNormal(value)")
         public Object unscaled(DynamicObject value) {
-            return createString(StringOperations.encodeRope(Layouts.BIG_DECIMAL.getValue(value).abs().stripTrailingZeros().unscaledValue().toString(), UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(Layouts.BIG_DECIMAL.getValue(value).abs().stripTrailingZeros().unscaledValue().toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
         @TruffleBoundary
@@ -1425,7 +1428,7 @@ public abstract class BigDecimalNodes {
         public Object unscaledSpecial(DynamicObject value) {
             final String type = Layouts.BIG_DECIMAL.getType(value).getRepresentation();
             String string = type.startsWith("-") ? type.substring(1) : type;
-            return createString(StringOperations.encodeRope(string, UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(string, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

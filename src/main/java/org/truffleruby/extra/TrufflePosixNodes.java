@@ -25,6 +25,8 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.extra.ffi.PointerNodes;
@@ -148,6 +150,8 @@ public abstract class TrufflePosixNodes {
     @CoreMethod(names = "getenv", isModuleFunction = true, required = 1)
     public abstract static class GetenvNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization(guards = "isRubyString(name)")
         public DynamicObject getenv(DynamicObject name) {
@@ -157,7 +161,7 @@ public abstract class TrufflePosixNodes {
                 return nil();
             }
 
-            return createString(StringOperations.encodeRope((String) result, UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake((String) result, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
 
@@ -843,11 +847,13 @@ public abstract class TrufflePosixNodes {
     @CoreMethod(names = "gai_strerror", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class GaiStrErrorNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject gai_strerror(int ecode) {
             final String errorMessage = nativeSockets().gai_strerror(ecode);
-            return createString(StringOperations.encodeRope(errorMessage, ASCIIEncoding.INSTANCE));
+            return makeStringNode.executeMake(errorMessage, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
