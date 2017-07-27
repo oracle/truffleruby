@@ -23,6 +23,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.proc.ProcOperations;
@@ -185,24 +186,23 @@ public class JavaUtilitiesNodes {
     }
 
     @CoreMethod(names = "invocation_handler", required = 1, isModuleFunction = true)
-    public static abstract class InvocationHandlerNode extends CoreMethodArrayArgumentsNode {
+    public static abstract class InvocationHandlerNode extends YieldingCoreMethodNode {
 
         @Specialization
         public Object createHandler(DynamicObject aProc) {
-            InvocationHandler handler = new InvocationHandler() {
-                    public Object invoke(Object aProxy, Method method, Object[] args) {
-                        Object[] rubyArgs;
-                        if (args != null) {
-                            rubyArgs = new Object[args.length + 1];
-                            System.arraycopy(args, 0, rubyArgs, 1, args.length);
-                        } else {
-                            rubyArgs = new Object[1];
-                        }
-                        rubyArgs[0] = method;
-                        return ProcOperations.rootCall(aProc, rubyArgs);
+            return new InvocationHandler() {
+                public Object invoke(Object aProxy, Method method, Object[] args) {
+                    Object[] rubyArgs;
+                    if (args != null) {
+                        rubyArgs = new Object[args.length + 1];
+                        System.arraycopy(args, 0, rubyArgs, 1, args.length);
+                    } else {
+                        rubyArgs = new Object[1];
                     }
-                };
-            return handler;
+                    rubyArgs[0] = method;
+                    return yield(aProc, rubyArgs);
+                }
+            };
         }
     }
 }
