@@ -52,6 +52,7 @@ import org.truffleruby.launcher.options.CommandLineOptions;
 import org.truffleruby.launcher.options.CommandLineParser;
 import org.truffleruby.launcher.options.OptionsCatalog;
 
+import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 
 public class Launcher {
@@ -84,7 +85,7 @@ public class Launcher {
             } catch (CommandLineException commandLineException) {
                 System.err.println("truffleruby: " + commandLineException.getMessage());
                 if (commandLineException.isUsageError()) {
-                    CommandLineParser.printHelp(System.err);
+                    printHelp(System.err);
                 }
                 System.exit(1);
             }
@@ -121,9 +122,9 @@ public class Launcher {
                 }
             } else {
                 if (config.getShouldPrintShortUsage()) {
-                    CommandLineParser.printShortHelp(System.out);
+                    printShortHelp(System.out);
                 } else if (config.getShouldPrintUsage()) {
-                    CommandLineParser.printHelp(System.out);
+                    printHelp(System.out);
                 }
             }
         } catch (PolyglotException e) {
@@ -163,7 +164,7 @@ public class Launcher {
     }
 
     public static void processArguments(CommandLineOptions config, String[] arguments) throws CommandLineException {
-        new CommandLineParser(arguments, config).processArguments();
+        new CommandLineParser(arguments, true, config).processArguments();
         if (!config.getUnknownArguments().isEmpty()) {
             throw new CommandLineException("unknown option " + config.getUnknownArguments().get(0));
         }
@@ -215,5 +216,84 @@ public class Launcher {
                 BasicPlatform.getOSName(),
                 BasicPlatform.getArchitecture()
         );
+    }
+
+    public static void printHelp(PrintStream out) {
+        out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
+        out.println("  -0[octal]       specify record separator (\0, if no argument)");
+        out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
+        out.println("  -c              check syntax only");
+        out.println("  -Cdirectory     cd to directory before executing your script");
+        out.println("  -d, --debug     set debugging flags (set $DEBUG to true)");
+        out.println("  -e 'command'    one line of script. Several -e's allowed. Omit [programfile]");
+        out.println("  -Eex[:in], --encoding=ex[:in]");
+        out.println("                  specify the default external and internal character encodings");
+        out.println("  -Fpattern       split() pattern for autosplit (-a)");
+        out.println("  -i[extension]   edit ARGV files in place (make backup if extension supplied)");
+        out.println("  -Idirectory     specify $LOAD_PATH directory (may be used more than once)");
+        out.println("  -l              enable line ending processing");
+        out.println("  -n              assume 'while gets(); ... end' loop around your script");
+        out.println("  -p              assume loop like -n but print line also like sed");
+        out.println("  -rlibrary       require the library before executing your script");
+        out.println("  -s              enable some switch parsing for switches after script name");
+        out.println("  -S              look for the script using PATH environment variable");
+        out.println("  -T[level=1]     turn on tainting checks");
+        out.println("  -v, --verbose   print version number, then turn on verbose mode");
+        out.println("  -w              turn warnings on for your script");
+        out.println("  -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose");
+        out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
+        out.println("  --copyright     print the copyright");
+        out.println("  --enable=feature[,...], --disable=feature[,...]");
+        out.println("                  enable or disable features");
+        out.println("  --external-encoding=encoding, --internal-encoding=encoding");
+        out.println("                  specify the default external or internal character encoding");
+        out.println("  --version       print the version");
+        out.println("  --help          show this message, -h for short message");
+        out.println("Features:");
+        out.println("  gems            rubygems (default: enabled)");
+        out.println("  did_you_mean    did_you_mean (default: enabled)");
+        out.println("  rubyopt         RUBYOPT environment variable (default: enabled)");
+        out.println("  frozen-string-literal");
+        out.println("                  freeze all string literals (default: disabled)");
+        out.println("TruffleRuby switches:");
+        out.println("  -Xlog=severe,warning,performance,info,config,fine,finer,finest");
+        out.println("                  set the TruffleRuby logging level");
+        out.println("  -Xoptions       print available TruffleRuby options");
+        out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
+
+        if (IS_AOT) {
+            out.println("SVM switches:");
+            out.println("  -XX:arg         pass arg to the SVM");
+            out.println("  -Dname=value    set a system property");
+        } else {
+            out.println("JVM switches:");
+            out.println("  -J-arg, -J:arg  pass arg to the JVM");
+        }
+    }
+
+    public static void printShortHelp(PrintStream out) {
+        out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
+        out.println("  -0[octal]       specify record separator (\0, if no argument)");
+        out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
+        out.println("  -c              check syntax only");
+        out.println("  -Cdirectory     cd to directory before executing your script");
+        out.println("  -d              set debugging flags (set $DEBUG to true)");
+        out.println("  -e 'command'    one line of script. Several -e's allowed. Omit [programfile]");
+        out.println("  -Eex[:in]       specify the default external and internal character encodings");
+        out.println("  -Fpattern       split() pattern for autosplit (-a)");
+        out.println("  -i[extension]   edit ARGV files in place (make backup if extension supplied)");
+        out.println("  -Idirectory     specify $LOAD_PATH directory (may be used more than once)");
+        out.println("  -l              enable line ending processing");
+        out.println("  -n              assume 'while gets(); ... end' loop around your script");
+        out.println("  -p              assume loop like -n but print line also like sed");
+        out.println("  -rlibrary       require the library before executing your script");
+        out.println("  -s              enable some switch parsing for switches after script name");
+        out.println("  -S              look for the script using PATH environment variable");
+        out.println("  -T[level=1]     turn on tainting checks");
+        out.println("  -v              print version number, then turn on verbose mode");
+        out.println("  -w              turn warnings on for your script");
+        out.println("  -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose");
+        out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
+        out.println("  -h              show this message, --help for more info");
     }
 }
