@@ -17,7 +17,6 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.Encoding;
@@ -37,11 +36,13 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
@@ -356,6 +357,8 @@ public abstract class EncodingConverterNodes {
     @CoreMethod(names = "replacement")
     public abstract static class EncodingConverterReplacementNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject getReplacement(DynamicObject encodingConverter) {
@@ -370,7 +373,7 @@ public abstract class EncodingConverterNodes {
             final String encodingName = new String(ec.replacementEncoding, StandardCharsets.US_ASCII);
             final DynamicObject encoding = getContext().getEncodingManager().getRubyEncoding(encodingName);
 
-            return createString(bytes, Layouts.ENCODING.getEncoding(encoding));
+            return makeStringNode.executeMake(bytes, Layouts.ENCODING.getEncoding(encoding), CodeRange.CR_UNKNOWN);
         }
 
     }

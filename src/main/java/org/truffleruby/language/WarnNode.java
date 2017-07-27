@@ -12,15 +12,18 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 public class WarnNode extends RubyBaseNode {
 
     @Child private CallDispatchHeadNode warnMethod = CallDispatchHeadNode.createOnSelf();
+    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
     public Object warn(String... arguments) {
         final String warningMessage = concatArgumentsToString(arguments);
-        final DynamicObject warningString = createString(warningMessage.getBytes(), UTF8Encoding.INSTANCE);
+        final DynamicObject warningString = makeStringNode.executeMake(warningMessage.getBytes(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         return warnMethod.call(null, getContext().getCoreLibrary().getKernelModule(), "warn", warningString);
     }
 
