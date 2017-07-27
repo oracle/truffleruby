@@ -367,7 +367,11 @@ public class MethodTranslator extends BodyTranslator {
 
         final RubyNode arguments = new ReadSuperArgumentsNode(argumentsAndBlock.getArguments(), argumentsAndBlock.isSplatted());
         final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock());
-        return withSourceSection(sourceSection, new SuperCallNode(arguments, block));
+
+        RubyNode callNode = new SuperCallNode(arguments, block);
+        callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
+
+        return withSourceSection(sourceSection, callNode);
     }
 
     @Override
@@ -376,12 +380,7 @@ public class MethodTranslator extends BodyTranslator {
 
         currentCallMethodName = environment.getNamedMethodName();
 
-        final RubyNode blockNode;
-        if (node.getIterNode() != null) {
-            blockNode = node.getIterNode().accept(this);
-        } else {
-            blockNode = null;
-        }
+        final ArgumentsAndBlockTranslation argumentsAndBlock = translateArgumentsAndBlock(sourceSection, node.getIterNode(), null, environment.getNamedMethodName());
 
         boolean insideDefineMethod = false;
         MethodTranslator methodArgumentsTranslator = this;
@@ -402,8 +401,12 @@ public class MethodTranslator extends BodyTranslator {
         final RubyNode arguments = new ReadZSuperArgumentsNode(
                 reloadTranslator.getRestParameterIndex(),
                 reloadSequence.getSequence());
-        final RubyNode block = executeOrInheritBlock(blockNode);
-        return withSourceSection(sourceSection, new SuperCallNode(arguments, block));
+        final RubyNode block = executeOrInheritBlock(argumentsAndBlock.getBlock());
+
+        RubyNode callNode = new SuperCallNode(arguments, block);
+        callNode = wrapCallWithLiteralBlock(argumentsAndBlock, callNode);
+
+        return withSourceSection(sourceSection, callNode);
     }
 
     private RubyNode executeOrInheritBlock(RubyNode blockNode) {
