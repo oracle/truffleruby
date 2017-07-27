@@ -722,13 +722,19 @@ public class BodyTranslator extends Translator {
         RubyCallNodeParameters callParameters = new RubyCallNodeParameters(receiver, methodName, argumentsAndBlock.getBlock(), argumentsAndBlock.getArguments(), argumentsAndBlock.isSplatted(), privately || ignoreVisibility, isVCall, node.isLazy(), isAttrAssign);
         RubyNode translated = Translator.withSourceSection(enclosingSourceSection, context.getCoreMethods().createCallNode(callParameters));
 
-        if (argumentsAndBlock.getBlock() instanceof BlockDefinitionNode) { // if we have a literal block, break breaks out of this call site
-            BlockDefinitionNode blockDef = (BlockDefinitionNode) argumentsAndBlock.getBlock();
-            translated = new FrameOnStackNode(translated, argumentsAndBlock.getFrameOnStackMarkerSlot());
-            translated = new CatchBreakNode(blockDef.getBreakID(), translated);
-        }
+        translated = wrapCallWithLiteralBlock(argumentsAndBlock, translated);
 
         return addNewlineIfNeeded(node, translated);
+    }
+
+    protected RubyNode wrapCallWithLiteralBlock(ArgumentsAndBlockTranslation argumentsAndBlock, RubyNode callNode) {
+        if (argumentsAndBlock.getBlock() instanceof BlockDefinitionNode) { // if we have a literal block, break breaks out of this call site
+            callNode = new FrameOnStackNode(callNode, argumentsAndBlock.getFrameOnStackMarkerSlot());
+            final BlockDefinitionNode blockDef = (BlockDefinitionNode) argumentsAndBlock.getBlock();
+            return new CatchBreakNode(blockDef.getBreakID(), callNode);
+        } else {
+            return callNode;
+        }
     }
 
     protected static class ArgumentsAndBlockTranslation {
