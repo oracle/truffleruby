@@ -103,7 +103,7 @@ public abstract class ThreadNodes {
         @Specialization
         public boolean alive(DynamicObject thread) {
             final ThreadStatus status = Layouts.THREAD.getStatus(thread);
-            return status != ThreadStatus.ABORTING && status != ThreadStatus.DEAD;
+            return status != ThreadStatus.DEAD;
         }
 
     }
