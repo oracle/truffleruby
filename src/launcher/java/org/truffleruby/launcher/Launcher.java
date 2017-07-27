@@ -104,8 +104,8 @@ public class Launcher {
                 System.out.println(RUBY_COPYRIGHT);
             }
 
-            if (config.getShouldRunInterpreter()) {
-                try (Context context = createContext(config, filename)) {
+            if (config.shouldRunInterpreter()) {
+                try (Context context = createContext(Context.newBuilder(), config, filename)) {
                     printTruffleTimeMetric("before-run");
                     if (config.getShouldCheckSyntax()) {
                         // check syntax only and exit
@@ -138,8 +138,7 @@ public class Launcher {
         System.exit(exitCode);
     }
 
-    private static Context createContext(CommandLineOptions config, String filename) {
-        final Context.Builder builder = Context.newBuilder();
+    public static Context createContext(Context.Builder builder, CommandLineOptions config, String filename) {
 
         // TODO CS 2-Jul-17 some of these values are going back and forth from string and array representation
         builder.option(
@@ -154,9 +153,9 @@ public class Launcher {
          * blocking behaviour. We also turn off sync on stdio and so revert to Ruby's default logic for looking
          * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
          */
-
         builder.option(OptionsCatalog.POLYGLOT_STDIO.getName(), Boolean.FALSE.toString());
         builder.option(OptionsCatalog.SYNC_STDIO.getName(), Boolean.FALSE.toString());
+
         builder.options(config.getOptions());
         builder.arguments(LANGUAGE_ID, config.getArguments());
 
