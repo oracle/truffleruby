@@ -35,7 +35,13 @@ public abstract class ProcOperations {
                 args);
     }
 
+    /** Only use for Proc called without no Truffle frame above, i.e. a root call. */
     public static Object rootCall(DynamicObject proc, Object... args) {
+        // We cannot break out of a block without a frame above. This is particularly important for
+        // Thread.new as otherwise the flag could be set too late (after returning from Thread.new
+        // and not when the new Thread starts executing).
+        Layouts.PROC.getFrameOnStackMarker(proc).setNoLongerOnStack();
+
         return Layouts.PROC.getCallTargetForType(proc).call(packArguments(proc, args));
     }
 
