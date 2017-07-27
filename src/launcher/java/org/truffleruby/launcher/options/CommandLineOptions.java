@@ -43,7 +43,6 @@ public class CommandLineOptions {
     private boolean usePathScript;
     private String scriptFileName;
     private Collection<String> requiredLibraries = new LinkedHashSet<>();
-    private Map<String, String> optionGlobals = new HashMap<>();
     private boolean showVersion;
     private boolean showCopyright;
     private boolean shouldRunInterpreter = true;
@@ -53,6 +52,10 @@ public class CommandLineOptions {
     private boolean hasScriptArgv;
     private boolean forceStdin;
     private boolean shouldPrintShortUsage;
+
+    // TODO (pitr-ch 26-Jul-2017): Move to Options when implementing -s option
+    // Currently not used
+    private Map<String, String> optionGlobals = new HashMap<>();
 
     public String getDisplayedFileName() {
         if (isInlineScript()) {

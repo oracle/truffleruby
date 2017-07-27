@@ -227,7 +227,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'F':
                     disallowedInRubyOpts(argument);
-                    throw new CommandLineException("the -F option is not implemented");
+                    throw notImplemented("-F");
                 case 'h':
                     disallowedInRubyOpts(argument);
                     config.setShouldPrintShortUsage(true);
@@ -281,8 +281,10 @@ public class CommandLineParser {
                     break FOR;
                 case 's':
                     disallowedInRubyOpts(argument);
-                    argvGlobalsOn = true;
-                    break;
+                    throw notImplemented("-s");
+                    // TODO (pitr-ch 26-Jul-2017): Implement
+                    // argvGlobalsOn = true;
+                    // break;
                 case 'G':
                     throw notImplemented("-G");
                 case 'S':
