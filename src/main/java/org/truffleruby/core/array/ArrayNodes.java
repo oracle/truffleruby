@@ -1785,7 +1785,7 @@ public abstract class ArrayNodes {
 
         @TruffleBoundary
         private void doSort(Object[] copy, int size, DynamicObject block) {
-            Arrays.sort(copy, 0, size, (a, b) -> castSortValue(ProcOperations.rootCall(block, a, b)));
+            Arrays.sort(copy, 0, size, (a, b) -> castSortValue(yieldNode.dispatch(block, a, b)));
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "!isObjectArray(array)" })
