@@ -255,6 +255,7 @@ public class ThreadManager {
         if (thread == context.getThreadManager().getRootThread()) {
             throw new RaiseException(context.getCoreExceptions().systemExit(0, currentNode));
         } else {
+            Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
             throw new ThreadExitException();
         }
     }
@@ -294,13 +295,14 @@ public class ThreadManager {
         T result = null;
 
         do {
+            final ThreadStatus status = Layouts.THREAD.getStatus(runningThread);
             Layouts.THREAD.setStatus(runningThread, ThreadStatus.SLEEP);
 
             try {
                 try {
                     result = action.block();
                 } finally {
-                    Layouts.THREAD.setStatus(runningThread, ThreadStatus.RUN);
+                    Layouts.THREAD.setStatus(runningThread, status);
                 }
             } catch (InterruptedException e) {
                 // We were interrupted, possibly by the SafepointManager.
