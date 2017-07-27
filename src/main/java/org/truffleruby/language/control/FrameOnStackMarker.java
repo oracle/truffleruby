@@ -11,7 +11,7 @@ package org.truffleruby.language.control;
 
 /**
  * An object denoting if the lexical frame is still on stack, so that e.g., we know whether can
- * break from the current frame in that lexical frame.
+ * break from the current frame to that lexical frame.
  */
 public final class FrameOnStackMarker {
 
