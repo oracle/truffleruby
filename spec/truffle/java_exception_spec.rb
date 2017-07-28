@@ -11,30 +11,28 @@ require_relative '../ruby/spec_helper'
 describe "Java exceptions" do
 
   it "formats to include the source information" do
-    message = <<~MESSAGE
-    message
-    	RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:LINE)
-    MESSAGE
-
-    message.chomp!
-
     lambda { Truffle::Debug.throw_java_exception 'message' }.should raise_error { |e|
-      e.message.gsub(/:\d+/, ':LINE').should == message
+      message = e.message.gsub(/:\d+/, ':LINE')
+      message.lines[0].should == "message\n"
+      message.lines[1].should == "\tRuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:LINE)\n"
+    }
+  end
+
+  it "includes the first lines of the Java stacktrace for uncaught Java exceptions" do
+    lambda { Truffle::Debug.throw_java_exception 'message' }.should raise_error { |e|
+      message = e.message.gsub(/:\d+/, ':LINE')
+      message.lines[2].should == "\torg.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionNodeFactory$ThrowJavaExceptionNodeGen.execute(TruffleDebugNodesFactory.java:LINE)\n"
+      message.lines[3].should == "\torg.truffleruby.language.control.SequenceNode.execute(SequenceNode.java:LINE)\n"
     }
   end
 
   it "formats to include the source information including cause" do
-    message = <<~MESSAGE
-    message
-    	RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)
-    		caused by cause 1 RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)
-    		caused by cause 2 RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)
-    MESSAGE
-
-    message.chomp!
-
     lambda { Truffle::Debug.throw_java_exception_with_cause 'message' }.should raise_error { |e|
-      e.message.gsub(/:\d+/, ':LINE').should == message
+      message = e.message.gsub(/:\d+/, ':LINE')
+      message.should include "message\n"
+      message.should include "\tRuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)\n"
+      message.should include "\t\tcaused by cause 1 RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)\n"
+      message.should include "\t\tcaused by cause 2 RuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionWithCauseNode.throwJavaExceptionWithCause(TruffleDebugNodes.java:LINE)\n"
     }
   end
 
