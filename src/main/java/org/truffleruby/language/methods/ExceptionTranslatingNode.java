@@ -224,16 +224,15 @@ public class ExceptionTranslatingNode extends RubyNode {
             if (t.getClass().getSimpleName().equals("SulongRuntimeException")) {
                 extraLines = Arrays.stream(message.split("\n")).skip(1).map(line -> line.trim());
                 message = "error in C extension";
-            }
-
-            if (t instanceof RaiseException) {
+            } else if (t instanceof RaiseException) {
                 /*
                  * If this is already a Ruby exception caused by a Java exception then the message will already include
                  * multiple lines for each caused-by. However, we print the Java exception on the second line. That's
                  * confusing here, as it breaks the first caused-by. Remove the line break.
                  */
-
                 message = message.replaceFirst("\n", "");
+            } else {
+                extraLines = Arrays.stream(t.getStackTrace()).map(StackTraceElement::toString).skip(1).limit(10);
             }
 
             if (message != null) {
