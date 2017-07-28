@@ -123,7 +123,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public static RubyContext getCurrentContext() {
-        return getCurrentContext(RubyLanguage.class);
+        // Truffle's getCurrentContext(RubyLanguage.class) only works on the initial thread
+        return RubyContext.getCurrent();
     }
 
     @Override

@@ -442,6 +442,10 @@ public class ThreadManager {
     }
 
     public void initializeValuesBasedOnCurrentJavaThread(DynamicObject thread, long pThreadID) {
+        assert RubyContext.CURRENT_CONTEXT.get() == null : "There is already a RubyContext on this thread! " +
+                "TruffleRuby does not currently support multiple concurrenct contexts on the same thread.";
+        RubyContext.CURRENT_CONTEXT.set(context);
+
         assert RubyGuards.isRubyThread(thread);
         currentThread.set(thread);
 
@@ -456,6 +460,8 @@ public class ThreadManager {
 
     public void cleanupValuesBasedOnCurrentJavaThread() {
         unblockingActions.remove(Thread.currentThread());
+
+        RubyContext.CURRENT_CONTEXT.remove();
     }
 
     @TruffleBoundary

@@ -24,7 +24,6 @@ import jnr.ffi.provider.MemoryManager;
 import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.CoreExceptions;
@@ -143,15 +142,7 @@ public abstract class RubyBaseNode extends Node {
     public RubyContext getContext() {
         if (context == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-
-            final RootNode rootNode = getRootNode();
-
-            if (rootNode instanceof RubyBaseRootNode) {
-                context = rootNode.getLanguage(RubyLanguage.class).getContextReference().get();
-            } else {
-                // For example in a foreign node
-                context = RubyLanguage.getCurrentContext();
-            }
+            context = RubyContext.getCurrent();
         }
 
         return context;

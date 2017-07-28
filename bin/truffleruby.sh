@@ -181,9 +181,6 @@ if [ -n "$CP" ]; then
     java_args=("-cp" "${CP:1}" "${java_args[@]}")
 fi
 
-# TODO CS 3-Jul-17 open an issue for this
-java_args+=("-da:com.oracle.truffle.api.vm.PolyglotContextImpl")
-
 declare -a full_command
 if [ $on_graalvm = false ]; then
     java_args_without_cmd=()

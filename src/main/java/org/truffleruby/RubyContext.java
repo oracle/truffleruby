@@ -14,6 +14,7 @@ import com.oracle.truffle.api.CompilerOptions;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleOptions;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -55,10 +56,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.security.CodeSource;
+import java.util.Objects;
 
 public class RubyContext {
 
     public static RubyContext FIRST_INSTANCE = null;
+
+    public static final ThreadLocal<RubyContext> CURRENT_CONTEXT = new ThreadLocal<>();
+
+    @TruffleBoundary
+    public static RubyContext getCurrent() {
+        return Objects.requireNonNull(CURRENT_CONTEXT.get());
+    }
 
     private final RubyLanguage language;
     private final TruffleLanguage.Env env;
