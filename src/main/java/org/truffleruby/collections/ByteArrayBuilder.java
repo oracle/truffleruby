@@ -21,6 +21,13 @@ public class ByteArrayBuilder {
     private byte[] bytes = EMPTY_BYTES;
     private int length;
 
+    public ByteArrayBuilder() {
+    }
+
+    public ByteArrayBuilder(int size) {
+        bytes = new byte[size];
+    }
+
     public int getLength() {
         return length;
     }
