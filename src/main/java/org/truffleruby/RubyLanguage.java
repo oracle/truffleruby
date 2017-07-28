@@ -124,7 +124,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static RubyContext getCurrentContext() {
         // Truffle's getCurrentContext(RubyLanguage.class) only works on the initial thread
-        return RubyContext.getCurrent();
+        // return RubyContext.getCurrent();
+        return getCurrentContext(RubyLanguage.class);
     }
 
     @Override
