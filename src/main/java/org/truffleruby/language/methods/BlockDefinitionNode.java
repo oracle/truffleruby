@@ -67,13 +67,8 @@ public class BlockDefinitionNode extends RubyNode {
         if (readFrameOnStackMarkerNode == null) {
             frameOnStackMarker = null;
         } else {
-            final Object frameOnStackMarkerValue = readFrameOnStackMarkerNode.executeRead(frame);
-
-            if (frameOnStackMarkerValue instanceof FrameOnStackMarker) {
-                frameOnStackMarker = (FrameOnStackMarker) frameOnStackMarkerValue;
-            } else {
-                frameOnStackMarker = null;
-            }
+            frameOnStackMarker = (FrameOnStackMarker) readFrameOnStackMarkerNode.executeRead(frame);
+            assert frameOnStackMarker != null;
         }
 
         return ProcOperations.createRubyProc(coreLibrary().getProcFactory(), type, sharedMethodInfo,

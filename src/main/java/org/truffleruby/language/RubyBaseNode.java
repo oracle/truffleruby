@@ -143,15 +143,7 @@ public abstract class RubyBaseNode extends Node {
     public RubyContext getContext() {
         if (context == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-
-            final RootNode rootNode = getRootNode();
-
-            if (rootNode instanceof RubyBaseRootNode) {
-                context = rootNode.getLanguage(RubyLanguage.class).getContextReference().get();
-            } else {
-                // For example in a foreign node
-                context = RubyLanguage.getCurrentContext();
-            }
+            context = RubyLanguage.getCurrentContext();
         }
 
         return context;

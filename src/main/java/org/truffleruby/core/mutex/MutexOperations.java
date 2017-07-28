@@ -92,9 +92,7 @@ public abstract class MutexOperations {
     protected static void unlock(ReentrantLock lock, DynamicObject thread, RubyNode currentNode) {
         final RubyContext context = currentNode.getContext();
 
-        try {
-            lock.unlock();
-        } catch (IllegalMonitorStateException e) {
+        if (!lock.isHeldByCurrentThread()) {
             if (!lock.isLocked()) {
                 throw new RaiseException(context.getCoreExceptions().threadErrorUnlockNotLocked(currentNode));
             } else {
@@ -102,6 +100,7 @@ public abstract class MutexOperations {
             }
         }
 
+        lock.unlock();
         Layouts.THREAD.getOwnedLocks(thread).remove(lock);
     }
 
