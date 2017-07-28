@@ -28,6 +28,7 @@ import org.truffleruby.language.methods.InternalMethod;
 public class UncachedDispatchNode extends DispatchNode {
 
     private final boolean ignoreVisibility;
+    protected final boolean onlyCallPublic;
     private final MissingBehavior missingBehavior;
 
     @Child private IndirectCallNode indirectCallNode;
@@ -37,9 +38,10 @@ public class UncachedDispatchNode extends DispatchNode {
     private final BranchProfile methodMissingProfile = BranchProfile.create();
     private final BranchProfile methodMissingNotFoundProfile = BranchProfile.create();
 
-    public UncachedDispatchNode(boolean ignoreVisibility, DispatchAction dispatchAction, MissingBehavior missingBehavior) {
+    public UncachedDispatchNode(boolean ignoreVisibility, boolean onlyCallPublic, DispatchAction dispatchAction, MissingBehavior missingBehavior) {
         super(dispatchAction);
         this.ignoreVisibility = ignoreVisibility;
+        this.onlyCallPublic = onlyCallPublic;
         this.missingBehavior = missingBehavior;
         this.indirectCallNode = Truffle.getRuntime().createIndirectCallNode();
         this.toSymbolNode = ToSymbolNodeGen.create(null);
@@ -60,7 +62,11 @@ public class UncachedDispatchNode extends DispatchNode {
             Object[] argumentsObjects) {
         final DispatchAction dispatchAction = getDispatchAction();
 
-        final MethodLookupResult method = lookup(frame, receiverObject, toJavaStringNode.executeToJavaString(frame, name), ignoreVisibility);
+        final MethodLookupResult method = lookup(frame,
+                receiverObject,
+                toJavaStringNode.executeToJavaString(frame, name),
+                ignoreVisibility,
+                onlyCallPublic);
 
         if (method.isDefined()) {
             if (dispatchAction == DispatchAction.CALL_METHOD) {
@@ -78,7 +84,7 @@ public class UncachedDispatchNode extends DispatchNode {
 
         methodMissingProfile.enter();
 
-        final MethodLookupResult methodMissing = lookup(frame, receiverObject, "method_missing", true);
+        final MethodLookupResult methodMissing = lookup(frame, receiverObject, "method_missing", true, false);
 
         if (!methodMissing.isDefined()) {
             if (dispatchAction == DispatchAction.RESPOND_TO_METHOD) {

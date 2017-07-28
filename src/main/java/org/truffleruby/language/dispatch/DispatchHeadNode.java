@@ -30,7 +30,7 @@ public class DispatchHeadNode extends RubyBaseNode {
         this.onlyCallPublic = onlyCallPublic;
         this.missingBehavior = missingBehavior;
         this.dispatchAction = dispatchAction;
-        first = new UnresolvedDispatchNode(ignoreVisibility, missingBehavior, dispatchAction);
+        first = new UnresolvedDispatchNode(ignoreVisibility, onlyCallPublic, missingBehavior, dispatchAction);
     }
 
     public Object dispatch(
@@ -48,7 +48,7 @@ public class DispatchHeadNode extends RubyBaseNode {
     }
 
     public void reset(String reason) {
-        first.replace(new UnresolvedDispatchNode(ignoreVisibility, missingBehavior, dispatchAction), reason);
+        first.replace(new UnresolvedDispatchNode(ignoreVisibility, onlyCallPublic, missingBehavior, dispatchAction), reason);
     }
 
     public DispatchNode getFirstDispatchNode() {

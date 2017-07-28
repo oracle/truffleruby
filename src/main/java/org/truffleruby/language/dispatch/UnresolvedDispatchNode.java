@@ -24,14 +24,17 @@ public final class UnresolvedDispatchNode extends DispatchNode {
     private int depth = 0;
 
     private final boolean ignoreVisibility;
+    private final boolean onlyCallPublic;
     private final MissingBehavior missingBehavior;
 
     public UnresolvedDispatchNode(
             boolean ignoreVisibility,
+            boolean onlyCallPublic,
             MissingBehavior missingBehavior,
             DispatchAction dispatchAction) {
         super(dispatchAction);
         this.ignoreVisibility = ignoreVisibility;
+        this.onlyCallPublic = onlyCallPublic;
         this.missingBehavior = missingBehavior;
     }
 
@@ -77,7 +80,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             final DispatchNode newDispathNode;
 
             if (depth == getContext().getOptions().DISPATCH_CACHE) {
-                newDispathNode = new UncachedDispatchNode(ignoreVisibility, getDispatchAction(), missingBehavior);
+                newDispathNode = new UncachedDispatchNode(ignoreVisibility, onlyCallPublic, getDispatchAction(), missingBehavior);
             } else {
                 depth++;
                 if (RubyGuards.isForeignObject(receiverObject)) {
@@ -108,15 +111,15 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             Object methodName) {
 
         final String methodNameString = toString(methodName);
-        final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility);
+        final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility, onlyCallPublic);
 
         if (!method.isDefined()) {
             return createMethodMissingNode(first, methodName, receiverObject, method);
         }
 
         if (receiverObject instanceof Boolean) {
-            final MethodLookupResult falseMethodLookup = lookup(frame, false, methodNameString, ignoreVisibility);
-            final MethodLookupResult trueMethodLookup = lookup(frame, true, methodNameString, ignoreVisibility);
+            final MethodLookupResult falseMethodLookup = lookup(frame, false, methodNameString, ignoreVisibility, onlyCallPublic);
+            final MethodLookupResult trueMethodLookup = lookup(frame, true, methodNameString, ignoreVisibility, onlyCallPublic);
             assert falseMethodLookup.isDefined() || trueMethodLookup.isDefined();
 
             return new CachedBooleanDispatchNode(
@@ -138,7 +141,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             Object[] argumentsObjects) {
 
         String methodNameString = toString(methodName);
-        final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility);
+        final MethodLookupResult method = lookup(frame, receiverObject, methodNameString, ignoreVisibility, onlyCallPublic);
 
         if (!method.isDefined()) {
             return createMethodMissingNode(first, methodName, receiverObject, method);
@@ -179,7 +182,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             }
 
             case CALL_METHOD_MISSING: {
-                final MethodLookupResult methodMissing = lookup(null, receiverObject, "method_missing", true);
+                final MethodLookupResult methodMissing = lookup(null, receiverObject, "method_missing", true, false);
 
                 if (!methodMissing.isDefined()) {
                     throw new RaiseException(coreExceptions().runtimeError(
