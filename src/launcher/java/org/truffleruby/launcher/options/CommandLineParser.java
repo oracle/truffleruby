@@ -252,11 +252,7 @@ public class CommandLineParser {
                         if (path.startsWith("~" + File.separator)) {
                             path = System.getProperty("user.home") + File.separator + path.substring(2);
                         }
-                        String[] currentPaths = config.getOption(OptionsCatalog.LOAD_PATHS);
-                        String[] newPaths = new String[currentPaths.length + 1];
-                        System.arraycopy(currentPaths, 0, newPaths, 0, currentPaths.length);
-                        newPaths[currentPaths.length] = path;
-                        config.setOption(OptionsCatalog.LOAD_PATHS, newPaths);
+                        config.appendOptionValue(OptionsCatalog.LOAD_PATHS, path);
                     }
                     break FOR;
                 case 'y':
@@ -284,11 +280,7 @@ public class CommandLineParser {
                     throw notImplemented("-p");
                 case 'r':
                     final String library = grabValue(getArgumentError("-r must be followed by a package to require"));
-                    String[] currentLibraries = config.getOption(OptionsCatalog.REQUIRED_LIBRARIES);
-                    String[] newLibraries = new String[currentLibraries.length + 1];
-                    System.arraycopy(currentLibraries, 0, newLibraries, 0, currentLibraries.length);
-                    newLibraries[currentLibraries.length] = library;
-                    config.setOption(OptionsCatalog.LOAD_PATHS, newLibraries);
+                    config.appendOptionValue(OptionsCatalog.REQUIRED_LIBRARIES, library);
                     break FOR;
                 case 's':
                     disallowedInRubyOpts(argument);

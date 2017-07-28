@@ -91,6 +91,10 @@ public class CommandLineOptions {
         return key.checkValue(getOptionRaw(key));
     }
 
+    public void appendOptionValue(StringArrayOptionDescription key, String newValue) {
+        setOptionRaw(key, key.append(getOptionRaw(key), newValue));
+    }
+
     public <T> String getOptionRaw(OptionDescription<T> key) {
         return options.getOrDefault(
                 key.getName(),

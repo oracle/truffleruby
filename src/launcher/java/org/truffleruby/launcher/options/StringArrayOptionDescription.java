@@ -131,6 +131,14 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
         return String.join(",", escapedValues);
     }
 
+    public String append(String currentValues, String newElement) {
+        if (currentValues.isEmpty()) {
+            return escape(newElement);
+        } else {
+            return currentValues + ',' + escape(newElement);
+        }
+    }
+
     private String escape(String string) {
         return string.
                 // , -> \,
