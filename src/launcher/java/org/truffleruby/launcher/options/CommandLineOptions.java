@@ -201,8 +201,7 @@ public class CommandLineOptions {
 
     public void setUsePathScript(String name) {
         usePathScript = true;
-        hasScriptToRun = true;
-        scriptFileName = name;
+        setScriptFileName(name);
     }
 
     public boolean shouldUsePathScript() {
