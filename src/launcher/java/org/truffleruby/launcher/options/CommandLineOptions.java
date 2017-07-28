@@ -29,9 +29,7 @@
 package org.truffleruby.launcher.options;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +45,6 @@ public class CommandLineOptions {
     private boolean hasInlineScript;
     private boolean usePathScript;
     private String scriptFileName;
-    private Collection<String> requiredLibraries = new LinkedHashSet<>();
     private boolean showVersion;
     private boolean showCopyright;
     private boolean shouldRunInterpreter = true;
@@ -119,10 +116,6 @@ public class CommandLineOptions {
     public void setHasInlineScript(boolean hasInlineScript) {
         this.hasScriptToRun = true;
         this.hasInlineScript = hasInlineScript;
-    }
-
-    public Collection<String> getRequiredLibraries() {
-        return requiredLibraries;
     }
 
     public void setShouldPrintUsage(boolean shouldPrintUsage) {

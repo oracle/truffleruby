@@ -283,7 +283,12 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     throw notImplemented("-p");
                 case 'r':
-                    config.getRequiredLibraries().add(grabValue(getArgumentError("-r must be followed by a package to require")));
+                    final String library = grabValue(getArgumentError("-r must be followed by a package to require"));
+                    String[] currentLibraries = config.getOption(OptionsCatalog.REQUIRED_LIBRARIES);
+                    String[] newLibraries = new String[currentLibraries.length + 1];
+                    System.arraycopy(currentLibraries, 0, newLibraries, 0, currentLibraries.length);
+                    newLibraries[currentLibraries.length] = library;
+                    config.setOption(OptionsCatalog.LOAD_PATHS, newLibraries);
                     break FOR;
                 case 's':
                     disallowedInRubyOpts(argument);

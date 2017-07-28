@@ -139,11 +139,6 @@ public class Launcher {
     }
 
     public static Context createContext(Context.Builder builder, CommandLineOptions config, String filename) {
-
-        // TODO CS 2-Jul-17 some of these values are going back and forth from string and array representation
-        builder.option(
-                OptionsCatalog.REQUIRED_LIBRARIES.getName(),
-                OptionsCatalog.REQUIRED_LIBRARIES.toString(config.getRequiredLibraries().toArray(new String[]{})));
         builder.option(OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
         builder.option(OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
 
