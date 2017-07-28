@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -47,14 +48,18 @@ public class RubyTckTest extends TruffleTCK {
     @Override
     protected synchronized PolyglotEngine prepareVM() throws Exception {
         if (engine == null) {
-            engine = prepareVM(PolyglotEngine.newBuilder());
+            engine = spawnNewEngine(PolyglotEngine.newBuilder());
         }
-
         return engine;
     }
 
     @Override
     protected PolyglotEngine prepareVM(PolyglotEngine.Builder preparedBuilder) throws Exception {
+        // Create a new VM, on its own thread
+        return spawnNewEngine(preparedBuilder.executor(Executors.newSingleThreadExecutor()));
+    }
+
+    private PolyglotEngine spawnNewEngine(PolyglotEngine.Builder preparedBuilder) {
         final PolyglotEngine engine = RubyTest.setupConfig(preparedBuilder).build();
         engine.eval(getSource("src/test/ruby/tck.rb"));
         engine.eval(RubyTest.RESOLVE_LAZY_NODES);
