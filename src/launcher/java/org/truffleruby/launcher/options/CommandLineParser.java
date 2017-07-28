@@ -74,12 +74,12 @@ public class CommandLineParser {
     }
 
     private final List<Argument> arguments;
-    private int argumentIndex = 0;
+    private int argumentIndex;
     private boolean processArgv;
     private final boolean rubyOpts;
     final CommandLineOptions config;
-    private boolean endOfInterpreterArguments = false;
-    private int characterIndex = 0;
+    private boolean endOfInterpreterArguments;
+    private int characterIndex;
     private boolean argvGlobalsOn;
     private final boolean parseVersionAndHelp;
 
@@ -88,7 +88,14 @@ public class CommandLineParser {
     }
 
     public CommandLineParser(String[] arguments, boolean processArgv, boolean dashed, boolean rubyOpts, boolean parseVersionAndHelp, CommandLineOptions config) {
+        this.argumentIndex = 0;
+        this.characterIndex = 0;
+        this.endOfInterpreterArguments = false;
         this.config = config;
+        this.processArgv = processArgv;
+        this.rubyOpts = rubyOpts;
+        this.parseVersionAndHelp = parseVersionAndHelp;
+
         if (arguments != null && arguments.length > 0) {
             this.arguments = new ArrayList<>(arguments.length);
             for (String argument : arguments) {
@@ -98,9 +105,6 @@ public class CommandLineParser {
         else {
             this.arguments = new ArrayList<>(0);
         }
-        this.processArgv = processArgv;
-        this.rubyOpts = rubyOpts;
-        this.parseVersionAndHelp = parseVersionAndHelp;
     }
 
     public static void processEnvironmentVariable(String name, CommandLineOptions commandLineOptions, boolean rubyOpts) throws CommandLineException {
