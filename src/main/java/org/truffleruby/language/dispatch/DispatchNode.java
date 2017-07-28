@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
@@ -48,9 +49,10 @@ public abstract class DispatchNode extends RubyNode {
             VirtualFrame frame,
             Object receiver,
             String name,
-            boolean ignoreVisibility) {
+            boolean ignoreVisibility,
+            boolean onlyCallPublic) {
         final MethodLookupResult method = LookupMethodNode.lookupMethodWithVisibility(getContext(),
-                frame, receiver, name, ignoreVisibility, getHeadNode().onlyCallPublic);
+                frame, receiver, name, ignoreVisibility, onlyCallPublic);
         if (dispatchAction == DispatchAction.RESPOND_TO_METHOD && method.isDefined() && method.getMethod().isUnimplemented()) {
             return method.withNoMethod();
         }
