@@ -1,0 +1,2 @@
+fails:Thread#status reports aborting on a killed thread
+fails:Thread#status reports aborting on a killed thread after sleep
