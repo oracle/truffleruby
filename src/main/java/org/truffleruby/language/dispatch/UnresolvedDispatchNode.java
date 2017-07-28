@@ -77,28 +77,28 @@ public final class UnresolvedDispatchNode extends DispatchNode {
 
             // We need a new node to handle this case.
 
-            final DispatchNode newDispathNode;
+            final DispatchNode newDispatchNode;
 
             if (depth == getContext().getOptions().DISPATCH_CACHE) {
-                newDispathNode = new UncachedDispatchNode(ignoreVisibility, onlyCallPublic, getDispatchAction(), missingBehavior);
+                newDispatchNode = new UncachedDispatchNode(ignoreVisibility, onlyCallPublic, getDispatchAction(), missingBehavior);
             } else {
                 depth++;
                 if (RubyGuards.isForeignObject(receiverObject)) {
-                    newDispathNode = new CachedForeignDispatchNode(getContext(), first, methodName);
+                    newDispatchNode = new CachedForeignDispatchNode(getContext(), first, methodName);
                 } else if (RubyGuards.isRubyBasicObject(receiverObject)) {
-                    newDispathNode = doDynamicObject(frame, first, receiverObject, methodName, argumentsObjects);
+                    newDispatchNode = doDynamicObject(frame, first, receiverObject, methodName, argumentsObjects);
                 } else {
-                    newDispathNode = doUnboxedObject(frame, first, receiverObject, methodName);
+                    newDispatchNode = doUnboxedObject(frame, first, receiverObject, methodName);
                 }
             }
 
-            first.replace(newDispathNode);
+            first.replace(newDispatchNode);
 
-            if (newDispathNode instanceof CachedDispatchNode) {
-                ((CachedDispatchNode) newDispathNode).reassessSplittingInliningStrategy();
+            if (newDispatchNode instanceof CachedDispatchNode) {
+                ((CachedDispatchNode) newDispatchNode).reassessSplittingInliningStrategy();
             }
 
-            return newDispathNode;
+            return newDispatchNode;
         });
 
         return dispatch.executeDispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
