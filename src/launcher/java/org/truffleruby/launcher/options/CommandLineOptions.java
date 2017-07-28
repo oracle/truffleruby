@@ -175,7 +175,7 @@ public class CommandLineOptions {
     }
 
     public boolean shouldRunInterpreter() {
-        return shouldRunInterpreter && (hasScriptToRun || !showVersion);
+        return shouldRunInterpreter && hasScriptToRun;
     }
 
     public void setShouldCheckSyntax(boolean shouldSetSyntax) {
@@ -203,8 +203,9 @@ public class CommandLineOptions {
     }
 
     public void setUsePathScript(String name) {
-        scriptFileName = name;
         usePathScript = true;
+        hasScriptToRun = true;
+        scriptFileName = name;
     }
 
     public boolean shouldUsePathScript() {
