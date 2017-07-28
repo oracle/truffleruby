@@ -29,9 +29,11 @@ public class PolyglotIOTest extends RubyTest {
                 .setIn(in)
                 .build();
 
-        engine.eval(Source.newBuilder("puts STDIN.read(3)").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());
-
-        engine.dispose();
+        try {
+            engine.eval(Source.newBuilder("puts STDIN.read(3)").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());
+        } finally {
+            engine.dispose();
+        }
 
         assertEquals("abc\n", out.toString());
     }
@@ -44,9 +46,11 @@ public class PolyglotIOTest extends RubyTest {
                 .setOut(out)
                 .build();
 
-        engine.eval(Source.newBuilder("puts 'abc'").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());
-
-        engine.dispose();
+        try {
+            engine.eval(Source.newBuilder("puts 'abc'").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());
+        } finally {
+            engine.dispose();
+        }
 
         assertEquals("abc\n", out.toString());
     }
@@ -59,9 +63,11 @@ public class PolyglotIOTest extends RubyTest {
                 .setErr(err)
                 .build();
 
-        engine.eval(Source.newBuilder("STDERR.puts 'abc'").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());
-
-        engine.dispose();
+        try {
+            engine.eval(Source.newBuilder("STDERR.puts 'abc'").name("test.rb").mimeType(RubyLanguage.MIME_TYPE).build());
+        } finally {
+            engine.dispose();
+        }
 
         assertEquals("abc\n", err.toString());
     }
