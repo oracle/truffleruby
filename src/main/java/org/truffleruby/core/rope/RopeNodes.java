@@ -21,6 +21,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -545,7 +546,7 @@ public abstract class RopeNodes {
         @TruffleBoundary
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)" })
         public LeafRope makeValidLeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength) {
-            // Exctracted from StringSupport.strLength.
+            // Extracted from StringSupport.strLength.
 
             int calculatedCharacterLength = 0;
             int p = 0;
@@ -622,9 +623,23 @@ public abstract class RopeNodes {
             return new ValidLeafRope(bytes, encoding, bytes.length);
         }
 
-        @TruffleBoundary
-        @Specialization(guards = { "isUnknown(codeRange)", "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        public LeafRope makeUnknownLeafRopeAsciiCompatible(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
+        @Specialization(rewriteOn = NonAsciiCharException.class,
+                guards = { "isUnknown(codeRange)", "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
+        public LeafRope makeUnknownLeafRopeAsciiCompatible(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength) {
+            // Optimistically assume this string consists only of ASCII characters. If a non-ASCII character is found,
+            // fail over to a more generalized search.
+            for (int i = 0; i < bytes.length; i++) {
+                if (bytes[i] < 0) {
+                    throw new NonAsciiCharException();
+                }
+            }
+
+            return new AsciiOnlyLeafRope(bytes, encoding);
+        }
+
+        @Specialization(replaces = "makeUnknownLeafRopeAsciiCompatible",
+                guards = { "isUnknown(codeRange)", "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
+        public LeafRope makeUnknownLeafRopeAsciiCompatibleGeneric(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
                                             @Cached("createBinaryProfile()") ConditionProfile discovered7BitProfile,
                                             @Cached("createBinaryProfile()") ConditionProfile discoveredValidProfile) {
             final long packedLengthAndCodeRange = StringSupport.strLengthWithCodeRangeAsciiCompatible(encoding, bytes, 0, bytes.length);
@@ -691,6 +706,10 @@ public abstract class RopeNodes {
 
         protected static boolean isFixedWidth(Encoding encoding) {
             return encoding.isFixedWidth();
+        }
+
+        protected static final class NonAsciiCharException extends ControlFlowException {
+            private static final long serialVersionUID = 5550642254188358382L;
         }
 
     }
