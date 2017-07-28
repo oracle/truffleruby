@@ -184,9 +184,8 @@ public abstract class StringNodes {
         @Specialization
         protected DynamicObject makeStringFromString(String string, Encoding encoding, CodeRange codeRange) {
             final byte[] bytes = StringOperations.encodeBytes(string, encoding);
-            final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
 
-            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+            return makeStringFromBytes(bytes, encoding, codeRange);
         }
 
     }
