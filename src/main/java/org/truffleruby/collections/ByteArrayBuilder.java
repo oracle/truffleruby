@@ -9,7 +9,6 @@
  */
 package org.truffleruby.collections;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -97,7 +96,7 @@ public class ByteArrayBuilder {
     }
 
     private String toString(Charset charset) {
-        return charset.decode(ByteBuffer.wrap(getBytes())).toString();
+        return new String(bytes, 0, length, charset);
     }
 
     // TODO CS 14-Feb-17 review all uses of this method
