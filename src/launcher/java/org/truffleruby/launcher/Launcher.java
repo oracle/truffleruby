@@ -128,6 +128,7 @@ public class Launcher {
             }
         } catch (PolyglotException e) {
             System.err.println("truffleruby: " + e.getMessage());
+            e.printStackTrace();
             exitCode = 1;
         }
 
