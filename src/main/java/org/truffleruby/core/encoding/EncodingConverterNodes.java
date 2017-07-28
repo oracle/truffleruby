@@ -21,6 +21,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
+import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.transcode.EConv;
 import org.jcodings.transcode.EConvResult;
 import org.jcodings.transcode.TranscodingManager;
@@ -238,6 +239,8 @@ public abstract class EncodingConverterNodes {
     @Primitive(name = "encoding_converter_putback", lowerFixnum = 1)
     public static abstract class EncodingConverterPutbackNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject encodingConverterPutback(DynamicObject encodingConverter, int maxBytes) {
             // Taken from org.jruby.RubyConverter#putback.
@@ -264,15 +267,12 @@ public abstract class EncodingConverterNodes {
 
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
-            final RopeBuilder bytes = RopeBuilder.createRopeBuilder(n);
-            ec.putback(bytes.getUnsafeBytes(), 0, n);
-            bytes.setLength(n);
+            final byte[] bytes = new byte[n];
+            ec.putback(bytes, 0, n);
 
-            if (ec.sourceEncoding != null) {
-                bytes.setEncoding(ec.sourceEncoding);
-            }
+            final Encoding encoding = ec.sourceEncoding != null ? ec.sourceEncoding : ASCIIEncoding.INSTANCE;
 
-            return createString(bytes);
+            return makeStringNode.executeMake(bytes, encoding, CodeRange.CR_UNKNOWN);
         }
     }
 
