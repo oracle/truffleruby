@@ -1,2 +1,0 @@
-fails:Thread#inspect reports aborting on a killed thread
-fails:Thread#inspect reports aborting on a killed thread after sleep
