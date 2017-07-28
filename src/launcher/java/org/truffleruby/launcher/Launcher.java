@@ -110,12 +110,17 @@ public class Launcher {
                     if (config.getShouldCheckSyntax()) {
                         // check syntax only and exit
                         final Source source = Source.newBuilder(
-                                LANGUAGE_ID, "Truffle::Boot.check_syntax", "check_syntax").buildLiteral();
+                                LANGUAGE_ID,
+                                // language=ruby
+                                "Truffle::Boot.check_syntax",
+                                "check_syntax").buildLiteral();
                         boolean status = context.eval(source).asBoolean();
                         exitCode = status ? 0 : 1;
                     } else {
                         final Source source = Source.newBuilder(LANGUAGE_ID,
-                                config.shouldUsePathScript() ? "Truffle::Boot.main_s" : "Truffle::Boot.main", BOOT_SOURCE_NAME).build();
+                                // language=ruby
+                                config.shouldUsePathScript() ? "Truffle::Boot.main_s" : "Truffle::Boot.main",
+                                BOOT_SOURCE_NAME).build();
                         exitCode = context.eval(source).asInt();
                     }
                     printTruffleTimeMetric("after-run");
