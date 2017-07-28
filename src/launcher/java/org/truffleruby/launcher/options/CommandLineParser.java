@@ -295,7 +295,9 @@ public class CommandLineParser {
                     throw notImplemented("-G");
                 case 'S':
                     disallowedInRubyOpts(argument);
-                    runBinScript();
+                    String scriptName = grabValue("provide a bin script to execute");
+                    config.setUsePathScript(scriptName);
+                    endOfInterpreterArguments = true;
                     break FOR;
                 case 'T':
                     {
@@ -532,12 +534,6 @@ public class CommandLineParser {
         if (encodings.size() >= 1) {
             config.setOption(OptionsCatalog.EXTERNAL_ENCODING, encodings.get(1));
         }
-    }
-
-    private void runBinScript() throws CommandLineException {
-        String scriptName = grabValue("provide a bin script to execute");
-        config.setUsePathScript(scriptName);
-        endOfInterpreterArguments = true;
     }
 
     private String grabValue(String errorMessage) throws CommandLineException {
