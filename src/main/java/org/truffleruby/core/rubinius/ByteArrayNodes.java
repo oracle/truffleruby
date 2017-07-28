@@ -110,26 +110,25 @@ public abstract class ByteArrayNodes {
         @Specialization(guards = "isRubyString(pattern)")
         public Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length) {
             final Rope patternRope = StringOperations.rope(pattern);
-            final int index = indexOf(RopeBuilder.createRopeBuilder(Layouts.BYTE_ARRAY.getBytes(bytes), start, length), patternRope);
+            final int index = indexOf(Layouts.BYTE_ARRAY.getBytes(bytes), start, length, patternRope);
 
             if (index == -1) {
                 return nil();
             } else {
-                return start + index + StringOperations.rope(pattern).characterLength();
+                return index + patternRope.characterLength();
             }
         }
 
-        @TruffleBoundary
-        public int indexOf(RopeBuilder in, Rope find) {
+        public int indexOf(RopeBuilder in, int start, int length, Rope find) {
             byte[] target = find.getBytes();
             int targetCount = find.byteLength();
-            int fromIndex = 0;
-            if (fromIndex >= in.getLength()) return (targetCount == 0 ? in.getLength() : -1);
+            int fromIndex = start;
+            if (fromIndex >= length) return (targetCount == 0 ? length : -1);
             if (fromIndex < 0) fromIndex = 0;
             if (targetCount == 0) return fromIndex;
 
             byte first  = target[0];
-            int max = in.getLength() - targetCount;
+            int max = length - targetCount;
 
             for (int i = fromIndex; i <= max; i++) {
                 if (in.get(i) != first) {
