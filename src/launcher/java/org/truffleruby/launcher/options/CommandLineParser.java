@@ -120,15 +120,11 @@ public class CommandLineParser {
     }
 
     public void processArguments() throws CommandLineException {
-        processArguments(true);
-    }
-
-    public void processArguments(boolean inline) throws CommandLineException {
         while (argumentIndex < arguments.size() && isInterpreterArgument(arguments.get(argumentIndex).originalValue)) {
             processArgument();
             argumentIndex++;
         }
-        if (inline && !config.isInlineScript() && config.getScriptFileName() == null && !config.isForceStdin()) {
+        if (!config.isInlineScript() && config.getScriptFileName() == null && !config.isForceStdin()) {
             if (argumentIndex < arguments.size()) {
                 config.setScriptFileName(arguments.get(argumentIndex).originalValue); //consume the file name
                 argumentIndex++;
