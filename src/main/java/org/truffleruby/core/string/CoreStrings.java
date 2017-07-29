@@ -27,6 +27,7 @@ public class CoreStrings {
     public final CoreString DIVMOD;
     public final CoreString EMPTY_STRING;
     public final CoreString EXPRESSION;
+    public final CoreString FAILED_TO_ALLOCATE_MEMORY;
     public final CoreString FALSE;
     public final CoreString GLOBAL_VARIABLE;
     public final CoreString GREATER_THAN;
@@ -53,6 +54,7 @@ public class CoreStrings {
     public final CoreString RESOURCE_TEMP_UNAVAIL_WRITE;
     public final CoreString UNKNOWN;
     public final CoreString SELF;
+    public final CoreString STACK_LEVEL_TOO_DEEP;
     public final CoreString TIME_INTERVAL_MUST_BE_POS;
     public final CoreString TOO_FEW_ARGUMENTS;
     public final CoreString TRUE;
@@ -75,6 +77,7 @@ public class CoreStrings {
         DIVMOD = new CoreString(context, "divmod");
         EMPTY_STRING = new CoreString(context, "");
         EXPRESSION = new CoreString(context, "expression");
+        FAILED_TO_ALLOCATE_MEMORY = new CoreString(context, "failed to allocate memory");
         FALSE = new CoreString(context, "false");
         GLOBAL_VARIABLE = new CoreString(context, "global-variable");
         GREATER_THAN = new CoreString(context, ">");
@@ -101,6 +104,7 @@ public class CoreStrings {
         RESOURCE_TEMP_UNAVAIL_WRITE = new CoreString(context, "Resource temporarily unavailable - write would block");
         UNKNOWN = new CoreString(context, "(unknown)");
         SELF = new CoreString(context, "self");
+        STACK_LEVEL_TOO_DEEP = new CoreString(context, "stack level too deep");
         TIME_INTERVAL_MUST_BE_POS = new CoreString(context, "time interval must be positive");
         TOO_FEW_ARGUMENTS = new CoreString(context, "too few arguments");
         TRUE = new CoreString(context, "true");

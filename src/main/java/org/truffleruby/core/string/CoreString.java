@@ -28,6 +28,7 @@ public class CoreString {
     @CompilationFinal private volatile DynamicObject symbol;
 
     public CoreString(RubyContext context, String literal) {
+        assert context != null;
         assert is7Bit(literal);
         this.context = context;
         this.literal = literal;

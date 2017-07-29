@@ -211,7 +211,7 @@ public class CoreExceptions {
     public DynamicObject systemStackErrorStackLevelTooDeep(Node currentNode, StackOverflowError javaThrowable) {
         return ExceptionOperations.createRubyException(
                 context.getCoreLibrary().getSystemStackErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope("stack level too deep", UTF8Encoding.INSTANCE)),
+                coreStrings().STACK_LEVEL_TOO_DEEP.createInstance(),
                 context.getCallStack().getBacktrace(currentNode, javaThrowable));
     }
 
@@ -221,7 +221,7 @@ public class CoreExceptions {
     public DynamicObject noMemoryError(Node currentNode, OutOfMemoryError javaThrowable) {
         return ExceptionOperations.createRubyException(
                 context.getCoreLibrary().getNoMemoryErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope("failed to allocate memory", UTF8Encoding.INSTANCE)),
+                coreStrings().FAILED_TO_ALLOCATE_MEMORY.createInstance(),
                 context.getCallStack().getBacktrace(currentNode, javaThrowable));
     }
 
