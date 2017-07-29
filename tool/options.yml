@@ -96,6 +96,8 @@ EXCEPTIONS_PRINT_JAVA: [exceptions.print_java, boolean, false, Print Java except
 EXCEPTIONS_PRINT_UNCAUGHT_JAVA: [exceptions.print_uncaught_java, boolean, false, Print uncaught Java exceptions at the point of translating them to Ruby exceptions]
 EXCEPTIONS_PRINT_RUBY_FOR_JAVA: [exceptions.print_ruby_for_java, boolean, false, When printing a Java backtrace, also print the Ruby backtrace at that point]
 EXCEPTIONS_TRANSLATE_ASSERT: [exceptions.translate_assert, boolean, true, Translate failed Java assertions to Ruby exceptions]
+EXCEPTIONS_WARN_STACKOVERFLOW: [exceptions.warn_stackoverflow, boolean, true, Warn when a stack overflow error is thrown]
+EXCEPTIONS_WARN_OUT_OF_MEMORY: [exceptions.warn_out_of_memory, boolean, true, Warn when an out-of-memory error is thrown]
 BACKTRACES_HIDE_CORE_FILES: [backtraces.hide_core_files, boolean, true, Hide core source files in backtraces, like MRI does]
 BACKTRACES_INTERLEAVE_JAVA: [backtraces.interleave_java, boolean, false, Interleave Java stacktraces into the Ruby backtrace]
 BACKTRACES_LIMIT: [backtraces.limit, integer, 9999, Limit the size of Ruby backtraces]

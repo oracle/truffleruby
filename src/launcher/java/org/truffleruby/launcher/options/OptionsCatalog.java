@@ -98,6 +98,8 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription EXCEPTIONS_PRINT_UNCAUGHT_JAVA = new BooleanOptionDescription("ruby.exceptions.print_uncaught_java", "Print uncaught Java exceptions at the point of translating them to Ruby exceptions", false);
     public static final BooleanOptionDescription EXCEPTIONS_PRINT_RUBY_FOR_JAVA = new BooleanOptionDescription("ruby.exceptions.print_ruby_for_java", "When printing a Java backtrace, also print the Ruby backtrace at that point", false);
     public static final BooleanOptionDescription EXCEPTIONS_TRANSLATE_ASSERT = new BooleanOptionDescription("ruby.exceptions.translate_assert", "Translate failed Java assertions to Ruby exceptions", true);
+    public static final BooleanOptionDescription EXCEPTIONS_WARN_STACKOVERFLOW = new BooleanOptionDescription("ruby.exceptions.warn_stackoverflow", "Warn when a stack overflow error is thrown", true);
+    public static final BooleanOptionDescription EXCEPTIONS_WARN_OUT_OF_MEMORY = new BooleanOptionDescription("ruby.exceptions.warn_out_of_memory", "Warn when an out-of-memory error is thrown", true);
     public static final BooleanOptionDescription BACKTRACES_HIDE_CORE_FILES = new BooleanOptionDescription("ruby.backtraces.hide_core_files", "Hide core source files in backtraces, like MRI does", true);
     public static final BooleanOptionDescription BACKTRACES_INTERLEAVE_JAVA = new BooleanOptionDescription("ruby.backtraces.interleave_java", "Interleave Java stacktraces into the Ruby backtrace", false);
     public static final IntegerOptionDescription BACKTRACES_LIMIT = new IntegerOptionDescription("ruby.backtraces.limit", "Limit the size of Ruby backtraces", 9999);
@@ -282,6 +284,10 @@ public class OptionsCatalog {
                 return EXCEPTIONS_PRINT_RUBY_FOR_JAVA;
             case "ruby.exceptions.translate_assert":
                 return EXCEPTIONS_TRANSLATE_ASSERT;
+            case "ruby.exceptions.warn_stackoverflow":
+                return EXCEPTIONS_WARN_STACKOVERFLOW;
+            case "ruby.exceptions.warn_out_of_memory":
+                return EXCEPTIONS_WARN_OUT_OF_MEMORY;
             case "ruby.backtraces.hide_core_files":
                 return BACKTRACES_HIDE_CORE_FILES;
             case "ruby.backtraces.interleave_java":
@@ -405,6 +411,8 @@ public class OptionsCatalog {
             EXCEPTIONS_PRINT_UNCAUGHT_JAVA,
             EXCEPTIONS_PRINT_RUBY_FOR_JAVA,
             EXCEPTIONS_TRANSLATE_ASSERT,
+            EXCEPTIONS_WARN_STACKOVERFLOW,
+            EXCEPTIONS_WARN_OUT_OF_MEMORY,
             BACKTRACES_HIDE_CORE_FILES,
             BACKTRACES_INTERLEAVE_JAVA,
             BACKTRACES_LIMIT,

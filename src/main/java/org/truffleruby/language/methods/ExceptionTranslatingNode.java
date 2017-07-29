@@ -91,6 +91,11 @@ public class ExceptionTranslatingNode extends RubyNode {
 
     @TruffleBoundary
     private DynamicObject translateStackOverflow(StackOverflowError error) {
+        if (getContext().getOptions().EXCEPTIONS_WARN_STACKOVERFLOW) {
+            // We cannot afford to initialize the Log class
+            System.err.print("[ruby] WARNING StackOverflowError\n");
+        }
+
         if (getContext().getOptions().EXCEPTIONS_PRINT_JAVA) {
             error.printStackTrace();
 
@@ -104,6 +109,11 @@ public class ExceptionTranslatingNode extends RubyNode {
 
     @TruffleBoundary
     private DynamicObject translateOutOfMemory(OutOfMemoryError error) {
+        if (getContext().getOptions().EXCEPTIONS_WARN_OUT_OF_MEMORY) {
+            // We cannot afford to initialize the Log class
+            System.err.print("[ruby] WARNING OutOfMemoryError\n");
+        }
+
         if (getContext().getOptions().EXCEPTIONS_PRINT_JAVA) {
             error.printStackTrace();
 

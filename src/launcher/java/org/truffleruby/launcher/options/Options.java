@@ -98,6 +98,8 @@ public class Options {
     public final boolean EXCEPTIONS_PRINT_UNCAUGHT_JAVA;
     public final boolean EXCEPTIONS_PRINT_RUBY_FOR_JAVA;
     public final boolean EXCEPTIONS_TRANSLATE_ASSERT;
+    public final boolean EXCEPTIONS_WARN_STACKOVERFLOW;
+    public final boolean EXCEPTIONS_WARN_OUT_OF_MEMORY;
     public final boolean BACKTRACES_HIDE_CORE_FILES;
     public final boolean BACKTRACES_INTERLEAVE_JAVA;
     public final int BACKTRACES_LIMIT;
@@ -199,6 +201,8 @@ public class Options {
         EXCEPTIONS_PRINT_UNCAUGHT_JAVA = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_PRINT_UNCAUGHT_JAVA);
         EXCEPTIONS_PRINT_RUBY_FOR_JAVA = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_PRINT_RUBY_FOR_JAVA);
         EXCEPTIONS_TRANSLATE_ASSERT = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT);
+        EXCEPTIONS_WARN_STACKOVERFLOW = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_WARN_STACKOVERFLOW);
+        EXCEPTIONS_WARN_OUT_OF_MEMORY = builder.getOrDefault(OptionsCatalog.EXCEPTIONS_WARN_OUT_OF_MEMORY);
         BACKTRACES_HIDE_CORE_FILES = builder.getOrDefault(OptionsCatalog.BACKTRACES_HIDE_CORE_FILES);
         BACKTRACES_INTERLEAVE_JAVA = builder.getOrDefault(OptionsCatalog.BACKTRACES_INTERLEAVE_JAVA);
         BACKTRACES_LIMIT = builder.getOrDefault(OptionsCatalog.BACKTRACES_LIMIT);
@@ -384,6 +388,10 @@ public class Options {
                 return EXCEPTIONS_PRINT_RUBY_FOR_JAVA;
             case "ruby.exceptions.translate_assert":
                 return EXCEPTIONS_TRANSLATE_ASSERT;
+            case "ruby.exceptions.warn_stackoverflow":
+                return EXCEPTIONS_WARN_STACKOVERFLOW;
+            case "ruby.exceptions.warn_out_of_memory":
+                return EXCEPTIONS_WARN_OUT_OF_MEMORY;
             case "ruby.backtraces.hide_core_files":
                 return BACKTRACES_HIDE_CORE_FILES;
             case "ruby.backtraces.interleave_java":
