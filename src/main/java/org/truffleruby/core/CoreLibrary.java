@@ -194,6 +194,7 @@ public class CoreLibrary {
     private final DynamicObject nameErrorClass;
     private final DynamicObjectFactory nameErrorFactory;
     private final DynamicObject nilClass;
+    private final DynamicObject noMemoryErrorClass;
     private final DynamicObject noMethodErrorClass;
     private final DynamicObjectFactory noMethodErrorFactory;
     private final DynamicObject notImplementedErrorClass;
@@ -393,7 +394,7 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(exceptionClass, Layouts.EXCEPTION.createExceptionShape(exceptionClass, exceptionClass));
 
         // NoMemoryError
-        defineClass(exceptionClass, "NoMemoryError");
+        noMemoryErrorClass = defineClass(exceptionClass, "NoMemoryError");
 
         // RubyTruffleError
         rubyTruffleErrorClass = defineClass(exceptionClass, "RubyTruffleError");
@@ -1189,6 +1190,10 @@ public class CoreLibrary {
 
     public DynamicObject getNilClass() {
         return nilClass;
+    }
+
+    public DynamicObject getNoMemoryErrorClass() {
+        return noMemoryErrorClass;
     }
 
     public DynamicObject getNoMethodErrorClass() {

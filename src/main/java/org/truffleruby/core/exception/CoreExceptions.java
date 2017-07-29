@@ -208,10 +208,20 @@ public class CoreExceptions {
     // SystemStackError
 
     @TruffleBoundary
-    public DynamicObject systemStackErrorStackLevelTooDeep(Node currentNode, Throwable javaThrowable) {
+    public DynamicObject systemStackErrorStackLevelTooDeep(Node currentNode, StackOverflowError javaThrowable) {
         return ExceptionOperations.createRubyException(
                 context.getCoreLibrary().getSystemStackErrorClass(),
                 StringOperations.createString(context, StringOperations.encodeRope("stack level too deep", UTF8Encoding.INSTANCE)),
+                context.getCallStack().getBacktrace(currentNode, javaThrowable));
+    }
+
+    // NoMemoryError
+
+    @TruffleBoundary
+    public DynamicObject noMemoryError(Node currentNode, OutOfMemoryError javaThrowable) {
+        return ExceptionOperations.createRubyException(
+                context.getCoreLibrary().getNoMemoryErrorClass(),
+                StringOperations.createString(context, StringOperations.encodeRope("failed to allocate memory", UTF8Encoding.INSTANCE)),
                 context.getCallStack().getBacktrace(currentNode, javaThrowable));
     }
 

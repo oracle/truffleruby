@@ -61,6 +61,9 @@ public class ExceptionTranslatingNode extends RubyNode {
         } catch (StackOverflowError error) {
             errorProfile.enter();
             throw new RaiseException(translateStackOverflow(error));
+        } catch (OutOfMemoryError error) {
+            errorProfile.enter();
+            throw new RaiseException(translateOutOfMemory(error));
         } catch (ThreadDeath death) {
             errorProfile.enter();
             throw death;
@@ -97,6 +100,19 @@ public class ExceptionTranslatingNode extends RubyNode {
         }
 
         return coreExceptions().systemStackErrorStackLevelTooDeep(this, error);
+    }
+
+    @TruffleBoundary
+    private DynamicObject translateOutOfMemory(OutOfMemoryError error) {
+        if (getContext().getOptions().EXCEPTIONS_PRINT_JAVA) {
+            error.printStackTrace();
+
+            if (getContext().getOptions().EXCEPTIONS_PRINT_RUBY_FOR_JAVA) {
+                getContext().getCallStack().printBacktrace(this);
+            }
+        }
+
+        return coreExceptions().noMemoryError(this, error);
     }
 
     @TruffleBoundary
