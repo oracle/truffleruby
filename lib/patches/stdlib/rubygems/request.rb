@@ -1,17 +1,17 @@
 Truffle::Patching.require_original __FILE__
 
-# TruffleRuby: Use curl when uri has https scheme
+if Truffle::Boot.patching_openssl_enabled?
+  # TruffleRuby: Use curl when uri has https scheme
 
-class Gem::Request
-  class CurlResponse < Net::HTTPOK
-    def body
-      @body
+  class Gem::Request
+    class CurlResponse < Net::HTTPOK
+      def body
+        @body
+      end
     end
-  end
 
-  HTTP_PROXY_HEADER="HTTP/1.0 200 Connection established\r\n\r\n"
+    HTTP_PROXY_HEADER="HTTP/1.0 200 Connection established\r\n\r\n"
 
-  if Truffle::Boot.patching_openssl_enabled?
     def fetch
       request = @request_class.new @uri.request_uri
 

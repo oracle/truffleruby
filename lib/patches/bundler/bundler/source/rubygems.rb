@@ -2,6 +2,8 @@
 
 Truffle::Patching.require_original __FILE__
 
+# TruffleRuby: do not skips gems with extensions not built
+
 module Bundler
   class Source
     class Rubygems < Source
