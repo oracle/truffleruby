@@ -293,8 +293,6 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableStorage verboseStorage;
     @CompilationFinal private GlobalVariableStorage stderrStorage;
 
-    private Source mainBootSource = null;
-
     private final String coreLoadPath;
 
     @TruffleBoundary
