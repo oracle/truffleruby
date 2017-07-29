@@ -60,6 +60,7 @@ import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.SourceIndexLength;
@@ -1921,9 +1922,7 @@ public class RubyLexer {
             newtok(true);
         }
 
-        RopeBuilder oneCharBL = new RopeBuilder();
-        oneCharBL.append(c);
-        yaccValue = new StrParseNode(getPosition(), oneCharBL.toRope());
+        yaccValue = new StrParseNode(getPosition(), RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[c]);
         setState(EXPR_END);
         return Tokens.tCHAR;
     }
