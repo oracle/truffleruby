@@ -148,10 +148,10 @@ def ruby_testdownstream_sulong(args):
     mx.suite('sulong')
 
     jt('test', 'cexts')
-    jt('test', 'specs', '--sulong', ':capi')
-    jt('test', 'specs', '--sulong', '-T-Xpatching=false', ':openssl')
-    jt('test', 'mri', '--openssl', '--sulong')
-    jt('test', 'bundle', '--openssl')
+    jt('test', 'specs', ':capi')
+    jt('test', 'specs', ':openssl')
+    jt('test', 'mri', '--openssl')
+    jt('test', 'bundle')
 
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],

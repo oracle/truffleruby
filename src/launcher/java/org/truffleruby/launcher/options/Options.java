@@ -132,7 +132,7 @@ public class Options {
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
         RUBYGEMS = builder.getOrDefault(OptionsCatalog.RUBYGEMS);
         PATCHING = builder.getOrDefault(OptionsCatalog.PATCHING);
-        PATCHING_OPENSSL = builder.getOrDefault(OptionsCatalog.PATCHING_OPENSSL, PATCHING);
+        PATCHING_OPENSSL = builder.getOrDefault(OptionsCatalog.PATCHING_OPENSSL);
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
         INTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.INTERNAL_ENCODING);
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);

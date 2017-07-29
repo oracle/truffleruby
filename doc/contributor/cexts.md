@@ -49,18 +49,16 @@ jt test cexts
 You can also runs specs:
 
 ```bash
-jt test --sulong :capi
+jt test :capi
 ```
 
 ### OpenSSL
 
 The `openssl` specs and tests are currently segregated and are run separately.
-We have patches to workaround `openssl` so you need to disable these to
-actually test it, with `-T-Xpatching=false`.
 
 ```bash
-jt test -T-Xpatching=false --sulong :openssl
-jt test mri --openssl --sulong
+jt test :openssl
+jt test mri --openssl
 ```
 
 ## Benchmarking

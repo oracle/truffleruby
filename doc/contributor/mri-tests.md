@@ -11,8 +11,7 @@ directory (more exclude details below).
 ### Run test suite
 
 The `jt test mri` command is used to run all MRI test files that can be run
-normally. `--openssl` runs those using `openssl` and needs to be run with
-`--sulong`.
+normally. `--openssl` runs those using `openssl`.
 
 ### Run a single test
 
