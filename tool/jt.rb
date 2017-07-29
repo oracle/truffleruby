@@ -127,18 +127,6 @@ module Utilities
     raise "couldn't find trufflejs.jar - download GraalVM as described in https://github.com/jruby/jruby/wiki/Downloading-GraalVM and find it in there"
   end
 
-  def self.find_sulong_options
-    sulong = File.expand_path('../sulong', TRUFFLERUBY_DIR)
-    sulong_jar = "#{sulong}/build/sulong.jar"
-    unless File.exist?(sulong_jar)
-      raise "Sulong needs to be cloned as a sibling directory of TruffleRuby and built"
-    end
-    [
-      "-J-Dpolyglot.llvm.libraryPath=#{sulong}/mxbuild/sulong-libs",
-      '-J-cp', sulong_jar,
-    ]
-  end
-
   def self.find_sl
     jar = ENV['SL_JAR']
     return jar if jar
@@ -393,7 +381,6 @@ module Commands
           --graal         use Graal (set either GRAALVM_BIN or GRAAL_HOME)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --js            add Graal.js to the classpath (set GRAAL_JS_JAR)
-          --sulong
           --asm           show assembly (implies --graal)
           --server        run an instrumentation server on port 8080
           --igv           make sure IGV is running and dump Graal graphs after partial escape (implies --graal)
@@ -411,7 +398,7 @@ module Commands
       jt test                                        run all mri tests, specs and integration tests
       jt test tck                                    run the Truffle Compatibility Kit tests
       jt test mri                                    run mri tests
-          --openssl       runs openssl tests         use with --sulong
+          --openssl       runs openssl tests
           --aot           use AOT TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME)
       jt test specs                                  run all specs
@@ -421,11 +408,10 @@ module Commands
       jt test compiler                               run compiler tests (uses the same logic as --graal to find Graal)
       jt test integration                            runs all integration tests
       jt test integration [TESTS]                    runs the given integration tests
-      jt test bundle                                 tests using bundler
+      jt test bundle [--no-sulong]                   tests using bundler
       jt test gems                                   tests using gems
       jt test ecosystem [TESTS]                      tests using the wider ecosystem such as bundler, Rails, etc
-      jt test cexts [--no-openssl]                   run C extension tests
-                                                         (implies --sulong, clone Sulong as a sibling and build it, and set GEM_HOME)
+      jt test cexts [--no-openssl]                   run C extension tests (set GEM_HOME)
       jt test report :language                       build a report on language specs
                      :core                               (results go into test/target/mspec-html-report)
                      :library
@@ -443,7 +429,6 @@ module Commands
       jt metrics time ...                            how long does it take to run a command, broken down into different phases
       jt benchmark [options] args...                 run benchmark-interface (implies --graal)
           --no-graal              don't imply --graal
-          --sulong
           JT_BENCHMARK_RUBY=ruby  benchmark some other Ruby, like MRI
           note that to run most MRI benchmarks, you should translate them first with normal Ruby and cache the result, such as
               benchmark bench/mri/bm_vm1_not.rb --cache
@@ -545,7 +530,7 @@ module Commands
     end
 
     if args.delete('--sulong')
-      jruby_args.push *Utilities.find_sulong_options
+      raise '--sulong is no longer needed - just make sure you have a built Sulong sibling repository'
     end
 
     if args.delete('--js')
@@ -846,14 +831,14 @@ module Commands
         compile_cext gem_name, ext_dir, "#{dir}/lib/#{gem_name}/#{gem_name}.su"
         case gem_name
         when 'backtraces'
-          run '--sulong', "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", err: output_file, continue_on_failure: true
+          run "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", err: output_file, continue_on_failure: true
           unless File.read(output_file)
               .gsub(TRUFFLERUBY_DIR, '')
               .gsub(/\/cext\.rb:(\d+)/, '/cext.rb:n') == File.read("#{dir}/expected.txt")
             abort "c extension #{dir} didn't work as expected"
           end
         else
-          run '--sulong', "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", out: output_file
+          run "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", out: output_file
           unless File.read(output_file) == File.read("#{dir}/expected.txt")
             abort "c extension #{dir} didn't work as expected"
           end
@@ -882,8 +867,7 @@ module Commands
         compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'
 
         next if gem_name == 'psd_native' # psd_native is excluded just for running
-        run '--sulong',
-            *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
+        run *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
             *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
             "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root
       end
@@ -975,7 +959,7 @@ module Commands
 
     require 'tmpdir'
 
-    openssl = args.delete '--openssl'
+    no_sulong = args.delete '--no-sulong'
     gems    = [{ name:   'algebrick',
                  url:    'https://github.com/pitr-ch/algebrick.git',
                  commit: '89cf71984964ce9cbe6a1f4fb5155144ac56d057' }]
@@ -1004,13 +988,13 @@ module Commands
             # add bin from gem_home to PATH
             'PATH'     => [File.join(gem_home, 'bin'), ENV['PATH']].join(File::PATH_SEPARATOR))
 
-          openssl_options = openssl ? %w[--sulong -Xpatching_openssl=false -Xexceptions.print_java=true] : []
+          openssl_options = no_sulong ? %w[-Xpatching_openssl=true] : []
 
-          run(environment, *openssl_options,
+          run(environment, '-Xexceptions.print_java=true', *openssl_options,
               '-S', 'gem', 'install', '--no-document', 'bundler', '-v', '1.14.6', '--backtrace')
-          run(environment, *openssl_options,
+          run(environment, '-Xexceptions.print_java=true', *openssl_options,
               '-J-Xmx512M','-S', 'bundle', 'install')
-          run(environment, *openssl_options,
+          run(environment, '-Xexceptions.print_java=true', *openssl_options,
               '-S', 'bundle', 'exec', 'rake')
         end
       ensure
@@ -1065,7 +1049,7 @@ module Commands
     end
 
     if args.delete('--sulong')
-      options.push *Utilities.find_sulong_options.map { |o| "-T#{o}" }
+      raise '--sulong is no longer needed - just make sure you have a built Sulong sibling repository'
     end
 
     if args.delete('--jdebug')
@@ -1429,7 +1413,7 @@ module Commands
     run_args = []
 
     if args.delete('--sulong')
-      run_args.push '--sulong'
+      raise '--sulong is no longer needed - just make sure you have a built Sulong sibling repository'
     end
 
     if args.delete('--aot') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == ENV['AOT_BIN']))

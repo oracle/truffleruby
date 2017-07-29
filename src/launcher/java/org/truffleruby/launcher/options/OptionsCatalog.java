@@ -31,7 +31,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription("ruby.frozen_string_literals", "Use frozen string literals", false);
     public static final BooleanOptionDescription RUBYGEMS = new BooleanOptionDescription("ruby.rubygems", "Use RubyGems", true);
     public static final BooleanOptionDescription PATCHING = new BooleanOptionDescription("ruby.patching", "Use patching", true);
-    public static final BooleanOptionDescription PATCHING_OPENSSL = new BooleanOptionDescription("ruby.patching_openssl", "Use openssl patching", PATCHING.getDefaultValue());
+    public static final BooleanOptionDescription PATCHING_OPENSSL = new BooleanOptionDescription("ruby.patching_openssl", "Use openssl patching", false);
     public static final BooleanOptionDescription DID_YOU_MEAN = new BooleanOptionDescription("ruby.did_you_mean", "Use did_you_mean", true);
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription("ruby.internal_encoding", "Internal encoding", "");
     public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription("ruby.external_encoding", "External encoding", "");

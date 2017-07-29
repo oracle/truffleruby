@@ -52,5 +52,5 @@ RUN cd truffleruby && mx build
 
 # Run a basic set of tests
 RUN cd truffleruby && ruby tool/jt.rb test fast :language
-RUN cd truffleruby && ruby tool/jt.rb test --sulong :openssl
+RUN cd truffleruby && ruby tool/jt.rb test :openssl
 RUN cd truffleruby && ruby tool/jt.rb test compiler

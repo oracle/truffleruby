@@ -114,6 +114,12 @@ if [ $on_graalvm = false ]; then
     CP="$CP:$root/mxbuild/dists/truffleruby-launcher.jar"
     CP="$CP:$root/mxbuild/dists/truffleruby.jar"
     java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.$(libext)")
+    sulong_root="$root_parent/sulong"
+    sulong_jar="$sulong_root/build/sulong.jar"
+    if [ -f "$sulong_jar" ]; then
+      CP="$CP:$sulong_jar"
+      java_args+=("-Dpolyglot.llvm.libraryPath=${sulong_root}/mxbuild/sulong-libs")
+    fi
 
 fi
 
