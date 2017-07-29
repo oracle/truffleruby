@@ -34,6 +34,10 @@ known_failures = [
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-operations-compose"],
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-operations-replace"],
 
+  # SVM (GR-5089)
+  ["svm", "default", "jruby", "truffle", "classic", "deltablue"],
+  ["svm", "default", "jruby", "truffle", "classic", "red-black"],
+  ["svm", "default", "jruby", "truffle", "chunky", "chunky-decode-png-image-pass"],
   # SVM
   ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:file-lines"],
   ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:load-string"],
