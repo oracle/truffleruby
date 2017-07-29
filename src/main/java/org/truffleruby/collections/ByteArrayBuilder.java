@@ -27,6 +27,12 @@ public class ByteArrayBuilder {
         bytes = new byte[size];
     }
 
+    public static ByteArrayBuilder createUnsafeBuilder(byte[] wrap) {
+        final ByteArrayBuilder builder = new ByteArrayBuilder();
+        builder.unsafeReplace(wrap, wrap.length);
+        return builder;
+    }
+
     public int getLength() {
         return length;
     }
@@ -61,6 +67,11 @@ public class ByteArrayBuilder {
         ensureSpace(appendLength);
         System.arraycopy(appendBytes, appendStart, bytes, length, appendLength);
         length += appendLength;
+    }
+
+    public void unsafeReplace(byte[] bytes, int size) {
+        this.bytes = bytes;
+        this.length = size;
     }
 
     private void ensureSpace(int space) {

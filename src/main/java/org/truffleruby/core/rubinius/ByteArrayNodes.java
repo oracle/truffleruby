@@ -21,6 +21,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
@@ -32,7 +33,7 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 @CoreClass("Rubinius::ByteArray")
 public abstract class ByteArrayNodes {
 
-    public static DynamicObject createByteArray(DynamicObjectFactory factory, RopeBuilder bytes) {
+    public static DynamicObject createByteArray(DynamicObjectFactory factory, ByteArrayBuilder bytes) {
         return Layouts.BYTE_ARRAY.createByteArray(factory, bytes);
     }
 
@@ -42,7 +43,7 @@ public abstract class ByteArrayNodes {
         @Specialization
         public int getByte(DynamicObject bytes, int index,
                               @Cached("createBinaryProfile()") ConditionProfile nullByteIndexProfile) {
-            final RopeBuilder byteList = Layouts.BYTE_ARRAY.getBytes(bytes);
+            final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
 
             // Handling out-of-bounds issues like this is non-standard. In Rubinius, it would raise an exception instead.
             // We're modifying the semantics to address a primary use case for this class: Rubinius's @data array
@@ -50,11 +51,11 @@ public abstract class ByteArrayNodes {
             // advantage of that fact. So, where they expect to receive a NULL byte, we'd be out-of-bounds and raise
             // an exception. Simply appending a NULL byte may trigger a full copy of the original byte[], which we
             // want to avoid. The compromise is bending on the semantics here.
-            if (nullByteIndexProfile.profile(index == byteList.getLength())) {
+            if (nullByteIndexProfile.profile(index == builder.getLength())) {
                 return 0;
             }
 
-            return byteList.get(index) & 0xff;
+            return builder.get(index) & 0xff;
         }
 
     }
@@ -72,7 +73,7 @@ public abstract class ByteArrayNodes {
             final byte[] prependedBytes = new byte[newLength];
             System.arraycopy(bytesNode.execute(rope), 0, prependedBytes, 0, prependLength);
             System.arraycopy(Layouts.BYTE_ARRAY.getBytes(bytes).getUnsafeBytes(), 0, prependedBytes, prependLength, originalLength);
-            return ByteArrayNodes.createByteArray(coreLibrary().getByteArrayFactory(), RopeBuilder.createRopeBuilder(prependedBytes));
+            return ByteArrayNodes.createByteArray(coreLibrary().getByteArrayFactory(), ByteArrayBuilder.createUnsafeBuilder(prependedBytes));
         }
 
     }
@@ -119,7 +120,7 @@ public abstract class ByteArrayNodes {
             }
         }
 
-        public int indexOf(RopeBuilder in, int start, int length, Rope find) {
+        public int indexOf(ByteArrayBuilder in, int start, int length, Rope find) {
             byte[] target = find.getBytes();
             int targetCount = find.byteLength();
             int fromIndex = start;
@@ -155,12 +156,9 @@ public abstract class ByteArrayNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-        private static final byte[] ZERO_BYTES = new byte[0];
-
-        @TruffleBoundary
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, RopeBuilder.createRopeBuilder(ZERO_BYTES));
+            return allocateObjectNode.allocate(rubyClass, new ByteArrayBuilder());
         }
 
     }

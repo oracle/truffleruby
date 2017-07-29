@@ -57,7 +57,7 @@ public class RopeBuilder extends ByteArrayBuilder {
         return byteList;
     }
 
-    public static RopeBuilder createRopeBuilder(RopeBuilder wrap, int index, int len) {
+    public static RopeBuilder createRopeBuilder(ByteArrayBuilder wrap, int index, int len) {
         final RopeBuilder byteList = new RopeBuilder(wrap.getLength());
         if (index + len > wrap.getLength()) {
             // TODO S 17-Jan-16 fix this use beyond the known length

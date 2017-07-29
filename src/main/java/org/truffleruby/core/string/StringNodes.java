@@ -93,6 +93,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.array.ArrayCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.TaintResultNode;
@@ -4195,8 +4196,8 @@ public abstract class StringNodes {
         @Specialization(guards = "isRubiniusByteArray(bytes)")
         public DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count) {
             // Data is copied here - can we do something COW?
-            final RopeBuilder byteList = Layouts.BYTE_ARRAY.getBytes(bytes);
-            return createString(RopeBuilder.createRopeBuilder(byteList, start, count));
+            final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
+            return createString(RopeBuilder.createRopeBuilder(builder, start, count));
         }
 
     }
