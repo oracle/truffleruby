@@ -157,7 +157,7 @@ sulong: ${labsjdk8} {
     LD_LIBRARY_PATH: "$LIBGMP/lib:$LLVM/lib:$LD_LIBRARY_PATH",
   }
 
-  setup: ${common.setup} [
+  setup: [
     [git, clone, [mx, urlrewrite, "https://github.com/graalvm/sulong.git"], ../sulong],
     [cd, ../sulong],
     [mx, sversions],
@@ -392,13 +392,13 @@ server-benchmarks: {
   timelimit: "00:20:00"
 }
 
-cext-benchmarks: ${sulong} {
+cext-benchmarks: ${sulong} ${graal-core} {
   environment: {
     TRUFFLERUBYOPT: "-Xcexts.log.load=true",
     USE_CEXTS: "true"
   }
 
-  setup: ${sulong.setup} ${gem-test-pack.setup} [
+  setup: ${graal-core.setup} ${sulong.setup} ${gem-test-pack.setup} [
     ${jt} [cextc, bench/chunky_png/oily_png],
     ${jt} [cextc, bench/psd.rb/psd_native]
   ]
@@ -436,7 +436,7 @@ test-cexts: ${sulong} ${gem-test-pack} {
     JAVA_OPTS: "-Dgraal.TruffleCompileOnly=nothing",
   }
 
-  setup: ${sulong.setup} ${gem-test-pack.setup}
+  setup: ${common.setup} ${sulong.setup} ${gem-test-pack.setup}
 
   run: [
     [mx, "--dynamicimports", "sulong", ruby_testdownstream_sulong]
@@ -565,5 +565,5 @@ builds: [
   //{name: ruby-benchmarks-server-graal-vm-snapshot} ${common} ${graal-vm-snapshot} ${bench-caps} ${truffleruby} ${server-benchmarks},
   {name: ruby-benchmarks-server-svm} ${common} ${svm-bench} ${bench-caps} ${truffleruby} ${server-benchmarks},
 
-  {name: ruby-benchmarks-cext} ${common} ${graal-core} ${daily-bench-caps} ${truffleruby-cexts} ${cext-benchmarks},
+  {name: ruby-benchmarks-cext} ${common} ${daily-bench-caps} ${truffleruby-cexts} ${cext-benchmarks},
 ]
