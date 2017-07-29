@@ -2,6 +2,8 @@
 
 Truffle::Patching.require_original __FILE__
 
+# TruffleRuby: shell to gunzip for unzipping
+
 require "fileutils"
 require "stringio"
 require "tmpdir"

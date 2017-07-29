@@ -32,11 +32,10 @@ class Gem::RemoteFetcher
   end
 end
 
-# Use wget
+if Truffle::Boot.patching_openssl_enabled?
+  # Use wget
 
-class Gem::RemoteFetcher
-
-  if Truffle::Boot.patching_openssl_enabled?
+  class Gem::RemoteFetcher
     def download(spec, source_uri, install_dir = Gem.dir)
       cache_dir =
           if Dir.pwd == install_dir then # see fetch_command

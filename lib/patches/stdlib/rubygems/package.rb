@@ -1,20 +1,17 @@
 Truffle::Patching.require_original __FILE__
 
-# - shell to tar for untarring
-# - skip some checksum/digest verification
-
+# TruffleRuby: shell to tar for untarring
 class Gem::Package
-
   def extract_files destination_dir, pattern = "*"
     verify unless @spec
 
     FileUtils.mkdir_p destination_dir
 
-    # WORKAROUND START
+    # TruffleRuby: start
     extr_to = File.dirname(@gem.path) + '/' + File.basename(@gem.path, File.extname(@gem.path))
     Dir.mkdir(extr_to)
     `tar -C #{extr_to} -xf #{@gem.path}`
-    # WORKAROUND END
+    # TruffleRuby: end
 
     @gem.with_read_io do |io|
       reader = Gem::Package::TarReader.new io
@@ -32,9 +29,12 @@ class Gem::Package
       end
     end
   end
+end
 
-  if Truffle::Boot.patching_openssl_enabled?
+if Truffle::Boot.patching_openssl_enabled?
+  # TruffleRuby: skip some checksum/digest verification
 
+  class Gem::Package
     def verify
       @files = []
       @spec  = nil
@@ -89,5 +89,4 @@ class Gem::Package
       raise Gem::Package::FormatError.new message, @gem
     end
   end
-
 end

@@ -1,18 +1,18 @@
 Truffle::Patching.require_original __FILE__
 
-# TruffleRuby: Use curl in bundler downloader for https requests
+if Truffle::Boot.patching_openssl_enabled?
+  # TruffleRuby: Use curl in bundler downloader for https requests
 
-module Bundler
-  class Fetcher
-    class Downloader
-      HTTP_PROXY_HEADER="HTTP/1.0 200 Connection established\r\n\r\n"
-      class CurlResponse < Net::HTTPOK
-        def body
-          @body
+  module Bundler
+    class Fetcher
+      class Downloader
+        HTTP_PROXY_HEADER="HTTP/1.0 200 Connection established\r\n\r\n"
+        class CurlResponse < Net::HTTPOK
+          def body
+            @body
+          end
         end
-      end
 
-      if Truffle::Boot.patching_openssl_enabled?
         def fetch(uri, options = {}, counter = 0)
           raise HTTPError, "Too many redirects" if counter >= redirect_limit
 
@@ -59,7 +59,6 @@ module Bundler
             raise HTTPError, "#{response.class}#{": #{response.body}" unless response.body.empty?}"
           end
         end
-
       end
     end
   end
