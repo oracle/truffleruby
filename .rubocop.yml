@@ -15,11 +15,11 @@ AllCops:
     - 'lib/rubysl/**/*'
     - 'mxbuild/**/*'
     - 'spec/**/*'
+    - 'src/main/c/*/extconf.rb'
     - 'test/**/*'
     - 'tool/**/*'
     - 'truffleruby/target/**/*'
     - 'truffleruby-gem-test-pack-*/**/*'
-    - 'src/main/c/syslog/**'
 
 # Department 'Lint' (58):
 Lint/AmbiguousOperator:
