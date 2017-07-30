@@ -11,11 +11,13 @@ rm lib/mri/weakref.rb
 rm -r lib/mri/webrick*
 rm src/main/c/openssl/*.{c,h}
 cp ../ruby/ext/openssl/*.{c,h} src/main/c/openssl
+cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
 cp -r ../ruby/ext/openssl/lib/* lib/mri
 cp -r ../ruby/ext/bigdecimal/lib/bigdecimal lib/mri
 cp -r ../ruby/ext/psych/lib/psych lib/mri
 cp -r ../ruby/ext/psych/lib/*.rb lib/mri
 cp -r ../ruby/ext/pty/lib/*.rb lib/mri
+cp -r ../ruby/ext/syslog/lib/syslog lib/mri/syslog
 
 rm -rf test/mri/tests
 cp -r ../ruby/test test/mri/tests
