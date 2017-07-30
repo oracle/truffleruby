@@ -398,6 +398,7 @@ module Commands
       jt test                                        run all mri tests, specs and integration tests
       jt test tck                                    run the Truffle Compatibility Kit tests
       jt test mri                                    run mri tests
+          --syslog        runs syslog tests
           --openssl       runs openssl tests
           --aot           use AOT TruffleRuby image (set AOT_BIN)
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME)
@@ -716,7 +717,7 @@ module Commands
     if args.delete('--openssl')
       include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"
       exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/openssl.exclude"
-    elsif args.delete('--cext')
+    elsif args.delete('--syslog')
       include_pattern = ["#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
                          "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"]
       exclude_file = nil
