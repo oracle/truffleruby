@@ -19,6 +19,7 @@ AllCops:
     - 'tool/**/*'
     - 'truffleruby/target/**/*'
     - 'truffleruby-gem-test-pack-*/**/*'
+    - 'src/main/c/syslog/**'
 
 # Department 'Lint' (58):
 Lint/AmbiguousOperator:
