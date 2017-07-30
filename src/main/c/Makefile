@@ -11,7 +11,7 @@ endif
 no_cexts: clean
 	@echo "WARNING: TRUFFLERUBY_CEXT_ENABLED is set to false - not building cexts" 1>&2
 
-all: $(ROOT)/lib/cext/ruby.su $(ROOT)/lib/mri/openssl.su $(ROOT)/lib/mri/zlib.su
+all: $(ROOT)/lib/cext/ruby.su $(ROOT)/lib/mri/openssl.su $(ROOT)/lib/mri/zlib.su $(ROOT)/lib/mri/syslog.su
 
 clean:
 	rm -f $(ROOT)/lib/cext/ruby.su
@@ -20,6 +20,8 @@ clean:
 	rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
 	rm -f $(ROOT)/lib/mri/zlib.su
 	rm -f zlib/Makefile zlib/*.bc zlib/zlib.su
+	rm -f $(ROOT)/lib/mri/syslog.su
+	rm -f syslog/Makefile syslog/*.bc syslog/syslog.su
 
 # ruby.su
 cext/Makefile: cext/extconf.rb
@@ -49,4 +51,14 @@ zlib/zlib.su: zlib/Makefile zlib/zlib.c
 	cd zlib && $(MAKE)
 
 $(ROOT)/lib/mri/zlib.su: zlib/zlib.su
+	cp $< $@
+
+# syslog.su
+syslog/Makefile: $(ROOT)/lib/cext/ruby.su syslog/extconf.rb
+	cd syslog && $(RUBY) extconf.rb
+
+syslog/syslog.su: syslog/Makefile syslog/syslog.c
+	cd syslog && $(MAKE)
+
+$(ROOT)/lib/mri/syslog.su: syslog/syslog.su
 	cp $< $@

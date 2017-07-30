@@ -151,6 +151,7 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'specs', ':capi')
     jt('test', 'specs', ':openssl')
     jt('test', 'mri', '--openssl')
+    jt('test', 'mri', '--cext')
     jt('test', 'bundle')
 
 mx.update_commands(_suite, {

@@ -716,6 +716,10 @@ module Commands
     if args.delete('--openssl')
       include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/openssl/test_*.rb"
       exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/openssl.exclude"
+    elsif args.delete('--cext')
+      include_pattern = ["#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
+                         "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"]
+      exclude_file = nil
     elsif args.all? { |a| a.start_with?('-') }
       include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/**/test_*.rb"
       exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/standard.exclude"
@@ -731,7 +735,11 @@ module Commands
         f[prefix.size..-1]
       }
 
-      exclude_files = File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }
+      exclude_files = if exclude_file
+                        File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }
+                      else
+                        []
+                      end
 
       files_to_run = (include_files - exclude_files)
     end
