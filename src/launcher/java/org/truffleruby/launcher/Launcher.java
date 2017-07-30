@@ -58,9 +58,9 @@ import java.lang.management.ManagementFactory;
 
 public class Launcher {
 
-    public static final boolean IS_AOT = Boolean.logicalOr(
-            Boolean.getBoolean("com.oracle.graalvm.isaot"),
-            Boolean.getBoolean("com.oracle.truffle.aot"));
+    public static final boolean IS_NATIVE = Boolean.getBoolean("com.oracle.graalvm.isaot")
+            || Boolean.getBoolean("com.oracle.truffle.aot");
+    public static final String GRAALVM_VERSION = System.getProperty("graalvm.version", "unknown version");
     public static final String LANGUAGE_ID = "ruby";
     public static final String LANGUAGE_VERSION = "2.3.3";
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
@@ -185,7 +185,7 @@ public class Launcher {
 
     private static void printTruffleMemoryMetric() {
         // Memory stats aren't available on AOT.
-        if (!IS_AOT && METRICS_MEMORY_USED_ON_EXIT) {
+        if (!IS_NATIVE && METRICS_MEMORY_USED_ON_EXIT) {
             for (int n = 0; n < 10; n++) {
                 System.gc();
             }
@@ -203,10 +203,10 @@ public class Launcher {
     public static String getVersionString(boolean isGraal) {
         return String.format(
                 "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",
-                System.getProperty("graalvm.version", "unknown version"),
+                GRAALVM_VERSION,
                 LANGUAGE_VERSION,
-                IS_AOT ? "AOT" : System.getProperty("java.vm.name", "unknown JVM"),
-                IS_AOT ? "build" : System.getProperty(
+                IS_NATIVE ? "native" : System.getProperty("java.vm.name", "unknown JVM"),
+                IS_NATIVE ? "build" : System.getProperty(
                         "java.runtime.version",
                         System.getProperty("java.version", "unknown runtime version")),
                 isGraal ? "with Graal" : "without Graal",
@@ -258,8 +258,8 @@ public class Launcher {
         out.println("  -Xoptions       print available TruffleRuby options");
         out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
 
-        if (IS_AOT) {
-            out.println("SVM switches:");
+        if (IS_NATIVE) {
+            out.println("Native switches:");
             out.println("  -XX:arg         pass arg to the SVM");
             out.println("  -Dname=value    set a system property");
         } else {
