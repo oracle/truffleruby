@@ -103,7 +103,7 @@ Inside the GraalVM is a `bin/ruby` command that runs TruffleRuby.
 See [Using TruffleRuby with GraalVM](doc/user/using-graalvm.md)
 instructions.
 
-You can also build TruffleRuby on you own, see the
+You can also build TruffleRuby from source, see the
 [Building Instructions](doc/contributor/workflow.md).
 
 ## Documentation
