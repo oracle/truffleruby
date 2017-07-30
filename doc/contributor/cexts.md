@@ -1,5 +1,10 @@
 # TruffleRuby, Sulong and C extensions
 
+## Requirements
+
+* `llvm` including the `opt` binary
+* OpenSSL 1.0.2 including the development headers
+
 ## Setup
 
 TruffleRuby runs C extension using Sulong. You should build Sulong from source.

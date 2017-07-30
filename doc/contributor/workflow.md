@@ -8,13 +8,32 @@ You will need:
 * Ruby 2
 * The `mx` build system
 
+## Workspace directory
+
+We recommend creating an extra directory for building TruffleRuby:
+
+```bash
+$ mkdir truffleruby-ws
+$ cd truffleruby-ws
+```
+
 ## Installing `mx`
 
 `mx` is a Python package that you can clone and then run from the repository.
 
 ```bash
 $ git clone https://github.com/graalvm/mx
-export PATH=$PATH:/absolute/path/to/mx
+$ export PATH=`pwd`/mx:$PATH
+```
+
+## Installing dependencies for C extensions
+
+If you want support for C extensions and OpenSSL, follow the
+[C extensions Setup](cexts.md).
+
+Otherwise, you can skip this step with
+```bash
+$ export TRUFFLERUBY_CEXT_ENABLED=false
 ```
 
 ## Developer tool
@@ -22,6 +41,8 @@ export PATH=$PATH:/absolute/path/to/mx
 We then use a Ruby script to run most commands.
 
 ```bash
+$ git clone https://github.com/graalvm/truffleruby.git
+$ cd truffleruby
 $ ruby tool/jt.rb --help
 ```
 
@@ -34,7 +55,8 @@ $ jt --help
 
 ## Building
 
-We recommend configuring the build to use the Truffle framework as a binary dependency rather than importing it as source code.
+We recommend configuring the build to use the Truffle framework as a binary
+dependency rather than importing it as source code.
 
 ```bash
 $ echo MX_BINARY_SUITES=truffle,sdk > mx.truffleruby/env
@@ -73,8 +95,8 @@ don't normally run them locally unless we're working on that functionality.
 
 `jt ruby` runs TruffleRuby. You can use it exactly as you'd run the MRI `ruby`
 command. Although it does set a couple of extra options to help you when
-developing, such as loading the core lirbary from disk rather than the JAR. `jt
-ruby` prints the real command it's running as it starts.
+developing, such as loading the core library from disk rather than the JAR.
+`jt ruby` prints the real command it's running as it starts.
 
 ```bash
 $ ruby ...
