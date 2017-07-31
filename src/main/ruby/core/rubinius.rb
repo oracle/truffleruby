@@ -77,16 +77,6 @@ module Rubinius
     raise PrimitiveFailure, 'Rubinius.extended_modules primitive failed'
   end
 
-  def self.throw(dest, obj)
-    Truffle.primitive :vm_throw
-    raise PrimitiveFailure, 'Rubinius.throw primitive failed'
-  end
-
-  def self.catch(dest, obj)
-    Truffle.primitive :vm_catch
-    raise PrimitiveFailure, 'Rubinius.catch primitive failed'
-  end
-
   module Unsafe
     def self.set_class(obj, cls)
       Truffle.primitive :vm_set_class

@@ -53,7 +53,7 @@ module Kernel
     raise LocalJumpError unless block_given?
 
     Rubinius::ThrownValue.register(obj) do
-      return Rubinius.catch(obj, block)
+      return Truffle.invoke_primitive :vm_catch, obj, block
     end
   end
   module_function :catch
@@ -63,7 +63,7 @@ module Kernel
       raise UncaughtThrowError, "uncaught throw #{obj.inspect}"
     end
 
-    Rubinius.throw obj, value
+    Truffle.invoke_primitive :vm_throw, obj, value
   end
   module_function :throw
 end
