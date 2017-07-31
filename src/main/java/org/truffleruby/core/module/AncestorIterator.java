@@ -12,7 +12,6 @@ package org.truffleruby.core.module;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 public class AncestorIterator implements Iterator<DynamicObject> {
     ModuleChain module;
@@ -27,10 +26,8 @@ public class AncestorIterator implements Iterator<DynamicObject> {
     }
 
     @Override
-    public DynamicObject next() throws NoSuchElementException {
-        if (!hasNext()) {
-            throw new NoSuchElementException();
-        }
+    public DynamicObject next() {
+        assert hasNext();
 
         ModuleChain mod = module;
         if (mod instanceof PrependMarker) {
