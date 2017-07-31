@@ -10,6 +10,7 @@
 package org.truffleruby.core.module;
 
 public class IncludedModulesIterator extends AncestorIterator {
+
     private final ModuleFields currentModule;
 
     public IncludedModulesIterator(ModuleChain top, ModuleFields currentModule) {
@@ -25,7 +26,6 @@ public class IncludedModulesIterator extends AncestorIterator {
 
         if (module == currentModule) {
             module = module.getParentModule(); // skip self
-            return hasNext();
         }
 
         return module instanceof IncludedModule;
