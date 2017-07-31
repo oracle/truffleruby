@@ -12,8 +12,8 @@ package org.truffleruby.extra.ffi;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
-import jnr.ffi.Pointer;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.platform.Pointer;
 
 @Layout
 public interface PointerLayout extends BasicObjectLayout {

@@ -251,7 +251,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isNullPointer(DynamicObject pointer) {
-        return Layouts.POINTER.getPointer(pointer) == PointerNodes.NULL_POINTER;
+        return Layouts.POINTER.getPointer(pointer).getPointer() == PointerNodes.NULL_POINTER;
     }
 
     // Internal types
