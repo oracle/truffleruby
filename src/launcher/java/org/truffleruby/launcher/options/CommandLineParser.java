@@ -114,7 +114,13 @@ public class CommandLineParser {
             String[] args = value.split("\\s+");
 
             if (args.length != 0) {
-                new CommandLineParser(args, false, true, rubyOpts, true, commandLineOptions).processArguments();
+                new CommandLineParser(
+                        args,
+                        false,
+                        true,
+                        rubyOpts,
+                        true, // let it parse and fail
+                        commandLineOptions).processArguments();
             }
         }
     }
