@@ -105,7 +105,7 @@ public class SolarisPlatform implements NativePlatform {
     @Override
     public Pointer createSigAction(long handler) {
         Pointer structSigAction = Pointer.malloc(32); // sizeof(struct sigaction)
-        structSigAction.add(8).putLong(handler); // offsetof(struct sigaction, sa_handler)
+        structSigAction.putLong(8, handler); // offsetof(struct sigaction, sa_handler)
         return structSigAction;
     }
 

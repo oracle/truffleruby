@@ -15,6 +15,7 @@ import org.truffleruby.Log;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 public class Pointer {
@@ -49,7 +50,9 @@ public class Pointer {
 
     @CompilerDirectives.TruffleBoundary
     public void put(long i, byte[] bytes, int i1, int length) {
-        pointer.put(i, bytes, i1, length);
+        for (int n = 0; n < length; n++) {
+            putByte(i + n, bytes[i1 + n]);
+        }
     }
 
     public void putByte(long offset, byte b) {
@@ -61,8 +64,10 @@ public class Pointer {
     }
 
     @CompilerDirectives.TruffleBoundary
-    public void get(int from, byte[] buffer, int bufferPos, int i) {
-        pointer.get(from, buffer, bufferPos, i);
+    public void get(long from, byte[] buffer, int bufferPos, int i) {
+        for (int n = 0; n < i; n++) {
+            buffer[bufferPos + n] = getByte(from + n);
+        }
     }
 
     public void putLong(long value) {
@@ -89,9 +94,16 @@ public class Pointer {
         return getLong(offset);
     }
 
+    private byte[] getZeroTerminatedByteArray(long offset) {
+        final int length = indexOf(offset, (byte) 0);
+        final byte[] bytes = new byte[length];
+        get(offset, bytes, 0, length);
+        return bytes;
+    }
+
     @CompilerDirectives.TruffleBoundary
     public String getString(long offset) {
-        return pointer.getString(offset);
+        return Charset.defaultCharset().decode(ByteBuffer.wrap(getZeroTerminatedByteArray(offset))).toString();
     }
 
     public void putShort(long offset, short value) {
@@ -110,19 +122,22 @@ public class Pointer {
         putLong(offset, value.getAddress());
     }
 
-    @CompilerDirectives.TruffleBoundary
-    public void putString(long offset, String value, int length, Charset cs) {
-        pointer.putString(offset, value, length, cs);
+    private void putZeroTerminatedByteArray(long offset, byte[] bytes, int start, int length) {
+        put(offset, bytes, start, length);
+        putByte(offset + length, (byte) 0);
     }
 
-    public jnr.ffi.Pointer getPointer(long offset) {
-        return pointer.getPointer(offset);
+    @CompilerDirectives.TruffleBoundary
+    public void putString(long offset, String string, int maxLength, Charset cs) {
+        ByteBuffer buf = cs.encode(string);
+        int len = Math.min(maxLength, buf.remaining());
+        putZeroTerminatedByteArray(offset, buf.array(), buf.arrayOffset() + buf.position(), len);
     }
 
     @CompilerDirectives.TruffleBoundary
     public Pointer readPointer(long offset) {
-        final jnr.ffi.Pointer p = pointer.getPointer(offset);
-        if (p == null) {
+        final long p = getLong(offset);
+        if (p == 0) {
             return null;
         } else {
             return new Pointer(p);
@@ -131,7 +146,13 @@ public class Pointer {
 
     @CompilerDirectives.TruffleBoundary
     public int indexOf(long offset, byte value) {
-        return pointer.indexOf(offset, value);
+        int n = 0;
+        while (true) {
+            if (getByte(offset + n) == value) {
+                return n;
+            }
+            n++;
+        }
     }
 
     public void free() {
