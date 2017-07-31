@@ -68,6 +68,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;
+import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Platform;
@@ -139,21 +140,17 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_extended_modules", needsSelf = false)
     public static abstract class VMExtendedModulesNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode newArrayNode = CallDispatchHeadNode.create();
-        @Child private CallDispatchHeadNode arrayAppendNode = CallDispatchHeadNode.create();
-
         @Specialization
-        public Object vmExtendedModules(VirtualFrame frame, Object object) {
-            final DynamicObject metaClass = coreLibrary().getMetaClass(object);
+        public Object vmExtendedModules(Object object, DynamicObject block,
+                @Cached("create()") MetaClassNode metaClassNode,
+                @Cached("new()") YieldNode yieldNode,
+                @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile) {
+            final DynamicObject metaClass = metaClassNode.executeMetaClass(object);
 
-            if (Layouts.CLASS.getIsSingleton(metaClass)) {
-                final Object ret = newArrayNode.call(frame, coreLibrary().getArrayClass(), "new");
-
+            if (isSingletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
                 for (DynamicObject included : Layouts.MODULE.getFields(metaClass).prependedAndIncludedModules()) {
-                    arrayAppendNode.call(frame, ret, "<<", included);
+                    yieldNode.dispatch(block, included);
                 }
-
-                return ret;
             }
 
             return nil();
