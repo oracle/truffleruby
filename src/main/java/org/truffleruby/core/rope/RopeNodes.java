@@ -544,7 +544,8 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)", "isAsciiCompatible(encoding)" })
-        public LeafRope makeValidLeafRopeAsciiCompat(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength) {
+        public LeafRope makeValidLeafRopeAsciiCompat(byte[] bytes, Encoding encoding, CodeRange codeRange, NotProvided characterLength,
+                                                     @Cached("create()") BranchProfile errorProfile) {
             // Extracted from StringSupport.strLength.
 
             int calculatedCharacterLength = 0;
@@ -564,7 +565,8 @@ public abstract class RopeNodes {
                 int delta = StringSupport.encFastMBCLen(bytes, p, e, encoding);
 
                 if (delta < 0) {
-                    throw new UnsupportedOperationException("Code range is reported as valid, but is invalid for the given encoding: " + encoding.toString());
+                    errorProfile.enter();
+                    throw new UnsupportedOperationException("Code range is reported as valid, but is invalid for the given encoding: " + encodingName(encoding));
                 }
 
                 p += delta;
@@ -724,6 +726,11 @@ public abstract class RopeNodes {
 
         protected static final class NonAsciiCharException extends SlowPathException {
             private static final long serialVersionUID = 5550642254188358382L;
+        }
+
+        @TruffleBoundary
+        private String encodingName(Encoding encoding) {
+            return encoding.toString();
         }
 
     }
