@@ -87,28 +87,6 @@ module Rubinius
   def self.synchronize(object, &block)
     Truffle::System.synchronized(object, &block)
   end
-
-  module Metrics
-    def self.data
-      {
-          :'gc.young.count' => 0,
-          :'gc.young.ms' => 0,
-          :'gc.immix.concurrent.ms' => 0,
-          :'gc.immix.count' => Truffle::GC.count,
-          :'gc.immix.stop.ms' => Truffle::GC.time,
-          :'gc.large.sweep.us' => 0,
-          :'memory.young.bytes' => 0,
-          :'memory.young.objects' => 0,
-          :'memory.immix.bytes' => 0,
-          :'memory.immix.objects' => 0,
-          :'memory.large.bytes' => 0,
-          :'memory.promoted.bytes' => 0,
-          :'memory.promoted.objects' => 0,
-          :'memory.symbols.bytes' => 0,
-          :'memory.code.bytes' => 0
-      }
-    end
-  end
 end
 
 class PrimitiveFailure < Exception # rubocop:disable Lint/InheritException
