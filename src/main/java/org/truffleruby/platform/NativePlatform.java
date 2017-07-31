@@ -12,7 +12,6 @@ package org.truffleruby.platform;
 import jnr.ffi.provider.MemoryManager;
 
 import org.truffleruby.platform.posix.ClockGetTime;
-import org.truffleruby.platform.posix.MallocFree;
 import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.TrufflePosix;
@@ -33,8 +32,6 @@ public interface NativePlatform {
     Threads getThreads();
 
     ClockGetTime getClockGetTime();
-
-    MallocFree getMallocFree();
 
     RubiniusConfiguration getRubiniusConfiguration();
 

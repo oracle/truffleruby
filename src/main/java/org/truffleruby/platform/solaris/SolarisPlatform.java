@@ -24,7 +24,6 @@ import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.java.JavaProcessName;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
-import org.truffleruby.platform.posix.MallocFree;
 import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.PosixFDSet8Bytes;
 import org.truffleruby.platform.posix.Sockets;
@@ -44,7 +43,6 @@ public class SolarisPlatform implements NativePlatform {
     private final Sockets sockets;
     private final Threads threads;
     private final ClockGetTime clockGetTime;
-    private final MallocFree mallocFree;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public SolarisPlatform(RubyContext context) {
@@ -57,7 +55,6 @@ public class SolarisPlatform implements NativePlatform {
         sockets = LibraryLoader.create(Sockets.class).library("socket").load();
         threads = context.getOptions().NATIVE_INTERRUPT ? new SolarisThreadsImplementation(LibraryLoader.create(SolarisThreads.class).library("libpthread.so.1").load()) : new NoopThreads();
         clockGetTime = LibraryLoader.create(ClockGetTime.class).library("c").library("rt").load();
-        mallocFree = LibraryLoader.create(MallocFree.class).library("c").load();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -101,11 +98,6 @@ public class SolarisPlatform implements NativePlatform {
     @Override
     public ClockGetTime getClockGetTime() {
         return clockGetTime;
-    }
-
-    @Override
-    public MallocFree getMallocFree() {
-        return mallocFree;
     }
 
     @Override

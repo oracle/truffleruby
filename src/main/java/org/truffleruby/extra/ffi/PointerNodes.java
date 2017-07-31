@@ -104,7 +104,7 @@ public abstract class PointerNodes {
 
         @TruffleBoundary
         private Pointer nativeMalloc(long size) {
-            return new Pointer(memoryManager().newPointer(getContext().getNativePlatform().getMallocFree().malloc(size)));
+            return Pointer.malloc(size);
         }
 
     }
@@ -115,7 +115,7 @@ public abstract class PointerNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject free(DynamicObject pointer) {
-            getContext().getNativePlatform().getMallocFree().free(Layouts.POINTER.getPointer(pointer).getPointer().address());
+            Layouts.POINTER.getPointer(pointer).free();
             return pointer;
         }
 

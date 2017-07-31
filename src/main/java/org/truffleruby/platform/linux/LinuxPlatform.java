@@ -23,7 +23,6 @@ import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.java.JavaProcessName;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
-import org.truffleruby.platform.posix.MallocFree;
 import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
@@ -43,7 +42,6 @@ public class LinuxPlatform implements NativePlatform {
     private final Sockets sockets;
     private final Threads threads;
     private final ClockGetTime clockGetTime;
-    private final MallocFree mallocFree;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public LinuxPlatform(RubyContext context) {
@@ -55,7 +53,6 @@ public class LinuxPlatform implements NativePlatform {
         sockets = LibraryLoader.create(Sockets.class).library("libc.so.6").load();
         threads = context.getOptions().NATIVE_INTERRUPT ? LibraryLoader.create(Threads.class).library("libc.so.6").library("libpthread.so.0").load() : new NoopThreads();
         clockGetTime = LibraryLoader.create(ClockGetTime.class).library("libc.so.6").library("librt.so.1").load();
-        mallocFree = LibraryLoader.create(MallocFree.class).library("libc.so.6").load();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         LinuxRubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -99,11 +96,6 @@ public class LinuxPlatform implements NativePlatform {
     @Override
     public ClockGetTime getClockGetTime() {
         return clockGetTime;
-    }
-
-    @Override
-    public MallocFree getMallocFree() {
-        return mallocFree;
     }
 
     @Override
