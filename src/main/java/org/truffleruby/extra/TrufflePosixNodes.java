@@ -231,7 +231,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyPointer(pointer)")
         public DynamicObject memset(DynamicObject pointer, int c, long length) {
-            Layouts.POINTER.getPointer(pointer).getPointer().setMemory(0, length, (byte) c);
+            Layouts.POINTER.getPointer(pointer).setMemory(0, length, (byte) c);
             return pointer;
         }
 
