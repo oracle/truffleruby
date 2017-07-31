@@ -140,11 +140,6 @@ public class ObjectSpaceManager {
     private void runFinalizers() {
         // Run in a loop
 
-        if (TruffleOptions.AOT) {
-            // ReferenceQueue#remove is not available with AOT.
-            return;
-        }
-
         while (true) {
             // Wait on the finalizer queue
             FinalizerReference finalizerReference = (FinalizerReference) context.getThreadManager().runUntilResult(null, () -> finalizerQueue.remove());
