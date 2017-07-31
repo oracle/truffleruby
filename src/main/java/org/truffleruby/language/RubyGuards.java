@@ -13,8 +13,8 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.extra.ffi.PointerNodes;
 import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
+import org.truffleruby.platform.Pointer;
 
 public abstract class RubyGuards {
 
@@ -251,7 +251,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isNullPointer(DynamicObject pointer) {
-        return Layouts.POINTER.getPointer(pointer).getPointer() == PointerNodes.NULL_POINTER;
+        return Layouts.POINTER.getPointer(pointer).getAddress() == 0;
     }
 
     // Internal types

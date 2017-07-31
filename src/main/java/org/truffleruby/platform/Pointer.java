@@ -12,7 +12,6 @@ package org.truffleruby.platform;
 import com.oracle.truffle.api.CompilerDirectives;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
-import org.truffleruby.extra.ffi.PointerNodes;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -20,7 +19,9 @@ import java.nio.charset.Charset;
 
 public class Pointer {
 
-    public static final Pointer NULL = new Pointer(PointerNodes.NULL_POINTER);
+    public static final jnr.ffi.Pointer JNR_POINTER = Runtime.getSystemRuntime().getMemoryManager().newOpaquePointer(0);
+
+    public static final Pointer NULL = new Pointer(0);
 
     public static Pointer malloc(long size) {
         return new Pointer(UNSAFE.allocateMemory(size));
