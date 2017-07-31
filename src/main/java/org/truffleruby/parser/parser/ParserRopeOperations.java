@@ -13,12 +13,15 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.jcodings.Encoding;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.loader.SourceLoader;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
@@ -26,7 +29,7 @@ import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 public class ParserRopeOperations {
 
     public Rope withEncoding(Rope rope, Encoding encoding) {
-        if (TruffleOptions.AOT) {
+        if (isBuildingAOTImage()) {
             if (rope.isAsciiOnly() && encoding.isAsciiCompatible()) {
                 return rope.withEncoding(encoding, CR_7BIT);
             }
@@ -44,7 +47,7 @@ public class ParserRopeOperations {
     }
 
     public Rope makeShared(Rope rope, int sharedStart, int sharedLength) {
-        if (TruffleOptions.AOT) {
+        if (isBuildingAOTImage()) {
             if (sharedLength == rope.byteLength()) {
                 return rope;
             }
@@ -59,6 +62,13 @@ public class ParserRopeOperations {
 
             return newRope;
         }
+    }
+
+    private static boolean isBuildingAOTImage() {
+        // We can't use a detached RopeNode during image construction because it trips up the static analysis, but
+        // we can use it at runtime. We check if a context has been created as a proxy for whether we're in the AOT
+        // image builder or running at runtime.
+        return TruffleOptions.AOT && RubyContext.FIRST_INSTANCE == null;
     }
 
     private static class RopeNode extends RubyNode {
@@ -91,6 +101,6 @@ public class ParserRopeOperations {
 
     }
 
-    private final RopeNode ropeNode = TruffleOptions.AOT ? null : new RopeNode();
+    private final RopeNode ropeNode = isBuildingAOTImage() ? null : new RopeNode();
 
 }
