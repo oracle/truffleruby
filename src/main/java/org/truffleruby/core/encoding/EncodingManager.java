@@ -56,7 +56,8 @@ public class EncodingManager {
 
     @TruffleBoundary
     private static DynamicObject newRubyEncoding(RubyContext context, Encoding encoding, byte[] name, int p, int end, boolean dummy) {
-        assert p == 0 && end == name.length : "Ropes can't be created with arbitrary offsets. Bounds must be exact";
+        assert p == 0 : "Ropes can't be created with non-zero offset: " + p;
+        assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end + "; name.length = " + name.length + ")";
 
         final Rope rope = RopeOperations.create(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         final Rope cachedRope = context.getRopeTable().getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
