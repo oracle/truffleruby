@@ -20,7 +20,7 @@ import java.nio.charset.Charset;
 
 public class Pointer {
 
-    public static final jnr.ffi.Pointer JNR_POINTER = Runtime.getSystemRuntime().getMemoryManager().newOpaquePointer(0);
+    public static final jnr.ffi.Pointer JNR_NULL = Runtime.getSystemRuntime().getMemoryManager().newOpaquePointer(0);
 
     public static final Pointer NULL = new Pointer(0);
 

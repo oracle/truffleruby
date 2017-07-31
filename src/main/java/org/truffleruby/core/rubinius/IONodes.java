@@ -555,7 +555,7 @@ public abstract class IONodes {
 
             final ByteBuffer buffer = ByteBuffer.allocate(length);
             final int bytesRead = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
-                    () -> nativeSockets().recvfrom(sockfd, buffer, length, flags, Pointer.JNR_POINTER, Pointer.JNR_POINTER));
+                    () -> nativeSockets().recvfrom(sockfd, buffer, length, flags, Pointer.JNR_NULL, Pointer.JNR_NULL));
             ensureSuccessful(bytesRead);
             buffer.position(bytesRead);
 
@@ -585,7 +585,7 @@ public abstract class IONodes {
             timeoutObject.setTime(new long[]{ 0, 0 });
 
             final int res = ensureSuccessful(nativeSockets().select(fd + 1, fdSet.getPointer(),
-                    Pointer.JNR_POINTER, Pointer.JNR_POINTER, timeoutObject));
+                    Pointer.JNR_NULL, Pointer.JNR_NULL, timeoutObject));
 
             if (res == 0) {
                 throw new RaiseException(coreExceptions().eAGAINWaitReadable(this));
@@ -917,9 +917,9 @@ public abstract class IONodes {
                 private int callSelect(int nfds, FDSet fdSet, Timeval timeoutToUse) {
                     return nativeSockets().select(
                             nfds,
-                            setNb == 1 ? fdSet.getPointer() : Pointer.JNR_POINTER,
-                            setNb == 2 ? fdSet.getPointer() : Pointer.JNR_POINTER,
-                            setNb == 3 ? fdSet.getPointer() : Pointer.JNR_POINTER,
+                            setNb == 1 ? fdSet.getPointer() : Pointer.JNR_NULL,
+                            setNb == 2 ? fdSet.getPointer() : Pointer.JNR_NULL,
+                            setNb == 3 ? fdSet.getPointer() : Pointer.JNR_NULL,
                             timeoutToUse);
                 }
             });

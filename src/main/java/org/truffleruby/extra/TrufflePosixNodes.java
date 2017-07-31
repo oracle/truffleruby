@@ -884,7 +884,7 @@ public abstract class TrufflePosixNodes {
             return nativeSockets().getnameinfo(
                     Layouts.POINTER.getPointer(sa).getPointer(),
                     salen,
-                    Pointer.JNR_POINTER,
+                    Pointer.JNR_NULL,
                     hostlen,
                     Layouts.POINTER.getPointer(serv).getPointer(),
                     servlen,
@@ -902,7 +902,7 @@ public abstract class TrufflePosixNodes {
                     salen,
                     Layouts.POINTER.getPointer(host).getPointer(),
                     hostlen,
-                    Pointer.JNR_POINTER,
+                    Pointer.JNR_NULL,
                     servlen,
                     flags);
         }
