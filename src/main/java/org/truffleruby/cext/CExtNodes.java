@@ -882,8 +882,8 @@ public class CExtNodes {
                 fdSet.set(fd);
                 final int result = nativeSockets().select(fd + 1,
                         fdSet.getPointer(),
-                        Pointer.JNR_POINTER,
-                        Pointer.JNR_POINTER,
+                        Pointer.JNR_NULL,
+                        Pointer.JNR_NULL,
                         null);
 
                 if (result == 0) {
@@ -908,9 +908,9 @@ public class CExtNodes {
             return getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
                 fdSet.set(fd);
                 final int result = nativeSockets().select(fd + 1,
-                        Pointer.JNR_POINTER,
+                        Pointer.JNR_NULL,
                         fdSet.getPointer(),
-                        Pointer.JNR_POINTER,
+                        Pointer.JNR_NULL,
                         null);
 
                 if (result == 0) {
