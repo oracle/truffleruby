@@ -77,11 +77,6 @@ module Rubinius
     raise PrimitiveFailure, 'Rubinius.extended_modules primitive failed'
   end
 
-  def self.raise_exception(exc)
-    Truffle.primitive :vm_raise_exception
-    raise PrimitiveFailure, 'Rubinius.vm_raise_exception primitive failed'
-  end
-
   def self.throw(dest, obj)
     Truffle.primitive :vm_throw
     raise PrimitiveFailure, 'Rubinius.throw primitive failed'
