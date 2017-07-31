@@ -10,6 +10,7 @@
 package org.truffleruby.platform;
 
 import jnr.ffi.Runtime;
+import jnr.ffi.provider.MemoryManager;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -18,6 +19,10 @@ public class Pointer {
 
     public static Pointer malloc(long size) {
         return new Pointer(UNSAFE.allocateMemory(size));
+    }
+
+    public static Pointer mallocAutorelease(MemoryManager memoryManager, int size) {
+        return new Pointer(memoryManager.allocateDirect(size));
     }
 
     private final jnr.ffi.Pointer pointer;
@@ -32,6 +37,22 @@ public class Pointer {
 
     public Pointer add(long offset) {
         return new Pointer(pointer.address() + offset);
+    }
+
+    public void put(int i, byte[] bytes, int i1, int length) {
+        pointer.put(i, bytes, i1, length);
+    }
+
+    public void putByte(int length, byte b) {
+        pointer.putByte(length, b);
+    }
+
+    public byte getByte(int index) {
+        return pointer.getByte(index);
+    }
+
+    public void get(int from, byte[] buffer, int bufferPos, int i) {
+        pointer.get(from, buffer, bufferPos, i);
     }
 
     public void putLong(long value) {

@@ -1003,7 +1003,7 @@ public class CExtNodes {
                 Layouts.STRING.setRope(string, nativeRope);
             }
 
-            return nativeRope.getNativePointer().address();
+            return nativeRope.getNativePointer().getAddress();
         }
 
     }
