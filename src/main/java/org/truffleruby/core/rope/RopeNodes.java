@@ -21,7 +21,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.ControlFlowException;
+import com.oracle.truffle.api.nodes.SlowPathException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -639,13 +639,11 @@ public abstract class RopeNodes {
 
         @Specialization(rewriteOn = NonAsciiCharException.class,
                 guards = { "isUnknown(codeRange)", "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        public LeafRope makeUnknownLeafRopeAsciiCompatible(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
-                                                           @Cached("create()") BranchProfile nonAsciiCharBranchProfile) {
+        public LeafRope makeUnknownLeafRopeAsciiCompatible(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength) throws NonAsciiCharException {
             // Optimistically assume this string consists only of ASCII characters. If a non-ASCII character is found,
             // fail over to a more generalized search.
             for (int i = 0; i < bytes.length; i++) {
                 if (bytes[i] < 0) {
-                    nonAsciiCharBranchProfile.enter();
                     throw new NonAsciiCharException();
                 }
             }
@@ -724,7 +722,7 @@ public abstract class RopeNodes {
             return encoding.isFixedWidth();
         }
 
-        protected static final class NonAsciiCharException extends ControlFlowException {
+        protected static final class NonAsciiCharException extends SlowPathException {
             private static final long serialVersionUID = 5550642254188358382L;
         }
 
