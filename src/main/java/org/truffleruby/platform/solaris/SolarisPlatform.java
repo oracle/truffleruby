@@ -10,8 +10,6 @@
 package org.truffleruby.platform.solaris;
 
 import jnr.ffi.LibraryLoader;
-import jnr.ffi.Runtime;
-import jnr.ffi.provider.MemoryManager;
 import jnr.posix.POSIX;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
@@ -38,7 +36,6 @@ public class SolarisPlatform implements NativePlatform {
 
     private final TruffleNFIPlatform nfi;
     private final TrufflePosix posix;
-    private final MemoryManager memoryManager;
     private final SignalManager signalManager;
     private final ProcessName processName;
     private final Sockets sockets;
@@ -50,7 +47,6 @@ public class SolarisPlatform implements NativePlatform {
         nfi = context.getOptions().NATIVE_INTERRUPT ? new TruffleNFIPlatform(context) : null;
         POSIX _posix = POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context));
         posix = new JNRTrufflePosix(context, _posix);
-        memoryManager = Runtime.getSystemRuntime().getMemoryManager();
         signalManager = new SunMiscSignalManager();
         processName = new JavaProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("socket").load();
@@ -69,11 +65,6 @@ public class SolarisPlatform implements NativePlatform {
     @Override
     public TrufflePosix getPosix() {
         return posix;
-    }
-
-    @Override
-    public MemoryManager getMemoryManager() {
-        return memoryManager;
     }
 
     @Override

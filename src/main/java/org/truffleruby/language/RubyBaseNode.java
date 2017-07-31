@@ -116,10 +116,6 @@ public abstract class RubyBaseNode extends Node {
         return getContext().getNativePlatform().getSockets();
     }
 
-    protected MemoryManager memoryManager() {
-        return getContext().getNativePlatform().getMemoryManager();
-    }
-
     protected DynamicObject handle(Object object) {
         return Layouts.HANDLE.createHandle(coreLibrary().getHandleFactory(), object);
     }

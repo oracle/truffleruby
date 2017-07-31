@@ -10,8 +10,6 @@
 package org.truffleruby.platform.darwin;
 
 import jnr.ffi.LibraryLoader;
-import jnr.ffi.Runtime;
-import jnr.ffi.provider.MemoryManager;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
@@ -37,7 +35,6 @@ public class DarwinPlatform implements NativePlatform {
 
     private final TruffleNFIPlatform nfi;
     private final TrufflePosix posix;
-    private final MemoryManager memoryManager;
     private final SignalManager signalManager;
     private final ProcessName processName;
     private final Sockets sockets;
@@ -48,7 +45,6 @@ public class DarwinPlatform implements NativePlatform {
     public DarwinPlatform(RubyContext context) {
         nfi = context.getOptions().NATIVE_INTERRUPT ? new TruffleNFIPlatform(context) : null;
         posix = new JNRTrufflePosix(context, POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context)));
-        memoryManager = Runtime.getSystemRuntime().getMemoryManager();
         signalManager = new SunMiscSignalManager();
         processName = new DarwinProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("c").load();
@@ -67,11 +63,6 @@ public class DarwinPlatform implements NativePlatform {
     @Override
     public TrufflePosix getPosix() {
         return posix;
-    }
-
-    @Override
-    public MemoryManager getMemoryManager() {
-        return memoryManager;
     }
 
     @Override

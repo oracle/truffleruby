@@ -11,7 +11,6 @@ package org.truffleruby.platform;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import jnr.ffi.Runtime;
-import jnr.ffi.provider.MemoryManager;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -27,8 +26,9 @@ public class Pointer {
         return new Pointer(UNSAFE.allocateMemory(size));
     }
 
-    public static Pointer mallocAutorelease(MemoryManager memoryManager, int size) {
-        return new Pointer(memoryManager.allocateDirect(size));
+    @CompilerDirectives.TruffleBoundary
+    public static Pointer mallocAutorelease(int size) {
+        return new Pointer(Runtime.getSystemRuntime().getMemoryManager().allocateDirect(size));
     }
 
     private final jnr.ffi.Pointer pointer;
