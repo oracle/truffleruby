@@ -63,6 +63,13 @@ module Signal
       number = sig.to_i
     end
 
+    signame = Numbers[number]
+
+    if signame == "VTALRM"
+      # Used internally to unblock native calls, like MRI
+      raise ArgumentError, "can't trap reserved signal: SIGVTALRM"
+    end
+
     # If no command, use the block.
     prc ||= block
     prc = prc.to_s if prc.kind_of?(Symbol)
@@ -73,7 +80,7 @@ module Signal
       old = @handlers.delete(number)
 
       if number != Names['EXIT']
-        Rubinius.watch_signal(Numbers[number], 'DEFAULT') # Truffle: adapted to pass the signal name and simpler arguments
+        Rubinius.watch_signal(signame, 'DEFAULT') # Truffle: adapted to pass the signal name and simpler arguments
       end
 
       return 'DEFAULT' unless had_old
@@ -98,7 +105,7 @@ module Signal
     @handlers[number] = prc
 
     if number != Names['EXIT']
-      Rubinius.watch_signal(Numbers[number], (prc.nil? || prc == 'IGNORE') ? nil : prc) # Truffle: adapted to pass the signal name and simpler arguments
+      Rubinius.watch_signal(signame, (prc.nil? || prc == 'IGNORE') ? nil : prc) # Truffle: adapted to pass the signal name and simpler arguments
     end
 
     return 'DEFAULT' unless had_old
