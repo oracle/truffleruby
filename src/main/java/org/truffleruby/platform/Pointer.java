@@ -37,7 +37,7 @@ public class Pointer {
         this(Runtime.getSystemRuntime().getMemoryManager().newPointer(address));
     }
 
-    public Pointer(jnr.ffi.Pointer pointer) {
+    private Pointer(jnr.ffi.Pointer pointer) {
         this.pointer = pointer;
     }
 

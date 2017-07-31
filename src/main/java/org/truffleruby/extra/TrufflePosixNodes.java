@@ -723,8 +723,7 @@ public abstract class TrufflePosixNodes {
 
         @Specialization(guards = "isRubyString(name)")
         public DynamicObject gethostbyname(DynamicObject name) {
-            final jnr.ffi.Pointer pointer = getHostByName(name);
-            return allocateObjectNode.allocate(getContext().getCoreLibrary().getRubiniusFFIPointerClass(), new Pointer(pointer));
+            return allocateObjectNode.allocate(getContext().getCoreLibrary().getRubiniusFFIPointerClass(), new Pointer(getHostByName(name).address()));
         }
 
         @TruffleBoundary
