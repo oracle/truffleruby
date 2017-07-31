@@ -57,7 +57,6 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodesFactory;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
-import org.truffleruby.extra.ffi.PointerNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -89,6 +88,7 @@ import org.truffleruby.language.supercall.CallSuperMethodNodeGen;
 import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.platform.FDSet;
+import org.truffleruby.platform.Pointer;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -882,8 +882,8 @@ public class CExtNodes {
                 fdSet.set(fd);
                 final int result = nativeSockets().select(fd + 1,
                         fdSet.getPointer(),
-                        PointerNodes.NULL_POINTER,
-                        PointerNodes.NULL_POINTER,
+                        Pointer.JNR_POINTER,
+                        Pointer.JNR_POINTER,
                         null);
 
                 if (result == 0) {
@@ -908,9 +908,9 @@ public class CExtNodes {
             return getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
                 fdSet.set(fd);
                 final int result = nativeSockets().select(fd + 1,
-                        PointerNodes.NULL_POINTER,
+                        Pointer.JNR_POINTER,
                         fdSet.getPointer(),
-                        PointerNodes.NULL_POINTER,
+                        Pointer.JNR_POINTER,
                         null);
 
                 if (result == 0) {

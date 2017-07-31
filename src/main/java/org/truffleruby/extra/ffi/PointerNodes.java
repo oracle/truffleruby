@@ -43,8 +43,6 @@ import org.truffleruby.platform.RubiniusTypes;
 @CoreClass("Rubinius::FFI::Pointer")
 public abstract class PointerNodes {
 
-    public static final jnr.ffi.Pointer NULL_POINTER = jnr.ffi.Runtime.getSystemRuntime().getMemoryManager().newOpaquePointer(0);
-
     public static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
