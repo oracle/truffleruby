@@ -744,11 +744,11 @@ public abstract class RegexpNodes {
     }
 
     @Primitive(name = "regexp_names")
-    public abstract static class RubiniusNamesNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class RegexpNamesNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        public Object rubiniusNames(DynamicObject regexp) {
+        public Object regexpNames(DynamicObject regexp) {
             final int size = Layouts.REGEXP.getRegex(regexp).numberOfNames();
             if (size == 0) {
                 return createArray(null, size);
