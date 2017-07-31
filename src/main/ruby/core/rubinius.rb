@@ -72,11 +72,6 @@ module Rubinius
   # jnr-posix hard codes this value
   PATH_MAX = 1024
 
-  def self.watch_signal(sig, ignored)
-    Truffle.primitive :vm_watch_signal
-    raise PrimitiveFailure, 'Rubinius.vm_watch_signal primitive failed'
-  end
-
   def self.extended_modules(obj)
     Truffle.primitive :vm_extended_modules
     raise PrimitiveFailure, 'Rubinius.extended_modules primitive failed'
