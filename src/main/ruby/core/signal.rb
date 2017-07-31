@@ -80,7 +80,7 @@ module Signal
       old = @handlers.delete(number)
 
       if number != Names['EXIT']
-        Rubinius.watch_signal(signame, 'DEFAULT') # Truffle: adapted to pass the signal name and simpler arguments
+        Truffle.invoke_primitive :vm_watch_signal, signame, 'DEFAULT'
       end
 
       return 'DEFAULT' unless had_old
@@ -105,7 +105,8 @@ module Signal
     @handlers[number] = prc
 
     if number != Names['EXIT']
-      Rubinius.watch_signal(signame, (prc.nil? || prc == 'IGNORE') ? nil : prc) # Truffle: adapted to pass the signal name and simpler arguments
+      handler = (prc.nil? || prc == 'IGNORE') ? nil : prc
+      Truffle.invoke_primitive :vm_watch_signal, signame, handler
     end
 
     return 'DEFAULT' unless had_old
