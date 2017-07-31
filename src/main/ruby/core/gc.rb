@@ -121,8 +121,6 @@ module GC
     end
 
     def self.result
-      stats = GC.stat
-
       <<-OUT
 Complete process runtime statistics
 ===================================

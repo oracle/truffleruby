@@ -65,7 +65,7 @@ module Signal
 
     signame = self.signame(number)
 
-    if signame == "VTALRM"
+    if signame == 'VTALRM'
       # Used internally to unblock native calls, like MRI
       raise ArgumentError, "can't trap reserved signal: SIGVTALRM"
     end
