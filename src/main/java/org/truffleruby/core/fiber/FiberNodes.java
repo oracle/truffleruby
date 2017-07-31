@@ -71,7 +71,7 @@ public abstract class FiberNodes {
                 0L);
     }
 
-    public static void initialize(final RubyContext context, final DynamicObject fiber, final DynamicObject block, final Node currentNode) {
+    public static void initialize(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
         final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
         final String name = "Ruby Fiber@" + RubyLanguage.fileLine(sourceSection);
         final Thread thread = new Thread(() -> handleFiberExceptions(context, fiber, block, currentNode));
@@ -94,7 +94,7 @@ public abstract class FiberNodes {
         });
     }
 
-    private static void handleFiberExceptions(final RubyContext context, final DynamicObject fiber, final DynamicObject block, Node currentNode) {
+    private static void handleFiberExceptions(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
         run(context, fiber, currentNode, () -> {
             try {
                 final Object[] args = waitForResume(context, fiber);
@@ -163,7 +163,7 @@ public abstract class FiberNodes {
      * Send the Java thread that represents this fiber to sleep until it receives a resume or exit message.
      */
     @TruffleBoundary
-    private static Object[] waitForResume(RubyContext context, final DynamicObject fiber) {
+    private static Object[] waitForResume(RubyContext context, DynamicObject fiber) {
         assert RubyGuards.isRubyFiber(fiber);
 
         final FiberMessage message = context.getThreadManager().runUntilResult(null, () -> Layouts.FIBER.getMessageQueue(fiber).take());
