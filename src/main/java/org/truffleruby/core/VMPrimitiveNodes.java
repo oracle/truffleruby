@@ -167,9 +167,10 @@ public abstract class VMPrimitiveNodes {
         @Specialization(guards = "isRubyString(username)")
         public DynamicObject vmGetUserHome(DynamicObject username) {
             // TODO BJF 30-APR-2015 Review the more robust getHomeDirectoryPath implementation
-            final Passwd passwd = posix().getpwnam(username.toString());
+            final String user = StringOperations.getString(username);
+            final Passwd passwd = posix().getpwnam(user);
             if (passwd == null) {
-                throw new RaiseException(coreExceptions().argumentError("user " + username.toString() + " does not exist", this));
+                throw new RaiseException(coreExceptions().argumentError("user " + user + " does not exist", this));
             }
 
             return makeStringNode.executeMake(passwd.getHome(), UTF8Encoding.INSTANCE, org.truffleruby.core.rope.CodeRange.CR_UNKNOWN);
