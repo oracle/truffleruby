@@ -639,11 +639,13 @@ public abstract class RopeNodes {
 
         @Specialization(rewriteOn = NonAsciiCharException.class,
                 guards = { "isUnknown(codeRange)", "!isEmpty(bytes)", "!isBinaryString(encoding)", "isAsciiCompatible(encoding)" })
-        public LeafRope makeUnknownLeafRopeAsciiCompatible(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength) {
+        public LeafRope makeUnknownLeafRopeAsciiCompatible(byte[] bytes, Encoding encoding, CodeRange codeRange, Object characterLength,
+                                                           @Cached("create()") BranchProfile nonAsciiCharBranchProfile) {
             // Optimistically assume this string consists only of ASCII characters. If a non-ASCII character is found,
             // fail over to a more generalized search.
             for (int i = 0; i < bytes.length; i++) {
                 if (bytes[i] < 0) {
+                    nonAsciiCharBranchProfile.enter();
                     throw new NonAsciiCharException();
                 }
             }
