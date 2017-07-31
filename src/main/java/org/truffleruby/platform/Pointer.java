@@ -58,11 +58,11 @@ public class Pointer {
     }
 
     public void putByte(long offset, byte b) {
-        UNSAFE.putByte(getAddress() + offset, b);
+        UNSAFE.putByte(address + offset, b);
     }
 
     public byte getByte(long offset) {
-        return UNSAFE.getByte(getAddress() + offset);
+        return UNSAFE.getByte(address + offset);
     }
 
     @CompilerDirectives.TruffleBoundary
@@ -73,23 +73,23 @@ public class Pointer {
     }
 
     public void putLong(long value) {
-        UNSAFE.putLong(getAddress(), value);
+        UNSAFE.putLong(address, value);
     }
 
     public void putLong(long offset, long value) {
-        UNSAFE.putLong(getAddress() + offset, value);
+        UNSAFE.putLong(address + offset, value);
     }
 
     public short getShort(long offset) {
-        return UNSAFE.getShort(getAddress() + offset);
+        return UNSAFE.getShort(address + offset);
     }
 
     public int getInt(long offset) {
-        return UNSAFE.getInt(getAddress() + offset);
+        return UNSAFE.getInt(address + offset);
     }
 
     public long getLong(long offset) {
-        return UNSAFE.getLong(getAddress() + offset);
+        return UNSAFE.getLong(address + offset);
     }
 
     public long getLongLong(long offset) {
@@ -109,11 +109,11 @@ public class Pointer {
     }
 
     public void putShort(long offset, short value) {
-        UNSAFE.putShort(getAddress() + offset, value);
+        UNSAFE.putShort(address + offset, value);
     }
 
     public void putInt(long offset, int value) {
-        UNSAFE.putInt(getAddress() + offset, value);
+        UNSAFE.putInt(address + offset, value);
     }
 
     public void putLongLong(long offset, long value) {
