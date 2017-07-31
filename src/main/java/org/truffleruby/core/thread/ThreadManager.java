@@ -29,6 +29,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
+import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
@@ -185,7 +186,6 @@ public class ThreadManager {
     public static void run(DynamicObject thread, RubyContext context, Node currentNode, String info, Runnable task) {
         assert RubyGuards.isRubyThread(thread);
 
-
         Layouts.THREAD.setSourceLocation(thread, info);
         final String name = "Ruby Thread@" + info;
         Thread.currentThread().setName(name);
@@ -195,11 +195,15 @@ public class ThreadManager {
             task.run();
         } catch (ThreadExitException e) {
             setThreadValue(context, thread, context.getCoreLibrary().getNil());
-            return;
         } catch (RaiseException e) {
             setException(context, thread, e.getException(), currentNode);
         } catch (ReturnException e) {
             setException(context, thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
+        } catch (ExitException e) {
+            final Thread rootThread = Layouts.FIBER.getThread(Layouts.THREAD.getFiberManager(context.getThreadManager().getRootThread()).getCurrentFiber());
+            context.getSafepointManager().pauseThreadAndExecute(rootThread, currentNode, (actionThread, actionCurrentNode) -> {
+                throw e;
+            });
         } finally {
             context.getThreadManager().cleanup(thread);
         }
