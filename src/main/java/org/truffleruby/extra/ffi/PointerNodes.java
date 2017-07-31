@@ -54,7 +54,7 @@ public abstract class PointerNodes {
 
         @Specialization
         public DynamicObject allocate(DynamicObject pointerClass) {
-            return allocateObjectNode.allocate(pointerClass, new Pointer(NULL_POINTER));
+            return allocateObjectNode.allocate(pointerClass, Pointer.NULL);
         }
 
     }
