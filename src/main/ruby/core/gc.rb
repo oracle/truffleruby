@@ -75,19 +75,18 @@ module GC
   end
 
   def self.count
-    data = stat
-    data[:"gc.young.count"] + data[:"gc.immix.count"]
+    Truffle::GC.count
   end
 
   def self.time
-    data = stat
-    data[:"gc.young.ms"] +
-        data[:"gc.immix.stop.ms"] +
-        data[:"gc.large.sweep.us"] * 1_000
+    Truffle::GC.time
   end
 
   def self.stat
-    Rubinius::Metrics.data.to_hash
+    {
+      count: Truffle::GC.count,
+      time: Truffle::GC.time,
+    }
   end
 
   module Profiler
@@ -127,26 +126,8 @@ module GC
       <<-OUT
 Complete process runtime statistics
 ===================================
-
-Collections
-                         Count       Total time / concurrent (ms)
-Young   #{sprintf("% 22d", stats[:'gc.young.count'])} #{sprintf("% 16d             ", stats[:'gc.young.ms'])}
-Full    #{sprintf("% 22d", stats[:'gc.immix.count'])} #{sprintf("% 16d / % 10d", stats[:'gc.immix.stop.ms'], stats[:'gc.immix.concurrent.ms'])}
-
-Allocation
-             Objects allocated        Bytes allocated
-Young   #{sprintf("% 22d", stats[:'memory.young.objects'])} #{sprintf("% 22d", stats[:'memory.young.bytes'])}
-Promoted#{sprintf("% 22d", stats[:'memory.promoted.objects'])} #{sprintf("% 22d", stats[:'memory.promoted.bytes'])}
-Mature  #{sprintf("% 22d", stats[:'memory.immix.objects'])} #{sprintf("% 22d", stats[:'memory.immix.bytes'])}
-
-
-Usage
-                    Bytes used
-Young   #{sprintf("% 22d", stats[:'memory.young.bytes'])}
-Mature  #{sprintf("% 22d", stats[:'memory.immix.bytes'])}
-Large   #{sprintf("% 22d", stats[:'memory.large.bytes'])}
-Code    #{sprintf("% 22d", stats[:'memory.code.bytes'])}
-Symbols #{sprintf("% 22d", stats[:'memory.symbols.bytes'])}
+Collections: #{GC.count}
+Total time (ms): #{GC.time}
       OUT
     end
 
