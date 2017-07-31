@@ -24,44 +24,30 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Rubinius
-  module ThrownValue
-    def self.register(tag)
-      tags = Truffle.invoke_primitive :fiber_get_catch_tags
-      tags << tag
-      begin
-        yield
-      ensure
-        tags.pop
-      end
-    end
-
-    def self.available?(tag)
-      tags = Truffle.invoke_primitive :fiber_get_catch_tags
-      tags.each do |c|
-        return true if Rubinius::Type.object_equal(c, tag)
-      end
-      false
-    end
-  end
-end
-
 module Kernel
   def catch(tag = Object.new, &block)
     raise LocalJumpError unless block_given?
 
-    Rubinius::ThrownValue.register(tag) do
-      return Truffle.invoke_primitive :vm_catch, tag, block
+    tags = Truffle.invoke_primitive :fiber_get_catch_tags
+    tags << tag
+    begin
+      Truffle.invoke_primitive :vm_catch, tag, block
+    ensure
+      tags.pop
     end
   end
   module_function :catch
 
   def throw(tag, value=nil)
-    unless Rubinius::ThrownValue.available? tag
-      raise UncaughtThrowError, "uncaught throw #{tag.inspect}"
+    tags = Truffle.invoke_primitive :fiber_get_catch_tags
+
+    tags.each do |c|
+      if Rubinius::Type.object_equal(c, tag)
+        Truffle.invoke_primitive :vm_throw, tag, value
+      end
     end
 
-    Truffle.invoke_primitive :vm_throw, tag, value
+    raise UncaughtThrowError, "uncaught throw #{tag.inspect}"
   end
   module_function :throw
 end
