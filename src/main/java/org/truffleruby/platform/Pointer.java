@@ -47,12 +47,12 @@ public class Pointer {
         pointer.put(i, bytes, i1, length);
     }
 
-    public void putByte(long length, byte b) {
-        pointer.putByte(length, b);
+    public void putByte(long offset, byte b) {
+        UNSAFE.putByte(getAddress() + offset, b);
     }
 
-    public byte getByte(long index) {
-        return pointer.getByte(index);
+    public byte getByte(long offset) {
+        return UNSAFE.getByte(getAddress() + offset);
     }
 
     public void get(int from, byte[] buffer, int bufferPos, int i) {
@@ -60,27 +60,27 @@ public class Pointer {
     }
 
     public void putLong(long value) {
-        pointer.putLong(0, value);
+        UNSAFE.putLong(getAddress(), value);
     }
 
     public void putLong(long offset, long value) {
-        pointer.putLong(offset, value);
+        UNSAFE.putLong(getAddress() + offset, value);
     }
 
     public short getShort(long offset) {
-        return pointer.getShort(offset);
+        return UNSAFE.getShort(getAddress() + offset);
     }
 
     public int getInt(long offset) {
-        return pointer.getInt(offset);
+        return UNSAFE.getInt(getAddress() + offset);
     }
 
     public long getLong(long offset) {
-        return pointer.getLong(offset);
+        return UNSAFE.getLong(getAddress() + offset);
     }
 
     public long getLongLong(long offset) {
-        return pointer.getLongLong(offset);
+        return getLong(offset);
     }
 
     public String getString(long offset) {
@@ -88,19 +88,19 @@ public class Pointer {
     }
 
     public void putShort(long offset, short value) {
-        pointer.putShort(offset, value);
+        UNSAFE.putShort(getAddress() + offset, value);
     }
 
     public void putInt(long offset, int value) {
-        pointer.putInt(offset, value);
+        UNSAFE.putInt(getAddress() + offset, value);
     }
 
     public void putLongLong(long offset, long value) {
-        pointer.putLongLong(offset, value);
+        putLong(offset, value);
     }
 
     public void putPointer(long offset, Pointer value) {
-        pointer.putPointer(offset, value.pointer);
+        putLong(offset, value.getAddress());
     }
 
     public void putString(long offset, String value, int length, Charset cs) {
