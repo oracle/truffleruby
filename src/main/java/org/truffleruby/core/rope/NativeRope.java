@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.rope;
 
-import jnr.ffi.provider.MemoryManager;
 import org.jcodings.Encoding;
 import org.truffleruby.core.Hashing;
 
@@ -20,14 +19,9 @@ public class NativeRope extends Rope {
 
     private Pointer pointer;
 
-    public NativeRope(MemoryManager memoryManager, byte[] bytes, Encoding encoding, int characterLength) {
+    public NativeRope(byte[] bytes, Encoding encoding, int characterLength) {
         super(encoding, CodeRange.CR_UNKNOWN, false, bytes.length, characterLength, 1, null);
-        allocatePointer(memoryManager, bytes);
-    }
-
-    @TruffleBoundary
-    private void allocatePointer(MemoryManager memoryManager, byte[] bytes) {
-        pointer = Pointer.mallocAutorelease(memoryManager, bytes.length + 1 /* trailing \0 */);
+        pointer = Pointer.mallocAutorelease(bytes.length + 1 /* trailing \0 */);
         pointer.put(0, bytes, 0, bytes.length);
         pointer.putByte(bytes.length, (byte) 0);
     }

@@ -9,8 +9,6 @@
  */
 package org.truffleruby.platform;
 
-import jnr.ffi.provider.MemoryManager;
-
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.Threads;
@@ -20,8 +18,6 @@ import org.truffleruby.platform.signal.SignalManager;
 public interface NativePlatform {
 
     TrufflePosix getPosix();
-
-    MemoryManager getMemoryManager();
 
     SignalManager getSignalManager();
 
