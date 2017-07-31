@@ -531,7 +531,7 @@ public abstract class RopeNodes {
             return new AsciiOnlyLeafRope(bytes, encoding);
         }
 
-        @Specialization(guards = { "isValid(codeRange)", "wasProvided(characterLength)" })
+        @Specialization(guards = "isValid(codeRange)")
         public LeafRope makeValidLeafRopeWithCharacterLength(byte[] bytes, Encoding encoding, CodeRange codeRange, int characterLength) {
             return new ValidLeafRope(bytes, encoding, characterLength);
         }
