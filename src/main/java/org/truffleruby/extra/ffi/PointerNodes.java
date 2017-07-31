@@ -62,10 +62,9 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_set_address")
     public static abstract class PointerSetAddressPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         public long setAddress(DynamicObject pointer, long address) {
-            Layouts.POINTER.setPointer(pointer, new Pointer(memoryManager().newPointer(address)));
+            Layouts.POINTER.setPointer(pointer, new Pointer(address));
             return address;
         }
 
@@ -99,12 +98,7 @@ public abstract class PointerNodes {
 
         @Specialization
         public DynamicObject malloc(DynamicObject pointerClass, long size) {
-            return allocateObjectNode.allocate(pointerClass, nativeMalloc(size));
-        }
-
-        @TruffleBoundary
-        private Pointer nativeMalloc(long size) {
-            return Pointer.malloc(size);
+            return allocateObjectNode.allocate(pointerClass, Pointer.malloc(size));
         }
 
     }
@@ -112,7 +106,6 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_free")
     public static abstract class PointerFreePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         public DynamicObject free(DynamicObject pointer) {
             Layouts.POINTER.getPointer(pointer).free();
@@ -129,12 +122,7 @@ public abstract class PointerNodes {
         @Specialization
         public DynamicObject add(DynamicObject a, long b) {
             return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(a),
-                    pointerAdd(Layouts.POINTER.getPointer(a), b));
-        }
-
-        @TruffleBoundary
-        private Pointer pointerAdd(Pointer base, long offset) {
-            return new Pointer(memoryManager().newPointer(base.getPointer().address() + offset));
+                    Layouts.POINTER.getPointer(a).add(b));
         }
 
     }
@@ -171,7 +159,7 @@ public abstract class PointerNodes {
 
             if (TruffleOptions.AOT) {
                 final Pointer ptr = Layouts.POINTER.getPointer(pointer);
-                final int nullOffset = findNullOffset(ptr);
+                final int nullOffset = ptr.indexOf(0, (byte) 0);
                 bytes = new byte[nullOffset];
 
                 ptr.get(0, bytes, 0, nullOffset);
@@ -180,11 +168,6 @@ public abstract class PointerNodes {
             }
 
             return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-        @TruffleBoundary
-        private int findNullOffset(Pointer pointer) {
-            return pointer.getPointer().indexOf(0, (byte) 0);
         }
 
     }

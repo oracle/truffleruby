@@ -32,6 +32,7 @@ public class Pointer {
 
     private final jnr.ffi.Pointer pointer;
 
+    @CompilerDirectives.TruffleBoundary
     public Pointer(long address) {
         this(Runtime.getSystemRuntime().getMemoryManager().newPointer(address));
     }
@@ -124,6 +125,11 @@ public class Pointer {
         } else {
             return new Pointer(p);
         }
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    public int indexOf(long offset, byte value) {
+        return pointer.indexOf(offset, value);
     }
 
     public void free() {
