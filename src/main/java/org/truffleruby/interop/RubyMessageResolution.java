@@ -134,7 +134,7 @@ public class RubyMessageResolution {
                     return rope.get(0);
                 }
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
-                return Layouts.POINTER.getPointer(object).address();
+                return Layouts.POINTER.getPointer(object).getPointer().address();
             } else if (doesRespond.doesRespondTo(frame, "unbox", object)) {
                 return dispatchNode.dispatch(frame, object, "unbox", null, new Object[]{});
             } else {
