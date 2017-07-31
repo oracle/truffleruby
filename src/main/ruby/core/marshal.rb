@@ -985,10 +985,8 @@ module Marshal
 
     def serialize_extended_object(obj)
       str = ''
-      if mods = Truffle.invoke_primitive(:vm_extended_modules, obj)
-        mods.each do |mod|
-          str << "e#{serialize(mod.name.to_sym)}"
-        end
+      Truffle.invoke_primitive :vm_extended_modules, obj, -> mod do
+        str << "e#{serialize(mod.name.to_sym)}"
       end
       Rubinius::Type.binary_string(str)
     end
