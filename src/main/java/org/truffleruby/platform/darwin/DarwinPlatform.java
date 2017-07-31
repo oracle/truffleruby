@@ -23,7 +23,6 @@ import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.java.JavaClockGetTime;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
-import org.truffleruby.platform.posix.MallocFree;
 import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
 import org.truffleruby.platform.posix.Sockets;
@@ -43,7 +42,6 @@ public class DarwinPlatform implements NativePlatform {
     private final Sockets sockets;
     private final ClockGetTime clockGetTime;
     private final Threads threads;
-    private final MallocFree mallocFree;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public DarwinPlatform(RubyContext context) {
@@ -55,7 +53,6 @@ public class DarwinPlatform implements NativePlatform {
         sockets = LibraryLoader.create(Sockets.class).library("c").load();
         threads = context.getOptions().NATIVE_INTERRUPT ? LibraryLoader.create(Threads.class).library("c").library("pthread").load() : new NoopThreads();
         clockGetTime = new JavaClockGetTime();
-        mallocFree = LibraryLoader.create(MallocFree.class).library("c").load();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         DarwinRubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -99,11 +96,6 @@ public class DarwinPlatform implements NativePlatform {
     @Override
     public Threads getThreads() {
         return threads;
-    }
-
-    @Override
-    public MallocFree getMallocFree() {
-        return mallocFree;
     }
 
     @Override

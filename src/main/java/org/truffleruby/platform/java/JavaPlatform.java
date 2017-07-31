@@ -20,7 +20,6 @@ import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.linux.LinuxRubiniusConfiguration;
 import org.truffleruby.platform.posix.ClockGetTime;
-import org.truffleruby.platform.posix.MallocFree;
 import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
 import org.truffleruby.platform.posix.Sockets;
@@ -92,11 +91,6 @@ public class JavaPlatform implements NativePlatform {
     @Override
     public ClockGetTime getClockGetTime() {
         return clockGetTime;
-    }
-
-    @Override
-    public MallocFree getMallocFree() {
-        throw new UnsupportedOperationException();
     }
 
     @Override

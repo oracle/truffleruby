@@ -115,6 +115,7 @@ import jnr.constants.platform.Fcntl;
 import jnr.constants.platform.OpenFlags;
 import jnr.posix.DefaultNativeTimeval;
 import jnr.posix.Timeval;
+import org.truffleruby.platform.Pointer;
 
 @CoreClass("IO")
 public abstract class IONodes {
@@ -805,16 +806,16 @@ public abstract class IONodes {
             final int fd = Layouts.IO.getDescriptor(io);
 
             final int[] addressLength = { 16 };
-            final long address = getContext().getNativePlatform().getMallocFree().malloc(addressLength[0]);
+            final Pointer address = Pointer.malloc(addressLength[0]);
 
             final int newFd;
 
             try {
                 newFd = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
-                        () -> nativeSockets().accept(fd, memoryManager().newPointer(address), addressLength));
+                        () -> nativeSockets().accept(fd, address.getPointer(), addressLength));
                 return ensureSuccessful(newFd);
             } finally {
-                getContext().getNativePlatform().getMallocFree().free(address);
+                address.free();
             }
         }
 

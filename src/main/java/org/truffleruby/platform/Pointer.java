@@ -9,16 +9,50 @@
  */
 package org.truffleruby.platform;
 
+import jnr.ffi.Runtime;
+import sun.misc.Unsafe;
+
+import java.lang.reflect.Field;
+
 public class Pointer {
+
+    public static Pointer malloc(long size) {
+        return new Pointer(UNSAFE.allocateMemory(size));
+    }
+
+    private final jnr.ffi.Pointer pointer;
+
+    public Pointer(long address) {
+        this(Runtime.getSystemRuntime().getMemoryManager().newPointer(address));
+    }
 
     public Pointer(jnr.ffi.Pointer pointer) {
         this.pointer = pointer;
     }
 
-    private final jnr.ffi.Pointer pointer;
+    public void free() {
+        UNSAFE.freeMemory(pointer.address());
+    }
+
+    public long getAddress() {
+        return pointer.address();
+    }
 
     public jnr.ffi.Pointer getPointer() {
         return pointer;
     }
+
+    @SuppressWarnings("restriction")
+    private static Unsafe getUnsafe() {
+        try {
+            Field field = Unsafe.class.getDeclaredField("theUnsafe");
+            field.setAccessible(true);
+            return (Unsafe) field.get(null);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new Error(e);
+        }
+    }
+
+    private static final Unsafe UNSAFE = getUnsafe();
 
 }
