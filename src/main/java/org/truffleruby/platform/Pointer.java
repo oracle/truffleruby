@@ -157,6 +157,13 @@ public class Pointer {
         }
     }
 
+    @CompilerDirectives.TruffleBoundary
+    public void setMemory(long offset, long size, byte value) {
+        for (long n = 0; n < size; n++) {
+            putByte(offset + n, value);
+        }
+    }
+
     public void free() {
         UNSAFE.freeMemory(address);
     }

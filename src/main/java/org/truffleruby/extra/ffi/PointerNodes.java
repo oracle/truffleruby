@@ -73,7 +73,7 @@ public abstract class PointerNodes {
 
         @Specialization
         public long address(DynamicObject pointer) {
-            return Layouts.POINTER.getPointer(pointer).getPointer().address();
+            return Layouts.POINTER.getPointer(pointer).getAddress();
         }
 
     }
@@ -178,7 +178,7 @@ public abstract class PointerNodes {
         @Specialization
         public DynamicObject readPointer(DynamicObject pointer) {
             Pointer ptr = Layouts.POINTER.getPointer(pointer);
-            assert ptr.getPointer().address() != 0 : "Attempt to dereference a null pointer";
+            assert ptr.getAddress() != 0 : "Attempt to dereference a null pointer";
             Pointer readPointer = ptr.readPointer((long) 0);
 
             if (readPointer == null) {
@@ -339,7 +339,7 @@ public abstract class PointerNodes {
         @Specialization(guards = "type == TYPE_PTR")
         public DynamicObject getAtOffsetPointer(DynamicObject pointer, int offset, int type,
                                                 @Cached("create()") AllocateObjectNode allocateObjectNode) {
-            final jnr.ffi.Pointer readPointer = Layouts.POINTER.getPointer(pointer).getPointer(offset);
+            final Pointer readPointer = Layouts.POINTER.getPointer(pointer).readPointer(offset);
 
             if (readPointer == null) {
                 return nil();
@@ -540,7 +540,7 @@ public abstract class PointerNodes {
             assert v.signum() >= 0;
             assert v.compareTo(TWO_POW_64) < 0;
             BigInteger signed = v.subtract(TWO_POW_64);
-            Layouts.POINTER.getPointer(pointer).getPointer().putLong(offset, signed.longValueExact());
+            Layouts.POINTER.getPointer(pointer).putLong(offset, signed.longValueExact());
             return pointer;
         }
 
