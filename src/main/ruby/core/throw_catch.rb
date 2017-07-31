@@ -26,9 +26,9 @@
 
 module Rubinius
   module ThrownValue
-    def self.register(obj)
+    def self.register(tag)
       cur = (Thread.current[:__catches__] ||= [])
-      cur << obj
+      cur << tag
 
       begin
         yield
@@ -37,11 +37,11 @@ module Rubinius
       end
     end
 
-    def self.available?(obj)
+    def self.available?(tag)
       cur = Thread.current[:__catches__]
       return false unless cur
       cur.each do |c|
-        return true if Rubinius::Type.object_equal(c, obj)
+        return true if Rubinius::Type.object_equal(c, tag)
       end
       false
     end
@@ -49,21 +49,21 @@ module Rubinius
 end
 
 module Kernel
-  def catch(obj = Object.new, &block)
+  def catch(tag = Object.new, &block)
     raise LocalJumpError unless block_given?
 
-    Rubinius::ThrownValue.register(obj) do
-      return Truffle.invoke_primitive :vm_catch, obj, block
+    Rubinius::ThrownValue.register(tag) do
+      return Truffle.invoke_primitive :vm_catch, tag, block
     end
   end
   module_function :catch
 
-  def throw(obj, value=nil)
-    unless Rubinius::ThrownValue.available? obj
-      raise UncaughtThrowError, "uncaught throw #{obj.inspect}"
+  def throw(tag, value=nil)
+    unless Rubinius::ThrownValue.available? tag
+      raise UncaughtThrowError, "uncaught throw #{tag.inspect}"
     end
 
-    Truffle.invoke_primitive :vm_throw, obj, value
+    Truffle.invoke_primitive :vm_throw, tag, value
   end
   module_function :throw
 end
