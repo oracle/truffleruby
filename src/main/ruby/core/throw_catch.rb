@@ -27,20 +27,18 @@
 module Rubinius
   module ThrownValue
     def self.register(tag)
-      cur = (Thread.current[:__catches__] ||= [])
-      cur << tag
-
+      tags = Truffle.invoke_primitive :fiber_get_catch_tags
+      tags << tag
       begin
         yield
       ensure
-        cur.pop
+        tags.pop
       end
     end
 
     def self.available?(tag)
-      cur = Thread.current[:__catches__]
-      return false unless cur
-      cur.each do |c|
+      tags = Truffle.invoke_primitive :fiber_get_catch_tags
+      tags.each do |c|
         return true if Rubinius::Type.object_equal(c, tag)
       end
       false

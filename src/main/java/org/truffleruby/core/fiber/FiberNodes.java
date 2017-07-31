@@ -27,7 +27,10 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
 import org.truffleruby.core.proc.ProcOperations;
@@ -58,9 +61,11 @@ public abstract class FiberNodes {
     private static DynamicObject createFiber(RubyContext context, DynamicObject thread, DynamicObjectFactory factory, String name, boolean isRootFiber) {
         assert RubyGuards.isRubyThread(thread);
         final DynamicObject fiberLocals = Layouts.BASIC_OBJECT.createBasicObject(context.getCoreLibrary().getObjectFactory());
+        final DynamicObject catchTags = ArrayHelpers.createArray(context, null, 0);
         return Layouts.FIBER.createFiber(
                 factory,
                 fiberLocals,
+                catchTags,
                 isRootFiber,
                 new CountDownLatch(1),
                 new LinkedBlockingQueue<>(2),
@@ -359,6 +364,18 @@ public abstract class FiberNodes {
             return Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
         }
 
+    }
+
+    @Primitive(name = "fiber_get_catch_tags", needsSelf = false)
+    public static abstract class FiberGetCatchTagsNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject getCatchTags(VirtualFrame frame,
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject currentFiber = Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
+            return Layouts.FIBER.getCatchTags(currentFiber);
+        }
     }
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
