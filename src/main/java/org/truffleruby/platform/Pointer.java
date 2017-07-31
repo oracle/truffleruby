@@ -141,7 +141,7 @@ public class Pointer {
     }
 
     public jnr.ffi.Pointer getPointer() {
-        return pointer;
+        return Runtime.getSystemRuntime().getMemoryManager().newPointer(pointer.address());
     }
 
     @SuppressWarnings("restriction")
