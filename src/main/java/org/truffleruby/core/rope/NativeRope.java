@@ -9,12 +9,12 @@
  */
 package org.truffleruby.core.rope;
 
-import jnr.ffi.Pointer;
 import jnr.ffi.provider.MemoryManager;
 import org.jcodings.Encoding;
 import org.truffleruby.core.Hashing;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.platform.Pointer;
 
 public class NativeRope extends Rope {
 
@@ -22,13 +22,12 @@ public class NativeRope extends Rope {
 
     public NativeRope(MemoryManager memoryManager, byte[] bytes, Encoding encoding, int characterLength) {
         super(encoding, CodeRange.CR_UNKNOWN, false, bytes.length, characterLength, 1, null);
-
         allocatePointer(memoryManager, bytes);
     }
 
     @TruffleBoundary
     private void allocatePointer(MemoryManager memoryManager, byte[] bytes) {
-        pointer = memoryManager.allocateDirect(bytes.length + 1 /* trailing \0 */, false);
+        pointer = Pointer.mallocAutorelease(memoryManager, bytes.length + 1 /* trailing \0 */);
         pointer.put(0, bytes, 0, bytes.length);
         pointer.putByte(bytes.length, (byte) 0);
     }
