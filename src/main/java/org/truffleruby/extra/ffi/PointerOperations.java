@@ -11,7 +11,7 @@
 package org.truffleruby.extra.ffi;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import jnr.ffi.Pointer;
+import org.truffleruby.platform.Pointer;
 
 import java.nio.charset.Charset;
 
@@ -23,8 +23,13 @@ public class PointerOperations {
     }
 
     @TruffleBoundary
-    public static Pointer getPointer(Pointer ptr, int offset) {
-        return ptr.getPointer(offset);
+    public static Pointer getPointer(Pointer ptr, long offset) {
+        final jnr.ffi.Pointer p = ptr.getPointer(offset);
+        if (p == null) {
+            return null;
+        } else {
+            return new Pointer(p);
+        }
     }
 
     @TruffleBoundary

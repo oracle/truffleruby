@@ -11,11 +11,15 @@ package org.truffleruby.platform;
 
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
+import org.truffleruby.extra.ffi.PointerNodes;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 
 public class Pointer {
+
+    public static final Pointer NULL = new Pointer(PointerNodes.NULL_POINTER);
 
     public static Pointer malloc(long size) {
         return new Pointer(UNSAFE.allocateMemory(size));
@@ -39,15 +43,15 @@ public class Pointer {
         return new Pointer(pointer.address() + offset);
     }
 
-    public void put(int i, byte[] bytes, int i1, int length) {
+    public void put(long i, byte[] bytes, int i1, int length) {
         pointer.put(i, bytes, i1, length);
     }
 
-    public void putByte(int length, byte b) {
+    public void putByte(long length, byte b) {
         pointer.putByte(length, b);
     }
 
-    public byte getByte(int index) {
+    public byte getByte(long index) {
         return pointer.getByte(index);
     }
 
@@ -57,6 +61,54 @@ public class Pointer {
 
     public void putLong(long value) {
         pointer.putLong(0, value);
+    }
+
+    public void putLong(long offset, long value) {
+        pointer.putLong(offset, value);
+    }
+
+    public short getShort(long offset) {
+        return pointer.getShort(offset);
+    }
+
+    public int getInt(long offset) {
+        return pointer.getInt(offset);
+    }
+
+    public long getLong(long offset) {
+        return pointer.getLong(offset);
+    }
+
+    public long getLongLong(long offset) {
+        return pointer.getLongLong(offset);
+    }
+
+    public String getString(long offset) {
+        return pointer.getString(offset);
+    }
+
+    public void putShort(long offset, short value) {
+        pointer.putShort(offset, value);
+    }
+
+    public void putInt(long offset, int value) {
+        pointer.putInt(offset, value);
+    }
+
+    public void putLongLong(long offset, long value) {
+        pointer.putLongLong(offset, value);
+    }
+
+    public void putPointer(long offset, Pointer value) {
+        pointer.putPointer(offset, value.pointer);
+    }
+
+    public void putString(long offset, String value, int length, Charset cs) {
+        pointer.putString(offset, value, length, cs);
+    }
+
+    public jnr.ffi.Pointer getPointer(long offset) {
+        return pointer.getPointer(offset);
     }
 
     public void free() {
