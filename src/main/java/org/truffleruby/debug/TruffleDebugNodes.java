@@ -101,6 +101,7 @@ public abstract class TruffleDebugNodes {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
+        @TruffleBoundary
         @Specialization
         public DynamicObject javaClassOf(Object value) {
             return makeStringNode.executeMake(value.getClass().getSimpleName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
@@ -113,6 +114,7 @@ public abstract class TruffleDebugNodes {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
+        @TruffleBoundary
         @Specialization
         public DynamicObject javaToString(Object value) {
             return makeStringNode.executeMake(String.valueOf(value), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
@@ -231,6 +233,7 @@ public abstract class TruffleDebugNodes {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
+        @TruffleBoundary
         @Specialization
         public DynamicObject shape(DynamicObject object) {
             return makeStringNode.executeMake(object.getShape().toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
