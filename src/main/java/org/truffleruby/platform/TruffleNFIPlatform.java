@@ -1,6 +1,13 @@
+/*
+ * Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 1.0
+ * GNU General Public License version 2
+ * GNU Lesser General Public License version 2.1
+ */
 package org.truffleruby.platform;
-
-import java.lang.reflect.Field;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.control.JavaException;
@@ -14,8 +21,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
-
-import sun.misc.Unsafe;
 
 public class TruffleNFIPlatform {
 
@@ -63,32 +68,5 @@ public class TruffleNFIPlatform {
             throw new JavaException(e);
         }
     }
-
-    public long allocate(long bytes) {
-        final long address = UNSAFE.allocateMemory(bytes);
-        UNSAFE.setMemory(address, bytes, (byte) 0);
-        return address;
-    }
-
-    public void free(long address) {
-        UNSAFE.freeMemory(address);
-    }
-
-    public void putLong(long address, long value) {
-        UNSAFE.putLong(address, value);
-    }
-
-    @SuppressWarnings("restriction")
-    private static Unsafe getUnsafe() {
-        try {
-            Field field = Unsafe.class.getDeclaredField("theUnsafe");
-            field.setAccessible(true);
-            return (Unsafe) field.get(null);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new Error(e);
-        }
-    }
-
-    private static final Unsafe UNSAFE = getUnsafe();
 
 }

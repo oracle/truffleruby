@@ -37,6 +37,7 @@ import org.truffleruby.language.control.ThreadExitException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.platform.Pointer;
 import org.truffleruby.platform.TruffleNFIPlatform;
 
 import java.util.ArrayList;
@@ -152,14 +153,14 @@ public class ThreadManager {
             TruffleObject sigaction = (TruffleObject) nfi.invoke(nfi.lookup(libC, "sigaction"), "bind", "(SINT32,POINTER,POINTER):SINT32");
 
             // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
-            long structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs));
+            Pointer structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs));
             try {
-                int result = (int) nfi.execute(sigaction, Signal.SIGVTALRM.intValue(), structSigAction, 0L);
+                int result = (int) nfi.execute(sigaction, Signal.SIGVTALRM.intValue(), structSigAction.getAddress(), 0L);
                 if (result != 0) {
                     throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
                 }
             } finally {
-                context.getNativePlatform().getTruffleNFI().free(structSigAction);
+                structSigAction.free();
             }
         }
     }

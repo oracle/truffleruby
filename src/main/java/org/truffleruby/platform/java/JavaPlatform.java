@@ -15,6 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.NativePlatform;
+import org.truffleruby.platform.Pointer;
 import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -104,7 +105,7 @@ public class JavaPlatform implements NativePlatform {
     }
 
     @Override
-    public long createSigAction(long handler) {
+    public Pointer createSigAction(long handler) {
         throw new UnsupportedOperationException();
     }
 

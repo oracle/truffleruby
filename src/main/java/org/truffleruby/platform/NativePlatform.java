@@ -37,7 +37,7 @@ public interface NativePlatform {
 
     FDSet createFDSet();
 
-    long createSigAction(long handler);
+    Pointer createSigAction(long handler);
 
     TruffleNFIPlatform getTruffleNFI();
 

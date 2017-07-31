@@ -18,6 +18,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.NativePlatform;
+import org.truffleruby.platform.Pointer;
 import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -111,9 +112,9 @@ public class SolarisPlatform implements NativePlatform {
     }
 
     @Override
-    public long createSigAction(long handler) {
-        long structSigAction = nfi.allocate(32); // sizeof(struct sigaction)
-        nfi.putLong(structSigAction + 8, handler); // offsetof(struct sigaction, sa_handler)
+    public Pointer createSigAction(long handler) {
+        Pointer structSigAction = Pointer.malloc(32); // sizeof(struct sigaction)
+        structSigAction.add(8).putLong(handler); // offsetof(struct sigaction, sa_handler)
         return structSigAction;
     }
 

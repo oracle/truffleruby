@@ -30,6 +30,14 @@ public class Pointer {
         this.pointer = pointer;
     }
 
+    public Pointer add(long offset) {
+        return new Pointer(pointer.address() + offset);
+    }
+
+    public void putLong(long value) {
+        pointer.putLong(0, value);
+    }
+
     public void free() {
         UNSAFE.freeMemory(pointer.address());
     }
@@ -54,5 +62,4 @@ public class Pointer {
     }
 
     private static final Unsafe UNSAFE = getUnsafe();
-
 }
