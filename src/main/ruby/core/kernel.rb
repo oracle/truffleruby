@@ -625,7 +625,7 @@ module Kernel
       STDERR.puts "Exception: `#{exc.class}' #{caller.first} - #{exc.message}\n"
     end
 
-    Rubinius.raise_exception exc
+    Truffle.invoke_primitive :vm_raise_exception, exc
   end
   module_function :raise
 
