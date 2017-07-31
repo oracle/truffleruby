@@ -9,6 +9,7 @@
  */
 package org.truffleruby.platform;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import jnr.ffi.Runtime;
 import jnr.ffi.provider.MemoryManager;
 import org.truffleruby.extra.ffi.PointerNodes;
@@ -43,6 +44,7 @@ public class Pointer {
         return new Pointer(pointer.address() + offset);
     }
 
+    @CompilerDirectives.TruffleBoundary
     public void put(long i, byte[] bytes, int i1, int length) {
         pointer.put(i, bytes, i1, length);
     }
@@ -55,6 +57,7 @@ public class Pointer {
         return UNSAFE.getByte(getAddress() + offset);
     }
 
+    @CompilerDirectives.TruffleBoundary
     public void get(int from, byte[] buffer, int bufferPos, int i) {
         pointer.get(from, buffer, bufferPos, i);
     }
@@ -83,6 +86,7 @@ public class Pointer {
         return getLong(offset);
     }
 
+    @CompilerDirectives.TruffleBoundary
     public String getString(long offset) {
         return pointer.getString(offset);
     }
@@ -103,12 +107,23 @@ public class Pointer {
         putLong(offset, value.getAddress());
     }
 
+    @CompilerDirectives.TruffleBoundary
     public void putString(long offset, String value, int length, Charset cs) {
         pointer.putString(offset, value, length, cs);
     }
 
     public jnr.ffi.Pointer getPointer(long offset) {
         return pointer.getPointer(offset);
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    public Pointer readPointer(long offset) {
+        final jnr.ffi.Pointer p = pointer.getPointer(offset);
+        if (p == null) {
+            return null;
+        } else {
+            return new Pointer(p);
+        }
     }
 
     public void free() {
