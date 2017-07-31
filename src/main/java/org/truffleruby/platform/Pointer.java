@@ -30,22 +30,24 @@ public class Pointer {
 
     @CompilerDirectives.TruffleBoundary
     public static Pointer mallocAutorelease(int size) {
-        return new Pointer(Runtime.getSystemRuntime().getMemoryManager().allocateDirect(size));
+        final jnr.ffi.Pointer managedPointer = Runtime.getSystemRuntime().getMemoryManager().allocateDirect(size);
+        return new Pointer(managedPointer.address(), managedPointer);
     }
 
-    private final jnr.ffi.Pointer pointer;
+    private final long address;
+    private final Object handle;
 
-    @CompilerDirectives.TruffleBoundary
+    public Pointer(long address, Object handle) {
+        this.address = address;
+        this.handle = handle;
+    }
+
     public Pointer(long address) {
-        this(Runtime.getSystemRuntime().getMemoryManager().newPointer(address));
-    }
-
-    private Pointer(jnr.ffi.Pointer pointer) {
-        this.pointer = pointer;
+        this(address, null);
     }
 
     public Pointer add(long offset) {
-        return new Pointer(pointer.address() + offset);
+        return new Pointer(address + offset, handle);
     }
 
     @CompilerDirectives.TruffleBoundary
@@ -156,15 +158,15 @@ public class Pointer {
     }
 
     public void free() {
-        UNSAFE.freeMemory(pointer.address());
+        UNSAFE.freeMemory(address);
     }
 
     public long getAddress() {
-        return pointer.address();
+        return address;
     }
 
     public jnr.ffi.Pointer getPointer() {
-        return Runtime.getSystemRuntime().getMemoryManager().newPointer(pointer.address());
+        return Runtime.getSystemRuntime().getMemoryManager().newPointer(address);
     }
 
     @CompilerDirectives.TruffleBoundary
