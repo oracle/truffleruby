@@ -49,6 +49,8 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -109,6 +111,8 @@ public abstract class DirNodes {
     @Primitive(name = "dir_read")
     public static abstract class DirReadPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public Object read(DynamicObject dir) {
@@ -117,14 +121,14 @@ public abstract class DirNodes {
             Layouts.DIR.setPosition(dir, position + 1);
 
             if (position == -2) {
-                return create7BitString(".", UTF8Encoding.INSTANCE);
+                return makeStringNode.executeMake(".", UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
             } else if (position == -1) {
-                return create7BitString("..", UTF8Encoding.INSTANCE);
+                return makeStringNode.executeMake("..", UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
             } else {
                 final String[] contents = Layouts.DIR.getContents(dir);
 
                 if (position < contents.length) {
-                    return createString(StringOperations.encodeRope(contents[position], UTF8Encoding.INSTANCE));
+                    return makeStringNode.executeMake(contents[position], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                 } else {
                     return nil();
                 }

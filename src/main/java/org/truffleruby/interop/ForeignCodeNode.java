@@ -13,7 +13,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
 
@@ -26,6 +27,7 @@ public class ForeignCodeNode extends RubyNode {
     private final DynamicObject code;
     private final DynamicObject name;
 
+    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
     @Child private SnippetNode snippetNode = new SnippetNode();
 
     private static final Pattern NAME_PATTERN = Pattern.compile(".*function\\s+(\\w+)\\s*\\(.*", Pattern.DOTALL);
@@ -34,8 +36,8 @@ public class ForeignCodeNode extends RubyNode {
         final Matcher matcher = NAME_PATTERN.matcher(code);
         matcher.find();
         final String functionName = matcher.group(1);
-        this.mimeType = StringOperations.createString(context, StringOperations.encodeRope(mimeType, UTF8Encoding.INSTANCE));
-        this.code = StringOperations.createString(context, StringOperations.encodeRope(code + "\nInterop.export('" + functionName + "', " + functionName +  ".bind(this));", UTF8Encoding.INSTANCE));
+        this.mimeType = makeStringNode.executeMake(mimeType, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        this.code = makeStringNode.executeMake(code + "\nInterop.export('" + functionName + "', " + functionName +  ".bind(this));", UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         this.name = context.getSymbolTable().getSymbol(functionName);
     }
 

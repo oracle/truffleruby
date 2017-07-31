@@ -65,8 +65,10 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -84,9 +86,11 @@ public abstract class ReadlineNodes {
     @CoreMethod(names = "basic_word_break_characters", onSingleton = true)
     public abstract static class BasicWordBreakCharactersNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject basicWordBreakCharacters() {
-            return createString(StringOperations.encodeRope(ProcCompleter.getDelimiter(), UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(ProcCompleter.getDelimiter(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -145,6 +149,7 @@ public abstract class ReadlineNodes {
     })
     public abstract static class ReadlineNode extends CoreMethodNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private TaintNode taintNode = TaintNode.create();
 
         @CreateCast("prompt") public RubyNode coercePromptToJavaString(RubyNode prompt) {
@@ -182,8 +187,8 @@ public abstract class ReadlineNodes {
                 // is that no al M17n encodings are valid encodings in java.lang.String.
                 // We clearly need a byte[]-version of JLine since we cannot totally
                 // behave properly using Java Strings.
-                final Rope rope = StringOperations.encodeRope(value, getContext().getEncodingManager().getDefaultExternalEncoding());
-                return taintNode.executeTaint(createString(rope));
+                final DynamicObject ret = makeStringNode.executeMake(value, getContext().getEncodingManager().getDefaultExternalEncoding(), CodeRange.CR_UNKNOWN);
+                return taintNode.executeTaint(ret);
             }
         }
 
@@ -237,6 +242,7 @@ public abstract class ReadlineNodes {
     @CoreMethod(names = "line_buffer", onSingleton = true)
     public abstract static class LineBufferNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private TaintNode taintNode = TaintNode.create();
 
         @TruffleBoundary
@@ -244,7 +250,7 @@ public abstract class ReadlineNodes {
         public Object lineBuffer() {
             final CursorBuffer cb = getContext().getConsoleHolder().getReadline().getCursorBuffer();
 
-            final DynamicObject ret = createString(StringOperations.encodeRope(cb.toString(), getLocaleEncoding()));
+            final DynamicObject ret = makeStringNode.executeMake(cb.toString(), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
             return taintNode.executeTaint(ret);
         }
 

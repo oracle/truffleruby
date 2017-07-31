@@ -51,6 +51,8 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.RubyGuards;
@@ -68,6 +70,8 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "initial_environment_variables", onSingleton = true)
     public abstract static class InitEnvVarsNode extends CoreMethodNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject envVars() {
@@ -77,7 +81,7 @@ public abstract class TruffleSystemNodes {
             final Object[] store = new Object[size];
             int i = 0;
             for (String variable : variables) {
-                store[i++] = createString(StringOperations.encodeRope(variable, localeEncoding));
+                store[i++] = makeStringNode.executeMake(variable, localeEncoding, CodeRange.CR_UNKNOWN);
             }
             return createArray(store, size);
         }
@@ -87,13 +91,15 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "get_java_property", onSingleton = true, required = 1)
     public abstract static class GetJavaPropertyNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization(guards = "isRubyString(property)")
         public DynamicObject getJavaProperty(DynamicObject property) {
             String value = System.getProperty(StringOperations.getString(property));
             if (value == null) {
                 return nil();
             } else {
-                return createString(StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
+                return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             }
         }
 
@@ -102,9 +108,11 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "host_cpu", onSingleton = true)
     public abstract static class HostCPUNode extends CoreMethodNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject hostCPU() {
-            return createString(StringOperations.encodeRope(Platform.getArchitecture(), UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(Platform.getArchitecture(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
@@ -112,10 +120,12 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "host_os", onSingleton = true)
     public abstract static class HostOSNode extends CoreMethodNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject hostOS() {
-            return createString(StringOperations.encodeRope(Platform.getOSName(), UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(Platform.getOSName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

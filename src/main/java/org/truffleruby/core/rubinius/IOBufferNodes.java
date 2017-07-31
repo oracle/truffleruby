@@ -51,6 +51,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuffer;
@@ -109,7 +110,7 @@ public abstract class IOBufferNodes {
                 written = available;
             }
 
-            RopeBuilder storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
+            ByteArrayBuilder storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
 
             // TODO (nirvdrum 08-24-16): Data is copied here - can we do something COW?
             System.arraycopy(bytes, startPosition, storage.getUnsafeBytes(), used, written);
@@ -145,7 +146,7 @@ public abstract class IOBufferNodes {
                     throw new RaiseException(coreExceptions().internalError("IO buffer overrun", this));
                 }
                 final int used = Layouts.IO_BUFFER.getUsed(ioBuffer);
-                final RopeBuilder storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
+                final ByteArrayBuilder storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
                 System.arraycopy(readBuffer, 0, storage.getUnsafeBytes(), used, bytesRead);
                 storage.setLength(used + bytesRead);
                 Layouts.IO_BUFFER.setUsed(ioBuffer, used + bytesRead);

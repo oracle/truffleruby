@@ -19,40 +19,46 @@ public class RopeBuilder extends ByteArrayBuilder {
 
     private Encoding encoding = ASCIIEncoding.INSTANCE;
 
+    public RopeBuilder() {
+        super();
+    }
+
+    public RopeBuilder(int size) {
+        super(size);
+    }
+
     public static RopeBuilder createRopeBuilder(int size) {
-        final RopeBuilder byteList = new RopeBuilder();
-        byteList.unsafeEnsureSpace(size);
-        return byteList;
+        return new RopeBuilder(size);
     }
 
     public static RopeBuilder createRopeBuilder(byte[] bytes, Encoding encoding) {
-        final RopeBuilder byteList = new RopeBuilder();
+        final RopeBuilder byteList = new RopeBuilder(bytes.length);
         byteList.append(bytes);
         byteList.setEncoding(encoding);
         return byteList;
     }
 
     public static RopeBuilder createRopeBuilder(byte[] wrap) {
-        final RopeBuilder byteList = new RopeBuilder();
+        final RopeBuilder byteList = new RopeBuilder(wrap.length);
         byteList.append(wrap);
         return byteList;
     }
 
     public static RopeBuilder createRopeBuilder(byte[] wrap, int index, int len) {
-        final RopeBuilder byteList = new RopeBuilder();
+        final RopeBuilder byteList = new RopeBuilder(wrap.length);
         byteList.append(wrap, index, len);
         return byteList;
     }
 
     public static RopeBuilder createRopeBuilder(byte[] wrap, int index, int len, Encoding encoding) {
-        final RopeBuilder byteList = new RopeBuilder();
+        final RopeBuilder byteList = new RopeBuilder(wrap.length);
         byteList.append(wrap, index, len);
         byteList.setEncoding(encoding);
         return byteList;
     }
 
-    public static RopeBuilder createRopeBuilder(RopeBuilder wrap, int index, int len) {
-        final RopeBuilder byteList = new RopeBuilder();
+    public static RopeBuilder createRopeBuilder(ByteArrayBuilder wrap, int index, int len) {
+        final RopeBuilder byteList = new RopeBuilder(wrap.getLength());
         if (index + len > wrap.getLength()) {
             // TODO S 17-Jan-16 fix this use beyond the known length
             byteList.append(wrap.getUnsafeBytes(), index, len);

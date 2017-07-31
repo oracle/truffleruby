@@ -9,7 +9,6 @@
  */
 package org.truffleruby.collections;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -20,6 +19,19 @@ public class ByteArrayBuilder {
 
     private byte[] bytes = EMPTY_BYTES;
     private int length;
+
+    public ByteArrayBuilder() {
+    }
+
+    public ByteArrayBuilder(int size) {
+        bytes = new byte[size];
+    }
+
+    public static ByteArrayBuilder createUnsafeBuilder(byte[] wrap) {
+        final ByteArrayBuilder builder = new ByteArrayBuilder();
+        builder.unsafeReplace(wrap, wrap.length);
+        return builder;
+    }
 
     public int getLength() {
         return length;
@@ -57,6 +69,11 @@ public class ByteArrayBuilder {
         length += appendLength;
     }
 
+    public void unsafeReplace(byte[] bytes, int size) {
+        this.bytes = bytes;
+        this.length = size;
+    }
+
     private void ensureSpace(int space) {
         if (length + space > bytes.length) {
             bytes = Arrays.copyOf(bytes, (bytes.length + space) * 2);
@@ -90,7 +107,7 @@ public class ByteArrayBuilder {
     }
 
     private String toString(Charset charset) {
-        return charset.decode(ByteBuffer.wrap(getBytes())).toString();
+        return new String(bytes, 0, length, charset);
     }
 
     // TODO CS 14-Feb-17 review all uses of this method

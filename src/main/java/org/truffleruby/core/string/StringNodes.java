@@ -93,6 +93,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.array.ArrayCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.TaintResultNode;
@@ -161,6 +162,34 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreClass("String")
 public abstract class StringNodes {
+
+    @NodeChildren({ @NodeChild("bytes"), @NodeChild("encoding"), @NodeChild("codeRange") })
+    public abstract static class MakeStringNode extends RubyNode {
+
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
+
+        public abstract DynamicObject executeMake(Object payload, Encoding encoding, CodeRange codeRange);
+
+        public static MakeStringNode create() {
+            return StringNodesFactory.MakeStringNodeGen.create(null, null, null);
+        }
+
+        @Specialization
+        protected DynamicObject makeStringFromBytes(byte[] bytes, Encoding encoding, CodeRange codeRange) {
+            final LeafRope rope = makeLeafRopeNode.executeMake(bytes, encoding, codeRange, NotProvided.INSTANCE);
+
+            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
+        }
+
+        @Specialization
+        protected DynamicObject makeStringFromString(String string, Encoding encoding, CodeRange codeRange) {
+            final byte[] bytes = StringOperations.encodeBytes(string, encoding);
+
+            return makeStringFromBytes(bytes, encoding, codeRange);
+        }
+
+    }
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
@@ -310,7 +339,7 @@ public abstract class StringNodes {
                 respondToNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
             }
 
-            if (respondToNode.doesRespondToString(frame, b, create7BitString("to_str", UTF8Encoding.INSTANCE), false)) {
+            if (respondToNode.doesRespondToString(frame, b, coreStrings().TO_STR.createInstance(), false)) {
                 if (objectEqualNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     objectEqualNode = insert(CallDispatchHeadNode.create());
@@ -3076,7 +3105,8 @@ public abstract class StringNodes {
 
         @TruffleBoundary(throwsControlFlowException = true)
         @Specialization(guards = { "isRubyEncoding(rubyEncoding)", "!isSimple(code, rubyEncoding)", "isCodepoint(code)" })
-        public DynamicObject stringFromCodepoint(long code, DynamicObject rubyEncoding) {
+        public DynamicObject stringFromCodepoint(long code, DynamicObject rubyEncoding,
+                                                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
             final int length;
 
@@ -3102,7 +3132,7 @@ public abstract class StringNodes {
                 throw new RaiseException(coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
-            return createString(RopeOperations.create(bytes, encoding, CodeRange.CR_VALID));
+            return makeStringNode.executeMake(bytes, encoding, CodeRange.CR_VALID);
         }
 
         protected boolean isCodepoint(long code) {
@@ -4166,8 +4196,8 @@ public abstract class StringNodes {
         @Specialization(guards = "isRubiniusByteArray(bytes)")
         public DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count) {
             // Data is copied here - can we do something COW?
-            final RopeBuilder byteList = Layouts.BYTE_ARRAY.getBytes(bytes);
-            return createString(RopeBuilder.createRopeBuilder(byteList, start, count));
+            final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
+            return createString(RopeBuilder.createRopeBuilder(builder, start, count));
         }
 
     }

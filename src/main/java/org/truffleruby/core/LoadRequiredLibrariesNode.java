@@ -11,7 +11,8 @@ package org.truffleruby.core;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -20,13 +21,14 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 public class LoadRequiredLibrariesNode extends RubyNode {
 
     @Child private CallDispatchHeadNode requireNode = CallDispatchHeadNode.createOnSelf();
+    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
     @Override
     public Object execute(VirtualFrame frame) {
         Object self = RubyArguments.getSelf(frame);
 
         for (String requiredLibrary : getContext().getOptions().REQUIRED_LIBRARIES) {
-            requireNode.call(frame, self, "require", createString(StringOperations.encodeRope(requiredLibrary, UTF8Encoding.INSTANCE)));
+            requireNode.call(frame, self, "require", makeStringNode.executeMake(requiredLibrary, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
 
         return nil();

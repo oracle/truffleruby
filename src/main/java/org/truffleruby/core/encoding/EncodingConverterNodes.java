@@ -17,11 +17,11 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
+import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.transcode.EConv;
 import org.jcodings.transcode.EConvResult;
 import org.jcodings.transcode.TranscodingManager;
@@ -37,11 +37,13 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
@@ -237,6 +239,8 @@ public abstract class EncodingConverterNodes {
     @Primitive(name = "encoding_converter_putback", lowerFixnum = 1)
     public static abstract class EncodingConverterPutbackNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject encodingConverterPutback(DynamicObject encodingConverter, int maxBytes) {
             // Taken from org.jruby.RubyConverter#putback.
@@ -263,15 +267,12 @@ public abstract class EncodingConverterNodes {
 
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
-            final RopeBuilder bytes = RopeBuilder.createRopeBuilder(n);
-            ec.putback(bytes.getUnsafeBytes(), 0, n);
-            bytes.setLength(n);
+            final byte[] bytes = new byte[n];
+            ec.putback(bytes, 0, n);
 
-            if (ec.sourceEncoding != null) {
-                bytes.setEncoding(ec.sourceEncoding);
-            }
+            final Encoding encoding = ec.sourceEncoding != null ? ec.sourceEncoding : ASCIIEncoding.INSTANCE;
 
-            return createString(bytes);
+            return makeStringNode.executeMake(bytes, encoding, CodeRange.CR_UNKNOWN);
         }
     }
 
@@ -356,6 +357,8 @@ public abstract class EncodingConverterNodes {
     @CoreMethod(names = "replacement")
     public abstract static class EncodingConverterReplacementNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject getReplacement(DynamicObject encodingConverter) {
@@ -370,7 +373,7 @@ public abstract class EncodingConverterNodes {
             final String encodingName = new String(ec.replacementEncoding, StandardCharsets.US_ASCII);
             final DynamicObject encoding = getContext().getEncodingManager().getRubyEncoding(encodingName);
 
-            return createString(bytes, Layouts.ENCODING.getEncoding(encoding));
+            return makeStringNode.executeMake(bytes, Layouts.ENCODING.getEncoding(encoding), CodeRange.CR_UNKNOWN);
         }
 
     }

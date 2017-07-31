@@ -17,7 +17,8 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
@@ -250,6 +251,8 @@ public abstract class ProcNodes {
     @CoreMethod(names = "source_location")
     public abstract static class SourceLocationNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public Object sourceLocation(DynamicObject proc) {
@@ -258,8 +261,7 @@ public abstract class ProcNodes {
             if (sourceSection.getSource() == null || sourceSection.getSource().getName().endsWith("core/truffle/cext.rb")) {
                 return nil();
             } else {
-                final DynamicObject file = createString(StringOperations.encodeRope(
-                        sourceSection.getSource().getName(), UTF8Encoding.INSTANCE));
+                final DynamicObject file = makeStringNode.executeMake(sourceSection.getSource().getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
                 final Object[] objects = new Object[]{file, sourceSection.getStartLine()};
                 return createArray(objects, objects.length);

@@ -51,7 +51,9 @@ import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.method.MethodFilter;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.SymbolTable;
@@ -65,7 +67,6 @@ import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
-import org.truffleruby.language.arguments.ProfileArgumentNode;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
@@ -1236,6 +1237,8 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "name")
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public Object name(DynamicObject module,
                 @Cached("createIdentityProfile()") ValueProfile fieldsProfile) {
@@ -1245,7 +1248,7 @@ public abstract class ModuleNodes {
                 return nil();
             }
 
-            return createString(StringOperations.encodeRope(fields.getName(), UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(fields.getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
 
@@ -1687,6 +1690,7 @@ public abstract class ModuleNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Child private SnippetNode snippetNode;
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
         public DynamicObject toS(VirtualFrame frame, DynamicObject module) {
@@ -1713,7 +1717,7 @@ public abstract class ModuleNodes {
 
             // TODO BJF Aug 31, 2016 Add refinements to_s
 
-            return createString(StringOperations.encodeRope(moduleName, UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(moduleName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

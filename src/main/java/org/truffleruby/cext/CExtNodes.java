@@ -46,6 +46,7 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.regexp.RegexpNodes;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
@@ -733,12 +734,15 @@ public class CExtNodes {
     @CoreMethod(names = "rb_sourcefile", onSingleton = true)
     public abstract static class SourceFileNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject sourceFile() {
             final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile", "execute_with_mutex");
             final String file = sourceSection.getSource().getPath();
-            return createString(StringOperations.encodeRope(file, UTF8Encoding.INSTANCE));
+
+            return makeStringNode.executeMake(file, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
         public static SourceSection getTopUserSourceSection(String...  methodNames) {

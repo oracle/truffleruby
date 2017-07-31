@@ -32,6 +32,8 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.cast.DefaultValueNodeGen;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
@@ -739,11 +741,13 @@ public abstract class FloatNodes {
     @CoreMethod(names = { "to_s", "inspect" })
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
         public DynamicObject toS(double value) {
             if (Double.isInfinite(value) || Double.isNaN(value)) {
-                return create7BitString(Double.toString(value), USASCIIEncoding.INSTANCE);
+                return makeStringNode.executeMake(Double.toString(value), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
             }
 
             String str = StringUtils.format(Locale.ENGLISH, "%.15g", value);
@@ -769,7 +773,7 @@ public abstract class FloatNodes {
 
             final String formatted = str.substring(0, i + 1) + str.substring(start, str.length());
 
-            return create7BitString(formatted, USASCIIEncoding.INSTANCE);
+            return makeStringNode.executeMake(formatted, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
     }
@@ -777,6 +781,8 @@ public abstract class FloatNodes {
     @NonStandard
     @CoreMethod(names = "dtoa", visibility = Visibility.PRIVATE)
     public static abstract class DToANode extends CoreMethodArrayArgumentsNode {
+
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -815,7 +821,12 @@ public abstract class FloatNodes {
 
             final int sign = value < 0 ? 1 : 0;
 
-            return createArray(new Object[] { create7BitString(string, UTF8Encoding.INSTANCE), decimal, sign, string.length() }, 4);
+            return createArray(new Object[] {
+                    makeStringNode.executeMake(string, UTF8Encoding.INSTANCE, CodeRange.CR_7BIT),
+                    decimal,
+                    sign,
+                    string.length()
+                }, 4);
         }
 
     }

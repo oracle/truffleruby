@@ -27,7 +27,8 @@ import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.hash.Entry;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -112,7 +113,8 @@ public abstract class AllocateObjectNode extends RubyNode {
     @CompilerDirectives.TruffleBoundary
     @Specialization(guards = {"!isSingleton(classToAllocate)", "isTracing()"},
                     assumptions = "getTracingAssumption()")
-    public DynamicObject allocateTracing(DynamicObject classToAllocate, Object[] values) {
+    public DynamicObject allocateTracing(DynamicObject classToAllocate, Object[] values,
+                                         @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
         final DynamicObject object = allocate(getInstanceFactory(classToAllocate), values);
 
         final FrameInstance allocatingFrameInstance;
@@ -134,9 +136,9 @@ public abstract class AllocateObjectNode extends RubyNode {
         
         getContext().getObjectSpaceManager().traceAllocation(
                 object,
-                string(Layouts.CLASS.getFields(coreLibrary().getLogicalClass(allocatingSelf)).getName()),
+                string(makeStringNode, Layouts.CLASS.getFields(coreLibrary().getLogicalClass(allocatingSelf)).getName()),
                 getSymbol(allocatingMethod),
-                string(allocatingSourceSection.getSource().getName()),
+                string(makeStringNode, allocatingSourceSection.getSource().getName()),
                 allocatingSourceSection.getStartLine());
 
         return object;
@@ -146,8 +148,8 @@ public abstract class AllocateObjectNode extends RubyNode {
         return Layouts.CLASS.getInstanceFactory(classToAllocate);
     }
 
-    private DynamicObject string(String value) {
-        return createString(StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
+    private DynamicObject string(StringNodes.MakeStringNode makeStringNode, String value) {
+        return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
     @Specialization(guards = "isSingleton(classToAllocate)")

@@ -12,6 +12,7 @@ package org.truffleruby.core.rubinius;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
+import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.rope.RopeBuilder;
 
@@ -22,10 +23,10 @@ public interface ByteArrayLayout extends BasicObjectLayout {
                                               DynamicObject metaClass);
 
     DynamicObject createByteArray(DynamicObjectFactory factory,
-                                  RopeBuilder bytes);
+                                  ByteArrayBuilder bytes);
 
     boolean isByteArray(DynamicObject object);
 
-    RopeBuilder getBytes(DynamicObject object);
+    ByteArrayBuilder getBytes(DynamicObject object);
 
 }

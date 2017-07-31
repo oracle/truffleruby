@@ -12,10 +12,12 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 
 public class DataNode extends RubyNode {
 
+    @Child private StringNodes.MakeStringNode makeStringNode;
     @Child private SnippetNode snippetNode;
 
     private final int endPosition;
@@ -26,6 +28,11 @@ public class DataNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
+        if (makeStringNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            makeStringNode = insert(StringNodes.MakeStringNode.create());
+        }
+
         if (snippetNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             snippetNode = insert(new SnippetNode());
@@ -34,8 +41,7 @@ public class DataNode extends RubyNode {
         final String path = getEncapsulatingSourceSection().getSource().getPath();
         final Object data = snippetNode.execute(frame,
                 "Truffle.get_data(file, offset)",
-                "file", StringOperations.createString(getContext(),
-                                StringOperations.encodeRope(path, getContext().getEncodingManager().getLocaleEncoding())),
+                "file", makeStringNode.executeMake(path, getContext().getEncodingManager().getLocaleEncoding(), CodeRange.CR_UNKNOWN),
                 "offset", endPosition);
 
         Layouts.MODULE.getFields(coreLibrary().getObjectClass()).setConstant(getContext(), null, "DATA", data);

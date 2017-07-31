@@ -42,7 +42,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.Encoding;
@@ -65,6 +64,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -74,7 +74,6 @@ import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.TaintNode;
-import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.error.Mark;
 import org.yaml.snakeyaml.events.AliasEvent;
 import org.yaml.snakeyaml.events.DocumentEndEvent;
@@ -105,7 +104,8 @@ public abstract class PsychParserNodes {
     @CoreMethod(names = "parse", required = 1, optional = 1)
     public abstract static class ParseNode extends CoreMethodArrayArgumentsNode {
 
-        @Node.Child private ToStrNode toStrNode = ToStrNodeGen.create(null);
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private ToStrNode toStrNode = ToStrNodeGen.create(null);
 
         public abstract Object executeParse(VirtualFrame frame, DynamicObject parserObject, DynamicObject yaml, Object path);
 
@@ -331,7 +331,7 @@ public abstract class PsychParserNodes {
         }
 
         private DynamicObject createUTF8String(String value) {
-            return createString(StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
         @TruffleBoundary
@@ -422,7 +422,7 @@ public abstract class PsychParserNodes {
                 charset = encoding.getCharset();
             }
 
-            final Object string = createString(value.getBytes(charset), encoding);
+            final DynamicObject string = makeStringNode.executeMake(value.getBytes(charset), encoding, CodeRange.CR_UNKNOWN);
 
             if (tainted) {
                 taintNode.executeTaint(string);

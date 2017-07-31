@@ -21,6 +21,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
@@ -32,7 +33,7 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 @CoreClass("Rubinius::ByteArray")
 public abstract class ByteArrayNodes {
 
-    public static DynamicObject createByteArray(DynamicObjectFactory factory, RopeBuilder bytes) {
+    public static DynamicObject createByteArray(DynamicObjectFactory factory, ByteArrayBuilder bytes) {
         return Layouts.BYTE_ARRAY.createByteArray(factory, bytes);
     }
 
@@ -42,7 +43,7 @@ public abstract class ByteArrayNodes {
         @Specialization
         public int getByte(DynamicObject bytes, int index,
                               @Cached("createBinaryProfile()") ConditionProfile nullByteIndexProfile) {
-            final RopeBuilder byteList = Layouts.BYTE_ARRAY.getBytes(bytes);
+            final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
 
             // Handling out-of-bounds issues like this is non-standard. In Rubinius, it would raise an exception instead.
             // We're modifying the semantics to address a primary use case for this class: Rubinius's @data array
@@ -50,11 +51,11 @@ public abstract class ByteArrayNodes {
             // advantage of that fact. So, where they expect to receive a NULL byte, we'd be out-of-bounds and raise
             // an exception. Simply appending a NULL byte may trigger a full copy of the original byte[], which we
             // want to avoid. The compromise is bending on the semantics here.
-            if (nullByteIndexProfile.profile(index == byteList.getLength())) {
+            if (nullByteIndexProfile.profile(index == builder.getLength())) {
                 return 0;
             }
 
-            return byteList.get(index) & 0xff;
+            return builder.get(index) & 0xff;
         }
 
     }
@@ -72,7 +73,7 @@ public abstract class ByteArrayNodes {
             final byte[] prependedBytes = new byte[newLength];
             System.arraycopy(bytesNode.execute(rope), 0, prependedBytes, 0, prependLength);
             System.arraycopy(Layouts.BYTE_ARRAY.getBytes(bytes).getUnsafeBytes(), 0, prependedBytes, prependLength, originalLength);
-            return ByteArrayNodes.createByteArray(coreLibrary().getByteArrayFactory(), RopeBuilder.createRopeBuilder(prependedBytes));
+            return ByteArrayNodes.createByteArray(coreLibrary().getByteArrayFactory(), ByteArrayBuilder.createUnsafeBuilder(prependedBytes));
         }
 
     }
@@ -110,26 +111,25 @@ public abstract class ByteArrayNodes {
         @Specialization(guards = "isRubyString(pattern)")
         public Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length) {
             final Rope patternRope = StringOperations.rope(pattern);
-            final int index = indexOf(RopeBuilder.createRopeBuilder(Layouts.BYTE_ARRAY.getBytes(bytes), start, length), patternRope);
+            final int index = indexOf(Layouts.BYTE_ARRAY.getBytes(bytes), start, length, patternRope);
 
             if (index == -1) {
                 return nil();
             } else {
-                return start + index + StringOperations.rope(pattern).characterLength();
+                return index + patternRope.characterLength();
             }
         }
 
-        @TruffleBoundary
-        public int indexOf(RopeBuilder in, Rope find) {
+        public int indexOf(ByteArrayBuilder in, int start, int length, Rope find) {
             byte[] target = find.getBytes();
             int targetCount = find.byteLength();
-            int fromIndex = 0;
-            if (fromIndex >= in.getLength()) return (targetCount == 0 ? in.getLength() : -1);
+            int fromIndex = start;
+            if (fromIndex >= length) return (targetCount == 0 ? length : -1);
             if (fromIndex < 0) fromIndex = 0;
             if (targetCount == 0) return fromIndex;
 
             byte first  = target[0];
-            int max = in.getLength() - targetCount;
+            int max = length - targetCount;
 
             for (int i = fromIndex; i <= max; i++) {
                 if (in.get(i) != first) {
@@ -156,12 +156,9 @@ public abstract class ByteArrayNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-        private static final byte[] ZERO_BYTES = new byte[0];
-
-        @TruffleBoundary
         @Specialization
         public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, RopeBuilder.createRopeBuilder(ZERO_BYTES));
+            return allocateObjectNode.allocate(rubyClass, new ByteArrayBuilder());
         }
 
     }

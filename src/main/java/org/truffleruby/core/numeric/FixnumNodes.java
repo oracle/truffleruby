@@ -31,7 +31,9 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.numeric.FixnumNodesFactory.DivNodeFactory;
 import org.truffleruby.core.numeric.FixnumNodesFactory.MulNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodes.IntegerMulNode;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LazyIntRope;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.WarnNode;
@@ -1061,12 +1063,13 @@ public abstract class FixnumNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject inspect(long n) {
+        public DynamicObject inspect(long n,
+                                     @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             if (CoreLibrary.fitsIntoInteger(n)) {
                 return inspect((int) n);
             }
 
-            return create7BitString(Long.toString(n), USASCIIEncoding.INSTANCE);
+            return makeStringNode.executeMake(Long.toString(n), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
     }
@@ -1099,6 +1102,8 @@ public abstract class FixnumNodes {
     @CoreMethod(names = "to_s", optional = 1, lowerFixnum = 1)
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject toS(int n, NotProvided base) {
             return createString(new LazyIntRope(n));
@@ -1111,7 +1116,7 @@ public abstract class FixnumNodes {
                 return toS((int) n, base);
             }
 
-            return create7BitString(Long.toString(n), USASCIIEncoding.INSTANCE);
+            return makeStringNode.executeMake(Long.toString(n), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
         @TruffleBoundary
@@ -1125,7 +1130,7 @@ public abstract class FixnumNodes {
                 throw new RaiseException(coreExceptions().argumentErrorInvalidRadix(base, this));
             }
 
-            return create7BitString(Long.toString(n, base), USASCIIEncoding.INSTANCE);
+            return makeStringNode.executeMake(Long.toString(n, base), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
     }

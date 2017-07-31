@@ -20,7 +20,9 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Activation;
 
@@ -84,13 +86,15 @@ public class ThreadBacktraceLocationNodes {
     @CoreMethod(names = "label")
     public abstract static class LabelNode extends UnaryCoreMethodNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject label(DynamicObject threadBacktraceLocation) {
             final Activation activation = ThreadBacktraceLocationLayoutImpl.INSTANCE.getActivation(threadBacktraceLocation);
             // TODO eregon 8 Nov. 2016 This does not handle blocks
             final String methodName = activation.getMethod().getSharedMethodInfo().getName();
 
-            return StringOperations.createString(getContext(), StringOperations.encodeRope(methodName, UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(methodName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

@@ -64,6 +64,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
@@ -672,8 +673,9 @@ public abstract class RegexpNodes {
         }
 
         @Specialization(guards = "isRubySymbol(raw)")
-        public DynamicObject quoteSymbol(DynamicObject raw) {
-            return quoteString(createString(StringOperations.encodeRope(Layouts.SYMBOL.getString(raw), UTF8Encoding.INSTANCE)));
+        public DynamicObject quoteSymbol(DynamicObject raw,
+                                         @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            return quoteString(makeStringNode.executeMake(Layouts.SYMBOL.getString(raw), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
 
         @Fallback
