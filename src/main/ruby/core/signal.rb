@@ -60,10 +60,10 @@ module Signal
         raise ArgumentError, "Unknown signal '#{osig}'"
       end
     else
-      number = sig.to_i
+      number = Rubinius::Type.coerce_to sig, Fixnum, :to_int
     end
 
-    signame = Numbers[number]
+    signame = self.signame(number)
 
     if signame == "VTALRM"
       # Used internally to unblock native calls, like MRI
