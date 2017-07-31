@@ -83,7 +83,7 @@ public abstract class PointerNodes {
 
         @Specialization
         public boolean setAutorelease(DynamicObject pointer, boolean autorelease) {
-            // TODO CS 24-April-2015 let memory leak
+            Layouts.POINTER.getPointer(pointer).setAutorelease(autorelease);
             return autorelease;
         }
 

@@ -11,6 +11,7 @@ package org.truffleruby.platform;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import jnr.ffi.Runtime;
+import org.truffleruby.Log;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -145,6 +146,12 @@ public class Pointer {
         return Runtime.getSystemRuntime().getMemoryManager().newPointer(pointer.address());
     }
 
+    @CompilerDirectives.TruffleBoundary
+    public void setAutorelease(boolean autorelease) {
+        // TODO CS 31-Jul-2017
+        Log.LOGGER.warning("pointer autorelease after allocation is not implemented - memory will be leaking");
+    }
+
     @SuppressWarnings("restriction")
     private static Unsafe getUnsafe() {
         try {
@@ -157,4 +164,5 @@ public class Pointer {
     }
 
     private static final Unsafe UNSAFE = getUnsafe();
+
 }
