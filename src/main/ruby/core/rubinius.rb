@@ -72,11 +72,6 @@ module Rubinius
   # jnr-posix hard codes this value
   PATH_MAX = 1024
 
-  def self.extended_modules(obj)
-    Truffle.primitive :vm_extended_modules
-    raise PrimitiveFailure, 'Rubinius.extended_modules primitive failed'
-  end
-
   module Unsafe
     def self.set_class(obj, cls)
       Truffle.primitive :vm_set_class
