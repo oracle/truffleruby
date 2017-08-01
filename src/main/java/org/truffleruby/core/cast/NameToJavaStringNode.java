@@ -44,7 +44,7 @@ public abstract class NameToJavaStringNode extends RubyNode {
     @Specialization(guards = { "isRubyString(value)", "equalsNode.execute(rope(value), cachedRope)" }, limit = "getLimit()")
     String stringCached(DynamicObject value,
             @Cached("privatizeRope(value)") Rope cachedRope,
-            @Cached("value.toString()") String convertedString,
+            @Cached("getString(value)") String convertedString,
             @Cached("create()") RopeNodes.EqualNode equalsNode) {
         return convertedString;
     }

@@ -16,6 +16,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -53,7 +54,9 @@ import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.SymbolTable;
@@ -803,6 +806,7 @@ public abstract class ModuleNodes {
             @NodeChild(type = RubyNode.class, value = "name"),
             @NodeChild(type = RubyNode.class, value = "inherit")
     })
+    @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class ConstGetNode extends CoreMethodNode {
 
         @Child private RequireNode requireNode;
@@ -811,6 +815,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToSymbolOrString(RubyNode name) {
+            // We want to know if the name is a Symbol, as then scoped lookup is not tried
             return NameToSymbolOrStringNodeGen.create(name);
         }
 
@@ -831,20 +836,29 @@ public abstract class ModuleNodes {
         }
 
         // String
-        @Specialization(guards = { "inherit", "isRubyString(name)", "!isScoped(name)" })
+        @Specialization(guards = { "inherit", "isRubyString(name)", "equalNode.execute(rope(name), cachedRope)", "!scoped" }, limit = "getLimit()")
+        public Object getConstantStringCached(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit,
+                @Cached("privatizeRope(name)") Rope cachedRope,
+                @Cached("getString(name)") String cachedString,
+                @Cached("create()") RopeNodes.EqualNode equalNode,
+                @Cached("isScoped(cachedString)") boolean scoped) {
+            return getConstant(frame, module, cachedString);
+        }
+
+        @Specialization(guards = { "inherit", "isRubyString(name)", "!isScoped(name)" }, replaces = "getConstantStringCached")
         public Object getConstantString(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstant(frame, module, name.toString());
+            return getConstant(frame, module, StringOperations.getString(name));
         }
 
         @Specialization(guards = { "!inherit", "isRubyString(name)", "!isScoped(name)" })
         public Object getConstantNoInheritString(VirtualFrame frame, DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstantNoInherit(frame, module, name.toString(), this);
+            return getConstantNoInherit(frame, module, StringOperations.getString(name), this);
         }
 
         // Scoped String
         @Specialization(guards = {"isRubyString(fullName)", "isScoped(fullName)"})
         public Object getConstantScoped(DynamicObject module, DynamicObject fullName, boolean inherit) {
-            return getConstantScoped(module, fullName.toString(), inherit);
+            return getConstantScoped(module, StringOperations.getString(fullName), inherit);
         }
 
         private Object getConstant(VirtualFrame frame, Object module, String name) {
@@ -881,7 +895,11 @@ public abstract class ModuleNodes {
         boolean isScoped(DynamicObject name) {
             assert RubyGuards.isRubyString(name);
             // TODO (eregon, 27 May 2015): Any way to make this efficient?
-            return name.toString().contains("::");
+            return StringOperations.getString(name).contains("::");
+        }
+
+        boolean isScoped(String name) {
+            return name.contains("::");
         }
 
         private void loadAutoloadedConstant(VirtualFrame frame, ConstantLookupResult constant) {
@@ -892,6 +910,10 @@ public abstract class ModuleNodes {
 
             final String feature = StringOperations.getString((DynamicObject) constant.getConstant().getValue());
             requireNode.executeRequire(frame, feature);
+        }
+
+        protected int getLimit() {
+            return getContext().getOptions().CONSTANT_CACHE;
         }
 
     }
