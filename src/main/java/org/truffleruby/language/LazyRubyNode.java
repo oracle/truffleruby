@@ -25,7 +25,7 @@ public class LazyRubyNode extends RubyNode {
     }
 
     private final Supplier<RubyNode> resolver;
-    private RubyNode resolved = null;
+    private volatile RubyNode resolved = null;
 
     public LazyRubyNode(Supplier<RubyNode> resolver) {
         this.resolver = resolver;
@@ -63,11 +63,13 @@ public class LazyRubyNode extends RubyNode {
                 Log.LOGGER.info(() -> "lazy translating " + RubyLanguage.fileLine(getParent().getEncapsulatingSourceSection()) + " in " + getRootNode());
             }
 
-            resolved = resolver.get();
-            transferFlagsTo(resolved);
+            final RubyNode result = resolver.get();
+            transferFlagsTo(result);
 
-            replace(resolved, "lazy node resolved");
-            return resolved;
+            // publish
+            resolved = result;
+            replace(result, "lazy node resolved");
+            return result;
         });
     }
 
