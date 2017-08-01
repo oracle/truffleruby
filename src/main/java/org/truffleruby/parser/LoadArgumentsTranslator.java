@@ -24,7 +24,6 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.MissingKeywordArgumentNode;
-import org.truffleruby.language.arguments.ProfileArgumentNode;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadBlockNode;
 import org.truffleruby.language.arguments.ReadKeywordArgumentNode;

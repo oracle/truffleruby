@@ -11,7 +11,6 @@ package org.truffleruby.language.constants;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;

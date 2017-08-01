@@ -14,7 +14,6 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.core.rope.RopeBuilder;
 
 @Layout
 public interface ByteArrayLayout extends BasicObjectLayout {

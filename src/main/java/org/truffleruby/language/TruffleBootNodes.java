@@ -240,7 +240,7 @@ public abstract class TruffleBootNodes {
             final OptionDescription<?> description = OptionsCatalog.fromName("ruby." + StringOperations.getString(optionName));
             final Object value = getContext().getOptions().fromDescription(description);
             if (value instanceof String) {
-                return makeStringNode.executeMake((String) value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             } else {
                 assert value instanceof Integer || value instanceof Boolean;
                 return value;

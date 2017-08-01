@@ -553,7 +553,6 @@ public class TranscodingManager {
         byte[] encname2 = encodingToInsertOutput(ec);
 
         final byte[] str2;
-        final int p2 = 0;
         final int len2;
 
         if (encname2.length == 0 || caseInsensitiveEquals(encname, encname2)) {

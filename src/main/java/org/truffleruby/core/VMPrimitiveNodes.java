@@ -64,7 +64,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.LookupMethodNodeGen;

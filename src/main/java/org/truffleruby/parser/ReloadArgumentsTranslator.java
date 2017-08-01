@@ -19,7 +19,6 @@ import org.truffleruby.core.hash.HashLiteralNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
-import org.truffleruby.language.arguments.ProfileArgumentNode;
 import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.control.SequenceNode;

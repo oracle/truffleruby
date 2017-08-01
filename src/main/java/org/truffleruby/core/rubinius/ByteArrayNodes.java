@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.rubinius;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -23,7 +22,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;

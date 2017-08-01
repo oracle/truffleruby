@@ -11,7 +11,6 @@ package org.truffleruby.language.supercall;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.cast.ProcOrNullNodeGen;
 import org.truffleruby.language.RubyNode;

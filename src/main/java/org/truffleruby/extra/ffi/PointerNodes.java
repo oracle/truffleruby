@@ -10,7 +10,6 @@
 package org.truffleruby.extra.ffi;
 
 import com.kenai.jffi.MemoryIO;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;

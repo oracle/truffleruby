@@ -66,7 +66,6 @@ import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;

@@ -16,12 +16,10 @@ import jnr.constants.platform.OpenFlags;
 import jnr.posix.FileStat;
 import jnr.posix.POSIX;
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.Map;

@@ -46,8 +46,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import java.util.Arrays;
 
-import static org.truffleruby.core.string.StringOperations.rope;
-
 @CoreClass("MatchData")
 public abstract class MatchDataNodes {
 

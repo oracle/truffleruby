@@ -20,7 +20,6 @@ import jnr.posix.SpawnAttribute;
 import jnr.posix.SpawnFileAction;
 import jnr.posix.Times;
 
-import java.io.FileDescriptor;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 

@@ -58,7 +58,6 @@ import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.TaintNode;

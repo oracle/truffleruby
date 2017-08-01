@@ -10,7 +10,6 @@
 package org.truffleruby.language.supercall;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
