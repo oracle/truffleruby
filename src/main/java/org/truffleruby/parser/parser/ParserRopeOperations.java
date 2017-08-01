@@ -18,11 +18,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.loader.SourceLoader;
-
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 

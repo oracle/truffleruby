@@ -14,12 +14,10 @@ import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.RubyMessageResolutionForeign;
-import org.truffleruby.language.objects.shared.SharedObjects;
 
 public class RubyObjectType extends ObjectType {
 

@@ -11,7 +11,6 @@ package org.truffleruby.core.adapters;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeBuilder;

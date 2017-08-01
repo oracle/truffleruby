@@ -202,7 +202,7 @@ public class SourceLoader {
         }
     }
 
-    private void ensureReadable(String path, File file) throws IOException {
+    private void ensureReadable(String path, File file) {
         if (!file.exists()) {
             throw new RaiseException(context.getCoreExceptions().loadError("No such file or directory -- " + path, path, null));
         }

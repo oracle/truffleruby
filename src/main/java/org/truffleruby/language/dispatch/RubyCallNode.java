@@ -28,8 +28,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.LookupMethodNode;
-import org.truffleruby.language.methods.LookupMethodNodeGen;
 
 public class RubyCallNode extends RubyNode {
 

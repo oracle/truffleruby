@@ -53,7 +53,6 @@ import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
-import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;

@@ -155,13 +155,13 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(name)")
         public DynamicObject getenv(DynamicObject name) {
-            Object result = posix().getenv(decodeUTF8(name));
+            String result = posix().getenv(decodeUTF8(name));
 
             if (result == null) {
                 return nil();
             }
 
-            return makeStringNode.executeMake((String) result, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(result, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
 

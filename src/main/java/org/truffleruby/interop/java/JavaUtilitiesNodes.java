@@ -26,7 +26,6 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
-import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;

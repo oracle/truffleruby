@@ -15,7 +15,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.objects.shared.SharedObjects;
 

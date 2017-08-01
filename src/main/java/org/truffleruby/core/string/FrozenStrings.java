@@ -10,7 +10,6 @@
 package org.truffleruby.core.string;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.Rope;
 

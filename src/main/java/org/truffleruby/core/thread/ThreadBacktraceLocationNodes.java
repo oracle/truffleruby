@@ -23,7 +23,6 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Activation;
 
 @CoreClass("Thread::Backtrace::Location")

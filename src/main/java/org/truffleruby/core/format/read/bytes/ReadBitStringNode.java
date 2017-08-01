@@ -50,7 +50,6 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.jcodings.specific.USASCIIEncoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.AsciiOnlyLeafRope;

@@ -20,7 +20,6 @@ package org.truffleruby.language.literal;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
