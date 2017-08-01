@@ -11,6 +11,7 @@
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -41,7 +42,12 @@ public abstract class ToFNode extends RubyNode {
         }
 
         errorProfile.enter();
-        throw new UnsupportedOperationException("executeDouble must return a double, instead it returned a " + doubleObject.getClass().getName());
+        throw new UnsupportedOperationException("executeDouble must return a double, instead it returned a " + getClassName(doubleObject));
+    }
+
+    @TruffleBoundary
+    private String getClassName(Object doubleObject) {
+        return doubleObject.getClass().getName();
     }
 
     public abstract Object executeDouble(VirtualFrame frame, Object value);
