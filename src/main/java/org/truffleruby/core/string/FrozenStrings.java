@@ -15,26 +15,45 @@ import org.truffleruby.core.rope.Rope;
 
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FrozenStrings {
 
     private final RubyContext context;
 
     private final Map<RopeHolder, DynamicObject> frozenStrings = new WeakHashMap<>();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public FrozenStrings(RubyContext context) {
         this.context = context;
     }
 
-    public synchronized DynamicObject getFrozenString(Rope rope) {
+    public DynamicObject getFrozenString(Rope rope) {
         assert context.getRopeTable().contains(rope);
 
         final RopeHolder holder = new RopeHolder(rope);
-        DynamicObject string = frozenStrings.get(holder);
+        DynamicObject string;
 
-        if (string == null) {
-            string = StringOperations.createFrozenString(context, rope);
-            frozenStrings.put(holder, string);
+        lock.readLock().lock();
+        try {
+            string = frozenStrings.get(holder);
+            if (string != null) {
+                return string;
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+
+        lock.writeLock().lock();
+        try {
+            string = frozenStrings.get(holder);
+            if (string == null) {
+                string = StringOperations.createFrozenString(context, rope);
+                frozenStrings.put(holder, string);
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
 
         return string;
