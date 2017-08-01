@@ -414,7 +414,9 @@ public abstract class ThreadNodes {
         @Specialization
         public Object value(DynamicObject self) {
             JoinNode.doJoin(this, self);
-            return Layouts.THREAD.getValue(self);
+            final Object value = Layouts.THREAD.getValue(self);
+            assert value != null;
+            return value;
         }
 
     }
@@ -518,7 +520,7 @@ public abstract class ThreadNodes {
             // The exception will be shared with another thread
             SharedObjects.writeBarrier(context, exception);
 
-            final Thread javaThread = Layouts.FIBER.getThread((Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiber()));
+            final Thread javaThread = Layouts.FIBER.getThread(Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiber());
 
             context.getSafepointManager().pauseThreadAndExecuteLater(javaThread, currentNode, (currentThread, currentNode1) -> {
                 if (Layouts.EXCEPTION.getBacktrace(exception) == null) {

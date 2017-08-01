@@ -200,13 +200,19 @@ public class ThreadManager {
         } catch (ReturnException e) {
             setException(context, thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
         } catch (ExitException e) {
-            final Thread rootThread = Layouts.FIBER.getThread(Layouts.THREAD.getFiberManager(context.getThreadManager().getRootThread()).getCurrentFiber());
-            context.getSafepointManager().pauseThreadAndExecute(rootThread, currentNode, (actionThread, actionCurrentNode) -> {
-                throw e;
-            });
+            rethrowOnMainThread(context, currentNode, e);
+            setThreadValue(context, thread, context.getCoreLibrary().getNil());
         } finally {
             context.getThreadManager().cleanup(thread);
+            assert Layouts.THREAD.getValue(thread) != null || Layouts.THREAD.getException(thread) != null;
         }
+    }
+
+    private static void rethrowOnMainThread(RubyContext context, Node currentNode, ExitException e) {
+        final Thread rootThread = Layouts.FIBER.getThread(Layouts.THREAD.getFiberManager(context.getThreadManager().getRootThread()).getCurrentFiber());
+        context.getSafepointManager().pauseThreadAndExecute(rootThread, currentNode, (actionThread, actionCurrentNode) -> {
+            throw e;
+        });
     }
 
     private static void setThreadValue(RubyContext context, DynamicObject thread, Object value) {
