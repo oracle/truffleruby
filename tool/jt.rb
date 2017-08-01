@@ -71,14 +71,14 @@ module Utilities
     raise "More than one of GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME defined!" if [graalvm, jvmci, graal_home].compact.count > 1
 
     if graalvm
-      javacmd = File.expand_path(graalvm)
+      javacmd = File.expand_path(graalvm, TRUFFLERUBY_DIR)
       vm_args = []
       options = []
     elsif jvmci
-      javacmd = File.expand_path(jvmci)
+      javacmd = File.expand_path(jvmci, TRUFFLERUBY_DIR)
       jvmci_graal_home = ENV['JVMCI_GRAAL_HOME']
       raise "Also set JVMCI_GRAAL_HOME if you set JVMCI_BIN" unless jvmci_graal_home
-      jvmci_graal_home = File.expand_path(jvmci_graal_home)
+      jvmci_graal_home = File.expand_path(jvmci_graal_home, TRUFFLERUBY_DIR)
       vm_args = [
         '-d64',
         '-XX:+UnlockExperimentalVMOptions',
@@ -88,7 +88,7 @@ module Utilities
       ]
       options = ['--no-bootclasspath']
     elsif graal_home
-      graal_home = File.expand_path(graal_home)
+      graal_home = File.expand_path(graal_home, TRUFFLERUBY_DIR)
       mx = find_mx(graal_home)
       output = `#{mx} -v -p #{graal_home} vm -version 2>&1`.lines.to_a
       command_line = output.select { |line| line.include? '-version' }
@@ -700,7 +700,7 @@ module Commands
     when 'tck' then test_tck(*rest)
     when 'mri' then test_mri(*rest)
     else
-      if File.expand_path(path).start_with?("#{TRUFFLERUBY_DIR}/test")
+      if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
         test_mri(*args)
       else
         test_specs('run', *args)
