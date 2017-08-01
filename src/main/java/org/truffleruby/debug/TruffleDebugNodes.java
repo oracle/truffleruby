@@ -222,6 +222,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "object_type_of", onSingleton = true, required = 1)
     public abstract static class ObjectTypeOfNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         public DynamicObject objectTypeOf(DynamicObject value) {
             return getSymbol(value.getShape().getObjectType().getClass().getSimpleName());

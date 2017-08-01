@@ -50,6 +50,7 @@ public class CoreExceptions {
                 Layouts.EXCEPTION.getBacktrace(exception));
     }
 
+    @TruffleBoundary
     public void showExceptionIfDebug(DynamicObject rubyClass, Object message, Backtrace backtrace) {
         if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
             final String exceptionClass = Layouts.MODULE.getFields(rubyClass).getName();
