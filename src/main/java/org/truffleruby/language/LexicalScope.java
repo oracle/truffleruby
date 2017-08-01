@@ -18,7 +18,7 @@ public class LexicalScope {
     public static final LexicalScope NONE = null;
 
     private final LexicalScope parent;
-    @CompilationFinal private DynamicObject liveModule;
+    @CompilationFinal private volatile DynamicObject liveModule;
 
     public LexicalScope(LexicalScope parent, DynamicObject liveModule) {
         assert liveModule == null || RubyGuards.isRubyModule(liveModule);
