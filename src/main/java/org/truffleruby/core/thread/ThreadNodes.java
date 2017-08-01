@@ -368,6 +368,7 @@ public abstract class ThreadNodes {
     @CoreMethod(names = "pass", onSingleton = true)
     public abstract static class PassNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         public DynamicObject pass() {
             Thread.yield();
