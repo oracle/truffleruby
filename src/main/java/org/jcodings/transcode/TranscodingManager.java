@@ -48,11 +48,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.jcodings.transcode.EConv.NULL_STRING;
 import static org.jcodings.transcode.EConvFlags.ERROR_HANDLER_MASK;
@@ -237,37 +235,42 @@ public class TranscodingManager {
 
     @SuppressWarnings("unchecked")
     @TruffleBoundary
-    private static LinkedList<String> bfs(String sourceEncodingName, String destinationEncodingName) {
-        final Set<String> alreadyVisited = new HashSet<>();
-        final Deque<LinkedList<String>> queue = new ArrayDeque<>();
+    public static LinkedList<String> bfs(String sourceEncodingName, String destinationEncodingName) {
+        final Deque<String> queue = new ArrayDeque<>();
+        final HashMap<String, String> invertedList = new HashMap<>();
 
-        LinkedList<String> path = new LinkedList<>();
-        path.add(sourceEncodingName);
-        queue.add(path);
-        alreadyVisited.add(sourceEncodingName);
+        invertedList.put(sourceEncodingName, null);
 
-        while (! queue.isEmpty()) {
-            path = queue.pop();
-            final String sourceName = path.getLast();
+        queue.add(sourceEncodingName);
+        while (!queue.isEmpty()) {
+            String current = queue.pop();
 
-            if (allTranscoders.get(sourceName).containsKey(destinationEncodingName)) {
-                path.add(destinationEncodingName);
-                return path;
-            } else {
-                for (String destinationName : allTranscoders.get(sourceName).keySet()) {
-                    if (alreadyVisited.contains(destinationName)) {
-                        continue;
+            for (String child : allTranscoders.get(current).keySet()) {
+                if (invertedList.containsKey(child)) {
+                    // We've already visited this path or are scheduled to.
+                    continue;
+                }
+
+                if (child.equals(destinationEncodingName)) {
+                    // Search finished.
+                    final LinkedList<String> ret = new LinkedList<>();
+                    ret.add(child);
+
+                    String next = current;
+                    while (next != null) {
+                        ret.addFirst(next);
+                        next = invertedList.get(next);
                     }
 
-                    final LinkedList<String> newPath = (LinkedList<String>) path.clone();
-                    newPath.add(destinationName);
-                    queue.add(newPath);
-                    alreadyVisited.add(destinationName);
+                    return ret;
                 }
+
+                invertedList.put(child, current);
+                queue.add(child);
             }
         }
 
-        return null;
+        return new LinkedList<>();
     }
 
     private static boolean decorateAtLast(EConv ec, byte[] decorator) {
