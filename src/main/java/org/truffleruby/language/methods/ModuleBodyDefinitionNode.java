@@ -74,7 +74,13 @@ public class ModuleBodyDefinitionNode extends RubyNode {
         } else {
             // Cache the scope per module in case the module body is run multiple times.
             // This allows dynamic constant lookup to cache better.
-            return lexicalScopes.computeIfAbsent(module, m -> new LexicalScope(parentLexicalScope, module));
+            final LexicalScope scope = lexicalScopes.get(module);
+            if (scope != null) {
+                return scope;
+            } else {
+                lexicalScopes.putIfAbsent(module, new LexicalScope(parentLexicalScope, module));
+                return lexicalScopes.get(module);
+            }
         }
     }
 
