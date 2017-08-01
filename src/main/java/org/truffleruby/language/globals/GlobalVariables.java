@@ -28,7 +28,12 @@ public class GlobalVariables {
 
     @TruffleBoundary
     public GlobalVariableStorage getStorage(String name) {
-        return variables.computeIfAbsent(name, k -> new GlobalVariableStorage(defaultValue, null, null));
+        GlobalVariableStorage storage = variables.get(name);
+        if (storage == null) {
+            variables.putIfAbsent(name, new GlobalVariableStorage(defaultValue, null, null));
+            storage = variables.get(name);
+        }
+        return storage;
     }
 
     public GlobalVariableStorage put(String name, Object value) {

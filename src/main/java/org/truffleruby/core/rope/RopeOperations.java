@@ -154,7 +154,12 @@ public class RopeOperations {
         value = flatten(value);
 
         Encoding encoding = value.getEncoding();
-        Charset charset = encodingToCharsetMap.computeIfAbsent(encoding, EncodingManager::charsetForEncoding);
+        Charset charset = encodingToCharsetMap.get(encoding);
+        if (charset == null) {
+            charset = EncodingManager.charsetForEncoding(encoding);
+            encodingToCharsetMap.putIfAbsent(encoding, charset);
+            // No need to reload the charset, charsetForEncoding() is pure
+        }
 
         return new String(value.getBytes(), charset);
     }
