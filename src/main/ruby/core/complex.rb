@@ -58,6 +58,10 @@ class Complex < Numeric
     end
     imag = nil if undefined.equal?(imag)
 
+    if Float === real && Float === imag
+      return rect(real, imag)
+    end
+
     real = real.to_c if real.kind_of?(String)
     imag = imag.to_c if imag.kind_of?(String)
 
