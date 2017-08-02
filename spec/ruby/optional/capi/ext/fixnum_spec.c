@@ -7,13 +7,15 @@ extern "C" {
 
 #ifdef HAVE_RB_FIX2UINT
 static VALUE fixnum_spec_rb_fix2uint(VALUE self, VALUE value) {
-  return INT2FIX(rb_fix2uint(value));
+  unsigned int i = rb_fix2uint(value);
+  return UINT2NUM(i);
 }
 #endif
 
 #ifdef HAVE_RB_FIX2INT
 static VALUE fixnum_spec_rb_fix2int(VALUE self, VALUE value) {
-  return INT2FIX(rb_fix2int(value));
+  int i = rb_fix2int(value);
+  return INT2NUM(i);
 }
 #endif
 

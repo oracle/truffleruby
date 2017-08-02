@@ -14,6 +14,7 @@ describe "CApiFixnumSpecs" do
       end
 
       it "converts a Fixnum" do
+        @s.rb_fix2uint(0).should == 0
         @s.rb_fix2uint(1).should == 1
       end
 
@@ -23,6 +24,12 @@ describe "CApiFixnumSpecs" do
 
       it "converts a Float" do
         @s.rb_fix2uint(25.4567).should == 25
+      end
+
+      it "raises a RangeError if the value does not fit a native uint" do
+        # Interestingly, on MRI rb_fix2uint(-1) is allowed
+        lambda { @s.rb_fix2uint(0xffff_ffff+1) }.should raise_error(RangeError)
+        lambda { @s.rb_fix2uint(-(1 << 31) - 1) }.should raise_error(RangeError)
       end
 
       it "raises a RangeError if the value is more than 32bits" do
@@ -44,7 +51,11 @@ describe "CApiFixnumSpecs" do
         @s.rb_fix2int(1).should == 1
       end
 
-      it "converts the maximum uint value" do
+      it "converts the minimum int value" do
+        @s.rb_fix2int(-(1 << 31)).should == -(1 << 31)
+      end
+
+      it "converts the maximum int value" do
         @s.rb_fix2int(0x7fff_ffff).should == 0x7fff_ffff
       end
 
@@ -54,6 +65,11 @@ describe "CApiFixnumSpecs" do
 
       it "converts a negative Bignum into an signed number" do
         @s.rb_fix2int(-2147442171).should == -2147442171
+      end
+
+      it "raises a RangeError if the value does not fit a native int" do
+        lambda { @s.rb_fix2int(0x7fff_ffff+1) }.should raise_error(RangeError)
+        lambda { @s.rb_fix2int(-(1 << 31) - 1) }.should raise_error(RangeError)
       end
 
       it "raises a RangeError if the value is more than 32bits" do
