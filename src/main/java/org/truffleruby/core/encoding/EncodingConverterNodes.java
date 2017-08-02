@@ -64,7 +64,7 @@ import static org.truffleruby.core.string.StringOperations.rope;
 public abstract class EncodingConverterNodes {
 
     @NonStandard
-    @CoreMethod(names = "initialize_jruby", required = 2, optional = 1, lowerFixnum = 3, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "initialize_jcodings", required = 2, optional = 1, lowerFixnum = 3, visibility = Visibility.PRIVATE)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -80,12 +80,28 @@ public abstract class EncodingConverterNodes {
             Encoding destinationEncoding = Layouts.ENCODING.getEncoding(destination);
 
             final EConv econv = TranscodingManager.create(sourceEncoding, destinationEncoding, options);
+            if (econv == null) {
+                return nil();
+            }
+
             econv.sourceEncoding = sourceEncoding;
             econv.destinationEncoding = destinationEncoding;
 
             Layouts.ENCODING_CONVERTER.setEconv(self, econv);
 
-            return nil();
+            // There are N-1 edges connecting N encodings on the path from source -> destination.
+            // We need to include every encoding along the path in the return value.
+            final Object[] ret = new Object[econv.elements.length + 1];
+
+            for (int i = 0; i < econv.elements.length; i++) {
+                final byte[] segmentSource = econv.elements[i].transcoding.transcoder.getSource();
+                ret[i] = getSymbol(RopeOperations.decodeAscii(segmentSource, 0, segmentSource.length).toUpperCase());
+            }
+
+            final byte[] destinationName = destinationEncoding.getName();
+            ret[ret.length - 1] = getSymbol(RopeOperations.decodeAscii(destinationName, 0, destinationName.length).toUpperCase());
+
+            return createArray(ret, ret.length);
         }
 
     }

@@ -200,9 +200,7 @@ class Encoding
       source_name = @source_encoding.name.upcase.to_sym
       dest_name = @destination_encoding.name.upcase.to_sym
 
-      unless source_name == dest_name
-        @convpath, @converters = TranscodingPath[source_name, dest_name]
-      end
+      @convpath = initialize_jcodings(@source_encoding, @destination_encoding, @options)
 
       unless @convpath
         conversion = "(#{@source_encoding.name} to #{@destination_encoding.name})"
@@ -210,7 +208,9 @@ class Encoding
         raise ConverterNotFoundError, msg
       end
 
-      initialize_jruby(@source_encoding, @destination_encoding, @options)
+      unless source_name == dest_name
+        @converters = TranscodingPath.get_converters(@convpath)
+      end
 
       if (@options & (INVALID_REPLACE | UNDEF_REPLACE | UNDEF_HEX_CHARREF))
         unless new_replacement.nil?

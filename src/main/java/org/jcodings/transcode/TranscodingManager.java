@@ -210,7 +210,7 @@ public class TranscodingManager {
         final String destinationEncodingName = new String(destination).toUpperCase();
 
         if (!allTranscoders.containsKey(sourceEncodingName)) {
-            return null;
+            return Collections.emptyList();
         }
 
         final TranscoderReference directMapping = allTranscoders.get(sourceEncodingName).get(destinationEncodingName);
