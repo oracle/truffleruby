@@ -939,6 +939,14 @@ VALUE rb_str_new(const char *string, long length) {
   }
 }
 
+VALUE rb_tainted_str_new(const char *ptr, long len)
+{
+    VALUE str = rb_str_new(ptr, len);
+
+    OBJ_TAINT(str);
+    return str;
+}
+
 VALUE rb_str_new_cstr(const char *string) {
   if (truffle_is_truffle_object((VALUE) string)) {
     VALUE ruby_string = (VALUE) truffle_invoke((VALUE) string, "to_s");
