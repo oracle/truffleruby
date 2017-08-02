@@ -20,7 +20,9 @@ import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.api.vm.PolyglotEngine.Value;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.RubyTest;
+import org.truffleruby.launcher.options.OptionsCatalog;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,6 +48,7 @@ public class RubyDebugTest {
     private DebuggerSession debuggerSession;
     private final LinkedList<Runnable> run = new LinkedList<>();
     private SuspendedEvent suspendedEvent;
+    private Breakpoint breakpoint;
     private Throwable ex;
     private PolyglotEngine engine;
     private final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -65,7 +68,10 @@ public class RubyDebugTest {
     public void before() {
         suspendedEvent = null;
 
-        engine = RubyTest.setupConfig(PolyglotEngine.newBuilder()).setOut(out).setErr(err).build();
+        engine = RubyTest.setupConfig(PolyglotEngine.newBuilder())
+                // We also want to test instrumentation works well with lazy nodes
+                .config(RubyLanguage.MIME_TYPE, OptionsCatalog.LAZY_TRANSLATION_USER.getName(), true)
+                .setOut(out).setErr(err).build();
         debugger = Debugger.find(engine);
         debuggerSession = debugger.startSession(event -> {
             suspendedEvent = event;
@@ -93,15 +99,17 @@ public class RubyDebugTest {
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
-            Breakpoint breakpoint = Breakpoint.newBuilder(factorial).lineIs(BREAKPOINT_LINE).build();
+            breakpoint = Breakpoint.newBuilder(factorial).lineIs(BREAKPOINT_LINE).build();
             debuggerSession.install(breakpoint);
         });
 
         // Init before eval:
         performWork();
-        engine.eval(factorial);
+        Assert.assertFalse("factorial not yet loaded", breakpoint.isResolved());
 
+        engine.eval(factorial);
         assertExecutedOK("Algorithm loaded");
+        Assert.assertFalse("all methods are lazily translated (by the option)", breakpoint.isResolved());
 
         assertLocation(13, "1",
                         "n", "1",
@@ -112,8 +120,10 @@ public class RubyDebugTest {
         continueExecution();
 
         final Value main = engine.findGlobalSymbol("main");
-        assertNotNull( "main method found", main);
+        assertNotNull("main method found", main);
+        Assert.assertFalse("not yet translated", breakpoint.isResolved());
         Value value = main.execute();
+        Assert.assertTrue("breakpoint must have stopped first execution", breakpoint.isResolved());
         Number n = value.as(Number.class);
         assertNotNull(n);
         assertEquals("Factorial computed OK", 2, n.intValue());
