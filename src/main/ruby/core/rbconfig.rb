@@ -147,7 +147,7 @@ module RbConfig
   opt_passes     = ['-always-inline', '-mem2reg', '-constprop'].join(' ')
   cc             = clang
   cpp            = cc
-  cflags         = ['-g',                                     # Show debug information such as line numbers in backtrace
+  linkflags      = ['-g',                                     # Show debug information such as line numbers in backtrace
                     '-Werror=implicit-function-declaration',  # To make missing C ext functions very clear
                     '-Wno-unknown-warning-option',            # If we're on an earlier version of clang without a warning option, ignore it
                     '-Wno-int-conversion',                    # MRI has VALUE defined as long while we have it as void*
@@ -156,8 +156,8 @@ module RbConfig
                     '-Wno-unused-value',                      # RB_GC_GUARD leaves
                     '-Wno-incompatible-pointer-types',        # We define VALUE as void* rather than uint32_t
                     '-Wno-expansion-to-defined',              # The openssl C extension uses macros expanding to defined
-                    '-c', '-emit-llvm',
                     '-ferror-limit=500'].join(' ')
+  cflags         =  "#{linkflags} -c -emit-llvm"
   # We do not have a launcher if we are embedded with the polyglot API
   ruby_launcher = Truffle::Boot.ruby_launcher
   ruby_launcher ||= "#{expanded['bindir']}/#{ruby_install_name}" if ruby_home
@@ -175,8 +175,8 @@ module RbConfig
   mkconfig['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
   expanded['LINK_SO'] = "#{ruby_launcher} -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) #{libs}"
   mkconfig['LINK_SO'] = "#{ruby_launcher} -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) $(LIBS)"
-  expanded['TRY_LINK'] = "#{clang} -o conftest $(src) $(INCFLAGS) #{cflags} #{libs}"
-  mkconfig['TRY_LINK'] = "#{clang} -o conftest $(src) $(INCFLAGS) $(CFLAGS) $(LIBS)"
+  expanded['TRY_LINK'] = "#{clang} -o conftest #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} #{libs}"
+  mkconfig['TRY_LINK'] = "#{clang} -o conftest #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
 
   def self.ruby
     Truffle::Boot.ruby_launcher or
