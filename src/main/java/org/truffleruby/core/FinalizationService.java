@@ -15,11 +15,11 @@ import org.truffleruby.core.thread.ThreadManager;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,9 +29,9 @@ public class FinalizationService {
 
         private final Class<?> owner;
         private final Runnable action;
-        private final Supplier<Stream<DynamicObject>> roots;
+        private final List<DynamicObject> roots;
 
-        public Finalizer(Class<?> owner, Runnable action, Supplier<Stream<DynamicObject>> roots) {
+        public Finalizer(Class<?> owner, Runnable action, List<DynamicObject> roots) {
             this.owner = owner;
             this.action = action;
             this.roots = roots;
@@ -45,8 +45,8 @@ public class FinalizationService {
             return action;
         }
 
-        public Supplier<Stream<DynamicObject>> getRoots() {
-            return roots;
+        public Stream<DynamicObject> getRoots() {
+            return roots.stream();
         }
     }
 
@@ -58,20 +58,20 @@ public class FinalizationService {
             super(object, queue);
         }
 
-        public void addFinalizer(Class<?> owner, Runnable action, Supplier<Stream<DynamicObject>> roots) {
+        public void addFinalizer(Class<?> owner, Runnable action, List<DynamicObject> roots) {
             finalizers.add(new Finalizer(owner, action, roots));
         }
 
         public void removeFinalizers(Class<?> owner) {
-            finalizers.removeIf((f) -> f.getOwner() == owner);
+            finalizers.removeIf(f -> f.getOwner() == owner);
         }
 
         public List<Runnable> getFinalizerActions() {
-            return finalizers.stream().map((f) -> f.getAction()).collect(Collectors.toList());
+            return finalizers.stream().map(f -> f.getAction()).collect(Collectors.toList());
         }
 
         public Stream<DynamicObject> getRoots() {
-            return finalizers.stream().flatMap((f) -> f.getRoots().get());
+            return finalizers.stream().flatMap(f -> f.getRoots());
         }
     }
 
@@ -87,10 +87,10 @@ public class FinalizationService {
     }
 
     public synchronized void addFinalizer(Object object, Class<?> owner, Runnable action) {
-        addFinalizer(object, owner, action, () -> Stream.empty());
+        addFinalizer(object, owner, action, Collections.emptyList());
     }
 
-    public synchronized void addFinalizer(Object object, Class<?> owner, Runnable action, Supplier<Stream<DynamicObject>> roots) {
+    public synchronized void addFinalizer(Object object, Class<?> owner, Runnable action, List<DynamicObject> roots) {
         FinalizerReference finalizerReference = finalizerReferences.get(object);
 
         if (finalizerReference == null) {
@@ -111,8 +111,9 @@ public class FinalizationService {
 
         ThreadManager.initialize(finalizerThread, context, null, "finalizer", () -> {
             while (true) {
-                final FinalizerReference finalizerReference = (FinalizerReference) context.getThreadManager().runUntilResult(null, () -> finalizerQueue.remove());
-                finalizerReference.getFinalizerActions().forEach((action) -> action.run());
+                final FinalizerReference finalizerReference = (FinalizerReference) context.getThreadManager().runUntilResult(null,
+                        () -> finalizerQueue.remove());
+                finalizerReference.getFinalizerActions().forEach(action -> action.run());
             }
         });
     }
@@ -126,7 +127,7 @@ public class FinalizationService {
     }
 
     public synchronized Stream<DynamicObject> getRoots() {
-        return finalizerReferences.values().stream().flatMap((f) -> f.getRoots());
+        return finalizerReferences.values().stream().flatMap(f -> f.getRoots());
     }
 
 }

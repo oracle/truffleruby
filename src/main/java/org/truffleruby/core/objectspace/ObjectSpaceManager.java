@@ -54,6 +54,8 @@ import java.lang.management.ManagementFactory;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -87,15 +89,17 @@ public class ObjectSpaceManager {
 
     @CompilerDirectives.TruffleBoundary
     public synchronized void defineFinalizer(DynamicObject object, Object callable) {
+        final List<DynamicObject> roots;
+
+        if (callable instanceof DynamicObject) {
+            roots = Arrays.asList((DynamicObject) callable);
+        } else {
+            roots = Collections.emptyList();
+        }
+
         finalizationService.addFinalizer(object, ObjectSpaceManager.class, () -> {
             context.send(callable, "call", null);
-        }, () -> {
-            if (callable instanceof DynamicObject) {
-                return Stream.of((DynamicObject) callable);
-            } else {
-                return Stream.empty();
-            }
-        });
+        }, roots);
     }
 
     public synchronized void undefineFinalizer(DynamicObject object) {
