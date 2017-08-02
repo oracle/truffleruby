@@ -12,6 +12,7 @@ package org.truffleruby.extra.ffi;
 import com.oracle.truffle.api.CompilerDirectives;
 import jnr.ffi.Runtime;
 import org.truffleruby.Log;
+import org.truffleruby.core.FinalizationService;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -29,6 +30,7 @@ public class Pointer {
     }
 
     private final long address;
+    private boolean autorelease;
 
     public Pointer(long address) {
         this.address = address;
@@ -165,9 +167,28 @@ public class Pointer {
     }
 
     @CompilerDirectives.TruffleBoundary
-    public void setAutorelease(boolean autorelease) {
-        // TODO CS 31-Jul-2017
-        Log.LOGGER.warning("pointer autorelease after allocation is not implemented - memory will be leaking");
+    public void setAutorelease(FinalizationService finalizationService, boolean autorelease) {
+        if (autorelease) {
+            if (this.autorelease) {
+                return;
+            }
+
+            finalizationService.addFinalizer(this, Pointer.class, () -> {
+                free();
+            });
+
+            this.autorelease = true;
+        } else {
+            if (!this.autorelease) {
+                return;
+            }
+
+            finalizationService.removeFinalizers(this, Pointer.class);
+
+            this.autorelease = false;
+        }
+
+
     }
 
     @SuppressWarnings("restriction")

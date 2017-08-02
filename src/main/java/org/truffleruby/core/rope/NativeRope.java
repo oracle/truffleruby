@@ -10,6 +10,7 @@
 package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
+import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.Hashing;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -19,10 +20,10 @@ public class NativeRope extends Rope {
 
     private Pointer pointer;
 
-    public NativeRope(byte[] bytes, Encoding encoding, int characterLength) {
+    public NativeRope(FinalizationService finalizationService, byte[] bytes, Encoding encoding, int characterLength) {
         super(encoding, CodeRange.CR_UNKNOWN, false, bytes.length, characterLength, 1, null);
         pointer = Pointer.malloc(bytes.length + 1);
-        pointer.setAutorelease(true);
+        pointer.setAutorelease(finalizationService, true);
         pointer.put(0, bytes, 0, bytes.length);
         pointer.putByte(bytes.length, (byte) 0);
     }
