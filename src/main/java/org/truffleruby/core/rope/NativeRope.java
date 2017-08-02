@@ -21,7 +21,8 @@ public class NativeRope extends Rope {
 
     public NativeRope(byte[] bytes, Encoding encoding, int characterLength) {
         super(encoding, CodeRange.CR_UNKNOWN, false, bytes.length, characterLength, 1, null);
-        pointer = Pointer.mallocAutorelease(bytes.length + 1 /* trailing \0 */);
+        pointer = Pointer.malloc(bytes.length + 1);
+        pointer.setAutorelease(true);
         pointer.put(0, bytes, 0, bytes.length);
         pointer.putByte(bytes.length, (byte) 0);
     }
