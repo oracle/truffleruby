@@ -82,7 +82,7 @@ public abstract class PointerNodes {
 
         @Specialization
         public boolean setAutorelease(DynamicObject pointer, boolean autorelease) {
-            Layouts.POINTER.getPointer(pointer).setAutorelease(autorelease);
+            Layouts.POINTER.getPointer(pointer).setAutorelease(getContext().getFinalizationService(), autorelease);
             return autorelease;
         }
 
