@@ -28,26 +28,14 @@ public class Pointer {
         return new Pointer(UNSAFE.allocateMemory(size));
     }
 
-    @CompilerDirectives.TruffleBoundary
-    public static Pointer mallocAutorelease(int size) {
-        final jnr.ffi.Pointer managedPointer = Runtime.getSystemRuntime().getMemoryManager().allocateDirect(size);
-        return new Pointer(managedPointer.address(), managedPointer);
-    }
-
     private final long address;
-    private final Object handle;
-
-    public Pointer(long address, Object handle) {
-        this.address = address;
-        this.handle = handle;
-    }
 
     public Pointer(long address) {
-        this(address, null);
+        this.address = address;
     }
 
     public Pointer add(long offset) {
-        return new Pointer(address + offset, handle);
+        return new Pointer(address + offset);
     }
 
     @CompilerDirectives.TruffleBoundary
