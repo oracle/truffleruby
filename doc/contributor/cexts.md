@@ -148,6 +148,10 @@ We work around this by defining `rb_scan_args` as a macro that redirects to a
 function that is not variadic and handles up to ten pointers. This function is
 then inlined.
 
+### Integer and pointer data model
+
+We currently assume an LP64 integer and pointer data model.
+
 ### Compatibility
 
 See the user [compatibility documentation](../user/compatibility.md).
