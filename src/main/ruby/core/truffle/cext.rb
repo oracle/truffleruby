@@ -624,23 +624,11 @@ module Truffle::CExt
   end
 
   def rb_fix2int(value)
-    if value.nil?
-      raise TypeError
-    else
-      int = value.to_int
-      raise RangeError if int >= 2**32
-      int
-    end
+    Rubinius::Type.rb_num2int(value)
   end
 
   def rb_fix2uint(value)
-    if value.nil?
-      raise TypeError
-    else
-      int = value.to_int
-      raise RangeError if int >= 2**32
-      int
-    end
+    Rubinius::Type.rb_num2uint(value)
   end
 
   def RB_NIL_P(value)
