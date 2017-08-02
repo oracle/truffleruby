@@ -197,9 +197,6 @@ class Encoding
         end
       end
 
-      source_name = @source_encoding.name.upcase.to_sym
-      dest_name = @destination_encoding.name.upcase.to_sym
-
       @convpath = initialize_jcodings(@source_encoding, @destination_encoding, @options)
 
       unless @convpath
