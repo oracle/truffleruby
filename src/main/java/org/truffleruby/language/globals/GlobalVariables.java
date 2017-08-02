@@ -17,6 +17,8 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.truffleruby.collections.ConcurrentOperations;
+
 public class GlobalVariables {
 
     private final DynamicObject defaultValue;
@@ -28,12 +30,8 @@ public class GlobalVariables {
 
     @TruffleBoundary
     public GlobalVariableStorage getStorage(String name) {
-        GlobalVariableStorage storage = variables.get(name);
-        if (storage == null) {
-            variables.putIfAbsent(name, new GlobalVariableStorage(defaultValue, null, null));
-            storage = variables.get(name);
-        }
-        return storage;
+        return ConcurrentOperations.getOrCompute(variables, name,
+                k -> new GlobalVariableStorage(defaultValue, null, null));
     }
 
     public GlobalVariableStorage put(String name, Object value) {

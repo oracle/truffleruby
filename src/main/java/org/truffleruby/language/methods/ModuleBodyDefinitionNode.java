@@ -14,6 +14,8 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.Instrumentable;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
@@ -74,13 +76,8 @@ public class ModuleBodyDefinitionNode extends RubyNode {
         } else {
             // Cache the scope per module in case the module body is run multiple times.
             // This allows dynamic constant lookup to cache better.
-            final LexicalScope scope = lexicalScopes.get(module);
-            if (scope != null) {
-                return scope;
-            } else {
-                lexicalScopes.putIfAbsent(module, new LexicalScope(parentLexicalScope, module));
-                return lexicalScopes.get(module);
-            }
+            return ConcurrentOperations.getOrCompute(lexicalScopes, module,
+                    k -> new LexicalScope(parentLexicalScope, module));
         }
     }
 
