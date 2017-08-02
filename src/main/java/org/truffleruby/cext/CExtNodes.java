@@ -283,22 +283,21 @@ public class CExtNodes {
     @CoreMethod(names = "ULONG2NUM", onSingleton = true, required = 1)
     public abstract static class ULONG2NUMNode extends CoreMethodArrayArgumentsNode {
 
+        private static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
+
         @Specialization
-        @TruffleBoundary
-        public Object ulong2num(long num) {
-            if (num >= 0) {
+        public Object ulong2num(long num,
+                @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
+            if (positiveProfile.profile(num >= 0)) {
                 return num;
             } else {
-                // The l at the end of the constant is crucial,
-                // otherwise the constant will be interpreted as an
-                // int (-1) and then converted to a long (still -1,
-                // 0xffffffffffffffff), and have completely the wrong
-                // effect.
-                BigInteger lsi = BigInteger.valueOf(num & 0xffffffffl);
-                BigInteger msi = BigInteger.valueOf(num >>> 32).shiftLeft(32);
-                BigInteger res = msi.add(lsi);
-                return BignumOperations.createBignum(getContext(), res);
+                return BignumOperations.createBignum(getContext(), toUnsigned(num));
             }
+        }
+
+        @TruffleBoundary
+        private BigInteger toUnsigned(long num) {
+            return BigInteger.valueOf(num).add(TWO_POW_64);
         }
 
     }
