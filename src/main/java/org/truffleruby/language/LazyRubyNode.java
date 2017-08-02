@@ -25,7 +25,8 @@ public class LazyRubyNode extends RubyNode {
     }
 
     private final Supplier<RubyNode> resolver;
-    private volatile RubyNode resolved = null;
+
+    @Child volatile RubyNode resolved;
 
     public LazyRubyNode(Supplier<RubyNode> resolver) {
         this.resolver = resolver;
@@ -52,8 +53,11 @@ public class LazyRubyNode extends RubyNode {
     }
 
     public RubyNode resolve() {
-        CompilerDirectives.transferToInterpreterAndInvalidate();
+        if (resolved != null) {
+            return resolved;
+        }
 
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         return atomic(() -> {
             if (resolved != null) {
                 return resolved;
@@ -66,9 +70,7 @@ public class LazyRubyNode extends RubyNode {
             final RubyNode result = resolver.get();
             transferFlagsTo(result);
 
-            // publish
-            resolved = result;
-            replace(result, "lazy node resolved");
+            resolved = insert(result);
             return result;
         });
     }
