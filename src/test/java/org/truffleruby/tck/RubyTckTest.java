@@ -62,7 +62,6 @@ public class RubyTckTest extends TruffleTCK {
     private PolyglotEngine spawnNewEngine(PolyglotEngine.Builder preparedBuilder) {
         final PolyglotEngine engine = RubyTest.setupConfig(preparedBuilder).build();
         engine.eval(getSource("src/test/ruby/tck.rb"));
-        engine.eval(RubyTest.RESOLVE_LAZY_NODES);
         return engine;
     }
 

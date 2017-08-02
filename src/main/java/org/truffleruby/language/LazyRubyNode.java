@@ -11,18 +11,12 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
-import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Log;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
 import java.util.function.Supplier;
 
 public class LazyRubyNode extends RubyNode {
-
-    public @interface LazyTag {
-    }
 
     private final Supplier<RubyNode> resolver;
 
@@ -35,21 +29,6 @@ public class LazyRubyNode extends RubyNode {
     @Override
     public Object execute(VirtualFrame frame) {
         return resolve().execute(frame);
-    }
-
-    @Override
-    public SourceSection getSourceSection() {
-        return resolve().getSourceSection();
-    }
-
-    @Override
-    protected boolean isTaggedWith(Class<?> tag) {
-        if (tag == LazyTag.class) {
-            resolve();
-            return true;
-        }
-
-        return resolve().isTaggedWith(tag);
     }
 
     public RubyNode resolve() {
@@ -71,15 +50,11 @@ public class LazyRubyNode extends RubyNode {
             transferFlagsTo(result);
 
             resolved = insert(result);
+            // Tell instrumentation about our new node
+            notifyInserted(result);
+
             return result;
         });
-    }
-
-    public static void resolveAll(RubyContext context) {
-        context.getInstrumenter().querySourceSections(SourceSectionFilter.newBuilder()
-                .mimeTypeIs(RubyLanguage.MIME_TYPE)
-                .tagIs(LazyRubyNode.LazyTag.class)
-                .build());
     }
 
 }

@@ -29,7 +29,6 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
@@ -290,18 +289,6 @@ public abstract class TruffleDebugNodes {
 
         protected int getCacheLimit() {
             return getContext().getOptions().INSTANCE_VARIABLE_CACHE;
-        }
-
-    }
-
-    @CoreMethod(names = "resolve_lazy_nodes", onSingleton = true)
-    public abstract static class ResolveLazyNodesNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject resolveLazyNodes() {
-            LazyRubyNode.resolveAll(getContext());
-            return nil();
         }
 
     }
