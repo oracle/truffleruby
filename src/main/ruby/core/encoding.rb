@@ -205,9 +205,7 @@ class Encoding
         raise ConverterNotFoundError, msg
       end
 
-      unless source_name == dest_name
-        @converters = TranscodingPath.get_converters(@convpath)
-      end
+      @converters = TranscodingPath.get_converters(@convpath)
 
       if (@options & (INVALID_REPLACE | UNDEF_REPLACE | UNDEF_HEX_CHARREF))
         unless new_replacement.nil?
