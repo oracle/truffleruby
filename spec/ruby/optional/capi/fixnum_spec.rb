@@ -7,6 +7,40 @@ describe "CApiFixnumSpecs" do
     @s = CApiFixnumSpecs.new
   end
 
+  describe "FIX2INT" do
+    it "converts a Fixnum to a native int" do
+      @s.FIX2INT(42).should == 42
+      @s.FIX2INT(-14).should == -14
+    end
+
+    max_int = (1 << 31) - 1
+    min_int = -(1 << 31)
+
+    guard -> { fixnum_min <= min_int and max_int <= fixnum_max } do
+      it "converts a Fixnum representing the minimum and maximum native int" do
+        @s.FIX2INT(max_int).should == max_int
+        @s.FIX2INT(min_int).should == min_int
+      end
+    end
+
+  end
+
+  describe "FIX2UINT" do
+    it "converts a Fixnum to a native int" do
+      @s.FIX2UINT(42).should == 42
+      @s.FIX2UINT(0).should == 0
+    end
+
+    max_uint = (1 << 32) - 1
+
+    guard -> { max_uint <= fixnum_max } do
+      it "converts a Fixnum representing the maximum native uint" do
+        @s.FIX2UINT(max_uint).should == max_uint
+      end
+    end
+
+  end
+
   platform_is wordsize: 64 do
     describe "rb_fix2uint" do
       it "raises a TypeError if passed nil" do
