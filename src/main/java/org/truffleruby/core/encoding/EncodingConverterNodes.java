@@ -24,6 +24,7 @@ import org.jcodings.Ptr;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.transcode.EConv;
 import org.jcodings.transcode.EConvResult;
+import org.jcodings.transcode.Transcoder;
 import org.jcodings.transcode.TranscodingManager;
 import org.jcodings.transcode.TranscodingManager.TranscoderReference;
 import org.truffleruby.Layouts;
@@ -43,6 +44,7 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -91,15 +93,29 @@ public abstract class EncodingConverterNodes {
 
             // There are N-1 edges connecting N encodings on the path from source -> destination.
             // We need to include every encoding along the path in the return value.
-            final Object[] ret = new Object[econv.elements.length + 1];
+            Object[] ret = new Object[econv.numTranscoders + 1];
 
-            for (int i = 0; i < econv.elements.length; i++) {
-                final byte[] segmentSource = econv.elements[i].transcoding.transcoder.getSource();
-                ret[i] = getSymbol(RopeOperations.decodeAscii(segmentSource, 0, segmentSource.length).toUpperCase());
+            int retIndex = 0;
+            for (int i = 0; i < econv.numTranscoders; i++) {
+                final Transcoder transcoder = econv.elements[i].transcoding.transcoder;
+
+                if (EncodingUtils.DECORATOR_P(transcoder.getSource(), transcoder.getDestination())) {
+                    continue;
+                }
+
+                final byte[] segmentSource = transcoder.getSource();
+                ret[retIndex++] = getSymbol(RopeOperations.decodeAscii(segmentSource, 0, segmentSource.length).toUpperCase());
+            }
+
+            final int retSize = retIndex + 1;
+            if (retSize != ret.length) {
+                // The decorated entry really isn't part of the transcoding path, but jcodings treats it as if it were,
+                // so we need to reduce the returned array size accordingly.
+                ret = ArrayUtils.extractRange(ret, 0, retSize);
             }
 
             final byte[] destinationName = destinationEncoding.getName();
-            ret[ret.length - 1] = getSymbol(RopeOperations.decodeAscii(destinationName, 0, destinationName.length).toUpperCase());
+            ret[retIndex] = getSymbol(RopeOperations.decodeAscii(destinationName, 0, destinationName.length).toUpperCase());
 
             return createArray(ret, ret.length);
         }
