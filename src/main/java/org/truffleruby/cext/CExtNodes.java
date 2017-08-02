@@ -249,9 +249,13 @@ public class CExtNodes {
     public abstract static class UINT2NUMNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int uint2num(int num) {
-            // TODO CS 2-May-16 what to do about the fact it's unsigned?
-            return num;
+        public Object uint2num(int num,
+                @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
+            if (positiveProfile.profile(num >= 0)) {
+                return num;
+            } else {
+                return Integer.toUnsignedLong(num);
+            }
         }
 
     }
