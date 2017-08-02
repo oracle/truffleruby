@@ -9,9 +9,9 @@ if [ -n "$bad" ]; then
 	exit 1
 fi
 
-bad=$(egrep -r 'computeIfAbsent' src || exit 0)
+bad=$(egrep -r '\.computeIfAbsent' src || exit 0)
 if [ -n "$bad" ]; then
-	echo "Use get() + putIfAbsent() instead of computeIfAbsent() which is not scalable"
+	echo "Use ConcurrentOperations.getOrCompute() instead of ConcurrentHashMap.computeIfAbsent() which does not scale"
 	echo "$bad"
 	exit 1
 fi

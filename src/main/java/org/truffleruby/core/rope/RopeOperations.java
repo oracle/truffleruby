@@ -30,6 +30,7 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.string.EncodingUtils;
@@ -154,12 +155,7 @@ public class RopeOperations {
         value = flatten(value);
 
         Encoding encoding = value.getEncoding();
-        Charset charset = encodingToCharsetMap.get(encoding);
-        if (charset == null) {
-            charset = EncodingManager.charsetForEncoding(encoding);
-            encodingToCharsetMap.putIfAbsent(encoding, charset);
-            // No need to reload the charset, charsetForEncoding() is pure
-        }
+        Charset charset = ConcurrentOperations.getOrCompute(encodingToCharsetMap, encoding, EncodingManager::charsetForEncoding);
 
         return new String(value.getBytes(), charset);
     }
