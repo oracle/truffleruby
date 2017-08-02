@@ -15,6 +15,7 @@ all: $(ROOT)/lib/cext/ruby.su $(ROOT)/lib/mri/openssl.su $(ROOT)/lib/mri/zlib.su
 
 clean:
 	rm -f $(ROOT)/lib/cext/ruby.su
+	rm -f $(ROOT)/lib/cext/ruby.bc
 	rm -f cext/Makefile cext/*.bc cext/ruby.su
 	rm -f $(ROOT)/lib/mri/openssl.su
 	rm -f openssl/Makefile openssl/*.bc openssl/openssl.su
@@ -22,15 +23,28 @@ clean:
 	rm -f zlib/Makefile zlib/*.bc zlib/zlib.su
 	rm -f $(ROOT)/lib/mri/syslog.su
 	rm -f syslog/Makefile syslog/*.bc syslog/syslog.su
+	rm -f trufflemock/Makefile trufflemock/*.bc trufflemock/trufflemock.su
+	rm -f $(ROOT)/lib/cext/trufflemock.bc
 
 # ruby.su
-cext/Makefile: cext/extconf.rb
+cext/Makefile: cext/extconf.rb $(ROOT)/lib/cext/trufflemock.bc
 	cd cext && $(RUBY) extconf.rb
 
 cext/ruby.su: cext/Makefile cext/ruby.c $(ROOT)/lib/cext/ruby.h
 	cd cext && $(MAKE)
 
 $(ROOT)/lib/cext/ruby.su: cext/ruby.su
+	cp $< $@
+	cp cext/ruby.bc $(ROOT)/lib/cext/ruby.bc
+
+# trufflemock.bc
+trufflemock/Makefile: trufflemock/extconf.rb
+	cd trufflemock && $(RUBY) extconf.rb
+
+trufflemock/trufflemock.bc: trufflemock/Makefile trufflemock/trufflemock.c $(ROOT)/lib/cext/truffle.h
+	cd trufflemock && $(MAKE)
+
+$(ROOT)/lib/cext/trufflemock.bc: trufflemock/trufflemock.bc
 	cp $< $@
 
 # openssl.su

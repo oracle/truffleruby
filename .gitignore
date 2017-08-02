@@ -22,6 +22,8 @@ nbproject
 
 # C extensions
 lib/cext/ruby.su
+lib/cext/ruby.bc
+lib/cext/trufflemock.bc
 lib/mri/openssl.su
 lib/mri/zlib.su
 lib/mri/syslog.su
