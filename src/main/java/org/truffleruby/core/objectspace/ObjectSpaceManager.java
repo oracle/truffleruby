@@ -44,6 +44,7 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -58,6 +59,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Supports the Ruby {@code ObjectSpace} module. Object IDs are lazily allocated {@code long}
@@ -66,33 +69,9 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ObjectSpaceManager {
 
-    private static class FinalizerReference extends WeakReference<DynamicObject> {
-
-        public List<Object> finalizers = new LinkedList<>();
-
-        public FinalizerReference(DynamicObject object, ReferenceQueue<? super DynamicObject> queue) {
-            super(object, queue);
-        }
-
-        public void addFinalizer(Object callable) {
-            finalizers.add(callable);
-        }
-
-        public List<Object> getFinalizers() {
-            return finalizers;
-        }
-
-        public void clearFinalizers() {
-            finalizers = new LinkedList<>();
-        }
-
-    }
-
     private final RubyContext context;
 
-    private final Map<DynamicObject, FinalizerReference> finalizerReferences = new WeakHashMap<>();
-    private final ReferenceQueue<DynamicObject> finalizerQueue = new ReferenceQueue<>();
-    private DynamicObject finalizerThread;
+    private final FinalizationService finalizationService;
 
     private final CyclicAssumption tracingAssumption = new CyclicAssumption("objspace-tracing");
     @CompilerDirectives.CompilationFinal private boolean isTracing = false;
@@ -103,73 +82,28 @@ public class ObjectSpaceManager {
 
     public ObjectSpaceManager(RubyContext context) {
         this.context = context;
+        finalizationService = new FinalizationService(context);
     }
 
     @CompilerDirectives.TruffleBoundary
     public synchronized void defineFinalizer(DynamicObject object, Object callable) {
-        // Record the finalizer against the object
-
-        FinalizerReference finalizerReference = finalizerReferences.get(object);
-
-        if (finalizerReference == null) {
-            finalizerReference = new FinalizerReference(object, finalizerQueue);
-            finalizerReferences.put(object, finalizerReference);
-        }
-
-        finalizerReference.addFinalizer(callable);
-
-        // If there is no finalizer thread, start one
-
-        if (finalizerThread == null) {
-            // TODO(CS): should we be running this in a real Ruby thread?
-
-            finalizerThread = context.getThreadManager().createRubyThread("finalizer");
-            context.send(finalizerThread, "internal_thread_initialize", null);
-            ThreadManager.initialize(finalizerThread, context, null, "finalizer", () -> runFinalizers());
-        }
+        finalizationService.addFinalizer(object, ObjectSpaceManager.class, () -> {
+            context.send(callable, "call", null);
+        }, () -> {
+            if (callable instanceof DynamicObject) {
+                return Stream.of((DynamicObject) callable);
+            } else {
+                return Stream.empty();
+            }
+        });
     }
 
     public synchronized void undefineFinalizer(DynamicObject object) {
-        final FinalizerReference finalizerReference = finalizerReferences.get(object);
-
-        if (finalizerReference != null) {
-            finalizerReference.clearFinalizers();
-        }
-    }
-
-    private void runFinalizers() {
-        // Run in a loop
-
-        while (true) {
-            // Wait on the finalizer queue
-            FinalizerReference finalizerReference = (FinalizerReference) context.getThreadManager().runUntilResult(null, () -> finalizerQueue.remove());
-
-            runFinalizers(context, finalizerReference);
-        }
-    }
-
-    private static void runFinalizers(RubyContext context, FinalizerReference finalizerReference) {
-        try {
-            for (Object callable : finalizerReference.getFinalizers()) {
-                context.send(callable, "call", null);
-            }
-        } catch (RaiseException e) {
-            // MRI seems to silently ignore exceptions in finalizers
-        }
+        finalizationService.removeFinalizers(object, ObjectSpaceManager.class);
     }
 
     public List<DynamicObject> getFinalizerHandlers() {
-        final List<DynamicObject> handlers = new ArrayList<>();
-
-        for (FinalizerReference finalizer : finalizerReferences.values()) {
-            for (Object handler : finalizer.getFinalizers()) {
-                if (handler instanceof DynamicObject) {
-                    handlers.add((DynamicObject) handler);
-                }
-            }
-        }
-
-        return handlers;
+        return finalizationService.getRoots().collect(Collectors.toList());
     }
 
     public void traceAllocationsStart() {
