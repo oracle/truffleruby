@@ -218,10 +218,10 @@ public class TranscodingManager {
         if (directMapping != null) {
             return Collections.singletonList(directMapping.getTranscoder());
         } else {
-            final LinkedList<String> path = bfs(sourceEncodingName, destinationEncodingName);
+            final List<String> path = bfs(sourceEncodingName, destinationEncodingName);
 
             if (! path.isEmpty()) {
-                String sourceName = path.remove();
+                String sourceName = path.remove(0);
 
                 for (String destinationName : path) {
                     ret.add(allTranscoders.get(sourceName).get(destinationName).getTranscoder());
@@ -235,7 +235,7 @@ public class TranscodingManager {
 
     @SuppressWarnings("unchecked")
     @TruffleBoundary
-    public static LinkedList<String> bfs(String sourceEncodingName, String destinationEncodingName) {
+    public static List<String> bfs(String sourceEncodingName, String destinationEncodingName) {
         final Deque<String> queue = new ArrayDeque<>();
         final HashMap<String, String> invertedList = new HashMap<>();
 
@@ -270,7 +270,7 @@ public class TranscodingManager {
             }
         }
 
-        return new LinkedList<>();
+        return Collections.emptyList();
     }
 
     private static boolean decorateAtLast(EConv ec, byte[] decorator) {

@@ -56,7 +56,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -167,7 +167,7 @@ public abstract class EncodingConverterNodes {
             final Rope sourceRope = Layouts.SYMBOL.getRope(source);
             final Rope destinationRope = Layouts.SYMBOL.getRope(destination);
 
-            final LinkedList<String> path = TranscodingManager.bfs(
+            final List<String> path = TranscodingManager.bfs(
                     RopeOperations.decodeRope(sourceRope),
                     RopeOperations.decodeRope(destinationRope));
 
