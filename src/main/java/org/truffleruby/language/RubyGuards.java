@@ -14,7 +14,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
-import org.truffleruby.platform.Pointer;
 
 public abstract class RubyGuards {
 

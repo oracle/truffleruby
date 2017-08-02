@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.platform;
+package org.truffleruby.extra.ffi;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import jnr.ffi.Runtime;

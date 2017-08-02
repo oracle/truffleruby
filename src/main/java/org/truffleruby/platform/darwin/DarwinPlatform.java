@@ -15,7 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.NativePlatform;
-import org.truffleruby.platform.Pointer;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;

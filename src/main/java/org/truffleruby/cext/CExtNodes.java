@@ -88,7 +88,7 @@ import org.truffleruby.language.supercall.CallSuperMethodNodeGen;
 import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.platform.FDSet;
-import org.truffleruby.platform.Pointer;
+import org.truffleruby.extra.ffi.Pointer;
 
 import java.io.IOException;
 import java.math.BigInteger;

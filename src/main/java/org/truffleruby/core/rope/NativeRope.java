@@ -13,7 +13,7 @@ import org.jcodings.Encoding;
 import org.truffleruby.core.Hashing;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.platform.Pointer;
+import org.truffleruby.extra.ffi.Pointer;
 
 public class NativeRope extends Rope {
 
