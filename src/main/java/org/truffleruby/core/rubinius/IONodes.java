@@ -114,7 +114,7 @@ import jnr.constants.platform.Fcntl;
 import jnr.constants.platform.OpenFlags;
 import jnr.posix.DefaultNativeTimeval;
 import jnr.posix.Timeval;
-import org.truffleruby.platform.Pointer;
+import org.truffleruby.extra.ffi.Pointer;
 
 @CoreClass("IO")
 public abstract class IONodes {

@@ -31,7 +31,7 @@ import org.truffleruby.core.time.GetTimeZoneNode;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.platform.Pointer;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.signal.Signal;
 
 import static org.truffleruby.core.string.StringOperations.decodeUTF8;

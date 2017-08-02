@@ -37,7 +37,6 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.platform.Pointer;
 import org.truffleruby.platform.RubiniusTypes;
 
 @CoreClass("Rubinius::FFI::Pointer")

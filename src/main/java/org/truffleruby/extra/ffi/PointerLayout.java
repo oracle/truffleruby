@@ -13,7 +13,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.platform.Pointer;
 
 @Layout
 public interface PointerLayout extends BasicObjectLayout {

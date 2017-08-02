@@ -37,7 +37,7 @@ import org.truffleruby.language.control.ThreadExitException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.platform.Pointer;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.TruffleNFIPlatform;
 
 import java.util.ArrayList;
