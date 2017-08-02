@@ -2,4 +2,6 @@
 
 source test/truffle/common.sh.inc
 
-jt ruby test/truffle/integration/finalizers/define_finalizer.rb
+for [f in test/truffle/integration/finalizers/*.rb]; do
+  jt ruby $f
+done
