@@ -24,8 +24,8 @@ public class NativeRope extends Rope {
         super(encoding, CodeRange.CR_UNKNOWN, false, bytes.length, characterLength, 1, null);
         pointer = Pointer.malloc(bytes.length + 1);
         pointer.enableAutorelease(finalizationService);
-        pointer.put(0, bytes, 0, bytes.length);
-        pointer.putByte(bytes.length, (byte) 0);
+        pointer.writeBytes(0, bytes, 0, bytes.length);
+        pointer.writeByte(bytes.length, (byte) 0);
     }
 
     @Override
@@ -38,7 +38,7 @@ public class NativeRope extends Rope {
 
     @TruffleBoundary
     public void copyTo(int from, byte[] buffer, int bufferPos) {
-        pointer.get(from, buffer, bufferPos, byteLength());
+        pointer.readBytes(from, buffer, bufferPos, byteLength());
     }
 
     @Override
@@ -50,7 +50,7 @@ public class NativeRope extends Rope {
     @Override
     public byte get(int index) {
         assert 0 <= index && index < byteLength();
-        return pointer.getByte(index);
+        return pointer.readByte(index);
     }
 
     @Override
