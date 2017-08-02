@@ -80,9 +80,15 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_set_autorelease")
     public static abstract class PointerSetAutoreleasePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
-        public boolean setAutorelease(DynamicObject pointer, boolean autorelease) {
-            Layouts.POINTER.getPointer(pointer).setAutorelease(getContext().getFinalizationService(), autorelease);
+        @Specialization(guards = "autorelease")
+        public boolean enableAutorelease(DynamicObject pointer, boolean autorelease) {
+            Layouts.POINTER.getPointer(pointer).enableAutorelease(getContext().getFinalizationService());
+            return autorelease;
+        }
+
+        @Specialization(guards = "!autorelease")
+        public boolean disableAutorelease(DynamicObject pointer, boolean autorelease) {
+            Layouts.POINTER.getPointer(pointer).disableAutorelease(getContext().getFinalizationService());
             return autorelease;
         }
 
