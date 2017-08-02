@@ -35,99 +35,90 @@ public class Pointer {
         this.address = address;
     }
 
-    public Pointer add(long offset) {
-        return new Pointer(address + offset);
-    }
-
-    @CompilerDirectives.TruffleBoundary
-    public void put(long i, byte[] bytes, int i1, int length) {
-        for (int n = 0; n < length; n++) {
-            putByte(i + n, bytes[i1 + n]);
-        }
-    }
-
-    public void putByte(long offset, byte b) {
+    public void writeByte(long offset, byte b) {
         UNSAFE.putByte(address + offset, b);
     }
 
-    public byte getByte(long offset) {
+    public void writeShort(long offset, short value) {
+        UNSAFE.putShort(address + offset, value);
+    }
+
+    public void writeInt(long offset, int value) {
+        UNSAFE.putInt(address + offset, value);
+    }
+
+    public void writeLong(long offset, long value) {
+        UNSAFE.putLong(address + offset, value);
+    }
+
+    public void writePointer(long offset, Pointer value) {
+        writeLong(offset, value.getAddress());
+    }
+
+    private void writeZeroTerminatedBytes(long offset, byte[] bytes, int start, int length) {
+        writeBytes(offset, bytes, start, length);
+        writeByte(offset + length, (byte) 0);
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    public void writeString(long offset, String string, int maxLength, Charset cs) {
+        ByteBuffer buf = cs.encode(string);
+        int len = Math.min(maxLength, buf.remaining());
+        writeZeroTerminatedBytes(offset, buf.array(), buf.arrayOffset() + buf.position(), len);
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    public void writeBytes(long offset, long size, byte value) {
+        for (long n = 0; n < size; n++) {
+            writeByte(offset + n, value);
+        }
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    public void writeBytes(long offset, byte[] bytes, int index, int length) {
+        for (int n = 0; n < length; n++) {
+            writeByte(offset + n, bytes[index + n]);
+        }
+    }
+
+    public byte readByte(long offset) {
         return UNSAFE.getByte(address + offset);
     }
 
     @CompilerDirectives.TruffleBoundary
-    public void get(long from, byte[] buffer, int bufferPos, int i) {
+    public void readBytes(long from, byte[] buffer, int bufferPos, int i) {
         for (int n = 0; n < i; n++) {
-            buffer[bufferPos + n] = getByte(from + n);
+            buffer[bufferPos + n] = readByte(from + n);
         }
     }
 
-    public void putLong(long value) {
-        UNSAFE.putLong(address, value);
-    }
-
-    public void putLong(long offset, long value) {
-        UNSAFE.putLong(address + offset, value);
-    }
-
-    public short getShort(long offset) {
+    public short readShort(long offset) {
         return UNSAFE.getShort(address + offset);
     }
 
-    public int getInt(long offset) {
+    public int readInt(long offset) {
         return UNSAFE.getInt(address + offset);
     }
 
-    public long getLong(long offset) {
+    public long readLong(long offset) {
         return UNSAFE.getLong(address + offset);
     }
 
-    public long getLongLong(long offset) {
-        return getLong(offset);
-    }
-
-    private byte[] getZeroTerminatedByteArray(long offset) {
-        final int length = indexOf(offset, (byte) 0);
+    private byte[] readZeroTerminatedByteArray(long offset) {
+        final int length = findByte(offset, (byte) 0);
         final byte[] bytes = new byte[length];
-        get(offset, bytes, 0, length);
+        readBytes(offset, bytes, 0, length);
         return bytes;
     }
 
     @CompilerDirectives.TruffleBoundary
-    public String getString(long offset) {
-        return Charset.defaultCharset().decode(ByteBuffer.wrap(getZeroTerminatedByteArray(offset))).toString();
-    }
-
-    public void putShort(long offset, short value) {
-        UNSAFE.putShort(address + offset, value);
-    }
-
-    public void putInt(long offset, int value) {
-        UNSAFE.putInt(address + offset, value);
-    }
-
-    public void putLongLong(long offset, long value) {
-        putLong(offset, value);
-    }
-
-    public void putPointer(long offset, Pointer value) {
-        putLong(offset, value.getAddress());
-    }
-
-    private void putZeroTerminatedByteArray(long offset, byte[] bytes, int start, int length) {
-        put(offset, bytes, start, length);
-        putByte(offset + length, (byte) 0);
-    }
-
-    @CompilerDirectives.TruffleBoundary
-    public void putString(long offset, String string, int maxLength, Charset cs) {
-        ByteBuffer buf = cs.encode(string);
-        int len = Math.min(maxLength, buf.remaining());
-        putZeroTerminatedByteArray(offset, buf.array(), buf.arrayOffset() + buf.position(), len);
+    public String readString(long offset) {
+        return Charset.defaultCharset().decode(ByteBuffer.wrap(readZeroTerminatedByteArray(offset))).toString();
     }
 
     @CompilerDirectives.TruffleBoundary
     public Pointer readPointer(long offset) {
-        final long p = getLong(offset);
+        final long p = readLong(offset);
         if (p == 0) {
             return null;
         } else {
@@ -136,20 +127,13 @@ public class Pointer {
     }
 
     @CompilerDirectives.TruffleBoundary
-    public int indexOf(long offset, byte value) {
+    public int findByte(long offset, byte value) {
         int n = 0;
         while (true) {
-            if (getByte(offset + n) == value) {
+            if (readByte(offset + n) == value) {
                 return n;
             }
             n++;
-        }
-    }
-
-    @CompilerDirectives.TruffleBoundary
-    public void setMemory(long offset, long size, byte value) {
-        for (long n = 0; n < size; n++) {
-            putByte(offset + n, value);
         }
     }
 
