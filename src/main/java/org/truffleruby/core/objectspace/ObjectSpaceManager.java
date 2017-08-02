@@ -80,9 +80,9 @@ public class ObjectSpaceManager {
 
     private final AtomicLong nextObjectID = new AtomicLong(ObjectIDOperations.FIRST_OBJECT_ID);
 
-    public ObjectSpaceManager(RubyContext context) {
+    public ObjectSpaceManager(RubyContext context, FinalizationService finalizationService) {
         this.context = context;
-        finalizationService = new FinalizationService(context);
+        this.finalizationService = finalizationService;
     }
 
     @CompilerDirectives.TruffleBoundary
@@ -100,10 +100,6 @@ public class ObjectSpaceManager {
 
     public synchronized void undefineFinalizer(DynamicObject object) {
         finalizationService.removeFinalizers(object, ObjectSpaceManager.class);
-    }
-
-    public List<DynamicObject> getFinalizerHandlers() {
-        return finalizationService.getRoots().collect(Collectors.toList());
     }
 
     public void traceAllocationsStart() {
