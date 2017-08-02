@@ -54,6 +54,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -121,6 +122,34 @@ public abstract class EncodingConverterNodes {
         public DynamicObject allocate(DynamicObject rubyClass) {
             Object econv = null;
             return allocateNode.allocate(rubyClass, econv);
+        }
+
+    }
+
+    @Primitive(name = "encoding_transcoder_search", needsSelf = false)
+    public static abstract class PrimitiveTranscoderSearch extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = { "isRubySymbol(source)", "isRubySymbol(destination)" })
+        public DynamicObject search(DynamicObject source, DynamicObject destination) {
+            final Rope sourceRope = Layouts.SYMBOL.getRope(source);
+            final Rope destinationRope = Layouts.SYMBOL.getRope(destination);
+
+            final LinkedList<String> path = TranscodingManager.bfs(
+                    RopeOperations.decodeRope(sourceRope),
+                    RopeOperations.decodeRope(destinationRope));
+
+            if (path.isEmpty()) {
+                return nil();
+            }
+
+            final Object[] ret = new Object[path.size()];
+            int i = 0;
+            for (String part : path) {
+                ret[i++] = getSymbol(part);
+            }
+
+            return createArray(ret, ret.length);
         }
 
     }

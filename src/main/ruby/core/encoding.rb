@@ -444,30 +444,7 @@ class Encoding
       end
 
       def self.search(source, target)
-        if entry = TranscodingMap[source]
-          if entry[target]
-            [source, target]
-          else
-            visited = { source => true }
-            search = { [source] => entry }
-
-            until search.empty?
-              path, table = search.shift
-
-              table.each do |key, _|
-                next if visited.key? key
-                next unless entry = TranscodingMap[key]
-
-                return path << key << target if entry[target]
-
-                unless visited.key? key
-                  search[path.dup << key] = entry
-                  visited[key] = true
-                end
-              end
-            end
-          end
-        end
+        Truffle.invoke_primitive :encoding_transcoder_search, source, target
       end
 
       def self.get_converters(path)
