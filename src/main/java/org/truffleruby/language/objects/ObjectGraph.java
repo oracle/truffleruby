@@ -90,7 +90,7 @@ public abstract class ObjectGraph {
         // We do not want to expose the global object
         stack.addAll(context.getCoreLibrary().getGlobalVariables().dynamicObjectValues());
         stack.addAll(context.getAtExitManager().getHandlers());
-        stack.addAll(context.getObjectSpaceManager().getFinalizerHandlers());
+        context.getFinalizationService().getRoots().forEach((root) -> stack.add(root));
     }
 
     public static Set<DynamicObject> getAdjacentObjects(DynamicObject object) {

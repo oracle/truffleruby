@@ -19,6 +19,7 @@ import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.FinalizationService;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.inlined.CoreMethods;
@@ -78,7 +79,8 @@ public class RubyContext {
     private final CodeLoader codeLoader = new CodeLoader(this);
     private final FeatureLoader featureLoader = new FeatureLoader(this);
     private final TraceManager traceManager;
-    private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager(this);
+    private final FinalizationService finalizationService = new FinalizationService(this);
+    private final ObjectSpaceManager objectSpaceManager = new ObjectSpaceManager(this, finalizationService);
     private final SharedObjects sharedObjects = new SharedObjects(this);
     private final AtExitManager atExitManager = new AtExitManager(this);
     private final SourceLoader sourceLoader = new SourceLoader(this);
@@ -265,6 +267,10 @@ public class RubyContext {
         return featureLoader;
     }
 
+    public FinalizationService getFinalizationService() {
+        return finalizationService;
+    }
+
     public ObjectSpaceManager getObjectSpaceManager() {
         return objectSpaceManager;
     }
@@ -430,6 +436,5 @@ public class RubyContext {
 
         return null;
     }
-
 
 }
