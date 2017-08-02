@@ -100,7 +100,6 @@ public class RubyDebugTest {
         // Init before eval:
         performWork();
         engine.eval(factorial);
-        engine.eval(RubyTest.RESOLVE_LAZY_NODES);
 
         assertExecutedOK("Algorithm loaded");
 
@@ -125,7 +124,6 @@ public class RubyDebugTest {
     public void stepInStepOver() throws Throwable {
         final Source factorial = createFactorial();
         engine.eval(factorial);
-        engine.eval(RubyTest.RESOLVE_LAZY_NODES);
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);

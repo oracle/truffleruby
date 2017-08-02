@@ -29,9 +29,6 @@ import static org.junit.Assert.assertEquals;
 
 public abstract class RubyTest {
 
-    public static final Source RESOLVE_LAZY_NODES =
-            Source.newBuilder("Truffle::Debug.resolve_lazy_nodes").mimeType(RubyLanguage.MIME_TYPE).name("resolve_lazy_nodes").build();
-
     protected <T extends Node> void testWithNode(String text, Class<T> nodeClass, Consumer<T> test) {
         testWithAST(text, (root) -> {
             final List<T> instances = NodeUtil.findAllNodeInstances(root, nodeClass);

@@ -24,7 +24,6 @@ import org.graalvm.options.OptionDescriptors;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.launcher.Launcher;
@@ -46,7 +45,6 @@ import java.util.List;
         TraceManager.CallTag.class,
         TraceManager.ClassTag.class,
         TraceManager.LineTag.class,
-        LazyRubyNode.LazyTag.class,
         StandardTags.RootTag.class,
         StandardTags.StatementTag.class,
         StandardTags.CallTag.class
