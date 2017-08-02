@@ -17,6 +17,10 @@ describe "The -e command line option" do
     ruby_exe("puts __FILE__", escape: false).chomp.should == "-e"
   end
 
+  it "uses '-e' in $0" do
+    system(*RUBY_EXE.split, '-e', 'exit $0 == "-e" ? 0 : 1').should == true
+  end
+
   #needs to test return => LocalJumpError
 
 quarantine! do # For some unknown reason, running these under `bundle exec` or with -rbundler/setup fails

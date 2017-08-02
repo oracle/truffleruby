@@ -15,11 +15,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class StringArrayOptionDescription extends OptionDescription<String[]> {
+public class StringArrayOptionDescription extends AppendableOptionDescription<String[]> {
 
     private final String[] defaultValue;
 
-    public StringArrayOptionDescription(String name, String description, String[] defaultValue) {
+    StringArrayOptionDescription(String name, String description, String[] defaultValue) {
         super(name, description);
         this.defaultValue = defaultValue;
     }
@@ -131,12 +131,11 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
         return String.join(",", escapedValues);
     }
 
-    public String append(String currentValues, String newElement) {
-        if (currentValues.isEmpty()) {
-            return escape(newElement);
-        } else {
-            return currentValues + ',' + escape(newElement);
+    void append(StringBuilder currentValues, String newElement) {
+        if (currentValues.length() != 0) {
+            currentValues.append(',');
         }
+        currentValues.append(escape(newElement));
     }
 
     private String escape(String string) {

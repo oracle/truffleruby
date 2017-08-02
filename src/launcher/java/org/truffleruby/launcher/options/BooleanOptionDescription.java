@@ -15,7 +15,7 @@ public class BooleanOptionDescription extends OptionDescription<Boolean> {
 
     private final boolean defaultValue;
 
-    public BooleanOptionDescription(String name, String description, boolean defaultValue) {
+    BooleanOptionDescription(String name, String description, boolean defaultValue) {
         super(name, description);
         this.defaultValue = defaultValue;
     }

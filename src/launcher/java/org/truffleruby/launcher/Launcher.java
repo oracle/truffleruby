@@ -50,6 +50,7 @@ import org.graalvm.polyglot.Source;
 import org.truffleruby.launcher.options.CommandLineException;
 import org.truffleruby.launcher.options.CommandLineOptions;
 import org.truffleruby.launcher.options.CommandLineParser;
+import org.truffleruby.launcher.options.ExecutionAction;
 import org.truffleruby.launcher.options.OptionsCatalog;
 
 import java.io.PrintStream;
@@ -81,7 +82,7 @@ public class Launcher {
             final CommandLineOptions config = new CommandLineOptions();
 
             try {
-                processArguments(config, args);
+                processArguments(config, args, true);
             } catch (CommandLineException commandLineException) {
                 System.err.println("truffleruby: " + commandLineException.getMessage());
                 if (commandLineException.isUsageError()) {
@@ -90,47 +91,34 @@ public class Launcher {
                 System.exit(1);
             }
 
-            final String filename = config.getDisplayedFileName();
-
-            config.setOption(
-                    OptionsCatalog.ORIGINAL_INPUT_FILE,
-                    config.shouldUsePathScript() ? config.getScriptFileName() : filename);
-
-            if (config.isShowVersion()) {
+            if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
                 System.out.println(getVersionString(isGraal));
             }
 
-            if (config.isShowCopyright()) {
+            if (config.getOption(OptionsCatalog.SHOW_COPYRIGHT)) {
                 System.out.println(RUBY_COPYRIGHT);
             }
 
-            if (config.shouldRunInterpreter()) {
-                try (Context context = createContext(Context.newBuilder(), config, filename)) {
-                    printTruffleTimeMetric("before-run");
-                    if (config.getShouldCheckSyntax()) {
-                        // check syntax only and exit
-                        final Source source = Source.newBuilder(
-                                LANGUAGE_ID,
-                                // language=ruby
-                                "Truffle::Boot.check_syntax",
-                                "check_syntax").buildLiteral();
-                        boolean status = context.eval(source).asBoolean();
-                        exitCode = status ? 0 : 1;
-                    } else {
-                        final Source source = Source.newBuilder(LANGUAGE_ID,
-                                // language=ruby
-                                config.shouldUsePathScript() ? "Truffle::Boot.main_s" : "Truffle::Boot.main",
-                                BOOT_SOURCE_NAME).build();
-                        exitCode = context.eval(source).asInt();
-                    }
-                    printTruffleTimeMetric("after-run");
-                }
-            } else {
-                if (config.getShouldPrintShortUsage()) {
+            switch (config.getOption(OptionsCatalog.SHOW_HELP)) {
+                case NONE:
+                    break;
+                case SHORT:
                     printShortHelp(System.out);
-                } else if (config.getShouldPrintUsage()) {
+                    break;
+                case LONG:
                     printHelp(System.out);
-                }
+                    break;
+            }
+
+            try (Context context = createContext(Context.newBuilder(), config)) {
+                printTruffleTimeMetric("before-run");
+                final Source source = Source.newBuilder(
+                        LANGUAGE_ID,
+                        // language=ruby
+                        "Truffle::Boot.main",
+                        BOOT_SOURCE_NAME).build();
+                exitCode = context.eval(source).asInt();
+                printTruffleTimeMetric("after-run");
             }
         } catch (PolyglotException e) {
             System.err.println("truffleruby: " + e.getMessage());
@@ -143,10 +131,7 @@ public class Launcher {
         System.exit(exitCode);
     }
 
-    public static Context createContext(Context.Builder builder, CommandLineOptions config, String filename) {
-        builder.option(OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
-        builder.option(OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
-
+    public static Context createContext(Context.Builder builder, CommandLineOptions config) {
         /*
          * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
          * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and
@@ -162,8 +147,14 @@ public class Launcher {
         return builder.build();
     }
 
-    public static void processArguments(CommandLineOptions config, String[] arguments) throws CommandLineException {
-        new CommandLineParser(arguments, true, config).processArguments();
+    public static void processArguments(
+            CommandLineOptions config,
+            String[] arguments,
+            boolean parseHelpEtc) throws CommandLineException {
+
+        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
+
+        new CommandLineParser(arguments, parseHelpEtc, config).processArguments();
         if (!config.getUnknownArguments().isEmpty()) {
             throw new CommandLineException("unknown option " + config.getUnknownArguments().get(0));
         }
@@ -173,8 +164,13 @@ public class Launcher {
             CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config, false);
         }
 
-        if (!config.doesHaveScriptToRun() && !config.shouldUsePathScript() && System.console() != null) {
-            config.setUsePathScript("irb");
+        if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
+            if (System.console() != null) {
+                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.PATH);
+                config.setOption(OptionsCatalog.TO_EXECUTE, "irb");
+            } else {
+                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.STDIN);
+            }
         }
     }
 

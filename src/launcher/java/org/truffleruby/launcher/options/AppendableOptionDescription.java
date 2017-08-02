@@ -9,10 +9,12 @@
  */
 package org.truffleruby.launcher.options;
 
-public class VerbosityOptionDescription extends EnumOptionDescription<Verbosity> {
+public abstract class AppendableOptionDescription<T> extends OptionDescription<T> {
 
-    VerbosityOptionDescription(String name, String description, Verbosity defaultValue) {
-        super(name, description, defaultValue, Verbosity.class);
+    public AppendableOptionDescription(String name, String description) {
+        super(name,description);
     }
+
+    abstract void append(StringBuilder currentValues, String newElement);
 
 }

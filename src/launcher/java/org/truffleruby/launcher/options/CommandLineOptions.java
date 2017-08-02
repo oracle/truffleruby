@@ -32,70 +32,57 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CommandLineOptions {
 
-    private Map<String, String> options = new HashMap<>();
+    private final Map<String, CharSequence> options = new HashMap<>();
     private String[] arguments = new String[]{};
     private final List<String> unknownArguments = new ArrayList<>(0);
-
-    // TODO (pitr-ch 26-Jul-2017): move as much as possible to options
-
-    private StringBuffer inlineScript = new StringBuffer();
-    private boolean hasInlineScript;
-    private boolean usePathScript;
-    private String scriptFileName;
-    private boolean showVersion;
-    private boolean showCopyright;
-    private boolean shouldRunInterpreter = true;
-    private boolean shouldPrintUsage;
-    private boolean shouldCheckSyntax;
-    private String inPlaceBackupExtension;
-    private boolean hasScriptToRun; // -e or a file
-    private boolean forceStdin;
-    private boolean shouldPrintShortUsage;
 
     // TODO (pitr-ch 26-Jul-2017): Move to Options when implementing -s option
     // Currently not used
     private Map<String, String> optionGlobals = new HashMap<>();
 
-    public String getDisplayedFileName() {
-        if (isInlineScript()) {
-            if (getScriptFileName() != null) {
-                return getScriptFileName();
-            } else {
-                return "-e";
-            }
-        } else if (shouldUsePathScript()) {
-            return "-S";
-        } else if (isForceStdin() || getScriptFileName() == null) {
-            return "-";
-        } else {
-            return getScriptFileName();
-        }
+    Map<String, CharSequence> getOptionsInternal() {
+        return options;
     }
 
     public Map<String, String> getOptions() {
-        return options;
+        return options.entrySet().stream().
+                collect(Collectors.toMap(Map.Entry::getKey, (e) -> e.getValue().toString()));
     }
 
     public <T> void setOption(OptionDescription<T> key, T value) {
         setOptionRaw(key, key.toString(value));
     }
 
-    public void setOptionRaw(OptionDescription<?> key, String value) {
-        options.put(key.getName(), value);
-    }
-
     public <T> T getOption(OptionDescription<T> key) {
         return key.checkValue(getOptionRaw(key));
     }
 
-    public void appendOptionValue(StringArrayOptionDescription key, String newValue) {
-        setOptionRaw(key, key.append(getOptionRaw(key), newValue));
+    public <T> void appendOptionValue(AppendableOptionDescription<T> key, String newValue) {
+        StringBuilder builder;
+        CharSequence current = getOptionRaw(key);
+
+        if (current == null) {
+            builder = new StringBuilder();
+            setOptionRaw(key, builder);
+        } else if (current instanceof StringBuilder) {
+            builder = (StringBuilder) current;
+        } else {
+            builder = new StringBuilder(current);
+            setOptionRaw(key, builder);
+        }
+
+        key.append(builder, newValue);
     }
 
-    public <T> String getOptionRaw(OptionDescription<T> key) {
+    private void setOptionRaw(OptionDescription<?> key, CharSequence value) {
+        options.put(key.getName(), value);
+    }
+
+    private <T> CharSequence getOptionRaw(OptionDescription<T> key) {
         return options.getOrDefault(
                 key.getName(),
                 key.toString(key.<T>getDefaultValue()));
@@ -109,114 +96,11 @@ public class CommandLineOptions {
         this.arguments = arguments;
     }
 
-    public String inlineScript() {
-        return inlineScript.toString();
-    }
-
-    public StringBuffer getInlineScript() {
-        return inlineScript;
-    }
-
-    public void setHasInlineScript(boolean hasInlineScript) {
-        this.hasScriptToRun = true;
-        this.hasInlineScript = hasInlineScript;
-    }
-
-    public void setShouldPrintUsage(boolean shouldPrintUsage) {
-        this.shouldPrintUsage = shouldPrintUsage;
-    }
-
-    public boolean getShouldPrintUsage() {
-        return shouldPrintUsage;
-    }
-
-    public boolean isInlineScript() {
-        return hasInlineScript;
-    }
-
-    public boolean isForceStdin() {
-        return forceStdin;
-    }
-
-    public void setForceStdin(boolean forceStdin) {
-        this.forceStdin = forceStdin;
-    }
-
-    public void setScriptFileName(String scriptFileName) {
-        this.hasScriptToRun = true;
-        this.scriptFileName = scriptFileName;
-    }
-
-    public String getScriptFileName() {
-        return scriptFileName;
-    }
-
-    public void setShowVersion(boolean showVersion) {
-        this.showVersion = showVersion;
-    }
-
-    public boolean isShowVersion() {
-        return showVersion;
-    }
-
-    public void setShowCopyright(boolean showCopyright) {
-        this.showCopyright = showCopyright;
-    }
-
-    public boolean isShowCopyright() {
-        return showCopyright;
-    }
-
-    public void setShouldRunInterpreter(boolean shouldRunInterpreter) {
-        this.shouldRunInterpreter = shouldRunInterpreter;
-    }
-
-    public boolean shouldRunInterpreter() {
-        return shouldRunInterpreter && hasScriptToRun;
-    }
-
-    public void setShouldCheckSyntax(boolean shouldSetSyntax) {
-        this.shouldCheckSyntax = shouldSetSyntax;
-    }
-
-    public boolean getShouldCheckSyntax() {
-        return shouldCheckSyntax;
-    }
-
-    public void setInPlaceBackupExtension(String inPlaceBackupExtension) {
-        this.inPlaceBackupExtension = inPlaceBackupExtension;
-    }
-
-    public String getInPlaceBackupExtension() {
-        return inPlaceBackupExtension;
+    public List<String> getUnknownArguments() {
+        return unknownArguments;
     }
 
     public Map<String, String> getOptionGlobals() {
         return optionGlobals;
-    }
-
-    public boolean doesHaveScriptToRun() {
-        return hasScriptToRun;
-    }
-
-    public void setUsePathScript(String name) {
-        usePathScript = true;
-        setScriptFileName(name);
-    }
-
-    public boolean shouldUsePathScript() {
-        return usePathScript;
-    }
-
-    public void setShouldPrintShortUsage(boolean shouldPrintShortUsage) {
-        this.shouldPrintShortUsage = shouldPrintShortUsage;
-    }
-
-    public boolean getShouldPrintShortUsage() {
-        return shouldPrintShortUsage;
-    }
-
-    public List<String> getUnknownArguments() {
-        return unknownArguments;
     }
 }

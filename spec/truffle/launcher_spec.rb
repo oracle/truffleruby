@@ -85,31 +85,31 @@ describe "The launcher" do
   end
 
   it "takes options from system properties set in JAVA_OPTS" do
-    out = `JAVA_OPTS=-Dpolyglot.ruby.verbosity=2 #{RbConfig.ruby} -e 'puts $VERBOSE'`
+    out = `JAVA_OPTS=-Dpolyglot.ruby.verbosity=true #{RbConfig.ruby} -e 'puts $VERBOSE'`
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "takes options from system properties set on the command line using -J" do
-    out = `#{RbConfig.ruby} -J-Dpolyglot.ruby.verbosity=2 -e 'puts $VERBOSE'`
+    out = `#{RbConfig.ruby} -J-Dpolyglot.ruby.verbosity=true -e 'puts $VERBOSE'`
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "takes options from system properties set on the command line using -X" do
-    out = `#{RbConfig.ruby} -Xverbosity=2 -e 'puts $VERBOSE'`
+    out = `#{RbConfig.ruby} -Xverbosity=true -e 'puts $VERBOSE'`
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "prioritises options on the command line over system properties" do
-    out = `JAVA_OPTS=-Dpolyglot.ruby.verbosity=0 #{RbConfig.ruby} -W2 -e 'puts $VERBOSE'`
+    out = `JAVA_OPTS=-Dpolyglot.ruby.verbosity=nil #{RbConfig.ruby} -W2 -e 'puts $VERBOSE'`
     $?.success?.should == true
     out.should == "true\n"
   end
 
   it "prioritises options on the command line using -X over system properties" do
-    out = `JAVA_OPTS=-Dpolyglot.ruby.verbosity=0 #{RbConfig.ruby} -Xverbosity=2 -e 'puts $VERBOSE'`
+    out = `JAVA_OPTS=-Dpolyglot.ruby.verbosity=nil #{RbConfig.ruby} -Xverbosity=true -e 'puts $VERBOSE'`
     $?.success?.should == true
     out.should == "true\n"
   end

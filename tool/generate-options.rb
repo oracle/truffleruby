@@ -12,46 +12,41 @@ require 'ostruct'
 require 'yaml'
 require 'erb'
 
+
+def camelize(string)
+  string.sub(/^([a-z\d]*)/) { $1.capitalize }.gsub(/_([a-z\d]*)/) { $1.capitalize }
+end
+
 options_data = YAML.load_file('tool/options.yml')
 
 options = options_data.map do |constant, (name, type, default, *description)|
   description = description.join(', ')
 
   case type
-    when 'boolean'
-      type = 'boolean'
-      boxed_type = 'Boolean'
-      default = default.to_s
-      null_default = false
-    when 'verbosity'
-      type = 'Verbosity'
-      boxed_type = type
-      default = "Verbosity.#{default.to_s.upcase}"
-      null_default = 'Verbosity.FALSE'
-    when 'integer'
-      type = 'int'
-      boxed_type = 'Integer'
-      default = default.to_s
-      null_default = 0
-    when 'string'
-      type = 'String'
-      boxed_type = type
-      type_description = 'StringOptionDescription'
-      default = default.nil? ? 'null' : "\"#{default.to_s}\""
-      null_default = 'null'
-    when 'byte-string'
-      type = 'byte[]'
-      boxed_type = type
-      default = 'null'
-      null_default = 'null'
-    when 'string-array'
-      type = 'String[]'
-      boxed_type = type
-      type_description = 'StringArrayOptionDescription'
-      default = "new String[]{#{default.map(&:inspect).join(', ')}}"
-      null_default = 'null'
-    else
-      raise type.to_s
+  when 'boolean'
+    type       = 'boolean'
+    boxed_type = 'Boolean'
+    default    = default.to_s
+  when 'integer'
+    type       = 'int'
+    boxed_type = 'Integer'
+    default    = default.to_s
+  when /^enum\/(\w*)/
+    name       = $1
+    type       = camelize name
+    boxed_type = type
+    default    = "#{type}.#{default.to_s.upcase}"
+  when 'string'
+    type             = 'String'
+    boxed_type       = type
+    default          = default.nil? ? 'null' : "\"#{default.to_s}\""
+  when 'string-array'
+    type             = 'String[]'
+    boxed_type       = type
+    type_description = 'StringArrayOptionDescription'
+    default          = "new String[]{#{default.map(&:inspect).join(', ')}}"
+  else
+    raise type.to_s
   end
 
   OpenStruct.new(
@@ -62,7 +57,6 @@ options = options_data.map do |constant, (name, type, default, *description)|
       boxed_type:        boxed_type,
       default:           default,
       reference_default: /^[A-Z_]+$/.match(default),
-      null_default:      null_default,
       description:       description
   )
 end

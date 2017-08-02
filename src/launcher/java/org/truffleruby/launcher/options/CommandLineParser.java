@@ -83,18 +83,25 @@ public class CommandLineParser {
     private boolean argvGlobalsOn;
     private final boolean parseVersionAndHelp;
 
-    public CommandLineParser(String[] arguments, boolean parseVersionAndHelp, CommandLineOptions config) {
-        this(arguments, true, false, false, parseVersionAndHelp, config);
+    public CommandLineParser(String[] arguments, boolean parseHelpEtc, CommandLineOptions config) {
+        this(arguments, true, false, false, parseHelpEtc, config);
     }
 
-    public CommandLineParser(String[] arguments, boolean processArgv, boolean dashed, boolean rubyOpts, boolean parseVersionAndHelp, CommandLineOptions config) {
+    public CommandLineParser(
+            String[] arguments,
+            boolean processArgv,
+            boolean dashed,
+            boolean rubyOpts,
+            boolean parseHelpEtc,
+            CommandLineOptions config) {
+
         this.argumentIndex = 0;
         this.characterIndex = 0;
         this.endOfInterpreterArguments = false;
         this.config = config;
         this.processArgv = processArgv;
         this.rubyOpts = rubyOpts;
-        this.parseVersionAndHelp = parseVersionAndHelp;
+        this.parseVersionAndHelp = parseHelpEtc;
 
         if (arguments != null && arguments.length > 0) {
             this.arguments = new ArrayList<>(arguments.length);
@@ -130,12 +137,16 @@ public class CommandLineParser {
             processArgument();
             argumentIndex++;
         }
-        if (!config.isInlineScript() && config.getScriptFileName() == null && !config.isForceStdin()) {
+
+        if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
             if (argumentIndex < arguments.size()) {
-                config.setScriptFileName(arguments.get(argumentIndex).originalValue); //consume the file name
+                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.FILE);
+                //consume the file name
+                config.setOption(OptionsCatalog.TO_EXECUTE, arguments.get(argumentIndex).originalValue);
                 argumentIndex++;
             }
         }
+
         if (processArgv) {
             processArgv();
         }
@@ -180,7 +191,14 @@ public class CommandLineParser {
         if (argument.length() == 1) {
             // sole "-" means read from stdin and pass remaining args as ARGV
             endOfInterpreterArguments = true;
-            config.setForceStdin(true);
+
+            if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
+                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.STDIN);
+            } else {
+                // if other action is set then ignore '-', just threat it as a first script argument,
+                // and stop option parsing
+            }
+
             return;
         }
 
@@ -213,7 +231,7 @@ public class CommandLineParser {
                     throw notImplemented("-a");
                 case 'c':
                     disallowedInRubyOpts(argument);
-                    config.setShouldCheckSyntax(true);
+                    config.setOption(OptionsCatalog.SYNTAX_CHECK, true);
                     break;
                 case 'C':
                     disallowedInRubyOpts(argument);
@@ -226,9 +244,16 @@ public class CommandLineParser {
                     break;
                 case 'e':
                     disallowedInRubyOpts(argument);
-                    config.getInlineScript().append(grabValue(getArgumentError(" -e must be followed by an expression to report")));
-                    config.getInlineScript().append('\n');
-                    config.setHasInlineScript(true);
+                    final String nextArgument = grabValue(getArgumentError(" -e must be followed by an expression to report"));
+
+                    final ExecutionAction currentExecutionAction = config.getOption(OptionsCatalog.EXECUTION_ACTION);
+                    if (currentExecutionAction == ExecutionAction.UNSET || currentExecutionAction == ExecutionAction.INLINE) {
+                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.INLINE);
+                        config.appendOptionValue(OptionsCatalog.TO_EXECUTE, nextArgument + "\n");
+                    } else {
+                        // ignore option
+                    }
+
                     break FOR;
                 case 'E':
                     processEncodingOption(grabValue(getArgumentError("unknown encoding name")));
@@ -237,17 +262,16 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     throw notImplemented("-F");
                 case 'h':
-                    disallowedInRubyOpts(argument);
-                    config.setShouldPrintShortUsage(true);
-                    config.setShouldRunInterpreter(false);
+                    if (parseVersionAndHelp) {
+                        disallowedInRubyOpts(argument);
+                        config.setOption(OptionsCatalog.SHOW_HELP, ShowHelp.SHORT);
+                        // cancel other execution actions
+                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
+                    }
                     break;
                 case 'i':
                     disallowedInRubyOpts(argument);
-                    config.setInPlaceBackupExtension(grabOptionalValue());
-                    if (config.getInPlaceBackupExtension() == null) {
-                        config.setInPlaceBackupExtension("");
-                    }
-                    break FOR;
+                    throw notImplemented("-i");
                 case 'I':
                     String s = grabValue(getArgumentError("-I must be followed by a directory name to add to lib path"));
                     for (String path : s.split(File.pathSeparator)) {
@@ -263,7 +287,7 @@ public class CommandLineParser {
                     break FOR;
                 case 'J':
                     String js = grabOptionalValue();
-                    TruffleLessLog.LOGGER.warning("warning: " + argument + " argument ignored (launched in same VM?)");
+                    RubyLogger.LOGGER.warning("warning: " + argument + " argument ignored (launched in same VM?)");
                     if (js.equals("-cp") || js.equals("-classpath")) {
                         for(;grabOptionalValue() != null;) {}
                         grabValue(getArgumentError(" -J-cp must be followed by a path expression"));
@@ -287,7 +311,6 @@ public class CommandLineParser {
                 case 's':
                     disallowedInRubyOpts(argument);
                     throw notImplemented("-s");
-                    // TODO (pitr-ch 26-Jul-2017): Implement
                     // argvGlobalsOn = true;
                     // break;
                 case 'G':
@@ -295,7 +318,14 @@ public class CommandLineParser {
                 case 'S':
                     disallowedInRubyOpts(argument);
                     String scriptName = grabValue("provide a bin script to execute");
-                    config.setUsePathScript(scriptName);
+
+                    if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
+                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.PATH);
+                        config.setOption(OptionsCatalog.TO_EXECUTE, scriptName);
+                    } else {
+                        // ignore the option
+                    }
+
                     endOfInterpreterArguments = true;
                     break FOR;
                 case 'T':
@@ -308,7 +338,7 @@ public class CommandLineParser {
                     break;
                 case 'v':
                     config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
-                    config.setShowVersion(true);
+                    config.setOption(OptionsCatalog.SHOW_VERSION, true);
                     break;
                 case 'w':
                     config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
@@ -357,7 +387,8 @@ public class CommandLineParser {
                             final String nameValue = String.format("-X%s=%s", xName, option.toString(option.getDefaultValue()));
                             System.out.printf("  %s%" + (50 - nameValue.length()) + "s# %s%n", nameValue, "", option.getDescription());
                         }
-                        config.setShouldRunInterpreter(false);
+                        // cancel other execution actions
+                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                     } else if (extendedOption.startsWith("log=")) {
                         final String levelString = extendedOption.substring("log=".length());
 
@@ -388,14 +419,15 @@ public class CommandLineParser {
                             break FOR;
                         }
 
-                        config.getOptions().put(fullName, value);
+                        config.getOptionsInternal().put(fullName, value);
                     }
                     break FOR;
                 case '-':
                     if (argument.equals("--copyright")) {
                         disallowedInRubyOpts(argument);
-                        config.setShowCopyright(true);
-                        config.setShouldRunInterpreter(false);
+                        config.setOption(OptionsCatalog.SHOW_COPYRIGHT, true);
+                        // cancel other execution actions
+                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;
                     } else if (argument.equals("--debug")) {
                         throw notImplemented("--debug");
@@ -405,13 +437,15 @@ public class CommandLineParser {
                         break FOR;
                     } else if (parseVersionAndHelp && argument.equals("--help")) {
                         disallowedInRubyOpts(argument);
-                        config.setShouldPrintUsage(true);
-                        config.setShouldRunInterpreter(false);
+                        config.setOption(OptionsCatalog.SHOW_HELP, ShowHelp.LONG);
+                        // cancel other execution actions
+                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;
                     } else if (parseVersionAndHelp && argument.equals("--version")) {
                         disallowedInRubyOpts(argument);
-                        config.setShowVersion(true);
-                        config.setShouldRunInterpreter(false);
+                        config.setOption(OptionsCatalog.SHOW_VERSION, true);
+                        // cancel other execution actions
+                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                         break FOR;
                     } else if (argument.startsWith("--profile")) {
                         throw notImplemented("--profile");
@@ -468,7 +502,7 @@ public class CommandLineParser {
         final BiConsumer<CommandLineParser, Boolean> feature = FEATURES.get(name);
 
         if (feature == null) {
-            TruffleLessLog.LOGGER.warning("warning: unknown argument for --" + (enable ? "enable" : "disable") + ": `" + name + "'");
+            RubyLogger.LOGGER.warning("warning: unknown argument for --" + (enable ? "enable" : "disable") + ": `" + name + "'");
         } else {
             feature.accept(this, enable);
         }
@@ -478,7 +512,9 @@ public class CommandLineParser {
         int length = key.length() + 3; // 3 is from -- and = (e.g. --disable=)
         String[] values = argument.substring(length).split(",");
 
-        if (values.length == 0) errorMissingEquals(key);
+        if (values.length == 0) {
+            errorMissingEquals(key);
+        }
 
         return values;
     }
@@ -501,7 +537,9 @@ public class CommandLineParser {
      */
     private static List<String> split(final String str, final char sep, final int lim) {
         final int len = str.length();
-        if ( len == 0 ) return Collections.singletonList(str);
+        if ( len == 0 ) {
+            return Collections.singletonList(str);
+        }
 
         final ArrayList<String> result = new ArrayList<>(lim <= 0 ? 8 : lim);
 
@@ -514,7 +552,9 @@ public class CommandLineParser {
             result.add(str.substring(s, e));
             s = e + 1;
         }
-        if ( s < len || ( s == len && lim > 0 ) ) result.add(str.substring(s));
+        if ( s < len || ( s == len && lim > 0 ) ) {
+            result.add(str.substring(s));
+        }
 
         return result;
     }

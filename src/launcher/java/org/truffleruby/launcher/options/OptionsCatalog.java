@@ -32,14 +32,6 @@ public class OptionsCatalog {
             "ruby.required_libraries", 
             "Required libraries", 
             new String[]{});
-    public static final StringOptionDescription INLINE_SCRIPT = new StringOptionDescription(
-            "ruby.inline_script", 
-            "Inline script", 
-            "");
-    public static final StringOptionDescription DISPLAYED_FILE_NAME = new StringOptionDescription(
-            "ruby.displayed_file_name", 
-            "Displayed file name", 
-            "");
     public static final BooleanOptionDescription READ_RUBYOPT = new BooleanOptionDescription(
             "ruby.read_rubyopt", 
             "Read RUBYOPT and TRUFFLERUBYOPT environment variables", 
@@ -48,14 +40,34 @@ public class OptionsCatalog {
             "ruby.ignore_lines_before_ruby_shebang", 
             "strip off text before #!ruby line", 
             false);
-    public static final StringOptionDescription ORIGINAL_INPUT_FILE = new StringOptionDescription(
-            "ruby.original_input_file", 
-            "Original input file for the Ruby interpreter", 
-            "");
     public static final StringOptionDescription WORKING_DIRECTORY = new StringOptionDescription(
             "ruby.working_directory", 
             "Interpreter will switch to this directory", 
             "");
+    public static final ExecutionActionOptionDescription EXECUTION_ACTION = new ExecutionActionOptionDescription(
+            "ruby.execution_action", 
+            "What should be done after context is created", 
+            ExecutionAction.NONE);
+    public static final StringOptionDescription TO_EXECUTE = new StringOptionDescription(
+            "ruby.to_execute", 
+            "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable.", 
+            "");
+    public static final BooleanOptionDescription SYNTAX_CHECK = new BooleanOptionDescription(
+            "ruby.syntax_check", 
+            "Do not execute just check syntax.", 
+            false);
+    public static final BooleanOptionDescription SHOW_VERSION = new BooleanOptionDescription(
+            "ruby.show_version", 
+            "Show version.", 
+            false);
+    public static final BooleanOptionDescription SHOW_COPYRIGHT = new BooleanOptionDescription(
+            "ruby.show_copyright", 
+            "Show copyright.", 
+            false);
+    public static final ShowHelpOptionDescription SHOW_HELP = new ShowHelpOptionDescription(
+            "ruby.show_help", 
+            "What help should be shown.", 
+            ShowHelp.NONE);
     public static final BooleanOptionDescription DEBUG = new BooleanOptionDescription(
             "ruby.debug", 
             "Debug", 
@@ -431,18 +443,24 @@ public class OptionsCatalog {
                 return LOAD_PATHS;
             case "ruby.required_libraries":
                 return REQUIRED_LIBRARIES;
-            case "ruby.inline_script":
-                return INLINE_SCRIPT;
-            case "ruby.displayed_file_name":
-                return DISPLAYED_FILE_NAME;
             case "ruby.read_rubyopt":
                 return READ_RUBYOPT;
             case "ruby.ignore_lines_before_ruby_shebang":
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
-            case "ruby.original_input_file":
-                return ORIGINAL_INPUT_FILE;
             case "ruby.working_directory":
                 return WORKING_DIRECTORY;
+            case "ruby.execution_action":
+                return EXECUTION_ACTION;
+            case "ruby.to_execute":
+                return TO_EXECUTE;
+            case "ruby.syntax_check":
+                return SYNTAX_CHECK;
+            case "ruby.show_version":
+                return SHOW_VERSION;
+            case "ruby.show_copyright":
+                return SHOW_COPYRIGHT;
+            case "ruby.show_help":
+                return SHOW_HELP;
             case "ruby.debug":
                 return DEBUG;
             case "ruby.verbosity":
@@ -636,12 +654,15 @@ public class OptionsCatalog {
             LAUNCHER,
             LOAD_PATHS,
             REQUIRED_LIBRARIES,
-            INLINE_SCRIPT,
-            DISPLAYED_FILE_NAME,
             READ_RUBYOPT,
             IGNORE_LINES_BEFORE_RUBY_SHEBANG,
-            ORIGINAL_INPUT_FILE,
             WORKING_DIRECTORY,
+            EXECUTION_ACTION,
+            TO_EXECUTE,
+            SYNTAX_CHECK,
+            SHOW_VERSION,
+            SHOW_COPYRIGHT,
+            SHOW_HELP,
             DEBUG,
             VERBOSITY,
             FROZEN_STRING_LITERALS,

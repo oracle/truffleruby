@@ -20,12 +20,15 @@ public class Options {
     public final String LAUNCHER;
     public final String[] LOAD_PATHS;
     public final String[] REQUIRED_LIBRARIES;
-    public final String INLINE_SCRIPT;
-    public final String DISPLAYED_FILE_NAME;
     public final boolean READ_RUBYOPT;
     public final boolean IGNORE_LINES_BEFORE_RUBY_SHEBANG;
-    public final String ORIGINAL_INPUT_FILE;
     public final String WORKING_DIRECTORY;
+    public final ExecutionAction EXECUTION_ACTION;
+    public final String TO_EXECUTE;
+    public final boolean SYNTAX_CHECK;
+    public final boolean SHOW_VERSION;
+    public final boolean SHOW_COPYRIGHT;
+    public final ShowHelp SHOW_HELP;
     public final boolean DEBUG;
     public final Verbosity VERBOSITY;
     public final boolean FROZEN_STRING_LITERALS;
@@ -123,12 +126,15 @@ public class Options {
         LAUNCHER = builder.getOrDefault(OptionsCatalog.LAUNCHER);
         LOAD_PATHS = builder.getOrDefault(OptionsCatalog.LOAD_PATHS);
         REQUIRED_LIBRARIES = builder.getOrDefault(OptionsCatalog.REQUIRED_LIBRARIES);
-        INLINE_SCRIPT = builder.getOrDefault(OptionsCatalog.INLINE_SCRIPT);
-        DISPLAYED_FILE_NAME = builder.getOrDefault(OptionsCatalog.DISPLAYED_FILE_NAME);
         READ_RUBYOPT = builder.getOrDefault(OptionsCatalog.READ_RUBYOPT);
         IGNORE_LINES_BEFORE_RUBY_SHEBANG = builder.getOrDefault(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG);
-        ORIGINAL_INPUT_FILE = builder.getOrDefault(OptionsCatalog.ORIGINAL_INPUT_FILE);
         WORKING_DIRECTORY = builder.getOrDefault(OptionsCatalog.WORKING_DIRECTORY);
+        EXECUTION_ACTION = builder.getOrDefault(OptionsCatalog.EXECUTION_ACTION);
+        TO_EXECUTE = builder.getOrDefault(OptionsCatalog.TO_EXECUTE);
+        SYNTAX_CHECK = builder.getOrDefault(OptionsCatalog.SYNTAX_CHECK);
+        SHOW_VERSION = builder.getOrDefault(OptionsCatalog.SHOW_VERSION);
+        SHOW_COPYRIGHT = builder.getOrDefault(OptionsCatalog.SHOW_COPYRIGHT);
+        SHOW_HELP = builder.getOrDefault(OptionsCatalog.SHOW_HELP);
         DEBUG = builder.getOrDefault(OptionsCatalog.DEBUG);
         VERBOSITY = builder.getOrDefault(OptionsCatalog.VERBOSITY);
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
@@ -232,18 +238,24 @@ public class Options {
                 return LOAD_PATHS;
             case "ruby.required_libraries":
                 return REQUIRED_LIBRARIES;
-            case "ruby.inline_script":
-                return INLINE_SCRIPT;
-            case "ruby.displayed_file_name":
-                return DISPLAYED_FILE_NAME;
             case "ruby.read_rubyopt":
                 return READ_RUBYOPT;
             case "ruby.ignore_lines_before_ruby_shebang":
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
-            case "ruby.original_input_file":
-                return ORIGINAL_INPUT_FILE;
             case "ruby.working_directory":
                 return WORKING_DIRECTORY;
+            case "ruby.execution_action":
+                return EXECUTION_ACTION;
+            case "ruby.to_execute":
+                return TO_EXECUTE;
+            case "ruby.syntax_check":
+                return SYNTAX_CHECK;
+            case "ruby.show_version":
+                return SHOW_VERSION;
+            case "ruby.show_copyright":
+                return SHOW_COPYRIGHT;
+            case "ruby.show_help":
+                return SHOW_HELP;
             case "ruby.debug":
                 return DEBUG;
             case "ruby.verbosity":

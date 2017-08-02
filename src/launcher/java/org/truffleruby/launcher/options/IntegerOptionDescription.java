@@ -15,7 +15,7 @@ public class IntegerOptionDescription extends OptionDescription<Integer> {
 
     private final int defaultValue;
 
-    public IntegerOptionDescription(String name, String description, int defaultValue) {
+    IntegerOptionDescription(String name, String description, int defaultValue) {
         super(name, description);
         this.defaultValue = defaultValue;
     }

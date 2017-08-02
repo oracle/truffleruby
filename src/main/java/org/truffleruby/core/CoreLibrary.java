@@ -734,16 +734,6 @@ public class CoreLibrary {
         globals.put("$,", nil);
         globals.put("$*", argv);
 
-        final Object dollarZeroValue;
-
-        if (context.getOptions().DISPLAYED_FILE_NAME.isEmpty()) {
-            dollarZeroValue = nil;
-        } else {
-            dollarZeroValue = StringOperations.createString(context, StringOperations.encodeRope(context.getOptions().DISPLAYED_FILE_NAME, UTF8Encoding.INSTANCE));
-        }
-
-        globals.put("$0", dollarZeroValue);
-
         debugStorage = globals.put("$DEBUG", context.getOptions().DEBUG);
 
         final Object verbose;

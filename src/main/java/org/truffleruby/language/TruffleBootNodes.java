@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
@@ -88,52 +89,119 @@ public abstract class TruffleBootNodes {
         }
     }
 
-    @CoreMethod(names = "main", onSingleton = true, optional = 1)
+    @CoreMethod(names = "main", onSingleton = true)
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private SnippetNode findSFileSnippetNode;
+        @Child private SnippetNode checkSyntaxSnippetNode;
+
         @Specialization
-        public int main(VirtualFrame frame, NotProvided path,
-                @Cached("create()") IndirectCallNode callNode) {
+        public int main(VirtualFrame frame, @Cached("create()") IndirectCallNode callNode) {
 
-            return loadMain(callNode, getContext().getOptions().ORIGINAL_INPUT_FILE);
+            Source source = loadMainSourceSettingDollarZero(frame);
+
+            if (source == null) {
+                // EXECUTION_ACTION was set to NONE
+                return 0;
+            }
+
+            if (getContext().getOptions().SYNTAX_CHECK) {
+                return (int) getCheckSyntaxSnippetNode().execute(
+                        frame,
+                        "Truffle::Boot.check_syntax source",
+                        "source", source);
+            } else {
+                final RubyRootNode rootNode = getContext().getCodeLoader().parse(
+                        source,
+                        UTF8Encoding.INSTANCE,
+                        ParserContext.TOP_LEVEL_FIRST,
+                        null,
+                        true,
+                        null);
+
+                final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                        ParserContext.TOP_LEVEL_FIRST,
+                        DeclarationContext.TOP_LEVEL,
+                        rootNode,
+                        null,
+                        coreLibrary().getMainObject());
+
+                // The TopLevelRaiseHandler returns an int
+                return (int) deferredCall.call(callNode);
+            }
         }
 
-        @Specialization(guards = "isRubyString(path)")
-        public int loadMain(VirtualFrame frame, DynamicObject path,
-                @Cached("create()") IndirectCallNode callNode) {
-            final String inputFile = StringOperations.getString(path);
-            return loadMain(callNode, inputFile);
-        }
+        private Source loadMainSourceSettingDollarZero(VirtualFrame frame) {
+            final Source source;
+            final Object dollarZeroValue;
 
-        private int loadMain(IndirectCallNode callNode, String inputFile) {
-            final Source source = getMainSource(inputFile);
-
-            final RubyRootNode rootNode = getContext().getCodeLoader().parse(
-                    source,
-                    UTF8Encoding.INSTANCE,
-                    ParserContext.TOP_LEVEL_FIRST,
-                    null,
-                    true,
-                    null);
-
-            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
-                    ParserContext.TOP_LEVEL_FIRST,
-                    DeclarationContext.TOP_LEVEL,
-                    rootNode,
-                    null,
-                    coreLibrary().getMainObject());
-
-            // The TopLevelRaiseHandler returns an int
-            return (int) deferredCall.call(callNode);
-        }
-
-        @TruffleBoundary
-        private synchronized Source getMainSource(String path) {
             try {
-                return getContext().getSourceLoader().loadMain(this, path);
+                final String to_execute = getContext().getOptions().TO_EXECUTE;
+                switch (getContext().getOptions().EXECUTION_ACTION) {
+                    case UNSET:
+                        throw new IllegalArgumentException("ExecutionAction.UNSET should never reach RubyContext");
+
+                    case NONE:
+                        source = null;
+                        dollarZeroValue = nil();
+                        break;
+
+                    case FILE:
+                        source = getContext().getSourceLoader().loadMainFile(this, to_execute);
+                        dollarZeroValue = StringOperations.createString(getContext(),
+                                StringOperations.encodeRope(to_execute, UTF8Encoding.INSTANCE));
+                        break;
+
+                    case PATH:
+                        final DynamicObject path = (DynamicObject) getFindSFileSnippetNode().execute(
+                                frame,
+                                "Truffle::Boot.find_s_file Truffle::Boot.get_option('to_execute')");
+                        source = getContext().getSourceLoader().loadMainFile(
+                                this,
+                                StringOperations.getString(path));
+                        dollarZeroValue = path;
+                        break;
+
+                    case STDIN:
+                        source = getContext().getSourceLoader().loadMainStdin(
+                                this,
+                                to_execute);
+                        dollarZeroValue = StringOperations.createString(getContext(),
+                                StringOperations.encodeRope("-", UTF8Encoding.INSTANCE));
+                        break;
+
+                    case INLINE:
+                        source = getContext().getSourceLoader().loadMainEval();
+                        dollarZeroValue = StringOperations.createString(getContext(),
+                                StringOperations.encodeRope("-e", UTF8Encoding.INSTANCE));
+                        break;
+
+                    default:
+                        throw new IllegalStateException();
+                }
             } catch (IOException e) {
                 throw new JavaException(e);
             }
+
+            getContext().getCoreLibrary().getGlobalVariables().put("$0", dollarZeroValue);
+
+            return source;
+        }
+
+        private SnippetNode getCheckSyntaxSnippetNode() {
+            if (checkSyntaxSnippetNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                checkSyntaxSnippetNode = insert(new SnippetNode());
+            }
+            return checkSyntaxSnippetNode;
+        }
+
+        private SnippetNode getFindSFileSnippetNode() {
+            if (findSFileSnippetNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                findSFileSnippetNode = insert(new SnippetNode());
+            }
+            return findSFileSnippetNode;
         }
 
     }
@@ -211,15 +279,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject innerCheckSyntax(DynamicObject path) {
-            final Source source;
-
-            try {
-                source = getContext().getSourceLoader().loadMain(this, StringOperations.getString(path));
-            } catch (IOException e) {
-                throw new JavaException(e);
-            }
-
+        public DynamicObject innerCheckSyntax(Source source) {
             final TranslatorDriver translator = new TranslatorDriver(getContext());
 
             translator.parse(source, UTF8Encoding.INSTANCE,
@@ -227,6 +287,7 @@ public abstract class TruffleBootNodes {
 
             return nil();
         }
+
     }
 
     @CoreMethod(names = "get_option", onSingleton = true, required = 1)
@@ -238,9 +299,13 @@ public abstract class TruffleBootNodes {
         @Specialization(guards = "isRubyString(optionName)")
         public Object getOption(DynamicObject optionName) {
             final OptionDescription<?> description = OptionsCatalog.fromName("ruby." + StringOperations.getString(optionName));
+            assert description != null;
             final Object value = getContext().getOptions().fromDescription(description);
+
             if (value instanceof String) {
                 return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            } else if (value instanceof Enum) {
+                return getSymbol(((Enum) value).name());
             } else {
                 assert value instanceof Integer || value instanceof Boolean;
                 return value;
