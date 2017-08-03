@@ -29,6 +29,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Log;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.methods.ExceptionTranslatingNode;
+import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 @NodeChildren({
         @NodeChild("receiver"),
@@ -37,11 +39,14 @@ import org.truffleruby.language.control.JavaException;
 public abstract class OutgoingForeignCallNode extends RubyNode {
 
     @Child private RubyToForeignNode megamorphicToForeignNode;
+    @Child private ExceptionTranslatingNode exceptionTranslatingNode;
 
     private final String name;
+    private final BranchProfile errorProfile = BranchProfile.create();
 
     public OutgoingForeignCallNode(String name) {
         this.name = name;
+        this.exceptionTranslatingNode = new ExceptionTranslatingNode(null, UnsupportedOperationBehavior.TYPE_ERROR);
     }
 
     public abstract Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args);
@@ -59,8 +64,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             @Cached("createToForeignNodes(cachedArgsLength)") RubyToForeignNode[] toForeignNodes,
             @Cached("create()") ForeignToRubyNode toRubyNode) {
         Object[] foreignArgs = argsToForeign(frame, toForeignNodes, args);
-        Object foreignValue = outgoingNode.executeCall(frame, receiver, foreignArgs);
-        return toRubyNode.executeConvert(frame, foreignValue);
+        return doCall(frame, receiver, outgoingNode, foreignArgs, toRubyNode);
     }
 
     @Specialization(replaces = "callCached")
@@ -82,7 +86,18 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             foreignArgs[n] = megamorphicToForeignNode.executeConvert(frame, args[n]);
         }
 
-        Object foreignValue = createHelperNode(args.length).executeCall(frame, receiver, foreignArgs);
+        final OutgoingNode outgoingNode = createHelperNode(args.length);
+        return doCall(frame, receiver, outgoingNode, foreignArgs, toRubyNode);
+    }
+
+    private Object doCall(VirtualFrame frame, TruffleObject receiver, OutgoingNode outgoingNode, Object[] foreignArgs, ForeignToRubyNode toRubyNode) {
+        final Object foreignValue;
+        try {
+            foreignValue = outgoingNode.executeCall(frame, receiver, foreignArgs);
+        } catch (Throwable t) {
+            errorProfile.enter();
+            throw exceptionTranslatingNode.translate(t);
+        }
         return toRubyNode.executeConvert(frame, foreignValue);
     }
 

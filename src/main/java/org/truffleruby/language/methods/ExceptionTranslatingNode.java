@@ -31,6 +31,7 @@ public class ExceptionTranslatingNode extends RubyNode {
 
     @Child private RubyNode child;
 
+    private final BranchProfile exceptionProfile = BranchProfile.create();
     private final BranchProfile controlProfile = BranchProfile.create();
     private final BranchProfile arithmeticProfile = BranchProfile.create();
     private final BranchProfile unsupportedProfile = BranchProfile.create();
@@ -46,6 +47,15 @@ public class ExceptionTranslatingNode extends RubyNode {
     public Object execute(VirtualFrame frame) {
         try {
             return child.execute(frame);
+        } catch (Throwable t) {
+            exceptionProfile.enter();
+            throw translate(t);
+        }
+    }
+
+    public RuntimeException translate(Throwable throwable) {
+        try {
+            throw throwable;
         } catch (ControlFlowException exception) {
             controlProfile.enter();
             throw exception;
@@ -217,7 +227,7 @@ public class ExceptionTranslatingNode extends RubyNode {
     }
 
     @TruffleBoundary
-    public DynamicObject translateThrowable(Throwable throwable) {
+    private DynamicObject translateThrowable(Throwable throwable) {
         if (throwable instanceof AssertionError && !getContext().getOptions().EXCEPTIONS_TRANSLATE_ASSERT) {
             throw (AssertionError) throwable;
         }
