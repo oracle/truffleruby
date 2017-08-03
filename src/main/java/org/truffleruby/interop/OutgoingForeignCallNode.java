@@ -107,7 +107,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new IndexReadOutgoingNode();
         } else if (name.equals("[]=") && argsLength == 2) {
             return new IndexWriteOutgoingNode();
-        } else if (name.endsWith("=") && argsLength == 1) {
+        } else if (name.length() >= 2 && name.charAt(name.length() - 2) != '=' && name.charAt(name.length() - 1) == '=' && argsLength == 1) {
             return new PropertyWriteOutgoingNode(name.substring(0, name.length() - 1));
         } else if (name.equals("call")) {
             return new CallOutgoingNode(argsLength);
