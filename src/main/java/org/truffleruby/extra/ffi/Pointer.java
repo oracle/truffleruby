@@ -155,7 +155,7 @@ public class Pointer implements AutoCloseable {
     }
 
     @TruffleBoundary
-    public void enableAutorelease(FinalizationService finalizationService) {
+    public synchronized void enableAutorelease(FinalizationService finalizationService) {
         if (autorelease) {
             return;
         }
@@ -166,7 +166,7 @@ public class Pointer implements AutoCloseable {
     }
 
     @TruffleBoundary
-    public void disableAutorelease(FinalizationService finalizationService) {
+    public synchronized void disableAutorelease(FinalizationService finalizationService) {
         if (!autorelease) {
             return;
         }
