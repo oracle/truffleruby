@@ -1558,7 +1558,7 @@ module Commands
     begin
       require 'rubocop'
     rescue LoadError
-      sh "gem", "install", "rubocop", "--version", version
+      sh "gem", "install", "--no-document", "rubocop", "--version", version
     end
     sh "rubocop", format('_%s_', version), *args
   end

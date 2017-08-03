@@ -6,6 +6,7 @@ AllCops:
     - '*.rb' # test scripts at the root of the repo
     - 'bin/**/*'
     - 'bench/**/*'
+    - 'gem_home/**/*'
     - 'lib/bin/**/*'
     - 'lib/json/**/*'
     - 'lib/mri/**/*'
