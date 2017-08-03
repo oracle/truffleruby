@@ -1,3 +1,5 @@
+dist: precise
+
 language: java
 
 sudo: false
