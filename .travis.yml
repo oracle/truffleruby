@@ -32,7 +32,7 @@ install:
 - export PATH=$PWD/mx:$PATH
 - echo MX_BINARY_SUITES=truffle,sdk >> mx.truffleruby/env
 - echo JAVA_HOME=$JAVA_HOME >> mx.truffleruby/env
-- if [ -z "$SKIP_BUILD" ]; then mx build --force-javac --warning-as-error; fi
+- if [ -z "$SKIP_BUILD" ]; then mx -v build --force-javac --warning-as-error; fi
 - $COMMAND
 script:
 - tool/jt.rb $JT
