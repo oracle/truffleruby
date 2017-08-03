@@ -17,11 +17,22 @@ module FFI
     RTLD_LOCAL  = Rubinius::Config['rbx.platform.dlopen.RTLD_LOCAL']
 
     def self.open(libname, flags)
-      if libname
-        Truffle::Interop.eval('application/x-native', "load #{libname}")
-      else
-        Truffle::Interop.eval('application/x-native', 'default')
-      end
+      code = libname ? "load #{libname}" : 'default'
+      handle = Truffle::Interop.eval('application/x-native', code)
+      DynamicLibrary.new(libname, handle)
+    end
+
+    def initialize(name, handle)
+      @name = name
+      @handle = handle
+    end
+
+    def find_symbol(name)
+      @handle[name]
+    end
+
+    def inspect
+      "\#<#{self.class} @name=#{@name.inspect}>"
     end
   end
 
@@ -76,7 +87,7 @@ module FFI
       nfi_return_type = to_nfi_type(return_type)
 
       function = @ffi_libs.each { |library|
-        break library[native_name]
+        break library.find_symbol(native_name)
       }
       signature = "(#{nfi_args_types.join(',')}):#{nfi_return_type}"
       function = function.bind(Truffle::Interop.to_java_string(signature))
