@@ -73,14 +73,12 @@ public class Pointer implements AutoCloseable {
         writeZeroTerminatedBytes(offset, buf.array(), buf.arrayOffset() + buf.position(), len);
     }
 
-    @TruffleBoundary
     public void writeBytes(long offset, long size, byte value) {
         for (long n = 0; n < size; n++) {
             writeByte(offset + n, value);
         }
     }
 
-    @TruffleBoundary
     public void writeBytes(long offset, byte[] bytes, int index, int length) {
         for (int n = 0; n < length; n++) {
             writeByte(offset + n, bytes[index + n]);
@@ -91,7 +89,6 @@ public class Pointer implements AutoCloseable {
         return UNSAFE.getByte(address + offset);
     }
 
-    @TruffleBoundary
     public void readBytes(long from, byte[] buffer, int bufferPos, int i) {
         for (int n = 0; n < i; n++) {
             buffer[bufferPos + n] = readByte(from + n);
@@ -122,7 +119,6 @@ public class Pointer implements AutoCloseable {
         return Charset.defaultCharset().decode(ByteBuffer.wrap(readZeroTerminatedByteArray(offset))).toString();
     }
 
-    @TruffleBoundary
     public Pointer readPointer(long offset) {
         final long p = readLong(offset);
         if (p == 0) {
@@ -132,7 +128,6 @@ public class Pointer implements AutoCloseable {
         }
     }
 
-    @TruffleBoundary
     public int findByte(long offset, byte value) {
         int n = 0;
         while (true) {
