@@ -271,7 +271,7 @@ an integer, or anything else
 
 `object[name] = value` (`#[]=(name, value)`) sends `WRITE`
 
-`object.name = value` (`#name=(value)`) sends `WRITE`
+`object.name = value` (a message name matching `.*[^=]=`, such as `name=`, and with just one argument) sends `WRITE`
 
 `object.call(*args)` sends `EXECUTE`
 
