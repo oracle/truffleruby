@@ -1248,6 +1248,8 @@ struct RData *RDATA(VALUE value);
 VALUE rb_data_object_wrap(VALUE ruby_class, void *data, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC free);
 VALUE rb_data_object_zalloc(VALUE,size_t,RUBY_DATA_FUNC,RUBY_DATA_FUNC);
 
+#define rb_data_object_alloc(klass, data, dmark, dfree) rb_data_object_wrap(klass, data, dmark, dfree)
+
 #define Data_Wrap_Struct(ruby_class, mark, free, data) \
     rb_data_object_wrap((ruby_class), (data), (RUBY_DATA_FUNC)(mark), (RUBY_DATA_FUNC)(free))
 
