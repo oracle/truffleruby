@@ -209,7 +209,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "!signed")
         public int readCharUnsigned(DynamicObject pointer, boolean signed) {
-            return Byte.toUnsignedInt(Layouts.POINTER.getPointer(pointer).readByte( 0));
+            return Byte.toUnsignedInt(Layouts.POINTER.getPointer(pointer).readByte(0));
         }
 
     }
