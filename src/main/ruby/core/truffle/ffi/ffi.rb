@@ -44,14 +44,6 @@ module Rubinius::FFI
 
   class NotFoundError < RuntimeError; end
 
-  # Shorthand for the current process, i.e. all code that
-  # the process image itself contains. In addition to the
-  # Rubinius codebase, this also includes libc etc.
-  #
-  # Use this constant instead of nil directly.
-  #
-  CURRENT_PROCESS = nil
-
   TypeDefs = {}
 
   class << self

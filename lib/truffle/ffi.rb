@@ -30,6 +30,8 @@ require_relative 'ffi/library'
 
 module FFI
   module Library
+    LIBC = Rubinius::LIBC
+
     TO_NATIVE_TYPE = {
       int: 'SINT32',
     }
