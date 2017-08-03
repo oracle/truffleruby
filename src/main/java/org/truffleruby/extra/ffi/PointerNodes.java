@@ -167,7 +167,7 @@ public abstract class PointerNodes {
 
                 ptr.readBytes(0, bytes, 0, nullOffset);
             } else {
-                bytes = MemoryIO.getInstance().getZeroTerminatedByteArray(Layouts.POINTER.getPointer(pointer).getPointer().address());
+                bytes = MemoryIO.getInstance().getZeroTerminatedByteArray(Layouts.POINTER.getPointer(pointer).toJNRPointer().address());
             }
 
             return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
