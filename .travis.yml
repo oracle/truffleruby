@@ -2,7 +2,7 @@ dist: precise
 
 language: java
 
-sudo: false
+sudo: required
 
 cache:
   directories:
