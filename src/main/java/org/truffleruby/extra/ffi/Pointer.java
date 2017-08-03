@@ -104,7 +104,7 @@ public class Pointer implements AutoCloseable {
         return UNSAFE.getLong(address + offset);
     }
 
-    private byte[] readZeroTerminatedByteArray(long offset) {
+    public byte[] readZeroTerminatedByteArray(long offset) {
         final int length = findByte(offset, (byte) 0);
         final byte[] bytes = new byte[length];
         readBytes(offset, bytes, 0, length);
