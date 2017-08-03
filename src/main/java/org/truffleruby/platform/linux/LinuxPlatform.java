@@ -102,8 +102,7 @@ public class LinuxPlatform implements NativePlatform {
 
     @Override
     public Pointer createSigAction(long handler) {
-        Pointer structSigAction = Pointer.malloc(152); // sizeof(struct sigaction)
-        structSigAction.writeBytes(0, 152, (byte) 0);
+        Pointer structSigAction = Pointer.calloc(152); // sizeof(struct sigaction)
         structSigAction.writeLong(0, handler);
         return structSigAction;
     }
