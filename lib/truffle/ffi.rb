@@ -44,7 +44,11 @@ module FFI
       TO_NATIVE_TYPE.fetch(type, type)
     end
 
-    def attach_function(method_name, native_name, args_types, return_type, options = {})
+    def attach_function(method_name, native_name, args_types, return_type = nil, options = {})
+      unless return_type
+        native_name, args_types, return_type = method_name, native_name, args_types
+      end
+
       warn "options #{options} ignored for attach_function :#{method_name}" unless options.empty?
 
       args_types = args_types.map { |type| to_native_type(type) }
