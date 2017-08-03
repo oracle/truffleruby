@@ -173,7 +173,7 @@ public abstract class PointerNodes {
         public DynamicObject readPointer(DynamicObject pointer) {
             Pointer ptr = Layouts.POINTER.getPointer(pointer);
             assert ptr.getAddress() != 0 : "Attempt to dereference a null pointer";
-            Pointer readPointer = ptr.readPointer((long) 0);
+            Pointer readPointer = ptr.readPointer(0);
 
             if (readPointer == null) {
                 readPointer = Pointer.NULL;
@@ -191,7 +191,7 @@ public abstract class PointerNodes {
         public DynamicObject address(DynamicObject pointer, DynamicObject string, int maxLength) {
             final Rope rope = StringOperations.rope(string);
             final int length = Math.min(rope.byteLength(), maxLength);
-            Layouts.POINTER.getPointer(pointer).writeBytes((long) 0, rope.getBytes(), 0, length);
+            Layouts.POINTER.getPointer(pointer).writeBytes(0, rope.getBytes(), 0, length);
             return pointer;
         }
 
@@ -315,7 +315,7 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "type == TYPE_LL")
         public long getAtOffsetLL(DynamicObject pointer, int offset, int type) {
-            return Layouts.POINTER.getPointer(pointer).readLong((long) offset);
+            return Layouts.POINTER.getPointer(pointer).readLong(offset);
         }
 
         @Specialization(guards = "type == TYPE_ULL")
@@ -410,14 +410,14 @@ public abstract class PointerNodes {
 
         @Specialization(guards = "type == TYPE_LL")
         public long setAtOffsetLL(DynamicObject pointer, int offset, int type, long value) {
-            Layouts.POINTER.getPointer(pointer).writeLong((long) offset, value);
+            Layouts.POINTER.getPointer(pointer).writeLong(offset, value);
             return value;
         }
 
         @Specialization(guards = "type == TYPE_ULL")
         public long setAtOffsetULL(DynamicObject pointer, int offset, int type, long value) {
             assert value >= 0L;
-            Layouts.POINTER.getPointer(pointer).writeLong((long) offset, value);
+            Layouts.POINTER.getPointer(pointer).writeLong(offset, value);
             return value;
         }
 
@@ -429,14 +429,14 @@ public abstract class PointerNodes {
 
         @Specialization(guards = { "type == TYPE_PTR", "isRubyPointer(value)" })
         public DynamicObject setAtOffsetPtr(DynamicObject pointer, int offset, int type, DynamicObject value) {
-            Layouts.POINTER.getPointer(pointer).writePointer((long) offset, Layouts.POINTER.getPointer(value));
+            Layouts.POINTER.getPointer(pointer).writePointer(offset, Layouts.POINTER.getPointer(value));
             return value;
         }
 
         @Specialization(guards = {"type == TYPE_CHARARR", "isRubyString(string)"})
         public DynamicObject setAtOffsetCharArr(DynamicObject pointer, int offset, int type, DynamicObject string) {
             final String str = StringOperations.getString(string);
-            Layouts.POINTER.getPointer(pointer).writeString((long) offset, str, str.length(), EncodingManager.charsetForEncoding(StringOperations.encoding(string)));
+            Layouts.POINTER.getPointer(pointer).writeString(offset, str, str.length(), EncodingManager.charsetForEncoding(StringOperations.encoding(string)));
             return string;
         }
 
