@@ -805,16 +805,12 @@ public abstract class IONodes {
             final int fd = Layouts.IO.getDescriptor(io);
 
             final int[] addressLength = { 16 };
-            final Pointer address = Pointer.malloc(addressLength[0]);
-
             final int newFd;
 
-            try {
+            try (Pointer address = Pointer.malloc(addressLength[0])) {
                 newFd = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
                         () -> nativeSockets().accept(fd, address.getPointer(), addressLength));
                 return ensureSuccessful(newFd);
-            } finally {
-                address.free();
             }
         }
 

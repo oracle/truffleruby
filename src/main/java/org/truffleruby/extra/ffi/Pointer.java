@@ -18,7 +18,7 @@ import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
-public class Pointer {
+public class Pointer implements AutoCloseable {
 
     public static final jnr.ffi.Pointer JNR_NULL = Runtime.getSystemRuntime().getMemoryManager().newOpaquePointer(0);
 
@@ -139,6 +139,11 @@ public class Pointer {
 
     public void free() {
         UNSAFE.freeMemory(address);
+    }
+
+    @Override
+    public void close() {
+        free();
     }
 
     public long getAddress() {
