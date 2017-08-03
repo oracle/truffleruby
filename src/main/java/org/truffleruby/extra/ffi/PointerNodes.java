@@ -158,18 +158,7 @@ public abstract class PointerNodes {
         @Specialization(guards = "!isNullPointer(pointer)")
         public DynamicObject readStringToNull(DynamicObject pointer,
                                               @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final byte[] bytes;
-
-            if (TruffleOptions.AOT) {
-                final Pointer ptr = Layouts.POINTER.getPointer(pointer);
-                final int nullOffset = ptr.findByte(0, (byte) 0);
-                bytes = new byte[nullOffset];
-
-                ptr.readBytes(0, bytes, 0, nullOffset);
-            } else {
-                bytes = MemoryIO.getInstance().getZeroTerminatedByteArray(Layouts.POINTER.getPointer(pointer).toJNRPointer().address());
-            }
-
+            final byte[] bytes = Layouts.POINTER.getPointer(pointer).readZeroTerminatedByteArray(0);
             return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
