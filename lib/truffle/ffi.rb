@@ -24,6 +24,10 @@ module FFI
       end
     end
   end
+
+  def self.find_type(*args)
+    Rubinius::FFI.find_type(*args)
+  end
 end
 
 require_relative 'ffi/library'
@@ -61,6 +65,10 @@ module FFI
           result
         end
       }
+    end
+
+    def find_type(t)
+      FFI.find_type(t)
     end
   end
 
