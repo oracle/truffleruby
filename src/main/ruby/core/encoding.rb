@@ -197,12 +197,7 @@ class Encoding
         end
       end
 
-      source_name = @source_encoding.name.upcase.to_sym
-      dest_name = @destination_encoding.name.upcase.to_sym
-
-      unless source_name == dest_name
-        @convpath, @converters = TranscodingPath[source_name, dest_name]
-      end
+      @convpath = initialize_jcodings(@source_encoding, @destination_encoding, @options)
 
       unless @convpath
         conversion = "(#{@source_encoding.name} to #{@destination_encoding.name})"
@@ -210,7 +205,7 @@ class Encoding
         raise ConverterNotFoundError, msg
       end
 
-      initialize_jruby(@source_encoding, @destination_encoding, @options)
+      @converters = TranscodingPath.get_converters(@convpath)
 
       if (@options & (INVALID_REPLACE | UNDEF_REPLACE | UNDEF_HEX_CHARREF))
         unless new_replacement.nil?
@@ -444,30 +439,7 @@ class Encoding
       end
 
       def self.search(source, target)
-        if entry = TranscodingMap[source]
-          if entry[target]
-            [source, target]
-          else
-            visited = { source => true }
-            search = { [source] => entry }
-
-            until search.empty?
-              path, table = search.shift
-
-              table.each do |key, _|
-                next if visited.key? key
-                next unless entry = TranscodingMap[key]
-
-                return path << key << target if entry[target]
-
-                unless visited.key? key
-                  search[path.dup << key] = entry
-                  visited[key] = true
-                end
-              end
-            end
-          end
-        end
+        Truffle.invoke_primitive :encoding_transcoder_search, source, target
       end
 
       def self.get_converters(path)

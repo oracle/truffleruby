@@ -24,6 +24,7 @@ import org.jcodings.Ptr;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.transcode.EConv;
 import org.jcodings.transcode.EConvResult;
+import org.jcodings.transcode.Transcoder;
 import org.jcodings.transcode.TranscodingManager;
 import org.jcodings.transcode.TranscodingManager.TranscoderReference;
 import org.truffleruby.Layouts;
@@ -43,6 +44,7 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -54,6 +56,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -63,7 +66,7 @@ import static org.truffleruby.core.string.StringOperations.rope;
 public abstract class EncodingConverterNodes {
 
     @NonStandard
-    @CoreMethod(names = "initialize_jruby", required = 2, optional = 1, lowerFixnum = 3, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = "initialize_jcodings", required = 2, optional = 1, lowerFixnum = 3, visibility = Visibility.PRIVATE)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -79,12 +82,42 @@ public abstract class EncodingConverterNodes {
             Encoding destinationEncoding = Layouts.ENCODING.getEncoding(destination);
 
             final EConv econv = TranscodingManager.create(sourceEncoding, destinationEncoding, options);
+            if (econv == null) {
+                return nil();
+            }
+
             econv.sourceEncoding = sourceEncoding;
             econv.destinationEncoding = destinationEncoding;
 
             Layouts.ENCODING_CONVERTER.setEconv(self, econv);
 
-            return nil();
+            // There are N-1 edges connecting N encodings on the path from source -> destination.
+            // We need to include every encoding along the path in the return value.
+            Object[] ret = new Object[econv.numTranscoders + 1];
+
+            int retIndex = 0;
+            for (int i = 0; i < econv.numTranscoders; i++) {
+                final Transcoder transcoder = econv.elements[i].transcoding.transcoder;
+
+                if (EncodingUtils.DECORATOR_P(transcoder.getSource(), transcoder.getDestination())) {
+                    continue;
+                }
+
+                final byte[] segmentSource = transcoder.getSource();
+                ret[retIndex++] = getSymbol(RopeOperations.decodeAscii(segmentSource, 0, segmentSource.length).toUpperCase());
+            }
+
+            final int retSize = retIndex + 1;
+            if (retSize != ret.length) {
+                // The decorated entry really isn't part of the transcoding path, but jcodings treats it as if it were,
+                // so we need to reduce the returned array size accordingly.
+                ret = ArrayUtils.extractRange(ret, 0, retSize);
+            }
+
+            final byte[] destinationName = destinationEncoding.getName();
+            ret[retIndex] = getSymbol(RopeOperations.decodeAscii(destinationName, 0, destinationName.length).toUpperCase());
+
+            return createArray(ret, ret.length);
         }
 
     }
@@ -121,6 +154,34 @@ public abstract class EncodingConverterNodes {
         public DynamicObject allocate(DynamicObject rubyClass) {
             Object econv = null;
             return allocateNode.allocate(rubyClass, econv);
+        }
+
+    }
+
+    @Primitive(name = "encoding_transcoder_search", needsSelf = false)
+    public static abstract class PrimitiveTranscoderSearch extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = { "isRubySymbol(source)", "isRubySymbol(destination)" })
+        public DynamicObject search(DynamicObject source, DynamicObject destination) {
+            final Rope sourceRope = Layouts.SYMBOL.getRope(source);
+            final Rope destinationRope = Layouts.SYMBOL.getRope(destination);
+
+            final List<String> path = TranscodingManager.bfs(
+                    RopeOperations.decodeRope(sourceRope),
+                    RopeOperations.decodeRope(destinationRope));
+
+            if (path.isEmpty()) {
+                return nil();
+            }
+
+            final Object[] ret = new Object[path.size()];
+            int i = 0;
+            for (String part : path) {
+                ret[i++] = getSymbol(part);
+            }
+
+            return createArray(ret, ret.length);
         }
 
     }

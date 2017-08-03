@@ -134,12 +134,11 @@ public class RopeOperations {
         return decodeAscii(rope.getBytes(), 0, rope.byteLength());
     }
 
-    @TruffleBoundary
-    private static String decodeAscii(byte[] bytes, int offset, int byteLength) {
+    public static String decodeAscii(byte[] bytes, int byteOffset, int byteLength) {
         final char[] buffer = new char[byteLength];
 
         for (int i = 0; i < byteLength; i++) {
-            buffer[i] = (char) bytes[offset + i];
+            buffer[i] = (char) bytes[byteOffset + i];
         }
 
         return new String(buffer);
