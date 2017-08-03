@@ -36,12 +36,33 @@ module FFI
   module Library
     LIBC = Rubinius::LIBC
 
-    TO_NATIVE_TYPE = {
-      int: 'SINT32',
-    }
+    # Indicies are based on RubiniusTypes
+    TO_NFI_TYPE = [
+      'SINT8',  # char
+      'UINT8',  # uchar
+      'UINT8',  # bool
+      'SINT16', # short
+      'UINT16', # ushort
+      'SINT32', # int
+      'UINT32', # uint
+      'SINT64', # long
+      'UINT64', # ulong
+      'SINT64', # ll
+      'UINT64', # ull
+      'FLOAT',  # float
+      'DOUBLE', # double
+      'POINTER',# ptr
+      'VOID',   # void
+      'STRING', # string
+      # strptr
+      # chararr
+      # enum
+      # varargs
+    ]
 
-    private def to_native_type(type)
-      TO_NATIVE_TYPE.fetch(type, type)
+    private def to_nfi_type(type)
+      idx = FFI.find_type(type)
+      TO_NFI_TYPE.fetch(idx)
     end
 
     def attach_function(method_name, native_name, args_types, return_type = nil, options = {})
@@ -51,13 +72,13 @@ module FFI
 
       warn "options #{options} ignored for attach_function :#{method_name}" unless options.empty?
 
-      args_types = args_types.map { |type| to_native_type(type) }
-      return_type = to_native_type(return_type)
+      nfi_args_types = args_types.map { |type| to_nfi_type(type) }
+      nfi_return_type = to_nfi_type(return_type)
 
       function = @ffi_libs.each { |library|
         break library[native_name]
       }
-      signature = "(#{args_types.join(',')}):#{return_type}"
+      signature = "(#{nfi_args_types.join(',')}):#{nfi_return_type}"
       function = function.bind(Truffle::Interop.to_java_string(signature))
 
       define_singleton_method(method_name) { |*args|
