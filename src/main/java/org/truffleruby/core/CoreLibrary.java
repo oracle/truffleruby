@@ -810,7 +810,7 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(objectClass).setConstant(context, node, "ARGV", argv);
 
         Layouts.MODULE.getFields(rubiniusModule).setConstant(context, node, "UNDEFINED", rubiniusUndefined);
-        Layouts.MODULE.getFields(rubiniusModule).setConstant(context, node, "LIBC", Platform.LIBC);
+        Layouts.MODULE.getFields(rubiniusModule).setConstant(context, node, "LIBC", frozenUSASCIIString(Platform.LIBC));
 
         Layouts.MODULE.getFields(processModule).setConstant(context, node, "CLOCK_MONOTONIC", ProcessNodes.CLOCK_MONOTONIC);
         Layouts.MODULE.getFields(processModule).setConstant(context, node, "CLOCK_REALTIME", ProcessNodes.CLOCK_REALTIME);
@@ -866,6 +866,7 @@ public class CoreLibrary {
     }
 
     private DynamicObject frozenUSASCIIString(String string) {
+        assert StringOperations.isASCIIOnly(string);
         final Rope rope = StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE);
         return StringOperations.createFrozenString(context, rope);
     }
