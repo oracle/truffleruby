@@ -206,9 +206,23 @@ module Rubinius::FFI
   # It's a class to be compat with the ffi gem.
   class Type
     class Array
+      def initialize(element_type, size, impl_class=nil)
+        @element_type = element_type
+        @size = size
+        @implementation = impl_class
+      end
+
+      attr_reader :element_type
+      attr_reader :size
+      attr_reader :implementation
     end
 
     class StructByValue
+      def initialize(struct)
+        @implementation = struct
+      end
+
+      attr_reader :implementation
     end
 
     Struct = StructByValue
