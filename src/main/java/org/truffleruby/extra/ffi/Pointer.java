@@ -75,9 +75,7 @@ public class Pointer implements AutoCloseable {
     }
 
     public void writeBytes(long offset, long size, byte value) {
-        for (long n = 0; n < size; n++) {
-            writeByte(offset + n, value);
-        }
+        UNSAFE.setMemory(address + offset, size, value);
     }
 
     public void writeBytes(long offset, byte[] bytes, int index, int length) {
