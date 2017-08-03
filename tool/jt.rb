@@ -31,8 +31,6 @@ JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},s
 JEXCEPTION = "-Xexceptions.print_uncaught_java=true"
 METRICS_REPS = 10
 
-VERBOSE = ENV.include? 'V'
-
 UNAME = `uname`.chomp
 MAC = UNAME == 'Darwin'
 LINUX = UNAME == 'Linux'
