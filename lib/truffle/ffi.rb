@@ -112,6 +112,7 @@ module FFI
   Pointer = Rubinius::FFI::Pointer
   MemoryPointer = Rubinius::FFI::MemoryPointer
   Struct = Rubinius::FFI::Struct
+  Union = Rubinius::FFI::Union
 
   class Struct
     def self.ptr
