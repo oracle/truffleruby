@@ -15,8 +15,6 @@ import org.truffleruby.core.FinalizationService;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 
 public class Pointer implements AutoCloseable {
 
@@ -61,16 +59,9 @@ public class Pointer implements AutoCloseable {
         writeLong(offset, value.getAddress());
     }
 
-    private void writeZeroTerminatedBytes(long offset, byte[] bytes, int start, int length) {
+    public void writeZeroTerminatedBytes(long offset, byte[] bytes, int start, int length) {
         writeBytes(offset, bytes, start, length);
         writeByte(offset + length, (byte) 0);
-    }
-
-    @TruffleBoundary
-    public void writeString(long offset, String string, int maxLength, Charset cs) {
-        ByteBuffer buf = cs.encode(string);
-        int len = Math.min(maxLength, buf.remaining());
-        writeZeroTerminatedBytes(offset, buf.array(), buf.arrayOffset() + buf.position(), len);
     }
 
     public void writeBytes(long offset, long size, byte value) {
@@ -112,11 +103,6 @@ public class Pointer implements AutoCloseable {
         final byte[] bytes = new byte[length];
         readBytes(offset, bytes, 0, length);
         return bytes;
-    }
-
-    @TruffleBoundary
-    public String readString(long offset) {
-        return Charset.defaultCharset().decode(ByteBuffer.wrap(readZeroTerminatedByteArray(offset))).toString();
     }
 
     public Pointer readPointer(long offset) {
