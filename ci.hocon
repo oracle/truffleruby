@@ -483,11 +483,26 @@ deploy-and-test-fast-darwin: {
   timelimit: "30:00"
 }
 
+lint: {
+  packages: {
+    ruby: ">=2.1.0"
+  }
+  environment: {
+    GEM_HOME: "$PWD/gem_home"
+  }
+  run: [
+    [export, "PATH=$GEM_HOME/bin:$PATH"],
+    ${jt} [lint]
+  ]
+  timelimit: "30:00"
+}
+
 builds: [
   {name: ruby-deploy-and-test-fast-linux} ${common} ${gate-caps} ${deploy-and-test-fast},
   {name: ruby-deploy-and-test-fast-darwin} ${common-darwin} ${gate-caps-darwin} ${deploy-and-test-fast-darwin},
   {name: ruby-deploy-and-test-fast-solaris} ${common-solaris} ${gate-caps-solaris} ${deploy-and-test-fast},
 
+  {name: ruby-lint} ${common} ${gate-caps} ${lint},
   {name: ruby-test-tck} ${common} ${gate-caps} {run: [[mx, rubytck]]},
   {name: ruby-test-specs-command-line} ${common} ${gate-caps} {run: [${jt} [test, specs, ":command_line"]]},
   {name: ruby-test-specs-language} ${common} ${gate-caps} {run: [${jt} [test, specs, ":language", ":security"]]},
