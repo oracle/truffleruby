@@ -102,8 +102,7 @@ public class DarwinPlatform implements NativePlatform {
 
     @Override
     public Pointer createSigAction(long handler) {
-        Pointer structSigAction = Pointer.malloc(16); // sizeof(struct sigaction)
-        structSigAction.writeBytes(0, 16, (byte) 0);
+        Pointer structSigAction = Pointer.calloc(16); // sizeof(struct sigaction)
         structSigAction.writeLong(0, handler);
         return structSigAction;
     }

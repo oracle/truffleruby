@@ -28,6 +28,12 @@ public class Pointer implements AutoCloseable {
         return new Pointer(UNSAFE.allocateMemory(size));
     }
 
+    public static Pointer calloc(long size) {
+        final Pointer pointer = malloc(size);
+        pointer.writeBytes(0, size, (byte) 0);
+        return pointer;
+    }
+
     private final long address;
     private boolean autorelease;
 
