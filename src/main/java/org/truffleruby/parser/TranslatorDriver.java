@@ -248,6 +248,8 @@ public class TranslatorDriver {
 
         truffleNode = new CatchRetryAsErrorNode(truffleNode);
 
+        // Top-level exception handling
+
         if (parserContext == ParserContext.TOP_LEVEL_FIRST) {
             truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(
                     new LoadRequiredLibrariesNode(),
@@ -261,6 +263,8 @@ public class TranslatorDriver {
 
             truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
             truffleNode = new TopLevelRaiseHandler(truffleNode);
+        } else {
+            truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
         }
 
         return new RubyRootNode(context, sourceIndexLength.toSourceSection(source), environment.getFrameDescriptor(), sharedMethodInfo, truffleNode);
