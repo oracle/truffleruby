@@ -153,14 +153,11 @@ public class ThreadManager {
             TruffleObject sigaction = (TruffleObject) nfi.invoke(nfi.lookup(libC, "sigaction"), "bind", "(SINT32,POINTER,POINTER):SINT32");
 
             // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
-            Pointer structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs));
-            try {
+            try (Pointer structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs))) {
                 int result = (int) nfi.execute(sigaction, Signal.SIGVTALRM.intValue(), structSigAction.getAddress(), 0L);
                 if (result != 0) {
                     throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
                 }
-            } finally {
-                structSigAction.free();
             }
         }
     }
