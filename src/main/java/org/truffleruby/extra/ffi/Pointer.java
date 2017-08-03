@@ -150,7 +150,7 @@ public class Pointer implements AutoCloseable {
         return address;
     }
 
-    public jnr.ffi.Pointer getPointer() {
+    public jnr.ffi.Pointer toJNRPointer() {
         return Runtime.getSystemRuntime().getMemoryManager().newPointer(address);
     }
 

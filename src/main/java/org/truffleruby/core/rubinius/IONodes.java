@@ -809,7 +809,7 @@ public abstract class IONodes {
 
             try (Pointer address = Pointer.malloc(addressLength[0])) {
                 newFd = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
-                        () -> nativeSockets().accept(fd, address.getPointer(), addressLength));
+                        () -> nativeSockets().accept(fd, address.toJNRPointer(), addressLength));
                 return ensureSuccessful(newFd);
             }
         }
