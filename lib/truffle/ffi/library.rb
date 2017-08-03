@@ -126,5 +126,28 @@ module FFI
 
       @ffi_libs = ffi_libs
     end
+
+    # Flags used in {#ffi_lib}.
+    #
+    # This map allows you to supply symbols to {#ffi_lib_flags} instead of
+    # the actual constants.
+    FlagsMap = {
+      :global => DynamicLibrary::RTLD_GLOBAL,
+      :local => DynamicLibrary::RTLD_LOCAL,
+      :lazy => DynamicLibrary::RTLD_LAZY,
+      :now => DynamicLibrary::RTLD_NOW
+    }
+
+    # Sets library flags for {#ffi_lib}.
+    #
+    # @example
+    #   ffi_lib_flags(:lazy, :local) # => 5
+    #
+    # @param [Symbol, …] flags (see {FlagsMap})
+    # @return [Fixnum] the new value
+    def ffi_lib_flags(*flags)
+      @ffi_lib_flags = flags.inject(0) { |result, f| result | FlagsMap[f] }
+    end
+
   end
 end
