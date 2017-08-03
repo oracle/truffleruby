@@ -59,6 +59,8 @@ module FFI
 
   module Library
 
+    CURRENT_PROCESS = FFI::CURRENT_PROCESS
+
     # @param [Array] names names of libraries to load
     # @return [Array<DynamicLibrary>]
     # @raise {LoadError} if a library cannot be opened
