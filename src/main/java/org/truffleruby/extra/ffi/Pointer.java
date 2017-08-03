@@ -22,10 +22,20 @@ public class Pointer implements AutoCloseable {
 
     public static final Pointer NULL = new Pointer(0);
 
+    /**
+     * Allocates memory and produces a pointer to it. Does not clear or
+     * initialize the memory, so it will contain arbitrary values. Use
+     * {@link #calloc} to get cleared memory.
+     */
     public static Pointer malloc(long size) {
         return new Pointer(UNSAFE.allocateMemory(size));
     }
 
+    /**
+     * Allocates memory and produces a pointer to it. Clears the memory
+     * before returning it. Use {@link #malloc} if you do not need the memory
+     * to be cleared.
+     */
     public static Pointer calloc(long size) {
         final Pointer pointer = malloc(size);
         pointer.writeBytes(0, size, (byte) 0);
