@@ -9,15 +9,15 @@
  */
 package org.truffleruby.extra.ffi;
 
-import com.kenai.jffi.MemoryIO;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -323,11 +323,13 @@ public abstract class PointerNodes {
             return PointerReadLongPrimitiveNode.readUnsignedLong(getContext(), pointer, offset);
         }
 
+        @TruffleBoundary
         @Specialization(guards = "type == TYPE_STRING")
         public DynamicObject getAtOffsetString(DynamicObject pointer, int offset, int type,
                                                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            return makeStringNode.executeMake(Layouts.POINTER.getPointer(pointer).readString(offset),
-                    UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            final byte[] bytes = Layouts.POINTER.getPointer(pointer).readZeroTerminatedByteArray(offset);
+            final String string = Charset.defaultCharset().decode(ByteBuffer.wrap(bytes)).toString();
+            return makeStringNode.executeMake(string, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
         @Specialization(guards = "type == TYPE_PTR")
@@ -433,10 +435,13 @@ public abstract class PointerNodes {
             return value;
         }
 
+        @TruffleBoundary
         @Specialization(guards = {"type == TYPE_CHARARR", "isRubyString(string)"})
         public DynamicObject setAtOffsetCharArr(DynamicObject pointer, int offset, int type, DynamicObject string) {
             final String str = StringOperations.getString(string);
-            Layouts.POINTER.getPointer(pointer).writeString(offset, str, str.length(), EncodingManager.charsetForEncoding(StringOperations.encoding(string)));
+            ByteBuffer buf = EncodingManager.charsetForEncoding(StringOperations.encoding(string)).encode(str);
+            int len = Math.min(str.length(), buf.remaining());
+            Layouts.POINTER.getPointer(pointer).writeZeroTerminatedBytes(offset, buf.array(), buf.arrayOffset() + buf.position(), len);
             return string;
         }
 
