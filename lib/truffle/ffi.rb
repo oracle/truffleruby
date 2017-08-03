@@ -77,11 +77,12 @@ module FFI
     end
 
     def attach_function(method_name, native_name, args_types, return_type = nil, options = {})
-      unless return_type
-        native_name, args_types, return_type = method_name, native_name, args_types
+      unless return_type && (String === native_name || Symbol === native_name)
+        native_name, args_types, return_type, options = method_name, native_name, args_types, return_type
+        options ||= {}
       end
 
-      warn "options #{options} ignored for attach_function :#{method_name}" unless options.empty?
+      warn "options #{options.inspect} ignored for attach_function :#{method_name}" unless options.empty?
 
       nfi_args_types = args_types.map { |type| to_nfi_type(type) }
       nfi_return_type = to_nfi_type(return_type)
