@@ -9,7 +9,7 @@
  */
 package org.truffleruby.extra.ffi;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import jnr.ffi.Runtime;
 import org.truffleruby.core.FinalizationService;
 import sun.misc.Unsafe;
@@ -60,21 +60,21 @@ public class Pointer implements AutoCloseable {
         writeByte(offset + length, (byte) 0);
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     public void writeString(long offset, String string, int maxLength, Charset cs) {
         ByteBuffer buf = cs.encode(string);
         int len = Math.min(maxLength, buf.remaining());
         writeZeroTerminatedBytes(offset, buf.array(), buf.arrayOffset() + buf.position(), len);
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     public void writeBytes(long offset, long size, byte value) {
         for (long n = 0; n < size; n++) {
             writeByte(offset + n, value);
         }
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     public void writeBytes(long offset, byte[] bytes, int index, int length) {
         for (int n = 0; n < length; n++) {
             writeByte(offset + n, bytes[index + n]);
@@ -85,7 +85,7 @@ public class Pointer implements AutoCloseable {
         return UNSAFE.getByte(address + offset);
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     public void readBytes(long from, byte[] buffer, int bufferPos, int i) {
         for (int n = 0; n < i; n++) {
             buffer[bufferPos + n] = readByte(from + n);
@@ -111,12 +111,12 @@ public class Pointer implements AutoCloseable {
         return bytes;
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     public String readString(long offset) {
         return Charset.defaultCharset().decode(ByteBuffer.wrap(readZeroTerminatedByteArray(offset))).toString();
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     public Pointer readPointer(long offset) {
         final long p = readLong(offset);
         if (p == 0) {
@@ -126,7 +126,7 @@ public class Pointer implements AutoCloseable {
         }
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     public int findByte(long offset, byte value) {
         int n = 0;
         while (true) {
@@ -154,7 +154,7 @@ public class Pointer implements AutoCloseable {
         return Runtime.getSystemRuntime().getMemoryManager().newPointer(address);
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     public void enableAutorelease(FinalizationService finalizationService) {
         if (autorelease) {
             return;
@@ -165,7 +165,7 @@ public class Pointer implements AutoCloseable {
         autorelease = true;
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     public void disableAutorelease(FinalizationService finalizationService) {
         if (!autorelease) {
             return;
