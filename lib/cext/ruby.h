@@ -555,7 +555,8 @@ void rb_big_pack(VALUE val, unsigned long *buf, long num_longs);
 
 VALUE rb_float_new(double value);
 VALUE rb_Float(VALUE value);
-double RFLOAT_VALUE(VALUE value);
+double rb_float_value(VALUE value);
+#define RFLOAT_VALUE(v) rb_float_value(v)
 
 // String
 
