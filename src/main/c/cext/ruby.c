@@ -895,7 +895,7 @@ VALUE rb_Float(VALUE value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_Float", value);
 }
 
-double RFLOAT_VALUE(VALUE value){
+double rb_float_value(VALUE value) {
   return truffle_invoke_d(RUBY_CEXT, "RFLOAT_VALUE", value);
 }
 
