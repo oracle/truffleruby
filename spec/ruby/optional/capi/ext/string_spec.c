@@ -263,6 +263,12 @@ VALUE string_spec_rb_tainted_str_new(VALUE self, VALUE str, VALUE len) {
 }
 #endif
 
+#ifdef HAVE_RB_TAINTED_STR_NEW2
+VALUE string_spec_rb_tainted_str_new2(VALUE self, VALUE str) {
+  return rb_tainted_str_new2(RSTRING_PTR(str));
+}
+#endif
+
 #ifdef HAVE_RB_STR_PLUS
 VALUE string_spec_rb_str_plus(VALUE self, VALUE str1, VALUE str2) {
   return rb_str_plus(str1, str2);
@@ -572,6 +578,10 @@ void Init_string_spec(void) {
 
 #ifdef HAVE_RB_TAINTED_STR_NEW
   rb_define_method(cls, "rb_tainted_str_new", string_spec_rb_tainted_str_new, 2);
+#endif
+
+#ifdef HAVE_RB_TAINTED_STR_NEW2
+  rb_define_method(cls, "rb_tainted_str_new2", string_spec_rb_tainted_str_new2, 1);
 #endif
 
 #ifdef HAVE_RB_STR_PLUS

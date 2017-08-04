@@ -671,6 +671,8 @@ VALUE rb_str_new_with_class(VALUE klass, const char *string, long len);
 #define rb_str_new4 rb_str_new_frozen
 #define rb_str_new5 rb_str_new_with_class
 VALUE rb_tainted_str_new(const char *string, long length);
+VALUE rb_tainted_str_new_cstr(const char*);
+#define rb_tainted_str_new2 rb_tainted_str_new_cstr
 VALUE rb_str_cat(VALUE string, const char *to_concat, long length);
 VALUE rb_str_cat2(VALUE string, const char *to_concat);
 VALUE rb_str_to_str(VALUE string);

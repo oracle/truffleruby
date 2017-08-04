@@ -967,6 +967,13 @@ VALUE rb_str_new_with_class(VALUE klass, const char *string, long len) {
   return truffle_invoke(truffle_invoke(klass, "class"), "new", rb_str_new(string, len));
 }
 
+VALUE rb_tainted_str_new_cstr(const char *ptr) {
+    VALUE str = rb_str_new_cstr(ptr);
+
+    OBJ_TAINT(str);
+    return str;
+}
+
 VALUE rb_intern_str(VALUE string) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_intern_str", string);
 }
