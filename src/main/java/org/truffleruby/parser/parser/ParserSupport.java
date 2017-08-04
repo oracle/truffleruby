@@ -38,6 +38,7 @@ package org.truffleruby.parser.parser;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
 import org.truffleruby.core.rope.CodeRange;
@@ -1457,7 +1458,11 @@ public class ParserSupport {
         lexer.compile_error(PID.REGEXP_ENCODING_MISMATCH, "regexp encoding option '" + optionsEncodingChar(optionEncoding) +
                 "' differs from source encoding '" + encoding + "'");
     }
-    
+
+    public Encoding getEncoding(Rope name) {
+        return EncodingManager.getEncoding(name);
+    }
+
     // MRI: reg_fragment_setenc_gen
     public Rope setRegexpEncoding(RegexpParseNode end, Rope value) {
         RegexpOptions options = end.getOptions();

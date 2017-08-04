@@ -36,6 +36,8 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.parser;
 
+import org.jcodings.Encoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeConstants;
@@ -2149,7 +2151,8 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = new FalseParseNode(lexer.getPosition());
                 }
                 | k__FILE__ {
-                    $$ = new FileParseNode(lexer.getPosition(), RopeOperations.create(lexer.getFile().getBytes(), support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding(), CR_UNKNOWN));
+                    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
+                    $$ = new FileParseNode(lexer.getPosition(), RopeOperations.create(lexer.getFile().getBytes(), encoding, CR_UNKNOWN));
                 }
                 | k__LINE__ {
                     $$ = new FixnumParseNode(lexer.getPosition(), lexer.tokline.toSourceSection(lexer.getSource()).getStartLine());

@@ -453,10 +453,27 @@ public class RubyLexer {
 
     protected void setEncoding(Rope name) {
         final RubyContext context = parserSupport.getConfiguration().getContext();
-        Encoding newEncoding = Layouts.ENCODING.getEncoding(context.getEncodingManager().getRubyEncoding(RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, name)));
+        final Encoding newEncoding = parserSupport.getEncoding(name);
 
-        if (newEncoding == null) throw new RaiseException(context.getCoreExceptions().argumentError("unknown encoding name: " + RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, name), null));
-        if (!newEncoding.isAsciiCompatible()) throw new RaiseException(context.getCoreExceptions().argumentError(RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, name) + " is not ASCII compatible", null));
+        if (newEncoding == null) {
+            final String message = "unknown encoding name: " + RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, name);
+
+            if (context != null) {
+                throw new RaiseException(context.getCoreExceptions().argumentError(message, null));
+            } else {
+                throw new UnsupportedOperationException(message);
+            }
+        }
+
+        if (!newEncoding.isAsciiCompatible()) {
+            final String message = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, name) + " is not ASCII compatible";
+
+            if (context != null) {
+                throw new RaiseException(context.getCoreExceptions().argumentError(message, null));
+            } else {
+                throw new UnsupportedOperationException(message);
+            }
+        }
 
         setEncoding(newEncoding);
     }
