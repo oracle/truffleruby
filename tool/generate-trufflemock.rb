@@ -12,7 +12,7 @@
 
 require 'erb'
 
-types = { 'void*' => "0", 'void' => nil, 
+types = { 'void*' => "0", 'void' => nil,
     'bool' => 'false', 'int' => '0', 'long' => '0', 'char' => "'0'",
     'float' => '0.0', 'double' => '0.0'}
 
@@ -20,7 +20,7 @@ methods = []
 
 lines = IO.readlines("lib/cext/truffle.h")
 lines.each do |l|
-   match = !l.start_with?('//') && /(.*?)truffle(.*?)\)/.match(l)   
+   match = !l.start_with?('//') && /^(.+?)\btruffle(.+)\)(?=;$)/.match(l)
    if match
      ret = types.fetch(match[1].gsub(' ', '')) { |t| raise "unknown type: `#{t}` for line `#{l}`" }
      methods << {:met => match[0], :ret => ret}
