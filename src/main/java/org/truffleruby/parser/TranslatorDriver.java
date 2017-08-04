@@ -287,14 +287,22 @@ public class TranslatorDriver {
             switch (e.getPid()) {
                 case UNKNOWN_ENCODING:
                 case NOT_ASCII_COMPATIBLE:
-                    throw new RaiseException(context.getCoreExceptions().argumentError(e.getMessage(), null));
+                    if (context != null) {
+                        throw new RaiseException(context.getCoreExceptions().argumentError(e.getMessage(), null));
+                    } else {
+                        throw e;
+                    }
                 default:
                     StringBuilder buffer = new StringBuilder(100);
                     buffer.append(e.getFile()).append(':');
                     buffer.append(e.getLine()).append(": ");
                     buffer.append(e.getMessage());
 
-                    throw new RaiseException(context.getCoreExceptions().syntaxError(buffer.toString(), null));
+                    if (context != null) {
+                        throw new RaiseException(context.getCoreExceptions().syntaxError(buffer.toString(), null));
+                    } else {
+                        throw new UnsupportedOperationException(buffer.toString(), e);
+                    }
             }
         }
 
