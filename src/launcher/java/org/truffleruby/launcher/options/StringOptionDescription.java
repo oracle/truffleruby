@@ -40,7 +40,7 @@ public class StringOptionDescription extends AppendableOptionDescription<String>
     }
 
     @Override
-    void append(StringBuilder currentValues, String newElement) {
-        currentValues.append(newElement);
+    String append(String currentValues, String newElement) {
+        return currentValues + newElement;
     }
 }

@@ -426,7 +426,7 @@ public class CommandLineParser {
                             break FOR;
                         }
 
-                        config.getOptionsInternal().put(fullName, value);
+                        config.getOptions().put(fullName, value);
                     }
                     break FOR;
                 case '-':

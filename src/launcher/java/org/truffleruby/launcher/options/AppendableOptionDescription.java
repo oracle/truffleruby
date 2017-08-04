@@ -15,6 +15,6 @@ public abstract class AppendableOptionDescription<T> extends OptionDescription<T
         super(name,description);
     }
 
-    abstract void append(StringBuilder currentValues, String newElement);
+    abstract String append(String currentValues, String newElement);
 
 }

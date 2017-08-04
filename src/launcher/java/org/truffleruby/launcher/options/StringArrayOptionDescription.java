@@ -131,11 +131,12 @@ public class StringArrayOptionDescription extends AppendableOptionDescription<St
         return String.join(",", escapedValues);
     }
 
-    void append(StringBuilder currentValues, String newElement) {
-        if (currentValues.length() != 0) {
-            currentValues.append(',');
+    String append(String currentValues, String newElement) {
+        if (currentValues.isEmpty()) {
+            return escape(newElement);
+        } else {
+            return currentValues + ',' + escape(newElement);
         }
-        currentValues.append(escape(newElement));
     }
 
     private String escape(String string) {
