@@ -1553,6 +1553,10 @@ module Truffle::CExt
     GC.disable
   end
 
+  def rb_gc
+    GC.start
+  end
+
   def rb_nativethread_self
     Thread.current
   end
