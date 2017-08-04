@@ -25,6 +25,7 @@ $ cd truffleruby-ws
 $ git clone https://github.com/graalvm/mx
 $ export PATH=`pwd`/mx:$PATH
 ```
+To make this `PATH` modification permanent, edit your shell's configuration file to add it.
 
 ## Installing dependencies for C extensions
 
@@ -47,7 +48,11 @@ $ ruby tool/jt.rb --help
 ```
 
 Most of us create a symlink to this executable somewhere on our `$PATH` so
-that we can simply run `jt`.
+that we can simply run `jt`. To allow this to run from any path, add this to your .bash_profile.
+```bash
+$ vi $HOME/.bash_profile
+function jt { ruby $HOME/path/to/truffleruby/tool/jt.rb "$@"; }
+```
 
 ```bash
 $ jt --help
@@ -65,6 +70,7 @@ $ echo MX_BINARY_SUITES=truffle,sdk > mx.truffleruby/env
 ```bash
 $ jt build
 ```
+if the `jt build` command fails immediately, verify that `mx` is on your $PATH by running `which mx`.
 
 ## Testing
 
@@ -76,7 +82,9 @@ Ruby. The ecosystem tests test commands related to Ruby. The gems tests test a
 small number of key Ruby 3rd party modules.
 
 The basic test to run every time you make changes is a subset of specs which
-runs in reasonable time.
+runs in reasonable time. If you are running a Ruby environment manager like
+`rvm`, `rbenv`, or `chruby` please run `rvm use system`, `rbenv system`,
+or `chruby system` to clear their environment variables.
 
 ```bash
 $ jt test fast
