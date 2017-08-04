@@ -435,12 +435,12 @@ int RB_FIXNUM_P(VALUE value);
 
 int RTEST(VALUE value);
 
-void rb_p(VALUE value);
 VALUE rb_java_class_of(VALUE val);
 VALUE rb_java_to_string(VALUE val);
 
 // Kernel
 
+void rb_p(VALUE value);
 VALUE rb_require(const char *feature);
 VALUE rb_eval_string(const char *str);
 VALUE rb_exec_recursive(VALUE (*func) (VALUE, VALUE, int), VALUE obj, VALUE arg);
