@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
@@ -92,15 +91,15 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "main", onSingleton = true)
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private SnippetNode findSFileSnippetNode;
-        @Child private SnippetNode checkSyntaxSnippetNode;
-
         @Specialization
-        public int main(VirtualFrame frame, @Cached("create()") IndirectCallNode callNode) {
+        public int main(VirtualFrame frame,
+                @Cached("create()") IndirectCallNode callNode,
+                @Cached("new()") SnippetNode findSFileSnippetNode,
+                @Cached("new()") SnippetNode checkSyntaxSnippetNode) {
 
             setArgvGlobals();
 
-            Source source = loadMainSourceSettingDollarZero(frame);
+            Source source = loadMainSourceSettingDollarZero(frame, findSFileSnippetNode);
 
             if (source == null) {
                 // EXECUTION_ACTION was set to NONE
@@ -108,7 +107,7 @@ public abstract class TruffleBootNodes {
             }
 
             if (getContext().getOptions().SYNTAX_CHECK) {
-                return (int) getCheckSyntaxSnippetNode().execute(
+                return (int) checkSyntaxSnippetNode.execute(
                         frame,
                         "Truffle::Boot.check_syntax source",
                         "source", source);
@@ -155,7 +154,7 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private Source loadMainSourceSettingDollarZero(VirtualFrame frame) {
+        private Source loadMainSourceSettingDollarZero(VirtualFrame frame, SnippetNode findSFileSnippetNode) {
             final Source source;
             final Object dollarZeroValue;
 
@@ -177,7 +176,7 @@ public abstract class TruffleBootNodes {
                         break;
 
                     case PATH:
-                        final DynamicObject path = (DynamicObject) getFindSFileSnippetNode().execute(
+                        final DynamicObject path = (DynamicObject) findSFileSnippetNode.execute(
                                 frame,
                                 "Truffle::Boot.find_s_file Truffle::Boot.get_option('to_execute')");
                         source = getContext().getSourceLoader().loadMainFile(
@@ -210,22 +209,6 @@ public abstract class TruffleBootNodes {
             getContext().getCoreLibrary().getGlobalVariables().put("$0", dollarZeroValue);
 
             return source;
-        }
-
-        private SnippetNode getCheckSyntaxSnippetNode() {
-            if (checkSyntaxSnippetNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                checkSyntaxSnippetNode = insert(new SnippetNode());
-            }
-            return checkSyntaxSnippetNode;
-        }
-
-        private SnippetNode getFindSFileSnippetNode() {
-            if (findSFileSnippetNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                findSFileSnippetNode = insert(new SnippetNode());
-            }
-            return findSFileSnippetNode;
         }
 
     }
