@@ -1664,6 +1664,10 @@ module Truffle::CExt
     end
   end
 
+  def rb_memerror
+    raise NoMemoryError, 'failed to allocate memory'
+  end
+
   def rb_struct_define_no_splat(name, attrs)
     Struct.new(name, *attrs)
   end

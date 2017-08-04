@@ -1007,6 +1007,7 @@ VALUE rb_gv_set(const char *name, VALUE value);
 VALUE rb_gv_get(const char *name);
 VALUE rb_lastline_get(void);
 void rb_lastline_set(VALUE val);
+void rb_secure(int safe_level);
 
 // Exceptions
 
@@ -1034,6 +1035,8 @@ void rb_throw_obj(VALUE tag, VALUE value);
 void rb_throw(const char *tag, VALUE val);
 VALUE rb_catch(const char *tag, VALUE (*func)(), VALUE data);
 VALUE rb_catch_obj(VALUE t, VALUE (*func)(), VALUE data);
+
+NORETURN(void rb_memerror(void));
 
 // Defining classes, modules and methods
 
@@ -1160,6 +1163,7 @@ VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE val);
 void rb_thread_wait_for(struct timeval time);
 VALUE rb_thread_wakeup(VALUE thread);
 VALUE rb_thread_create(VALUE (*fn)(ANYARGS), void *arg);
+void rb_thread_schedule(void);
 
 typedef void *rb_nativethread_id_t;
 typedef void *rb_nativethread_lock_t;

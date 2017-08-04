@@ -2007,7 +2007,11 @@ void rb_lastline_set(VALUE val) {
   rb_tr_error("rb_lastline_set not implemented");
 }
 
-// Raising exceptions
+void rb_secure(int safe_level) {
+  rb_gv_set("$SAFE", INT2FIX(safe_level));
+}
+
+// Exceptions
 
 VALUE rb_exc_new(VALUE etype, const char *ptr, long len) {
   return (VALUE) truffle_invoke(etype, "new", rb_str_new(ptr, len));
@@ -2095,6 +2099,11 @@ VALUE rb_catch(const char *tag, VALUE (*func)(), VALUE data) {
 
 VALUE rb_catch_obj(VALUE t, VALUE (*func)(), VALUE data) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_catch_obj", t, func, data);
+}
+
+void rb_memerror(void) {
+  truffle_invoke(RUBY_CEXT, "rb_memerror");
+  abort();
 }
 
 // Defining classes, modules and methods
@@ -2434,6 +2443,10 @@ VALUE rb_thread_wakeup(VALUE thread) {
 
 VALUE rb_thread_create(VALUE (*fn)(ANYARGS), void *arg) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_thread_create", fn, arg);
+}
+
+void rb_thread_schedule(void) {
+  truffle_invoke(rb_cThread, "pass");
 }
 
 rb_nativethread_id_t rb_nativethread_self() {
