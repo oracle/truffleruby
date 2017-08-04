@@ -1147,6 +1147,7 @@ void rb_gc_register_address(VALUE *address);
 void rb_gc_mark(VALUE ptr);
 VALUE rb_gc_enable();
 VALUE rb_gc_disable();
+void rb_gc(void);
 
 // Threads
 

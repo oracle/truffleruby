@@ -2400,6 +2400,10 @@ VALUE rb_gc_disable() {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_gc_disable");
 }
 
+void rb_gc(void) {
+  truffle_invoke(RUBY_CEXT, "rb_gc");
+}
+
 // Threads
 
 void *rb_thread_call_with_gvl(gvl_call function, void *data1) {
