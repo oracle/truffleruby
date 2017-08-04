@@ -26,6 +26,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.ISO_8859_16;
+import org.truffleruby.core.string.StringOperations;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -63,6 +64,25 @@ public class EncodingManager {
         final DynamicObject string = context.getFrozenStrings().getFrozenString(cachedRope);
 
         return Layouts.ENCODING.createEncoding(context.getCoreLibrary().getEncodingFactory(), encoding, string, dummy);
+    }
+
+    public static Encoding getEncoding(String name) {
+        return getEncoding(StringOperations.encodeRope(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
+    }
+
+    @TruffleBoundary
+    public static Encoding getEncoding(Rope name) {
+        EncodingDB.Entry entry = EncodingDB.getEncodings().get(name.getBytes());
+
+        if (entry == null) {
+            entry = EncodingDB.getAliases().get(name.getBytes());
+        }
+
+        if (entry != null) {
+            return entry.getEncoding();
+        }
+
+        return null;
     }
 
     @TruffleBoundary

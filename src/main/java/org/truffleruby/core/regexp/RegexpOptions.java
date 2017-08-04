@@ -17,8 +17,8 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.parser.ReOptions;
 
@@ -153,7 +153,7 @@ public class RegexpOptions implements Cloneable {
             return EUCJPEncoding.INSTANCE;
         } else if (explicitKCode == KCode.SJIS) {
             setFixed(true);
-            return Layouts.ENCODING.getEncoding(runtime.getEncodingManager().getRubyEncoding(WINDOWS31J));
+            return EncodingManager.getEncoding(WINDOWS31J);
         } else if (explicitKCode == KCode.UTF8) {
             setFixed(true);
             return UTF8Encoding.INSTANCE;

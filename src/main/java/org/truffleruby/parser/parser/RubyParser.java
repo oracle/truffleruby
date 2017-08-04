@@ -39,6 +39,8 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.parser;
 
+import org.jcodings.Encoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeConstants;
@@ -155,7 +157,7 @@ public class RubyParser {
         support.setWarnings(warnings);
         lexer.setWarnings(warnings);
     }
-					// line 159 "-"
+					// line 161 "-"
   // %token constants
   public static final int kCLASS = 257;
   public static final int kMODULE = 258;
@@ -4020,7 +4022,8 @@ states[519] = new ParserState() {
 };
 states[520] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
-                    yyVal = new FileParseNode(lexer.getPosition(), RopeOperations.create(lexer.getFile().getBytes(), support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding(), CR_UNKNOWN));
+                    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
+                    yyVal = new FileParseNode(lexer.getPosition(), RopeOperations.create(lexer.getFile().getBytes(), encoding, CR_UNKNOWN));
     return yyVal;
   }
 };
@@ -4660,7 +4663,7 @@ states[644] = new ParserState() {
   }
 };
 }
-					// line 2572 "RubyParser.y"
+					// line 2575 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -4675,4 +4678,4 @@ states[644] = new ParserState() {
         return support.getResult();
     }
 }
-					// line 10081 "-"
+					// line 10084 "-"
