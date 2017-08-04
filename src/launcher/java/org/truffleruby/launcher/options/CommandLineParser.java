@@ -169,9 +169,11 @@ public class CommandLineParser {
                     value = null;
                 }
 
+                // Switches without values are stored separately in ARGV_GLOBAL_FLAGS. Otherwise it would not be
+                // possible to determine if the value is suppose to be `true` or `"true"`.
                 final StringArrayOptionDescription optionDescription =
                         value != null ? OptionsCatalog.ARGV_GLOBAL_VALUES : OptionsCatalog.ARGV_GLOBAL_FLAGS;
-                // argv globals getService their dashes replaced with underscores
+                // replace dashes with underscores make it a valid global variable name
                 config.appendOptionValue(optionDescription, key.replace('-', '_'));
                 if (value != null) {
                     config.appendOptionValue(optionDescription, value);
