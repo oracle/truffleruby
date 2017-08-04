@@ -1501,6 +1501,10 @@ public class CoreLibrary {
         return truffleModule;
     }
 
+    public DynamicObject getTruffleBootModule() {
+        return truffleBootModule;
+    }
+
     public Object getTruffleInteropModule() {
         return truffleInteropModule;
     }

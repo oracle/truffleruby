@@ -18,6 +18,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
+import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -28,6 +29,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.launcher.options.OptionDescription;
@@ -94,12 +96,13 @@ public abstract class TruffleBootNodes {
         @Specialization
         public int main(VirtualFrame frame,
                 @Cached("create()") IndirectCallNode callNode,
-                @Cached("new()") SnippetNode findSFileSnippetNode,
-                @Cached("new()") SnippetNode checkSyntaxSnippetNode) {
+                @Cached("createOnSelf()") CallDispatchHeadNode findSFile,
+                @Cached("createOnSelf()") CallDispatchHeadNode checkSyntax,
+                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
 
-            setArgvGlobals();
+            setArgvGlobals(makeStringNode);
 
-            Source source = loadMainSourceSettingDollarZero(frame, findSFileSnippetNode);
+            Source source = loadMainSourceSettingDollarZero(frame, findSFile, makeStringNode);
 
             if (source == null) {
                 // EXECUTION_ACTION was set to NONE
@@ -107,10 +110,11 @@ public abstract class TruffleBootNodes {
             }
 
             if (getContext().getOptions().SYNTAX_CHECK) {
-                return (int) checkSyntaxSnippetNode.execute(
+                return (int) checkSyntax.call(
                         frame,
-                        "Truffle::Boot.check_syntax source",
-                        "source", source);
+                        getContext().getCoreLibrary().getTruffleBootModule(),
+                        "check_syntax",
+                        source);
             } else {
                 final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                         source,
@@ -132,7 +136,7 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private void setArgvGlobals() {
+        private void setArgvGlobals(StringNodes.MakeStringNode makeStringNode) {
             if (getContext().getOptions().ARGV_GLOBALS) {
                 String[] global_values = getContext().getOptions().ARGV_GLOBAL_VALUES;
                 assert global_values.length % 2 == 0;
@@ -142,9 +146,7 @@ public abstract class TruffleBootNodes {
 
                     getContext().getCoreLibrary().getGlobalVariables().put(
                             "$" + key,
-                            StringOperations.createString(
-                                    getContext(),
-                                    StringOperations.encodeRope(value, UTF8Encoding.INSTANCE)));
+                            makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
                 }
 
                 String[] global_flags = getContext().getOptions().ARGV_GLOBAL_FLAGS;
@@ -154,7 +156,10 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private Source loadMainSourceSettingDollarZero(VirtualFrame frame, SnippetNode findSFileSnippetNode) {
+        private Source loadMainSourceSettingDollarZero(
+                VirtualFrame frame,
+                CallDispatchHeadNode findSFile,
+                StringNodes.MakeStringNode makeStringNode) {
             final Source source;
             final Object dollarZeroValue;
 
@@ -171,14 +176,15 @@ public abstract class TruffleBootNodes {
 
                     case FILE:
                         source = getContext().getSourceLoader().loadMainFile(this, to_execute);
-                        dollarZeroValue = StringOperations.createString(getContext(),
-                                StringOperations.encodeRope(to_execute, UTF8Encoding.INSTANCE));
+                        dollarZeroValue = makeStringNode.executeMake(to_execute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
                         break;
 
                     case PATH:
-                        final DynamicObject path = (DynamicObject) findSFileSnippetNode.execute(
+                        final DynamicObject path = (DynamicObject) findSFile.call(
                                 frame,
-                                "Truffle::Boot.find_s_file Truffle::Boot.get_option('to_execute')");
+                                getContext().getCoreLibrary().getTruffleBootModule(),
+                                "find_s_file",
+                                makeStringNode.executeMake(to_execute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
                         source = getContext().getSourceLoader().loadMainFile(
                                 this,
                                 StringOperations.getString(path));
@@ -189,14 +195,12 @@ public abstract class TruffleBootNodes {
                         source = getContext().getSourceLoader().loadMainStdin(
                                 this,
                                 to_execute);
-                        dollarZeroValue = StringOperations.createString(getContext(),
-                                StringOperations.encodeRope("-", UTF8Encoding.INSTANCE));
+                        dollarZeroValue = makeStringNode.executeMake("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                         break;
 
                     case INLINE:
                         source = getContext().getSourceLoader().loadMainEval();
-                        dollarZeroValue = StringOperations.createString(getContext(),
-                                StringOperations.encodeRope("-e", UTF8Encoding.INSTANCE));
+                        dollarZeroValue = makeStringNode.executeMake("-e", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                         break;
 
                     default:

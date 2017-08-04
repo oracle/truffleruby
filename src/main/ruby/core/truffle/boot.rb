@@ -27,6 +27,8 @@ module Truffle::Boot
     1
   end
 
+  private_class_method :check_syntax
+
   def self.find_s_file(name)
     # Nonstandard lookup
 
@@ -45,6 +47,8 @@ module Truffle::Boot
     # Fail otherwise
     raise LoadError, "No such file or directory -- #{name}"
   end
+
+  private_class_method :find_s_file
 
   def self.find_in_environment_paths(name, env_value)
     env_value.to_s.split(File::PATH_SEPARATOR).each do |path|
