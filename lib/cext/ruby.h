@@ -121,6 +121,7 @@ void rb_tr_release_handle(void *handle);
 #define ruby_xrealloc               realloc
 #define ruby_xfree                  free
 
+#define ALLOC(type)                 ((type *)ruby_xmalloc(sizeof(type)))
 #define ALLOC_N(type, n)            ((type *)malloc(sizeof(type) * (n)))
 #define ALLOCA_N(type, n)           ((type *)alloca(sizeof(type) * (n)))
 
