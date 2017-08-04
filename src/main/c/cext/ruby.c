@@ -565,6 +565,10 @@ int RTEST(VALUE value) {
 
 // Kernel
 
+void rb_p(VALUE obj) {
+  truffle_invoke(rb_mKernel, "p", obj);
+}
+
 VALUE rb_require(const char *feature) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_require", rb_str_new_cstr(feature));
 }
@@ -2705,10 +2709,6 @@ void rb_tr_log_warning(const char *message) {
 
 long rb_tr_obj_id(VALUE object) {
   return truffle_invoke_l(RUBY_CEXT, "rb_tr_obj_id", object);
-}
-
-void rb_p(VALUE obj) {
-  truffle_invoke(rb_mKernel, "puts", truffle_invoke(obj, "inspect"));
 }
 
 VALUE rb_java_class_of(VALUE obj) {
