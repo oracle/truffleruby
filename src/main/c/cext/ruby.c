@@ -752,8 +752,7 @@ VALUE rb_Integer(VALUE value) {
    INTEGER_PACK_FORCE_GENERIC_IMPLEMENTATION)
 
 static void
-validate_integer_pack_format(size_t numwords, size_t wordsize, size_t nails, int flags, int supported_flags)
-{
+validate_integer_pack_format(size_t numwords, size_t wordsize, size_t nails, int flags, int supported_flags) {
     int wordorder_bits = flags & INTEGER_PACK_WORDORDER_MASK;
     int byteorder_bits = flags & INTEGER_PACK_BYTEORDER_MASK;
 
@@ -943,8 +942,7 @@ VALUE rb_str_new(const char *string, long length) {
   }
 }
 
-VALUE rb_tainted_str_new(const char *ptr, long len)
-{
+VALUE rb_tainted_str_new(const char *ptr, long len) {
     VALUE str = rb_str_new(ptr, len);
 
     OBJ_TAINT(str);
@@ -1078,8 +1076,7 @@ VALUE rb_str_conv_enc_opts(VALUE str, rb_encoding *from, rb_encoding *to, int ec
 }
 
 VALUE
-rb_tainted_str_new_with_enc(const char *ptr, long len, rb_encoding *enc)
-{
+rb_tainted_str_new_with_enc(const char *ptr, long len, rb_encoding *enc) {
   VALUE str = rb_enc_str_new(ptr, len, enc);
   OBJ_TAINT(str);
   return str;
@@ -1251,7 +1248,7 @@ rb_encoding *rb_usascii_encoding(void) {
   return rb_to_encoding(truffle_invoke(RUBY_CEXT, "usascii_encoding"));
 }
 
-int rb_enc_asciicompat(rb_encoding *enc){
+int rb_enc_asciicompat(rb_encoding *enc) {
   return truffle_invoke_b(rb_enc_from_encoding(enc), "ascii_compatible?");
 }
 
@@ -1360,7 +1357,7 @@ int rb_enc_get_index(VALUE obj) {
   return truffle_invoke_i(RUBY_CEXT, "rb_enc_get_index", obj);
 }
 
-char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc){
+char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc) {
   int length = start-end;
   int position = truffle_invoke_i(RUBY_CEXT, "rb_enc_left_char_head",
       rb_enc_from_encoding(enc),
@@ -1802,14 +1799,12 @@ VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
 }
 
-void rb_check_arity(int argc, int min, int max)
-{
+void rb_check_arity(int argc, int min, int max) {
   if ((argc < min) || (max != UNLIMITED_ARGUMENTS && argc > max))
     rb_tr_error("bad arity"); // TODO (pitr-ch 08-Jun-2017): fix error message
 }
 
-char* ruby_strdup(const char *str)
-{
+char* ruby_strdup(const char *str) {
     char *tmp;
     size_t len = strlen(str) + 1;
 
