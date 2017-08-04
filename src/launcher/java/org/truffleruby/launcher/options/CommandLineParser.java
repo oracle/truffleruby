@@ -80,7 +80,6 @@ public class CommandLineParser {
     final CommandLineOptions config;
     private boolean endOfInterpreterArguments;
     private int characterIndex;
-    private boolean argvGlobalsOn;
     private final boolean parseVersionAndHelp;
 
     public CommandLineParser(String[] arguments, boolean parseHelpEtc, CommandLineOptions config) {
@@ -156,17 +155,26 @@ public class CommandLineParser {
         ArrayList<String> arglist = new ArrayList<>();
         for (; argumentIndex < arguments.size(); argumentIndex++) {
             String arg = arguments.get(argumentIndex).originalValue;
+            boolean argvGlobalsOn = config.getOption(OptionsCatalog.ARGV_GLOBALS);
             if (argvGlobalsOn && arg.startsWith("-")) {
                 arg = arg.substring(1);
                 int split = arg.indexOf('=');
+                final String key;
+                final String value;
                 if (split > 0) {
-                    final String key = arg.substring(0, split);
-                    final String val = arg.substring(split + 1);
-                    // argv globals getService their dashes replaced with underscores
-                    String globalName = key.replace('-', '_');
-                    config.getOptionGlobals().put(globalName, val);
+                    key = arg.substring(0, split);
+                    value = arg.substring(split + 1);
                 } else {
-                    config.getOptionGlobals().put(arg, null);
+                    key = arg;
+                    value = null;
+                }
+
+                final StringArrayOptionDescription optionDescription =
+                        value != null ? OptionsCatalog.ARGV_GLOBAL_VALUES : OptionsCatalog.ARGV_GLOBAL_FLAGS;
+                // argv globals getService their dashes replaced with underscores
+                config.appendOptionValue(optionDescription, key.replace('-', '_'));
+                if (value != null) {
+                    config.appendOptionValue(optionDescription, value);
                 }
             } else {
                 argvGlobalsOn = false;
@@ -310,9 +318,8 @@ public class CommandLineParser {
                     break FOR;
                 case 's':
                     disallowedInRubyOpts(argument);
-                    throw notImplemented("-s");
-                    // argvGlobalsOn = true;
-                    // break;
+                    config.setOption(OptionsCatalog.ARGV_GLOBALS, true);
+                    break;
                 case 'G':
                     throw notImplemented("-G");
                 case 'S':

@@ -40,10 +40,6 @@ public class CommandLineOptions {
     private String[] arguments = new String[]{};
     private final List<String> unknownArguments = new ArrayList<>(0);
 
-    // TODO (pitr-ch 26-Jul-2017): Move to Options when implementing -s option
-    // Currently not used
-    private Map<String, String> optionGlobals = new HashMap<>();
-
     Map<String, CharSequence> getOptionsInternal() {
         return options;
     }
@@ -98,9 +94,5 @@ public class CommandLineOptions {
 
     public List<String> getUnknownArguments() {
         return unknownArguments;
-    }
-
-    public Map<String, String> getOptionGlobals() {
-        return optionGlobals;
     }
 }

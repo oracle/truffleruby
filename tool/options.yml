@@ -12,9 +12,11 @@ SYNTAX_CHECK: [syntax_check, boolean, false, Do not execute just check syntax.]
 SHOW_VERSION: [show_version, boolean, false, Show version.]
 SHOW_COPYRIGHT: [show_copyright, boolean, false, Show copyright.]
 SHOW_HELP: [show_help, enum/show_help, none, What help should be shown.]
-
 DEBUG: [debug, boolean, false, Debug]
 VERBOSITY: [verbosity, enum/verbosity, false, Verbosity]
+ARGV_GLOBALS: [argv_globals, boolean, false, Parse options in script argv into global variables.]
+ARGV_GLOBAL_VALUES: [argv_global_values, string-array, [], Parsed options from script argv with a value.]
+ARGV_GLOBAL_FLAGS: [argv_global_flags, string-array, [], Parsed options from script argv acting as flags (no value).]
 
 FROZEN_STRING_LITERALS: [frozen_string_literals, boolean, false, Use frozen string literals]
 RUBYGEMS: [rubygems, boolean, true, Use RubyGems]

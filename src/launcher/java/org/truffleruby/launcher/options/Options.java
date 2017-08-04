@@ -31,6 +31,9 @@ public class Options {
     public final ShowHelp SHOW_HELP;
     public final boolean DEBUG;
     public final Verbosity VERBOSITY;
+    public final boolean ARGV_GLOBALS;
+    public final String[] ARGV_GLOBAL_VALUES;
+    public final String[] ARGV_GLOBAL_FLAGS;
     public final boolean FROZEN_STRING_LITERALS;
     public final boolean RUBYGEMS;
     public final boolean PATCHING;
@@ -137,6 +140,9 @@ public class Options {
         SHOW_HELP = builder.getOrDefault(OptionsCatalog.SHOW_HELP);
         DEBUG = builder.getOrDefault(OptionsCatalog.DEBUG);
         VERBOSITY = builder.getOrDefault(OptionsCatalog.VERBOSITY);
+        ARGV_GLOBALS = builder.getOrDefault(OptionsCatalog.ARGV_GLOBALS);
+        ARGV_GLOBAL_VALUES = builder.getOrDefault(OptionsCatalog.ARGV_GLOBAL_VALUES);
+        ARGV_GLOBAL_FLAGS = builder.getOrDefault(OptionsCatalog.ARGV_GLOBAL_FLAGS);
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
         RUBYGEMS = builder.getOrDefault(OptionsCatalog.RUBYGEMS);
         PATCHING = builder.getOrDefault(OptionsCatalog.PATCHING);
@@ -260,6 +266,12 @@ public class Options {
                 return DEBUG;
             case "ruby.verbosity":
                 return VERBOSITY;
+            case "ruby.argv_globals":
+                return ARGV_GLOBALS;
+            case "ruby.argv_global_values":
+                return ARGV_GLOBAL_VALUES;
+            case "ruby.argv_global_flags":
+                return ARGV_GLOBAL_FLAGS;
             case "ruby.frozen_string_literals":
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":

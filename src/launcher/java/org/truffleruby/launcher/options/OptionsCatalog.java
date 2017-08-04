@@ -76,6 +76,18 @@ public class OptionsCatalog {
             "ruby.verbosity", 
             "Verbosity", 
             Verbosity.FALSE);
+    public static final BooleanOptionDescription ARGV_GLOBALS = new BooleanOptionDescription(
+            "ruby.argv_globals", 
+            "Parse options in script argv into global variables.", 
+            false);
+    public static final StringArrayOptionDescription ARGV_GLOBAL_VALUES = new StringArrayOptionDescription(
+            "ruby.argv_global_values", 
+            "Parsed options from script argv with a value.", 
+            new String[]{});
+    public static final StringArrayOptionDescription ARGV_GLOBAL_FLAGS = new StringArrayOptionDescription(
+            "ruby.argv_global_flags", 
+            "Parsed options from script argv acting as flags (no value).", 
+            new String[]{});
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription(
             "ruby.frozen_string_literals", 
             "Use frozen string literals", 
@@ -465,6 +477,12 @@ public class OptionsCatalog {
                 return DEBUG;
             case "ruby.verbosity":
                 return VERBOSITY;
+            case "ruby.argv_globals":
+                return ARGV_GLOBALS;
+            case "ruby.argv_global_values":
+                return ARGV_GLOBAL_VALUES;
+            case "ruby.argv_global_flags":
+                return ARGV_GLOBAL_FLAGS;
             case "ruby.frozen_string_literals":
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
@@ -665,6 +683,9 @@ public class OptionsCatalog {
             SHOW_HELP,
             DEBUG,
             VERBOSITY,
+            ARGV_GLOBALS,
+            ARGV_GLOBAL_VALUES,
+            ARGV_GLOBAL_FLAGS,
             FROZEN_STRING_LITERALS,
             RUBYGEMS,
             PATCHING,

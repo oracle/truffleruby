@@ -98,6 +98,8 @@ public abstract class TruffleBootNodes {
         @Specialization
         public int main(VirtualFrame frame, @Cached("create()") IndirectCallNode callNode) {
 
+            setArgvGlobals();
+
             Source source = loadMainSourceSettingDollarZero(frame);
 
             if (source == null) {
@@ -128,6 +130,28 @@ public abstract class TruffleBootNodes {
 
                 // The TopLevelRaiseHandler returns an int
                 return (int) deferredCall.call(callNode);
+            }
+        }
+
+        private void setArgvGlobals() {
+            if (getContext().getOptions().ARGV_GLOBALS) {
+                String[] global_values = getContext().getOptions().ARGV_GLOBAL_VALUES;
+                assert global_values.length % 2 == 0;
+                for (int i = 0; i < global_values.length; i += 2) {
+                    String key = global_values[i];
+                    String value = global_values[i + 1];
+
+                    getContext().getCoreLibrary().getGlobalVariables().put(
+                            "$" + key,
+                            StringOperations.createString(
+                                    getContext(),
+                                    StringOperations.encodeRope(value, UTF8Encoding.INSTANCE)));
+                }
+
+                String[] global_flags = getContext().getOptions().ARGV_GLOBAL_FLAGS;
+                for (String flag : global_flags) {
+                    getContext().getCoreLibrary().getGlobalVariables().put("$" + flag, true);
+                }
             }
         }
 
