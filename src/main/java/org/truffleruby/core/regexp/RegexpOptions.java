@@ -17,7 +17,6 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.parser.ReOptions;
@@ -139,7 +138,7 @@ public class RegexpOptions implements Cloneable {
         return multiline && ignorecase && extended;
     }
 
-    public Encoding setup(RubyContext runtime) {
+    public Encoding setup() {
         KCode explicitKCode = getExplicitKCode();
 
         // None will not set fixed
