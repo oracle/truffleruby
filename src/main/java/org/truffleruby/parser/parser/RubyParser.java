@@ -42,6 +42,7 @@ package org.truffleruby.parser.parser;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
@@ -132,6 +133,8 @@ import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.StrTerm;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
 
+import java.nio.charset.Charset;
+
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
@@ -157,7 +160,7 @@ public class RubyParser {
         support.setWarnings(warnings);
         lexer.setWarnings(warnings);
     }
-					// line 161 "-"
+					// line 164 "-"
   // %token constants
   public static final int kCLASS = 257;
   public static final int kMODULE = 258;
@@ -4022,7 +4025,7 @@ states[519] = new ParserState() {
 };
 states[520] = new ParserState() {
   @Override public Object execute(ParserSupport support, RubyLexer lexer, Object yyVal, Object[] yyVals, int yyTop) {
-                    Encoding encoding = support.getConfiguration().getContext() == null ? UTF8Encoding.INSTANCE : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
+                    Encoding encoding = support.getConfiguration().getContext() == null ? EncodingManager.getEncoding(Charset.defaultCharset().name()) : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
                     yyVal = new FileParseNode(lexer.getPosition(), RopeOperations.create(lexer.getFile().getBytes(), encoding, CR_UNKNOWN));
     return yyVal;
   }
@@ -4663,7 +4666,7 @@ states[644] = new ParserState() {
   }
 };
 }
-					// line 2575 "RubyParser.y"
+					// line 2578 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -4678,4 +4681,4 @@ states[644] = new ParserState() {
         return support.getResult();
     }
 }
-					// line 10084 "-"
+					// line 10087 "-"
