@@ -7,13 +7,13 @@ IntelliJ is one of the best supported IDE for editing TruffleRuby.
 First, make sure the project is already built from the command line:
 
 ```bash
-$ mx build
+$ jt build
 ```
 
 ### Generate the project files
 
 ```bash
-$ mx intellijinit
+$ jt mx intellijinit
 ```
 
 ### Import the project

@@ -14,7 +14,7 @@ Clone Sulong as a sibling directory and build it:
 # In the truffleruby repo
 git clone https://github.com/graalvm/sulong.git ../sulong
 cd ../sulong
-mx build
+jt mx build
 ```
 
 You need LLVM installed - version 3.8 or above we think but we haven't tested
@@ -23,7 +23,11 @@ many versions.
 We need the `opt` command, so you can't just use what is installed by Xcode if
 you are on macOS. We would recommend that you install LLVM via Homebrew (`brew
 install llvm`) and then manually set your path in shells where you are building
-Sulong or TruffleRuby (`export PATH="/usr/local/opt/llvm/bin:$PATH"`).
+Sulong or TruffleRuby:
+
+```bash
+export PATH="/usr/local/opt/llvm/bin:$PATH"
+```
 
 You also need to [install a system `libssl`](../user/installing-libssl.md).
 
@@ -33,7 +37,6 @@ If you want to use a different version of OpenSSL you then need to set
 You can now build the C extension support.
 
 ```bash
-export PATH="/usr/local/opt/llvm/bin:$PATH"
 jt build
 ```
 
