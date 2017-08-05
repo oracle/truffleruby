@@ -28,8 +28,8 @@ $ /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/java -Dfi
 hello
 ```
 
-You can take that last command and run it using another `java`, run it using `mx
-vm`, add extra JVM flags, or anything else you want.
+You can take that last command and run it using another `java`, run it using
+`mx vm`, add extra JVM flags, or anything else you want.
 
 ## How to get a raw command for running specs
 

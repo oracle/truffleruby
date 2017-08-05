@@ -87,9 +87,8 @@ module Utilities
       options = ['--no-bootclasspath']
     elsif graal_home
       graal_home = File.expand_path(graal_home, TRUFFLERUBY_DIR)
-      mx = find_mx(graal_home)
-      output = `#{mx} -v -p #{graal_home} vm -version 2>&1`.lines.to_a
-      command_line = output.select { |line| line.include? '-version' }
+      output, _ = ShellUtils.mx('-v', '-p', graal_home, 'vm', '-version', :err => :out, capture: true)
+      command_line = output.lines.select { |line| line.include? '-version' }
       if command_line.size == 1
         command_line = command_line[0]
       else
@@ -107,15 +106,20 @@ module Utilities
     [javacmd, vm_args.map { |arg| "-J#{arg}" } + options]
   end
 
-  def self.find_mx(graal_home)
-    sibling_mx = File.expand_path("../mx/mx", graal_home)
-    sibling_parent_mx = File.expand_path("../../mx/mx", graal_home)
-    if File.executable?(sibling_mx)
-      sibling_mx
-    elsif File.executable?(sibling_parent_mx)
-      sibling_parent_mx
+  def self.which(binary)
+    ENV["PATH"].split(File::PATH_SEPARATOR).each do |dir|
+      path = "#{dir}/#{binary}"
+      return path if File.executable? path
+    end
+    nil
+  end
+
+  def self.find_mx
+    if mx = which('mx')
+      mx
     else
-      "mx"
+      mx_repo = find_or_clone_repo("https://github.com/graalvm/mx.git")
+      "#{mx_repo}/mx"
     end
   end
 
@@ -333,7 +337,7 @@ module ShellUtils
   end
 
   def mx(*args)
-    sh 'mx', *args
+    raw_sh Utilities.find_mx, *args
   end
 
   def mx_sulong(*args)
@@ -452,6 +456,10 @@ module Commands
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
         AOT_BIN                                      TruffleRuby/SVM executable
     TXT
+  end
+
+  def mx(*args)
+    super(*args)
   end
 
   def build(*options)

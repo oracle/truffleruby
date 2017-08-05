@@ -9,13 +9,13 @@ the project built at all times by rebuilding it incrementally.
 First, make sure the project is already built from the command line:
 
 ```bash
-$ mx build
+$ jt build
 ```
 
 ### Generate the project files
 
 ```bash
-$ mx eclipseinit
+$ jt mx eclipseinit
 ```
 
 ### Import the projects

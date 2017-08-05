@@ -7,7 +7,7 @@
 # GNU Lesser General Public License version 2.1
 
 suite = {
-    "mxversion": "5.82.0",
+    "mxversion": "5.121.1",
     "name": "truffleruby",
 
     "imports": {

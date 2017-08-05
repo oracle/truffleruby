@@ -4,9 +4,8 @@
 
 You will need:
 
-* Java 8 (not 9 EA)
+* Java JDK 8 (not 9 EA)
 * Ruby 2
-* The `mx` build system
 
 ## Workspace directory
 
@@ -15,26 +14,6 @@ We recommend creating an extra directory for building TruffleRuby:
 ```bash
 $ mkdir truffleruby-ws
 $ cd truffleruby-ws
-```
-
-## Installing `mx`
-
-`mx` is a Python package that you can clone and then run from the repository.
-
-```bash
-$ git clone https://github.com/graalvm/mx
-$ export PATH=`pwd`/mx:$PATH
-```
-To make this `PATH` modification permanent, edit your shell's configuration file to add it.
-
-## Installing dependencies for C extensions
-
-If you want support for C extensions and OpenSSL, follow the
-[C extensions Setup](cexts.md).
-
-Otherwise, you can skip this step with
-```bash
-$ export TRUFFLERUBY_CEXT_ENABLED=false
 ```
 
 ## Developer tool
@@ -47,15 +26,33 @@ $ cd truffleruby
 $ ruby tool/jt.rb --help
 ```
 
-Most of us create a symlink to this executable somewhere on our `$PATH` so
-that we can simply run `jt`. To allow this to run from any path, add this to your .bash_profile.
+Most of us add a function to our shell profile file so that it can be run with
+just `jt`. To allow this to run from any path, add this to your `.bash_profile`:
 ```bash
-$ vi $HOME/.bash_profile
-function jt { ruby $HOME/path/to/truffleruby/tool/jt.rb "$@"; }
+$ echo 'function jt { ruby '$PWD'/tool/jt.rb "$@"; }' >> ~/.bash_profile
 ```
 
 ```bash
 $ jt --help
+```
+
+## Installing `mx`
+
+`mx` is the Python build tool used to build Graal-related projects.
+You can install it automatically with:
+
+```bash
+jt mx version
+```
+
+## Installing dependencies for C extensions
+
+If you want support for C extensions and OpenSSL, follow the
+[C extensions Setup](cexts.md).
+
+Otherwise, you can skip this step with:
+```bash
+$ export TRUFFLERUBY_CEXT_ENABLED=false
 ```
 
 ## Building
@@ -70,7 +67,6 @@ $ echo MX_BINARY_SUITES=truffle,sdk > mx.truffleruby/env
 ```bash
 $ jt build
 ```
-if the `jt build` command fails immediately, verify that `mx` is on your $PATH by running `which mx`.
 
 ## Testing
 
