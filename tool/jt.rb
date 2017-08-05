@@ -235,7 +235,7 @@ module ShellUtils
     begin
       Timeout.timeout timeout do
         Process.waitpid pid
-        $?.exitstatus == 0
+        $?.success?
       end
     rescue Timeout::Error
       Process.kill('TERM', pid)
@@ -260,7 +260,7 @@ module ShellUtils
       result = system_timeout(timeout, *args)
     elsif capture
       out, err, status = Open3.capture3(*args)
-      result = status.exitstatus == 0
+      result = status.success?
     else
       result = system(*args)
     end
