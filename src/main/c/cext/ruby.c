@@ -2510,6 +2510,10 @@ void rb_thread_wait_fd(int fd) {
   truffle_invoke(RUBY_CEXT, "rb_thread_wait_fd", fd);
 }
 
+int rb_wait_for_single_fd(int fd, int events, struct timeval *tv) {
+  rb_tr_error("rb_wait_for_single_fd not implemented");
+}
+
 NORETURN(void rb_eof_error(void)) {
   rb_tr_error("rb_eof_error not implemented");
 }
