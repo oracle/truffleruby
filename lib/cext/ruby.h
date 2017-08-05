@@ -1182,6 +1182,8 @@ MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock);
 
 // IO
 
+#define RB_WAITFD_IN  0x001 # TODO BJF 6-Aug-2017 Implement the correct value
+
 typedef struct rb_io_t {
   int mode;
   int fd;
@@ -1195,6 +1197,7 @@ void rb_fd_fix_cloexec(int fd);
 int rb_io_wait_readable(int fd);
 int rb_io_wait_writable(int fd);
 void rb_thread_wait_fd(int fd);
+int rb_wait_for_single_fd(int fd, int events, struct timeval *tv);
 NORETURN(void rb_eof_error(void));
 VALUE rb_io_addstr(VALUE io, VALUE str);
 VALUE rb_io_check_io(VALUE io);
