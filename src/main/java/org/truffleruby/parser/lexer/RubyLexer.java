@@ -456,26 +456,22 @@ public class RubyLexer {
         final Encoding newEncoding = parserSupport.getEncoding(name);
 
         if (newEncoding == null) {
-            final String message = "unknown encoding name: " + RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, name);
-
-            if (context != null) {
-                throw new RaiseException(context.getCoreExceptions().argumentError(message, null));
-            } else {
-                throw new UnsupportedOperationException(message);
-            }
+            throw argumentError(context, "unknown encoding name: " + RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, name));
         }
 
         if (!newEncoding.isAsciiCompatible()) {
-            final String message = RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, name) + " is not ASCII compatible";
-
-            if (context != null) {
-                throw new RaiseException(context.getCoreExceptions().argumentError(message, null));
-            } else {
-                throw new UnsupportedOperationException(message);
-            }
+            throw argumentError(context, RopeOperations.decodeRope(StandardCharsets.ISO_8859_1, name) + " is not ASCII compatible");
         }
 
         setEncoding(newEncoding);
+    }
+
+    private RuntimeException argumentError(RubyContext context, String message) {
+        if (context != null) {
+            return new RaiseException(context.getCoreExceptions().argumentError(message, null));
+        } else {
+            return new UnsupportedOperationException(message);
+        }
     }
 
     public StrTerm getStrTerm() {
