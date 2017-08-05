@@ -917,6 +917,7 @@ void rb_define_class_variable(VALUE klass, const char *name, VALUE val);
 // Proc
 
 VALUE rb_proc_new(void *function, VALUE value);
+int rb_proc_arity(VALUE);
 
 // Utilities
 

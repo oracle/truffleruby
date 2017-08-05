@@ -1800,6 +1800,10 @@ VALUE rb_proc_new(void *function, VALUE value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_proc_new", truffle_address_to_function(function), value);
 }
 
+int rb_proc_arity(VALUE self) {
+  return truffle_invoke_i(self, "arity");
+}
+
 // Utilities
 
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
