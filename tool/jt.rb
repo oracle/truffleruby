@@ -239,6 +239,7 @@ module ShellUtils
       end
     rescue Timeout::Error
       Process.kill('TERM', pid)
+      Process.waitpid pid
       nil
     end
   end
