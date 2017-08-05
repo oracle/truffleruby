@@ -21,6 +21,7 @@ module Truffle::CExt
       output = 'out.su'
       libraries = []
       files = []
+      search_paths = []
       while arg = argv.shift
         case arg
         when '-h', '-help', '--help', '/?', '/help'
@@ -36,6 +37,11 @@ module Truffle::CExt
         when /\A-l(.+)\z/ # -llib as a single argument
           lib = $1
           libraries << standardize_lib_name(lib)
+        when '-L'
+          raise '-L needs to be followed by a directory name' if argv.empty?
+          search_paths << argv.shift
+        when /\A-L(.+)\z/ # -L/libdir as a single argument
+          search_paths <<  $1
         else
           if arg.start_with?('-')
             raise "Unknown argument: #{arg}"
@@ -44,8 +50,29 @@ module Truffle::CExt
           end
         end
       end
-
+      libraries = resolve_libraries(libraries, search_paths)
       Truffle::CExt.linker(output, libraries, files)
+    end
+
+    def self.resolve_libraries(libraries, search_paths)
+      require 'pathname'
+      libraries.map do |lib|
+        if Pathname.new(lib).absolute?
+          lib
+        else
+          library_in_search_path_or_default(lib, search_paths)
+        end
+      end
+    end
+
+    def self.library_in_search_path_or_default(lib, search_paths)
+      search_paths.each do |path|
+        lib_in_path = File.join(path, lib)
+        if File.exist?(lib_in_path)
+          return lib_in_path
+        end
+      end
+      lib
     end
 
     def self.standardize_lib_name(lib)
