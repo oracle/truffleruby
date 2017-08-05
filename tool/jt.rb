@@ -266,7 +266,7 @@ module ShellUtils
     end
 
     if result
-      if out && err
+      if capture
         [out, err]
       else
         true
