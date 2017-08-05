@@ -17,7 +17,7 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.EUCJPEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.core.encoding.EncodingManager;
+import org.jcodings.specific.Windows_31JEncoding;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.parser.ReOptions;
 
@@ -152,7 +152,7 @@ public class RegexpOptions implements Cloneable {
             return EUCJPEncoding.INSTANCE;
         } else if (explicitKCode == KCode.SJIS) {
             setFixed(true);
-            return EncodingManager.getEncoding(WINDOWS31J);
+            return Windows_31JEncoding.INSTANCE;
         } else if (explicitKCode == KCode.UTF8) {
             setFixed(true);
             return UTF8Encoding.INSTANCE;
