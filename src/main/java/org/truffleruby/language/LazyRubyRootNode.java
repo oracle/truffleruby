@@ -12,6 +12,7 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -28,6 +29,7 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
+import org.truffleruby.launcher.Launcher;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.TranslatorDriver;
 
@@ -57,6 +59,7 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
 
     @Override
     public Object execute(VirtualFrame frame) {
+        printTimeMetric("before-script");
         final RubyContext context = contextReference.get();
 
         if (cachedContext == null) {
@@ -98,7 +101,13 @@ public class LazyRubyRootNode extends RubyBaseRootNode implements InternalRootNo
             SharedObjects.writeBarrier(context, value);
         }
 
+        printTimeMetric("after-script");
         return value;
+    }
+
+    @TruffleBoundary
+    private void printTimeMetric(String id) {
+        Launcher.printTruffleTimeMetric(id);
     }
 
     @Override
