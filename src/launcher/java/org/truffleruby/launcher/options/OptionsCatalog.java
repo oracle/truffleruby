@@ -96,6 +96,10 @@ public class OptionsCatalog {
             "ruby.rubygems",
             "Use RubyGems",
             true);
+    public static final BooleanOptionDescription LAZY_RUBYGEMS = new BooleanOptionDescription(
+            "ruby.rubygems.lazy",
+            "Load RubyGems lazily on first failing require",
+            true);
     public static final BooleanOptionDescription PATCHING = new BooleanOptionDescription(
             "ruby.patching",
             "Use patching",
@@ -487,6 +491,8 @@ public class OptionsCatalog {
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
                 return RUBYGEMS;
+            case "ruby.rubygems.lazy":
+                return LAZY_RUBYGEMS;
             case "ruby.patching":
                 return PATCHING;
             case "ruby.patching_openssl":
@@ -688,6 +694,7 @@ public class OptionsCatalog {
             ARGV_GLOBAL_FLAGS,
             FROZEN_STRING_LITERALS,
             RUBYGEMS,
+            LAZY_RUBYGEMS,
             PATCHING,
             PATCHING_OPENSSL,
             DID_YOU_MEAN,
