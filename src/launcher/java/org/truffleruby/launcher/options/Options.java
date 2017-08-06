@@ -36,6 +36,7 @@ public class Options {
     public final String[] ARGV_GLOBAL_FLAGS;
     public final boolean FROZEN_STRING_LITERALS;
     public final boolean RUBYGEMS;
+    public final boolean LAZY_RUBYGEMS;
     public final boolean PATCHING;
     public final boolean PATCHING_OPENSSL;
     public final boolean DID_YOU_MEAN;
@@ -145,6 +146,7 @@ public class Options {
         ARGV_GLOBAL_FLAGS = builder.getOrDefault(OptionsCatalog.ARGV_GLOBAL_FLAGS);
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
         RUBYGEMS = builder.getOrDefault(OptionsCatalog.RUBYGEMS);
+        LAZY_RUBYGEMS = builder.getOrDefault(OptionsCatalog.LAZY_RUBYGEMS);
         PATCHING = builder.getOrDefault(OptionsCatalog.PATCHING);
         PATCHING_OPENSSL = builder.getOrDefault(OptionsCatalog.PATCHING_OPENSSL);
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
@@ -276,6 +278,8 @@ public class Options {
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
                 return RUBYGEMS;
+            case "ruby.rubygems.lazy":
+                return LAZY_RUBYGEMS;
             case "ruby.patching":
                 return PATCHING;
             case "ruby.patching_openssl":

@@ -20,6 +20,7 @@ ARGV_GLOBAL_FLAGS: [argv_global_flags, string-array, [], Parsed options from scr
 
 FROZEN_STRING_LITERALS: [frozen_string_literals, boolean, false, Use frozen string literals]
 RUBYGEMS: [rubygems, boolean, true, Use RubyGems]
+LAZY_RUBYGEMS: [rubygems.lazy, boolean, true, Load RubyGems lazily on first failing require]
 PATCHING: [patching, boolean, true, Use patching]
 PATCHING_OPENSSL: [patching_openssl, boolean, false, Use openssl patching]
 DID_YOU_MEAN: [did_you_mean, boolean, true, Use did_you_mean]
