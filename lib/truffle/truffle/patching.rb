@@ -1,12 +1,19 @@
 module Truffle::Patching
   extend self
 
+  DIR = "#{Truffle::Boot.ruby_home}/lib/patches"
+  ORIGINALS = {}
+
   def patches
     @patches ||= begin
-      require 'pathname'
-      Pathname.glob(dir.join('*')).each_with_object({}) do |path, patches|
-        patches[path.basename.to_s] = path if path.directory?
+      patches = {}
+      Dir.foreach(DIR) do |file|
+        unless file[0] == '.'
+          path = "#{DIR}/#{file}"
+          patches[file] = path if File.directory?(path)
+        end
       end
+      patches
     end
   end
 
@@ -21,9 +28,9 @@ module Truffle::Patching
       insertion_point = paths.
           map { |gem_require_path| $LOAD_PATH.index gem_require_path }.
           min
-      originals[name] = paths
+      ORIGINALS[name] = paths
       Truffle::Patching.log(name, path)
-      $LOAD_PATH.insert insertion_point, path.to_s if $LOAD_PATH[insertion_point-1] != path.to_s
+      $LOAD_PATH.insert insertion_point, path if $LOAD_PATH[insertion_point-1] != path
       true
     else
       false
@@ -31,14 +38,15 @@ module Truffle::Patching
   end
 
   def require_original(file)
-    file                           = Pathname(file)
-    relative_file_path_to_patching = file.relative_path_from dir
-    name                           = relative_file_path_to_patching.descend.first
-    require_path                   = relative_file_path_to_patching.relative_path_from(name)
+    relative_path = file[DIR.length+1..-1]
+    slash = relative_path.index '/'
+    name = relative_path[0...slash]
+    require_path = relative_path[slash+1..-1]
 
-    original = originals.fetch(name.to_s).flat_map do |original_path|
-      Pathname.glob(File.join(original_path, require_path))
-    end.first
+    original = ORIGINALS.fetch(name).find do |original_path|
+      path = "#{original_path}/#{require_path}"
+      break path if File.file?(path)
+    end
 
     require original
   end
@@ -53,16 +61,6 @@ module Truffle::Patching
         result
       end
     end
-  end
-
-  private
-
-  def originals
-    @originals ||= {}
-  end
-
-  def dir
-    @dir ||= Pathname(Truffle::Boot.ruby_home).join('lib/patches').realpath
   end
 
 end

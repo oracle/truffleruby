@@ -15,7 +15,7 @@ begin
   require 'unicode_normalize'
   if Truffle::Boot.get_option 'patching'
     require 'truffle/patching'
-    Truffle::Patching.insert_patching_dir 'stdlib', File.join(Truffle::Boot.ruby_home, 'lib/mri')
+    Truffle::Patching.insert_patching_dir 'stdlib', "#{Truffle::Boot.ruby_home}/lib/mri"
   end
 rescue LoadError => e
   Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
