@@ -511,11 +511,7 @@ public abstract class TimeNodes {
                 } else if (utcoffset instanceof Integer || utcoffset instanceof Long) {
                     zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds(((Number) utcoffset).intValue()));
                     relativeOffset = true;
-                    if (envZone != null && envZone.getName() != null) {
-                        zoneToStore = envZone.getNameAsRubyObject(getContext());
-                    } else {
-                        zoneToStore = nil();
-                    }
+                    zoneToStore = nil();
                 } else {
                     throw new UnsupportedOperationException(StringUtils.format("%s %s %s %s", isdst, isutc, utcoffset, utcoffset.getClass()));
                 }
