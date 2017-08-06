@@ -14,6 +14,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.string.StringOperations;
 
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 public class TimeZoneAndName {
 
@@ -26,6 +27,8 @@ public class TimeZoneAndName {
     private final String name;
 
     public TimeZoneAndName(ZoneId zone, String name) {
+        // A name is given if and only if the ZoneId is just an offset
+        assert name != null == zone instanceof ZoneOffset;
         this.zone = zone;
         this.name = name;
     }
