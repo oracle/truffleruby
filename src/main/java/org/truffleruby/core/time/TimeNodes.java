@@ -97,9 +97,9 @@ public abstract class TimeNodes {
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
 
         @Specialization(guards = "isNil(offset)")
-        public DynamicObject localtime(VirtualFrame frame, DynamicObject time, DynamicObject offset,
+        public DynamicObject localtime(DynamicObject time, DynamicObject offset,
                                        @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
+            final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime newDateTime = withZone(Layouts.TIME.getDateTime(time), timeZoneAndName.getZone());
             final DynamicObject zone = getShortZoneName(makeStringNode, newDateTime, timeZoneAndName);
 
@@ -189,8 +189,8 @@ public abstract class TimeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject timeNow(VirtualFrame frame, DynamicObject timeClass) {
-            final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
+        public DynamicObject timeNow(DynamicObject timeClass) {
+            final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dt = now(zoneAndName.getZone());
             final DynamicObject zone = getShortZoneName(makeStringNode, dt, zoneAndName);
             return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(dt, zone, nil(), false, false));
@@ -211,8 +211,8 @@ public abstract class TimeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        public DynamicObject timeAt(VirtualFrame frame, DynamicObject timeClass, long seconds, int nanoseconds) {
-            final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
+        public DynamicObject timeAt(DynamicObject timeClass, long seconds, int nanoseconds) {
+            final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
             final DynamicObject zone = getShortZoneName(makeStringNode, dateTime, zoneAndName);
             return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
@@ -450,16 +450,10 @@ public abstract class TimeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode;
 
         @Specialization(guards = "(isutc || !isDynamicObject(utcoffset)) || isNil(utcoffset)")
-        public DynamicObject timeSFromArray(VirtualFrame frame, DynamicObject timeClass,
+        public DynamicObject timeSFromArray(DynamicObject timeClass,
                 int sec, int min, int hour, int mday, int month, int year,
                 int nsec, int isdst, boolean isutc, Object utcoffset) {
-            final TimeZoneAndName zoneAndName;
-            if (!isutc && utcoffset == nil()) {
-                zoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
-            } else {
-                zoneAndName = null;
-            }
-            return buildTime(timeClass, sec, min, hour, mday, month, year, nsec, isdst, isutc, utcoffset, zoneAndName);
+            return buildTime(timeClass, sec, min, hour, mday, month, year, nsec, isdst, isutc, utcoffset);
         }
 
         @Specialization(guards = "!isInteger(sec) || !isInteger(nsec)")
@@ -471,7 +465,7 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         private DynamicObject buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month, int year,
-                int nsec, int isdst, boolean isutc, Object utcoffset, TimeZoneAndName envZone) {
+                int nsec, int isdst, boolean isutc, Object utcoffset) {
             if (sec < 0 || sec > 60 ||
                     min < 0 || min > 59 ||
                     hour < 0 || hour > 23 ||
@@ -504,6 +498,7 @@ public abstract class TimeNodes {
                         makeStringNode = insert(StringNodes.MakeStringNode.create());
                     }
 
+                    TimeZoneAndName envZone = getTimeZoneNode.executeGetTimeZone();
                     zone = envZone.getZone();
                     dt = dt.withZoneSameLocal(zone);
                     zoneToStore = getShortZoneName(makeStringNode, dt, envZone);
