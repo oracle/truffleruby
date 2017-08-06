@@ -29,7 +29,7 @@ TRUFFLERUBY_GEM_TEST_PACK_VERSION = 1
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
 JEXCEPTION = "-Xexceptions.print_uncaught_java=true"
-METRICS_REPS = 10
+METRICS_REPS = Integer(ENV["TRUFFLERUBY_METRICS_REPS"] || 10)
 
 UNAME = `uname`.chomp
 MAC = UNAME == 'Darwin'
@@ -1370,18 +1370,17 @@ module Commands
     samples[0].each_key do |region|
       region_samples = samples.map { |s| s[region] }
       mean = region_samples.inject(:+) / samples.size
-      human = "#{region.strip} #{mean.round(2)} s"
+      human = "#{'%.3f' % mean} #{region.strip}"
       results[region] = {
           samples: region_samples,
           mean: mean,
           human: human
       }
       if use_json
-        file = STDERR
+        STDERR.puts region[/\s*/] + human
       else
-        file = STDOUT
+        STDOUT.puts region[/\s*/] + human
       end
-      file.puts region[/\s*/] + human
     end
     if use_json
       puts JSON.generate(Hash[results.map { |key, values| [key.strip, values] }])
@@ -1389,30 +1388,41 @@ module Commands
   end
 
   def get_times(trace, total)
-    start_times = {}
-    times = {}
-    depth = 1
+    indent = ' '
+    times = {
+      'total' => 0,
+      "#{indent}jvm" => 0,
+    }
+    depth = 0
+    run_depth = -1
     accounted_for = 0
     trace.lines do |line|
-      if line =~ /^([a-z\-]+) (\d+\.\d+)$/
+      if line =~ /^(.+) (\d+\.\d+)$/
         region = $1
         time = $2.to_f
         if region.start_with? 'before-'
           depth += 1
-          region = (' ' * depth + region['before-'.size..-1])
-          start_times[region] = time
+          key = (indent * depth + region['before-'.size..-1])
+          raise key if times.key? key
+          times[key] = time
+          run_depth = depth if region == 'before-run'
         elsif region.start_with? 'after-'
-          region = (' ' * depth + region['after-'.size..-1])
+          key = (indent * depth + region['after-'.size..-1])
+          elapsed = time - times[key]
+          if depth == run_depth+1
+            accounted_for += elapsed
+          elsif region == 'after-run'
+            times[indent * (depth+1) + 'unaccounted'] = elapsed - accounted_for
+          end
           depth -= 1
-          elapsed = time - start_times[region]
-          times[region] = elapsed
-          accounted_for += elapsed if depth == 2
+          times[key] = elapsed
         end
       end
     end
-    times[' jvm'] = total - times['  main'] if times['  main']
+    if main = times["#{indent}main"]
+      times["#{indent}jvm"] = total - main
+    end
     times['total'] = total
-    times['unaccounted'] = total - accounted_for if times['    load-core']
     times
   end
 
