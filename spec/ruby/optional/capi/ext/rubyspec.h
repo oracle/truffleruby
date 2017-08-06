@@ -482,6 +482,7 @@
 /* Range */
 #define HAVE_RB_RANGE_NEW                  1
 #define HAVE_RB_RANGE_VALUES               1
+#define HAVE_RB_RANGE_BEG_LEN              1
 
 /* Rational */
 #define HAVE_RB_RATIONAL                   1
