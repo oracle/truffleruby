@@ -19,6 +19,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -31,6 +32,7 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.launcher.Launcher;
 import org.truffleruby.launcher.options.OptionDescription;
 import org.truffleruby.launcher.options.OptionsCatalog;
 import org.truffleruby.parser.ParserContext;
@@ -320,6 +322,18 @@ public abstract class TruffleBootNodes {
                 assert value instanceof Integer || value instanceof Boolean;
                 return value;
             }
+        }
+
+    }
+
+    @CoreMethod(names = "print_time_metric", onSingleton = true, required = 1)
+    public abstract static class PrintTimeMetricNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubySymbol(name)")
+        public Object printTimeMetric(DynamicObject name) {
+            Launcher.printTruffleTimeMetric(Layouts.SYMBOL.getString(name));
+            return nil();
         }
 
     }
