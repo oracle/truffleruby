@@ -44,8 +44,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
@@ -60,7 +58,7 @@ public abstract class TimeNodes {
     private static final ZoneId UTC = ZoneId.of("UTC");
 
     public static DynamicObject getShortZoneName(StringNodes.MakeStringNode makeStringNode, ZonedDateTime dt, TimeZoneAndName zoneAndName) {
-        final String shortZoneName = TimeZoneParser.getShortZoneName(dt, zoneAndName);
+        final String shortZoneName = zoneAndName.getName(dt);
         return makeStringNode.executeMake(shortZoneName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
@@ -576,18 +574,6 @@ public abstract class TimeNodes {
                 "ROC", "Asia/Taipei", // Republic of China
                 "WET", "Europe/Lisbon" // Western European Time
         );
-
-        private static final DateTimeFormatter SHORT_ZONE_NAME_FORMATTER =
-                new DateTimeFormatterBuilder().appendZoneText(TextStyle.SHORT).toFormatter(Locale.ENGLISH);
-
-        @TruffleBoundary
-        public static String getShortZoneName(ZonedDateTime dateTime, TimeZoneAndName timeZoneAndName) {
-            if (timeZoneAndName.getName() != null) {
-                return timeZoneAndName.getName();
-            } else {
-                return dateTime.format(SHORT_ZONE_NAME_FORMATTER);
-            }
-        }
 
         private static final Pattern TZ_PATTERN =
                 Pattern.compile("([a-zA-Z]{3,}+)([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
