@@ -2400,6 +2400,10 @@ VALUE rb_mutex_synchronize(VALUE mutex, VALUE (*func)(VALUE arg), VALUE arg) {
 void rb_gc_register_address(VALUE *address) {
 }
 
+void rb_gc_unregister_address(VALUE *address) {
+  // VALUE is only ever in managed memory. So, it is already garbage collected.
+}
+
 void rb_gc_mark(VALUE ptr) {
 }
 
