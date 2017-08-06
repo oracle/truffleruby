@@ -105,6 +105,8 @@ public class RubyContext {
     private final Object classVariableDefinitionLock = new Object();
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
+        Launcher.printTruffleTimeMetric("before-context-constructor");
+
         if (FIRST_INSTANCE == null) {
             FIRST_INSTANCE = this;
         }
@@ -114,10 +116,12 @@ public class RubyContext {
 
         allocationReporter = env.lookup(AllocationReporter.class);
 
+        Launcher.printTruffleTimeMetric("before-options");
         final OptionsBuilder optionsBuilder = new OptionsBuilder();
         optionsBuilder.set(env.getConfig());            // Legacy config - used by unit tests for example
         optionsBuilder.set(env.getOptions());           // SDK options
         options = optionsBuilder.build();
+        Launcher.printTruffleTimeMetric("after-options");
 
         if (!org.truffleruby.Main.isGraal() && options.GRAAL_WARNING_UNLESS) {
             Log.performanceOnce(
@@ -159,25 +163,37 @@ public class RubyContext {
 
         // Load the core library classes
 
+        Launcher.printTruffleTimeMetric("before-create-core-library");
         coreLibrary = new CoreLibrary(this);
         coreLibrary.initialize();
+        Launcher.printTruffleTimeMetric("after-create-core-library");
 
         symbolTable = new SymbolTable(coreLibrary.getSymbolFactory());
+        rootLexicalScope = new LexicalScope(null, coreLibrary.getObjectClass());
 
         // Create objects that need core classes
 
+        Launcher.printTruffleTimeMetric("before-create-native-platform");
         nativePlatform = NativePlatformFactory.createPlatform(this);
-        rootLexicalScope = new LexicalScope(null, coreLibrary.getObjectClass());
+        Launcher.printTruffleTimeMetric("after-create-native-platform");
 
         // The encoding manager relies on POSIX having been initialized, so we can't process it during
         // normal core library initialization.
+        Launcher.printTruffleTimeMetric("before-initialize-encodings");
         coreLibrary.initializeEncodingManager();
+        Launcher.printTruffleTimeMetric("after-initialize-encodings");
 
+        Launcher.printTruffleTimeMetric("before-thread-manager");
         threadManager = new ThreadManager(this);
+        Launcher.printTruffleTimeMetric("after-thread-manager");
 
+        Launcher.printTruffleTimeMetric("before-instruments");
         final Instrumenter instrumenter = env.lookup(Instrumenter.class);
         traceManager = new TraceManager(this, instrumenter);
         coverageManager = new CoverageManager(this, instrumenter);
+        Launcher.printTruffleTimeMetric("after-instruments");
+
+        Launcher.printTruffleTimeMetric("after-context-constructor");
     }
 
     public void initialize() {
@@ -199,7 +215,9 @@ public class RubyContext {
 
         // Load other subsystems
 
+        Launcher.printTruffleTimeMetric("before-post-boot");
         coreLibrary.initializePostBoot();
+        Launcher.printTruffleTimeMetric("after-post-boot");
 
         // Share once everything is loaded
         if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {

@@ -14,8 +14,10 @@ begin
   require 'complex'
   require 'unicode_normalize'
   if Truffle::Boot.get_option 'patching'
+    Truffle::Boot.print_time_metric :'before-patching'
     require 'truffle/patching'
     Truffle::Patching.insert_patching_dir 'stdlib', "#{Truffle::Boot.ruby_home}/lib/mri"
+    Truffle::Boot.print_time_metric :'after-patching'
   end
 rescue LoadError => e
   Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
@@ -23,7 +25,9 @@ end
 
 if Truffle::Boot.get_option 'rubygems'
   begin
+    Truffle::Boot.print_time_metric :'before-rubygems'
     require 'rubygems'
+    Truffle::Boot.print_time_metric :'after-rubygems'
   rescue LoadError => e
     Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
   else

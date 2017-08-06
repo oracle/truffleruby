@@ -106,13 +106,18 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     public RubyContext createContext(Env env) {
-        // TODO CS 3-Dec-16 need to parse RUBY_OPT here if it hasn't been already?
-        return new RubyContext(this, env);
+        Launcher.printTruffleTimeMetric("before-create-context");
+        // TODO CS 3-Dec-16 need to parse RUBYOPT here if it hasn't been already?
+        final RubyContext context = new RubyContext(this, env);
+        Launcher.printTruffleTimeMetric("after-create-context");
+        return context;
     }
 
     @Override
     protected void initializeContext(RubyContext context) throws Exception {
+        Launcher.printTruffleTimeMetric("before-initialize-context");
         context.initialize();
+        Launcher.printTruffleTimeMetric("after-initialize-context");
     }
 
     @Override
