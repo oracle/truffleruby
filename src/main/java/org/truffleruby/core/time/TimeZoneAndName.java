@@ -9,20 +9,29 @@
  */
 package org.truffleruby.core.time;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.string.StringOperations;
 
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.TextStyle;
+import java.util.Locale;
 
 public class TimeZoneAndName {
+
+    private static final DateTimeFormatter SHORT_ZONE_NAME_FORMATTER =
+            new DateTimeFormatterBuilder().appendZoneText(TextStyle.SHORT).toFormatter(Locale.ENGLISH);
 
     private final ZoneId zone;
 
     /**
      * The short name optionally captured from the $TZ environment variable such as PST if TZ=PST8:00:00.
-     * If $TZ is like America/New_York, the short zone name is computed later by TimeZoneParser.getShortZoneName.
+     * If $TZ is like America/New_York, the short zone name is computed later in getName().
      */
     private final String name;
 
@@ -37,8 +46,13 @@ public class TimeZoneAndName {
         return zone;
     }
 
-    public String getName() {
-        return name;
+    @TruffleBoundary
+    public String getName(ZonedDateTime dateTime) {
+        if (name != null) {
+            return name;
+        } else {
+            return dateTime.format(SHORT_ZONE_NAME_FORMATTER);
+        }
     }
 
     public DynamicObject getNameAsRubyObject(RubyContext context) {
