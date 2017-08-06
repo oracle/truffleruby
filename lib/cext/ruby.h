@@ -1146,6 +1146,7 @@ VALUE rb_marshal_load(VALUE port);
 #define RB_GC_GUARD(v) (v)
 
 void rb_gc_register_address(VALUE *address);
+void rb_gc_unregister_address(VALUE *address);
 #define rb_global_variable(address) ;
 void rb_gc_mark(VALUE ptr);
 VALUE rb_gc_enable();
