@@ -12,14 +12,13 @@ package org.truffleruby.core.time;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.time.TimeNodes.TimeZoneParser;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.SnippetNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import java.time.ZoneId;
 
@@ -31,19 +30,19 @@ public abstract class GetTimeZoneNode extends RubyNode {
         TZ_UNCHANGED.invalidate();
     }
 
-    @Child private SnippetNode snippetNode = new SnippetNode();
+    @Child private CallDispatchHeadNode lookupEnvNode = CallDispatchHeadNode.createOnSelf();
 
-    public abstract TimeZoneAndName executeGetTimeZone(VirtualFrame frame);
+    public abstract TimeZoneAndName executeGetTimeZone();
 
     @Specialization(assumptions = "TZ_UNCHANGED.getAssumption()")
-    public TimeZoneAndName getTimeZone(VirtualFrame frame,
-            @Cached("getTZ(frame)") Object tzValue,
+    public TimeZoneAndName getTimeZone(
+            @Cached("getTZ()") Object tzValue,
             @Cached("getTimeZone(tzValue)") TimeZoneAndName zone) {
         return zone;
     }
 
-    protected Object getTZ(VirtualFrame frame) {
-        return snippetNode.execute(frame, "ENV['TZ']");
+    protected Object getTZ() {
+        return lookupEnvNode.call(null, coreLibrary().getENV(), "[]", coreStrings().TZ.createInstance());
     }
 
     @TruffleBoundary

@@ -64,6 +64,7 @@ public class CoreStrings {
     public final CoreString TO_STR;
     public final CoreString TOO_FEW_ARGUMENTS;
     public final CoreString TRUE;
+    public final CoreString TZ;
     public final CoreString UTC;
     public final CoreString WRONG_ARGS_ZERO_PLUS_ONE;
     public final CoreString X_OUTSIDE_OF_STRING;
@@ -121,6 +122,7 @@ public class CoreStrings {
         TO_STR = new CoreString(context, "to_str");
         TOO_FEW_ARGUMENTS = new CoreString(context, "too few arguments");
         TRUE = new CoreString(context, "true");
+        TZ = new CoreString(context, "TZ");
         UTC = new CoreString(context, "UTC");
         WRONG_ARGS_ZERO_PLUS_ONE = new CoreString(context, "wrong number of arguments (0 for 1+)");
         X_OUTSIDE_OF_STRING = new CoreString(context, "X outside of string");
