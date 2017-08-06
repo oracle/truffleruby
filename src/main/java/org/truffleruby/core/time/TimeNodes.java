@@ -44,6 +44,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
@@ -98,26 +100,26 @@ public abstract class TimeNodes {
         public DynamicObject localtime(VirtualFrame frame, DynamicObject time, DynamicObject offset,
                                        @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone(frame);
-            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
-            final DynamicObject zone = getShortZoneName(makeStringNode, dateTime, timeZoneAndName);
+            final ZonedDateTime newDateTime = withZone(Layouts.TIME.getDateTime(time), timeZoneAndName.getZone());
+            final DynamicObject zone = getShortZoneName(makeStringNode, newDateTime, timeZoneAndName);
 
             Layouts.TIME.setIsUtc(time, false);
             Layouts.TIME.setRelativeOffset(time, false);
             Layouts.TIME.setZone(time, zone);
-            Layouts.TIME.setDateTime(time, withZone(dateTime, timeZoneAndName.getZone()));
+            Layouts.TIME.setDateTime(time, newDateTime);
 
             return time;
         }
 
         @Specialization
         public DynamicObject localtime(DynamicObject time, long offset) {
-            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
             final ZoneId zone = getDateTimeZone((int) offset);
+            final ZonedDateTime dateTime = withZone(Layouts.TIME.getDateTime(time), zone);
 
             Layouts.TIME.setIsUtc(time, false);
             Layouts.TIME.setRelativeOffset(time, true);
             Layouts.TIME.setZone(time, nil());
-            Layouts.TIME.setDateTime(time, withZone(dateTime, zone));
+            Layouts.TIME.setDateTime(time, dateTime);
 
             return time;
         }
@@ -503,6 +505,7 @@ public abstract class TimeNodes {
                     }
 
                     zone = envZone.getZone();
+                    dt = dt.withZoneSameLocal(zone);
                     zoneToStore = getShortZoneName(makeStringNode, dt, envZone);
                     relativeOffset = false;
                 } else if (utcoffset instanceof Integer || utcoffset instanceof Long) {
@@ -577,46 +580,26 @@ public abstract class TimeNodes {
          * the terms of any one of the EPL, the GPL or the LGPL.
          */
 
-        private static final String ZONE_HMS_OFFSET = "([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?";
-        private static final Pattern OFFSET_PATTERN = Pattern.compile(ZONE_HMS_OFFSET);
-        private static final Pattern TZ_PATTERN = Pattern.compile("([a-zA-Z]{3,}+)" + ZONE_HMS_OFFSET);
-
         private static final Map<String, String> LONG_TZNAME = Helpers.map(
                 "MET", "CET", // JRUBY-2759
                 "ROC", "Asia/Taipei", // Republic of China
                 "WET", "Europe/Lisbon" // Western European Time
         );
 
+        private static final DateTimeFormatter SHORT_ZONE_NAME_FORMATTER =
+                new DateTimeFormatterBuilder().appendZoneText(TextStyle.SHORT).toFormatter(Locale.ENGLISH);
+
         @TruffleBoundary
         public static String getShortZoneName(ZonedDateTime dateTime, TimeZoneAndName timeZoneAndName) {
-            final ZoneId zone = timeZoneAndName.getZone();
-            String name = zone.getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
-
-            if (OFFSET_PATTERN.matcher(name).matches() && timeZoneAndName.getName() != null) {
+            if (timeZoneAndName.getName() != null) {
                 return timeZoneAndName.getName();
+            } else {
+                return dateTime.format(SHORT_ZONE_NAME_FORMATTER);
             }
-
-            // Joda used to let us get the time zone at a given instance, which gave use EST rather than ET
-
-            // This solution is a bit of a joke, I know
-
-            final boolean summer = zone.getRules().isDaylightSavings(dateTime.toInstant());
-
-            switch (name) {
-                case "AT":
-                    return summer ? "ADT" : "AST";
-                case "ET":
-                    return summer ? "EDT" : "EST";
-                case "CT":
-                    return summer ? "CDT" : "CST";
-                case "PT":
-                    return summer ? "PDT" : "PST";
-                case "CET":
-                    return summer ? "CEST" : "CET";
-            }
-
-            return name;
         }
+
+        private static final Pattern TZ_PATTERN =
+                Pattern.compile("([a-zA-Z]{3,}+)([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
 
         @TruffleBoundary(throwsControlFlowException = true)
         public static TimeZoneAndName parse(RubyNode node, String zoneString) {
