@@ -39,6 +39,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.loader.SourceLoader;
@@ -56,6 +57,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.security.CodeSource;
+import java.util.logging.Level;
 
 public class RubyContext {
 
@@ -122,8 +124,14 @@ public class RubyContext {
                     "this JVM does not have the Graal compiler - performance will be limited - see doc/user/using-graalvm.md");
         }
 
-        rubyHome = findRubyHome();
-        Log.LOGGER.config(() -> String.format("ruby home: %s", rubyHome));
+        try {
+            rubyHome = findRubyHome();
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
+        if (Log.LOGGER.isLoggable(Level.CONFIG)) {
+            Log.LOGGER.config("ruby home: " + rubyHome);
+        }
 
         // Stuff that needs to be loaded before we load any code
 
@@ -383,12 +391,12 @@ public class RubyContext {
         return consoleHolder;
     }
 
-
-    private String findRubyHome() {
+    // Returns a canonical path to the home
+    private String findRubyHome() throws IOException {
         // Use the option if it was set
 
         if (!options.HOME.isEmpty()) {
-            return new File(options.HOME).getAbsolutePath();
+            return new File(options.HOME).getCanonicalPath();
         }
 
         // Try to find it automatically from the location of the JAR, but this won't work from the JRuby launcher as it uses the boot classpath
@@ -400,23 +408,19 @@ public class RubyContext {
             // Root of the GraalVM distribution.
             File candidate = Paths.get(parentDirectory, "language", "ruby").toFile();
             if (candidate.exists()) {
-                return candidate.toString();
+                return candidate.getCanonicalPath();
             }
 
             // Root of the TruffleRuby source tree.
             candidate = Paths.get(parentDirectory, "lib", "ruby").toFile();
             if (candidate.exists()) {
-                return parentDirectory;
+                return new File(parentDirectory).getCanonicalPath();
             }
 
             // Nested mx build.
             candidate = Paths.get(parentDirectory, "..", "..", "..", "truffleruby").toFile();
             if (candidate.exists()) {
-                try {
-                    return candidate.getCanonicalPath();
-                } catch (IOException e) {
-                    return null;
-                }
+                return candidate.getCanonicalPath();
             }
         } else {
             final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
@@ -427,7 +431,7 @@ public class RubyContext {
 
                 if (jarDir.getName().equals("ruby") && new File(jarDir, "lib").exists()) {
                     // GraalVM build or distribution
-                    return jarDir.getAbsolutePath();
+                    return jarDir.getCanonicalPath();
                 }
             }
         }

@@ -33,7 +33,7 @@ public class Log extends RubyLogger {
         }
     }
 
-    private static final Set<String> displayedWarnings = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static final Set<String> DISPLAYED_WARNINGS = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public static final String KWARGS_NOT_OPTIMIZED_YET = "keyword arguments are not yet optimized";
 
@@ -43,7 +43,7 @@ public class Log extends RubyLogger {
      */
     @TruffleBoundary
     public static void performanceOnce(String message) {
-        if (displayedWarnings.add(message)) {
+        if (DISPLAYED_WARNINGS.add(message)) {
             LOGGER.log(PERFORMANCE, message);
         }
     }
