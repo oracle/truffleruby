@@ -935,17 +935,13 @@ public class CoreLibrary {
         // Load code that can't be run until everything else is boostrapped, such as pre-loaded Ruby stdlib.
 
         try {
-            Launcher.printTruffleTimeMetric("before-post-boot");
-
-            try {
-                final RubyRootNode rootNode = context.getCodeLoader().parse(context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb"), UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
-                final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(ParserContext.TOP_LEVEL, DeclarationContext.TOP_LEVEL, rootNode, null, context.getCoreLibrary().getMainObject());
-                deferredCall.callWithoutCallNode();
-            } catch (IOException e) {
-                throw new JavaException(e);
-            }
-
-            Launcher.printTruffleTimeMetric("after-post-boot");
+            final RubyRootNode rootNode = context.getCodeLoader().parse(context.getSourceLoader().load(getCoreLoadPath() + "/post-boot/post-boot.rb"),
+                    UTF8Encoding.INSTANCE, ParserContext.TOP_LEVEL, null, true, node);
+            final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
+                    ParserContext.TOP_LEVEL, DeclarationContext.TOP_LEVEL, rootNode, null, context.getCoreLibrary().getMainObject());
+            deferredCall.callWithoutCallNode();
+        } catch (IOException e) {
+            throw new JavaException(e);
         } catch (RaiseException e) {
             final DynamicObject rubyException = e.getException();
             BacktraceFormatter.createDefaultFormatter(getContext()).printBacktrace(context, rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
