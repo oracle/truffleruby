@@ -1115,6 +1115,7 @@ VALUE rb_complex_set_imag(VALUE complex, VALUE imag);
 
 VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end);
 MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp);
+VALUE rb_range_beg_len(VALUE, long*, long*, long, int);
 
 // Time
 
