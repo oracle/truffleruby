@@ -28,6 +28,12 @@ have_flags = %w[
 
 $CFLAGS += " #{have_flags.map { |h| "-DHAVE_#{h}" }.join(' ')}"
 
+MAC = `uname`.chomp == 'Darwin'
+
+if MAC && !ENV['OPENSSL_PREFIX']
+  ENV['OPENSSL_PREFIX'] = '/usr/local/opt/openssl'
+end
+
 if ENV['OPENSSL_PREFIX']
   $CFLAGS += " -I #{ENV['OPENSSL_PREFIX']}/include"
 end
