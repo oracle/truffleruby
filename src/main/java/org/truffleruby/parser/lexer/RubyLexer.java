@@ -53,7 +53,6 @@ import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
 import org.joni.Option;
 import org.joni.Regex;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.regexp.ClassicRegexp;
@@ -2540,7 +2539,7 @@ public class RubyLexer {
     }
 
     public String createTokenString(int start) {
-        return RopeOperations.decodeRope(parserRopeOperations.makeShared(lexb, start, lex_p - start));
+        return RopeOperations.decodeRopeSegment(lexb, start, lex_p - start);
     }
 
     public String createTokenString() {

@@ -123,11 +123,10 @@ public class RopeOperations {
         return decode(UTF8, rope.getBytes(), 0, rope.byteLength());
     }
 
-    public static String decodeUTF8(byte[] bytes, int offset, int byteLength) {
-        return decode(UTF8, bytes, offset, byteLength);
+    public static String decodeUTF8(byte[] bytes, int byteOffset, int byteLength) {
+        return decode(UTF8, bytes, byteOffset, byteLength);
     }
 
-    @TruffleBoundary
     private static String decodeAscii(Rope rope) {
         assert rope.getCodeRange() == CR_7BIT;
 
@@ -145,23 +144,28 @@ public class RopeOperations {
     }
 
     @TruffleBoundary
+    private static String decodeNonAscii(Rope value, int byteOffset, int byteLength) {
+        final Encoding encoding = value.getEncoding();
+        final Charset charset = ConcurrentOperations.getOrCompute(encodingToCharsetMap, encoding, EncodingManager::charsetForEncoding);
+
+        return decode(charset, value.getBytes(), byteOffset, byteLength);
+    }
+
     public static String decodeRope(Rope value) {
+        return decodeRopeSegment(value, 0, value.byteLength());
+    }
+
+    public static String decodeRopeSegment(Rope value, int byteOffset, int byteLength) {
         if (value.isAsciiOnly()) {
-            return decodeAscii(value);
+            return decodeAscii(value.getBytes(), byteOffset, byteLength);
         }
 
-        // TODO CS 9-May-16 having recursive problems with this, so flatten up front for now
-        value = flatten(value);
-
-        Encoding encoding = value.getEncoding();
-        Charset charset = ConcurrentOperations.getOrCompute(encodingToCharsetMap, encoding, EncodingManager::charsetForEncoding);
-
-        return new String(value.getBytes(), charset);
+        return decodeNonAscii(value, byteOffset, byteLength);
     }
 
     @TruffleBoundary
-    public static String decode(Charset charset, byte[] bytes, int offset, int byteLength) {
-        return new String(bytes, offset, byteLength, charset);
+    public static String decode(Charset charset, byte[] bytes, int byteOffset, int byteLength) {
+        return new String(bytes, byteOffset, byteLength, charset);
     }
 
     public static String decodeRope(Charset charset, Rope rope) {
