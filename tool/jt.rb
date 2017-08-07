@@ -528,10 +528,6 @@ module Commands
       jruby_args << '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
     end
 
-    if args.delete('--sulong')
-      raise '--sulong is no longer needed - just make sure you have a built Sulong sibling repository'
-    end
-
     if args.delete('--js')
       jruby_args << '-J-cp'
       jruby_args << Utilities.find_graal_js
@@ -1055,10 +1051,6 @@ module Commands
       options.concat javacmd_options.map { |o| "-T#{o}" }
     end
 
-    if args.delete('--sulong')
-      raise '--sulong is no longer needed - just make sure you have a built Sulong sibling repository'
-    end
-
     if args.delete('--jdebug')
       options << "-T#{JDEBUG}"
     end
@@ -1418,10 +1410,6 @@ module Commands
     benchmark_ruby = ENV['JT_BENCHMARK_RUBY']
 
     run_args = []
-
-    if args.delete('--sulong')
-      raise '--sulong is no longer needed - just make sure you have a built Sulong sibling repository'
-    end
 
     if args.delete('--aot') || (ENV.has_key?('JT_BENCHMARK_RUBY') && (ENV['JT_BENCHMARK_RUBY'] == ENV['AOT_BIN']))
       run_args.push '-XX:YoungGenerationSize=1G'
