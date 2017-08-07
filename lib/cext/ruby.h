@@ -404,6 +404,8 @@ ID SYM2ID(VALUE value);
 VALUE ID2SYM(ID value);
 #define NUM2TIMET(value) NUM2LONG(value)
 #define TIMET2NUM(value) LONG2NUM(value)
+#define NUM2PIDT(v) NUM2LONG(v)
+#define PIDT2NUM(v) LONG2NUM(v)
 char RB_NUM2CHR(VALUE x);
 #define NUM2CHR(x) RB_NUM2CHR(x)
 int rb_cmpint(VALUE val, VALUE a, VALUE b);
