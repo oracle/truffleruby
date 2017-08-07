@@ -31,7 +31,7 @@ public class Pointer implements AutoCloseable {
         return new Pointer(allocateMemory(size));
     }
 
-    @TruffleBoundary
+    @TruffleBoundary // Barrier required due to PE bug GR-5474
     private static long allocateMemory(long size) {
         return UNSAFE.allocateMemory(size);
     }
@@ -137,7 +137,7 @@ public class Pointer implements AutoCloseable {
         }
     }
 
-    @TruffleBoundary
+    @TruffleBoundary // Barrier required due to PE bug GR-5474
     public void free() {
         UNSAFE.freeMemory(address);
     }
