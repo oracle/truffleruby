@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class JRubySupport {
+public final class TruffleRubySupport {
     public static final Map<String, EncodingInstance> allEncodings = getEncodings();
     public static final Map<String, byte[]> allJCodingsTables = getJcodingsTables();
 
