@@ -14,19 +14,17 @@ describe "Java exceptions" do
     lambda { Truffle::Debug.throw_java_exception 'message' }.should raise_error { |e|
       message = e.message.gsub(/:\d+/, ':LINE')
       message.lines[0].should == "message\n"
-      message.lines[1].should == "\tRuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:LINE)\n"
+      message.lines[1].should == "\tRuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwingMethod(TruffleDebugNodes.java:LINE)\n"
     }
   end
 
   it "includes the first lines of the Java stacktrace for uncaught Java exceptions" do
     lambda { Truffle::Debug.throw_java_exception 'message' }.should raise_error { |e|
       message = e.message.gsub(/:\d+/, ':LINE')
-      
-      # This line can vary depending on specialization order
-      message.lines[2].start_with?("\torg.truffleruby.debug.TruffleDebugNodesFactory$ThrowJavaExceptionNodeFactory$ThrowJavaExceptionNodeGen.execute").should be_true
-      message.lines[2].end_with?("(TruffleDebugNodesFactory.java:LINE)\n").should be_true
-      
-      message.lines[3].should == "\torg.truffleruby.language.control.SequenceNode.execute(SequenceNode.java:LINE)\n"
+      message.lines[0].should == "message\n"
+      message.lines[1].should == "\tRuntimeException org.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwingMethod(TruffleDebugNodes.java:LINE)\n"
+      message.lines[2].should == "\torg.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.callingMethod(TruffleDebugNodes.java:LINE)\n"
+      message.lines[3].should == "\torg.truffleruby.debug.TruffleDebugNodes$ThrowJavaExceptionNode.throwJavaException(TruffleDebugNodes.java:LINE)\n"
     }
   end
 

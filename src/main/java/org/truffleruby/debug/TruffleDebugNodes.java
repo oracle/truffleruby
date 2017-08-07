@@ -312,6 +312,17 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject throwJavaException(Object message) {
+            callingMethod(message.toString());
+            return nil();
+        }
+
+        // These two named methods makes it easy to test that the backtrace for a Java exception is what we expect
+
+        private static void callingMethod(String message) {
+            throwingMethod(message);
+        }
+
+        private static void throwingMethod(String message) {
             throw new RuntimeException(message.toString());
         }
 
