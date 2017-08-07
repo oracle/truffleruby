@@ -209,7 +209,7 @@ public abstract class TruffleBootNodes {
                 throw new JavaException(e);
             }
 
-            getContext().getCoreLibrary().getGlobalVariables().put("$0", dollarZeroValue);
+            getContext().getCoreLibrary().getGlobalVariables().getStorage("$0").setValueInternal(dollarZeroValue);
 
             return source;
         }
