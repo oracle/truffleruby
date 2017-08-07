@@ -16,7 +16,7 @@ if [ -n "$bad" ]; then
 	exit 1
 fi
 
-bad=$(grep -Pzo '\)\s*\n\s*\{' src/main/c/cext/ruby.c || exit 0)
+bad=$(ruby -e 'puts STDIN.read.scan /^.+\)\s*\n\s*\{/' < src/main/c/cext/ruby.c || exit 0)
 if [ -n "$bad" ]; then
 	echo "The function definition opening brace should be on the same line: ...args) {"
 	echo "$bad"
