@@ -1796,7 +1796,7 @@ void rb_define_class_variable(VALUE klass, const char *name, VALUE val) {
 
 // Proc
 
-VALUE rb_proc_new(void *function, VALUE value) {
+VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_proc_new", truffle_address_to_function(function), value);
 }
 
@@ -2138,7 +2138,7 @@ void rb_include_module(VALUE module, VALUE to_include) {
   truffle_invoke(module, "include", to_include);
 }
 
-void rb_define_method(VALUE module, const char *name, void *function, int argc) {
+void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   if (function == rb_f_notimplement) {
     truffle_invoke(RUBY_CEXT, "rb_define_method_undefined", module, rb_str_new_cstr(name));
   } else {
@@ -2146,26 +2146,26 @@ void rb_define_method(VALUE module, const char *name, void *function, int argc) 
   }
 }
 
-void rb_define_private_method(VALUE module, const char *name, void *function, int argc) {
+void rb_define_private_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
   truffle_invoke(module, "private", rb_str_new_cstr(name));
 }
 
-void rb_define_protected_method(VALUE module, const char *name, void *function, int argc) {
+void rb_define_protected_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
   truffle_invoke(module, "protected", rb_str_new_cstr(name));
 }
 
-void rb_define_module_function(VALUE module, const char *name, void *function, int argc) {
+void rb_define_module_function(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
   truffle_invoke(RUBY_CEXT, "cext_module_function", module, rb_intern(name));
 }
 
-void rb_define_global_function(const char *name, void *function, int argc) {
+void rb_define_global_function(const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_module_function(rb_mKernel, name, function, argc);
 }
 
-void rb_define_singleton_method(VALUE object, const char *name, void *function, int argc) {
+void rb_define_singleton_method(VALUE object, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(truffle_invoke(object, "singleton_class"), name, function, argc);
 }
 
