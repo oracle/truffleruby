@@ -1073,7 +1073,6 @@ module Commands
     end
 
     if ENV['CI']
-      # Need lots of output to keep Travis happy
       options += %w[--format specdoc]
     end
 

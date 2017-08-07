@@ -55,16 +55,16 @@ CookieStoreTest:
 - test_deserializes_unloaded_classes_on_get_id
 - test_deserializes_unloaded_classes_on_get_value
 StaticTest:
-- test_serves_gzip_files_when_header_set # fails on travis
-- test_serves_gzip_with_propper_content_type_fallback # fails on travis
+- test_serves_gzip_files_when_header_set # failed on travis
+- test_serves_gzip_with_propper_content_type_fallback # failed on travis
 StaticEncodingTest:
-- test_serves_gzip_files_when_header_set # fails on travis
-- test_serves_gzip_with_propper_content_type_fallback # fails on travis
+- test_serves_gzip_files_when_header_set # failed on travis
+- test_serves_gzip_with_propper_content_type_fallback # failed on travis
 TestGenerationPrefix::WithMountedEngine:
 - test_[ENGINE]_absolute_path_redirect_doesn't_use_SCRIPT_NAME_from_request
 - test_[ENGINE]_absolute_path_root_doesn't_use_SCRIPT_NAME_from_request
 - test_[ENGINE]_relative_path_redirect_uses_SCRIPT_NAME_from_request
 ActionController::LiveStreamTest:
 - test_exception_callback_when_committed
-- test_async_stream # fails on travis
+- test_async_stream # failed on travis
 - test_abort_with_full_buffer # fails intermittently on CI
