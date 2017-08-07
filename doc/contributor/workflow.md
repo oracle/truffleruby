@@ -142,10 +142,12 @@ $ export GRAALVM_BIN=.../graalvm-0.nn/bin/java
 $ jt ruby --graal -e 'p Truffle.graal?'
 ```
 
-To run with Graal built from source, set `GRAAL_HOME`.
+To run with Graal built from source, set `GRAAL_HOME`. Or it will be
+automatically found if it is cloned into the same directory as `truffleruby`, it
+is built, and you are not using a binary suite for Truffle.
 
 ```bash
-$ export GRAAL_HOME=.../graal-core
+$ export GRAAL_HOME=.../graal
 $ jt ruby --graal ...
 ```
 
