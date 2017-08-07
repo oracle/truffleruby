@@ -22,7 +22,7 @@ import java.io.DataInputStream;
 
 final class Target_org_jcodings_Encoding {
     static org.jcodings.Encoding load(String name) {
-        JRubySupport.EncodingInstance instance = JRubySupport.allEncodings.get(name);
+        TruffleRubySupport.EncodingInstance instance = TruffleRubySupport.allEncodings.get(name);
         if (instance == null) {
             throw new InternalException(org.jcodings.exception.ErrorMessages.ERR_ENCODING_CLASS_DEF_NOT_FOUND, "org.jcodings.specific." + name + "Encoding");
         }
@@ -32,7 +32,7 @@ final class Target_org_jcodings_Encoding {
 
 final class Target_org_jcodings_util_ArrayReader {
     static DataInputStream openStream(String name) {
-        byte[] table = JRubySupport.allJCodingsTables.get(name);
+        byte[] table = TruffleRubySupport.allJCodingsTables.get(name);
         if (table == null) {
             throw new InternalException(("entry: /tables/" + name + ".bin not found"));
         }
@@ -41,5 +41,5 @@ final class Target_org_jcodings_util_ArrayReader {
 }
 
 /** Dummy class to have a class with the file's name. */
-public final class JRubySubstitutions {
+public final class TruffleRubySubstitutions {
 }

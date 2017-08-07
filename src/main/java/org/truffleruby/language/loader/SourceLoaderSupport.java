@@ -34,7 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public final class JRubySourceLoaderSupport {
+public final class SourceLoaderSupport {
     public static final Map<String, CoreLibraryFile> allCoreLibraryFiles = getCoreLibrary();
 
     public static String canonicalizeResourcePath(String path) {
