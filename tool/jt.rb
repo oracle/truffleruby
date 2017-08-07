@@ -85,8 +85,12 @@ module Utilities
         "--module-path=#{jvmci_graal_home}/../truffle/mxbuild/modules/com.oracle.truffle.truffle_api.jar:#{jvmci_graal_home}/mxbuild/modules/com.oracle.graal.graal_core.jar"
       ]
       options = ['--no-bootclasspath']
-    elsif graal_home
-      graal_home = File.expand_path(graal_home, TRUFFLERUBY_DIR)
+    elsif graal_home || auto_graal_home = find_auto_graal_home
+      if graal_home
+        graal_home = File.expand_path(graal_home, TRUFFLERUBY_DIR)
+      else
+        graal_home = auto_graal_home
+      end
       output, _ = ShellUtils.mx('-v', '-p', graal_home, 'vm', '-version', :err => :out, capture: true)
       command_line = output.lines.select { |line| line.include? '-version' }
       if command_line.size == 1
@@ -104,6 +108,14 @@ module Utilities
       raise 'set one of GRAALVM_BIN or GRAAL_HOME in order to use Graal'
     end
     [javacmd, vm_args.map { |arg| "-J#{arg}" } + options]
+  end
+  
+  def self.find_auto_graal_home
+    sibling_compiler = File.expand_path('../graal/compiler', TRUFFLERUBY_DIR)
+    return nil unless Dir.exist?(sibling_compiler)
+    return nil unless File.exist?("#{sibling_compiler}/mxbuild/dists/graal-compiler.jar")
+    return nil if Dir.exist?("#{TRUFFLERUBY_DIR}/mx.imports/binary/truffle")
+    sibling_compiler
   end
 
   def self.which(binary)
@@ -381,7 +393,7 @@ module Commands
       jt rebuild                                     clean, sforceimports, and build
       jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
       jt run [options] args...                       run JRuby with args
-          --graal         use Graal (set either GRAALVM_BIN or GRAAL_HOME)
+          --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --js            add Graal.js to the classpath (set GRAAL_JS_JAR)
           --asm           show assembly (implies --graal)
@@ -404,7 +416,7 @@ module Commands
           --syslog        runs syslog tests
           --openssl       runs openssl tests
           --aot           use AOT TruffleRuby image (set AOT_BIN)
-          --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME)
+          --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
       jt test specs                                  run all specs
       jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
       jt test spec/ruby/language                     run specs in this directory
