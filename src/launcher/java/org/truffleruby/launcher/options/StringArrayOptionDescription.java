@@ -15,11 +15,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class StringArrayOptionDescription extends OptionDescription<String[]> {
+public class StringArrayOptionDescription extends AppendableOptionDescription<String[]> {
 
     private final String[] defaultValue;
 
-    public StringArrayOptionDescription(String name, String description, String[] defaultValue) {
+    StringArrayOptionDescription(String name, String description, String[] defaultValue) {
         super(name, description);
         this.defaultValue = defaultValue;
     }
@@ -61,6 +61,8 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
         }
     }
 
+    // TODO (pitr-ch 03-Aug-2017): add test for the option parsing
+    @SuppressWarnings("fallthrough")
     private static String[] parseStringArrayInner(String string) {
         final List<String> values = new ArrayList<>();
 
@@ -76,10 +78,8 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
             switch (state) {
                 case startOfString:
                     builder.setLength(0);
-                    builder.append(string.charAt(n));
                     state = withinString;
-                    break;
-
+                    // continue with next case
                 case withinString:
                     switch (string.charAt(n)) {
                         case ',':
@@ -98,11 +98,13 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
                     break;
 
                 case escape:
-                    if (string.charAt(n) != ',') {
-                        throw new IllegalArgumentException();
-                    }
                     state = withinString;
-                    builder.append(string.charAt(n));
+                    if (string.charAt(n) == ',') {
+                        builder.append(string.charAt(n));
+                    } else {
+                        builder.append('\\');
+                        builder.append(string.charAt(n));
+                    }
                     break;
             }
         }
@@ -121,7 +123,26 @@ public class StringArrayOptionDescription extends OptionDescription<String[]> {
 
     @Override
     public String toString(Object value) {
-        return String.join(",", (String[]) value);
+        String[] strings = (String[]) value;
+        String[] escapedValues = new String[strings.length];
+        for (int i = 0; i < strings.length; i++) {
+            escapedValues[i] = escape(strings[i]);
+        }
+        return String.join(",", escapedValues);
+    }
+
+    String append(String currentValues, String newElement) {
+        if (currentValues.isEmpty()) {
+            return escape(newElement);
+        } else {
+            return currentValues + ',' + escape(newElement);
+        }
+    }
+
+    private String escape(String string) {
+        return string.
+                // , -> \,
+                replaceAll(",", "\\\\,");
     }
 
     private static final OptionType<String[]> OPTION_TYPE = new OptionType<>("String[]", new String[]{}, StringArrayOptionDescription::parseStringArrayInner);

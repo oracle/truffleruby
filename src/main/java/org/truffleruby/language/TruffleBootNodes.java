@@ -14,10 +14,10 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
+import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -28,6 +28,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.launcher.options.OptionDescription;
@@ -88,52 +89,129 @@ public abstract class TruffleBootNodes {
         }
     }
 
-    @CoreMethod(names = "main", onSingleton = true, optional = 1)
+    @CoreMethod(names = "main", onSingleton = true)
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public int main(VirtualFrame frame, NotProvided path,
-                @Cached("create()") IndirectCallNode callNode) {
-
-            return loadMain(callNode, getContext().getOptions().ORIGINAL_INPUT_FILE);
-        }
-
-        @Specialization(guards = "isRubyString(path)")
-        public int loadMain(VirtualFrame frame, DynamicObject path,
-                @Cached("create()") IndirectCallNode callNode) {
-            final String inputFile = StringOperations.getString(path);
-            return loadMain(callNode, inputFile);
-        }
-
-        private int loadMain(IndirectCallNode callNode, String inputFile) {
-            final Source source = getMainSource(inputFile);
-
-            final RubyRootNode rootNode = getContext().getCodeLoader().parse(
-                    source,
-                    UTF8Encoding.INSTANCE,
-                    ParserContext.TOP_LEVEL_FIRST,
-                    null,
-                    true,
-                    null);
-
-            final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
-                    ParserContext.TOP_LEVEL_FIRST,
-                    DeclarationContext.TOP_LEVEL,
-                    rootNode,
-                    null,
-                    coreLibrary().getMainObject());
-
-            // The TopLevelRaiseHandler returns an int
-            return (int) deferredCall.call(callNode);
-        }
-
         @TruffleBoundary
-        private synchronized Source getMainSource(String path) {
+        @Specialization
+        public int main(
+                @Cached("create()") IndirectCallNode callNode,
+                @Cached("createOnSelf()") CallDispatchHeadNode findSFile,
+                @Cached("createOnSelf()") CallDispatchHeadNode checkSyntax,
+                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+
+            setArgvGlobals(makeStringNode);
+
+            Source source = loadMainSourceSettingDollarZero(findSFile, makeStringNode);
+
+            if (source == null) {
+                // EXECUTION_ACTION was set to NONE
+                return 0;
+            }
+
+            if (getContext().getOptions().SYNTAX_CHECK) {
+                return (int) checkSyntax.call(
+                        null,
+                        getContext().getCoreLibrary().getTruffleBootModule(),
+                        "check_syntax",
+                        source);
+            } else {
+                final RubyRootNode rootNode = getContext().getCodeLoader().parse(
+                        source,
+                        UTF8Encoding.INSTANCE,
+                        ParserContext.TOP_LEVEL_FIRST,
+                        null,
+                        true,
+                        null);
+
+                final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                        ParserContext.TOP_LEVEL_FIRST,
+                        DeclarationContext.TOP_LEVEL,
+                        rootNode,
+                        null,
+                        coreLibrary().getMainObject());
+
+                // The TopLevelRaiseHandler returns an int
+                return (int) deferredCall.call(callNode);
+            }
+        }
+
+        private void setArgvGlobals(StringNodes.MakeStringNode makeStringNode) {
+            if (getContext().getOptions().ARGV_GLOBALS) {
+                String[] global_values = getContext().getOptions().ARGV_GLOBAL_VALUES;
+                assert global_values.length % 2 == 0;
+                for (int i = 0; i < global_values.length; i += 2) {
+                    String key = global_values[i];
+                    String value = global_values[i + 1];
+
+                    getContext().getCoreLibrary().getGlobalVariables().put(
+                            "$" + key,
+                            makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+                }
+
+                String[] global_flags = getContext().getOptions().ARGV_GLOBAL_FLAGS;
+                for (String flag : global_flags) {
+                    getContext().getCoreLibrary().getGlobalVariables().put("$" + flag, true);
+                }
+            }
+        }
+
+        private Source loadMainSourceSettingDollarZero(
+                CallDispatchHeadNode findSFile,
+                StringNodes.MakeStringNode makeStringNode) {
+            final Source source;
+            final Object dollarZeroValue;
+
             try {
-                return getContext().getSourceLoader().loadMain(this, path);
+                final String to_execute = getContext().getOptions().TO_EXECUTE;
+                switch (getContext().getOptions().EXECUTION_ACTION) {
+                    case UNSET:
+                        throw new IllegalArgumentException("ExecutionAction.UNSET should never reach RubyContext");
+
+                    case NONE:
+                        source = null;
+                        dollarZeroValue = nil();
+                        break;
+
+                    case FILE:
+                        source = getContext().getSourceLoader().loadMainFile(this, to_execute);
+                        dollarZeroValue = makeStringNode.executeMake(to_execute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                        break;
+
+                    case PATH:
+                        final DynamicObject path = (DynamicObject) findSFile.call(
+                                null,
+                                getContext().getCoreLibrary().getTruffleBootModule(),
+                                "find_s_file",
+                                makeStringNode.executeMake(to_execute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+                        source = getContext().getSourceLoader().loadMainFile(
+                                this,
+                                StringOperations.getString(path));
+                        dollarZeroValue = path;
+                        break;
+
+                    case STDIN:
+                        source = getContext().getSourceLoader().loadMainStdin(
+                                this,
+                                to_execute);
+                        dollarZeroValue = makeStringNode.executeMake("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                        break;
+
+                    case INLINE:
+                        source = getContext().getSourceLoader().loadMainEval();
+                        dollarZeroValue = makeStringNode.executeMake("-e", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                        break;
+
+                    default:
+                        throw new IllegalStateException();
+                }
             } catch (IOException e) {
                 throw new JavaException(e);
             }
+
+            getContext().getCoreLibrary().getGlobalVariables().getStorage("$0").setValueInternal(dollarZeroValue);
+
+            return source;
         }
 
     }
@@ -211,15 +289,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject innerCheckSyntax(DynamicObject path) {
-            final Source source;
-
-            try {
-                source = getContext().getSourceLoader().loadMain(this, StringOperations.getString(path));
-            } catch (IOException e) {
-                throw new JavaException(e);
-            }
-
+        public DynamicObject innerCheckSyntax(Source source) {
             final TranslatorDriver translator = new TranslatorDriver(getContext());
 
             translator.parse(source, UTF8Encoding.INSTANCE,
@@ -227,6 +297,7 @@ public abstract class TruffleBootNodes {
 
             return nil();
         }
+
     }
 
     @CoreMethod(names = "get_option", onSingleton = true, required = 1)
@@ -238,9 +309,13 @@ public abstract class TruffleBootNodes {
         @Specialization(guards = "isRubyString(optionName)")
         public Object getOption(DynamicObject optionName) {
             final OptionDescription<?> description = OptionsCatalog.fromName("ruby." + StringOperations.getString(optionName));
+            assert description != null;
             final Object value = getContext().getOptions().fromDescription(description);
+
             if (value instanceof String) {
                 return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            } else if (value instanceof Enum) {
+                return getSymbol(((Enum) value).name());
             } else {
                 assert value instanceof Integer || value instanceof Boolean;
                 return value;

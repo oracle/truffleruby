@@ -50,8 +50,10 @@ import org.graalvm.polyglot.Source;
 import org.truffleruby.launcher.options.CommandLineException;
 import org.truffleruby.launcher.options.CommandLineOptions;
 import org.truffleruby.launcher.options.CommandLineParser;
+import org.truffleruby.launcher.options.ExecutionAction;
 import org.truffleruby.launcher.options.OptionsCatalog;
 
+import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 
 public class Launcher {
@@ -80,51 +82,43 @@ public class Launcher {
             final CommandLineOptions config = new CommandLineOptions();
 
             try {
-                processArguments(config, args);
+                processArguments(config, args, true);
             } catch (CommandLineException commandLineException) {
                 System.err.println("truffleruby: " + commandLineException.getMessage());
                 if (commandLineException.isUsageError()) {
-                    CommandLineParser.printHelp(System.err);
+                    printHelp(System.err);
                 }
                 System.exit(1);
             }
 
-            final String filename = config.getDisplayedFileName();
-
-            config.setOption(
-                    OptionsCatalog.ORIGINAL_INPUT_FILE,
-                    config.shouldUsePathScript() ? config.getScriptFileName() : filename);
-
-            if (config.isShowVersion()) {
+            if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
                 System.out.println(getVersionString(isGraal));
             }
 
-            if (config.isShowCopyright()) {
+            if (config.getOption(OptionsCatalog.SHOW_COPYRIGHT)) {
                 System.out.println(RUBY_COPYRIGHT);
             }
 
-            if (config.getShouldRunInterpreter()) {
-                try (Context context = createContext(config, filename)) {
-                    printTruffleTimeMetric("before-run");
-                    if (config.getShouldCheckSyntax()) {
-                        // check syntax only and exit
-                        final Source source = Source.newBuilder(
-                                LANGUAGE_ID, "Truffle::Boot.check_syntax", "check_syntax").buildLiteral();
-                        boolean status = context.eval(source).asBoolean();
-                        exitCode = status ? 0 : 1;
-                    } else {
-                        final Source source = Source.newBuilder(LANGUAGE_ID,
-                                config.shouldUsePathScript() ? "Truffle::Boot.main_s" : "Truffle::Boot.main", BOOT_SOURCE_NAME).build();
-                        exitCode = context.eval(source).asInt();
-                    }
-                    printTruffleTimeMetric("after-run");
-                }
-            } else {
-                if (config.getShouldPrintShortUsage()) {
-                    CommandLineParser.printShortHelp(System.out);
-                } else if (config.getShouldPrintUsage()) {
-                    CommandLineParser.printHelp(System.out);
-                }
+            switch (config.getOption(OptionsCatalog.SHOW_HELP)) {
+                case NONE:
+                    break;
+                case SHORT:
+                    printShortHelp(System.out);
+                    break;
+                case LONG:
+                    printHelp(System.out);
+                    break;
+            }
+
+            try (Context context = createContext(Context.newBuilder(), config)) {
+                printTruffleTimeMetric("before-run");
+                final Source source = Source.newBuilder(
+                        LANGUAGE_ID,
+                        // language=ruby
+                        "Truffle::Boot.main",
+                        BOOT_SOURCE_NAME).build();
+                exitCode = context.eval(source).asInt();
+                printTruffleTimeMetric("after-run");
             }
         } catch (PolyglotException e) {
             System.err.println("truffleruby: " + e.getMessage());
@@ -137,44 +131,46 @@ public class Launcher {
         System.exit(exitCode);
     }
 
-    private static Context createContext(CommandLineOptions config, String filename) {
-        final Context.Builder builder = Context.newBuilder();
-
-        // TODO CS 2-Jul-17 some of these values are going back and forth from string and array representation
-        builder.option(
-                OptionsCatalog.LOAD_PATHS.getName(),
-                OptionsCatalog.LOAD_PATHS.toString(config.getLoadPaths().toArray(new String[]{})));
-        builder.option(
-                OptionsCatalog.REQUIRED_LIBRARIES.getName(),
-                OptionsCatalog.LOAD_PATHS.toString(config.getRequiredLibraries().toArray(new String[]{})));
-        builder.option(OptionsCatalog.INLINE_SCRIPT.getName(), config.inlineScript());
-        builder.option(OptionsCatalog.DISPLAYED_FILE_NAME.getName(), filename);
-
+    public static Context createContext(Context.Builder builder, CommandLineOptions config) {
         /*
          * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
          * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and
          * blocking behaviour. We also turn off sync on stdio and so revert to Ruby's default logic for looking
          * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
          */
-
         builder.option(OptionsCatalog.POLYGLOT_STDIO.getName(), Boolean.FALSE.toString());
         builder.option(OptionsCatalog.SYNC_STDIO.getName(), Boolean.FALSE.toString());
+
         builder.options(config.getOptions());
         builder.arguments(LANGUAGE_ID, config.getArguments());
 
         return builder.build();
     }
 
-    public static void processArguments(CommandLineOptions config, String[] arguments) throws CommandLineException {
-        new CommandLineParser(arguments, config).processArguments();
+    public static void processArguments(
+            CommandLineOptions config,
+            String[] arguments,
+            boolean parseHelpEtc) throws CommandLineException {
+
+        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
+
+        new CommandLineParser(arguments, parseHelpEtc, config).processArguments();
+        if (!config.getUnknownArguments().isEmpty()) {
+            throw new CommandLineException("unknown option " + config.getUnknownArguments().get(0));
+        }
 
         if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
             CommandLineParser.processEnvironmentVariable("RUBYOPT", config, true);
             CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config, false);
         }
 
-        if (!config.doesHaveScriptArgv() && !config.shouldUsePathScript() && System.console() != null) {
-            config.setUsePathScript("irb");
+        if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
+            if (System.console() != null) {
+                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.PATH);
+                config.setOption(OptionsCatalog.TO_EXECUTE, "irb");
+            } else {
+                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.STDIN);
+            }
         }
     }
 
@@ -215,5 +211,84 @@ public class Launcher {
                 BasicPlatform.getOSName(),
                 BasicPlatform.getArchitecture()
         );
+    }
+
+    public static void printHelp(PrintStream out) {
+        out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
+        out.println("  -0[octal]       specify record separator (\0, if no argument)");
+        out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
+        out.println("  -c              check syntax only");
+        out.println("  -Cdirectory     cd to directory before executing your script");
+        out.println("  -d, --debug     set debugging flags (set $DEBUG to true)");
+        out.println("  -e 'command'    one line of script. Several -e's allowed. Omit [programfile]");
+        out.println("  -Eex[:in], --encoding=ex[:in]");
+        out.println("                  specify the default external and internal character encodings");
+        out.println("  -Fpattern       split() pattern for autosplit (-a)");
+        out.println("  -i[extension]   edit ARGV files in place (make backup if extension supplied)");
+        out.println("  -Idirectory     specify $LOAD_PATH directory (may be used more than once)");
+        out.println("  -l              enable line ending processing");
+        out.println("  -n              assume 'while gets(); ... end' loop around your script");
+        out.println("  -p              assume loop like -n but print line also like sed");
+        out.println("  -rlibrary       require the library before executing your script");
+        out.println("  -s              enable some switch parsing for switches after script name");
+        out.println("  -S              look for the script using PATH environment variable");
+        out.println("  -T[level=1]     turn on tainting checks");
+        out.println("  -v, --verbose   print version number, then turn on verbose mode");
+        out.println("  -w              turn warnings on for your script");
+        out.println("  -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose");
+        out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
+        out.println("  --copyright     print the copyright");
+        out.println("  --enable=feature[,...], --disable=feature[,...]");
+        out.println("                  enable or disable features");
+        out.println("  --external-encoding=encoding, --internal-encoding=encoding");
+        out.println("                  specify the default external or internal character encoding");
+        out.println("  --version       print the version");
+        out.println("  --help          show this message, -h for short message");
+        out.println("Features:");
+        out.println("  gems            rubygems (default: enabled)");
+        out.println("  did_you_mean    did_you_mean (default: enabled)");
+        out.println("  rubyopt         RUBYOPT environment variable (default: enabled)");
+        out.println("  frozen-string-literal");
+        out.println("                  freeze all string literals (default: disabled)");
+        out.println("TruffleRuby switches:");
+        out.println("  -Xlog=severe,warning,performance,info,config,fine,finer,finest");
+        out.println("                  set the TruffleRuby logging level");
+        out.println("  -Xoptions       print available TruffleRuby options");
+        out.println("  -Xname=value    set a TruffleRuby option (omit value to set to true)");
+
+        if (IS_AOT) {
+            out.println("SVM switches:");
+            out.println("  -XX:arg         pass arg to the SVM");
+            out.println("  -Dname=value    set a system property");
+        } else {
+            out.println("JVM switches:");
+            out.println("  -J-arg, -J:arg  pass arg to the JVM");
+        }
+    }
+
+    public static void printShortHelp(PrintStream out) {
+        out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
+        out.println("  -0[octal]       specify record separator (\0, if no argument)");
+        out.println("  -a              autosplit mode with -n or -p (splits $_ into $F)");
+        out.println("  -c              check syntax only");
+        out.println("  -Cdirectory     cd to directory before executing your script");
+        out.println("  -d              set debugging flags (set $DEBUG to true)");
+        out.println("  -e 'command'    one line of script. Several -e's allowed. Omit [programfile]");
+        out.println("  -Eex[:in]       specify the default external and internal character encodings");
+        out.println("  -Fpattern       split() pattern for autosplit (-a)");
+        out.println("  -i[extension]   edit ARGV files in place (make backup if extension supplied)");
+        out.println("  -Idirectory     specify $LOAD_PATH directory (may be used more than once)");
+        out.println("  -l              enable line ending processing");
+        out.println("  -n              assume 'while gets(); ... end' loop around your script");
+        out.println("  -p              assume loop like -n but print line also like sed");
+        out.println("  -rlibrary       require the library before executing your script");
+        out.println("  -s              enable some switch parsing for switches after script name");
+        out.println("  -S              look for the script using PATH environment variable");
+        out.println("  -T[level=1]     turn on tainting checks");
+        out.println("  -v              print version number, then turn on verbose mode");
+        out.println("  -w              turn warnings on for your script");
+        out.println("  -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose");
+        out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
+        out.println("  -h              show this message, --help for more info");
     }
 }

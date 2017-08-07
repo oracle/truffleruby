@@ -43,23 +43,26 @@ public class SourceLoader {
     }
 
     @TruffleBoundary
-    public Source loadMain(RubyNode currentNode, String path) throws IOException {
-        switch (path) {
-            case "-e":
-                return Source.newBuilder(context.getOptions().INLINE_SCRIPT).name(
-                        "-e").mimeType(RubyLanguage.MIME_TYPE).build();
-            case "-":
-                return Source.newBuilder(xOptionStrip(
-                        currentNode,
-                        new InputStreamReader(System.in))).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
-            default:
-                final File file = new File(path).getCanonicalFile();
-                ensureReadable(path, file);
+    public Source loadMainEval() {
+        return Source.newBuilder(context.getOptions().TO_EXECUTE).name(
+                "-e").mimeType(RubyLanguage.MIME_TYPE).build();
+    }
 
-                return Source.newBuilder(file).name(path).content(xOptionStrip(
-                        currentNode,
-                        new FileReader(file))).mimeType(RubyLanguage.MIME_TYPE).build();
-        }
+    @TruffleBoundary
+    public Source loadMainStdin(RubyNode currentNode, String path) throws IOException {
+        return Source.newBuilder(xOptionStrip(
+                currentNode,
+                new InputStreamReader(System.in))).name(path).mimeType(RubyLanguage.MIME_TYPE).build();
+    }
+
+    @TruffleBoundary
+    public Source loadMainFile(RubyNode currentNode, String path) throws IOException {
+        final File file = new File(path).getCanonicalFile();
+        ensureReadable(path, file);
+
+        return Source.newBuilder(file).name(path).content(xOptionStrip(
+                currentNode,
+                new FileReader(file))).mimeType(RubyLanguage.MIME_TYPE).build();
     }
 
     private String xOptionStrip(RubyNode currentNode, Reader reader) throws IOException {

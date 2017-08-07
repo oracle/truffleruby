@@ -10,10 +10,6 @@ TOPLEVEL_BINDING = binding
 
 module Truffle::Boot
 
-  def self.original_input_file
-    Truffle::Boot.get_option 'original_input_file'
-  end
-
   PATCHING_OPENSSL = Truffle::Boot.get_option 'patching_openssl'
   PATCHING = Truffle::Boot.get_option 'patching'
   raise 'Cannot patch openssl without patching enabled' if PATCHING_OPENSSL and !PATCHING
@@ -22,28 +18,16 @@ module Truffle::Boot
     PATCHING_OPENSSL
   end
 
-  def self.main_s
-    $0 = find_s_file(original_input_file)
-    main $0
-  end
-
-  def self.check_syntax
-    check_syntax_file(original_input_file) && ARGV.all? { |arg| check_syntax_file arg }
-  end
-
-  def self.check_syntax_file(file)
-    if File.exist?(file) || file == '-e' || file == '-'
-      inner_check_syntax file
-      STDOUT.puts 'Syntax OK'
-      true
-    else
-      STDERR.puts "File not found: #{file}"
-      false
-    end
+  def self.check_syntax(source_or_file)
+    inner_check_syntax source_or_file
+    STDOUT.puts 'Syntax OK'
+    0
   rescue SyntaxError => e
     STDERR.puts "SyntaxError in #{e.message}"
-    false
+    1
   end
+
+  private_class_method :check_syntax
 
   def self.find_s_file(name)
     # Nonstandard lookup

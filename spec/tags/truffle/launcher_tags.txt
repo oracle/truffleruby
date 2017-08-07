@@ -24,3 +24,6 @@ aot:The launcher takes options from system properties set in JAVA_OPTS
 aot:The launcher takes options from system properties set on the command line using -J
 aot:The launcher allows -cp in JAVA_OPTS
 aot:The launcher allows -classpath in JAVA_OPTS
+slow:The launcher StringArray option appends multiple options
+slow:The launcher StringArray option parses ,
+slow:The launcher StringArray option parses , respecting escaping

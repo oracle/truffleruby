@@ -11,11 +11,11 @@ package org.truffleruby.launcher.options;
 
 import org.graalvm.options.OptionType;
 
-public class StringOptionDescription extends OptionDescription<String> {
+public class StringOptionDescription extends AppendableOptionDescription<String> {
 
     private final String defaultValue;
 
-    public StringOptionDescription(String name, String description, String defaultValue) {
+    StringOptionDescription(String name, String description, String defaultValue) {
         super(name, description);
         this.defaultValue = defaultValue;
     }
@@ -39,4 +39,8 @@ public class StringOptionDescription extends OptionDescription<String> {
         return OptionType.defaultType("");
     }
 
+    @Override
+    String append(String currentValues, String newElement) {
+        return currentValues + newElement;
+    }
 }
