@@ -78,7 +78,7 @@ extern "C" {
 
 // Basic types
 
-typedef void* VALUE;
+typedef void *VALUE;
 typedef long SIGNED_VALUE;
 
 typedef VALUE ID;
@@ -101,11 +101,11 @@ VALUE rb_tr_hidden_variable_get(VALUE object, const char *name);
 
 // Handles
 
-void* rb_tr_handle_for_managed(VALUE managed);
-void* rb_tr_handle_for_managed_leaking(VALUE managed);
-VALUE rb_tr_managed_from_handle_or_null(void* handle);
-VALUE rb_tr_managed_from_handle(void* handle);
-void rb_tr_release_handle(void* handle);
+void *rb_tr_handle_for_managed(VALUE managed);
+void *rb_tr_handle_for_managed_leaking(VALUE managed);
+VALUE rb_tr_managed_from_handle_or_null(void *handle);
+VALUE rb_tr_managed_from_handle(void *handle);
+void rb_tr_release_handle(void *handle);
 
 // Memory
 
