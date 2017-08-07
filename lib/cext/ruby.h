@@ -916,7 +916,7 @@ void rb_define_class_variable(VALUE klass, const char *name, VALUE val);
 
 // Proc
 
-VALUE rb_proc_new(void *function, VALUE value);
+VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value);
 int rb_proc_arity(VALUE);
 
 // Utilities
@@ -1051,12 +1051,12 @@ VALUE rb_define_class_id_under(VALUE module, ID name, VALUE superclass);
 VALUE rb_define_module(const char *name);
 VALUE rb_define_module_under(VALUE module, const char *name);
 void rb_include_module(VALUE module, VALUE to_include);
-void rb_define_method(VALUE module, const char *name, void *function, int argc);
-void rb_define_private_method(VALUE module, const char *name, void *function, int argc);
-void rb_define_protected_method(VALUE module, const char *name, void *function, int argc);
-void rb_define_module_function(VALUE module, const char *name, void *function, int argc);
-void rb_define_global_function(const char *name, void *function, int argc);
-void rb_define_singleton_method(VALUE object, const char *name, void *function, int argc);
+void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc);
+void rb_define_private_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc);
+void rb_define_protected_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc);
+void rb_define_module_function(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc);
+void rb_define_global_function(const char *name, VALUE (*function)(ANYARGS), int argc);
+void rb_define_singleton_method(VALUE object, const char *name, VALUE (*function)(ANYARGS), int argc);
 void rb_define_alias(VALUE module, const char *new_name, const char *old_name);
 void rb_alias(VALUE module, ID new_name, ID old_name);
 void rb_undef_method(VALUE module, const char *name);
