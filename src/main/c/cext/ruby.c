@@ -2750,16 +2750,16 @@ VALUE rb_java_to_string(VALUE obj) {
   return truffle_invoke(RUBY_CEXT, "rb_java_to_string", obj);
 }
 
-void *rb_tr_handle_for_managed(void *managed) {
+void* rb_tr_handle_for_managed(VALUE managed) {
   return truffle_handle_for_managed(managed);
 }
 
-void *rb_tr_handle_for_managed_leaking(void *managed) {
+void* rb_tr_handle_for_managed_leaking(VALUE managed) {
   rb_tr_log_warning("rb_tr_handle_for_managed without matching rb_tr_release_handle; handles will be leaking");
   return rb_tr_handle_for_managed(managed);
 }
 
-VALUE rb_tr_managed_from_handle_or_null(void *handle) {
+VALUE rb_tr_managed_from_handle_or_null(void* handle) {
   if (handle == NULL) {
     return NULL;
   } else {
@@ -2767,11 +2767,11 @@ VALUE rb_tr_managed_from_handle_or_null(void *handle) {
   }
 }
 
-void *rb_tr_managed_from_handle(void *handle) {
+VALUE rb_tr_managed_from_handle(void* handle) {
   return truffle_managed_from_handle(handle);
 }
 
-void rb_tr_release_handle(void *handle) {
+void rb_tr_release_handle(void* handle) {
   truffle_release_handle(handle);
 }
 
