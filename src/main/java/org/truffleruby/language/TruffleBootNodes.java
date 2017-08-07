@@ -14,7 +14,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
@@ -93,8 +92,9 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "main", onSingleton = true)
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
-        public int main(VirtualFrame frame,
+        public int main(
                 @Cached("create()") IndirectCallNode callNode,
                 @Cached("createOnSelf()") CallDispatchHeadNode findSFile,
                 @Cached("createOnSelf()") CallDispatchHeadNode checkSyntax,
@@ -102,7 +102,7 @@ public abstract class TruffleBootNodes {
 
             setArgvGlobals(makeStringNode);
 
-            Source source = loadMainSourceSettingDollarZero(frame, findSFile, makeStringNode);
+            Source source = loadMainSourceSettingDollarZero(findSFile, makeStringNode);
 
             if (source == null) {
                 // EXECUTION_ACTION was set to NONE
@@ -111,7 +111,7 @@ public abstract class TruffleBootNodes {
 
             if (getContext().getOptions().SYNTAX_CHECK) {
                 return (int) checkSyntax.call(
-                        frame,
+                        null,
                         getContext().getCoreLibrary().getTruffleBootModule(),
                         "check_syntax",
                         source);
@@ -157,7 +157,6 @@ public abstract class TruffleBootNodes {
         }
 
         private Source loadMainSourceSettingDollarZero(
-                VirtualFrame frame,
                 CallDispatchHeadNode findSFile,
                 StringNodes.MakeStringNode makeStringNode) {
             final Source source;
@@ -181,7 +180,7 @@ public abstract class TruffleBootNodes {
 
                     case PATH:
                         final DynamicObject path = (DynamicObject) findSFile.call(
-                                frame,
+                                null,
                                 getContext().getCoreLibrary().getTruffleBootModule(),
                                 "find_s_file",
                                 makeStringNode.executeMake(to_execute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
