@@ -16,7 +16,6 @@ import org.truffleruby.launcher.RubyLogger;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 
 public class Log extends RubyLogger {
 

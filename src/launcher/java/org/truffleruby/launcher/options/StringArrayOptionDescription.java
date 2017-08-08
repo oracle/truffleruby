@@ -131,6 +131,7 @@ public class StringArrayOptionDescription extends AppendableOptionDescription<St
         return String.join(",", escapedValues);
     }
 
+    @Override
     String append(String currentValues, String newElement) {
         if (currentValues.isEmpty()) {
             return escape(newElement);

@@ -317,7 +317,7 @@ public abstract class TruffleBootNodes {
             if (value instanceof String) {
                 return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             } else if (value instanceof Enum) {
-                return getSymbol(((Enum) value).name());
+                return getSymbol(((Enum<?>) value).name());
             } else {
                 assert value instanceof Integer || value instanceof Boolean;
                 return value;

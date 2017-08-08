@@ -37,7 +37,6 @@
 package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CodeRange;
