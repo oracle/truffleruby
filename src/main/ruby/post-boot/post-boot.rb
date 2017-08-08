@@ -26,8 +26,11 @@ end
 if Truffle::Boot.get_option 'rubygems'
   begin
     Truffle::Boot.print_time_metric :'before-rubygems'
-    require 'rubygems'
-    Truffle::Boot.print_time_metric :'after-rubygems'
+    begin
+      require 'rubygems'
+    ensure
+      Truffle::Boot.print_time_metric :'after-rubygems'
+    end
   rescue LoadError => e
     Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
   else
