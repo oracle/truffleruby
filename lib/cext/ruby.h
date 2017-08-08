@@ -42,6 +42,8 @@ extern "C" {
 // Used in st.h
 #define RUBY_SYMBOL_EXPORT_BEGIN
 #define RUBY_SYMBOL_EXPORT_END
+
+// Assume an LP64 integer and pointer data model
 #define SIZEOF_LONG 8
 #define SIZEOF_LONG_LONG 8
 #define SIZEOF_VOIDP 8
