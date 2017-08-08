@@ -455,10 +455,10 @@ public abstract class TimeNodes {
         }
 
         @Specialization(guards = "!isInteger(sec) || !isInteger(nsec)")
-        public DynamicObject timeSFromArrayFallback(DynamicObject timeClass,
+        public Object timeSFromArrayFallback(DynamicObject timeClass,
                 Object sec, int min, int hour, int mday, int month, int year,
                 Object nsec, int isdst, boolean fromutc, Object utcoffset) {
-            return null; // Primitive failure
+            return FAILURE;
         }
 
         @TruffleBoundary
