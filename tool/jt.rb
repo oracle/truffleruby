@@ -1570,7 +1570,7 @@ module Commands
   def check_dsl_usage
     mx 'clean'
     # We need to build with -parameters to get parameter names
-    mx 'build', '-A-parameters'
+    mx 'build', '--force-javac', '-A-parameters'
     run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-e', 'exit')
   end
 
