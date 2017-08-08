@@ -152,7 +152,7 @@ public abstract class RequireNode extends RubyNode {
         featureLoader.ensureCExtImplementationLoaded(feature);
 
         if (getContext().getOptions().CEXTS_LOG_LOAD) {
-            Log.info("loading cext module %s (requested as %s)", expandedPath, feature);
+            info("loading cext module %s (requested as %s)", expandedPath, feature);
         }
 
         try {
@@ -164,7 +164,7 @@ public abstract class RequireNode extends RubyNode {
                 final String linkError = linkErrorException.getMessage();
 
                 if (getContext().getOptions().CEXTS_LOG_LOAD) {
-                    Log.info("unsatisfied link error %s", linkError);
+                    info("unsatisfied link error %s", linkError);
                 }
 
                 final String message;
@@ -194,6 +194,11 @@ public abstract class RequireNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new JavaException(e);
         }
+    }
+
+    @TruffleBoundary
+    public static void info(String format, Object... args) {
+        Log.LOGGER.info(String.format(format, args));
     }
 
     private <T extends Throwable> T searchForException(Class<T> exceptionClass, Throwable exception) {

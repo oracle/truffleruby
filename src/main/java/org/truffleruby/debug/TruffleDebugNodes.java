@@ -300,8 +300,13 @@ public abstract class TruffleDebugNodes {
         public DynamicObject logWarning(
                 VirtualFrame frame, Object value,
                 @Cached("create()") NameToJavaStringNode toJavaStringNode) {
-            Log.warning(toJavaStringNode.executeToJavaString(frame, value));
+            warning(toJavaStringNode.executeToJavaString(frame, value));
             return nil();
+        }
+
+        @TruffleBoundary
+        public static void warning(String message) {
+            Log.LOGGER.warning(message);
         }
 
     }

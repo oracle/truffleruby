@@ -179,13 +179,20 @@ public abstract class TruffleSystemNodes {
     public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = {"isRubySymbol(level)", "isRubyString(message)", "level == cachedLevel"})
-        public Object log(DynamicObject level, DynamicObject message,
+        public Object logCached(DynamicObject level, DynamicObject message,
                         @Cached("level") DynamicObject cachedLevel,
                         @Cached("getLevel(cachedLevel)") Level javaLevel) {
-            Log.log(javaLevel, StringOperations.getString(message));
+            log(javaLevel, StringOperations.getString(message));
             return nil();
         }
 
+        @Specialization(guards = {"isRubySymbol(level)", "isRubyString(message)"}, contains="logCached")
+        public Object log(DynamicObject level, DynamicObject message) {
+            log(getLevel(level), StringOperations.getString(message));
+            return nil();
+        }
+
+        @TruffleBoundary
         protected Level getLevel(DynamicObject level) {
             assert RubyGuards.isRubySymbol(level);
             final SymbolTable symbolTable = getContext().getSymbolTable();
@@ -200,6 +207,12 @@ public abstract class TruffleSystemNodes {
                             "Could not find log level for: " + level + " known errors are: " + Arrays.toString(Log.LEVELS),
                             this));
         }
+
+        @TruffleBoundary
+        public static void log(Level level, String message) {
+            Log.LOGGER.log(level, message);
+        }
+
     }
 
 }
