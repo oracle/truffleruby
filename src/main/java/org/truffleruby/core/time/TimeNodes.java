@@ -472,58 +472,57 @@ public abstract class TimeNodes {
                 throw new RaiseException(coreExceptions().argumentErrorOutOfRange(this));
             }
 
-            ZonedDateTime dt = ZonedDateTime.of(year, 1, 1, 0, 0, 0, 0, UTC);
-
-            dt = dt.plusMonths(month - 1)
-                    .plusDays(mday - 1)
-                    .plusHours(hour)
-                    .plusMinutes(min)
-                    .plusSeconds(sec)
-                    .plusNanos(nsec);
-
             final ZoneId zone;
             final boolean relativeOffset;
-            DynamicObject zoneToStore;
+            DynamicObject zoneToStore = nil();
+            TimeZoneAndName envZone = null;
 
-            try {
-                if (isutc) {
-                    zone = UTC;
-                    relativeOffset = false;
-                    zoneToStore = coreStrings().UTC.createInstance();
-                } else if (utcoffset == nil()) {
-                    if (makeStringNode == null) {
-                        CompilerDirectives.transferToInterpreterAndInvalidate();
-                        makeStringNode = insert(StringNodes.MakeStringNode.create());
-                    }
-
-                    TimeZoneAndName envZone = getTimeZoneNode.executeGetTimeZone();
-                    zone = envZone.getZone();
-                    dt = dt.withZoneSameLocal(zone);
-                    zoneToStore = getShortZoneName(makeStringNode, dt, envZone);
-                    relativeOffset = false;
-                } else if (utcoffset instanceof Integer || utcoffset instanceof Long) {
-                    zone = ZoneId.ofOffset("", ZoneOffset.ofTotalSeconds(((Number) utcoffset).intValue()));
-                    relativeOffset = true;
-                    zoneToStore = nil();
-                } else {
-                    throw new UnsupportedOperationException(StringUtils.format("%s %s %s %s", isdst, isutc, utcoffset, utcoffset.getClass()));
+            if (isutc) {
+                zone = UTC;
+                relativeOffset = false;
+                zoneToStore = coreStrings().UTC.createInstance();
+            } else if (utcoffset == nil()) {
+                if (makeStringNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    makeStringNode = insert(StringNodes.MakeStringNode.create());
                 }
-            } catch (DateTimeException e) {
-                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
+
+                envZone = getTimeZoneNode.executeGetTimeZone();
+                zone = envZone.getZone();
+                relativeOffset = false;
+            } else if (utcoffset instanceof Integer || utcoffset instanceof Long) {
+                final int offset = ((Number) utcoffset).intValue();
+                final ZoneOffset zoneOffset = getZoneOffset(offset);
+                zone = ZoneId.ofOffset("", zoneOffset);
+                relativeOffset = true;
+                zoneToStore = nil();
+            } else {
+                throw new UnsupportedOperationException(StringUtils.format("%s %s %s %s", isdst, isutc, utcoffset, utcoffset.getClass()));
             }
 
-            dt = dt.withZoneSameLocal(zone);
+            ZonedDateTime dt = ZonedDateTime.of(year, month, mday, hour, min, sec, nsec, zone);
 
             if (isdst == 0) {
                 dt = dt.withLaterOffsetAtOverlap();
-            }
-
-            if (isdst == 1) {
+            } else if (isdst == 1) {
                 dt = dt.withEarlierOffsetAtOverlap();
             }
 
+            if (envZone != null) {
+                zoneToStore = getShortZoneName(makeStringNode, dt, envZone);
+            }
+
+
             return allocateObjectNode.allocate(timeClass,
                     Layouts.TIME.build(dt, zoneToStore, utcoffset, relativeOffset, isutc));
+        }
+
+        private ZoneOffset getZoneOffset(int offset) {
+            try {
+                return ZoneOffset.ofTotalSeconds(offset);
+            } catch (DateTimeException e) {
+                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
+            }
         }
 
     }
