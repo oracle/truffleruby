@@ -209,7 +209,7 @@ class MaxRssBenchmarkSuite(MetricsBenchmarkSuite):
         return [{
             'benchmark': benchmark,
             'extra.metric.region': region,
-            'metric.name': 'time',
+            'metric.name': 'memory',
             'metric.value': sample,
             'metric.unit': 'MiB',
             'metric.better': 'lower',
