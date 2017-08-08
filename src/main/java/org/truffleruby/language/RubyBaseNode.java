@@ -20,7 +20,6 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import jnr.ffi.provider.MemoryManager;
 import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;

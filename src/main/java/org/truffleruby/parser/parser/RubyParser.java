@@ -40,7 +40,6 @@
 package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CodeRange;
@@ -160,7 +159,7 @@ public class RubyParser {
         support.setWarnings(warnings);
         lexer.setWarnings(warnings);
     }
-					// line 164 "-"
+					// line 163 "-"
   // %token constants
   public static final int kCLASS = 257;
   public static final int kMODULE = 258;
@@ -4666,7 +4665,7 @@ states[644] = new ParserState() {
   }
 };
 }
-					// line 2578 "RubyParser.y"
+					// line 2577 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -4681,4 +4680,4 @@ states[644] = new ParserState() {
         return support.getResult();
     }
 }
-					// line 10087 "-"
+					// line 10086 "-"

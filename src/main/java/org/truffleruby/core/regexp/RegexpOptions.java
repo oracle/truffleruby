@@ -22,7 +22,7 @@ import org.truffleruby.core.string.KCode;
 import org.truffleruby.parser.ReOptions;
 
 public class RegexpOptions implements Cloneable {
-    private static String WINDOWS31J = "Windows-31J";
+
     public static final RegexpOptions NULL_OPTIONS = new RegexpOptions(KCode.NONE, true);
     
     public RegexpOptions() {
