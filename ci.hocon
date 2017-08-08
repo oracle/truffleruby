@@ -10,8 +10,8 @@ report-github-status: ["${BUILD_DIR}/tool/report-github-status.sh", "${REPORT_GI
   "${BUILD_NAME}", "${BUILD_NUMBER}", ${github-status-token}]
 
 common-base: ${labsjdk8} {
-  downloads : {
-    MAVEN_HOME : {name : maven, version : "3.3.9"}
+  downloads: {
+    MAVEN_HOME: {name: maven, version: "3.3.9"}
   }
 
   environment: {
@@ -21,13 +21,17 @@ common-base: ${labsjdk8} {
     PATH: "$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH"
   }
 
-  setup: [
+  prelude: [
     [export, "BUILD_DIR=$PWD"],
     ["export", ["echo", "TRUFFLE_RUBY_VERSION=", ["git", "rev-parse", "HEAD"], "|", "tr", "-d", "' '"]]
-
     ${report-github-status} ["pending"],
+  ]
+
+  build: [
     [mx, build, --force-javac, --warning-as-error]
   ]
+
+  setup: ${common-base.prelude} ${common-base.build}
 
   on_success: [
     ${report-github-status} ["success"]
@@ -484,13 +488,22 @@ deploy-and-test-fast-darwin: {
 }
 
 lint: {
+  downloads: {
+    JDT: {name: ecj, version: "4.5.1", platformspecific: false}
+  }
   packages: {
     ruby: ">=2.1.0"
   }
   environment: {
     GEM_HOME: "$PWD/gem_home"
+    # Truffle compiles with ECJ but does not run (GR-4720)
+    TRUFFLERUBY_CEXT_ENABLED: "false"
   }
+  setup: ${common.prelude}
   run: [
+    # Build with ECJ to get warnings
+    [mx, build, --jdt, "$JDT", --warning-as-error],
+
     [export, "PATH=$GEM_HOME/bin:$PATH"],
     ${jt} [lint]
   ]
