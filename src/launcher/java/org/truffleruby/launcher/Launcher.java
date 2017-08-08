@@ -68,12 +68,14 @@ public class Launcher {
 
     // These system properties are used before outside the SDK option system
 
-    private static final boolean METRICS_TIME =
-            Boolean.getBoolean("truffleruby.metrics.time");
+    private static boolean METRICS_TIME;
     private static final boolean METRICS_MEMORY_USED_ON_EXIT =
             Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
 
     public static void main(boolean isGraal, String[] args) throws Exception {
+        // Assigned here so it's available on SVM as well
+        METRICS_TIME = Boolean.getBoolean("truffleruby.metrics.time");
+
         printTruffleTimeMetric("before-main");
 
         int exitCode = 0;
