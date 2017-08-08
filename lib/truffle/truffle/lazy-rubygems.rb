@@ -3,15 +3,10 @@ module Kernel
   # and skip the method below once RubyGems is loaded.
   alias :gem_original_require :require
 
-  $truffle_loading_rubygems = false
-
   private def require(path)
-    return gem_original_require(path) if $truffle_loading_rubygems
-
     begin
       gem_original_require(path)
     rescue LoadError
-      $truffle_loading_rubygems = true
       require 'rubygems'
       require path
     end
