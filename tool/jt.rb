@@ -1372,7 +1372,7 @@ module Commands
       region_samples = samples.map { |s| s[region] }
       mean = region_samples.inject(:+) / samples.size
       human = "#{'%.3f' % mean} #{region.strip}"
-      results[region] = {
+      results[region.strip] = {
           samples: region_samples,
           mean: mean,
           human: human
@@ -1384,7 +1384,7 @@ module Commands
       end
     end
     if use_json
-      puts JSON.generate(Hash[results.map { |key, values| [key.strip, values] }])
+      puts JSON.generate(results)
     end
   end
 
