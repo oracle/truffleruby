@@ -499,7 +499,13 @@ public abstract class TimeNodes {
                 throw new UnsupportedOperationException(StringUtils.format("%s %s %s %s", isdst, isutc, utcoffset, utcoffset.getClass()));
             }
 
-            ZonedDateTime dt = ZonedDateTime.of(year, month, mday, hour, min, sec, nsec, zone);
+            ZonedDateTime dt;
+            try {
+                dt = ZonedDateTime.of(year, month, mday, hour, min, sec, nsec, zone);
+            } catch (DateTimeException e) {
+                // Time.new(1999, 2, 31) is legal and should return 1999-03-03
+                dt = ZonedDateTime.of(year, 1, 1, hour, min, sec, nsec, zone).plusMonths(month - 1).plusDays(mday - 1);
+            }
 
             if (isdst == 0) {
                 dt = dt.withLaterOffsetAtOverlap();
