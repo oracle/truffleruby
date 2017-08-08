@@ -1409,7 +1409,9 @@ module Commands
           run_depth = depth if region == 'before-run'
         elsif region.start_with? 'after-'
           key = (indent * depth + region['after-'.size..-1])
-          elapsed = time - times[key]
+          start = times[key]
+          raise "#{region} without matching before: #{key.inspect} #{times.inspect}" unless start
+          elapsed = time - start
           if depth == run_depth+1
             accounted_for += elapsed
           elsif region == 'after-run'
