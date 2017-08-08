@@ -117,8 +117,8 @@ import javax.annotation.Generated;
 public class OptionsCatalog {
 
     <% options.each do |o| %>public static final <%= o.type_description %> <%= o.constant %> = new <%= o.type_description %>(
-            "ruby.<%= o.name %>", 
-            "<%= o.description %>", 
+            "ruby.<%= o.name %>",
+            "<%= o.description %>",
             <%= o.reference_default ? o.default + '.getDefaultValue()' : o.default %>);
     <% end %>
     public static OptionDescription<?> fromName(String name) {
