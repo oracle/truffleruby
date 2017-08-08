@@ -109,7 +109,7 @@ module Utilities
     end
     [javacmd, vm_args.map { |arg| "-J#{arg}" } + options]
   end
-  
+
   def self.find_auto_graal_home
     sibling_compiler = File.expand_path('../graal/compiler', TRUFFLERUBY_DIR)
     return nil unless Dir.exist?(sibling_compiler)
@@ -1358,10 +1358,11 @@ module Commands
   def metrics_time(*args)
     use_json = args.delete '--json'
     samples = []
+    metrics_time_option = "#{'-J' unless args.include? '--aot'}-Dtruffleruby.metrics.time=true"
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now
-      out, err = run '-J-Dtruffleruby.metrics.time=true', *args, {capture: true, no_print_cmd: true}
+      out, err = run metrics_time_option, *args, {capture: true, no_print_cmd: true}
       finish = Time.now
       samples.push get_times(err, finish - start)
     end
