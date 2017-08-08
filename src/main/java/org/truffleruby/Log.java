@@ -48,18 +48,4 @@ public class Log extends RubyLogger {
         }
     }
 
-    @TruffleBoundary
-    public static void warning(String format, Object... args) {
-        LOGGER.warning(String.format(format, args));
-    }
-
-    @TruffleBoundary
-    public static void info(String format, Object... args) {
-        LOGGER.info(String.format(format, args));
-    }
-
-    @TruffleBoundary
-    public static void log(Level level, String message) {
-        LOGGER.log(level, message);
-    }
 }
