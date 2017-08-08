@@ -492,8 +492,7 @@ public abstract class TimeNodes {
                 relativeOffset = false;
             } else if (utcoffset instanceof Integer || utcoffset instanceof Long) {
                 final int offset = ((Number) utcoffset).intValue();
-                final ZoneOffset zoneOffset = getZoneOffset(offset);
-                zone = ZoneId.ofOffset("", zoneOffset);
+                zone = getZoneOffset(offset);
                 relativeOffset = true;
                 zoneToStore = nil();
             } else {
@@ -511,7 +510,6 @@ public abstract class TimeNodes {
             if (envZone != null) {
                 zoneToStore = getShortZoneName(makeStringNode, dt, envZone);
             }
-
 
             return allocateObjectNode.allocate(timeClass,
                     Layouts.TIME.build(dt, zoneToStore, utcoffset, relativeOffset, isutc));
