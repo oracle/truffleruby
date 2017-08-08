@@ -28,12 +28,7 @@ public class Pointer implements AutoCloseable {
      * {@link #calloc} to get cleared memory.
      */
     public static Pointer malloc(long size) {
-        return new Pointer(allocateMemory(size));
-    }
-
-    @TruffleBoundary // Barrier required due to PE bug GR-5474
-    private static long allocateMemory(long size) {
-        return UNSAFE.allocateMemory(size);
+        return new Pointer(UNSAFE.allocateMemory(size));
     }
 
     /**
@@ -137,7 +132,6 @@ public class Pointer implements AutoCloseable {
         }
     }
 
-    @TruffleBoundary // Barrier required due to PE bug GR-5474
     public void free() {
         UNSAFE.freeMemory(address);
     }
