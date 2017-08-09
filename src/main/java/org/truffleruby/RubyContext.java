@@ -447,6 +447,16 @@ public class RubyContext {
                 final File jar = new File(codeSource.getLocation().getFile());
                 final File jarDir = jar.getParentFile();
 
+                final File jarDirParent = jarDir.getParentFile();
+                final File jarDirGrandparent = jarDirParent == null ? null : jarDirParent.getParentFile();
+
+                if (jarDir.getName().equals("dists")
+                        && jarDirParent != null && jarDirParent.getName().equals("mxbuild")
+                        && jarDirGrandparent != null && new File(jarDirGrandparent, "lib").isDirectory()) {
+                    // Source build
+                    return jarDirGrandparent.getCanonicalPath();
+                }
+
                 if (jarDir.getName().equals("ruby") && new File(jarDir, "lib").exists()) {
                     // GraalVM build or distribution
                     return jarDir.getCanonicalPath();
