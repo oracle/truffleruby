@@ -15,6 +15,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.Message;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -56,7 +58,11 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
         return WriteObjectFieldNodeGen.create(name);
     }
 
-    @Specialization(guards = { "not(isIVar)", "methodDefined(frame, receiver, writeMethodName, getDefinedNode())" })
+    @Specialization(guards = {
+            "not(isIVar)",
+            "methodDefined(frame, receiver, writeMethodName, getDefinedNode())",
+            "!methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
+    })
     public Object callMethod(
             VirtualFrame frame,
             DynamicObject receiver,
@@ -68,7 +74,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
         return getCallNode().call(frame, receiver, writeMethodName, value);
     }
 
-    // Workaround for DSL bug
+    // Workaround for DSL bug TODO CS 9-Aug-17 what bug?
     protected boolean not(boolean value) {
         return !value;
     }
@@ -93,6 +99,22 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
         return getCallNode().call(frame, receiver, "[]=", name, value);
     }
 
+    @Specialization(guards = {
+            "!isIVar",
+            "!methodDefined(frame, receiver, writeMethodName, getDefinedNode())",
+            "!methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
+    })
+    public Object unsupported(
+            VirtualFrame frame,
+            DynamicObject receiver,
+            Object name,
+            Object stringName,
+            boolean isIVar,
+            Object value,
+            @Cached("createWriteMethodName(stringName)") String writeMethodName) {
+        throw UnsupportedMessageException.raise(Message.READ);
+    }
+
     protected DoesRespondDispatchHeadNode getDefinedNode() {
         if (definedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -110,6 +132,8 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
 
         return indexDefinedNode;
     }
+
+    // TODO CS 9-Aug-17 test method defined once and then run specialisations
 
     protected boolean methodDefined(VirtualFrame frame, DynamicObject receiver, Object stringName,
                                     DoesRespondDispatchHeadNode definedNode) {
