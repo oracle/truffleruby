@@ -56,7 +56,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
     }
 
     @Specialization(guards = {
-            "not(isIVar)",
+            "!isIVar",
             "methodDefined(frame, receiver, writeMethodName, getDefinedNode())",
             "methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
     })
@@ -76,7 +76,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
     }
 
     @Specialization(guards = {
-            "not(isIVar)",
+            "!isIVar",
             "methodDefined(frame, receiver, writeMethodName, getDefinedNode())",
             "!methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
     })
@@ -89,11 +89,6 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
             Object value,
             @Cached("createWriteMethodName(stringName)") String writeMethodName) {
         return getCallNode().call(frame, receiver, writeMethodName, value);
-    }
-
-    // Workaround for DSL bug TODO CS 9-Aug-17 what bug?
-    protected boolean not(boolean value) {
-        return !value;
     }
 
     protected String createWriteMethodName(Object name) {
