@@ -60,6 +60,7 @@ module RbConfig
       'DLDFLAGS'          => '',
       'DLEXT'             => 'su',
       'NATIVE_DLEXT'      => RUBY_PLATFORM.include?('darwin') ? 'dylib' : 'so',
+      'host_alias'        => '',
       'host_os'           => host_os,
       'host_cpu'          => host_cpu,
       'LIBEXT'            => 'c',

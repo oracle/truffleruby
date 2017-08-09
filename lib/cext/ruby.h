@@ -38,6 +38,18 @@ extern "C" {
 
 #include <truffle.h>
 
+
+// Used in st.h
+#define RUBY_SYMBOL_EXPORT_BEGIN
+#define RUBY_SYMBOL_EXPORT_END
+
+// Assume an LP64 integer and pointer data model
+#define SIZEOF_LONG 8
+#define SIZEOF_LONG_LONG 8
+#define SIZEOF_VOIDP 8
+
+#include "ruby/st.h"
+
 // Support
 
 #define RUBY_CEXT (void *)truffle_import_cached("ruby_cext")
@@ -90,6 +102,10 @@ typedef st_data_t st_index_t;
 
 NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object));
 
+#ifndef offsetof
+#define offsetof(p_type,field) ((size_t)&(((p_type *)0)->field))
+#endif
+
 // Non-standard
 
 NORETURN(void rb_tr_error(const char *message));
@@ -140,6 +156,12 @@ void rb_free_tmp_buffer(VALUE *buffer_pointer);
 #define ALLOCV(v, n)                RB_ALLOCV(v, n)
 #define ALLOCV_N(type, v, n)        RB_ALLOCV_N(type, v, n)
 #define ALLOCV_END(v)               RB_ALLOCV_END(v)
+
+#define MEMZERO(p,type,n) memset((p), 0, sizeof(type)*(n))
+#define MEMCPY(p1,p2,type,n) memcpy((p1), (p2), sizeof(type)*(n))
+#define MEMMOVE(p1,p2,type,n) memmove((p1), (p2), sizeof(type)*(n))
+#define MEMCMP(p1,p2,type,n) memcmp((p1), (p2), sizeof(type)*(n))
+
 
 // Types
 
@@ -887,10 +909,6 @@ void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg);
 VALUE rb_hash_size(VALUE hash);
 #define RHASH_SIZE(h) NUM2SIZET(rb_hash_size(h))
 #define rb_hash_dup(array) rb_obj_dup(array)
-
-// st.h
-
-enum st_retval {ST_CONTINUE, ST_STOP, ST_DELETE, ST_CHECK};
 
 // Class
 
