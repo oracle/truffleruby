@@ -16,6 +16,7 @@ import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.Message;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -52,6 +53,22 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
             @Cached("createWriteObjectFieldNode(stringName)") WriteObjectFieldNode writeObjectFieldNode) {
         writeObjectFieldNode.write(receiver, value);
         return value;
+    }
+
+    @Specialization(guards = {
+            "not(isIVar)",
+            "methodDefined(frame, receiver, writeMethodName, getDefinedNode())",
+            "methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
+    })
+    public Object callMethodPriorityOverIndex(
+            VirtualFrame frame,
+            DynamicObject receiver,
+            Object name,
+            Object stringName,
+            boolean isIVar,
+            Object value,
+            @Cached("createWriteMethodName(stringName)") String writeMethodName) {
+        return getCallNode().call(frame, receiver, writeMethodName, value);
     }
 
     protected WriteObjectFieldNode createWriteObjectFieldNode(Object name) {
@@ -104,7 +121,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
             "!methodDefined(frame, receiver, writeMethodName, getDefinedNode())",
             "!methodDefined(frame, receiver, INDEX_SET_METHOD_NAME, getIndexDefinedNode())"
     })
-    public Object unsupported(
+    public Object unknownIdentifier(
             VirtualFrame frame,
             DynamicObject receiver,
             Object name,
@@ -112,7 +129,12 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyNode {
             boolean isIVar,
             Object value,
             @Cached("createWriteMethodName(stringName)") String writeMethodName) {
-        throw UnsupportedMessageException.raise(Message.READ);
+        throw UnknownIdentifierException.raise(toString(name));
+    }
+
+    @CompilerDirectives.TruffleBoundary
+    private String toString(Object name) {
+        return name.toString();
     }
 
     protected DoesRespondDispatchHeadNode getDefinedNode() {
