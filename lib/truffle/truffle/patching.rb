@@ -48,7 +48,7 @@ module Truffle::Patching
       break path if File.file?(path)
     end
 
-    require original
+    Kernel.require original
   end
 
   def install_gem_activation_hook
