@@ -314,3 +314,8 @@ type is supported for interop.
 `Truffle::Interop.to_java_string(ruby_string)`
 
 `Truffle::Interop.from_java_string(java_string)`
+
+`Truffle::Interop.object_literal(a: 1, b: 2, c: 3...)` gives you a simple object
+with these fields and values, like a JavaScript object literal does. You can
+then continue to read and write fields on the object and they will be
+dynamically added, similar to `OpenStruct`.

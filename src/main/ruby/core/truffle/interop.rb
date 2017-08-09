@@ -65,6 +65,44 @@ module Truffle
     class Foreign
 
     end
+    
+    class ObjectLiteral
+    
+      def method_missing(sent_name, *args)
+        sent_name_s = sent_name.to_s
+        if sent_name_s.end_with?('=')
+          name = sent_name_s[0..-2].to_sym
+        else
+          name = sent_name
+        end
+        Truffle.privately { singleton_class.attr_accessor name }
+        send sent_name, *args
+      end
+      
+      # These are called for READ and WRITE on fields that haven't been
+      # accessed yet, because they won't have methods defined yet and
+      # interop doesn't call method_missing.
+      
+      def [](key)
+        key = Interop.from_java_string(key) if Interop.java_string?(key)
+        send key
+      end
+      
+      def []=(key, value)
+        key = Interop.from_java_string(key) if Interop.java_string?(key)
+        send "#{key}=", value
+      end
+    
+    end
+    
+    def self.object_literal(**fields)
+      o = ObjectLiteral.new
+      fields.each_pair do |key, value|
+        o[key] = value
+      end
+      o
+    end
+    
   end
 
 end
