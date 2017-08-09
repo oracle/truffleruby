@@ -13,6 +13,7 @@ Interop ignores visibility entirely.
 * [What messages are sent for Ruby syntax on foreign objects](#what-messages-are-sent-for-ruby-syntax-on-foreign-objects)
 * [Import and export](#import-and-export)
 * [Interop eval](#interop-eval)
+* [Additional methods](#additional-methods)
 
 ## How Ruby responds to messages
 
@@ -307,6 +308,8 @@ language MIME type.
 
 `Truffle::Interop.mime_type_supported?(mime_type)` reports if a language's MIME
 type is supported for interop.
+
+`Truffle::Interop.java_string?(object)`
 
 `Truffle::Interop.to_java_string(ruby_string)`
 

@@ -751,6 +751,16 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "java_string?", isModuleFunction = true, required = 1)
+    public abstract static class InteropIsJavaStringNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object isJavaString(Object value) {
+            return value instanceof String;
+        }
+
+    }
+
     @CoreMethod(names = "to_java_string", isModuleFunction = true, required = 1)
     public abstract static class InteropToJavaStringNode extends CoreMethodArrayArgumentsNode {
 
