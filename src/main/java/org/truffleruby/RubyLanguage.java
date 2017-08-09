@@ -151,7 +151,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected Object lookupSymbol(RubyContext context, String symbolName) {
-        return context.send(context.getCoreLibrary().getMainObject(), "method", null,  StringOperations.createString(context, StringOperations.encodeRope(symbolName, UTF8Encoding.INSTANCE)));
+        return context.send(context.getCoreLibrary().getTruffleInteropModule(), "lookup_symbol", null, context.getSymbolTable().getSymbol(symbolName));
     }
 
     @Override
