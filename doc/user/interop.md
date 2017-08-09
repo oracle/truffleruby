@@ -95,14 +95,17 @@ Otherwise, if the name starts with `@`, read it as an instance variable:
 `READ(object, "@name")` → `object.instance_variable_get("name")`
 
 Otherwise, if there isn't a method defined on the object with the same name as
+the name, perform a method call using the name as the called method name:
+
+`READ(object, name)` → `object.name` if `object.responds_to?(name)`
+
+Otherwise, if there isn't a method defined on the object with the same name as
 the name, and there is a method defined on the object called `[]`, call `[]`
 with the name as the argument:
 
 `READ(object, name)` → `object[name]` unless `object.responds_to?(name)`
 
-Otherwise, perform a method call using the name as the called method name:
-
-`READ(object, name)` → `object.name` if `object.responds_to?(name)`
+Otherwise throws `UnknownIdentifierException`.
 
 In all cases where a call is made no block is passed.
 
@@ -117,12 +120,11 @@ If the name starts with `@`, write it as an instance variable:
 `WRITE(object, "@name", value)` → `object.instance_variable_set("name", value)`
 
 Otherwise, if there is a method defined on the object with the same name as
-the name appended with `=`, and there isn't a method defined on the object
-called `[]=`, perform a method call using the name appended with `=` as the
-called method name, and the value as the argument:
+the name appended with `=`, perform a method call using the name appended with
+`=` as the called method name, and the value as the argument:
 
 `WRITE(object, name, value)` → `object.name = value` if
-`object.responds_to?(name + "=")` and unless `object.responds_to?("[]=")`
+`object.responds_to?(name + "=")`
 
 Otherwise, if there isn't a method defined on the object with the same name as
 the name appended with `=`, and there is a method defined on the object called
@@ -132,7 +134,7 @@ the name appended with `=`, and there is a method defined on the object called
 `object.responds_to?("[]=")` and unless
 `object.responds_to?(name + "=")`
 
-Otherwise throws `UnsupportedMessageException`.
+Otherwise throws `UnknownIdentifierException`.
 
 In all cases where a call is made no block is passed.
 
