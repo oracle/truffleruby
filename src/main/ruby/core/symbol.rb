@@ -138,3 +138,11 @@ class Symbol
   # Use equal? for ===
   alias_method :===, :equal?
 end
+
+module Truffle::SymbolOperations
+  
+  def self.is_constant?(name)
+    name =~ /^[A-Z][[:alnum:]_]*$/
+  end
+  
+end
