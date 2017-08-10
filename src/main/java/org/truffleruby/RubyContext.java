@@ -414,7 +414,11 @@ public class RubyContext {
         // Use the option if it was set
 
         if (!options.HOME.isEmpty()) {
-            return new File(options.HOME).getCanonicalPath();
+            final File home = new File(options.HOME);
+            if (!isRubyHome(home)) {
+                Log.LOGGER.warning(home + " does not look like truffleruby's home");
+            }
+            return home.getCanonicalPath();
         }
 
         // Try to find it automatically from the location of the JAR, but this won't work from the JRuby launcher as it uses the boot classpath
