@@ -20,20 +20,21 @@ public class MiscTest {
 
     @Test
     public void testMembersAndStringUnboxing() {
-        Context context = Context.create();
-        Value result = context.eval("ruby", "Truffle::Interop.object_literal(id: 42, text: '42', arr: [1,42,3])");
-        assertTrue(result.hasMembers());
+        try (Context context = Context.create()) {
+            Value result = context.eval("ruby", "Truffle::Interop.object_literal(id: 42, text: '42', arr: [1,42,3])");
+            assertTrue(result.hasMembers());
 
-        int id = result.getMember("id").asInt();
-        assertEquals(42, id);
+            int id = result.getMember("id").asInt();
+            assertEquals(42, id);
 
-        String text = result.getMember("text").asString();
-        assertEquals("42", text);
+            String text = result.getMember("text").asString();
+            assertEquals("42", text);
 
-        Value array = result.getMember("arr");
-        assertTrue(array.hasArrayElements());
-        assertEquals(3, array.getArraySize());
-        assertEquals(42, array.getArrayElement(1).asInt());
+            Value array = result.getMember("arr");
+            assertTrue(array.hasArrayElements());
+            assertEquals(3, array.getArraySize());
+            assertEquals(42, array.getArrayElement(1).asInt());
+        }
     }
 
 }
