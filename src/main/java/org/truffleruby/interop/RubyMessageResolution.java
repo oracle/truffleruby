@@ -27,6 +27,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
@@ -103,7 +104,7 @@ public class RubyMessageResolution {
         @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            if (stringProfile.profile(RubyGuards.isRubyString(object) && StringOperations.rope(object).byteLength() == 1)) {
+            if (stringProfile.profile(RubyGuards.isRubyString(object))) {
                 return true;
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return true;
@@ -118,21 +119,20 @@ public class RubyMessageResolution {
     public static abstract class ForeignUnboxNode extends Node {
 
         private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile emptyProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
         @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
         @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
+        @Child private NameToJavaStringNode toJavaStringNode;
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (stringProfile.profile(RubyGuards.isRubyString(object))) {
-                final Rope rope = Layouts.STRING.getRope(object);
-
-                if (emptyProfile.profile(rope.byteLength() == 0)) {
-                    throw UnsupportedMessageException.raise(Message.UNBOX);
-                } else {
-                    return rope.get(0);
+                if (toJavaStringNode == null) {
+                    CompilerDirectives.transferToInterpreterAndInvalidate();
+                    toJavaStringNode = insert(NameToJavaStringNode.create());
                 }
+
+                return toJavaStringNode.executeToJavaString(frame, object);
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return Layouts.POINTER.getPointer(object).getAddress();
             } else if (doesRespond.doesRespondTo(frame, "unbox", object)) {

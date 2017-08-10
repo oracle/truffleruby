@@ -33,17 +33,15 @@ describe "Truffle::Interop.unbox" do
   it "passes through false" do
     Truffle::Interop.unbox(false).should == false
   end
-  
-  it "doesn't work on empty strings" do
-    lambda { Truffle::Interop.unbox('') }.should raise_error(ArgumentError)
+    
+  it "unboxes a Ruby string to a Java string" do
+    unboxed = Truffle::Interop.unbox('test')
+    Truffle::Interop.java_string?(unboxed).should be_true
+    Truffle::Interop.from_java_string(unboxed).should == 'test'
   end
     
-  it "returns the first byte on strings with one byte" do
-    Truffle::Interop.unbox('1').should == '1'.ord
-  end
-    
-  it "returns the first byte on strings with two bytes" do
-    Truffle::Interop.unbox('1').should == '1'.ord
+  it "unboxes a pointer to the address" do
+    Truffle::Interop.unbox(Rubinius::FFI::Pointer.new(1024)).should == 1024
   end
     
   it "is not supported for nil" do
