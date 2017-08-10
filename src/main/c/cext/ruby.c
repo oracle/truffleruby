@@ -418,6 +418,58 @@ unsigned long rb_num2ulong(VALUE val) {
   return (unsigned long)truffle_invoke_l(RUBY_CEXT, "rb_num2ulong", val);
 }
 
+static char *out_of_range_float(char (*pbuf)[24], VALUE val) {
+    char *const buf = *pbuf;
+    char *s;
+
+    snprintf(buf, sizeof(*pbuf), "%-.10g", RFLOAT_VALUE(val));
+    if ((s = strchr(buf, ' ')) != 0) *s = '\0';
+    return buf;
+}
+
+#define FLOAT_OUT_OF_RANGE(val, type) do { \
+    char buf[24]; \
+    rb_raise(rb_eRangeError, "float %s out of range of "type, \
+       out_of_range_float(&buf, (val))); \
+} while (0)
+
+#define LLONG_MIN_MINUS_ONE ((double)LLONG_MIN-1)
+#define LLONG_MAX_PLUS_ONE (2*(double)(LLONG_MAX/2+1))
+#define LLONG_MIN_MINUS_ONE_IS_LESS_THAN(n) \
+  (LLONG_MIN_MINUS_ONE == (double)LLONG_MIN ? \
+   LLONG_MIN <= (n): \
+   LLONG_MIN_MINUS_ONE < (n))
+
+LONG_LONG rb_num2ll(VALUE val) {
+    if (NIL_P(val)) {
+	rb_raise(rb_eTypeError, "no implicit conversion from nil");
+    }
+
+    if (FIXNUM_P(val)) return (LONG_LONG)FIX2LONG(val);
+
+    else if (RB_TYPE_P(val, T_FLOAT)) {
+	if (RFLOAT_VALUE(val) < LLONG_MAX_PLUS_ONE
+            && (LLONG_MIN_MINUS_ONE_IS_LESS_THAN(RFLOAT_VALUE(val)))) {
+	    return (LONG_LONG)(RFLOAT_VALUE(val));
+	}
+	else {
+	    FLOAT_OUT_OF_RANGE(val, "long long");
+	}
+    }
+    else if (RB_TYPE_P(val, T_BIGNUM)) {
+	return rb_big2ll(val);
+    }
+    else if (RB_TYPE_P(val, T_STRING)) {
+	rb_raise(rb_eTypeError, "no implicit conversion from string");
+    }
+    else if (RB_TYPE_P(val, T_TRUE) || RB_TYPE_P(val, T_FALSE)) {
+	rb_raise(rb_eTypeError, "no implicit conversion from boolean");
+    }
+
+    val = rb_to_int(val);
+    return NUM2LL(val);
+}
+
 unsigned long NUM2ULONG(VALUE value) {
   // TODO CS 24-Jul-16 _invoke_l but what about the unsigned part?
   return truffle_invoke_l(RUBY_CEXT, "NUM2ULONG", value);

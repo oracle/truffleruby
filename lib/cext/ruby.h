@@ -450,6 +450,9 @@ void rb_num_zerodiv(void);
 #define NUM2SIZET(x) NUM2ULONG(x)
 #define NUM2SSIZET(x) NUM2LONG(x)
 
+LONG_LONG rb_num2ll(VALUE val);
+#define NUM2LL(x) rb_num2ll(x)
+
 // Type checks
 
 int RB_NIL_P(VALUE value);
