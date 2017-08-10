@@ -41,14 +41,14 @@ Call `size` on the object.
 
 ### `IS_BOXED`
 
-Returns true only for instances of `String` with a length of 1, which allows
-them to be unboxed as a character, or objects that respond to `unbox`.
+Returns true only for instances of `String`, `Rubinius::FFI::Pointer` and
+objects that respond to `unbox`.
 
 ### `UNBOX`
 
-For a `String`, returns the first character. Unboxing empty strings is not
-supported and will cause an `UnsupportedMessageException`. For all other objects
-calls `unbox`.
+For a `String`, produces a `java.lang.String`, similar to
+`Truffle::Interop.to_java_string`. For a `Rubinius::FFI::Pointer`, produces the
+address as a `long`. For all other objects calls `unbox`.
 
 ### `IS_POINTER`
 

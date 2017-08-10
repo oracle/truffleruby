@@ -21,11 +21,7 @@ public class MiscTest {
     @Test
     public void testMembersAndStringUnboxing() {
         Context context = Context.create();
-        Value result = context.eval("ruby", "o = Struct.new(:id, :text, :arr).new(" +
-                "42, "       +
-                "'42', "     +
-                "[1,42,3] " +
-                ")");
+        Value result = context.eval("ruby", "Truffle::Interop.object_literal(id: 42, text: '42', arr: [1,42,3])");
         assertTrue(result.hasMembers());
 
         int id = result.getMember("id").asInt();

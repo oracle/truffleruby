@@ -10,16 +10,23 @@ require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.boxed?" do
   
-  it "returns false for empty strings" do
-    Truffle::Interop.boxed?('').should be_false
+  it "returns true for strings" do
+    Truffle::Interop.boxed?('tests').should be_true
   end
-    
-  it "returns true for strings with one byte" do
-    Truffle::Interop.boxed?('1').should be_true
+  
+  it "returns true for Rubinius::FFI::Pointer objects" do
+    Truffle::Interop.boxed?(Rubinius::FFI::Pointer.new(0)).should be_true
   end
-    
-  it "returns false for strings with two bytes" do
-    Truffle::Interop.boxed?('12').should be_false
+
+  it "returns true for objects that respond to #unbox" do
+    unboxable = Object.new
+    def unboxable.unbox
+    end
+    Truffle::Interop.boxed?(unboxable).should be_true
+  end
+  
+  it "returns false for other objects" do
+    Truffle::Interop.boxed?(Object.new).should be_false
   end
 
 end
