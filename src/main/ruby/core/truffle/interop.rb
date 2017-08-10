@@ -38,9 +38,8 @@ module Truffle
     end
     
     def self.lookup_symbol(name)
-      # TODO CS 9-Aug-17 I can't see to check if the method is defined
-      if method = Object.method(name) rescue nil
-        method
+      if MAIN.respond_to?(name, true)
+        MAIN.method(name)
       elsif Truffle::SymbolOperations.is_constant?(name) && Object.const_defined?(name)
         Object.const_get(name)
       else
