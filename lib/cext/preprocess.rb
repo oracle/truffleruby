@@ -11,6 +11,26 @@ VALUE_LOCALS = /^(\s+)VALUE\s+(#{LOCAL}(\s*,\s*#{LOCAL})*);\s*$/
 
 ALLOCA_LOCALS = /^(\s+)VALUE\s*\*\s*([a-z_][a-zA-Z_0-9]*)\s*=\s*(\(\s*VALUE\s*\*\s*\)\s*)?alloca\(/
 
+# Found in nokogiri
+XML_NODE_SET_PATCH = <<-EOF
+  switch (rb_tr_to_int_const(rb_range_beg_len(arg, &beg, &len, (long)node_set->nodeNr, 0))) {
+  case Qfalse_int_const:
+    break;
+  case Qnil_int_const:
+EOF
+
+# Found in pg
+PG_BINARY_ENCODER_PATCH = <<-EOF	
+	switch(rb_tr_to_int_const(value)){
+		case Qtrue_int_const : mybool = 1; break;
+		case Qfalse_int_const : mybool = 0; break;
+EOF
+
+PATCHED_FILES = {'xml_node_set.c'      => {:match =>  /[[:blank:]]*?switch\s*?\(.*?Qnil:/m, 
+                                           :replacement => XML_NODE_SET_PATCH},
+                 'pg_binary_encoder.c' => {:match => /[[:blank:]]*?switch\s*?\(.*?Qfalse\s*?:.*?break;/m,
+                                           :replacement => PG_BINARY_ENCODER_PATCH}}
+
 def preprocess(line)
   if line =~ VALUE_LOCALS
     # Translate
@@ -40,7 +60,6 @@ def preprocess(line)
     arrays.each do |name, size|
       line += " VALUE *#{name} = truffle_managed_malloc(#{size} * sizeof(VALUE));"
     end
-
     line
   elsif line =~ ALLOCA_LOCALS
     # Translate
@@ -54,10 +73,18 @@ def preprocess(line)
   end
 end
 
+def patch(file, contents)
+  if patch = PATCHED_FILES[file]
+    contents = contents.gsub(patch[:match], patch[:replacement].rstrip)
+  end
+  contents
+end
+
 if __FILE__ == $0
   puts "#line 1 \"#{ARGF.filename}\""
   
-  ARGF.each do |line|
+  contents = patch(ARGF.filename, File.read(ARGF.filename))
+  contents.each_line do |line|
     puts preprocess(line)
   end
 end
