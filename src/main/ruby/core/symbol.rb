@@ -142,7 +142,7 @@ end
 module Truffle::SymbolOperations
   
   def self.is_constant?(name)
-    name =~ /^[A-Z][[:alnum:]_]*$/
+    name =~ /\A[A-Z][[:alnum:]_]*\z/
   end
   
 end
