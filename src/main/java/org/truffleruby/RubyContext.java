@@ -425,41 +425,38 @@ public class RubyContext {
 
             // Root of the GraalVM distribution.
             File candidate = Paths.get(parentDirectory, "language", "ruby").toFile();
-            if (candidate.exists()) {
+            if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
             }
 
             // Root of the TruffleRuby source tree.
-            candidate = Paths.get(parentDirectory, "lib", "ruby").toFile();
-            if (candidate.exists()) {
+            if (isRubyHome(new File(parentDirectory))) {
                 return new File(parentDirectory).getCanonicalPath();
             }
 
             // Nested mx build.
             candidate = Paths.get(parentDirectory, "..", "..", "..", "truffleruby").toFile();
-            if (candidate.exists()) {
+            if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
             }
         } else {
             final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
 
             if (codeSource != null && codeSource.getLocation().getProtocol().equals("file")) {
-                final File jar = new File(codeSource.getLocation().getFile());
+                final File jar = new File(codeSource.getLocation().getFile()).getCanonicalFile();
                 final File jarDir = jar.getParentFile();
 
                 final File jarDirParent = jarDir.getParentFile();
                 final File jarDirGrandparent = jarDirParent == null ? null : jarDirParent.getParentFile();
-                final File libDir = jarDirGrandparent == null ? null : new File(jarDirGrandparent, "lib");
-                final File libRubyDir = libDir == null ? null : new File(libDir, "ruby");
 
                 if (jarDir.getName().equals("dists")
                         && jarDirParent != null && jarDirParent.getName().equals("mxbuild")
-                        && libRubyDir != null && libRubyDir.isDirectory()) {
-                    // Source build
+                        && isRubyHome(jarDirGrandparent)) {
+                    // TruffleRuby Source build
                     return jarDirGrandparent.getCanonicalPath();
                 }
 
-                if (jarDir.getName().equals("ruby") && new File(jarDir, "lib").exists()) {
+                if (jarDir.getName().equals("ruby") && isRubyHome(jarDir)) {
                     // GraalVM build or distribution
                     return jarDir.getCanonicalPath();
                 }
@@ -469,6 +466,10 @@ public class RubyContext {
         Log.LOGGER.config("home not explicitly set, and couldn't determine it from the source of the Java classfiles or the TruffleRuby launcher");
 
         return null;
+    }
+
+    private boolean isRubyHome(File path) {
+        return Paths.get(path.toString(), "lib", "ruby").toFile().isDirectory();
     }
 
 }
