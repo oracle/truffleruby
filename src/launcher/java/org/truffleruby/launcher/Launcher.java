@@ -81,7 +81,7 @@ public class Launcher {
 
         final CommandLineOptions config = new CommandLineOptions();
 
-        processArguments(config, args, true);
+        processArguments(config, args, true, true);
 
         printHelpVersionCopyright(isGraal, config);
         final int exitCode = runMain(config);
@@ -157,12 +157,17 @@ public class Launcher {
         return builder.build();
     }
 
-    public static void processArguments(CommandLineOptions config, String[] args, boolean parseHelpEtc)  {
+    public static void processArguments(
+            CommandLineOptions config,
+            String[] args,
+            boolean parseHelpEtc,
+            boolean unknownOptionFails) {
+
         try {
             config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
 
             new CommandLineParser(args, parseHelpEtc, config).processArguments();
-            if (!config.getUnknownArguments().isEmpty()) {
+            if (unknownOptionFails && !config.getUnknownArguments().isEmpty()) {
                 throw new CommandLineException("unknown option " + config.getUnknownArguments().get(0));
             }
 
