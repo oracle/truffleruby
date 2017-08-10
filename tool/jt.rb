@@ -487,6 +487,7 @@ module Commands
     when 'options'
       sh 'tool/generate-options.rb'
     when nil
+      mx 'sforceimports'
       mx 'build', '--force-javac', '--warning-as-error'
     else
       raise ArgumentError, project
