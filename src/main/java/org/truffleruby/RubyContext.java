@@ -449,10 +449,12 @@ public class RubyContext {
 
                 final File jarDirParent = jarDir.getParentFile();
                 final File jarDirGrandparent = jarDirParent == null ? null : jarDirParent.getParentFile();
+                final File libDir = jarDirGrandparent == null ? null : new File(jarDirGrandparent, "lib");
+                final File libRubyDir = libDir == null ? null : new File(libDir, "ruby");
 
                 if (jarDir.getName().equals("dists")
                         && jarDirParent != null && jarDirParent.getName().equals("mxbuild")
-                        && jarDirGrandparent != null && new File(jarDirGrandparent, "lib").isDirectory()) {
+                        && libRubyDir != null && libRubyDir.isDirectory()) {
                     // Source build
                     return jarDirGrandparent.getCanonicalPath();
                 }
