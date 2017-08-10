@@ -78,6 +78,7 @@ module RbConfig
       'LIBRUBY_A'         => '',
       'LIBRUBYARG'        => '',
       'NULLCMD'           => ':',
+      'optflags'          => '',
       'RM'                => 'rm -f',
       'prefix'            => '',
       'ruby_install_name' => ruby_install_name,
