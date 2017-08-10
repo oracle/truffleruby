@@ -28,8 +28,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.NameToJavaStringNode;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyObjectType;
 import org.truffleruby.language.control.RaiseException;
