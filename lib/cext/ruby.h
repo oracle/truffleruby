@@ -399,6 +399,11 @@ VALUE rb_tr_get_default_rs(void);
 
 // END from tool/generate-cext-constants.rb
 
+#define Qfalse_int_const 0
+#define Qtrue_int_const 2
+#define Qnil_int_const 4
+int rb_tr_to_int_const(VALUE value);
+
 #define rb_defout rb_stdout
 
 // Conversions
