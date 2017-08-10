@@ -446,14 +446,12 @@ public class RubyContext {
                 final File jar = new File(codeSource.getLocation().getFile()).getCanonicalFile();
                 final File jarDir = jar.getParentFile();
 
-                final File jarDirParent = jarDir.getParentFile();
-                final File jarDirGrandparent = jarDirParent == null ? null : jarDirParent.getParentFile();
-
-                if (jarDir.getName().equals("dists")
-                        && jarDirParent != null && jarDirParent.getName().equals("mxbuild")
-                        && isRubyHome(jarDirGrandparent)) {
-                    // TruffleRuby Source build
-                    return jarDirGrandparent.getCanonicalPath();
+                if (jarDir.toPath().endsWith(Paths.get("mxbuild", "dists"))) {
+                    final File candidate = jarDir.getParentFile().getParentFile();
+                    if (isRubyHome(candidate)) {
+                        // TruffleRuby Source build
+                        return candidate.getCanonicalPath();
+                    }
                 }
 
                 if (jarDir.getName().equals("ruby") && isRubyHome(jarDir)) {
