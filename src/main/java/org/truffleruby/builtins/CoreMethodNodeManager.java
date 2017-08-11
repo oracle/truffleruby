@@ -11,6 +11,7 @@ package org.truffleruby.builtins;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
@@ -23,6 +24,7 @@ import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -145,7 +147,7 @@ public class CoreMethodNodeManager {
         }
 
         final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, methodDetails);
-        final CallTarget callTarget = makeGenericMethod(context, methodDetails, sharedMethodInfo);
+        final CallTarget callTarget = makeGenericMethod(context, methodDetails.getNodeFactory(), methodDetails.getMethodAnnotation(), sharedMethodInfo);
 
         if (method.isModuleFunction()) {
             addMethod(context, module, sharedMethodInfo, callTarget, names, Visibility.PRIVATE);
@@ -186,9 +188,13 @@ public class CoreMethodNodeManager {
                 context.getOptions().CORE_ALWAYS_CLONE);
     }
 
-    private static CallTarget makeGenericMethod(RubyContext context, MethodDetails methodDetails, SharedMethodInfo sharedMethodInfo) {
-        final RubyNode methodNode = createCoreMethodNode(context,
-                methodDetails.getNodeFactory(), methodDetails.getMethodAnnotation(), sharedMethodInfo);
+    private static CallTarget makeGenericMethod(RubyContext context, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method, SharedMethodInfo sharedMethodInfo) {
+        final RubyNode methodNode;
+        if (!TruffleOptions.AOT && !CHECK_DSL_USAGE && context.getOptions().LAZY_CORE_METHOD_NODES) {
+            methodNode = new LazyRubyNode(() -> createCoreMethodNode(context, nodeFactory, method, sharedMethodInfo));
+        } else {
+            methodNode = createCoreMethodNode(context, nodeFactory, method, sharedMethodInfo);
+        }
 
         final RubyRootNode rootNode = new RubyRootNode(context, sharedMethodInfo.getSourceSection(), null, sharedMethodInfo, methodNode);
         return Truffle.getRuntime().createCallTarget(rootNode);
