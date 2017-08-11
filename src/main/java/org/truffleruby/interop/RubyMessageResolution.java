@@ -233,7 +233,7 @@ public class RubyMessageResolution {
         @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            return dispatchNode.dispatch(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "ruby_object_keys", null, new Object[]{ object });
+            return dispatchNode.dispatch(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_keys", null, new Object[]{ object });
         }
 
         private RubyContext getContext() {
