@@ -700,16 +700,7 @@ public class CoreLibrary {
         final CoreMethodNodeManager coreMethodNodeManager =
                 new CoreMethodNodeManager(context, node.getSingletonClassNode(), primitiveManager);
 
-        if (coreMethodNodeManager.shouldUseCache()) {
-            if (!coreMethodNodeManager.isCacheUpToDate()) {
-                coreMethodNodeManager.cachedCoreMethodsAndPrimitives(getCoreNodeFactories());
-            }
-            coreMethodNodeManager.loadLazilyFromCache();
-        } else {
-            coreMethodNodeManager.loadCoreMethodNodes(getCoreNodeFactories());
-        }
-
-        coreMethodNodeManager.allMethodInstalled();
+        coreMethodNodeManager.loadCoreMethodNodes();
 
         basicObjectSendMethod = getMethod(basicObjectClass, "__send__");
         truffleBootMainMethod = getMethod(node.getSingletonClass(truffleBootModule), "main");
@@ -1524,7 +1515,7 @@ public class CoreLibrary {
     }
 
     // Sorted alphabetically to avoid duplicates
-    private List<List<? extends NodeFactory<? extends RubyNode>>> getCoreNodeFactories() {
+    public List<List<? extends NodeFactory<? extends RubyNode>>> getCoreNodeFactories() {
         return Arrays.asList(
             ArrayNodesFactory.getFactories(),
             AtomicReferenceNodesFactory.getFactories(),

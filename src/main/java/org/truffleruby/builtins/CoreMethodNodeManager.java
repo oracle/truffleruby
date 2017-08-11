@@ -45,22 +45,9 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.Translator;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.StringJoiner;
-import java.util.regex.Pattern;
 
 public class CoreMethodNodeManager {
 
@@ -68,170 +55,28 @@ public class CoreMethodNodeManager {
     private final RubyContext context;
     private final SingletonClassNode singletonClassNode;
     private final PrimitiveManager primitiveManager;
-
-    private final File cacheDir;
-    private final File coreMethodsCacheFile;
-    private final File primitivesCacheFile;
+    private final BuiltinsCache builtinsCache;
 
     public CoreMethodNodeManager(RubyContext context, SingletonClassNode singletonClassNode, PrimitiveManager primitiveManager) {
         this.context = context;
         this.singletonClassNode = singletonClassNode;
         this.primitiveManager = primitiveManager;
-
-        cacheDir = Paths.get(context.getRubyHome(), "lib", "truffle").toFile();
-        coreMethodsCacheFile = new File(cacheDir, "core-methods.txt");
-        primitivesCacheFile = new File(cacheDir, "primitives.txt");
+        this.builtinsCache = new BuiltinsCache(context, this, primitiveManager);
     }
 
-    private static final char SEPARATOR = ';';
-    private static final Pattern SPLITTER = Pattern.compile("" + SEPARATOR);
-    private static final Pattern COMMA = Pattern.compile(",");
-
-    public boolean shouldUseCache() {
-        if (!TruffleOptions.AOT && !CHECK_DSL_USAGE && context.getOptions().LAZY_BUILTINS) {
-            final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
-            if (codeSource != null && codeSource.getLocation().getProtocol().equals("file") && cacheDir.canWrite()) {
-                return true;
+    public void loadCoreMethodNodes() {
+        if (builtinsCache.shouldUseCache()) {
+            if (!builtinsCache.isCacheUpToDate()) {
+                builtinsCache.cachedCoreMethodsAndPrimitives(context.getCoreLibrary().getCoreNodeFactories());
+            }
+            builtinsCache.loadLazilyFromCache();
+        } else {
+            for (List<? extends NodeFactory<? extends RubyNode>> factory : context.getCoreLibrary().getCoreNodeFactories()) {
+                addCoreMethodNodes(factory);
             }
         }
-        return false;
-    }
 
-    public boolean isCacheUpToDate() {
-        final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
-        final File jar = new File(codeSource.getLocation().getFile());
-        return coreMethodsCacheFile.exists() && coreMethodsCacheFile.lastModified() > jar.lastModified() &&
-                primitivesCacheFile.exists() && primitivesCacheFile.lastModified() > jar.lastModified();
-    }
-
-    private static class LockingFileWriter implements AutoCloseable {
-
-        private final FileChannel channel;
-        private final FileLock lock;
-        private final Writer writer;
-
-        public LockingFileWriter(File file) throws IOException {
-            channel = FileChannel.open(file.toPath(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-            writer = Channels.newWriter(channel, "UTF-8");
-            lock = channel.lock();
-        }
-
-        public void close() throws IOException {
-            writer.flush();
-            lock.release();
-            writer.close();
-            channel.close();
-        }
-
-        public Writer getWriter() {
-            return writer;
-        }
-
-    }
-
-    private static class LockingFileReader implements AutoCloseable {
-
-        private final FileChannel channel;
-        private final FileLock lock;
-        private final Reader reader;
-
-        public LockingFileReader(File file) throws IOException {
-            channel = FileChannel.open(file.toPath(), StandardOpenOption.READ);
-            reader = Channels.newReader(channel, "UTF-8");
-            lock = channel.lock(0, Long.MAX_VALUE, true);
-        }
-
-        public void close() throws IOException {
-            lock.release();
-            reader.close();
-            channel.close();
-        }
-
-        public Reader getReader() {
-            return reader;
-        }
-
-    }
-
-    public void cachedCoreMethodsAndPrimitives(List<List<? extends NodeFactory<? extends RubyNode>>> coreNodeFactories) {
-        Log.LOGGER.config("Regenerating builtins cache");
-
-        try (LockingFileWriter methodsWriter = new LockingFileWriter(coreMethodsCacheFile);
-                LockingFileWriter primitivesWriter = new LockingFileWriter(primitivesCacheFile);) {
-            final Writer methods = methodsWriter.getWriter();
-            final Writer primitives = primitivesWriter.getWriter();
-
-            for (List<? extends NodeFactory<? extends RubyNode>> nodeFactories : coreNodeFactories) {
-                for (NodeFactory<? extends RubyNode> nodeFactory : nodeFactories) {
-                    final Class<?> nodeClass = nodeFactory.getNodeClass();
-                    final CoreMethod method = nodeClass.getAnnotation(CoreMethod.class);
-                    Primitive primitiveAnnotation;
-                    if (method != null) {
-                        String moduleName = nodeClass.getEnclosingClass().getAnnotation(CoreClass.class).value();
-                        String type = method.isModuleFunction() ? "&" : method.onSingleton() || method.constructor() ? "." : "#";
-                        String visibility = method.visibility().name();
-                        methods.append(nodeFactory.getClass().getName()).append(SEPARATOR);
-                        methods.append(moduleName).append(SEPARATOR);
-                        methods.append(visibility).append(SEPARATOR);
-                        methods.append(type).append(SEPARATOR);
-                        final int rest = method.rest() ? 1 : 0;
-                        methods.append("" + method.required() + method.optional() + rest).append(SEPARATOR);
-                        final StringJoiner joiner = new StringJoiner(",");
-                        for (String name : method.names()) {
-                            joiner.add(name);
-                        }
-                        methods.append(joiner.toString());
-                        methods.append('\n');
-                    } else if ((primitiveAnnotation = nodeClass.getAnnotation(Primitive.class)) != null) {
-                        primitives.append(nodeFactory.getClass().getName()).append(SEPARATOR);
-                        primitives.append(primitiveAnnotation.name()).append('\n');
-                    }
-                }
-            }
-        } catch (IOException e) {
-            throw new JavaException(e);
-        }
-    }
-
-    public void loadLazilyFromCache() {
-        try (LockingFileReader methodsReader = new LockingFileReader(coreMethodsCacheFile)) {
-            final BufferedReader reader = new BufferedReader(methodsReader.getReader());
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = SPLITTER.split(line);
-                String nodeFactoryName = parts[0];
-                String moduleName = parts[1];
-                Visibility visibility = Visibility.valueOf(parts[2]);
-                char type = parts[3].charAt(0);
-                String arity = parts[4];
-                int required = arity.charAt(0) - '0';
-                int optional = arity.charAt(1) - '0';
-                boolean rest = arity.charAt(2) == '1';
-                String[] names = COMMA.split(parts[5]);
-                addLazyCoreMethod(nodeFactoryName, moduleName, visibility, type == '&', type == '.', required, optional, rest, names);
-            }
-        } catch (IOException e) {
-            throw new JavaException(e);
-        }
-
-        try (LockingFileReader primitivesReader = new LockingFileReader(primitivesCacheFile)) {
-            final BufferedReader reader = new BufferedReader(primitivesReader.getReader());
-            String line;
-            while ((line = reader.readLine()) != null) {
-                int colon = line.indexOf(SEPARATOR);
-                String className = line.substring(0, colon);
-                String primitive = line.substring(colon + 1);
-                primitiveManager.addLazyPrimitive(primitive, className);
-            }
-        } catch (IOException e) {
-            throw new JavaException(e);
-        }
-    }
-
-    public void loadCoreMethodNodes(List<List<? extends NodeFactory<? extends RubyNode>>> coreNodeFactories) {
-        for (List<? extends NodeFactory<? extends RubyNode>> factory : coreNodeFactories) {
-            addCoreMethodNodes(factory);
-        }
+        allMethodInstalled();
     }
 
     public void addCoreMethodNodes(List<? extends NodeFactory<? extends RubyNode>> nodeFactories) {
@@ -303,7 +148,7 @@ public class CoreMethodNodeManager {
         addMethods(module, method.isModuleFunction(), onSingleton, names, visibility, sharedMethodInfo, callTarget);
     }
 
-    private void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility,
+    void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility,
             boolean isModuleFunction, boolean onSingleton, int required, int optional, boolean rest, String[] names) {
         final DynamicObject module = getModule(moduleName);
 
