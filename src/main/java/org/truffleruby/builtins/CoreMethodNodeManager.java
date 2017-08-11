@@ -120,7 +120,22 @@ public class CoreMethodNodeManager {
         assert names.length >= 1;
 
         final Visibility visibility = method.visibility();
+        verifyUsage(module, methodDetails, method, visibility);
 
+        final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, methodDetails);
+        final CallTarget callTarget = makeGenericMethod(context, methodDetails.getNodeFactory(), methodDetails.getMethodAnnotation(), sharedMethodInfo);
+
+        if (method.isModuleFunction()) {
+            addMethod(context, module, sharedMethodInfo, callTarget, names, Visibility.PRIVATE);
+            addMethod(context, getSingletonClass(module), sharedMethodInfo, callTarget, names, Visibility.PUBLIC);
+        } else if (method.onSingleton() || method.constructor()) {
+            addMethod(context, getSingletonClass(module), sharedMethodInfo, callTarget, names, visibility);
+        } else {
+            addMethod(context, module, sharedMethodInfo, callTarget, names, visibility);
+        }
+    }
+
+    private void verifyUsage(DynamicObject module, MethodDetails methodDetails, final CoreMethod method, final Visibility visibility) {
         if (method.isModuleFunction()) {
             if (visibility != Visibility.PUBLIC) {
                 Log.LOGGER.warning("visibility ignored when isModuleFunction in " + methodDetails.getIndicativeName());
@@ -144,18 +159,6 @@ public class CoreMethodNodeManager {
         }
         if (methodDetails.getPrimaryName().equals("__allocate__") && method.visibility() != Visibility.PRIVATE) {
             Log.LOGGER.warning(methodDetails.getIndicativeName() + " should be private");
-        }
-
-        final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, methodDetails);
-        final CallTarget callTarget = makeGenericMethod(context, methodDetails.getNodeFactory(), methodDetails.getMethodAnnotation(), sharedMethodInfo);
-
-        if (method.isModuleFunction()) {
-            addMethod(context, module, sharedMethodInfo, callTarget, names, Visibility.PRIVATE);
-            addMethod(context, getSingletonClass(module), sharedMethodInfo, callTarget, names, Visibility.PUBLIC);
-        } else if (method.onSingleton() || method.constructor()) {
-            addMethod(context, getSingletonClass(module), sharedMethodInfo, callTarget, names, visibility);
-        } else {
-            addMethod(context, module, sharedMethodInfo, callTarget, names, visibility);
         }
     }
 
