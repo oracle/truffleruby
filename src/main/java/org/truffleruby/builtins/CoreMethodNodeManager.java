@@ -55,21 +55,16 @@ public class CoreMethodNodeManager {
     private final RubyContext context;
     private final SingletonClassNode singletonClassNode;
     private final PrimitiveManager primitiveManager;
-    private final BuiltinsCache builtinsCache;
 
     public CoreMethodNodeManager(RubyContext context, SingletonClassNode singletonClassNode, PrimitiveManager primitiveManager) {
         this.context = context;
         this.singletonClassNode = singletonClassNode;
         this.primitiveManager = primitiveManager;
-        this.builtinsCache = new BuiltinsCache(context, this, primitiveManager);
     }
 
     public void loadCoreMethodNodes() {
-        if (!TruffleOptions.AOT && builtinsCache.shouldUseCache()) {
-            if (!builtinsCache.isCacheUpToDate()) {
-                builtinsCache.cachedCoreMethodsAndPrimitives(context.getCoreLibrary().getCoreNodeFactories());
-            }
-            builtinsCache.loadLazilyFromCache();
+        if (!TruffleOptions.AOT && context.getOptions().LAZY_BUILTINS) {
+            BuiltinsClasses.setupBuiltinsLazy(this, primitiveManager);
         } else {
             for (List<? extends NodeFactory<? extends RubyNode>> factory : context.getCoreLibrary().getCoreNodeFactories()) {
                 addCoreMethodNodes(factory);
@@ -148,8 +143,8 @@ public class CoreMethodNodeManager {
         addMethods(module, method.isModuleFunction(), onSingleton, names, visibility, sharedMethodInfo, callTarget);
     }
 
-    void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility,
-            boolean isModuleFunction, boolean onSingleton, int required, int optional, boolean rest, String[] names) {
+    public void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility,
+            boolean isModuleFunction, boolean onSingleton, int required, int optional, boolean rest, String... names) {
         final DynamicObject module = getModule(moduleName);
 
         final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, required, optional, rest, names[0]);

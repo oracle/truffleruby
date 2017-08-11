@@ -9,21 +9,13 @@
  */
 package org.truffleruby.core;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleOptions;
-import com.oracle.truffle.api.dsl.NodeFactory;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
-import com.oracle.truffle.api.object.Layout;
-import com.oracle.truffle.api.object.Property;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import jnr.constants.platform.Errno;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -140,12 +132,22 @@ import org.truffleruby.stdlib.psych.YAMLEncoding;
 import org.truffleruby.stdlib.readline.ReadlineHistoryNodesFactory;
 import org.truffleruby.stdlib.readline.ReadlineNodesFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleOptions;
+import com.oracle.truffle.api.dsl.NodeFactory;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
+import com.oracle.truffle.api.object.Layout;
+import com.oracle.truffle.api.object.Property;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+
+import jnr.constants.platform.Errno;
 
 public class CoreLibrary {
 

@@ -12,11 +12,13 @@ package org.truffleruby.core.rubinius;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 
 import java.lang.ref.WeakReference;
 
+@CoreClass("WeakRef")
 public abstract class WeakRefNodes {
 
     @Primitive(name = "weakref_new", needsSelf = false)
