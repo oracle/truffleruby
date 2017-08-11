@@ -13,6 +13,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.Instrumentable;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyNode;
 
@@ -25,12 +26,6 @@ public abstract class BooleanCastNode extends RubyNode {
 
     public static BooleanCastNode create() {
         return BooleanCastNodeGen.create(null);
-    }
-
-    public BooleanCastNode() {
-    }
-
-    public BooleanCastNode(BooleanCastNode node) {
     }
 
     /** Execute with child node */
@@ -66,6 +61,16 @@ public abstract class BooleanCastNode extends RubyNode {
 
     @Specialization(guards = "!isNil(object)")
     public boolean doBasicObject(DynamicObject object) {
+        return true;
+    }
+
+    @Specialization(guards = "isForeignObject(object)")
+    public boolean doForeignObject(TruffleObject object) {
+        return true;
+    }
+
+    @Specialization(guards = {"!isTruffleObject(object)", "!isBoxedPrimitive(object)"})
+    public boolean doOther(Object object) {
         return true;
     }
 
