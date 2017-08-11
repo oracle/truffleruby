@@ -50,6 +50,7 @@ import jnr.posix.Passwd;
 import jnr.posix.Times;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayOperations;
@@ -83,6 +84,7 @@ import java.util.List;
 import static jnr.constants.platform.Errno.ECHILD;
 import static jnr.constants.platform.WaitFlags.WNOHANG;
 
+@CoreClass(value = "VM primitives")
 public abstract class VMPrimitiveNodes {
 
     @Primitive(name = "vm_catch", needsSelf = false)

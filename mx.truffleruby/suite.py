@@ -165,10 +165,32 @@ suite = {
 
         # ------------- Projects -------------
 
+        "truffleruby-annotations": {
+            "dir": "src/annotations",
+            "sourceDirs": ["java"],
+            "javaCompliance": "1.8",
+            "workingSets": "TruffleRuby",
+            "checkPackagePrefix": "false",
+            "license": ["EPL-1.0"],
+        },
+
+        "truffleruby-processor": {
+            "dir": "src/processor",
+            "sourceDirs": ["java"],
+            "dependencies": [
+                "truffleruby-annotations",
+            ],
+            "javaCompliance": "1.8",
+            "workingSets": "TruffleRuby",
+            "checkPackagePrefix": "false",
+            "license": ["EPL-1.0"],
+        },
+
         "truffleruby": {
             "dir": "src/main",
             "sourceDirs": ["java"],
             "dependencies": [
+                "truffleruby-annotations",
                 "truffleruby:TRUFFLERUBY-LAUNCHER",
                 "truffle:TRUFFLE_API",
                 "truffle:JLINE",
@@ -182,7 +204,10 @@ suite = {
                 "JONI",
                 "JCODINGS",
             ],
-            "annotationProcessors": ["truffle:TRUFFLE_DSL_PROCESSOR"],
+            "annotationProcessors": [
+                "truffle:TRUFFLE_DSL_PROCESSOR",
+                "TRUFFLERUBY-PROCESSOR",
+            ],
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
@@ -267,6 +292,14 @@ suite = {
     "distributions": {
 
         # ------------- Distributions -------------
+
+        "TRUFFLERUBY-PROCESSOR": {
+            "dependencies": [
+                "truffleruby-processor"
+            ],
+            "description": "TruffleRuby Annotation Processor",
+            "license": ["EPL-1.0"]
+        },
 
         "TRUFFLERUBY": {
             "mainClass": "org.truffleruby.Main",
