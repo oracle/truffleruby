@@ -52,6 +52,7 @@ public class Options {
     public final boolean INLINE_JS;
     public final String CORE_LOAD_PATH;
     public final boolean STDLIB_AS_INTERNAL;
+    public final boolean LAZY_BUILTINS;
     public final boolean LAZY_CORE_METHOD_NODES;
     public final boolean LAZY_TRANSLATION_CORE;
     public final boolean LAZY_TRANSLATION_USER;
@@ -163,6 +164,7 @@ public class Options {
         INLINE_JS = builder.getOrDefault(OptionsCatalog.INLINE_JS);
         CORE_LOAD_PATH = builder.getOrDefault(OptionsCatalog.CORE_LOAD_PATH);
         STDLIB_AS_INTERNAL = builder.getOrDefault(OptionsCatalog.STDLIB_AS_INTERNAL);
+        LAZY_BUILTINS = builder.getOrDefault(OptionsCatalog.LAZY_BUILTINS);
         LAZY_CORE_METHOD_NODES = builder.getOrDefault(OptionsCatalog.LAZY_CORE_METHOD_NODES);
         LAZY_TRANSLATION_CORE = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_CORE);
         LAZY_TRANSLATION_USER = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_USER);
@@ -312,6 +314,8 @@ public class Options {
                 return CORE_LOAD_PATH;
             case "ruby.stdlib_as_internal":
                 return STDLIB_AS_INTERNAL;
+            case "ruby.lazy_builtins":
+                return LAZY_BUILTINS;
             case "ruby.lazy_core_method_nodes":
                 return LAZY_CORE_METHOD_NODES;
             case "ruby.lazy_translation.core":
