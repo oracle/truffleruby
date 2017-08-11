@@ -126,9 +126,14 @@ public abstract class BasicObjectNodes {
             return a == b;
         }
 
-        @Specialization(guards = { "isNotDynamicObject(a)", "isNotDynamicObject(b)", "notSameClass(a, b)", "isNotIntLong(a) || isNotIntLong(b)" })
+        @Specialization(guards = { "isNotDynamicObject(a)", "isNotDynamicObject(b)", "!sameClass(a, b)", "isNotIntLong(a) || isNotIntLong(b)" })
         public boolean equalIncompatiblePrimitiveTypes(Object a, Object b) {
             return false;
+        }
+
+        @Specialization(guards = { "isNotDynamicObject(a)", "isNotDynamicObject(b)", "sameClass(a, b)", "isNotIntLongDouble(a) || isNotIntLongDouble(b)" })
+        public boolean equalOtherSameClass(Object a, Object b) {
+            return a == b;
         }
 
         @Specialization(guards = "isNotDynamicObject(a)")
@@ -145,12 +150,16 @@ public abstract class BasicObjectNodes {
             return !(value instanceof DynamicObject);
         }
 
-        protected boolean notSameClass(Object a, Object b) {
-            return a.getClass() != b.getClass();
+        protected boolean sameClass(Object a, Object b) {
+            return a.getClass() == b.getClass();
         }
 
         protected boolean isNotIntLong(Object v) {
             return !(v instanceof Integer) && !(v instanceof Long);
+        }
+
+        protected boolean isNotIntLongDouble(Object v) {
+            return !(v instanceof Integer) && !(v instanceof Long) && !(v instanceof Double);
         }
 
     }
