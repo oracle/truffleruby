@@ -65,7 +65,7 @@ public class CoreMethodNodeManager {
     }
 
     public void loadCoreMethodNodes() {
-        if (builtinsCache.shouldUseCache()) {
+        if (!TruffleOptions.AOT && builtinsCache.shouldUseCache()) {
             if (!builtinsCache.isCacheUpToDate()) {
                 builtinsCache.cachedCoreMethodsAndPrimitives(context.getCoreLibrary().getCoreNodeFactories());
             }
