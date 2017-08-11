@@ -9,6 +9,7 @@
  */
 package org.truffleruby.builtins;
 
+import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
 
 import org.truffleruby.collections.ConcurrentOperations;
@@ -41,9 +42,11 @@ public class PrimitiveManager {
             return constructor;
         }
 
-        final String lazyPrimitive = lazyPrimitiveClasses.get(name);
-        if (lazyPrimitive != null) {
-            return loadLazyPrimitive(lazyPrimitive);
+        if (!TruffleOptions.AOT) {
+            final String lazyPrimitive = lazyPrimitiveClasses.get(name);
+            if (lazyPrimitive != null) {
+                return loadLazyPrimitive(lazyPrimitive);
+            }
         }
 
         return undefinedPrimitive;
