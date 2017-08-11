@@ -58,7 +58,7 @@ public class BuiltinsCache {
     private static final Pattern COMMA = Pattern.compile(",");
 
     public boolean shouldUseCache() {
-        if (!TruffleOptions.AOT && !CoreMethodNodeManager.CHECK_DSL_USAGE && context.getOptions().LAZY_BUILTINS) {
+        if (!TruffleOptions.AOT && context.getOptions().LAZY_BUILTINS) {
             final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
             if (codeSource != null && codeSource.getLocation().getProtocol().equals("file") && cacheDir.canWrite()) {
                 return true;

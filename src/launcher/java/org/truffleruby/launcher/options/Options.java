@@ -34,6 +34,7 @@ public class Options {
     public final boolean ARGV_GLOBALS;
     public final String[] ARGV_GLOBAL_VALUES;
     public final String[] ARGV_GLOBAL_FLAGS;
+    public final boolean DEFAULT_LAZY;
     public final boolean FROZEN_STRING_LITERALS;
     public final boolean RUBYGEMS;
     public final boolean LAZY_RUBYGEMS;
@@ -146,9 +147,10 @@ public class Options {
         ARGV_GLOBALS = builder.getOrDefault(OptionsCatalog.ARGV_GLOBALS);
         ARGV_GLOBAL_VALUES = builder.getOrDefault(OptionsCatalog.ARGV_GLOBAL_VALUES);
         ARGV_GLOBAL_FLAGS = builder.getOrDefault(OptionsCatalog.ARGV_GLOBAL_FLAGS);
+        DEFAULT_LAZY = builder.getOrDefault(OptionsCatalog.DEFAULT_LAZY);
         FROZEN_STRING_LITERALS = builder.getOrDefault(OptionsCatalog.FROZEN_STRING_LITERALS);
         RUBYGEMS = builder.getOrDefault(OptionsCatalog.RUBYGEMS);
-        LAZY_RUBYGEMS = builder.getOrDefault(OptionsCatalog.LAZY_RUBYGEMS);
+        LAZY_RUBYGEMS = builder.getOrDefault(OptionsCatalog.LAZY_RUBYGEMS, DEFAULT_LAZY);
         PATCHING = builder.getOrDefault(OptionsCatalog.PATCHING);
         PATCHING_OPENSSL = builder.getOrDefault(OptionsCatalog.PATCHING_OPENSSL);
         DID_YOU_MEAN = builder.getOrDefault(OptionsCatalog.DID_YOU_MEAN);
@@ -164,9 +166,9 @@ public class Options {
         INLINE_JS = builder.getOrDefault(OptionsCatalog.INLINE_JS);
         CORE_LOAD_PATH = builder.getOrDefault(OptionsCatalog.CORE_LOAD_PATH);
         STDLIB_AS_INTERNAL = builder.getOrDefault(OptionsCatalog.STDLIB_AS_INTERNAL);
-        LAZY_BUILTINS = builder.getOrDefault(OptionsCatalog.LAZY_BUILTINS);
-        LAZY_CORE_METHOD_NODES = builder.getOrDefault(OptionsCatalog.LAZY_CORE_METHOD_NODES);
-        LAZY_TRANSLATION_CORE = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_CORE);
+        LAZY_BUILTINS = builder.getOrDefault(OptionsCatalog.LAZY_BUILTINS, DEFAULT_LAZY);
+        LAZY_CORE_METHOD_NODES = builder.getOrDefault(OptionsCatalog.LAZY_CORE_METHOD_NODES, DEFAULT_LAZY);
+        LAZY_TRANSLATION_CORE = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_CORE, DEFAULT_LAZY);
         LAZY_TRANSLATION_USER = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_USER);
         LAZY_TRANSLATION_LOG = builder.getOrDefault(OptionsCatalog.LAZY_TRANSLATION_LOG);
         ARRAY_UNINITIALIZED_SIZE = builder.getOrDefault(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE);
@@ -278,6 +280,8 @@ public class Options {
                 return ARGV_GLOBAL_VALUES;
             case "ruby.argv_global_flags":
                 return ARGV_GLOBAL_FLAGS;
+            case "ruby.lazy.default":
+                return DEFAULT_LAZY;
             case "ruby.frozen_string_literals":
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":

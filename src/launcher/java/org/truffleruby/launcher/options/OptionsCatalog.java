@@ -88,6 +88,10 @@ public class OptionsCatalog {
             "ruby.argv_global_flags",
             "Parsed options from script argv acting as flags (no value).",
             new String[]{});
+    public static final BooleanOptionDescription DEFAULT_LAZY = new BooleanOptionDescription(
+            "ruby.lazy.default",
+            "Enable default lazy options",
+            true);
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription(
             "ruby.frozen_string_literals",
             "Use frozen string literals",
@@ -99,7 +103,7 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription LAZY_RUBYGEMS = new BooleanOptionDescription(
             "ruby.rubygems.lazy",
             "Load RubyGems lazily on first failing require",
-            true);
+            DEFAULT_LAZY.getDefaultValue());
     public static final BooleanOptionDescription PATCHING = new BooleanOptionDescription(
             "ruby.patching",
             "Use patching",
@@ -163,15 +167,15 @@ public class OptionsCatalog {
     public static final BooleanOptionDescription LAZY_BUILTINS = new BooleanOptionDescription(
             "ruby.lazy_builtins",
             "Load builtin classes (core methods & primitives) lazily on first use",
-            true);
+            DEFAULT_LAZY.getDefaultValue());
     public static final BooleanOptionDescription LAZY_CORE_METHOD_NODES = new BooleanOptionDescription(
             "ruby.lazy_core_method_nodes",
             "Lazily create core method nodes",
-            true);
+            DEFAULT_LAZY.getDefaultValue());
     public static final BooleanOptionDescription LAZY_TRANSLATION_CORE = new BooleanOptionDescription(
             "ruby.lazy_translation.core",
             "Lazily translation of core source files",
-            true);
+            DEFAULT_LAZY.getDefaultValue());
     public static final BooleanOptionDescription LAZY_TRANSLATION_USER = new BooleanOptionDescription(
             "ruby.lazy_translation.user",
             "Lazily translation of stdlib, gem and user source files",
@@ -495,6 +499,8 @@ public class OptionsCatalog {
                 return ARGV_GLOBAL_VALUES;
             case "ruby.argv_global_flags":
                 return ARGV_GLOBAL_FLAGS;
+            case "ruby.lazy.default":
+                return DEFAULT_LAZY;
             case "ruby.frozen_string_literals":
                 return FROZEN_STRING_LITERALS;
             case "ruby.rubygems":
@@ -704,6 +710,7 @@ public class OptionsCatalog {
             ARGV_GLOBALS,
             ARGV_GLOBAL_VALUES,
             ARGV_GLOBAL_FLAGS,
+            DEFAULT_LAZY,
             FROZEN_STRING_LITERALS,
             RUBYGEMS,
             LAZY_RUBYGEMS,

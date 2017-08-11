@@ -1574,7 +1574,7 @@ module Commands
     mx 'clean'
     # We need to build with -parameters to get parameter names
     mx 'build', '--force-javac', '-A-parameters'
-    run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-e', 'exit')
+    run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-Xlazy.default=false', '-e', 'exit')
   end
 
   def rubocop(*args)
