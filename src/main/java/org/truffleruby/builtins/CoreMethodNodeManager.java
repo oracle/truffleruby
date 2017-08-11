@@ -11,7 +11,6 @@ package org.truffleruby.builtins;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.dsl.GeneratedBy;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
@@ -67,7 +66,7 @@ public class CoreMethodNodeManager {
         DynamicObject module = null;
 
         for (NodeFactory<? extends RubyNode> nodeFactory : nodeFactories) {
-            final Class<?> nodeClass = nodeFactory.getClass().getAnnotation(GeneratedBy.class).value();
+            final Class<?> nodeClass = nodeFactory.getNodeClass();
             final CoreMethod methodAnnotation = nodeClass.getAnnotation(CoreMethod.class);
             Primitive primitiveAnnotation;
 
