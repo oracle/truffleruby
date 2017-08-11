@@ -83,7 +83,6 @@ import org.truffleruby.core.rubinius.AtomicReferenceNodesFactory;
 import org.truffleruby.core.rubinius.ByteArrayNodesFactory;
 import org.truffleruby.core.rubinius.IOBufferNodesFactory;
 import org.truffleruby.core.rubinius.IONodesFactory;
-import org.truffleruby.core.rubinius.NativeFunctionNodesFactory;
 import org.truffleruby.core.rubinius.RandomizerNodesFactory;
 import org.truffleruby.core.rubinius.StatNodesFactory;
 import org.truffleruby.core.rubinius.TypeNodesFactory;
@@ -1552,7 +1551,6 @@ public class CoreLibrary {
             ModuleNodesFactory.getFactories(),
             MutexNodesFactory.getFactories(),
             NameErrorNodesFactory.getFactories(),
-            NativeFunctionNodesFactory.getFactories(),
             NoMethodErrorNodesFactory.getFactories(),
             ObjectSpaceNodesFactory.getFactories(),
             ObjSpaceNodesFactory.getFactories(),
