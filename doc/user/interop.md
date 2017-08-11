@@ -321,3 +321,6 @@ type is supported for interop.
 with these fields and values, like a JavaScript object literal does. You can
 then continue to read and write fields on the object and they will be
 dynamically added, similar to `OpenStruct`.
+
+`Truffle::Interop.enumerable(object)` gives you an `Enumerable` interface to a
+foreign object.
