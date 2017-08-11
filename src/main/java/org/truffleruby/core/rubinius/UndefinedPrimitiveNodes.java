@@ -22,9 +22,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
  */
 public abstract class UndefinedPrimitiveNodes {
 
-    public final static String NAME = "undefined";
-
-    @Primitive(name = NAME)
+    @Primitive(name = "undefined")
     public static abstract class UndefinedPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
