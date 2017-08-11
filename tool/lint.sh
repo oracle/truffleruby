@@ -29,3 +29,10 @@ if [ -n "$bad" ]; then
 	echo "$bad"
 	exit 1
 fi
+
+bad=$(egrep '\bif\(' src/main/c/cext/ruby.c || exit 0)
+if [ -n "$bad" ]; then
+	echo "There should be a space between if and ("
+	echo "$bad"
+	exit 1
+fi
