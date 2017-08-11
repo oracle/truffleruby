@@ -9,8 +9,10 @@
  */
 package org.truffleruby.builtins;
 
+import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.Log;
+import org.truffleruby.language.RubyNode;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -20,27 +22,26 @@ public class AmbiguousOptionalArgumentChecker {
     public static boolean SUCCESS = true;
     private static boolean AVAILABLE = true;
 
-    public static void verifyNoAmbiguousOptionalArguments(CoreMethodNodeManager.MethodDetails methodDetails) {
+    public static void verifyNoAmbiguousOptionalArguments(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method) {
         if (!AVAILABLE) {
             return;
         }
         try {
-            verifyNoAmbiguousOptionalArgumentsWithReflection(methodDetails);
+            verifyNoAmbiguousOptionalArgumentsWithReflection(nodeFactory, method);
         } catch (Exception e) {
             e.printStackTrace();
             SUCCESS = false;
         }
     }
 
-    private static void verifyNoAmbiguousOptionalArgumentsWithReflection(CoreMethodNodeManager.MethodDetails methodDetails) {
-        final CoreMethod methodAnnotation = methodDetails.getMethodAnnotation();
+    private static void verifyNoAmbiguousOptionalArgumentsWithReflection(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod methodAnnotation) {
         if (methodAnnotation.optional() > 0 || methodAnnotation.needsBlock()) {
             int opt = methodAnnotation.optional();
             if (methodAnnotation.needsBlock()) {
                 opt++;
             }
 
-            Class<?> node = methodDetails.getNodeFactory().getNodeClass();
+            Class<?> node = nodeFactory.getNodeClass();
 
             for (int i = 1; i <= opt; i++) {
                 boolean unguardedObjectArgument = false;
