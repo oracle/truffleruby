@@ -1806,6 +1806,10 @@ int rb_proc_arity(VALUE self) {
 
 // Utilities
 
+void rb_bug(const char *fmt, ...) {
+  rb_tr_error("rb_bug not yet implemented");
+}
+
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
 }
