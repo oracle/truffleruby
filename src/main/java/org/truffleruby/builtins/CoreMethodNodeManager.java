@@ -190,30 +190,18 @@ public class CoreMethodNodeManager {
     }
 
     private static CallTarget makeGenericMethod(RubyContext context, MethodDetails methodDetails, SharedMethodInfo sharedMethodInfo) {
-        final CoreMethod method = methodDetails.getMethodAnnotation();
-
-        final SourceSection sourceSection = sharedMethodInfo.getSourceSection();
-
-        final RubyNode methodNode = createCoreMethodNode(context, methodDetails.getNodeFactory(), method);
-
         if (CHECK_DSL_USAGE) {
             AmbiguousOptionalArgumentChecker.verifyNoAmbiguousOptionalArguments(methodDetails);
         }
 
-        final RubyNode checkArity = Translator.createCheckArityNode(sharedMethodInfo.getArity());
+        final RubyNode methodNode = createCoreMethodNode(context,
+                methodDetails.getNodeFactory(), methodDetails.getMethodAnnotation(), sharedMethodInfo);
 
-        RubyNode node;
-        node = transformResult(context, method, methodNode);
-        node = Translator.sequence(context.getCoreLibrary().getSourceIndexLength(), Arrays.asList(checkArity, node));
-
-        final RubyNode bodyNode = new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
-
-        final RubyRootNode rootNode = new RubyRootNode(context, sourceSection, null, sharedMethodInfo, bodyNode);
-
+        final RubyRootNode rootNode = new RubyRootNode(context, sharedMethodInfo.getSourceSection(), null, sharedMethodInfo, methodNode);
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
-    public static RubyNode createCoreMethodNode(RubyContext context, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method) {
+    public static RubyNode createCoreMethodNode(RubyContext context, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method, SharedMethodInfo sharedMethodInfo) {
         final List<RubyNode> argumentsNodes = new ArrayList<>();
 
         final boolean needsSelf = needsSelf(method);
@@ -244,7 +232,14 @@ public class CoreMethodNodeManager {
             argumentsNodes.add(new ReadBlockNode(NotProvided.INSTANCE));
         }
 
-        return createNodeFromFactory(context, nodeFactory, argumentsNodes);
+        RubyNode node = createNodeFromFactory(context, nodeFactory, argumentsNodes);
+
+        final RubyNode checkArity = Translator.createCheckArityNode(sharedMethodInfo.getArity());
+
+        node = transformResult(context, method, node);
+        node = Translator.sequence(context.getCoreLibrary().getSourceIndexLength(), Arrays.asList(checkArity, node));
+
+        return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
 
     public static <T> T createNodeFromFactory(RubyContext context, NodeFactory<? extends T> nodeFactory, List<RubyNode> argumentsNodes) {
