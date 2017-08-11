@@ -30,7 +30,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.JavaException;
 
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
 
 public class BuiltinsCache {
@@ -58,7 +57,7 @@ public class BuiltinsCache {
     private static final Pattern COMMA = Pattern.compile(",");
 
     public boolean shouldUseCache() {
-        if (!TruffleOptions.AOT && context.getOptions().LAZY_BUILTINS) {
+        if (context.getOptions().LAZY_BUILTINS) {
             final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
             if (codeSource != null && codeSource.getLocation().getProtocol().equals("file") && cacheDir.canWrite()) {
                 return true;
