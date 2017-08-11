@@ -64,11 +64,14 @@ if Truffle::Boot.get_option 'rubygems'
     require 'truffle/patching'
 
     if Truffle::Boot.get_option 'did_you_mean'
+      Truffle::Boot.print_time_metric :'before-did-you-mean'
       begin
         $LOAD_PATH << "#{Truffle::Boot.ruby_home}/lib/ruby/gems/2.3.0/gems/did_you_mean-1.0.0/lib"
         require 'did_you_mean'
       rescue LoadError => e
         Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
+      ensure
+        Truffle::Boot.print_time_metric :'after-did-you-mean'
       end
     end
   end
