@@ -235,7 +235,7 @@ public class CoreMethodNodeManager {
 
     private static CallTarget makeGenericMethod(RubyContext context, NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method, SharedMethodInfo sharedMethodInfo) {
         final RubyNode methodNode;
-        if (!TruffleOptions.AOT && !CHECK_DSL_USAGE && context.getOptions().LAZY_CORE_METHOD_NODES) {
+        if (!TruffleOptions.AOT && context.getOptions().LAZY_CORE_METHOD_NODES) {
             methodNode = new LazyRubyNode(() -> createCoreMethodNode(context, nodeFactory, method, sharedMethodInfo));
         } else {
             methodNode = createCoreMethodNode(context, nodeFactory, method, sharedMethodInfo);
