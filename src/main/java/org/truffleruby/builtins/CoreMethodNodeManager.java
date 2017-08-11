@@ -47,10 +47,14 @@ import org.truffleruby.parser.Translator;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -100,11 +104,63 @@ public class CoreMethodNodeManager {
                 primitivesCacheFile.exists() && primitivesCacheFile.lastModified() > jar.lastModified();
     }
 
+    private static class LockingFileWriter implements AutoCloseable {
+
+        private final FileChannel channel;
+        private final FileLock lock;
+        private final Writer writer;
+
+        public LockingFileWriter(File file) throws IOException {
+            channel = FileChannel.open(file.toPath(), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+            writer = Channels.newWriter(channel, "UTF-8");
+            lock = channel.lock();
+        }
+
+        public void close() throws IOException {
+            writer.flush();
+            lock.release();
+            writer.close();
+            channel.close();
+        }
+
+        public Writer getWriter() {
+            return writer;
+        }
+
+    }
+
+    private static class LockingFileReader implements AutoCloseable {
+
+        private final FileChannel channel;
+        private final FileLock lock;
+        private final Reader reader;
+
+        public LockingFileReader(File file) throws IOException {
+            channel = FileChannel.open(file.toPath(), StandardOpenOption.READ);
+            reader = Channels.newReader(channel, "UTF-8");
+            lock = channel.lock(0, Long.MAX_VALUE, true);
+        }
+
+        public void close() throws IOException {
+            lock.release();
+            reader.close();
+            channel.close();
+        }
+
+        public Reader getReader() {
+            return reader;
+        }
+
+    }
+
     public void cachedCoreMethodsAndPrimitives(List<List<? extends NodeFactory<? extends RubyNode>>> coreNodeFactories) {
         Log.LOGGER.config("Regenerating builtins cache");
 
-        try (FileWriter methods = new FileWriter(coreMethodsCacheFile);
-                FileWriter primitives = new FileWriter(primitivesCacheFile)) {
+        try (LockingFileWriter methodsWriter = new LockingFileWriter(coreMethodsCacheFile);
+                LockingFileWriter primitivesWriter = new LockingFileWriter(primitivesCacheFile);) {
+            final Writer methods = methodsWriter.getWriter();
+            final Writer primitives = primitivesWriter.getWriter();
+
             for (List<? extends NodeFactory<? extends RubyNode>> nodeFactories : coreNodeFactories) {
                 for (NodeFactory<? extends RubyNode> nodeFactory : nodeFactories) {
                     final Class<?> nodeClass = nodeFactory.getNodeClass();
@@ -138,7 +194,8 @@ public class CoreMethodNodeManager {
     }
 
     public void loadLazilyFromCache() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(coreMethodsCacheFile))) {
+        try (LockingFileReader methodsReader = new LockingFileReader(coreMethodsCacheFile)) {
+            final BufferedReader reader = new BufferedReader(methodsReader.getReader());
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = SPLITTER.split(line);
@@ -157,7 +214,8 @@ public class CoreMethodNodeManager {
             throw new JavaException(e);
         }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(primitivesCacheFile))) {
+        try (LockingFileReader primitivesReader = new LockingFileReader(primitivesCacheFile)) {
+            final BufferedReader reader = new BufferedReader(primitivesReader.getReader());
             String line;
             while ((line = reader.readLine()) != null) {
                 int colon = line.indexOf(SEPARATOR);
