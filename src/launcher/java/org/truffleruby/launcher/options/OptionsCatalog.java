@@ -160,6 +160,10 @@ public class OptionsCatalog {
             "ruby.stdlib_as_internal",
             "Mark stdlib sources (really, anything loaded from the TruffleRuby home) as internal",
             true);
+    public static final BooleanOptionDescription LAZY_CORE_METHOD_NODES = new BooleanOptionDescription(
+            "ruby.lazy_core_method_nodes",
+            "Lazily create core method nodes",
+            true);
     public static final BooleanOptionDescription LAZY_TRANSLATION_CORE = new BooleanOptionDescription(
             "ruby.lazy_translation.core",
             "Lazily translation of core source files",
@@ -523,6 +527,8 @@ public class OptionsCatalog {
                 return CORE_LOAD_PATH;
             case "ruby.stdlib_as_internal":
                 return STDLIB_AS_INTERNAL;
+            case "ruby.lazy_core_method_nodes":
+                return LAZY_CORE_METHOD_NODES;
             case "ruby.lazy_translation.core":
                 return LAZY_TRANSLATION_CORE;
             case "ruby.lazy_translation.user":
@@ -710,6 +716,7 @@ public class OptionsCatalog {
             INLINE_JS,
             CORE_LOAD_PATH,
             STDLIB_AS_INTERNAL,
+            LAZY_CORE_METHOD_NODES,
             LAZY_TRANSLATION_CORE,
             LAZY_TRANSLATION_USER,
             LAZY_TRANSLATION_LOG,
