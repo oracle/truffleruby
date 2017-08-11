@@ -37,6 +37,7 @@ import org.truffleruby.language.arguments.ReadBlockNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadRemainingArgumentsNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.InternalMethod;
@@ -44,9 +45,18 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.SingletonClassNode;
 import org.truffleruby.parser.Translator;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.regex.Pattern;
 
 public class CoreMethodNodeManager {
 
@@ -55,10 +65,115 @@ public class CoreMethodNodeManager {
     private final SingletonClassNode singletonClassNode;
     private final PrimitiveManager primitiveManager;
 
+    private final File cacheDir;
+    private final File coreMethodsCacheFile;
+    private final File primitivesCacheFile;
+
     public CoreMethodNodeManager(RubyContext context, SingletonClassNode singletonClassNode, PrimitiveManager primitiveManager) {
         this.context = context;
         this.singletonClassNode = singletonClassNode;
         this.primitiveManager = primitiveManager;
+
+        cacheDir = Paths.get(context.getRubyHome(), "lib", "truffle").toFile();
+        coreMethodsCacheFile = new File(cacheDir, "core-methods.txt");
+        primitivesCacheFile = new File(cacheDir, "primitives.txt");
+    }
+
+    private static final char SEPARATOR = ';';
+    private static final Pattern SPLITTER = Pattern.compile("" + SEPARATOR);
+    private static final Pattern COMMA = Pattern.compile(",");
+
+    public boolean shouldUseCache() {
+        if (!TruffleOptions.AOT && !CHECK_DSL_USAGE && context.getOptions().LAZY_BUILTINS) {
+            final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
+            if (codeSource != null && codeSource.getLocation().getProtocol().equals("file") && cacheDir.canWrite()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isCacheUpToDate() {
+        final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
+        final File jar = new File(codeSource.getLocation().getFile());
+        return coreMethodsCacheFile.exists() && coreMethodsCacheFile.lastModified() > jar.lastModified() &&
+                primitivesCacheFile.exists() && primitivesCacheFile.lastModified() > jar.lastModified();
+    }
+
+    public void cachedCoreMethodsAndPrimitives(List<List<? extends NodeFactory<? extends RubyNode>>> coreNodeFactories) {
+        Log.LOGGER.config("Regenerating builtins cache");
+
+        try (FileWriter methods = new FileWriter(coreMethodsCacheFile);
+                FileWriter primitives = new FileWriter(primitivesCacheFile)) {
+            for (List<? extends NodeFactory<? extends RubyNode>> nodeFactories : coreNodeFactories) {
+                for (NodeFactory<? extends RubyNode> nodeFactory : nodeFactories) {
+                    final Class<?> nodeClass = nodeFactory.getNodeClass();
+                    final CoreMethod method = nodeClass.getAnnotation(CoreMethod.class);
+                    Primitive primitiveAnnotation;
+                    if (method != null) {
+                        String moduleName = nodeClass.getEnclosingClass().getAnnotation(CoreClass.class).value();
+                        String type = method.isModuleFunction() ? "&" : method.onSingleton() || method.constructor() ? "." : "#";
+                        String visibility = method.visibility().name();
+                        methods.append(nodeFactory.getClass().getName()).append(SEPARATOR);
+                        methods.append(moduleName).append(SEPARATOR);
+                        methods.append(visibility).append(SEPARATOR);
+                        methods.append(type).append(SEPARATOR);
+                        final int rest = method.rest() ? 1 : 0;
+                        methods.append("" + method.required() + method.optional() + rest).append(SEPARATOR);
+                        final StringJoiner joiner = new StringJoiner(",");
+                        for (String name : method.names()) {
+                            joiner.add(name);
+                        }
+                        methods.append(joiner.toString());
+                        methods.append('\n');
+                    } else if ((primitiveAnnotation = nodeClass.getAnnotation(Primitive.class)) != null) {
+                        primitives.append(nodeFactory.getClass().getName()).append(SEPARATOR);
+                        primitives.append(primitiveAnnotation.name()).append('\n');
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
+    }
+
+    public void loadLazilyFromCache() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(coreMethodsCacheFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = SPLITTER.split(line);
+                String nodeFactoryName = parts[0];
+                String moduleName = parts[1];
+                Visibility visibility = Visibility.valueOf(parts[2]);
+                char type = parts[3].charAt(0);
+                String arity = parts[4];
+                int required = arity.charAt(0) - '0';
+                int optional = arity.charAt(1) - '0';
+                boolean rest = arity.charAt(2) == '1';
+                String[] names = COMMA.split(parts[5]);
+                addLazyCoreMethod(nodeFactoryName, moduleName, visibility, type == '&', type == '.', required, optional, rest, names);
+            }
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(primitivesCacheFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                int colon = line.indexOf(SEPARATOR);
+                String className = line.substring(0, colon);
+                String primitive = line.substring(colon + 1);
+                primitiveManager.addLazyPrimitive(primitive, className);
+            }
+        } catch (IOException e) {
+            throw new JavaException(e);
+        }
+    }
+
+    public void loadCoreMethodNodes(List<List<? extends NodeFactory<? extends RubyNode>>> coreNodeFactories) {
+        for (List<? extends NodeFactory<? extends RubyNode>> factory : coreNodeFactories) {
+            addCoreMethodNodes(factory);
+        }
     }
 
     public void addCoreMethodNodes(List<? extends NodeFactory<? extends RubyNode>> nodeFactories) {
@@ -122,13 +237,37 @@ public class CoreMethodNodeManager {
         final Visibility visibility = method.visibility();
         verifyUsage(module, methodDetails, method, visibility);
 
-        final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, methodDetails);
+        final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module,
+                method.required(), method.optional(), method.rest(), names[0]);
         final CallTarget callTarget = makeGenericMethod(context, methodDetails.getNodeFactory(), methodDetails.getMethodAnnotation(), sharedMethodInfo);
 
-        if (method.isModuleFunction()) {
+        final boolean onSingleton = method.onSingleton() || method.constructor();
+        addMethods(module, method.isModuleFunction(), onSingleton, names, visibility, sharedMethodInfo, callTarget);
+    }
+
+    private void addLazyCoreMethod(String nodeFactoryName, String moduleName, Visibility visibility,
+            boolean isModuleFunction, boolean onSingleton, int required, int optional, boolean rest, String[] names) {
+        final DynamicObject module = getModule(moduleName);
+
+        final SharedMethodInfo sharedMethodInfo = makeSharedMethodInfo(context, module, required, optional, rest, names[0]);
+
+        final RubyNode methodNode = new LazyRubyNode(() -> {
+            final NodeFactory<? extends RubyNode> nodeFactory = loadNodeFactory(nodeFactoryName);
+            final CoreMethod methodAnnotation = nodeFactory.getNodeClass().getAnnotation(CoreMethod.class);
+            return createCoreMethodNode(context, nodeFactory, methodAnnotation, sharedMethodInfo);
+        });
+
+        final CallTarget callTarget = createCallTarget(context, sharedMethodInfo, methodNode);
+
+        addMethods(module, isModuleFunction, onSingleton, names, visibility, sharedMethodInfo, callTarget);
+    }
+
+    private void addMethods(DynamicObject module, boolean isModuleFunction, boolean onSingleton, String[] names,
+            Visibility visibility, SharedMethodInfo sharedMethodInfo, CallTarget callTarget) {
+        if (isModuleFunction) {
             addMethod(context, module, sharedMethodInfo, callTarget, names, Visibility.PRIVATE);
             addMethod(context, getSingletonClass(module), sharedMethodInfo, callTarget, names, Visibility.PUBLIC);
-        } else if (method.onSingleton() || method.constructor()) {
+        } else if (onSingleton) {
             addMethod(context, getSingletonClass(module), sharedMethodInfo, callTarget, names, visibility);
         } else {
             addMethod(context, module, sharedMethodInfo, callTarget, names, visibility);
@@ -176,16 +315,16 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, DynamicObject module, MethodDetails methodDetails) {
-        final CoreMethod method = methodDetails.getMethodAnnotation();
+    private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, DynamicObject module,
+            int required, int optional, boolean rest, String primaryName) {
         final LexicalScope lexicalScope = new LexicalScope(context.getRootLexicalScope(), module);
 
         return new SharedMethodInfo(
                 context.getCoreLibrary().getSourceSection(),
                 lexicalScope,
-                new Arity(method.required(), method.optional(), method.rest()),
+                new Arity(required, optional, rest),
                 module,
-                methodDetails.getPrimaryName(),
+                primaryName,
                 "builtin",
                 null,
                 context.getOptions().CORE_ALWAYS_CLONE);
@@ -199,6 +338,10 @@ public class CoreMethodNodeManager {
             methodNode = createCoreMethodNode(context, nodeFactory, method, sharedMethodInfo);
         }
 
+        return createCallTarget(context, sharedMethodInfo, methodNode);
+    }
+
+    private static CallTarget createCallTarget(RubyContext context, SharedMethodInfo sharedMethodInfo, RubyNode methodNode) {
         final RubyRootNode rootNode = new RubyRootNode(context, sharedMethodInfo.getSourceSection(), null, sharedMethodInfo, methodNode);
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
@@ -300,6 +443,18 @@ public class CoreMethodNodeManager {
         }
 
         return node;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static NodeFactory<? extends RubyNode> loadNodeFactory(String nodeFactoryName) {
+        final Object instance;
+        try {
+            Class<?> nodeFactoryClass = Class.forName(nodeFactoryName);
+            instance = nodeFactoryClass.getMethod("getInstance").invoke(null);
+        } catch (ReflectiveOperationException e) {
+            throw new JavaException(e);
+        }
+        return (NodeFactory<? extends RubyNode>) instance;
     }
 
     public void allMethodInstalled() {

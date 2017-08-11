@@ -10,6 +10,8 @@
 package org.truffleruby.builtins;
 
 import com.oracle.truffle.api.dsl.NodeFactory;
+
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.rubinius.UndefinedPrimitiveNodes;
 import org.truffleruby.language.RubyNode;
 
@@ -21,19 +23,36 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class PrimitiveManager {
 
+    private final Map<String, String> lazyPrimitiveClasses = new ConcurrentHashMap<>();
+
     private final Map<String, PrimitiveNodeConstructor> primitives = new ConcurrentHashMap<>();
 
     public PrimitiveNodeConstructor getPrimitive(String name) {
         final PrimitiveNodeConstructor constructor = primitives.get(name);
-
-        if (constructor == null) {
-            return primitives.get(UndefinedPrimitiveNodes.NAME);
+        if (constructor != null) {
+            return constructor;
         }
 
-        return constructor;
+        final String lazyPrimitive = lazyPrimitiveClasses.get(name);
+        if (lazyPrimitive != null) {
+            return loadLazyPrimitive(lazyPrimitive);
+        }
+
+        return primitives.get(UndefinedPrimitiveNodes.NAME);
     }
 
-    public void addPrimitive(NodeFactory<? extends RubyNode> nodeFactory, Primitive annotation) {
-        primitives.put(annotation.name(), new PrimitiveNodeConstructor(annotation, nodeFactory));
+    public void addLazyPrimitive(String primitive, String nodeFactoryClass) {
+        lazyPrimitiveClasses.put(primitive, nodeFactoryClass);
+    }
+
+    private PrimitiveNodeConstructor loadLazyPrimitive(String lazyPrimitive) {
+        final NodeFactory<? extends RubyNode> nodeFactory = CoreMethodNodeManager.loadNodeFactory(lazyPrimitive);
+        final Primitive annotation = nodeFactory.getNodeClass().getAnnotation(Primitive.class);
+        return addPrimitive(nodeFactory, annotation);
+    }
+
+    public PrimitiveNodeConstructor addPrimitive(NodeFactory<? extends RubyNode> nodeFactory, Primitive annotation) {
+        return ConcurrentOperations.getOrCompute(primitives, annotation.name(),
+                k -> new PrimitiveNodeConstructor(annotation, nodeFactory));
     }
 }

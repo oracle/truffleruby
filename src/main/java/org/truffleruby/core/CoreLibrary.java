@@ -701,8 +701,13 @@ public class CoreLibrary {
         final CoreMethodNodeManager coreMethodNodeManager =
                 new CoreMethodNodeManager(context, node.getSingletonClassNode(), primitiveManager);
 
-        for (List<? extends NodeFactory<? extends RubyNode>> factory : getCoreNodeFactories()) {
-            coreMethodNodeManager.addCoreMethodNodes(factory);
+        if (coreMethodNodeManager.shouldUseCache()) {
+            if (!coreMethodNodeManager.isCacheUpToDate()) {
+                coreMethodNodeManager.cachedCoreMethodsAndPrimitives(getCoreNodeFactories());
+            }
+            coreMethodNodeManager.loadLazilyFromCache();
+        } else {
+            coreMethodNodeManager.loadCoreMethodNodes(getCoreNodeFactories());
         }
 
         coreMethodNodeManager.allMethodInstalled();
