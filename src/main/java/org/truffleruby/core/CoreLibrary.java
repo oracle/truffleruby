@@ -111,6 +111,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.TruffleBootNodesFactory;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.JavaException;
@@ -158,6 +159,7 @@ public class CoreLibrary {
 
     private final Source source = initCoreSource();
     private final SourceSection sourceSection = source.createUnavailableSection();
+    private final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());
 
     private final DynamicObject argumentErrorClass;
     private final DynamicObject arrayClass;
@@ -1109,6 +1111,10 @@ public class CoreLibrary {
 
     public SourceSection getSourceSection() {
         return sourceSection;
+    }
+
+    public SourceIndexLength getSourceIndexLength() {
+        return sourceIndexLength;
     }
 
     public String getCoreLoadPath() {
