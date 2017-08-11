@@ -193,7 +193,6 @@ public class CoreMethodNodeManager {
         final CoreMethod method = methodDetails.getMethodAnnotation();
 
         final SourceSection sourceSection = sharedMethodInfo.getSourceSection();
-        final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());
 
         final RubyNode methodNode = createCoreMethodNode(context, methodDetails.getNodeFactory(), method);
 
@@ -205,7 +204,7 @@ public class CoreMethodNodeManager {
 
         RubyNode node;
         node = transformResult(context, method, methodNode);
-        node = Translator.sequence(sourceIndexLength, Arrays.asList(checkArity, node));
+        node = Translator.sequence(context.getCoreLibrary().getSourceIndexLength(), Arrays.asList(checkArity, node));
 
         final RubyNode bodyNode = new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
 
