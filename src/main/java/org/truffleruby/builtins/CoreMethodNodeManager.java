@@ -190,10 +190,6 @@ public class CoreMethodNodeManager {
     }
 
     private static CallTarget makeGenericMethod(RubyContext context, MethodDetails methodDetails, SharedMethodInfo sharedMethodInfo) {
-        if (CHECK_DSL_USAGE) {
-            AmbiguousOptionalArgumentChecker.verifyNoAmbiguousOptionalArguments(methodDetails);
-        }
-
         final RubyNode methodNode = createCoreMethodNode(context,
                 methodDetails.getNodeFactory(), methodDetails.getMethodAnnotation(), sharedMethodInfo);
 
@@ -216,6 +212,7 @@ public class CoreMethodNodeManager {
         final int nArgs = required + optional;
 
         if (CHECK_DSL_USAGE) {
+            AmbiguousOptionalArgumentChecker.verifyNoAmbiguousOptionalArguments(nodeFactory, method);
             LowerFixnumChecker.checkLowerFixnumArguments(nodeFactory, needsSelf ? 1 : 0, method.lowerFixnum());
         }
 
