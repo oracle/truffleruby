@@ -66,7 +66,7 @@ public class CoreMethodNodeManager {
         if (!TruffleOptions.AOT && context.getOptions().LAZY_BUILTINS) {
             BuiltinsClasses.setupBuiltinsLazy(this, primitiveManager);
         } else {
-            for (List<? extends NodeFactory<? extends RubyNode>> factory : context.getCoreLibrary().getCoreNodeFactories()) {
+            for (List<? extends NodeFactory<? extends RubyNode>> factory : BuiltinsClasses.getCoreNodeFactories()) {
                 addCoreMethodNodes(factory);
             }
         }
