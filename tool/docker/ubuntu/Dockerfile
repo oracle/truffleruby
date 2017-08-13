@@ -37,7 +37,7 @@ ENV PATH=$PATH:/build/mx
 # Build a JDK with JVMCI
 RUN hg clone http://hg.openjdk.java.net/graal/graal-jvmci-8
 RUN cd graal-jvmci-8 && mx build
-ENV JAVA_HOME=/build/graal-jvmci-8/jdk1.8.0_131/product
+ENV JAVA_HOME=/build/graal-jvmci-8/openjdk1.8.0_131/product
 
 # Build the Graal compiler
 RUN git clone https://github.com/graalvm/graal.git
