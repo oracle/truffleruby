@@ -13,8 +13,8 @@ def test(input, expected=input)
   raise "expected #{expected.inspect}, got #{got.inspect}" unless got == expected
 end
 
-def test_patch(file, input, expected)
-  got = patch(file, input)
+def test_patch(file, directory, input, expected)
+  got = patch(file, input, directory)
   raise "expected #{expected.inspect}, got #{got.inspect}" unless got == expected
 end
 
@@ -39,4 +39,4 @@ SWITCH_ONE_EXPECTED = <<-EOF
     break;
   case Qnil_int_const:
 EOF
-test_patch 'xml_node_set.c', SWITCH_ONE_ACTUAL, SWITCH_ONE_EXPECTED
+test_patch 'xml_node_set.c', 'ext/nokogiri', SWITCH_ONE_ACTUAL, SWITCH_ONE_EXPECTED

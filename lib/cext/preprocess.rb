@@ -26,10 +26,30 @@ PG_BINARY_ENCODER_PATCH = <<-EOF
 		case Qfalse_int_const : mybool = 0; break;
 EOF
 
-PATCHED_FILES = {'xml_node_set.c'      => {:match =>  /[[:blank:]]*?switch\s*?\(.*?Qnil:/m, 
-                                           :replacement => XML_NODE_SET_PATCH},
-                 'pg_binary_encoder.c' => {:match => /[[:blank:]]*?switch\s*?\(.*?Qfalse\s*?:.*?break;/m,
-                                           :replacement => PG_BINARY_ENCODER_PATCH}}
+PATCHED_FILES = {'xml_node_set.c'      => {:gem      => /^.*?nokogiri.*?\//,
+                                           :patches  => 
+                                             [{:match       => /[[:blank:]]*?switch\s*?\(.*?Qnil:/m, 
+                                               :replacement => XML_NODE_SET_PATCH}]},
+                 'pg_binary_encoder.c' => {:gem     => /^.*?pg.*?\//,
+                                           :patches => 
+                                             [{:match       => /[[:blank:]]*?switch\s*?\(.*?Qfalse\s*?:.*?break;/m,
+                                               :replacement => PG_BINARY_ENCODER_PATCH}]},
+                 'bytebuffer.c'        => {:gem   => /^.*?nio4r.*?\//,
+                                           :patches => 
+                                             [{:match       => /(static VALUE .*?) = Qnil;/,
+                                               :replacement => '\1;'}]},
+                 'monitor.c'           => {:gem   => /^.*?nio4r.*?\//,
+                                           :patches => 
+                                             [{:match       => /(static VALUE .*?) = Qnil;/,
+                                               :replacement => '\1;'}]},
+                 'selector.c'          => {:gem   => /^.*?nio4r.*?\//,
+                                           :patches => 
+                                             [{:match       => /(static VALUE .*?)\s+= Qnil;/,
+                                               :replacement => '\1;'}]},
+                 'websocket_mask.c'    => {:gem   => /^.*?websocket-driver.*?\//,
+                                           :patches => 
+                                             [{:match       => /(VALUE .*?)\s+= Qnil;/,
+                                               :replacement => '\1;'}]}}
 
 def preprocess(line)
   if line =~ VALUE_LOCALS
@@ -73,9 +93,15 @@ def preprocess(line)
   end
 end
 
-def patch(file, contents)
-  if patch = PATCHED_FILES[file]
-    contents = contents.gsub(patch[:match], patch[:replacement].rstrip)
+def patch(file, contents, directory)
+  patches = if PATCHED_FILES.has_key?(file) &&
+               PATCHED_FILES[file][:gem].match(File.join(*(directory.split(File::SEPARATOR)[-2..-1]), file))
+              PATCHED_FILES[file][:patches]
+            end
+  if patches 
+    patches.each do |patch|
+      contents = contents.gsub(patch[:match], patch[:replacement].rstrip)
+    end
   end
   contents
 end
@@ -83,7 +109,7 @@ end
 if __FILE__ == $0
   puts "#line 1 \"#{ARGF.filename}\""
   
-  contents = patch(ARGF.filename, File.read(ARGF.filename))
+  contents = patch(ARGF.filename, File.read(ARGF.filename), Dir.pwd)
   contents.each_line do |line|
     puts preprocess(line)
   end
