@@ -394,7 +394,7 @@ public class CommandLineParser {
                         for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
                             assert option.getName().startsWith(Launcher.LANGUAGE_ID);
                             final String xName = option.getName().substring(Launcher.LANGUAGE_ID.length() + 1);
-                            final String nameValue = String.format("-X%s=%s", xName, option.toString(option.getDefaultValue()));
+                            final String nameValue = String.format("-X%s=%s", xName, option.valueToString(option.getDefaultValue()));
                             System.out.printf("  %s%" + (50 - nameValue.length()) + "s# %s%n", nameValue, "", option.getDescription());
                         }
                         // cancel other execution actions

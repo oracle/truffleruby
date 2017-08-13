@@ -55,7 +55,7 @@ public class OptionsBuilder {
             for (OptionDescription<?> option : OptionsCatalog.allDescriptions()) {
                 assert option.getName().startsWith(Launcher.LANGUAGE_ID);
                 final String xName = option.getName().substring(Launcher.LANGUAGE_ID.length() + 1);
-                RubyLogger.LOGGER.config("option " + xName + "=" + option.toString(options.fromDescription(option)));
+                RubyLogger.LOGGER.config("option " + xName + "=" + option.valueToString(options.fromDescription(option)));
             }
         }
 
