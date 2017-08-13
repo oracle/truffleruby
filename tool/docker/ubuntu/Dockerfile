@@ -2,10 +2,12 @@ FROM ubuntu:16.04
 
 MAINTAINER chris.seaton@oracle.com
 
-# We need a conventional locale for testing
-ENV LANG=en_US.UTF-8
-
 RUN apt-get update
+
+# We need a conventional locale for testing
+RUN apt-get install -y locales
+RUN locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8
 
 # To clone source repositories
 RUN apt-get install -y git=1:2.7.4-0ubuntu1.1 mercurial=3.7.3-1ubuntu1
