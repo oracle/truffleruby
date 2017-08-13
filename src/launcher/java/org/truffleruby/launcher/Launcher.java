@@ -167,12 +167,7 @@ public class Launcher {
         }
 
         if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
-            if (System.console() != null) {
-                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.PATH);
-                config.setOption(OptionsCatalog.TO_EXECUTE, "irb");
-            } else {
-                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.STDIN);
-            }
+            config.getOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION).applyTo(config);
         }
     }
 

@@ -8,6 +8,7 @@ IGNORE_LINES_BEFORE_RUBY_SHEBANG: [ignore_lines_before_ruby_shebang, boolean, fa
 WORKING_DIRECTORY: [working_directory, string, '', Interpreter will switch to this directory]
 EXECUTION_ACTION: [execution_action, enum/execution_action, none, What should be done after context is created]
 TO_EXECUTE: [to_execute, string, '', "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable."]
+DEFAULT_EXECUTION_ACTION: [default_execution_action, enum/default_execution_action, irb, What should be done when no action is set.]
 SYNTAX_CHECK: [syntax_check, boolean, false, Do not execute just check syntax.]
 SHOW_VERSION: [show_version, boolean, false, Show version.]
 SHOW_COPYRIGHT: [show_copyright, boolean, false, Show copyright.]

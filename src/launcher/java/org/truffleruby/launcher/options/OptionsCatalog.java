@@ -52,6 +52,10 @@ public class OptionsCatalog {
             "ruby.to_execute",
             "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable.",
             "");
+    public static final DefaultExecutionActionOptionDescription DEFAULT_EXECUTION_ACTION = new DefaultExecutionActionOptionDescription(
+            "ruby.default_execution_action",
+            "What should be done when no action is set.",
+            DefaultExecutionAction.IRB);
     public static final BooleanOptionDescription SYNTAX_CHECK = new BooleanOptionDescription(
             "ruby.syntax_check",
             "Do not execute just check syntax.",
@@ -469,6 +473,8 @@ public class OptionsCatalog {
                 return EXECUTION_ACTION;
             case "ruby.to_execute":
                 return TO_EXECUTE;
+            case "ruby.default_execution_action":
+                return DEFAULT_EXECUTION_ACTION;
             case "ruby.syntax_check":
                 return SYNTAX_CHECK;
             case "ruby.show_version":
@@ -683,6 +689,7 @@ public class OptionsCatalog {
             WORKING_DIRECTORY,
             EXECUTION_ACTION,
             TO_EXECUTE,
+            DEFAULT_EXECUTION_ACTION,
             SYNTAX_CHECK,
             SHOW_VERSION,
             SHOW_COPYRIGHT,
