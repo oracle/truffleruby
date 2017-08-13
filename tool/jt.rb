@@ -1580,7 +1580,10 @@ module Commands
     begin
       require 'rubocop'
     rescue LoadError
-      sh "gem", "install", "--no-document", "rubocop", "--version", version
+      # GR-5562
+      STDERR.puts 'rubocop not installed - skipping'
+      return
+      #sh "gem", "install", "--no-document", "rubocop", "--version", version
     end
     sh "rubocop", format('_%s_', version), *args
   end
