@@ -10,10 +10,10 @@ RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
 
 # To clone source repositories
-RUN apt-get install -y git=1:2.7.4-0ubuntu1.1 mercurial=3.7.3-1ubuntu1
+RUN apt-get install -y git=1:2.7.4-0ubuntu1.2 mercurial=3.7.3-1ubuntu1
 
 # To bootstrap our own JVMCI-comptaible JDK we need a JDK
-RUN apt-get install -y openjdk-8-jdk=8u131-b11-0ubuntu1.16.04.2 openjdk-8-source=8u131-b11-0ubuntu1.16.04.2
+RUN apt-get install -y openjdk-8-jdk=8u131-b11-2ubuntu1.16.04.3 openjdk-8-source=8u131-b11-2ubuntu1.16.04.3
 
 # Other dependencies for building a JDK
 RUN apt-get install -y make=4.1-6 gcc=4:5.3.1-1ubuntu1 g++=4:5.3.1-1ubuntu1
