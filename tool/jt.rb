@@ -24,7 +24,7 @@ require 'pathname'
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 M2_REPO         = File.expand_path('~/.m2/repository')
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 1
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = 2
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1112,8 +1112,9 @@ module Commands
       end
 
       url = "#{base}/#{name}.tar.gz"
-      sh 'curl', '-OL', url
-      sh 'tar', '-zxf', "#{test_pack}.tar.gz"
+      archive = "#{test_pack}.tar.gz"
+      sh 'curl', '-L', '-o', archive, url
+      sh 'tar', '-zxf', archive
     end
     puts test_pack
     test_pack
@@ -1577,16 +1578,13 @@ module Commands
   end
 
   def rubocop(*args)
-    version = "0.48.1"
-    begin
-      require 'rubocop'
-    rescue LoadError
-      # GR-5562
-      STDERR.puts 'rubocop not installed - skipping'
-      return
-      #sh "gem", "install", "--no-document", "rubocop", "--version", version
-    end
-    sh "rubocop", format('_%s_', version), *args
+    gem_home = "#{gem_test_pack}/rubocop-gems"
+    env = {
+      "GEM_HOME" => gem_home,
+      "GEM_PATH" => gem_home,
+      "PATH" => "#{gem_home}/bin:#{ENV['PATH']}"
+    }
+    sh env, "ruby", "#{gem_home}/bin/rubocop", *args
   end
 
   def check_parser
