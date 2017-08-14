@@ -636,7 +636,7 @@ class TruffleTool
 
     true
   rescue => e
-    log format('%s: %s\n%s', e.class, e.message, e.backtrace.join("\n"))
+    log format("%s: %s\n%s", e.class, e.message, e.backtrace.join("\n"))
     false
   end
 
@@ -844,7 +844,7 @@ class TruffleTool
         begin
           instance_eval(&definition)
         rescue => e
-          log format('%s: %s\n%s', e.class, e.message, e.backtrace.join("\n"))
+          log format("%s: %s\n%s", e.class, e.message, e.backtrace.join("\n"))
         end
       end
 
