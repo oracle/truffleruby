@@ -648,13 +648,14 @@ module Kernel
   alias_method :untrusted?, :tainted?
 
   def caller(start = 1, limit = nil)
-    start += 1
-    if limit.nil?
-      args = [start]
-    else
-      args = [start, limit]
-    end
-    Kernel.caller_locations(*args).map(&:to_s)
+    start, limit = if start.is_a? Range
+                     [start.begin, start.size]
+                   elsif limit.nil?
+                     [start, -1]
+                   else
+                     [start, limit]
+                   end
+    Kernel.caller_locations(start + 1, limit).map(&:to_s)
   end
   module_function :caller
 
