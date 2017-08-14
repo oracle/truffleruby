@@ -611,7 +611,8 @@ class TruffleTool
     gemfile_use_path!(@options[:setup][:offline_gem_path]) if offline
 
     if @options[:setup][:bundler]
-      execute_cmd([*([{ 'GEM_HOME' => @options[:setup][:offline_gem_path].to_s,
+      execute_cmd([*([{ 'TRUFFLERUBY_RESILIENT_GEM_HOME' => '',
+                        'GEM_HOME' => @options[:setup][:offline_gem_path].to_s,
                         'GEM_PATH' => @options[:setup][:offline_gem_path].to_s,
                       }] if offline),
                    TRUFFLERUBY_BIN.to_s,
@@ -687,7 +688,8 @@ class TruffleTool
                   { 'JAVACMD' => @options[:global][:graal_path] } :
                   {}).
         merge(@options[:run][:offline] ?
-                  { 'GEM_HOME' => @options[:run][:offline_gem_path].to_s,
+                  { 'TRUFFLERUBY_RESILIENT_GEM_HOME' => '',
+                    'GEM_HOME' => @options[:run][:offline_gem_path].to_s,
                     'GEM_PATH' => @options[:run][:offline_gem_path].to_s,
                     'PATH'     => [@options[:run][:offline_gem_path].join('bin').to_s, ENV['PATH']].join(':')
                   } :
