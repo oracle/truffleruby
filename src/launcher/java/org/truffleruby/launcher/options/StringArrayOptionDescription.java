@@ -19,8 +19,8 @@ public class StringArrayOptionDescription extends AppendableOptionDescription<St
 
     private final String[] defaultValue;
 
-    StringArrayOptionDescription(String name, String description, String[] defaultValue) {
-        super(name, description);
+    StringArrayOptionDescription(String name, String description, String[] rubyOptions, String[] defaultValue) {
+        super(name, description, rubyOptions);
         this.defaultValue = defaultValue;
     }
 

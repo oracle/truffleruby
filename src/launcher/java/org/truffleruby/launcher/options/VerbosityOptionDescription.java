@@ -11,8 +11,8 @@ package org.truffleruby.launcher.options;
 
 public class VerbosityOptionDescription extends EnumOptionDescription<Verbosity> {
 
-    VerbosityOptionDescription(String name, String description, Verbosity defaultValue) {
-        super(name, description, defaultValue, Verbosity.class);
+    VerbosityOptionDescription(String name, String description, String[] rubyOptions, Verbosity defaultValue) {
+        super(name, description, rubyOptions, defaultValue, Verbosity.class);
     }
 
 }

@@ -15,8 +15,8 @@ public class BooleanOptionDescription extends OptionDescription<Boolean> {
 
     private final boolean defaultValue;
 
-    BooleanOptionDescription(String name, String description, boolean defaultValue) {
-        super(name, description);
+    BooleanOptionDescription(String name, String description, String[] rubyOptions, boolean defaultValue) {
+        super(name, description, rubyOptions);
         this.defaultValue = defaultValue;
     }
 

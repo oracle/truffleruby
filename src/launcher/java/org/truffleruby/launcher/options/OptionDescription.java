@@ -9,6 +9,7 @@
  */
 package org.truffleruby.launcher.options;
 
+import org.graalvm.options.OptionCategory;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionType;
@@ -17,10 +18,12 @@ public abstract class OptionDescription<T> {
 
     private final String name;
     private final String description;
+    private final String[] rubyOptions;
 
-    public OptionDescription(String name, String description) {
+    public OptionDescription(String name, String description, String[] rubyOptions) {
         this.name = name;
         this.description = description;
+        this.rubyOptions = rubyOptions;
     }
 
     public String getName() {
@@ -29,6 +32,14 @@ public abstract class OptionDescription<T> {
 
     public String getDescription() {
         return description;
+    }
+
+    public boolean hasRubyOptions() {
+        return rubyOptions != null && rubyOptions.length > 0;
+    }
+
+    public String[] getRubyOptions() {
+        return rubyOptions;
     }
 
     public abstract T getDefaultValue();
@@ -49,9 +60,12 @@ public abstract class OptionDescription<T> {
     }
 
     public OptionDescriptor toDescriptor() {
-        return OptionDescriptor.newBuilder(new OptionKey<>(getDefaultValue(), getOptionType()), getName()).help(getDescription()).build();
+        return OptionDescriptor.
+                newBuilder(new OptionKey<>(getDefaultValue(), getOptionType()), getName()).
+                help(getDescription()).
+                category(hasRubyOptions() ? OptionCategory.USER : OptionCategory.DEBUG).
+                build();
     }
 
     protected abstract OptionType<T> getOptionType();
-
 }

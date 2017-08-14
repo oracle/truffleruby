@@ -11,12 +11,8 @@ package org.truffleruby.launcher.options;
 
 public class ExecutionActionOptionDescription extends EnumOptionDescription<ExecutionAction> {
 
-    ExecutionActionOptionDescription(
-            String name,
-            String description,
-            ExecutionAction defaultValue) {
-
-        super(name, description, defaultValue, ExecutionAction.class);
+    ExecutionActionOptionDescription(String name, String description, String[] rubyOptions, ExecutionAction defaultValue) {
+        super(name, description, rubyOptions, defaultValue, ExecutionAction.class);
     }
 
 }
