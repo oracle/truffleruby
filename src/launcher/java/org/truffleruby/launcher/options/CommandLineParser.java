@@ -338,10 +338,7 @@ public class CommandLineParser {
                     endOfInterpreterArguments = true;
                     break FOR;
                 case 'T':
-                    {
-                        grabOptionalValue();
-                        break FOR;
-                    }
+                    throw notImplemented("-T");
                 case 'U':
                     config.setOption(OptionsCatalog.INTERNAL_ENCODING, "UTF-8");
                     break;
