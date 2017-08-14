@@ -495,7 +495,6 @@ lint: {
     ruby: ">=2.1.0"
   }
   environment: {
-    GEM_HOME: "$PWD/gem_home"
     # Truffle compiles with ECJ but does not run (GR-4720)
     TRUFFLERUBY_CEXT_ENABLED: "false"
   }
@@ -504,7 +503,6 @@ lint: {
     # Build with ECJ to get warnings
     [mx, build, --jdt, "$JDT", --warning-as-error],
 
-    [export, "PATH=$GEM_HOME/bin:$PATH"],
     ${jt} [lint]
   ]
   timelimit: "30:00"
