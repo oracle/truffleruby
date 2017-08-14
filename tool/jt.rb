@@ -876,7 +876,7 @@ module Commands
     # Test that we can compile and run some real C extensions
 
     unless no_gems
-      gem_home = gem_test_pack
+      gem_home = "#{gem_test_pack}/gems"
 
       tests = [
           ['oily_png', ['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
@@ -1099,7 +1099,8 @@ module Commands
   private :test_tck
 
   def gem_test_pack
-    test_pack = "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}"
+    name = "truffleruby-gem-test-pack-#{TRUFFLERUBY_GEM_TEST_PACK_VERSION}"
+    test_pack = File.expand_path(name, TRUFFLERUBY_DIR)
     unless Dir.exist?(test_pack)
       $stderr.puts "Downloading latest gem test pack..."
 
@@ -1110,12 +1111,12 @@ module Commands
         base = "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/"
       end
 
-      url = "#{base}/#{test_pack}.tar.gz"
+      url = "#{base}/#{name}.tar.gz"
       sh 'curl', '-OL', url
       sh 'tar', '-zxf', "#{test_pack}.tar.gz"
     end
     puts test_pack
-    File.expand_path("#{test_pack}/gems", TRUFFLERUBY_DIR)
+    test_pack
   end
   alias_method :'gem-test-pack', :gem_test_pack
 
