@@ -16,12 +16,14 @@ if [ -z "$PREFIX" ]; then
   exit 1
 fi
 
+DEST="$PREFIX/truffleruby"
+
 function copy {
   local dir
   for file in "$@"; do
     dir=$(dirname "$file")
-    mkdir -p "$PREFIX/$dir"
-    install "$file" "$PREFIX/$dir"
+    mkdir -p "$DEST/$dir"
+    install "$file" "$DEST/$dir"
   done
 }
 
@@ -45,7 +47,7 @@ copy mx.imports/binary/truffle/mxbuild/truffle-nfi-native/bin/libtrufflenfi.so
 copy mx.imports/binary/truffle/mx.imports/binary/sdk/mxbuild/dists/graal-sdk.jar
 
 copy mxbuild/dists/truffleruby-zip.tar
-cd "$PREFIX"
+cd "$DEST"
 tar xf mxbuild/dists/truffleruby-zip.tar
 rm mxbuild/dists/truffleruby-zip.tar
 
@@ -65,4 +67,5 @@ source setup_env
 # Install bundler as we require a specific version and it's convenient
 gem install -E bundler -v 1.14.6
 
-tar czf "truffleruby-$revision.tar.gz" -- *
+cd ..
+tar czf "truffleruby-$revision.tar.gz" truffleruby
