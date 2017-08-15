@@ -3495,7 +3495,6 @@ public abstract class StringNodes {
         protected Object multiBytes(DynamicObject string, int characterIndex,
                                     @Cached("createBinaryProfile()") ConditionProfile indexTooLargeProfile,
                                     @Cached("createBinaryProfile()") ConditionProfile invalidByteProfile,
-                @Cached("create()") BranchProfile errorProfile,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             // Taken from Rubinius's String::byte_index.
 
