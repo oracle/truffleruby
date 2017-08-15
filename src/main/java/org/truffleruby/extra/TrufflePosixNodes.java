@@ -203,7 +203,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary(throwsControlFlowException = true)
         @Specialization(guards = "isRubyPointer(pointer)")
         public int getrlimit(int resource, DynamicObject pointer) {
-            final int result = posix().getrlimit(resource, Layouts.POINTER.getPointer(pointer).toJNRPointer());
+            final int result = posix().getrlimit(resource, Layouts.POINTER.getPointer(pointer));
 
             if (result == -1) {
                 throw new RaiseException(coreExceptions().errnoError(posix().errno(), this));
@@ -254,7 +254,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary(throwsControlFlowException = true)
         @Specialization(guards = {"isRubyString(path)", "isRubyPointer(pointer)"})
         public int readlink(DynamicObject path, DynamicObject pointer, int bufsize) {
-            final int result = posix().readlink(decodeUTF8(path), Layouts.POINTER.getPointer(pointer).toJNRPointer(), bufsize);
+            final int result = posix().readlink(decodeUTF8(path), Layouts.POINTER.getPointer(pointer), bufsize);
 
             if (result == -1) {
                 throw new RaiseException(coreExceptions().errnoError(posix().errno(), this));
@@ -341,7 +341,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary(throwsControlFlowException = true)
         @Specialization(guards = {"isRubyString(path)", "isRubyPointer(pointer)"})
         public int utimes(DynamicObject path, DynamicObject pointer) {
-            final int result = posix().utimes(decodeUTF8(path), Layouts.POINTER.getPointer(pointer).toJNRPointer());
+            final int result = posix().utimes(decodeUTF8(path), Layouts.POINTER.getPointer(pointer));
 
             if (result == -1) {
                 throw new RaiseException(coreExceptions().errnoError(posix().errno(), this));
@@ -459,7 +459,7 @@ public abstract class TrufflePosixNodes {
         @Specialization(guards = "isRubyPointer(pointer)")
         public int setrlimit(int resource, DynamicObject pointer,
                 @Cached("create()") BranchProfile errorProfile) {
-            final int result = posix().setrlimit(resource, Layouts.POINTER.getPointer(pointer).toJNRPointer());
+            final int result = posix().setrlimit(resource, Layouts.POINTER.getPointer(pointer));
 
             if (result == -1) {
                 errorProfile.enter();
@@ -668,7 +668,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyPointer(buffer)")
         public int send(int descriptor, DynamicObject buffer, int bytes, int flags) {
-            return nativeSockets().send(descriptor, Layouts.POINTER.getPointer(buffer).toJNRPointer(), bytes, flags);
+            return nativeSockets().send(descriptor, Layouts.POINTER.getPointer(buffer), bytes, flags);
         }
 
     }
@@ -699,8 +699,8 @@ public abstract class TrufflePosixNodes {
             return nativeSockets().getaddrinfo(
                     decodeUTF8(hostName),
                     decodeUTF8(serviceName),
-                    Layouts.POINTER.getPointer(hintsPointer).toJNRPointer(),
-                    Layouts.POINTER.getPointer(resultsPointer).toJNRPointer());
+                    Layouts.POINTER.getPointer(hintsPointer),
+                    Layouts.POINTER.getPointer(resultsPointer));
         }
 
         @TruffleBoundary
@@ -709,8 +709,8 @@ public abstract class TrufflePosixNodes {
             return nativeSockets().getaddrinfo(
                     decodeUTF8(hostName),
                     null,
-                    Layouts.POINTER.getPointer(hintsPointer).toJNRPointer(),
-                    Layouts.POINTER.getPointer(resultsPointer).toJNRPointer());
+                    Layouts.POINTER.getPointer(hintsPointer),
+                    Layouts.POINTER.getPointer(resultsPointer));
         }
 
     }
@@ -753,7 +753,7 @@ public abstract class TrufflePosixNodes {
 
         @TruffleBoundary
         private int sendToPrivate(int socket, int length, int flags, int dest_len, Pointer messagePointer, Pointer destAddrPointer) {
-            return nativeSockets().sendto(socket, messagePointer.toJNRPointer(), length, flags, destAddrPointer.toJNRPointer(), dest_len);
+            return nativeSockets().sendto(socket, messagePointer, length, flags, destAddrPointer, dest_len);
         }
 
     }
@@ -764,7 +764,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyPointer(address)")
         public int connect(int socket, DynamicObject address, int address_len) {
-            return nativeSockets().connect(socket, Layouts.POINTER.getPointer(address).toJNRPointer(), address_len);
+            return nativeSockets().connect(socket, Layouts.POINTER.getPointer(address), address_len);
         }
 
     }
@@ -786,7 +786,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization
         public int inetNetwork(int af, DynamicObject str, DynamicObject dst) {
-            return nativeSockets().inet_pton(af, StringOperations.getString(str), Layouts.POINTER.getPointer(dst).toJNRPointer());
+            return nativeSockets().inet_pton(af, StringOperations.getString(str), Layouts.POINTER.getPointer(dst));
         }
 
     }
@@ -797,7 +797,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization
         public int socketpair(int domain, int type, int protocolint, DynamicObject pointer) {
-            return nativeSockets().socketpair(domain, type, protocolint, Layouts.POINTER.getPointer(pointer).toJNRPointer());
+            return nativeSockets().socketpair(domain, type, protocolint, Layouts.POINTER.getPointer(pointer));
         }
 
     }
@@ -812,7 +812,7 @@ public abstract class TrufflePosixNodes {
             final Pointer addressPointer = Layouts.POINTER.getPointer(addressPtr);
 
             final int newFd = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
-                    () -> nativeSockets().accept(fd, addressPointer.toJNRPointer(), sockPointer.toJNRPointer()));
+                    () -> nativeSockets().accept(fd, addressPointer, sockPointer));
             return ensureSuccessful(newFd);
         }
 
@@ -836,7 +836,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyPointer(addrInfo)")
         public DynamicObject freeaddrinfo(DynamicObject addrInfo) {
-            nativeSockets().freeaddrinfo(Layouts.POINTER.getPointer(addrInfo).toJNRPointer());
+            nativeSockets().freeaddrinfo(Layouts.POINTER.getPointer(addrInfo));
             return nil();
         }
 
@@ -866,11 +866,11 @@ public abstract class TrufflePosixNodes {
             assert servlen > 0;
 
             return nativeSockets().getnameinfo(
-                    Layouts.POINTER.getPointer(sa).toJNRPointer(),
+                    Layouts.POINTER.getPointer(sa),
                     salen,
-                    Layouts.POINTER.getPointer(host).toJNRPointer(),
+                    Layouts.POINTER.getPointer(host),
                     hostlen,
-                    Layouts.POINTER.getPointer(serv).toJNRPointer(),
+                    Layouts.POINTER.getPointer(serv),
                     servlen,
                     flags);
         }
@@ -882,11 +882,11 @@ public abstract class TrufflePosixNodes {
             assert servlen > 0;
 
             return nativeSockets().getnameinfo(
-                    Layouts.POINTER.getPointer(sa).toJNRPointer(),
+                    Layouts.POINTER.getPointer(sa),
                     salen,
                     Pointer.JNR_NULL,
                     hostlen,
-                    Layouts.POINTER.getPointer(serv).toJNRPointer(),
+                    Layouts.POINTER.getPointer(serv),
                     servlen,
                     flags);
         }
@@ -898,9 +898,9 @@ public abstract class TrufflePosixNodes {
             assert servlen == 0;
 
             return nativeSockets().getnameinfo(
-                    Layouts.POINTER.getPointer(sa).toJNRPointer(),
+                    Layouts.POINTER.getPointer(sa),
                     salen,
-                    Layouts.POINTER.getPointer(host).toJNRPointer(),
+                    Layouts.POINTER.getPointer(host),
                     hostlen,
                     Pointer.JNR_NULL,
                     servlen,
@@ -937,7 +937,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyPointer(optionValue)")
         public int setsockopt(int socket, int level, int optionName, DynamicObject optionValue, int optionLength) {
-            return nativeSockets().setsockopt(socket, level, optionName, Layouts.POINTER.getPointer(optionValue).toJNRPointer(), optionLength);
+            return nativeSockets().setsockopt(socket, level, optionName, Layouts.POINTER.getPointer(optionValue), optionLength);
         }
 
     }
@@ -948,7 +948,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyPointer(address)")
         public int bind(int socket, DynamicObject address, int addressLength) {
-            return nativeSockets().bind(socket, Layouts.POINTER.getPointer(address).toJNRPointer(), addressLength);
+            return nativeSockets().bind(socket, Layouts.POINTER.getPointer(address), addressLength);
         }
 
     }
@@ -970,7 +970,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyPointer(name)")
         public int getHostName(DynamicObject name, int nameLength) {
-            return nativeSockets().gethostname(Layouts.POINTER.getPointer(name).toJNRPointer(), nameLength);
+            return nativeSockets().gethostname(Layouts.POINTER.getPointer(name), nameLength);
         }
 
     }
@@ -981,7 +981,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = {"isRubyPointer(address)", "isRubyPointer(addressLength)"})
         public int getPeerName(int socket, DynamicObject address, DynamicObject addressLength) {
-            return nativeSockets().getpeername(socket, Layouts.POINTER.getPointer(address).toJNRPointer(), Layouts.POINTER.getPointer(addressLength).toJNRPointer());
+            return nativeSockets().getpeername(socket, Layouts.POINTER.getPointer(address), Layouts.POINTER.getPointer(addressLength));
         }
 
     }
@@ -992,7 +992,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = {"isRubyPointer(address)", "isRubyPointer(addressLength)"})
         public int getSockName(int socket, DynamicObject address, DynamicObject addressLength) {
-            return nativeSockets().getsockname(socket, Layouts.POINTER.getPointer(address).toJNRPointer(), Layouts.POINTER.getPointer(addressLength).toJNRPointer());
+            return nativeSockets().getsockname(socket, Layouts.POINTER.getPointer(address), Layouts.POINTER.getPointer(addressLength));
         }
 
     }
@@ -1003,7 +1003,7 @@ public abstract class TrufflePosixNodes {
         @TruffleBoundary
         @Specialization(guards = { "isRubyPointer(optval)", "isRubyPointer(optlen)" })
         public int getSockOptions(int sockfd, int level, int optname, DynamicObject optval, DynamicObject optlen) {
-            return nativeSockets().getsockopt(sockfd, level, optname, Layouts.POINTER.getPointer(optval).toJNRPointer(), Layouts.POINTER.getPointer(optlen).toJNRPointer());
+            return nativeSockets().getsockopt(sockfd, level, optname, Layouts.POINTER.getPointer(optval), Layouts.POINTER.getPointer(optlen));
         }
 
         // This should probably done at a higher-level, but rubysl/socket does not handle it.
