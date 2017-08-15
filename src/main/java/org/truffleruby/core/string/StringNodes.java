@@ -365,16 +365,61 @@ public abstract class StringNodes {
     public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(b)")
-        public int compare(DynamicObject a, DynamicObject b) {
+        public int compare(DynamicObject a, DynamicObject b,
+                           @Cached("createBinaryProfile()") ConditionProfile sameRopeProfile,
+                           @Cached("createBinaryProfile()") ConditionProfile equalSubsequenceProfile,
+                           @Cached("createBinaryProfile()") ConditionProfile equalLengthProfile,
+                           @Cached("createBinaryProfile()") ConditionProfile firstStringShorterProfile,
+                           @Cached("createBinaryProfile()") ConditionProfile greaterThanProfile,
+                           @Cached("createBinaryProfile()") ConditionProfile equalProfile,
+                           @Cached("createBinaryProfile()") ConditionProfile notComparableProfile,
+                           @Cached("createBinaryProfile()") ConditionProfile encodingIndexGreaterThanProfile,
+                           @Cached("create()") RopeNodes.BytesNode firstBytesNode,
+                           @Cached("create()") RopeNodes.BytesNode secondBytesNode) {
             // Taken from org.jruby.RubyString#op_cmp
 
             final Rope firstRope = rope(a);
             final Rope secondRope = rope(b);
 
-            final int ret = RopeOperations.cmp(firstRope, secondRope);
+            if (sameRopeProfile.profile(firstRope == secondRope)) {
+                return 0;
+            }
 
-            if ((ret == 0) && !RopeOperations.areComparable(firstRope, secondRope)) {
-                return firstRope.getEncoding().getIndex() > secondRope.getEncoding().getIndex() ? 1 : -1;
+            final boolean firstRopeShorter = firstStringShorterProfile.profile(firstRope.byteLength() < secondRope.byteLength());
+            final int memcmpLength;
+            if (firstRopeShorter) {
+                memcmpLength = firstRope.byteLength();
+            } else {
+                memcmpLength = secondRope.byteLength();
+            }
+
+            final byte[] bytes = firstBytesNode.execute(firstRope);
+            final byte[] otherBytes = secondBytesNode.execute(secondRope);
+
+            final int ret;
+            final int cmp = ArrayUtils.memcmp(bytes, 0, otherBytes, 0, memcmpLength);
+            if (equalSubsequenceProfile.profile(cmp == 0)) {
+                if (equalLengthProfile.profile(firstRope.byteLength() == secondRope.byteLength())) {
+                    ret = 0;
+                } else {
+                    if (firstRopeShorter) {
+                        ret = -1;
+                    } else {
+                        ret = 1;
+                    }
+                }
+            } else {
+                ret = greaterThanProfile.profile(cmp > 0) ? 1 : -1;
+            }
+
+            if (equalProfile.profile(ret == 0)) {
+                if (notComparableProfile.profile(!RopeOperations.areComparable(firstRope, secondRope))) {
+                    if (encodingIndexGreaterThanProfile.profile(firstRope.getEncoding().getIndex() > secondRope.getEncoding().getIndex())) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                }
             }
 
             return ret;

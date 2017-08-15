@@ -527,32 +527,6 @@ public class RopeOperations {
         }
     }
 
-    @TruffleBoundary
-    public static int cmp(Rope string, Rope other) {
-        // Taken from org.jruby.util.ByteList#cmp.
-
-        if (string == other) return 0;
-        final int size = string.byteLength();
-        final int len =  Math.min(size, other.byteLength());
-        int offset = -1;
-
-        final byte[] bytes = string.getBytes();
-        final byte[] otherBytes = other.getBytes();
-
-        // a bit of VM/JIT weirdness here: though in most cases
-        // performance is improved if array references are kept in
-        // a local variable (saves an instruction per access, as I
-        // [slightly] understand it), in some cases, when two (or more?)
-        // arrays are being accessed, the member reference is actually
-        // faster.  this is one of those cases...
-        while (++offset < len && bytes[offset] == otherBytes[offset]) {
-        }
-        if (offset < len) {
-            return (bytes[offset]&0xFF) > (otherBytes[offset]&0xFF) ? 1 : -1;
-        }
-        return size == other.byteLength() ? 0 : size == len ? -1 : 1;
-    }
-
     public static boolean areComparable(Rope rope, Rope other) {
         // Taken from org.jruby.util.StringSupport.areComparable.
 
