@@ -312,6 +312,10 @@ public class OptionsCatalog {
             "ruby.interop.invoke.cache",
             "Cache size for interop INVOKE messages",
             DEFAULT_CACHE.getDefaultValue());
+    public static final IntegerOptionDescription INTEROP_NEW_CACHE = new IntegerOptionDescription(
+            "ruby.interop.new.cache",
+            "Cache size for interop NEW messages",
+            DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription TIME_FORMAT_CACHE = new IntegerOptionDescription(
             "ruby.time.format.cache",
             "Cache size for parsed time format specifiers",
@@ -611,6 +615,8 @@ public class OptionsCatalog {
                 return INTEROP_WRITE_CACHE;
             case "ruby.interop.invoke.cache":
                 return INTEROP_INVOKE_CACHE;
+            case "ruby.interop.new.cache":
+                return INTEROP_NEW_CACHE;
             case "ruby.time.format.cache":
                 return TIME_FORMAT_CACHE;
             case "ruby.integer.pow.cache":
@@ -766,6 +772,7 @@ public class OptionsCatalog {
             INTEROP_READ_CACHE,
             INTEROP_WRITE_CACHE,
             INTEROP_INVOKE_CACHE,
+            INTEROP_NEW_CACHE,
             TIME_FORMAT_CACHE,
             POW_CACHE,
             CLONE_DEFAULT,

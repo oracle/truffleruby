@@ -206,10 +206,62 @@ public abstract class InteropNodes {
             return object.toString();
         }
 
-        @TruffleBoundary
-
         protected int getCacheLimit() {
             return getContext().getOptions().INTEROP_INVOKE_CACHE;
+        }
+
+    }
+
+    @CoreMethod(names = "new", isModuleFunction = true, required = 1, rest = true)
+    public abstract static class NewNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(
+                guards = "args.length == cachedArgsLength",
+                limit = "getCacheLimit()"
+        )
+        public Object newCached(
+                TruffleObject receiver,
+                Object[] args,
+                @Cached("args.length") int cachedArgsLength,
+                @Cached("createNewNode(cachedArgsLength)") Node newNode,
+                @Cached("create()") BranchProfile exceptionProfile) {
+            try {
+                return ForeignAccess.sendNew(
+                        newNode,
+                        receiver,
+                        args);
+            } catch (UnsupportedTypeException
+                    | ArityException
+                    | UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+        }
+
+        @Specialization(replaces = "newCached")
+        public Object newUncached(
+                TruffleObject receiver,
+                Object[] args) {
+            Log.notOptimizedOnce("megamorphic interop NEW message send");
+
+            final Node invokeNode = createNewNode(args.length);
+
+            try {
+                return ForeignAccess.sendNew(invokeNode, receiver, args);
+            } catch (UnsupportedTypeException
+                    | ArityException
+                    | UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        }
+
+        @TruffleBoundary
+        protected Node createNewNode(int argsLength) {
+            return Message.createNew(argsLength).createNode();
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().INTEROP_NEW_CACHE;
         }
 
     }

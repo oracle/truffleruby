@@ -111,6 +111,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new PropertyWriteOutgoingNode(name.substring(0, name.length() - 1));
         } else if (name.equals("call")) {
             return new CallOutgoingNode(argsLength);
+        } else if (name.equals("new")) {
+            return new NewOutgoingNode(argsLength);
         } else if (name.equals("nil?") && argsLength == 0) {
             return new IsNilOutgoingNode();
         } else if (name.endsWith("!") && argsLength == 0) {
@@ -272,6 +274,31 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
             try {
                 return ForeignAccess.sendExecute(node, receiver, args);
+            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+                exceptionProfile();
+                throw new JavaException(e);
+            }
+        }
+
+    }
+
+    protected class NewOutgoingNode extends OutgoingNode {
+
+        private final int argsLength;
+
+        @Child private Node node;
+
+        public NewOutgoingNode(int argsLength) {
+            this.argsLength = argsLength;
+            node = Message.createNew(argsLength).createNode();
+        }
+
+        @Override
+        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+            assert args.length == argsLength;
+
+            try {
+                return ForeignAccess.sendNew(node, receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile();
                 throw new JavaException(e);
