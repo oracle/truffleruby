@@ -2,7 +2,8 @@ overlay: "98f918de0bab2a5432cee299d60ca0b2eb1de5ab"
 
 # Empty definitions to allow resolving the full file
 github-status-token: ""
-svm-bench: {}
+svm-graal-core-bench: {}
+svm-graal-enterprise-bench: {}
 
 jt: [ruby, tool/jt.rb]
 
