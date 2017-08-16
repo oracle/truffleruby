@@ -31,6 +31,7 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyObjectType;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchAction;
 import org.truffleruby.language.dispatch.DispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
@@ -270,10 +271,21 @@ public class RubyMessageResolution {
     @Resolve(message = "INVOKE")
     public static abstract class ForeignInvokeNode extends Node {
 
-        @Child private DispatchHeadNode dispatchHeadNode = insert(new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD));
+        @Child private DispatchHeadNode dispatchHeadNode = CallDispatchHeadNode.createOnSelf();
 
         protected Object access(VirtualFrame frame, DynamicObject receiver, String name, Object[] arguments) {
             return dispatchHeadNode.dispatch(frame, receiver, name, null, arguments);
+        }
+
+    }
+
+    @Resolve(message = "NEW")
+    public static abstract class ForeignNewNode extends Node {
+
+        @Child private DispatchHeadNode dispatchHeadNode = CallDispatchHeadNode.createOnSelf();
+
+        protected Object access(VirtualFrame frame, DynamicObject receiver, Object[] arguments) {
+            return dispatchHeadNode.dispatch(frame, receiver, "new", null, arguments);
         }
 
     }

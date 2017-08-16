@@ -84,6 +84,7 @@ INTEROP_EXECUTE_CACHE: [interop.execute.cache, integer, DEFAULT_CACHE, Cache siz
 INTEROP_READ_CACHE: [interop.read.cache, integer, DEFAULT_CACHE, Cache size for interop READ messages]
 INTEROP_WRITE_CACHE: [interop.write.cache, integer, DEFAULT_CACHE, Cache size for interop WRITE messages]
 INTEROP_INVOKE_CACHE: [interop.invoke.cache, integer, DEFAULT_CACHE, Cache size for interop INVOKE messages]
+INTEROP_NEW_CACHE: [interop.new.cache, integer, DEFAULT_CACHE, Cache size for interop NEW messages]
 TIME_FORMAT_CACHE: [time.format.cache, integer, DEFAULT_CACHE, Cache size for parsed time format specifiers]
 POW_CACHE: [integer.pow.cache, integer, DEFAULT_CACHE, Cache size for Integer#** with a constant exponent]
 

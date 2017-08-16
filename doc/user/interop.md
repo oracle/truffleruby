@@ -31,6 +31,10 @@ Doesn't pass a block.
 Calls the method with the name you provided, passing the arguments as you'd
 expect. Doesn't pass a block.
 
+### `NEW`
+
+Calls `new`, passing the arguments as you'd expect.
+
 ### `HAS_SIZE`
 
 Returns true if the object responds to `size`.
@@ -154,6 +158,10 @@ In all cases where a call is made no block is passed.
 
 `name` can be a `String` or `Symbol`.
 
+### `NEW`
+
+`Truffle::Interop.new(receiver, *args)`
+
 ### `HAS_SIZE`
 
 `Truffle::Interop.size?(value)`
@@ -220,6 +228,10 @@ Not supported.
 `object.name(*args)`
 
 `object.name!` if there are no arguments (otherwise it is a `READ`)
+
+### `NEW`
+
+`object.new(*args)`
 
 ### `HAS_SIZE`
 
@@ -288,6 +300,8 @@ an integer, or anything else
 `object.name(*args)` sends `INVOKE` (with no arguments it sends `READ`)
 
 `object.name!` sends `INVOKE`
+
+`object.new(*args)` sends `NEW`
 
 ## Import and export
 
