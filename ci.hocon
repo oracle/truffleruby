@@ -327,14 +327,22 @@ svm-build-stats: {
 }
 
 svm-metrics: {
-  run: [
+  run_benchs: [
     ${bench.cmd} [instructions]
   ] ${post-process-and-upload-results-wait} [
     ${bench.cmd} [time, --, --aot]
   ] ${post-process-and-upload-results-wait} [
     ${bench.cmd} [maxrss]
   ] ${post-process-and-upload-results}
-  timelimit: "00:25:00"
+
+  run: [
+    [export, "GUEST_VM_CONFIG=default"]
+  ] ${svm-metrics.run_benchs} [
+    [export, "GUEST_VM_CONFIG=no-rubygems"],
+    [export, "TRUFFLERUBYOPT=--disable-gems"]
+  ] ${svm-metrics.run_benchs}
+
+  timelimit: "00:30:00"
 }
 
 classic-benchmarks: {
@@ -557,10 +565,8 @@ builds: [
   {name: ruby-metrics-compiler-graal-enterprise-no-om} ${common} ${graal-enterprise-no-om} ${daily-bench-caps} ${truffleruby} ${compiler-metrics},
   {name: ruby-build-stats-svm-graal-core} ${common} ${svm-graal-core-bench} ${bench-caps} ${truffleruby} {environment: {GUEST_VM_CONFIG: default}} ${svm-build-stats},
   {name: ruby-build-stats-svm-graal-enterprise} ${common} ${svm-graal-enterprise-bench} ${bench-caps} ${truffleruby} {environment: {GUEST_VM_CONFIG: default}} ${svm-build-stats},
-  {name: ruby-metrics-svm-graal-core-with-rubygems} ${common} ${svm-graal-core-bench} ${svm-bench-caps} ${truffleruby} {environment: {GUEST_VM_CONFIG: default}} ${svm-metrics},
-  {name: ruby-metrics-svm-graal-enterprise-with-rubygems} ${common} ${svm-graal-enterprise-bench} ${svm-bench-caps} ${truffleruby} {environment: {GUEST_VM_CONFIG: default}} ${svm-metrics},
-  {name: ruby-metrics-svm-graal-core-without-rubygems} ${common} ${svm-graal-core-bench} ${svm-bench-caps} ${truffleruby} {environment: {GUEST_VM_CONFIG: no-rubygems, TRUFFLERUBYOPT: ''}} ${svm-metrics},
-  {name: ruby-metrics-svm-graal-enterprise-without-rubygems} ${common} ${svm-graal-enterprise-bench} ${svm-bench-caps} ${truffleruby} {environment: {GUEST_VM_CONFIG: no-rubygems, TRUFFLERUBYOPT: ''}} ${svm-metrics},
+  {name: ruby-metrics-svm-graal-core} ${common} ${svm-graal-core-bench} ${svm-bench-caps} ${truffleruby} ${svm-metrics},
+  {name: ruby-metrics-svm-graal-enterprise} ${common} ${svm-graal-enterprise-bench} ${svm-bench-caps} ${truffleruby} ${svm-metrics},
 
   //{name: ruby-benchmarks-classic-mri} ${common} ${weekly-bench-caps} ${mri-benchmark} ${classic-benchmarks},
   //{name: ruby-benchmarks-classic-no-graal} ${common} ${no-graal} ${weekly-bench-caps} ${truffleruby} ${classic-benchmarks},
