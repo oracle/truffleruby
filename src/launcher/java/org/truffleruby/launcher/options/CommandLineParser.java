@@ -348,6 +348,7 @@ public class CommandLineParser {
                 case 'v':
                     config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);
                     config.setOption(OptionsCatalog.SHOW_VERSION, true);
+                    config.setOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION, DefaultExecutionAction.NONE);
                     break;
                 case 'w':
                     config.setOption(OptionsCatalog.VERBOSITY, Verbosity.TRUE);

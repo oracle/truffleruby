@@ -112,15 +112,19 @@ public class Launcher {
                     break;
             }
 
-            try (Context context = createContext(Context.newBuilder(), config)) {
-                printTruffleTimeMetric("before-run");
-                final Source source = Source.newBuilder(
-                        LANGUAGE_ID,
-                        // language=ruby
-                        "Truffle::Boot.main",
-                        BOOT_SOURCE_NAME).build();
-                exitCode = context.eval(source).asInt();
-                printTruffleTimeMetric("after-run");
+            if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.NONE) {
+                exitCode = 0;
+            } else {
+                try (Context context = createContext(Context.newBuilder(), config)) {
+                    printTruffleTimeMetric("before-run");
+                    final Source source = Source.newBuilder(
+                            LANGUAGE_ID,
+                            // language=ruby
+                            "Truffle::Boot.main",
+                            BOOT_SOURCE_NAME).build();
+                    exitCode = context.eval(source).asInt();
+                    printTruffleTimeMetric("after-run");
+                }
             }
         } catch (PolyglotException e) {
             System.err.println("truffleruby: " + e.getMessage());
@@ -167,12 +171,7 @@ public class Launcher {
         }
 
         if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
-            if (System.console() != null) {
-                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.PATH);
-                config.setOption(OptionsCatalog.TO_EXECUTE, "irb");
-            } else {
-                config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.STDIN);
-            }
+            config.getOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION).applyTo(config);
         }
     }
 

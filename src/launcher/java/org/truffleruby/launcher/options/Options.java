@@ -25,6 +25,7 @@ public class Options {
     public final String WORKING_DIRECTORY;
     public final ExecutionAction EXECUTION_ACTION;
     public final String TO_EXECUTE;
+    public final DefaultExecutionAction DEFAULT_EXECUTION_ACTION;
     public final boolean SYNTAX_CHECK;
     public final boolean SHOW_VERSION;
     public final boolean SHOW_COPYRIGHT;
@@ -139,6 +140,7 @@ public class Options {
         WORKING_DIRECTORY = builder.getOrDefault(OptionsCatalog.WORKING_DIRECTORY);
         EXECUTION_ACTION = builder.getOrDefault(OptionsCatalog.EXECUTION_ACTION);
         TO_EXECUTE = builder.getOrDefault(OptionsCatalog.TO_EXECUTE);
+        DEFAULT_EXECUTION_ACTION = builder.getOrDefault(OptionsCatalog.DEFAULT_EXECUTION_ACTION);
         SYNTAX_CHECK = builder.getOrDefault(OptionsCatalog.SYNTAX_CHECK);
         SHOW_VERSION = builder.getOrDefault(OptionsCatalog.SHOW_VERSION);
         SHOW_COPYRIGHT = builder.getOrDefault(OptionsCatalog.SHOW_COPYRIGHT);
@@ -264,6 +266,8 @@ public class Options {
                 return EXECUTION_ACTION;
             case "ruby.to_execute":
                 return TO_EXECUTE;
+            case "ruby.default_execution_action":
+                return DEFAULT_EXECUTION_ACTION;
             case "ruby.syntax_check":
                 return SYNTAX_CHECK;
             case "ruby.show_version":
