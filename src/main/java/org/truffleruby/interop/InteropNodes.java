@@ -187,7 +187,7 @@ public abstract class InteropNodes {
             final Node invokeNode = createInvokeNode(args.length);
 
             try {
-                return ForeignAccess.sendInvoke(invokeNode, receiver, identifier.toString(), args);
+                return ForeignAccess.sendInvoke(invokeNode, receiver, objectToString(identifier), args);
             } catch (UnsupportedTypeException
                     | ArityException
                     | UnsupportedMessageException
@@ -200,6 +200,13 @@ public abstract class InteropNodes {
         protected Node createInvokeNode(int argsLength) {
             return Message.createInvoke(argsLength).createNode();
         }
+
+        @TruffleBoundary
+        protected String objectToString(Object object) {
+            return object.toString();
+        }
+
+        @TruffleBoundary
 
         protected int getCacheLimit() {
             return getContext().getOptions().INTEROP_INVOKE_CACHE;
