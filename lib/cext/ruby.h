@@ -1206,7 +1206,7 @@ MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock);
 
 // IO
 
-#define RB_WAITFD_IN  0x001 # TODO BJF 6-Aug-2017 Implement the correct value
+#define RB_WAITFD_IN  0x001 // TODO BJF 6-Aug-2017 Implement the correct value
 
 typedef struct rb_io_t {
   int mode;
