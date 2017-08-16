@@ -61,10 +61,16 @@ common-solaris: ${common-base} {
 }
 
 common-darwin: ${common-base} {
+  packages: {
+    # Homebrew doesn't support versions.
+    llvm: ""
+    openssl: ""
+  }
+
   environment: {
     # Homebrew does not put llvm on the PATH by default
-    PATH: "/usr/local/opt/llvm/bin:$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH"
-    OPENSSL_PREFIX: "/usr/local/opt/openssl"
+    PATH: "$PWD/homebrew/opt/llvm/bin:$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH"
+    OPENSSL_PREFIX: "$PWD/homebrew/opt/openssl"
   }
 }
 
@@ -213,7 +219,7 @@ gate-caps: {
 }
 
 gate-caps-darwin: {
-  capabilities: [darwin_next, macmini7_1]
+  capabilities: [darwin, amd64]
   targets: [gate, post-push]
   environment: {
     REPORT_GITHUB_STATUS: "true"
