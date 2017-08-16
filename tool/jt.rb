@@ -48,7 +48,6 @@ end
 trap(:INT) {}
 
 module Utilities
-
   def self.truffle_version
     File.foreach("#{TRUFFLERUBY_DIR}/truffle/pom.rb") do |line|
       if /'truffle\.version' => '((?:\d+\.\d+|\h+)(?:-SNAPSHOT)?)'/ =~ line
@@ -968,7 +967,14 @@ module Commands
     single_test            = !args.empty?
     test_names             = single_test ? '{' + args.join(',') + '}' : '*'
 
-    success = Dir["#{tests_path}/#{test_names}.sh"].sort.all? do |test_script|
+    candidates = Dir["#{tests_path}/#{test_names}.sh"].sort
+    if candidates.empty?
+      targets = Dir["#{tests_path}/*.sh"].sort.map { |f| File.basename(f, ".*") }
+      puts "No targets found by pattern #{test_names}. Available targets: "
+      targets.each { |t| puts " * #{t}" }
+      exit 1
+    end
+    success = candidates.all? do |test_script|
       sh test_script, continue_on_failure: true
     end
     exit success
