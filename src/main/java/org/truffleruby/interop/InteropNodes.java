@@ -79,7 +79,6 @@ public abstract class InteropNodes {
 
         @Specialization
         public boolean isExecutable(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 @Cached("createIsExecutableNode()") Node isExecutableNode) {
             return ForeignAccess.sendIsExecutable(isExecutableNode, receiver);
@@ -102,7 +101,6 @@ public abstract class InteropNodes {
                 limit = "getCacheLimit()"
         )
         public Object executeForeignCached(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 Object[] args,
                 @Cached("args.length") int cachedArgsLength,
@@ -118,7 +116,6 @@ public abstract class InteropNodes {
 
         @Specialization(replaces = "executeForeignCached")
         public Object executeForeignUncached(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 Object[] args) {
             Log.notOptimizedOnce("megamorphic interop EXECUTE message send");
@@ -182,7 +179,6 @@ public abstract class InteropNodes {
                 replaces = "invokeCached"
         )
         public Object invokeUncached(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 DynamicObject identifier,
                 Object[] args) {
@@ -216,7 +212,6 @@ public abstract class InteropNodes {
 
         @Specialization
         public boolean hasSize(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 @Cached("createHasSizeNode()") Node hasSizeNode) {
             return ForeignAccess.sendHasSize(hasSizeNode, receiver);
@@ -238,7 +233,6 @@ public abstract class InteropNodes {
 
         @Specialization
         public Object size(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 @Cached("createGetSizeNode()") Node getSizeNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
@@ -333,7 +327,6 @@ public abstract class InteropNodes {
 
         @Specialization
         public Object unbox(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 @Cached("createUnboxNode()") Node unboxNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
@@ -449,7 +442,6 @@ public abstract class InteropNodes {
 
         @Specialization(guards = {"!isRubySymbol(identifier)", "!isRubyString(identifier)"})
         public Object read(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 Object identifier,
                 @Cached("createReadNode()") Node readNode,
@@ -464,7 +456,6 @@ public abstract class InteropNodes {
 
         @Specialization(guards = { "identifier == cachedIdentifier", "isRubySymbol(cachedIdentifier)" })
         public Object read(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 DynamicObject identifier,
                 @Cached("identifier") DynamicObject cachedIdentifier,
@@ -487,7 +478,6 @@ public abstract class InteropNodes {
                 limit = "getCacheLimit()"
         )
         public Object readCached(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 DynamicObject identifier,
                 @Cached("privatizeRope(identifier)") Rope cachedIdentifier,
@@ -508,7 +498,6 @@ public abstract class InteropNodes {
                 replaces = "readCached"
         )
         public Object readUncached(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 DynamicObject identifier,
                 @Cached("createReadNode()") Node readNode,
@@ -542,7 +531,6 @@ public abstract class InteropNodes {
 
         @Specialization(guards = {"!isRubySymbol(identifier)", "!isRubyString(identifier)"})
         public Object write(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 Object identifier,
                 Object value,
@@ -558,7 +546,6 @@ public abstract class InteropNodes {
 
         @Specialization(guards = { "identifier == cachedIdentifier", "isRubySymbol(cachedIdentifier)" })
         public Object write(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 DynamicObject identifier,
                 Object value,
@@ -582,7 +569,6 @@ public abstract class InteropNodes {
                 limit = "getCacheLimit()"
         )
         public Object writeCached(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 DynamicObject identifier,
                 Object value,
@@ -604,7 +590,6 @@ public abstract class InteropNodes {
                 replaces = "writeCached"
         )
         public Object writeUncached(
-                VirtualFrame frame,
                 TruffleObject receiver,
                 DynamicObject identifier,
                 Object value,
