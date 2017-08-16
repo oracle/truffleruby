@@ -27,6 +27,8 @@ extern "C" {
 
 #include <ctype.h>
 #include <limits.h>
+// Included by ruby/io.h in MRI
+#include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
