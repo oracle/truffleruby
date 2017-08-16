@@ -74,6 +74,14 @@ common-darwin: ${common-base} {
   }
 }
 
+common-darwin-next: ${common-base} {
+  environment: {
+    # Homebrew does not put llvm on the PATH by default
+    PATH: "/usr/local/opt/llvm/bin:$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH"
+    OPENSSL_PREFIX: "/usr/local/opt/openssl"
+  }
+}
+
 no-graal: {
   environment: {
     HOST_VM: server,
@@ -220,6 +228,14 @@ gate-caps: {
 
 gate-caps-darwin: {
   capabilities: [darwin, amd64]
+  targets: [gate, post-push]
+  environment: {
+    REPORT_GITHUB_STATUS: "true"
+  }
+}
+
+gate-caps-darwin-next: {
+  capabilities: [darwin_next, macmini7_1]
   targets: [gate, post-push]
   environment: {
     REPORT_GITHUB_STATUS: "true"
@@ -511,6 +527,7 @@ lint: {
 builds: [
   {name: ruby-deploy-and-test-fast-linux} ${common} ${gate-caps} ${deploy-and-test-fast},
   {name: ruby-deploy-and-test-fast-darwin} ${common-darwin} ${gate-caps-darwin} ${deploy-and-test-fast-darwin},
+  {name: ruby-deploy-and-test-fast-darwin-next} ${common-darwin-next} ${gate-caps-darwin-next} ${deploy-and-test-fast-darwin},
   {name: ruby-deploy-and-test-fast-solaris} ${common-solaris} ${gate-caps-solaris} ${deploy-and-test-fast},
 
   {name: ruby-lint} ${common} ${gate-caps} ${lint},
