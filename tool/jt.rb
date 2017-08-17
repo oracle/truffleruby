@@ -1372,7 +1372,7 @@ module Commands
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now
-      out, err = run metrics_time_option, *args, {capture: true, no_print_cmd: true}
+      out, err = run metrics_time_option, '--no-core-load-path', *args, {capture: true, no_print_cmd: true}
       finish = Time.now
       samples.push get_times(err, finish - start)
     end
