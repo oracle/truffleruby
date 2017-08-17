@@ -480,7 +480,7 @@ test-compilation-flags: {
 
 deploy-binaries-with-rewrites: {
   run: [
-    [mx, deploy-binary-if-master, truffleruby-binary-snapshots]
+    [mx, deploy-binary-if-master, "--skip-existing", truffleruby-binary-snapshots]
   ]
 }
 
