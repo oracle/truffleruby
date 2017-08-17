@@ -197,7 +197,7 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
 
     @Override
     public boolean hasArray() {
-        throw new UnsupportedOperationException();
+        return false;
     }
 
     @Override
