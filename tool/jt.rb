@@ -1367,7 +1367,8 @@ module Commands
   def metrics_time(*args)
     use_json = args.delete '--json'
     samples = []
-    metrics_time_option = "#{'-J' unless args.include? '--aot'}-Dtruffleruby.metrics.time=true"
+    aot = args.include? '--aot'
+    metrics_time_option = "#{'-J' unless aot}-Dtruffleruby.metrics.time=true"
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now
