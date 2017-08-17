@@ -57,10 +57,10 @@ public abstract class SplatCastNode extends RubyNode {
     public Object splatNil(VirtualFrame frame, Object nil) {
         switch (nilBehavior) {
             case EMPTY_ARRAY:
-            return createArray(null, 0);
+                return createArray(null, 0);
 
             case ARRAY_WITH_NIL:
-            return createArray(new Object[] { nil() }, 1);
+                return createArray(new Object[] { nil() }, 1);
 
             case CONVERT:
                 return toA.call(frame, nil, "to_a");
