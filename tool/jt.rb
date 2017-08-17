@@ -367,7 +367,7 @@ module ShellUtils
     if i = args.index('-t')
       launcher = args[i+1]
       flags = args.select { |arg| arg.start_with?('-T') }.map { |arg| arg[2..-1] }
-      sh env_vars, launcher, *flags, *mspec_args, { use_exec: true }
+      sh env_vars, launcher, *flags, *mspec_args, use_exec: true
     else
       ruby env_vars, *mspec_args
     end
@@ -840,7 +840,7 @@ module Commands
 
     unless no_openssl
       sh 'clang', '-c', '-emit-llvm', *openssl_cflags, 'test/truffle/cexts/xopenssl/main.c', '-o', 'test/truffle/cexts/xopenssl/main.bc'
-      out, _ = mx_sulong('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', {capture: true})
+      out, _ = mx_sulong('lli', "-Dpolyglot.llvm.libraries=#{openssl_lib}", 'test/truffle/cexts/xopenssl/main.bc', capture: true)
       raise out.inspect unless out == "5d41402abc4b2a76b9719d911017c592\n"
     end
 
@@ -1218,7 +1218,7 @@ module Commands
     samples = []
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
-      out, err = run '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, {capture: true, no_print_cmd: true}
+      out, err = run '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, capture: true, no_print_cmd: true
       samples.push memory_allocated(out+err)
     end
     Utilities.log "\n", nil
@@ -1292,7 +1292,7 @@ module Commands
   end
 
   def can_run_in_heap(heap, *command)
-    run("-J-Xmx#{heap}M", *command, {err: '/dev/null', out: '/dev/null', no_print_cmd: true, continue_on_failure: true, timeout: 60})
+    run("-J-Xmx#{heap}M", *command, err: '/dev/null', out: '/dev/null', no_print_cmd: true, continue_on_failure: true, timeout: 60)
   end
 
   def metrics_maxrss(*args)
@@ -1305,11 +1305,11 @@ module Commands
       Utilities.log '.', "sampling\n"
 
       max_rss_in_mb = if LINUX
-                        out, err = raw_sh('/usr/bin/time', '-v', '--', ENV['AOT_BIN'], *args, {capture: true, no_print_cmd: true})
+                        out, err = raw_sh('/usr/bin/time', '-v', '--', ENV['AOT_BIN'], *args, capture: true, no_print_cmd: true)
                         err =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
                         Integer($~[:max_rss_in_kb]) / 1024.0
                       elsif MAC
-                        out, err = raw_sh('/usr/bin/time', '-l', '--', ENV['AOT_BIN'], *args, {capture: true, no_print_cmd: true})
+                        out, err = raw_sh('/usr/bin/time', '-l', '--', ENV['AOT_BIN'], *args, capture: true, no_print_cmd: true)
                         err =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
                         Integer($~[:max_rss_in_bytes]) / 1024.0 / 1024.0
                       else
@@ -1347,7 +1347,7 @@ module Commands
 
     use_json = args.delete '--json'
 
-    out, err = raw_sh('perf', 'stat', '-e', 'instructions', '--', ENV['AOT_BIN'], *args, {capture: true, no_print_cmd: true})
+    out, err = raw_sh('perf', 'stat', '-e', 'instructions', '--', ENV['AOT_BIN'], *args, capture: true, no_print_cmd: true)
 
     err =~ /(?<instruction_count>[\d,]+)\s+instructions/m
     instruction_count = $~[:instruction_count].gsub(',', '')
@@ -1372,7 +1372,7 @@ module Commands
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now
-      out, err = run metrics_time_option, '--no-core-load-path', *args, {capture: true, no_print_cmd: true}
+      out, err = run metrics_time_option, '--no-core-load-path', *args, capture: true, no_print_cmd: true
       finish = Time.now
       samples.push get_times(err, finish - start)
     end
