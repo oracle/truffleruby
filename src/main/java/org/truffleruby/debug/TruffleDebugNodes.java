@@ -12,8 +12,10 @@ package org.truffleruby.debug;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.nodes.NodeUtil;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -29,6 +31,8 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
@@ -133,31 +137,51 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @CoreMethod(names = "ast", onSingleton = true, required = 1)
+    @CoreMethod(names = "ast", onSingleton = true, optional = 1, needsBlock = true)
     public abstract static class ASTNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyMethod(method)")
-        public DynamicObject astMethod(DynamicObject method) {
-            return ast(Layouts.METHOD.getMethod(method));
-        }
-
-        @Specialization(guards = "isRubyUnboundMethod(method)")
-        public DynamicObject astUnboundMethod(DynamicObject method) {
-            return ast(Layouts.UNBOUND_METHOD.getMethod(method));
-        }
-
-        @Specialization(guards = "isRubyProc(proc)")
-        public DynamicObject astProc(DynamicObject proc) {
-            return ast(Layouts.PROC.getMethod(proc));
+        public DynamicObject astMethod(DynamicObject method, NotProvided block) {
+            ast(Layouts.METHOD.getMethod(method));
+            return nil();
         }
 
         @TruffleBoundary
+        @Specialization(guards = "isRubyUnboundMethod(method)")
+        public DynamicObject astUnboundMethod(DynamicObject method, NotProvided block) {
+            ast(Layouts.UNBOUND_METHOD.getMethod(method));
+            return nil();
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyProc(proc)")
+        public DynamicObject astProc(DynamicObject proc, NotProvided block) {
+            ast(Layouts.PROC.getCallTargetForType(proc));
+            return nil();
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject astBlock(NotProvided proc, DynamicObject block) {
+            ast(Layouts.PROC.getCallTargetForType(block));
+            return nil();
+        }
+
         private DynamicObject ast(InternalMethod method) {
-            if (method.getCallTarget() instanceof RootCallTarget) {
-                return ast(((RootCallTarget) method.getCallTarget()).getRootNode());
+            return ast(method.getCallTarget());
+        }
+
+        private DynamicObject ast(CallTarget callTarget) {
+            if (callTarget instanceof RootCallTarget) {
+                return ast((RootCallTarget) callTarget);
             } else {
-                return nil();
+                throw new RaiseException(getContext().getCoreExceptions().internalError("call target is not a root call target", this));
             }
+        }
+
+        private DynamicObject ast(RootCallTarget rootCallTarget) {
+            return ast(rootCallTarget.getRootNode());
         }
 
         private DynamicObject ast(Node node) {
@@ -178,42 +202,103 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @CoreMethod(names = "ast_graph", onSingleton = true, required = 1)
+    @CoreMethod(names = "ast_graph", onSingleton = true, optional = 1, needsBlock = true)
     public abstract static class ASTGraphNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyMethod(method)")
-        public DynamicObject astMethod(DynamicObject method) {
-            return ast(Layouts.METHOD.getMethod(method));
-        }
-
-        @Specialization(guards = "isRubyUnboundMethod(method)")
-        public DynamicObject astUnboundMethod(DynamicObject method) {
-            return ast(Layouts.UNBOUND_METHOD.getMethod(method));
-        }
-
-        @Specialization(guards = "isRubyProc(proc)")
-        public DynamicObject astProc(DynamicObject proc) {
-            return ast(Layouts.PROC.getMethod(proc));
+        public DynamicObject astMethod(DynamicObject method, NotProvided block) {
+            astGraph(Layouts.METHOD.getMethod(method));
+            return nil();
         }
 
         @TruffleBoundary
-        private DynamicObject ast(InternalMethod method) {
-            if (method.getCallTarget() instanceof RootCallTarget) {
-                return ast(method.getName(), ((RootCallTarget) method.getCallTarget()).getRootNode());
+        @Specialization(guards = "isRubyUnboundMethod(method)")
+        public DynamicObject astUnboundMethod(DynamicObject method, NotProvided block) {
+            astGraph(Layouts.UNBOUND_METHOD.getMethod(method));
+            return nil();
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyProc(proc)")
+        public DynamicObject astProc(DynamicObject proc, NotProvided block) {
+            astGraph(Layouts.PROC.getSharedMethodInfo(proc).getName(), Layouts.PROC.getCallTargetForType(proc));
+            return nil();
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject astBlock(NotProvided proc, DynamicObject block) {
+            astGraph(Layouts.PROC.getSharedMethodInfo(block).getName(), Layouts.PROC.getCallTargetForType(block));
+            return nil();
+        }
+
+        private void astGraph(InternalMethod method) {
+            astGraph(method.getName(), (RootCallTarget) method.getCallTarget());
+        }
+
+        private void astGraph(String name, CallTarget callTarget) {
+            if (callTarget instanceof RootCallTarget) {
+                astGraph(name, (RootCallTarget) callTarget);
             } else {
-                return nil();
+                throw new RaiseException(getContext().getCoreExceptions().internalError("call target is not a root call target", this));
             }
         }
 
-        private DynamicObject ast(String name, Node node) {
-            if (node != null) {
-                GraphPrintVisitor graphPrinter = new GraphPrintVisitor();
-                graphPrinter.beginGraph(name).visit(node);
+        private void astGraph(String name, RootCallTarget callTarget) {
+            final GraphPrintVisitor graphPrinter = new GraphPrintVisitor();
+            graphPrinter.beginGraph(name).visit(callTarget.getRootNode());
+            graphPrinter.printToNetwork(true);
+            graphPrinter.close();
+        }
 
-                graphPrinter.printToNetwork(true);
-                graphPrinter.close();
-            }
+    }
+
+    @CoreMethod(names = "print_ast", onSingleton = true, optional = 1, needsBlock = true)
+    public abstract static class PrintASTNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyMethod(method)")
+        public DynamicObject astMethod(DynamicObject method, NotProvided block) {
+            printAst(Layouts.METHOD.getMethod(method));
             return nil();
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyUnboundMethod(method)")
+        public DynamicObject astUnboundMethod(DynamicObject method, NotProvided block) {
+            printAst(Layouts.UNBOUND_METHOD.getMethod(method));
+            return nil();
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyProc(proc)")
+        public DynamicObject astProc(DynamicObject proc, NotProvided block) {
+            printAst(Layouts.PROC.getCallTargetForType(proc));
+            return nil();
+        }
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject astBlock(NotProvided proc, DynamicObject block) {
+            printAst(Layouts.PROC.getCallTargetForType(block));
+            return nil();
+        }
+
+        private void printAst(InternalMethod method) {
+            NodeUtil.printCompactTree(System.err, ((RootCallTarget) method.getCallTarget()).getRootNode());
+        }
+
+        private void printAst(CallTarget callTarget) {
+            if (callTarget instanceof RootCallTarget) {
+                printAst((RootCallTarget) callTarget);
+            } else {
+                throw new RaiseException(getContext().getCoreExceptions().internalError("call target is not a root call target", this));
+            }
+        }
+
+        private void printAst(RootCallTarget callTarget) {
+            NodeUtil.printCompactTree(System.err, callTarget.getRootNode());
         }
 
     }
