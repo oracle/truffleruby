@@ -175,7 +175,7 @@ class Socket < BasicSocket
 
   def self.getifaddrs
     initial = RubySL::Socket::Foreign::Ifaddrs.new
-    status  = RubySL::Socket::Foreign.getifaddrs(initial)
+    status  = RubySL::Socket::Foreign.getifaddrs(initial.pointer)
     ifaddrs = []
     index   = 1
 
@@ -198,7 +198,7 @@ class Socket < BasicSocket
 
       ifaddrs
     ensure
-      RubySL::Socket::Foreign.freeifaddrs(initial)
+      RubySL::Socket::Foreign.freeifaddrs(initial.pointer)
     end
   end
 

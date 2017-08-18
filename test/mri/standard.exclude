@@ -106,7 +106,6 @@ socket/test_addrinfo.rb
 socket/test_ancdata.rb
 socket/test_basicsocket.rb
 socket/test_nonblock.rb
-socket/test_socket.rb
 socket/test_sockopt.rb
 socket/test_tcp.rb
 socket/test_udp.rb
