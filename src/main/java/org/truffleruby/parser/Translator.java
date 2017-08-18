@@ -60,6 +60,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         m.put("$INPUT_RECORD_SEPARATOR", "$/");
         m.put("$>", "$stdout");
         m.put("$PROGRAM_NAME", "$0");
+        m.put("$CHILD_STATUS", "$?");
     }
 
     protected final Node currentNode;
