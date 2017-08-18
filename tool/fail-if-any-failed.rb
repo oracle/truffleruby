@@ -33,33 +33,6 @@ known_failures = [
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-encode-png-image-pass-to-stream"],
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-operations-compose"],
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-operations-replace"],
-
-  # SVM (GR-5089)
-  ["svm", "default", "jruby", "truffle", "classic", "deltablue"],
-  ["svm", "default", "jruby", "truffle", "classic", "red-black"],
-  ["svm", "default", "jruby", "truffle", "chunky", "chunky-decode-png-image-pass"],
-  # SVM
-  ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:file-lines"],
-  ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:load-string"],
-  ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:load-file"],
-  ["svm", "default", "jruby", "truffle", "asciidoctor", "asciidoctor:string-lines"],
-  ["svm", "default", "jruby", "truffle", "classic", "binary-trees"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-compose-color-burn"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-compose-color-dodge"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-compose-exclusion"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-compose-hard-light"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-compose-lighten"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-compose-linear-burn"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-compose-multiply"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-compose-normal"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-compose-overlay"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-compose-screen"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-compose-vivid-light"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-imagemode-cmyk-combine-cmyk-channel"],
-  ["svm", "default", "jruby", "truffle", "psd", "psd-renderer-blender-compose"],
-  ["svm", "default", "jruby", "truffle", "savina", "savina-radix-sort"],
-  ["svm", "default", "jruby", "truffle", "server", "tcp-server"],
-  ["svm", "default", "jruby", "truffle", "server", "webrick"],
 ]
 
 if File.exist?('failures')
