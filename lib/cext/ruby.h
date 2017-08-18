@@ -906,6 +906,7 @@ VALUE rb_hash(VALUE obj);
 VALUE rb_hash_new(void);
 VALUE rb_hash_aref(VALUE hash, VALUE key);
 VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE value);
+VALUE rb_hash_dup(VALUE);
 VALUE rb_hash_lookup(VALUE hash, VALUE key);
 VALUE rb_hash_lookup2(VALUE hash, VALUE key, VALUE default_value);
 VALUE rb_hash_set_ifnone(VALUE hash, VALUE if_none);
@@ -918,7 +919,6 @@ VALUE rb_hash_delete_if(VALUE hash);
 void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg);
 VALUE rb_hash_size(VALUE hash);
 #define RHASH_SIZE(h) NUM2SIZET(rb_hash_size(h))
-#define rb_hash_dup(array) rb_obj_dup(array)
 
 // Class
 
