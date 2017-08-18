@@ -5,22 +5,32 @@ developing TruffleRuby, or possibly to modify Graal or Truffle, or to use
 developer tools that come with Graal such as the Ideal Graph Visualizer, then
 you should install Graal locally.
 
-Our workflow tool can install Graal automatically under the directory `graal`
-with:
+## Installing Graal with jt
+
+Our workflow tool can install Graal automatically under the directory
+`../graal/compiler` with:
 
 ```
 $ jt install graal
 ```
+
+You can then use `jt` to run TruffleRuby with Graal.
+
+```
+$ jt ruby --graal ...
+```
+
+## Building Graal manually
+
+If you want to build Graal by yourself, follow the instructions in the Graal
+repository.
+
+https://github.com/graalvm/graal
 
 You can then set the `GRAAL_HOME` environment variable to the location of the
 `compiler` directory inside the `graal` repository and use `jt` to run
 TruffleRuby.
 
 ```
-$ GRAAL_HOME=$PWD/graal/graal/compiler jt ruby --graal ...
+$ GRAAL_HOME=.../graal/compiler jt ruby --graal ...
 ```
-
-If you want to build Graal by yourself, follow the instructions in the Graal
-repository.
-
-https://github.com/graalvm/graal

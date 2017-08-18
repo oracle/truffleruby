@@ -1498,44 +1498,41 @@ module Commands
 
   def install(name)
     case name
-    when "graal"
-    when "graal-core"
-      install_graal_core
+    when "graal", "graal-core"
+      install_graal
     else
       raise "Unknown how to install #{what}"
     end
   end
 
-  def install_graal_core
+  def install_graal
     raise "Installing graal is only available on Linux and macOS currently" unless LINUX || MAC
 
-    dir = "#{TRUFFLERUBY_DIR}/graal"
-    Dir.mkdir(dir) unless File.directory?(dir)
+    build
+
+    env_file = "mx.truffleruby/env"
+    unless !File.exist?(env_file) || File.readlines(env_file).grep(/MX_BINARY_SUITES=/).empty?
+      abort "You need to remove the MX_BINARY_SUITES line from #{env_file}"
+    end
+
+    dir = File.expand_path("..", TRUFFLERUBY_DIR)
     Dir.chdir(dir) do
-      unless File.directory?("#{dir}/mx")
-        puts "Cloning mx"
-        raw_sh "git", "clone", "https://github.com/graalvm/mx.git"
-      end
-
-      unless File.directory?("#{dir}/graal")
-        puts "Cloning graal"
-        raw_sh "git", "clone", "https://github.com/graalvm/graal.git"
-      end
-
       if LINUX
-        puts "Downloading JDK8 with JVMCI"
-        if Dir["#{dir}/jdk1.8.0*"].empty?
+        jvmci_version = "jvmci-0.32"
+        jvmci_grep = "#{dir}/openjdk1.8.0*#{jvmci_version}"
+        if Dir[jvmci_grep].empty?
+          puts "Downloading JDK8 with JVMCI"
           jvmci_releases = "https://github.com/dougxc/openjdk8-jvmci-builder/releases/download"
-          jvmci_version = "jvmci-0.23"
-          raw_sh "wget", "#{jvmci_releases}/#{jvmci_version}/jdk1.8.0_111-#{jvmci_version}-linux-amd64.tar.gz", "-O", "jvmci.tar.gz"
-          raw_sh "tar", "xf", "jvmci.tar.gz"
-          java_home = Dir["#{dir}/jdk1.8.0*"].sort.first
+          filename = "openjdk1.8.0_141-#{jvmci_version}-linux-amd64.tar.gz"
+          raw_sh "wget", "#{jvmci_releases}/#{jvmci_version}/#{filename}", "-O", filename
+          raw_sh "tar", "xf", filename
         end
+        java_home = Dir[jvmci_grep].sort.first
       elsif MAC
-        jvmci_version = "jvmci-0.29"
+        jvmci_version = "jvmci-0.32"
         puts "You need to download manually the latest JVMCI-enabled JDK at"
         puts "http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html"
-        puts "Download the file named labsjdk-8u121-#{jvmci_version}-darwin-amd64.tar.gz"
+        puts "Download the file named labsjdk-8u141-#{jvmci_version}-darwin-amd64.tar.gz"
         puts "And move it to the directory #{dir}"
         puts "When done, enter 'done':"
         begin
@@ -1557,16 +1554,15 @@ module Commands
       puts "Building graal"
       Dir.chdir("#{dir}/graal/compiler") do
         File.write("mx.compiler/env", "JAVA_HOME=#{java_home}\n")
-        raw_sh "../../mx/mx", "build"
+        mx "build"
       end
 
       puts "Running with Graal"
-      env = { "GRAAL_HOME" => "#{dir}/graal/compiler" }
-      sh env, "tool/jt.rb", "ruby", "--graal", "-e", "p Truffle.graal?"
+      run "--graal", "-e", "p Truffle.graal?"
 
       puts
-      puts "To run with graal, run:"
-      puts "GRAAL_HOME=#{dir}/graal/compiler tool/jt.rb ruby --graal ..."
+      puts "To run TruffleRuby with Graal, use:"
+      puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
     end
   end
 
