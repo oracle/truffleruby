@@ -74,21 +74,27 @@ public class Launcher {
             Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
 
     public static void main(boolean isGraal, String[] args) throws Exception {
+        metricsBegin();
+
+        final CommandLineOptions config = new CommandLineOptions();
+        processArguments(config, args, true, true);
+        printHelpVersionCopyright(isGraal, config);
+        final int exitCode = runMain(Context.newBuilder(), config);
+
+        metricsEnd();
+        System.exit(exitCode);
+    }
+
+    public static void metricsBegin() {
         // Assigned here so it's available on SVM as well
         METRICS_TIME = Boolean.getBoolean("truffleruby.metrics.time");
 
         printTruffleTimeMetric("before-main");
+    }
 
-        final CommandLineOptions config = new CommandLineOptions();
-
-        processArguments(config, args, true, true);
-
-        printHelpVersionCopyright(isGraal, config);
-        final int exitCode = runMain(Context.newBuilder(), config);
-
+    public static void metricsEnd() {
         printTruffleTimeMetric("after-main");
         printTruffleMemoryMetric();
-        System.exit(exitCode);
     }
 
     public static int runMain(Context.Builder contextBuilder, CommandLineOptions config) {
