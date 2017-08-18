@@ -152,6 +152,12 @@ public class CExtNodes {
             return num;
         }
 
+        @Specialization
+        public long num2ulong(long num) {
+            // TODO CS 2-May-16 what to do about the fact it's unsigned?
+            return num;
+        }
+
     }
 
     @CoreMethod(names = "NUM2DBL", onSingleton = true, required = 1, lowerFixnum = 1)
