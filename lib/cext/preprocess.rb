@@ -26,6 +26,19 @@ PG_BINARY_ENCODER_PATCH = <<-EOF
 		case Qfalse_int_const : mybool = 0; break;
 EOF
 
+# Found in puma
+PUMA_HTTP_PARSER_FREE = <<-EOF
+void HttpParser_free(puma_parser* hp) {
+  TRACE();
+  
+  if(hp) {
+    rb_tr_release_handle(hp->request);
+    rb_tr_release_handle(hp->body);
+    xfree(hp);
+  }
+}
+EOF
+
 PATCHED_FILES = {'xml_node_set.c'      => {:gem      => 'nokogiri',
                                            :patches  => 
                                              [{:match       => /[[:blank:]]*?switch\s*?\(.*?Qnil:/m, 
@@ -49,7 +62,35 @@ PATCHED_FILES = {'xml_node_set.c'      => {:gem      => 'nokogiri',
                  'websocket_mask.c'    => {:gem   => 'websocket-driver',
                                            :patches => 
                                              [{:match       => /(VALUE .*?)\s+= Qnil;/,
-                                               :replacement => '\1;'}]}}
+                                               :replacement => '\1;'}]},
+                 'http11_parser.c'    => {:gem   => 'puma_http11',
+                                           :patches => 
+                                             [{:match       => /parser->(.*?) = Qnil/,
+                                               :replacement => 'parser->\1 = rb_tr_handle_for_managed(Qnil)'}]},
+                 'puma_http11.c'      => {:gem   => 'puma_http11',
+                                           :patches => 
+                                             [{:match       => /(define.*?,) Qnil }/,
+                                               :replacement => '\1 NULL }'},
+                                               {:match       => /cf->value = (.*?);/,
+                                               :replacement => 'cf->value = rb_tr_handle_for_managed(\1);'},
+                                               {:match       => /return found \? found->value : Qnil;/,
+                                               :replacement => 'return found ? rb_tr_managed_from_handle(found->value) : Qnil;'},
+                                               {:match       => /return cf->value;/,
+                                               :replacement => 'return rb_tr_managed_from_handle(cf->value);'},
+                                               {:match       => /void HttpParser_mark\(puma_parser\* hp\) {.*?}/m,
+                                               :replacement => 'void HttpParser_mark(puma_parser* hp) { }'},
+                                               {:match       => /void HttpParser_free\(void \*data\) {.*?}.*?}/m,
+                                               :replacement => PUMA_HTTP_PARSER_FREE},
+                                               {:match       => /\(hp->request/,
+                                               :replacement => '(rb_tr_managed_from_handle(hp->request)'},
+                                               {:match       => /return http->body;/,
+                                               :replacement => 'return rb_tr_managed_from_handle(http->body);'},
+                                               {:match       => /http->request = req_hash;/,
+                                               :replacement => 'http->request = rb_tr_handle_for_managed(req_hash);'},
+                                               {:match       => /hp->request = Qnil;/,
+                                               :replacement => 'hp->request = rb_tr_handle_for_managed(Qnil);'},
+                                               {:match       => /hp->body = rb_str_new\(at, length\);/,
+                                               :replacement => 'hp->body = rb_tr_handle_for_managed(rb_str_new(at, length));'}]}}
 
 def preprocess(line)
   if line =~ VALUE_LOCALS
