@@ -265,6 +265,28 @@ public abstract class TrufflePosixNodes {
 
     }
 
+    @CoreMethod(names = "recvmsg", isModuleFunction = true, required = 3, lowerFixnum = { 1, 3 })
+    public abstract static class RecvMsgNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyPointer(messagePtr)")
+        public int recvmsg(int socket, DynamicObject messagePtr, int flags) {
+            return nativeSockets().recvmsg(socket, Layouts.POINTER.getPointer(messagePtr), flags);
+        }
+
+    }
+
+    @CoreMethod(names = "sendmsg", isModuleFunction = true, required = 3, lowerFixnum = { 1, 3 })
+    public abstract static class SendMsgNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyPointer(messagePtr)")
+        public int sendmsg(int socket, DynamicObject messagePtr, int flags) {
+            return nativeSockets().sendmsg(socket, Layouts.POINTER.getPointer(messagePtr), flags);
+        }
+
+    }
+
     @CoreMethod(names = "setenv", isModuleFunction = true, required = 3, lowerFixnum = 3)
     public abstract static class SetenvNode extends CoreMethodArrayArgumentsNode {
 
@@ -842,6 +864,18 @@ public abstract class TrufflePosixNodes {
 
     }
 
+    @CoreMethod(names = "freeifaddrs", isModuleFunction = true, required = 1)
+    public abstract static class FreeIfAddrsNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyPointer(ifa)")
+        public DynamicObject freeifaddrs(DynamicObject ifa) {
+            nativeSockets().freeifaddrs(Layouts.POINTER.getPointer(ifa));
+            return nil();
+        }
+
+    }
+
     @CoreMethod(names = "gai_strerror", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class GaiStrErrorNode extends CoreMethodArrayArgumentsNode {
 
@@ -854,6 +888,17 @@ public abstract class TrufflePosixNodes {
             return makeStringNode.executeMake(errorMessage, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
+    }
+
+    @CoreMethod(names = "getifaddrs", isModuleFunction = true, required = 1)
+    public abstract static class GetIfAddrsNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyPointer(ifap)")
+        public int getnameinfo(DynamicObject ifap) {
+            return nativeSockets().getifaddrs(Layouts.POINTER.getPointer(ifap));
+        }
+        
     }
 
     @CoreMethod(names = "_getnameinfo", isModuleFunction = true, required = 7, lowerFixnum = {2, 4, 6, 7})

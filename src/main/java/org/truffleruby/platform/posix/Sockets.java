@@ -25,11 +25,23 @@ public interface Sockets {
     int getaddrinfo(CharSequence hostname, CharSequence servname, Pointer hints, Pointer res);
 
     /*
+     * int
+     * getifaddrs(struct ifaddrs **ifap);
+     */
+    int getifaddrs(Pointer ifa);
+
+    /*
      * void
      * freeaddrinfo(struct addrinfo *ai);
      */
 
     void freeaddrinfo(Pointer ai);
+
+    /*
+     * void
+     * freeifaddrs(struct ifaddrs *ifa);
+     */
+    void freeifaddrs(Pointer ifa);
 
     /*
      * const char *
@@ -45,6 +57,19 @@ public interface Sockets {
      */
 
     int getnameinfo(Pointer sa, int salen, Pointer host, int hostlen, Pointer serv, int servlen, int flags);
+
+    /*
+     *  ssize_t
+     *  recvmsg(int socket, struct msghdr *message, int flags);
+     */
+     int recvmsg(int socket, Pointer message, int flags);
+
+
+    /*
+     * ssize_t
+     * sendmsg(int socket, const struct msghdr *message, int flags)
+     */
+    int sendmsg(int socket, Pointer message, int flags);
 
     /*
      * int

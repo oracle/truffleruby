@@ -23,7 +23,17 @@ public class JavaSockets implements Sockets {
     }
 
     @Override
+    public int getifaddrs(Pointer ifa) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void freeaddrinfo(Pointer ai) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void freeifaddrs(Pointer ifa) {
         throw new UnsupportedOperationException();
     }
 
@@ -34,6 +44,16 @@ public class JavaSockets implements Sockets {
 
     @Override
     public int getnameinfo(Pointer sa, int salen, Pointer host, int hostlen, Pointer serv, int servlen, int flags) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int recvmsg(int socket, Pointer message, int flags) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public int sendmsg(int socket, Pointer message, int flags) {
         throw new UnsupportedOperationException();
     }
 
