@@ -85,25 +85,13 @@ CP=""
 if [ $on_graalvm = false ]; then
 
     binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
+    source_truffle="$root_parent/graal/truffle/mxbuild"
     if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
         truffle="$binary_truffle"
         graal_sdk="$(dirname "$binary_truffle")/mx.imports/binary/sdk/mxbuild/dists/graal-sdk.jar"
-    else
-        for repo_name in graal compiler truffle
-        do
-            if [ -f "$root_parent/${repo_name}/truffle/mx.truffle/suite.py" ]; then
-                if [ -n "$source_truffle" ]; then
-                    echo "Found truffle suite in multiple locations: '$source_truffle'" \
-                         "and '$root_parent/${repo_name}/truffle/mxbuild'" 1>&2
-                    exit 1
-                fi
-                source_truffle="$root_parent/${repo_name}/truffle/mxbuild"
-                graal_sdk="$root_parent/${repo_name}/sdk/mxbuild/dists/graal-sdk.jar"
-            fi
-        done
-        if [ -n "$source_truffle" ] && [ -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
-            truffle="$source_truffle"
-        fi
+    elif [ -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
+        truffle="$source_truffle"
+        graal_sdk="$root_parent/graal/sdk/mxbuild/dists/graal-sdk.jar"
     fi
     if [ -z "$truffle" ]; then
         echo "Could not find Truffle jars" 1>&2
