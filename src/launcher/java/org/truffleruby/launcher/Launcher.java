@@ -84,19 +84,19 @@ public class Launcher {
         processArguments(config, args, true, true);
 
         printHelpVersionCopyright(isGraal, config);
-        final int exitCode = runMain(config);
+        final int exitCode = runMain(Context.newBuilder(), config);
 
         printTruffleTimeMetric("after-main");
         printTruffleMemoryMetric();
         System.exit(exitCode);
     }
 
-    public static int runMain(CommandLineOptions config) {
+    public static int runMain(Context.Builder contextBuilder, CommandLineOptions config) {
         if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.NONE) {
             return 0;
         }
 
-        try (Context context = createContext(Context.newBuilder(), config)) {
+        try (Context context = createContext(contextBuilder, config)) {
             printTruffleTimeMetric("before-run");
             final Source source;
             try {
