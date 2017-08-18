@@ -79,7 +79,7 @@ public class Launcher {
         final CommandLineOptions config = new CommandLineOptions();
         processArguments(config, args, true, true);
         printHelpVersionCopyright(isGraal, config);
-        final int exitCode = runMain(Context.newBuilder(), config);
+        final int exitCode = runRubyMain(Context.newBuilder(), config);
 
         metricsEnd();
         System.exit(exitCode);
@@ -97,7 +97,7 @@ public class Launcher {
         printTruffleMemoryMetric();
     }
 
-    public static int runMain(Context.Builder contextBuilder, CommandLineOptions config) {
+    public static int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
         if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.NONE) {
             return 0;
         }
