@@ -98,17 +98,18 @@ PATCHED_FILES = {
     gem: 'puma_http11',
     patches: [
       {
-        match: /parser->(.*?) = Qnil/,
-        replacement: 'parser->\1 = rb_tr_handle_for_managed(Qnil)'
+        match: /parser->(\w+) = Qnil;/,
+        replacement: 'parser->\1 = rb_tr_handle_for_managed(Qnil);'
       }
     ]
   },
   'puma_http11.c' => {
     gem: 'puma_http11',
     patches: [
+      # Handles for VALUEs in a static global struct array
       {
-        match: /(define.*?,) Qnil }/,
-        replacement: '\1 NULL }'
+        match: /(define\b.*?), Qnil \}/,
+        replacement: '\1, NULL }'
       },
       {
         match: /cf->value = (.*?);/,
@@ -122,33 +123,26 @@ PATCHED_FILES = {
         match: /return cf->value;/,
         replacement: 'return rb_tr_managed_from_handle(cf->value);'
       },
-      {
-        match: /void HttpParser_mark\(puma_parser\* hp\) {.*?}/m,
-        replacement: 'void HttpParser_mark(puma_parser* hp) { }'
-      },
+      # Handles for puma_parser->request and puma_parser->body
       {
         match: /void HttpParser_free\(void \*data\) {.*?}.*?}/m,
         replacement: PUMA_HTTP_PARSER_FREE
       },
       {
-        match: /\(hp->request/,
+        match: /\(hp->request\b/,
         replacement: '(rb_tr_managed_from_handle(hp->request)'
+      },
+      {
+        match: /(\w+)->request = (.+?);/,
+        replacement: '\1->request = rb_tr_handle_for_managed(\2);'
       },
       {
         match: /return http->body;/,
         replacement: 'return rb_tr_managed_from_handle(http->body);'
       },
       {
-        match: /http->request = req_hash;/,
-        replacement: 'http->request = rb_tr_handle_for_managed(req_hash);'
-      },
-      {
-        match: /hp->request = Qnil;/,
-        replacement: 'hp->request = rb_tr_handle_for_managed(Qnil);'
-      },
-      {
-        match: /hp->body = rb_str_new\(at, length\);/,
-        replacement: 'hp->body = rb_tr_handle_for_managed(rb_str_new(at, length));'
+        match: /(\w+)->body = (.+?);/,
+        replacement: '\1->body = rb_tr_handle_for_managed(\2);'
       }
     ]
   }
