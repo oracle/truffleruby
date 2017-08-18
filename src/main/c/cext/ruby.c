@@ -1706,6 +1706,10 @@ VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE value) {
   return value;
 }
 
+VALUE rb_hash_dup(VALUE hash) {
+  return rb_obj_dup(hash);
+}
+
 VALUE rb_hash_lookup(VALUE hash, VALUE key) {
   return rb_hash_lookup2(hash, key, Qnil);
 }
