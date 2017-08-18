@@ -156,7 +156,7 @@ public abstract class StringOperations {
         return bytes;
     }
 
-    public static boolean isASCIIOnly(String string) {
+    public static boolean isASCIIOnly(CharSequence string) {
         for (int i = 0; i < string.length(); i++) {
             int c = string.charAt(i);
             if (!Encoding.isAscii(c)) {

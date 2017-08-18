@@ -44,7 +44,7 @@ import jnr.posix.FileStat;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.numeric.BignumOperations;
-import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 
 import java.math.BigInteger;
@@ -165,7 +165,7 @@ public abstract class DefaultRubiniusConfiguration {
     }
 
     protected static DynamicObject string(RubyContext context, String value) {
-        return StringOperations.createString(context, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE, CodeRange.CR_7BIT));
+        return StringOperations.createString(context, RopeOperations.encodeAscii(value, UTF8Encoding.INSTANCE));
     }
 
 }

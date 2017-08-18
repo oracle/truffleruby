@@ -127,6 +127,22 @@ public class RopeOperations {
         return decode(UTF8, bytes, byteOffset, byteLength);
     }
 
+    public static Rope encodeAscii(CharSequence value, Encoding encoding) {
+        return create(encodeAsciiBytes(value), encoding, CR_7BIT);
+    }
+
+    public static byte[] encodeAsciiBytes(CharSequence value) {
+        assert StringOperations.isASCIIOnly(value);
+
+        final byte[] bytes = new byte[value.length()];
+
+        for (int i = 0; i < bytes.length; i++) {
+            bytes[i] = (byte) value.charAt(i);
+        }
+
+        return bytes;
+    }
+
     private static String decodeAscii(Rope rope) {
         assert rope.getCodeRange() == CR_7BIT;
 

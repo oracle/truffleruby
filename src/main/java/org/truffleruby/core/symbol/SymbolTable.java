@@ -18,7 +18,6 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.Hashing;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
@@ -74,7 +73,7 @@ public class SymbolTable {
 
             final Rope rope;
             if (StringOperations.isASCIIOnly(stringKey)) {
-                rope = StringOperations.encodeRope(stringKey, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                rope = RopeOperations.encodeAscii(stringKey, USASCIIEncoding.INSTANCE);
             } else {
                 rope = StringOperations.encodeRope(stringKey, UTF8Encoding.INSTANCE);
             }

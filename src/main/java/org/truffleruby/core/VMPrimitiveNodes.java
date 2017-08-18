@@ -58,6 +58,7 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.proc.ProcSignalHandler;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
@@ -412,8 +413,8 @@ public abstract class VMPrimitiveNodes {
                 }
 
                 Object[] objects = new Object[] {
-                        makeStringNode.executeMake(key, UTF8Encoding.INSTANCE, org.truffleruby.core.rope.CodeRange.CR_UNKNOWN),
-                        makeStringNode.executeMake(stringValue, UTF8Encoding.INSTANCE, org.truffleruby.core.rope.CodeRange.CR_UNKNOWN) };
+                        makeStringNode.executeMake(key, UTF8Encoding.INSTANCE, CodeRange.CR_7BIT),
+                        makeStringNode.executeMake(stringValue, UTF8Encoding.INSTANCE, CodeRange.CR_7BIT) };
                 sectionKeyValues.add(createArray(objects, objects.length));
             }
 
