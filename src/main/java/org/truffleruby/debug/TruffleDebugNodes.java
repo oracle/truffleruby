@@ -246,10 +246,10 @@ public abstract class TruffleDebugNodes {
         }
 
         private void astGraph(String name, RootCallTarget callTarget) {
-            final GraphPrintVisitor graphPrinter = new GraphPrintVisitor();
-            graphPrinter.beginGraph(name).visit(callTarget.getRootNode());
-            graphPrinter.printToNetwork(true);
-            graphPrinter.close();
+            try (GraphPrintVisitor graphPrinter = new GraphPrintVisitor()) {
+                graphPrinter.beginGraph(name).visit(callTarget.getRootNode());
+                graphPrinter.printToNetwork(true);
+            }
         }
 
     }
