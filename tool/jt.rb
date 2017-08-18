@@ -24,7 +24,7 @@ require 'pathname'
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 M2_REPO         = File.expand_path('~/.m2/repository')
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 2
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = 3
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -895,6 +895,9 @@ module Commands
             *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
             "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root
       end
+
+      # Tests using gem install to compile the cexts
+      sh "test/truffle/cexts/puma/puma.sh"
     end
   end
   private :test_cexts
