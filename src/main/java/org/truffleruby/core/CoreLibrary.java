@@ -31,6 +31,7 @@ import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
@@ -791,8 +792,7 @@ public class CoreLibrary {
     }
 
     private DynamicObject frozenUSASCIIString(String string) {
-        assert StringOperations.isASCIIOnly(string);
-        final Rope rope = StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE);
+        final Rope rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
         return StringOperations.createFrozenString(context, rope);
     }
 

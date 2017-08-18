@@ -62,6 +62,7 @@
  */
 package org.truffleruby.core.string;
 
+import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
 import static org.truffleruby.core.string.StringOperations.encoding;
 import static org.truffleruby.core.string.StringOperations.rope;
@@ -182,11 +183,26 @@ public abstract class StringNodes {
             return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope));
         }
 
-        @Specialization
+        @Specialization(guards = "is7Bit(codeRange)")
+        protected DynamicObject makeAsciiStringFromString(String string, Encoding encoding, CodeRange codeRange) {
+            final byte[] bytes = RopeOperations.encodeAsciiBytes(string);
+
+            return makeStringFromBytes(bytes, encoding, codeRange);
+        }
+
+        @Specialization(guards = "!is7Bit(codeRange)")
         protected DynamicObject makeStringFromString(String string, Encoding encoding, CodeRange codeRange) {
             final byte[] bytes = StringOperations.encodeBytes(string, encoding);
 
             return makeStringFromBytes(bytes, encoding, codeRange);
+        }
+
+        protected static boolean is7Bit(CodeRange codeRange) {
+            return codeRange == CR_7BIT;
+        }
+
+        protected static boolean isAsciiCompatible(Encoding encoding) {
+            return encoding.isAsciiCompatible();
         }
 
     }
