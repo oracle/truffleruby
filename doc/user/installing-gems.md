@@ -3,12 +3,12 @@
 As mentioned in the [README](../../README.md) TruffleRuby does not yet support
 openssl and C extensions, therefore we apply a few patches internally to  make
 `rubygems` and `bundler` work out of the box. Gems with C extensions will
-install but nothing will be compiled. If the gem does not contain a pure  Ruby
-implementation of the C extension the gem will not function properly ( e.g.
+install but nothing will be compiled. If the gem does not contain a pure Ruby
+implementation of the C extension the gem will not function properly (e.g.
 `nokogiri`, Active Record drivers, etc).
 
-The patches require `wget` and `curl` to be installed, The patches will be
-eventually removed.
+The patches require `curl` to be installed.
+The patches will be eventually removed.
 
 Examples:
 

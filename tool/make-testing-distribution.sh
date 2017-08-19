@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script creates a small (~12MB) distribution of TruffleRuby without Sulong
-# which only needs JRE 8, curl, wget and bash.
+# which only needs JRE 8, curl and bash.
 
 # This script should be run on a fresh checkout of truffleruby,
 # otherwise extra gems and build artifacts might be included.

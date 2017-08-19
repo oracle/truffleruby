@@ -1524,7 +1524,7 @@ module Commands
           puts "Downloading JDK8 with JVMCI"
           jvmci_releases = "https://github.com/dougxc/openjdk8-jvmci-builder/releases/download"
           filename = "openjdk1.8.0_141-#{jvmci_version}-linux-amd64.tar.gz"
-          raw_sh "wget", "#{jvmci_releases}/#{jvmci_version}/#{filename}", "-O", filename
+          raw_sh "curl", "-L", "#{jvmci_releases}/#{jvmci_version}/#{filename}", "-o", filename
           raw_sh "tar", "xf", filename
         end
         java_home = Dir[jvmci_grep].sort.first
