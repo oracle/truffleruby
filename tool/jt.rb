@@ -998,8 +998,8 @@ module Commands
                  url:    'https://github.com/pitr-ch/algebrick.git',
                  commit: '89cf71984964ce9cbe6a1f4fb5155144ac56d057' }]
 
-    gems.each do |gem|
-      gem_name = gem.fetch(:name)
+    gems.each do |info|
+      gem_name = info.fetch(:name)
       temp_dir = Dir.mktmpdir(gem_name)
 
       begin
@@ -1011,11 +1011,11 @@ module Commands
 
         Dir.chdir(temp_dir) do
           puts "Cloning gem #{gem_name} into temp directory: #{temp_dir}"
-          raw_sh('git', 'clone', gem.fetch(:url))
+          raw_sh('git', 'clone', info.fetch(:url))
         end
 
         Dir.chdir(gem_checkout = File.join(temp_dir, gem_name)) do
-          raw_sh('git', 'checkout', gem.fetch(:commit)) if gem.key?(:commit)
+          raw_sh('git', 'checkout', info.fetch(:commit)) if info.key?(:commit)
 
           environment = Utilities.no_gem_vars_env.merge(
             'GEM_HOME' => gem_home,
