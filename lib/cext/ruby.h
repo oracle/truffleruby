@@ -420,6 +420,16 @@ int FIX2INT(VALUE value);
 unsigned int FIX2UINT(VALUE value);
 long FIX2LONG(VALUE value);
 unsigned long FIX2ULONG(VALUE value);
+
+short rb_num2short(VALUE value);
+unsigned short rb_num2ushort(VALUE value);
+
+#define NUM2SHORT(x) rb_num2short(x)
+#define NUM2USHORT(x) rb_num2ushort(x)
+
+short rb_fix2short(VALUE value);
+#define FIX2SHORT(x) (rb_fix2short((VALUE)(x)))
+
 VALUE INT2NUM(long value);
 VALUE INT2FIX(long value);
 VALUE UINT2NUM(unsigned int value);
