@@ -192,6 +192,20 @@ public class CExtNodes {
             return num;
         }
 
+        @Specialization(guards = "fitsIntoInteger(num)")
+        public int fix2intInRange(long num) {
+            return (int) num;
+        }
+
+        @Specialization(guards = "!fitsIntoInteger(num)")
+        public int fix2intOutOfRange(long num) {
+            throw new RaiseException(coreExceptions().rangeErrorConvertToInt(num, this));
+        }
+
+        protected boolean fitsIntoInteger(long num) {
+            return CoreLibrary.fitsIntoInteger(num);
+        }
+
     }
 
     @CoreMethod(names = "FIX2UINT", onSingleton = true, required = 1)
@@ -216,6 +230,11 @@ public class CExtNodes {
 
         @Specialization
         public long fix2long(int num) {
+            return num;
+        }
+
+        @Specialization
+        public long fix2long(long num) {
             return num;
         }
 

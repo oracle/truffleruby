@@ -23,6 +23,7 @@ require 'pathname'
 
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 M2_REPO         = File.expand_path('~/.m2/repository')
+MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext/c"
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = 3
 
@@ -651,9 +652,9 @@ module Commands
 
     Dir.chdir(ext_dir) do
       STDERR.puts "in #{ext_dir} ..."
-      run("extconf.rb")
+      run('-rmkmf', "extconf.rb") # -rmkmf is required for C ext tests
       raw_sh("make")
-      FileUtils::Verbose.cp("#{name}.su", target)
+      FileUtils::Verbose.cp("#{name}.su", target) if target
     end
   end
 
@@ -736,6 +737,9 @@ module Commands
       include_pattern = ["#{TRUFFLERUBY_DIR}/test/mri/tests/test_syslog.rb",
                          "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"]
       exclude_file = nil
+    elsif args.delete('--cext')
+      include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext/ruby/**/test_*.rb"
+      exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/cext.exclude"
     elsif args.all? { |a| a.start_with?('-') }
       include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/**/test_*.rb"
       exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/standard.exclude"
@@ -776,7 +780,28 @@ module Commands
       "RUBYOPT" => '--disable-gems'
     }
 
+    cext_tests = test_files.select { |f| f.include?("cext/ruby") }
+    cext_tests.each do |test|
+      test_path = "#{TRUFFLERUBY_DIR}/test/mri/tests/#{test}"
+      match = File.read(test_path).match(/^require ['"]c\/(.*?)["']/)
+      if match
+        compile_dir = if match[1].include?('/')
+                        if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{match[1]}")
+                          "#{MRI_TEST_CEXT_DIR}/#{match[1]}"
+                        else
+                          "#{MRI_TEST_CEXT_DIR}/#{File.dirname(match[1])}"
+                        end
+                      else
+                        "#{MRI_TEST_CEXT_DIR}/#{match[1]}"
+                      end
+        compile_cext("#{match[1].split("/")[1]}", compile_dir, nil)
+      else
+        puts "c require not found for cext test: #{test_path}"
+      end
+    end
+
     command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
+    command.unshift('-Itest/mri/tests/cext')  if !cext_tests.empty?
     run(env_vars, *truffle_args, *extra_args, *command, *test_files, run_options)
   end
   private :run_mri_tests

@@ -50,6 +50,12 @@ test/truffle/cexts/**/*.su
 test/truffle/cexts/**/extconf.h
 test/truffle/cexts/**/mkmf.log
 
+test/mri/tests/cext/c/**/Makefile
+test/mri/tests/cext/c/**/*.bc
+test/mri/tests/cext/c/**/*.su
+test/mri/tests/cext/c/**/extconf.h
+test/mri/tests/cext/c/**/mkmf.log
+
 # mx
 /mx.truffleruby/*.pyc
 /mx.truffleruby/env
