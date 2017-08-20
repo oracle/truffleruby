@@ -340,3 +340,10 @@ dynamically added, similar to `OpenStruct`.
 
 `Truffle::Interop.enumerable(object)` gives you an `Enumerable` interface to a
 foreign object.
+
+`Truffle::Interop.to_java_array(array)` gives you a proxied Java array copied
+from the Ruby array.
+
+`Truffle::Interop.java_array(a, b, c...)` a literal variant of the former.
+
+`Truffle::Interop.deproxy(object)` deproxy a Java object if it has been proxied.

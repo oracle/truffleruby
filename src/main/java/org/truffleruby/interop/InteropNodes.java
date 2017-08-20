@@ -25,6 +25,7 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
@@ -37,6 +38,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.rope.CodeRange;
@@ -829,6 +831,26 @@ public abstract class InteropNodes {
 
         protected ForeignToRubyNode createForeignToRubyNode() {
             return ForeignToRubyNodeGen.create(null);
+        }
+
+    }
+
+    @CoreMethod(names = "to_java_array_inner", isModuleFunction = true, required = 1)
+    public abstract static class InteropToJavaArrayNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyArray(array)")
+        public Object toJavaArray(DynamicObject array) {
+            return JavaInterop.asTruffleObject(ArrayStrategy.of(array).newMirror(array).copyArrayAndMirror().getArray());
+        }
+
+    }
+
+    @CoreMethod(names = "deproxy", isModuleFunction = true, required = 1)
+    public abstract static class DeproxyNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object deproxy(TruffleObject object) {
+            return JavaInterop.asJavaObject(object);
         }
 
     }

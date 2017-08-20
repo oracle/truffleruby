@@ -117,6 +117,24 @@ module Truffle
       o
     end
     
+    def self.java_array(*array)
+      to_java_array(array)
+    end
+    
+    def self.to_java_array(array)
+      to_java_array_inner(array.to_a)
+    end
+    
+    def self.to_array(object)
+      unless Truffle::Interop.size?(object)
+        raise 'foreign object does not have a size to turn it into an array'
+      end
+      
+      ::Array.new(Truffle::Interop.size(object)) do |n|
+        Truffle::Interop.read(object, n)
+      end
+    end
+    
   end
 
 end
