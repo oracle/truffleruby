@@ -14,10 +14,14 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
 
     public static DoesRespondDispatchHeadNode create() {
+        return new DoesRespondDispatchHeadNode(true);
+    }
+
+    public static DoesRespondDispatchHeadNode createPublic() {
         return new DoesRespondDispatchHeadNode(false);
     }
 
-    public DoesRespondDispatchHeadNode(boolean ignoreVisibility) {
+    private DoesRespondDispatchHeadNode(boolean ignoreVisibility) {
         super(ignoreVisibility, false, MissingBehavior.RETURN_MISSING, DispatchAction.RESPOND_TO_METHOD);
     }
 

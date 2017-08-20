@@ -73,7 +73,7 @@ public class RubyMessageResolution {
     @Resolve(message = "HAS_SIZE")
     public static abstract class ForeignHasSizeNode extends Node {
 
-        @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
+        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             return doesRespond.doesRespondTo(frame, "size", object);
@@ -98,7 +98,7 @@ public class RubyMessageResolution {
         private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
-        @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
+        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (stringProfile.profile(RubyGuards.isRubyString(object))) {
@@ -118,7 +118,7 @@ public class RubyMessageResolution {
         private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
-        @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
+        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
         @Child private NameToJavaStringNode toJavaStringNode;
 
@@ -153,7 +153,7 @@ public class RubyMessageResolution {
     @Resolve(message = "AS_POINTER")
     public static abstract class ForeignAsPointerNode extends Node {
 
-        @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
+        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
 
         private final ConditionProfile intProfile = ConditionProfile.createBinaryProfile();
@@ -177,7 +177,7 @@ public class RubyMessageResolution {
     @Resolve(message = "TO_NATIVE")
     public static abstract class ForeignToNativeNode extends Node {
 
-        @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
+        @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {

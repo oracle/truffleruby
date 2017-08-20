@@ -1324,9 +1324,9 @@ public abstract class KernelNodes {
         private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.createBinaryProfile();
 
         public RespondToNode() {
-            dispatch = new DoesRespondDispatchHeadNode(false);
-            dispatchIgnoreVisibility = new DoesRespondDispatchHeadNode(true);
-            dispatchRespondToMissing = new DoesRespondDispatchHeadNode(true);
+            dispatch = DoesRespondDispatchHeadNode.createPublic();
+            dispatchIgnoreVisibility = DoesRespondDispatchHeadNode.create();
+            dispatchRespondToMissing = DoesRespondDispatchHeadNode.create();
         }
 
         public abstract boolean executeDoesRespondTo(VirtualFrame frame, Object object, Object name, boolean includeProtectedAndPrivate);

@@ -43,7 +43,7 @@ public class CheckStdoutVariableTypeNode extends RubyNode {
     private DoesRespondDispatchHeadNode getRespondToWriteNode() {
         if (respondToWriteNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToWriteNode = insert(new DoesRespondDispatchHeadNode(false));
+            respondToWriteNode = insert(DoesRespondDispatchHeadNode.createPublic());
         }
 
         return respondToWriteNode;
