@@ -32,10 +32,8 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyObjectType;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchAction;
 import org.truffleruby.language.dispatch.DispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
-import org.truffleruby.language.dispatch.MissingBehavior;
 
 @MessageResolution(
         receiverType = RubyObjectType.class,
@@ -86,10 +84,10 @@ public class RubyMessageResolution {
     @Resolve(message = "GET_SIZE")
     public static abstract class ForeignGetSizeNode extends Node {
 
-        @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            return dispatchNode.dispatch(frame, object, "size", null, new Object[]{});
+            return dispatchNode.call(frame, object, "size");
         }
 
     }
@@ -121,7 +119,7 @@ public class RubyMessageResolution {
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
         @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
-        @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
         @Child private NameToJavaStringNode toJavaStringNode;
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
@@ -156,13 +154,13 @@ public class RubyMessageResolution {
     public static abstract class ForeignAsPointerNode extends Node {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
-        @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
 
         private final ConditionProfile intProfile = ConditionProfile.createBinaryProfile();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (doesRespond.doesRespondTo(frame, "address", object)) {
-                Object result = dispatchNode.dispatch(frame, object, "address", null, new Object[]{});
+                Object result = dispatchNode.call(frame, object, "address");
 
                 if (intProfile.profile(result instanceof Integer)) {
                     result = (long) ((int) result);
@@ -180,7 +178,7 @@ public class RubyMessageResolution {
     public static abstract class ForeignToNativeNode extends Node {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = new DoesRespondDispatchHeadNode(true);
-        @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (doesRespond.doesRespondTo(frame, "to_native", object)) {
@@ -231,10 +229,10 @@ public class RubyMessageResolution {
 
         @CompilationFinal private RubyContext context;
 
-        @Child private DispatchHeadNode dispatchNode = new DispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            return dispatchNode.dispatch(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_keys", null, new Object[]{ object });
+            return dispatchNode.call(frame, getContext().getCoreLibrary().getTruffleInteropModule(), "object_keys", object);
         }
 
         private RubyContext getContext() {

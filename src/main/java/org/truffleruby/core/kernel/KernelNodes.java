@@ -84,11 +84,8 @@ import org.truffleruby.language.backtrace.Activation;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchAction;
-import org.truffleruby.language.dispatch.DispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
-import org.truffleruby.language.dispatch.MissingBehavior;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.loader.CodeLoader;
@@ -1208,11 +1205,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "public_send", needsBlock = true, required = 1, rest = true)
     public abstract static class PublicSendNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DispatchHeadNode dispatchNode;
-
-        public PublicSendNode() {
-            dispatchNode = new DispatchHeadNode(false, true, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD);
-        }
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createCallPublicOnly();
 
         @Specialization
         public Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {

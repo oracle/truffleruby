@@ -13,7 +13,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.RubyBaseNode;
 
-public class DispatchHeadNode extends RubyBaseNode {
+public abstract class DispatchHeadNode extends RubyBaseNode {
 
     protected final boolean ignoreVisibility;
     protected final boolean onlyCallPublic;
@@ -22,7 +22,7 @@ public class DispatchHeadNode extends RubyBaseNode {
 
     @Child private DispatchNode first;
 
-    public DispatchHeadNode(
+    protected DispatchHeadNode(
             boolean ignoreVisibility,
             boolean onlyCallPublic,
             MissingBehavior missingBehavior, DispatchAction dispatchAction) {

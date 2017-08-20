@@ -93,7 +93,11 @@ public class RubyCallNode extends RubyNode {
 
         if (dispatchHead == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dispatchHead = insert(new CallDispatchHeadNode(ignoreVisibility, MissingBehavior.CALL_METHOD_MISSING));
+            if (ignoreVisibility) {
+                dispatchHead = insert(CallDispatchHeadNode.createOnSelf());
+            } else {
+                dispatchHead = insert(CallDispatchHeadNode.create());
+            }
         }
 
         final Object returnValue = dispatchHead.dispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
@@ -163,7 +167,7 @@ public class RubyCallNode extends RubyNode {
 
         private final DynamicObject methodNameSymbol = getContext().getSymbolTable().getSymbol(methodName);
 
-        @Child private CallDispatchHeadNode respondToMissing = new CallDispatchHeadNode(true, MissingBehavior.RETURN_MISSING);
+        @Child private CallDispatchHeadNode respondToMissing = CallDispatchHeadNode.createReturnMissing();
         @Child private BooleanCastNode respondToMissingCast = BooleanCastNodeGen.create(null);
 
         // TODO CS-10-Apr-17 see below
