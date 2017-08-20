@@ -321,6 +321,12 @@ module RubySL
       def self.ip_to_bytes(family, address)
         size = 16
 
+        # Truffle: handle ip_address like "fe80::e93d:a67f:89bc:d21%wlp2s0"
+        # which contains the interface name after the %
+        if i = address.rindex('%')
+          address = address[0...i]
+        end
+
         memory_pointer(:pointer, size) do |pointer|
           status = inet_pton(family, address, pointer)
 
