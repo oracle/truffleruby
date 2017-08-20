@@ -21,6 +21,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -88,6 +89,9 @@ public abstract class LookupMethodNode extends RubyNode {
     protected static MethodLookupResult doLookup(RubyContext context,
             DynamicObject callerClass, Object receiver, String name,
             boolean ignoreVisibility, boolean onlyLookupPublic) {
+        if (RubyGuards.isForeignObject(receiver)) {
+            throw new UnsupportedOperationException("method lookup not supported on foreign objects");
+        }
 
         final MethodLookupResult method = ModuleOperations.lookupMethod(context.getCoreLibrary().getMetaClass(receiver), name);
 
