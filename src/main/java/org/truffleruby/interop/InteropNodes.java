@@ -848,9 +848,23 @@ public abstract class InteropNodes {
     @CoreMethod(names = "deproxy", isModuleFunction = true, required = 1)
     public abstract static class DeproxyNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization
-        public Object deproxy(TruffleObject object) {
+        @Specialization(guards = "isJavaObject(object)")
+        public Object deproxyJavaObject(TruffleObject object) {
             return JavaInterop.asJavaObject(object);
+        }
+
+        @Specialization(guards = "!isJavaObject(object)")
+        public Object deproxyNotJavaObject(TruffleObject object) {
+            return object;
+        }
+
+        @Specialization(guards = "!isTruffleObject(object)")
+        public Object deproxyNotTruffle(Object object) {
+            return object;
+        }
+
+        protected boolean isJavaObject(TruffleObject object) {
+            return JavaInterop.isJavaObject(object);
         }
 
     }
