@@ -27,7 +27,6 @@ import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.MissingBehavior;
 import org.truffleruby.language.objects.IsTaintedNode;
 
 import java.nio.charset.StandardCharsets;
@@ -111,7 +110,7 @@ public abstract class ToStringNode extends FormatNode {
             @Cached("create()") RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toSNode = insert(new CallDispatchHeadNode(true, MissingBehavior.RETURN_MISSING));
+            toSNode = insert(CallDispatchHeadNode.createReturnMissing());
         }
 
         final Object value = toSNode.call(frame, array, "to_s");
@@ -161,7 +160,7 @@ public abstract class ToStringNode extends FormatNode {
     private CallDispatchHeadNode getToStrNode() {
         if (toStrNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStrNode = insert(new CallDispatchHeadNode(true, MissingBehavior.RETURN_MISSING));
+            toStrNode = insert(CallDispatchHeadNode.createReturnMissing());
         }
         return toStrNode;
     }

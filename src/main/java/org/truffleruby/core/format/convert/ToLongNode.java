@@ -20,7 +20,6 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.CantConvertException;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.MissingBehavior;
 
 @NodeChildren({
         @NodeChild(value = "value", type = FormatNode.class),
@@ -78,7 +77,7 @@ public abstract class ToLongNode extends FormatNode {
 
         if (toIntNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toIntNode = insert(new CallDispatchHeadNode(true, MissingBehavior.RETURN_MISSING));
+            toIntNode = insert(CallDispatchHeadNode.createReturnMissing());
         }
 
         final Object value = toIntNode.call(frame, object, "to_int");

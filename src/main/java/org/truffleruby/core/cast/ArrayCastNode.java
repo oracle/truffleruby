@@ -20,7 +20,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.dispatch.MissingBehavior;
 
 /*
  * TODO(CS): could probably unify this with SplatCastNode with some final configuration getContext().getOptions().
@@ -30,7 +29,7 @@ public abstract class ArrayCastNode extends RubyNode {
 
     private final SplatCastNode.NilBehavior nilBehavior;
 
-    @Child private CallDispatchHeadNode toArrayNode = new CallDispatchHeadNode(true, MissingBehavior.RETURN_MISSING);
+    @Child private CallDispatchHeadNode toArrayNode = CallDispatchHeadNode.createReturnMissing();
 
     public ArrayCastNode() {
         this(SplatCastNode.NilBehavior.NIL);

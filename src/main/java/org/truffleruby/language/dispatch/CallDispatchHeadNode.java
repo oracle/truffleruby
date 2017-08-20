@@ -21,18 +21,25 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
 
     public static CallDispatchHeadNode create() {
         return new CallDispatchHeadNode(
-                false,
-                MissingBehavior.CALL_METHOD_MISSING);
+                false, false, MissingBehavior.CALL_METHOD_MISSING);
     }
 
+    /** Create a dispatch node ignoring visibility. */
     public static CallDispatchHeadNode createOnSelf() {
         return new CallDispatchHeadNode(
-                true,
-                MissingBehavior.CALL_METHOD_MISSING);
+                true, false, MissingBehavior.CALL_METHOD_MISSING);
     }
 
-    public CallDispatchHeadNode(boolean ignoreVisibility, MissingBehavior missingBehavior) {
-        super(ignoreVisibility, false, missingBehavior, DispatchAction.CALL_METHOD);
+    public static CallDispatchHeadNode createCallPublicOnly() {
+        return new CallDispatchHeadNode(false, true, MissingBehavior.CALL_METHOD_MISSING);
+    }
+
+    public static CallDispatchHeadNode createReturnMissing() {
+        return new CallDispatchHeadNode(true, false, MissingBehavior.RETURN_MISSING);
+    }
+
+    private CallDispatchHeadNode(boolean ignoreVisibility, boolean onlyCallPublic, MissingBehavior missingBehavior) {
+        super(ignoreVisibility, onlyCallPublic, missingBehavior, DispatchAction.CALL_METHOD);
     }
 
     public Object call(VirtualFrame frame, Object receiver, Object method, Object... arguments) {

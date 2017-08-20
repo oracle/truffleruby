@@ -36,7 +36,6 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.dispatch.MissingBehavior;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
@@ -302,8 +301,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     protected class SendOutgoingNode extends OutgoingNode {
 
-        @Child private CallDispatchHeadNode dispatchNode = new CallDispatchHeadNode(true,
-                MissingBehavior.RETURN_MISSING);
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createReturnMissing();
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
