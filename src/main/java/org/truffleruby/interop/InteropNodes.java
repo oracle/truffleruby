@@ -45,6 +45,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.JavaException;
@@ -799,7 +800,7 @@ public abstract class InteropNodes {
     public abstract static class InteropIsJavaStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public Object isJavaString(Object value) {
+        public boolean isJavaString(Object value) {
             return value instanceof String;
         }
 
@@ -831,4 +832,15 @@ public abstract class InteropNodes {
         }
 
     }
+
+    @CoreMethod(names = "foreign?", isModuleFunction = true, required = 1)
+    public abstract static class InteropIsForeignNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean isForeign(Object value) {
+            return RubyGuards.isForeignObject(value);
+        }
+
+    }
+
 }
