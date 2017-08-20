@@ -303,6 +303,8 @@ an integer, or anything else
 
 `object.new(*args)` sends `NEW`
 
+`object.respond_to?` calls `Truffle::Interop.respond_to?(object, message)`
+
 ## Import and export
 
 `Truffle::Interop.export(:name, value)`
@@ -347,3 +349,7 @@ from the Ruby array.
 `Truffle::Interop.java_array(a, b, c...)` a literal variant of the former.
 
 `Truffle::Interop.deproxy(object)` deproxy a Java object if it has been proxied.
+
+`Truffle::Interop.respond_to?(object, name)` sends `HAS_SIZE` for `to_a` or
+`to_ary`, or `false` otherwise. Note that this means that many interop objects
+may have methods you can call that they do not report to respond to.

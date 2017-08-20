@@ -113,6 +113,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new CallOutgoingNode(argsLength);
         } else if (name.equals("new")) {
             return new NewOutgoingNode(argsLength);
+        } else if (name.equals("respond_to?")) {
+            return new RespondToOutgoingNode();
         } else if (name.equals("nil?") && argsLength == 0) {
             return new IsNilOutgoingNode();
         } else if (name.endsWith("!") && argsLength == 0) {
@@ -303,6 +305,26 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                 exceptionProfile();
                 throw new JavaException(e);
             }
+        }
+
+    }
+
+    protected class RespondToOutgoingNode extends OutgoingNode {
+
+        @Child private SnippetNode snippetNode = new SnippetNode();
+
+        @Override
+        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+            if (args.length != 1) {
+                CompilerDirectives.transferToInterpreter();
+                throw new RaiseException(getContext().getCoreExceptions().argumentError(args.length, 1, this));
+            }
+
+            // We have already converted Ruby strings to Java strings at this point, so we need to convert back!
+
+            return snippetNode.execute(frame, "Truffle::Interop.respond_to?(object, String.new(name))",
+                    "object", receiver,
+                    "name", args[0]);
         }
 
     }

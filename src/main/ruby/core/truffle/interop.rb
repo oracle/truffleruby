@@ -125,6 +125,15 @@ module Truffle
       to_java_array_inner(array.to_a)
     end
     
+    def self.respond_to?(object, name)
+      case name.to_sym
+      when :to_a, :to_ary
+        Truffle::Interop.size?(object)
+      else
+        false
+      end
+    end
+    
     def self.to_array(object)
       unless Truffle::Interop.size?(object)
         raise 'foreign object does not have a size to turn it into an array'
