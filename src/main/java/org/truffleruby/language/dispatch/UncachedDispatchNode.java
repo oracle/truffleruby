@@ -61,9 +61,7 @@ public class UncachedDispatchNode extends DispatchNode {
             Object name,
             DynamicObject blockObject,
             Object[] argumentsObjects) {
-        if (RubyGuards.isForeignObject(receiverObject)) {
-            throw new UnsupportedOperationException();
-        }
+        assert! RubyGuards.isForeignObject(receiverObject) : "uncached dispatch not supported on foreign objects";
 
         final DispatchAction dispatchAction = getDispatchAction();
 
