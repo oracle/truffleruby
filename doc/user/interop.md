@@ -305,6 +305,9 @@ an integer, or anything else
 
 `object.respond_to?` calls `Truffle::Interop.respond_to?(object, message)`
 
+`object.inspect` produces a simple string of the format
+`#<Truffle::Interop::Foreign:system-identity-hash-code>`
+
 ## Import and export
 
 `Truffle::Interop.export(:name, value)`
