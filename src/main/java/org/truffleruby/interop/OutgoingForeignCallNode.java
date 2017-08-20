@@ -396,7 +396,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
         @TruffleBoundary
         private String inspect(TruffleObject receiver) {
-            return String.format("#<Truffle::Interop::Foreign:0x%x>", System.identityHashCode(receiver));
+            return String.format("#<Truffle::Interop::Foreign@%x>", System.identityHashCode(receiver));
         }
 
     }

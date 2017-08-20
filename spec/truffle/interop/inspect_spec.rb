@@ -11,7 +11,7 @@ require_relative '../../ruby/spec_helper'
 describe "Interop #inspect" do
 
   it "returns a useful string" do
-    Truffle::Debug.foreign_object.inspect.should =~ /#<Truffle::Interop::Foreign:0x\h+>/
+    Truffle::Debug.foreign_object.inspect.should =~ /#<Truffle::Interop::Foreign@\h+>/
   end
 
 end
