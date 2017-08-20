@@ -86,7 +86,15 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             } else {
                 depth++;
                 if (RubyGuards.isForeignObject(receiverObject)) {
-                    newDispatchNode = new CachedForeignDispatchNode(getContext(), first, methodName);
+                    switch (getDispatchAction()) {
+                        case CALL_METHOD:
+                            newDispatchNode = new CachedForeignDispatchNode(getContext(), first, methodName);
+                            break;
+                        case RESPOND_TO_METHOD:
+                            throw new UnsupportedOperationException();
+                        default:
+                            throw new UnsupportedOperationException();
+                    }
                 } else if (RubyGuards.isRubyBasicObject(receiverObject)) {
                     newDispatchNode = doDynamicObject(frame, first, receiverObject, methodName, argumentsObjects);
                 } else {
