@@ -10,7 +10,7 @@ require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.java_array" do
   
-  it "converts a Ruby array to a Java array" do
+  it "creates a Object[] from the values" do
     Truffle::Debug.java_class_of(Truffle::Interop.deproxy(Truffle::Interop.java_array(1, 2, 3))).should == "Object[]"
   end
   
@@ -21,7 +21,7 @@ describe "Truffle::Interop.java_array" do
     a[2].should == 3
   end
 
-  it "will use Object[] becuase that's what splat does" do
+  it "will use Object[] because splat does not specialise for the type" do
     Truffle::Debug.java_class_of(Truffle::Interop.deproxy(Truffle::Interop.java_array(1, 2, 3))).should == "Object[]"
     Truffle::Debug.java_class_of(Truffle::Interop.deproxy(Truffle::Interop.java_array(1.1, 2.2, 3.3))).should == "Object[]"
     Truffle::Debug.java_class_of(Truffle::Interop.deproxy(Truffle::Interop.java_array(:a, :b, :c))).should == "Object[]"

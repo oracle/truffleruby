@@ -10,7 +10,7 @@ require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.to_java_array" do
   
-  it "converts a Ruby array to a Java array" do
+  it "creates a int[] from Fixnum values" do
     Truffle::Debug.java_class_of(Truffle::Interop.deproxy(Truffle::Interop.to_java_array([1, 2, 3]))).should == "int[]"
   end
   
