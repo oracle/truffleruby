@@ -17,7 +17,7 @@ public class RespondToNode extends RubyNode {
     private final String methodName;
 
     @Child private RubyNode child;
-    @Child private DoesRespondDispatchHeadNode dispatch = new DoesRespondDispatchHeadNode(true);
+    @Child private DoesRespondDispatchHeadNode dispatch = DoesRespondDispatchHeadNode.create();
 
     public RespondToNode(RubyNode child, String methodName) {
         this.methodName = methodName;

@@ -66,7 +66,7 @@ public class ReadUserKeywordsHashNode extends RubyNode {
     private boolean respondToToHash(VirtualFrame frame, Object lastArgument) {
         if (respondToToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToHashNode = insert(new DoesRespondDispatchHeadNode(false));
+            respondToToHashNode = insert(DoesRespondDispatchHeadNode.createPublic());
         }
         return respondToToHashNode.doesRespondTo(frame, "to_hash", lastArgument);
     }
