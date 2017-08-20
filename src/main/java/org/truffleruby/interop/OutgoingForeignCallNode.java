@@ -123,6 +123,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new CallOutgoingNode(argsLength);
         } else if (name.equals("new")) {
             return new NewOutgoingNode(argsLength);
+        } else if (name.equals("to_a") || name.equals("to_ary")) {
+            return new ToAOutgoingNode();
         } else if (name.equals("respond_to?")) {
             return new RespondToOutgoingNode();
         } else if (name.equals("inspect")) {
@@ -343,6 +345,22 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                 exceptionProfile();
                 throw new JavaException(e);
             }
+        }
+
+    }
+
+    protected class ToAOutgoingNode extends OutgoingNode {
+
+        @Child private SnippetNode snippetNode = new SnippetNode();
+
+        @Override
+        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+            if (args.length > 0) {
+                CompilerDirectives.transferToInterpreter();
+                throw new RaiseException(getContext().getCoreExceptions().argumentError(args.length, 0, this));
+            }
+
+            return snippetNode.execute(frame, "Truffle::Interop.to_array(object)", "object", receiver);
         }
 
     }

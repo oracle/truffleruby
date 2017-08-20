@@ -305,6 +305,8 @@ an integer, or anything else
 
 `object.respond_to?` calls `Truffle::Interop.respond_to?(object, message)`
 
+`object.to_a` and `object.to_ary` calls `Truffle::Interop.to_array(object)`
+
 `object.inspect` produces a simple string of the format
 `#<Truffle::Interop::Foreign:system-identity-hash-code>`
 
@@ -356,6 +358,9 @@ from the Ruby array.
 `Truffle::Interop.java_array(a, b, c...)` a literal variant of the former.
 
 `Truffle::Interop.deproxy(object)` deproxy a Java object if it has been proxied.
+
+`Truffle::Interop.to_array(object)` converts to a Ruby array by calling
+`GET_SIZE` and sending `READ` for each index from zero to the size.
 
 `Truffle::Interop.respond_to?(object, name)` sends `HAS_SIZE` for `to_a` or
 `to_ary`, or `false` otherwise. Note that this means that many interop objects
