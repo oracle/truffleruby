@@ -322,6 +322,8 @@ language MIME type.
 
 ## Additional methods
 
+`Truffle::Interop.foreign?(object)`
+
 `Truffle::Interop.mime_type_supported?(mime_type)` reports if a language's MIME
 type is supported for interop.
 
