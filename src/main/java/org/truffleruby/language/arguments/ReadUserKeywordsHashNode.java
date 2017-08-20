@@ -50,7 +50,7 @@ public class ReadUserKeywordsHashNode extends RubyNode {
         return tryConvertToHash(frame, argumentCount, lastArgument);
     }
 
-    private Object tryConvertToHash(VirtualFrame frame, final int argumentCount, final Object lastArgument) {
+    private Object tryConvertToHash(VirtualFrame frame, int argumentCount, Object lastArgument) {
         if (respondsToToHashProfile.profile(respondToToHash(frame, lastArgument))) {
             final Object converted = callToHash(frame, lastArgument);
 
@@ -63,7 +63,7 @@ public class ReadUserKeywordsHashNode extends RubyNode {
         return null;
     }
 
-    private boolean respondToToHash(VirtualFrame frame, final Object lastArgument) {
+    private boolean respondToToHash(VirtualFrame frame, Object lastArgument) {
         if (respondToToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             respondToToHashNode = insert(new DoesRespondDispatchHeadNode(false));
@@ -71,7 +71,7 @@ public class ReadUserKeywordsHashNode extends RubyNode {
         return respondToToHashNode.doesRespondTo(frame, "to_hash", lastArgument);
     }
 
-    private Object callToHash(VirtualFrame frame, final Object lastArgument) {
+    private Object callToHash(VirtualFrame frame, Object lastArgument) {
         if (callToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callToHashNode = insert(CallDispatchHeadNode.create());
