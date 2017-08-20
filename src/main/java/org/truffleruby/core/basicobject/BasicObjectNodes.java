@@ -415,12 +415,8 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "__send__", needsBlock = true, rest = true, required = 1)
     public abstract static class SendNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dispatchNode;
-
-        public SendNode() {
-            dispatchNode = new CallDispatchHeadNode(true,
-                    MissingBehavior.CALL_METHOD_MISSING);
-        }
+        @Child private CallDispatchHeadNode dispatchNode = new CallDispatchHeadNode(true,
+                MissingBehavior.CALL_METHOD_MISSING);
 
         @Specialization
         public Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
