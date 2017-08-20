@@ -26,11 +26,21 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Log;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.dispatch.MissingBehavior;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
+
+import java.util.Arrays;
 
 @NodeChildren({
         @NodeChild("receiver"),
@@ -117,6 +127,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new RespondToOutgoingNode();
         } else if (name.equals("inspect")) {
             return new InspectOutgoingNode();
+        } else if (name.equals("send")) {
+            return new SendOutgoingNode();
         } else if (name.equals("nil?") && argsLength == 0) {
             return new IsNilOutgoingNode();
         } else if (name.endsWith("!") && argsLength == 0) {
@@ -282,6 +294,30 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                 exceptionProfile();
                 throw new JavaException(e);
             }
+        }
+
+    }
+
+    protected class SendOutgoingNode extends OutgoingNode {
+
+        @Child private CallDispatchHeadNode dispatchNode = new CallDispatchHeadNode(true,
+                MissingBehavior.RETURN_MISSING);
+
+        @Override
+        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+            if (args.length < 1) {
+                CompilerDirectives.transferToInterpreter();
+                throw new RaiseException(getContext().getCoreExceptions().argumentError(args.length, 1, this));
+            }
+
+            final Object name = args[0];
+            final Object[] sendArgs = Arrays.copyOfRange(args, 1, args.length);
+
+            final Object result = dispatchNode.call(frame, receiver, name, sendArgs);
+
+            assert result != DispatchNode.MISSING;
+
+            return result;
         }
 
     }
