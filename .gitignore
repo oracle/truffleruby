@@ -58,6 +58,7 @@ test/truffle/cexts/**/mkmf.log
 /mx.imports
 /TRUFFLERUBY.dist
 /TRUFFLERUBY-LAUNCHER.dist
+/TRUFFLERUBY-PROCESSOR.dist
 /TRUFFLERUBY-TEST.dist
 
 # ruby/spec
