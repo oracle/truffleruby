@@ -14,6 +14,7 @@ Interop ignores visibility entirely.
 * [Import and export](#import-and-export)
 * [Interop eval](#interop-eval)
 * [Additional methods](#additional-methods)
+* [Notes on method resolution](#notes-on-method-resolution)
 
 ## How Ruby responds to messages
 
@@ -365,3 +366,14 @@ from the Ruby array.
 `Truffle::Interop.respond_to?(object, name)` sends `HAS_SIZE` for `to_a` or
 `to_ary`, or `false` otherwise. Note that this means that many interop objects
 may have methods you can call that they do not report to respond to.
+
+## Notes on method resolution
+
+Method calls on foreign objects are usually translated exactly into foreign
+`READ`, `INVOKE` and other messages. The other methods listed in
+[what messages are sent for Ruby syntax on foreign objects](#what-messages-are-sent-for-ruby-syntax-on-foreign-objects)
+are a kind of special-form - they are implemented as a special case in the
+call-site logic. They are not being provided by `BasicObject` or `Kernel` as you
+may expect. This means that for example `#method` isn't available, and you can't
+use it to get the method for `#to_a` on a foreign object, as it it's a
+special-form, not a method.
