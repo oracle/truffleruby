@@ -20,6 +20,7 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNodeGen;
 import org.truffleruby.core.module.MethodLookupResult;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -60,6 +61,10 @@ public class UncachedDispatchNode extends DispatchNode {
             Object name,
             DynamicObject blockObject,
             Object[] argumentsObjects) {
+        if (RubyGuards.isForeignObject(receiverObject)) {
+            throw new UnsupportedOperationException();
+        }
+
         final DispatchAction dispatchAction = getDispatchAction();
 
         final MethodLookupResult method = lookup(frame,
