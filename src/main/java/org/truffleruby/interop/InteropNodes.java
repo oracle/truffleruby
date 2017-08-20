@@ -38,6 +38,8 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.cast.NameToJavaStringNode;
@@ -836,14 +838,19 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "to_java_array_inner", isModuleFunction = true, required = 1)
+    @Primitive(name = "to_java_array")
     @ImportStatic(ArrayGuards.class)
-    public abstract static class InteropToJavaArrayNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InteropToJavaArrayNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = {"isRubyArray(array)", "strategy.matches(array)"}, limit = "ARRAY_STRATEGIES")
-        public Object toJavaArray(DynamicObject array,
+        public Object toJavaArray(DynamicObject interopModule, DynamicObject array,
                                   @Cached("of(array)") ArrayStrategy strategy) {
             return JavaInterop.asTruffleObject(strategy.newMirror(array).copyArrayAndMirror().getArray());
+        }
+
+        @Specialization(guards = "!isRubyArray(object)")
+        public Object coerce(DynamicObject interopModule, DynamicObject object) {
+            return null;
         }
 
     }
