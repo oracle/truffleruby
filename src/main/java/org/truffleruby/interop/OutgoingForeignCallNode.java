@@ -115,6 +115,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new NewOutgoingNode(argsLength);
         } else if (name.equals("respond_to?")) {
             return new RespondToOutgoingNode();
+        } else if (name.equals("inspect")) {
+            return new InspectOutgoingNode();
         } else if (name.equals("nil?") && argsLength == 0) {
             return new IsNilOutgoingNode();
         } else if (name.endsWith("!") && argsLength == 0) {
@@ -325,6 +327,22 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return snippetNode.execute(frame, "Truffle::Interop.respond_to?(object, String.new(name))",
                     "object", receiver,
                     "name", args[0]);
+        }
+
+    }
+
+    protected class InspectOutgoingNode extends OutgoingNode {
+
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
+        @Override
+        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+            return makeStringNode.executeMake(inspect(receiver), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
+        @TruffleBoundary
+        private String inspect(TruffleObject receiver) {
+            return String.format("#<Truffle::Interop::Foreign:0x%x>", System.identityHashCode(receiver));
         }
 
     }
