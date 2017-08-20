@@ -129,7 +129,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new RespondToOutgoingNode();
         } else if (name.equals("inspect")) {
             return new InspectOutgoingNode();
-        } else if (name.equals("send")) {
+        } else if (name.equals("__send__")) {
             return new SendOutgoingNode();
         } else if (name.equals("nil?") && argsLength == 0) {
             return new IsNilOutgoingNode();

@@ -453,9 +453,8 @@ public abstract class TruffleDebugNodes {
             
         }
 
-        @TruffleBoundary
         @Specialization
-        public Object resolveLazyNodes() {
+        public Object foreignObject() {
             return new ForeignObject();
         }
 

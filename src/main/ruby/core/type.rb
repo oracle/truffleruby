@@ -324,7 +324,7 @@ module Rubinius
     def self.check_funcall_default(recv, meth, args, default)
       if Truffle::Interop.foreign?(recv)
         if recv.respond_to?(meth)
-          return recv.send(meth)
+          return recv.__send__(meth)
         else
           return default
         end
