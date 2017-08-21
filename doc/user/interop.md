@@ -367,6 +367,9 @@ from the Ruby array.
 `to_ary`, or `false` otherwise. Note that this means that many interop objects
 may have methods you can call that they do not report to respond to.
 
+`Truffle::Interop.meta_object(object)` returns the Truffle meta-object that
+describes the object (unrelated to the metaclass);
+
 ## Notes on method resolution
 
 Method calls on foreign objects are usually translated exactly into foreign

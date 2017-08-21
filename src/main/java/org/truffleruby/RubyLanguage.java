@@ -16,12 +16,14 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.FrameInstance;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.LazyRubyRootNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.launcher.Launcher;
@@ -31,7 +33,9 @@ import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @TruffleLanguage.Registration(
         name = RubyLanguage.NAME,
@@ -176,8 +180,14 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
-    protected Object findMetaObject(RubyContext context, Object value) {
-        return context.getCoreLibrary().getMetaClass(value);
+    public Object findMetaObject(RubyContext context, Object value) {
+        final Map<String, String> properties = new HashMap<>();
+        final DynamicObject rubyClass = context.getCoreLibrary().getLogicalClass(value);
+        final ModuleFields rubyClassFields = Layouts.CLASS.getFields(rubyClass);
+        properties.put("type", rubyClassFields.getName());
+        properties.put("className", rubyClassFields.getName());
+        properties.put("description", toString(context, value));
+        return JavaInterop.asTruffleObject(properties);
     }
 
     @Override
