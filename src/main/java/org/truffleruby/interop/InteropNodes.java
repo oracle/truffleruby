@@ -889,4 +889,15 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "meta_object", isModuleFunction = true, required = 1)
+    public abstract static class InteropMetaObjectNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public Object metaObject(Object value) {
+            return getContext().getLanguage().findMetaObject(getContext(), value);
+        }
+
+    }
+
 }
