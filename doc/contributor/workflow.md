@@ -6,6 +6,11 @@ You will need:
 
 * Java JDK 8 (not 9 EA)
 * Ruby 2
+* [LLVM](../user/installing-llvm.md)
+* [`libssl`](../user/installing-libssl.md)
+
+You can remove the dependencies on LLVM and `libssl` by setting `export
+TRUFFLERUBY_CEXT_ENABLED=false`.
 
 ## Workspace directory
 
@@ -45,16 +50,6 @@ You can install it automatically with:
 jt mx version
 ```
 
-## Installing dependencies for C extensions
-
-If you want support for C extensions and OpenSSL, follow the
-[C extensions Setup](cexts.md).
-
-Otherwise, you can skip this step with:
-```bash
-$ export TRUFFLERUBY_CEXT_ENABLED=false
-```
-
 ## Building
 
 We recommend configuring the build to use the Truffle framework as a binary
@@ -66,6 +61,18 @@ $ echo MX_BINARY_SUITES=truffle,sdk > mx.truffleruby/env
 
 ```bash
 $ jt build
+```
+
+## Sulong
+
+TruffleRuby runs C extension using Sulong. You should build Sulong from source.
+Clone Sulong as a sibling directory and build it:
+
+```bash
+# In the truffleruby repo
+git clone https://github.com/graalvm/sulong.git ../sulong
+cd ../sulong
+jt mx build
 ```
 
 ## Testing

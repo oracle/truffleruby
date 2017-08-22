@@ -35,11 +35,6 @@ We intend to implement refinements, and don't believe that they pose major
 technical challenge, but the need for them seems relatively low compared to
 other priorities.
 
-#### C extensions
-
-C extensions are a priority for development, and we have a clear technical way
-ahead to implement support for them, but they aren't ready for use yet.
-
 #### Standard libraries
 
 Quite a few of the less commonly used  standard libraries are currently not

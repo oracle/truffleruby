@@ -1,44 +1,4 @@
-# TruffleRuby, Sulong and C extensions
-
-## Requirements
-
-* `llvm` including the `opt` binary
-* OpenSSL 1.0.2 including the development headers
-
-## Setup
-
-TruffleRuby runs C extension using Sulong. You should build Sulong from source.
-Clone Sulong as a sibling directory and build it:
-
-```bash
-# In the truffleruby repo
-git clone https://github.com/graalvm/sulong.git ../sulong
-cd ../sulong
-jt mx build
-```
-
-You need LLVM installed - version 3.8 or above we think but we haven't tested
-many versions.
-
-We need the `opt` command, so you can't just use what is installed by Xcode if
-you are on macOS. We would recommend that you install LLVM via Homebrew (`brew
-install llvm`) and then manually set your path in shells where you are building
-Sulong or TruffleRuby:
-
-```bash
-export PATH="/usr/local/opt/llvm/bin:$PATH"
-```
-
-You also need to [install a system `libssl`](../user/installing-libssl.md).
-
-If you want to use a different version of OpenSSL you then need to set
-`OPENSSL_PREFIX` to tell us where to find it.
-
-You can now build the C extension support.
-
-```bash
-jt build
-```
+# C Extensions
 
 ## Testing
 
