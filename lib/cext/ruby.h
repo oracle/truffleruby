@@ -70,6 +70,10 @@ extern "C" {
 
 #define HAVE_RB_IO_T 1
 
+#ifdef RUBY_EXTCONF_H
+#include RUBY_EXTCONF_H
+#endif
+
 // Overrides
 
 #ifdef memcpy
@@ -871,6 +875,7 @@ VALUE RARRAY_AREF(VALUE array, long index);
 VALUE rb_Array(VALUE value);
 VALUE rb_ary_new(void);
 VALUE rb_ary_new_capa(long capacity);
+VALUE rb_ary_resize(VALUE ary, long len);
 #define rb_ary_new2 rb_ary_new_capa
 VALUE rb_ary_new_from_args(long n, ...);
 #define rb_ary_new3 rb_ary_new_from_args

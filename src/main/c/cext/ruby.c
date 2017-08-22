@@ -1569,6 +1569,10 @@ VALUE rb_ary_new_capa(long capacity) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ary_new_capa", capacity);
 }
 
+VALUE rb_ary_resize(VALUE ary, long len) {
+  rb_tr_error("rb_ary_resize not implemented");
+}
+
 VALUE rb_ary_new_from_args(long n, ...) {
   VALUE array = rb_ary_new_capa(n);
   for (int i = 0; i < n; i++) {

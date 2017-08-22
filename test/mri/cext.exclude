@@ -1,4 +1,3 @@
-cext/ruby/array/test_resize.rb
 cext/ruby/bignum/test_big2str.rb
 cext/ruby/bignum/test_bigzero.rb
 cext/ruby/bignum/test_div.rb
@@ -12,7 +11,6 @@ cext/ruby/exception/test_enc_raise.rb
 cext/ruby/file/test_stat.rb
 cext/ruby/float/test_nextafter.rb
 cext/ruby/gvl/test_last_thread.rb
-cext/ruby/hash/test_delete.rb
 cext/ruby/iter/test_iter_break.rb
 cext/ruby/iter/test_yield_block.rb
 cext/ruby/marshal/test_usrmarshal.rb
@@ -43,3 +41,11 @@ cext/ruby/tracepoint/test_tracepoint.rb
 cext/ruby/win32/test_console_attr.rb
 cext/ruby/win32/test_dln.rb
 cext/ruby/win32/test_fd_setsize.rb
+cext/ruby/exception/test_data_error.rb
+cext/ruby/exception/test_ensured.rb
+cext/ruby/popen_deadlock/test_popen_deadlock.rb
+cext/ruby/test_recursion.rb
+cext/ruby/vm/test_at_exit.rb
+cext/ruby/wait_for_single_fd/test_wait_for_single_fd.rb
+cext/ruby/funcall/test_passing_block.rb
+cext/ruby/iseq_load/test_iseq_load.rb

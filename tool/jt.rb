@@ -24,6 +24,7 @@ require 'pathname'
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 M2_REPO         = File.expand_path('~/.m2/repository')
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext/c"
+MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = 3
 
@@ -653,8 +654,12 @@ module Commands
     Dir.chdir(ext_dir) do
       STDERR.puts "in #{ext_dir} ..."
       run('-rmkmf', "extconf.rb") # -rmkmf is required for C ext tests
-      raw_sh("make")
-      FileUtils::Verbose.cp("#{name}.su", target) if target
+      if File.exists?('Makefile')
+        raw_sh("make")
+        FileUtils::Verbose.cp("#{name}.su", target) if target
+      else
+        STDERR.puts "Makefile not found in #{ext_dir}, skipping make."
+      end
     end
   end
 
@@ -783,7 +788,7 @@ module Commands
     cext_tests = test_files.select { |f| f.include?("cext/ruby") }
     cext_tests.each do |test|
       test_path = "#{TRUFFLERUBY_DIR}/test/mri/tests/#{test}"
-      match = File.read(test_path).match(/^require ['"]c\/(.*?)["']/)
+      match = File.read(test_path).match(/\brequire ['"]c\/(.*?)["']/)
       if match
         compile_dir = if match[1].include?('/')
                         if Dir.exists?("#{MRI_TEST_CEXT_DIR}/#{match[1]}")
@@ -794,14 +799,22 @@ module Commands
                       else
                         "#{MRI_TEST_CEXT_DIR}/#{match[1]}"
                       end
-        compile_cext("#{match[1].split("/")[1]}", compile_dir, nil)
+        name = File.basename(match[1])
+        target_dir = if match[1].include?('/')
+                       File.dirname(match[1])
+                     else 
+                      ''
+                     end
+        dest_dir = File.join(MRI_TEST_CEXT_LIB_DIR, target_dir)
+        FileUtils::Verbose.mkdir_p(dest_dir)
+        compile_cext(name, compile_dir, dest_dir)
       else
         puts "c require not found for cext test: #{test_path}"
       end
     end
 
     command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
-    command.unshift('-Itest/mri/tests/cext')  if !cext_tests.empty?
+    command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
     run(env_vars, *truffle_args, *extra_args, *command, *test_files, run_options)
   end
   private :run_mri_tests
