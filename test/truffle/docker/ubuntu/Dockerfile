@@ -25,7 +25,7 @@ RUN chown test /test
 USER test
 
 # Extract the GraalVM binary tarball
-ENV GRAALVM_VERSION=0.26
+ENV GRAALVM_VERSION=0.27
 ADD graalvm-$GRAALVM_VERSION-linux-amd64-jdk8.tar.gz /test
 ENV PATH=/test/graalvm-$GRAALVM_VERSION/bin:$PATH
 ENV RUBY_HOME=/test/graalvm-$GRAALVM_VERSION/jre/languages/ruby
