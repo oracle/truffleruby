@@ -102,7 +102,7 @@ public class ThreadManager {
     }
 
     public DynamicObject createThread(DynamicObject rubyClass, AllocateObjectNode allocateObjectNode, ReadObjectFieldNode readAbortOnException) {
-        final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(getCurrentThread());
+        final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(getCurrentThread(allocateObjectNode));
         final boolean abortOnException = (boolean) readAbortOnException.execute(context.getCoreLibrary().getThreadClass());
 
         final DynamicObject thread = allocateObjectNode.allocate(rubyClass, Layouts.THREAD.build(
@@ -298,7 +298,7 @@ public class ThreadManager {
      */
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> action) {
-        final DynamicObject runningThread = getCurrentThread();
+        final DynamicObject runningThread = getCurrentThread(currentNode);
         T result = null;
 
         do {
@@ -466,8 +466,25 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public DynamicObject getCurrentThread() {
+    public DynamicObject getCurrentThread(Node currentNode) {
+        final DynamicObject thread = currentThread.get();
+
+        if (thread == null) {
+            new Exception().printStackTrace();
+
+            throw new RaiseException(context.getCoreExceptions().internalError("thread operation not supported on non-Ruby thread", currentNode));
+        }
+
+        return thread;
+    }
+
+    public DynamicObject getCurrentThreadIfAny() {
         return currentThread.get();
+    }
+
+    @TruffleBoundary
+    public boolean isRootThread() {
+        return currentThread.get() == rootThread;
     }
 
     public synchronized void registerThread(DynamicObject thread) {
