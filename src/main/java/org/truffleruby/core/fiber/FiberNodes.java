@@ -79,7 +79,7 @@ public abstract class FiberNodes {
     public static void initialize(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
         final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
         final String name = "Ruby Fiber@" + RubyLanguage.fileLine(sourceSection);
-        final Thread thread = new Thread(() -> handleFiberExceptions(context, fiber, block, currentNode));
+        final Thread thread = context.getEnv().createThread(() -> handleFiberExceptions(context, fiber, block, currentNode));
         thread.setName(name);
         thread.start();
 
@@ -145,7 +145,7 @@ public abstract class FiberNodes {
         threadManager.initializeValuesBasedOnCurrentJavaThread(Layouts.FIBER.getRubyThread(fiber), pThreadID);
 
         Layouts.THREAD.getFiberManager(Layouts.FIBER.getRubyThread(fiber)).registerFiber(fiber);
-        context.getSafepointManager().enterThread();
+
         // fully initialized
         Layouts.FIBER.getInitializedLatch(fiber).countDown();
     }
@@ -154,7 +154,6 @@ public abstract class FiberNodes {
         assert RubyGuards.isRubyFiber(fiber);
         Layouts.FIBER.setAlive(fiber, false);
         threadManager.cleanupValuesBasedOnCurrentJavaThread();
-        context.getSafepointManager().leaveThread();
         Layouts.THREAD.getFiberManager(Layouts.FIBER.getRubyThread(fiber)).unregisterFiber(fiber);
         Layouts.FIBER.setThread(fiber, null);
     }

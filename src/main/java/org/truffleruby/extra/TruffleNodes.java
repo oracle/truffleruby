@@ -39,4 +39,14 @@ public abstract class TruffleNodes {
 
     }
 
+    @CoreMethod(names = "threads?", onSingleton = true)
+    public abstract static class ThreadsNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public boolean threads() {
+            return getContext().getEnv().isCreateThreadAllowed();
+        }
+
+    }
+
 }
