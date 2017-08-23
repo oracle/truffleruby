@@ -172,7 +172,7 @@ public class Launcher {
         try {
             config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
 
-            new CommandLineParser(args, parseHelpEtc, config).processArguments();
+            new CommandLineParser(args, config, true, false, parseHelpEtc).processArguments();
             if (unknownOptionFails && !config.getUnknownArguments().isEmpty()) {
                 throw new CommandLineException("unknown option " + config.getUnknownArguments().get(0));
             }

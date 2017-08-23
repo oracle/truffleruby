@@ -39,41 +39,18 @@ import org.truffleruby.launcher.RubyLogger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
 public class CommandLineParser {
 
-
-    private static final class Argument {
-        final String originalValue;
-        private String dashedValue;
-        Argument(String value, boolean dashed) {
-            this.originalValue = value;
-            this.dashedValue = dashed ? null : value;
-        }
-
-        final String getDashedValue() {
-            String dashedValue = this.dashedValue;
-            if ( dashedValue == null ) {
-                final String value = originalValue;
-                dashedValue = ! value.startsWith("-") ? ('-' + value) : value;
-                this.dashedValue = dashedValue;
-            }
-            return dashedValue;
-        }
-
-        @Override
-        public String toString() {
-            return getDashedValue();
-        }
-    }
-
-    private final List<Argument> arguments;
+    private final List<String> arguments;
     private int argumentIndex;
     private boolean processArgv;
     private final boolean rubyOpts;
@@ -82,17 +59,12 @@ public class CommandLineParser {
     private int characterIndex;
     private final boolean parseVersionAndHelp;
 
-    public CommandLineParser(String[] arguments, boolean parseHelpEtc, CommandLineOptions config) {
-        this(arguments, true, false, false, parseHelpEtc, config);
-    }
-
     public CommandLineParser(
             String[] arguments,
+            CommandLineOptions config,
             boolean processArgv,
-            boolean dashed,
             boolean rubyOpts,
-            boolean parseHelpEtc,
-            CommandLineOptions config) {
+            boolean parseHelpEtc) {
 
         this.argumentIndex = 0;
         this.characterIndex = 0;
@@ -101,38 +73,32 @@ public class CommandLineParser {
         this.processArgv = processArgv;
         this.rubyOpts = rubyOpts;
         this.parseVersionAndHelp = parseHelpEtc;
-
-        if (arguments != null && arguments.length > 0) {
-            this.arguments = new ArrayList<>(arguments.length);
-            for (String argument : arguments) {
-                this.arguments.add(new Argument(argument, dashed));
-            }
-        }
-        else {
-            this.arguments = new ArrayList<>(0);
-        }
+        this.arguments = Arrays.asList(Objects.requireNonNull(arguments));
     }
 
-    public static void processEnvironmentVariable(String name, CommandLineOptions commandLineOptions, boolean rubyOpts) throws CommandLineException {
-        String value = System.getenv(name);
+    public static void processEnvironmentVariable(
+            String name,
+            CommandLineOptions commandLineOptions,
+            boolean rubyOpts) throws CommandLineException {
 
+        String value = System.getenv(name);
         if (value != null && value.length() != 0) {
             String[] args = value.split("\\s+");
 
             if (args.length != 0) {
                 new CommandLineParser(
                         args,
+                        commandLineOptions,
                         false,
-                        true,
                         rubyOpts,
-                        true, // let it parse and fail
-                        commandLineOptions).processArguments();
+                        true // let it parse and fail
+                ).processArguments();
             }
         }
     }
 
     public void processArguments() throws CommandLineException {
-        while (argumentIndex < arguments.size() && isInterpreterArgument(arguments.get(argumentIndex).originalValue)) {
+        while (argumentIndex < arguments.size() && isInterpreterArgument(getCurrentArgument())) {
             processArgument();
             argumentIndex++;
         }
@@ -141,7 +107,7 @@ public class CommandLineParser {
             if (argumentIndex < arguments.size()) {
                 config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.FILE);
                 //consume the file name
-                config.setOption(OptionsCatalog.TO_EXECUTE, arguments.get(argumentIndex).originalValue);
+                config.setOption(OptionsCatalog.TO_EXECUTE, getCurrentArgument());
                 argumentIndex++;
             }
         }
@@ -154,7 +120,7 @@ public class CommandLineParser {
     private void processArgv() {
         ArrayList<String> arglist = new ArrayList<>();
         for (; argumentIndex < arguments.size(); argumentIndex++) {
-            String arg = arguments.get(argumentIndex).originalValue;
+            String arg = getCurrentArgument();
             boolean argvGlobalsOn = config.getOption(OptionsCatalog.ARGV_GLOBALS);
             if (argvGlobalsOn && arg.startsWith("-")) {
                 arg = arg.substring(1);
@@ -196,7 +162,7 @@ public class CommandLineParser {
     }
 
     private void processArgument() throws CommandLineException {
-        String argument = arguments.get(argumentIndex).getDashedValue();
+        String argument = getCurrentArgument();
 
         if (argument.length() == 1) {
             // sole "-" means read from stdin and pass remaining args as ARGV
@@ -593,18 +559,22 @@ public class CommandLineParser {
         }
         argumentIndex++;
         if (argumentIndex < arguments.size()) {
-            return arguments.get(argumentIndex).originalValue;
+            return getCurrentArgument();
         }
         throw new CommandLineException(errorMessage, usageError);
     }
 
     private String grabOptionalValue() {
         characterIndex++;
-        String argValue = arguments.get(argumentIndex).originalValue;
+        String argValue = getCurrentArgument();
         if (characterIndex < argValue.length()) {
             return argValue.substring(characterIndex);
         }
         return null;
+    }
+
+    private String getCurrentArgument() {
+        return arguments.get(argumentIndex);
     }
 
     private CommandLineException notImplemented(String option) {
