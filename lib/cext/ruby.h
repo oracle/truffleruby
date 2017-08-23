@@ -94,11 +94,7 @@ extern "C" {
 
 typedef void *VALUE;
 typedef long SIGNED_VALUE;
-
 typedef VALUE ID;
-
-typedef unsigned long st_data_t;
-typedef st_data_t st_index_t;
 
 // Helpers
 
