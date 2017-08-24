@@ -35,7 +35,6 @@ cext-ruby/struct/test_duplicate.rb
 cext-ruby/struct/test_member.rb
 cext-ruby/symbol/test_inadvertent_creation.rb
 cext-ruby/symbol/test_type.rb
-cext-ruby/test_printf.rb
 cext-ruby/time/test_new.rb
 cext-ruby/tracepoint/test_tracepoint.rb
 cext-ruby/win32/test_console_attr.rb

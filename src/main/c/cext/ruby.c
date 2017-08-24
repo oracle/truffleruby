@@ -1396,6 +1396,10 @@ VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
   return truffle_invoke(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
 }
 
+VALUE rb_enc_sprintf(rb_encoding *enc, const char *format, ...) {
+  rb_tr_error("rb_enc_sprintf not implemented");
+}
+
 int rb_enc_to_index(rb_encoding *enc) {
   return truffle_invoke_i(RUBY_CEXT, "rb_enc_to_index", rb_enc_from_encoding(enc));
 }
