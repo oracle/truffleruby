@@ -10,13 +10,13 @@ RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
 
 # Tools we will need to get and run our tests
-RUN apt-get install -y git=1:2.7.4-0ubuntu1.2
+RUN apt-get install -y git
 
-# We need a system libssl for openssl
-RUN apt-get install -y libssl-dev=1.0.2g-1ubuntu4.8
+# The AOT tool uses gcc and zlib.h to figure out struct layouts and link
+RUN apt-get install -y gcc zlib1g-dev
 
-# The AOT tool uses gcc to figure out struct layouts and link
-RUN apt-get install -y gcc=4:5.3.1-1ubuntu1
+# These are the actual runtime GraalVM dependencies
+RUN apt-get install -y libc++-dev libc++abi1 libssl-dev
 
 # Create a user and working directory
 WORKDIR /test
@@ -66,3 +66,8 @@ spec/mspec/bin/mspec \
 -t native-ruby \
 -T -Xhome=$RUBY_HOME \
 :language
+
+# Check we can make a real-world openssl request, testing quite a few things end-to-end
+RUN ruby \
+-ropen-uri \
+-e 'open("https://rubygems.org/") { |f| raise unless f.read.include?("Find, install, and publish RubyGems") }'

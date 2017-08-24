@@ -20,7 +20,14 @@ The SVM itself, like Graal and TruffleRuby, is implemented in Java.
 https://youtu.be/FJY96_6Y3a4?t=10023
 
 To use the SVM you need a release of GraalVM, as described in
-[Using GraalVM](using-graalvm.md). You can then run:
+[Using GraalVM](using-graalvm.md). You will also need `gcc` and the `zlib`
+headers. On Ubuntu, Debian, etc:
+
+```
+apt-get install gcc zlib1g-dev
+```
+
+You can then run:
 
 ```
 $ graalvm/bin/native-image --ruby

@@ -1,19 +1,22 @@
 # Installing LLVM
 
-TruffleRuby needs LLVM to build C extensions - version 3.8 or above we think but
-we haven't tested many versions.
-
-## Oracle Linux
-
-```bash
-yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-yum install clang-3.4.2
-```
+TruffleRuby needs LLVM to run and build C extensions - version 3.8 or 4.0.
 
 ## Ubuntu
 
-```bash
-apt-get install clang=1:3.8-33ubuntu3.1 llvm-dev=1:3.8-33ubuntu3.1 libc++-dev=3.7.0-1 libc++abi-dev=3.7.0-1
+For using C extensions:
+
+```
+apt-get install libc++-dev libc++abi1
+```
+
+Note that we install `libc++-dev` here, as installing `libc++` seems to
+introduce some system conflicts.
+
+Additionally, for building C extensions:
+
+```
+apt-get install clang llvm libc++abi-dev
 ```
 
 ## macOS
