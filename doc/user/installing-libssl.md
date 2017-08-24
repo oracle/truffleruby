@@ -1,22 +1,17 @@
 # Installing `libssl`
 
 TruffleRuby provides the `openssl` module but not the native `libssl` system
-library that the module uses.
-
-TruffleRuby requires version 1.0.1 or above (tested compatible versions include
-`1.0.2g` and `1.0.2k`, or `1.0.2l` on macOS).
-
-## Oracle Linux
-
-```
-yum install openssl-devel-1.0.2k
-```
+library that the module uses. TruffleRuby requires version 1.0.2.
 
 ## Ubuntu
 
 ```
-apt-get install libssl-dev=1.0.2g-1ubuntu13
+apt-get install libssl-dev
 ```
+
+We recommend `libssl-dev` instead of `libssl1.0.0`, even though we aren't using
+it for development because the latter doesn't seem to put the shared library in
+a place where we can find it.
 
 ## macOS
 
