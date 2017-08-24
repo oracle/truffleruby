@@ -282,7 +282,7 @@ public class Launcher {
             out.println("  -Dname=value    set a system property");
         } else {
             out.println("JVM switches:");
-            out.println("  -J-arg, -J:arg  pass arg to the JVM");
+            out.println("  -J-arg, -J:arg, --jvm.arg      pass arg to the JVM");
         }
     }
 

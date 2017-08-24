@@ -135,15 +135,24 @@ ruby_args=()
 while [ $# -gt 0 ]
 do
     case "$1" in
-    -J:)
-        val=-${val:3}
-        ;;
-    -J-cp|-J-classpath)
+    -J-cp|-J-classpath|-J:cp|-J:classpath)
         CP="$CP:$2"
         shift
         ;;
+    --jvm.cp=*)
+        CP="$CP:${1:9}"
+        ;;
+    --jvm.classpath=*)
+        CP="$CP:${1:16}"
+        ;;
+    -J:)
+        val=-${val:3}
+        ;;
     -J*)
         java_args+=("${1:2}")
+        ;;
+    --jvm.*)
+        java_args+=("-${1:6}")
         ;;
     -C|-e|-I|-S) # Match switches that take an argument
         ruby_args+=("$1" "$2")

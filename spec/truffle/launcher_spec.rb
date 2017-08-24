@@ -42,6 +42,10 @@ describe "The launcher" do
     should_print_full_java_command "#{RbConfig.ruby} -J-cmd --version"
   end
 
+  it "prints the full java command with --jvm.cmd" do
+    should_print_full_java_command "#{RbConfig.ruby} --jvm.cmd --version"
+  end
+
   it "prints the full java command with -cmd in JAVA_OPTS" do
     should_print_full_java_command "JAVA_OPTS=-cmd #{RbConfig.ruby} --version"
   end
@@ -96,6 +100,12 @@ describe "The launcher" do
     out.should == "true\n"
   end
 
+ it "takes options from system properties set on the command line using --jvm" do
+    out = `#{RbConfig.ruby} --jvm.Dpolyglot.ruby.verbosity=true -e 'puts $VERBOSE'`
+    $?.success?.should == true
+    out.should == "true\n"
+  end
+
   it "takes options from system properties set on the command line using -X" do
     out = `#{RbConfig.ruby} -Xverbosity=true -e 'puts $VERBOSE'`
     $?.success?.should == true
@@ -128,6 +138,21 @@ describe "The launcher" do
     out.lines[1].should == "14\n"
   end
 
+  ['-J-classpath ',
+   '-J-cp ',
+   '-J:classpath ',
+   '-J:cp ',
+   '--jvm.classpath=',
+   '--jvm.cp='
+  ].each do |option|
+    it "'#{option}' adds the jar" do
+      out = `#{RbConfig.ruby} #{option}does-not-exist.jar -J-cmd -e 'puts 14'`
+      $?.success?.should == true
+      out.lines[0].should include(":does-not-exist.jar")
+      out.lines[1].should == "14\n"
+    end
+  end
+
   it "prints available options for -Xoptions" do
     out = `#{RbConfig.ruby} -Xoptions`
     $?.success?.should == true
@@ -145,6 +170,8 @@ describe "The launcher" do
     $?.success?.should == false
     out.should include("unknown option")
   end
+
+  # TODO (pitr-ch 08-Sep-2017): test --jvm and --jvm.cp options
 
   describe 'StringArray option' do
     it 'appends multiple options' do
