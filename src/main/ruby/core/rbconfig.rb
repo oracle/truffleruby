@@ -144,10 +144,11 @@ module RbConfig
     mkconfig['topdir'] = '$(archdir)'
   end
 
-  clang          = 'clang'
-  opt            = 'opt'
+  CLANG          = 'clang'
+  OPT            = 'opt'
+  
   opt_passes     = ['-always-inline', '-mem2reg', '-constprop'].join(' ')
-  cc             = clang
+  cc             = CLANG
   cpp            = cc
   linkflags      = ['-g',                                     # Show debug information such as line numbers in backtrace
                     '-Werror=implicit-function-declaration',  # To make missing C ext functions very clear
@@ -173,12 +174,12 @@ module RbConfig
   expanded.merge!(common)
   mkconfig.merge!(common)
 
-  expanded['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
-  mkconfig['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@",
+  expanded['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{OPT} #{opt_passes} $@ -o $@",
+  mkconfig['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{OPT} #{opt_passes} $@ -o $@",
   expanded['LINK_SO'] = "#{ruby_launcher} -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) #{libs}"
   mkconfig['LINK_SO'] = "#{ruby_launcher} -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) $(LIBS)"
-  expanded['TRY_LINK'] = "#{clang} -o conftest #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} #{libs}"
-  mkconfig['TRY_LINK'] = "#{clang} -o conftest #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
+  expanded['TRY_LINK'] = "#{CLANG} -o conftest #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} #{libs}"
+  mkconfig['TRY_LINK'] = "#{CLANG} -o conftest #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
 
   def self.ruby
     Truffle::Boot.ruby_launcher or
