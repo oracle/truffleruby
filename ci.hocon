@@ -579,8 +579,8 @@ builds: [
   {name: ruby-benchmarks-psd-graal-enterprise} ${common} ${graal-enterprise} ${daily-bench-caps} ${truffleruby} ${psd-benchmarks},
   {name: ruby-benchmarks-psd-graal-enterprise-no-om} ${common} ${graal-enterprise-no-om} ${daily-bench-caps} ${truffleruby} ${psd-benchmarks},
   //{name: ruby-benchmarks-psd-graal-vm-snapshot} ${common} ${graal-vm-snapshot} ${bench-caps} ${truffleruby} ${psd-benchmarks},
-  //{name: ruby-benchmarks-psd-svm-graal-core} ${common} ${svm-graal-core-bench} ${bench-caps} ${truffleruby} ${psd-benchmarks},
-  //{name: ruby-benchmarks-psd-svm-graal-enterprise} ${common} ${svm-graal-enterprise-bench} ${bench-caps} ${truffleruby} ${psd-benchmarks},
+  {name: ruby-benchmarks-psd-svm-graal-core} ${common} ${svm-graal-core-bench} ${bench-caps} ${truffleruby} ${psd-benchmarks},
+  {name: ruby-benchmarks-psd-svm-graal-enterprise} ${common} ${svm-graal-enterprise-bench} ${bench-caps} ${truffleruby} ${psd-benchmarks},
 
 
   //{name: ruby-benchmarks-asciidoctor-mri} ${common} ${weekly-bench-caps} ${mri-benchmark} ${asciidoctor-benchmarks},
