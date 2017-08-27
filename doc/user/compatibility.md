@@ -106,6 +106,14 @@ loop of your production application.
 
 ## C Extension Compatibility
 
+#### Identifiers may be macros or functions
+
+Identifiers which are normally macros may be functions, functions may be macros,
+and global variables may be macros. This causes problems where they are used in
+a context which relies on a particular implementation, for example a global
+variable assigned to an initial value which was a macro, like `Qnil`, which is
+a macro that evaluates to a function call in TruffleRuby.
+
 #### Storing Ruby objects in native structures and arrays
 
 You cannot store a Ruby object in a structure or array that has been natively
@@ -121,6 +129,13 @@ limitation. Use `void* rb_tr_handle_for_managed_leaking(VALUE managed)` if you
 don't yet know where to put a corresponding call to `void
 *rb_tr_release_handle(void *native)`. Use `VALUE
 rb_tr_managed_from_handle_or_null(void *native)` if the handle may be `NULL`.
+
+#### Mixing native and managed in C global variables
+
+C global variables can contain native data or they can contain managed data,
+but they cannot contain both in the same program run. If you have a global you
+assign `NULL` to (`NULL` being just `0` and so a native address) you cannot
+then assign managed data to this variable.
 
 #### Variadic functions
 
