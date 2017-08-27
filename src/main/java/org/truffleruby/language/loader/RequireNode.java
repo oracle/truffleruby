@@ -158,32 +158,7 @@ public abstract class RequireNode extends RubyNode {
 
             featureLoader.loadCExtLibrary(expandedPath);
         } catch (Exception e) {
-            CompilerDirectives.transferToInterpreter();
-
-            final UnsatisfiedLinkError linkErrorException = searchForException(UnsatisfiedLinkError.class, e);
-
-            if (linkErrorException != null) {
-                final String linkError = linkErrorException.getMessage();
-
-                if (getContext().getOptions().CEXTS_LOG_LOAD) {
-                    info("unsatisfied link error %s", linkError);
-                }
-
-                final String message;
-
-                if (linkError.indexOf("libc++.") != -1) {
-                    message = String.format("%s (%s)", "you may need to install LLVM and libc++ - see doc/user/installing-llvm.md", linkError);
-                } else if (linkError.indexOf("libc++abi.") != -1) {
-                    message = String.format("%s (%s)", "you may need to install LLVM and libc++abi - see doc/user/installing-llvm.md", linkError);
-                } else if (feature.equals("openssl.so")) {
-                    message = String.format("%s (%s)", "you may need to install the system OpenSSL library libssl - see doc/user/installing-libssl.md", linkError);
-                } else {
-                    message = linkError;
-                }
-
-                throw new RaiseException(getContext().getCoreExceptions().runtimeError(message, this));
-            }
-
+            handleCExtensionException(feature, e);
             throw e;
         }
 
@@ -200,6 +175,35 @@ public abstract class RequireNode extends RubyNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new JavaException(e);
         }
+    }
+
+    @TruffleBoundary
+    private void handleCExtensionException(String feature, Exception e) {
+        final UnsatisfiedLinkError linkErrorException = searchForException(UnsatisfiedLinkError.class, e);
+
+        if (linkErrorException == null) {
+            return;
+        }
+
+        final String linkError = linkErrorException.getMessage();
+
+        if (getContext().getOptions().CEXTS_LOG_LOAD) {
+            info("unsatisfied link error %s", linkError);
+        }
+
+        final String message;
+
+        if (linkError.indexOf("libc++.") != -1) {
+            message = String.format("%s (%s)", "you may need to install LLVM and libc++ - see doc/user/installing-llvm.md", linkError);
+        } else if (linkError.indexOf("libc++abi.") != -1) {
+            message = String.format("%s (%s)", "you may need to install LLVM and libc++abi - see doc/user/installing-llvm.md", linkError);
+        } else if (feature.equals("openssl.so")) {
+            message = String.format("%s (%s)", "you may need to install the system OpenSSL library libssl - see doc/user/installing-libssl.md", linkError);
+        } else {
+            message = linkError;
+        }
+
+        throw new RaiseException(getContext().getCoreExceptions().runtimeError(message, this));
     }
 
     @TruffleBoundary
