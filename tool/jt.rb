@@ -23,7 +23,7 @@ require 'pathname'
 
 TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 M2_REPO         = File.expand_path('~/.m2/repository')
-MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext/c"
+MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = 3
@@ -743,7 +743,7 @@ module Commands
                          "#{TRUFFLERUBY_DIR}/test/mri/tests/syslog/test_syslog_logger.rb"]
       exclude_file = nil
     elsif args.delete('--cext')
-      include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext/ruby/**/test_*.rb"
+      include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-ruby/**/test_*.rb"
       exclude_file = "#{TRUFFLERUBY_DIR}/test/mri/cext.exclude"
     elsif args.all? { |a| a.start_with?('-') }
       include_pattern = "#{TRUFFLERUBY_DIR}/test/mri/tests/**/test_*.rb"
@@ -759,7 +759,8 @@ module Commands
         raise unless f.start_with?(prefix)
         f[prefix.size..-1]
       }
-
+      include_files.reject! { |f| f.include?('cext-ruby') } unless include_pattern.include?('cext-ruby')
+      
       exclude_files = if exclude_file
                         File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }
                       else
@@ -785,7 +786,7 @@ module Commands
       "RUBYOPT" => '--disable-gems'
     }
 
-    cext_tests = test_files.select { |f| f.include?("cext/ruby") }
+    cext_tests = test_files.select { |f| f.include?("cext-ruby") }
     cext_tests.each do |test|
       test_path = "#{TRUFFLERUBY_DIR}/test/mri/tests/#{test}"
       match = File.read(test_path).match(/\brequire ['"]c\/(.*?)["']/)

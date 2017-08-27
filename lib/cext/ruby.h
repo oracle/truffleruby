@@ -809,6 +809,7 @@ VALUE rb_enc_from_encoding(rb_encoding *encoding);
 rb_encoding *rb_enc_from_index(int index);
 int rb_enc_str_coderange(VALUE str);
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc);
+VALUE rb_enc_sprintf(rb_encoding *enc, const char *format, ...);
 int rb_enc_to_index(rb_encoding *enc);
 VALUE rb_obj_encoding(VALUE obj);
 VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts);

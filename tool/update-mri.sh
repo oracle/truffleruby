@@ -24,10 +24,10 @@ cp -r ../ruby/test test/mri/tests
 rm -rf test/mri/tests/excludes
 cp -r ../ruby/ext/-test- test/mri/tests
 mkdir test/mri/tests/cext
-mv test/mri/tests/-ext- test/mri/tests/cext/ruby
-mv test/mri/tests/-test- test/mri/tests/cext/c
-find test/mri/tests/cext/ruby -name '*.rb' -print0 | xargs -0 -n 1 sed -i .backup 's/-test-/c/g'
-find test/mri/tests/cext/ruby -name '*.backup' -delete
+mv test/mri/tests/-ext- test/mri/tests/cext-ruby
+mv test/mri/tests/-test- test/mri/tests/cext-c
+find test/mri/tests/cext-ruby -name '*.rb' -print0 | xargs -0 -n 1 sed -i .backup 's/-test-/c/g'
+find test/mri/tests/cext-ruby -name '*.backup' -delete
 rm -rf test/mri/excludes
 git checkout -- test/mri/excludes
 git checkout -- test/mri/tests/runner.rb
