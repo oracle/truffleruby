@@ -218,19 +218,16 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected boolean isThreadAccessAllowed(Thread thread, boolean singleThreaded) {
-        System.err.printf("isThreadAccessAllowed(%s, %s)%n", thread, singleThreaded);
         return true;
     }
 
     @Override
     protected void initializeThread(RubyContext context, Thread thread) {
-        System.err.printf("initializeThread(%s, %s)%n", context, thread);
         context.getSafepointManager().enterThread();
     }
 
     @Override
     protected void disposeThread(RubyContext context, Thread thread) {
-        System.err.printf("disposeThread(%s, %s)%n", context, thread);
         context.getSafepointManager().leaveThread();
     }
 
