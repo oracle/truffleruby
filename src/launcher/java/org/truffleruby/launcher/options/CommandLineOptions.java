@@ -38,6 +38,7 @@ public class CommandLineOptions {
     private Map<String, String> options = new HashMap<>();
     private String[] arguments = new String[]{};
     private final List<String> unknownArguments = new ArrayList<>(0);
+    private final Map<String, String> jvmOptions = new HashMap<>();
 
     public Map<String, String> getOptions() {
         return options;
@@ -77,5 +78,9 @@ public class CommandLineOptions {
 
     public List<String> getUnknownArguments() {
         return unknownArguments;
+    }
+
+    public Map<String, String> getJVMOptions() {
+        return jvmOptions;
     }
 }

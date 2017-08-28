@@ -51,6 +51,7 @@ import java.util.logging.Level;
 public class CommandLineParser {
 
     private final List<String> arguments;
+    private final List<String> jvmArguments;
     private int argumentIndex;
     private boolean processArgv;
     private final boolean rubyOpts;
@@ -60,7 +61,7 @@ public class CommandLineParser {
     private final boolean parseVersionAndHelp;
 
     public CommandLineParser(
-            String[] arguments,
+            List<String> arguments,
             CommandLineOptions config,
             boolean processArgv,
             boolean rubyOpts,
@@ -73,7 +74,8 @@ public class CommandLineParser {
         this.processArgv = processArgv;
         this.rubyOpts = rubyOpts;
         this.parseVersionAndHelp = parseHelpEtc;
-        this.arguments = Arrays.asList(Objects.requireNonNull(arguments));
+        this.arguments = Objects.requireNonNull(arguments);
+        this.jvmArguments = new ArrayList<>();
     }
 
     public static void processEnvironmentVariable(
@@ -83,9 +85,9 @@ public class CommandLineParser {
 
         String value = System.getenv(name);
         if (value != null && value.length() != 0) {
-            String[] args = value.split("\\s+");
+            List<String> args = Arrays.asList(value.split("\\s+"));
 
-            if (args.length != 0) {
+            if (args.size() != 0) {
                 new CommandLineParser(
                         args,
                         commandLineOptions,
@@ -115,6 +117,8 @@ public class CommandLineParser {
         if (processArgv) {
             processArgv();
         }
+
+        arguments.removeAll(jvmArguments);
     }
 
     private void processArgv() {
@@ -262,12 +266,20 @@ public class CommandLineParser {
                     RubyLogger.LOGGER.warning("the -y switch is silently ignored as it is an internal development tool");
                     break FOR;
                 case 'J':
-                    String js = grabOptionalValue();
-                    RubyLogger.LOGGER.warning("warning: " + argument + " argument ignored (launched in same VM?)");
-                    if (js.equals("-cp") || js.equals("-classpath")) {
-                        for(;grabOptionalValue() != null;) {}
-                        grabValue(getArgumentError(" -J-cp must be followed by a path expression"));
+                    String javaOption = grabOptionalValue();
+                    jvmArguments.add(argument);
+                    final boolean isClasspath = javaOption.equals("-cp") || javaOption.equals("-classpath");
+
+                    String javaOptionValue;
+                    if (isClasspath) {
+                        argumentIndex++;
+                        javaOptionValue = getCurrentArgument();
+                        jvmArguments.add(javaOptionValue);
+                    } else {
+                        javaOptionValue = "";
                     }
+
+                    config.getJVMOptions().put(javaOption, javaOptionValue);
                     break FOR;
                 case 'K':
                     throw notImplemented("-K");
@@ -615,5 +627,4 @@ public class CommandLineParser {
         FEATURES.put("rubyopt",
                 (processor, enable) -> processor.config.setOption(OptionsCatalog.READ_RUBYOPT, enable));
     }
-
 }

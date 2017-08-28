@@ -56,6 +56,8 @@ import org.truffleruby.launcher.options.OptionsCatalog;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
+import java.util.List;
 
 public class Launcher {
 
@@ -77,7 +79,7 @@ public class Launcher {
         metricsBegin();
 
         final CommandLineOptions config = new CommandLineOptions();
-        processArguments(config, args, true, true);
+        processArguments(config, Arrays.asList(args), true, true, IS_NATIVE);
         printHelpVersionCopyright(isGraal, config);
         final int exitCode = runRubyMain(Context.newBuilder(), config);
 
@@ -124,7 +126,7 @@ public class Launcher {
         }
     }
 
-    private static void printHelpVersionCopyright(boolean isGraal, CommandLineOptions config) {
+    public static void printHelpVersionCopyright(boolean isGraal, CommandLineOptions config) {
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
             System.out.println(getVersionString(isGraal));
         }
@@ -165,14 +167,16 @@ public class Launcher {
 
     public static void processArguments(
             CommandLineOptions config,
-            String[] args,
+            List<String> args,
             boolean parseHelpEtc,
-            boolean unknownOptionFails) {
+            boolean unknownOptionFails,
+            boolean allowedJVMOptions) {
 
         try {
             config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
 
             new CommandLineParser(args, config, true, false, parseHelpEtc).processArguments();
+
             if (unknownOptionFails && !config.getUnknownArguments().isEmpty()) {
                 throw new CommandLineException("unknown option " + config.getUnknownArguments().get(0));
             }
@@ -184,6 +188,10 @@ public class Launcher {
 
             if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
                 config.getOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION).applyTo(config);
+            }
+
+            if (!config.getJVMOptions().isEmpty() && !allowedJVMOptions) {
+                throw new CommandLineException("cannot apply JVM options " + config.getJVMOptions());
             }
         } catch (CommandLineException commandLineException) {
             System.err.println("truffleruby: " + commandLineException.getMessage());
