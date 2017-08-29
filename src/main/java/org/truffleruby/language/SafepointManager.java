@@ -116,29 +116,7 @@ public class SafepointManager {
 
         // Wait for other threads to reach their safepoint
         if (isDrivingThread) {
-            int phase = phaser.arrive();
-            long t0 = System.nanoTime();
-            long max = t0 + WAIT_TIME * 1_000_000_000L;
-            while (true) {
-                try {
-                    phaser.awaitAdvanceInterruptibly(phase, 100, TimeUnit.MILLISECONDS);
-                    break;
-                } catch (InterruptedException e) {
-                    // retry
-                } catch (TimeoutException e) {
-                    if (System.nanoTime() >= max) {
-                        System.err.println("WARNING: Waited " + WAIT_TIME + " seconds in the SafepointManager but other threads did not arrive.\n" +
-                                "A thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult(). Check with jstack.");
-                        phaser.awaitAdvance(phase);
-                        break;
-                    } else {
-                        // Retry interrupting other threads, as they might not have been yet
-                        // in the blocking call when the signal was sent.
-                        interruptOtherThreads();
-                    }
-                }
-            }
-
+            driveArrivalAtPhaser();
             assumption = Truffle.getRuntime().createAssumption(getClass().getCanonicalName());
         } else {
             phaser.arriveAndAwaitAdvance();
@@ -160,6 +138,32 @@ public class SafepointManager {
         }
 
         return deferredAction;
+    }
+
+    private void driveArrivalAtPhaser() {
+        int phase = phaser.arrive();
+        long t0 = System.nanoTime();
+        long max = t0 + WAIT_TIME * 1_000_000_000L;
+        int waits = 1;
+        while (true) {
+            try {
+                phaser.awaitAdvanceInterruptibly(phase, 100, TimeUnit.MILLISECONDS);
+                break;
+            } catch (InterruptedException e) {
+                // retry
+            } catch (TimeoutException e) {
+                if (System.nanoTime() >= max) {
+                    Log.LOGGER.severe(String.format("waited %d seconds in the SafepointManager but %d of %d other threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
+                            waits * WAIT_TIME, phaser.getUnarrivedParties(), phaser.getRegisteredParties()));
+                    max += WAIT_TIME * 1_000_000_000L;
+                    waits++;
+                } else {
+                    // Retry interrupting other threads, as they might not have been yet
+                    // in the blocking call when the signal was sent.
+                    interruptOtherThreads();
+                }
+            }
+        }
     }
 
     @TruffleBoundary
