@@ -8,7 +8,7 @@ To add TruffleRuby to `rbenv` a symbolic link has to be added to the `versions`
 directory of rbenv:
 
 ```bash
-ln -s path/to/graalvm/language/ruby "$RBENV_ROOT/versions/truffleruby"
+ln -s path/to/graalvm/jre/languages/ruby "$RBENV_ROOT/versions/truffleruby"
 ```
 
 ## chruby
@@ -17,7 +17,7 @@ To add TruffleRuby to `chruby` a symbolic link has to be added to the
 `$HOME/.rubies`  directory:
 
 ```bash
-ln -s path/to/graalvm/language/ruby "$HOME/.rubies/truffleruby"
+ln -s path/to/graalvm/jre/languages/ruby "$HOME/.rubies/truffleruby"
 ```
 
 ## RVM
@@ -45,7 +45,7 @@ index 031a23c..bf1dcb0 100755
 Then `rvm mount` can be used.
 
 ```bash
-rvm mount path/to/graalvm/language/ruby -n truffleruby
+rvm mount path/to/graalvm/jre/languages/ruby -n truffleruby
 ```
 
 The name passed with `-n` option has to contain `truffleruby`.
@@ -53,10 +53,10 @@ The name passed with `-n` option has to contain `truffleruby`.
 ## Using TruffleRuby without a Ruby manager
 
 If you are using a Ruby manager like `rvm`, `rbenv`, or `chruby` and wish not to
-add TruffleRuby to one of them  make sure that the manager does not set
-environment variables  `GEM_HOME`, `GEM_PATH`, and `GEM_ROOT`.  The variables
-are picked up by truffleruby (as any other Ruby  implementation would do)
-causing truffleruby to pickup the wrong gem-home  directory instead of its own.
+add TruffleRuby to one of them make sure that the manager does not set
+environment variables `GEM_HOME`, `GEM_PATH`, and `GEM_ROOT`. The variables
+are picked up by truffleruby (as any other Ruby implementation would do)
+causing truffleruby to pickup the wrong gem-home directory instead of its own.
 
 It can be easily fixed by clearing the environment with one of the following 
 commands:
