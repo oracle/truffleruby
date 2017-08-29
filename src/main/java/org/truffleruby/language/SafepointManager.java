@@ -20,8 +20,10 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
+import org.truffleruby.core.fiber.FiberNodes;
 import org.truffleruby.core.thread.ThreadStatus;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -268,6 +270,14 @@ public class SafepointManager {
                 context.getThreadManager().interrupt(thread);
             }
         }
+    }
+
+    public String getSafepointDebugInfo() {
+        final Thread[] threads = new Thread[Thread.activeCount() + 1024];
+        final int threadsCount = Thread.enumerate(threads);
+        final long appearRunning = Arrays.stream(threads).limit(threadsCount).filter((t) -> t.getName().startsWith(FiberNodes.NAME_PREFIX)).count();
+        return String.format("safepoints: %d known threads, %d registered with phaser, %d arrived, %d appear to be running",
+                runningThreads.size(), phaser.getRegisteredParties(), phaser.getArrivedParties(), appearRunning);
     }
 
 }
