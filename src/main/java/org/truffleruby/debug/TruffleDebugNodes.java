@@ -460,4 +460,22 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "thread_info", onSingleton = true)
+    public abstract static class ThreadInfoNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
+        @Specialization
+        public DynamicObject threadInfo() {
+            return makeStringNode.executeMake(getThreadDebugInfo(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
+        @TruffleBoundary
+        private String getThreadDebugInfo() {
+            return getContext().getThreadManager().getThreadDebugInfo()
+                    + getContext().getSafepointManager().getSafepointDebugInfo() + "\n";
+        }
+
+    }
+
 }

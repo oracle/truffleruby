@@ -35,6 +35,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.control.ThreadExitException;
 import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.extra.ffi.Pointer;
@@ -538,6 +539,34 @@ public class ThreadManager {
         }
 
         thread.interrupt();
+    }
+
+    public String getThreadDebugInfo() {
+        if (runningRubyThreads.isEmpty()) {
+            return "no ruby threads\n";
+        }
+
+        final StringBuilder builder = new StringBuilder();
+
+        for (DynamicObject thread : runningRubyThreads) {
+            builder.append("thread @");
+            builder.append(ObjectIDOperations.verySlowGetObjectID(context, thread));
+
+            if (thread == rootThread) {
+                builder.append(" (root)");
+            }
+
+            if (thread == currentThread.get()) {
+                builder.append(" (current)");
+            }
+
+            builder.append("\n");
+
+            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
+            builder.append(fiberManager.getFiberDebugInfo());
+        }
+
+        return builder.toString();
     }
 
 }
