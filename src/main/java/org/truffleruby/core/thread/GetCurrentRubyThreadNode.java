@@ -44,7 +44,7 @@ public abstract class GetCurrentRubyThreadNode extends RubyNode {
     }
 
     protected DynamicObject getCurrentRubyThread(VirtualFrame frame) {
-        return getContext().getThreadManager().getCurrentThread();
+        return getContext().getThreadManager().getCurrentThread(this);
     }
 
     protected int getCacheLimit() {

@@ -111,6 +111,12 @@ class MSpecScript
 
     # openssl is tested separately as it needs Sulong
     "^spec/ruby/library/openssl",
+
+    # temporary issue with Truffle threading API and Sulong
+    "^spec/ruby/library/securerandom/base64_spec.rb",
+    "^spec/ruby/library/securerandom/hex_spec.rb",
+    "^spec/ruby/library/securerandom/random_bytes_spec.rb",
+    "^spec/ruby/library/securerandom/random_number_spec.rb"
   ]
 
   set :capi, [

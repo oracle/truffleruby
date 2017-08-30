@@ -37,7 +37,7 @@ public abstract class GetThreadLocalsObjectNode extends RubyNode {
     }
 
     protected DynamicObject getCurrentThread(VirtualFrame frame) {
-        return getContext().getThreadManager().getCurrentThread();
+        return getContext().getThreadManager().getCurrentThread(this);
     }
 
     protected DynamicObject getThreadLocals(DynamicObject thread) {

@@ -345,7 +345,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = { "isRubyString(signalName)", "isRubyProc(proc)" })
         public boolean watchSignalProc(DynamicObject signalName, DynamicObject proc) {
-            if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
+            if (!getContext().getThreadManager().isRootThread()) {
                 // The proc will be executed on the main thread
                 SharedObjects.writeBarrier(getContext(), proc);
             }
@@ -383,7 +383,7 @@ public abstract class VMPrimitiveNodes {
         @Specialization(guards = "isRubyString(key)")
         public Object get(DynamicObject key) {
             // Sharing: we do not need to share here as it's only called by the main thread
-            assert getContext().getThreadManager().getCurrentThread() == getContext().getThreadManager().getRootThread();
+            assert getContext().getThreadManager().isRootThread();
 
             final Object value = getContext().getNativePlatform().getRubiniusConfiguration().get(key.toString());
 

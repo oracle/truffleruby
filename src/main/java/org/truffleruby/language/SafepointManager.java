@@ -86,7 +86,7 @@ public class SafepointManager {
 
     @TruffleBoundary
     private void assumptionInvalidated(Node currentNode, boolean fromBlockingCall) {
-        final DynamicObject thread = context.getThreadManager().getCurrentThread();
+        final DynamicObject thread = context.getThreadManager().getCurrentThread(currentNode);
         final InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
 
         final boolean interruptible = (interruptMode == InterruptMode.IMMEDIATE) ||
@@ -109,7 +109,7 @@ public class SafepointManager {
 
     @TruffleBoundary
     private SafepointAction step(Node currentNode, boolean isDrivingThread) {
-        final DynamicObject thread = context.getThreadManager().getCurrentThread();
+        final DynamicObject thread = context.getThreadManager().getCurrentThreadIfAny();
 
         // Wait for other threads to reach their safepoint
         if (isDrivingThread) {
@@ -178,7 +178,7 @@ public class SafepointManager {
 
         // Run deferred actions after leaving the SafepointManager lock.
         if (deferred) {
-            action.accept(context.getThreadManager().getCurrentThread(), currentNode);
+            action.accept(context.getThreadManager().getCurrentThread(currentNode), currentNode);
         }
     }
 
@@ -212,7 +212,7 @@ public class SafepointManager {
     public void pauseThreadAndExecute(final Thread thread, Node currentNode, final SafepointAction action) {
         if (Thread.currentThread() == thread) {
             // fast path if we are already the right thread
-            final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
+            final DynamicObject rubyThread = context.getThreadManager().getCurrentThread(currentNode);
             action.accept(rubyThread, currentNode);
         } else {
             pauseAllThreadsAndExecute(currentNode, false, (rubyThread, currentNode1) -> {
@@ -227,7 +227,7 @@ public class SafepointManager {
     public void pauseThreadAndExecuteLater(final Thread thread, Node currentNode, final SafepointAction action) {
         if (Thread.currentThread() == thread) {
             // fast path if we are already the right thread
-            final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
+            final DynamicObject rubyThread = context.getThreadManager().getCurrentThread(currentNode);
             action.accept(rubyThread, currentNode);
         } else {
             pauseAllThreadsAndExecute(currentNode, true, (rubyThread, currentNode1) -> {

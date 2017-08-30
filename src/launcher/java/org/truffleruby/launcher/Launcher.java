@@ -129,15 +129,22 @@ public class Launcher {
         } catch (PolyglotException e) {
             System.err.println("truffleruby: " + e.getMessage());
             e.printStackTrace();
-            exitCode = 1;
-        }
 
+            // TODO (nirvdrum 28-Aug-17): This is a big hack until we shut down threads properly.
+            if (e.getMessage().startsWith("java.lang.AssertionError: The language did not complete all polyglot threads but should have")) {
+                exitCode = 0;
+            } else {
+                exitCode = 1;
+            }
+        }
         printTruffleTimeMetric("after-main");
         printTruffleMemoryMetric();
         System.exit(exitCode);
     }
 
     public static Context createContext(Context.Builder builder, CommandLineOptions config) {
+        builder.allowCreateThread(true);
+
         /*
          * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
          * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and
