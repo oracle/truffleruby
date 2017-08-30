@@ -255,6 +255,7 @@ public class RubyContext {
         atExitManager.runSystemExitHooks();
 
         threadManager.shutdown();
+        safepointManager.shutdown();
 
         if (options.COVERAGE_GLOBAL) {
             coverageManager.print(System.out);

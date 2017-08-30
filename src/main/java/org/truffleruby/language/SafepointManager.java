@@ -18,6 +18,7 @@ import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
+import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberNodes;
@@ -269,6 +270,12 @@ public class SafepointManager {
             if (thread != current) {
                 context.getThreadManager().interrupt(thread);
             }
+        }
+    }
+
+    public void shutdown() {
+        if (!runningThreads.isEmpty()) {
+            Log.LOGGER.warning("still threads registered with safepoint manager at shutdown:\n" + context.getThreadManager().getThreadDebugInfo() + getSafepointDebugInfo());
         }
     }
 
