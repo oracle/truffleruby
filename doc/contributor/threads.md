@@ -17,8 +17,7 @@ The finalisation service has a service thread that runs as a Ruby thread.
 ## Thread shutdown
 
 When a thread shuts down (exits naturally or is killed), all the fibers and
-their Java threads need to be shut down as well. This is done by triggering a
-safepoint on the specific threads that implement the fibers and sending an exit
+their Java threads need to be shut down as well. This is done by sending an exit
 message.
 
 ## Context shutdown
