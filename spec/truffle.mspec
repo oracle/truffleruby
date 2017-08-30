@@ -28,15 +28,12 @@ class MSpecScript
   TRUFFLERUBY_DIR = File.expand_path('../..', __FILE__)
 
   set :target, "#{TRUFFLERUBY_DIR}/bin/truffleruby"
-  
-  # TODO CS 2-Jul-17 fix this -da
 
   # No flags set if a Ruby binary is specified via -t
   if !child_process? and !ARGV.include?('-t')
     flags = %w[
       -J-ea
       -J-esa
-      -J-da:com.oracle.truffle.api.interop.ForeignAccess
       -J-Xmx2G
       -Xgraal.warn_unless=false
       --disable-gems
