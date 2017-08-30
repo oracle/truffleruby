@@ -211,3 +211,16 @@ but these may behave differently or be removed in future versions.
 Most of these features will silently not work, in order to let as much as
 possible work for testing but while potentially missing signals, leaking
 resources, etc.
+
+## Spec Completeness
+
+'How many specs are there' is not a question with an easy precise answer. The
+three numbers listed below for each part of the specs are the number of
+expectations that the version of MRI we are compatible with passes, then the
+number TruffleRuby passes, and then the TruffleRuby number as a percentage of
+the MRI number. This is run on macOS. The numbers probably vary a little based
+on platform and configuration.
+
+* Language: 3855, 3819, 99%
+* Core: 175112, 168286, 96%
+* Library (`:library` and `:openssl` on TruffleRuby): 20052, 15612, 78%
