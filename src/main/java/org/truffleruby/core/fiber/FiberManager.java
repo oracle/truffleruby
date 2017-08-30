@@ -79,7 +79,14 @@ public class FiberManager {
             builder.append("  fiber @");
             builder.append(ObjectIDOperations.verySlowGetObjectID(context, fiber));
             builder.append(" #");
-            builder.append(Layouts.FIBER.getThread(fiber).getId());
+
+            final Thread thread = Layouts.FIBER.getThread(fiber);
+
+            if (thread == null) {
+                builder.append("(no Java thread)");
+            } else {
+                builder.append(thread.getId());
+            }
 
             if (fiber == rootFiber) {
                 builder.append(" (root)");
