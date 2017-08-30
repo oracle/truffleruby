@@ -153,7 +153,7 @@ public class SafepointManager {
                 // retry
             } catch (TimeoutException e) {
                 if (System.nanoTime() >= max) {
-                    Log.LOGGER.severe(String.format("waited %d seconds in the SafepointManager but %d of %d other threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
+                    Log.LOGGER.severe(String.format("waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
                             waits * WAIT_TIME, phaser.getUnarrivedParties(), phaser.getRegisteredParties()));
                     max += WAIT_TIME * 1_000_000_000L;
                     waits++;
