@@ -75,6 +75,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String CEXT_EXTENSION = ".su";
 
     public RubyLanguage() {
+        threadsWeCreated.add(Thread.currentThread());
     }
 
     @TruffleBoundary
@@ -220,10 +221,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     public static final Set<Thread> threadsWeCreated = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
-
-    static {
-        threadsWeCreated.add(Thread.currentThread());
-    }
 
     @Override
     protected boolean isThreadAccessAllowed(Thread thread, boolean singleThreaded) {
