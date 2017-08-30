@@ -478,4 +478,26 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "dead_block", onSingleton = true)
+    public abstract static class DeadBlockNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject deadBlock() {
+            Log.LOGGER.severe("Truffle::Debug.dead_block is being called - will lock up the interpreter");
+
+            final Object monitor = new Object();
+
+            synchronized (monitor) {
+                while (true) {
+                    try {
+                        monitor.wait();
+                    } catch (InterruptedException e) {
+                        continue;
+                    }
+                }
+            }
+        }
+
+    }
+
 }
