@@ -12,7 +12,7 @@ The safepoint manager maintains a list of Java threads which implement fibers.
 
 ## Service threads
 
-The finalisation service has a service thread that runs as a Ruby thread.
+The finalization service has a service thread that runs as a Ruby thread.
 
 ## Thread shutdown
 
@@ -23,9 +23,9 @@ message.
 ## Context shutdown
 
 When `main` returns in Java, the VM waits for all non-daemon threads (we do not
-create any create daemon threads) to exit before the VM exits. However
-TruffleRuby exits through `System.exit` rather than returning from `main`, which
-kills all other Java threads immediately.
+create any daemon threads) to exit before the VM exits. However TruffleRuby
+exits through `System.exit` rather than returning from `main`, which kills all
+other Java threads immediately.
 
 When the main thread in Ruby finishes, all Ruby threads are killed.
 
