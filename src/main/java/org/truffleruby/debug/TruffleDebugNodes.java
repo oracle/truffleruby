@@ -428,6 +428,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "dead_block", onSingleton = true)
     public abstract static class DeadBlockNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization
         public DynamicObject deadBlock() {
             Log.LOGGER.severe("Truffle::Debug.dead_block is being called - will lock up the interpreter");
