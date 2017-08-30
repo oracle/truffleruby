@@ -23,6 +23,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberNodes;
 import org.truffleruby.core.thread.ThreadStatus;
+import org.truffleruby.platform.signal.Signal;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -155,6 +156,9 @@ public class SafepointManager {
                 if (System.nanoTime() >= max) {
                     Log.LOGGER.severe(String.format("waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
                             waits * WAIT_TIME, phaser.getUnarrivedParties(), phaser.getRegisteredParties()));
+                    if (waits == 1) {
+                        restoreDefaultInterruptHandler();
+                    }
                     max += WAIT_TIME * 1_000_000_000L;
                     waits++;
                 } else {
@@ -163,6 +167,17 @@ public class SafepointManager {
                     interruptOtherThreads();
                 }
             }
+        }
+    }
+
+    private void restoreDefaultInterruptHandler() {
+        Log.LOGGER.warning("restoring default interrupt handler");
+
+        try {
+            final Signal signal = context.getNativePlatform().getSignalManager().createSignal("INT");
+            context.getNativePlatform().getSignalManager().watchDefaultForSignal(signal);
+        } catch (Throwable t) {
+            Log.LOGGER.warning("failed to restore default interrupt handler");
         }
     }
 
