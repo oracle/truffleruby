@@ -33,9 +33,12 @@ import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @TruffleLanguage.Registration(
         name = RubyLanguage.NAME,
@@ -214,6 +217,25 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         }
 
         return OptionDescriptors.create(options);
+    }
+
+    public static final Set<Thread> threadsWeCreated = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
+
+    static {
+        threadsWeCreated.add(Thread.currentThread());
+    }
+
+    @Override
+    protected boolean isThreadAccessAllowed(Thread thread, boolean singleThreaded) {
+        return threadsWeCreated.contains(thread);
+    }
+
+    @Override
+    protected void initializeThread(RubyContext context, Thread thread) {
+    }
+
+    @Override
+    protected void disposeThread(RubyContext context, Thread thread) {
     }
 
 }

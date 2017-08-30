@@ -81,7 +81,8 @@ public abstract class FiberNodes {
     public static void initialize(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
         final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
         final String name = NAME_PREFIX + RubyLanguage.fileLine(sourceSection);
-        final Thread thread = new Thread(() -> handleFiberExceptions(context, fiber, block, currentNode));
+        final Thread thread = context.getEnv().createThread(() -> handleFiberExceptions(context, fiber, block, currentNode));
+        RubyLanguage.threadsWeCreated.add(thread);
         thread.setName(name);
         thread.start();
 

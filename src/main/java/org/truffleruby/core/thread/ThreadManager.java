@@ -22,6 +22,7 @@ import jnr.posix.Timeval;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.fiber.FiberNodes;
@@ -177,8 +178,9 @@ public class ThreadManager {
 
     public static void initialize(DynamicObject thread, RubyContext context, Node currentNode, String info, Runnable task) {
         assert RubyGuards.isRubyThread(thread);
-        new Thread(() -> run(thread, context, currentNode, info, task)).start();
-
+        final Thread t = context.getEnv().createThread(() -> run(thread, context, currentNode, info, task));
+        RubyLanguage.threadsWeCreated.add(t);
+        t.start();
         FiberNodes.waitForInitialization(context, Layouts.THREAD.getFiberManager(thread).getRootFiber(), currentNode);
     }
 
