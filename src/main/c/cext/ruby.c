@@ -16,6 +16,9 @@
 #define _GNU_SOURCE
 
 #include <ruby.h>
+#include <ruby/encoding.h>
+#include <ruby/io.h>
+#include <ruby/thread_native.h>
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -553,7 +556,7 @@ VALUE LONG2FIX(long value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2FIX", value);
 }
 
-int rb_fix2int(VALUE value) {
+long rb_fix2int(VALUE value) {
   return truffle_invoke_i(RUBY_CEXT, "rb_fix2int", value);
 }
 
@@ -673,6 +676,10 @@ VALUE rb_f_sprintf(int argc, const VALUE *argv) {
 
 VALUE rb_yield_block(VALUE val, VALUE arg, int argc, const VALUE *argv, VALUE blockarg) {
   rb_tr_error("rb_yield_block not implemented");
+}
+
+int ruby_snprintf(char *str, size_t n, char const *fmt, ...) {
+  rb_tr_error("ruby_snprintf not implemented");
 }
 
 void rb_need_block(void) {
