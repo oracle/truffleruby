@@ -675,7 +675,7 @@ int RB_FIXNUM_P(VALUE value) {
 }
 
 int RTEST(VALUE value) {
-  return truffle_invoke_b(RUBY_CEXT, "RTEST", value);
+  return value != NULL && truffle_invoke_b(RUBY_CEXT, "RTEST", value);
 }
 
 // Kernel
