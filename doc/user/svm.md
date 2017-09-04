@@ -72,7 +72,7 @@ beat MRI's startup time.
 | Rubinius 3.60 | 0.61 | 64 |
 
 ```
-$ /usr/bin/time -l ./ruby -Xhome=language/ruby -e "puts 'hello'"  # TruffleRuby on the SVM
+$ /usr/bin/time -l ./ruby -Xhome=jre/languages/ruby -e "puts 'hello'"  # TruffleRuby on the SVM
 hello
         0.40 real         0.16 user         0.07 sys
  145813504  maximum resident set size
