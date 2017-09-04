@@ -37,6 +37,11 @@ module RbConfig
   host_os  = Truffle::System.host_os
   host_cpu = Truffle::System.host_cpu
 
+  # host_os for linux systems is reported as linux-gnu rather than simply linux.
+  host_os = 'linux-gnu' if host_os == 'linux'
+
+  host_vendor = 'unknown'
+
   ruby_install_name = 'truffleruby'
 
   ruby_api_version = RUBY_VERSION.dup
@@ -47,6 +52,8 @@ module RbConfig
   ruby_version   = ruby_api_version
 
   arch         = "#{host_cpu}-#{host_os}"
+  # Host should match the target triplet for clang or GCC, otherwise some C extension builds will fail.
+  host         = "#{host_cpu}-#{host_vendor}-#{host_os}"
   cppflags     = ''
   libs         = ''
 
@@ -63,7 +70,8 @@ module RbConfig
       'host_alias'        => '',
       'host_os'           => host_os,
       'host_cpu'          => host_cpu,
-      'LIBEXT'            => 'c',
+      'host'              => host,
+      'LIBEXT'            => 'a',
       'OBJEXT'            => 'bc',
       'exeext'            => '',
       'EXEEXT'            => '',
@@ -147,7 +155,7 @@ module RbConfig
 
   CLANG          = 'clang'
   OPT            = 'opt'
-  
+
   opt_passes     = ['-always-inline', '-mem2reg', '-constprop'].join(' ')
   cc             = CLANG
   cpp            = cc
@@ -179,8 +187,8 @@ module RbConfig
   mkconfig['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{OPT} #{opt_passes} $@ -o $@",
   expanded['LINK_SO'] = "#{ruby_launcher} -Xgraal.warn_unless=false -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) #{libs}"
   mkconfig['LINK_SO'] = "#{ruby_launcher} -Xgraal.warn_unless=false -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) $(LIBS)"
-  expanded['TRY_LINK'] = "#{CLANG} -o conftest #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} #{libs}"
-  mkconfig['TRY_LINK'] = "#{CLANG} -o conftest #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
+  expanded['TRY_LINK'] = "#{CLANG} -o conftest ${CPPFLAGS} #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} #{libs}"
+  mkconfig['TRY_LINK'] = "#{CLANG} -o conftest ${CPPFLAGS} #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
 
   def self.ruby
     Truffle::Boot.ruby_launcher or
