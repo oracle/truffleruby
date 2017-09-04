@@ -50,6 +50,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 @CoreClass("Fiber")
 public abstract class FiberNodes {
 
+    public static final String NAME_PREFIX = "Ruby Fiber@";
+
     public static DynamicObject createFiber(RubyContext context, DynamicObject thread, DynamicObjectFactory factory, String name) {
         return createFiber(context, thread, factory, name, false);
     }
@@ -78,8 +80,9 @@ public abstract class FiberNodes {
 
     public static void initialize(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
         final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-        final String name = "Ruby Fiber@" + RubyLanguage.fileLine(sourceSection);
-        final Thread thread = new Thread(() -> handleFiberExceptions(context, fiber, block, currentNode));
+        final String name = NAME_PREFIX + RubyLanguage.fileLine(sourceSection);
+        final Thread thread = context.getEnv().createThread(() -> handleFiberExceptions(context, fiber, block, currentNode));
+        RubyLanguage.threadsWeCreated.add(thread);
         thread.setName(name);
         thread.start();
 

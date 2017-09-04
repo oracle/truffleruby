@@ -542,7 +542,12 @@ module Commands
         jruby_args.push(*javacmd_options)
       end
     else
-      jruby_args << '-Xgraal.warn_unless=false'
+      if ENV["RUBY_BIN"]
+        # Assume if RUBY_BIN is set and '--graal' is not, that we're running
+        # a non-TruffleRuby, such as MRI.
+      else
+        jruby_args << '-Xgraal.warn_unless=false'
+      end
     end
 
     if args.delete('--stress')

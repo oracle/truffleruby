@@ -37,6 +37,9 @@ known_failures = [
   # SVM (GR-5089)
   ["svm", "graal-enterprise", "jruby", "truffle", "classic", "red-black"],
   ["svm", "graal-enterprise", "jruby", "truffle", "classic", "richards"],
+
+  # JRuby
+  ["server", "default", "jruby", "indy", "micro", "micro/core/file.rb:core-read-gigabyte"]
 ]
 
 if File.exist?('failures')

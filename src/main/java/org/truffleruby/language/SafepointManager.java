@@ -18,10 +18,14 @@ import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
+import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
+import org.truffleruby.core.fiber.FiberNodes;
 import org.truffleruby.core.thread.ThreadStatus;
+import org.truffleruby.platform.signal.Signal;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -113,29 +117,7 @@ public class SafepointManager {
 
         // Wait for other threads to reach their safepoint
         if (isDrivingThread) {
-            int phase = phaser.arrive();
-            long t0 = System.nanoTime();
-            long max = t0 + WAIT_TIME * 1_000_000_000L;
-            while (true) {
-                try {
-                    phaser.awaitAdvanceInterruptibly(phase, 100, TimeUnit.MILLISECONDS);
-                    break;
-                } catch (InterruptedException e) {
-                    // retry
-                } catch (TimeoutException e) {
-                    if (System.nanoTime() >= max) {
-                        System.err.println("WARNING: Waited " + WAIT_TIME + " seconds in the SafepointManager but other threads did not arrive.\n" +
-                                "A thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult(). Check with jstack.");
-                        phaser.awaitAdvance(phase);
-                        break;
-                    } else {
-                        // Retry interrupting other threads, as they might not have been yet
-                        // in the blocking call when the signal was sent.
-                        interruptOtherThreads();
-                    }
-                }
-            }
-
+            driveArrivalAtPhaser();
             assumption = Truffle.getRuntime().createAssumption(getClass().getCanonicalName());
         } else {
             phaser.arriveAndAwaitAdvance();
@@ -157,6 +139,46 @@ public class SafepointManager {
         }
 
         return deferredAction;
+    }
+
+    private void driveArrivalAtPhaser() {
+        int phase = phaser.arrive();
+        long t0 = System.nanoTime();
+        long max = t0 + WAIT_TIME * 1_000_000_000L;
+        int waits = 1;
+        while (true) {
+            try {
+                phaser.awaitAdvanceInterruptibly(phase, 100, TimeUnit.MILLISECONDS);
+                break;
+            } catch (InterruptedException e) {
+                // retry
+            } catch (TimeoutException e) {
+                if (System.nanoTime() >= max) {
+                    Log.LOGGER.severe(String.format("waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
+                            waits * WAIT_TIME, phaser.getUnarrivedParties(), phaser.getRegisteredParties()));
+                    if (waits == 1) {
+                        restoreDefaultInterruptHandler();
+                    }
+                    max += WAIT_TIME * 1_000_000_000L;
+                    waits++;
+                } else {
+                    // Retry interrupting other threads, as they might not have been yet
+                    // in the blocking call when the signal was sent.
+                    interruptOtherThreads();
+                }
+            }
+        }
+    }
+
+    private void restoreDefaultInterruptHandler() {
+        Log.LOGGER.warning("restoring default interrupt handler");
+
+        try {
+            final Signal signal = context.getNativePlatform().getSignalManager().createSignal("INT");
+            context.getNativePlatform().getSignalManager().watchDefaultForSignal(signal);
+        } catch (Throwable t) {
+            Log.LOGGER.warning("failed to restore default interrupt handler");
+        }
     }
 
     @TruffleBoundary
@@ -268,6 +290,20 @@ public class SafepointManager {
                 context.getThreadManager().interrupt(thread);
             }
         }
+    }
+
+    public void shutdown() {
+        if (!runningThreads.isEmpty()) {
+            Log.LOGGER.warning("still threads registered with safepoint manager at shutdown:\n" + context.getThreadManager().getThreadDebugInfo() + getSafepointDebugInfo());
+        }
+    }
+
+    public String getSafepointDebugInfo() {
+        final Thread[] threads = new Thread[Thread.activeCount() + 1024];
+        final int threadsCount = Thread.enumerate(threads);
+        final long appearRunning = Arrays.stream(threads).limit(threadsCount).filter((t) -> t.getName().startsWith(FiberNodes.NAME_PREFIX)).count();
+        return String.format("safepoints: %d known threads, %d registered with phaser, %d arrived, %d appear to be running",
+                runningThreads.size(), phaser.getRegisteredParties(), phaser.getArrivedParties(), appearRunning);
     }
 
 }

@@ -138,6 +138,8 @@ public class Launcher {
     }
 
     public static Context createContext(Context.Builder builder, CommandLineOptions config) {
+        builder.allowCreateThread(true);
+
         /*
          * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
          * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and

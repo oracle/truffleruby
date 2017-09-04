@@ -14,6 +14,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.objects.ObjectIDOperations;
 
 import java.util.Collections;
 import java.util.Set;
@@ -24,11 +25,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class FiberManager {
 
+    private final RubyContext context;
     private final DynamicObject rootFiber;
     private DynamicObject currentFiber;
     private final Set<DynamicObject> runningFibers = Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
 
     public FiberManager(RubyContext context, DynamicObject rubyThread) {
+        this.context = context;
         this.rootFiber = FiberNodes.createRootFiber(context, rubyThread);
         this.currentFiber = rootFiber;
     }
@@ -63,6 +66,40 @@ public class FiberManager {
                 FiberNodes.shutdown(fiber);
             }
         }
+    }
+
+    public String getFiberDebugInfo() {
+        if (runningFibers.isEmpty()) {
+            return "  no fibres\n";
+        }
+
+        final StringBuilder builder = new StringBuilder();
+
+        for (DynamicObject fiber : runningFibers) {
+            builder.append("  fiber @");
+            builder.append(ObjectIDOperations.verySlowGetObjectID(context, fiber));
+            builder.append(" #");
+
+            final Thread thread = Layouts.FIBER.getThread(fiber);
+
+            if (thread == null) {
+                builder.append("(no Java thread)");
+            } else {
+                builder.append(thread.getId());
+            }
+
+            if (fiber == rootFiber) {
+                builder.append(" (root)");
+            }
+
+            if (fiber == currentFiber) {
+                builder.append(" (current)");
+            }
+
+            builder.append("\n");
+        }
+
+        return builder.toString();
     }
 
 }

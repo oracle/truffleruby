@@ -47,7 +47,6 @@ import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.StandardTags;
-import com.oracle.truffle.api.nodes.GraphPrintVisitor;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
@@ -198,58 +197,6 @@ public abstract class TruffleDebugNodes {
             }
 
             return createArray(array.toArray(), array.size());
-        }
-
-    }
-
-    @CoreMethod(names = "ast_graph", onSingleton = true, optional = 1, needsBlock = true)
-    public abstract static class ASTGraphNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyMethod(method)")
-        public DynamicObject astMethod(DynamicObject method, NotProvided block) {
-            astGraph(Layouts.METHOD.getMethod(method));
-            return nil();
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyUnboundMethod(method)")
-        public DynamicObject astUnboundMethod(DynamicObject method, NotProvided block) {
-            astGraph(Layouts.UNBOUND_METHOD.getMethod(method));
-            return nil();
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyProc(proc)")
-        public DynamicObject astProc(DynamicObject proc, NotProvided block) {
-            astGraph(Layouts.PROC.getSharedMethodInfo(proc).getName(), Layouts.PROC.getCallTargetForType(proc));
-            return nil();
-        }
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject astBlock(NotProvided proc, DynamicObject block) {
-            astGraph(Layouts.PROC.getSharedMethodInfo(block).getName(), Layouts.PROC.getCallTargetForType(block));
-            return nil();
-        }
-
-        private void astGraph(InternalMethod method) {
-            astGraph(method.getName(), (RootCallTarget) method.getCallTarget());
-        }
-
-        private void astGraph(String name, CallTarget callTarget) {
-            if (callTarget instanceof RootCallTarget) {
-                astGraph(name, (RootCallTarget) callTarget);
-            } else {
-                throw new RaiseException(getContext().getCoreExceptions().internalError("call target is not a root call target", this));
-            }
-        }
-
-        private void astGraph(String name, RootCallTarget callTarget) {
-            try (GraphPrintVisitor graphPrinter = new GraphPrintVisitor()) {
-                graphPrinter.beginGraph(name).visit(callTarget.getRootNode());
-                graphPrinter.printToNetwork(true);
-            }
         }
 
     }
@@ -456,6 +403,47 @@ public abstract class TruffleDebugNodes {
         @Specialization
         public Object foreignObject() {
             return new ForeignObject();
+        }
+
+    }
+
+    @CoreMethod(names = "thread_info", onSingleton = true)
+    public abstract static class ThreadInfoNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
+        @Specialization
+        public DynamicObject threadInfo() {
+            return makeStringNode.executeMake(getThreadDebugInfo(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
+        @TruffleBoundary
+        private String getThreadDebugInfo() {
+            return getContext().getThreadManager().getThreadDebugInfo()
+                    + getContext().getSafepointManager().getSafepointDebugInfo() + "\n";
+        }
+
+    }
+
+    @CoreMethod(names = "dead_block", onSingleton = true)
+    public abstract static class DeadBlockNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        public DynamicObject deadBlock() {
+            Log.LOGGER.severe("Truffle::Debug.dead_block is being called - will lock up the interpreter");
+
+            final Object monitor = new Object();
+
+            synchronized (monitor) {
+                while (true) {
+                    try {
+                        monitor.wait();
+                    } catch (InterruptedException e) {
+                        continue;
+                    }
+                }
+            }
         }
 
     }
