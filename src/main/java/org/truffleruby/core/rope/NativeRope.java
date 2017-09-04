@@ -20,8 +20,8 @@ public class NativeRope extends Rope {
 
     private Pointer pointer;
 
-    public NativeRope(FinalizationService finalizationService, byte[] bytes, Encoding encoding, int characterLength) {
-        super(encoding, CodeRange.CR_UNKNOWN, false, bytes.length, characterLength, 1, null);
+    public NativeRope(FinalizationService finalizationService, byte[] bytes, Encoding encoding, int characterLength, CodeRange codeRange) {
+        super(encoding, codeRange, false, bytes.length, characterLength, 1, null);
         pointer = Pointer.malloc(bytes.length + 1);
         pointer.enableAutorelease(finalizationService);
         pointer.writeBytes(0, bytes, 0, bytes.length);

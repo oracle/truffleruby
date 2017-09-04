@@ -1095,7 +1095,8 @@ public class CExtNodes {
             if (convertProfile.profile(currentRope instanceof NativeRope)) {
                 nativeRope = (NativeRope) currentRope;
             } else {
-                nativeRope = new NativeRope(getContext().getFinalizationService(), bytesNode.execute(currentRope), currentRope.getEncoding(), currentRope.characterLength());
+                nativeRope = new NativeRope(getContext().getFinalizationService(), bytesNode.execute(currentRope), currentRope.getEncoding(), currentRope.characterLength(),
+                        currentRope.getCodeRange());
                 Layouts.STRING.setRope(string, nativeRope);
             }
 
