@@ -1,6 +1,6 @@
 # Installing LLVM
 
-TruffleRuby needs LLVM to run and build C extensions - version 3.8 or 4.0.
+TruffleRuby needs LLVM to run and build C extensions - version 3.8, 3.9 or 4.0.
 
 ## Ubuntu
 
