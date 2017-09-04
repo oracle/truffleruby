@@ -114,6 +114,16 @@ a context which relies on a particular implementation, for example a global
 variable assigned to an initial value which was a macro, like `Qnil`, which is
 a macro that evaluates to a function call in TruffleRuby.
 
+For example, this global variable definition not work becuase `Qnil` expands to
+be a function call in TruffleRuby:
+
+```c
+static VALUE foo = Qnil;
+```
+
+A workaround is to assign `foo` in your C extension `Init_` function, or inside
+some other funciton.
+
 #### Storing Ruby objects in native structures and arrays
 
 You cannot store a Ruby object in a structure or array that has been natively
