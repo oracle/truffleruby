@@ -289,7 +289,11 @@ module Truffle::CExt
     when Data
       T_DATA
     when Object
-      T_OBJECT
+      if hidden_variable_get(value, :data_holder)
+        T_DATA
+      else
+        T_OBJECT
+      end
     else
       raise "unknown type #{value.class}"
     end
