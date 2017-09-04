@@ -294,7 +294,7 @@ public class SafepointManager {
 
     public void shutdown() {
         if (!runningThreads.isEmpty()) {
-            Log.LOGGER.warning("still threads registered with safepoint manager at shutdown:\n" + context.getThreadManager().getThreadDebugInfo() + getSafepointDebugInfo());
+            Log.LOGGER.warning("threads are still registered with safepoint manager at shutdown:\n" + context.getThreadManager().getThreadDebugInfo() + getSafepointDebugInfo());
         }
     }
 

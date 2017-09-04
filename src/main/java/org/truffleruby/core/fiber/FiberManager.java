@@ -70,7 +70,7 @@ public class FiberManager {
 
     public String getFiberDebugInfo() {
         if (runningFibers.isEmpty()) {
-            return "  no fibres\n";
+            return "  no fibers\n";
         }
 
         final StringBuilder builder = new StringBuilder();
