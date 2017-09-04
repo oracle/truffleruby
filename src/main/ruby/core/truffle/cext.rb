@@ -50,7 +50,9 @@ module Truffle::CExt
           end
         end
       end
+      libraries = libraries.uniq
       libraries = resolve_libraries(libraries, search_paths)
+      files = files.uniq
       Truffle::CExt.linker(output, libraries, files)
     end
 
