@@ -161,7 +161,7 @@ public class TranslatorDriver {
             node = parse(source, dynamicScope, parserConfiguration);
         }
 
-        final SourceSection sourceSection = source.createSection(0, source.getCode().length());
+        final SourceSection sourceSection = source.createSection(0, source.getCharacters().length());
         final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());
 
         final InternalMethod parentMethod = parentFrame == null ? null : RubyArguments.getMethod(parentFrame);

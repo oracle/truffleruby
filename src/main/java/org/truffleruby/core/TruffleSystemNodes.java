@@ -186,7 +186,7 @@ public abstract class TruffleSystemNodes {
             return nil();
         }
 
-        @Specialization(guards = {"isRubySymbol(level)", "isRubyString(message)"}, contains="logCached")
+        @Specialization(guards = {"isRubySymbol(level)", "isRubyString(message)"}, replaces="logCached")
         public Object log(DynamicObject level, DynamicObject message) {
             log(getLevel(level), StringOperations.getString(message));
             return nil();

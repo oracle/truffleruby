@@ -82,7 +82,8 @@ public final class JRubySourceLoaderSupport {
                     if (reader != null) {
                         Source source = Source.newBuilder(reader).name(name).mimeType(RubyLanguage.MIME_TYPE).internal().build();
 
-                        coreLibrary.put(name, new CoreLibraryFile(source.getCode(), null));
+                        // TODO CS 5-Sep-17 can we keep the source as a CharSequence rather than using toString?
+                        coreLibrary.put(name, new CoreLibraryFile(source.getCharacters().toString(), null));
                     } else {
                         throw new Error("Unable to load ruby core library file " + name);
                     }
