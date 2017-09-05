@@ -149,7 +149,8 @@ public class CoverageManager {
             out.println(entry.getKey().getName());
 
             for (int n = 0; n < entry.getValue().length(); n++) {
-                String line = entry.getKey().getCode(n + 1);
+                // TODO CS 5-Sep-17 can we keep the line as a CharSequence rather than using toString?
+                String line = entry.getKey().getCharacters(n + 1).toString();
 
                 if (line.length() > 60) {
                     line = line.substring(0, 60);

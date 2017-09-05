@@ -35,10 +35,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 
-@MessageResolution(
-        receiverType = RubyObjectType.class,
-        language = RubyLanguage.class
-)
+@MessageResolution(receiverType = RubyObjectType.class)
 public class RubyMessageResolution {
 
     @CanResolve

@@ -205,7 +205,7 @@ public class RubyDebugTest {
             assertNotNull(suspendedEvent);
             final int currentLine = suspendedEvent.getSourceSection().getStartLine();
             assertEquals(line, currentLine);
-            final String currentCode = suspendedEvent.getSourceSection().getCode().trim();
+            final String currentCode = suspendedEvent.getSourceSection().getCharacters().toString().trim();
             assertEquals(code, currentCode);
             final DebugStackFrame frame = suspendedEvent.getTopStackFrame();
 
