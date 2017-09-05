@@ -69,9 +69,7 @@ public class RubyContext {
     private final AllocationReporter allocationReporter;
 
     private final Options options;
-
     private final String rubyHome;
-    private String originalInputFile;
 
     private final RopeTable ropeTable = new RopeTable();
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
@@ -385,14 +383,6 @@ public class RubyContext {
 
     public EncodingManager getEncodingManager() {
         return encodingManager;
-    }
-
-    public void setOriginalInputFile(String originalInputFile) {
-        this.originalInputFile = originalInputFile;
-    }
-
-    public String getOriginalInputFile() {
-        return originalInputFile;
     }
 
     public String getRubyHome() {
