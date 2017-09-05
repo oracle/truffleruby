@@ -81,6 +81,7 @@ public class Launcher {
         final CommandLineOptions config = new CommandLineOptions();
         processArguments(config, Arrays.asList(args), true, true, IS_NATIVE);
         printHelpVersionCopyright(isGraal, config);
+        setRubyLauncherIfNative(config);
         final int exitCode = runRubyMain(Context.newBuilder(), config);
 
         metricsEnd();
@@ -147,22 +148,14 @@ public class Launcher {
         }
     }
 
-    public static Context createContext(Context.Builder builder, CommandLineOptions config) {
-        builder.allowCreateThread(true);
-
-        /*
-         * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
-         * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and
-         * blocking behaviour. We also turn off sync on stdio and so revert to Ruby's default logic for looking
-         * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
-         */
-        builder.option(OptionsCatalog.POLYGLOT_STDIO.getName(), Boolean.FALSE.toString());
-        builder.option(OptionsCatalog.SYNC_STDIO.getName(), Boolean.FALSE.toString());
-
-        builder.options(config.getOptions());
-        builder.arguments(LANGUAGE_ID, config.getArguments());
-
-        return builder.build();
+    public static String setRubyLauncherIfNative(CommandLineOptions config) {
+        if (IS_NATIVE && config.getOption(OptionsCatalog.LAUNCHER).isEmpty()) {
+            final String launcher = (String) Compiler.
+                    command(new Object[]{ "com.oracle.svm.core.posix.GetExecutableName" });
+            config.setOption(OptionsCatalog.LAUNCHER, launcher);
+            return launcher;
+        }
+        return null;
     }
 
     public static void processArguments(
@@ -207,6 +200,24 @@ public class Launcher {
             final long millis = System.currentTimeMillis();
             System.err.printf("%s %d.%03d%n", id, millis / 1000, millis % 1000);
         }
+    }
+
+    private static Context createContext(Context.Builder builder, CommandLineOptions config) {
+        builder.allowCreateThread(true);
+
+        /*
+         * We turn off using the polyglot IO streams when running from our launcher, because they don't act like
+         * normal file descriptors and this can cause problems in some advanced IO functionality, such as pipes and
+         * blocking behaviour. We also turn off sync on stdio and so revert to Ruby's default logic for looking
+         * at whether a file descriptor looks like a TTY for deciding whether to make it synchronous or not.
+         */
+        builder.option(OptionsCatalog.POLYGLOT_STDIO.getName(), Boolean.FALSE.toString());
+        builder.option(OptionsCatalog.SYNC_STDIO.getName(), Boolean.FALSE.toString());
+
+        builder.options(config.getOptions());
+        builder.arguments(LANGUAGE_ID, config.getArguments());
+
+        return builder.build();
     }
 
     private static void printTruffleMemoryMetric() {
