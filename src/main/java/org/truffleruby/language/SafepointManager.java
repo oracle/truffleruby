@@ -177,7 +177,7 @@ public class SafepointManager {
             final Signal signal = context.getNativePlatform().getSignalManager().createSignal("INT");
             context.getNativePlatform().getSignalManager().watchDefaultForSignal(signal);
         } catch (Throwable t) {
-            Log.LOGGER.warning("failed to restore default interrupt handler");
+            Log.LOGGER.warning("failed to restore default interrupt handler\n" + t);
         }
     }
 
