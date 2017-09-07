@@ -1703,6 +1703,5 @@ class JT
 end
 
 if $0 == __FILE__
-  abort "Do not run #{$0} with TruffleRuby itself, use MRI or some other Ruby." if RUBY_ENGINE == "truffleruby"
   JT.new.main(ARGV)
 end
