@@ -112,7 +112,7 @@ public class ThreadBacktraceLocationNodes {
 
     }
 
-    @CoreMethod(names = {"to_s", "inspect"})
+    @CoreMethod(names = "to_s")
     public abstract static class ToSNode extends UnaryCoreMethodNode {
 
         @Specialization
