@@ -21,7 +21,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Activation;
 
 @CoreClass("Thread::Backtrace::Location")
@@ -115,10 +114,12 @@ public class ThreadBacktraceLocationNodes {
     @CoreMethod(names = "to_s")
     public abstract static class ToSNode extends UnaryCoreMethodNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject toS(DynamicObject threadBacktraceLocation) {
             final String description = Layouts.THREAD_BACKTRACE_LOCATION.getDescription(threadBacktraceLocation);
-            return createString(StringOperations.encodeRope(description, UTF8Encoding.INSTANCE));
+            return makeStringNode.executeMake(description, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
