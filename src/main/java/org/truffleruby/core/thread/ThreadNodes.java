@@ -170,7 +170,7 @@ public abstract class ThreadNodes {
             }
 
             getContext().getSafepointManager().pauseThreadAndExecuteLater(toKill, this,
-                    (currentThread, currentNode) -> ThreadManager.shutdown(getContext(), currentThread, currentNode));
+                    (currentThread, currentNode) -> ThreadManager.exit(getContext(), currentThread, currentNode));
 
             return rubyThread;
         }
