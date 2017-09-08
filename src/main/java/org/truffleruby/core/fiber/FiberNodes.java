@@ -207,9 +207,10 @@ public abstract class FiberNodes {
         return waitForResume(context, fromFiber);
     }
 
-    public static void shutdown(DynamicObject fiber) {
+    public static void exit(DynamicObject fiber) {
         assert RubyGuards.isRubyFiber(fiber);
         assert !Layouts.FIBER.getRootFiber(fiber);
+
         addToMessageQueue(fiber, new FiberExitMessage());
     }
 

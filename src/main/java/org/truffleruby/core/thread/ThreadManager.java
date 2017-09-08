@@ -259,7 +259,7 @@ public class ThreadManager {
         Layouts.THREAD.getFinishedLatch(thread).countDown();
     }
 
-    public static void shutdown(RubyContext context, DynamicObject thread, Node currentNode) {
+    public static void exit(RubyContext context, DynamicObject thread, Node currentNode) {
         assert RubyGuards.isRubyThread(thread);
         Layouts.THREAD.getFiberManager(thread).shutdown();
 
@@ -520,7 +520,7 @@ public class ThreadManager {
                     @Override
                     public synchronized void accept(DynamicObject thread, Node currentNode) {
                         if (thread != rootThread && Thread.currentThread() == Layouts.THREAD.getThread(thread)) {
-                            shutdown(context, thread, currentNode);
+                            exit(context, thread, currentNode);
                         }
                     }
                 });
