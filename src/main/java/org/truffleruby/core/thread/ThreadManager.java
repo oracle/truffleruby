@@ -558,7 +558,7 @@ public class ThreadManager {
                 builder.append(" (root)");
             }
 
-            if (thread == currentThread.get()) {
+            if (thread == getCurrentThread()) {
                 builder.append(" (current)");
             }
 
