@@ -17,6 +17,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
@@ -34,7 +35,7 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject absolutePath(DynamicObject threadBacktraceLocation) {
-            final Activation activation = ThreadBacktraceLocationLayoutImpl.INSTANCE.getActivation(threadBacktraceLocation);
+            final Activation activation = Layouts.THREAD_BACKTRACE_LOCATION.getActivation(threadBacktraceLocation);
 
             if (activation.getCallNode() == null) {
                 return coreStrings().BACKTRACE_OMITTED_LIMIT.createInstance();
@@ -61,7 +62,7 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject path(DynamicObject threadBacktraceLocation) {
-            final Activation activation = ThreadBacktraceLocationLayoutImpl.INSTANCE.getActivation(threadBacktraceLocation);
+            final Activation activation = Layouts.THREAD_BACKTRACE_LOCATION.getActivation(threadBacktraceLocation);
 
             if (activation.getCallNode() == null) {
                 return coreStrings().BACKTRACE_OMITTED_LIMIT.createInstance();
@@ -89,7 +90,7 @@ public class ThreadBacktraceLocationNodes {
 
         @Specialization
         public DynamicObject label(DynamicObject threadBacktraceLocation) {
-            final Activation activation = ThreadBacktraceLocationLayoutImpl.INSTANCE.getActivation(threadBacktraceLocation);
+            final Activation activation = Layouts.THREAD_BACKTRACE_LOCATION.getActivation(threadBacktraceLocation);
             // TODO eregon 8 Nov. 2016 This does not handle blocks
             final String methodName = activation.getMethod().getSharedMethodInfo().getName();
 
@@ -104,7 +105,7 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         public int lineno(DynamicObject threadBacktraceLocation) {
-            final Activation activation = ThreadBacktraceLocationLayoutImpl.INSTANCE.getActivation(threadBacktraceLocation);
+            final Activation activation = Layouts.THREAD_BACKTRACE_LOCATION.getActivation(threadBacktraceLocation);
 
             final SourceSection sourceSection = activation.getCallNode().getEncapsulatingSourceSection();
 
@@ -119,8 +120,7 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject toS(DynamicObject threadBacktraceLocation) {
-            final Activation activation = ThreadBacktraceLocationLayoutImpl.INSTANCE
-                    .getActivation(threadBacktraceLocation);
+            final Activation activation = Layouts.THREAD_BACKTRACE_LOCATION.getActivation(threadBacktraceLocation);
 
             if (activation.getCallNode() == null) {
                 return coreStrings().BACKTRACE_OMITTED_LIMIT.createInstance();
