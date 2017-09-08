@@ -178,8 +178,7 @@ public class ThreadManager {
 
     public static void initialize(DynamicObject thread, RubyContext context, Node currentNode, String info, Runnable task) {
         assert RubyGuards.isRubyThread(thread);
-        final Thread t = context.getEnv().createThread(() -> run(thread, context, currentNode, info, task));
-        RubyLanguage.threadsWeCreated.add(t);
+        final Thread t = context.getLanguage().createThread(context, () -> run(thread, context, currentNode, info, task));
         t.start();
         FiberNodes.waitForInitialization(context, Layouts.THREAD.getFiberManager(thread).getRootFiber(), currentNode);
     }
