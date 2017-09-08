@@ -11,8 +11,6 @@ package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -22,8 +20,8 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Activation;
 
 @CoreClass("Thread::Backtrace::Location")
@@ -117,28 +115,10 @@ public class ThreadBacktraceLocationNodes {
     @CoreMethod(names = {"to_s", "inspect"})
     public abstract static class ToSNode extends UnaryCoreMethodNode {
 
-        @TruffleBoundary
         @Specialization
         public DynamicObject toS(DynamicObject threadBacktraceLocation) {
-            final Activation activation = Layouts.THREAD_BACKTRACE_LOCATION.getActivation(threadBacktraceLocation);
-
-            if (activation.getCallNode() == null) {
-                return coreStrings().BACKTRACE_OMITTED_LIMIT.createInstance();
-            }
-
-            final Node callNode = activation.getCallNode();
-
-            final RootNode rootNode = callNode.getRootNode();
-
-            final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
-
-            return createString(RopeOperations.format(getContext(),
-                    sourceSection.getSource().getName(),
-                    ":",
-                    sourceSection.getStartLine(),
-                    ":in `",
-                    rootNode.getName(),
-                    "'"));
+            final String description = Layouts.THREAD_BACKTRACE_LOCATION.getDescription(threadBacktraceLocation);
+            return createString(StringOperations.encodeRope(description, UTF8Encoding.INSTANCE));
         }
 
     }
