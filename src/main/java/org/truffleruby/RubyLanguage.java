@@ -220,7 +220,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         return OptionDescriptors.create(options);
     }
 
-    private static final Set<Thread> threadsWeCreated = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
+    private final Set<Thread> threadsWeCreated = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
 
     public Thread createThread(RubyContext context, Runnable runnable) {
         final Thread thread = context.getEnv().createThread(runnable);
