@@ -52,7 +52,7 @@ if Truffle::Boot.get_option 'rubygems'
       bad_gem_home ||= gem_dir.include?('rvm/gems') && !gem_dir.include?('rvm/gems/truffleruby')
 
       # chruby stores gem in ~/.gem/<ruby>/<version>
-      bad_gem_home ||= gem_dir.include?('.gem') && !gem_dir.include?('.gems/truffleruby')
+      bad_gem_home ||= gem_dir.include?('.gem') && !gem_dir.include?('.gem/truffleruby')
 
       warn "[ruby] WARN A nonstandard GEM_HOME is set #{gem_dir}" if $VERBOSE || bad_gem_home
       if bad_gem_home
