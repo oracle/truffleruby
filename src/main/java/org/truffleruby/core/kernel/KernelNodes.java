@@ -47,6 +47,7 @@ import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.NameToSymbolOrStringNodeGen;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToPathNodeGen;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
@@ -274,6 +275,10 @@ public abstract class KernelNodes {
         @Specialization
         public DynamicObject callerLocations(int omit, int length) {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, 1 + omit, true, null);
+            // Build the description of Thread::Backtrace::Location eagerly since backtrace
+            // formatting relies on accessing activations above to show a user file path for core
+            // methods.
+            final List<String> descriptions = ExceptionOperations.format(getContext(), null, backtrace);
 
             int locationsCount = backtrace.getActivations().size();
 
@@ -285,7 +290,10 @@ public abstract class KernelNodes {
 
             for (int n = 0; n < locationsCount; n++) {
                 Activation activation = backtrace.getActivations().get(n);
-                locations[n] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(coreLibrary().getThreadBacktraceLocationFactory(), activation);
+                locations[n] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
+                        coreLibrary().getThreadBacktraceLocationFactory(),
+                        activation,
+                        descriptions.get(n));
             }
 
             return createArray(locations, locations.length);

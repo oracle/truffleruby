@@ -30,9 +30,14 @@ public abstract class ExceptionOperations {
             FormattingFlags.OMIT_EXCEPTION);
 
     @TruffleBoundary
-    public static DynamicObject backtraceAsRubyStringArray(RubyContext context, DynamicObject exception, Backtrace backtrace) {
+    public static List<String> format(RubyContext context, DynamicObject exception, Backtrace backtrace) {
         final BacktraceFormatter formatter = new BacktraceFormatter(context, FORMAT_FLAGS);
-        final List<String> lines = formatter.formatBacktrace(context, exception, backtrace);
+        return formatter.formatBacktrace(context, exception, backtrace);
+    }
+
+    @TruffleBoundary
+    public static DynamicObject backtraceAsRubyStringArray(RubyContext context, DynamicObject exception, Backtrace backtrace) {
+        final List<String> lines = format(context, exception, backtrace);
 
         final Object[] array = new Object[lines.size()];
 
