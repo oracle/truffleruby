@@ -245,7 +245,7 @@ module Rubinius
           when ::IO
             obj.fileno
           else
-            raise ArgementError, "wrong exec option: #{obj.inspect}"
+            raise ArgumentError, "wrong exec option: #{obj.inspect}"
           end
         end
 
