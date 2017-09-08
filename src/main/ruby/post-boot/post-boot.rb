@@ -39,22 +39,21 @@ if Truffle::Boot.get_option 'rubygems'
     Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
   else
     # TODO (pitr-ch 17-Feb-2017): remove the warning when we can integrate with ruby managers
-    gem_dir = ENV['GEM_HOME'] || "#{Truffle::Boot.ruby_home}/lib/ruby/gems/2.3.0"
-    unless gem_dir.include?(Truffle::Boot.ruby_home)
+    if gem_home = ENV['GEM_HOME']
       bad_gem_home = false
 
       # rbenv does not set GEM_HOME
       # rbenv-gemset has to be installed which does set GEM_HOME, it's in the subdir of Truffle::Boot.ruby_home
       # rbenv/versions/<ruby>/gemsets
-      bad_gem_home ||= gem_dir.include?('rbenv/versions') && !gem_dir.include?('rbenv/versions/truffleruby')
+      bad_gem_home ||= gem_home.include?('rbenv/versions') && !gem_home.include?('rbenv/versions/truffleruby')
 
       # rvm stores gems at .rvm/gems/<ruby>@<gemset-name>
-      bad_gem_home ||= gem_dir.include?('rvm/gems') && !gem_dir.include?('rvm/gems/truffleruby')
+      bad_gem_home ||= gem_home.include?('rvm/gems') && !gem_home.include?('rvm/gems/truffleruby')
 
       # chruby stores gem in ~/.gem/<ruby>/<version>
-      bad_gem_home ||= gem_dir.include?('.gem') && !gem_dir.include?('.gem/truffleruby')
+      bad_gem_home ||= gem_home.include?('.gem') && !gem_home.include?('.gem/truffleruby')
 
-      warn "[ruby] WARN A nonstandard GEM_HOME is set #{gem_dir}" if $VERBOSE || bad_gem_home
+      warn "[ruby] WARN A nonstandard GEM_HOME is set #{gem_home}" if $VERBOSE || bad_gem_home
       if bad_gem_home
         warn "[ruby] WARN The bad GEM_HOME may come from a ruby manager, make sure you've called one of: " +
                  '`rvm use system`, `rbenv system`, or `chruby system` to clear the environment.'
