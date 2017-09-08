@@ -8,14 +8,13 @@
  * GNU Lesser General Public License version 2.1
  */
 
-/* Necessary for realpath() */
-#define _XOPEN_SOURCE 500
-
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+
+#include <mach-o/dyld.h>
 
 int main(int argc, char* argv[], char* envp[]) {
     if (argc < 1) {
@@ -23,10 +22,28 @@ int main(int argc, char* argv[], char* envp[]) {
         return EXIT_FAILURE;
     }
 
+    char *self = "";
+    uint32_t bufsize = 0;
+
+    /* Get the buffer size */
+    int ret = _NSGetExecutablePath(self, &bufsize);
+    if (bufsize == 0) {
+      fprintf(stderr, "_NSGetExecutablePath failed to give the buffer size\n");
+      return EXIT_FAILURE;
+    }
+
+    /* Get the path of the current executable */
+    self = malloc(bufsize);
+    ret = _NSGetExecutablePath(self, &bufsize);
+    if (ret != 0) {
+      fprintf(stderr, "_NSGetExecutablePath returned %d\n", ret);
+      return EXIT_FAILURE;
+    }
+
     char exec[PATH_MAX+3];
-    if (realpath(argv[0], exec) == NULL) {
+    if (realpath(self, exec) == NULL) {
         perror("realpath");
-        fprintf(stderr, "argv[0]=%s\n", argv[0]);
+        fprintf(stderr, "self=%s\n", self);
         return EXIT_FAILURE;
     }
 
