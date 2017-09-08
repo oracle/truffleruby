@@ -654,7 +654,7 @@ module Kernel
     else
       args = [start, limit]
     end
-    Kernel.caller_locations(*args).map(&:inspect)
+    Kernel.caller_locations(*args).map(&:to_s)
   end
   module_function :caller
 
