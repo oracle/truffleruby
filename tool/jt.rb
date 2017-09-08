@@ -1615,8 +1615,7 @@ module Commands
   end
 
   def native_launcher
-    platform = UNAME.downcase
-    sh "cc", "-o", "tool/native_launcher_#{platform}", "tool/native_launcher.c"
+    sh "cc", "-o", "tool/native_launcher_darwin", "tool/native_launcher_darwin.c"
   end
   alias :'native-launcher' :native_launcher
 
