@@ -444,6 +444,10 @@ public class OptionsCatalog {
             "ruby.cexts.log.load",
             "Log loading of cexts",
             false);
+    public static final BooleanOptionDescription CEXTS_LOG_WARNINGS = new BooleanOptionDescription(
+            "ruby.cexts.log.warnings",
+            "Log cexts warnings",
+            false);
     public static final StringArrayOptionDescription CEXTS_LIBRARY_REMAP = new StringArrayOptionDescription(
             "ruby.cexts.remap",
             "Remap the name of native libraries, written in the form libexample.so=path/to/actual/libexample.so",
@@ -685,6 +689,8 @@ public class OptionsCatalog {
                 return SHARED_OBJECTS_SHARE_ALL;
             case "ruby.cexts.log.load":
                 return CEXTS_LOG_LOAD;
+            case "ruby.cexts.log.warnings":
+                return CEXTS_LOG_WARNINGS;
             case "ruby.cexts.remap":
                 return CEXTS_LIBRARY_REMAP;
             case "ruby.constant.dynamic_lookup.log":
@@ -811,6 +817,7 @@ public class OptionsCatalog {
             SHARED_OBJECTS_FORCE,
             SHARED_OBJECTS_SHARE_ALL,
             CEXTS_LOG_LOAD,
+            CEXTS_LOG_WARNINGS,
             CEXTS_LIBRARY_REMAP,
             LOG_DYNAMIC_CONSTANT_LOOKUP,
             OPTIONS_LOG,
