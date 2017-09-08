@@ -428,3 +428,9 @@ class ThreadGroup
 end
 
 Truffle.invoke_primitive :thread_set_group, Thread.current, ThreadGroup::Default
+
+class Thread::Backtrace::Location
+  def inspect
+    to_s.inspect
+  end
+end
