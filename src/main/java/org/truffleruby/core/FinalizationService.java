@@ -108,7 +108,7 @@ public class FinalizationService {
 
     private void createFinalizationThread() {
         final ThreadManager threadManager = context.getThreadManager();
-        finalizerThread = threadManager.createRubyThread("finalizer");
+        finalizerThread = threadManager.createBootThread("finalizer");
         context.send(finalizerThread, "internal_thread_initialize", null);
 
         threadManager.initialize(finalizerThread, null, "finalizer", () -> {

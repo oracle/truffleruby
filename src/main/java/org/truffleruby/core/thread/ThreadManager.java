@@ -67,7 +67,8 @@ public class ThreadManager {
 
     public ThreadManager(RubyContext context) {
         this.context = context;
-        this.rootThread = createRubyThread("main");
+        this.rootThread = createBootThread("main");
+
         if (context.getOptions().NATIVE_INTERRUPT) {
             setupSignalHandler(context);
         }
@@ -78,53 +79,54 @@ public class ThreadManager {
     private static final InterruptMode DEFAULT_INTERRUPT_MODE = InterruptMode.IMMEDIATE;
     private static final ThreadStatus DEFAULT_STATUS = ThreadStatus.RUN;
 
-    public DynamicObject createRubyThread(String info) {
-        final DynamicObject thread = context.getCoreLibrary().getThreadFactory().newInstance(Layouts.THREAD.build(
-                createThreadLocals(context),
-                DEFAULT_INTERRUPT_MODE,
-                DEFAULT_STATUS,
-                new ArrayList<>(),
-                null,
-                new CountDownLatch(1),
-                getGlobalAbortOnException(context),
-                null,
-                null,
-                null,
-                new AtomicBoolean(false),
-                Thread.NORM_PRIORITY,
-                context.getCoreLibrary().getNil(),
-                info,
-                context.getCoreLibrary().getNil()));
-
-        Layouts.THREAD.setFiberManagerUnsafe(thread, new FiberManager(context, thread)); // Because it is cyclic
-
+    public DynamicObject createBootThread(String info) {
+        final DynamicObject thread = context.getCoreLibrary().getThreadFactory().newInstance(packThreadFields(nil(), info));
+        setFiberManager(thread);
         return thread;
     }
 
-    public DynamicObject createThread(DynamicObject rubyClass, AllocateObjectNode allocateObjectNode, ReadObjectFieldNode readAbortOnException) {
+    public DynamicObject createThread(DynamicObject rubyClass, AllocateObjectNode allocateObjectNode) {
         final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(getCurrentThread());
-        final boolean abortOnException = (boolean) readAbortOnException.execute(context.getCoreLibrary().getThreadClass());
+        final DynamicObject thread = allocateObjectNode.allocate(rubyClass,
+                packThreadFields(currentGroup, "<uninitialized>"));
+        setFiberManager(thread);
+        return thread;
+    }
 
-        final DynamicObject thread = allocateObjectNode.allocate(rubyClass, Layouts.THREAD.build(
-                createThreadLocals(context),
+    private void setFiberManager(DynamicObject thread) {
+        // Because it is cyclic
+        Layouts.THREAD.setFiberManagerUnsafe(thread, new FiberManager(context, thread));
+    }
+
+    private Object[] packThreadFields(DynamicObject currentGroup, String info) {
+        return Layouts.THREAD.build(
+                createThreadLocals(),
                 DEFAULT_INTERRUPT_MODE,
                 DEFAULT_STATUS,
                 new ArrayList<>(),
                 null,
                 new CountDownLatch(1),
-                abortOnException,
+                getGlobalAbortOnException(),
                 null,
                 null,
                 null,
                 new AtomicBoolean(false),
                 Thread.NORM_PRIORITY,
                 currentGroup,
-                "<uninitialized>",
-                context.getCoreLibrary().getNil()));
+                info,
+                nil());
+    }
 
-        Layouts.THREAD.setFiberManagerUnsafe(thread, new FiberManager(context, thread)); // Because it is cyclic
+    private boolean getGlobalAbortOnException() {
+        final DynamicObject threadClass = context.getCoreLibrary().getThreadClass();
+        return (boolean) ReadObjectFieldNode.read(threadClass, "@abort_on_exception", null);
+    }
 
-        return thread;
+    private DynamicObject createThreadLocals() {
+        final DynamicObject threadLocals = Layouts.BASIC_OBJECT.createBasicObject(context.getCoreLibrary().getObjectFactory());
+        threadLocals.define("$!", nil());
+        threadLocals.define("$?", nil());
+        return threadLocals;
     }
 
     private static void setupSignalHandler(RubyContext context) {
@@ -162,18 +164,6 @@ public class ThreadManager {
         }
     }
 
-    private static boolean getGlobalAbortOnException(RubyContext context) {
-        final DynamicObject threadClass = context.getCoreLibrary().getThreadClass();
-        return (boolean) ReadObjectFieldNode.read(threadClass, "@abort_on_exception", null);
-    }
-
-    private static DynamicObject createThreadLocals(RubyContext context) {
-        final DynamicObject threadLocals = Layouts.BASIC_OBJECT.createBasicObject(context.getCoreLibrary().getObjectFactory());
-        threadLocals.define("$!", context.getCoreLibrary().getNil());
-        threadLocals.define("$?", context.getCoreLibrary().getNil());
-        return threadLocals;
-    }
-
     public void initialize(DynamicObject thread, Node currentNode, String info, Runnable task) {
         assert RubyGuards.isRubyThread(thread);
         final Thread t = context.getLanguage().createThread(context,
@@ -191,14 +181,14 @@ public class ThreadManager {
         try {
             task.run();
         } catch (ThreadExitException e) {
-            setThreadValue(context, thread, context.getCoreLibrary().getNil());
+            setThreadValue(context, thread, nil());
         } catch (RaiseException e) {
             setException(context, thread, e.getException(), currentNode);
         } catch (ReturnException e) {
             setException(context, thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
         } catch (ExitException e) {
             rethrowOnMainThread(context, currentNode, e);
-            setThreadValue(context, thread, context.getCoreLibrary().getNil());
+            setThreadValue(context, thread, nil());
         } finally {
             cleanup(thread);
             assert Layouts.THREAD.getValue(thread) != null || Layouts.THREAD.getException(thread) != null;
@@ -559,6 +549,10 @@ public class ThreadManager {
         } else {
             return builder.toString();
         }
+    }
+
+    private DynamicObject nil() {
+        return context.getCoreLibrary().getNil();
     }
 
 }
