@@ -92,5 +92,16 @@ describe :process_exit!, shared: true do
       pid, status = Process.waitpid2(pid)
       status.exitstatus.should == 1
     end
+
+    it "exits when called from a fiber" do
+      pid = Process.fork do
+        Fiber.new {
+          @object.exit!(1)
+        }.resume
+      end
+
+      pid, status = Process.waitpid2(pid)
+      status.exitstatus.should == 1
+    end
   end
 end
