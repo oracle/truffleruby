@@ -23,6 +23,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.BreakException;
+import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
@@ -135,18 +136,20 @@ public class FiberManager {
 
         } catch (KillException e) {
             // Naturally exit the Fiber on catching this
-        } catch (BreakException e) {
-            sendExceptionToParentFiber(fiber, context.getCoreExceptions().breakFromProcClosure(null));
-        } catch (ReturnException e) {
-            sendExceptionToParentFiber(fiber, context.getCoreExceptions().unexpectedReturn(null));
+        } catch (ExitException e) {
+            sendExceptionToParentFiber(fiber, e);
         } catch (RaiseException e) {
-            sendExceptionToParentFiber(fiber, e.getException());
+            sendExceptionToParentFiber(fiber, e);
+        } catch (BreakException e) {
+            sendExceptionToParentFiber(fiber, new RaiseException(context.getCoreExceptions().breakFromProcClosure(null)));
+        } catch (ReturnException e) {
+            sendExceptionToParentFiber(fiber, new RaiseException(context.getCoreExceptions().unexpectedReturn(null)));
         } finally {
             cleanup(fiber);
         }
     }
 
-    private void sendExceptionToParentFiber(DynamicObject fiber, DynamicObject exception) {
+    private void sendExceptionToParentFiber(DynamicObject fiber, RuntimeException exception) {
         addToMessageQueue(Layouts.FIBER.getLastResumedByFiber(fiber), new FiberExceptionMessage(exception));
     }
 
@@ -171,7 +174,7 @@ public class FiberManager {
         if (message instanceof FiberExitMessage) {
             throw new KillException();
         } else if (message instanceof FiberExceptionMessage) {
-            throw new RaiseException(((FiberExceptionMessage) message).getException());
+            throw ((FiberExceptionMessage) message).getException();
         } else if (message instanceof FiberResumeMessage) {
             final FiberResumeMessage resumeMessage = (FiberResumeMessage) message;
             assert context.getThreadManager().getCurrentThread() == Layouts.FIBER.getRubyThread(resumeMessage.getSendingFiber());
@@ -312,13 +315,13 @@ public class FiberManager {
 
     public static class FiberExceptionMessage implements FiberMessage {
 
-        private final DynamicObject exception;
+        private final RuntimeException exception;
 
-        public FiberExceptionMessage(DynamicObject exception) {
+        public FiberExceptionMessage(RuntimeException exception) {
             this.exception = exception;
         }
 
-        public DynamicObject getException() {
+        public RuntimeException getException() {
             return exception;
         }
 
