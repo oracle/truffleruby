@@ -81,7 +81,8 @@ public abstract class FiberNodes {
     public static void initialize(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
         final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
         final String name = NAME_PREFIX + RubyLanguage.fileLine(sourceSection);
-        final Thread thread = context.getLanguage().createThread(context, () -> handleFiberExceptions(context, fiber, block, currentNode));
+        final Thread thread = context.getLanguage().createThread(context,
+                () -> fiberMain(context, fiber, block, currentNode));
         thread.setName(name);
         thread.start();
 
@@ -101,37 +102,29 @@ public abstract class FiberNodes {
         });
     }
 
-    private static void handleFiberExceptions(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
-        run(context, fiber, currentNode, () -> {
-            try {
-                final Object[] args = waitForResume(context, fiber);
-                final Object result;
-                try {
-                    result = ProcOperations.rootCall(block, args);
-                } finally {
-                    // Make sure that other fibers notice we are dead before they gain control back
-                    Layouts.FIBER.setAlive(fiber, false);
-                }
-                resume(fiber, Layouts.FIBER.getLastResumedByFiber(fiber), true, result);
-            } catch (FiberExitException e) {
-                assert !Layouts.FIBER.getRootFiber(fiber);
-                // Naturally exit the Java thread on catching this
-            } catch (BreakException e) {
-                addToMessageQueue(Layouts.FIBER.getLastResumedByFiber(fiber), new FiberExceptionMessage(context.getCoreExceptions().breakFromProcClosure(null)));
-            } catch (ReturnException e) {
-                addToMessageQueue(Layouts.FIBER.getLastResumedByFiber(fiber), new FiberExceptionMessage(context.getCoreExceptions().unexpectedReturn(null)));
-            } catch (RaiseException e) {
-                addToMessageQueue(Layouts.FIBER.getLastResumedByFiber(fiber), new FiberExceptionMessage(e.getException()));
-            }
-        });
-    }
-
-    private static void run(RubyContext context, DynamicObject fiber, Node currentNode, final Runnable task) {
-        assert RubyGuards.isRubyFiber(fiber);
-
+    private static void fiberMain(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
         start(context, context.getThreadManager(), fiber);
         try {
-            task.run();
+
+            final Object[] args = waitForResume(context, fiber);
+            final Object result;
+            try {
+                result = ProcOperations.rootCall(block, args);
+            } finally {
+                // Make sure that other fibers notice we are dead before they gain control back
+                Layouts.FIBER.setAlive(fiber, false);
+            }
+            resume(fiber, Layouts.FIBER.getLastResumedByFiber(fiber), true, result);
+
+        } catch (FiberExitException e) {
+            assert !Layouts.FIBER.getRootFiber(fiber);
+            // Naturally exit the Java thread on catching this
+        } catch (BreakException e) {
+            addToMessageQueue(Layouts.FIBER.getLastResumedByFiber(fiber), new FiberExceptionMessage(context.getCoreExceptions().breakFromProcClosure(null)));
+        } catch (ReturnException e) {
+            addToMessageQueue(Layouts.FIBER.getLastResumedByFiber(fiber), new FiberExceptionMessage(context.getCoreExceptions().unexpectedReturn(null)));
+        } catch (RaiseException e) {
+            addToMessageQueue(Layouts.FIBER.getLastResumedByFiber(fiber), new FiberExceptionMessage(e.getException()));
         } finally {
             cleanup(context, context.getThreadManager(), fiber);
         }
