@@ -84,6 +84,7 @@ public class FiberManager {
                 catchTags,
                 isRootFiber,
                 new CountDownLatch(1),
+                new CountDownLatch(1),
                 new LinkedBlockingQueue<>(2),
                 thread,
                 null,
@@ -221,6 +222,8 @@ public class FiberManager {
         runningFibers.remove(fiber);
 
         Layouts.FIBER.setThread(fiber, null);
+
+        Layouts.FIBER.getFinishedLatch(fiber).countDown();
     }
 
     private void exit(DynamicObject fiber) {
