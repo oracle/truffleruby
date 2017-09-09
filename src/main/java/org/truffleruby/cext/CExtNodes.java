@@ -759,6 +759,16 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_iter_break_value", onSingleton = true, required = 1)
+    public abstract static class IterBreakValueNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object iterBreakValue(Object value) {
+            throw new BreakException(BreakID.ANY, value);
+        }
+
+    }
+
     @CoreMethod(names = "rb_sourcefile", onSingleton = true)
     public abstract static class SourceFileNode extends CoreMethodArrayArgumentsNode {
 

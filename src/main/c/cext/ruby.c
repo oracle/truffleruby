@@ -649,6 +649,10 @@ VALUE rb_f_sprintf(int argc, const VALUE *argv) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_f_sprintf", rb_ary_new4(argc, argv));
 }
 
+VALUE rb_yield_block(VALUE val, VALUE arg, int argc, const VALUE *argv, VALUE blockarg) {
+  rb_tr_error("rb_yield_block not implemented");
+}
+
 void rb_need_block(void) {
   if (!rb_block_given_p()) {
     rb_raise(rb_eLocalJumpError, "no block given");
@@ -661,6 +665,10 @@ void rb_set_end_proc(void (*func)(VALUE), VALUE data) {
 
 void rb_iter_break(void) {
   truffle_invoke(RUBY_CEXT, "rb_iter_break");
+}
+
+void rb_iter_break_value(VALUE value) {
+  truffle_invoke(RUBY_CEXT, "rb_iter_break_value", value);  
 }
 
 const char *rb_sourcefile(void) {
