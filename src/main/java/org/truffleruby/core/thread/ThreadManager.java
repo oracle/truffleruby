@@ -31,7 +31,7 @@ import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
-import org.truffleruby.language.control.ThreadExitException;
+import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
@@ -181,7 +181,7 @@ public class ThreadManager {
         start(thread);
         try {
             task.run();
-        } catch (ThreadExitException e) {
+        } catch (KillException e) {
             setThreadValue(context, thread, nil());
         } catch (RaiseException e) {
             setException(context, thread, e.getException(), currentNode);
@@ -251,7 +251,7 @@ public class ThreadManager {
             throw new RaiseException(context.getCoreExceptions().systemExit(0, currentNode));
         } else {
             Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
-            throw new ThreadExitException();
+            throw new KillException();
         }
     }
 

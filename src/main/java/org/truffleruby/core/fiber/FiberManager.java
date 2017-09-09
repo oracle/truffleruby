@@ -10,7 +10,6 @@
 package org.truffleruby.core.fiber;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
@@ -24,6 +23,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.BreakException;
+import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -131,7 +131,7 @@ public class FiberManager {
             }
             resume(fiber, Layouts.FIBER.getLastResumedByFiber(fiber), true, result);
 
-        } catch (FiberExitException e) {
+        } catch (KillException e) {
             assert !Layouts.FIBER.getRootFiber(fiber);
             // Naturally exit the Java thread on catching this
         } catch (BreakException e) {
@@ -168,7 +168,7 @@ public class FiberManager {
         setCurrentFiber(fiber);
 
         if (message instanceof FiberExitMessage) {
-            throw new FiberExitException();
+            throw new KillException();
         } else if (message instanceof FiberExceptionMessage) {
             throw new RaiseException(((FiberExceptionMessage) message).getException());
         } else if (message instanceof FiberResumeMessage) {
@@ -321,10 +321,6 @@ public class FiberManager {
             return exception;
         }
 
-    }
-
-    public static class FiberExitException extends ControlFlowException {
-        private static final long serialVersionUID = 1522270454305076317L;
     }
 
 }
