@@ -185,6 +185,7 @@ public class RubyContext {
 
         Launcher.printTruffleTimeMetric("before-thread-manager");
         threadManager = new ThreadManager(this);
+        threadManager.initialize();
         Launcher.printTruffleTimeMetric("after-thread-manager");
 
         Launcher.printTruffleTimeMetric("before-instruments");

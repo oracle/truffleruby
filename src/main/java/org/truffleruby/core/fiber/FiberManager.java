@@ -50,14 +50,14 @@ public class FiberManager {
         currentFiber = fiber;
     }
 
-    public void start(ThreadManager threadManager, DynamicObject fiber) {
+    public void start(DynamicObject fiber) {
         Layouts.FIBER.setThread(fiber, Thread.currentThread());
 
         final long pThreadID = context.getNativePlatform().getThreads().pthread_self();
         Layouts.FIBER.setPThreadID(fiber, pThreadID);
 
         final DynamicObject rubyThread = Layouts.FIBER.getRubyThread(fiber);
-        threadManager.initializeValuesBasedOnCurrentJavaThread(rubyThread, pThreadID);
+        context.getThreadManager().initializeValuesBasedOnCurrentJavaThread(rubyThread, pThreadID);
 
         runningFibers.add(fiber);
         context.getSafepointManager().enterThread();
