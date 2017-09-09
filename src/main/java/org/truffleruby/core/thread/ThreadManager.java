@@ -244,17 +244,6 @@ public class ThreadManager {
         Layouts.THREAD.getFinishedLatch(thread).countDown();
     }
 
-    public static void exit(RubyContext context, DynamicObject thread, Node currentNode) {
-        Layouts.THREAD.getFiberManager(thread).shutdown();
-
-        if (thread == context.getThreadManager().getRootThread()) {
-            throw new RaiseException(context.getCoreExceptions().systemExit(0, currentNode));
-        } else {
-            Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
-            throw new KillException();
-        }
-    }
-
     public DynamicObject getRootThread() {
         return rootThread;
     }
@@ -492,16 +481,6 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public Object[] getThreadList() {
-        return runningRubyThreads.toArray(new Object[runningRubyThreads.size()]);
-    }
-
-    @TruffleBoundary
-    public Iterable<DynamicObject> iterateThreads() {
-        return runningRubyThreads;
-    }
-
-    @TruffleBoundary
     private void killOtherThreads() {
         while (true) {
             try {
@@ -516,6 +495,27 @@ public class ThreadManager {
                 BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
             }
         }
+    }
+
+    public static void exit(RubyContext context, DynamicObject thread, Node currentNode) {
+        Layouts.THREAD.getFiberManager(thread).shutdown();
+
+        if (thread == context.getThreadManager().getRootThread()) {
+            throw new RaiseException(context.getCoreExceptions().systemExit(0, currentNode));
+        } else {
+            Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
+            throw new KillException();
+        }
+    }
+
+    @TruffleBoundary
+    public Object[] getThreadList() {
+        return runningRubyThreads.toArray(new Object[runningRubyThreads.size()]);
+    }
+
+    @TruffleBoundary
+    public Iterable<DynamicObject> iterateThreads() {
+        return runningRubyThreads;
     }
 
     @TruffleBoundary
