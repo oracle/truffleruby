@@ -41,6 +41,7 @@ import org.truffleruby.platform.TruffleNFIPlatform;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -233,7 +234,7 @@ public class ThreadManager {
         Layouts.THREAD.setStatus(thread, ThreadStatus.DEAD);
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
-        fiberManager.cleanup(fiberManager.getRootFiber());
+        fiberManager.shutdown();
 
         unregisterThread(thread);
         Layouts.THREAD.setThread(thread, null);
@@ -470,23 +471,41 @@ public class ThreadManager {
         }
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
+
+        if (Thread.currentThread() != Layouts.FIBER.getThread(fiberManager.getRootFiber())) {
+            throw new UnsupportedOperationException("ThreadManager.shutdown() must be called on the root Fiber of the main Thread");
+        }
+
         try {
             if (runningRubyThreads.size() > 1) {
                 killOtherThreads();
             }
         } finally {
-            fiberManager.shutdown();
             cleanup(rootThread);
         }
     }
 
+    /**
+     * Kill all Ruby threads, except the currently executing Thread. Waits that the killed threads
+     * have finished their cleanup and killed their fibers.
+     */
     @TruffleBoundary
     private void killOtherThreads() {
+        final Thread currentJavaThread = Thread.currentThread();
+        final List<CountDownLatch> threadsToWait = Collections.synchronizedList(new ArrayList<>());
+
         while (true) {
             try {
                 context.getSafepointManager().pauseAllThreadsAndExecute(null, false, (thread, currentNode) -> {
-                    if (thread != rootThread && Thread.currentThread() == Layouts.THREAD.getThread(thread)) {
-                        exit(context, thread, currentNode);
+                    if (Thread.currentThread() != currentJavaThread) {
+                        final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
+                        final DynamicObject fiber = fiberManager.getRubyFiberFromCurrentJavaThread();
+
+                        if (fiberManager.getCurrentFiber() == fiber) {
+                            threadsToWait.add(Layouts.THREAD.getFinishedLatch(thread));
+                            Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
+                            throw new KillException();
+                        }
                     }
                 });
                 break; // Successfully executed the safepoint and sent the exceptions.
@@ -495,16 +514,12 @@ public class ThreadManager {
                 BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
             }
         }
-    }
 
-    public static void exit(RubyContext context, DynamicObject thread, Node currentNode) {
-        Layouts.THREAD.getFiberManager(thread).shutdown();
-
-        if (thread == context.getThreadManager().getRootThread()) {
-            throw new RaiseException(context.getCoreExceptions().systemExit(0, currentNode));
-        } else {
-            Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
-            throw new KillException();
+        for (CountDownLatch finishedLatch : threadsToWait) {
+            runUntilResult(null, () -> {
+                finishedLatch.await();
+                return BlockingAction.SUCCESS;
+            });
         }
     }
 
