@@ -68,7 +68,9 @@ public class ThreadManager {
     public ThreadManager(RubyContext context) {
         this.context = context;
         this.rootThread = createBootThread("main");
+    }
 
+    public void initialize() {
         if (context.getOptions().NATIVE_INTERRUPT) {
             setupSignalHandler(context);
         }
@@ -224,7 +226,7 @@ public class ThreadManager {
         registerThread(thread);
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
-        fiberManager.start(this, fiberManager.getRootFiber());
+        fiberManager.start(fiberManager.getRootFiber());
     }
 
     public void cleanup(DynamicObject thread) {

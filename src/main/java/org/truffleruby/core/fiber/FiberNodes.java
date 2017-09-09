@@ -106,7 +106,7 @@ public abstract class FiberNodes {
     }
 
     private static void fiberMain(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
-        getFiberManager(fiber).start(context.getThreadManager(), fiber);
+        getFiberManager(fiber).start(fiber);
         try {
 
             final Object[] args = waitForResume(context, fiber);
