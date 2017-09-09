@@ -414,6 +414,7 @@ module Commands
       jt test                                        run all mri tests, specs and integration tests
       jt test tck                                    run the Truffle Compatibility Kit tests
       jt test mri                                    run mri tests
+          --cext          runs MRI C extension tests
           --syslog        runs syslog tests
           --openssl       runs openssl tests
           --aot           use AOT TruffleRuby image (set AOT_BIN)
