@@ -476,12 +476,17 @@ public class ThreadManager {
 
     @TruffleBoundary
     public void shutdown() {
+        if (getCurrentThread() != rootThread) {
+            throw new UnsupportedOperationException("ThreadManager.shutdown() must be called on the root Ruby Thread");
+        }
+
+        final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
         try {
             if (runningRubyThreads.size() > 1) {
                 killOtherThreads();
             }
         } finally {
-            Layouts.THREAD.getFiberManager(rootThread).shutdown();
+            fiberManager.shutdown();
             cleanup(rootThread);
         }
     }
