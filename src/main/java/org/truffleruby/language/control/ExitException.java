@@ -11,6 +11,9 @@ package org.truffleruby.language.control;
 
 import com.oracle.truffle.api.nodes.ControlFlowException;
 
+/**
+ * Exception sent by the hard #exit!
+ */
 public final class ExitException extends ControlFlowException {
 
     private static final long serialVersionUID = 8152389017577849952L;
