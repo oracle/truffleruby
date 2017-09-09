@@ -24,7 +24,6 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.core.fiber.FiberNodes;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -171,7 +170,7 @@ public class ThreadManager {
         final Thread t = context.getLanguage().createThread(context,
                 () -> threadMain(thread, currentNode, info, task));
         t.start();
-        FiberNodes.waitForInitialization(context, Layouts.THREAD.getFiberManager(thread).getRootFiber(), currentNode);
+        FiberManager.waitForInitialization(context, Layouts.THREAD.getFiberManager(thread).getRootFiber(), currentNode);
     }
 
     private void threadMain(DynamicObject thread, Node currentNode, String info, Runnable task) {
@@ -234,7 +233,7 @@ public class ThreadManager {
         Layouts.THREAD.setStatus(thread, ThreadStatus.DEAD);
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
-        fiberManager.cleanup(this, fiberManager.getRootFiber());
+        fiberManager.cleanup(fiberManager.getRootFiber());
 
         unregisterThread(thread);
         Layouts.THREAD.setThread(thread, null);
