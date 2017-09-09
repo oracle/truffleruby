@@ -118,6 +118,8 @@ public class FiberManager {
     }
 
     private void fiberMain(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
+        assert !Layouts.FIBER.getRootFiber(fiber) : "Root Fibers execute threadMain() and not fiberMain()";
+
         start(fiber);
         try {
 
@@ -132,8 +134,7 @@ public class FiberManager {
             resume(fiber, Layouts.FIBER.getLastResumedByFiber(fiber), true, result);
 
         } catch (KillException e) {
-            assert !Layouts.FIBER.getRootFiber(fiber);
-            // Naturally exit the Java thread on catching this
+            // Naturally exit the Fiber on catching this
         } catch (BreakException e) {
             sendExceptionToParentFiber(fiber, context.getCoreExceptions().breakFromProcClosure(null));
         } catch (ReturnException e) {
