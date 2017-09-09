@@ -35,7 +35,6 @@ import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
-import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
@@ -78,6 +77,10 @@ public abstract class FiberNodes {
                 0L);
     }
 
+    private static FiberManager getFiberManager(DynamicObject fiber) {
+        return Layouts.THREAD.getFiberManager(Layouts.FIBER.getRubyThread(fiber));
+    }
+
     public static void initialize(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
         final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
         final String name = NAME_PREFIX + RubyLanguage.fileLine(sourceSection);
@@ -103,7 +106,7 @@ public abstract class FiberNodes {
     }
 
     private static void fiberMain(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
-        start(context, context.getThreadManager(), fiber);
+        getFiberManager(fiber).start(context.getThreadManager(), fiber);
         try {
 
             final Object[] args = waitForResume(context, fiber);
@@ -126,32 +129,8 @@ public abstract class FiberNodes {
         } catch (RaiseException e) {
             addToMessageQueue(Layouts.FIBER.getLastResumedByFiber(fiber), new FiberExceptionMessage(e.getException()));
         } finally {
-            cleanup(context, context.getThreadManager(), fiber);
+            getFiberManager(fiber).cleanup(context.getThreadManager(), fiber);
         }
-    }
-
-    public static void start(RubyContext context, ThreadManager threadManager, DynamicObject fiber) {
-        assert RubyGuards.isRubyFiber(fiber);
-
-        Layouts.FIBER.setThread(fiber, Thread.currentThread());
-
-        final long pThreadID = context.getNativePlatform().getThreads().pthread_self();
-        Layouts.FIBER.setPThreadID(fiber, pThreadID);
-        threadManager.initializeValuesBasedOnCurrentJavaThread(Layouts.FIBER.getRubyThread(fiber), pThreadID);
-
-        Layouts.THREAD.getFiberManager(Layouts.FIBER.getRubyThread(fiber)).registerFiber(fiber);
-        context.getSafepointManager().enterThread();
-        // fully initialized
-        Layouts.FIBER.getInitializedLatch(fiber).countDown();
-    }
-
-    public static void cleanup(RubyContext context, ThreadManager threadManager, DynamicObject fiber) {
-        assert RubyGuards.isRubyFiber(fiber);
-        Layouts.FIBER.setAlive(fiber, false);
-        threadManager.cleanupValuesBasedOnCurrentJavaThread();
-        context.getSafepointManager().leaveThread();
-        Layouts.THREAD.getFiberManager(Layouts.FIBER.getRubyThread(fiber)).unregisterFiber(fiber);
-        Layouts.FIBER.setThread(fiber, null);
     }
 
     @TruffleBoundary
@@ -168,7 +147,7 @@ public abstract class FiberNodes {
 
         final FiberMessage message = context.getThreadManager().runUntilResult(null, () -> Layouts.FIBER.getMessageQueue(fiber).take());
 
-        Layouts.THREAD.getFiberManager(Layouts.FIBER.getRubyThread(fiber)).setCurrentFiber(fiber);
+        getFiberManager(fiber).setCurrentFiber(fiber);
 
         if (message instanceof FiberExitMessage) {
             throw new FiberExitException();
