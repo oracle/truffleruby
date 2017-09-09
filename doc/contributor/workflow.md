@@ -9,8 +9,8 @@ You will need:
 * [LLVM](../user/installing-llvm.md)
 * [`libssl`](../user/installing-libssl.md)
 
-You can remove the dependencies on LLVM and `libssl` by setting `export
-TRUFFLERUBY_CEXT_ENABLED=false`.
+You can remove the dependencies on LLVM and `libssl` by setting
+`export TRUFFLERUBY_CEXT_ENABLED=false`.
 
 ## Workspace directory
 
@@ -66,13 +66,10 @@ $ jt build
 ## Sulong
 
 TruffleRuby runs C extension using Sulong. You should build Sulong from source.
-Clone Sulong as a sibling directory and build it:
+You can clone Sulong and build it with:
 
 ```bash
-# In the truffleruby repo
-git clone https://github.com/graalvm/sulong.git ../sulong
-cd ../sulong
-jt mx build
+jt build sulong
 ```
 
 ## Testing

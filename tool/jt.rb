@@ -475,6 +475,8 @@ module Commands
     super(*args)
   end
 
+  BUILD_OPTIONS = %w[parser options sulong]
+
   def build(*options)
     project = options.first
     case project
@@ -487,6 +489,13 @@ module Commands
       File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.truffleruby.parser.parser;'))
     when 'options'
       sh 'tool/generate-options.rb'
+    when 'sulong'
+      sulong = Utilities.find_or_clone_repo('https://github.com/graalvm/sulong.git')
+      Dir.chdir(sulong) do
+        raw_sh 'git', 'pull'
+        mx 'sforceimports'
+        mx 'build', '--dependencies', 'SULONG'
+      end
     when nil
       mx 'sforceimports'
       mx 'build', '--force-javac', '--warning-as-error'
@@ -1677,7 +1686,7 @@ class JT
       send(args.shift)
     when "build"
       command = [args.shift]
-      while ['cexts', 'parser', 'options', '--no-openssl'].include?(args.first)
+      if Commands::BUILD_OPTIONS.include?(args.first)
         command << args.shift
       end
       send(*command)
