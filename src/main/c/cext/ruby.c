@@ -1396,6 +1396,14 @@ VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
   return truffle_invoke(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
 }
 
+void rb_enc_raise(rb_encoding *enc, VALUE exc, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    VALUE mesg = rb_vsprintf(fmt, args);
+    va_end(args);
+    rb_exc_raise(rb_exc_new_str(exc, (VALUE) truffle_invoke(mesg, "force_encoding", rb_enc_from_encoding(enc))));
+}
+
 VALUE rb_enc_sprintf(rb_encoding *enc, const char *format, ...) {
   rb_tr_error("rb_enc_sprintf not implemented");
 }

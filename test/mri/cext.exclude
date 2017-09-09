@@ -7,7 +7,6 @@ cext-ruby/bignum/test_str2big.rb
 cext-ruby/class/test_class2name.rb
 cext-ruby/debug/test_debug.rb
 cext-ruby/debug/test_profile_frames.rb
-cext-ruby/exception/test_enc_raise.rb
 cext-ruby/file/test_stat.rb
 cext-ruby/float/test_nextafter.rb
 cext-ruby/gvl/test_last_thread.rb

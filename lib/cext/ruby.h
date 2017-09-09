@@ -1067,6 +1067,8 @@ VALUE rb_exc_new_str(VALUE exception_class, VALUE message);
 #define rb_exc_new3 rb_exc_new_str
 NORETURN(void rb_exc_raise(VALUE exception));
 
+void rb_enc_raise(rb_encoding *enc, VALUE exc, const char *fmt, ...);
+
 #define rb_raise(EXCEPTION, FORMAT, ...) \
     rb_exc_raise(rb_exc_new_str(EXCEPTION, (VALUE) truffle_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)))
 
