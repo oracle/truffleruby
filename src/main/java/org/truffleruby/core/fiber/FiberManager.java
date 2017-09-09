@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.ObjectIDOperations;
 
@@ -49,14 +50,31 @@ public class FiberManager {
         currentFiber = fiber;
     }
 
-    public void registerFiber(DynamicObject fiber) {
-        assert RubyGuards.isRubyFiber(fiber);
+    public void start(ThreadManager threadManager, DynamicObject fiber) {
+        Layouts.FIBER.setThread(fiber, Thread.currentThread());
+
+        final long pThreadID = context.getNativePlatform().getThreads().pthread_self();
+        Layouts.FIBER.setPThreadID(fiber, pThreadID);
+
+        final DynamicObject rubyThread = Layouts.FIBER.getRubyThread(fiber);
+        threadManager.initializeValuesBasedOnCurrentJavaThread(rubyThread, pThreadID);
+
         runningFibers.add(fiber);
+        context.getSafepointManager().enterThread();
+
+        // fully initialized
+        Layouts.FIBER.getInitializedLatch(fiber).countDown();
     }
 
-    public void unregisterFiber(DynamicObject fiber) {
-        assert RubyGuards.isRubyFiber(fiber);
+    public void cleanup(ThreadManager threadManager, DynamicObject fiber) {
+        Layouts.FIBER.setAlive(fiber, false);
+
+        threadManager.cleanupValuesBasedOnCurrentJavaThread();
+
+        context.getSafepointManager().leaveThread();
         runningFibers.remove(fiber);
+
+        Layouts.FIBER.setThread(fiber, null);
     }
 
     @TruffleBoundary

@@ -183,8 +183,6 @@ public class ThreadManager {
     }
 
     public static void run(DynamicObject thread, RubyContext context, Node currentNode, String info, Runnable task) {
-        assert RubyGuards.isRubyThread(thread);
-
         Layouts.THREAD.setSourceLocation(thread, info);
         final String name = "Ruby Thread@" + info;
         Thread.currentThread().setName(name);
@@ -235,22 +233,20 @@ public class ThreadManager {
         Layouts.THREAD.setThread(thread, Thread.currentThread());
         registerThread(thread);
 
-        final DynamicObject rootFiber = Layouts.THREAD.getFiberManager(thread).getRootFiber();
-        FiberNodes.start(context, this, rootFiber);
+        final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
+        fiberManager.start(this, fiberManager.getRootFiber());
     }
 
     public void cleanup(DynamicObject thread) {
-        assert RubyGuards.isRubyThread(thread);
-
         // First mark as dead for Thread#status
         Layouts.THREAD.setStatus(thread, ThreadStatus.DEAD);
 
-        final DynamicObject rootFiber = Layouts.THREAD.getFiberManager(thread).getRootFiber();
-        FiberNodes.cleanup(context, this, rootFiber);
+        final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
+        fiberManager.cleanup(this, fiberManager.getRootFiber());
 
         unregisterThread(thread);
         Layouts.THREAD.setThread(thread, null);
-        assert RubyGuards.isRubyThread(thread);
+
         for (Lock lock : Layouts.THREAD.getOwnedLocks(thread)) {
             lock.unlock();
         }
@@ -258,7 +254,6 @@ public class ThreadManager {
     }
 
     public static void exit(RubyContext context, DynamicObject thread, Node currentNode) {
-        assert RubyGuards.isRubyThread(thread);
         Layouts.THREAD.getFiberManager(thread).shutdown();
 
         if (thread == context.getThreadManager().getRootThread()) {
@@ -450,9 +445,9 @@ public class ThreadManager {
         }
     }
 
-    public void initializeValuesBasedOnCurrentJavaThread(DynamicObject thread, long pThreadID) {
-        assert RubyGuards.isRubyThread(thread);
-        currentThread.set(thread);
+    public void initializeValuesBasedOnCurrentJavaThread(DynamicObject rubyThread, long pThreadID) {
+        assert RubyGuards.isRubyThread(rubyThread);
+        currentThread.set(rubyThread);
 
         final int SIGVTALRM = jnr.constants.platform.Signal.SIGVTALRM.intValue();
 
