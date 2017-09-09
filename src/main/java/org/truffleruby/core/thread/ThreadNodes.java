@@ -77,8 +77,6 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -486,13 +484,8 @@ public abstract class ThreadNodes {
         @Specialization
         public DynamicObject allocate(
                 DynamicObject rubyClass,
-                @Cached("create()") AllocateObjectNode allocateObjectNode,
-                @Cached("createReadAbortOnExceptionNode()") ReadObjectFieldNode readAbortOnException) {
-            return getContext().getThreadManager().createThread(rubyClass, allocateObjectNode, readAbortOnException);
-        }
-
-        protected ReadObjectFieldNode createReadAbortOnExceptionNode() {
-            return ReadObjectFieldNodeGen.create("@abort_on_exception", false);
+                @Cached("create()") AllocateObjectNode allocateObjectNode) {
+            return getContext().getThreadManager().createThread(rubyClass, allocateObjectNode);
         }
 
     }
