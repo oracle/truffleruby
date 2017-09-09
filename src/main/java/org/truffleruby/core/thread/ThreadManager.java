@@ -537,10 +537,6 @@ public class ThreadManager {
     }
 
     public String getThreadDebugInfo() {
-        if (runningRubyThreads.isEmpty()) {
-            return "no ruby threads\n";
-        }
-
         final StringBuilder builder = new StringBuilder();
 
         for (DynamicObject thread : runningRubyThreads) {
@@ -561,7 +557,11 @@ public class ThreadManager {
             builder.append(fiberManager.getFiberDebugInfo());
         }
 
-        return builder.toString();
+        if (builder.length() == 0) {
+            return "no ruby threads\n";
+        } else {
+            return builder.toString();
+        }
     }
 
 }

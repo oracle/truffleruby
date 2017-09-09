@@ -87,10 +87,6 @@ public class FiberManager {
     }
 
     public String getFiberDebugInfo() {
-        if (runningFibers.isEmpty()) {
-            return "  no fibers\n";
-        }
-
         final StringBuilder builder = new StringBuilder();
 
         for (DynamicObject fiber : runningFibers) {
@@ -117,7 +113,11 @@ public class FiberManager {
             builder.append("\n");
         }
 
-        return builder.toString();
+        if (builder.length() == 0) {
+            return "  no fibers\n";
+        } else {
+            return builder.toString();
+        }
     }
 
 }
