@@ -1,18 +1,18 @@
 # Threads
 
-Each Ruby fiber is implemented as a Java thread. A Ruby thread is implemented as
-a group of one or more fibers. A Ruby thread has a root fiber which is created
-even if you aren't explicitly using fibers, so you are always running in a
-fiber.
+Each Ruby fiber is implemented as a Java thread.
+In Ruby, a thread has one or more fibers.
+A Ruby thread has a root fiber which is created even if you aren't explicitly
+using fibers, so you are always running in a fiber.
 
-Fibers work by message passing. A fiber which has yieled waits for messages from
-other fibers to continue.
+Fibers work by message passing.
+A fiber which has yielded waits for messages from other fibers to continue.
 
 The safepoint manager maintains a list of Java threads which implement fibers.
 
 ## Service threads
 
-The finalization service has a service thread that runs as a Ruby thread.
+The finalization service has a Ruby thread running object finalizers.
 
 ## Thread shutdown
 
@@ -27,7 +27,7 @@ create any daemon threads) to exit before the VM exits. However TruffleRuby
 exits through `System.exit` rather than returning from `main`, which kills all
 other Java threads immediately.
 
-When the main thread in Ruby finishes, all Ruby threads are killed.
+When the main thread in Ruby finishes, all Ruby threads and fibers are killed.
 
 To shutdown all Ruby threads and fibers on exit, a safepoint action is run to
 call `shutdown` on each thread, executing on the thread itself.
