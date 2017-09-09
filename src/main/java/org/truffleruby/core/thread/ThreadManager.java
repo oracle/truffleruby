@@ -26,7 +26,6 @@ import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.fiber.FiberNodes;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
@@ -509,12 +508,9 @@ public class ThreadManager {
     private void killOtherThreads() {
         while (true) {
             try {
-                context.getSafepointManager().pauseAllThreadsAndExecute(null, false, new SafepointAction() {
-                    @Override
-                    public synchronized void accept(DynamicObject thread, Node currentNode) {
-                        if (thread != rootThread && Thread.currentThread() == Layouts.THREAD.getThread(thread)) {
-                            exit(context, thread, currentNode);
-                        }
+                context.getSafepointManager().pauseAllThreadsAndExecute(null, false, (thread, currentNode) -> {
+                    if (thread != rootThread && Thread.currentThread() == Layouts.THREAD.getThread(thread)) {
+                        exit(context, thread, currentNode);
                     }
                 });
                 break; // Successfully executed the safepoint and sent the exceptions.
