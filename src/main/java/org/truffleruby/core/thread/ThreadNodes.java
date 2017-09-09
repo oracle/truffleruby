@@ -68,6 +68,7 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -75,6 +76,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -159,16 +161,25 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject kill(final DynamicObject rubyThread) {
-            final Thread toKill = Layouts.THREAD.getThread(rubyThread);
+        public DynamicObject kill(DynamicObject rubyThread) {
+            final ThreadManager threadManager = getContext().getThreadManager();
+            final DynamicObject rootThread = threadManager.getRootThread();
 
-            if (toKill == null) {
-                // Already dead
-                return rubyThread;
-            }
+            getContext().getSafepointManager().pauseAllThreadsAndExecute(this, false, (thread, currentNode) -> {
+                if (thread == rubyThread) {
+                    final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
+                    final DynamicObject fiber = fiberManager.getRubyFiberFromCurrentJavaThread();
 
-            getContext().getSafepointManager().pauseThreadAndExecuteLater(toKill, this,
-                    (currentThread, currentNode) -> ThreadManager.exit(getContext(), currentThread, currentNode));
+                    if (fiberManager.getCurrentFiber() == fiber) {
+                        if (thread == rootThread) {
+                            throw new RaiseException(coreExceptions().systemExit(0, currentNode));
+                        } else {
+                            Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
+                            throw new KillException();
+                        }
+                    }
+                }
+            });
 
             return rubyThread;
         }

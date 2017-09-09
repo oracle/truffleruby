@@ -10,6 +10,7 @@
 package org.truffleruby.core.fiber;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
@@ -47,6 +48,8 @@ public class FiberManager {
     private DynamicObject currentFiber;
     private final Set<DynamicObject> runningFibers = Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
 
+    private final ThreadLocal<DynamicObject> rubyFiber = new ThreadLocal<>();
+
     public FiberManager(RubyContext context, DynamicObject rubyThread) {
         this.context = context;
         this.rootFiber = createRootFiber(rubyThread);
@@ -59,6 +62,11 @@ public class FiberManager {
 
     public DynamicObject getCurrentFiber() {
         return currentFiber;
+    }
+
+    @TruffleBoundary
+    public DynamicObject getRubyFiberFromCurrentJavaThread() {
+        return rubyFiber.get();
     }
 
     private void setCurrentFiber(DynamicObject fiber) {
@@ -86,7 +94,7 @@ public class FiberManager {
                 isRootFiber,
                 new CountDownLatch(1),
                 new CountDownLatch(1),
-                new LinkedBlockingQueue<>(2),
+                new LinkedBlockingQueue<>(1),
                 thread,
                 null,
                 true,
@@ -135,7 +143,10 @@ public class FiberManager {
             resume(fiber, Layouts.FIBER.getLastResumedByFiber(fiber), true, result);
 
         } catch (KillException e) {
-            // Naturally exit the Fiber on catching this
+            // Propagate the kill exception until it reaches the root Fiber
+            sendExceptionToParentFiber(fiber, e);
+        } catch (FiberShutdownException e) {
+            // Ends execution of the Fiber
         } catch (ExitException e) {
             sendExceptionToParentFiber(fiber, e);
         } catch (RaiseException e) {
@@ -150,7 +161,9 @@ public class FiberManager {
     }
 
     private void sendExceptionToParentFiber(DynamicObject fiber, RuntimeException exception) {
-        addToMessageQueue(Layouts.FIBER.getLastResumedByFiber(fiber), new FiberExceptionMessage(exception));
+        final DynamicObject parentFiber = Layouts.FIBER.getLastResumedByFiber(fiber);
+        assert parentFiber != null;
+        addToMessageQueue(parentFiber, new FiberExceptionMessage(exception));
     }
 
     @TruffleBoundary
@@ -171,8 +184,8 @@ public class FiberManager {
 
         setCurrentFiber(fiber);
 
-        if (message instanceof FiberExitMessage) {
-            throw new KillException();
+        if (message instanceof FiberShutdownMessage) {
+            throw new FiberShutdownException();
         } else if (message instanceof FiberExceptionMessage) {
             throw ((FiberExceptionMessage) message).getException();
         } else if (message instanceof FiberResumeMessage) {
@@ -202,6 +215,7 @@ public class FiberManager {
     }
 
     public void start(DynamicObject fiber) {
+        rubyFiber.set(fiber);
         Layouts.FIBER.setThread(fiber, Thread.currentThread());
 
         final long pThreadID = context.getNativePlatform().getThreads().pthread_self();
@@ -226,24 +240,34 @@ public class FiberManager {
         runningFibers.remove(fiber);
 
         Layouts.FIBER.setThread(fiber, null);
+        rubyFiber.remove();
 
         Layouts.FIBER.getFinishedLatch(fiber).countDown();
     }
 
-    private void exit(DynamicObject fiber) {
-        assert RubyGuards.isRubyFiber(fiber);
-        assert !Layouts.FIBER.getRootFiber(fiber);
-
-        addToMessageQueue(fiber, new FiberExitMessage());
-    }
-
     @TruffleBoundary
     public void shutdown() {
+        if (Thread.currentThread() != Layouts.FIBER.getThread(rootFiber)) {
+            throw new UnsupportedOperationException("FiberManager.shutdown() must be called on the root Fiber");
+        }
+
+        // All Fibers except the current one are in waitForResume(),
+        // so sending a FiberShutdownMessage is enough to finish them.
+        // This also avoids the performance cost of a safepoint.
         for (DynamicObject fiber : runningFibers) {
-            if (!Layouts.FIBER.getRootFiber(fiber)) {
-                exit(fiber);
+            if (fiber != rootFiber) {
+                addToMessageQueue(fiber, new FiberShutdownMessage());
+
+                // Wait for the Fiber to finish so we only run one Fiber at a time
+                final CountDownLatch finishedLatch = Layouts.FIBER.getFinishedLatch(fiber);
+                context.getThreadManager().runUntilResult(null, () -> {
+                    finishedLatch.await();
+                    return BlockingAction.SUCCESS;
+                });
             }
         }
+
+        cleanup(rootFiber);
     }
 
     public String getFiberDebugInfo() {
@@ -283,7 +307,7 @@ public class FiberManager {
     public interface FiberMessage {
     }
 
-    public static class FiberResumeMessage implements FiberMessage {
+    private static class FiberResumeMessage implements FiberMessage {
 
         private final boolean yield;
         private final DynamicObject sendingFiber;
@@ -310,10 +334,14 @@ public class FiberManager {
 
     }
 
-    public static class FiberExitMessage implements FiberMessage {
+    private static class FiberShutdownException extends ControlFlowException {
+        private static final long serialVersionUID = 1522270454305076317L;
     }
 
-    public static class FiberExceptionMessage implements FiberMessage {
+    private static class FiberShutdownMessage implements FiberMessage {
+    }
+
+    private static class FiberExceptionMessage implements FiberMessage {
 
         private final RuntimeException exception;
 
