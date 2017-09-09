@@ -174,19 +174,20 @@ public class ThreadManager {
         return threadLocals;
     }
 
-    public static void initialize(DynamicObject thread, RubyContext context, Node currentNode, String info, Runnable task) {
+    public void initialize(DynamicObject thread, Node currentNode, String info, Runnable task) {
         assert RubyGuards.isRubyThread(thread);
-        final Thread t = context.getLanguage().createThread(context, () -> run(thread, context, currentNode, info, task));
+        final Thread t = context.getLanguage().createThread(context,
+                () -> threadMain(thread, currentNode, info, task));
         t.start();
         FiberNodes.waitForInitialization(context, Layouts.THREAD.getFiberManager(thread).getRootFiber(), currentNode);
     }
 
-    public static void run(DynamicObject thread, RubyContext context, Node currentNode, String info, Runnable task) {
+    private void threadMain(DynamicObject thread, Node currentNode, String info, Runnable task) {
         Layouts.THREAD.setSourceLocation(thread, info);
         final String name = "Ruby Thread@" + info;
         Thread.currentThread().setName(name);
 
-        context.getThreadManager().start(thread);
+        start(thread);
         try {
             task.run();
         } catch (ThreadExitException e) {
@@ -199,7 +200,7 @@ public class ThreadManager {
             rethrowOnMainThread(context, currentNode, e);
             setThreadValue(context, thread, context.getCoreLibrary().getNil());
         } finally {
-            context.getThreadManager().cleanup(thread);
+            cleanup(thread);
             assert Layouts.THREAD.getValue(thread) != null || Layouts.THREAD.getException(thread) != null;
         }
     }

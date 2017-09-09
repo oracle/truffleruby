@@ -107,17 +107,18 @@ public class FinalizationService {
     }
 
     private void createFinalizationThread() {
-        finalizerThread = context.getThreadManager().createRubyThread("finalizer");
+        final ThreadManager threadManager = context.getThreadManager();
+        finalizerThread = threadManager.createRubyThread("finalizer");
         context.send(finalizerThread, "internal_thread_initialize", null);
 
-        ThreadManager.initialize(finalizerThread, context, null, "finalizer", () -> {
+        threadManager.initialize(finalizerThread, null, "finalizer", () -> {
             if (TruffleOptions.AOT) {
                 // Temporary workaround for GR-5440.
                 return;
             }
 
             while (true) {
-                final FinalizerReference finalizerReference = (FinalizerReference) context.getThreadManager().runUntilResult(null,
+                final FinalizerReference finalizerReference = (FinalizerReference) threadManager.runUntilResult(null,
                         () -> finalizerQueue.remove());
                 finalizerReference.getFinalizerActions().forEach(action -> action.run());
             }
