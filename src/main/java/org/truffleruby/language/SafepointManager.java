@@ -22,7 +22,6 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.core.thread.ThreadStatus;
 import org.truffleruby.platform.signal.Signal;
 
 import java.util.Arrays;
@@ -130,7 +129,7 @@ public class SafepointManager {
         final SafepointAction deferredAction = deferred ? action : null;
 
         try {
-            if (!deferred && thread != null && Layouts.THREAD.getStatus(thread) != ThreadStatus.ABORTING) {
+            if (!deferred && thread != null) {
                 action.accept(thread, currentNode);
             }
         } finally {
