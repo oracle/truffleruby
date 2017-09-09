@@ -1198,6 +1198,9 @@ module Truffle::CExt
   end
 
   def rb_ary_new_capa(capacity)
+    if capacity < 0
+      raise ArgumentError, 'negative array size (or size too big)'
+    end
     []
   end
 
