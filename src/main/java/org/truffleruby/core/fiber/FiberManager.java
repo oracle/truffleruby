@@ -61,6 +61,15 @@ public class FiberManager {
     }
 
     public DynamicObject getCurrentFiber() {
+        assert Layouts.THREAD.getFiberManager(context.getThreadManager().getCurrentThread()) == this :
+            "FiberManager#getCurrentFiber() must be called on a Fiber belonging to the FiberManager";
+        return currentFiber;
+    }
+
+    // If the currentFiber is read from another Ruby Thread,
+    // there is no guarantee that fiber will remain the current one
+    // as it could switch to another Fiber before the actual operation on the fiber.
+    public DynamicObject getCurrentFiberRacy() {
         return currentFiber;
     }
 
