@@ -1700,7 +1700,10 @@ VALUE rb_ary_cat(VALUE array, const VALUE *cat, long n) {
 }
 
 VALUE rb_ary_rotate(VALUE array, long n) {
-  rb_tr_error("rb_ary_rotate not implemented");
+  if (n != 0) {
+    return (VALUE) truffle_invoke(array, "rotate!", n);
+  }
+  return Qnil;
 }
 
 // Hash
