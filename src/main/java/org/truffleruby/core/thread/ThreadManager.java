@@ -352,7 +352,7 @@ public class ThreadManager {
                 result = action.block();
             } catch (InterruptedException e) {
                 // We were interrupted, possibly by the SafepointManager.
-                context.getSafepointManager().poll(currentNode);
+                context.getSafepointManager().pollFromBlockingCall(currentNode);
             }
         } while (result == null);
 
