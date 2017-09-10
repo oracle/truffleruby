@@ -478,6 +478,7 @@
 /* Proc */
 #define HAVE_RB_PROC_NEW                   1
 #define HAVE_RB_PROC_ARITY                 1
+#define HAVE_RB_PROC_CALL                  1
 
 /* Range */
 #define HAVE_RB_RANGE_NEW                  1

@@ -23,6 +23,12 @@ int proc_spec_rb_proc_arity(VALUE self, VALUE prc) {
 }
 #endif
 
+#ifdef HAVE_RB_PROC_CALL
+VALUE proc_spec_rb_proc_call(VALUE self, VALUE prc, VALUE args) {
+  return rb_proc_call(prc, args);
+}
+#endif
+
 /* This helper is not strictly necessary but reflects the code in wxRuby that
  * originally exposed issues with this Proc.new behavior.
  */
@@ -65,6 +71,10 @@ void Init_proc_spec(void) {
 
 #ifdef HAVE_RB_PROC_ARITY
   rb_define_method(cls, "rb_proc_arity", proc_spec_rb_proc_arity, 1);
+#endif
+
+#ifdef HAVE_RB_PROC_CALL
+  rb_define_method(cls, "rb_proc_call", proc_spec_rb_proc_call, 2);
 #endif
 
   rb_define_method(cls, "rb_Proc_new", proc_spec_rb_Proc_new, 1);

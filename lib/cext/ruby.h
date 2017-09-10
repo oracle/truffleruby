@@ -961,6 +961,7 @@ void rb_define_class_variable(VALUE klass, const char *name, VALUE val);
 // Proc
 
 VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value);
+VALUE rb_proc_call(VALUE self, VALUE args);
 int rb_proc_arity(VALUE);
 
 // Utilities
@@ -1015,7 +1016,8 @@ VALUE rb_funcallv_public(VALUE object, ID name, int args_count, const VALUE *arg
 #define rb_funcall3 rb_funcallv_public
 VALUE rb_apply(VALUE object, ID name, VALUE args);
 #define RUBY_BLOCK_CALL_FUNC_TAKES_BLOCKARG 1
-#define RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg) VALUE yielded_arg, VALUE callback_arg, int __args_count, const VALUE *__args, VALUE __block_arg
+#define RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg) \
+    VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE *argv, VALUE blockarg
 typedef VALUE rb_block_call_func(RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg));
 typedef rb_block_call_func *rb_block_call_func_t;
 VALUE rb_block_call(VALUE object, ID name, int args_count, const VALUE *args, rb_block_call_func_t block_call_func, VALUE data);
