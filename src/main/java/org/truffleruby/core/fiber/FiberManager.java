@@ -154,7 +154,7 @@ public class FiberManager {
     }
 
     @TruffleBoundary
-    private static void addToMessageQueue(DynamicObject fiber, FiberMessage message) {
+    private void addToMessageQueue(DynamicObject fiber, FiberMessage message) {
         Layouts.FIBER.getMessageQueue(fiber).add(message);
     }
 
@@ -192,7 +192,7 @@ public class FiberManager {
      * the Java thread (although the queue implementation may) and doesn't wait for the message to
      * be received.
      */
-    private static void resume(DynamicObject fromFiber, DynamicObject fiber, boolean yield, Object... args) {
+    private void resume(DynamicObject fromFiber, DynamicObject fiber, boolean yield, Object... args) {
         addToMessageQueue(fiber, new FiberResumeMessage(yield, fromFiber, args));
     }
 
