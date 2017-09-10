@@ -126,7 +126,7 @@ public class FiberManager {
     public static void waitForInitialization(RubyContext context, DynamicObject fiber, Node currentNode) {
         final CountDownLatch initializedLatch = Layouts.FIBER.getInitializedLatch(fiber);
 
-        context.getThreadManager().runUntilSuccessKeepRunStatus(currentNode, new BlockingAction<Boolean>() {
+        context.getThreadManager().runUntilResultKeepStatus(currentNode, new BlockingAction<Boolean>() {
             @Override
             public Boolean block() throws InterruptedException {
                 initializedLatch.await();
@@ -188,7 +188,7 @@ public class FiberManager {
     private Object[] waitForResume(DynamicObject fiber) {
         assert RubyGuards.isRubyFiber(fiber);
 
-        final FiberMessage message = context.getThreadManager().runUntilSuccessKeepRunStatus(null,
+        final FiberMessage message = context.getThreadManager().runUntilResultKeepStatus(null,
                 () -> Layouts.FIBER.getMessageQueue(fiber).take());
 
         setCurrentFiber(fiber);

@@ -263,7 +263,7 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public <T> T runUntilSuccessKeepRunStatus(Node currentNode, BlockingAction<T> action) {
+    public <T> T runUntilResultKeepStatus(Node currentNode, BlockingAction<T> action) {
         T result = null;
 
         do {
