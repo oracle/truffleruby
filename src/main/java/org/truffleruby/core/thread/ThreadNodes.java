@@ -527,7 +527,7 @@ public abstract class ThreadNodes {
 
             final Thread javaThread = Layouts.FIBER.getThread(Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiber());
 
-            context.getSafepointManager().pauseThreadAndExecuteLater(javaThread, currentNode, (currentThread, currentNode1) -> {
+            context.getSafepointManager().pauseThreadAndExecute(javaThread, currentNode, (currentThread, currentNode1) -> {
                 if (Layouts.EXCEPTION.getBacktrace(exception) == null) {
                     Backtrace backtrace = context.getCallStack().getBacktrace(currentNode1);
                     Layouts.EXCEPTION.setBacktrace(exception, backtrace);
