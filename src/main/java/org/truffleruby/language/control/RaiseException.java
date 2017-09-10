@@ -17,6 +17,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 
 public class RaiseException extends ControlFlowException implements TruffleException {
@@ -36,12 +38,9 @@ public class RaiseException extends ControlFlowException implements TruffleExcep
     @Override
     @TruffleBoundary
     public String getMessage() {
-        Object message = Layouts.EXCEPTION.getMessage(exception);
-        if (message != null) {
-            return String.format("%s (%s)", message.toString(), Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception)).getName());
-        } else {
-            return null;
-        }
+        final ModuleFields exceptionClass = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
+        final String message = ExceptionOperations.messageToString(exceptionClass.getContext(), exception);
+        return String.format("%s (%s)", message, exceptionClass.getName());
     }
 
     @Override
