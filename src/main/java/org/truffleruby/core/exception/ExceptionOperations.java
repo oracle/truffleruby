@@ -15,6 +15,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -28,6 +29,17 @@ public abstract class ExceptionOperations {
     private static final EnumSet<BacktraceFormatter.FormattingFlags> FORMAT_FLAGS = EnumSet.of(
             FormattingFlags.OMIT_FROM_PREFIX,
             FormattingFlags.OMIT_EXCEPTION);
+
+    @TruffleBoundary
+    public static String messageToString(RubyContext context, DynamicObject exception) {
+        Object message = Layouts.EXCEPTION.getMessage(exception);
+        if (message == null || message == context.getCoreLibrary().getNil()) {
+            final ModuleFields exceptionClass = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
+            return exceptionClass.getName(); // What Exception#message would return if no message is set
+        } else {
+            return message.toString();
+        }
+    }
 
     @TruffleBoundary
     public static List<String> format(RubyContext context, DynamicObject exception, Backtrace backtrace) {
