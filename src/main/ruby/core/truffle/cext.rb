@@ -1228,6 +1228,10 @@ module Truffle::CExt
     end
   end
 
+  def rb_proc_call(prc, args)
+    prc.call(*args)
+  end
+
   def foreign_call_with_block(function, *args, &block)
     Truffle::Interop.execute(function, *args)
   end
