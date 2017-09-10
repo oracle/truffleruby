@@ -103,7 +103,7 @@ public class FiberManager {
                 isRootFiber,
                 new CountDownLatch(1),
                 new CountDownLatch(1),
-                new LinkedBlockingQueue<>(1),
+                new LinkedBlockingQueue<>(),
                 thread,
                 null,
                 true,
