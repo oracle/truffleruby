@@ -262,6 +262,22 @@ public class ThreadManager {
         void unblock();
     }
 
+    @TruffleBoundary
+    public <T> T runUntilSuccessKeepRunStatus(Node currentNode, BlockingAction<T> action) {
+        T result = null;
+
+        do {
+            try {
+                result = action.block();
+            } catch (InterruptedException e) {
+                // We were interrupted, possibly by the SafepointManager.
+                context.getSafepointManager().pollFromBlockingCall(currentNode);
+            }
+        } while (result == null);
+
+        return result;
+    }
+
     /**
      * Runs {@code action} until it returns a non-null value.
      * The given action should throw an {@link InterruptedException} when {@link Thread#interrupt()} is called.
@@ -341,22 +357,6 @@ public class ThreadManager {
             }
             return result;
         }, blockingNativeCallUnblockingAction.get());
-    }
-
-    @TruffleBoundary
-    public <T> T runUntilSuccessKeepRunStatus(Node currentNode, BlockingAction<T> action) {
-        T result = null;
-
-        do {
-            try {
-                result = action.block();
-            } catch (InterruptedException e) {
-                // We were interrupted, possibly by the SafepointManager.
-                context.getSafepointManager().pollFromBlockingCall(currentNode);
-            }
-        } while (result == null);
-
-        return result;
     }
 
     public interface ResultOrTimeout<T> {
