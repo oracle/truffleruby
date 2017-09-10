@@ -269,7 +269,7 @@ public class FiberManager {
 
                 // Wait for the Fiber to finish so we only run one Fiber at a time
                 final CountDownLatch finishedLatch = Layouts.FIBER.getFinishedLatch(fiber);
-                context.getThreadManager().runUntilResult(null, () -> {
+                context.getThreadManager().runUntilResultKeepStatus(null, () -> {
                     finishedLatch.await();
                     return BlockingAction.SUCCESS;
                 });

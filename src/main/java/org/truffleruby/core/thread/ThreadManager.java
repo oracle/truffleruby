@@ -515,7 +515,7 @@ public class ThreadManager {
         }
 
         for (CountDownLatch finishedLatch : threadsToWait) {
-            runUntilResult(null, () -> {
+            runUntilResultKeepStatus(null, () -> {
                 finishedLatch.await();
                 return BlockingAction.SUCCESS;
             });
