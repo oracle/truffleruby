@@ -12,6 +12,7 @@ package org.truffleruby.core.proc;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.platform.signal.Signal;
 import org.truffleruby.platform.signal.SignalHandler;
@@ -30,8 +31,15 @@ public class ProcSignalHandler implements SignalHandler {
 
     @Override
     public void handle(Signal signal) {
-        Thread mainThread = Layouts.FIBER.getThread((Layouts.THREAD.getFiberManager(context.getThreadManager().getRootThread()).getCurrentFiber()));
-        context.getSafepointManager().pauseThreadAndExecuteLaterFromNonRubyThread(mainThread, (thread, currentNode) -> ProcOperations.rootCall(proc));
+        final DynamicObject rootThread = context.getThreadManager().getRootThread();
+        final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
+
+        context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(true, (rubyThread, currentNode) -> {
+            if (rubyThread == rootThread &&
+                    fiberManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
+                ProcOperations.rootCall(proc);
+            }
+        });
     }
 
 }
