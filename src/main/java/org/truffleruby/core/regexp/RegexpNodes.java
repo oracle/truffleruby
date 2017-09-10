@@ -125,7 +125,9 @@ public abstract class RegexpNodes {
 
         final Rope sourceRope = StringOperations.rope(string);
 
-        int match = context.getThreadManager().runUntilResult(currentNode, () -> matcher.searchInterruptible(startPos, range, Option.DEFAULT));
+        // Keep status as RUN because MRI has an uninterruptible Regexp engine
+        int match = context.getThreadManager().runUntilSuccessKeepRunStatus(currentNode,
+                () -> matcher.searchInterruptible(startPos, range, Option.DEFAULT));
 
         final DynamicObject nil = context.getCoreLibrary().getNil();
 
