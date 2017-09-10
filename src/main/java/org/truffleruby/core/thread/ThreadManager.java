@@ -198,8 +198,7 @@ public class ThreadManager {
     }
 
     private void rethrowOnMainThread(Node currentNode, ExitException e) {
-        final Thread rootThread = Layouts.FIBER.getThread(Layouts.THREAD.getFiberManager(getRootThread()).getCurrentFiber());
-        context.getSafepointManager().pauseThreadAndExecute(rootThread, currentNode, (actionThread, actionCurrentNode) -> {
+        context.getSafepointManager().pauseRubyThreadAndExecute(getRootThread(), currentNode, (rubyThread, actionCurrentNode) -> {
             throw e;
         });
     }

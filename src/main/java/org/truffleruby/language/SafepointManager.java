@@ -230,15 +230,21 @@ public class SafepointManager {
     // Variants for a single thread
 
     @TruffleBoundary
-    public void pauseThreadAndExecute(Thread thread, Node currentNode, SafepointAction action) {
-        if (Thread.currentThread() == thread) {
+    public void pauseRubyThreadAndExecute(DynamicObject rubyThread, Node currentNode, SafepointAction action) {
+        final DynamicObject currentThread = context.getThreadManager().getCurrentThread();
+        final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rubyThread);
+
+        if (currentThread == rubyThread) {
+            if (fiberManager.getRubyFiberFromCurrentJavaThread() != fiberManager.getCurrentFiber()) {
+                throw new AssertionError("Currently executing thread is not the current Fiber of the current Ruby Thread");
+            }
             // fast path if we are already the right thread
-            final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
             action.accept(rubyThread, currentNode);
         } else {
-            pauseAllThreadsAndExecute(currentNode, false, (rubyThread, currentNode1) -> {
-                if (Thread.currentThread() == thread) {
-                    action.accept(rubyThread, currentNode1);
+            pauseAllThreadsAndExecute(currentNode, false, (thread, currentNode1) -> {
+                if (thread == rubyThread &&
+                        fiberManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
+                    action.accept(thread, currentNode1);
                 }
             });
         }
