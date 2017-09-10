@@ -115,11 +115,9 @@ public abstract class ThreadNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject backtrace(DynamicObject rubyThread) {
-            final Thread thread = Layouts.FIBER.getThread(Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiber());
-
             final Memo<DynamicObject> result = new Memo<>(null);
 
-            getContext().getSafepointManager().pauseThreadAndExecute(thread, this, (thread1, currentNode) -> {
+            getContext().getSafepointManager().pauseRubyThreadAndExecute(rubyThread, this, (thread1, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode);
                 result.set(ExceptionOperations.backtraceAsRubyStringArray(getContext(), null, backtrace));
             });
@@ -525,9 +523,7 @@ public abstract class ThreadNodes {
             // The exception will be shared with another thread
             SharedObjects.writeBarrier(context, exception);
 
-            final Thread javaThread = Layouts.FIBER.getThread(Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiber());
-
-            context.getSafepointManager().pauseThreadAndExecute(javaThread, currentNode, (currentThread, currentNode1) -> {
+            context.getSafepointManager().pauseRubyThreadAndExecute(rubyThread, currentNode, (currentThread, currentNode1) -> {
                 if (Layouts.EXCEPTION.getBacktrace(exception) == null) {
                     Backtrace backtrace = context.getCallStack().getBacktrace(currentNode1);
                     Layouts.EXCEPTION.setBacktrace(exception, backtrace);
