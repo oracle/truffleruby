@@ -227,7 +227,7 @@ public class SafepointManager {
         }
     }
 
-    // Variants for a single thread
+    // Variant for a single thread
 
     @TruffleBoundary
     public void pauseRubyThreadAndExecute(DynamicObject rubyThread, Node currentNode, SafepointAction action) {
@@ -248,15 +248,6 @@ public class SafepointManager {
                 }
             });
         }
-    }
-
-    @TruffleBoundary
-    public void pauseThreadAndExecuteLaterFromNonRubyThread(Thread thread, SafepointAction action) {
-        pauseAllThreadsAndExecuteFromNonRubyThread(true, (rubyThread, currentNode) -> {
-            if (Thread.currentThread() == thread) {
-                action.accept(rubyThread, currentNode);
-            }
-        });
     }
 
     private void pauseAllThreadsAndExecute(Node currentNode, SafepointAction action, boolean deferred) {
