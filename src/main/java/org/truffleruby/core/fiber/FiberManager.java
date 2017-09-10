@@ -188,7 +188,7 @@ public class FiberManager {
     private Object[] waitForResume(DynamicObject fiber) {
         assert RubyGuards.isRubyFiber(fiber);
 
-        final FiberMessage message = context.getThreadManager().runUntilResult(null,
+        final FiberMessage message = context.getThreadManager().runUntilSuccessKeepRunStatus(null,
                 () -> Layouts.FIBER.getMessageQueue(fiber).take());
 
         setCurrentFiber(fiber);
