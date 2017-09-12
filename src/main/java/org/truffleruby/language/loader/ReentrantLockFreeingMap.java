@@ -71,6 +71,7 @@ public class ReentrantLockFreeingMap<K> {
             K key,
             final ReentrantLock lock) {
 
+        // Also sets status to sleep in MRI
         threadManager.runUntilResult(
                 currentNode,
                 new ThreadManager.BlockingAction<Boolean>() {
