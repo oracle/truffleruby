@@ -471,7 +471,7 @@ public class ThreadManager {
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
 
-        if (Thread.currentThread() != Layouts.FIBER.getThread(fiberManager.getRootFiber())) {
+        if (fiberManager.getRubyFiberFromCurrentJavaThread() != fiberManager.getRootFiber()) {
             throw new UnsupportedOperationException("ThreadManager.shutdown() must be called on the root Fiber of the main Thread");
         }
 
