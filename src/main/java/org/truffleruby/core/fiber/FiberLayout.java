@@ -28,7 +28,6 @@ public interface FiberLayout extends BasicObjectLayout {
     DynamicObject createFiber(DynamicObjectFactory factory,
                               DynamicObject fiberLocals,
                               DynamicObject catchTags,
-                              boolean rootFiber,
                               CountDownLatch initializedLatch,
                               CountDownLatch finishedLatch,
                               BlockingQueue<FiberManager.FiberMessage> messageQueue,
@@ -43,8 +42,6 @@ public interface FiberLayout extends BasicObjectLayout {
     DynamicObject getFiberLocals(DynamicObject object);
 
     DynamicObject getCatchTags(DynamicObject object);
-
-    boolean getRootFiber(DynamicObject object);
 
     CountDownLatch getInitializedLatch(DynamicObject object);
 
