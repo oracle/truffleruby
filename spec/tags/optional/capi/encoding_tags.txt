@@ -1,7 +1,4 @@
-fails:C-API Encoding function ENCODING_GET returns 0 for an object without an encoding
 fails:C-API Encoding function ENCODING_GET returns the index of the dummy encoding of an Object
-fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a Regexp
-fails:C-API Encoding function ENCODING_GET returns the index of the encoding of a String
 fails:C-API Encoding function ENCODING_GET returns the index of the encoding of an Object
 fails:C-API Encoding function rb_enc_associate sets the encoding of a Regexp to the encoding
 fails:C-API Encoding function rb_enc_associate sets the encoding of a String to a default when the encoding is NULL

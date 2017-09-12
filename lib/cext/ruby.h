@@ -766,7 +766,7 @@ VALUE rb_str_equal(VALUE a, VALUE b);
 void rb_str_free(VALUE string);
 unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_encoding *encoding);
 rb_encoding *rb_enc_get(VALUE object);
-#define RB_ENCODING_GET(obj) rb_enc_get(obj)
+#define RB_ENCODING_GET(obj) rb_enc_get_index(obj)
 #define ENCODING_GET(obj) RB_ENCODING_GET(obj)
 void rb_enc_set_index(VALUE obj, int idx);
 #define RB_ENCODING_SET(obj,i) rb_enc_set_index((obj), (i))
