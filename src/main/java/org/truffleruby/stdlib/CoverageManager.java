@@ -55,7 +55,7 @@ public class CoverageManager {
         }
     }
 
-    public void loadingSource(Source source) {
+    public synchronized void loadingSource(Source source) {
         if (enabled) {
             coveredSources.add(source);
         }
@@ -72,7 +72,7 @@ public class CoverageManager {
         bitmap.set(line - 1);
     }
 
-    private boolean getLineHasCode(Source source, int line) {
+    private synchronized boolean getLineHasCode(Source source, int line) {
         final BitSet bitmap = linesHaveCode.get(source);
 
         if (bitmap == null) {
@@ -176,7 +176,7 @@ public class CoverageManager {
         return counts;
     }
 
-    public void print(PrintStream out) {
+    public synchronized void print(PrintStream out) {
         final int maxCountDigits = Long.toString(getMaxCount()).length();
 
         final String countFormat = "%" + maxCountDigits + "d";
@@ -222,7 +222,7 @@ public class CoverageManager {
         return max;
     }
 
-    public boolean isEnabled() {
+    public synchronized boolean isEnabled() {
         return enabled;
     }
 
