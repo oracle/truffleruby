@@ -365,7 +365,7 @@ public class OptionsCatalog {
             "ruby.rope_class.cache",
             "Cache size for rope operations that depend on a concrete rope implementation to avoid virtual calls",
             null,
-            6);
+            8);
     public static final IntegerOptionDescription INTEROP_CONVERT_CACHE = new IntegerOptionDescription(
             "ruby.interop.convert.cache",
             "Cache size for converting values for interop",
