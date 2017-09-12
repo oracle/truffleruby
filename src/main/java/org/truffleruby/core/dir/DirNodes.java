@@ -113,7 +113,6 @@ public abstract class DirNodes {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
-        @TruffleBoundary
         @Specialization
         public Object read(DynamicObject dir) {
             final int position = Layouts.DIR.getPosition(dir);
