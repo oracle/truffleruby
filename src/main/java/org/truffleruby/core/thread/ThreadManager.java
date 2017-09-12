@@ -182,6 +182,7 @@ public class ThreadManager {
         start(thread);
         try {
             task.run();
+        // Handlers in the same order as in FiberManager
         } catch (KillException e) {
             setThreadValue(context, thread, nil());
         } catch (ExitException e) {
