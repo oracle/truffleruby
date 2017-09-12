@@ -62,13 +62,13 @@ public class FiberManager {
 
     public DynamicObject getCurrentFiber() {
         assert Layouts.THREAD.getFiberManager(context.getThreadManager().getCurrentThread()) == this :
-            "FiberManager#getCurrentFiber() must be called on a Fiber belonging to the FiberManager";
+            "Trying to read the current Fiber of another Thread which is inherently racy";
         return currentFiber;
     }
 
     // If the currentFiber is read from another Ruby Thread,
     // there is no guarantee that fiber will remain the current one
-    // as it could switch to another Fiber before the actual operation on the fiber.
+    // as it could switch to another Fiber before the actual operation on the returned fiber.
     public DynamicObject getCurrentFiberRacy() {
         return currentFiber;
     }
@@ -146,6 +146,7 @@ public class FiberManager {
             }
             resume(fiber, Layouts.FIBER.getLastResumedByFiber(fiber), true, result);
 
+        // Handlers in the same order as in ThreadManager
         } catch (KillException e) {
             // Propagate the kill exception until it reaches the root Fiber
             sendExceptionToParentFiber(fiber, e);
