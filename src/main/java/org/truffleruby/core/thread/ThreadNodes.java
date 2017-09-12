@@ -68,7 +68,6 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.exception.ExceptionOperations;
-import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
