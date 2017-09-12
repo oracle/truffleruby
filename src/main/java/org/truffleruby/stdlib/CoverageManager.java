@@ -21,6 +21,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.collections.ConcurrentOperations;
 
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -127,21 +128,16 @@ public class CoverageManager {
         enabled = false;
     }
     
-    private synchronized AtomicLongArray getCounters(Source source) {
+    private AtomicLongArray getCounters(Source source) {
         if (source.getName() == null) {
             return null;
         }
 
-        AtomicLongArray c = counters.get(source);
-
-        if (c == null) {
-            long[] initialValues = new long[source.getLineCount()];
+        return ConcurrentOperations.getOrCompute(counters, source, s -> {
+            long[] initialValues = new long[s.getLineCount()];
             Arrays.fill(initialValues, NO_CODE);
-            c = new AtomicLongArray(initialValues);
-            counters.put(source, c);
-        }
-
-        return c;
+            return new AtomicLongArray(initialValues);
+        });
     }
 
     public synchronized Map<Source, long[]> getCounts() {
