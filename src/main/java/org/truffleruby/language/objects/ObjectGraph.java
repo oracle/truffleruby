@@ -36,7 +36,7 @@ public abstract class ObjectGraph {
     public static Set<DynamicObject> stopAndGetAllObjects(Node currentNode, final RubyContext context) {
         final Set<DynamicObject> visited = new HashSet<>();
 
-        final Thread stoppingThread = Thread.currentThread();
+        final Thread initiatingJavaThread = Thread.currentThread();
 
         context.getSafepointManager().pauseAllThreadsAndExecute(currentNode, false, (thread, currentNode1) -> {
             synchronized (visited) {
@@ -47,7 +47,7 @@ public abstract class ObjectGraph {
                 // Fiber.current
                 stack.add(Layouts.THREAD.getFiberManager(thread).getCurrentFiber());
 
-                if (Thread.currentThread() == stoppingThread) {
+                if (Thread.currentThread() == initiatingJavaThread) {
                     visitContextRoots(context, stack);
                 }
 
@@ -73,12 +73,12 @@ public abstract class ObjectGraph {
     public static Set<DynamicObject> stopAndGetRootObjects(Node currentNode, final RubyContext context) {
         final Set<DynamicObject> objects = new HashSet<>();
 
-        final Thread stoppingThread = Thread.currentThread();
+        final Thread initiatingJavaThread = Thread.currentThread();
 
         context.getSafepointManager().pauseAllThreadsAndExecute(currentNode, false, (thread, currentNode1) -> {
             objects.add(thread);
 
-            if (Thread.currentThread() == stoppingThread) {
+            if (Thread.currentThread() == initiatingJavaThread) {
                 visitContextRoots(context, objects);
             }
         });

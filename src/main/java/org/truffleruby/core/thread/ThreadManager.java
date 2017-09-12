@@ -491,13 +491,13 @@ public class ThreadManager {
      */
     @TruffleBoundary
     private void killOtherThreads() {
-        final Thread currentJavaThread = Thread.currentThread();
+        final Thread initiatingJavaThread = Thread.currentThread();
         final List<CountDownLatch> threadsToWait = Collections.synchronizedList(new ArrayList<>());
 
         while (true) {
             try {
                 context.getSafepointManager().pauseAllThreadsAndExecute(null, false, (thread, currentNode) -> {
-                    if (Thread.currentThread() != currentJavaThread) {
+                    if (Thread.currentThread() != initiatingJavaThread) {
                         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
                         final DynamicObject fiber = fiberManager.getRubyFiberFromCurrentJavaThread();
 
