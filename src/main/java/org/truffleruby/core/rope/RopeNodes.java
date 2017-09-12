@@ -1302,18 +1302,18 @@ public abstract class RopeNodes {
         public abstract byte[] execute(Rope rope);
 
         @Specialization(guards = "rope.getRawBytes() != null")
-        public byte[] getBytesManaged(ManagedRope rope) {
+        protected byte[] getBytesManaged(ManagedRope rope) {
             return rope.getRawBytes();
         }
 
         @Specialization
-        public byte[] getBytesNative(NativeRope rope) {
+        protected byte[] getBytesNative(NativeRope rope) {
             return rope.getBytes();
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
         @TruffleBoundary
-        public byte[] getBytesFromRope(ManagedRope rope) {
+        protected byte[] getBytesFromRope(ManagedRope rope) {
             return rope.getBytes();
         }
     }
