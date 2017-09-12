@@ -921,10 +921,19 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = {
+                "rope.getEncoding() != encoding"
+        })
+        public Rope nativeRopeWithEncoding(NativeRope rope, Encoding encoding, CodeRange codeRange,
+                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
+        }
+
+        @Specialization(guards = {
                 "rope.getEncoding() != encoding",
                 "rope.getCodeRange() == codeRange"
         })
-        public Rope withEncodingSameCodeRange(Rope rope, Encoding encoding, CodeRange codeRange) {
+        public Rope withEncodingSameCodeRange(ManagedRope rope, Encoding encoding, CodeRange codeRange) {
             return rope.withEncoding(encoding, codeRange);
         }
 
@@ -934,8 +943,8 @@ public abstract class RopeNodes {
                 "isAsciiCompatibleChange(rope, encoding)",
                 "rope.getClass() == cachedRopeClass"
         }, limit = "getCacheLimit()")
-        public Rope withEncodingCr7Bit(Rope rope, Encoding encoding, CodeRange codeRange,
-                                       @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass) {
+        public Rope withEncodingCr7Bit(ManagedRope rope, Encoding encoding, CodeRange codeRange,
+                @Cached("rope.getClass()") Class<? extends Rope> cachedRopeClass) {
             return cachedRopeClass.cast(rope).withEncoding(encoding, CodeRange.CR_7BIT);
         }
 
@@ -944,7 +953,7 @@ public abstract class RopeNodes {
                 "rope.getCodeRange() != codeRange",
                 "!isAsciiCompatibleChange(rope, encoding)"
         })
-        public Rope withEncoding(Rope rope, Encoding encoding, CodeRange codeRange,
+        public Rope withSlowEncoding(ManagedRope rope, Encoding encoding, CodeRange codeRange,
                 @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
