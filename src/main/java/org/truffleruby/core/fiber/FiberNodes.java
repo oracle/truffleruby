@@ -120,10 +120,11 @@ public abstract class FiberNodes {
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached("create()") BranchProfile errorProfile) {
             final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
-            final DynamicObject yieldingFiber = Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
+            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
+            final DynamicObject yieldingFiber = fiberManager.getCurrentFiber();
             final DynamicObject fiberYieldedTo = Layouts.FIBER.getLastResumedByFiber(yieldingFiber);
 
-            if (Layouts.FIBER.getRootFiber(yieldingFiber) || fiberYieldedTo == null) {
+            if (fiberManager.isRootFiber(yieldingFiber) || fiberYieldedTo == null) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().yieldFromRootFiberError(this));
             }
