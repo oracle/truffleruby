@@ -72,7 +72,11 @@ public abstract class CoverageNodes {
                 final Object[] countsStore = new Object[countsArray.length];
 
                 for (int n = 0; n < countsArray.length; n++) {
-                    countsStore[n] = countsArray[n];
+                    if (countsArray[n] == CoverageManager.NO_CODE) {
+                        countsStore[n] = nil();
+                    } else {
+                        countsStore[n] = countsArray[n];
+                    }
                 }
 
                 results.add(createArray(new Object[] {

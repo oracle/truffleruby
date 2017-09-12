@@ -23,6 +23,8 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
 import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -35,9 +37,12 @@ public class CoverageManager {
     public class LineTag {
     }
 
+    public static final long NO_CODE = -1;
+
     private final Instrumenter instrumenter;
     private EventBinding<?> binding;
     private final Map<Source, AtomicLongArray> counters = new ConcurrentHashMap<>();
+    private final Map<Source, BitSet> linesHaveCode = new HashMap<>();
     private final Set<Source> coveredSources = new HashSet<>();
 
     private boolean enabled;
@@ -54,6 +59,27 @@ public class CoverageManager {
         if (enabled) {
             coveredSources.add(source);
         }
+    }
+
+    public synchronized void setLineHasCode(Source source, int line) {
+        BitSet bitmap = linesHaveCode.get(source);
+
+        if (bitmap == null) {
+            bitmap = new BitSet(source.getLineCount());
+            linesHaveCode.put(source, bitmap);
+        }
+
+        bitmap.set(line - 1);
+    }
+
+    private boolean getLineHasCode(Source source, int line) {
+        final BitSet bitmap = linesHaveCode.get(source);
+
+        if (bitmap == null) {
+            return false;
+        }
+
+        return bitmap.get(line - 1);
     }
 
     @TruffleBoundary
@@ -77,8 +103,11 @@ public class CoverageManager {
                         if (!configured) {
                             CompilerDirectives.transferToInterpreterAndInvalidate();
                             final SourceSection sourceSection = eventContext.getInstrumentedSourceSection();
-                            lineNumber = sourceSection.getStartLine() - 1;
-                            counters = getCounters(sourceSection.getSource());
+
+                            if (getLineHasCode(sourceSection.getSource(), sourceSection.getStartLine())) {
+                                lineNumber = sourceSection.getStartLine() - 1;
+                                counters = getCounters(sourceSection.getSource());
+                            }
                             configured = true;
                         }
 
@@ -100,6 +129,7 @@ public class CoverageManager {
 
         binding.dispose();
         counters.clear();
+        linesHaveCode.clear();
         coveredSources.clear();
 
         enabled = false;
@@ -128,10 +158,16 @@ public class CoverageManager {
         final Map<Source, long[]> counts = new HashMap<>();
 
         for (Map.Entry<Source, AtomicLongArray> entry : counters.entrySet()) {
+            final BitSet hasCode = linesHaveCode.get(entry.getKey());
+
             final long[] array = new long[entry.getValue().length()];
 
             for (int n = 0; n < array.length; n++) {
-                array[n] = entry.getValue().get(n);
+                if (hasCode != null && hasCode.get(n)) {
+                    array[n] = entry.getValue().get(n);
+                } else {
+                    array[n] = NO_CODE;
+                }
             }
 
             counts.put(entry.getKey(), array);
@@ -145,7 +181,14 @@ public class CoverageManager {
 
         final String countFormat = "%" + maxCountDigits + "d";
 
+        final char[] noCodeChars = new char[maxCountDigits];
+        Arrays.fill(noCodeChars, ' ');
+        noCodeChars[maxCountDigits - 1] = '-';
+        final String noCodeString = new String(noCodeChars);
+
         for (Map.Entry<Source, AtomicLongArray> entry : counters.entrySet()) {
+            final BitSet hasCode = linesHaveCode.get(entry.getKey());
+
             out.println(entry.getKey().getName());
 
             for (int n = 0; n < entry.getValue().length(); n++) {
@@ -157,7 +200,11 @@ public class CoverageManager {
                 }
 
                 out.print("  ");
-                out.printf(countFormat, entry.getValue().get(n));
+                if (hasCode != null && hasCode.get(n)) {
+                    out.printf(countFormat, entry.getValue().get(n));
+                } else {
+                    out.print(noCodeString);
+                }
                 out.printf("  %s%n", line);
             }
         }
