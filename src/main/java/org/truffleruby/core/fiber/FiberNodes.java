@@ -124,7 +124,7 @@ public abstract class FiberNodes {
             final DynamicObject yieldingFiber = fiberManager.getCurrentFiber();
             final DynamicObject fiberYieldedTo = Layouts.FIBER.getLastResumedByFiber(yieldingFiber);
 
-            if (fiberManager.isRootFiber(yieldingFiber) || fiberYieldedTo == null) {
+            if (yieldingFiber == fiberManager.getRootFiber() || fiberYieldedTo == null) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().yieldFromRootFiberError(this));
             }

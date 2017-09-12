@@ -60,10 +60,6 @@ public class FiberManager {
         return rootFiber;
     }
 
-    public boolean isRootFiber(DynamicObject fiber) {
-        return Layouts.FIBER.getRootFiber(fiber);
-    }
-
     public DynamicObject getCurrentFiber() {
         assert Layouts.THREAD.getFiberManager(context.getThreadManager().getCurrentThread()) == this :
             "FiberManager#getCurrentFiber() must be called on a Fiber belonging to the FiberManager";
@@ -140,7 +136,7 @@ public class FiberManager {
     }
 
     private void fiberMain(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
-        assert !isRootFiber(fiber) : "Root Fibers execute threadMain() and not fiberMain()";
+        assert fiber != rootFiber : "Root Fibers execute threadMain() and not fiberMain()";
 
         start(fiber);
         try {
