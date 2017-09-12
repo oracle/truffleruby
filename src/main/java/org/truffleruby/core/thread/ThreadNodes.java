@@ -157,25 +157,18 @@ public abstract class ThreadNodes {
     @CoreMethod(names = { "kill", "exit", "terminate" })
     public abstract static class KillNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
+        @TruffleBoundary(throwsControlFlowException = true)
         @Specialization
         public DynamicObject kill(DynamicObject rubyThread) {
             final ThreadManager threadManager = getContext().getThreadManager();
             final DynamicObject rootThread = threadManager.getRootThread();
 
-            getContext().getSafepointManager().pauseAllThreadsAndExecute(this, false, (thread, currentNode) -> {
-                if (thread == rubyThread) {
-                    final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
-                    final DynamicObject fiber = fiberManager.getRubyFiberFromCurrentJavaThread();
-
-                    if (fiberManager.getCurrentFiber() == fiber) {
-                        if (thread == rootThread) {
-                            throw new RaiseException(coreExceptions().systemExit(0, currentNode));
-                        } else {
-                            Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
-                            throw new KillException();
-                        }
-                    }
+            getContext().getSafepointManager().pauseRubyThreadAndExecute(rubyThread, this, (thread, currentNode) -> {
+                if (thread == rootThread) {
+                    throw new RaiseException(coreExceptions().systemExit(0, currentNode));
+                } else {
+                    Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
+                    throw new KillException();
                 }
             });
 
