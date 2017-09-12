@@ -1469,7 +1469,7 @@ int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc) {
 }
 
 VALUE rb_str_times(VALUE string, VALUE times) {
-  rb_tr_error("rb_str_times not implemented");
+  return (VALUE) truffle_invoke(string, "*", times);
 }
 
 int rb_enc_dummy_p(rb_encoding *enc) {
