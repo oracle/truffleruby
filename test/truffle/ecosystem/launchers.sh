@@ -8,7 +8,7 @@ function check_launchers() {
         [[ "$(${1}truffleruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.3 ]]
         [[ "$(${1}ruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.3 ]]
     fi
-    [[ "$(${1}gem --version)" =~ ^2.5.2$ ]]
+    [[ "$(${1}gem --version)" =~ ^2.5.2.1$ ]]
     [[ "$(${1}irb --version)" =~ ^irb\ 0.9.6 ]]
     [[ "$(${1}rake --version)" =~ ^rake,\ version\ [0-9.]+ ]]
     # [[ "$(${1}rdoc --version)" =~ ^4.2.1$ ]] # TODO (pitr-ch 30-Apr-2017): reports 4.3.0 on CI
