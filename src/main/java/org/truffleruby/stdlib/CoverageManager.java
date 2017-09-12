@@ -43,7 +43,7 @@ public class CoverageManager {
     private final Map<Source, AtomicLongArray> counters = new ConcurrentHashMap<>();
     private final Set<Source> coveredSources = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    private boolean enabled;
+    private volatile boolean enabled;
 
     public CoverageManager(RubyContext context, Instrumenter instrumenter) {
         this.instrumenter = instrumenter;
@@ -209,7 +209,7 @@ public class CoverageManager {
         return max;
     }
 
-    public synchronized boolean isEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 
