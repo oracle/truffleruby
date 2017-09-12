@@ -236,7 +236,7 @@ public class SafepointManager {
 
         if (currentThread == rubyThread) {
             if (fiberManager.getRubyFiberFromCurrentJavaThread() != fiberManager.getCurrentFiber()) {
-                throw new AssertionError("Currently executing thread is not the current Fiber of the current Ruby Thread");
+                throw new IllegalStateException("The currently executing Java thread does not correspond to the currently active fiber for the current Ruby thread");
             }
             // fast path if we are already the right thread
             action.accept(rubyThread, currentNode);
