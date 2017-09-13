@@ -104,12 +104,14 @@ public final class UnresolvedDispatchNode extends DispatchNode {
 
             first.replace(newDispatchNode);
 
-            if (newDispatchNode instanceof CachedDispatchNode) {
-                ((CachedDispatchNode) newDispatchNode).reassessSplittingInliningStrategy();
-            }
-
             return newDispatchNode;
         });
+
+        // Trigger splitting outside the atomic() block as splitting needs the atomic() lock
+        // but potentially also other locks/monitors which could trigger a deadlock.
+        if (dispatch instanceof CachedDispatchNode) {
+            ((CachedDispatchNode) dispatch).reassessSplittingInliningStrategy();
+        }
 
         return dispatch.executeDispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
     }
