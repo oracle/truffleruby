@@ -1561,7 +1561,7 @@ module Commands
     build
 
     env_file = "mx.truffleruby/env"
-    unless !File.exist?(env_file) || File.readlines(env_file).grep(/MX_BINARY_SUITES=/).empty?
+    unless !File.exist?(env_file) || File.readlines(env_file).grep(/^MX_BINARY_SUITES=/).empty?
       abort "You need to remove the MX_BINARY_SUITES line from #{env_file}"
     end
 
