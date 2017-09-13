@@ -202,10 +202,6 @@ module Utilities
     `ps ax`.include?('idealgraphvisualizer')
   end
 
-  def self.ensure_igv_running
-    abort "I can't see IGV running - go to your checkout of Graal and run 'mx igv' in a separate shell, then run this command again" unless igv_running?
-  end
-
   def self.no_gem_vars_env
     {
       'TRUFFLERUBY_RESILIENT_GEM_HOME' => nil,
@@ -594,12 +590,12 @@ module Commands
     end
 
     if args.delete('--igv')
-      Utilities.ensure_igv_running
       if args.delete('--full')
         jruby_args << "-J-Dgraal.Dump=:2"
       else
         jruby_args << "-J-Dgraal.Dump=TruffleTree,PartialEscape:2"
       end
+      jruby_args << "-J-Dgraal.PrintGraphFile=true" unless igv_running?
       jruby_args << "-J-Dgraal.PrintBackendCFG=false"
     end
 
@@ -775,7 +771,7 @@ module Commands
         f[prefix.size..-1]
       }
       include_files.reject! { |f| f.include?('cext-ruby') } unless include_pattern.include?('cext-ruby')
-      
+
       exclude_files = if exclude_file
                         File.readlines(exclude_file).map { |l| l.gsub(/#.*/, '').strip }
                       else
@@ -818,7 +814,7 @@ module Commands
         name = File.basename(match[1])
         target_dir = if match[1].include?('/')
                        File.dirname(match[1])
-                     else 
+                     else
                       ''
                      end
         dest_dir = File.join(MRI_TEST_CEXT_LIB_DIR, target_dir)
