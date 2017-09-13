@@ -340,8 +340,19 @@ module ShellUtils
   end
 
   def sh(*args)
-    Dir.chdir(TRUFFLERUBY_DIR) do
+    chdir(TRUFFLERUBY_DIR) do
       raw_sh(*args)
+    end
+  end
+
+  def chdir(dir, &block)
+    raise LocalJumpError unless block_given?
+    if dir == Dir.pwd
+      yield
+    else
+      STDERR.puts "$ cd #{dir}"
+      Dir.chdir(dir, &block)
+      STDERR.puts "$ cd #{Dir.pwd}"
     end
   end
 
@@ -488,7 +499,7 @@ module Commands
       sh 'tool/generate-options.rb'
     when 'sulong'
       sulong = Utilities.find_or_clone_repo('https://github.com/graalvm/sulong.git')
-      Dir.chdir(sulong) do
+      chdir(sulong) do
         raw_sh 'git', 'pull'
         mx 'sforceimports'
         mx 'build', '--dependencies', 'SULONG'
@@ -662,8 +673,7 @@ module Commands
     # Make sure ruby.su is built
     raw_sh "make", chdir: "src/main/c"
 
-    Dir.chdir(ext_dir) do
-      STDERR.puts "in #{ext_dir} ..."
+    chdir(ext_dir) do
       run('-rmkmf', "extconf.rb") # -rmkmf is required for C ext tests
       if File.exists?('Makefile')
         raw_sh("make")
@@ -1059,12 +1069,13 @@ module Commands
         gem_home = File.realpath gem_home # remove symlinks
         puts "Using temporary GEM_HOME:#{gem_home}"
 
-        Dir.chdir(temp_dir) do
+        chdir(temp_dir) do
           puts "Cloning gem #{gem_name} into temp directory: #{temp_dir}"
           raw_sh('git', 'clone', info.fetch(:url))
         end
 
-        Dir.chdir(gem_checkout = File.join(temp_dir, gem_name)) do
+        gem_checkout = File.join(temp_dir, gem_name)
+        chdir(gem_checkout) do
           raw_sh('git', 'checkout', info.fetch(:commit)) if info.key?(:commit)
 
           environment = Utilities.no_gem_vars_env.merge(
@@ -1566,7 +1577,7 @@ module Commands
     end
 
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
-    Dir.chdir(dir) do
+    chdir(dir) do
       if LINUX
         jvmci_version = "jvmci-0.33"
         jvmci_grep = "#{dir}/openjdk1.8.0*#{jvmci_version}"
@@ -1602,7 +1613,7 @@ module Commands
       raw_sh "#{java_home}/bin/java", "-version"
 
       puts "Building graal"
-      Dir.chdir("#{dir}/graal/compiler") do
+      chdir("#{dir}/graal/compiler") do
         File.write("mx.compiler/env", "JAVA_HOME=#{java_home}\n")
         mx "build"
       end
