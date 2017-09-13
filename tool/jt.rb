@@ -51,15 +51,9 @@ trap(:INT) {}
 
 module Utilities
   def self.truffle_version
-    File.foreach("#{TRUFFLERUBY_DIR}/truffle/pom.rb") do |line|
-      if /'truffle\.version' => '((?:\d+\.\d+|\h+)(?:-SNAPSHOT)?)'/ =~ line
-        break $1
-      end
-    end
-  end
-
-  def self.truffle_release?
-    !truffle_version.include?('SNAPSHOT')
+    suite = File.read("#{TRUFFLERUBY_DIR}/mx.truffleruby/suite.py")
+    raise unless /"name": "truffle",.+?"version": "(\h{40})"/m =~ suite
+    $1
   end
 
   def self.find_graal_javacmd_and_options
@@ -115,7 +109,6 @@ module Utilities
     sibling_compiler = File.expand_path('../graal/compiler', TRUFFLERUBY_DIR)
     return nil unless Dir.exist?(sibling_compiler)
     return nil unless File.exist?("#{sibling_compiler}/mxbuild/dists/graal-compiler.jar")
-    return nil if Dir.exist?("#{TRUFFLERUBY_DIR}/mx.imports/binary/truffle")
     sibling_compiler
   end
 
@@ -1571,11 +1564,6 @@ module Commands
 
     build
 
-    env_file = "mx.truffleruby/env"
-    unless !File.exist?(env_file) || File.readlines(env_file).grep(/^MX_BINARY_SUITES=/).empty?
-      abort "You need to remove the MX_BINARY_SUITES line from #{env_file}"
-    end
-
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
     chdir(dir) do
       if LINUX
@@ -1613,7 +1601,9 @@ module Commands
       raw_sh "#{java_home}/bin/java", "-version"
 
       puts "Building graal"
+      graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
       chdir("#{dir}/graal/compiler") do
+        raw_sh "git", "checkout", Utilities.truffle_version
         File.write("mx.compiler/env", "JAVA_HOME=#{java_home}\n")
         mx "build"
       end
