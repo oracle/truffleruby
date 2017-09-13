@@ -7,8 +7,8 @@ svm-graal-enterprise-bench: {}
 
 jt: [ruby, tool/jt.rb]
 
-report-github-status: ["${BUILD_DIR}/tool/report-github-status.sh", "${REPORT_GITHUB_STATUS}", "${TRUFFLE_RUBY_VERSION}",
-  "${BUILD_NAME}", "${BUILD_NUMBER}", ${github-status-token}]
+report-github-status: ["$BUILD_DIR/tool/report-github-status.sh", "$REPORT_GITHUB_STATUS", "$TRUFFLE_RUBY_VERSION",
+  "$BUILD_NAME", "$BUILD_NUMBER", ${github-status-token}]
 
 common-base: ${labsjdk8} {
   downloads: {
