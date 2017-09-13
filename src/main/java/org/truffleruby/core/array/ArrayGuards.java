@@ -15,6 +15,9 @@ import org.truffleruby.language.RubyGuards;
 
 public class ArrayGuards {
 
+    // Partial Escape Analysis only considers < 32 elements
+    public static final int ARRAY_MAX_EXPLODE_SIZE = 16;
+
     // Enough to handle (all types + null) * (all types + null).
     public static final int ARRAY_STRATEGIES = 25;
 
