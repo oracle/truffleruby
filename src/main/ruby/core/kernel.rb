@@ -76,7 +76,7 @@ module Kernel
   module_function :Float
 
   def Hash(obj)
-    return {} if obj.nil? || obj == []
+    return {} if obj.equal?(nil) || obj == []
 
     if hash = Rubinius::Type.check_convert_type(obj, Hash, :to_hash)
       return hash
