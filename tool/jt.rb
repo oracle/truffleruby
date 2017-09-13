@@ -339,7 +339,7 @@ module ShellUtils
   end
 
   def chdir(dir, &block)
-    raise LocalJumpError unless block_given?
+    raise LocalJumpError, "no block given" unless block_given?
     if dir == Dir.pwd
       yield
     else
