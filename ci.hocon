@@ -10,6 +10,10 @@ jt: [ruby, tool/jt.rb]
 report-github-status: ["$BUILD_DIR/tool/report-github-status.sh", "$REPORT_GITHUB_STATUS", "$TRUFFLE_RUBY_VERSION",
   "$BUILD_NAME", "$BUILD_NUMBER", ${github-status-token}]
 
+report-github-status-pending: [
+  ${report-github-status} ["pending"]
+]
+
 common-base: ${labsjdk8} {
   downloads: {
     MAVEN_HOME: {name: maven, version: "3.3.9"}
@@ -25,8 +29,7 @@ common-base: ${labsjdk8} {
   prelude: [
     [export, "BUILD_DIR=$PWD"],
     ["export", ["echo", "TRUFFLE_RUBY_VERSION=", ["git", "rev-parse", "HEAD"], "|", "tr", "-d", "' '"]]
-    ${report-github-status} ["pending"],
-  ]
+  ] ${report-github-status-pending}
 
   build: [
     [mx, build, --force-javac, --warning-as-error]
