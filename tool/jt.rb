@@ -606,7 +606,7 @@ module Commands
       else
         jruby_args << "-J-Dgraal.Dump=TruffleTree,PartialEscape:2"
       end
-      jruby_args << "-J-Dgraal.PrintGraphFile=true" unless igv_running?
+      jruby_args << "-J-Dgraal.PrintGraphFile=true" unless Utilities.igv_running?
       jruby_args << "-J-Dgraal.PrintBackendCFG=false"
     end
 
