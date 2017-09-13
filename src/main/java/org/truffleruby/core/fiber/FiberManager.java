@@ -41,7 +41,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class FiberManager {
 
-    public static final String NAME_PREFIX = "Ruby Fiber@";
+    public static final String NAME_PREFIX = "Ruby Fiber";
 
     private final RubyContext context;
     private final DynamicObject rootFiber;
@@ -108,10 +108,9 @@ public class FiberManager {
 
     public void initialize(DynamicObject fiber, DynamicObject block, Node currentNode) {
         final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-        final String name = NAME_PREFIX + RubyLanguage.fileLine(sourceSection);
         final Thread thread = context.getLanguage().createThread(context,
                 () -> fiberMain(context, fiber, block, currentNode));
-        thread.setName(name);
+        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyLanguage.fileLine(sourceSection));
         thread.start();
 
         waitForInitialization(context, fiber, currentNode);

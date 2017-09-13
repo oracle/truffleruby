@@ -176,7 +176,7 @@ public class ThreadManager {
 
     private void threadMain(DynamicObject thread, Node currentNode, String info, Runnable task) {
         Layouts.THREAD.setSourceLocation(thread, info);
-        final String name = "Ruby Thread@" + info;
+        final String name = "Ruby Thread id=" + Thread.currentThread().getId() + " from " + info;
         Thread.currentThread().setName(name);
 
         start(thread);
