@@ -391,6 +391,7 @@ module Commands
           options                                    build the options
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
+      jt env                                         prints the current environment
       jt rebuild                                     clean, sforceimports, and build
       jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
       jt run [options] args...                       run JRuby with args
@@ -515,6 +516,32 @@ module Commands
     raise ArgumentError, "file not found:`#{file}`" if file.empty?
     sh dis, file
     puts Pathname(file).sub_ext('.ll')
+  end
+
+  def env
+    puts "Environment"
+    env_vars = %w[JAVA_HOME PATH RUBY_BIN GRAALVM_BIN
+                  GRAAL_HOME TRUFFLERUBY_RESILIENT_GEM_HOME
+                  JVMCI_BIN JVMCI_GRAAL_HOME GRAAL_JS_JAR
+                  SL_JAR OPENSSL_PREFIX AOT_BIN TRUFFLERUBY_CEXT_ENABLED
+                  TRUFFLERUBYOPT RUBYOPT]
+    env_vars.each do |e|
+      puts "#{e}: #{ENV[e].inspect}"
+    end
+    shell = -> command { raw_sh(*command.split, continue_on_failure: true) }
+    shell['ruby -v']
+    shell['uname -a']
+    shell['clang -v']
+    shell['opt -version']
+    shell['mx version']
+    sh('mx','sversions', continue_on_failure: true)
+    shell['git show -s --format=%H']
+    if ENV['OPENSSL_PREFIX']
+      shell["#{ENV['OPENSSL_PREFIX']}/bin/openssl version"] 
+    else
+      shell["openssl version"] 
+    end
+    shell['java -version']
   end
 
   def rebuild
