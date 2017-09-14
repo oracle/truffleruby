@@ -13,7 +13,7 @@ describe "st hash table function" do
       @s.st_init_numtable.should == 0
     end
   end
-  
+
   describe "st_init_numtable_with_size" do
     it "initializes without error" do
       @s.st_init_numtable_with_size.should == 0

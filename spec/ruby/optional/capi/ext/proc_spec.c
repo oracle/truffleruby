@@ -18,8 +18,8 @@ VALUE proc_spec_rb_proc_new(VALUE self) {
 #endif
 
 #ifdef HAVE_RB_PROC_ARITY
-int proc_spec_rb_proc_arity(VALUE self, VALUE prc) {
-  return rb_proc_arity(prc);
+VALUE proc_spec_rb_proc_arity(VALUE self, VALUE prc) {
+  return INT2FIX(rb_proc_arity(prc));
 }
 #endif
 
