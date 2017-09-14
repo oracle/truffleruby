@@ -310,7 +310,7 @@ module Rubinius
       r = check_funcall(obj, meth)
       if undefined.equal?(r)
         if raise_on_error
-          raise TypeError, "can't convert #{obj} into #{cls} with #{meth}"
+          raise TypeError, "can't convert #{obj.class} into #{cls} with #{meth}"
         end
         return nil
       end
