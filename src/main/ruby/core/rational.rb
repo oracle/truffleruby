@@ -292,11 +292,11 @@ class Rational < Numeric
   end
 
   def self.convert(num, den, mathn = true)
-    if num.nil? || den.nil?
+    if num.equal?(nil) || den.equal?(nil)
       raise TypeError, 'cannot convert nil into Rational'
     end
 
-    if num.kind_of?(Integer) && den.kind_of?(Integer)
+    if Integer === num && Integer === den
       return reduce(num, den, mathn)
     end
 
@@ -314,10 +314,10 @@ class Rational < Numeric
       den = den.to_r
     end
 
-    if den.equal?(1) && !num.kind_of?(Integer)
+    if den.equal?(1) && !(Integer === num)
       return Rubinius::Type.coerce_to(num, Rational, :to_r)
-    elsif num.kind_of?(Numeric) && den.kind_of?(Numeric) &&
-        !(num.kind_of?(Integer) && den.kind_of?(Integer))
+    elsif Numeric === num && Numeric === den &&
+        !(Integer === num && Integer === den)
       return num / den
     end
 
