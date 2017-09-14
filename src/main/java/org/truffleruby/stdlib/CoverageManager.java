@@ -102,6 +102,7 @@ public class CoverageManager {
                                 lineNumber = lineToIndex(sourceSection.getStartLine());
                                 counters = getCounters(sourceSection.getSource());
                             }
+
                             configured = true;
                         }
 
