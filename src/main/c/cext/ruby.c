@@ -1740,6 +1740,10 @@ VALUE rb_hash_aref(VALUE hash, VALUE key) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_hash_aref", hash, key);
 }
 
+VALUE rb_hash_fetch(VALUE hash, VALUE key) {
+  return (VALUE) truffle_invoke(hash, "fetch", key);
+}
+
 VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE value) {
   return (VALUE) truffle_invoke(hash, "[]=", key, value);
   return value;
