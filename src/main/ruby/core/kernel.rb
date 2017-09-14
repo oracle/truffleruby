@@ -134,22 +134,10 @@ module Kernel
   module_function :Rational
 
   def String(obj)
-    return obj if obj.kind_of? String
-
-    unless obj.respond_to?(:to_s)
-      raise TypeError, "can't convert #{obj.class} into String"
+    str = Rubinius::Type.rb_check_convert_type(obj, String, :to_str)
+    if str.nil?
+      str = Rubinius::Type.rb_convert_type(obj, String, :to_s)
     end
-
-    begin
-      str = obj.to_s
-    rescue NoMethodError
-      raise TypeError, "can't convert #{obj.class} into String"
-    end
-
-    unless str.kind_of? String
-      raise TypeError, '#to_s did not return a String'
-    end
-
     str
   end
   module_function :String
