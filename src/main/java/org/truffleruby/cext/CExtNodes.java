@@ -911,22 +911,22 @@ public class CExtNodes {
 
         @Specialization
         public DynamicObject threadWaitFDNode(int fd) {
-            final FDSet fdSet = getContext().getNativePlatform().createFDSet();
+            try (FDSet fdSet = getContext().getNativePlatform().createFDSet()) {
+                getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
+                    fdSet.set(fd);
+                    final int result = nativeSockets().select(fd + 1,
+                            fdSet.getPointer(),
+                            Pointer.JNR_NULL,
+                            Pointer.JNR_NULL,
+                            null);
 
-            getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
-                fdSet.set(fd);
-                final int result = nativeSockets().select(fd + 1,
-                        fdSet.getPointer(),
-                        Pointer.JNR_NULL,
-                        Pointer.JNR_NULL,
-                        null);
+                    if (result == 0) {
+                        return null;
+                    }
 
-                if (result == 0) {
-                    return null;
-                }
-
-                return result;
-            });
+                    return result;
+                });
+            }
 
             return nil();
         }
@@ -938,22 +938,22 @@ public class CExtNodes {
 
         @Specialization
         public int threadFDWritableNode(int fd) {
-            final FDSet fdSet = getContext().getNativePlatform().createFDSet();
+            try (FDSet fdSet = getContext().getNativePlatform().createFDSet()) {
+                return getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
+                    fdSet.set(fd);
+                    final int result = nativeSockets().select(fd + 1,
+                            Pointer.JNR_NULL,
+                            fdSet.getPointer(),
+                            Pointer.JNR_NULL,
+                            null);
 
-            return getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
-                fdSet.set(fd);
-                final int result = nativeSockets().select(fd + 1,
-                        Pointer.JNR_NULL,
-                        fdSet.getPointer(),
-                        Pointer.JNR_NULL,
-                        null);
+                    if (result == 0) {
+                        return null;
+                    }
 
-                if (result == 0) {
-                    return null;
-                }
-
-                return result;
-            });
+                    return result;
+                });
+            }
         }
 
     }

@@ -32,6 +32,7 @@ public interface NativePlatform {
 
     RubiniusConfiguration getRubiniusConfiguration();
 
+    /** Use with a try-with-resources statement to release memory */
     FDSet createFDSet();
 
     Pointer createSigAction(long handler);
