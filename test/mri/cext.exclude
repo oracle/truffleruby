@@ -42,6 +42,5 @@ cext-ruby/exception/test_ensured.rb
 cext-ruby/popen_deadlock/test_popen_deadlock.rb
 cext-ruby/test_recursion.rb
 cext-ruby/vm/test_at_exit.rb
-cext-ruby/wait_for_single_fd/test_wait_for_single_fd.rb
 cext-ruby/funcall/test_passing_block.rb
 cext-ruby/iseq_load/test_iseq_load.rb

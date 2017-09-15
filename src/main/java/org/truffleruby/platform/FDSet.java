@@ -10,7 +10,7 @@
 
 package org.truffleruby.platform;
 
-import jnr.ffi.Pointer;
+import org.truffleruby.extra.ffi.Pointer;
 
 public interface FDSet extends AutoCloseable {
 

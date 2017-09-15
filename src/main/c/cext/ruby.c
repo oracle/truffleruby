@@ -2697,7 +2697,13 @@ void rb_thread_wait_fd(int fd) {
 }
 
 int rb_wait_for_single_fd(int fd, int events, struct timeval *tv) {
-  rb_tr_error("rb_wait_for_single_fd not implemented");
+  long tv_sec = -1;
+  long tv_usec = -1;
+  if (tv != NULL) {
+    tv_sec = tv->tv_sec;
+    tv_usec = tv->tv_usec;
+  }
+  return truffle_invoke_i(RUBY_CEXT, "rb_wait_for_single_fd", fd, events, tv_sec, tv_usec);
 }
 
 NORETURN(void rb_eof_error(void)) {
