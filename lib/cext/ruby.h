@@ -466,6 +466,8 @@ void rb_num_zerodiv(void);
 
 #define NUM2SIZET(x) NUM2ULONG(x)
 #define NUM2SSIZET(x) NUM2LONG(x)
+#define SIZET2NUM(v) ULONG2NUM(v)
+#define SSIZET2NUM(v) LONG2NUM(v)
 
 LONG_LONG rb_num2ll(VALUE val);
 #define NUM2LL(x) rb_num2ll(x)
