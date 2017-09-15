@@ -10,6 +10,7 @@
 package org.truffleruby;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.CompilerOptions;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -54,6 +55,7 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 
@@ -400,6 +402,7 @@ public class RubyContext {
     }
 
     // Returns a canonical path to the home
+    @TruffleBoundary
     private String findRubyHome() throws IOException {
         // Use the option if it was set
 
@@ -411,16 +414,43 @@ public class RubyContext {
             return home.getCanonicalPath();
         }
 
+        StringBuilder warning = new StringBuilder("TruffleRuby's home was not explicitly set.\n");
+
         if (!options.LAUNCHER.isEmpty()) {
-            final File candidate = Paths.get(options.LAUNCHER).getParent().getParent().toFile();
+            final Path canonicalLauncherPath = Paths.get(new File(options.LAUNCHER).getCanonicalPath());
+            final File candidate = canonicalLauncherPath.getParent().getParent().toFile();
             if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
+            } else {
+                warning.append("* Default path '").
+                        append(candidate).
+                        append("' derived from executable '").
+                        append(options.LAUNCHER).
+                        append("' does not appear to be TruffleRuby's home.\n");
             }
-            Log.LOGGER.warning(
-                    "TruffleRuby's home not explicitly set, default path '" + candidate +
-                            "' derived from executable '" + options.LAUNCHER
-                            + "' does not appear to be TruffleRuby's home either. Use -Xhome=<path> option.");
+        } else {
+            warning.append("* Launcher not set, home path could not be derived.\n");
         }
+
+        final String graalVMHome = System.getProperty("graalvm.home");
+        if (graalVMHome != null) {
+            final File candidate = Paths.get(graalVMHome).resolve("jre/languages/ruby").toFile();
+            if (isRubyHome(candidate)) {
+                return candidate.getCanonicalPath();
+            } else {
+                warning.append("* Path '").
+                        append(candidate).
+                        append("' derived from GraalVM home '").
+                        append(graalVMHome).
+                        append("' does not appear to be TruffleRuby's home.\n");
+
+            }
+        } else {
+            warning.append("* GraalVM home not found.\n");
+        }
+
+        warning.append("* Try to set home using -Xhome=PATH option.");
+        Log.LOGGER.warning(warning.toString());
 
         return null;
     }
