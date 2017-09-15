@@ -914,17 +914,11 @@ public class CExtNodes {
             try (FDSet fdSet = getContext().getNativePlatform().createFDSet()) {
                 getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
                     fdSet.set(fd);
-                    final int result = nativeSockets().select(fd + 1,
+                    return nativeSockets().select(fd + 1,
                             fdSet.getPointer(),
                             Pointer.JNR_NULL,
                             Pointer.JNR_NULL,
                             null);
-
-                    if (result == 0) {
-                        return null;
-                    }
-
-                    return result;
                 });
             }
 
@@ -941,17 +935,11 @@ public class CExtNodes {
             try (FDSet fdSet = getContext().getNativePlatform().createFDSet()) {
                 return getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
                     fdSet.set(fd);
-                    final int result = nativeSockets().select(fd + 1,
+                    return nativeSockets().select(fd + 1,
                             Pointer.JNR_NULL,
                             fdSet.getPointer(),
                             Pointer.JNR_NULL,
                             null);
-
-                    if (result == 0) {
-                        return null;
-                    }
-
-                    return result;
                 });
             }
         }
