@@ -625,7 +625,7 @@ public abstract class VMPrimitiveNodes {
             final String[] convertedCommandLine = convertToJava(args);
             final String[] convertedEnv = convertToJava(env);
 
-            final int ret = posix().exec(convertedCommand, convertedCommandLine, convertedEnv);
+            final int ret = posix().execve(convertedCommand, convertedCommandLine, convertedEnv);
 
             if (ret == -1) {
                 throw new RaiseException(coreExceptions().errnoError(posix().errno(), this));

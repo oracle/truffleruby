@@ -31,7 +31,7 @@ public interface TrufflePosix {
     int fchmod(int fd, int mode);
     int chown(String filename, int user, int group);
     int fchown(int fd, int user, int group);
-    int exec(String path, String[] argv, String[] envp);
+    int execve(String path, String[] argv, String[] envp);
     int fstat(int fd, FileStat stat);
     String getenv(String envName);
     int getegid();
