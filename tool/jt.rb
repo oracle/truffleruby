@@ -477,7 +477,7 @@ module Commands
     super(*args)
   end
 
-  BUILD_OPTIONS = %w[parser options sulong]
+  BUILD_OPTIONS = %w[parser options cexts sulong]
 
   def build(*options)
     project = options.first
@@ -498,6 +498,8 @@ module Commands
         mx 'sforceimports'
         mx 'build', '--dependencies', 'SULONG'
       end
+    when "cexts" # Included in 'mx build' but useful to recompile just that part
+      raw_sh "make", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
     when nil
       mx 'sforceimports'
       mx 'build', '--force-javac', '--warning-as-error'
@@ -691,7 +693,7 @@ module Commands
     raise "#{extconf} does not exist" unless File.exist?(extconf)
 
     # Make sure ruby.su is built
-    raw_sh "make", chdir: "src/main/c"
+    build("cexts")
 
     chdir(ext_dir) do
       run('-rmkmf', "extconf.rb") # -rmkmf is required for C ext tests
@@ -1177,6 +1179,11 @@ module Commands
 
     if ENV['CI']
       options += %w[--format specdoc]
+    end
+
+    if args.any? { |arg| arg.include? 'optional/capi' } or
+        args.include?(':capi') or args.include?(':openssl')
+      build("cexts")
     end
 
     mspec env_vars, command, *options, *args

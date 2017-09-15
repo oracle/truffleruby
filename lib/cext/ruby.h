@@ -466,6 +466,8 @@ void rb_num_zerodiv(void);
 
 #define NUM2SIZET(x) NUM2ULONG(x)
 #define NUM2SSIZET(x) NUM2LONG(x)
+#define SIZET2NUM(v) ULONG2NUM(v)
+#define SSIZET2NUM(v) LONG2NUM(v)
 
 LONG_LONG rb_num2ll(VALUE val);
 #define NUM2LL(x) rb_num2ll(x)
@@ -919,6 +921,7 @@ VALUE rb_Hash(VALUE obj);
 VALUE rb_hash(VALUE obj);
 VALUE rb_hash_new(void);
 VALUE rb_hash_aref(VALUE hash, VALUE key);
+VALUE rb_hash_fetch(VALUE hash, VALUE key);
 VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE value);
 VALUE rb_hash_dup(VALUE);
 VALUE rb_hash_lookup(VALUE hash, VALUE key);

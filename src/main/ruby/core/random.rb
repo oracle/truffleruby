@@ -144,7 +144,7 @@ class Random
   def self.new_seed
     Thread.current.randomizer.generate_seed
   end
-  
+
   def self.raw_seed(size)
     raise ArgumentError, 'negative string size (or size too big)' if size < 0
     self.new.bytes(size)
@@ -194,3 +194,5 @@ class Random
     Truffle.invoke_primitive :randomizer_bytes, @randomizer, length
   end
 end
+
+Random::DEFAULT = Random.new
