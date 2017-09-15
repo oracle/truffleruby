@@ -1738,18 +1738,6 @@ module Truffle::CExt
     $VERBOSE
   end
 
-  def rb_syserr_fail(errno, message)
-    raise SystemCallError.new(message, errno)
-  end
-
-  def rb_sys_fail(message)
-    if message.nil?
-      raise Errno::EPERM
-    else
-      raise SystemCallError, message
-    end
-  end
-
   def rb_time_nano_new(sec, nsec)
     Time.at sec, Rational(nsec, 1000)
   end
