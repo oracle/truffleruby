@@ -946,6 +946,21 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_syserr_fail", onSingleton = true, required = 2)
+    public abstract static class RbSysErrFail extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isNil(nil)")
+        public Object rbSysErrFailNoMessage(int errno, DynamicObject nil) {
+            throw new RaiseException(coreExceptions().errnoError(errno, "", this));
+        }
+
+        @Specialization(guards = "isRubyString(message)")
+        public Object rbSysErrFail(int errno, DynamicObject message) {
+            throw new RaiseException(coreExceptions().errnoError(errno, StringOperations.getString(message), this));
+        }
+
+    }
+
     @CoreMethod(names = "rb_backref_get", onSingleton = true)
     public abstract static class BackRefGet extends CoreMethodNode {
 

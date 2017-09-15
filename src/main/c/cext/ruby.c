@@ -2181,7 +2181,13 @@ void rb_syserr_fail(int eno, const char *message) {
 }
 
 void rb_sys_fail(const char *message) {
-  truffle_invoke(RUBY_CEXT, "rb_sys_fail", message == NULL ? Qnil : rb_str_new_cstr(message));
+  int n = errno;
+  errno = 0;
+
+  if (n == 0) {
+    rb_bug("rb_sys_fail(%s) - errno == 0", message ? message : "");
+  }
+  rb_syserr_fail(n, message);
 }
 
 VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2) {
