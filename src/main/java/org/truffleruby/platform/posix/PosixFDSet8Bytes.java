@@ -10,8 +10,8 @@
 
 package org.truffleruby.platform.posix;
 
-import jnr.ffi.Pointer;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.FDSet;
 
 public class PosixFDSet8Bytes implements FDSet {
@@ -23,7 +23,7 @@ public class PosixFDSet8Bytes implements FDSet {
     private final Pointer bitmap;
 
     public PosixFDSet8Bytes() {
-        bitmap = jnr.ffi.Runtime.getSystemRuntime().getMemoryManager().allocateDirect(MAX_FDS / 8);
+        bitmap = Pointer.calloc(MAX_FDS / 8);
     }
 
     public void set(int fd) {
