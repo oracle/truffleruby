@@ -19,8 +19,9 @@ end
 
 options_data = YAML.load_file('tool/options.yml')
 
-options = options_data.map do |constant, (name, type, default, *description)|
-  description = description.join(', ')
+options = options_data.map do |constant, values|
+  raise "More than 4 arguments in #{values} for #{constant}" unless values.size == 4
+  (name, *mri_names), type, default, description = values
 
   case type
   when 'boolean'
@@ -37,9 +38,9 @@ options = options_data.map do |constant, (name, type, default, *description)|
     boxed_type = type
     default    = "#{type}.#{default.to_s.upcase}"
   when 'string'
-    type             = 'String'
-    boxed_type       = type
-    default          = default.nil? ? 'null' : "\"#{default.to_s}\""
+    type       = 'String'
+    boxed_type = type
+    default    = default.nil? ? 'null' : "\"#{default.to_s}\""
   when 'string-array'
     type             = 'String[]'
     boxed_type       = type
@@ -52,12 +53,14 @@ options = options_data.map do |constant, (name, type, default, *description)|
   OpenStruct.new(
       constant:          constant,
       name:              name,
+      mri_names:         mri_names,
       type:              type,
       type_description:  type_description || "#{boxed_type}OptionDescription",
       boxed_type:        boxed_type,
       default:           default,
       reference_default: /^[A-Z_]+$/.match(default),
-      description:       description
+      description:       description + (mri_names.empty? ?
+                                            '' : " (configured by #{mri_names.join(', ')} Ruby options)")
   )
 end
 
@@ -119,6 +122,11 @@ public class OptionsCatalog {
     <% options.each do |o| %>public static final <%= o.type_description %> <%= o.constant %> = new <%= o.type_description %>(
             "ruby.<%= o.name %>",
             "<%= o.description %>",
+            <%= if o.mri_names.empty?
+                  'null'
+                else
+                  'new String[]{' + o.mri_names.map(&:inspect).join(', ') + '}'
+                end %>,
             <%= o.reference_default ? o.default + '.getDefaultValue()' : o.default %>);
     <% end %>
     public static OptionDescription<?> fromName(String name) {

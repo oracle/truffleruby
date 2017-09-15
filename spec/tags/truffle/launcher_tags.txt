@@ -27,3 +27,11 @@ aot:The launcher allows -classpath in JAVA_OPTS
 slow:The launcher StringArray option appends multiple options
 slow:The launcher StringArray option parses ,
 slow:The launcher StringArray option parses , respecting escaping
+slow:The launcher prints the full java command with --jvm.cmd
+slow:The launcher takes options from system properties set on the command line using --jvm
+slow:The launcher '-J-classpath ' adds the jar
+slow:The launcher '-J-cp ' adds the jar
+slow:The launcher '-J:classpath ' adds the jar
+slow:The launcher '-J:cp ' adds the jar
+slow:The launcher '--jvm.classpath=' adds the jar
+slow:The launcher '--jvm.cp=' adds the jar

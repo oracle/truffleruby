@@ -19,8 +19,8 @@ public class StringArrayOptionDescription extends AppendableOptionDescription<St
 
     private final String[] defaultValue;
 
-    StringArrayOptionDescription(String name, String description, String[] defaultValue) {
-        super(name, description);
+    StringArrayOptionDescription(String name, String description, String[] rubyOptions, String[] defaultValue) {
+        super(name, description, rubyOptions);
         this.defaultValue = defaultValue;
     }
 
@@ -122,7 +122,7 @@ public class StringArrayOptionDescription extends AppendableOptionDescription<St
     }
 
     @Override
-    public String toString(Object value) {
+    public String valueToString(Object value) {
         String[] strings = (String[]) value;
         String[] escapedValues = new String[strings.length];
         for (int i = 0; i < strings.length; i++) {

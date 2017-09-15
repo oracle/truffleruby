@@ -10,10 +10,10 @@
 package org.truffleruby;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.CompilerOptions;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -55,8 +55,8 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.CodeSource;
 import java.util.logging.Level;
 
 public class RubyContext {
@@ -69,9 +69,7 @@ public class RubyContext {
     private final AllocationReporter allocationReporter;
 
     private final Options options;
-
     private final String rubyHome;
-    private String originalInputFile;
 
     private final RopeTable ropeTable = new RopeTable();
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
@@ -387,14 +385,6 @@ public class RubyContext {
         return encodingManager;
     }
 
-    public void setOriginalInputFile(String originalInputFile) {
-        this.originalInputFile = originalInputFile;
-    }
-
-    public String getOriginalInputFile() {
-        return originalInputFile;
-    }
-
     public String getRubyHome() {
         return rubyHome;
     }
@@ -412,6 +402,7 @@ public class RubyContext {
     }
 
     // Returns a canonical path to the home
+    @TruffleBoundary
     private String findRubyHome() throws IOException {
         // Use the option if it was set
 
@@ -423,57 +414,50 @@ public class RubyContext {
             return home.getCanonicalPath();
         }
 
-        // Try to find it automatically from the location of the JAR, but this won't work from the JRuby launcher as it uses the boot classpath
+        StringBuilder warning = new StringBuilder("TruffleRuby's home was not explicitly set.\n");
 
-        if (TruffleOptions.AOT) {
-            final String executablePath = (String) Compiler.command(new Object[]{"com.oracle.svm.core.posix.GetExecutableName"});
-            final String parentDirectory = new File(executablePath).getParent();
-
-            // Root of the GraalVM distribution.
-            File candidate = Paths.get(parentDirectory, "language", "ruby").toFile();
+        if (!options.LAUNCHER.isEmpty()) {
+            final Path canonicalLauncherPath = Paths.get(new File(options.LAUNCHER).getCanonicalPath());
+            final File candidate = canonicalLauncherPath.getParent().getParent().toFile();
             if (isRubyHome(candidate)) {
                 return candidate.getCanonicalPath();
-            }
-
-            // Root of the TruffleRuby source tree.
-            if (isRubyHome(new File(parentDirectory))) {
-                return new File(parentDirectory).getCanonicalPath();
-            }
-
-            // Nested mx build.
-            candidate = Paths.get(parentDirectory, "..", "..", "..", "truffleruby").toFile();
-            if (isRubyHome(candidate)) {
-                return candidate.getCanonicalPath();
+            } else {
+                warning.append("* Default path '").
+                        append(candidate).
+                        append("' derived from executable '").
+                        append(options.LAUNCHER).
+                        append("' does not appear to be TruffleRuby's home.\n");
             }
         } else {
-            final CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
-
-            if (codeSource != null && codeSource.getLocation().getProtocol().equals("file")) {
-                final File jar = new File(codeSource.getLocation().getFile()).getCanonicalFile();
-                final File jarDir = jar.getParentFile();
-
-                if (jarDir.toPath().endsWith(Paths.get("mxbuild", "dists"))) {
-                    final File candidate = jarDir.getParentFile().getParentFile();
-                    if (isRubyHome(candidate)) {
-                        // TruffleRuby Source build
-                        return candidate.getCanonicalPath();
-                    }
-                }
-
-                if (jarDir.getName().equals("ruby") && isRubyHome(jarDir)) {
-                    // GraalVM build or distribution
-                    return jarDir.getCanonicalPath();
-                }
-            }
+            warning.append("* Launcher not set, home path could not be derived.\n");
         }
 
-        Log.LOGGER.config("home not explicitly set, and couldn't determine it from the source of the Java classfiles or the TruffleRuby launcher");
+        final String graalVMHome = System.getProperty("graalvm.home");
+        if (graalVMHome != null) {
+            final File candidate = Paths.get(graalVMHome).resolve("jre/languages/ruby").toFile();
+            if (isRubyHome(candidate)) {
+                return candidate.getCanonicalPath();
+            } else {
+                warning.append("* Path '").
+                        append(candidate).
+                        append("' derived from GraalVM home '").
+                        append(graalVMHome).
+                        append("' does not appear to be TruffleRuby's home.\n");
+
+            }
+        } else {
+            warning.append("* GraalVM home not found.\n");
+        }
+
+        warning.append("* Try to set home using -Xhome=PATH option.");
+        Log.LOGGER.warning(warning.toString());
 
         return null;
     }
 
     private boolean isRubyHome(File path) {
-        return Paths.get(path.toString(), "lib", "ruby").toFile().isDirectory();
+        return Paths.get(path.toString(), "lib", "truffle").toFile().isDirectory() &&
+                Paths.get(path.toString(), "lib", "ruby").toFile().isDirectory();
     }
 
 }

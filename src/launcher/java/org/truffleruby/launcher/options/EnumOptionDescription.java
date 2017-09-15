@@ -19,8 +19,8 @@ public abstract class EnumOptionDescription<T extends Enum<T>> extends OptionDes
     private final Class<T> type;
     private final OptionType<T> optionType;
 
-    EnumOptionDescription(String name, String description, T defaultValue, Class<T> type) {
-        super(name, description);
+    EnumOptionDescription(String name, String description, String[] rubyOptions, T defaultValue, Class<T> type) {
+        super(name, description, rubyOptions);
         this.defaultValue = defaultValue;
         this.type = type;
         this.optionType = new OptionType<>(type.getName(), defaultValue, this::stringConverter);

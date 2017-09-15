@@ -19,458 +19,572 @@ public class OptionsCatalog {
     public static final StringOptionDescription HOME = new StringOptionDescription(
             "ruby.home",
             "The location of the TruffleRuby installation files",
+            null,
             "");
     public static final StringOptionDescription LAUNCHER = new StringOptionDescription(
             "ruby.launcher",
             "The location of the TruffleRuby launcher program",
+            null,
             "");
     public static final StringArrayOptionDescription LOAD_PATHS = new StringArrayOptionDescription(
             "ruby.load_paths",
-            "Load paths",
+            "Load paths (configured by -I Ruby options)",
+            new String[]{"-I"},
             new String[]{});
     public static final StringArrayOptionDescription REQUIRED_LIBRARIES = new StringArrayOptionDescription(
             "ruby.required_libraries",
-            "Required libraries",
+            "Required libraries (configured by -r Ruby options)",
+            new String[]{"-r"},
             new String[]{});
     public static final BooleanOptionDescription READ_RUBYOPT = new BooleanOptionDescription(
             "ruby.read_rubyopt",
             "Read RUBYOPT and TRUFFLERUBYOPT environment variables",
+            null,
             true);
     public static final BooleanOptionDescription IGNORE_LINES_BEFORE_RUBY_SHEBANG = new BooleanOptionDescription(
             "ruby.ignore_lines_before_ruby_shebang",
-            "strip off text before #!ruby line",
+            "strip off text before #!ruby line (configured by -x Ruby options)",
+            new String[]{"-x"},
             false);
     public static final StringOptionDescription WORKING_DIRECTORY = new StringOptionDescription(
             "ruby.working_directory",
-            "Interpreter will switch to this directory",
+            "Interpreter will switch to this directory (configured by -C Ruby options)",
+            new String[]{"-C"},
             "");
     public static final ExecutionActionOptionDescription EXECUTION_ACTION = new ExecutionActionOptionDescription(
             "ruby.execution_action",
-            "What should be done after context is created",
+            "What should be done after context is created (configured by -e, -S Ruby options)",
+            new String[]{"-e", "-S"},
             ExecutionAction.NONE);
     public static final StringOptionDescription TO_EXECUTE = new StringOptionDescription(
             "ruby.to_execute",
-            "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable.",
+            "A thing to be executed: a file, inline script, etc. Used by execution_action when applicable. (configured by -e, -S Ruby options)",
+            new String[]{"-e", "-S"},
             "");
     public static final DefaultExecutionActionOptionDescription DEFAULT_EXECUTION_ACTION = new DefaultExecutionActionOptionDescription(
             "ruby.default_execution_action",
             "What should be done when no action is set.",
+            null,
             DefaultExecutionAction.IRB);
     public static final BooleanOptionDescription SYNTAX_CHECK = new BooleanOptionDescription(
             "ruby.syntax_check",
-            "Do not execute just check syntax.",
+            "Do not execute just check syntax. (configured by -c Ruby options)",
+            new String[]{"-c"},
             false);
     public static final BooleanOptionDescription SHOW_VERSION = new BooleanOptionDescription(
             "ruby.show_version",
-            "Show version.",
+            "Show version. (configured by --version Ruby options)",
+            new String[]{"--version"},
             false);
     public static final BooleanOptionDescription SHOW_COPYRIGHT = new BooleanOptionDescription(
             "ruby.show_copyright",
-            "Show copyright.",
+            "Show copyright. (configured by --copyright Ruby options)",
+            new String[]{"--copyright"},
             false);
     public static final ShowHelpOptionDescription SHOW_HELP = new ShowHelpOptionDescription(
             "ruby.show_help",
-            "What help should be shown.",
+            "What help should be shown. (configured by -h, --help Ruby options)",
+            new String[]{"-h", "--help"},
             ShowHelp.NONE);
     public static final BooleanOptionDescription DEBUG = new BooleanOptionDescription(
             "ruby.debug",
-            "Debug",
+            "Debug (configured by -d Ruby options)",
+            new String[]{"-d"},
             false);
     public static final VerbosityOptionDescription VERBOSITY = new VerbosityOptionDescription(
             "ruby.verbosity",
-            "Verbosity",
+            "Verbosity (configured by -v, -w, -W, --verbose Ruby options)",
+            new String[]{"-v", "-w", "-W", "--verbose"},
             Verbosity.FALSE);
     public static final BooleanOptionDescription ARGV_GLOBALS = new BooleanOptionDescription(
             "ruby.argv_globals",
-            "Parse options in script argv into global variables.",
+            "Parse options in script argv into global variables. (configured by -s Ruby options)",
+            new String[]{"-s"},
             false);
     public static final StringArrayOptionDescription ARGV_GLOBAL_VALUES = new StringArrayOptionDescription(
             "ruby.argv_global_values",
             "Parsed options from script argv with a value.",
+            null,
             new String[]{});
     public static final StringArrayOptionDescription ARGV_GLOBAL_FLAGS = new StringArrayOptionDescription(
             "ruby.argv_global_flags",
             "Parsed options from script argv acting as flags (no value).",
+            null,
             new String[]{});
     public static final BooleanOptionDescription DEFAULT_LAZY = new BooleanOptionDescription(
             "ruby.lazy.default",
             "Enable default lazy options",
+            null,
             true);
     public static final BooleanOptionDescription FROZEN_STRING_LITERALS = new BooleanOptionDescription(
             "ruby.frozen_string_literals",
             "Use frozen string literals",
+            null,
             false);
     public static final BooleanOptionDescription RUBYGEMS = new BooleanOptionDescription(
             "ruby.rubygems",
             "Use RubyGems",
+            null,
             true);
     public static final BooleanOptionDescription LAZY_RUBYGEMS = new BooleanOptionDescription(
             "ruby.rubygems.lazy",
             "Load RubyGems lazily on first failing require",
+            null,
             DEFAULT_LAZY.getDefaultValue());
     public static final BooleanOptionDescription PATCHING = new BooleanOptionDescription(
             "ruby.patching",
             "Use patching",
+            null,
             true);
     public static final BooleanOptionDescription PATCHING_OPENSSL = new BooleanOptionDescription(
             "ruby.patching_openssl",
             "Use openssl patching",
+            null,
             false);
     public static final BooleanOptionDescription DID_YOU_MEAN = new BooleanOptionDescription(
             "ruby.did_you_mean",
             "Use did_you_mean",
+            null,
             true);
     public static final StringOptionDescription INTERNAL_ENCODING = new StringOptionDescription(
             "ruby.internal_encoding",
-            "Internal encoding",
+            "Internal encoding (configured by -E, -U Ruby options)",
+            new String[]{"-E", "-U"},
             "");
     public static final StringOptionDescription EXTERNAL_ENCODING = new StringOptionDescription(
             "ruby.external_encoding",
-            "External encoding",
+            "External encoding (configured by -E Ruby options)",
+            new String[]{"-E"},
             "");
     public static final BooleanOptionDescription POLYGLOT_STDIO = new BooleanOptionDescription(
             "ruby.ployglot.stdio",
             "Use standard IO streams from the PolyglotEngine",
+            null,
             true);
     public static final BooleanOptionDescription SYNC_STDIO = new BooleanOptionDescription(
             "ruby.sync.stdio",
             "Sync operations on standard IO streams",
+            null,
             true);
     public static final BooleanOptionDescription PLATFORM_USE_JAVA = new BooleanOptionDescription(
             "ruby.platform.use_java",
             "Use a pure-Java platform, so no native POSIX",
+            null,
             false);
     public static final BooleanOptionDescription NATIVE_INTERRUPT = new BooleanOptionDescription(
             "ruby.platform.native_interrupt",
             "Use the SIGVTALRM signal to interrupt native blocking calls",
+            null,
             true);
     public static final BooleanOptionDescription CEXT_LOCK = new BooleanOptionDescription(
             "ruby.cexts.lock",
             "Use a Global Lock when running C extensions",
+            null,
             true);
     public static final BooleanOptionDescription TRACE_CALLS = new BooleanOptionDescription(
             "ruby.trace.calls",
             "Support tracing (set_trace_func, TracePoint) of method calls",
+            null,
             true);
     public static final BooleanOptionDescription COVERAGE_GLOBAL = new BooleanOptionDescription(
             "ruby.coverage.global",
             "Run coverage for all code and print results on exit",
+            null,
             false);
     public static final BooleanOptionDescription INLINE_JS = new BooleanOptionDescription(
             "ruby.inline_js",
             "Allow inline JavaScript",
+            null,
             false);
     public static final StringOptionDescription CORE_LOAD_PATH = new StringOptionDescription(
             "ruby.core.load_path",
             "Location to load the Truffle core library from",
+            null,
             "resource:/truffleruby");
     public static final BooleanOptionDescription STDLIB_AS_INTERNAL = new BooleanOptionDescription(
             "ruby.stdlib_as_internal",
             "Mark stdlib sources (really, anything loaded from the TruffleRuby home) as internal",
+            null,
             true);
     public static final BooleanOptionDescription LAZY_BUILTINS = new BooleanOptionDescription(
             "ruby.lazy_builtins",
             "Load builtin classes (core methods & primitives) lazily on first use",
+            null,
             DEFAULT_LAZY.getDefaultValue());
     public static final BooleanOptionDescription LAZY_CORE_METHOD_NODES = new BooleanOptionDescription(
             "ruby.lazy_core_method_nodes",
             "Lazily create core method nodes",
+            null,
             DEFAULT_LAZY.getDefaultValue());
     public static final BooleanOptionDescription LAZY_TRANSLATION_CORE = new BooleanOptionDescription(
             "ruby.lazy_translation.core",
             "Lazily translation of core source files",
+            null,
             DEFAULT_LAZY.getDefaultValue());
     public static final BooleanOptionDescription LAZY_TRANSLATION_USER = new BooleanOptionDescription(
             "ruby.lazy_translation.user",
             "Lazily translation of stdlib, gem and user source files",
+            null,
             false);
     public static final BooleanOptionDescription LAZY_TRANSLATION_LOG = new BooleanOptionDescription(
             "ruby.lazy_translation.log",
             "Log lazy translations from the parser AST to the Truffle AST",
+            null,
             false);
     public static final IntegerOptionDescription ARRAY_UNINITIALIZED_SIZE = new IntegerOptionDescription(
             "ruby.array.uninitialized_size",
             "How large an Array to allocate when we have no other information to go on",
+            null,
             16);
     public static final IntegerOptionDescription ARRAY_SMALL = new IntegerOptionDescription(
             "ruby.array.small",
             "Maximum size of an Array to consider small for optimisations",
+            null,
             3);
     public static final IntegerOptionDescription HASH_PACKED_ARRAY_MAX = new IntegerOptionDescription(
             "ruby.hash.packed_array.max",
             "Maximum size of a Hash to consider using the packed array storage strategy for",
+            null,
             3);
     public static final BooleanOptionDescription ROPE_LAZY_SUBSTRINGS = new BooleanOptionDescription(
             "ruby.rope.lazy_substrings",
             "Indicates whether a substring operation on a rope should be performed lazily",
+            null,
             true);
     public static final BooleanOptionDescription ROPE_PRINT_INTERN_STATS = new BooleanOptionDescription(
             "ruby.rope.print_intern_stats",
             "Print interned rope stats at application exit",
+            null,
             false);
     public static final IntegerOptionDescription ROPE_DEPTH_THRESHOLD = new IntegerOptionDescription(
             "ruby.rope.depth_threshold",
             "Threshold value at which ropes will be rebalanced (indirectly controls flattening as well)",
+            null,
             128);
     public static final IntegerOptionDescription GLOBAL_VARIABLE_MAX_INVALIDATIONS = new IntegerOptionDescription(
             "ruby.global_variable.max_invalidations",
             "Maximum number of times a global variable can be changed to be considered constant",
+            null,
             1);
     public static final IntegerOptionDescription DEFAULT_CACHE = new IntegerOptionDescription(
             "ruby.default_cache",
             "Default size for caches",
+            null,
             8);
     public static final IntegerOptionDescription METHOD_LOOKUP_CACHE = new IntegerOptionDescription(
             "ruby.method_lookup.cache",
             "Method lookup cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription DISPATCH_CACHE = new IntegerOptionDescription(
             "ruby.dispatch.cache",
             "Dispatch (various forms of method call) cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription YIELD_CACHE = new IntegerOptionDescription(
             "ruby.yield.cache",
             "Yield cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription METHOD_TO_PROC_CACHE = new IntegerOptionDescription(
             "ruby.to_proc.cache",
             "Method#to_proc cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription IS_A_CACHE = new IntegerOptionDescription(
             "ruby.is_a.cache",
             "Kernel#is_a? and #kind_of? cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription BIND_CACHE = new IntegerOptionDescription(
             "ruby.bind.cache",
             "Cache size of test for being able to bind a method to a module",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription CONSTANT_CACHE = new IntegerOptionDescription(
             "ruby.constant.cache",
             "Constant cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INSTANCE_VARIABLE_CACHE = new IntegerOptionDescription(
             "ruby.instance_variable.cache",
             "Instance variable cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription BINDING_LOCAL_VARIABLE_CACHE = new IntegerOptionDescription(
             "ruby.binding_local_variable.cache",
             "Binding#local_variable_get/set cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription SYMBOL_TO_PROC_CACHE = new IntegerOptionDescription(
             "ruby.symbol_to_proc.cache",
             "Symbol#to_proc cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription ALLOCATE_CLASS_CACHE = new IntegerOptionDescription(
             "ruby.allocate_class.cache",
             "Allocation size class cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription PACK_CACHE = new IntegerOptionDescription(
             "ruby.pack.cache",
             "Array#pack cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription UNPACK_CACHE = new IntegerOptionDescription(
             "ruby.unpack.cache",
             "String#unpack cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription EVAL_CACHE = new IntegerOptionDescription(
             "ruby.eval.cache",
             "eval cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription CLASS_CACHE = new IntegerOptionDescription(
             "ruby.class.cache",
             ".class and .metaclass cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription ENCODING_COMPATIBLE_QUERY_CACHE = new IntegerOptionDescription(
             "ruby.encoding_compatible_query.cache",
             "Encoding.compatible? cache size",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription ENCODING_LOADED_CLASSES_CACHE = new IntegerOptionDescription(
             "ruby.encoding_loaded_classes.cache",
             "Cache size of encoding operations based on anticipated number of total active encodings",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription THREAD_CACHE = new IntegerOptionDescription(
             "ruby.thread.cache",
             "Cache size of operations that depend on a particular thread",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription ROPE_CLASS_CACHE = new IntegerOptionDescription(
             "ruby.rope_class.cache",
             "Cache size for rope operations that depend on a concrete rope implementation to avoid virtual calls",
+            null,
             6);
     public static final IntegerOptionDescription INTEROP_CONVERT_CACHE = new IntegerOptionDescription(
             "ruby.interop.convert.cache",
             "Cache size for converting values for interop",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INTEROP_EXECUTE_CACHE = new IntegerOptionDescription(
             "ruby.interop.execute.cache",
             "Cache size for interop EXECUTE messages",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INTEROP_READ_CACHE = new IntegerOptionDescription(
             "ruby.interop.read.cache",
             "Cache size for interop READ messages",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INTEROP_WRITE_CACHE = new IntegerOptionDescription(
             "ruby.interop.write.cache",
             "Cache size for interop WRITE messages",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INTEROP_INVOKE_CACHE = new IntegerOptionDescription(
             "ruby.interop.invoke.cache",
             "Cache size for interop INVOKE messages",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription INTEROP_NEW_CACHE = new IntegerOptionDescription(
             "ruby.interop.new.cache",
             "Cache size for interop NEW messages",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription TIME_FORMAT_CACHE = new IntegerOptionDescription(
             "ruby.time.format.cache",
             "Cache size for parsed time format specifiers",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final IntegerOptionDescription POW_CACHE = new IntegerOptionDescription(
             "ruby.integer.pow.cache",
             "Cache size for Integer#** with a constant exponent",
+            null,
             DEFAULT_CACHE.getDefaultValue());
     public static final BooleanOptionDescription CLONE_DEFAULT = new BooleanOptionDescription(
             "ruby.clone.default",
             "Default option for cloning",
+            null,
             true);
     public static final BooleanOptionDescription INLINE_DEFAULT = new BooleanOptionDescription(
             "ruby.inline.default",
             "Default option for inlining",
+            null,
             true);
     public static final BooleanOptionDescription CORE_ALWAYS_CLONE = new BooleanOptionDescription(
             "ruby.core.always_clone",
             "Always clone built-in core methods",
+            null,
             CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription INLINE_NEEDS_CALLER_FRAME = new BooleanOptionDescription(
             "ruby.inline_needs_caller_frame",
             "Inline methods that need their caller frame",
+            null,
             INLINE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription YIELD_ALWAYS_CLONE = new BooleanOptionDescription(
             "ruby.yield.always_clone",
             "Always clone yields",
+            null,
             CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription YIELD_ALWAYS_INLINE = new BooleanOptionDescription(
             "ruby.yield.always_inline",
             "Always inline yields",
+            null,
             INLINE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription METHODMISSING_ALWAYS_CLONE = new BooleanOptionDescription(
             "ruby.method_missing.always_clone",
             "Always clone #method_missing",
+            null,
             CLONE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription METHODMISSING_ALWAYS_INLINE = new BooleanOptionDescription(
             "ruby.method_missing.always_inline",
             "Always inline #method_missing",
+            null,
             INLINE_DEFAULT.getDefaultValue());
     public static final BooleanOptionDescription CALL_WITH_BLOCK_ALWAYS_CLONE = new BooleanOptionDescription(
             "ruby.call_with_block.always_clone",
             "Always clone calls with a literal block",
+            null,
             CLONE_DEFAULT.getDefaultValue());
     public static final IntegerOptionDescription PACK_UNROLL_LIMIT = new IntegerOptionDescription(
             "ruby.pack.unroll",
             "If a pack or unpack expression has a loop less than this many iterations, unroll it",
+            null,
             4);
     public static final IntegerOptionDescription PACK_RECOVER_LOOP_MIN = new IntegerOptionDescription(
             "ruby.pack.recover",
             "If a pack or unpack expression is longer than this, attempt to recover loops",
+            null,
             32);
     public static final BooleanOptionDescription EXCEPTIONS_STORE_JAVA = new BooleanOptionDescription(
             "ruby.exceptions.store_java",
             "Store the Java exception with the Ruby backtrace",
+            null,
             false);
     public static final BooleanOptionDescription EXCEPTIONS_PRINT_JAVA = new BooleanOptionDescription(
             "ruby.exceptions.print_java",
             "Print Java exceptions at the point of translating them to Ruby exceptions",
+            null,
             false);
     public static final BooleanOptionDescription EXCEPTIONS_PRINT_UNCAUGHT_JAVA = new BooleanOptionDescription(
             "ruby.exceptions.print_uncaught_java",
             "Print uncaught Java exceptions at the point of translating them to Ruby exceptions",
+            null,
             false);
     public static final BooleanOptionDescription EXCEPTIONS_PRINT_RUBY_FOR_JAVA = new BooleanOptionDescription(
             "ruby.exceptions.print_ruby_for_java",
             "When printing a Java backtrace, also print the Ruby backtrace at that point",
+            null,
             false);
     public static final BooleanOptionDescription EXCEPTIONS_TRANSLATE_ASSERT = new BooleanOptionDescription(
             "ruby.exceptions.translate_assert",
             "Translate failed Java assertions to Ruby exceptions",
+            null,
             true);
     public static final BooleanOptionDescription EXCEPTIONS_WARN_STACKOVERFLOW = new BooleanOptionDescription(
             "ruby.exceptions.warn_stackoverflow",
             "Warn when a stack overflow error is thrown",
+            null,
             true);
     public static final BooleanOptionDescription EXCEPTIONS_WARN_OUT_OF_MEMORY = new BooleanOptionDescription(
             "ruby.exceptions.warn_out_of_memory",
             "Warn when an out-of-memory error is thrown",
+            null,
             true);
     public static final BooleanOptionDescription BACKTRACES_HIDE_CORE_FILES = new BooleanOptionDescription(
             "ruby.backtraces.hide_core_files",
             "Hide core source files in backtraces, like MRI does",
+            null,
             true);
     public static final BooleanOptionDescription BACKTRACES_INTERLEAVE_JAVA = new BooleanOptionDescription(
             "ruby.backtraces.interleave_java",
             "Interleave Java stacktraces into the Ruby backtrace",
+            null,
             false);
     public static final IntegerOptionDescription BACKTRACES_LIMIT = new IntegerOptionDescription(
             "ruby.backtraces.limit",
             "Limit the size of Ruby backtraces",
+            null,
             9999);
     public static final BooleanOptionDescription BACKTRACES_OMIT_UNUSED = new BooleanOptionDescription(
             "ruby.backtraces.omit_unused",
             "Omit backtraces that should be unused as they have pure rescue expressions",
+            null,
             true);
     public static final BooleanOptionDescription BASICOPS_INLINE = new BooleanOptionDescription(
             "ruby.basic_ops.inline",
             "Inline basic operations (like Fixnum operators) in the AST without a call",
+            null,
             true);
     public static final BooleanOptionDescription GRAAL_WARNING_UNLESS = new BooleanOptionDescription(
             "ruby.graal.warn_unless",
             "Warn unless the JVM has the Graal compiler",
+            null,
             true);
     public static final BooleanOptionDescription SHARED_OBJECTS_ENABLED = new BooleanOptionDescription(
             "ruby.shared.objects",
             "Enable shared objects",
+            null,
             true);
     public static final BooleanOptionDescription SHARED_OBJECTS_DEBUG = new BooleanOptionDescription(
             "ruby.shared.objects.debug",
             "Print information about shared objects",
+            null,
             false);
     public static final BooleanOptionDescription SHARED_OBJECTS_FORCE = new BooleanOptionDescription(
             "ruby.shared.objects.force",
             "Force sharing of objects roots at startup",
+            null,
             false);
     public static final BooleanOptionDescription SHARED_OBJECTS_SHARE_ALL = new BooleanOptionDescription(
             "ruby.shared.objects.share_all",
             "Consider all objects as shared",
+            null,
             false);
     public static final BooleanOptionDescription CEXTS_LOG_LOAD = new BooleanOptionDescription(
             "ruby.cexts.log.load",
             "Log loading of cexts",
+            null,
             false);
     public static final BooleanOptionDescription CEXTS_LOG_WARNINGS = new BooleanOptionDescription(
             "ruby.cexts.log.warnings",
             "Log cexts warnings",
+            null,
             false);
     public static final StringArrayOptionDescription CEXTS_LIBRARY_REMAP = new StringArrayOptionDescription(
             "ruby.cexts.remap",
             "Remap the name of native libraries, written in the form libexample.so=path/to/actual/libexample.so",
+            null,
             new String[]{});
     public static final BooleanOptionDescription LOG_DYNAMIC_CONSTANT_LOOKUP = new BooleanOptionDescription(
             "ruby.constant.dynamic_lookup.log",
             "Log source code positions where dynamic constant lookup is performed",
+            null,
             false);
     public static final BooleanOptionDescription OPTIONS_LOG = new BooleanOptionDescription(
             "ruby.options.log",
             "Log the final value of all options",
+            null,
             false);
     public static final BooleanOptionDescription LOG_LOAD = new BooleanOptionDescription(
             "ruby.log.load",
             "Log loading files",
+            null,
             false);
     public static final BooleanOptionDescription LOG_FEATURE_LOCATION = new BooleanOptionDescription(
             "ruby.log.feature_location",
             "Log the process of finding features",
+            null,
             false);
     public static final IntegerOptionDescription FRAME_VARIABLE_ACCESS_LIMIT = new IntegerOptionDescription(
             "ruby.frame.variable.access.limit",
             "Maximum number of specialisations for nodes which access variables in another frame",
+            null,
             5);
     
     public static OptionDescription<?> fromName(String name) {

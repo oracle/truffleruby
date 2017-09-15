@@ -91,14 +91,15 @@ arguments in the same way it stops processing of Ruby arguments.
 ## JVM- and SVM-specific switches
 
 If you are running TruffleRuby on a JVM or the GraalVM, we additionally support
-passing options to the JVM using either a `-J-` or `-J:` prefix. For example
-`-J-ea` or `-J:ea`. `-J-classpath` and `-J-cp` (or the `-J:` variants) also
-implicitly take the following argument to be passed to the JVM. `-J-cmd` or
-`-J:cmd` print the Java command that will be executed, for debugging.
+passing options to the JVM using either a `-J-`, `-J:`, or `--jvm.` prefix. 
+For example `-J-ea` or `-J:ea`. `-J-classpath` and `-J-cp` (or the `-J:` 
+variants) also implicitly take the following argument to be passed to the JVM. 
+`-J-cmd` or `-J:cmd` print the Java command that will be executed, for 
+debugging.
 
 ```
 JVM switches:
-  -J-arg, -J:arg   pass arg to the JVM
+  -J-arg, -J:arg, --jvm.arg      pass arg to the JVM
 ```
 
 `--` or the first non-option argument both stop processing of JVM-specific

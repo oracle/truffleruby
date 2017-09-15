@@ -11,12 +11,8 @@ package org.truffleruby.launcher.options;
 
 public class ShowHelpOptionDescription extends EnumOptionDescription<ShowHelp> {
 
-    ShowHelpOptionDescription(
-            String name,
-            String description,
-            ShowHelp defaultValue) {
-
-        super(name, description, defaultValue, ShowHelp.class);
+    ShowHelpOptionDescription(String name, String description, String[] rubyOptions, ShowHelp defaultValue) {
+        super(name, description, rubyOptions, defaultValue, ShowHelp.class);
     }
 
 }

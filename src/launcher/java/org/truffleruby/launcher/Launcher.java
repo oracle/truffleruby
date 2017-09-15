@@ -53,8 +53,11 @@ import org.truffleruby.launcher.options.CommandLineParser;
 import org.truffleruby.launcher.options.ExecutionAction;
 import org.truffleruby.launcher.options.OptionsCatalog;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
+import java.util.List;
 
 public class Launcher {
 
@@ -73,71 +76,133 @@ public class Launcher {
             Boolean.getBoolean("truffleruby.metrics.memory_used_on_exit");
 
     public static void main(boolean isGraal, String[] args) throws Exception {
+        metricsBegin();
+
+        final CommandLineOptions config = new CommandLineOptions();
+        processArguments(config, Arrays.asList(args), true, true, IS_NATIVE);
+        printHelpVersionCopyright(isGraal, config);
+        setRubyLauncherIfNative(config);
+        final int exitCode = runRubyMain(Context.newBuilder(), config);
+
+        metricsEnd();
+        System.exit(exitCode);
+    }
+
+    public static void metricsBegin() {
         // Assigned here so it's available on SVM as well
         METRICS_TIME = Boolean.getBoolean("truffleruby.metrics.time");
 
         printTruffleTimeMetric("before-main");
+    }
 
-        int exitCode = 0;
+    public static void metricsEnd() {
+        printTruffleTimeMetric("after-main");
+        printTruffleMemoryMetric();
+    }
 
-        try {
-            final CommandLineOptions config = new CommandLineOptions();
+    public static int runRubyMain(Context.Builder contextBuilder, CommandLineOptions config) {
+        if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.NONE) {
+            return 0;
+        }
 
+        try (Context context = createContext(contextBuilder, config)) {
+            printTruffleTimeMetric("before-run");
+            final Source source;
             try {
-                processArguments(config, args, true);
-            } catch (CommandLineException commandLineException) {
-                System.err.println("truffleruby: " + commandLineException.getMessage());
-                if (commandLineException.isUsageError()) {
-                    printHelp(System.err);
-                }
-                System.exit(1);
+                source = Source.newBuilder(
+                        LANGUAGE_ID,
+                        // language=ruby
+                        "Truffle::Boot.main",
+                        BOOT_SOURCE_NAME).build();
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
             }
-
-            if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
-                System.out.println(getVersionString(isGraal));
-            }
-
-            if (config.getOption(OptionsCatalog.SHOW_COPYRIGHT)) {
-                System.out.println(RUBY_COPYRIGHT);
-            }
-
-            switch (config.getOption(OptionsCatalog.SHOW_HELP)) {
-                case NONE:
-                    break;
-                case SHORT:
-                    printShortHelp(System.out);
-                    break;
-                case LONG:
-                    printHelp(System.out);
-                    break;
-            }
-
-            if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.NONE) {
-                exitCode = 0;
-            } else {
-                try (Context context = createContext(Context.newBuilder(), config)) {
-                    printTruffleTimeMetric("before-run");
-                    final Source source = Source.newBuilder(
-                            LANGUAGE_ID,
-                            // language=ruby
-                            "Truffle::Boot.main",
-                            BOOT_SOURCE_NAME).build();
-                    exitCode = context.eval(source).asInt();
-                    printTruffleTimeMetric("after-run");
-                }
-            }
+            final int exitCode = context.eval(source).asInt();
+            printTruffleTimeMetric("after-run");
+            return exitCode;
         } catch (PolyglotException e) {
             System.err.println("truffleruby: " + e.getMessage());
             e.printStackTrace();
-            exitCode = 1;
+            return 1;
         }
-
-        printTruffleTimeMetric("after-main");
-        printTruffleMemoryMetric();
-        System.exit(exitCode);
     }
 
-    public static Context createContext(Context.Builder builder, CommandLineOptions config) {
+    public static void printHelpVersionCopyright(boolean isGraal, CommandLineOptions config) {
+        if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
+            System.out.println(getVersionString(isGraal));
+        }
+
+        if (config.getOption(OptionsCatalog.SHOW_COPYRIGHT)) {
+            System.out.println(RUBY_COPYRIGHT);
+        }
+
+        switch (config.getOption(OptionsCatalog.SHOW_HELP)) {
+            case NONE:
+                break;
+            case SHORT:
+                printShortHelp(System.out);
+                break;
+            case LONG:
+                printHelp(System.out);
+                break;
+        }
+    }
+
+    public static String setRubyLauncherIfNative(CommandLineOptions config) {
+        if (IS_NATIVE && config.getOption(OptionsCatalog.LAUNCHER).isEmpty()) {
+            final String launcher = (String) Compiler.
+                    command(new Object[]{ "com.oracle.svm.core.posix.GetExecutableName" });
+            config.setOption(OptionsCatalog.LAUNCHER, launcher);
+            return launcher;
+        }
+        return null;
+    }
+
+    public static void processArguments(
+            CommandLineOptions config,
+            List<String> args,
+            boolean parseHelpEtc,
+            boolean unknownOptionFails,
+            boolean allowedJVMOptions) {
+
+        try {
+            config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
+
+            new CommandLineParser(args, config, true, false, parseHelpEtc).processArguments();
+
+            if (unknownOptionFails && !config.getUnknownArguments().isEmpty()) {
+                throw new CommandLineException("unknown option " + config.getUnknownArguments().get(0));
+            }
+
+            if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
+                CommandLineParser.processEnvironmentVariable("RUBYOPT", config, true);
+                CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config, false);
+            }
+
+            if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
+                config.getOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION).applyTo(config);
+            }
+
+            if (!config.getJVMOptions().isEmpty() && !allowedJVMOptions) {
+                throw new CommandLineException("cannot apply JVM options " + config.getJVMOptions());
+            }
+        } catch (CommandLineException commandLineException) {
+            System.err.println("truffleruby: " + commandLineException.getMessage());
+            if (commandLineException.isUsageError()) {
+                printHelp(System.err);
+            }
+            System.exit(1);
+        }
+    }
+
+    public static void printTruffleTimeMetric(String id) {
+        if (METRICS_TIME) {
+            final long millis = System.currentTimeMillis();
+            System.err.printf("%s %d.%03d%n", id, millis / 1000, millis % 1000);
+        }
+    }
+
+    private static Context createContext(Context.Builder builder, CommandLineOptions config) {
         builder.allowCreateThread(true);
 
         /*
@@ -153,35 +218,6 @@ public class Launcher {
         builder.arguments(LANGUAGE_ID, config.getArguments());
 
         return builder.build();
-    }
-
-    public static void processArguments(
-            CommandLineOptions config,
-            String[] arguments,
-            boolean parseHelpEtc) throws CommandLineException {
-
-        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.UNSET);
-
-        new CommandLineParser(arguments, parseHelpEtc, config).processArguments();
-        if (!config.getUnknownArguments().isEmpty()) {
-            throw new CommandLineException("unknown option " + config.getUnknownArguments().get(0));
-        }
-
-        if (config.getOption(OptionsCatalog.READ_RUBYOPT)) {
-            CommandLineParser.processEnvironmentVariable("RUBYOPT", config, true);
-            CommandLineParser.processEnvironmentVariable("TRUFFLERUBYOPT", config, false);
-        }
-
-        if (config.getOption(OptionsCatalog.EXECUTION_ACTION) == ExecutionAction.UNSET) {
-            config.getOption(OptionsCatalog.DEFAULT_EXECUTION_ACTION).applyTo(config);
-        }
-    }
-
-    public static void printTruffleTimeMetric(String id) {
-        if (METRICS_TIME) {
-            final long millis = System.currentTimeMillis();
-            System.err.printf("%s %d.%03d%n", id, millis / 1000, millis % 1000);
-        }
     }
 
     private static void printTruffleMemoryMetric() {
@@ -265,7 +301,7 @@ public class Launcher {
             out.println("  -Dname=value    set a system property");
         } else {
             out.println("JVM switches:");
-            out.println("  -J-arg, -J:arg  pass arg to the JVM");
+            out.println("  -J-arg, -J:arg, --jvm.arg      pass arg to the JVM");
         }
     }
 

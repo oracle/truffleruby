@@ -38,13 +38,14 @@ public class CommandLineOptions {
     private Map<String, String> options = new HashMap<>();
     private String[] arguments = new String[]{};
     private final List<String> unknownArguments = new ArrayList<>(0);
+    private final Map<String, String> jvmOptions = new HashMap<>();
 
     public Map<String, String> getOptions() {
         return options;
     }
 
     public <T> void setOption(OptionDescription<T> key, T value) {
-        setOptionRaw(key, key.toString(value));
+        setOptionRaw(key, key.valueToString(value));
     }
 
     public <T> T getOption(OptionDescription<T> key) {
@@ -64,7 +65,7 @@ public class CommandLineOptions {
     private <T> String getOptionRaw(OptionDescription<T> key) {
         return options.getOrDefault(
                 key.getName(),
-                key.toString(key.getDefaultValue()));
+                key.valueToString(key.getDefaultValue()));
     }
 
     public String[] getArguments() {
@@ -77,5 +78,9 @@ public class CommandLineOptions {
 
     public List<String> getUnknownArguments() {
         return unknownArguments;
+    }
+
+    public Map<String, String> getJVMOptions() {
+        return jvmOptions;
     }
 }

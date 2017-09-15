@@ -51,20 +51,12 @@ while [ -h "$SELF_PATH" ]; do
     SELF_PATH=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM")
 done
 
-# this is graalvm/language/ruby on graalvm
 root=$(dirname "$(dirname "$SELF_PATH")")
-
 root_parent=$(dirname "$root")
-if [ "$(basename "$root")" = ruby ] && [ "$(basename "$root_parent")" = language ]; then
-    graalvm_root="$(dirname "$root_parent")"
-    on_graalvm=true
-else
-    on_graalvm=false
 
-    # TODO (pitr-ch 01-Mar-2017): investigate if we still need it
-    if [ -n "$RUBY_BIN" ]; then
-        exec "$RUBY_BIN" "$@"
-    fi
+# TODO (pitr-ch 01-Mar-2017): investigate if we still need it
+if [ -n "$RUBY_BIN" ]; then
+    exec "$RUBY_BIN" "$@"
 fi
 
 if [ -n "$TRUFFLERUBY_RESILIENT_GEM_HOME" ]; then
@@ -82,33 +74,29 @@ fi
 java_args=()
 CP=""
 
-if [ $on_graalvm = false ]; then
-
-    binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
-    source_truffle="$root_parent/graal/truffle/mxbuild"
-    if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
-        truffle="$binary_truffle"
-        graal_sdk="$(dirname "$binary_truffle")/mx.imports/binary/sdk/mxbuild/dists/graal-sdk.jar"
-    elif [ -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
-        truffle="$source_truffle"
-        graal_sdk="$root_parent/graal/sdk/mxbuild/dists/graal-sdk.jar"
-    fi
-    if [ -z "$truffle" ]; then
-        echo "Could not find Truffle jars" 1>&2
-        exit 1
-    fi
-    java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar:$graal_sdk")
-    CP="$CP:$truffle/dists/truffle-nfi.jar"
-    CP="$CP:$root/mxbuild/dists/truffleruby-launcher.jar"
-    CP="$CP:$root/mxbuild/dists/truffleruby.jar"
-    java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.$(libext)")
-    sulong_root="$root_parent/sulong"
-    sulong_jar="$sulong_root/build/sulong.jar"
-    if [ -f "$sulong_jar" ]; then
-      CP="$CP:$sulong_jar"
-      java_args+=("-Dpolyglot.llvm.libraryPath=${sulong_root}/mxbuild/sulong-libs")
-    fi
-
+binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
+source_truffle="$root_parent/graal/truffle/mxbuild"
+if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
+    truffle="$binary_truffle"
+    graal_sdk="$(dirname "$binary_truffle")/mx.imports/binary/sdk/mxbuild/dists/graal-sdk.jar"
+elif [ -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
+    truffle="$source_truffle"
+    graal_sdk="$root_parent/graal/sdk/mxbuild/dists/graal-sdk.jar"
+fi
+if [ -z "$truffle" ]; then
+    echo "Could not find Truffle jars" 1>&2
+    exit 1
+fi
+java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar:$graal_sdk")
+CP="$CP:$truffle/dists/truffle-nfi.jar"
+CP="$CP:$root/mxbuild/dists/truffleruby-launcher.jar"
+CP="$CP:$root/mxbuild/dists/truffleruby.jar"
+java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.$(libext)")
+sulong_root="$root_parent/sulong"
+sulong_jar="$sulong_root/build/sulong.jar"
+if [ -f "$sulong_jar" ]; then
+  CP="$CP:$sulong_jar"
+  java_args+=("-Dpolyglot.llvm.libraryPath=${sulong_root}/mxbuild/sulong-libs")
 fi
 
 # no " to split $JAVA_OPTS into array elements
@@ -135,15 +123,24 @@ ruby_args=()
 while [ $# -gt 0 ]
 do
     case "$1" in
-    -J:)
-        val=-${val:3}
-        ;;
-    -J-cp|-J-classpath)
+    -J-cp|-J-classpath|-J:cp|-J:classpath)
         CP="$CP:$2"
         shift
         ;;
+    --jvm.cp=*)
+        CP="$CP:${1:9}"
+        ;;
+    --jvm.classpath=*)
+        CP="$CP:${1:16}"
+        ;;
+    -J:)
+        val=-${val:3}
+        ;;
     -J*)
         java_args+=("${1:2}")
+        ;;
+    --jvm.*)
+        java_args+=("-${1:6}")
         ;;
     -C|-e|-I|-S) # Match switches that take an argument
         ruby_args+=("$1" "$2")
@@ -162,7 +159,7 @@ do
     shift
 done
 
-print_command=""
+print_command="false"
 for opt in "${java_args[@]}"; do
     [ "${opt}" = "-cmd" ] && print_command="true"
 done
@@ -176,33 +173,21 @@ if [ -n "$CP" ]; then
 fi
 
 declare -a full_command
-if [ $on_graalvm = false ]; then
-    java_args_without_cmd=()
-    for value in "${java_args[@]}"; do
-        [[ "$value" != "-cmd" ]] && java_args_without_cmd+=("$value")
-    done
-    full_command=(
-        "$JAVACMD"
-        "${java_args_without_cmd[@]}"
-    )
-else
-    prefix_java_args
-    full_command=(
-        "$graalvm_root/bin/graalvm"
-        "${java_args[@]}"
-        --
-    )
-fi
+declare -a java_args_without_cmd
+for value in "${java_args[@]}"; do
+    [[ "$value" != "-cmd" ]] && java_args_without_cmd+=("$value")
+done
 
 full_command=(
-    "${full_command[@]}"
+    "$JAVACMD"
+    "${java_args_without_cmd[@]}"
     org.truffleruby.Main
     "-Xhome=$root"
     "-Xlauncher=$root/bin/truffleruby"
     "${ruby_args[@]}"
 )
 
-if [ -n "$print_command" ]; then
+if [ "$print_command" = "true" ]; then
     echo $ "${full_command[@]}"
 fi
 

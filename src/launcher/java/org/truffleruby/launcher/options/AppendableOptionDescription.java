@@ -11,8 +11,8 @@ package org.truffleruby.launcher.options;
 
 public abstract class AppendableOptionDescription<T> extends OptionDescription<T> {
 
-    public AppendableOptionDescription(String name, String description) {
-        super(name,description);
+    public AppendableOptionDescription(String name, String description, String[] rubyOptions) {
+        super(name, description, rubyOptions);
     }
 
     abstract String append(String currentValues, String newElement);

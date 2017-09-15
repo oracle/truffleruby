@@ -15,8 +15,8 @@ public class IntegerOptionDescription extends OptionDescription<Integer> {
 
     private final int defaultValue;
 
-    IntegerOptionDescription(String name, String description, int defaultValue) {
-        super(name, description);
+    IntegerOptionDescription(String name, String description, String[] rubyOptions, int defaultValue) {
+        super(name, description, rubyOptions);
         this.defaultValue = defaultValue;
     }
 
