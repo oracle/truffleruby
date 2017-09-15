@@ -534,12 +534,12 @@ module Commands
     shell['clang -v']
     shell['opt -version']
     shell['mx version']
-    sh('mx','sversions', continue_on_failure: true)
-    shell['git show -s --format=%H']
+    sh('mx', 'sversions', continue_on_failure: true)
+    shell['git --no-pager show -s --format=%H']
     if ENV['OPENSSL_PREFIX']
-      shell["#{ENV['OPENSSL_PREFIX']}/bin/openssl version"] 
+      shell["#{ENV['OPENSSL_PREFIX']}/bin/openssl version"]
     else
-      shell["openssl version"] 
+      shell["openssl version"]
     end
     shell['java -version']
   end
