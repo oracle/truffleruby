@@ -1,3 +1,0 @@
-fails:IO.select returns immediately all objects that are ready for I/O when timeout is 0
-fails:IO.select returns supplied objects correctly even when monitoring the same object in different arrays
-fails:IO.select when passed nil for timeout sleeps forever and sets the thread status to 'sleep'
