@@ -835,7 +835,7 @@ public abstract class TrufflePosixNodes {
 
             final int newFd = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
                     () -> nativeSockets().accept(fd, addressPointer, sockPointer));
-            return ensureSuccessful(newFd);
+            return ensureSuccessful(newFd, posix().errno(), "");
         }
 
         protected int ensureSuccessful(int result, int errno, String extra) {
@@ -844,10 +844,6 @@ public abstract class TrufflePosixNodes {
                 throw new RaiseException(coreExceptions().errnoError(errno, extra, this));
             }
             return result;
-        }
-
-        protected int ensureSuccessful(int result) {
-            return ensureSuccessful(result, posix().errno(), "");
         }
 
     }
