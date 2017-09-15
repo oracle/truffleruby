@@ -17,7 +17,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import jnr.constants.platform.Errno;
 import jnr.constants.platform.Signal;
-import jnr.posix.DefaultNativeTimeval;
 import jnr.posix.Timeval;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
@@ -358,72 +357,6 @@ public class ThreadManager {
             }
             return result;
         }, blockingNativeCallUnblockingAction.get());
-    }
-
-    public interface ResultOrTimeout<T> {
-    }
-
-    public static class ResultWithinTime<T> implements ResultOrTimeout<T> {
-
-        private final T value;
-
-        public ResultWithinTime(T value) {
-            this.value = value;
-        }
-
-        public T getValue() {
-            return value;
-        }
-
-    }
-
-    public static class TimedOut<T> implements ResultOrTimeout<T> {
-    }
-
-    public <T> ResultOrTimeout<T> runUntilTimeout(Node currentNode, int timeoutMicros, final BlockingTimeoutAction<T> action) {
-        final Timeval timeoutToUse = new DefaultNativeTimeval(jnr.ffi.Runtime.getSystemRuntime());
-
-        if (timeoutMicros == 0) {
-            timeoutToUse.setTime(new long[]{0, 0});
-
-            return new ResultWithinTime<>(runUntilResult(currentNode, () -> action.block(timeoutToUse)));
-        } else {
-            final int pollTime = 500_000_000;
-            final long requestedTimeoutAt = System.nanoTime() + timeoutMicros * 1_000L;
-
-            return runUntilResult(currentNode, new BlockingAction<ResultOrTimeout<T>>() {
-
-                @Override
-                public ResultOrTimeout<T> block() throws InterruptedException {
-                    final long timeUntilRequestedTimeout = requestedTimeoutAt - System.nanoTime();
-
-                    if (timeUntilRequestedTimeout <= 0) {
-                        return new TimedOut<>();
-                    }
-
-                    final boolean timeoutForPoll = pollTime <= timeUntilRequestedTimeout;
-                    final long effectiveTimeout = Math.min(pollTime, timeUntilRequestedTimeout);
-                    final long effectiveTimeoutMicros = effectiveTimeout / 1_000;
-                    timeoutToUse.setTime(new long[] {
-                            effectiveTimeoutMicros / 1_000_000,
-                            effectiveTimeoutMicros % 1_000_000
-                    });
-
-                    final T result = action.block(timeoutToUse);
-
-                    if (result == null) {
-                        if (timeoutForPoll && (requestedTimeoutAt - System.nanoTime()) > 0) {
-                            throw new InterruptedException();
-                        } else {
-                            return new TimedOut<>();
-                        }
-                    }
-
-                    return new ResultWithinTime<>(result);
-                }
-
-            });
-        }
     }
 
     public void initializeValuesBasedOnCurrentJavaThread(DynamicObject rubyThread, long pThreadID) {

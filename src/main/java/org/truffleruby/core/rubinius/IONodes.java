@@ -84,8 +84,6 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.thread.ThreadManager;
-import org.truffleruby.core.thread.ThreadManager.ResultWithinTime;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -883,59 +881,63 @@ public abstract class IONodes {
         }
 
         @TruffleBoundary(throwsControlFlowException = true)
-        private Object selectOneSet(DynamicObject setToSelect, final int timeoutMicros, int setNb) {
+        private Object selectOneSet(DynamicObject setToSelect, int timeoutMicros, int setNb) {
             assert setNb >= 1 && setNb <= 3;
-            final Object[] readableObjects = ArrayOperations.toObjectArray(setToSelect);
+            final Object[] ioObjects = ArrayOperations.toObjectArray(setToSelect);
             final int[] fds = getFileDescriptors(setToSelect);
             final int nfds = max(fds) + 1;
 
             final FDSet fdSet = getContext().getNativePlatform().createFDSet();
 
-            final ThreadManager.ResultOrTimeout<Integer> resultOrTimeout = getContext().getThreadManager().runUntilTimeout(this, timeoutMicros, new ThreadManager.BlockingTimeoutAction<Integer>() {
-                @Override
-                public Integer block(Timeval timeoutToUse) throws InterruptedException {
-                    // Set each fd each time since they are removed if the fd was not available
-                    for (int fd : fds) {
-                        fdSet.set(fd);
-                    }
-                    final int result = callSelect(nfds, fdSet, timeoutToUse);
 
-                    if (result == 0 && timeoutMicros != 0) {
-                        // interrupted, try again
-                        return null;
-                    } else {
-                        // result == 0: nothing was ready
-                        // result >  0: some were ready
-                        return result;
-                    }
-                }
-
-                private int callSelect(int nfds, FDSet fdSet, Timeval timeoutToUse) {
-                    return nativeSockets().select(
-                            nfds,
-                            setNb == 1 ? fdSet.getPointer() : Pointer.JNR_NULL,
-                            setNb == 2 ? fdSet.getPointer() : Pointer.JNR_NULL,
-                            setNb == 3 ? fdSet.getPointer() : Pointer.JNR_NULL,
-                            timeoutToUse);
-                }
+            final Timeval timeoutToUse = new DefaultNativeTimeval(jnr.ffi.Runtime.getSystemRuntime());
+            timeoutToUse.setTime(new long[]{
+                    timeoutMicros / 1_000_000,
+                    timeoutMicros % 1_000_000
             });
 
-            if (resultOrTimeout instanceof ThreadManager.TimedOut) {
-                return nil();
-            }
+            final long end = System.nanoTime() + timeoutMicros * 1000L;
 
-            final ResultWithinTime<Integer> result = (ThreadManager.ResultWithinTime<Integer>) resultOrTimeout;
-            final int resultCode = ensureSuccessful(result.getValue());
+            final int result = getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
+                // Set each fd each time since they are removed if the fd was not available
+                for (int fd : fds) {
+                    fdSet.set(fd);
+                }
 
-            if (resultCode == 0) {
+                final int ret = callSelect(nfds, fdSet, setNb, timeoutToUse);
+
+                if (ret < 0) { // interrupted or error, adjust timeout
+                    final long remainingMicros = (end - System.nanoTime()) / 1000L;
+
+                    timeoutToUse.setTime(new long[]{
+                            remainingMicros / 1_000_000,
+                            remainingMicros % 1_000_000
+                    });
+                }
+
+                return ret;
+            });
+
+            ensureSuccessful(result);
+
+            if (result == 0) {
                 return nil();
             }
 
             return createArray(new Object[] {
-                    setNb == 1 ? getSetObjects(readableObjects, fds, fdSet) : createEmptyArray(),
-                    setNb == 2 ? getSetObjects(readableObjects, fds, fdSet) : createEmptyArray(),
-                    setNb == 3 ? getSetObjects(readableObjects, fds, fdSet) : createEmptyArray()
+                    setNb == 1 ? getSetObjects(ioObjects, fds, fdSet) : createEmptyArray(),
+                    setNb == 2 ? getSetObjects(ioObjects, fds, fdSet) : createEmptyArray(),
+                    setNb == 3 ? getSetObjects(ioObjects, fds, fdSet) : createEmptyArray()
             }, 3);
+        }
+
+        private int callSelect(int nfds, FDSet fdSet, int setNb, Timeval timeout) {
+            return nativeSockets().select(
+                    nfds,
+                    setNb == 1 ? fdSet.getPointer() : Pointer.JNR_NULL,
+                    setNb == 2 ? fdSet.getPointer() : Pointer.JNR_NULL,
+                    setNb == 3 ? fdSet.getPointer() : Pointer.JNR_NULL,
+                    timeout);
         }
 
         public DynamicObject createEmptyArray() {
@@ -976,13 +978,13 @@ public abstract class IONodes {
             return max;
         }
 
-        private DynamicObject getSetObjects(Object[] objects, int[] fds, FDSet set) {
-            final Object[] setObjects = new Object[objects.length];
+        private DynamicObject getSetObjects(Object[] ioObjects, int[] fds, FDSet set) {
+            final Object[] setObjects = new Object[ioObjects.length];
             int setFdsCount = 0;
 
-            for (int n = 0; n < objects.length; n++) {
+            for (int n = 0; n < ioObjects.length; n++) {
                 if (set.isSet(fds[n])) {
-                    DynamicObject object = (DynamicObject) objects[n];
+                    DynamicObject object = (DynamicObject) ioObjects[n];
                     if (!RubyGuards.isRubyIO(object) && RubyGuards.isRubyArray(object)) {
                         object = (DynamicObject) ArrayOperations.toObjectArray(object)[0];
                     }
