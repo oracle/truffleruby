@@ -12,11 +12,13 @@ package org.truffleruby.platform;
 
 import jnr.ffi.Pointer;
 
-public interface FDSet {
+public interface FDSet extends AutoCloseable {
 
     void set(int fd);
 
     boolean isSet(int fd);
 
     Pointer getPointer();
+
+    void close();
 }

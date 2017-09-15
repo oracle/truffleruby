@@ -576,17 +576,18 @@ public abstract class IONodes {
 
             final int fd = Layouts.IO.getDescriptor(file);
 
-            final FDSet fdSet = getContext().getNativePlatform().createFDSet();
-            fdSet.set(fd);
+            try (FDSet fdSet = getContext().getNativePlatform().createFDSet()) {
+                fdSet.set(fd);
 
-            final Timeval timeoutObject = new DefaultNativeTimeval(jnr.ffi.Runtime.getSystemRuntime());
-            timeoutObject.setTime(new long[]{ 0, 0 });
+                final Timeval timeoutObject = new DefaultNativeTimeval(jnr.ffi.Runtime.getSystemRuntime());
+                timeoutObject.setTime(new long[]{ 0, 0 });
 
-            final int res = ensureSuccessful(nativeSockets().select(fd + 1, fdSet.getPointer(),
-                    Pointer.JNR_NULL, Pointer.JNR_NULL, timeoutObject));
+                final int res = ensureSuccessful(nativeSockets().select(fd + 1, fdSet.getPointer(),
+                        Pointer.JNR_NULL, Pointer.JNR_NULL, timeoutObject));
 
-            if (res == 0) {
-                throw new RaiseException(coreExceptions().eAGAINWaitReadable(this));
+                if (res == 0) {
+                    throw new RaiseException(coreExceptions().eAGAINWaitReadable(this));
+                }
             }
 
             final byte[] bytes = new byte[numberOfBytes];
@@ -884,60 +885,61 @@ public abstract class IONodes {
                 nfds = max(readableFDs, writableFDs, errorableFDs) + 1;
             }
 
-            final FDSet readableFDSet = getContext().getNativePlatform().createFDSet();
-            final FDSet writableFDSet = getContext().getNativePlatform().createFDSet();
-            final FDSet errorableFDSet = getContext().getNativePlatform().createFDSet();
+            try (FDSet readableFDSet = getContext().getNativePlatform().createFDSet();
+                    FDSet writableFDSet = getContext().getNativePlatform().createFDSet();
+                    FDSet errorableFDSet = getContext().getNativePlatform().createFDSet()) {
 
-            final Timeval timeoutToUse = new DefaultNativeTimeval(jnr.ffi.Runtime.getSystemRuntime());
-            timeoutToUse.setTime(new long[]{
-                    timeoutMicros / 1_000_000,
-                    timeoutMicros % 1_000_000
-            });
+                final Timeval timeoutToUse = new DefaultNativeTimeval(jnr.ffi.Runtime.getSystemRuntime());
+                timeoutToUse.setTime(new long[]{
+                        timeoutMicros / 1_000_000,
+                        timeoutMicros % 1_000_000
+                });
 
-            final long end = System.nanoTime() + timeoutMicros * 1000L;
+                final long end = System.nanoTime() + timeoutMicros * 1000L;
 
-            final int result = getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
-                // Set each fd each time since they are removed if the fd was not available
-                for (int fd : readableFDs) {
-                    readableFDSet.set(fd);
+                final int result = getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
+                    // Set each fd each time since they are removed if the fd was not available
+                    for (int fd : readableFDs) {
+                        readableFDSet.set(fd);
+                    }
+                    for (int fd : writableFDs) {
+                        writableFDSet.set(fd);
+                    }
+                    for (int fd : errorableFDs) {
+                        errorableFDSet.set(fd);
+                    }
+
+                    final int ret = nativeSockets().select(
+                            nfds,
+                            readableFDSet.getPointer(),
+                            writableFDSet.getPointer(),
+                            errorableFDSet.getPointer(),
+                            timeoutToUse);
+
+                    if (ret < 0) { // interrupted or error, adjust timeout
+                        final long remainingMicros = (end - System.nanoTime()) / 1000L;
+
+                        timeoutToUse.setTime(new long[]{
+                                remainingMicros / 1_000_000,
+                                remainingMicros % 1_000_000
+                        });
+                    }
+
+                    return ret;
+                });
+
+                ensureSuccessful(result);
+
+                if (result == 0) {
+                    return nil();
                 }
-                for (int fd : writableFDs) {
-                    writableFDSet.set(fd);
-                }
-                for (int fd : errorableFDs) {
-                    errorableFDSet.set(fd);
-                }
 
-                final int ret = nativeSockets().select(
-                        nfds,
-                        readableFDSet.getPointer(),
-                        writableFDSet.getPointer(),
-                        errorableFDSet.getPointer(),
-                        timeoutToUse);
-
-                if (ret < 0) { // interrupted or error, adjust timeout
-                    final long remainingMicros = (end - System.nanoTime()) / 1000L;
-
-                    timeoutToUse.setTime(new long[]{
-                            remainingMicros / 1_000_000,
-                            remainingMicros % 1_000_000
-                    });
-                }
-
-                return ret;
-            });
-
-            ensureSuccessful(result);
-
-            if (result == 0) {
-                return nil();
+                return createArray(new Object[]{
+                        getSetObjects(readableObjects, readableFDs, readableFDSet),
+                        getSetObjects(writableObjects, writableFDs, writableFDSet),
+                        getSetObjects(errorableObjects, errorableFDs, errorableFDSet)
+                }, 3);
             }
-
-            return createArray(new Object[] {
-                    getSetObjects(readableObjects, readableFDs, readableFDSet),
-                    getSetObjects(writableObjects, writableFDs, writableFDSet),
-                    getSetObjects(errorableObjects, errorableFDs, errorableFDSet)
-            }, 3);
         }
 
         private int[] getFileDescriptors(Object[] objects) {
