@@ -247,6 +247,10 @@ bool SYMBOL_P(VALUE value);
 // Constants
 #define RUBY_VM 1
 
+#define RB_WAITFD_IN  0x001
+#define RB_WAITFD_PRI 0x002
+#define RB_WAITFD_OUT 0x004
+
 // START from tool/generate-cext-constants.rb
 
 VALUE rb_tr_get_undef(void);
