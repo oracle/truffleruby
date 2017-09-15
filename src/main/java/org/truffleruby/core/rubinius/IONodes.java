@@ -74,8 +74,8 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode;
 import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
 import org.truffleruby.core.rope.BytesVisitor;
@@ -853,42 +853,40 @@ public abstract class IONodes {
     @Primitive(name = "io_select", needsSelf = false, lowerFixnum = 4)
     public static abstract class IOSelectPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
-        public abstract Object executeSelect(DynamicObject readables, DynamicObject writables, DynamicObject errorables, Object Timeout);
-
-        @TruffleBoundary(throwsControlFlowException = true)
         @Specialization(guards = "isNil(noTimeout)")
-        public Object select(DynamicObject readables, DynamicObject writables, DynamicObject errorables, DynamicObject noTimeout) {
+        public Object selectNoTimeout(DynamicObject readables, DynamicObject writables, DynamicObject errorables, DynamicObject noTimeout) {
             Object result;
             do {
-                result = executeSelect(readables, writables, errorables, Integer.MAX_VALUE);
+                result = doSelect(readables, writables, errorables, Integer.MAX_VALUE);
             } while (result == nil());
             return result;
         }
 
-        @Specialization(guards = { "isRubyArray(readables)", "isNilOrEmpty(writables)", "isNilOrEmpty(errorables)" })
-        public Object selectReadables(DynamicObject readables, DynamicObject writables, DynamicObject errorables, int timeoutMicros) {
-            return selectOneSet(readables, timeoutMicros, 1);
-        }
-
-        @Specialization(guards = { "isNilOrEmpty(readables)", "isRubyArray(writables)", "isNilOrEmpty(errorables)" })
-        public Object selectWritables(DynamicObject readables, DynamicObject writables, DynamicObject errorables, int timeoutMicros) {
-            return selectOneSet(writables, timeoutMicros, 2);
-        }
-
-        @Specialization(guards = { "isNilOrEmpty(readables)", "isNilOrEmpty(writables)", "isRubyArray(errorables)" })
-        public Object selectErrorables(DynamicObject readables, DynamicObject writables, DynamicObject errorables, int timeoutMicros) {
-            return selectOneSet(errorables, timeoutMicros, 3);
+        @Specialization(guards = { "isNilOrArray(readables)", "isNilOrArray(writables)", "isNilOrArray(errorables)" })
+        public Object selectWithTimeout(DynamicObject readables, DynamicObject writables, DynamicObject errorables, int timeoutMicros) {
+            return doSelect(readables, writables, errorables, timeoutMicros);
         }
 
         @TruffleBoundary(throwsControlFlowException = true)
-        private Object selectOneSet(DynamicObject setToSelect, int timeoutMicros, int setNb) {
-            assert setNb >= 1 && setNb <= 3;
-            final Object[] ioObjects = ArrayOperations.toObjectArray(setToSelect);
-            final int[] fds = getFileDescriptors(setToSelect);
-            final int nfds = max(fds) + 1;
+        private Object doSelect(DynamicObject readables, DynamicObject writables, DynamicObject errorables, int timeoutMicros) {
+            final Object[] readableObjects = toObjectArray(readables);
+            final Object[] writableObjects = toObjectArray(writables);
+            final Object[] errorableObjects = toObjectArray(errorables);
 
-            final FDSet fdSet = getContext().getNativePlatform().createFDSet();
+            final int[] readableFDs = getFileDescriptors(readableObjects);
+            final int[] writableFDs = getFileDescriptors(writableObjects);
+            final int[] errorableFDs = getFileDescriptors(errorableObjects);
 
+            final int nfds;
+            if (readableFDs.length == 0 && writableFDs.length == 0 && errorableFDs.length == 0) {
+                nfds = 0;
+            } else {
+                nfds = max(readableFDs, writableFDs, errorableFDs) + 1;
+            }
+
+            final FDSet readableFDSet = getContext().getNativePlatform().createFDSet();
+            final FDSet writableFDSet = getContext().getNativePlatform().createFDSet();
+            final FDSet errorableFDSet = getContext().getNativePlatform().createFDSet();
 
             final Timeval timeoutToUse = new DefaultNativeTimeval(jnr.ffi.Runtime.getSystemRuntime());
             timeoutToUse.setTime(new long[]{
@@ -900,11 +898,22 @@ public abstract class IONodes {
 
             final int result = getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
                 // Set each fd each time since they are removed if the fd was not available
-                for (int fd : fds) {
-                    fdSet.set(fd);
+                for (int fd : readableFDs) {
+                    readableFDSet.set(fd);
+                }
+                for (int fd : writableFDs) {
+                    writableFDSet.set(fd);
+                }
+                for (int fd : errorableFDs) {
+                    errorableFDSet.set(fd);
                 }
 
-                final int ret = callSelect(nfds, fdSet, setNb, timeoutToUse);
+                final int ret = nativeSockets().select(
+                        nfds,
+                        readableFDSet.getPointer(),
+                        writableFDSet.getPointer(),
+                        errorableFDSet.getPointer(),
+                        timeoutToUse);
 
                 if (ret < 0) { // interrupted or error, adjust timeout
                     final long remainingMicros = (end - System.nanoTime()) / 1000L;
@@ -925,30 +934,13 @@ public abstract class IONodes {
             }
 
             return createArray(new Object[] {
-                    setNb == 1 ? getSetObjects(ioObjects, fds, fdSet) : createEmptyArray(),
-                    setNb == 2 ? getSetObjects(ioObjects, fds, fdSet) : createEmptyArray(),
-                    setNb == 3 ? getSetObjects(ioObjects, fds, fdSet) : createEmptyArray()
+                    getSetObjects(readableObjects, readableFDs, readableFDSet),
+                    getSetObjects(writableObjects, writableFDs, writableFDSet),
+                    getSetObjects(errorableObjects, errorableFDs, errorableFDSet)
             }, 3);
         }
 
-        private int callSelect(int nfds, FDSet fdSet, int setNb, Timeval timeout) {
-            return nativeSockets().select(
-                    nfds,
-                    setNb == 1 ? fdSet.getPointer() : Pointer.JNR_NULL,
-                    setNb == 2 ? fdSet.getPointer() : Pointer.JNR_NULL,
-                    setNb == 3 ? fdSet.getPointer() : Pointer.JNR_NULL,
-                    timeout);
-        }
-
-        public DynamicObject createEmptyArray() {
-            return createArray(null, 0);
-        }
-
-        private int[] getFileDescriptors(DynamicObject fileDescriptorArray) {
-            assert RubyGuards.isRubyArray(fileDescriptorArray);
-
-            final Object[] objects = ArrayOperations.toObjectArray(fileDescriptorArray);
-
+        private int[] getFileDescriptors(Object[] objects) {
             final int[] fileDescriptors = new int[objects.length];
 
             for (int n = 0; n < objects.length; n++) {
@@ -958,6 +950,7 @@ public abstract class IONodes {
 
                 DynamicObject object = (DynamicObject) objects[n];
                 if (!RubyGuards.isRubyIO(object) && RubyGuards.isRubyArray(object)) {
+                    // A [object with #to_io, IO] pair
                     object = (DynamicObject) ArrayOperations.toObjectArray(object)[1];
                 }
                 fileDescriptors[n] = Layouts.IO.getDescriptor(object);
@@ -966,13 +959,16 @@ public abstract class IONodes {
             return fileDescriptors;
         }
 
-        private static int max(int[] values) {
-            assert values.length > 0;
-
+        private static int max(int[]... arrays) {
             int max = Integer.MIN_VALUE;
 
-            for (int n = 0; n < values.length; n++) {
-                max = Math.max(max, values[n]);
+            for (int n = 0; n < arrays.length; n++) {
+                final int[] array = arrays[n];
+                for (int i = 0; i < array.length; i++) {
+                    if (array[i] > max) {
+                        max = array[i];
+                    }
+                }
             }
 
             return max;
@@ -986,6 +982,7 @@ public abstract class IONodes {
                 if (set.isSet(fds[n])) {
                     DynamicObject object = (DynamicObject) ioObjects[n];
                     if (!RubyGuards.isRubyIO(object) && RubyGuards.isRubyArray(object)) {
+                        // A [object with #to_io, IO] pair
                         object = (DynamicObject) ArrayOperations.toObjectArray(object)[0];
                     }
                     setObjects[setFdsCount] = object;
@@ -996,8 +993,16 @@ public abstract class IONodes {
             return createArray(setObjects, setFdsCount);
         }
 
-        protected boolean isNilOrEmpty(DynamicObject fds) {
-            return isNil(fds) || (RubyGuards.isRubyArray(fds) && ArrayGuards.isEmptyArray(fds));
+        protected boolean isNilOrArray(DynamicObject fds) {
+            return isNil(fds) || RubyGuards.isRubyArray(fds);
+        }
+
+        private Object[] toObjectArray(DynamicObject nilOrArray) {
+            if (nilOrArray == nil()) {
+                return ArrayUtils.EMPTY_ARRAY;
+            } else {
+                return ArrayOperations.toObjectArray(nilOrArray);
+            }
         }
 
     }
