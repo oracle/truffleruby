@@ -795,13 +795,22 @@ module Commands
       args, files_to_run = args.partition { |a| a.start_with?('-') }
     end
 
-    unless files_to_run
+    if files_to_run
+      prefix = "test/mri/tests/"
+      files_to_run = files_to_run.map { |file|
+        if file.start_with?(prefix)
+          file[prefix.size..-1]
+        else
+          file
+        end
+      }
+    else
       prefix = "#{TRUFFLERUBY_DIR}/test/mri/tests/"
-
       include_files = Dir.glob(include_pattern).map { |f|
         raise unless f.start_with?(prefix)
         f[prefix.size..-1]
       }
+
       include_files.reject! { |f| f.include?('cext-ruby') } unless include_pattern.include?('cext-ruby')
 
       exclude_files = if exclude_file
