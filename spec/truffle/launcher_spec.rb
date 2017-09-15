@@ -171,8 +171,6 @@ describe "The launcher" do
     out.should include("unknown option")
   end
 
-  # TODO (pitr-ch 08-Sep-2017): test --jvm and --jvm.cp options
-
   describe 'StringArray option' do
     it 'appends multiple options' do
       out       = `#{RbConfig.ruby} -I a -I b -e 'p $LOAD_PATH' 2>&1`
