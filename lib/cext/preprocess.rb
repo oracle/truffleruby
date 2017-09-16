@@ -39,6 +39,21 @@ void HttpParser_free(puma_parser* hp) {
 }
 EOF
 
+MYSQL2_FREE_WRAPPER = <<-EOF
+    nogvl_close(wrapper);
+    truffle_release_handle(wrapper->encoding);
+    truffle_release_handle(wrapper->active_thread);
+EOF
+
+MYSQL2_FREE_RESULT_WRAPPER = <<-EOF
+  truffle_release_handle(wrapper->fields);
+  truffle_release_handle(wrapper->rows);
+  truffle_release_handle(wrapper->client);
+  truffle_release_handle(wrapper->encoding);
+  truffle_release_handle(wrapper->statement);
+  xfree(wrapper);
+EOF
+
 PATCHED_FILES = {
   'xml_node_set.c' => {
     gem: 'nokogiri',
@@ -143,6 +158,201 @@ PATCHED_FILES = {
       {
         match: /(\w+)->body = (.+?);/,
         replacement: '\1->body = rb_tr_handle_for_managed(\2);'
+      }
+    ]
+  },
+  'client.c' => {
+    gem: 'mysql2',
+    patches: [
+      {
+        match: /wrapper->active_thread = Qnil;/,
+        replacement: 'wrapper->active_thread = rb_tr_handle_for_managed(Qnil);'
+      },
+      {
+        match: /wrapper->encoding = Qnil;/,
+        replacement: 'wrapper->encoding = rb_tr_handle_for_managed(Qnil);'
+      },
+      {
+        match: /nogvl_close\(wrapper\);/,
+        replacement: MYSQL2_FREE_WRAPPER
+      },
+      {
+        match: /NIL_P\(wrapper->active_thread\)/,
+        replacement: 'NIL_P(rb_tr_managed_from_handle(wrapper->active_thread))'
+      },
+      {
+        match: /rb_mysql_result_to_obj\(self, wrapper->encoding, current, result, Qnil\);/,
+        replacement: 'rb_mysql_result_to_obj(self, rb_tr_managed_from_handle(wrapper->encoding), current, result, Qnil);'
+      },
+      {
+        match: /rb_iv_get\(async_args->self,/,
+        replacement: 'rb_iv_get(rb_tr_managed_from_handle(async_args->self),'
+      },
+      {
+        match: /wrapper->active_thread = thread_current;/,
+        replacement: 'wrapper->active_thread = rb_tr_handle_for_managed(thread_current);'
+      },
+      {
+        match: /wrapper->active_thread == thread_current/,
+        replacement: 'rb_tr_managed_from_handle(wrapper->active_thread) == thread_current'
+      },
+      {
+        match: /rb_inspect\(wrapper->active_thread\)/,
+        replacement: 'rb_inspect(rb_tr_managed_from_handle(wrapper->active_thread))'
+      },
+      {
+        match: /args.sql = rb_str_export_to_enc\(sql, rb_to_encoding\(wrapper->encoding\)\);/,
+        replacement: 'args.sql = rb_tr_handle_for_managed_leaking(rb_str_export_to_enc(sql, rb_to_encoding(rb_tr_managed_from_handle(wrapper->encoding)));'
+      },
+      {
+        match: /args.sql = sql/,
+        replacement: 'args.sql = rb_tr_handle_for_managed_leaking(sql)'
+      },
+      {
+        match: /args\.sql_ptr = RSTRING_PTR\(args\.sql\);/,
+        replacement: 'args.sql_ptr = RSTRING_PTR(rb_tr_managed_from_handle(args.sql));'
+      },
+      {
+        match: /args\.sql_len = RSTRING_LEN\(args\.sql\);/,
+        replacement: 'args.sql_len = RSTRING_LEN(rb_tr_managed_from_handle(args.sql));'
+      },
+      {
+        match: /async_args\.self = self;/,
+        replacement: 'async_args.self = rb_tr_handle_for_managed_leaking(self);'
+      },
+      {
+        match: /conn_enc = rb_to_encoding\(wrapper->encoding\);/,
+        replacement: 'conn_enc = rb_to_encoding(rb_tr_managed_from_handle(wrapper->encoding));'
+      },
+      {
+        match: /wrapper->encoding = rb_enc;/,
+        replacement: 'wrapper->encoding = rb_tr_handle_for_managed(rb_enc);'
+      }
+    ]
+  },
+  'result.c' => {
+    gem: 'mysql2',
+    patches: [
+      {
+        match: /wrapper->statement != Qnil/,
+        replacement: 'rb_tr_managed_from_handle(wrapper->statement) != Qnil'
+      },
+      {
+        match: /wrapper->client != Qnil/,
+        replacement: 'rb_tr_managed_from_handle(wrapper->client) != Qnil'
+      },
+      {
+        match: /xfree\(wrapper\);/,
+        replacement: MYSQL2_FREE_RESULT_WRAPPER
+      },
+      {
+        match: /wrapper->fields == Qnil/,
+        replacement: 'rb_tr_managed_from_handle(wrapper->fields) == Qnil'
+      },
+      {
+        match: /wrapper->fields = rb_ary_new2\(wrapper->numberOfFields\);/,
+        replacement: 'wrapper->fields = rb_tr_handle_for_managed(rb_ary_new2(wrapper->numberOfFields));'
+      },
+      {
+        match: /rb_ary_entry\(wrapper->fields,/,
+        replacement: 'rb_ary_entry(rb_tr_managed_from_handle(wrapper->fields),'
+      },
+      {
+        match: /rb_to_encoding\(wrapper->encoding\)/,
+        replacement: 'rb_to_encoding(rb_tr_managed_from_handle(wrapper->encoding))'
+      },
+      {
+        match: /rb_ary_store\(wrapper->fields,/,
+        replacement: 'rb_ary_store(rb_tr_managed_from_handle(wrapper->fields),'
+      },
+      {
+        match: /RARRAY_LEN\(wrapper->fields\)/,
+        replacement: 'RARRAY_LEN(rb_tr_managed_from_handle(wrapper->fields))'
+      },
+      {
+        match: /return wrapper->fields;/,
+        replacement: 'return rb_tr_managed_from_handle(wrapper->fields);'
+      },
+      {
+        match: /wrapper->rows == Qnil/,
+        replacement: 'rb_tr_managed_from_handle(wrapper->rows) == Qnil'
+      },
+      {
+        match: /wrapper->rows = rb_ary_new\(\);/,
+        replacement: 'wrapper->rows = rb_tr_managed_from_handle(rb_ary_new());'
+      },
+      {
+        match: /rb_yield\(rb_ary_entry\(wrapper->rows, i\)\);/,
+        replacement: 'rb_yield(rb_ary_entry(rb_tr_managed_from_handle(wrapper->rows), i));'
+      },
+      {
+        match: /RARRAY_LEN\(wrapper->rows\)/,
+        replacement: 'RARRAY_LEN(rb_tr_managed_from_handle(wrapper->rows))'
+      },
+      {
+        match: /rb_ary_entry\(wrapper->rows,/,
+        replacement: 'rb_ary_entry(rb_tr_managed_from_handle(wrapper->rows),'
+      },
+      {
+        match: /rb_ary_store\(wrapper->rows,/,
+        replacement: 'rb_ary_store(rb_tr_managed_from_handle(wrapper->rows),'
+      },
+      {
+        match: /return wrapper->rows;/,
+        replacement: 'return rb_tr_managed_from_handle(wrapper->rows);'
+      },
+      {
+        match: /wrapper->rows = rb_ary_new2\(wrapper->numberOfRows\);/,
+        replacement: 'wrapper->rows = rb_tr_handle_for_managed(rb_ary_new2(wrapper->numberOfRows));'
+      },
+      {
+        match: /args\.db_timezone = db_timezone;/,
+        replacement: 'args.db_timezone = rb_tr_handle_for_managed_leaking(db_timezone);'
+      },
+      {
+        match: /args\.app_timezone = app_timezone;/,
+        replacement: 'args.app_timezone = rb_tr_handle_for_managed_leaking(app_timezone);'
+      },
+      {
+        match: /args\.block_given = block;/,
+        replacement: 'args.block_given = rb_tr_handle_for_managed_leaking(block);'
+      },
+      {
+        match: /wrapper->fields = Qnil/,
+        replacement: 'wrapper->fields = rb_tr_handle_for_managed(Qnil)'
+      },
+      {
+        match: /wrapper->rows = Qnil/,
+        replacement: 'wrapper->rows = rb_tr_handle_for_managed(Qnil)'
+      },
+      {
+        match: /wrapper->encoding = encoding/,
+        replacement: 'wrapper->encoding = rb_tr_handle_for_managed(encoding)'
+      },
+      {
+        match: /wrapper->client = client/,
+        replacement: 'wrapper->client = rb_tr_handle_for_managed(client)'
+      },
+      {
+        match: /wrapper->statement = statement/,
+        replacement: 'wrapper->statement = rb_tr_handle_for_managed_leaking(statement)'
+      }
+    ]
+  },
+  'statement.c' => {
+    gem: 'mysql2',
+    patches: [
+      {
+        match: /rb_to_encoding\(wrapper->encoding\)/,
+        replacement: 'rb_to_encoding(rb_tr_managed_from_handle(wrapper->encoding))'
+      },
+      {
+        match: /wrapper->active_thread = Qnil/,
+        replacement: 'wrapper->active_thread = rb_tr_handle_for_managed(Qnil)'
+      },
+      {
+        match: /rb_mysql_result_to_obj\(stmt_wrapper->client, wrapper->encoding, current, metadata, self\)/,
+        replacement: 'rb_mysql_result_to_obj(stmt_wrapper->client, rb_tr_managed_from_handle(wrapper->encoding), current, metadata, self)'
       }
     ]
   }
