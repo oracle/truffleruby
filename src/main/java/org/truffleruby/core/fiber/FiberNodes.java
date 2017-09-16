@@ -27,6 +27,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
+import org.truffleruby.core.fiber.FiberNodesFactory.FiberTransferNodeFactory;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -108,7 +109,7 @@ public abstract class FiberNodes {
     @CoreMethod(names = "resume", rest = true)
     public abstract static class ResumeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private FiberTransferNode fiberTransferNode = FiberNodesFactory.FiberTransferNodeFactory.create(null);
+        @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
         public Object resume(VirtualFrame frame, DynamicObject fiberBeingResumed, Object[] args) {
@@ -120,7 +121,7 @@ public abstract class FiberNodes {
     @CoreMethod(names = "yield", onSingleton = true, rest = true)
     public abstract static class YieldNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private FiberTransferNode fiberTransferNode = FiberNodesFactory.FiberTransferNodeFactory.create(null);
+        @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
         public Object yield(VirtualFrame frame, Object[] args,
