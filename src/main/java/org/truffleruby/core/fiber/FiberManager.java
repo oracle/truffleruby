@@ -182,6 +182,7 @@ public class FiberManager {
 
         final DynamicObject parentFiber = Layouts.FIBER.getLastResumedByFiber(currentFiber);
         if (parentFiber != null) {
+            Layouts.FIBER.setLastResumedByFiber(currentFiber, null);
             return parentFiber;
         } else {
             return rootFiber;
