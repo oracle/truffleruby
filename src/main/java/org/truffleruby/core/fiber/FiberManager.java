@@ -145,7 +145,7 @@ public class FiberManager {
                 // Make sure that other fibers notice we are dead before they gain control back
                 Layouts.FIBER.setAlive(fiber, false);
             }
-            resume(fiber, Layouts.FIBER.getLastResumedByFiber(fiber), true, result);
+            resume(fiber, Layouts.FIBER.getLastResumedByFiber(fiber), FiberOperation.YIELD, result);
 
         // Handlers in the same order as in ThreadManager
         } catch (KillException e) {
@@ -197,7 +197,7 @@ public class FiberManager {
         } else if (message instanceof FiberResumeMessage) {
             final FiberResumeMessage resumeMessage = (FiberResumeMessage) message;
             assert context.getThreadManager().getCurrentThread() == Layouts.FIBER.getRubyThread(resumeMessage.getSendingFiber());
-            if (!resumeMessage.isYield()) {
+            if (resumeMessage.getOperation() == FiberOperation.RESUME) {
                 Layouts.FIBER.setLastResumedByFiber(fiber, resumeMessage.getSendingFiber());
             }
             return resumeMessage.getArgs();
@@ -211,12 +211,12 @@ public class FiberManager {
      * the Java thread (although the queue implementation may) and doesn't wait for the message to
      * be received.
      */
-    private void resume(DynamicObject fromFiber, DynamicObject fiber, boolean yield, Object... args) {
-        addToMessageQueue(fiber, new FiberResumeMessage(yield, fromFiber, args));
+    private void resume(DynamicObject fromFiber, DynamicObject fiber, FiberOperation operation, Object... args) {
+        addToMessageQueue(fiber, new FiberResumeMessage(operation, fromFiber, args));
     }
 
-    public Object[] transferControlTo(DynamicObject fromFiber, DynamicObject fiber, boolean yield, Object[] args) {
-        resume(fromFiber, fiber, yield, args);
+    public Object[] transferControlTo(DynamicObject fromFiber, DynamicObject fiber, FiberOperation operation, Object[] args) {
+        resume(fromFiber, fiber, operation, args);
         return waitForResume(fromFiber);
     }
 
@@ -315,19 +315,19 @@ public class FiberManager {
 
     private static class FiberResumeMessage implements FiberMessage {
 
-        private final boolean yield;
+        private final FiberOperation operation;
         private final DynamicObject sendingFiber;
         private final Object[] args;
 
-        public FiberResumeMessage(boolean yield, DynamicObject sendingFiber, Object[] args) {
+        public FiberResumeMessage(FiberOperation operation, DynamicObject sendingFiber, Object[] args) {
             assert RubyGuards.isRubyFiber(sendingFiber);
-            this.yield = yield;
+            this.operation = operation;
             this.sendingFiber = sendingFiber;
             this.args = args;
         }
 
-        public boolean isYield() {
-            return yield;
+        public FiberOperation getOperation() {
+            return operation;
         }
 
         public DynamicObject getSendingFiber() {
