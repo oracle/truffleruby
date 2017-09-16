@@ -14,6 +14,7 @@ import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 import org.truffleruby.Layouts;
@@ -103,6 +104,7 @@ public class FiberManager {
                 null,
                 true,
                 null,
+                false,
                 0L);
     }
 
@@ -129,6 +131,8 @@ public class FiberManager {
         });
     }
 
+    private static final BranchProfile UNPROFILED = BranchProfile.create();
+
     private void fiberMain(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
         assert fiber != rootFiber : "Root Fibers execute threadMain() and not fiberMain()";
 
@@ -143,31 +147,45 @@ public class FiberManager {
                 // Make sure that other fibers notice we are dead before they gain control back
                 Layouts.FIBER.setAlive(fiber, false);
             }
-            resume(fiber, Layouts.FIBER.getLastResumedByFiber(fiber), FiberOperation.YIELD, result);
+            resume(fiber, getReturnFiber(fiber, currentNode, UNPROFILED), FiberOperation.YIELD, result);
 
         // Handlers in the same order as in ThreadManager
         } catch (KillException e) {
             // Propagate the kill exception until it reaches the root Fiber
-            sendExceptionToParentFiber(fiber, e);
+            sendExceptionToParentFiber(fiber, e, currentNode);
         } catch (FiberShutdownException e) {
             // Ends execution of the Fiber
         } catch (ExitException e) {
-            sendExceptionToParentFiber(fiber, e);
+            sendExceptionToParentFiber(fiber, e, currentNode);
         } catch (RaiseException e) {
-            sendExceptionToParentFiber(fiber, e);
+            sendExceptionToParentFiber(fiber, e, currentNode);
         } catch (BreakException e) {
-            sendExceptionToParentFiber(fiber, new RaiseException(context.getCoreExceptions().breakFromProcClosure(null)));
+            sendExceptionToParentFiber(fiber, new RaiseException(context.getCoreExceptions().breakFromProcClosure(currentNode)), currentNode);
         } catch (ReturnException e) {
-            sendExceptionToParentFiber(fiber, new RaiseException(context.getCoreExceptions().unexpectedReturn(null)));
+            sendExceptionToParentFiber(fiber, new RaiseException(context.getCoreExceptions().unexpectedReturn(currentNode)), currentNode);
         } finally {
             cleanup(fiber);
         }
     }
 
-    private void sendExceptionToParentFiber(DynamicObject fiber, RuntimeException exception) {
-        final DynamicObject parentFiber = Layouts.FIBER.getLastResumedByFiber(fiber);
-        assert parentFiber != null;
-        addToMessageQueue(parentFiber, new FiberExceptionMessage(exception));
+    private void sendExceptionToParentFiber(DynamicObject fiber, RuntimeException exception, Node currentNode) {
+        addToMessageQueue(getReturnFiber(fiber, currentNode, UNPROFILED), new FiberExceptionMessage(exception));
+    }
+
+    public DynamicObject getReturnFiber(DynamicObject currentFiber, Node currentNode, BranchProfile errorProfile) {
+        assert currentFiber == this.currentFiber;
+
+        if (currentFiber == rootFiber) {
+            errorProfile.enter();
+            throw new RaiseException(context.getCoreExceptions().yieldFromRootFiberError(currentNode));
+        }
+
+        final DynamicObject parentFiber = Layouts.FIBER.getLastResumedByFiber(currentFiber);
+        if (parentFiber != null) {
+            return parentFiber;
+        } else {
+            return rootFiber;
+        }
     }
 
     @TruffleBoundary

@@ -17,6 +17,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -40,7 +42,7 @@ public abstract class FiberNodes {
 
         @Child private SingleValueCastNode singleValueCastNode;
 
-        protected Object singleValue(VirtualFrame frame, Object[] args) {
+        public Object singleValue(VirtualFrame frame, Object[] args) {
             if (singleValueCastNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 singleValueCastNode = insert(SingleValueCastNodeGen.create(null));
@@ -48,32 +50,27 @@ public abstract class FiberNodes {
             return singleValueCastNode.executeSingleValue(frame, args);
         }
 
-        public abstract Object executeTransferControlTo(VirtualFrame frame, DynamicObject fiber, FiberOperation operation, Object[] args);
+        public abstract Object executeTransferControlTo(VirtualFrame frame,
+                DynamicObject currentThread, DynamicObject sendingFiber, DynamicObject fiber,
+                FiberOperation operation, Object[] args);
 
         @Specialization(guards = "isRubyFiber(fiber)")
-        protected Object transfer(VirtualFrame frame, DynamicObject fiber, FiberOperation operation, Object[] args,
-                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @Cached("create()") BranchProfile sameFiberProfile,
+        protected Object transfer(VirtualFrame frame,
+                DynamicObject currentThread, DynamicObject sendingFiber, DynamicObject fiber,
+                FiberOperation operation, Object[] args,
                 @Cached("create()") BranchProfile errorProfile) {
+
             if (!Layouts.FIBER.getAlive(fiber)) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().deadFiberCalledError(this));
             }
 
-            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             if (Layouts.FIBER.getRubyThread(fiber) != currentThread) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().fiberError("fiber called across threads", this));
             }
 
             final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
-            final DynamicObject sendingFiber = fiberManager.getCurrentFiber();
-
-            if (sendingFiber == fiber) {
-                sameFiberProfile.enter();
-                throw new RaiseException(coreExceptions().fiberError("double resume", this));
-            }
-
             return singleValue(frame, fiberManager.transferControlTo(sendingFiber, fiber, operation, args));
         }
 
@@ -105,14 +102,56 @@ public abstract class FiberNodes {
 
     }
 
+    @CoreMethod(names = "transfer", rest = true)
+    public abstract static class TransferNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
+
+        @Specialization
+        public Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached("createBinaryProfile()") ConditionProfile sameFiberProfile) {
+
+            Layouts.FIBER.setTransferred(fiber, true);
+
+            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
+            final DynamicObject sendingFiber = fiberManager.getCurrentFiber();
+
+            if (sameFiberProfile.profile(sendingFiber == fiber)) {
+                // A Fiber can transfer to itself
+                return fiberTransferNode.singleValue(frame, args);
+            }
+
+            return fiberTransferNode.executeTransferControlTo(frame, currentThread, sendingFiber, fiber, FiberOperation.TRANSFER, args);
+        }
+
+    }
+
     @CoreMethod(names = "resume", rest = true)
     public abstract static class ResumeNode extends CoreMethodArrayArgumentsNode {
 
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        public Object resume(VirtualFrame frame, DynamicObject fiberBeingResumed, Object[] args) {
-            return fiberTransferNode.executeTransferControlTo(frame, fiberBeingResumed, FiberOperation.RESUME, args);
+        public Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
+                @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached("createBinaryProfile()") ConditionProfile sameFiberProfile,
+                @Cached("createBinaryProfile()") ConditionProfile transferredProfile) {
+
+            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
+            final DynamicObject sendingFiber = fiberManager.getCurrentFiber();
+
+            if (sameFiberProfile.profile(sendingFiber == fiber)) {
+                throw new RaiseException(coreExceptions().fiberError("double resume", this));
+            }
+
+            if (transferredProfile.profile(Layouts.FIBER.getTransferred(fiber))) {
+                throw new RaiseException(coreExceptions().fiberError("cannot resume transferred Fiber", this));
+            }
+
+            return fiberTransferNode.executeTransferControlTo(frame, currentThread, sendingFiber, fiber, FiberOperation.RESUME, args);
         }
 
     }
@@ -126,17 +165,14 @@ public abstract class FiberNodes {
         public Object yield(VirtualFrame frame, Object[] args,
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached("create()") BranchProfile errorProfile) {
+
             final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
             final DynamicObject yieldingFiber = fiberManager.getCurrentFiber();
-            final DynamicObject fiberYieldedTo = Layouts.FIBER.getLastResumedByFiber(yieldingFiber);
 
-            if (yieldingFiber == fiberManager.getRootFiber() || fiberYieldedTo == null) {
-                errorProfile.enter();
-                throw new RaiseException(coreExceptions().yieldFromRootFiberError(this));
-            }
+            final DynamicObject fiberYieldedTo = fiberManager.getReturnFiber(yieldingFiber, this, errorProfile);
 
-            return fiberTransferNode.executeTransferControlTo(frame, fiberYieldedTo, FiberOperation.YIELD, args);
+            return fiberTransferNode.executeTransferControlTo(frame, currentThread, yieldingFiber, fiberYieldedTo, FiberOperation.YIELD, args);
         }
 
     }
