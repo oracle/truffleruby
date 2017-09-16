@@ -1014,7 +1014,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_syserr_fail", onSingleton = true, required = 2)
+    @CoreMethod(names = "rb_syserr_fail", onSingleton = true, required = 2, lowerFixnum = 1)
     public abstract static class RbSysErrFail extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNil(nil)")
