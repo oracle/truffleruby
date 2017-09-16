@@ -48,10 +48,10 @@ public abstract class FiberNodes {
             return singleValueCastNode.executeSingleValue(frame, args);
         }
 
-        public abstract Object executeTransferControlTo(VirtualFrame frame, DynamicObject fiber, boolean isYield, Object[] args);
+        public abstract Object executeTransferControlTo(VirtualFrame frame, DynamicObject fiber, FiberOperation operation, Object[] args);
 
         @Specialization(guards = "isRubyFiber(fiber)")
-        protected Object transfer(VirtualFrame frame, DynamicObject fiber, boolean isYield, Object[] args,
+        protected Object transfer(VirtualFrame frame, DynamicObject fiber, FiberOperation operation, Object[] args,
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached("create()") BranchProfile sameFiberProfile,
                 @Cached("create()") BranchProfile errorProfile) {
@@ -75,7 +75,7 @@ public abstract class FiberNodes {
             }
 
 
-            return singleValue(frame, fiberManager.transferControlTo(sendingFiber, fiber, isYield, args));
+            return singleValue(frame, fiberManager.transferControlTo(sendingFiber, fiber, operation, args));
         }
 
     }
@@ -113,7 +113,7 @@ public abstract class FiberNodes {
 
         @Specialization
         public Object resume(VirtualFrame frame, DynamicObject fiberBeingResumed, Object[] args) {
-            return fiberTransferNode.executeTransferControlTo(frame, fiberBeingResumed, false, args);
+            return fiberTransferNode.executeTransferControlTo(frame, fiberBeingResumed, FiberOperation.RESUME, args);
         }
 
     }
@@ -137,7 +137,7 @@ public abstract class FiberNodes {
                 throw new RaiseException(coreExceptions().yieldFromRootFiberError(this));
             }
 
-            return fiberTransferNode.executeTransferControlTo(frame, fiberYieldedTo, true, args);
+            return fiberTransferNode.executeTransferControlTo(frame, fiberYieldedTo, FiberOperation.YIELD, args);
         }
 
     }
