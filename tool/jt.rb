@@ -1600,7 +1600,7 @@ module Commands
     build
 
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
-    chdir(dir) do
+    java_home = chdir(dir) do
       if LINUX
         jvmci_version = "jvmci-0.33"
         jvmci_grep = "#{dir}/openjdk1.8.0*#{jvmci_version}"
@@ -1626,30 +1626,31 @@ module Commands
         archive = Dir["#{dir}/labsjdk-*darwin*.tar.gz"].sort.first
         abort "Could not find the JVMCI-enabled JDK" unless archive
         raw_sh "tar", "xf", archive
-        java_home = Dir["#{dir}/labsjdk1.8.0*"].sort.first
+        Dir["#{dir}/labsjdk1.8.0*"].sort.first
       end
-
-      abort "Could not find the extracted JDK" unless java_home
-      java_home = File.expand_path(java_home)
-
-      puts "Testing JDK"
-      raw_sh "#{java_home}/bin/java", "-version"
-
-      puts "Building graal"
-      graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
-      chdir("#{dir}/graal/compiler") do
-        raw_sh "git", "checkout", Utilities.truffle_version
-        File.write("mx.compiler/env", "JAVA_HOME=#{java_home}\n")
-        mx "build"
-      end
-
-      puts "Running with Graal"
-      run "--graal", "-e", "p Truffle.graal?"
-
-      puts
-      puts "To run TruffleRuby with Graal, use:"
-      puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
     end
+
+    abort "Could not find the extracted JDK" unless java_home
+    java_home = File.expand_path(java_home)
+
+    puts "Testing JDK"
+    raw_sh "#{java_home}/bin/java", "-version"
+
+    puts "Building graal"
+    graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
+    chdir("#{graal}/compiler") do
+      raw_sh "git", "fetch"
+      raw_sh "git", "checkout", Utilities.truffle_version
+      File.write("mx.compiler/env", "JAVA_HOME=#{java_home}\n")
+      mx "build"
+    end
+
+    puts "Running with Graal"
+    run "--graal", "-e", "p Truffle.graal?"
+
+    puts
+    puts "To run TruffleRuby with Graal, use:"
+    puts "$ #{TRUFFLERUBY_DIR}/tool/jt.rb ruby --graal ..."
   end
 
   def next(*args)
