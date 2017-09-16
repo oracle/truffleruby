@@ -51,12 +51,12 @@ public abstract class FiberNodes {
         }
 
         public abstract Object executeTransferControlTo(VirtualFrame frame,
-                DynamicObject currentThread, DynamicObject sendingFiber, DynamicObject fiber,
+                DynamicObject currentThread, DynamicObject currentFiber, DynamicObject fiber,
                 FiberOperation operation, Object[] args);
 
         @Specialization(guards = "isRubyFiber(fiber)")
         protected Object transfer(VirtualFrame frame,
-                DynamicObject currentThread, DynamicObject sendingFiber, DynamicObject fiber,
+                DynamicObject currentThread, DynamicObject currentFiber, DynamicObject fiber,
                 FiberOperation operation, Object[] args,
                 @Cached("create()") BranchProfile errorProfile) {
 
@@ -71,7 +71,7 @@ public abstract class FiberNodes {
             }
 
             final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
-            return singleValue(frame, fiberManager.transferControlTo(sendingFiber, fiber, operation, args));
+            return singleValue(frame, fiberManager.transferControlTo(currentFiber, fiber, operation, args));
         }
 
     }
@@ -116,14 +116,14 @@ public abstract class FiberNodes {
 
             final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
-            final DynamicObject sendingFiber = fiberManager.getCurrentFiber();
+            final DynamicObject currentFiber = fiberManager.getCurrentFiber();
 
-            if (sameFiberProfile.profile(sendingFiber == fiber)) {
+            if (sameFiberProfile.profile(currentFiber == fiber)) {
                 // A Fiber can transfer to itself
                 return fiberTransferNode.singleValue(frame, args);
             }
 
-            return fiberTransferNode.executeTransferControlTo(frame, currentThread, sendingFiber, fiber, FiberOperation.TRANSFER, args);
+            return fiberTransferNode.executeTransferControlTo(frame, currentThread, currentFiber, fiber, FiberOperation.TRANSFER, args);
         }
 
     }
@@ -173,11 +173,11 @@ public abstract class FiberNodes {
 
             final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
             final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
-            final DynamicObject yieldingFiber = fiberManager.getCurrentFiber();
+            final DynamicObject currentFiber = fiberManager.getCurrentFiber();
 
-            final DynamicObject fiberYieldedTo = fiberManager.getReturnFiber(yieldingFiber, this, errorProfile);
+            final DynamicObject fiberYieldedTo = fiberManager.getReturnFiber(currentFiber, this, errorProfile);
 
-            return fiberTransferNode.executeTransferControlTo(frame, currentThread, yieldingFiber, fiberYieldedTo, FiberOperation.YIELD, args);
+            return fiberTransferNode.executeTransferControlTo(frame, currentThread, currentFiber, fiberYieldedTo, FiberOperation.YIELD, args);
         }
 
     }
