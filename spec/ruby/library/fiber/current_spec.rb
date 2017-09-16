@@ -37,20 +37,13 @@ with_feature :fiber_library do
       fiber2 = Fiber.new do
         states << :fiber2
         fiber.transfer
-        this = Fiber.current
-        this.should be_an_instance_of(Fiber)
-        this.should == fiber2
-        this.alive?.should be_true
+        flunk
       end
 
       fiber3 = Fiber.new do
         states << :fiber3
         fiber2.transfer
-        this = Fiber.current
-        this.should be_an_instance_of(Fiber)
-        this.should == fiber3
-        this.alive?.should be_true
-        fiber2.transfer
+        flunk
       end
 
       fiber3.resume
