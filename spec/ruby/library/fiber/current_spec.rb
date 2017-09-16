@@ -25,13 +25,12 @@ with_feature :fiber_library do
     end
 
     it "returns the current Fiber when called from a Fiber that transferred to another" do
-
       states = []
       fiber = Fiber.new do
         states << :fiber
         this = Fiber.current
         this.should be_an_instance_of(Fiber)
-        this.should === fiber
+        this.should == fiber
         this.alive?.should_not be_false # Workaround for bug #1547
       end
 
@@ -40,7 +39,7 @@ with_feature :fiber_library do
         fiber.transfer
         this = Fiber.current
         this.should be_an_instance_of(Fiber)
-        this.should === fiber2
+        this.should == fiber2
         this.alive?.should_not be_false # Workaround for bug #1547
       end
 
@@ -49,7 +48,7 @@ with_feature :fiber_library do
         fiber2.transfer
         this = Fiber.current
         this.should be_an_instance_of(Fiber)
-        this.should === fiber3
+        this.should == fiber3
         this.alive?.should_not be_false # Workaround for bug #1547
         fiber2.transfer
       end
