@@ -954,7 +954,8 @@ public abstract class KernelNodes {
                             Layouts.PROC.getDeclarationFrame(block),
                             Layouts.PROC.getMethod(block),
                             Layouts.PROC.getSelf(block),
-                            Layouts.PROC.getBlock(block));
+                            Layouts.PROC.getBlock(block),
+                            null);
         }
 
         @Specialization(guards = "!isLiteralBlock(block)")
