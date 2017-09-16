@@ -40,7 +40,10 @@ public abstract class ProcOperations {
         // We cannot break out of a block without a frame above. This is particularly important for
         // Thread.new as otherwise the flag could be set too late (after returning from Thread.new
         // and not when the new Thread starts executing).
-        Layouts.PROC.getFrameOnStackMarker(proc).setNoLongerOnStack();
+        final FrameOnStackMarker frameOnStackMarker = Layouts.PROC.getFrameOnStackMarker(proc);
+        if (frameOnStackMarker != null) {
+            frameOnStackMarker.setNoLongerOnStack();
+        }
 
         return Layouts.PROC.getCallTargetForType(proc).call(packArguments(proc, args));
     }
