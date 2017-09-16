@@ -139,15 +139,10 @@ public abstract class FiberNodes {
                 @Cached("createBinaryProfile()") ConditionProfile doubleResumeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile transferredProfile) {
 
-            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
-            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
-            final DynamicObject currentFiber = fiberManager.getCurrentFiber();
-
             final DynamicObject parentFiber = Layouts.FIBER.getLastResumedByFiber(fiber);
             final FiberManager fiberToResumeManager = Layouts.THREAD.getFiberManager(Layouts.FIBER.getRubyThread(fiber));
 
-            if (doubleResumeProfile.profile(currentFiber == fiber || parentFiber != null ||
-                    fiber == fiberToResumeManager.getRootFiber())) {
+            if (doubleResumeProfile.profile(parentFiber != null || fiber == fiberToResumeManager.getRootFiber())) {
                 throw new RaiseException(coreExceptions().fiberError("double resume", this));
             }
 
@@ -155,6 +150,9 @@ public abstract class FiberNodes {
                 throw new RaiseException(coreExceptions().fiberError("cannot resume transferred Fiber", this));
             }
 
+            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
+            final DynamicObject currentFiber = fiberManager.getCurrentFiber();
 
             return fiberTransferNode.executeTransferControlTo(frame, currentThread, currentFiber, fiber, FiberOperation.RESUME, args);
         }
