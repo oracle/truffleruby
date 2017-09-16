@@ -53,29 +53,6 @@ public abstract class ProcOperations {
             CallTarget callTargetForLambdas,
             MaterializedFrame declarationFrame,
             InternalMethod method,
-            Object self,
-            DynamicObject block) {
-        return createRubyProc(
-                instanceFactory,
-                type,
-                sharedMethodInfo,
-                callTargetForProcs,
-                callTargetForLambdas,
-                declarationFrame,
-                method,
-                self,
-                block,
-                null);
-    }
-
-    public static DynamicObject createRubyProc(
-            DynamicObjectFactory instanceFactory,
-            ProcType type,
-            SharedMethodInfo sharedMethodInfo,
-            CallTarget callTargetForProcs,
-            CallTarget callTargetForLambdas,
-            MaterializedFrame declarationFrame,
-            InternalMethod method,
             Object self, DynamicObject block,
             FrameOnStackMarker frameOnStackMarker) {
         assert block == null || RubyGuards.isRubyProc(block);

@@ -120,7 +120,9 @@ public abstract class SymbolNodes {
                     ProcType.PROC,
                     sharedMethodInfo,
                     callTarget, callTarget, null,
-                    method, nil(),
+                    method,
+                    nil(),
+                    null,
                     null);
         }
 
