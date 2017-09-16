@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.cast;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -31,7 +30,6 @@ public abstract class SingleValueCastNode extends RubyNode {
         return args[0];
     }
 
-    @TruffleBoundary
     @Specialization(guards = { "!noArguments(args)", "!singleArgument(args)" })
     protected DynamicObject castMany(Object[] args) {
         return createArray(args, args.length);
