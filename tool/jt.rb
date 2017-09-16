@@ -344,8 +344,9 @@ module ShellUtils
       yield
     else
       STDERR.puts "$ cd #{dir}"
-      Dir.chdir(dir, &block)
+      ret = Dir.chdir(dir, &block)
       STDERR.puts "$ cd #{Dir.pwd}"
+      ret
     end
   end
 
