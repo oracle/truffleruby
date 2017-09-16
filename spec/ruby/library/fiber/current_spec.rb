@@ -10,7 +10,7 @@ with_feature :fiber_library do
       # We can always transfer to the root Fiber; it will never die
       5.times do
         root.transfer.should be_nil
-        root.alive?.should_not be_false #Workaround for bug #1547
+        root.alive?.should be_true
       end
     end
 
@@ -19,7 +19,7 @@ with_feature :fiber_library do
         this = Fiber.current
         this.should be_an_instance_of(Fiber)
         this.should == fiber
-        this.alive?.should_not be_false # Workaround for bug #1547
+        this.alive?.should be_true
       end
       fiber.resume
     end
@@ -31,7 +31,7 @@ with_feature :fiber_library do
         this = Fiber.current
         this.should be_an_instance_of(Fiber)
         this.should == fiber
-        this.alive?.should_not be_false # Workaround for bug #1547
+        this.alive?.should be_true
       end
 
       fiber2 = Fiber.new do
@@ -40,7 +40,7 @@ with_feature :fiber_library do
         this = Fiber.current
         this.should be_an_instance_of(Fiber)
         this.should == fiber2
-        this.alive?.should_not be_false # Workaround for bug #1547
+        this.alive?.should be_true
       end
 
       fiber3 = Fiber.new do
@@ -49,7 +49,7 @@ with_feature :fiber_library do
         this = Fiber.current
         this.should be_an_instance_of(Fiber)
         this.should == fiber3
-        this.alive?.should_not be_false # Workaround for bug #1547
+        this.alive?.should be_true
         fiber2.transfer
       end
 
