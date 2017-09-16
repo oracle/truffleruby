@@ -52,6 +52,7 @@ public abstract class FiberNodes {
         @Specialization(guards = "isRubyFiber(fiber)")
         protected Object transfer(VirtualFrame frame, DynamicObject fiber, boolean isYield, Object[] args,
                 @Cached("create()") GetCurrentRubyThreadNode getCurrentRubyThreadNode,
+                @Cached("create()") BranchProfile sameFiberProfile,
                 @Cached("create()") BranchProfile errorProfile) {
             if (!Layouts.FIBER.getAlive(fiber)) {
                 errorProfile.enter();
@@ -59,13 +60,19 @@ public abstract class FiberNodes {
             }
 
             final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
+            final DynamicObject sendingFiber = fiberManager.getCurrentFiber();
+
+            if (sendingFiber == fiber) {
+                sameFiberProfile.enter();
+                throw new RaiseException(coreExceptions().fiberError("double resume", this));
+            }
+
             if (Layouts.FIBER.getRubyThread(fiber) != currentThread) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().fiberError("fiber called across threads", this));
             }
 
-            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
-            final DynamicObject sendingFiber = fiberManager.getCurrentFiber();
 
             return singleValue(frame, fiberManager.transferControlTo(sendingFiber, fiber, isYield, args));
         }
