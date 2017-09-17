@@ -578,7 +578,7 @@ VALUE rb_ll2inum(LONG_LONG n) {
 }
 
 VALUE rb_ull2inum(unsigned LONG_LONG val) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "ULL2NUM", val);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "ULONG2NUM", val);
 }
 
 double rb_num2dbl(VALUE val) {
