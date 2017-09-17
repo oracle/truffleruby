@@ -54,6 +54,11 @@ MYSQL2_FREE_RESULT_WRAPPER = <<-EOF
   xfree(wrapper);
 EOF
 
+MYSQL2_FREE_STATEMENT = <<-EOF
+if (stmt_wrapper->refcount == 0) {
+  rb_tr_release_handle(stmt_wrapper->client);
+EOF
+
 PATCHED_FILES = {
   'xml_node_set.c' => {
     gem: 'nokogiri',
@@ -336,6 +341,14 @@ PATCHED_FILES = {
       {
         match: /wrapper->statement = statement/,
         replacement: 'wrapper->statement = rb_tr_handle_for_managed_leaking(statement)'
+      },
+      {
+        match: /args->app_timezone/,
+        replacement: 'rb_tr_managed_from_handle(args->app_timezone)'
+      },
+      {
+        match: /args->db_timezone/,
+        replacement: 'rb_tr_managed_from_handle(args->db_timezone)'
       }
     ]
   },
@@ -353,6 +366,26 @@ PATCHED_FILES = {
       {
         match: /rb_mysql_result_to_obj\(stmt_wrapper->client, wrapper->encoding, current, metadata, self\)/,
         replacement: 'rb_mysql_result_to_obj(stmt_wrapper->client, rb_tr_managed_from_handle(wrapper->encoding), current, metadata, self)'
+      },
+      {
+        match: /stmt_wrapper->client = rb_client/,
+        replacement: 'stmt_wrapper->client = rb_tr_handle_for_managed(rb_client)'
+      },
+      {
+        match: /\(stmt_wrapper->client([\),])/,
+        replacement: '(rb_tr_managed_from_handle(stmt_wrapper->client)\1'
+      },
+      {
+        match: /if \(stmt_wrapper->refcount == 0\) {/,
+        replacement: MYSQL2_FREE_STATEMENT
+      },
+      {
+        match: /args.sql = sql/,
+        replacement: 'args.sql = rb_tr_handle_for_managed_leaking(sql)'
+      }, 
+      {
+        match: /args.sql = rb_str_export_to_enc\(args.sql, conn_enc\);/,
+        replacement: 'args.sql = rb_str_export_to_enc(rb_tr_managed_from_handle(args.sql), conn_enc);'
       }
     ]
   }
@@ -401,6 +434,7 @@ def preprocess(line)
 end
 
 def patch(file, contents, directory)
+  file = File.basename(file)
   if patched_file = PATCHED_FILES[file]
     regexp = /^#{Regexp.escape(patched_file[:gem])}\b/
     if directory.split('/').last(2).any? { |part| part =~ regexp }
