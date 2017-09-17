@@ -79,6 +79,7 @@ module RbConfig
       'LIBRUBYARG'        => '',
       'NULLCMD'           => ':',
       'optflags'          => '',
+      'PATH_SEPARATOR'    => File::PATH_SEPARATOR,
       'RM'                => 'rm -f',
       'prefix'            => '',
       'ruby_install_name' => ruby_install_name,
