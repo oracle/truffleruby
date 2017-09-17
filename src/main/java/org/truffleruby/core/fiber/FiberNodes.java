@@ -80,7 +80,7 @@ public abstract class FiberNodes {
         public DynamicObject allocate(DynamicObject rubyClass) {
             final DynamicObject thread = getContext().getThreadManager().getCurrentThread();
             final DynamicObjectFactory factory = Layouts.CLASS.getInstanceFactory(rubyClass);
-            return Layouts.THREAD.getFiberManager(thread).createFiber(thread, factory, null);
+            return Layouts.THREAD.getFiberManager(thread).createFiber(getContext(), thread, factory, null);
         }
 
     }

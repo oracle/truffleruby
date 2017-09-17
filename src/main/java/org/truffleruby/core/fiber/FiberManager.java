@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.fiber;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
@@ -52,7 +53,7 @@ public class FiberManager {
 
     public FiberManager(RubyContext context, DynamicObject rubyThread) {
         this.context = context;
-        this.rootFiber = createRootFiber(rubyThread);
+        this.rootFiber = createRootFiber(context, rubyThread);
         this.currentFiber = rootFiber;
     }
 
@@ -83,12 +84,13 @@ public class FiberManager {
         currentFiber = fiber;
     }
 
-    private DynamicObject createRootFiber(DynamicObject thread) {
-        return createFiber(thread, context.getCoreLibrary().getFiberFactory(), "root Fiber for Thread");
+    private DynamicObject createRootFiber(RubyContext context, DynamicObject thread) {
+        return createFiber(context, thread, context.getCoreLibrary().getFiberFactory(), "root Fiber for Thread");
     }
 
-    public DynamicObject createFiber(DynamicObject thread, DynamicObjectFactory factory, String name) {
+    public DynamicObject createFiber(RubyContext context, DynamicObject thread, DynamicObjectFactory factory, String name) {
         assert RubyGuards.isRubyThread(thread);
+        CompilerAsserts.partialEvaluationConstant(context);
         final DynamicObject fiberLocals = Layouts.BASIC_OBJECT.createBasicObject(context.getCoreLibrary().getObjectFactory());
         final DynamicObject catchTags = ArrayHelpers.createArray(context, null, 0);
 
