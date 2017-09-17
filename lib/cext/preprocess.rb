@@ -247,36 +247,20 @@ PATCHED_FILES = {
         replacement: 'rb_tr_managed_from_handle(wrapper->client) != Qnil'
       },
       {
-        match: /xfree\(wrapper\);/,
-        replacement: MYSQL2_FREE_RESULT_WRAPPER
-      },
-      {
-        match: /wrapper->fields == Qnil/,
-        replacement: 'rb_tr_managed_from_handle(wrapper->fields) == Qnil'
-      },
-      {
-        match: /wrapper->fields = rb_ary_new2\(wrapper->numberOfFields\);/,
-        replacement: 'wrapper->fields = rb_tr_handle_for_managed(rb_ary_new2(wrapper->numberOfFields));'
-      },
-      {
-        match: /rb_ary_entry\(wrapper->fields,/,
-        replacement: 'rb_ary_entry(rb_tr_managed_from_handle(wrapper->fields),'
-      },
-      {
         match: /rb_to_encoding\(wrapper->encoding\)/,
         replacement: 'rb_to_encoding(rb_tr_managed_from_handle(wrapper->encoding))'
       },
       {
-        match: /rb_ary_store\(wrapper->fields,/,
-        replacement: 'rb_ary_store(rb_tr_managed_from_handle(wrapper->fields),'
+        match: /\bwrapper->fields\s*([\),;]|==)/,
+        replacement: 'rb_tr_managed_from_handle(wrapper->fields) \1'
       },
       {
-        match: /RARRAY_LEN\(wrapper->fields\)/,
-        replacement: 'RARRAY_LEN(rb_tr_managed_from_handle(wrapper->fields))'
+        match: /\bwrapper->fields\s*=\s*(\w.+);\s*$/ ,
+        replacement: 'wrapper->fields = rb_tr_handle_for_managed(\1);'
       },
       {
-        match: /return wrapper->fields;/,
-        replacement: 'return rb_tr_managed_from_handle(wrapper->fields);'
+        match: /xfree\(wrapper\);/,
+        replacement: MYSQL2_FREE_RESULT_WRAPPER
       },
       {
         match: /wrapper->rows == Qnil/,
