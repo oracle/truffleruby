@@ -79,12 +79,12 @@ class TestFiber < Test::Unit::TestCase
       f.resume
       f.resume
     }
-    # assert_raise(RuntimeError){
-    #   Fiber.new{
-    #     @c = callcc{|c| @c = c}
-    #   }.resume
-    #   @c.call # cross fiber callcc
-    # }
+    assert_raise(RuntimeError){
+      Fiber.new{
+        @c = callcc{|c| @c = c}
+      }.resume
+      @c.call # cross fiber callcc
+    }
     assert_raise(RuntimeError){
       Fiber.new{
         raise
@@ -345,4 +345,3 @@ class TestFiber < Test::Unit::TestCase
     assert_equal(s1, $_, bug7678)
   end
 end
-
