@@ -1613,10 +1613,9 @@ module Commands
         end
         java_home = Dir[jvmci_grep].sort.first
       elsif MAC
-        jvmci_version = "jvmci-0.32"
         puts "You need to download manually the latest JVMCI-enabled JDK at"
         puts "http://www.oracle.com/technetwork/oracle-labs/program-languages/downloads/index.html"
-        puts "Download the file named labsjdk-8u141-#{jvmci_version}-darwin-amd64.tar.gz"
+        puts "Download the file named labsjdk-...-darwin-amd64.tar.gz"
         puts "And move it to the directory #{dir}"
         puts "When done, enter 'done':"
         begin
