@@ -94,6 +94,7 @@ public class Options {
     public final int INTEROP_NEW_CACHE;
     public final int TIME_FORMAT_CACHE;
     public final int POW_CACHE;
+    public final int ARRAY_DUP_CACHE;
     public final boolean CLONE_DEFAULT;
     public final boolean INLINE_DEFAULT;
     public final boolean CORE_ALWAYS_CLONE;
@@ -210,6 +211,7 @@ public class Options {
         INTEROP_NEW_CACHE = builder.getOrDefault(OptionsCatalog.INTEROP_NEW_CACHE, DEFAULT_CACHE);
         TIME_FORMAT_CACHE = builder.getOrDefault(OptionsCatalog.TIME_FORMAT_CACHE, DEFAULT_CACHE);
         POW_CACHE = builder.getOrDefault(OptionsCatalog.POW_CACHE, DEFAULT_CACHE);
+        ARRAY_DUP_CACHE = builder.getOrDefault(OptionsCatalog.ARRAY_DUP_CACHE);
         CLONE_DEFAULT = builder.getOrDefault(OptionsCatalog.CLONE_DEFAULT);
         INLINE_DEFAULT = builder.getOrDefault(OptionsCatalog.INLINE_DEFAULT);
         CORE_ALWAYS_CLONE = builder.getOrDefault(OptionsCatalog.CORE_ALWAYS_CLONE, CLONE_DEFAULT);
@@ -406,6 +408,8 @@ public class Options {
                 return TIME_FORMAT_CACHE;
             case "ruby.integer.pow.cache":
                 return POW_CACHE;
+            case "ruby.array.dup.cache":
+                return ARRAY_DUP_CACHE;
             case "ruby.clone.default":
                 return CLONE_DEFAULT;
             case "ruby.inline.default":

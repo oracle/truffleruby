@@ -33,7 +33,7 @@ public abstract class ArrayDupNode extends RubyNode {
     @Specialization(guards = {
             "strategy.matches(from)", "strategy.getSize(from) == cachedSize",
             "cachedSize <= ARRAY_MAX_EXPLODE_SIZE"
-    }, limit = "3")
+    }, limit = "getCacheLimit()")
     public DynamicObject dupProfiledSize(DynamicObject from,
             @Cached("of(from)") ArrayStrategy strategy,
             @Cached("strategy.getSize(from)") int cachedSize) {
@@ -56,6 +56,10 @@ public abstract class ArrayDupNode extends RubyNode {
         final int size = strategy.getSize(from);
         Object store = strategy.newMirror(from).copyArrayAndMirror().getArray();
         return allocateNode.allocateArray(coreLibrary().getArrayClass(), store, size);
+    }
+
+    protected int getCacheLimit() {
+        return getContext().getOptions().ARRAY_DUP_CACHE;
     }
 
 }
