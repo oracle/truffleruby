@@ -314,6 +314,30 @@ public abstract class ModuleOperations {
         return new MethodLookupResult(null, toArray(assumptions));
     }
 
+    @TruffleBoundary
+    public static InternalMethod lookupMethodUncached(DynamicObject module, String name) {
+        // Lookup in the top module as we are likely to find the method there
+        final ModuleChain top = Layouts.MODULE.getFields(module).getFirstModuleChain();
+        final ModuleFields topModule = Layouts.MODULE.getFields(top.getActualModule());
+        final InternalMethod topMethod = topModule.getMethod(name);
+
+        if (topMethod != null) {
+            return topMethod;
+        } else {
+            // Look in ancestors
+            for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
+                final ModuleFields fields = Layouts.MODULE.getFields(ancestor);
+                final InternalMethod method = fields.getMethod(name);
+                if (method != null) {
+                    return method;
+                }
+            }
+        }
+
+        // Nothing found
+        return null;
+    }
+
     public static MethodLookupResult lookupMethod(DynamicObject module, String name, Visibility visibility) {
         MethodLookupResult method = lookupMethod(module, name);
         return (method.isDefined() && method.getMethod().getVisibility() == visibility) ? method : null;

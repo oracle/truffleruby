@@ -70,7 +70,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
     private final SourceSection sourceSection;
 
-    public final ModuleChain start;
+    public final PrependMarker start;
     @CompilationFinal public ModuleChain parentModule;
 
     public final DynamicObject lexicalParent;
@@ -149,6 +149,10 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
     private boolean hasPrependedModules() {
         return start.getParentModule() != this;
+    }
+
+    public ModuleChain getFirstModuleChain() {
+        return start.getParentModule();
     }
 
     @TruffleBoundary

@@ -172,6 +172,7 @@ public class CoreLibrary {
     private final DynamicObject truffleModule;
     private final DynamicObject truffleBootModule;
     private final DynamicObject truffleInteropModule;
+    private final DynamicObject truffleInteropForeignClass;
     private final DynamicObject truffleInteropJavaModule;
     private final DynamicObject truffleKernelOperationsModule;
     private final DynamicObject bigDecimalClass;
@@ -209,7 +210,6 @@ public class CoreLibrary {
 
     @CompilationFinal private DynamicObject eagainWaitReadable;
     @CompilationFinal private DynamicObject eagainWaitWritable;
-    @CompilationFinal private DynamicObject interopForeignClass;
 
     private final Map<Errno, DynamicObject> errnoClasses = new HashMap<>();
 
@@ -512,6 +512,7 @@ public class CoreLibrary {
 
         truffleModule = defineModule("Truffle");
         truffleInteropModule = defineModule(truffleModule, "Interop");
+        truffleInteropForeignClass = defineClass(truffleInteropModule, objectClass, "Foreign");
         truffleInteropJavaModule = defineModule(truffleInteropModule, "Java");
         defineModule(truffleModule, "CExt");
         defineModule(truffleModule, "Debug");
@@ -849,9 +850,6 @@ public class CoreLibrary {
 
         eagainWaitWritable = (DynamicObject) Layouts.MODULE.getFields(ioClass).getConstant("EAGAINWaitWritable").getValue();
         assert Layouts.CLASS.isClass(eagainWaitWritable);
-
-        interopForeignClass = (DynamicObject) Layouts.MODULE.getFields((DynamicObject) Layouts.MODULE.getFields(truffleModule).getConstant("Interop").getValue()).getConstant("Foreign").getValue();
-        assert Layouts.CLASS.isClass(interopForeignClass);
     }
 
     public void initializePostBoot() {
@@ -975,7 +973,7 @@ public class CoreLibrary {
         } else if (object instanceof Double) {
             return floatClass;
         } else {
-            return interopForeignClass;
+            return truffleInteropForeignClass;
         }
     }
 
@@ -1432,15 +1430,19 @@ public class CoreLibrary {
         return truffleBootModule;
     }
 
-    public Object getTruffleInteropModule() {
+    public DynamicObject getTruffleInteropModule() {
         return truffleInteropModule;
     }
 
-    public Object getTruffleInteropJavaModule() {
+    public DynamicObject getTruffleInteropForeignClass() {
+        return truffleInteropForeignClass;
+    }
+
+    public DynamicObject getTruffleInteropJavaModule() {
         return truffleInteropJavaModule;
     }
 
-    public Object getTruffleKernelOperationsModule() {
+    public DynamicObject getTruffleKernelOperationsModule() {
         return truffleKernelOperationsModule;
     }
 
