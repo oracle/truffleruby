@@ -527,8 +527,9 @@ module Commands
                   JVMCI_BIN JVMCI_GRAAL_HOME GRAAL_JS_JAR
                   SL_JAR OPENSSL_PREFIX AOT_BIN TRUFFLERUBY_CEXT_ENABLED
                   TRUFFLERUBYOPT RUBYOPT]
+    column_size = env_vars.map(&:size).max
     env_vars.each do |e|
-      puts "#{e}: #{ENV[e].inspect}"
+      puts format "%#{column_size}s: %s", e, ENV[e].inspect
     end
     shell = -> command { raw_sh(*command.split, continue_on_failure: true) }
     shell['ruby -v']
