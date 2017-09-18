@@ -21,8 +21,10 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.MethodLookupResult;
+import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -82,6 +84,8 @@ public abstract class LookupMethodNode extends RubyNode {
             @Cached("createBinaryProfile()") ConditionProfile noCallerMethodProfile,
             @Cached("createBinaryProfile()") ConditionProfile isSendProfile,
             @Cached("create()") BranchProfile foreignProfile,
+            @Cached("createBinaryProfile()") ConditionProfile noPrependedModulesProfile,
+            @Cached("createBinaryProfile()") ConditionProfile onMetaClassProfile,
             @Cached("createBinaryProfile()") ConditionProfile foundProfile,
             @Cached("createBinaryProfile()") ConditionProfile publicProfile) {
 
@@ -111,7 +115,17 @@ public abstract class LookupMethodNode extends RubyNode {
             throw new UnsupportedOperationException("method lookup not supported on foreign objects");
         }
 
-        final InternalMethod method = ModuleOperations.lookupMethodUncached(metaClass, name);
+        final InternalMethod method;
+        // Lookup first in the metaclass as we are likely to find the method there
+        final ModuleFields fields = Layouts.MODULE.getFields(metaClass);
+        InternalMethod topMethod;
+        if (noPrependedModulesProfile.profile(fields.getFirstModuleChain() == fields) &&
+                onMetaClassProfile.profile((topMethod = fields.getMethod(name)) != null)) {
+            method = topMethod;
+        } else {
+            method = ModuleOperations.lookupMethodUncached(metaClass, name);
+        }
+
 
         if (foundProfile.profile(method == null || method.isUndefined())) {
             return null;
