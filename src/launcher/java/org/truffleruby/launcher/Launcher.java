@@ -63,7 +63,7 @@ public class Launcher {
 
     public static final boolean IS_NATIVE = Boolean.getBoolean("com.oracle.graalvm.isaot")
             || Boolean.getBoolean("com.oracle.truffle.aot");
-    public static final String GRAALVM_VERSION = System.getProperty("graalvm.version", "unknown version");
+    public static final String GRAALVM_VERSION = System.getProperty("graalvm.version", "Development Build");
     public static final String LANGUAGE_ID = "ruby";
     public static final String LANGUAGE_VERSION = "2.3.3";
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
