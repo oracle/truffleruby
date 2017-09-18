@@ -243,7 +243,7 @@ gate-caps: {
 }
 
 gate-caps-darwin: {
-  capabilities: [darwin_next, macmini7_1]
+  capabilities: [darwin_sierra, amd64]
   targets: [gate, post-push]
   environment: {
     REPORT_GITHUB_STATUS: "true"
