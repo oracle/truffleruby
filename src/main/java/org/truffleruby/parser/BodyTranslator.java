@@ -15,7 +15,6 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.jcodings.specific.UTF8Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Syntax;
@@ -154,9 +153,9 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.language.objects.WriteClassVariableNode;
 import org.truffleruby.language.objects.WriteInstanceVariableNode;
 import org.truffleruby.language.threadlocal.GetFromThreadAndFrameLocalStorageNode;
-import org.truffleruby.language.threadlocal.SetInThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNode;
 import org.truffleruby.language.threadlocal.GetThreadLocalsObjectNodeGen;
+import org.truffleruby.language.threadlocal.SetInThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.yield.YieldExpressionNode;
 import org.truffleruby.parser.ast.AliasParseNode;
 import org.truffleruby.parser.ast.AndParseNode;
@@ -269,7 +268,6 @@ import org.truffleruby.parser.scope.StaticScope;
 import org.truffleruby.platform.graal.AssertConstantNodeGen;
 import org.truffleruby.platform.graal.AssertNotCompiledNodeGen;
 
-import java.io.File;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
@@ -1214,30 +1212,12 @@ public class BodyTranslator extends Translator {
         return environment.getParseEnvironment().getCorePath();
     }
 
-    private String buildPartialPath(String... components) {
-        final StringBuilder ret = new StringBuilder();
-
-        for (final String component : components) {
-            ret.append(File.separatorChar);
-            ret.append(component);
-        }
-
-        return ret.toString();
-    }
-
     @Override
     public RubyNode visitConstNode(ConstParseNode node) {
         // Unqualified constant access, as in CONST
         final SourceIndexLength sourceSection = node.getPosition();
 
         final String name = ConstantReplacer.replacementName(source, node.getName());
-
-        // TODO (pitr 01-Dec-2015): remove when RUBY_PLATFORM is set to "truffle"
-        if (name.equals("RUBY_PLATFORM") && getSourcePath(sourceSection).contains(buildPartialPath("test", "xml_mini", "jdom_engine_test.rb"))) {
-            final ObjectLiteralNode ret = new ObjectLiteralNode(StringOperations.createString(context, StringOperations.encodeRope("truffle", UTF8Encoding.INSTANCE, CodeRange.CR_7BIT)));
-            ret.unsafeSetSourceSection(sourceSection);
-            return addNewlineIfNeeded(node, ret);
-        }
 
         final RubyNode ret;
         if (environment.isDynamicConstantLookup()) {
