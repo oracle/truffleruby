@@ -61,7 +61,6 @@ public class StringArrayOptionDescription extends AppendableOptionDescription<St
         }
     }
 
-    // TODO (pitr-ch 03-Aug-2017): add test for the option parsing
     @SuppressWarnings("fallthrough")
     private static String[] parseStringArrayInner(String string) {
         final List<String> values = new ArrayList<>();
