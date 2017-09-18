@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -248,6 +249,7 @@ public class InternalMethod implements ObjectGraphNode {
                 capturedDefaultDefinee);
     }
 
+    @TruffleBoundary
     public boolean isVisibleTo(DynamicObject callerClass) {
         assert RubyGuards.isRubyClass(callerClass);
 

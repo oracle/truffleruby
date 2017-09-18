@@ -25,25 +25,28 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.methods.LookupMethodNodeGen;
 
 public class UncachedDispatchNode extends DispatchNode {
 
-    private final boolean ignoreVisibility;
     protected final boolean onlyCallPublic;
     private final MissingBehavior missingBehavior;
 
+    @Child private LookupMethodNode lookupMethodNode;
     @Child private IndirectCallNode indirectCallNode;
     @Child private ToSymbolNode toSymbolNode;
     @Child private NameToJavaStringNode toJavaStringNode;
 
+    private final BranchProfile methodNotFoundProfile = BranchProfile.create();
     private final BranchProfile methodMissingProfile = BranchProfile.create();
     private final BranchProfile methodMissingNotFoundProfile = BranchProfile.create();
 
     public UncachedDispatchNode(boolean ignoreVisibility, boolean onlyCallPublic, DispatchAction dispatchAction, MissingBehavior missingBehavior) {
         super(dispatchAction);
-        this.ignoreVisibility = ignoreVisibility;
         this.onlyCallPublic = onlyCallPublic;
         this.missingBehavior = missingBehavior;
+        this.lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, onlyCallPublic, null, null);
         this.indirectCallNode = Truffle.getRuntime().createIndirectCallNode();
         this.toSymbolNode = ToSymbolNodeGen.create(null);
         this.toJavaStringNode = NameToJavaStringNode.create();
@@ -61,25 +64,24 @@ public class UncachedDispatchNode extends DispatchNode {
             Object name,
             DynamicObject blockObject,
             Object[] argumentsObjects) {
-        assert! RubyGuards.isForeignObject(receiverObject) : "uncached dispatch not supported on foreign objects";
+        assert !RubyGuards.isForeignObject(receiverObject) : "uncached dispatch not supported on foreign objects";
 
         final DispatchAction dispatchAction = getDispatchAction();
 
-        final MethodLookupResult method = lookup(frame,
-                receiverObject,
-                toJavaStringNode.executeToJavaString(frame, name),
-                ignoreVisibility,
-                onlyCallPublic);
+        final String methodName = toJavaStringNode.executeToJavaString(frame, name);
+        final InternalMethod method = lookupMethodNode.executeLookupMethod(frame, receiverObject, methodName);
 
-        if (method.isDefined()) {
+        if (method != null) {
             if (dispatchAction == DispatchAction.CALL_METHOD) {
-                return call(method.getMethod(), receiverObject, blockObject, argumentsObjects);
+                return call(method, receiverObject, blockObject, argumentsObjects);
             } else if (dispatchAction == DispatchAction.RESPOND_TO_METHOD) {
                 return true;
             } else {
                 throw new UnsupportedOperationException();
             }
         }
+
+        methodNotFoundProfile.enter();
 
         if (dispatchAction == DispatchAction.CALL_METHOD && missingBehavior == MissingBehavior.RETURN_MISSING) {
             return DispatchNode.MISSING;
