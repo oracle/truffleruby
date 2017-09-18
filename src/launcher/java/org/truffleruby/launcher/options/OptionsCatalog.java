@@ -406,6 +406,11 @@ public class OptionsCatalog {
             "Cache size for Integer#** with a constant exponent",
             null,
             DEFAULT_CACHE.getDefaultValue());
+    public static final IntegerOptionDescription ARRAY_DUP_CACHE = new IntegerOptionDescription(
+            "ruby.array.dup.cache",
+            "Cache size for copying small arrays",
+            null,
+            3);
     public static final BooleanOptionDescription CLONE_DEFAULT = new BooleanOptionDescription(
             "ruby.clone.default",
             "Default option for cloning",
@@ -745,6 +750,8 @@ public class OptionsCatalog {
                 return TIME_FORMAT_CACHE;
             case "ruby.integer.pow.cache":
                 return POW_CACHE;
+            case "ruby.array.dup.cache":
+                return ARRAY_DUP_CACHE;
             case "ruby.clone.default":
                 return CLONE_DEFAULT;
             case "ruby.inline.default":
@@ -902,6 +909,7 @@ public class OptionsCatalog {
             INTEROP_NEW_CACHE,
             TIME_FORMAT_CACHE,
             POW_CACHE,
+            ARRAY_DUP_CACHE,
             CLONE_DEFAULT,
             INLINE_DEFAULT,
             CORE_ALWAYS_CLONE,
