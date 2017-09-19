@@ -152,15 +152,11 @@ public class FiberManager {
             resume(fiber, getReturnFiber(fiber, currentNode, UNPROFILED), FiberOperation.YIELD, result);
 
         // Handlers in the same order as in ThreadManager
-        } catch (KillException e) {
-            // Propagate the kill exception until it reaches the root Fiber
+        } catch (KillException | ExitException | RaiseException e) {
+            // Propagate the exception until it reaches the root Fiber
             sendExceptionToParentFiber(fiber, e, currentNode);
         } catch (FiberShutdownException e) {
             // Ends execution of the Fiber
-        } catch (ExitException e) {
-            sendExceptionToParentFiber(fiber, e, currentNode);
-        } catch (RaiseException e) {
-            sendExceptionToParentFiber(fiber, e, currentNode);
         } catch (BreakException e) {
             sendExceptionToParentFiber(fiber, new RaiseException(context.getCoreExceptions().breakFromProcClosure(currentNode)), currentNode);
         } catch (ReturnException e) {
