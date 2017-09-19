@@ -1,7 +1,7 @@
 # Copyright (c) 2014, 2016 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
-# 
+#
 # Eclipse Public License version 1.0
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
@@ -56,5 +56,20 @@ class << self
 end
 
 Signal.trap('INT') do
+  if Truffle::Boot.get_option('backtraces.on_interrupt')
+    puts 'Interrupting...'
+    puts 'Threads and backtraces:'
+    Thread.list.each { |thread|
+      p thread
+      if thread == Thread.current
+        # Ignore the signal handler frames
+        puts thread.backtrace[4..-1]
+      else
+        puts thread.backtrace
+      end
+      puts
+    }
+  end
+
   raise Interrupt
 end
