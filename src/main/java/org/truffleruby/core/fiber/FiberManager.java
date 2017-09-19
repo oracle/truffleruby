@@ -353,6 +353,9 @@ public class FiberManager {
 
     }
 
+    /**
+     * Used to cleanup and terminate Fibers when the parent Thread dies.
+     */
     private static class FiberShutdownException extends ControlFlowException {
         private static final long serialVersionUID = 1522270454305076317L;
     }
