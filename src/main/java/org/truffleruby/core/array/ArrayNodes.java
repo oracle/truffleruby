@@ -1581,6 +1581,62 @@ public abstract class ArrayNodes {
 
     }
 
+    @Primitive(name = "array_rotate_inplace", needsSelf = false, lowerFixnum = 2)
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class RotateInplaceNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
+        public DynamicObject rotate(DynamicObject array, int amount,
+                @Cached("of(array)") ArrayStrategy strategy) {
+            final int size = strategy.getSize(array);
+            assert 0 < amount && amount < size;
+            final ArrayMirror mirror = strategy.newMirror(array);
+
+            rotateReverse(amount, size, mirror);
+
+            return array;
+        }
+
+        protected void rotateReverse(int amount, int size, ArrayMirror mirror) {
+            final int last = size - 1;
+            reverse(mirror, amount, last);
+            reverse(mirror, 0, amount - 1);
+            reverse(mirror, 0, last);
+        }
+
+        private void reverse(ArrayMirror mirror, int from, int to) {
+            while (from < to) {
+                final Object tmp = mirror.get(from);
+                mirror.set(from, mirror.get(to));
+                mirror.set(to, tmp);
+                from++;
+                to--;
+            }
+        }
+
+        protected void rotateElementByElement(int amount, int size, ArrayMirror mirror) {
+            int n = 0;
+            int prev = amount;
+            int next = 0;
+            Object prevValue = mirror.get(prev);
+            Object nextValue = mirror.get(next);
+            while (n < size) {
+                nextValue = mirror.get(next);
+                mirror.set(next, prevValue);
+                prevValue = nextValue;
+                prev = next;
+                next -= amount;
+                if (next < 0) {
+                    next += size;
+                } else if (next >= size) {
+                    next -= size;
+                }
+                n++;
+            }
+        }
+
+    }
+
     @CoreMethod(names = "select", needsBlock = true, enumeratorSize = "size")
     @ImportStatic(ArrayGuards.class)
     public abstract static class SelectNode extends YieldingCoreMethodNode {
