@@ -12,7 +12,7 @@ package org.truffleruby.language.control;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 
 /**
- * Exception sent by the hard #exit!
+ * Exception sent by the hard Kernel#exit!
  */
 public final class ExitException extends ControlFlowException {
 

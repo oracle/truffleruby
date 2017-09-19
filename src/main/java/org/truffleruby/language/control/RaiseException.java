@@ -21,6 +21,9 @@ import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 
+/**
+ * A ControlFlowException holding a Ruby exception.
+ */
 public class RaiseException extends ControlFlowException implements TruffleException {
 
     private static final long serialVersionUID = -4128190563044417424L;
