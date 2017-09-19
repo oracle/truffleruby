@@ -963,13 +963,17 @@ class Array
     ary[idx..-1].concat ary[0...idx]
   end
 
-  def rotate!(cnt=1)
+  def rotate!(n=1)
     Truffle.check_frozen
 
-    return self if length == 0 || length == 1
+    len = self.length
+    return self if len == 0 || len == 1
 
-    ary = rotate(cnt)
-    Truffle::Array.steal_storage(self, ary)
+    n = Rubinius::Type.coerce_to_collection_index n
+    n = n % len
+    return self if n == 0
+    Truffle.invoke_primitive :array_rotate_inplace, self, n
+    self
   end
 
   class SampleRandom
