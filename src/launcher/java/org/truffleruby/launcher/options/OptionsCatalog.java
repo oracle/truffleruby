@@ -521,6 +521,11 @@ public class OptionsCatalog {
             "Omit backtraces that should be unused as they have pure rescue expressions",
             null,
             true);
+    public static final BooleanOptionDescription BACKTRACE_ON_INTERRUPT = new BooleanOptionDescription(
+            "ruby.backtraces.on_interrupt",
+            "Show the backtraces of all Threads on Ctrl+C",
+            null,
+            false);
     public static final BooleanOptionDescription BASICOPS_INLINE = new BooleanOptionDescription(
             "ruby.basic_ops.inline",
             "Inline basic operations (like Fixnum operators) in the AST without a call",
@@ -796,6 +801,8 @@ public class OptionsCatalog {
                 return BACKTRACES_LIMIT;
             case "ruby.backtraces.omit_unused":
                 return BACKTRACES_OMIT_UNUSED;
+            case "ruby.backtraces.on_interrupt":
+                return BACKTRACE_ON_INTERRUPT;
             case "ruby.basic_ops.inline":
                 return BASICOPS_INLINE;
             case "ruby.graal.warn_unless":
@@ -932,6 +939,7 @@ public class OptionsCatalog {
             BACKTRACES_INTERLEAVE_JAVA,
             BACKTRACES_LIMIT,
             BACKTRACES_OMIT_UNUSED,
+            BACKTRACE_ON_INTERRUPT,
             BASICOPS_INLINE,
             GRAAL_WARNING_UNLESS,
             SHARED_OBJECTS_ENABLED,

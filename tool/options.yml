@@ -114,6 +114,7 @@ BACKTRACES_HIDE_CORE_FILES: [backtraces.hide_core_files, boolean, true, 'Hide co
 BACKTRACES_INTERLEAVE_JAVA: [backtraces.interleave_java, boolean, false, Interleave Java stacktraces into the Ruby backtrace]
 BACKTRACES_LIMIT: [backtraces.limit, integer, 9999, Limit the size of Ruby backtraces]
 BACKTRACES_OMIT_UNUSED: [backtraces.omit_unused, boolean, true, Omit backtraces that should be unused as they have pure rescue expressions]
+BACKTRACE_ON_INTERRUPT: [backtraces.on_interrupt, boolean, false, Show the backtraces of all Threads on Ctrl+C]
 BASICOPS_INLINE: [basic_ops.inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
 
 GRAAL_WARNING_UNLESS: [graal.warn_unless, boolean, true, Warn unless the JVM has the Graal compiler]
