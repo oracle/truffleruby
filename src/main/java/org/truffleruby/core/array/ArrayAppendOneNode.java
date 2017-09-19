@@ -39,7 +39,7 @@ public abstract class ArrayAppendOneNode extends RubyNode {
     @Specialization(guards = { "strategy.matches(array)", "strategy.accepts(value)" }, limit = "ARRAY_STRATEGIES")
     public DynamicObject appendOneSameType(DynamicObject array, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("createBinaryProfile()") ConditionProfile extendProfile) {
+            @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         final ArrayMirror storeMirror = strategy.newMirror(array);
         final int oldSize = Layouts.ARRAY.getSize(array);
         final int newSize = oldSize + 1;
