@@ -283,8 +283,7 @@ def preprocess(line)
 end
 
 def patch(file, contents, directory)
-  file = File.basename(file)
-  if patched_file = PATCHED_FILES[file]
+  if patched_file = PATCHED_FILES[File.basename(file)]
     regexp = /^#{Regexp.escape(patched_file[:gem])}\b/
     if directory.split('/').last(2).any? { |part| part =~ regexp }
       patched_file[:patches].each do |patch|
