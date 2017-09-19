@@ -165,13 +165,10 @@ module Process
       base_ptr = FFI::Pointer.new(FFI::Type::CHAR, base)
       haystack = base_ptr.read_string(size)
 
-      main_index = command.index("\x00org.truffleruby")
-      raise 'Did not find the main class in args' unless main_index
-      needle = command[0...main_index]
-      i = haystack.index("\x00#{needle}")
+      i = haystack.index("\x00#{command}")
       unless i
         puts
-        p needle
+        p command
         puts
         p haystack
         puts
@@ -179,7 +176,7 @@ module Process
       end
       i += 1
 
-      @_argv0_max_length = needle.bytesize
+      @_argv0_max_length = command.bytesize
       base + i
     end
 
