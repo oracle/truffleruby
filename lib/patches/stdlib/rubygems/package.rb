@@ -62,31 +62,36 @@ if Truffle::Boot.patching_openssl_enabled?
     rescue Gem::Package::TarInvalidError => e
       raise Gem::Package::FormatError.new e.message, @gem
     end
+  end
+end
 
-    def verify_entry entry
-      file_name = entry.full_name
-      @files << file_name
+class Gem::Package
+  def verify_entry entry
+    file_name = entry.full_name
+    @files << file_name
 
-      case file_name
-      when /\.sig$/ then
-        @signatures[$`] = entry.read if @security_policy
-        return
+    case file_name
+    when /\.sig$/ then
+      @signatures[$`] = entry.read if @security_policy
+      return
+    else
+      if Truffle::Boot.patching_openssl_enabled?
+        # TruffleRuby: disable
       else
-        # TruffleRuby: disable
-        # digest entry
+        digest entry
       end
-
-      case file_name
-      when /^metadata(.gz)?$/ then
-        load_spec entry
-      when 'data.tar.gz' then
-        # TruffleRuby: disable
-        # verify_gz entry
-      end
-    rescue => e
-      message = "package is corrupt, exception while verifying: " +
-          "#{e.message} (#{e.class})"
-      raise Gem::Package::FormatError.new message, @gem
     end
+
+    case file_name
+    when /^metadata(.gz)?$/ then
+      load_spec entry
+    when 'data.tar.gz' then
+      # TruffleRuby: disable, because it is way too slow with pr-zlib
+      # verify_gz entry
+    end
+  rescue => e
+    message = "package is corrupt, exception while verifying: " +
+        "#{e.message} (#{e.class})"
+    raise Gem::Package::FormatError.new message, @gem
   end
 end
