@@ -318,7 +318,7 @@ module Truffle::CExt
   def rb_check_type(value, type)
     # TODO CS 23-Jul-16 there's more to this method than this...
     if rb_type(value) != type
-      raise 'unexpected type'
+      raise TypeError, "wrong argument type #{value.class.name} (expected #{type})"
     end
   end
 
