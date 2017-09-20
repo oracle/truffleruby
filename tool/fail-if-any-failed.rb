@@ -34,10 +34,6 @@ known_failures = [
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-operations-compose"],
   ["server", "graal-core", "jruby", "truffle-cexts", "chunky", "chunky-operations-replace"],
 
-  # SVM (GR-5089)
-  ["svm", "graal-enterprise", "jruby", "truffle", "classic", "red-black"],
-  ["svm", "graal-enterprise", "jruby", "truffle", "classic", "richards"],
-
   # JRuby
   ["server", "default", "jruby", "indy", "micro", "micro/core/file.rb:core-read-gigabyte"]
 ]
