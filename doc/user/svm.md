@@ -44,13 +44,13 @@ the GraalVM distribution.
 The binary doesn't need a JVM:
 
 ```
-$ otool -L ruby 
+$ otool -L ruby
 ruby:
 	/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 1348.28.0)
 	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1238.0.0)
 	/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.8)
 
-$ du -h ruby 
+$ du -h ruby
 144M	ruby
 ```
 
@@ -65,38 +65,41 @@ beat MRI's startup time.
 
 | Implementation | Real Time (s) | Max RSS (MB) |
 | -------------- | ------------: | -----------: |
-| TruffleRuby SVM | 0.40 | 139 |
-| TruffleRuby JVM | 5.03 | 442 |
-| JRuby 9.1.7.0 | 2.25 | 191 |
-| MRI 2.4.0 | 0.03 | 8 |
-| Rubinius 3.60 | 0.61 | 64 |
+| TruffleRuby SVM | 0.10 | 97 |
+| TruffleRuby JVM | 2.86 | 272 |
+| JRuby 9.1.13.0 | 1.44 | 154 |
+| MRI 2.4.2 | 0.03 | 8 |
+| Rubinius 3.84 | 0.25 | 65 |
+
+Run on Linux with an Intel(R) Core(TM) i7-4702HQ CPU @ 2.20GHz.
 
 ```
-$ /usr/bin/time -l ./ruby -Xhome=jre/languages/ruby -e "puts 'hello'"  # TruffleRuby on the SVM
-hello
-        0.40 real         0.16 user         0.07 sys
- 145813504  maximum resident set size
- 
-$ /usr/bin/time -l graalvm-0.nn/bin/ruby -e "puts 'hello'"  # TruffleRuby on the JVM
-hello
-        5.03 real        10.84 user         1.85 sys
- 463806464  maximum resident set size
- 
-$ /usr/bin/time -l jruby-9.1.7.0/bin/jruby -e "puts 'hello'"
-hello
-       2.25 real         5.27 user         0.30 sys
-200794112  maximum resident set size
- 
-$ /usr/bin/time -l 2.4.0/bin/ruby -e "puts 'hello'"
-hello
-        0.03 real         0.02 user         0.00 sys
-   8773632  maximum resident set size
+$ export TIME="%e %M"
 
-$ /usr/bin/time -l rbx-3.60/bin/ruby -e "puts 'hello'"
-hello
-       0.61 real         0.32 user         0.20 sys
-  66744320  maximum resident set size
+$ cd graalvm-0.28
+$ /usr/bin/time bin/ruby --native -e 'puts "Hello"'  # TruffleRuby on the SVM
+Hello
+0.10 99764
+
+$ /usr/bin/time bin/ruby --jvm -e 'puts "Hello"'  # TruffleRuby on the JVM
+Hello
+2.86 278240
+
+$ chruby jruby-9.1.13.0
+$ /usr/bin/time jruby -e 'puts "Hello"'
+Hello
+1.44 158080
+
+$ chruby ruby-2.4.2
+$ /usr/bin/time ruby -e 'puts "Hello"'
+Hello
+0.03 8672
+
+$ chruby rbx-3.84
+$ /usr/bin/time rbx -e 'puts "Hello"'
+Hello
+0.25 66824
 ```
 
-(`real` is the number of actual seconds which have elapsed while the command
-runs, `resident set size` is the total memory occupied while the command runs)
+(The first number `real` is the number of actual seconds which have elapsed while the command
+runs, and the second `maximum resident set size` is the maximum amount of memory occupied while the command runs)
