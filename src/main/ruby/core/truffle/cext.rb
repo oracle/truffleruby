@@ -1615,7 +1615,7 @@ module Truffle::CExt
     object = ruby_class.internal_allocate
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_holder, data_holder
-    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder)
+    ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) if free
     object
   end
 
