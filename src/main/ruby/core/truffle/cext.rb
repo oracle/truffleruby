@@ -224,18 +224,18 @@ module Truffle::CExt
   if Truffle::Boot.get_option 'cexts.lock'
     SYNC = Mutex.new
 
-    def execute_with_mutex(function, *args)
+    def execute_with_mutex(function, *args, &block)
       mine = SYNC.owned?
       SYNC.lock unless mine
       begin
-        Truffle::Interop.execute(function, *args)
+        execute_with_locals(function, *args, &block)
       ensure
         SYNC.unlock unless mine
       end
     end
   else
-    def execute_with_mutex(function, *args)
-      Truffle::Interop.execute(function, *args)
+    def execute_with_mutex(function, *args, &block)
+      execute_with_locals(function, *args, &block)
     end
   end
 
@@ -1241,7 +1241,7 @@ module Truffle::CExt
   end
 
   def foreign_call_with_block(function, *args, &block)
-    Truffle::Interop.execute(function, *args)
+    execute_with_locals(function, *args, &block)
   end
 
   # The idea of rb_protect and rb_jump_tag is to avoid unwinding the
@@ -1775,11 +1775,11 @@ module Truffle::CExt
 
   def rb_thread_call_without_gvl(function, data1, unblock, data2)
     unblocker = proc {
-      Truffle::Interop.execute(unblock, data2)
+      execute_with_locals(unblock, data2)
     }
 
     runner = proc {
-      Truffle::Interop.execute(function, data1)
+      execute_with_locals(function, data1)
     }
 
     Thread.current.unblock unblocker, runner
@@ -1924,6 +1924,189 @@ module Truffle::CExt
     f = format.gsub(/%(?:\+)?l.\v/, '%s')
     sprintf(f, *args) rescue raise ArgumentError, "Bad format string #{f}."
   end
+
+  class LocalRefs
+
+    attr_reader :parent
+    attr_reader :refs
+    attr_reader :id
+
+    def initialize(parent)
+      @parent = parent
+      @refs = []
+      if parent
+        @id = parent.id + 1
+      else
+        @id = 0
+      end
+    end
+
+    def add_ref(obj)
+      res = calc_ref_id
+      @refs << obj
+      res
+    end
+
+    def marker
+      0xbaddecaf000000
+    end
+    
+    def get_ref(ref)
+      id_part = (ref >> 16) & 0xff
+      index_part = ref & 0xffff
+      frame = self
+      while (frame && frame.id != id_part)
+        frame = frame.parent
+      end
+      if frame && index_part < frame.refs.size
+        frame.refs[index_part]
+      else
+        p "Bad get ref #{ref.to_s(16)}."
+        puts caller[0..8]
+        nil
+      end
+    end
+
+    def calc_ref_id
+      index_part = @refs.size
+      id_part = (@id & 0xff) << 16
+      index_part | id_part | marker
+    end
+  end
+
+  class GlobalRefs
+    attr_reader :refs
+
+    def initialize
+      @refs = {}
+      @count = 1 # Avoid returning something that might be interpreted as null.
+      @deletes = 0
+    end
+
+    def marker
+      0xdeadbeef0000000
+    end
+    
+    def add_ref(obj)
+      ref = @count
+      @refs[ref] = obj
+      @count += 1
+        
+      ref | marker
+    end
+
+    def get_ref(ref)
+      ref = ref & 0xfffffff
+      unless @refs.include?(ref)
+        return nil
+      end
+      @refs[ref]
+    end
+
+    def release_ref(ref)
+      @refs.delete(ref)
+      @deletes += 1
+    end
+  end
+  
+  class WeakRefs
+    attr_reader :refs
+
+    def initialize
+      @refs = {}
+      @count = 1 # Avoid returning something that might be interpreted as null.
+      @deletes = 0
+    end
+
+    def marker
+      0xcafefade0000000
+    end
+    
+    def add_ref(obj)
+      ref = @count
+      @refs[ref] = WeakRef.new(obj)
+      @count += 1
+        
+      ref | marker
+    end
+    
+    def get_ref(ref)
+      ref = ref & 0xfffffff
+      unless @refs.include?(ref)
+        return nil
+      end
+      res = @refs[ref]
+      unless res.weakref_alive?
+        return nil
+      end
+      res.__getobj__
+    end
+
+    def release_ref(ref)
+      @deletes += 1
+      if (@deletes % 10000) == 0
+        print_stats
+      end
+      @refs.delete(ref)
+    end
+  end
+  
+  def rb_tr_push_locals_frame
+    current = Thread.current[:__C_LOCALS__]
+    Thread.current[:__C_LOCALS__] = LocalRefs.new(current)
+  end
+
+  def rb_tr_pop_locals_frame
+    current = Thread.current[:__C_LOCALS__]
+    Thread.current[:__C_LOCALS__] = current.parent
+  end
+
+  def rb_tr_new_local_ref obj
+    Thread.current[:__C_LOCALS__].add_ref(obj)
+  end
+
+  def rb_tr_get_local_ref ref
+    Thread.current[:__C_LOCALS__].get_ref(ref)
+  end
+
+  def execute_with_locals(function, *args, &block)
+    rb_tr_push_locals_frame
+    begin
+      Truffle::Interop.execute(function, *args, &block)
+    ensure
+      rb_tr_pop_locals_frame
+    end
+  end
+
+  GLOBAL_REFS = GlobalRefs.new
+  WEAK_REFS = WeakRefs.new
+
+  def rb_tr_new_global_ref obj
+    GLOBAL_REFS.add_ref(obj)
+  end
+
+  def rb_tr_get_global_ref ref
+    GLOBAL_REFS.get_ref(ref)
+  end
+
+  def rb_tr_release_global_ref ref
+    GLOBAL_REFS.release_ref(ref)
+  end
+
+  def rb_tr_new_weak_ref obj
+    ref = WEAK_REFS.add_ref(obj)
+    ref
+  end
+
+  def rb_tr_get_weak_ref ref
+    obj = WEAK_REFS.get_ref(ref)
+    obj
+  end
+  
+  def rb_tr_release_weak_ref ref
+    WEAK_REFS.release_ref(ref)
+  end
+
 end
 
 Truffle::Interop.export(:ruby_cext, Truffle::CExt)

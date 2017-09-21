@@ -3024,6 +3024,38 @@ void rb_tr_release_handle(void *handle) {
   truffle_release_handle(handle);
 }
 
+void *rb_tr_new_local_ref(VALUE obj) {
+  return (void *)NUM2LONG(truffle_invoke(RUBY_CEXT, "rb_tr_new_local_ref", obj));
+}
+
+VALUE rb_tr_get_local_ref(void *obj) {
+  return (VALUE)truffle_invoke(RUBY_CEXT, "rb_tr_get_local_ref", LONG2NUM((long) obj));
+}
+
+void *rb_tr_new_global_ref(VALUE obj) {
+  return (void *)NUM2LONG(truffle_invoke(RUBY_CEXT, "rb_tr_new_global_ref", obj));
+}
+
+VALUE rb_tr_get_global_ref(void *obj) {
+  return (VALUE)truffle_invoke(RUBY_CEXT, "rb_tr_get_global_ref", LONG2NUM((long) obj));
+}
+
+void rb_tr_release_global_ref(void *obj) {
+  truffle_invoke(RUBY_CEXT, "rb_tr_release_global_ref", LONG2NUM((long) obj));
+}
+
+void *rb_tr_new_weak_ref(VALUE obj) {
+  return (void *)NUM2LONG(truffle_invoke(RUBY_CEXT, "rb_tr_new_weak_ref", obj));
+}
+
+VALUE rb_tr_get_weak_ref(void *obj) {
+  return (VALUE)truffle_invoke(RUBY_CEXT, "rb_tr_get_weak_ref", LONG2NUM((long) obj));
+}
+
+void rb_tr_release_weak_ref(void *obj) {
+  truffle_invoke(RUBY_CEXT, "rb_tr_release_weak_ref", LONG2NUM((long) obj));
+}
+
 void rb_tr_load_library(const char *library) {
   const char *real_c_string = ruby_strdup(library);
   truffle_load_library(real_c_string);
