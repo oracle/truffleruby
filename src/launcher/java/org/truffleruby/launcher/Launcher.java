@@ -80,7 +80,7 @@ public class Launcher {
 
         final CommandLineOptions config = new CommandLineOptions();
         processArguments(config, Arrays.asList(args), true, true, IS_NATIVE);
-        printHelpVersionCopyright(isGraal, config);
+        printPreRunInformation(isGraal, config);
         setRubyLauncherIfNative(config);
         final int exitCode = runRubyMain(Context.newBuilder(), config);
 
@@ -127,7 +127,13 @@ public class Launcher {
         }
     }
 
-    public static void printHelpVersionCopyright(boolean isGraal, CommandLineOptions config) {
+    public static void printPreRunInformation(boolean isGraal, CommandLineOptions config) {
+        if (config.isIrbInsteadOfInputUsed()) {
+            RubyLogger.LOGGER.warning(
+                    "By default truffleruby drops into IRB instead of reading stdin as MRI. " +
+                            "(Use '-' to explicitly read from stdin.)");
+        }
+
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
             System.out.println(getVersionString(isGraal));
         }

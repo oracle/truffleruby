@@ -40,6 +40,8 @@ public class CommandLineOptions {
     private final List<String> unknownArguments = new ArrayList<>(0);
     private final Map<String, String> jvmOptions = new HashMap<>();
 
+    private boolean irbInsteadOfInputUsed = false;
+
     public Map<String, String> getOptions() {
         return options;
     }
@@ -82,5 +84,13 @@ public class CommandLineOptions {
 
     public Map<String, String> getJVMOptions() {
         return jvmOptions;
+    }
+
+    public boolean isIrbInsteadOfInputUsed() {
+        return irbInsteadOfInputUsed;
+    }
+
+    public void setIrbInsteadOfInputUsed(boolean irbInsteadOfInputUsed) {
+        this.irbInsteadOfInputUsed = irbInsteadOfInputUsed;
     }
 }
