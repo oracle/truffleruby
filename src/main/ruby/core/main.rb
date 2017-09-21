@@ -55,21 +55,31 @@ class << self
   alias_method :inspect, :to_s
 end
 
+show_backtraces = -> {
+  puts 'Threads and backtraces:'
+  Thread.list.each { |thread|
+    p thread
+    if thread == Thread.current
+      # Ignore the signal handler frames
+      puts thread.backtrace[6..-1]
+    else
+      puts thread.backtrace
+    end
+    puts
+  }
+}
+
 Signal.trap('INT') do
   if Truffle::Boot.get_option('backtraces.on_interrupt')
     puts 'Interrupting...'
-    puts 'Threads and backtraces:'
-    Thread.list.each { |thread|
-      p thread
-      if thread == Thread.current
-        # Ignore the signal handler frames
-        puts thread.backtrace[4..-1]
-      else
-        puts thread.backtrace
-      end
-      puts
-    }
+    show_backtraces.call
   end
 
   raise Interrupt
+end
+
+if Truffle::Boot.get_option('backtraces.sigalrm')
+  Signal.trap('ALRM') do
+    show_backtraces.call
+  end
 end
