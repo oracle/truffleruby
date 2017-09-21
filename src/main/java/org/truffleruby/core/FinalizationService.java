@@ -124,7 +124,11 @@ public class FinalizationService {
             while (true) {
                 final FinalizerReference finalizerReference = (FinalizerReference) threadManager.runUntilResult(null,
                         () -> finalizerQueue.remove());
-                finalizerReference.getFinalizerActions().forEach(action -> action.run());
+                    try {
+                        finalizerReference.getFinalizerActions().forEach(action -> action.run());
+                    } catch (Exception e) {
+                        // Do nothing, the finalizer thread must continue to process objects.
+                    }
             }
         });
     }
