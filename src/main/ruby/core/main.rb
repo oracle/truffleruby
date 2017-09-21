@@ -58,14 +58,14 @@ end
 show_backtraces = -> {
   puts 'Threads and backtraces:'
   Thread.list.each { |thread|
-    p thread
+    $stderr.puts thread
     if thread == Thread.current
       # Ignore the signal handler frames
-      puts thread.backtrace[6..-1]
+      $stderr.puts thread.backtrace[6..-1]
     else
-      puts thread.backtrace
+      $stderr.puts thread.backtrace
     end
-    puts
+    $stderr.puts
   }
 }
 
