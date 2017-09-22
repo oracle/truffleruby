@@ -406,7 +406,7 @@ public class ThreadManager {
         return currentThread.get();
     }
 
-    public synchronized void registerThread(DynamicObject thread) {
+    public void registerThread(DynamicObject thread) {
         assert RubyGuards.isRubyThread(thread);
         runningRubyThreads.add(thread);
 
@@ -417,7 +417,7 @@ public class ThreadManager {
         }
     }
 
-    public synchronized void unregisterThread(DynamicObject thread) {
+    public void unregisterThread(DynamicObject thread) {
         assert RubyGuards.isRubyThread(thread);
         runningRubyThreads.remove(thread);
         currentThread.set(null);
