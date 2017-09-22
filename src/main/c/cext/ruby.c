@@ -35,6 +35,10 @@ VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object) {
 
 // Memory
 
+void *ruby_xrealloc2(void *ptr, size_t n, size_t size) {
+  rb_tr_error("ruby_xrealloc2 not implemented");
+}
+
 void *rb_alloc_tmp_buffer(VALUE *buffer_pointer, long length) {
   // TODO CS 13-Apr-17 MRI sometimes uses alloc and sometimes malloc, and wraps it in a Ruby object - is rb_free_tmp_buffer guaranteed to be called or do we need to free in a finalizer?
   void *space = malloc(length);
