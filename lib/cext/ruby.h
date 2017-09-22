@@ -131,6 +131,7 @@ void rb_tr_release_handle(void *handle);
 #define xmalloc2                    ruby_xmalloc2
 #define xcalloc                     ruby_xcalloc
 #define xrealloc                    ruby_xrealloc
+#define xrealloc2                   ruby_xrealloc2
 #define xfree                       ruby_xfree
 // TODO CS 4-Mar-17 malloc and all these macros should be a version that throws an exception on failure
 #define ruby_xmalloc                malloc
@@ -139,14 +140,18 @@ void rb_tr_release_handle(void *handle);
 #define ruby_xrealloc               realloc
 #define ruby_xfree                  free
 
+void *ruby_xrealloc2(void *ptr, size_t n, size_t size);
+
 #define ALLOC(type)                 ((type *)ruby_xmalloc(sizeof(type)))
 #define ALLOC_N(type, n)            ((type *)malloc(sizeof(type) * (n)))
 #define ALLOCA_N(type, n)           ((type *)alloca(sizeof(type) * (n)))
 
 #define RB_ZALLOC_N(type, n)        ((type *)ruby_xcalloc((n), sizeof(type)))
+#define RB_REALLOC_N(var,type,n)    ((var)=(type*)ruby_xrealloc2((char*)(var),(n),sizeof(type)))
 #define RB_ZALLOC(type)             (RB_ZALLOC_N(type, 1))
 #define ZALLOC_N(type, n)           RB_ZALLOC_N(type, n)
 #define ZALLOC(type)                RB_ZALLOC(type)
+#define REALLOC_N(var,type,n)       RB_REALLOC_N(var,type,n)
 
 void *rb_alloc_tmp_buffer(VALUE *buffer_pointer, long length);
 void rb_free_tmp_buffer(VALUE *buffer_pointer);
