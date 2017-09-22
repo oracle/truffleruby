@@ -165,19 +165,18 @@ public class ThreadManager {
         }
     }
 
-    public void initialize(DynamicObject thread, Node currentNode, String info, Runnable task) {
-        assert RubyGuards.isRubyThread(thread);
-        final Thread t = context.getLanguage().createThread(context,
-                () -> threadMain(thread, currentNode, info, task));
-        t.start();
-        FiberManager.waitForInitialization(context, Layouts.THREAD.getFiberManager(thread).getRootFiber(), currentNode);
+    public void initialize(DynamicObject rubyThread, Node currentNode, String info, Runnable task) {
+        Layouts.THREAD.setSourceLocation(rubyThread, info);
+
+        final Thread thread = context.getLanguage().createThread(context,
+                () -> threadMain(rubyThread, currentNode, task));
+        thread.setName("Ruby Thread id=" + thread.getId() + " from " + info);
+        thread.start();
+
+        FiberManager.waitForInitialization(context, Layouts.THREAD.getFiberManager(rubyThread).getRootFiber(), currentNode);
     }
 
-    private void threadMain(DynamicObject thread, Node currentNode, String info, Runnable task) {
-        Layouts.THREAD.setSourceLocation(thread, info);
-        final String name = "Ruby Thread id=" + Thread.currentThread().getId() + " from " + info;
-        Thread.currentThread().setName(name);
-
+    private void threadMain(DynamicObject thread, Node currentNode, Runnable task) {
         start(thread);
         try {
             task.run();
