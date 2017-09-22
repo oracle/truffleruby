@@ -56,7 +56,9 @@ public class ThreadManager {
 
     private final DynamicObject rootThread;
     private final Thread rootJavaThread;
-    private final ThreadLocal<DynamicObject> currentThread = new ThreadLocal<>();
+
+    private final Map<Thread, DynamicObject> foreignThreadMap = new ConcurrentHashMap<>();
+    private final ThreadLocal<DynamicObject> currentThread = ThreadLocal.withInitial(() -> foreignThreadMap.get(Thread.currentThread()));
 
     private final Set<DynamicObject> runningRubyThreads =
             Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
@@ -68,7 +70,7 @@ public class ThreadManager {
     private static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
     };
 
-    private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = new ThreadLocal<>();
+    private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal.withInitial(() -> EMPTY_UNBLOCKING_ACTION);
 
     public ThreadManager(RubyContext context) {
         this.context = context;
@@ -82,7 +84,7 @@ public class ThreadManager {
         }
 
         threadsWeCreated.add(rootJavaThread);
-        start(rootThread);
+        start(rootThread, rootJavaThread);
     }
 
     public Thread createJavaThread(Runnable runnable) {
@@ -199,7 +201,7 @@ public class ThreadManager {
     }
 
     private void threadMain(DynamicObject thread, Node currentNode, Runnable task) {
-        start(thread);
+        start(thread, Thread.currentThread());
         try {
             task.run();
         // Handlers in the same order as in FiberManager
@@ -213,7 +215,7 @@ public class ThreadManager {
         } catch (ReturnException e) {
             setException(context, thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
         } finally {
-            cleanup(thread);
+            cleanup(thread, Thread.currentThread());
             assert Layouts.THREAD.getValue(thread) != null || Layouts.THREAD.getException(thread) != null;
         }
     }
@@ -241,27 +243,34 @@ public class ThreadManager {
         Layouts.THREAD.setException(thread, exception);
     }
 
-    public void start(DynamicObject thread) {
-        Layouts.THREAD.setThread(thread, Thread.currentThread());
+    public void start(DynamicObject thread, Thread javaThread) {
+        Layouts.THREAD.setThread(thread, javaThread);
         registerThread(thread);
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
-        fiberManager.start(fiberManager.getRootFiber());
+        fiberManager.start(fiberManager.getRootFiber(), javaThread);
     }
 
-    public void cleanup(DynamicObject thread) {
+    public void cleanup(DynamicObject thread, Thread javaThread) {
         // First mark as dead for Thread#status
         Layouts.THREAD.setStatus(thread, ThreadStatus.DEAD);
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
-        fiberManager.shutdown();
+        fiberManager.shutdown(javaThread);
 
         unregisterThread(thread);
         Layouts.THREAD.setThread(thread, null);
 
-        for (Lock lock : Layouts.THREAD.getOwnedLocks(thread)) {
-            lock.unlock();
+        if (Thread.currentThread() == javaThread) {
+            for (Lock lock : Layouts.THREAD.getOwnedLocks(thread)) {
+                lock.unlock();
+            }
+        } else {
+            if (!Layouts.THREAD.getOwnedLocks(thread).isEmpty()) {
+                Log.LOGGER.warning("Could not release locks of " + javaThread + " as its cleanup happened on another Java Thread");
+            }
         }
+
         Layouts.THREAD.getFinishedLatch(thread).countDown();
     }
 
@@ -384,26 +393,45 @@ public class ThreadManager {
         }, blockingNativeCallUnblockingAction.get());
     }
 
-    public void initializeValuesBasedOnCurrentJavaThread(DynamicObject rubyThread, long pThreadID) {
+    public void initializeValuesForJavaThread(DynamicObject rubyThread, Thread thread) {
         assert RubyGuards.isRubyThread(rubyThread);
-        currentThread.set(rubyThread);
 
-        final int SIGVTALRM = jnr.constants.platform.Signal.SIGVTALRM.intValue();
+        if (Thread.currentThread() == thread) {
+            currentThread.set(rubyThread);
+        }
+        if (!isRubyManagedThread(thread)) {
+            foreignThreadMap.put(thread, rubyThread);
+        }
 
-        blockingNativeCallUnblockingAction.set(() -> {
-            context.getNativePlatform().getThreads().pthread_kill(pThreadID, SIGVTALRM);
-        });
+        if (isRubyManagedThread(thread)) {
+            final long pThreadID = context.getNativePlatform().getThreads().pthread_self();
+            final int SIGVTALRM = jnr.constants.platform.Signal.SIGVTALRM.intValue();
 
-        unblockingActions.put(Thread.currentThread(), EMPTY_UNBLOCKING_ACTION);
+            blockingNativeCallUnblockingAction.set(() -> {
+                context.getNativePlatform().getThreads().pthread_kill(pThreadID, SIGVTALRM);
+            });
+        }
+
+        unblockingActions.put(thread, EMPTY_UNBLOCKING_ACTION);
     }
 
-    public void cleanupValuesBasedOnCurrentJavaThread() {
-        unblockingActions.remove(Thread.currentThread());
+    public void cleanupValuesForJavaThread(Thread thread) {
+        if (Thread.currentThread() == thread) {
+            currentThread.remove();
+        }
+        foreignThreadMap.remove(thread);
+
+        unblockingActions.remove(thread);
     }
 
     @TruffleBoundary
     public DynamicObject getCurrentThread() {
         return currentThread.get();
+    }
+
+    @TruffleBoundary
+    public DynamicObject getForeignRubyThread(Thread javaThread) {
+        return foreignThreadMap.get(javaThread);
     }
 
     public void registerThread(DynamicObject thread) {
@@ -420,7 +448,6 @@ public class ThreadManager {
     public void unregisterThread(DynamicObject thread) {
         assert RubyGuards.isRubyThread(thread);
         runningRubyThreads.remove(thread);
-        currentThread.set(null);
     }
 
     @TruffleBoundary
@@ -440,7 +467,7 @@ public class ThreadManager {
                 killOtherThreads();
             }
         } finally {
-            cleanup(rootThread);
+            cleanup(rootThread, rootJavaThread);
         }
     }
 

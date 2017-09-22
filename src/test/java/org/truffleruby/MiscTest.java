@@ -85,4 +85,18 @@ public class MiscTest {
         }
     }
 
+    @Test
+    public void testFiberFromIntegratorThread() throws InterruptedException {
+        try (Context context = Context.newBuilder().allowCreateThread(true).build()) {
+            context.eval("ruby", ":init");
+
+            Thread thread = new Thread(() -> {
+                int value = context.eval("ruby", "Fiber.new { 6 * 7 }.resume").asInt();
+                assertEquals(42, value);
+            });
+            thread.start();
+            thread.join();
+        }
+    }
+
 }
