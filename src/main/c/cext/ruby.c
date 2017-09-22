@@ -919,6 +919,10 @@ VALUE rb_cstr_to_inum(const char* string, int base, int raise) {
   return truffle_invoke(RUBY_CEXT, "rb_cstr_to_inum", rb_str_new_cstr(string), base, raise);
 }
 
+double rb_cstr_to_dbl(const char *p, int badcheck) {
+  rb_tr_error("rb_cstr_to_dbl not implemented");
+}
+
 double rb_big2dbl(VALUE x) {
   return truffle_invoke_d(RUBY_CEXT, "rb_num2dbl", x);
 }
@@ -1081,6 +1085,10 @@ VALUE rb_vsprintf(const char *format, va_list args) {
 
 VALUE rb_str_append(VALUE string, VALUE to_append) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_append", string, to_append);
+}
+
+VALUE rb_str_concat(VALUE str1, VALUE str2) {
+  rb_tr_error("rb_str_concat not implemented");
 }
 
 void rb_str_set_len(VALUE string, long length) {
@@ -2572,6 +2580,10 @@ void rb_gc_unregister_address(VALUE *address) {
 }
 
 void rb_gc_mark(VALUE ptr) {
+}
+
+void rb_gc_mark_maybe(VALUE obj) {
+  rb_tr_error("rb_gc_mark_maybe not implemented");
 }
 
 VALUE rb_gc_enable() {

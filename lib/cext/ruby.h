@@ -14,6 +14,7 @@
 #ifndef TRUFFLERUBY_H
 #define TRUFFLERUBY_H
 
+#define HAVE_RUBY_RE_H 1
 #define HAVE_RUBY_UTIL_H
 
 #if defined(__cplusplus)
@@ -589,6 +590,7 @@ int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, 
 VALUE rb_integer_unpack(const void *words, size_t numwords, size_t wordsize, size_t nails, int flags);
 size_t rb_absint_size(VALUE value, int *nlz_bits_ret);
 VALUE rb_cstr_to_inum(const char* string, int base, int raise);
+double rb_cstr_to_dbl(const char *p, int badcheck);
 
 #define RBIGNUM_SIGN(b) (FIX2LONG(rb_big_cmp((b), INT2FIX(0))) >= 0)
 #define RBIGNUM_POSITIVE_P(b) (FIX2LONG(rb_big_cmp((b), INT2FIX(0))) >= 0)
@@ -796,6 +798,7 @@ VALUE rb_str_buf_new(long capacity);
 VALUE rb_vsprintf(const char *format, va_list args);
 
 VALUE rb_str_append(VALUE string, VALUE to_append);
+VALUE rb_str_concat(VALUE str1, VALUE str2);
 void rb_str_set_len(VALUE string, long length);
 VALUE rb_String(VALUE value);
 VALUE rb_str_resize(VALUE string, long length);
@@ -1207,6 +1210,7 @@ void rb_gc_register_address(VALUE *address);
 void rb_gc_unregister_address(VALUE *address);
 #define rb_global_variable(address) ;
 void rb_gc_mark(VALUE ptr);
+void rb_gc_mark_maybe(VALUE ptr);
 VALUE rb_gc_enable();
 VALUE rb_gc_disable();
 void rb_gc(void);
