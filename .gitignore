@@ -120,3 +120,6 @@ bin/*
 !bin/ruby
 !bin/truffleruby.sh
 !bin/testrb
+
+# Diagnostic output directory
+dumps/
