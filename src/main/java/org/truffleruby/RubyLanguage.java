@@ -230,12 +230,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             return;
         }
 
-        if (Thread.currentThread() != thread) {
-            throw new IllegalStateException("TruffleRuby currently requires initializeThread() to be executed by the Thread being initialized");
-        }
-
         final DynamicObject foreignThread = context.getThreadManager().createForeignThread();
-        context.getThreadManager().start(foreignThread);
+        context.getThreadManager().start(foreignThread, thread);
     }
 
     @Override
@@ -250,11 +246,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             return;
         }
 
-        // Can only clean ThreadLocal etc if we are the current thread
-        if (Thread.currentThread() == thread) {
-            final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
-            context.getThreadManager().cleanup(rubyThread);
-        }
+        final DynamicObject rubyThread = context.getThreadManager().getForeignRubyThread(thread);
+        context.getThreadManager().cleanup(rubyThread, thread);
     }
 
 }

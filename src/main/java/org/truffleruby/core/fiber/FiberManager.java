@@ -23,6 +23,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.BreakException;
@@ -33,6 +34,7 @@ import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.objects.ObjectIDOperations;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -50,7 +52,8 @@ public class FiberManager {
     private DynamicObject currentFiber;
     private final Set<DynamicObject> runningFibers = Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
 
-    private final ThreadLocal<DynamicObject> rubyFiber = new ThreadLocal<>();
+    private final Map<Thread, DynamicObject> rubyFiberForeignMap = new ConcurrentHashMap<>();
+    private final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal.withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
 
     public FiberManager(RubyContext context, DynamicObject rubyThread) {
         this.context = context;
@@ -106,8 +109,7 @@ public class FiberManager {
                 null,
                 true,
                 null,
-                false,
-                0L);
+                false);
     }
 
     public void initialize(DynamicObject fiber, DynamicObject block, Node currentNode) {
@@ -138,7 +140,7 @@ public class FiberManager {
     private void fiberMain(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
         assert fiber != rootFiber : "Root Fibers execute threadMain() and not fiberMain()";
 
-        start(fiber);
+        start(fiber, Thread.currentThread());
         try {
 
             final Object[] args = waitForResume(fiber);
@@ -162,7 +164,7 @@ public class FiberManager {
         } catch (ReturnException e) {
             sendExceptionToParentFiber(fiber, new RaiseException(context.getCoreExceptions().unexpectedReturn(currentNode)), currentNode);
         } finally {
-            cleanup(fiber);
+            cleanup(fiber, Thread.currentThread());
         }
     }
 
@@ -235,19 +237,24 @@ public class FiberManager {
         return waitForResume(fromFiber);
     }
 
-    public void start(DynamicObject fiber) {
-        rubyFiber.set(fiber);
-        Layouts.FIBER.setThread(fiber, Thread.currentThread());
+    public void start(DynamicObject fiber, Thread javaThread) {
+        final ThreadManager threadManager = context.getThreadManager();
 
-        final long pThreadID = context.getNativePlatform().getThreads().pthread_self();
-        Layouts.FIBER.setPThreadID(fiber, pThreadID);
+        if (Thread.currentThread() == javaThread) {
+            rubyFiber.set(fiber);
+        }
+        if (!threadManager.isRubyManagedThread(javaThread)) {
+            rubyFiberForeignMap.put(javaThread, fiber);
+        }
+
+        Layouts.FIBER.setThread(fiber, javaThread);
 
         final DynamicObject rubyThread = Layouts.FIBER.getRubyThread(fiber);
-        context.getThreadManager().initializeValuesBasedOnCurrentJavaThread(rubyThread, pThreadID);
+        threadManager.initializeValuesForJavaThread(rubyThread, javaThread);
 
         runningFibers.add(fiber);
 
-        if (context.getThreadManager().isRubyManagedThread(Thread.currentThread())) {
+        if (threadManager.isRubyManagedThread(javaThread)) {
             context.getSafepointManager().enterThread();
         }
 
@@ -255,26 +262,30 @@ public class FiberManager {
         Layouts.FIBER.getInitializedLatch(fiber).countDown();
     }
 
-    public void cleanup(DynamicObject fiber) {
+    public void cleanup(DynamicObject fiber, Thread javaThread) {
         Layouts.FIBER.setAlive(fiber, false);
 
-        context.getThreadManager().cleanupValuesBasedOnCurrentJavaThread();
-
-        if (context.getThreadManager().isRubyManagedThread(Thread.currentThread())) {
+        if (context.getThreadManager().isRubyManagedThread(javaThread)) {
             context.getSafepointManager().leaveThread();
         }
+
+        context.getThreadManager().cleanupValuesForJavaThread(javaThread);
 
         runningFibers.remove(fiber);
 
         Layouts.FIBER.setThread(fiber, null);
-        rubyFiber.remove();
+
+        if (Thread.currentThread() == javaThread) {
+            rubyFiber.remove();
+        }
+        rubyFiberForeignMap.remove(javaThread);
 
         Layouts.FIBER.getFinishedLatch(fiber).countDown();
     }
 
     @TruffleBoundary
-    public void shutdown() {
-        if (Thread.currentThread() != Layouts.FIBER.getThread(rootFiber)) {
+    public void shutdown(Thread javaThread) {
+        if (javaThread != Layouts.FIBER.getThread(rootFiber)) {
             throw new UnsupportedOperationException("FiberManager.shutdown() must be called on the root Fiber");
         }
 
@@ -294,7 +305,7 @@ public class FiberManager {
             }
         }
 
-        cleanup(rootFiber);
+        cleanup(rootFiber, javaThread);
     }
 
     public String getFiberDebugInfo() {
