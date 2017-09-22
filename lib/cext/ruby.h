@@ -877,7 +877,8 @@ int rb_is_instance_id(ID id);
 
 // Array
 
-int RARRAY_LEN(VALUE array);
+#define RARRAY_LEN(array) rb_array_len(array)
+long rb_array_len(VALUE array);
 int RARRAY_LENINT(VALUE array);
 #define RARRAY_PTR(array) ((VALUE *)array)
 VALUE RARRAY_AREF(VALUE array, long index);
