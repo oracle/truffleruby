@@ -112,7 +112,7 @@ public class FiberManager {
 
     public void initialize(DynamicObject fiber, DynamicObject block, Node currentNode) {
         final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-        final Thread thread = context.getLanguage().createThread(context,
+        final Thread thread = context.getThreadManager().createJavaThread(
                 () -> fiberMain(context, fiber, block, currentNode));
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyLanguage.fileLine(sourceSection));
         thread.start();
@@ -246,7 +246,10 @@ public class FiberManager {
         context.getThreadManager().initializeValuesBasedOnCurrentJavaThread(rubyThread, pThreadID);
 
         runningFibers.add(fiber);
-        context.getSafepointManager().enterThread();
+
+        if (context.getThreadManager().isRubyManagedThread(Thread.currentThread())) {
+            context.getSafepointManager().enterThread();
+        }
 
         // fully initialized
         Layouts.FIBER.getInitializedLatch(fiber).countDown();
@@ -257,7 +260,10 @@ public class FiberManager {
 
         context.getThreadManager().cleanupValuesBasedOnCurrentJavaThread();
 
-        context.getSafepointManager().leaveThread();
+        if (context.getThreadManager().isRubyManagedThread(Thread.currentThread())) {
+            context.getSafepointManager().leaveThread();
+        }
+
         runningFibers.remove(fiber);
 
         Layouts.FIBER.setThread(fiber, null);

@@ -33,12 +33,9 @@ import org.truffleruby.platform.Platform;
 import org.truffleruby.stdlib.CoverageManager;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @TruffleLanguage.Registration(
         name = RubyLanguage.NAME,
@@ -73,10 +70,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final String CEXT_MIME_TYPE = "application/x-ruby-cext-library";
     public static final String CEXT_EXTENSION = ".su";
-
-    public RubyLanguage() {
-        threadsWeCreated.add(Thread.currentThread());
-    }
 
     @TruffleBoundary
     public static String fileLine(FrameInstance frameInstance) {
@@ -220,25 +213,48 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         return OptionDescriptors.create(options);
     }
 
-    private final Set<Thread> threadsWeCreated = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
-
-    public Thread createThread(RubyContext context, Runnable runnable) {
-        final Thread thread = context.getEnv().createThread(runnable);
-        threadsWeCreated.add(thread);
-        return thread;
-    }
-
     @Override
     protected boolean isThreadAccessAllowed(Thread thread, boolean singleThreaded) {
-        return threadsWeCreated.contains(thread);
+        return true;
     }
 
     @Override
     protected void initializeThread(RubyContext context, Thread thread) {
+        if (thread == context.getThreadManager().getRootJavaThread()) {
+            // Already initialized when creating the context
+            return;
+        }
+
+        if (context.getThreadManager().isRubyManagedThread(thread)) {
+            // Already initialized by the Ruby-provided Runnable
+            return;
+        }
+
+        if (Thread.currentThread() != thread) {
+            throw new IllegalStateException("TruffleRuby currently requires initializeThread() to be executed by the Thread being initialized");
+        }
+
+        final DynamicObject foreignThread = context.getThreadManager().createForeignThread();
+        context.getThreadManager().start(foreignThread);
     }
 
     @Override
     protected void disposeThread(RubyContext context, Thread thread) {
+        if (thread == context.getThreadManager().getRootJavaThread()) {
+            // Let the context shutdown cleanup the main thread
+            return;
+        }
+
+        if (context.getThreadManager().isRubyManagedThread(thread)) {
+            // Already disposed by the Ruby-provided Runnable
+            return;
+        }
+
+        // Can only clean ThreadLocal etc if we are the current thread
+        if (Thread.currentThread() == thread) {
+            final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
+            context.getThreadManager().cleanup(rubyThread);
+        }
     }
 
 }
