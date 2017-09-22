@@ -50,13 +50,19 @@ import java.util.concurrent.locks.Lock;
 
 public class ThreadManager {
 
+    public static final String NAME_PREFIX = "Ruby Thread";
+
     private final RubyContext context;
 
     private final DynamicObject rootThread;
+    private final Thread rootJavaThread;
     private final ThreadLocal<DynamicObject> currentThread = new ThreadLocal<>();
 
-    private final Set<DynamicObject> runningRubyThreads
-            = Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
+    private final Set<DynamicObject> runningRubyThreads =
+            Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
+
+    private final Set<Thread> threadsWeCreated =
+            Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
 
     private final Map<Thread, UnblockingAction> unblockingActions = new ConcurrentHashMap<>();
     private static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
@@ -67,6 +73,7 @@ public class ThreadManager {
     public ThreadManager(RubyContext context) {
         this.context = context;
         this.rootThread = createBootThread("main");
+        this.rootJavaThread = Thread.currentThread();
     }
 
     public void initialize() {
@@ -74,11 +81,19 @@ public class ThreadManager {
             setupSignalHandler(context);
         }
 
+        threadsWeCreated.add(rootJavaThread);
         start(rootThread);
     }
 
-    private static final InterruptMode DEFAULT_INTERRUPT_MODE = InterruptMode.IMMEDIATE;
-    private static final ThreadStatus DEFAULT_STATUS = ThreadStatus.RUN;
+    public Thread createJavaThread(Runnable runnable) {
+        final Thread thread = context.getEnv().createThread(runnable);
+        threadsWeCreated.add(thread);
+        return thread;
+    }
+
+    public boolean isRubyManagedThread(Thread thread) {
+        return threadsWeCreated.contains(thread);
+    }
 
     public DynamicObject createBootThread(String info) {
         final DynamicObject thread = context.getCoreLibrary().getThreadFactory().newInstance(packThreadFields(nil(), info));
@@ -94,6 +109,14 @@ public class ThreadManager {
         return thread;
     }
 
+    public DynamicObject createForeignThread() {
+        final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(rootThread);
+        final DynamicObject thread = context.getCoreLibrary().getThreadFactory().newInstance(
+                packThreadFields(currentGroup, "<foreign thread>"));
+        setFiberManager(thread);
+        return thread;
+    }
+
     private void setFiberManager(DynamicObject thread) {
         // Because it is cyclic
         Layouts.THREAD.setFiberManagerUnsafe(thread, new FiberManager(context, thread));
@@ -102,8 +125,8 @@ public class ThreadManager {
     private Object[] packThreadFields(DynamicObject currentGroup, String info) {
         return Layouts.THREAD.build(
                 createThreadLocals(),
-                DEFAULT_INTERRUPT_MODE,
-                DEFAULT_STATUS,
+                InterruptMode.IMMEDIATE,
+                ThreadStatus.RUN,
                 new ArrayList<>(),
                 null,
                 new CountDownLatch(1),
@@ -168,9 +191,8 @@ public class ThreadManager {
     public void initialize(DynamicObject rubyThread, Node currentNode, String info, Runnable task) {
         Layouts.THREAD.setSourceLocation(rubyThread, info);
 
-        final Thread thread = context.getLanguage().createThread(context,
-                () -> threadMain(rubyThread, currentNode, task));
-        thread.setName("Ruby Thread id=" + thread.getId() + " from " + info);
+        final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task));
+        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
         thread.start();
 
         FiberManager.waitForInitialization(context, Layouts.THREAD.getFiberManager(rubyThread).getRootFiber(), currentNode);
@@ -241,6 +263,10 @@ public class ThreadManager {
             lock.unlock();
         }
         Layouts.THREAD.getFinishedLatch(thread).countDown();
+    }
+
+    public Thread getRootJavaThread() {
+        return rootJavaThread;
     }
 
     public DynamicObject getRootThread() {
@@ -385,6 +411,7 @@ public class ThreadManager {
         runningRubyThreads.add(thread);
 
         if (context.getOptions().SHARED_OBJECTS_ENABLED && runningRubyThreads.size() > 1) {
+            // TODO (eregon, 22 Sept 2017): no need if singleThreaded in isThreadAccessAllowed()
             context.getSharedObjects().startSharing();
             SharedObjects.writeBarrier(context, thread);
         }
