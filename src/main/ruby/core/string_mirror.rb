@@ -50,7 +50,13 @@ module Rubinius
       end
 
       def byte_index(value, start=0)
-        Truffle.invoke_primitive :string_byte_index, @object, value, start
+        if value.kind_of?(Integer)
+          Truffle.invoke_primitive :string_byte_index_from_char_index, @object, value
+        elsif value.kind_of? ::String
+          @object.find_string(value, start)
+        else
+          raise ArgumentError, 'argument is not a String or Fixnum'
+        end
       end
 
       def previous_byte_index(index)
