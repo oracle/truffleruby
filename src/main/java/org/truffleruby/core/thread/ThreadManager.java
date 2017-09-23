@@ -63,7 +63,7 @@ public class ThreadManager {
     private final Set<DynamicObject> runningRubyThreads =
             Collections.newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
 
-    private final Set<Thread> threadsWeCreated =
+    private final Set<Thread> rubyManagedThreads =
             Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
 
     private final Map<Thread, UnblockingAction> unblockingActions = new ConcurrentHashMap<>();
@@ -83,18 +83,18 @@ public class ThreadManager {
             setupSignalHandler(context);
         }
 
-        threadsWeCreated.add(rootJavaThread);
+        rubyManagedThreads.add(rootJavaThread);
         start(rootThread, rootJavaThread);
     }
 
     public Thread createJavaThread(Runnable runnable) {
         final Thread thread = context.getEnv().createThread(runnable);
-        threadsWeCreated.add(thread);
+        rubyManagedThreads.add(thread);
         return thread;
     }
 
     public boolean isRubyManagedThread(Thread thread) {
-        return threadsWeCreated.contains(thread);
+        return rubyManagedThreads.contains(thread);
     }
 
     public DynamicObject createBootThread(String info) {
