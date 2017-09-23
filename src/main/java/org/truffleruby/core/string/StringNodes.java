@@ -3269,7 +3269,10 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "isRubyString(pattern)", "!isBrokenCodeRange(pattern)", "!isSingleByteSearch(string, pattern)" })
         public Object stringIndexGeneric(VirtualFrame frame, DynamicObject string, DynamicObject pattern, int start,
+                                  @Cached("create()") EncodingNodes.CheckEncodingNode checkEncodingNode,
                                   @Cached("createBinaryProfile()") ConditionProfile badIndexProfile) {
+            checkEncodingNode.executeCheckEncoding(string, pattern);
+
             // Rubinius will pass in a byte index for the `start` value, but StringSupport.index requires a character index.
             final int charIndex = byteIndexToCharIndexNode.executeStringByteCharacterIndex(frame, string, start, 0);
 
