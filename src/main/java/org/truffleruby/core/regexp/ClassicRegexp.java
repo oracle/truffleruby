@@ -39,7 +39,6 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.joni.Matcher;
 import org.joni.NameEntry;
 import org.joni.Option;
 import org.joni.Regex;
@@ -111,35 +110,6 @@ public class ClassicRegexp implements ReOptions {
         regex.setUserObject(bytes);
         patternCache.put(key, regex);
         return regex;
-    }
-
-    public static int matcherSearch(Matcher matcher, int start, int range, int option) {
-        try {
-            SearchMatchTask task = new SearchMatchTask(start, range, option, false);
-            return task.run(null, matcher);
-        } catch (InterruptedException e) {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    private static class SearchMatchTask {
-        final int start;
-        final int range;
-        final int option;
-        final boolean match;
-
-        SearchMatchTask(int start, int range, int option, boolean match) {
-            this.start = start;
-            this.range = range;
-            this.option = option;
-            this.match = match;
-        }
-
-        public Integer run(Object context, Matcher matcher) throws InterruptedException {
-            return match ?
-                    matcher.matchInterruptible(start, range, option) :
-                    matcher.searchInterruptible(start, range, option);
-        }
     }
 
     /** default constructor
