@@ -76,8 +76,26 @@ void rb_check_frozen(VALUE object) {
   truffle_invoke(RUBY_CEXT, "rb_check_frozen", object);
 }
 
+void rb_insecure_operation(void) {
+  rb_raise(rb_eSecurityError, "Insecure operation: -r");
+}
+
+int rb_safe_level(void) {
+  return truffle_invoke_i(RUBY_CEXT, "rb_safe_level");
+}
+
+void rb_set_safe_level_force(int level) {
+  truffle_invoke(RUBY_CEXT, "rb_set_safe_level_force", level);
+}
+
+void rb_set_safe_level(int level) {
+  truffle_invoke(RUBY_CEXT, "rb_set_safe_level", level);
+}
+
 void rb_check_safe_obj(VALUE object) {
-  rb_tr_error("rb_check_safe_obj not implemented");
+  if (rb_safe_level() > 0 && OBJ_TAINTED(object)) {
+    rb_insecure_operation();
+  }
 }
 
 bool SYMBOL_P(VALUE value) {

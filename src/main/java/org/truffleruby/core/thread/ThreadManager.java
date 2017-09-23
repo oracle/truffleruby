@@ -127,6 +127,7 @@ public class ThreadManager {
         final DynamicObject threadLocals = Layouts.BASIC_OBJECT.createBasicObject(context.getCoreLibrary().getObjectFactory());
         threadLocals.define("$!", nil());
         threadLocals.define("$?", nil());
+        threadLocals.define("$SAFE", 0);
         return threadLocals;
     }
 
