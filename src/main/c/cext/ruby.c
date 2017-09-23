@@ -1905,6 +1905,10 @@ void rb_define_class_variable(VALUE klass, const char *name, VALUE val) {
   truffle_invoke(RUBY_CEXT, "rb_cv_set", klass, rb_str_new_cstr(name), val);
 }
 
+VALUE rb_mod_ancestors(VALUE mod) {
+  return (VALUE) truffle_invoke(mod, "ancestors");
+}
+
 // Proc
 
 VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value) {

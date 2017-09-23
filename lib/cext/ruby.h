@@ -974,6 +974,8 @@ void rb_cv_set(VALUE klass, const char *name, VALUE val);
 void rb_define_attr(VALUE klass, const char *name, int read, int write);
 void rb_define_class_variable(VALUE klass, const char *name, VALUE val);
 
+VALUE rb_mod_ancestors(VALUE mod);
+
 // Proc
 
 VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value);
