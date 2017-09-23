@@ -1078,7 +1078,15 @@ VALUE rb_gv_set(const char *name, VALUE value);
 VALUE rb_gv_get(const char *name);
 VALUE rb_lastline_get(void);
 void rb_lastline_set(VALUE val);
+
+#define RUBY_SAFE_LEVEL_MAX 1
+#define SAFE_LEVEL_MAX RUBY_SAFE_LEVEL_MAX
+
 void rb_secure(int safe_level);
+int rb_safe_level(void);
+void rb_set_safe_level(int level);
+void rb_set_safe_level_force(int level);
+NORETURN(void rb_insecure_operation(void));
 
 // Exceptions
 

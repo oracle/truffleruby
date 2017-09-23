@@ -167,6 +167,7 @@ public class CoreLibrary {
     private final DynamicObject rubiniusModule;
     private final DynamicObject rubiniusFFIModule;
     private final DynamicObject rubiniusFFIPointerClass;
+    private final DynamicObject rubiniusTypeModule;
     private final DynamicObject signalModule;
     private final DynamicObject truffleModule;
     private final DynamicObject truffleBootModule;
@@ -557,7 +558,7 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(rubiniusFFIPointerClass, Layouts.POINTER.createPointerShape(rubiniusFFIPointerClass, rubiniusFFIPointerClass));
 
         defineClass(rubiniusModule, objectClass, "Mirror");
-        defineModule(rubiniusModule, "Type");
+        rubiniusTypeModule = defineModule(rubiniusModule, "Type");
 
         byteArrayClass = defineClass(rubiniusModule, objectClass, "ByteArray");
         byteArrayFactory = Layouts.BYTE_ARRAY.createByteArrayShape(byteArrayClass, byteArrayClass);
@@ -679,8 +680,6 @@ public class CoreLibrary {
         verboseStorage = globals.put("$VERBOSE", verbose);
 
         globals.put("$/", frozenUSASCIIString(CLI_RECORD_SEPARATOR));
-
-        globals.put("$SAFE", 0);
 
         stderrStorage = globals.getStorage("$stderr");
     }
@@ -1145,6 +1144,10 @@ public class CoreLibrary {
 
     public DynamicObject getRubiniusFFIPointerClass() {
         return rubiniusFFIPointerClass;
+    }
+
+    public DynamicObject getRubiniusTypeModule() {
+        return rubiniusTypeModule;
     }
 
     public DynamicObject getRubyTruffleErrorClass() {

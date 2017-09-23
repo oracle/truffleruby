@@ -113,6 +113,7 @@ import org.truffleruby.language.globals.UpdateLastBacktraceNode;
 import org.truffleruby.language.globals.UpdateVerbosityNode;
 import org.truffleruby.language.globals.WriteGlobalVariableNodeGen;
 import org.truffleruby.language.globals.WriteReadOnlyGlobalNode;
+import org.truffleruby.language.globals.CheckSafeLevelNode;
 import org.truffleruby.language.literal.BooleanLiteralNode;
 import org.truffleruby.language.literal.FloatLiteralNode;
 import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
@@ -1681,6 +1682,10 @@ public class BodyTranslator extends Translator {
                 rhs = new CheckOutputSeparatorVariableTypeNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
                 break;
+            case "$SAFE":
+                rhs = new CheckSafeLevelNode(rhs);
+                rhs.unsafeSetSourceSection(sourceSection);
+                break; 
             case "$stdout":
                 rhs = new CheckStdoutVariableTypeNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);

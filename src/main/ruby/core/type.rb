@@ -662,5 +662,17 @@ module Rubinius
       end
     end
 
+    def self.check_safe_level(level)
+      level = rb_num2int(level)
+      current_level = Thread.current.safe_level
+      if level < current_level
+        raise SecurityError, "tried to downgrade safe level from #{current_level} to #{level}"
+      end
+      if level > 1 # SAFE_LEVEL_MAX
+        raise ArgumentError, '$SAFE=2 to 4 are obsolete'
+      end
+      level
+    end
+
   end
 end

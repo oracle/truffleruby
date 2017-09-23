@@ -971,6 +971,18 @@ module Truffle::CExt
     end
   end
 
+  def rb_safe_level
+    $SAFE
+  end
+
+  def rb_set_safe_level(level)
+    $SAFE = level
+  end
+
+  def rb_set_safe_level_force(level)
+    Truffle.invoke_primitive(:thread_set_safe_level_force, level)
+  end
+
   def rb_thread_alone
     Thread.list.count == 1 ? 1 : 0
   end
