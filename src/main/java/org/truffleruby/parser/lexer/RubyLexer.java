@@ -55,13 +55,13 @@ import org.joni.Option;
 import org.joni.Regex;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubyWarnings;
@@ -1074,7 +1074,17 @@ public class RubyLexer {
 
         int begin = beg;
         Matcher matcher = magicRegexp.matcher(magicLine.getBytes(), begin, begin + length);
-        int result = ClassicRegexp.matcherSearch(matcher, begin, begin + length, Option.NONE);
+
+        final int end = begin + length;
+        final RubyContext context = parserSupport.getContext();
+        final int result;
+        if (context != null) {
+            result = context.getThreadManager().runUntilResultKeepStatus(null,
+                    () -> matcher.searchInterruptible(begin, end, Option.NONE));
+        } else {
+            result = ThreadManager.retryWhileInterrupted(
+                    () -> matcher.searchInterruptible(begin, end, Option.NONE));
+        }
 
         if (result < 0) return false;
 

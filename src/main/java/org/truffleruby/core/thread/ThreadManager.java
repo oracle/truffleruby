@@ -296,6 +296,26 @@ public class ThreadManager {
         void unblock();
     }
 
+    /** Only use when no context is available. */
+    @TruffleBoundary
+    public static <T> T retryWhileInterrupted(BlockingAction<T> action) {
+        boolean interrupted = false;
+        try {
+            while (true) {
+                try {
+                    return action.block();
+                } catch (InterruptedException e) {
+                    interrupted = true;
+                    // retry
+                }
+            }
+        } finally {
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
     @TruffleBoundary
     public <T> T runUntilResultKeepStatus(Node currentNode, BlockingAction<T> action) {
         T result = null;
