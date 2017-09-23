@@ -3544,16 +3544,12 @@ public abstract class StringNodes {
 
     }
 
-    @NodeChildren({ @NodeChild("string"), @NodeChild("characterIndex") })
+    @Primitive(name = "string_byte_index_from_char_index", needsSelf = false, lowerFixnum = 2)
     @ImportStatic(StringGuards.class)
-    public static abstract class StringByteIndexFromCharIndexNode extends RubyNode {
+    public static abstract class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
 
         public static StringByteIndexFromCharIndexNode create() {
-            return StringNodesFactory.StringByteIndexFromCharIndexNodeGen.create(null, null);
-        }
-
-        @CreateCast("characterIndex") public RubyNode coerceCharacterIndexToInt(RubyNode characterIndex) {
-            return FixnumLowerNodeGen.create(characterIndex);
+            return StringNodesFactory.StringByteIndexFromCharIndexNodeFactory.create(null);
         }
 
         public abstract Object executeFindByteIndex(DynamicObject string, int characterIndex);
@@ -3615,78 +3611,6 @@ public abstract class StringNodes {
 
         protected boolean characterIndexInBounds(DynamicObject string, int characterIndex) {
             return characterIndex >= 0 && !characterIndexTooLarge(string, characterIndex);
-        }
-
-    }
-
-    @Primitive(name = "string_byte_index", needsSelf = false, lowerFixnum = { 2, 3 })
-    @ImportStatic(StringGuards.class)
-    public static abstract class StringByteIndexNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        protected Object findByteIndexFromCharIndex(DynamicObject string, int characterIndex, int offset,
-                                                    @Cached("create()") StringByteIndexFromCharIndexNode stringByteIndexFromCharIndexNode) {
-            return stringByteIndexFromCharIndexNode.executeFindByteIndex(string, characterIndex);
-        }
-
-        @Specialization(guards = "isRubyString(pattern)")
-        public Object pattern(DynamicObject string, DynamicObject pattern, int offset,
-                              @Cached("createBinaryProfile()") ConditionProfile emptyPatternProfile,
-                              @Cached("createBinaryProfile()") ConditionProfile brokenCodeRangeProfile,
-                              @Cached("create()") BranchProfile errorProfile,
-                @Cached("create()") EncodingNodes.CheckEncodingNode checkEncodingNode,
-                @Cached("create()") RopeNodes.BytesNode stringBytesNode,
-                @Cached("create()") RopeNodes.BytesNode patternBytesNode) {
-            // Taken from Rubinius's String::byte_index.
-
-            if (offset < 0) {
-                errorProfile.enter();
-                throw new RaiseException(coreExceptions().argumentError("negative start given", this));
-            }
-
-            final Rope stringRope = rope(string);
-            final Rope patternRope = rope(pattern);
-
-            if (emptyPatternProfile.profile(patternRope.isEmpty())) return offset;
-
-            if (brokenCodeRangeProfile.profile(stringRope.getCodeRange() == CodeRange.CR_BROKEN)) {
-                return nil();
-            }
-
-            final Encoding encoding = checkEncodingNode.executeCheckEncoding(string, pattern);
-            int p = 0;
-            final int e = p + stringRope.byteLength();
-            int pp = 0;
-            final int pe = pp + patternRope.byteLength();
-            int s;
-            int ss;
-
-            final byte[] stringBytes = stringBytesNode.execute(stringRope);
-            final byte[] patternBytes = patternBytesNode.execute(patternRope);
-
-            for(s = p, ss = pp; p < e; s = ++p) {
-                if (stringBytes[p] != patternBytes[pp]) continue;
-
-                while (p < e && pp < pe && stringBytes[p] == patternBytes[pp]) {
-                    p++;
-                    pp++;
-                }
-
-                if (pp < pe) {
-                    p = s;
-                    pp = ss;
-                } else {
-                    final int c = StringSupport.preciseLength(encoding, stringBytes, s, e);
-
-                    if (StringSupport.MBCLEN_CHARFOUND_P(c)) {
-                        return s;
-                    } else {
-                        return nil();
-                    }
-                }
-            }
-
-            return nil();
         }
 
     }
