@@ -29,14 +29,13 @@
 
 package org.truffleruby.core.string;
 
-import sun.nio.cs.US_ASCII;
-
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
+import java.nio.charset.StandardCharsets;
 
 public class ISO_8859_16 extends Charset {
     public static final ISO_8859_16 INSTANCE = new ISO_8859_16();
@@ -46,7 +45,7 @@ public class ISO_8859_16 extends Charset {
     }
     @Override
     public boolean contains(Charset cs) {
-        return cs instanceof US_ASCII || cs instanceof ISO_8859_16;
+        return cs == StandardCharsets.US_ASCII || cs instanceof ISO_8859_16;
     }
 
     @Override
