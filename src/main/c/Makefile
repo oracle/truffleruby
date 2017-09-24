@@ -1,5 +1,5 @@
 ROOT := $(realpath ../../..)
-RUBY := $(ROOT)/bin/truffleruby
+RUBY := $(ROOT)/bin/truffleruby -Xgraal.warn_unless=false
 OS := $(shell uname)
 
 ifeq ($(TRUFFLERUBY_CEXT_ENABLED),false)
