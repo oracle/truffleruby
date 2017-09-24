@@ -177,8 +177,8 @@ module RbConfig
 
   expanded['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{OPT} #{opt_passes} $@ -o $@",
   mkconfig['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{OPT} #{opt_passes} $@ -o $@",
-  expanded['LINK_SO'] = "#{ruby_launcher} -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) #{libs}"
-  mkconfig['LINK_SO'] = "#{ruby_launcher} -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) $(LIBS)"
+  expanded['LINK_SO'] = "#{ruby_launcher} -Xgraal.warn_unless=false -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) #{libs}"
+  mkconfig['LINK_SO'] = "#{ruby_launcher} -Xgraal.warn_unless=false -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) $(LIBS)"
   expanded['TRY_LINK'] = "#{CLANG} -o conftest #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} #{libs}"
   mkconfig['TRY_LINK'] = "#{CLANG} -o conftest #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
 
