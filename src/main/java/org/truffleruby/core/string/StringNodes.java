@@ -2376,19 +2376,19 @@ public abstract class StringNodes {
         @Specialization(guards = "isSingleByteOptimizable(string)")
         public DynamicObject upcaseSingleByte(DynamicObject string,
                                               @Cached("createBinaryProfile()") ConditionProfile isEmptyProfile,
-                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile,
-                @Cached("create()") RopeNodes.BytesCopyNode bytesCopy) {
+                                              @Cached("createBinaryProfile()") ConditionProfile modifiedProfile,
+                                              @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
 
             if (isEmptyProfile.profile(rope.isEmpty())) {
                 return nil();
             }
 
-            final byte[] bytes = bytesCopy.execute(rope);
-            final boolean modified = singleByteUpcase(bytes);
+            final byte[] bytes = bytesNode.execute(rope);
+            final byte[] modified = singleByteUpcase(bytes);
 
-            if (modifiedProfile.profile(modified)) {
-                final Rope newRope = makeLeafRopeNode.executeMake(bytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength());
+            if (modifiedProfile.profile(modified != null)) {
+                final Rope newRope = makeLeafRopeNode.executeMake(modified, rope.getEncoding(), rope.getCodeRange(), rope.characterLength());
                 StringOperations.setRope(string, newRope);
 
                 return string;
@@ -2422,20 +2422,23 @@ public abstract class StringNodes {
             }
         }
 
-        private boolean singleByteUpcase(byte[] bytes) {
-            boolean modify = false;
+        private byte[] singleByteUpcase(byte[] bytes) {
+            byte[] modified = null;
 
             for (int i = 0; i < bytes.length; i++) {
                 final byte b = bytes[i];
 
                 // Check if between 'a' - 'z'.
                 if (b >= 0x61 && b <= 0x7a) {
-                    bytes[i] ^= 0x20;
-                    modify = true;
+                    if (modified == null) {
+                        modified = bytes.clone();
+                    }
+
+                    modified[i] ^= 0x20;
                 }
             }
 
-            return modify;
+            return modified;
         }
 
         @TruffleBoundary
