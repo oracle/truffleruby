@@ -2376,14 +2376,9 @@ public abstract class StringNodes {
         @Specialization(guards = "isSingleByteOptimizable(string)")
         public DynamicObject upcaseSingleByte(DynamicObject string,
                                               @Cached("create()") BranchProfile foundLowerCaseCharProfile,
-                                              @Cached("createBinaryProfile()") ConditionProfile isEmptyProfile,
                                               @Cached("createBinaryProfile()") ConditionProfile noopProfile,
                                               @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
-
-            if (isEmptyProfile.profile(rope.isEmpty())) {
-                return nil();
-            }
 
             final byte[] bytes = bytesNode.execute(rope);
             byte[] modified = null;
