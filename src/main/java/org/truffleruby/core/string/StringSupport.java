@@ -1273,21 +1273,6 @@ public final class StringSupport {
         return modify;
     }
 
-    public static boolean singleByteUpcase(byte[] bytes, int s, int end) {
-        boolean modify = false;
-
-        while (s < end) {
-            int c = bytes[s] & 0xff;
-            if (ASCIIEncoding.INSTANCE.isLower(c)) {
-                bytes[s] = AsciiTables.ToUpperCaseTable[c];
-                modify = true;
-            }
-            s++;
-        }
-
-        return modify;
-    }
-
     public static boolean multiByteUpcase(Encoding enc, byte[] bytes, int s, int end) {
         boolean modify = false;
         int c;

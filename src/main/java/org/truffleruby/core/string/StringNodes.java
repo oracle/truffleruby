@@ -2385,7 +2385,7 @@ public abstract class StringNodes {
             }
 
             final byte[] bytes = bytesCopy.execute(rope);
-            final boolean modified = singleByteUpcase(bytes, 0, bytes.length);
+            final boolean modified = singleByteUpcase(bytes);
 
             if (modifiedProfile.profile(modified)) {
                 final Rope newRope = makeLeafRopeNode.executeMake(bytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength());
@@ -2422,9 +2422,20 @@ public abstract class StringNodes {
             }
         }
 
-        @TruffleBoundary
-        private boolean singleByteUpcase(byte[] bytes, int s, int end) {
-            return StringSupport.singleByteUpcase(bytes, s, end);
+        private boolean singleByteUpcase(byte[] bytes) {
+            boolean modify = false;
+
+            for (int i = 0; i < bytes.length; i++) {
+                final byte b = bytes[i];
+
+                // Check if between 'a' - 'z'.
+                if (b >= 0x61 && b <= 0x7a) {
+                    bytes[i] ^= 0x20;
+                    modify = true;
+                }
+            }
+
+            return modify;
         }
 
         @TruffleBoundary
