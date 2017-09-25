@@ -113,11 +113,7 @@ public class FiberManager {
     }
 
     public void initialize(DynamicObject fiber, DynamicObject block, Node currentNode) {
-        final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-        final Thread thread = context.getThreadManager().createJavaThread(
-                () -> fiberMain(context, fiber, block, currentNode));
-        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyLanguage.fileLine(sourceSection));
-        thread.start();
+        context.getThreadManager().spawnFiber(() -> fiberMain(context, fiber, block, currentNode));
 
         waitForInitialization(context, fiber, currentNode);
     }
@@ -140,7 +136,12 @@ public class FiberManager {
     private void fiberMain(RubyContext context, DynamicObject fiber, DynamicObject block, Node currentNode) {
         assert fiber != rootFiber : "Root Fibers execute threadMain() and not fiberMain()";
 
-        start(fiber, Thread.currentThread());
+        final Thread thread = Thread.currentThread();
+        final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
+        final String oldName = thread.getName();
+        thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyLanguage.fileLine(sourceSection));
+
+        start(fiber, thread);
         try {
 
             final Object[] args = waitForResume(fiber);
@@ -164,7 +165,8 @@ public class FiberManager {
         } catch (ReturnException e) {
             sendExceptionToParentFiber(fiber, new RaiseException(context.getCoreExceptions().unexpectedReturn(currentNode)), currentNode);
         } finally {
-            cleanup(fiber, Thread.currentThread());
+            cleanup(fiber, thread);
+            thread.setName(oldName);
         }
     }
 
