@@ -1094,7 +1094,7 @@ class String
         raise IndexError, "index #{index} out of string"
       end
 
-      unless bi = m.byte_index(index)
+      unless bi = m.string_byte_index_from_char_index(index)
         raise IndexError, "unable to find character at: #{index}"
       end
 
@@ -1109,10 +1109,10 @@ class String
         if total >= size
           bs = bytesize - bi
         else
-          bs = m.byte_index(total) - bi
+          bs = m.string_byte_index_from_char_index(total) - bi
         end
       else
-        bs = index == size ? 0 : m.byte_index(index + 1) - bi
+        bs = index == size ? 0 : m.string_byte_index_from_char_index(index + 1) - bi
       end
 
       replacement = StringValue replacement
@@ -1120,7 +1120,7 @@ class String
 
       m.splice bi, bs, replacement, enc
     when String
-      unless start = m.byte_index(index)
+      unless start = find_string(index, 0)
         raise IndexError, 'string not matched'
       end
 
@@ -1137,7 +1137,7 @@ class String
         raise RangeError, "#{index.first} is out of range"
       end
 
-      unless bi = m.byte_index(start)
+      unless bi = m.string_byte_index_from_char_index(start)
         raise IndexError, "unable to find character at: #{start}"
       end
 
@@ -1150,7 +1150,7 @@ class String
       elsif stop >= size
         bs = bytesize - bi
       else
-        bs = m.byte_index(stop + 1) - bi
+        bs = m.string_byte_index_from_char_index(stop + 1) - bi
       end
 
       replacement = StringValue replacement
@@ -1182,8 +1182,8 @@ class String
       replacement = StringValue replacement
       enc = Rubinius::Type.compatible_encoding self, replacement
 
-      bi = m.byte_index match.begin(count)
-      bs = m.byte_index(match.end(count)) - bi
+      bi = m.string_byte_index_from_char_index match.begin(count)
+      bs = m.string_byte_index_from_char_index(match.end(count)) - bi
 
       m.splice bi, bs, replacement, enc
     else
@@ -1223,7 +1223,7 @@ class String
       x = left / ps
       y = left % ps
 
-      lpbi = pm.byte_index(y)
+      lpbi = pm.string_byte_index_from_char_index(y)
       lbytes = x * pbs + lpbi
 
       right = left + (width & 0x1)
@@ -1231,7 +1231,7 @@ class String
       x = right / ps
       y = right % ps
 
-      rpbi = pm.byte_index(y)
+      rpbi = pm.string_byte_index_from_char_index(y)
       rbytes = x * pbs + rpbi
 
       pad = self.class.pattern rbytes, padding
@@ -1272,7 +1272,7 @@ class String
       x = width / ps
       y = width % ps
 
-      pbi = pm.byte_index(y)
+      pbi = pm.string_byte_index_from_char_index(y)
       bytes = x * pbs + pbi
 
       str = self.class.pattern bytes + bs, self
@@ -1321,7 +1321,7 @@ class String
       x = width / ps
       y = width % ps
 
-      bytes = x * pbs + pm.byte_index(y)
+      bytes = x * pbs + pm.string_byte_index_from_char_index(y)
     else
       bytes = width
     end
