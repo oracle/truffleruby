@@ -2424,21 +2424,19 @@ public abstract class StringNodes {
 
         @Specialization(guards = "!isSingleByteOptimizable(string)")
         public DynamicObject upcase(DynamicObject string,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+                                    @Cached("create()") RopeNodes.BytesNode bytesNode,
+                                    @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
+                                    @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
 
-            if (encoding.isDummy()) {
+            if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
-            }
-
-            if (rope.isEmpty()) {
-                return nil();
             }
 
             final RopeBuilder bytes = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
-            if (modified) {
+            if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, RopeOperations.ropeFromByteList(bytes, rope.getCodeRange()));
 
                 return string;
