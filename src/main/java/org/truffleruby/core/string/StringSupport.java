@@ -1201,23 +1201,7 @@ public final class StringSupport {
      * rb_str_swapcase / rb_str_swapcase_bang
      */
 
-    public static boolean singleByteSwapcase(byte[] bytes, int s, int end) {
-        boolean modify = false;
-        while (s < end) {
-            int c = bytes[s] & 0xff;
-            if (ASCIIEncoding.INSTANCE.isUpper(c)) {
-                bytes[s] = AsciiTables.ToLowerCaseTable[c];
-                modify = true;
-            } else if (ASCIIEncoding.INSTANCE.isLower(c)) {
-                bytes[s] = AsciiTables.ToUpperCaseTable[c];
-                modify = true;
-            }
-            s++;
-        }
-
-        return modify;
-    }
-
+    @TruffleBoundary
     public static boolean multiByteSwapcase(Encoding enc, byte[] bytes, int s, int end) {
         boolean modify = false;
         while (s < end) {

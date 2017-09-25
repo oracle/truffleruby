@@ -1484,44 +1484,32 @@ public abstract class StringNodes {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @TruffleBoundary(throwsControlFlowException = true)
         @Specialization(guards = "!isSingleByteOptimizable(string)")
         public DynamicObject swapcase(DynamicObject string,
                                       @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                                      @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
-                                      @Cached("createBinaryProfile()") ConditionProfile singleByteOptimizableProfile) {
+                                      @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
+                                      @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
 
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
 
-            if (enc.isDummy()) {
+            if (dummyEncodingProfile.profile(enc.isDummy())) {
                 throw new RaiseException(coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
-            }
-
-            if (emptyStringProfile.profile(rope.isEmpty())) {
-                return nil();
             }
 
             final int s = 0;
             final int end = s + rope.byteLength();
             final byte[] bytes = rope.getBytesCopy();
+            final boolean modified = StringSupport.multiByteSwapcase(enc, bytes, s, end);
 
-            if (singleByteOptimizableProfile.profile(rope.isSingleByteOptimizable())) {
-                if (StringSupport.singleByteSwapcase(bytes, s, end)) {
-                    StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
+            if (modifiedProfile.profile(modified)) {
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
 
-                    return string;
-                }
+                return string;
             } else {
-                if (StringSupport.multiByteSwapcase(enc, bytes, s, end)) {
-                    StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
-
-                    return string;
-                }
+                return nil();
             }
-
-            return nil();
         }
     }
 
