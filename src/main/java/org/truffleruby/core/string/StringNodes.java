@@ -144,7 +144,6 @@ import org.truffleruby.platform.posix.TrufflePosix;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -2337,29 +2336,24 @@ public abstract class StringNodes {
     })
     public abstract static class InvertAsciiCaseBytesNode extends RubyNode {
 
-        @CompilationFinal private boolean lowerToUpper;
-        @CompilationFinal private boolean upperToLower;
+        private final boolean lowerToUpper;
+        private final boolean upperToLower;
 
         public static InvertAsciiCaseBytesNode createLowerToUpper() {
-            final InvertAsciiCaseBytesNode ret = StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(null, null);
-            ret.lowerToUpper = true;
-
-            return ret;
+            return StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(true, false, null, null);
         }
 
         public static InvertAsciiCaseBytesNode createUpperToLower() {
-            final InvertAsciiCaseBytesNode ret = StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(null, null);
-            ret.upperToLower = true;
-
-            return ret;
+            return StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(false, true, null, null);
         }
 
         public static InvertAsciiCaseBytesNode createSwapCase() {
-            final InvertAsciiCaseBytesNode ret = StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(null, null);
-            ret.lowerToUpper = true;
-            ret.upperToLower = true;
+            return StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(true, true, null, null);
+        }
 
-            return ret;
+        protected InvertAsciiCaseBytesNode(boolean lowerToUpper, boolean upperToLower) {
+            this.lowerToUpper = lowerToUpper;
+            this.upperToLower = upperToLower;
         }
 
         public abstract byte[] executeInvert(byte[] bytes, int start);
