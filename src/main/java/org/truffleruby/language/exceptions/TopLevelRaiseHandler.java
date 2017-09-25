@@ -49,6 +49,9 @@ public class TopLevelRaiseHandler extends RubyNode {
                 exitCode = statusFromException(atExitException);
             }
 
+            // Workaround: try to shutdown while still in Ruby execution
+            // to ensure other language contexts (e.g. NFI) are still available.
+            getContext().shutdown();
         }
 
         return exitCode;
