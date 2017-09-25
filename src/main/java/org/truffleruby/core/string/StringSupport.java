@@ -1235,6 +1235,7 @@ public final class StringSupport {
         return modify;
     }
 
+    @TruffleBoundary
     public static boolean multiByteDowncase(Encoding enc, byte[] bytes, int s, int end) {
         boolean modify = false;
         int c;
@@ -1258,6 +1259,7 @@ public final class StringSupport {
         return modify;
     }
 
+    @TruffleBoundary
     public static boolean multiByteUpcase(Encoding enc, byte[] bytes, int s, int end) {
         boolean modify = false;
         int c;
