@@ -45,6 +45,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
@@ -72,10 +74,13 @@ public class ThreadManager {
 
     private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal.withInitial(() -> EMPTY_UNBLOCKING_ACTION);
 
+    private final ExecutorService fiberPool;
+
     public ThreadManager(RubyContext context) {
         this.context = context;
         this.rootThread = createBootThread("main");
         this.rootJavaThread = Thread.currentThread();
+        this.fiberPool = Executors.newCachedThreadPool(this::createJavaThread);
     }
 
     public void initialize() {
@@ -91,6 +96,10 @@ public class ThreadManager {
         final Thread thread = context.getEnv().createThread(runnable);
         rubyManagedThreads.add(thread);
         return thread;
+    }
+
+    public void spawnFiber(Runnable task) {
+        fiberPool.submit(task);
     }
 
     public boolean isRubyManagedThread(Thread thread) {
