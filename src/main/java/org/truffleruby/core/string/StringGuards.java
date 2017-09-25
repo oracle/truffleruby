@@ -13,10 +13,7 @@ package org.truffleruby.core.string;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeBuffer;
 import org.truffleruby.language.RubyGuards;
-
-import static org.truffleruby.core.string.StringOperations.rope;
 
 public class StringGuards {
 
@@ -57,12 +54,6 @@ public class StringGuards {
 
     public static boolean isValidCodeRange(DynamicObject string) {
         return StringOperations.codeRange(string) == CodeRange.CR_VALID;
-    }
-
-    public static boolean isRopeBuffer(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
-
-        return rope(string) instanceof RopeBuffer;
     }
 
 }

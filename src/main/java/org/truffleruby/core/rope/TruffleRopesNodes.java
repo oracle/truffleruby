@@ -58,18 +58,6 @@ public abstract class TruffleRopesNodes {
 
     }
 
-    @CoreMethod(names = "convert_to_mutable_rope", onSingleton = true, required = 1)
-    public abstract static class ConvertToMutableRope extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isRubyString(string)")
-        public DynamicObject convertToMutableRope(DynamicObject string) {
-            final RopeBuffer ropeBuffer = new RopeBuffer(StringOperations.rope(string));
-            StringOperations.setRope(string, ropeBuffer);
-
-            return string;
-        }
-    }
-
     @CoreMethod(names = "debug_print_rope", onSingleton = true, required = 1, optional = 1)
     public abstract static class DebugPrintRopeNode extends CoreMethodArrayArgumentsNode {
 
