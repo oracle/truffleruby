@@ -31,10 +31,7 @@ public enum DefaultExecutionAction {
             if (System.console() != null) {
                 config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.PATH);
                 config.setOption(OptionsCatalog.TO_EXECUTE, "irb");
-
-                System.err.println(
-                        "truffleruby: By default truffleruby drops into IRB instead of reading stdin as MRI. " +
-                                "(Use '-' to explicitly read from stdin.)");
+                config.setIrbInsteadOfInputUsed(true);
             } else {
                 STDIN.applyTo(config);
             }

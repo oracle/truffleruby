@@ -63,7 +63,6 @@ public class Launcher {
 
     public static final boolean IS_NATIVE = Boolean.getBoolean("com.oracle.graalvm.isaot")
             || Boolean.getBoolean("com.oracle.truffle.aot");
-    public static final String GRAALVM_VERSION = System.getProperty("graalvm.version", "Development Build");
     public static final String LANGUAGE_ID = "ruby";
     public static final String LANGUAGE_VERSION = "2.3.3";
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
@@ -80,7 +79,7 @@ public class Launcher {
 
         final CommandLineOptions config = new CommandLineOptions();
         processArguments(config, Arrays.asList(args), true, true, IS_NATIVE);
-        printHelpVersionCopyright(isGraal, config);
+        printPreRunInformation(isGraal, config);
         setRubyLauncherIfNative(config);
         final int exitCode = runRubyMain(Context.newBuilder(), config);
 
@@ -127,7 +126,13 @@ public class Launcher {
         }
     }
 
-    public static void printHelpVersionCopyright(boolean isGraal, CommandLineOptions config) {
+    public static void printPreRunInformation(boolean isGraal, CommandLineOptions config) {
+        if (config.isIrbInsteadOfInputUsed()) {
+            RubyLogger.LOGGER.warning(
+                    "By default truffleruby drops into IRB instead of reading stdin as MRI. " +
+                            "(Use '-' to explicitly read from stdin.)");
+        }
+
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
             System.out.println(getVersionString(isGraal));
         }
@@ -237,10 +242,14 @@ public class Launcher {
         }
     }
 
+    public static String getGraalVMVersion() {
+        return System.getProperty("org.graalvm.version", "Development Build");
+    }
+
     public static String getVersionString(boolean isGraal) {
         return String.format(
                 "truffleruby %s, like ruby %s <%s %s %s> [%s-%s]",
-                GRAALVM_VERSION,
+                getGraalVMVersion(),
                 LANGUAGE_VERSION,
                 IS_NATIVE ? "native" : System.getProperty("java.vm.name", "unknown JVM"),
                 IS_NATIVE ? "build" : System.getProperty(
