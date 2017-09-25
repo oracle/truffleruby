@@ -57,6 +57,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 public class RubyContext {
@@ -243,7 +244,22 @@ public class RubyContext {
                 RubyArguments.pack(null, null, method.getMethod(), DeclarationContext.METHOD, null, object, block, arguments));
     }
 
+    private final ReentrantLock shutdownLock = new ReentrantLock();
+    private boolean disposed = false;
+
     public void shutdown() {
+        shutdownLock.lock();
+        try {
+            if (!disposed) {
+                doShutdown();
+                disposed = true;
+            }
+        } finally {
+            shutdownLock.unlock();
+        }
+    }
+
+    private void doShutdown() {
         if (options.ROPE_PRINT_INTERN_STATS) {
             Log.LOGGER.info("ropes re-used: " + getRopeTable().getRopesReusedCount());
             Log.LOGGER.info("rope byte arrays re-used: " + getRopeTable().getByteArrayReusedCount());
