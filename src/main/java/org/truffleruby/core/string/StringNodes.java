@@ -144,6 +144,7 @@ import org.truffleruby.platform.posix.TrufflePosix;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -890,32 +891,15 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class DowncaseBangNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
-
-        @Specialization(guards = { "isEmpty(string)", "isSingleByteOptimizable(string)" })
-        public DynamicObject downcaseSingleByteEmpty(DynamicObject string) {
-            return nil();
-        }
-
-        @Specialization(guards = { "!isEmpty(string)", "isSingleByteOptimizable(string)" })
+        @Specialization(guards = "isSingleByteOptimizable(string)")
         public DynamicObject downcaseSingleByte(DynamicObject string,
-                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile,
-                @Cached("create()") RopeNodes.BytesCopyNode copyNode) {
-            final Rope rope = rope(string);
-            final byte[] outputBytes = copyNode.execute(rope);
-
-            final boolean modified = singleByteDowncase(outputBytes, 0, outputBytes.length);
-            if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(string, makeLeafRopeNode.executeMake(outputBytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
-
-                return string;
-            } else {
-                return nil();
-            }
+                                              @Cached("createUpperToLower()") InvertAsciiCaseNode invertAsciiCaseNode) {
+            return invertAsciiCaseNode.executeInvert(string);
         }
 
         @Specialization(guards = "!isSingleByteOptimizable(string)")
         public DynamicObject downcase(DynamicObject string,
+                                      @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
                                       @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
                                       @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
@@ -939,11 +923,6 @@ public abstract class StringNodes {
             } else {
                 return nil();
             }
-        }
-
-        @TruffleBoundary
-        private boolean singleByteDowncase(byte[] bytes, int s, int end) {
-            return StringSupport.singleByteDowncase(bytes, s, end);
         }
 
         @TruffleBoundary
@@ -2367,17 +2346,40 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "upcase!", raiseIfFrozenSelf = true)
-    @ImportStatic(StringGuards.class)
-    public abstract static class UpcaseBangNode extends CoreMethodArrayArgumentsNode {
+    @NodeChild("bytes")
+    public abstract static class InvertAsciiCaseNode extends RubyNode {
+
+        @CompilationFinal private int lowerBound = -1;
+        @CompilationFinal private int upperBound = -1;
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
-        @Specialization(guards = "isSingleByteOptimizable(string)")
-        public DynamicObject upcaseSingleByte(DynamicObject string,
-                                              @Cached("create()") BranchProfile foundLowerCaseCharProfile,
-                                              @Cached("createBinaryProfile()") ConditionProfile noopProfile,
-                                              @Cached("create()") RopeNodes.BytesNode bytesNode) {
+        public static InvertAsciiCaseNode createLowerToUpper() {
+            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+            ret.setBounds('a', 'z');
+
+            return ret;
+        }
+
+        public static InvertAsciiCaseNode createUpperToLower() {
+            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+            ret.setBounds('A', 'Z');
+
+            return ret;
+        }
+
+        public abstract DynamicObject executeInvert(DynamicObject string);
+
+        protected void setBounds(int lowerBound, int upperBound) {
+            this.lowerBound = lowerBound;
+            this.upperBound = upperBound;
+        }
+
+        @Specialization
+        protected DynamicObject invert(DynamicObject string,
+                                    @Cached("create()") BranchProfile foundLowerCaseCharProfile,
+                                    @Cached("createBinaryProfile()") ConditionProfile noopProfile,
+                                    @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
 
             final byte[] bytes = bytesNode.execute(rope);
@@ -2386,15 +2388,14 @@ public abstract class StringNodes {
             for (int i = 0; i < bytes.length; i++) {
                 final byte b = bytes[i];
 
-                // Check if between 'a' - 'z'.
-                if (b >= 0x61 && b <= 0x7a) {
+                if (b >= lowerBound && b <= upperBound) {
                     foundLowerCaseCharProfile.enter();
 
                     if (modified == null) {
                         modified = bytes.clone();
                     }
 
-                    // Convert lower-case ASCII char to upper-case.
+                    // Convert lower-case ASCII char to upper-case or upper-case to lower-case.
                     modified[i] ^= 0x20;
                 }
             }
@@ -2407,6 +2408,18 @@ public abstract class StringNodes {
 
                 return string;
             }
+        }
+
+    }
+
+    @CoreMethod(names = "upcase!", raiseIfFrozenSelf = true)
+    @ImportStatic(StringGuards.class)
+    public abstract static class UpcaseBangNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isSingleByteOptimizable(string)")
+        public DynamicObject upcaseSingleByte(DynamicObject string,
+                                              @Cached("createLowerToUpper()") InvertAsciiCaseNode invertAsciiCaseNode) {
+            return invertAsciiCaseNode.executeInvert(string);
         }
 
         @Specialization(guards = "!isSingleByteOptimizable(string)")
