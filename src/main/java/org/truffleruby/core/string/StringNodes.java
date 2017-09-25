@@ -1478,13 +1478,18 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class SwapcaseBangNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
+        @Specialization(guards = "isSingleByteOptimizable(string)")
+        public DynamicObject swapcaseSingleByte(DynamicObject string,
+                                                @Cached("createSwapCase()") InvertAsciiCaseNode invertAsciiCaseNode) {
+            return invertAsciiCaseNode.executeInvert(string);
+        }
 
         @TruffleBoundary(throwsControlFlowException = true)
-        @Specialization
-        public DynamicObject swapcaseSingleByte(DynamicObject string,
-                                                @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
-                                                @Cached("createBinaryProfile()") ConditionProfile singleByteOptimizableProfile) {
+        @Specialization(guards = "!isSingleByteOptimizable(string)")
+        public DynamicObject swapcase(DynamicObject string,
+                                      @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
+                                      @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
+                                      @Cached("createBinaryProfile()") ConditionProfile singleByteOptimizableProfile) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
 
             final Rope rope = rope(string);
@@ -2341,35 +2346,39 @@ public abstract class StringNodes {
     @NodeChild("bytes")
     public abstract static class InvertAsciiCaseNode extends RubyNode {
 
-        @CompilationFinal private int lowerBound = -1;
-        @CompilationFinal private int upperBound = -1;
+        @CompilationFinal private boolean lowerToUpper;
+        @CompilationFinal private boolean upperToLower;
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
         public static InvertAsciiCaseNode createLowerToUpper() {
             final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
-            ret.setBounds('a', 'z');
+            ret.lowerToUpper = true;
 
             return ret;
         }
 
         public static InvertAsciiCaseNode createUpperToLower() {
             final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
-            ret.setBounds('A', 'Z');
+            ret.upperToLower = true;
+
+            return ret;
+        }
+
+        public static InvertAsciiCaseNode createSwapCase() {
+            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+            ret.lowerToUpper = true;
+            ret.upperToLower = true;
 
             return ret;
         }
 
         public abstract DynamicObject executeInvert(DynamicObject string);
 
-        protected void setBounds(int lowerBound, int upperBound) {
-            this.lowerBound = lowerBound;
-            this.upperBound = upperBound;
-        }
-
         @Specialization
         protected DynamicObject invert(DynamicObject string,
                                     @Cached("create()") BranchProfile foundLowerCaseCharProfile,
+                                    @Cached("create()") BranchProfile foundUpperCaseCharProfile,
                                     @Cached("createBinaryProfile()") ConditionProfile noopProfile,
                                     @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
@@ -2380,14 +2389,25 @@ public abstract class StringNodes {
             for (int i = 0; i < bytes.length; i++) {
                 final byte b = bytes[i];
 
-                if (b >= lowerBound && b <= upperBound) {
+                if (lowerToUpper && b >= 'a' && b <= 'z') {
                     foundLowerCaseCharProfile.enter();
 
                     if (modified == null) {
                         modified = bytes.clone();
                     }
 
-                    // Convert lower-case ASCII char to upper-case or upper-case to lower-case.
+                    // Convert lower-case ASCII char to upper-case.
+                    modified[i] ^= 0x20;
+                }
+
+                if (upperToLower && b >= 'A' && b <= 'Z') {
+                    foundUpperCaseCharProfile.enter();
+
+                    if (modified == null) {
+                        modified = bytes.clone();
+                    }
+
+                    // Convert upper-case ASCII char to lower-case.
                     modified[i] ^= 0x20;
                 }
             }
