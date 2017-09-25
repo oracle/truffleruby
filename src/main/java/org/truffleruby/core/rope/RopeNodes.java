@@ -1340,34 +1340,6 @@ public abstract class RopeNodes {
     }
 
     @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "rope")
-    })
-    public abstract static class BytesCopyNode extends RubyNode {
-
-        public static BytesCopyNode create() {
-            return RopeNodesFactory.BytesCopyNodeGen.create(null);
-        }
-
-        public abstract byte[] execute(Rope rope);
-
-        @Specialization
-        public byte[] getBytesFromNative(NativeRope rope) {
-            return rope.getBytes();
-        }
-
-        @Specialization(guards = "rope.getRawBytes() != null")
-        public byte[] getBytesManaged(ManagedRope rope) {
-            return rope.getRawBytes().clone();
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "rope.getRawBytes() == null")
-        public byte[] getBytesFromRope(ManagedRope rope) {
-            return rope.getBytesCopy();
-        }
-    }
-
-    @NodeChildren({
         @NodeChild(type = RubyNode.class, value = "rope")
     })
     public abstract static class HashNode extends RubyNode {
