@@ -63,7 +63,6 @@
 package org.truffleruby.core.string;
 
 import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
-import static org.truffleruby.core.rope.RopeNodes.MakeConcatNode.commonCodeRange;
 import static org.truffleruby.core.string.StringOperations.encoding;
 import static org.truffleruby.core.string.StringOperations.rope;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_LEN;
@@ -119,7 +118,6 @@ import org.truffleruby.core.rope.LeafRope;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.RepeatingRope;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuffer;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeGuards;
@@ -219,47 +217,12 @@ public abstract class StringNodes {
             return ToStrNodeGen.create(other);
         }
 
-        @Specialization(guards = { "!isRopeBuffer(string)", "isRubyString(other)" })
+        @Specialization(guards = "isRubyString(other)")
         public DynamicObject add(DynamicObject string, DynamicObject other,
                                  @Cached("create()") StringAppendNode stringAppendNode) {
             final Rope concatRope = stringAppendNode.executeStringAppend(string, other);
 
             final DynamicObject ret = allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, concatRope));
-
-            taintResultNode.maybeTaint(string, ret);
-            taintResultNode.maybeTaint(other, ret);
-
-            return ret;
-        }
-
-        @Specialization(guards = { "isRopeBuffer(string)", "is7Bit(string)", "is7Bit(other)" })
-        public DynamicObject addRopeBuffer(DynamicObject string, DynamicObject other,
-                                           @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile,
-                @Cached("create()") EncodingNodes.CheckEncodingNode checkEncodingNode,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
-            final Encoding enc = checkEncodingNode.executeCheckEncoding(string, other);
-
-            final RopeBuffer left = (RopeBuffer) rope(string);
-            final RopeBuilder leftByteList = left.getByteList();
-            final Rope right = rope(other);
-
-            final RopeBuilder concatByteList;
-            if (ropeBufferProfile.profile(right instanceof RopeBuffer)) {
-                concatByteList = StringSupport.addByteLists(leftByteList, ((RopeBuffer) right).getByteList());
-            } else {
-                // Taken from org.jruby.util.StringSupport.addByteLists.
-
-                final int newLength = leftByteList.getLength() + right.byteLength();
-                concatByteList = RopeBuilder.createRopeBuilder(newLength);
-                concatByteList.setLength(newLength);
-                System.arraycopy(leftByteList.getUnsafeBytes(), 0, concatByteList.getUnsafeBytes(), 0, leftByteList.getLength());
-                System.arraycopy(bytesNode.execute(right), 0, concatByteList.getUnsafeBytes(), leftByteList.getLength(), right.byteLength());
-            }
-
-            concatByteList.setEncoding(enc);
-
-            final RopeBuffer concatRope = new RopeBuffer(concatByteList, left.getCodeRange(), left.isSingleByteOptimizable(), concatByteList.getLength());
-            final DynamicObject ret = StringOperations.createString(getContext(), concatRope);
 
             taintResultNode.maybeTaint(string, ret);
             taintResultNode.maybeTaint(other, ret);
@@ -701,13 +664,8 @@ public abstract class StringNodes {
     public abstract static class ByteSizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int byteSize(DynamicObject string,
-                @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile) {
+        public int byteSize(DynamicObject string) {
             final Rope rope = rope(string);
-
-            if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {
-                return ((RopeBuffer) rope).getByteList().getLength();
-            }
 
             return rope.byteLength();
         }
@@ -1107,26 +1065,20 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isRubyString(encodingName)")
         public DynamicObject forceEncodingString(DynamicObject string, DynamicObject encodingName,
-                                                 @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile,
-                                                 @Cached("createBinaryProfile()") ConditionProfile mutableRopeProfile) {
+                                                 @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile) {
             final DynamicObject encoding = getContext().getEncodingManager().getRubyEncoding(StringOperations.decodeUTF8(encodingName));
-            return forceEncodingEncoding(string, encoding, differentEncodingProfile, mutableRopeProfile);
+            return forceEncodingEncoding(string, encoding, differentEncodingProfile);
         }
 
         @Specialization(guards = "isRubyEncoding(rubyEncoding)")
         public DynamicObject forceEncodingEncoding(DynamicObject string, DynamicObject rubyEncoding,
-                                                   @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile,
-                                                   @Cached("createBinaryProfile()") ConditionProfile mutableRopeProfile) {
+                                                   @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
             final Rope rope = rope(string);
 
             if (differentEncodingProfile.profile(rope.getEncoding() != encoding)) {
-                if (mutableRopeProfile.profile(rope instanceof RopeBuffer)) {
-                    ((RopeBuffer) rope).getByteList().setEncoding(encoding);
-                } else {
-                    final Rope newRope = withEncodingNode.executeWithEncoding(rope, encoding, CodeRange.CR_UNKNOWN);
-                    StringOperations.setRope(string, newRope);
-                }
+                final Rope newRope = withEncodingNode.executeWithEncoding(rope, encoding, CodeRange.CR_UNKNOWN);
+                StringOperations.setRope(string, newRope);
             }
 
             return string;
@@ -1134,14 +1086,13 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isRubyString(encoding)", "!isRubyEncoding(encoding)" })
         public DynamicObject forceEncoding(VirtualFrame frame, DynamicObject string, Object encoding,
-                                           @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile,
-                                           @Cached("createBinaryProfile()") ConditionProfile mutableRopeProfile) {
+                                           @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile) {
             if (toStrNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toStrNode = insert(ToStrNodeGen.create(null));
             }
 
-            return forceEncodingString(string, toStrNode.executeToStr(frame, encoding), differentEncodingProfile, mutableRopeProfile);
+            return forceEncodingString(string, toStrNode.executeToStr(frame, encoding), differentEncodingProfile);
         }
 
     }
@@ -1228,15 +1179,8 @@ public abstract class StringNodes {
 
 
         @Specialization(guards = { "self != from", "isRubyString(from)" })
-        public Object initializeCopy(DynamicObject self, DynamicObject from,
-                                     @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile) {
-            final Rope rope = rope(from);
-
-            if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {
-                StringOperations.setRope(self, ((RopeBuffer) rope).dup());
-            } else {
-                StringOperations.setRope(self, rope);
-            }
+        public Object initializeCopy(DynamicObject self, DynamicObject from) {
+            StringOperations.setRope(self, rope(from));
 
             return self;
         }
@@ -1338,15 +1282,8 @@ public abstract class StringNodes {
 
 
         @Specialization(guards = { "string != other", "isRubyString(other)" })
-        public DynamicObject replace(DynamicObject string, DynamicObject other,
-                                     @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile) {
-            final Rope rope = rope(other);
-
-            if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {
-                StringOperations.setRope(string, ((RopeBuffer) rope).dup());
-            } else {
-                StringOperations.setRope(string, rope);
-            }
+        public DynamicObject replace(DynamicObject string, DynamicObject other) {
+            StringOperations.setRope(string, rope(other));
 
             return string;
         }
@@ -1837,7 +1774,7 @@ public abstract class StringNodes {
 
         public abstract int executeSetByte(DynamicObject string, int index, Object value);
 
-        @Specialization(guards = "!isRopeBuffer(string)")
+        @Specialization
         public int setByte(DynamicObject string, int index, int value) {
             final Rope rope = rope(string);
             final int normalizedIndex = checkIndexNode.executeCheck(index, rope.byteLength());
@@ -1848,16 +1785,6 @@ public abstract class StringNodes {
             final Rope composed = composedMakeConcatNode.executeMake(middleMakeConcatNode.executeMake(left, middle, rope.getEncoding()), right, rope.getEncoding());
 
             StringOperations.setRope(string, composed);
-
-            return value;
-        }
-
-        @Specialization(guards = "isRopeBuffer(string)")
-        public int setByteRopeBuffer(DynamicObject string, int index, int value) {
-            final RopeBuffer rope = (RopeBuffer) rope(string);
-            final int normalizedIndex = checkIndexNode.executeCheck(index, rope.byteLength());
-
-            rope.getByteList().set(normalizedIndex, value);
 
             return value;
         }
@@ -1914,21 +1841,10 @@ public abstract class StringNodes {
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public int size(DynamicObject string,
-                        @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile,
-                        @Cached("createBinaryProfile()") ConditionProfile isSingleByteOptimizableRopeBufferProfile) {
+        public int size(DynamicObject string) {
             final Rope rope = rope(string);
 
-            if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {
-                if (isSingleByteOptimizableRopeBufferProfile.profile(rope.isSingleByteOptimizable())) {
-                    return ((RopeBuffer) rope).getByteList().getLength();
-                } else {
-                    final RopeBuilder byteList = ((RopeBuffer) rope).getByteList();
-                    return RopeOperations.strLength(rope.getEncoding(), byteList.getUnsafeBytes(), 0, byteList.getLength());
-                }
-            } else {
-                return rope.characterLength();
-            }
+            return rope.characterLength();
         }
 
     }
@@ -3907,7 +3823,7 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(guards = { "!indexAtEitherBounds(string, spliceByteIndex)", "isRubyString(other)", "isRubyEncoding(rubyEncoding)", "!isRopeBuffer(string)" })
+        @Specialization(guards = { "!indexAtEitherBounds(string, spliceByteIndex)", "isRubyString(other)", "isRubyEncoding(rubyEncoding)" })
         public DynamicObject splice(DynamicObject string, DynamicObject other, int spliceByteIndex, int byteCountToReplace, DynamicObject rubyEncoding,
                 @Cached("createBinaryProfile()") ConditionProfile insertStringIsEmptyProfile,
                 @Cached("createBinaryProfile()") ConditionProfile splitRightIsEmptyProfile,
@@ -3943,32 +3859,6 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(guards = { "!indexAtEitherBounds(string, spliceByteIndex)", "isRubyString(other)", "isRubyEncoding(rubyEncoding)", "isRopeBuffer(string)", "isSingleByteOptimizable(string)" })
-        public DynamicObject spliceBuffer(DynamicObject string, DynamicObject other, int spliceByteIndex, int byteCountToReplace, DynamicObject rubyEncoding,
-                                          @Cached("createBinaryProfile()") ConditionProfile sameCodeRangeProfile,
-                                          @Cached("createBinaryProfile()") ConditionProfile brokenCodeRangeProfile) {
-            final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
-            final RopeBuffer source = (RopeBuffer) rope(string);
-            final Rope insert = rope(other);
-            final int rightSideStartingIndex = spliceByteIndex + byteCountToReplace;
-
-            final RopeBuilder byteList = RopeBuilder.createRopeBuilder(source.byteLength() + insert.byteLength() - byteCountToReplace);
-
-            byteList.append(source.getByteList().getBytes(), 0, spliceByteIndex);
-            byteList.append(insert.getBytes());
-            byteList.append(source.getByteList().getBytes(), rightSideStartingIndex, source.byteLength() - rightSideStartingIndex);
-            byteList.setEncoding(encoding);
-
-            final Rope buffer = new RopeBuffer(byteList,
-                    commonCodeRange(source.getCodeRange(), insert.getCodeRange(), sameCodeRangeProfile, brokenCodeRangeProfile),
-                    source.isSingleByteOptimizable() && insert.isSingleByteOptimizable(),
-                    source.characterLength() + insert.characterLength() - byteCountToReplace);
-
-            StringOperations.setRope(string, buffer);
-
-            return string;
-        }
-
         protected boolean indexAtStartBound(int index) {
             return index == 0;
         }
@@ -3985,11 +3875,6 @@ public abstract class StringNodes {
             return indexAtStartBound(index) || indexAtEndBound(string, index);
         }
 
-        protected boolean isRopeBuffer(DynamicObject string) {
-            assert RubyGuards.isRubyString(string);
-
-            return rope(string) instanceof RopeBuffer;
-        }
     }
 
     @Primitive(name = "string_to_inum", lowerFixnum = 1)
@@ -4047,7 +3932,6 @@ public abstract class StringNodes {
                                       @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
                                       @Cached("createBinaryProfile()") ConditionProfile tooLargeTotalProfile,
                                       @Cached("createBinaryProfile()") ConditionProfile singleByteOptimizableProfile,
-                                      @Cached("createBinaryProfile()") ConditionProfile mutableRopeProfile,
                                       @Cached("createBinaryProfile()") ConditionProfile foundSingleByteOptimizableDescendentProfile) {
             final Rope rope = rope(string);
 
@@ -4063,10 +3947,6 @@ public abstract class StringNodes {
             }
 
             if (singleByteOptimizableProfile.profile((characterLength == 0) || rope.isSingleByteOptimizable())) {
-                if (mutableRopeProfile.profile(rope instanceof RopeBuffer)) {
-                    return makeBuffer(string, index, characterLength);
-                }
-
                 return makeRope(string, rope, index, characterLength);
             } else {
                 final SearchResult searchResult = searchForSingleByteOptimizableDescendant(rope, index, characterLength);
@@ -4131,7 +4011,6 @@ public abstract class StringNodes {
 
             final Rope rope = rope(string);
             final int length = rope.byteLength();
-            final boolean isMutableRope = rope instanceof RopeBuffer;
 
             final Encoding enc = rope.getEncoding();
             int p;
@@ -4153,10 +4032,6 @@ public abstract class StringNodes {
                     while (characterLen-- > 0 && (p = enc.prevCharHead(bytes, s, p, e)) != -1) {} // nothing
                     if (p == -1) {
                         return nil();
-                    }
-
-                    if (isMutableRope) {
-                        return makeBuffer(string, p - s, e - p);
                     }
 
                     return makeRope(string, rope, p - s, e - p);
@@ -4189,10 +4064,6 @@ public abstract class StringNodes {
                 substringByteLength = 0;
             } else {
                 substringByteLength = StringSupport.offset(enc, bytes, p, end, characterLen);
-            }
-
-            if (isMutableRope) {
-                return makeBuffer(string, p - s, substringByteLength);
             }
 
             return makeRope(string, rope, p - s, substringByteLength);
@@ -4230,30 +4101,6 @@ public abstract class StringNodes {
             final DynamicObject ret = allocateNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(string),
                     Layouts.STRING.build(false, false, makeSubstringNode.executeMake(rope, beg, byteLength)));
-
-            taintResultNode.maybeTaint(string, ret);
-
-            return ret;
-        }
-
-        private DynamicObject makeBuffer(DynamicObject string, int beg, int byteLength) {
-            assert RubyGuards.isRubyString(string);
-
-            final RopeBuffer buffer = (RopeBuffer) rope(string);
-
-            if (allocateNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateNode = insert(AllocateObjectNode.create());
-            }
-
-            if (taintResultNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                taintResultNode = insert(new TaintResultNode());
-            }
-
-            final DynamicObject ret = allocateNode.allocate(
-                    Layouts.BASIC_OBJECT.getLogicalClass(string),
-                    Layouts.STRING.build(false, false, new RopeBuffer(RopeBuilder.createRopeBuilder(buffer.getByteList(), beg, byteLength), buffer.getCodeRange(), buffer.isSingleByteOptimizable(), byteLength)));
 
             taintResultNode.maybeTaint(string, ret);
 

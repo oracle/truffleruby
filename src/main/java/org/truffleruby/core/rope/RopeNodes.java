@@ -270,26 +270,6 @@ public abstract class RopeNodes {
 
         public abstract Rope executeMake(Rope left, Rope right, Encoding encoding);
 
-        @Specialization
-        public Rope concatMutableRope(RopeBuffer left, Rope right, Encoding encoding,
-                                      @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile) {
-            try {
-                Math.addExact(left.byteLength(), right.byteLength());
-            } catch (ArithmeticException e) {
-                throw new RaiseException(getContext().getCoreExceptions().argumentError("Result of string concatenation exceeds the system maximum string length", this));
-            }
-
-            final RopeBuilder byteList = left.getByteList();
-
-            byteList.append(right.getBytes());
-
-            if (differentEncodingProfile.profile(byteList.getEncoding() != encoding)) {
-                byteList.setEncoding(encoding);
-            }
-
-            return left;
-        }
-
         @TruffleBoundary
         @Specialization
         public Rope concatNativeRopeLeft(NativeRope left, Rope right, Encoding encoding) {
@@ -302,7 +282,7 @@ public abstract class RopeNodes {
             return executeMake(left, right.toLeafRope(), encoding);
         }
 
-        @Specialization(guards = { "!isMutableRope(left)", "!isNativeRope(left)", "!isNativeRope(right)", "!isCodeRangeBroken(left, right)" })
+        @Specialization(guards = { "!isNativeRope(left)", "!isNativeRope(right)", "!isCodeRangeBroken(left, right)" })
         public Rope concat(Rope left, Rope right, Encoding encoding,
                            @Cached("createBinaryProfile()") ConditionProfile sameCodeRangeProfile,
                            @Cached("createBinaryProfile()") ConditionProfile brokenCodeRangeProfile,
@@ -439,7 +419,7 @@ public abstract class RopeNodes {
             }
         }
 
-        @Specialization(guards = { "!isMutableRope(left)", "!isNativeRope(left)", "!isNativeRope(right)", "isCodeRangeBroken(left, right)" })
+        @Specialization(guards = { "!isNativeRope(left)", "!isNativeRope(right)", "isCodeRangeBroken(left, right)" })
         public Rope concatCrBroken(Rope left, Rope right, Encoding encoding,
                                    @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
             // This specialization was added to a special case where broken code range(s),
@@ -496,10 +476,6 @@ public abstract class RopeNodes {
 
         private int depth(Rope left, Rope right) {
             return Math.max(left.depth(), right.depth()) + 1;
-        }
-
-        protected static boolean isMutableRope(Rope rope) {
-            return rope instanceof RopeBuffer;
         }
 
         protected static boolean isNativeRope(Rope rope) {
@@ -760,29 +736,7 @@ public abstract class RopeNodes {
             return base;
         }
 
-        @Specialization(guards = "times > 1")
-        public Rope multiplyBuffer(RopeBuffer base, int times) {
-            final RopeBuilder inputBytes = base.getByteList();
-            int len = inputBytes.getLength() * times;
-            final RopeBuilder outputBytes = RopeBuilder.createRopeBuilder(len);
-            outputBytes.setLength(len);
-
-            int n = inputBytes.getLength();
-
-            System.arraycopy(inputBytes.getUnsafeBytes(), 0, outputBytes.getUnsafeBytes(), 0, n);
-            while (n <= len / 2) {
-                System.arraycopy(outputBytes.getUnsafeBytes(), 0, outputBytes.getUnsafeBytes(), n, n);
-                n *= 2;
-            }
-            System.arraycopy(outputBytes.getUnsafeBytes(), 0, outputBytes.getUnsafeBytes(), n, len - n);
-
-
-            outputBytes.setEncoding(inputBytes.getEncoding());
-
-            return new RopeBuffer(outputBytes, base.getCodeRange(), base.isSingleByteOptimizable(), base.characterLength() * times);
-        }
-
-        @Specialization(guards = { "!isRopeBuffer(base)", "isSingleByteString(base)", "times > 1" })
+        @Specialization(guards = { "isSingleByteString(base)", "times > 1" })
         @TruffleBoundary
         public Rope multiplySingleByteString(Rope base, int times,
                                              @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
@@ -794,7 +748,7 @@ public abstract class RopeNodes {
             return makeLeafRopeNode.executeMake(buffer, base.getEncoding(), base.getCodeRange(), times);
         }
 
-        @Specialization(guards = { "!isRopeBuffer(base)", "!isSingleByteString(base)", "times > 1" })
+        @Specialization(guards = { "!isSingleByteString(base)", "times > 1" })
         public Rope repeat(Rope base, int times) {
             try {
                 Math.multiplyExact(base.byteLength(), times);

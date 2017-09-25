@@ -11,30 +11,10 @@
 
 package org.truffleruby.core.rope;
 
-import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyGuards;
-
-import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
-import static org.truffleruby.core.string.StringOperations.rope;
-
 public class RopeGuards {
 
     public static boolean isSingleByteString(Rope rope) {
         return rope.byteLength() == 1;
-    }
-
-    public static boolean is7Bit(Rope rope) {
-        return rope.getCodeRange() == CR_7BIT;
-    }
-
-    public static boolean isRopeBuffer(Rope rope) {
-        return rope instanceof RopeBuffer;
-    }
-
-    protected boolean isRopeBuffer(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
-
-        return rope(string) instanceof RopeBuffer;
     }
 
     public static boolean isLeafRope(Rope rope) {

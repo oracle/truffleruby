@@ -43,7 +43,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import jnr.constants.platform.Errno;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -54,7 +53,6 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuffer;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -88,7 +86,6 @@ public abstract class IOBufferNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public int unshift(DynamicObject ioBuffer, DynamicObject string, int startPosition, int used,
-                @Cached("createBinaryProfile()") ConditionProfile ropeBufferProfile,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(string);
             final int available = IOBUFFER_SIZE - used;
@@ -96,15 +93,8 @@ public abstract class IOBufferNodes {
             final byte[] bytes;
             int written;
 
-            if (ropeBufferProfile.profile(rope instanceof RopeBuffer)) {
-                final RopeBuilder byteList = ((RopeBuffer) rope).getByteList();
-
-                bytes = byteList.getUnsafeBytes();
-                written = byteList.getLength() - startPosition;
-            } else {
-                bytes = bytesNode.execute(rope);
-                written = rope.byteLength() - startPosition;
-            }
+            bytes = bytesNode.execute(rope);
+            written = rope.byteLength() - startPosition;
 
             if (written > available) {
                 written = available;
