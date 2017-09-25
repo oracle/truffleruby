@@ -1267,4 +1267,13 @@ public final class StringSupport {
 
         return modify;
     }
+
+    public static boolean isAsciiLowercase(byte c) {
+        return c >= 'a' && c <= 'z';
+    }
+
+    public static boolean isAsciiUppercase(byte c) {
+        return c >= 'A' && c <= 'Z';
+    }
+
 }

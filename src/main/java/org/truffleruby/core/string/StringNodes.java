@@ -2331,53 +2331,49 @@ public abstract class StringNodes {
 
     }
 
-    @NodeChild("bytes")
-    public abstract static class InvertAsciiCaseNode extends RubyNode {
+    @NodeChildren({
+            @NodeChild("bytes"),
+            @NodeChild("start")
+    })
+    public abstract static class InvertAsciiCaseBytesNode extends RubyNode {
 
         @CompilationFinal private boolean lowerToUpper;
         @CompilationFinal private boolean upperToLower;
 
-        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
-
-        public static InvertAsciiCaseNode createLowerToUpper() {
-            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+        public static InvertAsciiCaseBytesNode createLowerToUpper() {
+            final InvertAsciiCaseBytesNode ret = StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(null, null);
             ret.lowerToUpper = true;
 
             return ret;
         }
 
-        public static InvertAsciiCaseNode createUpperToLower() {
-            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+        public static InvertAsciiCaseBytesNode createUpperToLower() {
+            final InvertAsciiCaseBytesNode ret = StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(null, null);
             ret.upperToLower = true;
 
             return ret;
         }
 
-        public static InvertAsciiCaseNode createSwapCase() {
-            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+        public static InvertAsciiCaseBytesNode createSwapCase() {
+            final InvertAsciiCaseBytesNode ret = StringNodesFactory.InvertAsciiCaseBytesNodeGen.create(null, null);
             ret.lowerToUpper = true;
             ret.upperToLower = true;
 
             return ret;
         }
 
-        public abstract DynamicObject executeInvert(DynamicObject string);
+        public abstract byte[] executeInvert(byte[] bytes, int start);
 
         @Specialization
-        protected DynamicObject invert(DynamicObject string,
-                                    @Cached("create()") BranchProfile foundLowerCaseCharProfile,
-                                    @Cached("create()") BranchProfile foundUpperCaseCharProfile,
-                                    @Cached("createBinaryProfile()") ConditionProfile noopProfile,
-                                    @Cached("create()") RopeNodes.BytesNode bytesNode) {
-            final Rope rope = rope(string);
-
-            final byte[] bytes = bytesNode.execute(rope);
+        protected byte[] invert(byte[] bytes, int start,
+                                       @Cached("create()") BranchProfile foundLowerCaseCharProfile,
+                                       @Cached("create()") BranchProfile foundUpperCaseCharProfile) {
             byte[] modified = null;
 
-            for (int i = 0; i < bytes.length; i++) {
+            for (int i = start; i < bytes.length; i++) {
                 final byte b = bytes[i];
 
-                if (lowerToUpper && b >= 'a' && b <= 'z') {
+                if (lowerToUpper && StringSupport.isAsciiLowercase(b)) {
                     foundLowerCaseCharProfile.enter();
 
                     if (modified == null) {
@@ -2388,7 +2384,7 @@ public abstract class StringNodes {
                     modified[i] ^= 0x20;
                 }
 
-                if (upperToLower && b >= 'A' && b <= 'Z') {
+                if (upperToLower && StringSupport.isAsciiUppercase(b)) {
                     foundUpperCaseCharProfile.enter();
 
                     if (modified == null) {
@@ -2399,6 +2395,50 @@ public abstract class StringNodes {
                     modified[i] ^= 0x20;
                 }
             }
+
+            return modified;
+        }
+
+    }
+
+    @NodeChild("bytes")
+    public abstract static class InvertAsciiCaseNode extends RubyNode {
+
+        @Child private InvertAsciiCaseBytesNode invertNode;
+
+        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
+
+        public static InvertAsciiCaseNode createLowerToUpper() {
+            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+            ret.invertNode = InvertAsciiCaseBytesNode.createLowerToUpper();
+
+            return ret;
+        }
+
+        public static InvertAsciiCaseNode createUpperToLower() {
+            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+            ret.invertNode = InvertAsciiCaseBytesNode.createUpperToLower();
+
+            return ret;
+        }
+
+        public static InvertAsciiCaseNode createSwapCase() {
+            final InvertAsciiCaseNode ret = StringNodesFactory.InvertAsciiCaseNodeGen.create(null);
+            ret.invertNode = InvertAsciiCaseBytesNode.createSwapCase();
+
+            return ret;
+        }
+
+        public abstract DynamicObject executeInvert(DynamicObject string);
+
+        @Specialization
+        protected DynamicObject invert(DynamicObject string,
+                                    @Cached("createBinaryProfile()") ConditionProfile noopProfile,
+                                    @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            final Rope rope = rope(string);
+
+            final byte[] bytes = bytesNode.execute(rope);
+            byte[] modified = invertNode.executeInvert(bytes, 0);
 
             if (noopProfile.profile(modified == null)) {
                 return nil();
@@ -2464,13 +2504,58 @@ public abstract class StringNodes {
     }
 
     @CoreMethod(names = "capitalize!", raiseIfFrozenSelf = true)
+    @ImportStatic(StringGuards.class)
     public abstract static class CapitalizeBangNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
-        @Specialization
+        @Specialization(guards = "isSingleByteOptimizable(string)")
+        public DynamicObject capitalizeSingleByte(DynamicObject string,
+                                                  @Cached("createUpperToLower()") InvertAsciiCaseBytesNode invertAsciiCaseNode,
+                                                  @Cached("create()") RopeNodes.BytesNode bytesNode,
+                                                  @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
+                                                  @Cached("createBinaryProfile()") ConditionProfile firstCharIsLowerProfile,
+                                                  @Cached("createBinaryProfile()") ConditionProfile otherCharsAlreadyLowerProfile,
+                                                  @Cached("createBinaryProfile()") ConditionProfile mustCapitalizeFirstCharProfile) {
+            final Rope rope = rope(string);
+
+            if (emptyStringProfile.profile(rope.isEmpty())) {
+                return nil();
+            }
+
+            final byte[] sourceBytes = bytesNode.execute(rope);
+            final byte[] finalBytes;
+
+            final byte[] processedBytes = invertAsciiCaseNode.executeInvert(sourceBytes, 1);
+
+            if (otherCharsAlreadyLowerProfile.profile(processedBytes == null)) {
+                // Bytes 1..N are either not letters or already lowercased. Time to check the first byte.
+
+                if (firstCharIsLowerProfile.profile(StringSupport.isAsciiLowercase(sourceBytes[0]))) {
+                    // The first char requires capitalization, but the remaining bytes in the original string are
+                    // already properly cased.
+                    finalBytes = sourceBytes.clone();
+                } else {
+                    // The string is already capitalized.
+                    return nil();
+                }
+            } else {
+                // At least one char was lowercased when looking at bytes 1..N. We still must check the first byte.
+                finalBytes = processedBytes;
+            }
+
+            if (mustCapitalizeFirstCharProfile.profile(StringSupport.isAsciiLowercase(sourceBytes[0]))) {
+                finalBytes[0] ^= 0x20;
+            }
+
+            StringOperations.setRope(string, makeLeafRopeNode.executeMake(finalBytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
+
+            return string;
+        }
+
         @TruffleBoundary(throwsControlFlowException = true)
+        @Specialization(guards = "!isSingleByteOptimizable(string)")
         public DynamicObject capitalizeBang(DynamicObject string) {
             // Taken from org.jruby.RubyString#capitalize_bang19.
 
