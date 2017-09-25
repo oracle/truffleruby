@@ -900,17 +900,13 @@ public abstract class StringNodes {
         @Specialization(guards = "!isSingleByteOptimizable(string)")
         public DynamicObject downcase(DynamicObject string,
                                       @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                                      @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
+                                      @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
                                       @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
 
-            if (encoding.isDummy()) {
+            if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
-            }
-
-            if (emptyStringProfile.profile(rope.isEmpty())) {
-                return nil();
             }
 
             final byte[] outputBytes = rope.getBytesCopy();
