@@ -1235,21 +1235,6 @@ public final class StringSupport {
         return modify;
     }
 
-    public static boolean singleByteDowncase(byte[] bytes, int s, int end) {
-        boolean modify = false;
-
-        while (s < end) {
-            int c = bytes[s] & 0xff;
-            if (ASCIIEncoding.INSTANCE.isUpper(c)) {
-                bytes[s] = AsciiTables.ToLowerCaseTable[c];
-                modify = true;
-            }
-            s++;
-        }
-
-        return modify;
-    }
-
     public static boolean multiByteDowncase(Encoding enc, byte[] bytes, int s, int end) {
         boolean modify = false;
         int c;
