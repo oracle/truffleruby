@@ -247,6 +247,7 @@ public class RubyContext {
     private final ReentrantLock shutdownLock = new ReentrantLock();
     private boolean disposed = false;
 
+    @TruffleBoundary
     public void shutdown() {
         shutdownLock.lock();
         try {
