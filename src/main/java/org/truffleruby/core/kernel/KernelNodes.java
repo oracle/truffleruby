@@ -87,7 +87,6 @@ import org.truffleruby.core.rubinius.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.rubinius.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringNodes.UnpackNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.SymbolTable;
@@ -1601,7 +1600,7 @@ public abstract class KernelNodes {
             final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);
 
             try {
-                result = (BytesResult) UnpackNode.indirectCall(callPackNode, compileFormat(format, arguments, isDebug),
+                result = (BytesResult) callPackNode.call(compileFormat(format, arguments, isDebug),
                         new Object[]{ arguments, arguments.length });
             } catch (FormatException e) {
                 exceptionProfile.enter();
