@@ -76,6 +76,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jcodings.constants.CharacterType;
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
 import org.jcodings.specific.ASCIIEncoding;
@@ -2649,7 +2650,7 @@ public abstract class StringNodes {
 
             final int codePoint = getCodePointNode.executeGetCodePoint(rope, 0);
 
-            return USASCIIEncoding.INSTANCE.isPrint(codePoint);
+            return USASCIIEncoding.INSTANCE.isCodeCType(codePoint, CharacterType.PRINT);
         }
 
         @Specialization(guards = "!is7Bit(character)")
