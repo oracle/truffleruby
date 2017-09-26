@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -161,36 +161,9 @@ public abstract class LookupMethodNode extends RubyNode {
     }
 
     public static MethodLookupResult lookupMethodWithVisibility(RubyContext context, VirtualFrame callingFrame,
-            Object receiver, String name,
-            boolean ignoreVisibility, boolean onlyLookupPublic) {
-        DynamicObject callerClass = getCallerClass(context, callingFrame,
-                ignoreVisibility, onlyLookupPublic);
-        return doLookup(context, callerClass, receiver, name, ignoreVisibility, onlyLookupPublic);
-    }
+            Object receiver, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
+        CompilerAsserts.neverPartOfCompilation("slow-path method lookup should not be compiled");
 
-    protected static DynamicObject getCallerClass(RubyContext context, VirtualFrame callingFrame,
-            boolean ignoreVisibility, boolean onlyLookupPublic) {
-        if (ignoreVisibility || onlyLookupPublic) {
-            return null; // No need to check visibility
-        } else {
-            InternalMethod method = RubyArguments.tryGetMethod(callingFrame);
-
-            if (method == null) {
-                return context.getCoreLibrary().getObjectClass();
-            } else if (!context.getCoreLibrary().isSend(method)) {
-                return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callingFrame));
-            } else {
-                FrameInstance instance = context.getCallStack().getCallerFrameIgnoringSend();
-                Frame callerFrame = instance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
-                return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callerFrame));
-            }
-        }
-    }
-
-    @TruffleBoundary
-    protected static MethodLookupResult doLookup(RubyContext context,
-            DynamicObject callerClass, Object receiver, String name,
-            boolean ignoreVisibility, boolean onlyLookupPublic) {
         if (RubyGuards.isForeignObject(receiver)) {
             throw new UnsupportedOperationException("method lookup not supported on foreign objects");
         }
@@ -203,16 +176,40 @@ public abstract class LookupMethodNode extends RubyNode {
 
         // Check visibility
         if (!ignoreVisibility) {
+            final Visibility visibility = method.getVisibility();
+            if (visibility == Visibility.PUBLIC) {
+                return method;
+            }
+
             if (onlyLookupPublic) {
-                if (!method.getMethod().getVisibility().isPublic()) {
-                    return method.withNoMethod();
-                }
-            } else if (!method.getMethod().isVisibleTo(callerClass)) {
+                return method.withNoMethod();
+            }
+
+            if (visibility == Visibility.PRIVATE) {
+                // A private method may only be called with an implicit receiver.
+                return method.withNoMethod();
+            }
+
+            final DynamicObject callerClass = getCallerClass(context, callingFrame);
+            if (!method.getMethod().isProtectedMethodVisibleTo(callerClass)) {
                 return method.withNoMethod();
             }
         }
 
         return method;
+    }
+
+    protected static DynamicObject getCallerClass(RubyContext context, VirtualFrame callingFrame) {
+        final InternalMethod callerMethod = RubyArguments.tryGetMethod(callingFrame);
+        if (callerMethod == null) {
+            return context.getCoreLibrary().getObjectClass();
+        } else if (!context.getCoreLibrary().isSend(callerMethod)) {
+            return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callingFrame));
+        } else {
+            FrameInstance instance = context.getCallStack().getCallerFrameIgnoringSend();
+            Frame callerFrame = instance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
+            return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callerFrame));
+        }
     }
 
     protected int getCacheLimit() {
