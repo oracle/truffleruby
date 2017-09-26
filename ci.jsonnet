@@ -10,7 +10,7 @@
     downloads: {
       JAVA_HOME: {
         name: "labsjdk",
-        version: "8u141-jvmci-0.33",
+        version: "8u141-jvmci-0.36",
         platformspecific: true
       }
     }
