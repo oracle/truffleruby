@@ -61,20 +61,20 @@ public class UncachedDispatchNode extends DispatchNode {
     @Override
     public Object executeDispatch(
             VirtualFrame frame,
-            Object receiverObject,
+            Object receiver,
             Object name,
-            DynamicObject blockObject,
-            Object[] argumentsObjects) {
-        assert !RubyGuards.isForeignObject(receiverObject) : "uncached dispatch not supported on foreign objects";
+            DynamicObject block,
+            Object[] arguments) {
+        assert !RubyGuards.isForeignObject(receiver) : "uncached dispatch not supported on foreign objects";
 
         final DispatchAction dispatchAction = getDispatchAction();
 
         final String methodName = toJavaStringNode.executeToJavaString(frame, name);
-        final InternalMethod method = lookupMethodNode.executeLookupMethod(frame, receiverObject, methodName);
+        final InternalMethod method = lookupMethodNode.executeLookupMethod(frame, receiver, methodName);
 
         if (method != null) {
             if (dispatchAction == DispatchAction.CALL_METHOD) {
-                return call(method, receiverObject, blockObject, argumentsObjects);
+                return call(method, receiver, block, arguments);
             } else if (dispatchAction == DispatchAction.RESPOND_TO_METHOD) {
                 return true;
             } else {
@@ -90,22 +90,22 @@ public class UncachedDispatchNode extends DispatchNode {
 
         methodMissingProfile.enter();
 
-        final InternalMethod methodMissing = lookupMethodMissingNode.executeLookupMethod(frame, receiverObject, "method_missing");
+        final InternalMethod methodMissing = lookupMethodMissingNode.executeLookupMethod(frame, receiver, "method_missing");
 
         if (methodMissing == null) {
             if (dispatchAction == DispatchAction.RESPOND_TO_METHOD) {
                 return false;
             } else {
                 methodMissingNotFoundProfile.enter();
-                throw new RaiseException(methodMissingNotFound(receiverObject));
+                throw new RaiseException(methodMissingNotFound(receiver));
             }
         }
 
         if (dispatchAction == DispatchAction.CALL_METHOD) {
             final DynamicObject nameSymbol = toSymbolNode.executeRubySymbol(frame, name);
-            final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(argumentsObjects, nameSymbol);
+            final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(arguments, nameSymbol);
 
-            return call(methodMissing, receiverObject, blockObject, modifiedArgumentsObjects);
+            return call(methodMissing, receiver, block, modifiedArgumentsObjects);
         } else if (dispatchAction == DispatchAction.RESPOND_TO_METHOD) {
             return false;
         } else {
@@ -120,8 +120,8 @@ public class UncachedDispatchNode extends DispatchNode {
     }
 
     @TruffleBoundary
-    private DynamicObject methodMissingNotFound(Object receiverObject) {
-        return coreExceptions().runtimeError(receiverObject.toString() + " didn't have a #method_missing", this);
+    private DynamicObject methodMissingNotFound(Object receiver) {
+        return coreExceptions().runtimeError(receiver + " didn't have a #method_missing", this);
     }
 
 }
