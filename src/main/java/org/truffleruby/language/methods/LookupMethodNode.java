@@ -114,11 +114,11 @@ public abstract class LookupMethodNode extends RubyNode {
 
         // Check visibility
 
-        if (publicProfile.profile(method.getVisibility() == Visibility.PUBLIC)) {
-            return method;
-        }
-
         if (!ignoreVisibility) {
+            if (publicProfile.profile(method.getVisibility() == Visibility.PUBLIC)) {
+                return method;
+            }
+
             if (onlyLookupPublic) {
                 return null;
             }
