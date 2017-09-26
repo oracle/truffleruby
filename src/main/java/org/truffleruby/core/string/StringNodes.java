@@ -987,17 +987,12 @@ public abstract class StringNodes {
             int n;
 
             for (int i = 0; i < len; i += n) {
-                n = multiByteStringLength(enc, ptrBytes, i, len);
+                n = StringSupport.length(enc, ptrBytes, i, len);
 
                 yield(block, substr(rope, string, i, n));
             }
 
             return string;
-        }
-
-        @TruffleBoundary
-        private int multiByteStringLength(Encoding enc, byte[] bytes, int p, int end) {
-            return StringSupport.length(enc, bytes, p, end);
         }
 
         // TODO (nirvdrum 10-Mar-15): This was extracted from JRuby, but likely will need to become a Rubinius primitive.
@@ -2393,7 +2388,6 @@ public abstract class StringNodes {
     public abstract static class InvertAsciiCaseNode extends RubyNode {
 
         @Child private InvertAsciiCaseBytesNode invertNode;
-
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
         public static InvertAsciiCaseNode createLowerToUpper() {
