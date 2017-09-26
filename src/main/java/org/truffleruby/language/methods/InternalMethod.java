@@ -258,13 +258,7 @@ public class InternalMethod implements ObjectGraphNode {
                 return true;
 
             case PROTECTED:
-                for (DynamicObject ancestor : Layouts.MODULE.getFields(callerClass).ancestors()) {
-                    if (ancestor == declaringModule || Layouts.BASIC_OBJECT.getMetaClass(ancestor) == declaringModule) {
-                        return true;
-                    }
-                }
-
-                return false;
+                return isProtectedMethodVisibleTo(callerClass);
 
             case PRIVATE:
                 // A private method may only be called with an implicit receiver,
@@ -274,6 +268,19 @@ public class InternalMethod implements ObjectGraphNode {
             default:
                 throw new UnsupportedOperationException(visibility.name());
         }
+    }
+
+    @TruffleBoundary
+    public boolean isProtectedMethodVisibleTo(DynamicObject callerClass) {
+        assert visibility == Visibility.PROTECTED;
+
+        for (DynamicObject ancestor : Layouts.MODULE.getFields(callerClass).ancestors()) {
+            if (ancestor == declaringModule || Layouts.BASIC_OBJECT.getMetaClass(ancestor) == declaringModule) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
