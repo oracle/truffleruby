@@ -12,6 +12,7 @@ package org.truffleruby.core;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.language.control.KillException;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -124,11 +125,13 @@ public class FinalizationService {
             while (true) {
                 final FinalizerReference finalizerReference = (FinalizerReference) threadManager.runUntilResult(null,
                         () -> finalizerQueue.remove());
-                    try {
-                        finalizerReference.getFinalizerActions().forEach(action -> action.run());
-                    } catch (Exception e) {
-                        // Do nothing, the finalizer thread must continue to process objects.
-                    }
+                try {
+                    finalizerReference.getFinalizerActions().forEach(action -> action.run());
+                } catch (KillException e) {
+                    throw e;
+                } catch (Exception e) {
+                    // Do nothing, the finalizer thread must continue to process objects.
+                }
             }
         });
     }
