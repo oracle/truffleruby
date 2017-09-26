@@ -7,9 +7,6 @@ require 'rbconfig'
 require 'fileutils'
 require 'shellwords'
 
-# For TruffleRuby
-require 'pathname'
-
 # :stopdoc:
 class String
   # Wraps a string in escaped quotes if it contains whitespace.
@@ -229,9 +226,7 @@ module MakeMakefile
 
   # Modified for TruffleRuby
   # topdir = File.dirname(File.dirname(__FILE__))
-  topdir = Pathname.new(File.dirname(__FILE__)).enum_for(:ascend).detect { |dir|
-    dir.join('ci.hocon').exist?
-  }.to_s
+  topdir = RbConfig::CONFIG['prefix']
   path = File.expand_path($0)
   until (dir = File.dirname(path)) == path
     if File.identical?(dir, topdir)
