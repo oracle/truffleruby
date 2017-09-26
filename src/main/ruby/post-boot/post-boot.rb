@@ -24,6 +24,12 @@ rescue LoadError => e
 end
 
 if Truffle::Boot.get_option 'rubygems'
+  if !ENV['TRUFFLERUBY_RESILIENT_GEM_HOME'].to_s.empty?
+    ENV.delete 'GEM_HOME'
+    ENV.delete 'GEM_PATH'
+    ENV.delete 'GEM_ROOT'
+  end
+
   begin
     Truffle::Boot.print_time_metric :'before-rubygems'
     begin
