@@ -2622,17 +2622,33 @@ public abstract class StringNodes {
     }
 
     @Primitive(name = "character_printable_p")
+    @ImportStatic(StringGuards.class)
     public static abstract class CharacterPrintablePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
-        @Specialization
+        @Child private RopeNodes.GetCodePointNode getCodePointNode = RopeNodes.GetCodePointNode.create();
+
+        @Specialization(guards = "is7Bit(character)")
         public boolean isCharacterPrintable(DynamicObject character) {
+            final Rope rope = rope(character);
+
+            final int codePoint = getCodePointNode.executeGetCodePoint(rope, 0);
+
+            return USASCIIEncoding.INSTANCE.isPrint(codePoint);
+        }
+
+        @Specialization(guards = "!is7Bit(character)")
+        public Object isCharacterPrintableGeneric(DynamicObject character) {
             final Rope rope = rope(character);
             final Encoding encoding = rope.getEncoding();
 
-            final int codepoint = encoding.mbcToCode(rope.getBytes(), 0, rope.byteLength());
+            final int codePoint = getCodePointNode.executeGetCodePoint(rope, 0);
 
-            return encoding.isPrint(codepoint);
+            return isPrintable(encoding, codePoint);
+        }
+
+        @TruffleBoundary
+        protected boolean isPrintable(Encoding encoding, int codePoint) {
+            return encoding.isPrint(codePoint);
         }
 
     }
