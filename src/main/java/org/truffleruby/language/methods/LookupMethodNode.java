@@ -87,7 +87,8 @@ public abstract class LookupMethodNode extends RubyNode {
             @Cached("createBinaryProfile()") ConditionProfile noPrependedModulesProfile,
             @Cached("createBinaryProfile()") ConditionProfile onMetaClassProfile,
             @Cached("createBinaryProfile()") ConditionProfile foundProfile,
-            @Cached("createBinaryProfile()") ConditionProfile publicProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile publicProfile,
+            @Cached("createBinaryProfile()") ConditionProfile privateProfile) {
         // Actual lookup
 
         final DynamicObject metaClass = metaClass(self);
@@ -115,11 +116,17 @@ public abstract class LookupMethodNode extends RubyNode {
         // Check visibility
 
         if (!ignoreVisibility) {
-            if (publicProfile.profile(method.getVisibility() == Visibility.PUBLIC)) {
+            final Visibility visibility = method.getVisibility();
+            if (publicProfile.profile(visibility == Visibility.PUBLIC)) {
                 return method;
             }
 
             if (onlyLookupPublic) {
+                return null;
+            }
+
+            if (privateProfile.profile(visibility == Visibility.PRIVATE)) {
+                // A private method may only be called with an implicit receiver.
                 return null;
             }
 
@@ -137,7 +144,7 @@ public abstract class LookupMethodNode extends RubyNode {
                 callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(callerFrame));
             }
 
-            if (!method.isVisibleTo(callerClass)) {
+            if (!method.isProtectedMethodVisibleTo(callerClass)) {
                 return null;
             }
         }
