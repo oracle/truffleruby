@@ -141,6 +141,9 @@ module Truffle::CExt
     end
 
     def to_native
+      # Hold on to a duplicate of the string to prevent its rope being
+      # GC'ed while we might still need it.
+      Truffle::CExt.rb_tr_new_local_ref(@string.dup)
       Rubinius::FFI::Pointer.new(Truffle::CExt.string_pointer_to_native(@string))
     end
 
