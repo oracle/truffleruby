@@ -143,7 +143,9 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
     }
 
     public void free() {
-        UNSAFE.freeMemory(address);
+        if (!autorelease) {
+            UNSAFE.freeMemory(address);
+        }
     }
 
     @Override
