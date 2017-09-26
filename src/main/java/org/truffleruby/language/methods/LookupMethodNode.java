@@ -88,26 +88,8 @@ public abstract class LookupMethodNode extends RubyNode {
             @Cached("createBinaryProfile()") ConditionProfile onMetaClassProfile,
             @Cached("createBinaryProfile()") ConditionProfile foundProfile,
             @Cached("createBinaryProfile()") ConditionProfile publicProfile) {
-
-        // Find the caller class
-        final DynamicObject callerClass;
-        if (ignoreVisibility || onlyLookupPublic) {
-            callerClass = null; // No need to check visibility
-        } else {
-            final InternalMethod method = RubyArguments.tryGetMethod(frame);
-
-            if (noCallerMethodProfile.profile(method == null)) {
-                callerClass = coreLibrary().getObjectClass();
-            } else if (!isSendProfile.profile(coreLibrary().isSend(method))) {
-                callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(frame));
-            } else {
-                FrameInstance instance = getContext().getCallStack().getCallerFrameIgnoringSend();
-                Frame callerFrame = instance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
-                callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(callerFrame));
-            }
-        }
-
         // Actual lookup
+
         final DynamicObject metaClass = metaClass(self);
 
         if (metaClass == coreLibrary().getTruffleInteropForeignClass()) {
@@ -126,12 +108,12 @@ public abstract class LookupMethodNode extends RubyNode {
             method = ModuleOperations.lookupMethodUncached(metaClass, name);
         }
 
-
         if (foundProfile.profile(method == null || method.isUndefined())) {
             return null;
         }
 
         // Check visibility
+
         if (publicProfile.profile(method.getVisibility() == Visibility.PUBLIC)) {
             return method;
         }
@@ -139,7 +121,23 @@ public abstract class LookupMethodNode extends RubyNode {
         if (!ignoreVisibility) {
             if (onlyLookupPublic) {
                 return null;
-            } else if (!method.isVisibleTo(callerClass)) {
+            }
+
+            // Find the caller class
+            final DynamicObject callerClass;
+            final InternalMethod callerMethod = RubyArguments.tryGetMethod(frame);
+
+            if (noCallerMethodProfile.profile(callerMethod == null)) {
+                callerClass = coreLibrary().getObjectClass();
+            } else if (!isSendProfile.profile(coreLibrary().isSend(callerMethod))) {
+                callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(frame));
+            } else {
+                FrameInstance instance = getContext().getCallStack().getCallerFrameIgnoringSend();
+                Frame callerFrame = instance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
+                callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(callerFrame));
+            }
+
+            if (!method.isVisibleTo(callerClass)) {
                 return null;
             }
         }
