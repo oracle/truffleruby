@@ -686,11 +686,12 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = {"isRubyString(other)", "bothSingleByteOptimizable(string, other)"})
-        @TruffleBoundary
-        public Object caseCmpSingleByte(DynamicObject string, DynamicObject other) {
+        public Object caseCmpSingleByte(DynamicObject string, DynamicObject other,
+                                        @Cached("createBinaryProfile()") ConditionProfile incompatibleEncodingProfile) {
             // Taken from org.jruby.RubyString#casecmp19.
 
-            if (negotiateCompatibleEncodingNode.executeNegotiate(string, other) == null) {
+            final Encoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
+            if (incompatibleEncodingProfile.profile(encoding == null)) {
                 return nil();
             }
 
@@ -698,13 +699,13 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = {"isRubyString(other)", "!bothSingleByteOptimizable(string, other)"})
-        @TruffleBoundary
-        public Object caseCmp(DynamicObject string, DynamicObject other) {
+        public Object caseCmp(DynamicObject string, DynamicObject other,
+                              @Cached("createBinaryProfile()") ConditionProfile incompatibleEncodingProfile) {
             // Taken from org.jruby.RubyString#casecmp19 and
 
             final Encoding encoding = negotiateCompatibleEncodingNode.executeNegotiate(string, other);
 
-            if (encoding == null) {
+            if (incompatibleEncodingProfile.profile(encoding == null)) {
                 return nil();
             }
 
