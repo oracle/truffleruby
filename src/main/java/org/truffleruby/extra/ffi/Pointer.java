@@ -149,7 +149,9 @@ public class Pointer implements AutoCloseable {
     }
 
     public void free() {
-        UNSAFE.freeMemory(address);
+        if (!autorelease) {
+            UNSAFE.freeMemory(address);
+        }
     }
 
     @Override
