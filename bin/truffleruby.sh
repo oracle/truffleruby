@@ -59,10 +59,6 @@ if [ -n "$RUBY_BIN" ]; then
     exec "$RUBY_BIN" "$@"
 fi
 
-if [ -n "$TRUFFLERUBY_RESILIENT_GEM_HOME" ]; then
-    unset GEM_HOME GEM_PATH GEM_ROOT
-fi
-
 if [ -z "$JAVACMD" ]; then
     if [ -z "$JAVA_HOME" ]; then
         JAVACMD='java'
