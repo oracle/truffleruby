@@ -86,9 +86,10 @@ public abstract class LookupMethodNode extends RubyNode {
             @Cached("create()") BranchProfile foreignProfile,
             @Cached("createBinaryProfile()") ConditionProfile noPrependedModulesProfile,
             @Cached("createBinaryProfile()") ConditionProfile onMetaClassProfile,
-            @Cached("createBinaryProfile()") ConditionProfile foundProfile,
+            @Cached("createBinaryProfile()") ConditionProfile notFoundProfile,
             @Cached("createBinaryProfile()") ConditionProfile publicProfile,
-            @Cached("createBinaryProfile()") ConditionProfile privateProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile privateProfile,
+            @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile) {
         // Actual lookup
 
         final DynamicObject metaClass = metaClass(self);
@@ -109,7 +110,7 @@ public abstract class LookupMethodNode extends RubyNode {
             method = ModuleOperations.lookupMethodUncached(metaClass, name);
         }
 
-        if (foundProfile.profile(method == null || method.isUndefined())) {
+        if (notFoundProfile.profile(method == null || method.isUndefined())) {
             return null;
         }
 
@@ -144,7 +145,7 @@ public abstract class LookupMethodNode extends RubyNode {
                 callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(callerFrame));
             }
 
-            if (!method.isProtectedMethodVisibleTo(callerClass)) {
+            if (!isVisibleProfile.profile(method.isProtectedMethodVisibleTo(callerClass))) {
                 return null;
             }
         }
@@ -206,8 +207,8 @@ public abstract class LookupMethodNode extends RubyNode {
         } else if (!context.getCoreLibrary().isSend(callerMethod)) {
             return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callingFrame));
         } else {
-            FrameInstance instance = context.getCallStack().getCallerFrameIgnoringSend();
-            Frame callerFrame = instance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
+            final FrameInstance instance = context.getCallStack().getCallerFrameIgnoringSend();
+            final Frame callerFrame = instance.getFrame(FrameInstance.FrameAccess.READ_ONLY);
             return context.getCoreLibrary().getMetaClass(RubyArguments.getSelf(callerFrame));
         }
     }
