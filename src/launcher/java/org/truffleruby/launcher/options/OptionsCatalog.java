@@ -531,6 +531,11 @@ public class OptionsCatalog {
             "Inline basic operations (like Fixnum operators) in the AST without a call",
             null,
             true);
+    public static final BooleanOptionDescription FINALIZE_PRINT_BACKTRACES = new BooleanOptionDescription(
+            "ruby.finalize.print_backtraces",
+            "Show backtraces from object finalizers",
+            null,
+            false);
     public static final BooleanOptionDescription GRAAL_WARNING_UNLESS = new BooleanOptionDescription(
             "ruby.graal.warn_unless",
             "Warn unless the JVM has the Graal compiler",
@@ -805,6 +810,8 @@ public class OptionsCatalog {
                 return BACKTRACE_ON_SIGALRM;
             case "ruby.basic_ops.inline":
                 return BASICOPS_INLINE;
+            case "ruby.finalize.print_backtraces":
+                return FINALIZE_PRINT_BACKTRACES;
             case "ruby.graal.warn_unless":
                 return GRAAL_WARNING_UNLESS;
             case "ruby.shared.objects":
@@ -941,6 +948,7 @@ public class OptionsCatalog {
             BACKTRACE_ON_INTERRUPT,
             BACKTRACE_ON_SIGALRM,
             BASICOPS_INLINE,
+            FINALIZE_PRINT_BACKTRACES,
             GRAAL_WARNING_UNLESS,
             SHARED_OBJECTS_ENABLED,
             SHARED_OBJECTS_DEBUG,
