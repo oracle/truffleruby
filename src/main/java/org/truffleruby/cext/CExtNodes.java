@@ -769,7 +769,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject sourceFile() {
-            final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile", "execute_with_mutex");
+            final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile", "execute_with_mutex", "execute_with_locals");
             final String file = sourceSection.getSource().getPath();
 
             return makeStringNode.executeMake(file, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
@@ -885,6 +885,7 @@ public class CExtNodes {
                 if (method == null) {
                     return null;
                 } else if (method.getName().equals(/* Truffle::Cext. */ "rb_call_super")
+                        || method.getName().equals(/* Truffle::CExt. */ "execute_with_locals")
                         || method.getName().equals(/* Truffle::CExt. */ "execute_with_mutex")
                         || method.getName().equals(/* Truffle::Interop. */ "execute")
                         || method.getName().equals(/* Truffle::Cext. */ "rb_call_super_splatted")) {
