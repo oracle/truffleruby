@@ -120,6 +120,7 @@ public class Options {
     public final boolean BACKTRACE_ON_INTERRUPT;
     public final boolean BACKTRACE_ON_SIGALRM;
     public final boolean BASICOPS_INLINE;
+    public final boolean FINALIZE_PRINT_BACKTRACES;
     public final boolean GRAAL_WARNING_UNLESS;
     public final boolean SHARED_OBJECTS_ENABLED;
     public final boolean SHARED_OBJECTS_DEBUG;
@@ -239,6 +240,7 @@ public class Options {
         BACKTRACE_ON_INTERRUPT = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_INTERRUPT);
         BACKTRACE_ON_SIGALRM = builder.getOrDefault(OptionsCatalog.BACKTRACE_ON_SIGALRM);
         BASICOPS_INLINE = builder.getOrDefault(OptionsCatalog.BASICOPS_INLINE);
+        FINALIZE_PRINT_BACKTRACES = builder.getOrDefault(OptionsCatalog.FINALIZE_PRINT_BACKTRACES);
         GRAAL_WARNING_UNLESS = builder.getOrDefault(OptionsCatalog.GRAAL_WARNING_UNLESS);
         SHARED_OBJECTS_ENABLED = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_ENABLED);
         SHARED_OBJECTS_DEBUG = builder.getOrDefault(OptionsCatalog.SHARED_OBJECTS_DEBUG);
@@ -464,6 +466,8 @@ public class Options {
                 return BACKTRACE_ON_SIGALRM;
             case "ruby.basic_ops.inline":
                 return BASICOPS_INLINE;
+            case "ruby.finalize.print_backtraces":
+                return FINALIZE_PRINT_BACKTRACES;
             case "ruby.graal.warn_unless":
                 return GRAAL_WARNING_UNLESS;
             case "ruby.shared.objects":

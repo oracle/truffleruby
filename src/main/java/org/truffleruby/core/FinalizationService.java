@@ -11,9 +11,14 @@ package org.truffleruby.core;
 
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.KillException;
+import org.truffleruby.language.control.RaiseException;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -125,11 +130,28 @@ public class FinalizationService {
                     finalizerReference.getFinalizerActions().forEach(action -> action.run());
                 } catch (KillException e) {
                     throw e;
+                } catch (RaiseException e) {
+                    handleFinalizeException(e);
                 } catch (Exception e) {
                     // Do nothing, the finalizer thread must continue to process objects.
+                    if (context.getOptions().FINALIZE_PRINT_BACKTRACES) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
+    }
+
+    private void handleFinalizeException(RaiseException exception) {
+        if (context.getOptions().FINALIZE_PRINT_BACKTRACES) {
+            DynamicObject rubyException = exception.getException();
+            final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
+            if (backtrace != null) {
+                BacktraceFormatter.createDefaultFormatter(context).printBacktrace(context, rubyException, backtrace);
+            } else {
+                exception.printStackTrace();
+            }
+        }
     }
 
     public synchronized void removeFinalizers(Object object, Class<?> owner) {
