@@ -16,7 +16,6 @@ extern "C" {
 
 RUBY_SYMBOL_EXPORT_BEGIN
 
-
 #if SIZEOF_LONG == SIZEOF_VOIDP
 typedef unsigned long st_data_t;
 #elif SIZEOF_LONG_LONG == SIZEOF_VOIDP
