@@ -1943,7 +1943,8 @@ public abstract class StringNodes {
     @CoreMethod(names = "succ!", raiseIfFrozenSelf = true)
     public abstract static class SuccBangNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
+        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
+
         @Specialization
         public DynamicObject succBang(DynamicObject string) {
             final Rope rope = rope(string);
@@ -1951,7 +1952,8 @@ public abstract class StringNodes {
             if (! rope.isEmpty()) {
                 final RopeBuilder succByteList = StringSupport.succCommon(rope);
 
-                StringOperations.setRope(string, RopeOperations.ropeFromByteList(succByteList, rope.getCodeRange()));
+                final Rope newRope = makeLeafRopeNode.executeMake(succByteList.getBytes(), rope.getEncoding(), CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+                StringOperations.setRope(string, newRope);
             }
 
             return string;
