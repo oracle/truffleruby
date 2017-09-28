@@ -459,7 +459,8 @@ module Commands
       jt next                                       tell you what to work on next (give you a random core library spec)
       jt pr [pr_number]                             pushes GitHub's PR to bitbucket to let CI run under github/pr/<number> name
                                                     if the pr_number is not supplied current HEAD is used to find a PR which contains it
-
+      jt pr clean                                   delete all github/pr/<number> branches from BB whose GitHub PRs are closed                                                         
+      
       you can also put build or rebuild in front of any command
 
       recognised environment variables:
@@ -711,42 +712,97 @@ module Commands
     end
   end
 
+  module PR
+    include ShellUtils
+
+    def pr_clean
+      require 'net/http'
+      require 'pp'
+
+      bb  = bb(remote_urls)
+      uri = URI('https://api.github.com/repos/graalvm/truffleruby/pulls')
+      puts "Contacting GitHub: #{uri}"
+      data     = Net::HTTP.get(uri)
+      prs_data = JSON.parse data
+      open_prs = prs_data.map { |prd| Integer(prd.fetch('number')) }
+      puts "Open PRs: #{open_prs}"
+
+      sh 'git', 'fetch', bb, '--prune' # ensure we have locally only existing remote branches
+      branches, _ = sh 'git', 'branch', '--remote', '--list', capture: true
+      branches_to_delete = branches.
+          scan(/^ *#{bb}\/(github\/pr\/(\d+))$/).
+          reject { |_, number| open_prs.include? Integer(number) }
+
+      puts "Deleting #{branches_to_delete.size} remote branches on #{bb}:"
+      puts branches_to_delete.map(&:last).map(&:to_i).to_s
+
+      branches_to_delete.each do |remote_branch, _|
+        sh 'git', 'push', '--no-verify', bb, ":#{remote_branch}"
+      end
+
+      # update remote branches
+      sh 'git', 'fetch', bb, '--prune'
+    end
+
+    def pr_push(*args)
+      remote_urls = self.remote_urls
+      upstream    = upstream(remote_urls)
+      bb          = bb(remote_urls)
+
+      # Fetch PRs on GitHub
+      fetch     = "+refs/pull/*/head:refs/remotes/#{upstream}/pr/*"
+      out, _err = sh 'git', 'config', '--get-all', "remote.#{upstream}.fetch", capture: true
+      sh 'git', 'config', '--add', "remote.#{upstream}.fetch", fetch unless out.include? fetch
+      sh 'git', 'fetch', upstream
+
+      pr_number = args.first
+      if pr_number
+        github_pr_branch = "#{upstream}/pr/#{pr_number}"
+      else
+        github_pr_branch = begin
+          out, _err = sh 'git', 'branch', '-r', '--contains', 'HEAD', capture: true
+          candidate = out.lines.find { |l| l.strip.start_with? "#{upstream}/pr/" }
+          candidate && candidate.strip.chomp
+        end
+
+        unless github_pr_branch
+          puts 'Could not find HEAD in any of the GitHub pull-requests.'
+          exit 1
+        end
+
+        pr_number = github_pr_branch.split('/').last
+      end
+
+      sh 'git', 'push', '--force', bb, "#{github_pr_branch}:refs/heads/github/pr/#{pr_number}"
+    end
+
+    def bb(remote_urls)
+      remote_urls.find { |r, u| u.include? 'ol-bitbucket' }.first
+    end
+
+    def upstream(remote_urls)
+      remote_urls.find { |r, u| u.include? 'graalvm/truffleruby' }.first
+    end
+
+    def remote_urls
+      out, _err   = sh 'git', 'remote', capture: true
+      remotes     = out.split
+      remotes.map do |remote|
+        out, _err = sh 'git', 'config', '--get', "remote.#{remote}.url", capture: true
+        [remote, out.chomp!]
+      end
+    end
+
+    extend self
+  end
+
   def pr(*args)
-    out, _err   = sh 'git', 'remote', capture: true
-    remotes     = out.split
-    remote_urls = remotes.map do |remote|
-      out, _err = sh 'git', 'config', '--get', "remote.#{remote}.url", capture: true
-      [remote, out.chomp!]
-    end
-
-    upstream = remote_urls.find { |r, u| u.include? 'graalvm/truffleruby' }.first
-    bb       = remote_urls.find { |r, u| u.include? 'ol-bitbucket' }.first
-
-    # Fetch PRs on GitHub
-    fetch = "+refs/pull/*/head:refs/remotes/#{upstream}/pr/*"
-    out, _err = sh 'git', 'config', '--get-all', "remote.#{upstream}.fetch", capture: true
-    sh 'git', 'config', '--add', "remote.#{upstream}.fetch", fetch unless out.include? fetch
-    sh 'git', 'fetch', upstream
-
-    pr_number = args.first
-    if pr_number
-      github_pr_branch = "#{upstream}/pr/#{pr_number}"
+    command = args.first
+    if command == 'clean'
+      PR.pr_clean
     else
-      github_pr_branch = begin
-        out, _err = sh 'git', 'branch', '-r', '--contains', 'HEAD', capture: true
-        candidate = out.lines.find { |l| l.strip.start_with? "#{upstream}/pr/" }
-        candidate && candidate.strip.chomp
-      end
-
-      unless github_pr_branch
-        puts 'Could not find HEAD in any of the GitHub pull-requests.'
-        exit 1
-      end
-
-      pr_number = github_pr_branch.split('/').last
+      PR.pr_push *args
     end
-
-    sh 'git', 'push', '--force', bb, "#{github_pr_branch}:refs/heads/github/pr/#{pr_number}"
   end
 
   def test(*args)
