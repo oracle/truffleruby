@@ -601,6 +601,7 @@ public final class StringSupport {
     public enum NeighborChar {NOT_CHAR, FOUND, WRAPPED}
 
     // MRI: str_succ
+    @TruffleBoundary
     public static RopeBuilder succCommon(Rope original) {
         byte carry[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
         int carryP = 0;
