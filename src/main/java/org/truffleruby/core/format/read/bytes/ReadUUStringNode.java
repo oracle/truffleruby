@@ -49,11 +49,11 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.rope.AsciiOnlyLeafRope;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -62,6 +62,8 @@ import java.util.Arrays;
         @NodeChild(value = "source", type = SourceNode.class),
 })
 public abstract class ReadUUStringNode extends FormatNode {
+
+    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
     @Specialization
     protected Object encode(VirtualFrame frame, byte[] source) {
@@ -148,8 +150,7 @@ public abstract class ReadUUStringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return StringOperations.createString(getContext(),
-                new AsciiOnlyLeafRope(Arrays.copyOfRange(lElem, 0, index), USASCIIEncoding.INSTANCE));
+        return makeStringNode.executeMake(Arrays.copyOfRange(lElem, 0, index), ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
 }

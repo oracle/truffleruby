@@ -53,8 +53,8 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.write.bytes.EncodeUM;
-import org.truffleruby.core.rope.AsciiOnlyLeafRope;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -63,6 +63,8 @@ import java.nio.ByteOrder;
         @NodeChild(value = "value", type = SourceNode.class),
 })
 public abstract class ReadHexStringNode extends FormatNode {
+
+    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
     private final ByteOrder byteOrder;
     private final boolean star;
@@ -114,8 +116,7 @@ public abstract class ReadHexStringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return StringOperations.createString(getContext(),
-                new AsciiOnlyLeafRope(lElem, USASCIIEncoding.INSTANCE));
+        return makeStringNode.executeMake(lElem, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
     }
 
 }
