@@ -16,6 +16,8 @@ public class AsciiOnlyLeafRope extends LeafRope {
 
     public AsciiOnlyLeafRope(byte[] bytes, Encoding encoding) {
         super(bytes, encoding, CodeRange.CR_7BIT, true, bytes.length);
+
+        assert RopeOperations.isAsciiOnly(bytes, encoding) : "MBC string incorrectly marked as CR_7BIT";
     }
 
     @Override

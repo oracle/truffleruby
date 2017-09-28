@@ -657,4 +657,32 @@ public class RopeOperations {
         return create(byteList.getBytes(), byteList.getEncoding(), codeRange);
     }
 
+    public static boolean isAsciiOnly(byte[] bytes, Encoding encoding) {
+        if (!encoding.isAsciiCompatible()) {
+            return false;
+        }
+
+        for (int i = 0; i < bytes.length; i++) {
+            if (bytes[i] < 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean isInvalid(byte[] bytes, Encoding encoding) {
+        if (encoding.isAsciiCompatible()) {
+            final long packedLengthAndCodeRange = StringSupport.strLengthWithCodeRangeAsciiCompatible(encoding, bytes, 0 , bytes.length);
+            final CodeRange codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
+
+            return codeRange == CR_BROKEN;
+        }
+
+        final long packedLengthAndCodeRange = StringSupport.strLengthWithCodeRangeNonAsciiCompatible(encoding, bytes, 0 , bytes.length);
+        final CodeRange codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
+
+        return codeRange == CR_BROKEN;
+    }
+
 }
