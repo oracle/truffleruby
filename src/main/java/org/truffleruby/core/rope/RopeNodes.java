@@ -68,6 +68,7 @@ public abstract class RopeNodes {
                                         @Cached("createBinaryProfile()") ConditionProfile isUTF8,
                                         @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
                                         @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
+                                        @Cached("createBinaryProfile()") ConditionProfile isAsciiCompatible,
                                         @Cached("create()") WithEncodingNode withEncodingNode) {
             if (isUTF8.profile(base.getEncoding() == UTF8Encoding.INSTANCE)) {
                 return RopeConstants.EMPTY_UTF8_ROPE;
@@ -81,7 +82,9 @@ public abstract class RopeNodes {
                 return RopeConstants.EMPTY_ASCII_8BIT_ROPE;
             }
 
-            return withEncodingNode.executeWithEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE, base.getEncoding(), CR_7BIT);
+            final CodeRange codeRange = isAsciiCompatible.profile(base.getEncoding().isAsciiCompatible()) ? CR_7BIT : CR_VALID;
+
+            return withEncodingNode.executeWithEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE, base.getEncoding(), codeRange);
         }
 
         @Specialization(guards = "byteLength == 1")
