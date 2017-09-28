@@ -15,9 +15,11 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyBaseNode;
 
 import java.nio.ByteBuffer;
@@ -166,6 +168,7 @@ public abstract class FormatNode extends RubyBaseNode {
         final int outputPosition = getOutputPosition(frame);
         System.arraycopy(values, 0, output, outputPosition, valuesLength);
         setOutputPosition(frame, outputPosition + valuesLength);
+        setStringCodeRange(frame, RopeOperations.isAsciiOnly(values, USASCIIEncoding.INSTANCE) ? CodeRange.CR_7BIT : CodeRange.CR_VALID);
         increaseStringLength(frame, valuesLength);
     }
 
