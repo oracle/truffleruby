@@ -875,6 +875,14 @@ public final class StringSupport {
      * rb_str_tr / rb_str_tr_bang
      */
 
+    private static CodeRange CHECK_IF_ASCII(int c, CodeRange currentCodeRange, Encoding encoding) {
+        if (!encoding.isAsciiCompatible() || (currentCodeRange == CR_7BIT && !Encoding.isAscii(c))) {
+            return CR_VALID;
+        }
+
+        return currentCodeRange;
+    }
+
     public static Rope trTransHelper(Rope self, Rope srcStr, Rope replStr, Encoding e1, Encoding enc, boolean sflag) {
         // This method does not handle the cases where either srcStr or replStr are empty.  It is the responsibility
         // of the caller to take the appropriate action in those cases.
@@ -980,7 +988,7 @@ public final class StringSupport {
 
                 if (c != -1) {
                     if (save == c) {
-                        if (cr == CR_7BIT && !Encoding.isAscii(c)) cr = CR_VALID;
+                        cr = CHECK_IF_ASCII(c, cr, enc);
                         continue;
                     }
                     save = c;
@@ -999,7 +1007,7 @@ public final class StringSupport {
                 enc.codeToMbc(c, buf, t);
                 // MRI does not check s < send again because their null terminator can still be compared
                 if (mayModify && (s >= send || ArrayUtils.memcmp(sbytes, s, buf, t, tlen) != 0)) modify = true;
-                if (cr == CR_7BIT && !Encoding.isAscii(c)) cr = CR_VALID;
+                cr = CHECK_IF_ASCII(c, cr, enc);
                 t += tlen;
             }
 
@@ -1017,7 +1025,7 @@ public final class StringSupport {
                     }
                     modify = true;
                 }
-                if (cr == CR_7BIT && !Encoding.isAscii(c)) cr = CR_VALID;
+                cr = CHECK_IF_ASCII(c, cr, enc);
                 s++;
             }
 
@@ -1072,7 +1080,7 @@ public final class StringSupport {
                 }
 //                }
 
-                if (cr == CR_7BIT && !Encoding.isAscii(c)) cr = CR_VALID;
+                cr = CHECK_IF_ASCII(c, cr, enc);
                 s += clen;
                 t += tlen;
             }
