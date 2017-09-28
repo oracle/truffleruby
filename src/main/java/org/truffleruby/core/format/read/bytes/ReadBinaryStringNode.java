@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -17,8 +18,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
-import org.truffleruby.core.rope.AsciiOnlyLeafRope;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 
 import java.util.Arrays;
 
@@ -54,7 +55,8 @@ public abstract class ReadBinaryStringNode extends FormatNode {
     }
 
     @Specialization
-    public DynamicObject read(VirtualFrame frame, byte[] source) {
+    public DynamicObject read(VirtualFrame frame, byte[] source,
+                              @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
         final int start = getSourcePosition(frame);
 
         int length;
@@ -107,8 +109,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
 
         setSourcePosition(frame, start + length);
 
-        return StringOperations.createString(getContext(),
-                new AsciiOnlyLeafRope(Arrays.copyOfRange(source, start, start + usedLength), ASCIIEncoding.INSTANCE));
+        return makeStringNode.executeMake(Arrays.copyOfRange(source, start, start + usedLength), ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
     private int indexOfFirstNull(byte[] bytes, int start, int length) {

@@ -55,8 +55,8 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.InvalidFormatException;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.format.write.bytes.EncodeUM;
-import org.truffleruby.core.rope.AsciiOnlyLeafRope;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -65,6 +65,8 @@ import java.util.Arrays;
         @NodeChild(value = "value", type = SourceNode.class),
 })
 public abstract class ReadBase64StringNode extends FormatNode {
+
+    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
     @Specialization
     public Object read(VirtualFrame frame, byte[] source) {
@@ -77,7 +79,7 @@ public abstract class ReadBase64StringNode extends FormatNode {
 
         setSourcePosition(frame, encode.position());
 
-        return StringOperations.createString(getContext(), new AsciiOnlyLeafRope(result, ASCIIEncoding.INSTANCE));
+        return makeStringNode.executeMake(result, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
     @TruffleBoundary
