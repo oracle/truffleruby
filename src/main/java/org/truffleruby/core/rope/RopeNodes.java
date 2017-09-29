@@ -65,11 +65,11 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "byteLength == 0")
         public Rope substringZeroBytes(Rope base, int byteOffset, int byteLength,
-                                        @Cached("createBinaryProfile()") ConditionProfile isUTF8,
-                                        @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
-                                        @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
-                                        @Cached("createBinaryProfile()") ConditionProfile isAsciiCompatible,
-                                        @Cached("create()") WithEncodingNode withEncodingNode) {
+                                       @Cached("createBinaryProfile()") ConditionProfile isUTF8,
+                                       @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
+                                       @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
+                                       @Cached("createBinaryProfile()") ConditionProfile isAsciiCompatible,
+                                       @Cached("create()") WithEncodingNode withEncodingNode) {
             if (isUTF8.profile(base.getEncoding() == UTF8Encoding.INSTANCE)) {
                 return RopeConstants.EMPTY_UTF8_ROPE;
             }
@@ -89,10 +89,11 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "byteLength == 1")
         public Rope substringOneByte(Rope base, int byteOffset, int byteLength,
-                                        @Cached("createBinaryProfile()") ConditionProfile isUTF8,
-                                        @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
-                                        @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
-                                        @Cached("create()") GetByteNode getByteNode) {
+                                     @Cached("createBinaryProfile()") ConditionProfile isUTF8,
+                                     @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
+                                     @Cached("createBinaryProfile()") ConditionProfile isAscii8Bit,
+                                     @Cached("create()") GetByteNode getByteNode,
+                                     @Cached("create()") WithEncodingNode withEncodingNode) {
             final int index = getByteNode.executeGetByte(base, byteOffset);
 
             if (isUTF8.profile(base.getEncoding() == UTF8Encoding.INSTANCE)) {
@@ -107,7 +108,7 @@ public abstract class RopeNodes {
                 return RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index];
             }
 
-            return RopeOperations.withEncodingVerySlow(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index], base.getEncoding());
+            return withEncodingNode.executeWithEncoding(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index], base.getEncoding(), CR_UNKNOWN);
         }
 
         @Specialization(guards = { "byteLength > 1", "sameAsBase(base, byteLength)" })
