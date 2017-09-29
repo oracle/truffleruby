@@ -672,14 +672,7 @@ public class RopeOperations {
     }
 
     public static boolean isInvalid(byte[] bytes, Encoding encoding) {
-        if (encoding.isAsciiCompatible()) {
-            final long packedLengthAndCodeRange = StringSupport.strLengthWithCodeRangeAsciiCompatible(encoding, bytes, 0 , bytes.length);
-            final CodeRange codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
-
-            return codeRange == CR_BROKEN;
-        }
-
-        final long packedLengthAndCodeRange = StringSupport.strLengthWithCodeRangeNonAsciiCompatible(encoding, bytes, 0 , bytes.length);
+        final long packedLengthAndCodeRange = calculateCodeRangeAndLength(encoding, bytes, 0, bytes.length);
         final CodeRange codeRange = CodeRange.fromInt(StringSupport.unpackArg(packedLengthAndCodeRange));
 
         return codeRange == CR_BROKEN;
