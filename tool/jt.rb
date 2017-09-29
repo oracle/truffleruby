@@ -1089,7 +1089,7 @@ module Commands
     no_sulong = args.delete '--no-sulong'
     gems    = [{ name:   'algebrick',
                  url:    'https://github.com/pitr-ch/algebrick.git',
-                 commit: '89cf71984964ce9cbe6a1f4fb5155144ac56d057' }]
+                 commit: '473eb80d200fb7ad0a9b869bb0b4971fa507028a' }]
 
     gems.each do |info|
       gem_name = info.fetch(:name)
