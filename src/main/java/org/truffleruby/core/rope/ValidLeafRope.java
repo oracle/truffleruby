@@ -18,6 +18,7 @@ public class ValidLeafRope extends LeafRope {
         super(bytes, encoding, CodeRange.CR_VALID, encoding.isSingleByte(), characterLength);
 
         assert !RopeOperations.isAsciiOnly(bytes, encoding) : "ASCII-only string incorrectly marked as CR_VALID";
+        assert !RopeOperations.isInvalid(bytes, encoding) : "Broken string incorrectly marked as CR_VALID";
     }
 
     @Override
