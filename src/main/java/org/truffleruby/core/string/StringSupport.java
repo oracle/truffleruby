@@ -875,8 +875,8 @@ public final class StringSupport {
      * rb_str_tr / rb_str_tr_bang
      */
 
-    private static CodeRange CHECK_IF_ASCII(int c, CodeRange currentCodeRange, Encoding encoding) {
-        if (!encoding.isAsciiCompatible() || (currentCodeRange == CR_7BIT && !Encoding.isAscii(c))) {
+    private static CodeRange CHECK_IF_ASCII(int c, CodeRange currentCodeRange) {
+        if (currentCodeRange == CR_7BIT && !Encoding.isAscii(c)) {
             return CR_VALID;
         }
 
@@ -945,7 +945,7 @@ public final class StringSupport {
             }
         }
 
-        if (cr == CR_VALID) {
+        if (cr == CR_VALID && enc.isAsciiCompatible()) {
             cr = CR_7BIT;
         }
 
@@ -988,7 +988,7 @@ public final class StringSupport {
 
                 if (c != -1) {
                     if (save == c) {
-                        cr = CHECK_IF_ASCII(c, cr, enc);
+                        cr = CHECK_IF_ASCII(c, cr);
                         continue;
                     }
                     save = c;
@@ -1007,7 +1007,7 @@ public final class StringSupport {
                 enc.codeToMbc(c, buf, t);
                 // MRI does not check s < send again because their null terminator can still be compared
                 if (mayModify && (s >= send || ArrayUtils.memcmp(sbytes, s, buf, t, tlen) != 0)) modify = true;
-                cr = CHECK_IF_ASCII(c, cr, enc);
+                cr = CHECK_IF_ASCII(c, cr);
                 t += tlen;
             }
 
@@ -1025,7 +1025,7 @@ public final class StringSupport {
                     }
                     modify = true;
                 }
-                cr = CHECK_IF_ASCII(c, cr, enc);
+                cr = CHECK_IF_ASCII(c, cr);
                 s++;
             }
 
@@ -1080,7 +1080,7 @@ public final class StringSupport {
                 }
 //                }
 
-                cr = CHECK_IF_ASCII(c, cr, enc);
+                cr = CHECK_IF_ASCII(c, cr);
                 s += clen;
                 t += tlen;
             }
