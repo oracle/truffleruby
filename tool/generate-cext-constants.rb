@@ -121,17 +121,20 @@ constants = [
   [macro_name, name, expr]
 end
 
-constants.each do |_, name, _|
-  puts "VALUE rb_tr_get_#{name}(void);"
+File.open("lib/cext/truffle/constants.h", "w") do |f|
+  f.puts "// From #{__FILE__}"
+  f.puts
+
+  constants.each do |_, name, _|
+    f.puts "VALUE rb_tr_get_#{name}(void);"
+  end
+
+  f.puts
+
+  constants.each do |macro_name, name, _|
+    f.puts "#define #{macro_name} rb_tr_get_#{name}()"
+  end
 end
-
-puts
-
-constants.each do |macro_name, name, _|
-  puts "#define #{macro_name} rb_tr_get_#{name}()"
-end
-
-puts
 
 constants.each do |macro_name, name, _|
   puts "VALUE rb_tr_get_#{name}(void) {"
