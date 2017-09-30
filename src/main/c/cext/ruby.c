@@ -694,10 +694,12 @@ void rb_set_end_proc(void (*func)(VALUE), VALUE data) {
 
 void rb_iter_break(void) {
   truffle_invoke(RUBY_CEXT, "rb_iter_break");
+  rb_tr_error("rb_iter_break should not return");
 }
 
 void rb_iter_break_value(VALUE value) {
-  truffle_invoke(RUBY_CEXT, "rb_iter_break_value", value);  
+  truffle_invoke(RUBY_CEXT, "rb_iter_break_value", value);
+  rb_tr_error("rb_iter_break_value should not return");
 }
 
 const char *rb_sourcefile(void) {
@@ -2193,7 +2195,7 @@ VALUE rb_exc_new_str(VALUE exception_class, VALUE message) {
 
 void rb_exc_raise(VALUE exception) {
   truffle_invoke(RUBY_CEXT, "rb_exc_raise", exception);
-  abort();
+  rb_tr_error("rb_exc_raise should not return");
 }
 
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
@@ -2207,6 +2209,7 @@ void rb_jump_tag(int status) {
   if (status) {
     truffle_invoke(RUBY_CEXT, "rb_jump_tag", status);
   }
+  rb_tr_error("rb_jump_tag should not return");
 }
 
 void rb_set_errinfo(VALUE error) {
@@ -2219,6 +2222,7 @@ VALUE rb_errinfo(void) {
 
 void rb_syserr_fail(int eno, const char *message) {
   truffle_invoke(RUBY_CEXT, "rb_syserr_fail", eno, message == NULL ? Qnil : rb_str_new_cstr(message));
+  rb_tr_error("rb_syserr_fail should not return");
 }
 
 void rb_sys_fail(const char *message) {
@@ -2258,11 +2262,12 @@ VALUE rb_make_backtrace(void) {
 }
 
 void rb_throw(const char *tag, VALUE val) {
-  return rb_throw_obj(rb_intern(tag), val);
+  rb_throw_obj(rb_intern(tag), val);
 }
 
 void rb_throw_obj(VALUE tag, VALUE value) {
   truffle_invoke(rb_mKernel, "throw", tag, value == NULL ? Qnil : value);
+  rb_tr_error("rb_throw_obj should not return");
 }
 
 VALUE rb_catch(const char *tag, VALUE (*func)(), VALUE data) {
@@ -2275,7 +2280,7 @@ VALUE rb_catch_obj(VALUE t, VALUE (*func)(), VALUE data) {
 
 void rb_memerror(void) {
   truffle_invoke(RUBY_CEXT, "rb_memerror");
-  abort();
+  rb_tr_error("rb_memerror should not return");
 }
 
 // Defining classes, modules and methods
