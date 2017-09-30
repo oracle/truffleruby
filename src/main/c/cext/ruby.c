@@ -1438,6 +1438,8 @@ int rb_enc_str_coderange(VALUE str) {
   return truffle_invoke_i(RUBY_CEXT, "rb_enc_str_coderange", str);
 }
 
+// Undef conflicting macro from encoding.h like MRI
+#undef rb_enc_str_new
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
   return truffle_invoke(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
 }
