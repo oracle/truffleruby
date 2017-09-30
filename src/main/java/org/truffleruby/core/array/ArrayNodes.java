@@ -1586,28 +1586,28 @@ public abstract class ArrayNodes {
     public abstract static class RotateInplaceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
-        public DynamicObject rotate(DynamicObject array, int amount,
+        public DynamicObject rotate(DynamicObject array, int rotation,
                 @Cached("of(array)") ArrayStrategy strategy) {
             final int size = strategy.getSize(array);
-            assert 0 < amount && amount < size;
+            assert 0 < rotation && rotation < size;
             final ArrayMirror mirror = strategy.newMirror(array);
 
-            rotateReverse(amount, size, mirror);
+            rotateReverse(rotation, size, mirror);
 
             return array;
         }
 
-        protected void rotateReverse(int amount, int size, ArrayMirror mirror) {
-            // Rotating by amount in-place is equivalent to
-            // replace([amount..-1] + [0...amount])
+        protected void rotateReverse(int rotation, int size, ArrayMirror mirror) {
+            // Rotating by rotation in-place is equivalent to
+            // replace([rotation..-1] + [0...rotation])
             // which is the same as reversing the whole array and
             // reversing each of the two parts so that elements are in the same order again.
             // This trick avoids constantly checking if indices are within array bounds
             // and accesses memory sequentially, even though it does perform 2*size reads and writes.
             // This is also what MRI and JRuby do.
             final int last = size - 1;
-            reverse(mirror, amount, last);
-            reverse(mirror, 0, amount - 1);
+            reverse(mirror, rotation, last);
+            reverse(mirror, 0, rotation - 1);
             reverse(mirror, 0, last);
         }
 
