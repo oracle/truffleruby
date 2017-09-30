@@ -954,13 +954,12 @@ class Array
 
   def rotate(n=1)
     n = Rubinius::Type.coerce_to_collection_index n
-    return Array.new(self) if length == 1
-    return []       if empty?
+    len = self.length
+    return Array.new(self) if len <= 1
 
-    ary = Array.new(self)
-    idx = n % ary.size
-
-    ary[idx..-1].concat ary[0...idx]
+    n = n % len
+    return Array.new(self) if n == 0
+    Truffle.invoke_primitive :array_rotate, self, n
   end
 
   def rotate!(n=1)
