@@ -1587,14 +1587,38 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
         public DynamicObject rotate(DynamicObject array, int rotation,
-                @Cached("of(array)") ArrayStrategy strategy) {
-            final int size = strategy.getSize(array);
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
+                @Cached("createIdentityProfile()") IntValueProfile rotationProfile) {
+            final int size = sizeProfile.profile(strategy.getSize(array));
+            rotation = rotationProfile.profile(rotation);
             assert 0 < rotation && rotation < size;
             final ArrayMirror mirror = strategy.newMirror(array);
 
-            rotateReverse(rotation, size, mirror);
+            if (CompilerDirectives.isPartialEvaluationConstant(size) &&
+                    CompilerDirectives.isPartialEvaluationConstant(rotation) &&
+                    size <= ArrayGuards.ARRAY_MAX_EXPLODE_SIZE) {
+                rotateSmallExplode(rotation, size, mirror);
+            } else {
+                rotateReverse(rotation, size, mirror);
+            }
 
             return array;
+        }
+
+        @ExplodeLoop
+        protected void rotateSmallExplode(int rotation, int size, ArrayMirror mirror) {
+            Object[] copy = new Object[size];
+            for (int i = 0; i < size; i++) {
+                copy[i] = mirror.get(i);
+            }
+            for (int i = 0; i < size; i++) {
+                int j = i + rotation;
+                if (j >= size) {
+                    j -= size;
+                }
+                mirror.set(i, copy[j]);
+            }
         }
 
         protected void rotateReverse(int rotation, int size, ArrayMirror mirror) {
