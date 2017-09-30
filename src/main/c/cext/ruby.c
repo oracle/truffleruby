@@ -2557,8 +2557,8 @@ VALUE rb_reg_nth_match(int nth, VALUE match) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_nth_match", nth, match);
 }
 
-VALUE rb_reg_options(VALUE re) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_options", re);
+int rb_reg_options(VALUE re) {
+  return FIX2INT(truffle_invoke(RUBY_CEXT, "rb_reg_options", re));
 }
 
 VALUE rb_reg_regcomp(VALUE str) {

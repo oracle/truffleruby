@@ -660,7 +660,7 @@ VALUE rb_reg_alloc(void);
 VALUE rb_reg_init_str(VALUE re, VALUE s, int options);
 VALUE rb_reg_match(VALUE, VALUE);
 VALUE rb_reg_match2(VALUE);
-VALUE rb_reg_options(VALUE re);
+int rb_reg_options(VALUE);
 /* ruby.c */
 #define rb_argv rb_get_argv()
 RUBY_EXTERN VALUE rb_argv0;
