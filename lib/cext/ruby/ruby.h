@@ -1606,15 +1606,15 @@ VALUE rb_gvar_val_getter(ID id, void *data, struct rb_global_variable *gvar);
 void  rb_gvar_val_setter(VALUE val, ID id, void *data, struct rb_global_variable *gvar);
 void  rb_gvar_val_marker(VALUE *var);
 
-VALUE rb_gvar_var_getter(ID id, VALUE *var, void *gvar);
-void rb_gvar_var_setter(VALUE val, ID id, VALUE *var, void *g);
+VALUE rb_gvar_var_getter(ID id, void *data, struct rb_global_variable *gvar);
+void  rb_gvar_var_setter(VALUE val, ID id, void *data, struct rb_global_variable *gvar);
 void  rb_gvar_var_marker(VALUE *var);
 
-void rb_gvar_readonly_setter(VALUE v, ID id, void *d, void *g);
+void  rb_gvar_readonly_setter(VALUE val, ID id, void *data, struct rb_global_variable *gvar);
 
 void rb_define_variable(const char*,VALUE*);
 void rb_define_virtual_variable(const char*,VALUE(*)(ANYARGS),void(*)(ANYARGS));
-void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANYARGS), void (*setter)(ANYARGS));
+void rb_define_hooked_variable(const char*,VALUE*,VALUE(*)(ANYARGS),void(*)(ANYARGS));
 void rb_define_readonly_variable(const char*,const VALUE*);
 void rb_define_const(VALUE,const char*,VALUE);
 void rb_define_global_const(const char*,VALUE);
