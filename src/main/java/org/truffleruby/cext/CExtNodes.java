@@ -521,11 +521,11 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "CLASS_OF", onSingleton = true, required = 1)
-    public abstract static class CLASSOFNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "rb_class_of", onSingleton = true, required = 1)
+    public abstract static class RBClassOfNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject class_of(DynamicObject object,
+        public DynamicObject rb_class_of(Object object,
                                       @Cached("create()") MetaClassNode metaClassNode) {
             return metaClassNode.executeMetaClass(object);
         }

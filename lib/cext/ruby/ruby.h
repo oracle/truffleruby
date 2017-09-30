@@ -445,7 +445,7 @@ enum ruby_special_consts {
 int RTEST(VALUE value);
 #define NIL_P RB_NIL_P
 
-VALUE CLASS_OF(VALUE object);
+#define CLASS_OF(v) rb_class_of((VALUE)(v))
 
 enum ruby_value_type {
     RUBY_T_NONE   = 0x00,
