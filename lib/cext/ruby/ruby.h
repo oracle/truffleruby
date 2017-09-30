@@ -679,7 +679,8 @@ short rb_num2short(VALUE);
 unsigned short rb_num2ushort(VALUE);
 short rb_fix2short(VALUE);
 unsigned short rb_fix2ushort(VALUE);
-#define FIX2SHORT(x) (rb_fix2short((VALUE)(x)))
+#define RB_FIX2SHORT(x) (rb_fix2short((VALUE)(x)))
+#define FIX2SHORT(x) RB_FIX2SHORT(x)
 static inline short
 rb_num2short_inline(VALUE x)
 {
@@ -689,9 +690,10 @@ rb_num2short_inline(VALUE x)
 	return rb_num2short(x);
 }
 
-#define NUM2SHORT(x) rb_num2short(x)
-#define NUM2USHORT(x) rb_num2ushort(x)
-
+#define RB_NUM2SHORT(x) rb_num2short_inline(x)
+#define RB_NUM2USHORT(x) rb_num2ushort(x)
+#define NUM2SHORT(x) RB_NUM2SHORT(x)
+#define NUM2USHORT(x) RB_NUM2USHORT(x)
 
 #ifdef HAVE_LONG_LONG
 LONG_LONG rb_num2ll(VALUE);
