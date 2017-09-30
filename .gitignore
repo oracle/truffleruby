@@ -59,6 +59,7 @@ test/mri/tests/cext-c/**/mkmf.log
 test/mri/tests/cext-c/**/*.o
 
 # mx
+/mx.truffleruby/.pydevproject
 /mx.truffleruby/*.pyc
 /mx.truffleruby/env
 /mx.truffleruby/eclipse-launches
