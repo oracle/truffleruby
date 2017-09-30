@@ -1629,13 +1629,13 @@ public abstract class ArrayNodes {
             // This trick avoids constantly checking if indices are within array bounds
             // and accesses memory sequentially, even though it does perform 2*size reads and writes.
             // This is also what MRI and JRuby do.
-            final int last = size - 1;
-            reverse(mirror, rotation, last);
-            reverse(mirror, 0, rotation - 1);
-            reverse(mirror, 0, last);
+            reverse(mirror, rotation, size);
+            reverse(mirror, 0, rotation);
+            reverse(mirror, 0, size);
         }
 
-        private void reverse(ArrayMirror mirror, int from, int to) {
+        private void reverse(ArrayMirror mirror, int from, int until) {
+            int to = until - 1;
             while (from < to) {
                 final Object tmp = mirror.get(from);
                 mirror.set(from, mirror.get(to));
