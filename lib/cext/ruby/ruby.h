@@ -1542,6 +1542,7 @@ char RB_NUM2CHR(VALUE x);
 VALUE LONG2NUM(long value);
 VALUE ULONG2NUM(unsigned long value);
 #define NUM2CHR(x) RB_NUM2CHR(x)
+#define CHR2FIX(x) RB_CHR2FIX(x)
 
 #define RB_ALLOC_N(type,n) ((type*)ruby_xmalloc2((n),sizeof(type)))
 #define RB_ALLOC(type) ((type*)ruby_xmalloc(sizeof(type)))
