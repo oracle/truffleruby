@@ -954,6 +954,7 @@ class Array
 
   def rotate(n=1)
     n = Rubinius::Type.coerce_to_collection_index n
+
     len = self.length
     return Array.new(self) if len <= 1
 
@@ -963,16 +964,15 @@ class Array
   end
 
   def rotate!(n=1)
+    n = Rubinius::Type.coerce_to_collection_index n
     Truffle.check_frozen
 
     len = self.length
     return self if len <= 1
 
-    n = Rubinius::Type.coerce_to_collection_index n
     n = n % len
     return self if n == 0
     Truffle.invoke_primitive :array_rotate_inplace, self, n
-    self
   end
 
   class SampleRandom
