@@ -751,16 +751,6 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "rb_iter_break", onSingleton = true)
-    public abstract static class IterBreakNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public Object iterBreak() {
-            throw new BreakException(BreakID.ANY, nil());
-        }
-
-    }
-
     @CoreMethod(names = "rb_iter_break_value", onSingleton = true, required = 1)
     public abstract static class IterBreakValueNode extends CoreMethodArrayArgumentsNode {
 
