@@ -58,3 +58,25 @@ To update a bundled gem, follow these steps:
     ```
     
     See [Launchers doc](launchers.md) 
+
+## Updating C headers
+
+Use the following steps to update C headers to another MRI version. The example commands assume truffleruby project is the current directory and there is a ruby directory as a sibling.
+
+1. Create a patch of all header changes made to original headers. For example, diff changes following the commit message "Copy MRI x.x.x changes".
+
+`git diff <commit hash of original headers changes> HEAD > headers.patch -- lib/cext`
+
+2. Removing existing MRI headers while preserving a few added headers.
+
+`find lib/cext -type f \( -not -path lib/cext/truffle/ruby.h -not -path lib/cext/include/ruby.h -name "*.h" -not -name "config.h" -not -name "truffle.h" -not -name "internal.h" \) -print0| xargs -0 rm`
+
+2. Copy the updated MRI headers over, review changes, and then commit them.
+
+`cp -r ../ruby/include/. lib/cext/`
+
+`cp -r ../ruby/ccan/. lib/cext/ccan`
+
+3. Apply the patch from step one and resolve any conflicts.
+
+`git apply -3 headers.patch`
