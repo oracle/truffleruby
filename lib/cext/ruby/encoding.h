@@ -403,8 +403,7 @@ enum ruby_econv_flag_type {
 /* flags for rb_econv_convert */
     RUBY_ECONV_PARTIAL_INPUT                    = 0x00010000,
     RUBY_ECONV_AFTER_OUTPUT                     = 0x00020000,
-#define ECONV_PARTIAL_INPUT 0
-//#define ECONV_PARTIAL_INPUT                     RUBY_ECONV_PARTIAL_INPUT
+#define ECONV_PARTIAL_INPUT                     RUBY_ECONV_PARTIAL_INPUT
 #define ECONV_AFTER_OUTPUT                      RUBY_ECONV_AFTER_OUTPUT
 /* end of flags for rb_econv_convert */
 RUBY_ECONV_FLAGS_PLACEHOLDER};
