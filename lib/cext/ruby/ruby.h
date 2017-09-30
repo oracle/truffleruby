@@ -1620,7 +1620,7 @@ void rb_define_variable(const char*,VALUE*);
 void rb_define_virtual_variable(const char*,VALUE(*)(ANYARGS),void(*)(ANYARGS));
 void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANYARGS), void (*setter)(ANYARGS));
 void rb_define_readonly_variable(const char*,const VALUE*);
-VALUE rb_define_const(VALUE module, const char *name, VALUE value);
+void rb_define_const(VALUE,const char*,VALUE);
 void rb_define_global_const(const char*,VALUE);
 
 #define RUBY_METHOD_FUNC(func) ((VALUE (*)(ANYARGS))(func))
