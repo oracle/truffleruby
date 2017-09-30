@@ -804,10 +804,6 @@ module Truffle::CExt
     object.class.name
   end
 
-  def rb_class_of(object)
-    object.class
-  end
-
   def rb_class_real(ruby_class)
     if ruby_object?(ruby_class)
       while ruby_class.singleton_class?

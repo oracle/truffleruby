@@ -1859,10 +1859,6 @@ VALUE rb_obj_class(VALUE object) {
   return rb_class_real(rb_class_of(object));
 }
 
-VALUE CLASS_OF(VALUE object) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "CLASS_OF", object);
-}
-
 VALUE rb_singleton_class(VALUE object) {
   return truffle_invoke(object, "singleton_class");
 }
