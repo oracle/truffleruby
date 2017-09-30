@@ -676,10 +676,10 @@ module Truffle::CExt
 
   def RB_OBJ_TAINTABLE(object)
     case object
-    when TrueClass, FalseClass, Fixnum, Float, NilClass, Symbol
-      true
-    else
+    when TrueClass, FalseClass, NilClass, Fixnum, Bignum, Float, Symbol
       false
+    else
+      true
     end
   end
 
