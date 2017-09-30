@@ -453,10 +453,6 @@ VALUE rb_tr_get_default_rs(void) {
 
 // Conversions
 
-VALUE CHR2FIX(char ch) {
-  return INT2FIX((unsigned char) ch);
-}
-
 int NUM2INT(VALUE value) {
   return truffle_invoke_i(RUBY_CEXT, "NUM2INT", value);
 }
