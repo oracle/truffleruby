@@ -1593,29 +1593,11 @@ public abstract class ArrayNodes {
             final int size = sizeProfile.profile(strategy.getSize(array));
             rotation = rotationProfile.profile(rotation);
             assert 0 < rotation && rotation < size;
+
             final ArrayMirror mirror = strategy.newMirror(array);
             final ArrayMirror rotated = strategy.newArray(size);
-
-            if (CompilerDirectives.isPartialEvaluationConstant(size) &&
-                    CompilerDirectives.isPartialEvaluationConstant(rotation) &&
-                    size <= ArrayGuards.ARRAY_MAX_EXPLODE_SIZE) {
-                rotateSmallExplode(rotation, size, mirror, rotated);
-            } else {
-                rotateArrayCopy(rotation, size, mirror, rotated);
-            }
-
+            rotateArrayCopy(rotation, size, mirror, rotated);
             return createArray(rotated.getArray(), size);
-        }
-
-        @ExplodeLoop
-        protected void rotateSmallExplode(int rotation, int size, ArrayMirror mirror, ArrayMirror rotated) {
-            for (int i = 0; i < size; i++) {
-                int j = i + rotation;
-                if (j >= size) {
-                    j -= size;
-                }
-                rotated.set(i, mirror.get(j));
-            }
         }
 
         protected void rotateArrayCopy(int rotation, int size, ArrayMirror mirror, ArrayMirror rotated) {
