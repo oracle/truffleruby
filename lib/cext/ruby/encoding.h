@@ -56,12 +56,11 @@ enum ruby_encoding_consts {
 #define ENCODING_MAXNAMELEN RUBY_ENCODING_MAXNAMELEN
 
 enum ruby_coderange_type {
-  RUBY_ENC_CODERANGE_UNKNOWN  = 0,
-  RUBY_ENC_CODERANGE_7BIT     = 1,
-  RUBY_ENC_CODERANGE_VALID    = 2,
-  RUBY_ENC_CODERANGE_BROKEN   = 4
+    RUBY_ENC_CODERANGE_UNKNOWN	= 0,
+    RUBY_ENC_CODERANGE_7BIT     = 1,
+    RUBY_ENC_CODERANGE_VALID    = 2,
+    RUBY_ENC_CODERANGE_BROKEN   = 4
 };
-
 
 static inline int
 rb_enc_coderange_clean_p(int cr)
@@ -106,7 +105,6 @@ typedef struct {
   char *name;
 } rb_encoding;
 
-
 int rb_char_to_option_kcode(int c, int *option, int *kcode);
 
 int rb_enc_replicate(const char *, rb_encoding *);
@@ -142,7 +140,6 @@ VALUE rb_external_str_with_enc(VALUE string, rb_encoding *eenc);
 rb_encoding *get_encoding(VALUE string);
 #define STR_ENC_GET(string) get_encoding(string)
 VALUE rb_external_str_new_with_enc(const char *ptr, long len, rb_encoding *);
-
 VALUE rb_str_export_to_enc(VALUE, rb_encoding *);
 VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to);
 VALUE rb_str_conv_enc_opts(VALUE str, rb_encoding *from, rb_encoding *to, int ecflags, VALUE ecopts);
