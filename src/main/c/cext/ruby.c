@@ -693,8 +693,7 @@ void rb_set_end_proc(void (*func)(VALUE), VALUE data) {
 }
 
 void rb_iter_break(void) {
-  truffle_invoke(RUBY_CEXT, "rb_iter_break");
-  rb_tr_error("rb_iter_break should not return");
+  rb_iter_break_value(Qnil);
 }
 
 void rb_iter_break_value(VALUE value) {
