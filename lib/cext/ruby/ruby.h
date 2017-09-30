@@ -1051,33 +1051,29 @@ struct RFile {
 #define RCOMPLEX_SET_REAL(cmp, r) RB_OBJ_WRITE((cmp), &((struct RComplex *)(cmp))->real,(r))
 #define RCOMPLEX_SET_IMAG(cmp, i) RB_OBJ_WRITE((cmp), &((struct RComplex *)(cmp))->imag,(i))
 
-typedef void (*RUBY_DATA_FUNC)(void*);
-
 struct RData {
-  struct RBasic basic;
-  RUBY_DATA_FUNC dmark;
-  RUBY_DATA_FUNC dfree;
-  void *data;
+    struct RBasic basic;
+    void (*dmark)(void*);
+    void (*dfree)(void*);
+    void *data;
 };
-;
-struct RData *RDATA(VALUE value);
-
 
 typedef struct rb_data_type_struct rb_data_type_t;
 
 struct rb_data_type_struct {
-  const char *wrap_struct_name;
-  struct {
-    RUBY_DATA_FUNC dmark;
-    RUBY_DATA_FUNC dfree;
-    size_t (*dsize)(const void *data);
-    void *reserved[2];
-  } function;
-  const rb_data_type_t *parent;
-  void *data;
-  VALUE flags;
+    const char *wrap_struct_name;
+    struct {
+	void (*dmark)(void*);
+	void (*dfree)(void*);
+	size_t (*dsize)(const void *);
+	void *reserved[2]; /* For future extension.
+			      This array *must* be filled with ZERO. */
+    } function;
+    const rb_data_type_t *parent;
+    void *data;        /* This area can be used for any purpose
+                          by a programmer who define the type. */
+    VALUE flags;       /* RUBY_FL_WB_PROTECTED */
 };
-;
 
 #define HAVE_TYPE_RB_DATA_TYPE_T 1
 #define HAVE_RB_DATA_TYPE_T_FUNCTION 1
@@ -1099,7 +1095,7 @@ struct RTypedData {
 /*
 #define RUBY_DATA_FUNC(func) ((void (*)(void*))(func))
 */
-
+typedef void (*RUBY_DATA_FUNC)(void*);
 
 #ifndef RUBY_UNTYPED_DATA_WARNING
 # if defined RUBY_EXPORT
@@ -1215,7 +1211,7 @@ struct RStruct {
 #define RSTRING(obj) (R_CAST(RString)(obj))
 #define RREGEXP(obj) (R_CAST(RRegexp)(obj))
 #define RARRAY(obj)  (R_CAST(RArray)(obj))
-
+struct RData *RDATA(VALUE value);
 #define RTYPEDDATA(value) ((struct RTypedData *)RDATA(value))
 #define RSTRUCT(obj) (R_CAST(RStruct)(obj))
 #define RFILE(obj)   (R_CAST(RFile)(obj))
