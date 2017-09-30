@@ -2703,6 +2703,9 @@ int rb_cloexec_dup(int oldfd) {
   rb_tr_error("rb_cloexec_dup not implemented");
 }
 
+void rb_update_max_fd(int fd) {
+}
+
 void rb_fd_fix_cloexec(int fd) {
   fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
 }
