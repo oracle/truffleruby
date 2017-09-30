@@ -900,7 +900,7 @@ int rb_const_defined_from(VALUE, ID);
 VALUE rb_const_get(VALUE, ID);
 VALUE rb_const_get_at(VALUE, ID);
 VALUE rb_const_get_from(VALUE, ID);
-VALUE rb_const_set(VALUE module, ID name, VALUE value);
+void rb_const_set(VALUE, ID, VALUE);
 VALUE rb_const_remove(VALUE, ID);
 VALUE rb_mod_const_missing(VALUE,VALUE);
 VALUE rb_cvar_defined(VALUE, ID);

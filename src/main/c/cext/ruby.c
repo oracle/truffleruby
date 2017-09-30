@@ -2110,12 +2110,12 @@ VALUE rb_const_get_from(VALUE module, ID name) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_const_get_from", module, name);
 }
 
-VALUE rb_const_set(VALUE module, ID name, VALUE value) {
-  return (VALUE) truffle_invoke(module, "const_set", name, value);
+void rb_const_set(VALUE module, ID name, VALUE value) {
+  truffle_invoke(module, "const_set", name, value);
 }
 
-VALUE rb_define_const(VALUE module, const char *name, VALUE value) {
-  return rb_const_set(module, rb_str_new_cstr(name), value);
+void rb_define_const(VALUE module, const char *name, VALUE value) {
+  rb_const_set(module, rb_str_new_cstr(name), value);
 }
 
 void rb_define_global_const(const char *name, VALUE value) {
