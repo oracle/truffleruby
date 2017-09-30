@@ -2084,8 +2084,8 @@ VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_ivar_lookup", object, name, default_value);
 }
 
-VALUE rb_attr_get(VALUE object, const char *name) {
-  return rb_ivar_lookup((void *)object, name, Qnil);
+VALUE rb_attr_get(VALUE object, ID name) {
+  return rb_ivar_lookup(object, name, Qnil);
 }
 
 // Accessing constants
