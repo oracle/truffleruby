@@ -69,7 +69,8 @@ Use the following steps to update C headers to another MRI version. The example 
 
 2. Removing existing MRI headers while preserving a few added headers.
 
-`find lib/cext -type f \( -not -path lib/cext/truffle/ruby.h -not -path lib/cext/include/ruby.h -name "*.h" -not -name "config.h" -not -name "truffle.h" -not -name "internal.h" \) -print0| xargs -0 rm`
+`rm -rf lib/cext/ruby.h lib/cext/ruby`
+`git checkout lib/cext/ruby/config.h`
 
 2. Copy the updated MRI headers over, review changes, and then commit them.
 
