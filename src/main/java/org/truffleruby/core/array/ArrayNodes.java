@@ -1581,6 +1581,50 @@ public abstract class ArrayNodes {
 
     }
 
+    @Primitive(name = "array_rotate", needsSelf = false, lowerFixnum = 2)
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class RotateNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
+        public DynamicObject rotate(DynamicObject array, int rotation,
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
+                @Cached("createIdentityProfile()") IntValueProfile rotationProfile) {
+            final int size = sizeProfile.profile(strategy.getSize(array));
+            rotation = rotationProfile.profile(rotation);
+            assert 0 < rotation && rotation < size;
+            final ArrayMirror mirror = strategy.newMirror(array);
+            final ArrayMirror rotated = strategy.newArray(size);
+
+            if (CompilerDirectives.isPartialEvaluationConstant(size) &&
+                    CompilerDirectives.isPartialEvaluationConstant(rotation) &&
+                    size <= ArrayGuards.ARRAY_MAX_EXPLODE_SIZE) {
+                rotateSmallExplode(rotation, size, mirror, rotated);
+            } else {
+                rotateArrayCopy(rotation, size, mirror, rotated);
+            }
+
+            return createArray(rotated.getArray(), size);
+        }
+
+        @ExplodeLoop
+        protected void rotateSmallExplode(int rotation, int size, ArrayMirror mirror, ArrayMirror rotated) {
+            for (int i = 0; i < size; i++) {
+                int j = i + rotation;
+                if (j >= size) {
+                    j -= size;
+                }
+                rotated.set(i, mirror.get(j));
+            }
+        }
+
+        protected void rotateArrayCopy(int rotation, int size, ArrayMirror mirror, ArrayMirror rotated) {
+            System.arraycopy(mirror.getArray(), rotation, rotated.getArray(), 0, size - rotation);
+            System.arraycopy(mirror.getArray(), 0, rotated.getArray(), size - rotation, rotation);
+        }
+
+    }
+
     @Primitive(name = "array_rotate_inplace", needsSelf = false, lowerFixnum = 2)
     @ImportStatic(ArrayGuards.class)
     public abstract static class RotateInplaceNode extends PrimitiveArrayArgumentsNode {
