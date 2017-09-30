@@ -1,6 +1,7 @@
 ROOT := $(realpath ../../..)
 RUBY := $(ROOT)/bin/truffleruby -Xgraal.warn_unless=false
 OS := $(shell uname)
+RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/*.h) $(wildcard $(ROOT)/lib/cext/ruby/*.h)
 
 ifeq ($(TRUFFLERUBY_CEXT_ENABLED),false)
 goal: no_cexts
@@ -30,7 +31,7 @@ clean:
 cext/Makefile: cext/extconf.rb $(ROOT)/lib/cext/trufflemock.bc
 	cd cext && $(RUBY) extconf.rb
 
-cext/ruby.su: cext/Makefile cext/ruby.c $(ROOT)/lib/cext/ruby.h
+cext/ruby.su: cext/Makefile cext/ruby.c $(RUBY_HEADERS)
 	cd cext && $(MAKE)
 
 $(ROOT)/lib/cext/ruby.su: cext/ruby.su
