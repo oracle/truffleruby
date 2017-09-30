@@ -548,7 +548,7 @@ int rb_cloexec_dup2(int oldfd, int newfd);
 int rb_cloexec_pipe(int fildes[2]);
 int rb_cloexec_fcntl_dupfd(int fd, int minfd);
 #define RB_RESERVED_FD_P(fd) rb_reserved_fd_p(fd)
-#define rb_update_max_fd(fd) {}
+void rb_update_max_fd(int fd);
 void rb_fd_fix_cloexec(int fd);
 /* marshal.c */
 VALUE rb_marshal_dump(VALUE, VALUE);
