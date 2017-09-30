@@ -1614,27 +1614,6 @@ public abstract class ArrayNodes {
             }
         }
 
-        protected void rotateElementByElement(int amount, int size, ArrayMirror mirror) {
-            int n = 0;
-            int prev = amount;
-            int next = 0;
-            Object prevValue = mirror.get(prev);
-            Object nextValue = mirror.get(next);
-            while (n < size) {
-                nextValue = mirror.get(next);
-                mirror.set(next, prevValue);
-                prevValue = nextValue;
-                prev = next;
-                next -= amount;
-                if (next < 0) {
-                    next += size;
-                } else if (next >= size) {
-                    next -= size;
-                }
-                n++;
-            }
-        }
-
     }
 
     @CoreMethod(names = "select", needsBlock = true, enumeratorSize = "size")
