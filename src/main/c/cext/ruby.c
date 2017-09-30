@@ -38,18 +38,48 @@ VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object) {
 
 // Memory
 
-void *ruby_xrealloc2(void *ptr, size_t n, size_t size) {
-  rb_tr_error("ruby_xrealloc2 not implemented");
+void ruby_malloc_size_overflow(size_t count, size_t elsize) {
+    rb_raise(rb_eArgError,
+	     "malloc: possible integer overflow (%"PRIdSIZE"*%"PRIdSIZE")",
+	     count, elsize);
 }
 
-void *rb_alloc_tmp_buffer(VALUE *buffer_pointer, long length) {
+void *ruby_xmalloc(size_t size) {
+  return malloc(size);
+}
+
+void *ruby_xmalloc2(size_t n, size_t size) {
+  return malloc(ruby_xmalloc2_size(n, size));
+}
+
+void *ruby_xcalloc(size_t n, size_t size) {
+  return calloc(n, size);
+}
+
+void *ruby_xrealloc(void *ptr, size_t new_size) {
+  return realloc(ptr, new_size);
+}
+
+void *ruby_xrealloc2(void *ptr, size_t n, size_t size) {
+  size_t len = size * n;
+  if (n != 0 && size != len / n) {
+    rb_raise(rb_eArgError, "realloc: possible integer overflow");
+  }
+  return realloc(ptr, len);
+}
+
+void ruby_xfree(void *address) {
+  free(address);
+}
+
+void *rb_alloc_tmp_buffer(volatile VALUE *buffer_pointer, long length) {
   // TODO CS 13-Apr-17 MRI sometimes uses alloc and sometimes malloc, and wraps it in a Ruby object - is rb_free_tmp_buffer guaranteed to be called or do we need to free in a finalizer?
   void *space = malloc(length);
   *((void**) buffer_pointer) = space;
   return space;
 }
 
-void rb_free_tmp_buffer(VALUE *buffer_pointer) {
+void rb_free_tmp_buffer(volatile VALUE *buffer_pointer) {
   free(*((void**) buffer_pointer));
 }
 

@@ -1543,28 +1543,47 @@ VALUE LONG2NUM(long value);
 VALUE ULONG2NUM(unsigned long value);
 #define NUM2CHR(x) RB_NUM2CHR(x)
 
+#define RB_ALLOC_N(type,n) ((type*)ruby_xmalloc2((n),sizeof(type)))
+#define RB_ALLOC(type) ((type*)ruby_xmalloc(sizeof(type)))
+#define RB_ZALLOC_N(type,n) ((type*)ruby_xcalloc((n),sizeof(type)))
+#define RB_ZALLOC(type) (RB_ZALLOC_N(type,1))
+#define RB_REALLOC_N(var,type,n) ((var)=(type*)ruby_xrealloc2((char*)(var),(n),sizeof(type)))
 
-#define ruby_xmalloc                malloc
-#define ruby_xmalloc2(items, size)  malloc((items)*(size))
-#define ruby_xcalloc                calloc
-#define ruby_xrealloc               realloc
-#define ruby_xfree                  free
+#define ALLOC_N(type,n) RB_ALLOC_N(type,n)
+#define ALLOC(type) RB_ALLOC(type)
+#define ZALLOC_N(type,n) RB_ZALLOC_N(type,n)
+#define ZALLOC(type) RB_ZALLOC(type)
+#define REALLOC_N(var,type,n) RB_REALLOC_N(var,type,n)
 
-#define ALLOC(type)                 ((type *)ruby_xmalloc(sizeof(type)))
-#define ALLOC_N(type, n)            ((type *)malloc(sizeof(type) * (n)))
-#define ALLOCA_N(type, n)           ((type *)alloca(sizeof(type) * (n)))
+#define ALLOCA_N(type,n) ((type*)alloca(sizeof(type)*(n)))
 
-#define RB_ZALLOC_N(type, n)        ((type *)ruby_xcalloc((n), sizeof(type)))
-#define RB_ZALLOC(type)             (RB_ZALLOC_N(type, 1))
-#define ZALLOC_N(type, n)           RB_ZALLOC_N(type, n)
-#define ZALLOC(type)                RB_ZALLOC(type)
-
-void *rb_alloc_tmp_buffer(VALUE *buffer_pointer, long length);
-void rb_free_tmp_buffer(VALUE *buffer_pointer);
-
-#define RB_ALLOCV(v, n)             rb_alloc_tmp_buffer(&(v), (n))
-#define RB_ALLOCV_N(type, v, n)     rb_alloc_tmp_buffer(&(v), (n) * sizeof(type))
-
+void *rb_alloc_tmp_buffer(volatile VALUE *store, long len) RUBY_ATTR_ALLOC_SIZE((2));
+void rb_free_tmp_buffer(volatile VALUE *store);
+NORETURN(void ruby_malloc_size_overflow(size_t, size_t));
+static inline size_t
+ruby_xmalloc2_size(const size_t count, const size_t elsize)
+{
+    if (count > SIZE_MAX / elsize) {
+	ruby_malloc_size_overflow(count, elsize);
+    }
+    return count * elsize;
+}
+/* allocates _n_ bytes temporary buffer and stores VALUE including it
+ * in _v_.  _n_ may be evaluated twice. */
+#ifdef C_ALLOCA
+# define RB_ALLOCV(v, n) rb_alloc_tmp_buffer(&(v), (n))
+# define RB_ALLOCV_N(type, v, n) \
+    ((type*)RB_ALLOCV((v), ruby_xmalloc2_size((n), sizeof(type))))
+#else
+# define RUBY_ALLOCV_LIMIT 1024
+# define RB_ALLOCV(v, n) ((n) < RUBY_ALLOCV_LIMIT ? \
+		       (RB_GC_GUARD(v) = 0, alloca(n)) : \
+		       rb_alloc_tmp_buffer(&(v), (n)))
+# define RB_ALLOCV_N(type, v, n) \
+    ((type*)(ruby_xmalloc2_size((n), sizeof(type)) < RUBY_ALLOCV_LIMIT ? \
+	     (RB_GC_GUARD(v) = 0, alloca((n) * sizeof(type))) : \
+	     rb_alloc_tmp_buffer(&(v), (n) * sizeof(type))))
+#endif
 #define RB_ALLOCV_END(v) rb_free_tmp_buffer(&(v))
 
 #define ALLOCV(v, n) RB_ALLOCV(v, n)
