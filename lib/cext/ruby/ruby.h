@@ -836,9 +836,8 @@ enum ruby_fl_type {
 };
 
 struct RBasic {
-  // Empty
-};
-
+    // Truffle: empty
+}
 #ifdef __GNUC__
     __attribute__((aligned(sizeof(VALUE))))
 #endif
