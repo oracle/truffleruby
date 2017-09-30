@@ -1598,6 +1598,13 @@ public abstract class ArrayNodes {
         }
 
         protected void rotateReverse(int amount, int size, ArrayMirror mirror) {
+            // Rotating by amount in-place is equivalent to
+            // replace([amount..-1] + [0...amount])
+            // which is the same as reversing the whole array and
+            // reversing each of the two parts so that elements are in the same order again.
+            // This trick avoids constantly checking if indices are within array bounds
+            // and accesses memory sequentially, even though it does perform 2*size reads and writes.
+            // This is also what MRI and JRuby do.
             final int last = size - 1;
             reverse(mirror, amount, last);
             reverse(mirror, 0, amount - 1);
