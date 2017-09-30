@@ -733,11 +733,11 @@ public class CExtNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(visibility)")
-        public boolean toRubyString(DynamicObject visibility) {
+        public boolean checkCallerVisibility(DynamicObject visibility) {
             final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_ONLY);
             final Visibility callerVisibility = DeclarationContext.findVisibility(callerFrame);
 
-            switch (visibility.toString()) {
+            switch (Layouts.SYMBOL.getString(visibility)) {
                 case "private":
                     return callerVisibility.isPrivate();
                 case "protected":
@@ -1042,7 +1042,7 @@ public class CExtNodes {
         @TruffleBoundary
         @Specialization(guards = {"isRubySymbol(name)", "isRubyProc(getter)", "isRubyProc(setter)"})
         public DynamicObject defineHookedVariableInnerNode(DynamicObject name, DynamicObject getter, DynamicObject setter) {
-            getContext().getCoreLibrary().getGlobalVariables().put(name.toString(), getter, setter);
+            getContext().getCoreLibrary().getGlobalVariables().put(Layouts.SYMBOL.getString(name), getter, setter);
             return nil();
         }
 
