@@ -967,7 +967,7 @@ class Array
     Truffle.check_frozen
 
     len = self.length
-    return self if len == 0 || len == 1
+    return self if len <= 1
 
     n = Rubinius::Type.coerce_to_collection_index n
     n = n % len
