@@ -465,7 +465,7 @@ module Commands
         RUBY_BIN                                     The TruffleRuby executable to use (normally just bin/truffleruby)
         GRAALVM_BIN                                  GraalVM executable (java command)
         GRAAL_HOME                                   Directory where there is a built checkout of the Graal compiler (make sure mx is on your path)
-        JVMCI_BIN                                    JVMCI-enabled (so JDK 9 EA build) java command (aslo set JVMCI_GRAAL_HOME)
+        JVMCI_BIN                                    JVMCI-enabled java command (also set JVMCI_GRAAL_HOME)
         JVMCI_GRAAL_HOME                             Like GRAAL_HOME, but only used for the JARs to run with JVMCI_BIN
         GRAAL_JS_JAR                                 The location of trufflejs.jar
         SL_JAR                                       The location of truffle-sl.jar

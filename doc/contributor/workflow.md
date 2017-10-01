@@ -4,7 +4,7 @@
 
 You will need:
 
-* Java JDK 8 (not 9 EA)
+* Java JDK 8
 * Ruby 2
 * [LLVM](../user/installing-llvm.md)
 * [`libssl`](../user/installing-libssl.md)

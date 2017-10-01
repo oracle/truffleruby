@@ -42,6 +42,9 @@ Announcements about GraalVM, including TruffleRuby, are made on the
 
 ## System Compatibility
 
+TruffleRuby is only compatible with Java 8, unless you are following specific
+instructions for Java 9.
+
 TruffleRuby is actively tested on these systems:
 
 * Ubuntu 16.04 LTS
@@ -85,9 +88,8 @@ for using it as part of GraalVM.
 
 #### Can TruffleRuby run on a standard JVM?
 
-It is possible to run today on an unmodified JDK 9 EA build, but at the moment
-this requires building Graal yourself and we don't recommend end-users try it.
-It will be supported when Java 9 is released.
+It is possible to [run on an unmodified JDK 9](doc/user/using-java9.md) but you
+will have to build Graal yourself and we recommend using GraalVM instead.
 
 #### How do I install gems?
 
