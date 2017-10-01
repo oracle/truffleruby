@@ -22,10 +22,10 @@ apt-get install clang llvm libc++abi-dev
 ## macOS
 
 We need the `opt` command, so you can't just use what is installed by Xcode if
-you are on macOS. We would recommend that you install LLVM via
+you are on macOS. We would recommend that you install LLVM 4 via
 [Homebrew](https://brew.sh) and then manually set your path.
 
 ```bash
-brew install llvm
-export PATH="/usr/local/opt/llvm/bin:$PATH"
+brew install llvm@4
+export PATH="/usr/local/opt/llvm@4/bin:$PATH"
 ```
