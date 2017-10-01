@@ -7,7 +7,7 @@ compiler, and TruffleRuby, all in one package.
 It is also possible to run on Java 9, but Graal needs to be built with Java 9
 and there is no binary distribution of GraalVM based on Java 9 so you will
 need to [build Graal yourself](../contributor/building-graal.md), using Java
-9 as the JDK.
+9 as the JDK. TruffleRuby itself can be built with Java 8 as normal.
 
 ```
 $ GRAAL_HOME=...path to graal repository built with JDK 9...
