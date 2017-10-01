@@ -17,16 +17,6 @@
   },
   labsjdk8: labsjdk8,
 
-  local labsjdk9 = {
-    downloads: {
-      JAVA9_HOME: {
-        name: "labsjdk",
-        version: "9-ea+152",
-        platformspecific: true
-      }
-    }
-  },
-
   local java_opts = "-Xmx2G",
 
   local common = {
@@ -481,13 +471,6 @@
     timelimit: "30:00"
   },
 
-  language_specs_java9: {
-    downloads+: labsjdk9.downloads,
-    run: [
-      ["bash", "-c", "JAVA_HOME=$JAVA9_HOME PATH=$JAVA9_HOME/bin:$PATH ruby tool/jt.rb test fast"]
-    ]
-  },
-
   local linux_gate = $.common_linux + $.gate_caps,
 
   local specs_job = [
@@ -515,8 +498,6 @@
     {name: "ruby-test-gems"} + linux_gate + $.test_gems,
     {name: "ruby-test-bundle-no-sulong"} + linux_gate + {run: jt(["test", "bundle", "--no-sulong"])},
     {name: "ruby-test-ecosystem"} + linux_gate + $.test_ecosystem,
-
-    {name: "ruby-test-specs-language-java9"} + linux_gate + $.language_specs_java9,
 
     {name: "ruby-test-compiler-graal-core"} + linux_gate + $.graal_core + {run: jt(["test", "compiler"])},
     # {name: "ruby-test-compiler-graal-enterprise"} + linux_gate + $.graal_enterprise + {run: jt(["test", "compiler"])},
