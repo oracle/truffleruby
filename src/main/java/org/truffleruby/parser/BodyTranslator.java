@@ -1659,15 +1659,15 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitGlobalAsgnNode(GlobalAsgnParseNode node) {
         final RubyNode translatedValue = node.getValueNode().accept(this);
-        final String originalName = node.getName();
+        final String variableName = node.getName();
 
-        return new LazyRubyNode(() -> writeGlobal(node, originalName, translatedValue));
+        return new LazyRubyNode(() -> writeGlobal(node, variableName, translatedValue));
     }
 
-    private RubyNode writeGlobal(GlobalAsgnParseNode node, String originalName, RubyNode translatedValue) {
+    private RubyNode writeGlobal(GlobalAsgnParseNode node, String variableName, RubyNode translatedValue) {
         final SourceIndexLength sourceSection = node.getPosition();
         RubyNode rhs = translatedValue;
-        String name = originalName;
+        String name = variableName;
 
         if (context != null) {
             name = context.getCoreLibrary().getGlobalVariables().getOriginalName(name);
@@ -1711,7 +1711,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret;
         if (!inCore && GlobalVariables.READ_ONLY_GLOBAL_VARIABLES.contains(name)) {
-            ret = new WriteReadOnlyGlobalNode(originalName, rhs);
+            ret = new WriteReadOnlyGlobalNode(variableName, rhs);
         } else if (GlobalVariables.THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             final GetThreadLocalsObjectNode getThreadLocalsObjectNode = GetThreadLocalsObjectNodeGen.create();
             getThreadLocalsObjectNode.unsafeSetSourceSection(sourceSection);
@@ -1737,14 +1737,14 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitGlobalVarNode(GlobalVarParseNode node) {
-        final String originalName = node.getName();
+        final String variableName = node.getName();
 
-        return new LazyRubyNode(() -> readGlobal(node, originalName));
+        return new LazyRubyNode(() -> readGlobal(node, variableName));
     }
 
-    private RubyNode readGlobal(ParseNode node, String originalName) {
+    private RubyNode readGlobal(ParseNode node, String variableName) {
         final SourceIndexLength sourceSection = node.getPosition();
-        String name = originalName;
+        String name = variableName;
 
         if (context != null) {
             name = context.getCoreLibrary().getGlobalVariables().getOriginalName(name);
