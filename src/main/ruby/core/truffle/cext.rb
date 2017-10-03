@@ -1862,11 +1862,11 @@ module Truffle::CExt
     name = "$#{name}" unless name.start_with?('$')
     id = name.to_sym
 
-    getter_proc = proc {
+    getter_proc = -> {
       execute_with_mutex getter, id, gvar, nil
     }
 
-    setter_proc = proc { |value|
+    setter_proc = -> value {
       execute_with_mutex setter, value, id, gvar, nil
     }
 
