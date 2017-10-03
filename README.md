@@ -42,9 +42,6 @@ Announcements about GraalVM, including TruffleRuby, are made on the
 
 ## System Compatibility
 
-TruffleRuby is only compatible with Java 8, unless you are following specific
-instructions for Java 9.
-
 TruffleRuby is actively tested on these systems:
 
 * Ubuntu 16.04 LTS
