@@ -1661,9 +1661,7 @@ public class BodyTranslator extends Translator {
         final RubyNode translatedValue = node.getValueNode().accept(this);
         final String originalName = node.getName();
 
-        return new LazyRubyNode(() -> {
-            return writeGlobal(node, originalName, translatedValue);
-        });
+        return new LazyRubyNode(() -> writeGlobal(node, originalName, translatedValue));
     }
 
     private RubyNode writeGlobal(GlobalAsgnParseNode node, String originalName, RubyNode translatedValue) {
