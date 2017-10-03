@@ -1718,13 +1718,9 @@ public class BodyTranslator extends Translator {
             final GetThreadLocalsObjectNode getThreadLocalsObjectNode = GetThreadLocalsObjectNodeGen.create();
             getThreadLocalsObjectNode.unsafeSetSourceSection(sourceSection);
             ret = new WriteInstanceVariableNode(name, getThreadLocalsObjectNode, rhs);
-        } else if (GlobalVariables.FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+        } else if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             final ReadLocalNode localVarNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
-            if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-                ret = new SetInThreadAndFrameLocalStorageNode(localVarNode, rhs);
-            } else {
-                ret = localVarNode.makeWriteNode(rhs);
-            }
+            ret = new SetInThreadAndFrameLocalStorageNode(localVarNode, rhs);
         } else {
             final RubyNode writeGlobalVariableNode = WriteGlobalVariableNodeGen.create(name, rhs);
 
@@ -1784,16 +1780,10 @@ public class BodyTranslator extends Translator {
             final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
             final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
             ret = new ReadMatchReferenceNode(readMatchNode, index);
-        } else if (GlobalVariables.FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-            // Assignment is implicit for many of these, so we need to declare when we use
-
+        } else if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+            // Assignment is implicit for these, so we need to declare when we use
             RubyNode readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
-
-            if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-                readNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
-            }
-
-            ret = readNode;
+            ret = new GetFromThreadAndFrameLocalStorageNode(readNode);
         } else if (GlobalVariables.THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             ret = new ReadThreadLocalGlobalVariableNode(name, GlobalVariables.ALWAYS_DEFINED_GLOBALS.contains(name));
         } else if (name.equals("$@")) {
