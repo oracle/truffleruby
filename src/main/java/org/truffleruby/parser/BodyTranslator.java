@@ -1713,7 +1713,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret;
         if (!inCore && GlobalVariables.READ_ONLY_GLOBAL_VARIABLES.contains(name)) {
-            ret = new WriteReadOnlyGlobalNode(name, rhs);
+            ret = new WriteReadOnlyGlobalNode(originalName, rhs);
         } else if (GlobalVariables.THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             final GetThreadLocalsObjectNode getThreadLocalsObjectNode = GetThreadLocalsObjectNodeGen.create();
             getThreadLocalsObjectNode.unsafeSetSourceSection(sourceSection);
