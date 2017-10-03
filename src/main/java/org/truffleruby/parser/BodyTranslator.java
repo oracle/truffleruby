@@ -58,6 +58,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -1657,14 +1658,21 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitGlobalAsgnNode(GlobalAsgnParseNode node) {
+        final RubyNode translatedValue = node.getValueNode().accept(this);
+        final String originalName = node.getName();
+
+        return new LazyRubyNode(() -> {
+            return writeGlobal(node, originalName, translatedValue);
+        });
+    }
+
+    private RubyNode writeGlobal(GlobalAsgnParseNode node, String originalName, RubyNode translatedValue) {
         final SourceIndexLength sourceSection = node.getPosition();
+        RubyNode rhs = translatedValue;
+        String name = originalName;
 
-        RubyNode rhs = node.getValueNode().accept(this);
-
-        String name = node.getName();
-
-        if (GlobalVariables.GLOBAL_VARIABLE_ALIASES.containsKey(name)) {
-            name = GlobalVariables.GLOBAL_VARIABLE_ALIASES.get(name);
+        if (context != null) {
+            name = context.getCoreLibrary().getGlobalVariables().getOriginalName(name);
         }
 
         switch (name) {
@@ -1686,7 +1694,7 @@ public class BodyTranslator extends Translator {
             case "$SAFE":
                 rhs = new CheckSafeLevelNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
-                break; 
+                break;
             case "$stdout":
                 rhs = new CheckStdoutVariableTypeNode(rhs);
                 rhs.unsafeSetSourceSection(sourceSection);
@@ -1696,86 +1704,108 @@ public class BodyTranslator extends Translator {
                 rhs.unsafeSetSourceSection(sourceSection);
                 break;
             case "$@":
-                // $@ is a special-case and doesn't write directly to an ivar field in the globals object.
+                // $@ is a special-case and doesn't write to a global.
                 // Instead, it writes to the backtrace field of the thread-local $! value.
                 return withSourceSection(sourceSection, new UpdateLastBacktraceNode(rhs));
         }
 
         final boolean inCore = getSourcePath(node.getValueNode().getPosition()).startsWith(corePath());
 
+        final RubyNode ret;
         if (!inCore && GlobalVariables.READ_ONLY_GLOBAL_VARIABLES.contains(name)) {
-            return addNewlineIfNeeded(node, withSourceSection(sourceSection, new WriteReadOnlyGlobalNode(name, rhs)));
-        }
-
-        if (GlobalVariables.THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+            ret = new WriteReadOnlyGlobalNode(name, rhs);
+        } else if (GlobalVariables.THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             final GetThreadLocalsObjectNode getThreadLocalsObjectNode = GetThreadLocalsObjectNodeGen.create();
             getThreadLocalsObjectNode.unsafeSetSourceSection(sourceSection);
-            return addNewlineIfNeeded(node, withSourceSection(sourceSection, new WriteInstanceVariableNode(name, getThreadLocalsObjectNode, rhs)));
+            ret = new WriteInstanceVariableNode(name, getThreadLocalsObjectNode, rhs);
         } else if (GlobalVariables.FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             final ReadLocalNode localVarNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
-            final RubyNode assignment;
             if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-                assignment = new SetInThreadAndFrameLocalStorageNode(localVarNode, rhs);
-                assignment.unsafeSetSourceSection(sourceSection);
+                ret = new SetInThreadAndFrameLocalStorageNode(localVarNode, rhs);
             } else {
-                assignment = localVarNode.makeWriteNode(rhs);
+                ret = localVarNode.makeWriteNode(rhs);
             }
-
-            return addNewlineIfNeeded(node, assignment);
         } else {
-            final RubyNode writeGlobalVariableNode = withSourceSection(sourceSection, WriteGlobalVariableNodeGen.create(name, rhs));
-
-            final RubyNode translated;
+            final RubyNode writeGlobalVariableNode = WriteGlobalVariableNodeGen.create(name, rhs);
 
             if (name.equals("$0")) {
                 // Call Process.setproctitle
                 RubyNode processClass = new ObjectLiteralNode(context.getCoreLibrary().getProcessModule());
-                translated = new RubyCallNode(new RubyCallNodeParameters(processClass, "setproctitle", null,
-                                new RubyNode[]{writeGlobalVariableNode}, false, false));
-                translated.unsafeSetSourceSection(sourceSection);
+                ret = new RubyCallNode(new RubyCallNodeParameters(processClass, "setproctitle", null,
+                        new RubyNode[]{ writeGlobalVariableNode }, false, false));
             } else {
-                translated = writeGlobalVariableNode;
+                ret = writeGlobalVariableNode;
             }
-
-            return addNewlineIfNeeded(node, translated);
         }
+
+        return addNewlineIfNeeded(node, withSourceSection(sourceSection, ret));
     }
 
     @Override
     public RubyNode visitGlobalVarNode(GlobalVarParseNode node) {
-        String name = node.getName();
+        final String originalName = node.getName();
 
-        if (GlobalVariables.GLOBAL_VARIABLE_ALIASES.containsKey(name)) {
-            name = GlobalVariables.GLOBAL_VARIABLE_ALIASES.get(name);
+        return new LazyRubyNode(() -> readGlobal(node, originalName));
+    }
+
+    private RubyNode readGlobal(ParseNode node, String originalName) {
+        final SourceIndexLength sourceSection = node.getPosition();
+        String name = originalName;
+
+        if (context != null) {
+            name = context.getCoreLibrary().getGlobalVariables().getOriginalName(name);
         }
 
-        final SourceIndexLength sourceSection = node.getPosition();
-        final RubyNode ret;
 
-        if (GlobalVariables.FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+        final RubyNode ret;
+        if (GlobalVariables.BACKREF_GLOBAL_VARIABLES.contains(name)) {
+            int index = 0;
+            final char type = name.charAt(1);
+            switch (type) {
+                case '`':
+                    index = ReadMatchReferenceNode.PRE;
+                    break;
+                case '\'':
+                    index = ReadMatchReferenceNode.POST;
+                    break;
+                case '&':
+                    index = ReadMatchReferenceNode.GLOBAL;
+                    break;
+                case '+':
+                    index = ReadMatchReferenceNode.HIGHEST;
+                    break;
+                default:
+                    if ('1' <= type && type <= '9') {
+                        index = (type - '0');
+                    } else {
+                        throw new UnsupportedOperationException(name);
+                    }
+            }
+            final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
+            final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
+            ret = new ReadMatchReferenceNode(readMatchNode, index);
+        } else if (GlobalVariables.FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             // Assignment is implicit for many of these, so we need to declare when we use
 
             RubyNode readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
 
             if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
                 readNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
-                readNode.unsafeSetSourceSection(sourceSection);
             }
 
             ret = readNode;
         } else if (GlobalVariables.THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             ret = new ReadThreadLocalGlobalVariableNode(name, GlobalVariables.ALWAYS_DEFINED_GLOBALS.contains(name));
-            ret.unsafeSetSourceSection(sourceSection);
         } else if (name.equals("$@")) {
-            // $@ is a special-case and doesn't read directly from an ivar field in the globals object.
+            // $@ is a special-case and doesn't read directly from an ivar field in the globals
+            // object.
             // Instead, it reads the backtrace field of the thread-local $! value.
             ret = new ReadLastBacktraceNode();
-            ret.unsafeSetSourceSection(sourceSection);
         } else {
             ret = ReadGlobalVariableNodeGen.create(name);
-            ret.unsafeSetSourceSection(sourceSection);
         }
 
+        ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -2443,13 +2473,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitNthRefNode(NthRefParseNode node) {
-        final SourceIndexLength sourceSection = node.getPosition();
-
-        final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
-        final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
-        final RubyNode ret = new ReadMatchReferenceNode(readMatchNode, node.getMatchNumber());
-        ret.unsafeSetSourceSection(sourceSection);
-        return addNewlineIfNeeded(node, ret);
+        return readGlobal(node, "$" + node.getMatchNumber());
     }
 
     @Override
@@ -3176,32 +3200,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitBackRefNode(BackRefParseNode node) {
-        int index = 0;
-
-        switch (node.getType()) {
-            case '`':
-                index = ReadMatchReferenceNode.PRE;
-                break;
-            case '\'':
-                index = ReadMatchReferenceNode.POST;
-                break;
-            case '&':
-                index = ReadMatchReferenceNode.GLOBAL;
-                break;
-            case '+':
-                index = ReadMatchReferenceNode.HIGHEST;
-                break;
-            default:
-                throw new UnsupportedOperationException(Character.toString(node.getType()));
-        }
-
-        final SourceIndexLength sourceSection = node.getPosition();
-
-        final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
-        final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
-        final RubyNode ret = new ReadMatchReferenceNode(readMatchNode, index);
-        ret.unsafeSetSourceSection(sourceSection);
-        return addNewlineIfNeeded(node, ret);
+        return readGlobal(node, "$" + node.getType());
     }
 
     @Override
