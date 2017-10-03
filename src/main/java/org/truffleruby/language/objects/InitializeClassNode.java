@@ -108,7 +108,7 @@ public abstract class InitializeClassNode extends RubyNode {
     }
 
     private boolean isInitialized(DynamicObject rubyClass) {
-        return Layouts.CLASS.getSuperclass(rubyClass) != null || rubyClass == coreLibrary().getBasicObjectClass();
+        return Layouts.CLASS.getSuperclass(rubyClass) != null;
     }
 
     // rb_check_inheritable
