@@ -522,7 +522,7 @@
     # {name: "ruby-test-compiler-graal-vm-snapshot"} + linux_gate + $.graal_vm_snapshot + {run: jt(["test", "compiler"])},
 
     {name: "ruby-test-compiler-graal-core-java9"} + linux_gate + $.graal_core + labsjdk9 + {run: jt(["test", "compiler"])},
-    {name: "ruby-test-compiler-standalone-java9"} + linux_gate + $.graal_core + labsjdk9 + {run: jt(["bin/truffleruby", "-J-XX:+UnlockExperimentalVMOptions", "-J-XX:+EnableJVMCI", "-J--module-path=../graal/sdk/mxbuild/modules/org.graalvm.graal_sdk.jar:../graal/truffle/mxbuild/modules/com.oracle.truffle.truffle_api.jar:../graal/compiler/mxbuild/modules/jdk.internal.vm.compiler.jar", "-J-Dgraal.TraceTruffleCompilation=true", "-e", "raise 'no graal' unless Truffle.graal?"])},
+    {name: "ruby-test-compiler-standalone-java9"} + linux_gate + $.graal_core + labsjdk9 + {run: ["bin/truffleruby", "-J-XX:+UnlockExperimentalVMOptions", "-J-XX:+EnableJVMCI", "-J--module-path=../graal/sdk/mxbuild/modules/org.graalvm.graal_sdk.jar:../graal/truffle/mxbuild/modules/com.oracle.truffle.truffle_api.jar:../graal/compiler/mxbuild/modules/jdk.internal.vm.compiler.jar", "-J-Dgraal.TraceTruffleCompilation=true", "-e", "raise 'no graal' unless Truffle.graal?"]},
   ],
 
   local other_rubies = [
