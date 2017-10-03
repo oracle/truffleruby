@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
@@ -498,6 +499,14 @@ public class ThreadManager {
             }
         } finally {
             cleanup(rootThread, rootJavaThread);
+        }
+
+        fiberPool.shutdown();
+        // We need to wait a bit in case some threads are after the finishedLatch
+        // but still not out of the submitted Runnable
+        final boolean terminated = retryWhileInterrupted(() -> fiberPool.awaitTermination(1, TimeUnit.SECONDS));
+        if (!terminated) {
+            Log.LOGGER.warning("The Fiber pool still had running jobs during shutdown");
         }
     }
 
