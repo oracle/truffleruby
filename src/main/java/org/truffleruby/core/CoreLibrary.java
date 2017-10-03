@@ -652,6 +652,7 @@ public class CoreLibrary {
         loadPathStorage = globals.put("$LOAD_PATH",
                 Layouts.ARRAY.createArray(arrayFactory, null, 0));
         globals.alias("$LOAD_PATH", "$:");
+        globals.alias("$LOAD_PATH", "$-I");
 
         loadedFeaturesStorage = globals.put("$LOADED_FEATURES",
                 Layouts.ARRAY.createArray(arrayFactory, null, 0));
@@ -661,6 +662,7 @@ public class CoreLibrary {
         globals.put("$*", argv);
 
         debugStorage = globals.put("$DEBUG", context.getOptions().DEBUG);
+        globals.alias("$DEBUG", "$-d");
 
         final Object verbose;
 
@@ -679,8 +681,11 @@ public class CoreLibrary {
         }
 
         verboseStorage = globals.put("$VERBOSE", verbose);
+        globals.alias("$VERBOSE", "$-v");
+        globals.alias("$VERBOSE", "$-w");
 
         globals.put("$/", frozenUSASCIIString(CLI_RECORD_SEPARATOR));
+        globals.alias("$/", "$-0");
 
         globals.alias("$stdout", "$>");
 
