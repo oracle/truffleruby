@@ -55,9 +55,14 @@ public class GlobalVariables {
 
     private final DynamicObject defaultValue;
     private final ConcurrentMap<String, GlobalVariableStorage> variables = new ConcurrentHashMap<>();
+    private final Map<String, String> aliases = new ConcurrentHashMap<>();
 
     public GlobalVariables(DynamicObject defaultValue) {
         this.defaultValue = defaultValue;
+    }
+
+    public String getOriginalName(String name) {
+        return aliases.getOrDefault(name, name);
     }
 
     @TruffleBoundary
@@ -81,8 +86,10 @@ public class GlobalVariables {
     }
 
     @TruffleBoundary
-    public void alias(String name, GlobalVariableStorage storage) {
-        variables.put(name, storage);
+    public void alias(String oldName, String newName) {
+        aliases.put(newName, oldName);
+        final GlobalVariableStorage storage = getStorage(oldName);
+        variables.put(newName, storage);
     }
 
     @TruffleBoundary

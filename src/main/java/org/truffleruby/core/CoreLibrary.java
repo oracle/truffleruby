@@ -651,11 +651,11 @@ public class CoreLibrary {
 
         loadPathStorage = globals.put("$LOAD_PATH",
                 Layouts.ARRAY.createArray(arrayFactory, null, 0));
-        globals.alias("$:", loadPathStorage);
+        globals.alias("$LOAD_PATH", "$:");
 
         loadedFeaturesStorage = globals.put("$LOADED_FEATURES",
                 Layouts.ARRAY.createArray(arrayFactory, null, 0));
-        globals.alias("$\"", loadedFeaturesStorage);
+        globals.alias("$LOADED_FEATURES", "$\"");
 
         globals.put("$,", nil);
         globals.put("$*", argv);
