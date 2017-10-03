@@ -29,12 +29,12 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 import org.truffleruby.language.locals.WriteFrameSlotNode;
 import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.parser.Translator;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
@@ -377,7 +377,7 @@ public abstract class BindingNodes {
             for (FrameSlot slot : frame.getFrameDescriptor().getSlots()) {
                 if (slot.getIdentifier() instanceof String &&
                         !hiddenVariable((String) slot.getIdentifier()) &&
-                        !Translator.FRAME_LOCAL_GLOBAL_VARIABLES.contains(slot.getIdentifier())) {
+                        !GlobalVariables.FRAME_LOCAL_GLOBAL_VARIABLES.contains(slot.getIdentifier())) {
                     names.add(context.getSymbolTable().getSymbol((String) slot.getIdentifier()));
                 }
             }
