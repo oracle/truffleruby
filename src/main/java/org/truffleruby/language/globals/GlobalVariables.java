@@ -26,7 +26,7 @@ import org.truffleruby.collections.ConcurrentOperations;
 public class GlobalVariables {
 
     public static final Set<String> READ_ONLY_GLOBAL_VARIABLES = new HashSet<>(
-            Arrays.asList("$:", "$LOAD_PATH", "$-I", "$\"", "$LOADED_FEATURES", "$<", "$FILENAME", "$?", "$-a", "$-l", "$-p", "$!"));
+            Arrays.asList("$LOAD_PATH", "$LOADED_FEATURES", "$<", "$FILENAME", "$?", "$-a", "$-l", "$-p", "$!"));
 
     public static final Set<String> ALWAYS_DEFINED_GLOBALS = new HashSet<>(Arrays.asList("$!", "$~", "$SAFE"));
 
