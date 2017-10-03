@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.klass;
 
-import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -241,9 +240,8 @@ public abstract class ClassNodes {
         return Layouts.BASIC_OBJECT.getMetaClass(rubyClass);
     }
 
+    @TruffleBoundary
     public static DynamicObject getSuperClass(DynamicObject rubyClass) {
-        CompilerAsserts.neverPartOfCompilation();
-
         for (DynamicObject ancestor : Layouts.MODULE.getFields(rubyClass).parentAncestors()) {
             if (RubyGuards.isRubyClass(ancestor) && ancestor != rubyClass) {
                 return ancestor;
