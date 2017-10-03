@@ -278,7 +278,7 @@ public class ThreadManager {
             }
         } else {
             if (!Layouts.THREAD.getOwnedLocks(thread).isEmpty()) {
-                Log.LOGGER.warning("Could not release locks of " + javaThread + " as its cleanup happened on another Java Thread");
+                Log.LOGGER.warning("could not release locks of " + javaThread + " as its cleanup happened on another Java Thread");
             }
         }
 
@@ -506,7 +506,7 @@ public class ThreadManager {
         // but still not out of the submitted Runnable
         final boolean terminated = retryWhileInterrupted(() -> fiberPool.awaitTermination(1, TimeUnit.SECONDS));
         if (!terminated) {
-            Log.LOGGER.warning("The Fiber pool still had running jobs during shutdown");
+            Log.LOGGER.warning("the Fiber pool still had running jobs during shutdown");
         }
     }
 
