@@ -575,3 +575,4 @@ end
 # from $stdin if no files were given.) Usable like an IO.
 #
 ARGF = Rubinius::ARGFClass.new(ARGV)
+$< = ARGF
