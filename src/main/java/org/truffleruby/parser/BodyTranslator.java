@@ -105,6 +105,7 @@ import org.truffleruby.language.globals.CheckOutputSeparatorVariableTypeNode;
 import org.truffleruby.language.globals.CheckProgramNameVariableTypeNode;
 import org.truffleruby.language.globals.CheckRecordSeparatorVariableTypeNode;
 import org.truffleruby.language.globals.CheckStdoutVariableTypeNode;
+import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.ReadLastBacktraceNode;
 import org.truffleruby.language.globals.ReadMatchReferenceNode;
@@ -1662,8 +1663,8 @@ public class BodyTranslator extends Translator {
 
         String name = node.getName();
 
-        if (GLOBAL_VARIABLE_ALIASES.containsKey(name)) {
-            name = GLOBAL_VARIABLE_ALIASES.get(name);
+        if (GlobalVariables.GLOBAL_VARIABLE_ALIASES.containsKey(name)) {
+            name = GlobalVariables.GLOBAL_VARIABLE_ALIASES.get(name);
         }
 
         switch (name) {
@@ -1702,18 +1703,18 @@ public class BodyTranslator extends Translator {
 
         final boolean inCore = getSourcePath(node.getValueNode().getPosition()).startsWith(corePath());
 
-        if (!inCore && READ_ONLY_GLOBAL_VARIABLES.contains(name)) {
+        if (!inCore && GlobalVariables.READ_ONLY_GLOBAL_VARIABLES.contains(name)) {
             return addNewlineIfNeeded(node, withSourceSection(sourceSection, new WriteReadOnlyGlobalNode(name, rhs)));
         }
 
-        if (THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+        if (GlobalVariables.THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             final GetThreadLocalsObjectNode getThreadLocalsObjectNode = GetThreadLocalsObjectNodeGen.create();
             getThreadLocalsObjectNode.unsafeSetSourceSection(sourceSection);
             return addNewlineIfNeeded(node, withSourceSection(sourceSection, new WriteInstanceVariableNode(name, getThreadLocalsObjectNode, rhs)));
-        } else if (FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+        } else if (GlobalVariables.FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             final ReadLocalNode localVarNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
             final RubyNode assignment;
-            if (THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+            if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
                 assignment = new SetInThreadAndFrameLocalStorageNode(localVarNode, rhs);
                 assignment.unsafeSetSourceSection(sourceSection);
             } else {
@@ -1744,26 +1745,26 @@ public class BodyTranslator extends Translator {
     public RubyNode visitGlobalVarNode(GlobalVarParseNode node) {
         String name = node.getName();
 
-        if (GLOBAL_VARIABLE_ALIASES.containsKey(name)) {
-            name = GLOBAL_VARIABLE_ALIASES.get(name);
+        if (GlobalVariables.GLOBAL_VARIABLE_ALIASES.containsKey(name)) {
+            name = GlobalVariables.GLOBAL_VARIABLE_ALIASES.get(name);
         }
 
         final SourceIndexLength sourceSection = node.getPosition();
         final RubyNode ret;
 
-        if (FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+        if (GlobalVariables.FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             // Assignment is implicit for many of these, so we need to declare when we use
 
             RubyNode readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
 
-            if (THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+            if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
                 readNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
                 readNode.unsafeSetSourceSection(sourceSection);
             }
 
             ret = readNode;
-        } else if (THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
-            ret = new ReadThreadLocalGlobalVariableNode(name, ALWAYS_DEFINED_GLOBALS.contains(name));
+        } else if (GlobalVariables.THREAD_LOCAL_GLOBAL_VARIABLES.contains(name)) {
+            ret = new ReadThreadLocalGlobalVariableNode(name, GlobalVariables.ALWAYS_DEFINED_GLOBALS.contains(name));
             ret.unsafeSetSourceSection(sourceSection);
         } else if (name.equals("$@")) {
             // $@ is a special-case and doesn't read directly from an ivar field in the globals object.

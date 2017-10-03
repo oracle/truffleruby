@@ -17,6 +17,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
+import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadDeclarationVariableNode;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
@@ -160,7 +161,7 @@ public class TranslatorEnvironment {
         final FrameSlot slot = methodScope.declareVar(name);
 
         final LocalVariableType type;
-        if (Translator.ALWAYS_DEFINED_GLOBALS.contains(name)) {
+        if (GlobalVariables.ALWAYS_DEFINED_GLOBALS.contains(name)) {
             type = LocalVariableType.ALWAYS_DEFINED_GLOBAL;
         } else {
             type = LocalVariableType.FRAME_LOCAL_GLOBAL;
