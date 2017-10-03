@@ -1769,11 +1769,8 @@ public class BodyTranslator extends Translator {
                     index = ReadMatchReferenceNode.HIGHEST;
                     break;
                 default:
-                    if ('1' <= type && type <= '9') {
-                        index = (type - '0');
-                    } else {
-                        throw new UnsupportedOperationException(name);
-                    }
+                    assert '1' <= type && type <= '9' : name;
+                    index = (type - '0');
             }
             final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
             final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
