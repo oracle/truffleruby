@@ -31,6 +31,11 @@ public class LazyRubyNode extends RubyNode {
         return resolve().execute(frame);
     }
 
+    @Override
+    public Object isDefined(VirtualFrame frame) {
+        return resolve().isDefined(frame);
+    }
+
     public RubyNode resolve() {
         if (resolved != null) {
             return resolved;
