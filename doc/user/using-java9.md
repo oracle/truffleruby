@@ -10,7 +10,7 @@ moment we only document it for interest.
 To run on Java 9, Graal needs to be built with Java 9 and there is no binary
 distribution of GraalVM based on Java 9 so you will need to
 [build Graal yourself](../contributor/building-graal.md), using Java 9 as the
-JDK. TruffleRuby itself needs to be built with Java 8 as normal.
+JDK. You should also build TruffleRuby with the same JDK.
 
 ```
 $ GRAAL_REPO=...path to graal repository built with JDK 9...
@@ -35,4 +35,15 @@ $ bin/truffleruby \
     -J--upgrade-module-path=$GRAAL_REPO/compiler/mxbuild/modules/jdk.internal.vm.compiler.jar \
     -e 'loop { 14 + 2}'
 [truffle] opt done ......
+```
+
+You may see this warning caused by `jnr-posix`, but it can be safely ignored
+for now.
+
+```
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by jnr.posix.JavaLibCHelper (file:.../truffleruby.jar) to method sun.nio.ch.SelChImpl.getFD()
+WARNING: Please consider reporting this to the maintainers of jnr.posix.JavaLibCHelper
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
 ```
