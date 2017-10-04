@@ -1291,11 +1291,17 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "!isEmpty(string)", "!isSingleByteOptimizable(string)" })
-        public Object rstripBang(DynamicObject string) {
+        public Object rstripBang(DynamicObject string,
+                                 @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile) {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#multiByteRStrip19.
 
             final Rope rope = rope(string);
             final Encoding enc = RopeOperations.STR_ENC_GET(rope);
+
+            if (dummyEncodingProfile.profile(enc.isDummy())) {
+                throw new RaiseException(coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+            }
+
             final byte[] bytes = rope.getBytes();
             final int start = 0;
             final int end = rope.byteLength();
