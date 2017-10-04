@@ -152,13 +152,14 @@ class String
         post_len = size - post_start
 
         return [substring(0, i),
-                pattern.dup,
+                pattern,
                 substring(post_start, post_len)]
       end
     end
 
     # Nothing worked out, this is the default.
-    [self, '', '']
+    empty = ''.encode(encoding)
+    [self, empty, empty.dup]
   end
 
   def rpartition(pattern)
@@ -179,7 +180,8 @@ class String
       end
 
       # Nothing worked out, this is the default.
-      ['', '', self]
+      empty = ''.encode(encoding)
+      [empty, empty.dup, self]
     end
   end
 
