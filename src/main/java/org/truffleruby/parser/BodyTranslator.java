@@ -1769,7 +1769,7 @@ public class BodyTranslator extends Translator {
                     index = ReadMatchReferenceNode.HIGHEST;
                     break;
                 default:
-                    assert '1' <= type && type <= '9' : name;
+                    assert '1' <= type && type <= '9' : "unknown backref global: " + name;
                     index = (type - '0');
             }
             final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
