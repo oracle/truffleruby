@@ -370,6 +370,13 @@ VALUE string_spec_StringValue(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_SAFE_STRING_VALUE
+static VALUE string_spec_SafeStringValue(VALUE self, VALUE str) {
+  SafeStringValue(str);
+  return str;
+}
+#endif
+
 #ifdef HAVE_RB_STR_HASH
 static VALUE string_spec_rb_str_hash(VALUE self, VALUE str) {
   st_index_t val = rb_str_hash(str);
@@ -444,13 +451,6 @@ static VALUE string_spec_rb_usascii_str_new_cstr(VALUE self, VALUE str) {
 #ifdef HAVE_RB_STRING
 static VALUE string_spec_rb_String(VALUE self, VALUE val) {
   return rb_String(val);
-}
-#endif
-
-#ifdef HAVE_SAFE_STRING_VALUE
-static VALUE string_spec_SafeStringValue(VALUE self, VALUE str) {
-  SafeStringValue(str);
-  return Qnil;
 }
 #endif
 
@@ -646,6 +646,10 @@ void Init_string_spec(void) {
   rb_define_method(cls, "StringValue", string_spec_StringValue, 1);
 #endif
 
+#ifdef HAVE_SAFE_STRING_VALUE
+  rb_define_method(cls, "SafeStringValue", string_spec_SafeStringValue, 1);
+#endif
+
 #ifdef HAVE_RB_STR_HASH
   rb_define_method(cls, "rb_str_hash", string_spec_rb_str_hash, 1);
 #endif
@@ -681,10 +685,6 @@ void Init_string_spec(void) {
 
 #ifdef HAVE_RB_STRING
   rb_define_method(cls, "rb_String", string_spec_rb_String, 1);
-#endif
-
-#ifdef HAVE_SAFE_STRING_VALUE
-  rb_define_method(cls, "SafeStringValue", string_spec_SafeStringValue, 1);
 #endif
 }
 
