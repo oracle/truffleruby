@@ -88,15 +88,25 @@ module Rubinius
       SHELL_META_CHAR_PATTERN = Regexp.new("[#{SHELL_META_CHARS.map(&Regexp.method(:escape)).join}]")
 
       def self.exec(*args)
-        exe = Execute.new(*args)
-        exe.spawn_setup(true)
-        exe.exec(exe.command, exe.argv, exe.env_array)
+        exe = Execute.new
+        begin
+          exe.parse(*args)
+          exe.spawn_setup(true)
+          exe.exec(exe.command, exe.argv, exe.env_array)
+        ensure
+          exe.close_files
+        end
       end
 
       def self.spawn(*args)
-        exe = Execute.new(*args)
-        exe.spawn_setup(false)
-        exe.spawn(exe.options, exe.command, exe.argv)
+        exe = Execute.new
+        begin
+          exe.parse(*args)
+          exe.spawn_setup(false)
+          exe.spawn(exe.options, exe.command, exe.argv)
+        ensure
+          exe.close_files
+        end
       end
 
       class Execute
@@ -104,6 +114,11 @@ module Rubinius
         attr_reader :argv
         attr_reader :options
         attr_reader :env_array
+
+        def initialize
+          @options = {}
+          @files_for_child = []
+        end
 
         # Turns the various varargs incantations supported by Process.spawn into a
         # [env, prog, argv, redirects, options] tuple.
@@ -118,7 +133,7 @@ module Rubinius
         # Assigns @environment, @command, @argv, @redirects, @options. All
         # elements are guaranteed to be non-nil. When no env or options are
         # given, empty hashes are returned.
-        def initialize(env_or_cmd, *args)
+        def parse(env_or_cmd, *args)
           if options = Rubinius::Type.try_convert(args.last, ::Hash, :to_hash)
             args.pop
           end
@@ -172,15 +187,12 @@ module Rubinius
             # command directly. posix_spawnp(3) will lookup the full path to the command if needed.
           end
 
-          @options = {}
-          @files_for_child = []
-
           if options
             options.each do |key, value|
               case key
               when ::IO, ::Fixnum, :in, :out, :err
                 from = convert_io_fd key
-                to = convert_to_fd value, from, @files_for_child
+                to = convert_to_fd value, from
                 redirect @options, from, to
               when ::Array
 
@@ -203,11 +215,9 @@ module Rubinius
                 # old versions of glibc which do not correctly
                 # duplicate the string containing the file path.
 
-                key.each do |k|
-                  from = convert_io_fd(k)
-                  to = convert_to_fd value, from, @files_for_child unless to
-                  redirect @options, from, to
-                end
+                fds = key.map { |k| convert_io_fd(k) }
+                to = convert_to_fd value, fds.first
+                fds.each { |fd| redirect @options, fd, to }
               when :unsetenv_others
                 if value
                   @options[:unsetenv_others] = true
@@ -243,16 +253,13 @@ module Rubinius
           end
         end
 
+        def close_files
+          @files_for_child.each { |f| f.close }
+        end
+
         def redirect(options, from, to)
-          case to
-          when ::Fixnum
-            map = (options[:redirect_fd] ||= [])
-            map << from << to
-          when ::Array
-            map = (options[:assign_fd] ||= [])
-            map << from
-            map.concat to
-          end
+          map = (options[:redirect_fd] ||= [])
+          map << from << to
         end
 
         def convert_io_fd(obj)
@@ -272,7 +279,7 @@ module Rubinius
           end
         end
 
-        def convert_to_fd(obj, target, file_list)
+        def convert_to_fd(obj, target)
           case obj
           when ::Fixnum
             obj
@@ -287,29 +294,29 @@ module Rubinius
           when ::IO
             obj.fileno
           when ::String
-            open_file_for_child(file_list, obj, default_mode(target), 0644)
+            open_file_for_child(obj, default_mode(target), 0644)
           when ::Array
             case obj.size
             when 1
-              open_file_for_child(file_list, obj[0], File::RDONLY, 0644)
+              open_file_for_child(obj[0], File::RDONLY, 0644)
             when 2
               if obj[0] == :child
-                fd = convert_to_fd obj[1], target, file_list
+                fd = convert_to_fd obj[1], target
                 fd.kind_of?(::Fixnum) ?  -(fd + 1) : fd
               else
-                open_file_for_child(file_list, obj[0], convert_file_mode(obj[1]), 0644)
+                open_file_for_child(obj[0], convert_file_mode(obj[1]), 0644)
               end
             when 3
-              open_file_for_child(file_list, obj[0], convert_file_mode(obj[1]), obj[2])
+              open_file_for_child(obj[0], convert_file_mode(obj[1]), obj[2])
             end
           else
             raise ArgumentError, "wrong exec redirect: #{obj.inspect}"
           end
         end
 
-        def open_file_for_child(file_list, name, mode, perms)
+        def open_file_for_child(name, mode, perms)
           f = File.new(name, mode, perms)
-          file_list << f
+          @files_for_child << f
           f.fileno
         end
 
@@ -386,13 +393,6 @@ module Rubinius
               warn 'spawn_setup: close_others not yet implemented'
             end
 
-            if assign_fd = options[:assign_fd]
-              assign_fd.each_slice(4) do |from, name, mode, perm|
-                to = IO.sysopen(name, mode | Fcntl::FD_CLOEXEC, perm)
-                redirect_file_descriptor(from, to)
-              end
-            end
-
             if redirect_fd = options[:redirect_fd]
               redirect_fd.each_slice(2) do |from, to|
                 redirect_file_descriptor(from, to)
@@ -416,11 +416,7 @@ module Rubinius
         end
 
         def spawn(options, command, arguments)
-          pid = begin
-                  Truffle::Process.spawn command, arguments, env_array, options
-                ensure
-                  @files_for_child.each { |f| f.close }
-                end
+          pid = Truffle::Process.spawn command, arguments, env_array, options
           # Check if the command exists *after* invoking posix_spawn so we have a pid
           unless resolve_in_path(command)
             if pid < 0

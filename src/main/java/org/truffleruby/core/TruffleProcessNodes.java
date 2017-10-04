@@ -101,19 +101,6 @@ public abstract class TruffleProcessNodes {
                         }
                         fileActions.add(SpawnFileAction.dup(to, from));
                     }
-                } else if (key == getSymbol("assign_fd")) {
-                    assert Layouts.ARRAY.isArray(value);
-                    final DynamicObject array = (DynamicObject) value;
-                    final int size = Layouts.ARRAY.getSize(array);
-                    assert size % 4 == 0;
-                    final Object[] store = ArrayOperations.toObjectArray(array);
-                    for (int i = 0; i < size; i += 4) {
-                        int fd = castToInt(store[i]);
-                        String path = StringOperations.getString((DynamicObject) store[i + 1]);
-                        int flags = castToInt(store[i + 2]);
-                        int perms = castToInt(store[i + 3]);
-                        fileActions.add(SpawnFileAction.open(path, fd, flags, perms));
-                    }
                 } else if (key == getSymbol("pgroup")) {
                     long pgroup = castToInt(value);
                     if (pgroup >= 0) {
