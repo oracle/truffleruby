@@ -871,11 +871,11 @@ class String
 
       return if bytes == bytesize
     else
-      size = sep.size
-      return if size > bytesize
+      sep_bytesize = sep.bytesize
+      return if sep_bytesize > bytesize
 
       return unless self.end_with?(sep)
-      bytes = bytesize - size
+      bytes = bytesize - sep_bytesize
     end
 
     Truffle::StringOperations.truncate(self, bytes)
