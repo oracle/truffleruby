@@ -643,11 +643,13 @@ class String
     stop = StringValue(stop)
 
     if stop.size == 1 && size == 1
+      enc = Encoding.compatible?(self.encoding, stop.encoding)
+
       return self if self > stop
       after_stop = stop.getbyte(0) + (exclusive ? 0 : 1)
       current = getbyte(0)
       until current == after_stop
-        yield current.chr
+        yield current.chr.force_encoding(enc)
         current += 1
       end
     else
@@ -655,9 +657,18 @@ class String
         after_stop = exclusive ? stop : stop.succ
         current = self
 
+        begin
+          # If both the start and end values are strings representing integer values, the encoding must be US-ASCII.
+          Truffle.invoke_primitive(:string_to_inum, self, 10, true)
+          Truffle.invoke_primitive(:string_to_inum, stop, 10, true)
+          enc = Encoding::US_ASCII
+        rescue ArgumentError
+          enc = self.encoding
+        end
+
         until current == after_stop
           yield current
-          current = StringValue(current.succ)
+          current = StringValue(current.succ).force_encoding(enc)
           break if current.size > stop.size || current.size == 0
         end
       end
