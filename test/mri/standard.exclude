@@ -28,15 +28,6 @@ etc/test_etc.rb
 fileutils/test_fileutils.rb # cannot load such file -- etc
 io/wait/test_io_wait.rb
 io/nonblock/test_flush.rb
-json/test_json.rb # Needs review for inclusion in test suite
-json/test_json_generate.rb # Needs review for inclusion in test suite
-json/test_json_rails.rb
-json/test_json_unicode.rb
-json/test_json_addition.rb
-json/test_json_encoding.rb
-json/test_json_fixtures.rb
-json/test_json_generic_object.rb
-json/test_json_string_matching.rb
 net/ftp/test_ftp.rb
 net/http/test_buffered_io.rb
 net/http/test_http.rb
