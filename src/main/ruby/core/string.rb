@@ -247,8 +247,8 @@ class String
   end
 
   def strip!
+    right = rstrip! # Process rstrip! first because it must perform an encoding compatibility check that lstrip! does not.
     left = lstrip!
-    right = rstrip!
     left.nil? && right.nil? ? nil : self
   end
 
