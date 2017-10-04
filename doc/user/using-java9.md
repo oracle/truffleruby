@@ -33,6 +33,7 @@ $ bin/truffleruby \
     -J-XX:+EnableJVMCI \
     -J--module-path=$GRAAL_REPO/sdk/mxbuild/modules/org.graalvm.graal_sdk.jar:$GRAAL_REPO/truffle/mxbuild/modules/com.oracle.truffle.truffle_api.jar \
     -J--upgrade-module-path=$GRAAL_REPO/compiler/mxbuild/modules/jdk.internal.vm.compiler.jar \
+    -J-Dgraal.TraceTruffleCompilation=true \
     -e 'loop { 14 + 2}'
 [truffle] opt done ......
 ```
