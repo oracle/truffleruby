@@ -563,7 +563,10 @@ MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer);
 #define StringValueCStr(v) rb_string_value_cstr(&(v))
 
 void rb_check_safe_obj(VALUE);
-#define SafeStringValue StringValue
+#define SafeStringValue(v) do {\
+    StringValue(v);\
+    rb_check_safe_obj(v);\
+} while (0)
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4))
 void rb_check_safe_str(VALUE) __attribute__((error("rb_check_safe_str() and Check_SafeStr() are obsolete; use SafeStringValue() instead")));
 # define Check_SafeStr(v) rb_check_safe_str((VALUE)(v))
