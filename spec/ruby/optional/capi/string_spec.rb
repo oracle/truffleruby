@@ -784,4 +784,16 @@ describe "C-API String function" do
       @s.rb_String({"bar" => "foo"}).should == '{"bar"=>"foo"}'
     end
   end
+
+  describe "SafeStringValue" do
+    it "raises for tained string when $SAFE is 1" do
+      t = Thread.new {
+        $SAFE = 1
+        lambda {
+          @s.SafeStringValue("str".taint)
+        }.should raise_error(SecurityError)
+      }
+      t.join
+    end
+  end
 end
