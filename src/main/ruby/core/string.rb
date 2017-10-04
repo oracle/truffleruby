@@ -1342,7 +1342,11 @@ class String
       start = Rubinius::Type.coerce_to start, Fixnum, :to_int
 
       start += size if start < 0
-      return if start < 0 or start > size
+      if start < 0 or start > size
+        Truffle.invoke_primitive(:regexp_set_last_match, nil) if str.kind_of? Regexp
+
+        return
+      end
     end
 
     if str.kind_of? Regexp
