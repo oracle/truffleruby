@@ -88,6 +88,7 @@ module RbConfig
       'libdirname'        => 'libdir',
       'LIBRUBY'           => '',
       'LIBRUBY_A'         => '',
+      'LIBRUBY_SO'        => 'cext/ruby.su',
       'LIBRUBYARG'        => '',
       'NULLCMD'           => ':',
       'optflags'          => '',
