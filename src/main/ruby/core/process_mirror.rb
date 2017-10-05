@@ -120,6 +120,10 @@ module Rubinius
           @files_for_child = []
         end
 
+        def close_files
+          @files_for_child.each { |f| f.close }
+        end
+
         # Turns the various varargs incantations supported by Process.spawn into a
         # [env, prog, argv, redirects, options] tuple.
         #
@@ -188,60 +192,7 @@ module Rubinius
           end
 
           if options
-            options.each do |key, value|
-              case key
-              when ::IO, ::Fixnum, :in, :out, :err
-                from = convert_io_fd key
-                to = convert_to_fd value, from
-                redirect @options, from, to
-              when ::Array
-
-                # When redirecting multiple fds to one file, as in
-                #
-                # [:out, :err] => "/some/file"
-                #
-                # We want this to be equivalent to
-                #
-                # :hidden_fd => "/some/file", :out => :hidden_fd, :err => :hidden_fd
-                #
-                # opening the destination once, and only then
-                # redirecting everything to that destination.
-                #
-                # Therefore we open all files in the parent process,
-                # and only specify redirection for the child process.
-                #
-                # We don't use open actions for this as we want to
-                # guarantee the order and need to work around a bug in
-                # old versions of glibc which do not correctly
-                # duplicate the string containing the file path.
-
-                fds = key.map { |k| convert_io_fd(k) }
-                to = convert_to_fd value, fds.first
-                fds.each { |fd| redirect @options, fd, to }
-              when :unsetenv_others
-                if value
-                  @options[:unsetenv_others] = true
-                end
-              when :pgroup
-                if value == true
-                  value = 0
-                elsif value
-                  value = Rubinius::Type.coerce_to value, ::Integer, :to_int
-                  raise ArgumentError, "negative process group ID : #{value}" if value < 0
-                else
-                  value = -1
-                end
-                @options[key] = value
-              when :chdir
-                @options[key] = Rubinius::Type.coerce_to_path(value)
-              when :umask
-                @options[key] = value
-              when :close_others
-                @options[key] = value if value
-              else
-                raise ArgumentError, "unknown exec option: #{key.inspect}"
-              end
-            end
+            parse_options(options)
           end
 
           if env
@@ -253,8 +204,61 @@ module Rubinius
           end
         end
 
-        def close_files
-          @files_for_child.each { |f| f.close }
+        def parse_options(options)
+          options.each do |key, value|
+            case key
+            when ::IO, ::Fixnum, :in, :out, :err
+              from = convert_io_fd key
+              to = convert_to_fd value, from
+              redirect @options, from, to
+            when ::Array
+
+              # When redirecting multiple fds to one file, as in
+              #
+              # [:out, :err] => "/some/file"
+              #
+              # We want this to be equivalent to
+              #
+              # :hidden_fd => "/some/file", :out => :hidden_fd, :err => :hidden_fd
+              #
+              # opening the destination once, and only then
+              # redirecting everything to that destination.
+              #
+              # Therefore we open all files in the parent process,
+              # and only specify redirection for the child process.
+              #
+              # We don't use open actions for this as we want to
+              # guarantee the order and need to work around a bug in
+              # old versions of glibc which do not correctly
+              # duplicate the string containing the file path.
+
+              fds = key.map { |k| convert_io_fd(k) }
+              to = convert_to_fd value, fds.first
+              fds.each { |fd| redirect @options, fd, to }
+            when :unsetenv_others
+              if value
+                @options[:unsetenv_others] = true
+              end
+            when :pgroup
+              if value == true
+                value = 0
+              elsif value
+                value = Rubinius::Type.coerce_to value, ::Integer, :to_int
+                raise ArgumentError, "negative process group ID : #{value}" if value < 0
+              else
+                value = -1
+              end
+              @options[key] = value
+            when :chdir
+              @options[key] = Rubinius::Type.coerce_to_path(value)
+            when :umask
+              @options[key] = value
+            when :close_others
+              @options[key] = value if value
+            else
+              raise ArgumentError, "unknown exec option: #{key.inspect}"
+            end
+          end
         end
 
         def redirect(options, from, to)
