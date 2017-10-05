@@ -2,6 +2,7 @@ ROOT := $(realpath ../../..)
 RUBY := $(ROOT)/bin/truffleruby -Xgraal.warn_unless=false
 OS := $(shell uname)
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/*.h) $(wildcard $(ROOT)/lib/cext/ruby/*.h)
+EXTCONF_DEPS := $(RUBY_HEADERS)
 RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
 CEXTS_DIR := $(ROOT)/lib/mri
 
@@ -30,7 +31,7 @@ clean:
 	rm -f $(ROOT)/lib/cext/trufflemock.bc
 
 # trufflemock.bc
-trufflemock/Makefile: trufflemock/extconf.rb
+trufflemock/Makefile: trufflemock/extconf.rb $(EXTCONF_DEPS)
 	cd trufflemock && $(RUBY) extconf.rb
 
 trufflemock/trufflemock.bc: trufflemock/Makefile trufflemock/trufflemock.c $(ROOT)/lib/cext/truffle.h
@@ -43,7 +44,7 @@ $(ROOT)/lib/cext/trufflemock.bc: trufflemock/trufflemock.bc
 cext/Makefile: cext/extconf.rb $(ROOT)/lib/cext/trufflemock.bc
 	cd cext && $(RUBY) extconf.rb
 
-cext/ruby.su: cext/Makefile cext/ruby.c $(RUBY_HEADERS)
+cext/ruby.su: cext/Makefile cext/ruby.c
 	cd cext && $(MAKE)
 
 $(RUBY_LIBRARY): cext/ruby.su
