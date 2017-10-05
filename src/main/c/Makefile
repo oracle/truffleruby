@@ -3,8 +3,11 @@ RUBY := $(ROOT)/bin/truffleruby -Xgraal.warn_unless=false
 OS := $(shell uname)
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/*.h) $(wildcard $(ROOT)/lib/cext/ruby/*.h)
 RBCONFIG := $(ROOT)/src/main/ruby/core/rbconfig.rb
-EXTCONF_DEPS := $(RUBY_HEADERS) $(RBCONFIG)
+BASIC_EXTCONF_DEPS := $(RUBY_HEADERS) $(RBCONFIG)
+TRUFFLE_MOCK := $(ROOT)/lib/cext/trufflemock.bc
 RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
+# These 2 libraries are needed for try_link() in extconf.rb
+EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) $(TRUFFLE_MOCK) $(RUBY_LIBRARY)
 CEXTS_DIR := $(ROOT)/lib/mri
 
 ifeq ($(TRUFFLERUBY_CEXT_ENABLED),false)
@@ -32,7 +35,7 @@ clean:
 	rm -f $(ROOT)/lib/cext/trufflemock.bc
 
 # trufflemock.bc
-trufflemock/Makefile: trufflemock/extconf.rb $(EXTCONF_DEPS)
+trufflemock/Makefile: trufflemock/extconf.rb $(BASIC_EXTCONF_DEPS)
 	cd trufflemock && $(RUBY) extconf.rb
 
 trufflemock/trufflemock.bc: trufflemock/Makefile trufflemock/trufflemock.c
@@ -42,7 +45,7 @@ $(ROOT)/lib/cext/trufflemock.bc: trufflemock/trufflemock.bc
 	cp $< $@
 
 # ruby.su
-cext/Makefile: cext/extconf.rb $(ROOT)/lib/cext/trufflemock.bc
+cext/Makefile: cext/extconf.rb $(BASIC_EXTCONF_DEPS)
 	cd cext && $(RUBY) extconf.rb
 
 cext/ruby.su: cext/Makefile cext/ruby.c
@@ -53,7 +56,7 @@ $(RUBY_LIBRARY): cext/ruby.su
 	cp cext/ruby.bc $(ROOT)/lib/cext/ruby.bc
 
 # openssl.su
-openssl/Makefile: $(RUBY_LIBRARY) openssl/extconf.rb
+openssl/Makefile: openssl/extconf.rb $(EXTCONF_DEPS)
 	cd openssl && $(RUBY) extconf.rb
 
 openssl/openssl.su: openssl/Makefile openssl/*.c openssl/*.h
@@ -63,7 +66,7 @@ $(CEXTS_DIR)/openssl.su: openssl/openssl.su
 	cp $< $@
 
 # zlib.su
-zlib/Makefile: $(RUBY_LIBRARY) zlib/extconf.rb
+zlib/Makefile: zlib/extconf.rb $(EXTCONF_DEPS)
 	cd zlib && $(RUBY) extconf.rb
 
 zlib/zlib.su: zlib/Makefile zlib/zlib.c
@@ -73,7 +76,7 @@ $(CEXTS_DIR)/zlib.su: zlib/zlib.su
 	cp $< $@
 
 # syslog.su
-syslog/Makefile: $(RUBY_LIBRARY) syslog/extconf.rb
+syslog/Makefile: syslog/extconf.rb $(EXTCONF_DEPS)
 	cd syslog && $(RUBY) extconf.rb
 
 syslog/syslog.su: syslog/Makefile syslog/syslog.c
