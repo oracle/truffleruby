@@ -92,7 +92,7 @@ module Rubinius
         begin
           exe.parse(*args)
           exe.spawn_setup(true)
-          exe.exec(exe.command, exe.argv, exe.env_array)
+          exe.exec
         ensure
           exe.close_files
         end
@@ -103,18 +103,13 @@ module Rubinius
         begin
           exe.parse(*args)
           exe.spawn_setup(false)
-          exe.spawn(exe.options, exe.command, exe.argv)
+          exe.spawn
         ensure
           exe.close_files
         end
       end
 
       class Execute
-        attr_reader :command
-        attr_reader :argv
-        attr_reader :options
-        attr_reader :env_array
-
         def initialize
           @options = {}
           @files_for_child = []
@@ -371,8 +366,8 @@ module Rubinius
         }
 
         def spawn_setup(alter_process)
-          env = options.delete(:unsetenv_others) ? {} : ENV.to_hash
-          if add_to_env = options.delete(:env)
+          env = @options.delete(:unsetenv_others) ? {} : ENV.to_hash
+          if add_to_env = @options.delete(:env)
             env.merge! Hash[add_to_env]
           end
 
@@ -381,23 +376,23 @@ module Rubinius
           if alter_process
             require 'fcntl'
 
-            if pgroup = options[:pgroup]
+            if pgroup = @options[:pgroup]
               Truffle::POSIX.setpgid(0, pgroup)
             end
 
-            if mask = options[:mask]
+            if mask = @options[:mask]
               Truffle::POSIX.umask(mask)
             end
 
-            if chdir = options[:chdir]
+            if chdir = @options[:chdir]
               Truffle::POSIX.chdir(chdir)
             end
 
-            if _close_others = options[:close_others]
+            if _close_others = @options[:close_others]
               warn 'spawn_setup: close_others not yet implemented'
             end
 
-            if redirect_fd = options[:redirect_fd]
+            if redirect_fd = @options[:redirect_fd]
               redirect_fd.each_slice(2) do |from, to|
                 redirect_file_descriptor(from, to)
               end
@@ -419,10 +414,10 @@ module Rubinius
           Truffle::POSIX.fcntl(from, Fcntl::F_SETFD, flags & ~Fcntl::FD_CLOEXEC)
         end
 
-        def spawn(options, command, arguments)
-          pid = Truffle::Process.spawn command, arguments, env_array, options
+        def spawn
+          pid = Truffle::Process.spawn @command, @argv, @env_array, @options
           # Check if the command exists *after* invoking posix_spawn so we have a pid
-          unless resolve_in_path(command)
+          unless resolve_in_path(@command)
             if pid < 0
               # macOS posix_spawnp(3) returns -1 and no pid when the command is not found,
               # Linux returns 0, sets the pid and let the child do the PATH lookup.
@@ -431,24 +426,24 @@ module Rubinius
               # the subprocess will fail, just wait for it
               ::Process.wait(pid) # Sets $? and avoids a zombie process
               unless $?.exitstatus == 127
-                raise "command #{command} does not exist in PATH but posix_spawnp found it!"
+                raise "command #{@command} does not exist in PATH but posix_spawnp found it!"
               end
             end
-            raise Errno::ENOENT, "No such file or directory - #{command}"
+            raise Errno::ENOENT, "No such file or directory - #{@command}"
           end
           pid
         end
 
-        def exec(command, args, env_array)
+        def exec
           # exec validates the command only if it searches in $PATH
-          if should_search_path?(command)
-            if resolved = resolve_in_path(command)
-              command = resolved
+          if should_search_path?(@command)
+            if resolved = resolve_in_path(@command)
+              @command = resolved
             else
-              raise Errno::ENOENT, "No such file or directory - #{command}"
+              raise Errno::ENOENT, "No such file or directory - #{@command}"
             end
           end
-          Truffle.invoke_primitive :vm_exec, command, args, env_array
+          Truffle.invoke_primitive :vm_exec, @command, @argv, @env_array
           raise PrimitiveFailure, 'Rubinius::Mirror::Process::Execute#exec primitive failed'
         end
 
