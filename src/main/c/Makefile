@@ -2,7 +2,8 @@ ROOT := $(realpath ../../..)
 RUBY := $(ROOT)/bin/truffleruby -Xgraal.warn_unless=false
 OS := $(shell uname)
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/*.h) $(wildcard $(ROOT)/lib/cext/ruby/*.h)
-EXTCONF_DEPS := $(RUBY_HEADERS)
+RBCONFIG := $(ROOT)/src/main/ruby/core/rbconfig.rb
+EXTCONF_DEPS := $(RUBY_HEADERS) $(RBCONFIG)
 RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
 CEXTS_DIR := $(ROOT)/lib/mri
 
