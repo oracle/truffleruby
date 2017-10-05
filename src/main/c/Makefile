@@ -35,8 +35,8 @@ clean:
 trufflemock/Makefile: trufflemock/extconf.rb $(EXTCONF_DEPS)
 	cd trufflemock && $(RUBY) extconf.rb
 
-trufflemock/trufflemock.bc: trufflemock/Makefile trufflemock/trufflemock.c $(ROOT)/lib/cext/truffle.h
-	cd trufflemock && $(MAKE)
+trufflemock/trufflemock.bc: trufflemock/Makefile trufflemock/trufflemock.c
+	cd trufflemock && $(MAKE) clean && $(MAKE)
 
 $(ROOT)/lib/cext/trufflemock.bc: trufflemock/trufflemock.bc
 	cp $< $@
@@ -46,7 +46,7 @@ cext/Makefile: cext/extconf.rb $(ROOT)/lib/cext/trufflemock.bc
 	cd cext && $(RUBY) extconf.rb
 
 cext/ruby.su: cext/Makefile cext/ruby.c
-	cd cext && $(MAKE)
+	cd cext && $(MAKE) clean && $(MAKE)
 
 $(RUBY_LIBRARY): cext/ruby.su
 	cp $< $@
@@ -57,7 +57,7 @@ openssl/Makefile: $(RUBY_LIBRARY) openssl/extconf.rb
 	cd openssl && $(RUBY) extconf.rb
 
 openssl/openssl.su: openssl/Makefile openssl/*.c openssl/*.h
-	cd openssl && $(MAKE)
+	cd openssl && $(MAKE) clean && $(MAKE)
 
 $(CEXTS_DIR)/openssl.su: openssl/openssl.su
 	cp $< $@
@@ -67,7 +67,7 @@ zlib/Makefile: $(RUBY_LIBRARY) zlib/extconf.rb
 	cd zlib && $(RUBY) extconf.rb
 
 zlib/zlib.su: zlib/Makefile zlib/zlib.c
-	cd zlib && $(MAKE)
+	cd zlib && $(MAKE) clean && $(MAKE)
 
 $(CEXTS_DIR)/zlib.su: zlib/zlib.su
 	cp $< $@
@@ -77,7 +77,7 @@ syslog/Makefile: $(RUBY_LIBRARY) syslog/extconf.rb
 	cd syslog && $(RUBY) extconf.rb
 
 syslog/syslog.su: syslog/Makefile syslog/syslog.c
-	cd syslog && $(MAKE)
+	cd syslog && $(MAKE) clean && $(MAKE)
 
 $(CEXTS_DIR)/syslog.su: syslog/syslog.su
 	cp $< $@
