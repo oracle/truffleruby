@@ -29,6 +29,16 @@ clean:
 	rm -f trufflemock/Makefile trufflemock/*.bc trufflemock/trufflemock.su
 	rm -f $(ROOT)/lib/cext/trufflemock.bc
 
+# trufflemock.bc
+trufflemock/Makefile: trufflemock/extconf.rb
+	cd trufflemock && $(RUBY) extconf.rb
+
+trufflemock/trufflemock.bc: trufflemock/Makefile trufflemock/trufflemock.c $(ROOT)/lib/cext/truffle.h
+	cd trufflemock && $(MAKE)
+
+$(ROOT)/lib/cext/trufflemock.bc: trufflemock/trufflemock.bc
+	cp $< $@
+
 # ruby.su
 cext/Makefile: cext/extconf.rb $(ROOT)/lib/cext/trufflemock.bc
 	cd cext && $(RUBY) extconf.rb
@@ -39,16 +49,6 @@ cext/ruby.su: cext/Makefile cext/ruby.c $(RUBY_HEADERS)
 $(RUBY_LIBRARY): cext/ruby.su
 	cp $< $@
 	cp cext/ruby.bc $(ROOT)/lib/cext/ruby.bc
-
-# trufflemock.bc
-trufflemock/Makefile: trufflemock/extconf.rb
-	cd trufflemock && $(RUBY) extconf.rb
-
-trufflemock/trufflemock.bc: trufflemock/Makefile trufflemock/trufflemock.c $(ROOT)/lib/cext/truffle.h
-	cd trufflemock && $(MAKE)
-
-$(ROOT)/lib/cext/trufflemock.bc: trufflemock/trufflemock.bc
-	cp $< $@
 
 # openssl.su
 openssl/Makefile: $(RUBY_LIBRARY) openssl/extconf.rb
