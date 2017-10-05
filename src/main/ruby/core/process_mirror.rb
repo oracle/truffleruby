@@ -444,7 +444,6 @@ module Rubinius
             end
           end
           Truffle.invoke_primitive :vm_exec, @command, @argv, @env_array
-          raise PrimitiveFailure, 'Rubinius::Mirror::Process::Execute#exec primitive failed'
         end
 
         def should_use_shell?(command)
