@@ -631,7 +631,7 @@ public abstract class VMPrimitiveNodes {
                 throw new RaiseException(coreExceptions().errnoError(posix().errno(), this));
             }
 
-            return null;
+            throw new RaiseException(coreExceptions().systemCallError("execve() should not return", 0, this));
         }
 
         private String[] convertToJava(DynamicObject array) {
