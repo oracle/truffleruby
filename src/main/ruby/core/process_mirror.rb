@@ -205,7 +205,7 @@ module Rubinius
             when ::IO, ::Fixnum, :in, :out, :err
               from = convert_io_fd key
               to = convert_to_fd value, from
-              redirect @options, from, to
+              redirect from, to
             when ::Array
 
               # When redirecting multiple fds to one file, as in
@@ -229,7 +229,7 @@ module Rubinius
 
               fds = key.map { |k| convert_io_fd(k) }
               to = convert_to_fd value, fds.first
-              fds.each { |fd| redirect @options, fd, to }
+              fds.each { |fd| redirect fd, to }
             when :unsetenv_others
               if value
                 @options[:unsetenv_others] = true
@@ -256,8 +256,8 @@ module Rubinius
           end
         end
 
-        def redirect(options, from, to)
-          map = (options[:redirect_fd] ||= [])
+        def redirect(from, to)
+          map = (@options[:redirect_fd] ||= [])
           map << from << to
         end
 
