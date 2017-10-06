@@ -143,6 +143,32 @@ module Truffle::CExt
     end
   end
 
+  class RbIO
+    MODE_FIELD_INDEX = 0
+    FD_FIELD_INDEX = 1
+
+    def initialize(io)
+      @io = io
+    end
+
+    def [](index)
+      if index == MODE_FIELD_INDEX
+        mode
+      else
+        raise unless index == FD_FIELD_INDEX
+        fd
+      end
+    end
+
+    def mode
+      @io.instance_variable_get(:@mode)
+    end
+
+    def fd
+      @io.instance_variable_get(:@descriptor)
+    end
+  end
+
   class RStringPtr
     attr_reader :string
 
@@ -1904,6 +1930,10 @@ module Truffle::CExt
   def rb_to_encoding(encoding)
     encoding = Encoding.find(encoding.to_str) unless encoding.is_a?(Encoding)
     RbEncoding.new(encoding)
+  end
+
+  def GetOpenFile(io)
+    RbIO.new(io)
   end
 
   def rb_enc_from_encoding(rb_encoding)
