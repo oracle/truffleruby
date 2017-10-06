@@ -111,6 +111,14 @@ module Truffle::CExt
       data_holder.data = value
     end
 
+    def data
+      data_holder.data
+    end
+
+    def data=(value)
+      data_holder.data = value
+    end
+
     def data_holder
       Truffle::CExt.hidden_variable_get(@object, :data_holder)
     end
@@ -127,6 +135,10 @@ module Truffle::CExt
 
     def [](index)
       raise unless index == NAME_FIELD_INDEX
+      @encoding.name
+    end
+
+    def name
       @encoding.name
     end
   end
