@@ -110,20 +110,16 @@ public abstract class RegexpNodes {
     }
 
     @TruffleBoundary
-    public static DynamicObject matchCommon(RubyContext context, Node currentNode, RopeNodes.MakeSubstringNode makeSubstringNode, DynamicObject regexp, DynamicObject string,
-            boolean setNamedCaptures, int startPos) {
+    public static DynamicObject matchCommon(RubyContext context, Node currentNode, DynamicObject regexp, DynamicObject string, int startPos) {
         final Matcher matcher = createMatcher(context, regexp, string, true);
         int range = StringOperations.rope(string).byteLength();
-        return matchCommon(context, currentNode, makeSubstringNode, regexp, string, setNamedCaptures, matcher, startPos, range);
+        return matchCommon(context, currentNode, regexp, string, matcher, startPos, range);
     }
 
-    @TruffleBoundary
-    public static DynamicObject matchCommon(RubyContext context, Node currentNode, RopeNodes.MakeSubstringNode makeSubstringNode, DynamicObject regexp, DynamicObject string,
-            boolean setNamedCaptures, Matcher matcher, int startPos, int range) {
+    public static DynamicObject matchCommon(RubyContext context, Node currentNode, DynamicObject regexp, DynamicObject string, Matcher matcher,
+            int startPos, int range) {
         assert RubyGuards.isRubyRegexp(regexp);
         assert RubyGuards.isRubyString(string);
-
-        final Rope sourceRope = StringOperations.rope(string);
 
         // Keep status as RUN because MRI has an uninterruptible Regexp engine
         int match = context.getThreadManager().runUntilResultKeepStatus(currentNode,
@@ -132,15 +128,6 @@ public abstract class RegexpNodes {
         final DynamicObject nil = context.getCoreLibrary().getNil();
 
         if (match == -1) {
-            if (setNamedCaptures && Layouts.REGEXP.getRegex(regexp).numberOfNames() > 0) {
-                final Frame frame = context.getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_WRITE);
-                for (Iterator<NameEntry> i = Layouts.REGEXP.getRegex(regexp).namedBackrefIterator(); i.hasNext();) {
-                    final NameEntry e = i.next();
-                    final String name = new String(e.name, e.nameP, e.nameEnd - e.nameP, StandardCharsets.UTF_8).intern();
-                    setLocalVariable(frame, name, nil);
-                }
-            }
-
             return nil;
         }
 
@@ -149,33 +136,6 @@ public abstract class RegexpNodes {
         final Region region = matcher.getEagerRegion();
         final DynamicObject matchData = Layouts.MATCH_DATA.createMatchData(context.getCoreLibrary().getMatchDataFactory(),
                 string, regexp, region, null, null, null, null, null);
-
-        if (setNamedCaptures && Layouts.REGEXP.getRegex(regexp).numberOfNames() > 0) {
-            final Frame frame = context.getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_WRITE);
-            for (Iterator<NameEntry> i = Layouts.REGEXP.getRegex(regexp).namedBackrefIterator(); i.hasNext();) {
-                final NameEntry e = i.next();
-                final String name = new String(e.name, e.nameP, e.nameEnd - e.nameP, StandardCharsets.UTF_8).intern();
-                int nth = Layouts.REGEXP.getRegex(regexp).nameToBackrefNumber(e.name, e.nameP, e.nameEnd, region);
-
-                final Object value;
-
-                // Copied from jruby/RubyRegexp - see copyright notice there
-
-                if (nth >= region.numRegs || (nth < 0 && (nth+=region.numRegs) <= 0)) {
-                    value = nil;
-                } else {
-                    final int start = region.beg[nth];
-                    final int end = region.end[nth];
-                    if (start != -1) {
-                        value = createSubstring(makeSubstringNode, string, start, end - start);
-                    } else {
-                        value = nil;
-                    }
-                }
-
-                setLocalVariable(frame, name, value);
-            }
-        }
 
         return matchData;
     }
@@ -374,7 +334,6 @@ public abstract class RegexpNodes {
     public abstract static class MatchOperatorNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
         @Child private RegexpSetLastMatchPrimitiveNode setLastMatchNode = RegexpSetLastMatchPrimitiveNodeFactory.create(null);
         @Child private CallDispatchHeadNode toSNode;
         @Child private ToStrNode toStrNode;
@@ -426,7 +385,7 @@ public abstract class RegexpNodes {
             final Matcher matcher = createMatcher(getContext(), regexp, string, true);
             final int range = StringOperations.rope(string).byteLength();
 
-            final DynamicObject matchData = matchCommon(getContext(), this, makeSubstringNode, regexp, string, true, matcher, 0, range);
+            final DynamicObject matchData = matchCommon(getContext(), this, regexp, string, matcher, 0, range);
             setLastMatchNode.executeSetLastMatch(frame, matchData);
 
             if (matchData != nil()) {
@@ -434,6 +393,128 @@ public abstract class RegexpNodes {
             }
 
             return nil();
+        }
+
+    }
+
+    @CoreMethod(names = "literal_matchop", required = 1)
+    public abstract static class LiteralMatchOperatorNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
+        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private RegexpSetLastMatchPrimitiveNode setLastMatchNode = RegexpSetLastMatchPrimitiveNodeFactory.create(null);
+        @Child private CallDispatchHeadNode toSNode;
+        @Child private ToStrNode toStrNode;
+
+        @Specialization(guards = "isRubyString(string)")
+        public Object matchString(VirtualFrame frame, DynamicObject regexp, DynamicObject string) {
+            final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
+
+            return matchWithStringCopy(frame, regexp, dupedString);
+        }
+
+        @Specialization(guards = "isRubySymbol(symbol)")
+        public Object matchSymbol(VirtualFrame frame, DynamicObject regexp, DynamicObject symbol) {
+            if (toSNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                toSNode = insert(CallDispatchHeadNode.create());
+            }
+
+            return matchWithStringCopy(frame, regexp, (DynamicObject) toSNode.call(frame, symbol, "to_s"));
+        }
+
+        @Specialization(guards = "isNil(nil)")
+        public Object matchNil(VirtualFrame frame, DynamicObject regexp, Object nil) {
+            return nil();
+        }
+
+        @Specialization(guards = { "!isRubyString(other)", "!isRubySymbol(other)", "!isNil(other)" })
+        public Object matchGeneric(VirtualFrame frame, DynamicObject regexp, DynamicObject other) {
+            if (toStrNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                toStrNode = insert(ToStrNodeGen.create(null));
+            }
+
+            return matchWithStringCopy(frame, regexp, toStrNode.executeToStr(frame, other));
+        }
+
+        // Creating a MatchData will store a copy of the source string. It's tempting to use a rope
+        // here, but a bit
+        // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods
+        // are nicely
+        // implemented using the source string data. Likewise, we need to taint objects based on the
+        // source string's
+        // taint state. We mustn't allow the source string's contents to change, however, so we must
+        // ensure that we have
+        // a private copy of that string. Since the source string would otherwise be a reference to
+        // string held outside
+        // the MatchData object, it would be possible for the source string to be modified
+        // externally.
+        //
+        // Ex. x = "abc"; x =~ /(.*)/; x.upcase!
+        //
+        // Without a private copy, the MatchData's source could be modified to be upcased when it
+        // should remain the
+        // same as when the MatchData was created.
+        private Object matchWithStringCopy(VirtualFrame frame, DynamicObject regexp, DynamicObject string) {
+            final Matcher matcher = createMatcher(getContext(), regexp, string, true);
+            final int range = StringOperations.rope(string).byteLength();
+
+            final DynamicObject matchData = matchCommon(getContext(), this, regexp, string, matcher, 0, range);
+            setLastMatchNode.executeSetLastMatch(frame, matchData);
+
+            if (matchData != nil()) {
+                setNamedForNonNil(regexp, string, matchData);
+                return matcher.getBegin();
+            }
+
+            setNamedForNil(regexp);
+            return nil();
+        }
+
+        @TruffleBoundary
+        private void setNamedForNonNil(DynamicObject regexp, DynamicObject string, DynamicObject matchData) {
+            Region region = Layouts.MATCH_DATA.getRegion(matchData);
+            DynamicObject nil = nil();
+            if (Layouts.REGEXP.getRegex(regexp).numberOfNames() > 0) {
+                final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_WRITE);
+                for (Iterator<NameEntry> i = Layouts.REGEXP.getRegex(regexp).namedBackrefIterator(); i.hasNext();) {
+                    final NameEntry e = i.next();
+                    final String name = new String(e.name, e.nameP, e.nameEnd - e.nameP, StandardCharsets.UTF_8).intern();
+                    int nth = Layouts.REGEXP.getRegex(regexp).nameToBackrefNumber(e.name, e.nameP, e.nameEnd, region);
+
+                    final Object value;
+
+                    // Copied from jruby/RubyRegexp - see copyright notice there
+
+                    if (nth >= region.numRegs || (nth < 0 && (nth += region.numRegs) <= 0)) {
+                        value = nil;
+                    } else {
+                        final int start = region.beg[nth];
+                        final int end = region.end[nth];
+                        if (start != -1) {
+                            value = createSubstring(makeSubstringNode, string, start, end - start);
+                        } else {
+                            value = nil;
+                        }
+                    }
+
+                    setLocalVariable(frame, name, value);
+                }
+            }
+        }
+
+        @TruffleBoundary
+        private void setNamedForNil(DynamicObject regexp) {
+            if (Layouts.REGEXP.getRegex(regexp).numberOfNames() > 0) {
+                DynamicObject nil = nil();
+                final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_WRITE);
+                for (Iterator<NameEntry> i = Layouts.REGEXP.getRegex(regexp).namedBackrefIterator(); i.hasNext();) {
+                    final NameEntry e = i.next();
+                    final String name = new String(e.name, e.nameP, e.nameEnd - e.nameP, StandardCharsets.UTF_8).intern();
+                    setLocalVariable(frame, name, nil);
+                }
+            }
         }
 
     }
@@ -454,12 +535,11 @@ public abstract class RegexpNodes {
     public abstract static class MatchStartNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
 
         @Specialization(guards = "isRubyString(string)")
         public Object matchStart(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
             final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
-            final Object matchResult = matchCommon(getContext(), this, makeSubstringNode, regexp, dupedString, false, startPos);
+            final Object matchResult = matchCommon(getContext(), this, regexp, dupedString, startPos);
 
             if (RubyGuards.isRubyMatchData(matchResult) && Layouts.MATCH_DATA.getRegion((DynamicObject) matchResult).numRegs > 0
                 && Layouts.MATCH_DATA.getRegion((DynamicObject) matchResult).beg[0] == startPos) {
@@ -680,13 +760,12 @@ public abstract class RegexpNodes {
     public abstract static class SearchFromNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
 
         @Specialization(guards = "isRubyString(string)")
         public Object searchFrom(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
             final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
 
-            return matchCommon(getContext(), this, makeSubstringNode, regexp, dupedString, false, startPos);
+            return matchCommon(getContext(), this, regexp, dupedString, startPos);
         }
     }
 
@@ -694,7 +773,6 @@ public abstract class RegexpNodes {
     public abstract static class SearchFromBinaryNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
 
         @Specialization(guards = "isRubyString(string)")
         public Object searchFrom(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
@@ -702,7 +780,7 @@ public abstract class RegexpNodes {
 
             final Matcher matcher = createMatcher(getContext(), regexp, dupedString, false);
             final int endPos = StringOperations.rope(dupedString).byteLength();
-            return matchCommon(getContext(), this, makeSubstringNode, regexp, dupedString, false, matcher, startPos, endPos);
+            return matchCommon(getContext(), this, regexp, dupedString, matcher, startPos, endPos);
         }
     }
 
@@ -838,17 +916,16 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string)" })
         public Object searchRegion(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
-                @Cached("create()") RopeNodes.MakeSubstringNode makeSubstringNode,
                 @Cached("create()") CallDispatchHeadNode dupNode) {
             final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
             final Matcher matcher = RegexpNodes.createMatcher(getContext(), regexp, dupedString, true);
 
             if (forward) {
                 // Search forward through the string.
-                return RegexpNodes.matchCommon(getContext(), this, makeSubstringNode, regexp, dupedString, false, matcher, start, end);
+                return RegexpNodes.matchCommon(getContext(), this, regexp, dupedString, matcher, start, end);
             } else {
                 // Search backward through the string.
-                return RegexpNodes.matchCommon(getContext(), this, makeSubstringNode, regexp, dupedString, false, matcher, end, start);
+                return RegexpNodes.matchCommon(getContext(), this, regexp, dupedString, matcher, end, start);
             }
         }
 

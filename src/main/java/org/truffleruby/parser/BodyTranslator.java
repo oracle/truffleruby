@@ -2031,7 +2031,7 @@ public class BodyTranslator extends Translator {
         // Triggered when a Regexp literal is used as a conditional's value.
 
         final ParseNode argsNode = buildArrayNode(node.getPosition(), new GlobalVarParseNode(node.getPosition(), "$_"));
-        final ParseNode callNode = new CallParseNode(node.getPosition(), node.getRegexpNode(), "=~", argsNode, null);
+        final ParseNode callNode = new CallParseNode(node.getPosition(), node.getRegexpNode(), "literal_matchop", argsNode, null);
         copyNewline(node, callNode);
         final RubyNode ret = callNode.accept(this);
         return addNewlineIfNeeded(node, ret);
