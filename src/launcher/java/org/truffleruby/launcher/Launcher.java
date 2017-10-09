@@ -112,7 +112,9 @@ public class Launcher {
                         LANGUAGE_ID,
                         // language=ruby
                         "Truffle::Boot.main",
-                        BOOT_SOURCE_NAME).build();
+                        BOOT_SOURCE_NAME)
+                        .internal(true)
+                        .build();
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }
