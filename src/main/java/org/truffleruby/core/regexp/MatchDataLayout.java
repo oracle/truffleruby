@@ -26,10 +26,10 @@ public interface MatchDataLayout extends BasicObjectLayout {
                                   DynamicObject source,
                                   DynamicObject regexp,
                                   Region region,
-                                  Object[] values,
-                                  DynamicObject pre,
-                                  DynamicObject post,
-                                  DynamicObject global,
+            @Nullable Object[] values,
+                                  @Nullable DynamicObject pre,
+                                  @Nullable DynamicObject post,
+                                  @Nullable DynamicObject global,
                                   @Nullable Region charOffsets);
 
     boolean isMatchData(DynamicObject object);
@@ -39,9 +39,17 @@ public interface MatchDataLayout extends BasicObjectLayout {
     DynamicObject getRegexp(DynamicObject object);
     Region getRegion(DynamicObject object);
     Object[] getValues(DynamicObject object);
+
+    void setValues(DynamicObject object, Object[] value);
     DynamicObject getPre(DynamicObject object);
+
+    void setPre(DynamicObject object, DynamicObject value);
     DynamicObject getPost(DynamicObject object);
+
+    void setPost(DynamicObject object, DynamicObject value);
     DynamicObject getGlobal(DynamicObject object);
+
+    void setGlobal(DynamicObject object, DynamicObject value);
 
     Region getCharOffsets(DynamicObject object);
     void setCharOffsets(DynamicObject object, Region value);

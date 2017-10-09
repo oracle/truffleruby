@@ -147,25 +147,8 @@ public abstract class RegexpNodes {
         assert match >= 0;
 
         final Region region = matcher.getEagerRegion();
-        final Object[] values = new Object[region.numRegs];
-
-        for (int n = 0; n < region.numRegs; n++) {
-            final int start = region.beg[n];
-            final int end = region.end[n];
-
-            if (start > -1 && end > -1) {
-                values[n] = createSubstring(makeSubstringNode, string, start, end - start);
-            } else {
-                values[n] = nil;
-            }
-        }
-
-        final DynamicObject pre = createSubstring(makeSubstringNode, string, 0, region.beg[0]);
-        final DynamicObject post = createSubstring(makeSubstringNode, string, region.end[0], sourceRope.byteLength() - region.end[0]);
-        final DynamicObject global = createSubstring(makeSubstringNode, string, region.beg[0], region.end[0] - region.beg[0]);
-
         final DynamicObject matchData = Layouts.MATCH_DATA.createMatchData(context.getCoreLibrary().getMatchDataFactory(),
-                string, regexp, region, values, pre, post, global, null);
+                string, regexp, region, null, null, null, null, null);
 
         if (setNamedCaptures && Layouts.REGEXP.getRegex(regexp).numberOfNames() > 0) {
             final Frame frame = context.getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_WRITE);

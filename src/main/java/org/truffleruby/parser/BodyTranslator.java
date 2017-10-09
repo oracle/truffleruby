@@ -109,7 +109,7 @@ import org.truffleruby.language.globals.CheckStdoutVariableTypeNode;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.ReadLastBacktraceNode;
-import org.truffleruby.language.globals.ReadMatchReferenceNode;
+import org.truffleruby.language.globals.ReadMatchReferenceNodes;
 import org.truffleruby.language.globals.ReadThreadLocalGlobalVariableNode;
 import org.truffleruby.language.globals.UpdateLastBacktraceNode;
 import org.truffleruby.language.globals.UpdateVerbosityNode;
@@ -1757,16 +1757,16 @@ public class BodyTranslator extends Translator {
             final char type = name.charAt(1);
             switch (type) {
                 case '`':
-                    index = ReadMatchReferenceNode.PRE;
+                    index = ReadMatchReferenceNodes.PRE;
                     break;
                 case '\'':
-                    index = ReadMatchReferenceNode.POST;
+                    index = ReadMatchReferenceNodes.POST;
                     break;
                 case '&':
-                    index = ReadMatchReferenceNode.GLOBAL;
+                    index = ReadMatchReferenceNodes.GLOBAL;
                     break;
                 case '+':
-                    index = ReadMatchReferenceNode.HIGHEST;
+                    index = ReadMatchReferenceNodes.HIGHEST;
                     break;
                 default:
                     assert '1' <= type && type <= '9' : "unknown backref global: " + name;
@@ -1774,7 +1774,7 @@ public class BodyTranslator extends Translator {
             }
             final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
             final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
-            ret = new ReadMatchReferenceNode(readMatchNode, index);
+            ret = ReadMatchReferenceNodes.create(readMatchNode, index);
         } else if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             // Assignment is implicit for these, so we need to declare when we use
             RubyNode readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
