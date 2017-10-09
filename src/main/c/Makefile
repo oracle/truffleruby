@@ -3,7 +3,8 @@ RUBY := $(ROOT)/bin/truffleruby -Xgraal.warn_unless=false
 OS := $(shell uname)
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/*.h) $(wildcard $(ROOT)/lib/cext/ruby/*.h)
 RBCONFIG := $(ROOT)/src/main/ruby/core/rbconfig.rb
-BASIC_EXTCONF_DEPS := $(RUBY_HEADERS) $(RBCONFIG)
+PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
+BASIC_EXTCONF_DEPS := $(RUBY_HEADERS) $(RBCONFIG) $(PREPROCESS)
 TRUFFLE_MOCK := $(ROOT)/lib/cext/trufflemock.bc
 RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
 # These 2 libraries are needed for try_link() in extconf.rb
