@@ -66,10 +66,10 @@ public abstract class MutexOperations {
                         }
 
                     });
+                    break;
                 } catch (Throwable t) {
                     throwable = t;
                 }
-                break;
             }
         } finally {
             if (!lock.isHeldByCurrentThread()) {
