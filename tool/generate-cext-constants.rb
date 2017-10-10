@@ -125,14 +125,14 @@ File.open("lib/cext/truffle/constants.h", "w") do |f|
   f.puts "// From #{__FILE__}"
   f.puts
 
-  constants.each do |_, name, _|
-    f.puts "VALUE rb_tr_get_#{name}(void);"
+  constants.each do |macro_name, name, _|
+    f.puts "VALUE rb_tr_get_#{name}(void);" unless macro_name[0] == 'Q'
   end
 
   f.puts
 
   constants.each do |macro_name, name, _|
-    f.puts "#define #{macro_name} rb_tr_get_#{name}()"
+    f.puts "#define #{macro_name} rb_tr_get_#{name}()" unless macro_name[0] == 'Q'
   end
 end
 
