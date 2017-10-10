@@ -166,7 +166,7 @@ module RbConfig
   cc             = CLANG
   cpp            = cc
   linkflags      = ['-g',                                     # Show debug information such as line numbers in backtrace
-                    '-Werror=implicit-function-declaration',  # To make missing C ext functions very clear
+                    '-Wimplicit-function-declaration',        # To make missing C ext functions clear
                     '-Wno-unknown-warning-option',            # If we're on an earlier version of clang without a warning option, ignore it
                     '-Wno-int-conversion',                    # MRI has VALUE defined as long while we have it as void*
                     '-Wno-int-to-pointer-cast',               # Same as above
