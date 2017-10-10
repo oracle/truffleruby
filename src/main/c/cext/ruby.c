@@ -12,9 +12,6 @@
  * as described in the file BSDL included with TruffleRuby.
  */
 
-// Needed for vasprintf
-#define _GNU_SOURCE
-
 #include <ruby.h>
 #include <ruby/debug.h>
 #include <ruby/encoding.h>

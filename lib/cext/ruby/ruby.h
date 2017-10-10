@@ -145,7 +145,6 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 #define PRI_VALUE_PREFIX        "l"
 #define PRI_LONG_PREFIX         "l"
 #define PRI_64_PREFIX           PRI_LONG_PREFIX
-#define RUBY_PRI_VALUE_MARK     ""
 #define PRIdVALUE               PRI_VALUE_PREFIX"d"
 #define PRIoVALUE               PRI_VALUE_PREFIX"o"
 #define PRIuVALUE               PRI_VALUE_PREFIX"u"
@@ -430,10 +429,16 @@ enum ruby_special_consts {
     RUBY_SPECIAL_SHIFT  = 8
 };
 
-#define Qfalse ((VALUE)RUBY_Qfalse)
-#define Qtrue  ((VALUE)RUBY_Qtrue)
-#define Qnil   ((VALUE)RUBY_Qnil)
-#define Qundef ((VALUE)RUBY_Qundef)	/* undefined value for placeholder */
+VALUE rb_tr_get_undef(void);
+VALUE rb_tr_get_true(void);
+VALUE rb_tr_get_false(void);
+VALUE rb_tr_get_nil(void);
+
+#define Qfalse rb_tr_get_false()
+#define Qtrue rb_tr_get_true()
+#define Qnil rb_tr_get_nil()
+#define Qundef rb_tr_get_undef()
+
 #define IMMEDIATE_MASK RUBY_IMMEDIATE_MASK
 #define FIXNUM_FLAG RUBY_FIXNUM_FLAG
 #if USE_FLONUM

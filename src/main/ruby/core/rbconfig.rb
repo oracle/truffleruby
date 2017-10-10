@@ -170,7 +170,6 @@ module RbConfig
                     '-Wno-unknown-warning-option',            # If we're on an earlier version of clang without a warning option, ignore it
                     '-Wno-int-conversion',                    # MRI has VALUE defined as long while we have it as void*
                     '-Wno-int-to-pointer-cast',               # Same as above
-                    '-Wno-macro-redefined',                   # We redefine __DARWIN_ALIAS_C
                     '-Wno-unused-value',                      # RB_GC_GUARD leaves
                     '-Wno-incompatible-pointer-types',        # We define VALUE as void* rather than uint32_t
                     '-Wno-expansion-to-defined',              # The openssl C extension uses macros expanding to defined
