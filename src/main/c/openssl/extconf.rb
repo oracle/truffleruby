@@ -28,6 +28,9 @@ have_flags = %w[
 
 $CFLAGS += " #{have_flags.map { |h| "-DHAVE_#{h}" }.join(' ')}"
 
+# The openssl C extension uses macros expanding to defined
+$CFLAGS += ' -Wno-expansion-to-defined'
+
 MAC = `uname`.chomp == 'Darwin'
 
 if MAC && !ENV['OPENSSL_PREFIX']

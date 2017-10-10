@@ -171,7 +171,6 @@ module RbConfig
                     '-Wno-int-conversion',                    # MRI has VALUE defined as long while we have it as void*
                     '-Wno-int-to-pointer-cast',               # Same as above
                     '-Wno-unused-value',                      # RB_GC_GUARD leaves
-                    '-Wno-expansion-to-defined',              # The openssl C extension uses macros expanding to defined
                     '-ferror-limit=500'].join(' ')
   cflags         =  "#{linkflags} -c -emit-llvm"
   # We do not have a launcher if we are embedded with the polyglot API
