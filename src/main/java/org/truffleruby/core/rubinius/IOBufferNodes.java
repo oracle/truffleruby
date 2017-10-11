@@ -37,13 +37,6 @@
  */
 package org.truffleruby.core.rubinius;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import jnr.constants.platform.Errno;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -51,7 +44,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
@@ -59,6 +51,15 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+
+import jnr.constants.platform.Errno;
 
 @CoreClass("IO::InternalBuffer")
 public abstract class IOBufferNodes {
@@ -166,7 +167,7 @@ public abstract class IOBufferNodes {
                         getContext().getSafepointManager().pollFromBlockingCall(this);
                         continue;
                     } else {
-                        throw new RaiseException(ExceptionOperations.createSystemCallError(coreLibrary().getErrnoClass(Errno.valueOf(errno)), nil(), null, errno));
+                        throw new RaiseException(getContext().getCoreExceptions().errnoError(errno, this));
                     }
                 } else {
                     break;

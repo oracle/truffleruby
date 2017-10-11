@@ -573,7 +573,8 @@ public abstract class ThreadNodes {
 
             context.getSafepointManager().pauseRubyThreadAndExecute(rubyThread, currentNode, (currentThread, currentNode1) -> {
                 if (Layouts.EXCEPTION.getBacktrace(exception) == null) {
-                    Backtrace backtrace = context.getCallStack().getBacktrace(currentNode1);
+                    DynamicObject exceptionClass = Layouts.BASIC_OBJECT.getLogicalClass(exception);
+                    Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode1, exceptionClass);
                     Layouts.EXCEPTION.setBacktrace(exception, backtrace);
                 }
                 throw new RaiseException(exception);

@@ -510,7 +510,6 @@ public class ConvertBytes {
     /** rb_invalid_str
      *
      */
-    @TruffleBoundary
     private void invalidString(String type) {
         throw new RaiseException(
                 context.getCoreExceptions().argumentErrorInvalidValue(_str, type, node));

@@ -9,17 +9,8 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameInstance;
-import com.oracle.truffle.api.frame.FrameInstanceVisitor;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.Layouts;
-import org.truffleruby.launcher.Launcher;
+import java.util.ArrayList;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.module.ModuleOperations;
@@ -31,8 +22,17 @@ import org.truffleruby.language.backtrace.InternalRootNode;
 import org.truffleruby.language.exceptions.DisablingBacktracesNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.launcher.Launcher;
 
-import java.util.ArrayList;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstanceVisitor;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 
 public class CallStackManager {
 
@@ -185,43 +185,58 @@ public class CallStackManager {
         formatter.printBacktrace(context, null, backtrace);
     }
 
-    public Backtrace getBacktrace(Node currentNode, Throwable javaThrowable) {
-        return getBacktrace(currentNode, 0, false, null, javaThrowable);
+    public Backtrace getBacktraceForException(Node currentNode, DynamicObject exceptionClass) {
+        return getBacktraceForException(currentNode, 0, exceptionClass, null);
     }
 
-    public Backtrace getBacktrace(Node currentNode) {
-        return getBacktrace(currentNode, 0, false, null, null);
+    public Backtrace getBacktraceForException(Node currentNode, int omit, DynamicObject exceptionClass) {
+        return getBacktraceForException(currentNode, omit, exceptionClass, null);
     }
 
-    public Backtrace getBacktrace(Node currentNode, int omit) {
-        return getBacktrace(currentNode, omit, false, null, null);
-    }
-
-    public Backtrace getBacktrace(Node currentNode, int omit, DynamicObject exception) {
-        return getBacktrace(currentNode, omit, false, exception, null);
-    }
-
-    public Backtrace getBacktrace(Node currentNode,
-                                  final int omit,
-                                  final boolean filterNullSourceSection,
-                                  DynamicObject exception) {
-        return getBacktrace(currentNode, omit, filterNullSourceSection, exception, null);
+    public Backtrace getBacktraceForException(Node currentNode, DynamicObject exceptionClass, Throwable javaThrowable) {
+        return getBacktraceForException(currentNode, 0, exceptionClass, javaThrowable);
     }
 
     @TruffleBoundary
-    public Backtrace getBacktrace(Node currentNode,
+    public Backtrace getBacktraceForException(Node currentNode,
                                   final int omit,
-                                  final boolean filterNullSourceSection,
-                                  DynamicObject exception,
+                                  DynamicObject exceptionClass,
                                   Throwable javaThrowable) {
-        if (exception != null
-                && context.getOptions().BACKTRACES_OMIT_UNUSED
+        assert exceptionClass != null;
+        if (context.getOptions().BACKTRACES_OMIT_UNUSED
                 && DisablingBacktracesNode.areBacktracesDisabled()
-                && ModuleOperations.assignableTo(Layouts.BASIC_OBJECT.getLogicalClass(exception),
-                    context.getCoreLibrary().getStandardErrorClass())) {
+                && ModuleOperations.assignableTo(exceptionClass, context.getCoreLibrary().getStandardErrorClass())) {
             return new Backtrace(currentNode, new Activation[] { Activation.OMITTED_UNUSED }, null);
         }
+        return getBacktrace(currentNode, omit, false, javaThrowable);
+    }
 
+    public Backtrace getBacktrace(Node currentNode) {
+        return getBacktrace(currentNode, 0, false, null);
+    }
+
+    public Backtrace getBacktrace(Node currentNode,
+            final int omit,
+            final boolean filterNullSourceSection) {
+        return getBacktrace(currentNode, omit, filterNullSourceSection, null);
+    }
+
+    @TruffleBoundary
+    public Backtrace getBacktrace(Node currentNode, int omit, boolean filterNullSourceSection, Throwable javaThrowable) {
+        final Activation[] activations = createActivations(currentNode, omit, filterNullSourceSection);
+
+        if (context.getOptions().EXCEPTIONS_STORE_JAVA || context.getOptions().BACKTRACES_INTERLEAVE_JAVA) {
+            if (javaThrowable == null) {
+                javaThrowable = new Exception();
+            }
+        } else {
+            javaThrowable = null;
+        }
+
+        return new Backtrace(currentNode, activations, javaThrowable);
+    }
+
+    public Activation[] createActivations(Node currentNode, int omit, boolean filterNullSourceSection) {
         final int limit = context.getOptions().BACKTRACES_LIMIT;
 
         final ArrayList<Activation> activations = new ArrayList<>();
@@ -275,16 +290,7 @@ public class CallStackManager {
                 activations.remove(activations.size() - 1);
             }
         }
-
-        if (context.getOptions().EXCEPTIONS_STORE_JAVA || context.getOptions().BACKTRACES_INTERLEAVE_JAVA) {
-            if (javaThrowable == null) {
-                javaThrowable = new Exception();
-            }
-        } else {
-            javaThrowable = null;
-        }
-
-        return new Backtrace(currentNode, activations.toArray(new Activation[activations.size()]), javaThrowable);
+        return activations.toArray(new Activation[activations.size()]);
     }
 
     private boolean ignoreFrame(FrameInstance frameInstance) {
