@@ -4,13 +4,15 @@
 
 Owing to our heritage as part of JRuby, we use the same parser generator as
 JRuby. In order to build the TruffleRuby parser, you'll need to first clone
-JRuby's fork of the [Jay](https://github.com/jruby/jay) repository.
+JRuby's fork of the [Jay](https://github.com/jruby/jay) repository. We use
+commit `9ffc59aabf21bee1737836fe972c4bd51f41049e`.
 
 Assuming you're in the TruffleRuby source directory:
 
 ```bash
 cd ..
 git clone https://github.com/jruby/jay.git
+ch jay && git checkout 9ffc59aabf21bee1737836fe972c4bd51f41049e
 ```
 
 NB: the location of the Jay repository is significant. Please ensure it is a

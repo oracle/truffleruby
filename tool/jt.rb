@@ -157,11 +157,13 @@ module Utilities
     raise "Can't find the #{name} repo - clone it into the repository directory or its parent"
   end
 
-  def self.find_or_clone_repo(url)
+  def self.find_or_clone_repo(url, commit=nil)
     name = File.basename url, '.git'
     path = File.expand_path("../#{name}", TRUFFLERUBY_DIR)
     unless Dir.exist? path
-      ShellUtils.sh "git", "clone", url, "../#{name}"
+      target = "../#{name}"
+      ShellUtils.sh "git", "clone", url, target
+      ShellUtils.sh "git", "checkout", commit, chdir: target if commit
     end
     path
   end
@@ -484,7 +486,7 @@ module Commands
     project = options.first
     case project
     when 'parser'
-      jay = Utilities.find_or_clone_repo('https://github.com/jruby/jay.git')
+      jay = Utilities.find_or_clone_repo('https://github.com/jruby/jay.git', '9ffc59aabf21bee1737836fe972c4bd51f41049e')
       raw_sh 'make', chdir: "#{jay}/src"
       ENV['PATH'] = "#{jay}/src:#{ENV['PATH']}"
       sh 'bash', 'tool/generate_parser'
