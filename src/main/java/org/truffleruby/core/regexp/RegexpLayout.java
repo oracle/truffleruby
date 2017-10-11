@@ -13,6 +13,10 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
+
+import java.util.HashMap;
+
+import org.jcodings.Encoding;
 import org.joni.Regex;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.rope.Rope;
@@ -27,7 +31,7 @@ public interface RegexpLayout extends BasicObjectLayout {
                                @Nullable Regex regex,
                                @Nullable Rope source,
                                RegexpOptions options,
-                               @Nullable Object cachedNames);
+                               @Nullable Object cachedEncodings);
 
     boolean isRegexp(DynamicObject object);
     boolean isRegexp(Object object);
@@ -41,4 +45,7 @@ public interface RegexpLayout extends BasicObjectLayout {
     RegexpOptions getOptions(DynamicObject object);
     void setOptions(DynamicObject object, RegexpOptions value);
 
+    Object getCachedEncodings(DynamicObject object);
+
+    void setCachedEncodings(DynamicObject object, Object value);
 }

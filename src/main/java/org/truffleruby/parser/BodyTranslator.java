@@ -2031,7 +2031,7 @@ public class BodyTranslator extends Translator {
         // Triggered when a Regexp literal is used as a conditional's value.
 
         final ParseNode argsNode = buildArrayNode(node.getPosition(), new GlobalVarParseNode(node.getPosition(), "$_"));
-        final ParseNode callNode = new CallParseNode(node.getPosition(), node.getRegexpNode(), "literal_matchop", argsNode, null);
+        final ParseNode callNode = new CallParseNode(node.getPosition(), node.getRegexpNode(), "=~", argsNode, null);
         copyNewline(node, callNode);
         final RubyNode ret = callNode.accept(this);
         return addNewlineIfNeeded(node, ret);
@@ -2040,6 +2040,11 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitMatch2Node(Match2ParseNode node) {
         // Triggered when a Regexp literal is the LHS of an expression.
+
+        final ParseNode argsNode = buildArrayNode(node.getPosition(), node.getValueNode());
+        final ParseNode callNode = new CallParseNode(node.getPosition(), node.getReceiverNode(), "=~", argsNode, null);
+        copyNewline(node, callNode);
+        RubyNode ret = callNode.accept(this);
 
         if (node.getReceiverNode() instanceof RegexpParseNode) {
             final RegexpParseNode regexpNode = (RegexpParseNode) node.getReceiverNode();
@@ -2057,13 +2062,12 @@ public class BodyTranslator extends Translator {
                     }
                     environmentToDeclareIn.declareVar(name);
                 }
+                final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, node.getPosition());
+                final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
+                ret = ReadMatchReferenceNodes.createNamePopulateingNode(regex, ret, readMatchNode);
             }
         }
 
-        final ParseNode argsNode = buildArrayNode(node.getPosition(), node.getValueNode());
-        final ParseNode callNode = new CallParseNode(node.getPosition(), node.getReceiverNode(), "=~", argsNode, null);
-        copyNewline(node, callNode);
-        final RubyNode ret = callNode.accept(this);
         return addNewlineIfNeeded(node, ret);
     }
 
