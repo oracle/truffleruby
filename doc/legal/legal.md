@@ -164,17 +164,3 @@ copyright its authors and is released under an MIT licence (see `mit.txt`).
 TruffleRuby uses JCodings (version as described in `truffleruby/pom.xml`).
 JCodings is copyright its authors and is released under an MIT licence (see
 `mit.txt`).
-
-#### JUnit
-
-TruffleRuby uses JUnit (version as described in `truffleruby/pom.xml`), but only
-for testing - it isn't included in the distribution.
-
-#### Truffle
-
-TruffleRuby of course uses Truffle (version as described in `pom.xml`). Truffle
-is copyright Oracle and/or its affiliates, GPL 2 (`gpl-2.txt`), with classpath
-exception (`cpe.txt`).
-
-Truffle includes JLine, copyright 2002-2006 Marc Prud'hommeaux, available under
-a 3-clause BSD licence (`jline.txt`).
