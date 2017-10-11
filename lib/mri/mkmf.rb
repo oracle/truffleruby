@@ -577,7 +577,8 @@ MSG
   # [+opt+] a String which contains compiler options
   def try_compile(src, opt="", *opts, &b)
     with_werror(opt, *opts) {|_opt, *| try_do(src, cc_command(_opt), *opts, &b)} and
-      File.file?("#{CONFTEST}.#{$OBJEXT}")
+      # Truffle: replace $OBJEXT with .o since that's what clang use when no -o is given
+      File.file?("#{CONFTEST}.o")
   ensure
     MakeMakefile.rm_f "#{CONFTEST}*"
   end
