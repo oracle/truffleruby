@@ -9,16 +9,15 @@
  */
 package org.truffleruby.platform.posix;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import jnr.constants.platform.Errno;
-import jnr.posix.POSIXHandler;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.exception.ExceptionOperations;
-import org.truffleruby.language.control.RaiseException;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
+
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.control.RaiseException;
+
+import jnr.constants.platform.Errno;
+import jnr.posix.POSIXHandler;
 
 public class TrufflePosixHandler implements POSIXHandler {
 
@@ -28,16 +27,10 @@ public class TrufflePosixHandler implements POSIXHandler {
         this.context = context;
     }
 
-    @TruffleBoundary
     @Override
     public void error(Errno errno, String methodName) {
         // TODO CS 17-Apr-15 - not specialised, no way to build a good stacktrace, missing content for error messages
-
-        throw new RaiseException(ExceptionOperations.createSystemCallError(
-                context.getCoreLibrary().getErrnoClass(errno),
-                context.getCoreLibrary().getNil(),
-                context.getCallStack().getBacktrace(null),
-                errno.intValue()));
+        throw new RaiseException(context.getCoreExceptions().errnoError(errno.intValue(), null));
     }
 
     @Override

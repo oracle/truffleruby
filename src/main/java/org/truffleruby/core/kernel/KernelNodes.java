@@ -278,7 +278,7 @@ public abstract class KernelNodes {
         }
 
         private DynamicObject innerCallerLocations(int omit, int length) {
-            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, 1 + omit, true, null);
+            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, 1 + omit, true);
             // Build the description of Thread::Backtrace::Location eagerly since backtrace
             // formatting relies on accessing activations above to show a user file path for core
             // methods.

@@ -172,10 +172,8 @@ public class CoreExceptions {
     }
 
     public DynamicObject argumentError(Rope message, Node currentNode, Throwable javaThrowable) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getArgumentErrorClass(),
-                StringOperations.createString(context, message),
-                context.getCallStack().getBacktrace(currentNode, javaThrowable));
+        DynamicObject exceptionClass = context.getCoreLibrary().getArgumentErrorClass();
+        return ExceptionOperations.createRubyException(context, exceptionClass, StringOperations.createString(context, message), currentNode, javaThrowable);
     }
 
     // RuntimeError
@@ -200,30 +198,25 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject runtimeError(String message, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getRuntimeErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getRuntimeErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     // SystemStackError
 
     @TruffleBoundary
     public DynamicObject systemStackErrorStackLevelTooDeep(Node currentNode, StackOverflowError javaThrowable) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getSystemStackErrorClass(),
-                coreStrings().STACK_LEVEL_TOO_DEEP.createInstance(),
-                context.getCallStack().getBacktrace(currentNode, javaThrowable));
+        DynamicObject exceptionClass = context.getCoreLibrary().getSystemStackErrorClass();
+        return ExceptionOperations.createRubyException(context, exceptionClass, coreStrings().STACK_LEVEL_TOO_DEEP.createInstance(), currentNode, javaThrowable);
     }
 
     // NoMemoryError
 
     @TruffleBoundary
     public DynamicObject noMemoryError(Node currentNode, OutOfMemoryError javaThrowable) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getNoMemoryErrorClass(),
-                coreStrings().FAILED_TO_ALLOCATE_MEMORY.createInstance(),
-                context.getCallStack().getBacktrace(currentNode, javaThrowable));
+        DynamicObject exceptionClass = context.getCoreLibrary().getNoMemoryErrorClass();
+        return ExceptionOperations.createRubyException(context, exceptionClass, coreStrings().FAILED_TO_ALLOCATE_MEMORY.createInstance(), currentNode, javaThrowable);
     }
 
     // Errno
@@ -270,10 +263,10 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject mathDomainError(String method, Node currentNode) {
-        return ExceptionOperations.createSystemCallError(
-                context.getCoreLibrary().getErrnoClass(Errno.EDOM),
-                StringOperations.createString(context, StringOperations.encodeRope(StringUtils.format("Numerical argument is out of domain - \"%s\"", method), UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode), Errno.EDOM.intValue());
+        DynamicObject exceptionClass = context.getCoreLibrary().getErrnoClass(Errno.EDOM);
+        Rope rope = StringOperations.encodeRope(StringUtils.format("Numerical argument is out of domain - \"%s\"", method), UTF8Encoding.INSTANCE);
+        DynamicObject errorMessage = StringOperations.createString(context, rope);
+        return ExceptionOperations.createSystemCallError(context, exceptionClass, errorMessage, currentNode, Errno.EDOM.intValue());
     }
 
     @TruffleBoundary
@@ -292,10 +285,7 @@ public class CoreExceptions {
         String fullMessage = StringUtils.format("%s%s", errnoObj.description(), extraMessage);
         DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
 
-        return ExceptionOperations.createSystemCallError(
-            errnoClass,
-            errorMessage,
-            context.getCallStack().getBacktrace(currentNode), errno);
+        return ExceptionOperations.createSystemCallError(context, errnoClass, errorMessage, currentNode, errno);
     }
 
     // IndexError
@@ -307,10 +297,9 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject indexError(String message, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getIndexErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getIndexErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     @TruffleBoundary
@@ -332,10 +321,9 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject localJumpError(String message, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getLocalJumpErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getLocalJumpErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     public DynamicObject noBlockGiven(Node currentNode) {
@@ -480,10 +468,9 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject typeError(String message, Node currentNode, Throwable javaThrowable) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getTypeErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode, javaThrowable));
+        DynamicObject exceptionClass = context.getCoreLibrary().getTypeErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
     }
 
     // NameError
@@ -580,8 +567,9 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject nameError(String message, Object receiver, String name, Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        showExceptionIfDebug(context.getCoreLibrary().getNameErrorClass(), messageString, backtrace);
+        DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
+        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
+        showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return Layouts.NAME_ERROR.createNameError(
                 context.getCoreLibrary().getNameErrorFactory(),
                 messageString,
@@ -596,8 +584,9 @@ public class CoreExceptions {
     public DynamicObject noMethodError(String message, Object receiver, String name, Object[] args, Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final DynamicObject argsArray =  createArray(context, args, args.length);
-        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        showExceptionIfDebug(context.getCoreLibrary().getNoMethodErrorClass(), messageString, backtrace);
+        DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
+        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
+        showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return Layouts.NO_METHOD_ERROR.createNoMethodError(
                 context.getCoreLibrary().getNoMethodErrorFactory(),
                 messageString,
@@ -610,8 +599,9 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject noSuperMethodOutsideMethodError(Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope("super called outside of method", UTF8Encoding.INSTANCE));
-        final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        showExceptionIfDebug(context.getCoreLibrary().getNameErrorClass(), messageString, backtrace);
+        DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
+        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
+        showExceptionIfDebug(exceptionClass, messageString, backtrace);
         // TODO BJF Jul 21, 2016 Review to add receiver
         DynamicObject noMethodError = Layouts.NAME_ERROR.createNameError(
                 context.getCoreLibrary().getNoMethodErrorFactory(),
@@ -657,7 +647,8 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject loadError(String message, String path, Node currentNode) {
         DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        DynamicObject loadError = ExceptionOperations.createRubyException(context.getCoreLibrary().getLoadErrorClass(), messageString, context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getLoadErrorClass();
+        DynamicObject loadError = ExceptionOperations.createRubyException(context, exceptionClass, messageString, currentNode, null);
         if("openssl.so".equals(path)){
             // This is a workaround for the rubygems/security.rb file expecting the error path to be openssl
             path = "openssl";
@@ -679,20 +670,19 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject zeroDivisionError(Node currentNode, ArithmeticException exception) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getZeroDivisionErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope("divided by 0", UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode, exception));
+        DynamicObject exceptionClass = context.getCoreLibrary().getZeroDivisionErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope("divided by 0", UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, exception);
     }
 
     // NotImplementedError
 
     @TruffleBoundary
     public DynamicObject notImplementedError(String message, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getNotImplementedErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(StringUtils.format("Method %s not implemented", message),
-                        UTF8Encoding.INSTANCE)), context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getNotImplementedErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(StringUtils.format("Method %s not implemented", message),
+                UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     // SyntaxError
@@ -704,20 +694,18 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject syntaxError(String message, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getSyntaxErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getSyntaxErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     // FloatDomainError
 
     @TruffleBoundary
     public DynamicObject floatDomainError(String value, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getFloatDomainErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getFloatDomainErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     public DynamicObject floatDomainErrorResultsToNaN(Node currentNode) {
@@ -740,10 +728,9 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject ioError(String fileName, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getIOErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(StringUtils.format("Error reading file -  %s", fileName), UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getIOErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(StringUtils.format("Error reading file -  %s", fileName), UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     // RangeError
@@ -791,10 +778,9 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject rangeError(String message, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getRangeErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getRangeErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     // InternalError
@@ -822,20 +808,18 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject internalErrorFullMessage(String fullMessage, Node currentNode, Throwable javaThrowable) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getRubyTruffleErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode, javaThrowable));
+        DynamicObject exceptionClass = context.getCoreLibrary().getRubyTruffleErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
     }
 
     // RegexpError
 
     @TruffleBoundary
     public DynamicObject regexpError(String message, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getRegexpErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getRegexpErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     // Encoding conversion errors.
@@ -852,18 +836,15 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject encodingCompatibilityError(String message, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getEncodingCompatibilityErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getEncodingCompatibilityErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     @TruffleBoundary
     public DynamicObject encodingUndefinedConversionError(Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getEncodingUndefinedConversionErrorClass(),
-                coreStrings().REPLACEMENT_CHARACTER_SETUP_FAILED.createInstance(),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getEncodingUndefinedConversionErrorClass();
+        return ExceptionOperations.createRubyException(context, exceptionClass, coreStrings().REPLACEMENT_CHARACTER_SETUP_FAILED.createInstance(), currentNode, null);
     }
 
 
@@ -871,10 +852,9 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject fiberError(String message, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getFiberErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getFiberErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     public DynamicObject deadFiberCalledError(Node currentNode) {
@@ -889,10 +869,9 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject threadError(String message, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getThreadErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getThreadErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     public DynamicObject threadErrorKilledThread(Node currentNode) {
@@ -915,38 +894,45 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject securityError(String message, Node currentNode) {
-        return ExceptionOperations.createRubyException(
-                context.getCoreLibrary().getSecurityErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getSecurityErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     // SystemCallError
 
     @TruffleBoundary
     public DynamicObject systemCallError(String message, int errno, Node currentNode) {
-        return ExceptionOperations.createSystemCallError(
-                context.getCoreLibrary().getSystemCallErrorClass(),
-                StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE)),
-                context.getCallStack().getBacktrace(currentNode), errno);
+        DynamicObject exceptionClass = context.getCoreLibrary().getSystemCallErrorClass();
+        DynamicObject errorMessage;
+        if (message == null) {
+            errorMessage = context.getCoreLibrary().getNil();
+        } else {
+            errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        }
+        return ExceptionOperations.createSystemCallError(context, exceptionClass, errorMessage, currentNode, errno);
     }
 
     // IO::EAGAINWaitReadable, IO::EAGAINWaitWritable
 
     @TruffleBoundary
     public DynamicObject eAGAINWaitReadable(Node currentNode) {
+        DynamicObject exceptionClass = context.getCoreLibrary().getEagainWaitReadable();
         return ExceptionOperations.createSystemCallError(
-                context.getCoreLibrary().getEagainWaitReadable(),
+                context,
+                exceptionClass,
                 coreStrings().RESOURCE_TEMP_UNAVAIL_READ.createInstance(),
-                context.getCallStack().getBacktrace(currentNode), Errno.EAGAIN.intValue());
+                currentNode, Errno.EAGAIN.intValue());
     }
 
     @TruffleBoundary
     public DynamicObject eAGAINWaitWritable(Node currentNode) {
+        DynamicObject exceptionClass = context.getCoreLibrary().getEagainWaitWritable();
         return ExceptionOperations.createSystemCallError(
-                context.getCoreLibrary().getEagainWaitWritable(),
+                context,
+                exceptionClass,
                 coreStrings().RESOURCE_TEMP_UNAVAIL_WRITE.createInstance(),
-                context.getCallStack().getBacktrace(currentNode), Errno.EAGAIN.intValue());
+                currentNode, Errno.EAGAIN.intValue());
     }
 
     // SystemExit
@@ -954,7 +940,8 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject systemExit(int exitStatus, Node currentNode) {
         final DynamicObject message = StringOperations.createString(context, StringOperations.encodeRope("exit", UTF8Encoding.INSTANCE));
-        final DynamicObject systemExit = ExceptionOperations.createRubyException(context.getCoreLibrary().getSystemExitClass(), message, context.getCallStack().getBacktrace(currentNode));
+        DynamicObject exceptionClass = context.getCoreLibrary().getSystemExitClass();
+        final DynamicObject systemExit = ExceptionOperations.createRubyException(context, exceptionClass, message, currentNode, null);
         systemExit.define("@status", exitStatus);
         return systemExit;
     }

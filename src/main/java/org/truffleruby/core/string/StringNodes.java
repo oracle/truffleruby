@@ -3938,7 +3938,6 @@ public abstract class StringNodes {
     @Primitive(name = "string_to_inum", lowerFixnum = 1)
     public static abstract class StringToInumPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
         @Specialization
         public Object stringToInum(DynamicObject string, int fixBase, boolean strict,
                                    @Cached("create(getSourceIndexLength())") FixnumOrBignumNode fixnumOrBignumNode) {

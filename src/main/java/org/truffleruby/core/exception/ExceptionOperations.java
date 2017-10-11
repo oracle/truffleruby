@@ -9,8 +9,9 @@
  */
 package org.truffleruby.core.exception;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.util.EnumSet;
+import java.util.List;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -21,8 +22,9 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 
-import java.util.EnumSet;
-import java.util.List;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ExceptionOperations {
 
@@ -63,18 +65,17 @@ public abstract class ExceptionOperations {
 
     // because the factory is not constant
     @TruffleBoundary
-    public static DynamicObject createRubyException(DynamicObject rubyClass, Object message, Backtrace backtrace) {
-        final RubyContext context = Layouts.MODULE.getFields(rubyClass).getContext();
+    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, Throwable javaException) {
+        Backtrace backtrace = context.getCallStack().getBacktraceForException(node, rubyClass, javaException);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.EXCEPTION.createException(Layouts.CLASS.getInstanceFactory(rubyClass), message, backtrace);
     }
 
     // because the factory is not constant
     @TruffleBoundary
-    public static DynamicObject createSystemCallError(DynamicObject rubyClass, Object message, Backtrace backtrace, int errno) {
-        final RubyContext context = Layouts.MODULE.getFields(rubyClass).getContext();
+    public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message, Node node, int errno) {
+        Backtrace backtrace = context.getCallStack().getBacktraceForException(node, rubyClass);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.SYSTEM_CALL_ERROR.createSystemCallError(Layouts.CLASS.getInstanceFactory(rubyClass), message, backtrace, errno);
     }
-
 }
