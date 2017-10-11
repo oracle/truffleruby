@@ -135,8 +135,8 @@ the distribution:
 #### Java Native Runtime and associated libraries
 
 TruffleRuby distributes jnr-posix, jnr-constants, jnr-ffi, jffi (versions as
-described in `truffleruby/pom.xml`) and their dependencies. These are generally
-by the JRuby team and are licensed as:
+described in `mx.truffleruby/suite.py`) and their dependencies. These are
+generally by the JRuby team and are licensed as:
 
 * jnr-posix (EPL 1.0 `epl-1.0.txt` or GPL 2 `gpl-2.txt` or LGPL 2.1 `lgpl-2.1.txt`)
 * jnr-constants (Apache 2.0 `apache-2.0.txt`)
@@ -150,17 +150,17 @@ by the JRuby team and are licensed as:
 
 #### SnakeYAML
 
-TruffleRuby uses SnakeYaml (version as described in `truffleruby/pom.xml`).
+TruffleRuby uses SnakeYaml (version as described in `mx.truffleruby/suite.py`).
 SnakeYAML is copyright the SnakeYAML authors and is licensed under Apache 2.0
 (see `apache-2.0.txt`).
 
 #### JONI
 
-TruffleRuby uses JONI (version as described in `truffleruby/pom.xml`). JONI is
+TruffleRuby uses JONI (version as described in `mx.truffleruby/suite.py`). JONI is
 copyright its authors and is released under an MIT licence (see `mit.txt`).
 
 #### JCodings
 
-TruffleRuby uses JCodings (version as described in `truffleruby/pom.xml`).
+TruffleRuby uses JCodings (version as described in `mx.truffleruby/suite.py`).
 JCodings is copyright its authors and is released under an MIT licence (see
 `mit.txt`).
