@@ -24,6 +24,8 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
@@ -53,6 +55,7 @@ import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -69,6 +72,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -82,6 +86,7 @@ import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 
 @CoreClass("Regexp")
@@ -96,39 +101,44 @@ public abstract class RegexpNodes {
         Regex regex = Layouts.REGEXP.getRegex(regexp);
 
         if (encodingConversion && regex.getEncoding() != enc) {
-            final Encoding[] fixedEnc = new Encoding[] { null };
-            final Rope sourceRope = Layouts.REGEXP.getSource(regexp);
-            final RopeBuilder preprocessed = ClassicRegexp.preprocess(context, sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-            final RegexpOptions options = Layouts.REGEXP.getOptions(regexp);
-            final Encoding newEnc = checkEncoding(regexp, stringRope, true);
-            regex = new Regex(preprocessed.getUnsafeBytes(), 0, preprocessed.getLength(),
-                    options.toJoniOptions(), newEnc);
-            assert enc == newEnc;
+            HashMap<Encoding, Regex> encodingCache = (HashMap<Encoding, Regex>) Layouts.REGEXP.getCachedEncodings(regexp);
+            if (encodingCache == null) {
+                encodingCache = new HashMap<>();
+                Layouts.REGEXP.setCachedEncodings(regexp, encodingCache);
+            }
+            regex = encodingCache.computeIfAbsent(enc, e -> makeRegexpForEncoding(context, regexp, e));
         }
 
-        return regex.matcher(stringRope.getBytes(), 0, stringRope.byteLength());
+        byte[] bytes = stringRope.getBytes();
+        return regex.matcher(bytes, 0, stringRope.byteLength());
     }
 
-    @TruffleBoundary
-    public static DynamicObject matchCommon(RubyContext context, Node currentNode, DynamicObject regexp, DynamicObject string, int startPos) {
+    private static Regex makeRegexpForEncoding(RubyContext context, DynamicObject regexp, final Encoding enc) {
+        Regex regex;
+        final Encoding[] fixedEnc = new Encoding[] { null };
+        final Rope sourceRope = Layouts.REGEXP.getSource(regexp);
+        final RopeBuilder preprocessed = ClassicRegexp.preprocess(context, sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        final RegexpOptions options = Layouts.REGEXP.getOptions(regexp);
+        regex = new Regex(preprocessed.getUnsafeBytes(), 0, preprocessed.getLength(),
+                options.toJoniOptions(), enc);
+        return regex;
+    }
+
+    public static DynamicObject matchCommon(RubyContext context, Node currentNode, DynamicObject regexp, DynamicObject string, int startPos, boolean onlyMatchAtStart) {
         final Matcher matcher = createMatcher(context, regexp, string, true);
         int range = StringOperations.rope(string).byteLength();
-        return matchCommon(context, currentNode, regexp, string, matcher, startPos, range);
+        return matchCommon(context, currentNode, regexp, string, matcher, startPos, range, onlyMatchAtStart);
     }
 
     public static DynamicObject matchCommon(RubyContext context, Node currentNode, DynamicObject regexp, DynamicObject string, Matcher matcher,
-            int startPos, int range) {
+            int startPos, int range, boolean onlyMatchAtStart) {
         assert RubyGuards.isRubyRegexp(regexp);
         assert RubyGuards.isRubyString(string);
 
-        // Keep status as RUN because MRI has an uninterruptible Regexp engine
-        int match = context.getThreadManager().runUntilResultKeepStatus(currentNode,
-                () -> matcher.searchInterruptible(startPos, range, Option.DEFAULT));
-
-        final DynamicObject nil = context.getCoreLibrary().getNil();
+        int match = runMatch(context, currentNode, matcher, startPos, range, onlyMatchAtStart);
 
         if (match == -1) {
-            return nil;
+            return context.getCoreLibrary().getNil();
         }
 
         assert match >= 0;
@@ -140,30 +150,15 @@ public abstract class RegexpNodes {
         return matchData;
     }
 
-    // because the factory is not constant
     @TruffleBoundary
-    private static DynamicObject createSubstring(RopeNodes.MakeSubstringNode makeSubstringNode, DynamicObject source, int start, int length) {
-        assert RubyGuards.isRubyString(source);
-
-        final Rope sourceRope = StringOperations.rope(source);
-        final Rope substringRope = makeSubstringNode.executeMake(sourceRope, start, length);
-
-        final DynamicObject ret = Layouts.CLASS.getInstanceFactory(Layouts.BASIC_OBJECT.getLogicalClass(source)).newInstance(Layouts.STRING.build(false, false, substringRope));
-
-        return ret;
-    }
-
-    private static void setLocalVariable(Frame frame, String name, Object value) {
-        assert value != null;
-
-        while (frame != null) {
-            final FrameSlot slot = frame.getFrameDescriptor().findFrameSlot(name);
-            if (slot != null) {
-                frame.setObject(slot, value);
-                break;
-            }
-
-            frame = RubyArguments.getDeclarationFrame(frame);
+    private static int runMatch(RubyContext context, Node currentNode, Matcher matcher, int startPos, int range, boolean onlyMatchAtStart) {
+        // Keep status as RUN because MRI has an uninterruptible Regexp engine
+        if (onlyMatchAtStart) {
+            return context.getThreadManager().runUntilResultKeepStatus(currentNode,
+                    () -> matcher.matchInterruptible(startPos, range, Option.DEFAULT));
+        } else {
+            return context.getThreadManager().runUntilResultKeepStatus(currentNode,
+                    () -> matcher.searchInterruptible(startPos, range, Option.DEFAULT));
         }
     }
 
@@ -246,11 +241,14 @@ public abstract class RegexpNodes {
         Layouts.REGEXP.setOptions(regexp, options);
     }
 
-    // TODO (nirvdrum 03-June-15) Unify with JRuby in RegexpSupport.
     public static Encoding checkEncoding(DynamicObject regexp, Rope str, boolean warn) {
+        return checkEncoding(regexp, str.getEncoding(), str.getCodeRange(), warn);
+    }
+
+    // TODO (nirvdrum 03-June-15) Unify with JRuby in RegexpSupport.
+    public static Encoding checkEncoding(DynamicObject regexp, Encoding strEnc, CodeRange codeRange, boolean warn) {
         assert RubyGuards.isRubyRegexp(regexp);
 
-        final Encoding strEnc = str.getEncoding();
         final Encoding regexEnc = Layouts.REGEXP.getRegex(regexp).getEncoding();
 
         /*
@@ -261,7 +259,7 @@ public abstract class RegexpNodes {
         //check();
         if (strEnc == regexEnc) {
             return regexEnc;
-        } else if (regexEnc == USASCIIEncoding.INSTANCE && str.getCodeRange() == CodeRange.CR_7BIT) {
+        } else if (regexEnc == USASCIIEncoding.INSTANCE && codeRange == CodeRange.CR_7BIT) {
             return regexEnc;
         } else if (!strEnc.isAsciiCompatible()) {
             if (strEnc != regexEnc) {
@@ -385,7 +383,7 @@ public abstract class RegexpNodes {
             final Matcher matcher = createMatcher(getContext(), regexp, string, true);
             final int range = StringOperations.rope(string).byteLength();
 
-            final DynamicObject matchData = matchCommon(getContext(), this, regexp, string, matcher, 0, range);
+            final DynamicObject matchData = matchCommon(getContext(), this, regexp, string, matcher, 0, range, false);
             setLastMatchNode.executeSetLastMatch(frame, matchData);
 
             if (matchData != nil()) {
@@ -393,128 +391,6 @@ public abstract class RegexpNodes {
             }
 
             return nil();
-        }
-
-    }
-
-    @CoreMethod(names = "literal_matchop", required = 1)
-    public abstract static class LiteralMatchOperatorNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
-        @Child private RegexpSetLastMatchPrimitiveNode setLastMatchNode = RegexpSetLastMatchPrimitiveNodeFactory.create(null);
-        @Child private CallDispatchHeadNode toSNode;
-        @Child private ToStrNode toStrNode;
-
-        @Specialization(guards = "isRubyString(string)")
-        public Object matchString(VirtualFrame frame, DynamicObject regexp, DynamicObject string) {
-            final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
-
-            return matchWithStringCopy(frame, regexp, dupedString);
-        }
-
-        @Specialization(guards = "isRubySymbol(symbol)")
-        public Object matchSymbol(VirtualFrame frame, DynamicObject regexp, DynamicObject symbol) {
-            if (toSNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toSNode = insert(CallDispatchHeadNode.create());
-            }
-
-            return matchWithStringCopy(frame, regexp, (DynamicObject) toSNode.call(frame, symbol, "to_s"));
-        }
-
-        @Specialization(guards = "isNil(nil)")
-        public Object matchNil(VirtualFrame frame, DynamicObject regexp, Object nil) {
-            return nil();
-        }
-
-        @Specialization(guards = { "!isRubyString(other)", "!isRubySymbol(other)", "!isNil(other)" })
-        public Object matchGeneric(VirtualFrame frame, DynamicObject regexp, DynamicObject other) {
-            if (toStrNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toStrNode = insert(ToStrNodeGen.create(null));
-            }
-
-            return matchWithStringCopy(frame, regexp, toStrNode.executeToStr(frame, other));
-        }
-
-        // Creating a MatchData will store a copy of the source string. It's tempting to use a rope
-        // here, but a bit
-        // inconvenient because we can't work with ropes directly in Ruby and some MatchData methods
-        // are nicely
-        // implemented using the source string data. Likewise, we need to taint objects based on the
-        // source string's
-        // taint state. We mustn't allow the source string's contents to change, however, so we must
-        // ensure that we have
-        // a private copy of that string. Since the source string would otherwise be a reference to
-        // string held outside
-        // the MatchData object, it would be possible for the source string to be modified
-        // externally.
-        //
-        // Ex. x = "abc"; x =~ /(.*)/; x.upcase!
-        //
-        // Without a private copy, the MatchData's source could be modified to be upcased when it
-        // should remain the
-        // same as when the MatchData was created.
-        private Object matchWithStringCopy(VirtualFrame frame, DynamicObject regexp, DynamicObject string) {
-            final Matcher matcher = createMatcher(getContext(), regexp, string, true);
-            final int range = StringOperations.rope(string).byteLength();
-
-            final DynamicObject matchData = matchCommon(getContext(), this, regexp, string, matcher, 0, range);
-            setLastMatchNode.executeSetLastMatch(frame, matchData);
-
-            if (matchData != nil()) {
-                setNamedForNonNil(regexp, string, matchData);
-                return matcher.getBegin();
-            }
-
-            setNamedForNil(regexp);
-            return nil();
-        }
-
-        @TruffleBoundary
-        private void setNamedForNonNil(DynamicObject regexp, DynamicObject string, DynamicObject matchData) {
-            Region region = Layouts.MATCH_DATA.getRegion(matchData);
-            DynamicObject nil = nil();
-            if (Layouts.REGEXP.getRegex(regexp).numberOfNames() > 0) {
-                final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_WRITE);
-                for (Iterator<NameEntry> i = Layouts.REGEXP.getRegex(regexp).namedBackrefIterator(); i.hasNext();) {
-                    final NameEntry e = i.next();
-                    final String name = new String(e.name, e.nameP, e.nameEnd - e.nameP, StandardCharsets.UTF_8).intern();
-                    int nth = Layouts.REGEXP.getRegex(regexp).nameToBackrefNumber(e.name, e.nameP, e.nameEnd, region);
-
-                    final Object value;
-
-                    // Copied from jruby/RubyRegexp - see copyright notice there
-
-                    if (nth >= region.numRegs || (nth < 0 && (nth += region.numRegs) <= 0)) {
-                        value = nil;
-                    } else {
-                        final int start = region.beg[nth];
-                        final int end = region.end[nth];
-                        if (start != -1) {
-                            value = createSubstring(makeSubstringNode, string, start, end - start);
-                        } else {
-                            value = nil;
-                        }
-                    }
-
-                    setLocalVariable(frame, name, value);
-                }
-            }
-        }
-
-        @TruffleBoundary
-        private void setNamedForNil(DynamicObject regexp) {
-            if (Layouts.REGEXP.getRegex(regexp).numberOfNames() > 0) {
-                DynamicObject nil = nil();
-                final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend().getFrame(FrameAccess.READ_WRITE);
-                for (Iterator<NameEntry> i = Layouts.REGEXP.getRegex(regexp).namedBackrefIterator(); i.hasNext();) {
-                    final NameEntry e = i.next();
-                    final String name = new String(e.name, e.nameP, e.nameEnd - e.nameP, StandardCharsets.UTF_8).intern();
-                    setLocalVariable(frame, name, nil);
-                }
-            }
         }
 
     }
@@ -539,7 +415,7 @@ public abstract class RegexpNodes {
         @Specialization(guards = "isRubyString(string)")
         public Object matchStart(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
             final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
-            final Object matchResult = matchCommon(getContext(), this, regexp, dupedString, startPos);
+            final Object matchResult = matchCommon(getContext(), this, regexp, dupedString, startPos, true);
 
             if (RubyGuards.isRubyMatchData(matchResult) && Layouts.MATCH_DATA.getRegion((DynamicObject) matchResult).numRegs > 0
                 && Layouts.MATCH_DATA.getRegion((DynamicObject) matchResult).beg[0] == startPos) {
@@ -765,7 +641,7 @@ public abstract class RegexpNodes {
         public Object searchFrom(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
             final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
 
-            return matchCommon(getContext(), this, regexp, dupedString, startPos);
+            return matchCommon(getContext(), this, regexp, dupedString, startPos, false);
         }
     }
 
@@ -780,7 +656,7 @@ public abstract class RegexpNodes {
 
             final Matcher matcher = createMatcher(getContext(), regexp, dupedString, false);
             final int endPos = StringOperations.rope(dupedString).byteLength();
-            return matchCommon(getContext(), this, regexp, dupedString, matcher, startPos, endPos);
+            return matchCommon(getContext(), this, regexp, dupedString, matcher, startPos, endPos, false);
         }
     }
 
@@ -922,10 +798,10 @@ public abstract class RegexpNodes {
 
             if (forward) {
                 // Search forward through the string.
-                return RegexpNodes.matchCommon(getContext(), this, regexp, dupedString, matcher, start, end);
+                return RegexpNodes.matchCommon(getContext(), this, regexp, dupedString, matcher, start, end, false);
             } else {
                 // Search backward through the string.
-                return RegexpNodes.matchCommon(getContext(), this, regexp, dupedString, matcher, end, start);
+                return RegexpNodes.matchCommon(getContext(), this, regexp, dupedString, matcher, end, start, false);
             }
         }
 
