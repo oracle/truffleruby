@@ -2128,6 +2128,8 @@ RULES
     unless suffixes.empty?
       depout.unshift(".SUFFIXES: ." + suffixes.uniq.join(" .") + "\n\n")
     end
+    # Truffle: added dependency on Makefile as we should recompile if the Makefile was re-generated
+    depout.unshift("$(OBJS): Makefile\n")
     depout.unshift("$(OBJS): $(RUBY_EXTCONF_H)\n\n") if $extconf_h
     depout.flatten!
     depout
@@ -2474,7 +2476,8 @@ site-install-rb: install-rb
     if File.exist?(depend)
       mfile.print("###\n", *depend_rules(File.read(depend)))
     else
-      mfile.print "$(OBJS): $(HDRS) $(ruby_headers)\n"
+      # Truffle: added dependency on Makefile as we should recompile if the Makefile was re-generated
+      mfile.print "$(OBJS): $(HDRS) $(ruby_headers) Makefile\n"
     end
 
     $makefile_created = true
