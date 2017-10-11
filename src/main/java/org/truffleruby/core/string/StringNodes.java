@@ -3215,9 +3215,8 @@ public abstract class StringNodes {
 
             final byte[] bytes = new byte[length];
 
-            try {
-                encoding.codeToMbc((int) code, bytes, 0);
-            } catch (EncodingException e) {
+            final int codeToMbc = encoding.codeToMbc((int) code, bytes, 0);
+            if (codeToMbc < 0) {
                 throw new RaiseException(coreExceptions().rangeError(code, rubyEncoding, this));
             }
 
