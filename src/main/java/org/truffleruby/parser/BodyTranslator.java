@@ -1753,28 +1753,26 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret;
         if (GlobalVariables.BACKREF_GLOBAL_VARIABLES.contains(name)) {
-            int index = 0;
+            final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
+            final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
             final char type = name.charAt(1);
             switch (type) {
                 case '`':
-                    index = ReadMatchReferenceNodes.PRE;
+                    ret = new ReadMatchReferenceNodes.ReadPreMatchNode(readMatchNode);
                     break;
                 case '\'':
-                    index = ReadMatchReferenceNodes.POST;
+                    ret = new ReadMatchReferenceNodes.ReadPostMatchNode(readMatchNode);
                     break;
                 case '&':
-                    index = ReadMatchReferenceNodes.GLOBAL;
+                    ret = new ReadMatchReferenceNodes.ReadMatchNode(readMatchNode);
                     break;
                 case '+':
-                    index = ReadMatchReferenceNodes.HIGHEST;
+                    ret = new ReadMatchReferenceNodes.ReadHighestMatchNode(readMatchNode);
                     break;
                 default:
                     assert '1' <= type && type <= '9' : "unknown backref global: " + name;
-                    index = (type - '0');
+                    ret = new ReadMatchReferenceNodes.ReadNthMatchNode(readMatchNode, type - '0');
             }
-            final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, sourceSection);
-            final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
-            ret = ReadMatchReferenceNodes.create(readMatchNode, index);
         } else if (GlobalVariables.THREAD_AND_FRAME_LOCAL_GLOBAL_VARIABLES.contains(name)) {
             // Assignment is implicit for these, so we need to declare when we use
             RubyNode readNode = environment.findFrameLocalGlobalVarNode(name, source, sourceSection);
@@ -2064,7 +2062,7 @@ public class BodyTranslator extends Translator {
                 }
                 final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, node.getPosition());
                 final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
-                ret = ReadMatchReferenceNodes.createNamePopulateingNode(regex, ret, readMatchNode);
+                ret = new ReadMatchReferenceNodes.SetNamedVariablesMatchNode(regex, ret, readMatchNode);
             }
         }
 

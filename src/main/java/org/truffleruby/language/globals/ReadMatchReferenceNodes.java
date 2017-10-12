@@ -16,25 +16,22 @@ import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Region;
 import org.truffleruby.Layouts;
+import org.truffleruby.core.regexp.MatchDataNodes.MatchNode;
 import org.truffleruby.core.regexp.MatchDataNodes.PostMatchNode;
 import org.truffleruby.core.regexp.MatchDataNodes.PreMatchNode;
 import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.regexp.MatchDataNodes.GlobalNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.threadlocal.GetFromThreadAndFrameLocalStorageNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -46,7 +43,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
     public static final int HIGHEST = -4;
 
     public static class ReadPreMatchNode extends RubyNode {
-        @Child PreMatchNode preMatchNode = PreMatchNode.create(null);
+        @Child PreMatchNode preMatchNode = PreMatchNode.create();
         @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
@@ -79,7 +76,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
     }
 
     public static class ReadPostMatchNode extends RubyNode {
-        @Child PostMatchNode postMatchNode = PostMatchNode.create(null);
+        @Child PostMatchNode postMatchNode = PostMatchNode.create();
         @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
@@ -111,13 +108,13 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
         }
     }
 
-    public static class ReadGlobalMatchNode extends RubyNode {
-        @Child GlobalNode tosMatchNode = GlobalNode.create(null);
+    public static class ReadMatchNode extends RubyNode {
+        @Child MatchNode tosMatchNode = MatchNode.create();
         @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
 
-        public ReadGlobalMatchNode(GetFromThreadAndFrameLocalStorageNode readMatchNode) {
+        public ReadMatchNode(GetFromThreadAndFrameLocalStorageNode readMatchNode) {
             this.readMatchNode = readMatchNode;
         }
 
@@ -314,24 +311,5 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
 
             return ret;
         }
-    }
-
-    public static RubyNode create(GetFromThreadAndFrameLocalStorageNode readMatchNode2, int index) {
-        switch (index) {
-            case PRE:
-                return new ReadPreMatchNode(readMatchNode2);
-            case POST:
-                return new ReadPostMatchNode(readMatchNode2);
-            case GLOBAL:
-                return new ReadGlobalMatchNode(readMatchNode2);
-            case HIGHEST:
-                return new ReadHighestMatchNode(readMatchNode2);
-            default:
-                return new ReadNthMatchNode(readMatchNode2, index);
-        }
-    }
-
-    public static RubyNode createNamePopulateingNode(Regex regex, RubyNode matchResultNode, GetFromThreadAndFrameLocalStorageNode readMatchNode) {
-        return new SetNamedVariablesMatchNode(regex, matchResultNode, readMatchNode);
     }
 }

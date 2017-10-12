@@ -9,17 +9,14 @@
  */
 package org.truffleruby.core.regexp;
 
+import org.joni.Regex;
+import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.rope.Rope;
+
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 import com.oracle.truffle.api.object.dsl.Nullable;
-
-import java.util.HashMap;
-
-import org.jcodings.Encoding;
-import org.joni.Regex;
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.core.rope.Rope;
 
 @Layout
 public interface RegexpLayout extends BasicObjectLayout {
@@ -31,7 +28,7 @@ public interface RegexpLayout extends BasicObjectLayout {
                                @Nullable Regex regex,
                                @Nullable Rope source,
                                RegexpOptions options,
-                               @Nullable Object cachedEncodings);
+            @Nullable EncodingCache cachedEncodings);
 
     boolean isRegexp(DynamicObject object);
     boolean isRegexp(Object object);
@@ -45,7 +42,7 @@ public interface RegexpLayout extends BasicObjectLayout {
     RegexpOptions getOptions(DynamicObject object);
     void setOptions(DynamicObject object, RegexpOptions value);
 
-    Object getCachedEncodings(DynamicObject object);
+    EncodingCache getCachedEncodings(DynamicObject object);
 
-    void setCachedEncodings(DynamicObject object, Object value);
+    void setCachedEncodings(DynamicObject object, EncodingCache value);
 }
