@@ -24,21 +24,6 @@ function libext {
     fi
 }
 
-# Prefix any option in $java_args with -J:, values are just copied over
-function prefix_java_args {
-    local result=()
-    for opt in "${java_args[@]}"
-    do
-        case "$opt" in
-            -*)
-                result+=("-J:${opt}") ;;
-            *)
-                result+=("$opt") ;;
-        esac
-    done
-    java_args=("${result[@]}")
-}
-
 # get the absolute path of the executable and resolve symlinks
 SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
 while [ -h "$SELF_PATH" ]; do
@@ -98,10 +83,15 @@ fi
 # no " to split $JAVA_OPTS into array elements
 java_opts=($JAVA_OPTS)
 
+print_command="false"
+
 # Extract -cp/-classpath arguments as we need to merge them
 while [ ${#java_opts[@]} -gt 0 ]; do
     val="${java_opts[0]}"
     case "$val" in
+    -cmd)
+        print_command="true"
+        ;;
     -cp|-classpath)
         java_opts=("${java_opts[@]:1}")
         CP="$CP:${java_opts[0]}"
@@ -119,6 +109,9 @@ ruby_args=()
 while [ $# -gt 0 ]
 do
     case "$1" in
+    -J-cmd|--jvm.cmd)
+        print_command="true"
+        ;;
     -J-cp|-J-classpath|-J:cp|-J:classpath)
         CP="$CP:$2"
         shift
@@ -155,11 +148,6 @@ do
     shift
 done
 
-print_command="false"
-for opt in "${java_args[@]}"; do
-    [ "${opt}" = "-cmd" ] && print_command="true"
-done
-
 # Append the rest of the arguments
 ruby_args=("${ruby_args[@]}" "$@")
 
@@ -168,15 +156,9 @@ if [ -n "$CP" ]; then
     java_args=("-cp" "${CP:1}" "${java_args[@]}")
 fi
 
-declare -a full_command
-declare -a java_args_without_cmd
-for value in "${java_args[@]}"; do
-    [[ "$value" != "-cmd" ]] && java_args_without_cmd+=("$value")
-done
-
 full_command=(
     "$JAVACMD"
-    "${java_args_without_cmd[@]}"
+    "${java_args[@]}"
     org.truffleruby.Main
     "-Xhome=$root"
     "-Xlauncher=$root/bin/truffleruby"
