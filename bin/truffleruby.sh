@@ -55,6 +55,7 @@ fi
 java_args=()
 CP=""
 
+# Truffle
 binary_truffle="$root/mx.imports/binary/truffle/mxbuild"
 source_truffle="$root_parent/graal/truffle/mxbuild"
 if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
@@ -72,11 +73,21 @@ CP="$CP:$truffle/dists/truffle-nfi.jar"
 CP="$CP:$root/mxbuild/dists/truffleruby-launcher.jar"
 CP="$CP:$root/mxbuild/dists/truffleruby.jar"
 java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.$(libext)")
-sulong_root="$root_parent/sulong"
-sulong_jar="$sulong_root/build/sulong.jar"
-if [ -f "$sulong_jar" ]; then
+
+# Sulong
+binary_sulong="$root/mx.imports/binary/sulong"
+source_sulong="$root_parent/sulong"
+if [ -f "$binary_sulong/build/sulong.jar" ]; then
+  sulong_root="$binary_sulong"
+elif [ -f "$source_sulong/build/sulong.jar" ]; then
+  sulong_root="$source_sulong"
+else
+  sulong_root=""
+fi
+if [ -n "$sulong_root" ]; then
+  sulong_jar="$sulong_root/build/sulong.jar"
   CP="$CP:$sulong_jar"
-  java_args+=("-Dpolyglot.llvm.libraryPath=${sulong_root}/mxbuild/sulong-libs")
+  java_args+=("-Dpolyglot.llvm.libraryPath=$sulong_root/mxbuild/sulong-libs")
 fi
 
 # no " to split $JAVA_OPTS into array elements
