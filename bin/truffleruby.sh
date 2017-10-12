@@ -63,8 +63,7 @@ if [ -f "$binary_truffle/dists/truffle-api.jar" ]; then # Binary Truffle suite
 elif [ -f "$source_truffle/dists/truffle-api.jar" ]; then # Source Truffle suite
     truffle="$source_truffle"
     graal_sdk="$root_parent/graal/sdk/mxbuild/dists/graal-sdk.jar"
-fi
-if [ -z "$truffle" ]; then
+else
     echo "Could not find Truffle jars" 1>&2
     exit 1
 fi
