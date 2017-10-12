@@ -459,7 +459,7 @@ module Commands
       jt next                                       tell you what to work on next (give you a random core library spec)
       jt pr [pr_number]                             pushes GitHub's PR to bitbucket to let CI run under github/pr/<number> name
                                                     if the pr_number is not supplied current HEAD is used to find a PR which contains it
-      jt pr clean                                   delete all github/pr/<number> branches from BB whose GitHub PRs are closed                                                         
+      jt pr clean [--dry-run]                       delete all github/pr/<number> branches from BB whose GitHub PRs are closed                                                         
       
       you can also put build or rebuild in front of any command
 
@@ -715,12 +715,13 @@ module Commands
   module PR
     include ShellUtils
 
-    def pr_clean
+    def pr_clean(*args)
       require 'net/http'
       require 'pp'
 
-      bb  = bb(remote_urls)
-      uri = URI('https://api.github.com/repos/graalvm/truffleruby/pulls')
+      dry_run = args.delete '--dry-run'
+      bb      = bb(remote_urls)
+      uri     = URI('https://api.github.com/repos/graalvm/truffleruby/pulls')
       puts "Contacting GitHub: #{uri}"
       data     = Net::HTTP.get(uri)
       prs_data = JSON.parse data
@@ -728,7 +729,7 @@ module Commands
       puts "Open PRs: #{open_prs}"
 
       sh 'git', 'fetch', bb, '--prune' # ensure we have locally only existing remote branches
-      branches, _ = sh 'git', 'branch', '--remote', '--list', capture: true
+      branches, _        = sh 'git', 'branch', '--remote', '--list', capture: true
       branches_to_delete = branches.
           scan(/^ *#{bb}\/(github\/pr\/(\d+))$/).
           reject { |_, number| open_prs.include? Integer(number) }
@@ -737,7 +738,7 @@ module Commands
       puts branches_to_delete.map(&:last).map(&:to_i).to_s
 
       branches_to_delete.each do |remote_branch, _|
-        sh 'git', 'push', '--no-verify', bb, ":#{remote_branch}"
+        sh 'git', 'push', '--no-verify', *(['--dry-run'] if dry_run), bb, ":#{remote_branch}"
       end
 
       # update remote branches
@@ -799,7 +800,7 @@ module Commands
   def pr(*args)
     command = args.first
     if command == 'clean'
-      PR.pr_clean
+      PR.pr_clean *args
     else
       PR.pr_push *args
     end
