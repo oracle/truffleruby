@@ -149,7 +149,7 @@ do
 done
 
 # Append the rest of the arguments
-ruby_args=("${ruby_args[@]}" "$@")
+ruby_args+=("$@")
 
 if [ -n "$CP" ]; then
     # Add classpath to java_args without leading :
