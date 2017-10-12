@@ -47,21 +47,6 @@ consider whether you want one helper node per Specialization instantiation or on
         }
 ```
 
-If you want to call different methods on a helper node, then use a `getToStrNode()` helper which returns the helper node:
-```java
-        @Child ToStrNode toStrNode;
-        ...
-
-        protected ToStrNode getToStrNode() {
-            if (toStrNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toStrNode = insert(ToStrNodeGen.create(getContext(), getSourceSection(), null));
-            }
-
-            return toStrNode;
-        }
-```
-
 ## Polymorphic inline caches
 
 When you use `@Cached` to create a Polymorphic Inline Cache you should add a `limit` property to set the maximum size of the cache, and add a corresponding entry to `Options`. For examples see https://github.com/graalvm/truffleruby/commit/cbacdd5a2be32d74ed152a1c306beaa927e80e4e.
