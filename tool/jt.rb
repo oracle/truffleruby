@@ -514,6 +514,7 @@ module Commands
 
   def clean
     mx 'clean'
+    sh 'rm', '-rf', 'mxbuild'
   end
 
   def dis(file)
@@ -553,7 +554,6 @@ module Commands
 
   def rebuild
     clean
-    sh 'rm', '-rf', 'mxbuild'
     mx 'sforceimports'
     build
   end
