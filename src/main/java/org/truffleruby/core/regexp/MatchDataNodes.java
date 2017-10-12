@@ -19,7 +19,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -28,7 +27,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.regexp.MatchDataNodesFactory.GlobalNodeFactory;
+import org.truffleruby.core.regexp.MatchDataNodesFactory.MatchNodeFactory;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.PostMatchNodeFactory;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.PreMatchNodeFactory;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
@@ -39,7 +38,6 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -48,8 +46,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -176,7 +172,7 @@ public abstract class MatchDataNodes {
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
         @Child private ToIntNode toIntNode;
-        @Child private ValuesNode getValues = ValuesNode.create();
+        @Child private ValuesNode getValuesNode = ValuesNode.create();
 
         public static GetIndexNode create() {
             return MatchDataNodesFactory.GetIndexNodeFactory.create(null);
@@ -187,7 +183,7 @@ public abstract class MatchDataNodes {
         @Specialization
         public Object getIndex(DynamicObject matchData, int index, NotProvided length,
                                @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile) {
-            final Object[] values = getValues.execute(matchData);
+            final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, index);
 
             if (indexOutOfBoundsProfile.profile((normalizedIndex < 0) || (normalizedIndex >= values.length))) {
@@ -201,7 +197,7 @@ public abstract class MatchDataNodes {
         @Specialization
         public Object getIndex(DynamicObject matchData, int index, int length) {
             // TODO BJF 15-May-2015 Need to handle negative indexes and lengths and out of bounds
-            final Object[] values = getValues.execute(matchData);
+            final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, index);
             final Object[] store = Arrays.copyOfRange(values, normalizedIndex, normalizedIndex + length);
             return createArray(store, length);
@@ -253,7 +249,7 @@ public abstract class MatchDataNodes {
         @TruffleBoundary
         @Specialization(guards = "isIntRange(range)")
         public Object getIndex(DynamicObject matchData, DynamicObject range, NotProvided len) {
-            final Object[] values = getValues.execute(matchData);
+            final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, Layouts.INT_RANGE.getBegin(range));
             final int end = ArrayOperations.normalizeIndex(values.length, Layouts.INT_RANGE.getEnd(range));
             final int exclusiveEnd = ArrayOperations.clampExclusiveIndex(values.length, Layouts.INT_RANGE.getExcludedEnd(range) ? end : end + 1);
@@ -285,15 +281,12 @@ public abstract class MatchDataNodes {
     }
 
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "matchData")
-    })
-    public abstract static class ValuesNode extends CoreMethodNode {
+    public abstract static class ValuesNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
 
         public static ValuesNode create() {
-            return ValuesNodeFactory.create(null);
+            return ValuesNodeFactory.create(new RubyNode[0]);
         }
 
         public abstract Object[] execute(DynamicObject matchData);
@@ -349,7 +342,6 @@ public abstract class MatchDataNodes {
             return createArray(objects, objects.length);
         }
 
-        @TruffleBoundary
         private static Object[] getCaptures(Object[] values) {
             return ArrayUtils.extractRange(values, 1, values.length);
         }
@@ -431,26 +423,23 @@ public abstract class MatchDataNodes {
     }
 
     @CoreMethod(names = "pre_match")
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "matchData")
-    })
-    public abstract static class PreMatchNode extends CoreMethodNode {
+    public abstract static class PreMatchNode extends CoreMethodArrayArgumentsNode {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
 
-        public static PreMatchNode create(RubyNode getMatchDataNode) {
-            return PreMatchNodeFactory.create(getMatchDataNode);
+        public static PreMatchNode create() {
+            return PreMatchNodeFactory.create(new RubyNode[0]);
         }
 
         public abstract DynamicObject execute(DynamicObject matchData);
 
-        @Specialization(guards = "hasBennConstructed(matchData)")
+        @Specialization(guards = "isConstructed(matchData)")
         public Object preMatchFast(DynamicObject matchData) {
             return Layouts.MATCH_DATA.getPre(matchData);
         }
 
-        @Specialization(guards = "!hasBennConstructed(matchData)")
+        @Specialization(guards = "!isConstructed(matchData)")
         public Object preMatch(DynamicObject matchData) {
             DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             Rope sourceRope = StringOperations.rope(source);
@@ -463,32 +452,29 @@ public abstract class MatchDataNodes {
             return taintResultNode.maybeTaint(source, newStr);
         }
 
-        protected boolean hasBennConstructed(DynamicObject matchData) {
+        protected boolean isConstructed(DynamicObject matchData) {
             return Layouts.MATCH_DATA.getPre(matchData) != null;
         }
     }
 
     @CoreMethod(names = "post_match")
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "matchData")
-    })
-    public abstract static class PostMatchNode extends CoreMethodNode {
+    public abstract static class PostMatchNode extends CoreMethodArrayArgumentsNode {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
 
-        public static PostMatchNode create(RubyNode getMatchDataNode) {
-            return PostMatchNodeFactory.create(getMatchDataNode);
+        public static PostMatchNode create() {
+            return PostMatchNodeFactory.create(new RubyNode[0]);
         }
 
         public abstract DynamicObject execute(DynamicObject matchData);
 
-        @Specialization(guards = "hasBennConstructed(matchData)")
+        @Specialization(guards = "isConstructed(matchData)")
         public Object postMatchFast(DynamicObject matchData) {
             return Layouts.MATCH_DATA.getPost(matchData);
         }
 
-        @Specialization(guards = "!hasBennConstructed(matchData)")
+        @Specialization(guards = "!isConstructed(matchData)")
         public Object postMatch(DynamicObject matchData) {
             DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             Rope sourceRope = StringOperations.rope(source);
@@ -501,7 +487,7 @@ public abstract class MatchDataNodes {
             return taintResultNode.maybeTaint(source, newStr);
         }
 
-        protected boolean hasBennConstructed(DynamicObject matchData) {
+        protected boolean isConstructed(DynamicObject matchData) {
             return Layouts.MATCH_DATA.getPost(matchData) != null;
         }
     }
@@ -519,12 +505,9 @@ public abstract class MatchDataNodes {
     }
 
     @CoreMethod(names = "to_s")
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "matchData")
-    })
-    public abstract static class ToSNode2 extends CoreMethodNode {
+    public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
-        @Child GlobalNode globalNode = GlobalNode.create(null);
+        @Child MatchNode globalNode = MatchNode.create();
 
         @Specialization
         public DynamicObject executeToS(DynamicObject matchData) {
@@ -532,25 +515,22 @@ public abstract class MatchDataNodes {
         }
     }
     
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "matchData")
-    })
-    public abstract static class GlobalNode extends CoreMethodNode {
+    public abstract static class MatchNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
 
-        public static GlobalNode create(RubyNode getMatchDataNode) {
-            return GlobalNodeFactory.create(getMatchDataNode);
+        public static MatchNode create() {
+            return MatchNodeFactory.create(new RubyNode[0]);
         }
 
         public abstract DynamicObject execute(DynamicObject matchData);
 
-        @Specialization(guards = "hasBennConstructed(matchData)")
+        @Specialization(guards = "isConstructed(matchData)")
         public Object postMatchFast(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getGlobal(matchData);
+            return Layouts.MATCH_DATA.getMatch(matchData);
         }
 
-        @Specialization(guards = "!hasBennConstructed(matchData)")
+        @Specialization(guards = "!isConstructed(matchData)")
         public DynamicObject toS(DynamicObject matchData) {
             DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             Rope sourceRope = StringOperations.rope(source);
@@ -559,13 +539,13 @@ public abstract class MatchDataNodes {
             int length = region.end[0] - region.beg[0];
             Rope rope = makeSubstringNode.executeMake(sourceRope, start, length);
             DynamicObject global = createSubstring(source, rope);
-            Layouts.MATCH_DATA.setGlobal(matchData, global);
+            Layouts.MATCH_DATA.setMatch(matchData, global);
 
             return global;
         }
 
-        protected boolean hasBennConstructed(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getGlobal(matchData) != null;
+        protected boolean isConstructed(DynamicObject matchData) {
+            return Layouts.MATCH_DATA.getMatch(matchData) != null;
         }
     }
 
