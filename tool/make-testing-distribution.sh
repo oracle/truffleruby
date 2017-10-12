@@ -10,11 +10,26 @@
 set -e
 
 PREFIX="$1"
+KIND="$2"
 
-if [ -z "$PREFIX" ]; then
-  echo "usage: $0 PREFIX"
+if [ -z "$KIND" ]; then
+  echo "usage: $0 PREFIX KIND"
+  echo "KIND is 'minimal' or 'sulong'"
   exit 1
 fi
+
+sulong=false
+case "$KIND" in
+  minimal)
+    ;;
+  sulong)
+    sulong=true
+    ;;
+  *)
+    echo "KIND must be 'minimal' or 'sulong'"
+    exit 1
+    ;;
+esac
 
 DEST="$PREFIX/truffleruby"
 
@@ -29,22 +44,41 @@ function copy {
 
 revision=$(git rev-parse --short HEAD)
 
+# Setup binary suites
+if [ "$sulong" = true ]; then
+  # You need to manually add sulong as a binary dependency in suite.py with the right revision
+  grep MX_BINARY_SUITES mx.truffleruby/env 2>/dev/null || echo MX_BINARY_SUITES=truffle,sdk,sulong >> mx.truffleruby/env
+  export TRUFFLERUBY_CEXT_ENABLED=true
+  export TRUFFLERUBYOPT="-Xgraal.warn_unless=false"
+else
+  grep MX_BINARY_SUITES mx.truffleruby/env 2>/dev/null || echo MX_BINARY_SUITES=truffle,sdk >> mx.truffleruby/env
+  export TRUFFLERUBY_CEXT_ENABLED=false
+  export TRUFFLERUBYOPT="-Xgraal.warn_unless=false -Xpatching_openssl=true"
+fi
+
 # Build
-grep MX_BINARY_SUITES mx.truffleruby/env 2>/dev/null || echo MX_BINARY_SUITES=truffle,sdk >> mx.truffleruby/env
-export TRUFFLERUBY_CEXT_ENABLED=false
 tool/jt.rb build
 
 rm -rf "${PREFIX:?}"/*
 mkdir -p "$PREFIX"
 
 # Copy distributions
-copy mxbuild/dists/truffleruby.jar
-copy mxbuild/dists/truffleruby-launcher.jar
-
+# Truffle
 copy mx.imports/binary/truffle/mxbuild/dists/truffle-api.jar
 copy mx.imports/binary/truffle/mxbuild/dists/truffle-nfi.jar
 copy mx.imports/binary/truffle/mxbuild/truffle-nfi-native/bin/libtrufflenfi.so
 copy mx.imports/binary/truffle/mx.imports/binary/sdk/mxbuild/dists/graal-sdk.jar
+
+# Sulong
+if [ "$sulong" = true ]; then
+  copy mx.imports/binary/sulong/build/sulong.jar
+  copy mx.imports/binary/sulong/mxbuild/sulong-libs/libsulong.bc
+  copy mx.imports/binary/sulong/mxbuild/sulong-libs/libsulong.so
+fi
+
+# TruffleRuby
+copy mxbuild/dists/truffleruby.jar
+copy mxbuild/dists/truffleruby-launcher.jar
 
 copy mxbuild/dists/truffleruby-zip.tar
 cd "$DEST"
@@ -52,15 +86,18 @@ tar xf mxbuild/dists/truffleruby-zip.tar
 rm mxbuild/dists/truffleruby-zip.tar
 
 # Script to setup the environment easily
-echo '#!/usr/bin/env bash
+cat > setup_env <<EOS
+#!/usr/bin/env bash
 export TRUFFLERUBY_RESILIENT_GEM_HOME=true
-export TRUFFLERUBY_CEXT_ENABLED=false
-export TRUFFLERUBYOPT="-Xgraal.warn_unless=false -Xpatching_openssl=true"
+export TRUFFLERUBY_CEXT_ENABLED=$TRUFFLERUBY_CEXT_ENABLED
+export TRUFFLERUBYOPT="$TRUFFLERUBYOPT"
+EOS
+cat >> setup_env <<'EOS'
 file="${BASH_SOURCE[0]}"
 if [ -z "$file" ]; then file="$0"; fi
 root=$(cd "$(dirname "$file")" && pwd -P)
 export PATH="$root/bin:$PATH"
-' > setup_env
+EOS
 
 source setup_env
 
