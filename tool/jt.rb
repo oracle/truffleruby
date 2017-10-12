@@ -459,8 +459,8 @@ module Commands
       jt next                                       tell you what to work on next (give you a random core library spec)
       jt pr [pr_number]                             pushes GitHub's PR to bitbucket to let CI run under github/pr/<number> name
                                                     if the pr_number is not supplied current HEAD is used to find a PR which contains it
-      jt pr clean [--dry-run]                       delete all github/pr/<number> branches from BB whose GitHub PRs are closed                                                         
-      
+      jt pr clean [--dry-run]                       delete all github/pr/<number> branches from BB whose GitHub PRs are closed
+
       you can also put build or rebuild in front of any command
 
       recognised environment variables:
