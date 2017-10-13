@@ -2,8 +2,8 @@
 
 ## Where to allocate helper nodes (a node used in another node)
 
-* If the node does not use the DSL, you should allocate the helper node [lazily](#the-lazy-pattern).
-* If the helper node is used by every specialization: either allocate the helper node eagerly as a `@Child` or use the lazy pattern.
+* If the parent node does not use the DSL (use `@Specialization`), you should allocate the helper node [lazily](#the-lazy-pattern).
+* If the helper node is used by every specialization: allocate the helper node eagerly as a `@Child` if it is always going to be used when executing the node, or use the lazy pattern otherwise.
 ```java
 public abstract class MyNode extends RubyNode {
     @Child MetaClassNode metaClassNode;
