@@ -110,6 +110,18 @@ def deploy_binary_if_master(args):
         mx.log('The active branch is "%s". Binaries are deployed only if the active branch is "%s".' % (active_branch, primary_branch))
         return 0
 
+def download_binary_suite(args):
+    name, revision = args
+    import_dict = {
+        "name": name,
+        "version": revision,
+        "urls": [{"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"}]
+    }
+    mx._binary_suites.append(name) # Add to MX_BINARY_SUITES dynamically
+    suite_import = mx.SuiteImport.parse_specification(import_dict, context=_suite, importer=_suite, dynamicImport=True)
+    suite = mx._find_suite_import(_suite, suite_import, fatalIfMissing=True, load=False)[0]
+    suite._load_binary_suite() # Download distributions
+
 def ruby_run_specs(launcher, format, args):
     mx.run([launcher, 'spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args)
 
@@ -158,6 +170,7 @@ def ruby_testdownstream_sulong(args):
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],
     'deploy-binary-if-master': [deploy_binary_if_master, ''],
+    'ruby_download_binary_suite': [download_binary_suite, 'name', 'revision'],
     'ruby_testdownstream': [ruby_testdownstream, ''],
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
