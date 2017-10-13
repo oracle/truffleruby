@@ -140,8 +140,8 @@ public class SafepointManager {
         return deferredAction;
     }
 
-    private static final int WAIT_TIME = 5; // seconds
-    private static final int MAX_WAIT_TIME = 60; // seconds
+    private static final int WAIT_TIME_IN_SECONDS = 5;
+    private static final int MAX_WAIT_TIME_IN_SECONDS = 60;
     private static final int STEP_BACKTRACE_OFFSET = 6;
 
     private void driveArrivalAtPhaser() {
