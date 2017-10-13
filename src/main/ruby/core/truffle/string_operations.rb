@@ -10,16 +10,16 @@ module Truffle
   module StringOperations
 
     def self.gsub_block_set_last_match(s, pattern, &block)
-      Truffle::StringOperations.gsub_internal_block(s, pattern) do |m, str|
+      Truffle::StringOperations.gsub_internal_block(s, pattern) do |m|
         Regexp.set_block_last_match(block, m)
-        yield str
+        yield m.to_s
       end
     end
 
     def self.gsub_internal_block(orig, pattern, &block)
       duped = orig.dup
-      gsub_internal_core(orig, pattern) do |_ret, m, str|
-        val = yield m, str
+      gsub_internal_core(orig, pattern) do |_ret, m|
+        val = yield m
         if duped != orig.dup
           raise RuntimeError, 'string modified'
         end
@@ -41,13 +41,13 @@ module Truffle
     end
 
     def self.gsub_internal_hash(orig, pattern, replacement)
-      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |_ret, _m, str|
-        replacement[str]
+      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |_ret, m|
+        replacement[m.to_s]
       end
     end
 
     def self.gsub_internal_replacement(orig, pattern, replacement)
-      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |ret, m, _str|
+      gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |ret, m|
         replacement.to_sub_replacement(ret, m)
       end
     end
@@ -72,7 +72,7 @@ module Truffle
         str = match.pre_match_from(last_end)
         ret.append str if str
 
-        val = yield ret, match, match.to_s
+        val = yield ret, match
         untrusted ||= val.untrusted?
         val = val.to_s
         tainted ||= val.tainted?
