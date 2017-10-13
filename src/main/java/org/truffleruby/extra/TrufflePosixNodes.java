@@ -343,7 +343,7 @@ public abstract class TrufflePosixNodes {
     @CoreMethod(names = "mkdir", isModuleFunction = true, required = 2, lowerFixnum = 2)
     public abstract static class MkdirNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
+        @TruffleBoundary(throwsControlFlowException = true)
         @Specialization(guards = "isRubyString(path)")
         public int mkdir(DynamicObject path, int mode) {
             return posix().mkdir(decodeUTF8(path), mode);

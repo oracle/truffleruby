@@ -288,7 +288,7 @@ public class ConvertBytes {
         return 0;
     }
 
-    @TruffleBoundary
+    @TruffleBoundary(throwsControlFlowException = true)
     public Object byteListToInum() {
         if(_str == null) {
             if(badcheck) {
