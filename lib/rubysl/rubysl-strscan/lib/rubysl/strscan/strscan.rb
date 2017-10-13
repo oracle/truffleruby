@@ -24,6 +24,17 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# Modifications made by the Truffle team are:
+#
+# Copyright (c) 2017 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 1.0
+# GNU General Public License version 2
+# GNU Lesser General Public License version 2.1
+
+
 class ScanError < StandardError; end
 
 class StringScanner
@@ -177,7 +188,7 @@ class StringScanner
   end
 
   def matched_size
-    @match.to_s.bytesize if @match
+    @match.byte_end(0) - @match.byte_begin(0) if @match
   end
 
   def matchedsize
