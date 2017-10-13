@@ -671,6 +671,9 @@ module Rubinius
       if level > 1 # SAFE_LEVEL_MAX
         raise ArgumentError, '$SAFE=2 to 4 are obsolete'
       end
+      if level != 0
+        Truffle::Debug.log_warning '$SAFE level checks not implemented'
+      end
       level
     end
 
