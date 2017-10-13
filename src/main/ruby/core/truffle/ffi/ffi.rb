@@ -277,4 +277,24 @@ module Rubinius::FFI::Platform
   # ruby-ffi compatible
   LONG_SIZE = Rubinius::SIZEOF_LONG * 8
   ADDRESS_SIZE = Rubinius::WORDSIZE
+
+  def self.bsd?
+    Rubinius.bsd?
+  end
+
+  def self.windows?
+    Rubinius.windows?
+  end
+
+  def self.mac?
+    Rubinius.darwin?
+  end
+
+  def self.solaris?
+    Rubinius.solaris?
+  end
+
+  def self.unix?
+    !windows?
+  end
 end
