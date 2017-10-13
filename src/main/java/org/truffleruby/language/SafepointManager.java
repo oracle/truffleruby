@@ -147,8 +147,8 @@ public class SafepointManager {
     private void driveArrivalAtPhaser() {
         int phase = phaser.arrive();
         long t0 = System.nanoTime();
-        long max = t0 + WAIT_TIME * 1_000_000_000L;
-        long exitTime = t0 + MAX_WAIT_TIME * 1_000_000_000L;
+        long max = t0 + TimeUnit.SECONDS.toNanos(WAIT_TIME_IN_SECONDS);
+        long exitTime = t0 + TimeUnit.SECONDS.toNanos(MAX_WAIT_TIME_IN_SECONDS);
         int waits = 1;
         while (true) {
             try {
@@ -159,7 +159,7 @@ public class SafepointManager {
             } catch (TimeoutException e) {
                 if (System.nanoTime() >= max) {
                     Log.LOGGER.severe(String.format("waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
-                            waits * WAIT_TIME, phaser.getUnarrivedParties(), phaser.getRegisteredParties()));
+                            waits * WAIT_TIME_IN_SECONDS, phaser.getUnarrivedParties(), phaser.getRegisteredParties()));
                     if (!TruffleOptions.AOT) { // Thread.getAllStackTraces() not yet supported on SVM
                         printStacktracesOfBlockedThreads();
                     }
@@ -168,10 +168,10 @@ public class SafepointManager {
                         restoreDefaultInterruptHandler();
                     }
                     if (max >= exitTime) {
-                        Log.LOGGER.severe("waited " + MAX_WAIT_TIME + " seconds in the SafepointManager, terminating the process as it is unlikely to get unstuck");
+                        Log.LOGGER.severe("waited " + MAX_WAIT_TIME_IN_SECONDS + " seconds in the SafepointManager, terminating the process as it is unlikely to get unstuck");
                         System.exit(1);
                     }
-                    max += WAIT_TIME * 1_000_000_000L;
+                    max += TimeUnit.SECONDS.toNanos(WAIT_TIME_IN_SECONDS);
                     waits++;
                 } else {
                     // Retry interrupting other threads, as they might not have been yet
