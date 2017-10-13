@@ -270,7 +270,7 @@ PATCHED_FILES = {
     gem: 'byebug',
     patches: [
       {
-        match: /\b(static VALUE \w+) = (?:Qfalse|Qnil);/,
+        match: /^((?:static )?VALUE \w+) = (?:Qfalse|Qnil);/,
         replacement: '\1;'
       },
       {
