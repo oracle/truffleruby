@@ -736,9 +736,10 @@ module Commands
 
       puts "Deleting #{branches_to_delete.size} remote branches on #{bb}:"
       puts branches_to_delete.map(&:last).map(&:to_i).to_s
+      return if dry_run
 
       branches_to_delete.each do |remote_branch, _|
-        sh 'git', 'push', '--no-verify', *(['--dry-run'] if dry_run), bb, ":#{remote_branch}"
+        sh 'git', 'push', '--no-verify', bb, ":#{remote_branch}"
       end
 
       # update remote branches
