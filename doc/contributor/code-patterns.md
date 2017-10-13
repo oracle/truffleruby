@@ -6,12 +6,7 @@
 * If the helper node is used by every specialization: allocate the helper node eagerly as a `@Child` if it is always going to be used when executing the node, or use the lazy pattern otherwise.
 ```java
 public abstract class MyNode extends RubyNode {
-    @Child MetaClassNode metaClassNode;
-
-    public MyNode(RubyContext context, SourceSection sourceSection) {
-        super(context, sourceSection);
-        metaClassNode = MetaClassNodeGen.create(context, sourceSection, null);
-    }
+    @Child MetaClassNode metaClassNode = MetaClassNode.create();
 ...
 ```
 * If the helper node is used by only one specialization: use `@Cached`.
