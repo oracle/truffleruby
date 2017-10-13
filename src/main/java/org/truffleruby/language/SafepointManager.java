@@ -26,6 +26,7 @@ import org.truffleruby.platform.signal.Signal;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
@@ -108,8 +109,6 @@ public class SafepointManager {
         }
     }
 
-    private static final int WAIT_TIME = 5; // seconds
-
     @TruffleBoundary
     private SafepointAction step(Node currentNode, boolean isDrivingThread) {
         final DynamicObject thread = context.getThreadManager().getCurrentThread();
@@ -140,6 +139,9 @@ public class SafepointManager {
         return deferredAction;
     }
 
+    private static final int WAIT_TIME = 5; // seconds
+    private static final int STEP_BACKTRACE_OFFSET = 6;
+
     private void driveArrivalAtPhaser() {
         int phase = phaser.arrive();
         long t0 = System.nanoTime();
@@ -155,6 +157,8 @@ public class SafepointManager {
                 if (System.nanoTime() >= max) {
                     Log.LOGGER.severe(String.format("waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
                             waits * WAIT_TIME, phaser.getUnarrivedParties(), phaser.getRegisteredParties()));
+                    printStacktracesOfBlockedThreads();
+
                     if (waits == 1) {
                         restoreDefaultInterruptHandler();
                     }
@@ -164,6 +168,27 @@ public class SafepointManager {
                     // Retry interrupting other threads, as they might not have been yet
                     // in the blocking call when the signal was sent.
                     interruptOtherThreads();
+                }
+            }
+        }
+    }
+
+    private void printStacktracesOfBlockedThreads() {
+        System.err.println("Dumping stacktraces of blocked threads:");
+        for (Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
+            final Thread thread = entry.getKey();
+            if (thread != Thread.currentThread() && runningThreads.contains(thread)) {
+                final StackTraceElement[] stackTrace = entry.getValue();
+                if (STEP_BACKTRACE_OFFSET < stackTrace.length &&
+                        stackTrace[STEP_BACKTRACE_OFFSET].getClassName().equals(SafepointManager.class.getName()) &&
+                        stackTrace[STEP_BACKTRACE_OFFSET].getMethodName().equals("step")) {
+                    // In SafepointManager#step, ignore
+                } else {
+                    System.err.println(thread);
+                    for (int i = 0; i < stackTrace.length; i++) {
+                        System.err.println(stackTrace[i]);
+                    }
+                    System.err.println();
                 }
             }
         }
