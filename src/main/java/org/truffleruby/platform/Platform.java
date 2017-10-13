@@ -43,7 +43,7 @@ public class Platform extends BasicPlatform {
     public static final String LIBC = determineLibC();
 
     public static final boolean IS_WINDOWS = OS.equals(OS_TYPE.WINDOWS);
-    public static final boolean IS_BSD = OS.equals(OS_TYPE.WINDOWS);
+    public static final boolean IS_BSD = OS.equals(OS_TYPE.FREEBSD) || OS.equals(OS_TYPE.NETBSD) || OS.equals(OS_TYPE.OPENBSD);
 
     protected final Pattern libPattern;
 
