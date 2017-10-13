@@ -140,12 +140,14 @@ public class SafepointManager {
     }
 
     private static final int WAIT_TIME = 5; // seconds
+    private static final int MAX_WAIT_TIME = 60; // seconds
     private static final int STEP_BACKTRACE_OFFSET = 6;
 
     private void driveArrivalAtPhaser() {
         int phase = phaser.arrive();
         long t0 = System.nanoTime();
         long max = t0 + WAIT_TIME * 1_000_000_000L;
+        long exitTime = t0 + MAX_WAIT_TIME * 1_000_000_000L;
         int waits = 1;
         while (true) {
             try {
@@ -161,6 +163,10 @@ public class SafepointManager {
 
                     if (waits == 1) {
                         restoreDefaultInterruptHandler();
+                    }
+                    if (max >= exitTime) {
+                        Log.LOGGER.severe("waited " + MAX_WAIT_TIME + " seconds in the SafepointManager, terminating the process as it is unlikely to get unstuck");
+                        System.exit(1);
                     }
                     max += WAIT_TIME * 1_000_000_000L;
                     waits++;
