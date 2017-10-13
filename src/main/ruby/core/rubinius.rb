@@ -52,6 +52,10 @@ module Rubinius
     !!(HOST_OS =~ /linux/i)
   end
 
+  def self.solaris?
+    !!(HOST_OS =~ /solaris|sunos/i)
+  end
+
   def self.windows?
     false
   end
