@@ -9,13 +9,18 @@
  */
 package org.truffleruby.language.globals;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyNode;
 
 public class UpdateVerbosityNode extends RubyNode {
 
+    @Child private BooleanCastNode booleanCastNode = BooleanCastNodeGen.create(null);
     @Child private RubyNode child;
+
+    private final ConditionProfile nilProfile = ConditionProfile.createBinaryProfile();
 
     public UpdateVerbosityNode(RubyNode child) {
         this.child = child;
@@ -24,16 +29,11 @@ public class UpdateVerbosityNode extends RubyNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object value = child.execute(frame);
-        validateVerbose(value);
-        return value;
-    }
 
-    @TruffleBoundary
-    private void validateVerbose(Object value) {
-        if (value instanceof Boolean || value == nil()) {
-            // OK
+        if (nilProfile.profile(value == nil())) {
+            return value;
         } else {
-            throw new UnsupportedOperationException();
+            return booleanCastNode.executeToBoolean(value);
         }
     }
 
