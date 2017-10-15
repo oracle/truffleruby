@@ -181,6 +181,10 @@ VALUE string_spec_rb_str_length(VALUE self, VALUE str) {
 VALUE string_spec_rb_str_new(VALUE self, VALUE str, VALUE len) {
   return rb_str_new(RSTRING_PTR(str), FIX2INT(len));
 }
+
+VALUE string_spec_rb_str_new_offset(VALUE self, VALUE str, VALUE offset, VALUE len) {
+  return rb_str_new(RSTRING_PTR(str) + FIX2INT(offset), FIX2INT(len));
+}
 #endif
 
 #ifdef HAVE_RB_STR_NEW2
@@ -536,6 +540,7 @@ void Init_string_spec(void) {
 
 #ifdef HAVE_RB_STR_NEW
   rb_define_method(cls, "rb_str_new", string_spec_rb_str_new, 2);
+  rb_define_method(cls, "rb_str_new_offset", string_spec_rb_str_new_offset, 3);
 #endif
 
 #ifdef HAVE_RB_STR_NEW2
