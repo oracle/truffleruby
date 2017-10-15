@@ -719,7 +719,7 @@ rb_num2ll_inline(VALUE x)
 #endif
 
 double rb_num2dbl(VALUE);
-double NUM2DBL(VALUE value);
+#define NUM2DBL(x) rb_num2dbl((VALUE)(x))
 
 VALUE rb_uint2big(VALUE);
 VALUE rb_int2big(SIGNED_VALUE);

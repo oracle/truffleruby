@@ -203,6 +203,8 @@ module Rubinius
         return val.to_f
       elsif object_kind_of?(val, Bignum)
         return val.to_f
+      elsif object_kind_of?(val, Rational)
+        return val.to_f
       elsif object_kind_of?(val, String)
         raise TypeError, 'no implicit conversion from to float from string'
       else
