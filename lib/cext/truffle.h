@@ -131,8 +131,11 @@ void *truffle_read_string(const char *string);
 void *truffle_read_n_string(const char *string, int n);
 void *truffle_read_bytes(const char *bytes);
 void *truffle_read_n_bytes(const char *bytes, int n);
+const char *truffle_string_to_cstr(const char *string);
+void truffle_free_cstr(const char *truffle_allocated_cstr);
 
 // Managed operations
+void *truffle_virtual_malloc(size_t size);
 void *truffle_managed_malloc(long size);
 void *truffle_managed_memcpy(void *destination, const void *source, size_t count);
 
@@ -144,6 +147,8 @@ void *truffle_managed_from_handle(void *nativeHandle);
 void *truffle_sulong_function_to_native_pointer(void *sulongFunctionPointer, const void *signature);
 
 void truffle_load_library(const char *string);
+
+void *truffle_polyglot_eval(const char *mimeType, const char *code);
 
 #if defined(__cplusplus)
 }

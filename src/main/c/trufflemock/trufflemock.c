@@ -315,6 +315,20 @@ void *truffle_read_n_bytes(const char *bytes, int n) {
   return 0;
 }
 
+const char *truffle_string_to_cstr(const char *string) {
+  rb_tr_mock();
+  return "";
+}
+
+void truffle_free_cstr(const char *truffle_allocated_cstr) {
+  rb_tr_mock();
+}
+
+void *truffle_virtual_malloc(size_t size) {
+  rb_tr_mock();
+  return 0;
+}
+
 void *truffle_managed_malloc(long size) {
   rb_tr_mock();
   return 0;
@@ -347,6 +361,11 @@ void *truffle_sulong_function_to_native_pointer(void *sulongFunctionPointer, con
 
 void truffle_load_library(const char *string) {
   rb_tr_mock();
+}
+
+void *truffle_polyglot_eval(const char *mimeType, const char *code) {
+  rb_tr_mock();
+  return 0;
 }
 
 

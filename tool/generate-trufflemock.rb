@@ -12,9 +12,12 @@
 
 require 'erb'
 
-types = { 'void*' => "0", 'void' => nil,
-    'bool' => 'false', 'int' => '0', 'long' => '0', 'char' => "'0'",
-    'float' => '0.0', 'double' => '0.0'}
+types = {
+  'void*' => "0", 'void' => nil,
+  'bool' => 'false', 'int' => '0', 'long' => '0', 'char' => "'0'",
+  'float' => '0.0', 'double' => '0.0',
+  'constchar*' => '""',
+}
 
 methods = []
 
