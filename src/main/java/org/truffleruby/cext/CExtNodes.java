@@ -162,30 +162,6 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "NUM2DBL", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class NUM2DBLNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public double num2dbl(int num) {
-            return num;
-        }
-
-        @Specialization
-        public double num2dbl(long num) {
-            return num;
-        }
-
-        @Specialization
-        public double num2dbl(double num) {
-            return num;
-        }
-
-        @Specialization(guards = "isRubyBignum(num)")
-        public double num2dbl(DynamicObject num) {
-            return Layouts.BIGNUM.getValue(num).doubleValue();
-        }
-    }
-
     @CoreMethod(names = "FIX2INT", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class FIX2INTNode extends CoreMethodArrayArgumentsNode {
 
