@@ -100,6 +100,10 @@ describe "C-API String function" do
     it "returns an empty string if len is 0" do
       @s.rb_str_new("hello", 0).should == ""
     end
+
+    it "returns a string from an offset char buffer" do
+      @s.rb_str_new_offset("hello", 1, 3).should == "ell"
+    end
   end
 
   describe "rb_str_new2" do
