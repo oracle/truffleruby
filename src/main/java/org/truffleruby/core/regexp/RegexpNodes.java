@@ -42,8 +42,10 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.regexp.RegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -54,6 +56,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -71,6 +74,8 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
@@ -82,6 +87,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreClass("Regexp")
 public abstract class RegexpNodes {
@@ -118,41 +124,60 @@ public abstract class RegexpNodes {
         return regex;
     }
 
-    public static DynamicObject matchCommon(RubyContext context, Node currentNode, DynamicObject regexp, DynamicObject string, int startPos, boolean onlyMatchAtStart) {
-        final Matcher matcher = createMatcher(context, regexp, string, true);
-        int range = StringOperations.rope(string).byteLength();
-        return matchCommon(context, currentNode, regexp, string, matcher, startPos, range, onlyMatchAtStart);
-    }
+    @NodeChildren({
+            @NodeChild(type = RubyNode.class, value = "regexp"),
+            @NodeChild(type = RubyNode.class, value = "source"),
+            @NodeChild(type = RubyNode.class, value = "matcher"),
+            @NodeChild(type = RubyNode.class, value = "startPos"),
+            @NodeChild(type = RubyNode.class, value = "range"),
+            @NodeChild(type = RubyNode.class, value = "onlyAtStart")
+    })
+    public static abstract class MatchNode extends RubyNode {
+        @Child private TaintResultNode taintResultNode = new TaintResultNode();
+        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
-    public static DynamicObject matchCommon(RubyContext context, Node currentNode, DynamicObject regexp, DynamicObject string, Matcher matcher,
-            int startPos, int range, boolean onlyMatchAtStart) {
-        assert RubyGuards.isRubyRegexp(regexp);
-        assert RubyGuards.isRubyString(string);
-
-        int match = runMatch(context, currentNode, matcher, startPos, range, onlyMatchAtStart);
-
-        if (match == -1) {
-            return context.getCoreLibrary().getNil();
+        public static MatchNode create() {
+            return MatchNodeGen.create(null, null, null, null, null, null);
         }
 
-        assert match >= 0;
+        public abstract DynamicObject execute(DynamicObject regexp, DynamicObject string, Matcher matcher,
+                int startPos, int range, boolean onlyMatchAtStart);
 
-        final Region region = matcher.getEagerRegion();
-        final DynamicObject matchData = Layouts.MATCH_DATA.createMatchData(context.getCoreLibrary().getMatchDataFactory(),
-                string, regexp, region, null, null, null, null, null);
+        @Specialization
+        protected DynamicObject executeMatch(DynamicObject regexp, DynamicObject string, Matcher matcher,
+                int startPos, int range, boolean onlyMatchAtStart,
+                @Cached("createBinaryProfile()") ConditionProfile matchesProfile) {
+            assert RubyGuards.isRubyRegexp(regexp);
+            assert RubyGuards.isRubyString(string);
 
-        return matchData;
-    }
+            int match = runMatch(matcher, startPos, range, onlyMatchAtStart);
 
-    @TruffleBoundary
-    private static int runMatch(RubyContext context, Node currentNode, Matcher matcher, int startPos, int range, boolean onlyMatchAtStart) {
-        // Keep status as RUN because MRI has an uninterruptible Regexp engine
-        if (onlyMatchAtStart) {
-            return context.getThreadManager().runUntilResultKeepStatus(currentNode,
-                    () -> matcher.matchInterruptible(startPos, range, Option.DEFAULT));
-        } else {
-            return context.getThreadManager().runUntilResultKeepStatus(currentNode,
-                    () -> matcher.searchInterruptible(startPos, range, Option.DEFAULT));
+            if (matchesProfile.profile(match == -1)) {
+                return nil();
+            }
+
+            assert match >= 0;
+
+            final Region region = matcher.getEagerRegion();
+            DynamicObject result = allocateNode.allocate(matchDataClass(), Layouts.MATCH_DATA.build(string,
+                    regexp, region, null));
+            return (DynamicObject) taintResultNode.maybeTaint(string, result);
+        }
+
+        @TruffleBoundary
+        private int runMatch(Matcher matcher, int startPos, int range, boolean onlyMatchAtStart) {
+            // Keep status as RUN because MRI has an uninterruptible Regexp engine
+            if (onlyMatchAtStart) {
+                return getContext().getThreadManager().runUntilResultKeepStatus(this,
+                        () -> matcher.matchInterruptible(startPos, range, Option.DEFAULT));
+            } else {
+                return getContext().getThreadManager().runUntilResultKeepStatus(this,
+                        () -> matcher.searchInterruptible(startPos, range, Option.DEFAULT));
+            }
+        }
+
+        protected DynamicObject matchDataClass() {
+            return getContext().getCoreLibrary().getMatchDataClass();
         }
     }
 
@@ -327,6 +352,7 @@ public abstract class RegexpNodes {
 
         @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
         @Child private RegexpSetLastMatchPrimitiveNode setLastMatchNode = RegexpSetLastMatchPrimitiveNodeFactory.create(null);
+        @Child private MatchNode matchNode = MatchNode.create();
         @Child private CallDispatchHeadNode toSNode;
         @Child private ToStrNode toStrNode;
 
@@ -377,7 +403,7 @@ public abstract class RegexpNodes {
             final Matcher matcher = createMatcher(getContext(), regexp, string, true);
             final int range = StringOperations.rope(string).byteLength();
 
-            final DynamicObject matchData = matchCommon(getContext(), this, regexp, string, matcher, 0, range, false);
+            final DynamicObject matchData = matchNode.execute(regexp, string, matcher, 0, range, false);
             setLastMatchNode.executeSetLastMatch(frame, matchData);
 
             if (matchData != nil()) {
@@ -405,18 +431,14 @@ public abstract class RegexpNodes {
     public abstract static class MatchStartNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
+        @Child private MatchNode matchNode = MatchNode.create();
 
         @Specialization(guards = "isRubyString(string)")
         public Object matchStart(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
             final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
-            final Object matchResult = matchCommon(getContext(), this, regexp, dupedString, startPos, true);
-
-            if (RubyGuards.isRubyMatchData(matchResult) && Layouts.MATCH_DATA.getRegion((DynamicObject) matchResult).numRegs > 0
-                && Layouts.MATCH_DATA.getRegion((DynamicObject) matchResult).beg[0] == startPos) {
-                return matchResult;
-            }
-
-            return nil();
+            final Matcher matcher = createMatcher(getContext(), regexp, string, true);
+            int range = StringOperations.rope(string).byteLength();
+            return matchNode.execute(regexp, dupedString, matcher, startPos, range, true);
         }
     }
 
@@ -630,12 +652,15 @@ public abstract class RegexpNodes {
     public abstract static class SearchFromNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
+        @Child private MatchNode matchNode = MatchNode.create();
 
         @Specialization(guards = "isRubyString(string)")
         public Object searchFrom(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
             final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
+            final Matcher matcher = createMatcher(getContext(), regexp, string, true);
+            int range = StringOperations.rope(string).byteLength();
 
-            return matchCommon(getContext(), this, regexp, dupedString, startPos, false);
+            return matchNode.execute(regexp, dupedString, matcher, startPos, range, false);
         }
     }
 
@@ -643,6 +668,7 @@ public abstract class RegexpNodes {
     public abstract static class SearchFromBinaryNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
+        @Child private MatchNode matchNode = MatchNode.create();
 
         @Specialization(guards = "isRubyString(string)")
         public Object searchFrom(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int startPos) {
@@ -650,7 +676,7 @@ public abstract class RegexpNodes {
 
             final Matcher matcher = createMatcher(getContext(), regexp, dupedString, false);
             final int endPos = StringOperations.rope(dupedString).byteLength();
-            return matchCommon(getContext(), this, regexp, dupedString, matcher, startPos, endPos, false);
+            return matchNode.execute(regexp, dupedString, matcher, startPos, endPos, false);
         }
     }
 
@@ -786,16 +812,17 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = { "isInitialized(regexp)", "isRubyString(string)", "isValidEncoding(string)" })
         public Object searchRegion(VirtualFrame frame, DynamicObject regexp, DynamicObject string, int start, int end, boolean forward,
-                @Cached("create()") CallDispatchHeadNode dupNode) {
+                @Cached("create()") CallDispatchHeadNode dupNode,
+                @Cached("create()") MatchNode matchNode) {
             final DynamicObject dupedString = (DynamicObject) dupNode.call(frame, string, "dup");
             final Matcher matcher = RegexpNodes.createMatcher(getContext(), regexp, dupedString, true);
 
             if (forward) {
                 // Search forward through the string.
-                return RegexpNodes.matchCommon(getContext(), this, regexp, dupedString, matcher, start, end, false);
+                return matchNode.execute(regexp, dupedString, matcher, start, end, false);
             } else {
                 // Search backward through the string.
-                return RegexpNodes.matchCommon(getContext(), this, regexp, dupedString, matcher, end, start, false);
+                return matchNode.execute(regexp, dupedString, matcher, end, start, false);
             }
         }
 

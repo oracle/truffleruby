@@ -1095,6 +1095,10 @@ public class CoreLibrary {
         return loadErrorClass;
     }
 
+    public DynamicObject getMatchDataClass() {
+        return matchDataClass;
+    }
+
     public DynamicObjectFactory getMatchDataFactory() {
         return matchDataFactory;
     }
