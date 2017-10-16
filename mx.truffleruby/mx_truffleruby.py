@@ -111,16 +111,17 @@ def deploy_binary_if_master(args):
         return 0
 
 def download_binary_suite(args):
-    name, revision = args
-    import_dict = {
-        "name": name,
-        "version": revision,
-        "urls": [{"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"}]
-    }
-    mx._binary_suites.append(name) # Add to MX_BINARY_SUITES dynamically
-    suite_import = mx.SuiteImport.parse_specification(import_dict, context=_suite, importer=_suite, dynamicImport=True)
-    suite = mx._find_suite_import(_suite, suite_import, fatalIfMissing=True, load=False)[0]
-    suite._load_binary_suite() # Download distributions
+    if len(args) == 1:
+        name, version = args[0], None
+    else:
+        name, version = args
+
+    # Add to MX_BINARY_SUITES dynamically
+    mx._binary_suites.append(name)
+
+    suite = _suite.import_suite(name=name, version=version, urlinfos=[
+        mx.SuiteImportURLInfo('https://curio.ssw.jku.at/nexus/content/repositories/snapshots', 'binary', mx.vc_system('binary'))
+    ], kind=None)
 
 def ruby_run_specs(launcher, format, args):
     mx.run([launcher, 'spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args)
