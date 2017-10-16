@@ -48,8 +48,8 @@ revision=$(git rev-parse --short HEAD)
 if [ "$sulong" = true ]; then
   # You need to manually add sulong as a binary dependency in suite.py with the right revision
   grep MX_BINARY_SUITES mx.truffleruby/env 2>/dev/null || echo MX_BINARY_SUITES=truffle,sdk,sulong >> mx.truffleruby/env
-  if [ -z "$SULONG_REVISION" ]; then
-    echo "You need to set SULONG_REVISION"
+  if [ -z "${SULONG_REVISION+x}" ]; then
+    echo "You need to set SULONG_REVISION (can be '' for latest uploaded)"
     exit 1
   fi
   mx ruby_download_binary_suite sulong "$SULONG_REVISION"
