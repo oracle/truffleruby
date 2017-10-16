@@ -112,9 +112,12 @@ def deploy_binary_if_master(args):
 
 def download_binary_suite(args):
     if len(args) == 1:
-        name, version = args[0], None
+        name, version = args[0], ''
     else:
         name, version = args
+
+    if len(version) == 0:
+        version = None
 
     # Add to MX_BINARY_SUITES dynamically
     mx._binary_suites.append(name)
