@@ -52,6 +52,7 @@ import org.truffleruby.core.range.RangeNodesFactory;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
+import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
@@ -2048,9 +2049,15 @@ public class BodyTranslator extends Translator {
             final RegexpParseNode regexpNode = (RegexpParseNode) node.getReceiverNode();
             final byte[] bytes = regexpNode.getValue().getBytes();
             final Regex regex = new Regex(bytes, 0, bytes.length, regexpNode.getOptions().toOptions(), regexpNode.getEncoding(), Syntax.RUBY);
+            final int numberOfNames = regex.numberOfNames();
 
-            if (regex.numberOfNames() > 0) {
-                for (Iterator<NameEntry> i = regex.namedBackrefIterator(); i.hasNext(); ) {
+            if (numberOfNames > 0) {
+                final RubyNode[] setters = new RubyNode[numberOfNames];
+                final RubyNode[] nilSetters = new RubyNode[numberOfNames];
+                final String tempVar = environment.allocateLocalTemp("match_data");
+                int n = 0;
+
+                for (Iterator<NameEntry> i = regex.namedBackrefIterator(); i.hasNext(); n++) {
                     final NameEntry e = i.next();
                     final String name = new String(e.name, e.nameP, e.nameEnd - e.nameP, StandardCharsets.UTF_8).intern();
 
@@ -2059,14 +2066,29 @@ public class BodyTranslator extends Translator {
                         environmentToDeclareIn = environmentToDeclareIn.getParent();
                     }
                     environmentToDeclareIn.declareVar(name);
+                    nilSetters[n] = match2NilSetter(node, name);
+                    setters[n] = match2NonNilSetter(node, name, tempVar);
                 }
                 final ReadLocalNode readNode = environment.findFrameLocalGlobalVarNode("$~", source, node.getPosition());
-                final GetFromThreadAndFrameLocalStorageNode readMatchNode = new GetFromThreadAndFrameLocalStorageNode(readNode);
-                ret = new ReadMatchReferenceNodes.SetNamedVariablesMatchNode(regex, ret, readMatchNode);
+                ReadLocalNode tempVarReadNode = environment.findLocalVarNode(tempVar, source, node.getPosition());
+                RubyNode readMatchNode = tempVarReadNode.makeWriteNode(new GetFromThreadAndFrameLocalStorageNode(readNode));
+                ret = new ReadMatchReferenceNodes.SetNamedVariablesMatchNode(ret, readMatchNode, setters, nilSetters);
             }
         }
 
         return addNewlineIfNeeded(node, ret);
+    }
+
+    private RubyNode match2NilSetter(ParseNode node, String name) {
+        return environment.findLocalVarNode(name, source, node.getPosition()).makeWriteNode(new NilLiteralNode(true));
+    }
+
+    private RubyNode match2NonNilSetter(ParseNode node, String name, String tempVar) {
+        ReadLocalNode varNode = environment.findLocalVarNode(name, source, node.getPosition());
+        ReadLocalNode tempVarNode = environment.findLocalVarNode(tempVar, source, node.getPosition());
+        ObjectLiteralNode symbolNode = new ObjectLiteralNode(context.getSymbolTable().getSymbol(name));
+        GetIndexNode getIndexNode = GetIndexNode.create(tempVarNode, symbolNode, new ObjectLiteralNode(NotProvided.INSTANCE));
+        return varNode.makeWriteNode(getIndexNode);
     }
 
     @Override

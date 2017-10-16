@@ -376,4 +376,7 @@ class MatchData
     indexes.map { |i| self[i] }.flatten(1)
   end
 
+  def to_s
+    self[0]
+  end
 end

@@ -10,8 +10,11 @@
 package org.truffleruby.core.regexp;
 
 import java.util.Arrays;
+import java.util.Iterator;
 
 import org.jcodings.Encoding;
+import org.joni.NameEntry;
+import org.joni.Regex;
 import org.joni.Region;
 import org.joni.exception.ValueException;
 import org.truffleruby.Layouts;
@@ -25,9 +28,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.regexp.MatchDataNodesFactory.MatchNodeFactory;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.PostMatchNodeFactory;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.PreMatchNodeFactory;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
@@ -42,6 +43,8 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.IsTaintedNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -173,27 +176,43 @@ public abstract class MatchDataNodes {
 
         @Child private ToIntNode toIntNode;
         @Child private ValuesNode getValuesNode = ValuesNode.create();
+        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         public static GetIndexNode create() {
             return MatchDataNodesFactory.GetIndexNodeFactory.create(null);
+        }
+
+        public static GetIndexNode create(RubyNode... nodes) {
+            return MatchDataNodesFactory.GetIndexNodeFactory.create(nodes);
         }
 
         public abstract Object executeGetIndex(VirtualFrame frame, Object matchData, Object index, Object length);
 
         @Specialization
         public Object getIndex(DynamicObject matchData, int index, NotProvided length,
-                               @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile) {
-            final Object[] values = getValuesNode.execute(matchData);
-            final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, index);
+                @Cached("createBinaryProfile()") ConditionProfile normalizedIndexProfile,
+                @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile,
+                @Cached("createBinaryProfile()") ConditionProfile hasValueProfile) {
+            final DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
+            final Rope sourceRope = StringOperations.rope(source);
+            final Region region = Layouts.MATCH_DATA.getRegion(matchData);
+            final int normalizedIndex = ArrayOperations.normalizeIndex(region.beg.length, index, normalizedIndexProfile);
 
-            if (indexOutOfBoundsProfile.profile((normalizedIndex < 0) || (normalizedIndex >= values.length))) {
+            if (indexOutOfBoundsProfile.profile((normalizedIndex < 0) || (normalizedIndex >= region.beg.length))) {
                 return nil();
             } else {
-                return values[normalizedIndex];
+                final int start = region.beg[normalizedIndex];
+                final int end = region.end[normalizedIndex];
+                if (hasValueProfile.profile(start > -1 && end > -1)) {
+                    Rope rope = makeSubstringNode.executeMake(sourceRope, start, end - start);
+                    return allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
+                } else {
+                    return nil();
+                }
             }
         }
 
-        @TruffleBoundary
         @Specialization
         public Object getIndex(DynamicObject matchData, int index, int length) {
             // TODO BJF 15-May-2015 Need to handle negative indexes and lengths and out of bounds
@@ -203,47 +222,42 @@ public abstract class MatchDataNodes {
             return createArray(store, length);
         }
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization(guards = "isRubySymbol(index)")
-        public Object getIndexSymbol(DynamicObject matchData, DynamicObject index, NotProvided length,
-                @Cached("create()") BranchProfile errorProfile,
-                @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile) {
-            try {
-                final Rope value = Layouts.SYMBOL.getRope(index);
-                final int i = Layouts.REGEXP.getRegex(Layouts.MATCH_DATA.getRegexp(matchData)).nameToBackrefNumber(value.getBytes(), 0, value.byteLength(), Layouts.MATCH_DATA.getRegion(matchData));
+        @Specialization(guards = { "isRubySymbol(cachedIndex)", "name != null",
+                "getRegexp(matchData) == regexp", "cachedIndex == index" })
+        public Object getIndexSymbolSingleMatch(VirtualFrame frame, DynamicObject matchData, DynamicObject index, NotProvided length,
+                @Cached("index") DynamicObject cachedIndex,
+                @Cached("getRegexp(matchData)") DynamicObject regexp,
+                @Cached("findNameEntry(regexp, index)") NameEntry name,
+                @Cached("numBackRefs(name)") int backRefs,
+                @Cached("backRefIndex(name)") int backRefIndex) {
+            if (backRefs == 1) {
+                return executeGetIndex(frame, matchData, backRefIndex, NotProvided.INSTANCE);
+            } else {
+                final int i = getBackRef(matchData, regexp, name);
 
-                return getIndex(matchData, i, NotProvided.INSTANCE, indexOutOfBoundsProfile);
-            } catch (final ValueException e) {
-                throw new RaiseException(
-                        coreExceptions().indexError(StringUtils.format("undefined group name reference: %s", Layouts.SYMBOL.getString(index)), this));
+                return executeGetIndex(frame, matchData, i, NotProvided.INSTANCE);
             }
         }
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization(guards = "isRubyString(index)")
-        public Object getIndexString(DynamicObject matchData, DynamicObject index, NotProvided length,
-                                     @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile) {
-            try {
-                final Rope value = StringOperations.rope(index);
-                final int i = Layouts.REGEXP.getRegex(Layouts.MATCH_DATA.getRegexp(matchData)).nameToBackrefNumber(value.getBytes(), 0, value.byteLength(), Layouts.MATCH_DATA.getRegion(matchData));
+        @Specialization(guards = "isRubySymbol(index)")
+        public Object getIndexSymbol(VirtualFrame frame, DynamicObject matchData, DynamicObject index, NotProvided length,
+                @Cached("create()") BranchProfile errorProfile) {
+            return executeGetIndex(frame, matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
+        }
 
-                return getIndex(matchData, i, NotProvided.INSTANCE, indexOutOfBoundsProfile);
-            }
-            catch (final ValueException e) {
-                throw new RaiseException(
-                        coreExceptions().indexError(StringUtils.format("undefined group name reference: %s", index.toString()), this));
-            }
+        @Specialization(guards = "isRubyString(index)")
+        public Object getIndexString(VirtualFrame frame, DynamicObject matchData, DynamicObject index, NotProvided length) {
+            return executeGetIndex(frame, matchData, getBackRefFromString(matchData, index), NotProvided.INSTANCE);
         }
 
         @Specialization(guards = { "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
-        public Object getIndex(VirtualFrame frame, DynamicObject matchData, Object index, NotProvided length,
-                               @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile) {
+        public Object getIndex(VirtualFrame frame, DynamicObject matchData, Object index, NotProvided length) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
             }
 
-            return getIndex(matchData, toIntNode.doInt(frame, index), NotProvided.INSTANCE, indexOutOfBoundsProfile);
+            return executeGetIndex(frame, matchData, toIntNode.doInt(frame, index), NotProvided.INSTANCE);
         }
 
         @TruffleBoundary
@@ -259,6 +273,72 @@ public abstract class MatchDataNodes {
             return createArray(store, length);
         }
 
+        @TruffleBoundary
+        protected static NameEntry findNameEntry(DynamicObject regexp, DynamicObject string) {
+            Regex regex = Layouts.REGEXP.getRegex(regexp);
+            Rope rope = Layouts.SYMBOL.getRope(string);
+            if (regex.numberOfNames() > 0) {
+                for (Iterator<NameEntry> i = regex.namedBackrefIterator(); i.hasNext();) {
+                    final NameEntry e = i.next();
+                    if (bytesEqual(rope.getBytes(), rope.byteLength(), e.name, e.nameP, e.nameEnd)) {
+                        return e;
+                    }
+                }
+            }
+            return null;
+        }
+
+        protected static DynamicObject getRegexp(DynamicObject matchData) {
+            return Layouts.MATCH_DATA.getRegexp(matchData);
+        }
+
+        @TruffleBoundary(throwsControlFlowException = true)
+        private int getBackRefFromString(DynamicObject matchData, DynamicObject index) {
+            final Rope value = Layouts.STRING.getRope(index);
+            return getBackRefFromRope(matchData, index, value);
+        }
+
+        @TruffleBoundary(throwsControlFlowException = true)
+        private int getBackRefFromSymbol(DynamicObject matchData, DynamicObject index) {
+            final Rope value = Layouts.SYMBOL.getRope(index);
+            return getBackRefFromRope(matchData, index, value);
+        }
+
+        private int getBackRefFromRope(DynamicObject matchData, DynamicObject index, final Rope value) {
+            try {
+                return Layouts.REGEXP.getRegex(Layouts.MATCH_DATA.getRegexp(matchData)).nameToBackrefNumber(value.getBytes(), 0, value.byteLength(), Layouts.MATCH_DATA.getRegion(matchData));
+            } catch (final ValueException e) {
+                throw new RaiseException(
+                        coreExceptions().indexError(StringUtils.format("undefined group name reference: %s", index.toString()), this));
+            }
+        }
+
+        @TruffleBoundary
+        private int getBackRef(DynamicObject matchData, DynamicObject regexp, NameEntry name) {
+            return Layouts.REGEXP.getRegex(regexp).nameToBackrefNumber(name.name, name.nameP,
+                    name.nameEnd, Layouts.MATCH_DATA.getRegion(matchData));
+        }
+
+        @TruffleBoundary
+        protected static int numBackRefs(NameEntry name) {
+            return name == null ? 0 : name.getBackRefs().length;
+        }
+
+        @TruffleBoundary
+        protected static int backRefIndex(NameEntry name) {
+            return name == null ? 0 : name.getBackRefs()[0];
+        }
+
+        @TruffleBoundary
+        private static boolean bytesEqual(byte[] bytes, int byteLength, byte[] name, int nameP, int nameEnd) {
+            if (bytes == name && nameP == 0 && byteLength == nameEnd) {
+                return true;
+            } else if (nameEnd - nameP != byteLength) {
+                return false;
+            } else {
+                return ArrayUtils.memcmp(bytes, 0, name, nameP, byteLength) == 0;
+            }
+        }
     }
 
     @CoreMethod(names = "begin", required = 1, lowerFixnum = 1)
@@ -284,6 +364,8 @@ public abstract class MatchDataNodes {
     public abstract static class ValuesNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
+        @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
 
         public static ValuesNode create() {
             return ValuesNodeFactory.create(new RubyNode[0]);
@@ -291,18 +373,14 @@ public abstract class MatchDataNodes {
 
         public abstract Object[] execute(DynamicObject matchData);
 
-        @Specialization(guards = "hasValues(matchData)")
-        public Object[] getValuesFast(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getValues(matchData);
-        }
-
         @TruffleBoundary
-        @Specialization(guards = "!hasValues(matchData)")
+        @Specialization
         public Object[] getValuesSlow(DynamicObject matchData) {
-            DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
-            Rope sourceRope = StringOperations.rope(source);
-            Region region = Layouts.MATCH_DATA.getRegion(matchData);
+            final DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
+            final Rope sourceRope = StringOperations.rope(source);
+            final Region region = Layouts.MATCH_DATA.getRegion(matchData);
             final Object[] values = new Object[region.numRegs];
+            boolean isTained = isTaintedNode.executeIsTainted(source);
 
             for (int n = 0; n < region.numRegs; n++) {
                 final int start = region.beg[n];
@@ -310,35 +388,27 @@ public abstract class MatchDataNodes {
 
                 if (start > -1 && end > -1) {
                     Rope rope = makeSubstringNode.executeMake(sourceRope, start, end - start);
-                    values[n] = createSubstring(source, rope);
+                    DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, isTained, rope));
+                    values[n] = string;
                 } else {
                     values[n] = nil();
                 }
             }
 
-            Layouts.MATCH_DATA.setValues(matchData, values);
             return values;
         }
 
-        public static boolean hasValues(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getValues(matchData) != null;
-        }
     }
 
     @CoreMethod(names = "captures")
     public abstract static class CapturesNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create();
-        @Child private ValuesNode getValues = ValuesNode.create();
+        @Child private ValuesNode valuesNode = ValuesNode.create();
 
         @Specialization
         public DynamicObject toA(VirtualFrame frame, DynamicObject matchData) {
-            Object[] objects = getCaptures(getValues.execute(matchData));
-            for (int i = 0; i < objects.length; i++) {
-                if (objects[i] != nil()) {
-                    objects[i] = dupNode.call(frame, objects[i], "dup");
-                }
-            }
+            Object[] objects = getCaptures(valuesNode.execute(matchData));
             return createArray(objects, objects.length);
         }
 
@@ -404,12 +474,6 @@ public abstract class MatchDataNodes {
         }
     }
 
-    // because the factory is not constant
-    @TruffleBoundary
-    private static DynamicObject createSubstring(DynamicObject source, Rope rope) {
-        return Layouts.CLASS.getInstanceFactory(Layouts.BASIC_OBJECT.getLogicalClass(source)).newInstance(Layouts.STRING.build(false, false, rope));
-    }
-
     @CoreMethod(names = { "length", "size" })
     public abstract static class LengthNode extends CoreMethodArrayArgumentsNode {
 
@@ -422,11 +486,11 @@ public abstract class MatchDataNodes {
 
     }
 
-    @CoreMethod(names = "pre_match")
+    @CoreMethod(names = "pre_match", taintFrom = 0)
     public abstract static class PreMatchNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         public static PreMatchNode create() {
             return PreMatchNodeFactory.create(new RubyNode[0]);
@@ -434,12 +498,7 @@ public abstract class MatchDataNodes {
 
         public abstract DynamicObject execute(DynamicObject matchData);
 
-        @Specialization(guards = "isConstructed(matchData)")
-        public Object preMatchFast(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getPre(matchData);
-        }
-
-        @Specialization(guards = "!isConstructed(matchData)")
+        @Specialization
         public Object preMatch(DynamicObject matchData) {
             DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             Rope sourceRope = StringOperations.rope(source);
@@ -447,21 +506,16 @@ public abstract class MatchDataNodes {
             int start = 0;
             int length = region.beg[0];
             Rope rope = makeSubstringNode.executeMake(sourceRope, start, length);
-            DynamicObject newStr = createSubstring(source, rope);
-            Layouts.MATCH_DATA.setPre(matchData, newStr);
-            return taintResultNode.maybeTaint(source, newStr);
-        }
-
-        protected boolean isConstructed(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getPre(matchData) != null;
+            DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
+            return string;
         }
     }
 
-    @CoreMethod(names = "post_match")
+    @CoreMethod(names = "post_match", taintFrom = 0)
     public abstract static class PostMatchNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
         public static PostMatchNode create() {
             return PostMatchNodeFactory.create(new RubyNode[0]);
@@ -469,12 +523,7 @@ public abstract class MatchDataNodes {
 
         public abstract DynamicObject execute(DynamicObject matchData);
 
-        @Specialization(guards = "isConstructed(matchData)")
-        public Object postMatchFast(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getPost(matchData);
-        }
-
-        @Specialization(guards = "!isConstructed(matchData)")
+        @Specialization
         public Object postMatch(DynamicObject matchData) {
             DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             Rope sourceRope = StringOperations.rope(source);
@@ -482,70 +531,20 @@ public abstract class MatchDataNodes {
             int start = region.end[0];
             int length = sourceRope.byteLength() - region.end[0];
             Rope rope = makeSubstringNode.executeMake(sourceRope, start, length);
-            DynamicObject newStr = createSubstring(source, rope);
-            Layouts.MATCH_DATA.setPost(matchData, newStr);
-            return taintResultNode.maybeTaint(source, newStr);
-        }
-
-        protected boolean isConstructed(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getPost(matchData) != null;
+            DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, false, rope));
+            return string;
         }
     }
 
     @CoreMethod(names = "to_a")
     public abstract static class ToANode extends CoreMethodArrayArgumentsNode {
 
-        @Child ValuesNode getValues = ValuesNode.create();
+        @Child ValuesNode valuesNode = ValuesNode.create();
 
         @Specialization
         public DynamicObject toA(DynamicObject matchData) {
-            Object[] objects = ArrayUtils.copy(getValues.execute(matchData));
+            Object[] objects = ArrayUtils.copy(valuesNode.execute(matchData));
             return createArray(objects, objects.length);
-        }
-    }
-
-    @CoreMethod(names = "to_s")
-    public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
-
-        @Child MatchNode globalNode = MatchNode.create();
-
-        @Specialization
-        public DynamicObject executeToS(DynamicObject matchData) {
-            return createString(StringOperations.rope(globalNode.execute(matchData)));
-        }
-    }
-    
-    public abstract static class MatchNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
-
-        public static MatchNode create() {
-            return MatchNodeFactory.create(new RubyNode[0]);
-        }
-
-        public abstract DynamicObject execute(DynamicObject matchData);
-
-        @Specialization(guards = "isConstructed(matchData)")
-        public Object postMatchFast(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getMatch(matchData);
-        }
-
-        @Specialization(guards = "!isConstructed(matchData)")
-        public DynamicObject toS(DynamicObject matchData) {
-            DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
-            Rope sourceRope = StringOperations.rope(source);
-            Region region = Layouts.MATCH_DATA.getRegion(matchData);
-            int start = region.beg[0];
-            int length = region.end[0] - region.beg[0];
-            Rope rope = makeSubstringNode.executeMake(sourceRope, start, length);
-            DynamicObject global = createSubstring(source, rope);
-            Layouts.MATCH_DATA.setMatch(matchData, global);
-
-            return global;
-        }
-
-        protected boolean isConstructed(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getMatch(matchData) != null;
         }
     }
 

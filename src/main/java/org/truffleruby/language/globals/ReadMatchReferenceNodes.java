@@ -9,29 +9,13 @@
  */
 package org.truffleruby.language.globals;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-
-import org.joni.NameEntry;
-import org.joni.Regex;
-import org.joni.Region;
-import org.truffleruby.Layouts;
-import org.truffleruby.core.regexp.MatchDataNodes.MatchNode;
-import org.truffleruby.core.regexp.MatchDataNodes.PostMatchNode;
-import org.truffleruby.core.regexp.MatchDataNodes.PreMatchNode;
 import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.threadlocal.GetFromThreadAndFrameLocalStorageNode;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -43,7 +27,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
     public static final int HIGHEST = -4;
 
     public static class ReadPreMatchNode extends RubyNode {
-        @Child PreMatchNode preMatchNode = PreMatchNode.create();
+        @Child CallDispatchHeadNode preMatchNode = CallDispatchHeadNode.create();
         @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
@@ -60,9 +44,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
                 return nil();
             }
 
-            final DynamicObject matchData = (DynamicObject) match;
-
-            return preMatchNode.execute(matchData);
+            return preMatchNode.call(frame, match, "pre_match");
         }
 
         @Override
@@ -76,7 +58,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
     }
 
     public static class ReadPostMatchNode extends RubyNode {
-        @Child PostMatchNode postMatchNode = PostMatchNode.create();
+        @Child CallDispatchHeadNode postMatchNode = CallDispatchHeadNode.create();
         @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
@@ -93,9 +75,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
                 return nil();
             }
 
-            final DynamicObject matchData = (DynamicObject) match;
-
-            return postMatchNode.execute(matchData);
+            return postMatchNode.call(frame, match, "post_match");
         }
 
         @Override
@@ -109,9 +89,8 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
     }
 
     public static class ReadMatchNode extends RubyNode {
-        @Child MatchNode tosMatchNode = MatchNode.create();
+        @Child private CallDispatchHeadNode getMatchIndexNode = CallDispatchHeadNode.create();
         @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
-
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
 
         public ReadMatchNode(GetFromThreadAndFrameLocalStorageNode readMatchNode) {
@@ -126,9 +105,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
                 return nil();
             }
 
-            final DynamicObject matchData = (DynamicObject) match;
-
-            return tosMatchNode.execute(matchData);
+            return getMatchIndexNode.call(frame, match, "[]", 0);
         }
 
         @Override
@@ -183,7 +160,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
 
     public static class ReadNthMatchNode extends RubyNode {
         @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
-        @Child private ValuesNode getValues = ValuesNode.create();
+        @Child private CallDispatchHeadNode getIndexNode = CallDispatchHeadNode.create();
         private final int index;
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
@@ -201,15 +178,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
                 return nil();
             }
 
-            final DynamicObject matchData = (DynamicObject) match;
-
-            final Object[] values = getValues.execute(matchData);
-
-            if (index >= values.length) {
-                return nil();
-            } else {
-                return values[index];
-            }
+            return getIndexNode.call(frame, match, "[]", index);
         }
 
         @Override
@@ -224,92 +193,45 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
 
     public static class SetNamedVariablesMatchNode extends RubyNode {
         @Child private RubyNode matchDataNode;
-        @Child private GetFromThreadAndFrameLocalStorageNode readMatchNode;
-        @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
-        protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
-        private final Regex regex;
+        @Child private RubyNode readMatchNode;
+        @Children private final RubyNode[] setters;
+        @Children private final RubyNode[] nilSetters;
 
-        public SetNamedVariablesMatchNode(Regex regex, RubyNode matchDataNode, GetFromThreadAndFrameLocalStorageNode readMatchNode) {
-            this.regex = regex;
+        protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
+
+        public SetNamedVariablesMatchNode(RubyNode matchDataNode, RubyNode readMatchNode, RubyNode[] setters, RubyNode[] nilSetters) {
             this.matchDataNode = matchDataNode;
             this.readMatchNode = readMatchNode;
+            this.setters = setters;
+            this.nilSetters = nilSetters;
+
         }
 
         @Override
         public Object execute(VirtualFrame frame) {
             final Object matchResult = matchDataNode.execute(frame);
             DynamicObject match = (DynamicObject) readMatchNode.execute(frame);
-            MaterializedFrame frame2 = frame.materialize();
             if (matchNilProfile.profile(match == nil())) {
-                setNamedForNil(frame2);
+                setNamedForNil(frame);
             } else {
-                setNamedForNonNil(frame2, regex, Layouts.MATCH_DATA.getSource(match), match);
+                setNamedForNonNil(frame);
             }
             return matchResult;
         }
 
-        @TruffleBoundary
-        private void setNamedForNonNil(MaterializedFrame frame, Regex regex, DynamicObject string, DynamicObject matchData) {
-            DynamicObject nil = nil();
-            Region region = Layouts.MATCH_DATA.getRegion(matchData);
-            for (Iterator<NameEntry> i = regex.namedBackrefIterator(); i.hasNext();) {
-                final NameEntry e = i.next();
-                final String name = new String(e.name, e.nameP, e.nameEnd - e.nameP, StandardCharsets.UTF_8).intern();
-                int nth = regex.nameToBackrefNumber(e.name, e.nameP, e.nameEnd, region);
-
-                final Object value;
-
-                // Copied from jruby/RubyRegexp - see copyright notice there
-
-                if (nth >= region.numRegs || (nth < 0 && (nth += region.numRegs) <= 0)) {
-                    value = nil;
-                } else {
-                    final int start = region.beg[nth];
-                    final int end = region.end[nth];
-                    if (start != -1) {
-                        value = createSubstring(string, start, end - start);
-                    } else {
-                        value = nil;
-                    }
-                }
-
-                setLocalVariable(frame, name, value);
+        @ExplodeLoop
+        private void setNamedForNonNil(VirtualFrame frame) {
+            for (int n = 0; n < setters.length; n++) {
+                setters[n].execute(frame);
             }
         }
 
-        @TruffleBoundary
-        private void setNamedForNil(MaterializedFrame frame) {
-            DynamicObject nil = nil();
-            for (Iterator<NameEntry> i = regex.namedBackrefIterator(); i.hasNext();) {
-                final NameEntry e = i.next();
-                final String name = new String(e.name, e.nameP, e.nameEnd - e.nameP, StandardCharsets.UTF_8).intern();
-                setLocalVariable(frame, name, nil);
+        @ExplodeLoop
+        private void setNamedForNil(VirtualFrame frame) {
+            for (int n = 0; n < setters.length; n++) {
+                nilSetters[n].execute(frame);
             }
         }
 
-        private static void setLocalVariable(MaterializedFrame frame, String name, Object value) {
-            assert value != null;
-
-            while (frame != null) {
-                final FrameSlot slot = frame.getFrameDescriptor().findFrameSlot(name);
-                if (slot != null) {
-                    frame.setObject(slot, value);
-                    break;
-                }
-
-                frame = RubyArguments.getDeclarationFrame(frame);
-            }
-        }
-
-        private DynamicObject createSubstring(DynamicObject source, int start, int length) {
-            assert RubyGuards.isRubyString(source);
-
-            final Rope sourceRope = StringOperations.rope(source);
-            final Rope substringRope = makeSubstringNode.executeMake(sourceRope, start, length);
-
-            final DynamicObject ret = Layouts.CLASS.getInstanceFactory(Layouts.BASIC_OBJECT.getLogicalClass(source)).newInstance(Layouts.STRING.build(false, false, substringRope));
-
-            return ret;
-        }
     }
 }
