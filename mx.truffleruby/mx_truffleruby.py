@@ -119,7 +119,9 @@ def download_binary_suite(args):
     if len(version) == 0:
         version = None
 
-    # Add to MX_BINARY_SUITES dynamically
+    # Add to MX_BINARY_SUITES dynamically, make sure to not use a source suite
+    if not mx._binary_suites:
+        mx._binary_suites = []
     mx._binary_suites.append(name)
 
     suite = _suite.import_suite(name=name, version=version, urlinfos=[
