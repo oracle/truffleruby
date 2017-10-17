@@ -3939,13 +3939,19 @@ public abstract class StringNodes {
 
         @Specialization
         public Object stringToInum(DynamicObject string, int fixBase, boolean strict,
-                                   @Cached("create(getSourceIndexLength())") FixnumOrBignumNode fixnumOrBignumNode) {
-            return ConvertBytes.byteListToInum19(getContext(),
-                    this,
-                    fixnumOrBignumNode,
-                    string,
-                    fixBase,
-                    strict);
+                @Cached("create(getSourceIndexLength())") FixnumOrBignumNode fixnumOrBignumNode,
+                @Cached("create()") BranchProfile exceptionProfile) {
+            try {
+                return ConvertBytes.byteListToInum19(getContext(),
+                        this,
+                        fixnumOrBignumNode,
+                        string,
+                        fixBase,
+                        strict);
+            } catch (RaiseException e) {
+                exceptionProfile.enter();
+                throw e;
+            }
         }
 
     }
