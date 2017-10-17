@@ -60,12 +60,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int chmod(String filename, int mode) {
-        return posix.chmod(filename, mode);
-    }
-
-    @TruffleBoundary
-    @Override
     public int fchmod(int fd, int mode) {
         return posix.fchmod(fd, mode);
     }

@@ -9,13 +9,15 @@
 module Truffle::POSIX
   LIBC = Truffle::Interop.eval('application/x-native', 'default')
 
+  TYPES = {
+    :short => :int16,
+    :ushort => :uint16,
+    :int => :sint32,
+    :uint => :uint32,
+  }
+
   def self.resolve_type(type)
-    case type
-    when :int
-      :sint32
-    else
-      type
-    end
+    TYPES.fetch(type, type)
   end
 
   def self.attach_function(name, argument_types, return_type)
@@ -29,6 +31,8 @@ module Truffle::POSIX
     }
   end
 
+  mode_t = Rubinius::Config['rbx.platform.typedef.mode_t'].to_sym
 
   attach_function :access, [:string, :int], :int
+  attach_function :chmod, [:string, mode_t], :int
 end
