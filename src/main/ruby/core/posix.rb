@@ -17,7 +17,13 @@ module Truffle::POSIX
   }
 
   def self.to_nfi_type(type)
-    TYPES.fetch(type, type)
+    if found = TYPES[type]
+      found
+    elsif typedef = Rubinius::Config["rbx.platform.typedef.#{type}"]
+      TYPES[type] = to_nfi_type(typedef.to_sym)
+    else
+      TYPES[type] = type
+    end
   end
 
   def self.attach_function(name, argument_types, return_type)
@@ -31,12 +37,6 @@ module Truffle::POSIX
     }
   end
 
-  def self.resolve_type(type)
-    Rubinius::Config["rbx.platform.typedef.#{type}"].to_sym
-  end
-
-  mode_t = resolve_type('mode_t')
-
   attach_function :access, [:string, :int], :int
-  attach_function :chmod, [:string, mode_t], :int
+  attach_function :chmod, [:string, :mode_t], :int
 end
