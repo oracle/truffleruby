@@ -27,8 +27,6 @@ public interface TrufflePosix {
 
     byte[] crypt(byte[] key, byte[] salt);
     FileStat allocateStat();
-    int fchmod(int fd, int mode);
-    int fchown(int fd, int user, int group);
     int execve(String path, String[] argv, String[] envp);
     int fstat(int fd, FileStat stat);
     String getenv(String envName);
@@ -74,7 +72,7 @@ public interface TrufflePosix {
     int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends SpawnAttribute> spawnAttributes,
             Collection<? extends CharSequence> argv, Collection<? extends CharSequence> envp);
     int flock(int fd, int operation);
-    int dup(int fd);
+
     int dup2(int oldFd, int newFd);
     int fcntlInt(int fd, Fcntl fcntlConst, int arg);
     int fcntl(int fd, Fcntl fcntlConst);
@@ -91,7 +89,6 @@ public interface TrufflePosix {
     int ftruncate(int fd, long offset);
     int rename(CharSequence oldName, CharSequence newName);
     String getcwd();
-    int fsync(int fd);
     int isatty(int fd);
     int mkfifo(String path, int mode);
     long[] getgroups();

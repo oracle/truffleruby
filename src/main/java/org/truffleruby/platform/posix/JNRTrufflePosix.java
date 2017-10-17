@@ -60,18 +60,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int fchmod(int fd, int mode) {
-        return posix.fchmod(fd, mode);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int fchown(int fd, int user, int group) {
-        return posix.fchown(fd, user, group);
-    }
-
-    @TruffleBoundary
-    @Override
     public int execve(String path, String[] argv, String[] envp) {
         return posix.execve(path, argv, envp);
     }
@@ -349,12 +337,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int dup(int fd) {
-        return posix.dup(fd);
-    }
-
-    @TruffleBoundary
-    @Override
     public int dup2(int oldFd, int newFd) {
         return posix.dup2(oldFd, newFd);
     }
@@ -496,12 +478,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public String getcwd() {
         return posix.getcwd();
-    }
-
-    @TruffleBoundary
-    @Override
-    public int fsync(int fd) {
-        return posix.fsync(fd);
     }
 
     @TruffleBoundary

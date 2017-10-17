@@ -46,61 +46,6 @@ public abstract class TrufflePosixNodes {
         }
     }
 
-    @CoreMethod(names = "dup", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int dup(int descriptor) {
-            return posix().dup(descriptor);
-        }
-
-    }
-
-    @CoreMethod(names = "dup2", isModuleFunction = true, required = 2, lowerFixnum = { 1, 2 })
-    public abstract static class Dup2Node extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int dup2(int oldFd, int newFd) {
-            return posix().dup2(oldFd, newFd);
-        }
-
-    }
-
-    @CoreMethod(names = "fchmod", isModuleFunction = true, required = 2, lowerFixnum = {1, 2})
-    public abstract static class FchmodNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int fchmod(int one, int mode) {
-            return posix().fchmod(one, mode);
-        }
-
-    }
-
-    @CoreMethod(names = "fsync", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class FsyncNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int fsync(int descriptor) {
-            return posix().fsync(descriptor);
-        }
-
-    }
-
-    @CoreMethod(names = "fchown", isModuleFunction = true, required = 3, lowerFixnum = {1, 2, 3})
-    public abstract static class FchownNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int fchown(int descriptor, int owner, int group) {
-            return posix().fchown(descriptor, owner, group);
-        }
-
-    }
-
     @CoreMethod(names = "getegid", isModuleFunction = true)
     public abstract static class GetEGIDNode extends CoreMethodArrayArgumentsNode {
 
