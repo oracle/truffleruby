@@ -385,12 +385,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int access(CharSequence path, int amode) {
-        return posix.access(path, amode);
-    }
-
-    @TruffleBoundary
-    @Override
     public int close(int fd) {
         return posix.close(fd);
     }

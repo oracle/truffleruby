@@ -1506,6 +1506,7 @@ public class CoreLibrary {
             "/core/integer.rb",
             "/core/fixnum.rb",
             "/core/bignum.rb",
+            "/core/posix.rb",
             "/core/regexp.rb",
             "/core/encoding.rb",
             "/core/env.rb",
