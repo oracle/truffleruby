@@ -80,7 +80,6 @@ public interface TrufflePosix {
     int dup2(int oldFd, int newFd);
     int fcntlInt(int fd, Fcntl fcntlConst, int arg);
     int fcntl(int fd, Fcntl fcntlConst);
-    int access(CharSequence path, int amode);
     int close(int fd);
     int unlink(CharSequence path);
     int open(CharSequence path, int flags, int perm);

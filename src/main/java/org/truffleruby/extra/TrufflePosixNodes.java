@@ -46,18 +46,6 @@ public abstract class TrufflePosixNodes {
         }
     }
 
-    @CoreMethod(names = "access", isModuleFunction = true, required = 2, lowerFixnum = 2)
-    public abstract static class AccessNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(path)")
-        public int access(DynamicObject path, int mode) {
-            final String pathString = decodeUTF8(path);
-            return posix().access(pathString, mode);
-        }
-
-    }
-
     @CoreMethod(names = "chmod", isModuleFunction = true, required = 2, lowerFixnum = 2)
     public abstract static class ChmodNode extends CoreMethodArrayArgumentsNode {
 
