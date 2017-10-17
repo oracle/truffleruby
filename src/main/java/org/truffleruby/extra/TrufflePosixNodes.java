@@ -46,17 +46,6 @@ public abstract class TrufflePosixNodes {
         }
     }
 
-    @CoreMethod(names = "chown", isModuleFunction = true, required = 3, lowerFixnum = { 2, 3 })
-    public abstract static class ChownNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(path)")
-        public int chown(DynamicObject path, int owner, int group) {
-            return posix().chown(decodeUTF8(path), owner, group);
-        }
-
-    }
-
     @CoreMethod(names = "dup", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
 

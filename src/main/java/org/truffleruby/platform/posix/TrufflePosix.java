@@ -28,7 +28,6 @@ public interface TrufflePosix {
     byte[] crypt(byte[] key, byte[] salt);
     FileStat allocateStat();
     int fchmod(int fd, int mode);
-    int chown(String filename, int user, int group);
     int fchown(int fd, int user, int group);
     int execve(String path, String[] argv, String[] envp);
     int fstat(int fd, FileStat stat);

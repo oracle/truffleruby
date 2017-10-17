@@ -39,4 +39,5 @@ module Truffle::POSIX
 
   attach_function :access, [:string, :int], :int
   attach_function :chmod, [:string, :mode_t], :int
+  attach_function :chown, [:string, :uid_t, :gid_t], :int
 end

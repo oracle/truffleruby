@@ -66,12 +66,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int chown(String filename, int user, int group) {
-        return posix.chown(filename, user, group);
-    }
-
-    @TruffleBoundary
-    @Override
     public int fchown(int fd, int user, int group) {
         return posix.fchown(fd, user, group);
     }
