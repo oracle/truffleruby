@@ -45,6 +45,19 @@ module Rubinius
   end
 end
 
+# Only define Kernel#p here when everything is set up so the basic version is
+# available while loading core where IO is not fully defined.
+module Kernel
+  def p(*a)
+    return nil if a.empty?
+    a.each { |obj| $stdout.puts obj.inspect }
+    $stdout.flush
+
+    a.size == 1 ? a.first : a
+  end
+  module_function :p
+end
+
 ARGV.concat(Truffle::Boot.original_argv)
 
 $LOAD_PATH.concat(Truffle::Boot.original_load_path)

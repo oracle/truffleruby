@@ -394,14 +394,7 @@ module Kernel
   end
   module_function :open
 
-  def p(*a)
-    return nil if a.empty?
-    a.each { |obj| $stdout.puts obj.inspect }
-    $stdout.flush
-
-    a.size == 1 ? a.first : a
-  end
-  module_function :p
+  # Kernel#p is in post.rb
 
   def print(*args)
     args.each do |obj|
