@@ -9,10 +9,8 @@
  */
 package org.truffleruby.platform;
 
-import com.oracle.truffle.api.TruffleOptions;
 import org.truffleruby.RubyContext;
 import org.truffleruby.platform.darwin.DarwinPlatform;
-import org.truffleruby.platform.java.JavaPlatform;
 import org.truffleruby.platform.linux.LinuxPlatform;
 import org.truffleruby.platform.solaris.SolarisPlatform;
 
@@ -21,11 +19,6 @@ public abstract class NativePlatformFactory {
     private static final Platform.OS_TYPE OS = Platform.getPlatform().getOS();
 
     public static NativePlatform createPlatform(RubyContext context) {
-        if (!TruffleOptions.AOT &&
-                (context.getOptions().PLATFORM_USE_JAVA || (OS == Platform.OS_TYPE.WINDOWS))) {
-            return new JavaPlatform(context);
-        }
-
         if (OS == Platform.OS_TYPE.LINUX) {
             return new LinuxPlatform(context);
         }
