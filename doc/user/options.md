@@ -1,6 +1,6 @@
 # TruffleRuby Options and Command Line
 
-TruffleRuby has the same command line interface as MRI 2.3.3.
+TruffleRuby has the same command line interface as MRI 2.3.5.
 
 ```
 Usage: truffleruby [switches] [--] [programfile] [arguments]
@@ -91,10 +91,10 @@ arguments in the same way it stops processing of Ruby arguments.
 ## JVM- and SVM-specific switches
 
 If you are running TruffleRuby on a JVM or the GraalVM, we additionally support
-passing options to the JVM using either a `-J-`, `-J:`, or `--jvm.` prefix. 
-For example `-J-ea` or `-J:ea`. `-J-classpath` and `-J-cp` (or the `-J:` 
-variants) also implicitly take the following argument to be passed to the JVM. 
-`-J-cmd` or `-J:cmd` print the Java command that will be executed, for 
+passing options to the JVM using either a `-J-`, `-J:`, or `--jvm.` prefix.
+For example `-J-ea` or `-J:ea`. `-J-classpath` and `-J-cp` (or the `-J:`
+variants) also implicitly take the following argument to be passed to the JVM.
+`-J-cmd` or `-J:cmd` print the Java command that will be executed, for
 debugging.
 
 ```

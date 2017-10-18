@@ -5,8 +5,8 @@ source test/truffle/common.sh.inc
 function check_launchers() {
     if [ -n "$2" ]
     then
-        [[ "$(${1}truffleruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.3 ]]
-        [[ "$(${1}ruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.3 ]]
+        [[ "$(${1}truffleruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.5 ]]
+        [[ "$(${1}ruby --version)" =~ truffleruby\ .*\ like\ ruby\ 2.3.5 ]]
     fi
     [[ "$(${1}gem --version)" =~ ^2.5.2.1$ ]]
     [[ "$(${1}irb --version)" =~ ^irb\ 0.9.6 ]]
