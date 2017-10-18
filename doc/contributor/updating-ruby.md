@@ -16,7 +16,7 @@ git diff <hash> HEAD -- lib/mri lib/cext src/main/c/openssl test/mri/tests > ../
 ## Import new files from MRI
 
 Then we want to create a new commit with the new, unmodified files imported from
-MRI. You need MRI checked out into `../mri` at the version you want to import.
+MRI. You need MRI checked out into `../ruby` at the version you want to import.
 Then run `tool/import-mri-files.sh`.
 
 ## Create a reference commit of the imported unmodified files
