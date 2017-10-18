@@ -1,7 +1,7 @@
 # Compatibility
 
 TruffleRuby aims to be highly compatible with the standard implementation of
-Ruby, MRI, version 2.3.3.
+Ruby, MRI, version 2.3.5.
 
 Our policy is to match the behaviour of MRI, except where we do not know how to
 do so with good performance for typical Ruby programs. Some features work but
