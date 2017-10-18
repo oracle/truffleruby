@@ -406,7 +406,7 @@ module Rubinius
           to = (-to + 1) if to < 0
 
           result = Truffle::POSIX.dup2(to, from)
-          Errno.handle if result < 0
+          Errno.handle_nfi if result < 0
 
           flags = Truffle::POSIX.fcntl(from, Fcntl::F_GETFD, nil)
           Errno.handle if flags < 0
