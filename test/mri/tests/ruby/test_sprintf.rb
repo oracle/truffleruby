@@ -84,6 +84,18 @@ class TestSprintf < Test::Unit::TestCase
     assert_equal("NaN", sprintf("%-f", nan))
     assert_equal("+NaN", sprintf("%+f", nan))
 
+    assert_equal("NaN", sprintf("%3f", nan))
+    assert_equal("NaN", sprintf("%-3f", nan))
+    assert_equal("+NaN", sprintf("%+3f", nan))
+
+    assert_equal(" NaN", sprintf("% 3f", nan))
+    assert_equal(" NaN", sprintf("%- 3f", nan))
+    assert_equal("+NaN", sprintf("%+ 3f", nan))
+
+    assert_equal(" NaN", sprintf("% 03f", nan))
+    assert_equal(" NaN", sprintf("%- 03f", nan))
+    assert_equal("+NaN", sprintf("%+ 03f", nan))
+
     assert_equal("     NaN", sprintf("%8f", nan))
     assert_equal("NaN     ", sprintf("%-8f", nan))
     assert_equal("    +NaN", sprintf("%+8f", nan))
@@ -107,6 +119,26 @@ class TestSprintf < Test::Unit::TestCase
     assert_equal("Inf", sprintf("%-f", inf))
     assert_equal("+Inf", sprintf("%+f", inf))
 
+    assert_equal(" Inf", sprintf("% f", inf))
+    assert_equal(" Inf", sprintf("%- f", inf))
+    assert_equal("+Inf", sprintf("%+ f", inf))
+
+    assert_equal(" Inf", sprintf("% 0f", inf))
+    assert_equal(" Inf", sprintf("%- 0f", inf))
+    assert_equal("+Inf", sprintf("%+ 0f", inf))
+
+    assert_equal("Inf", sprintf("%3f", inf))
+    assert_equal("Inf", sprintf("%-3f", inf))
+    assert_equal("+Inf", sprintf("%+3f", inf))
+
+    assert_equal(" Inf", sprintf("% 3f", inf))
+    assert_equal(" Inf", sprintf("%- 3f", inf))
+    assert_equal("+Inf", sprintf("%+ 3f", inf))
+
+    assert_equal(" Inf", sprintf("% 03f", inf))
+    assert_equal(" Inf", sprintf("%- 03f", inf))
+    assert_equal("+Inf", sprintf("%+ 03f", inf))
+
     assert_equal("     Inf", sprintf("%8f", inf))
     assert_equal("Inf     ", sprintf("%-8f", inf))
     assert_equal("    +Inf", sprintf("%+8f", inf))
@@ -126,6 +158,26 @@ class TestSprintf < Test::Unit::TestCase
     assert_equal("-Inf", sprintf("%f", -inf))
     assert_equal("-Inf", sprintf("%-f", -inf))
     assert_equal("-Inf", sprintf("%+f", -inf))
+
+    assert_equal("-Inf", sprintf("% f", -inf))
+    assert_equal("-Inf", sprintf("%- f", -inf))
+    assert_equal("-Inf", sprintf("%+ f", -inf))
+
+    assert_equal("-Inf", sprintf("% 0f", -inf))
+    assert_equal("-Inf", sprintf("%- 0f", -inf))
+    assert_equal("-Inf", sprintf("%+ 0f", -inf))
+
+    assert_equal("-Inf", sprintf("%4f", -inf))
+    assert_equal("-Inf", sprintf("%-4f", -inf))
+    assert_equal("-Inf", sprintf("%+4f", -inf))
+
+    assert_equal("-Inf", sprintf("% 4f", -inf))
+    assert_equal("-Inf", sprintf("%- 4f", -inf))
+    assert_equal("-Inf", sprintf("%+ 4f", -inf))
+
+    assert_equal("-Inf", sprintf("% 04f", -inf))
+    assert_equal("-Inf", sprintf("%- 04f", -inf))
+    assert_equal("-Inf", sprintf("%+ 04f", -inf))
 
     assert_equal("    -Inf", sprintf("%8f", -inf))
     assert_equal("-Inf    ", sprintf("%-8f", -inf))
@@ -432,5 +484,10 @@ class TestSprintf < Test::Unit::TestCase
   def test_named_with_nil
     h = { key: nil, key2: "key2_val" }
     assert_equal("key is , key2 is key2_val", "key is %{key}, key2 is %{key2}" % h)
+  end
+
+  def test_width_underflow
+    bug = 'https://github.com/mruby/mruby/issues/3347'
+    assert_equal("!", sprintf("%*c", 0, ?!.ord), bug)
   end
 end
