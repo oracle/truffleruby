@@ -30,7 +30,7 @@ Then copy and paste:
 
 Then:
 
-* Update version information in `RubyLanguage`
+* Update version information in `Launcher`
 * Update `doc/user/compatibility.md`
 * Update `doc/user/legal.md`
 
