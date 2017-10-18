@@ -75,7 +75,6 @@ if ruby_home
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-complex/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-date/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-pathname/lib"
-  $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-tempfile/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-socket/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-securerandom/lib"
   $LOAD_PATH.push "#{ruby_home}/lib/rubysl/rubysl-timeout/lib"

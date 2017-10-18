@@ -9,7 +9,6 @@ Original commits for each library are:
 * rubysl-stringio `4b2977296eceef83084146c73d9ddef8d7e8f1af`
 * rubysl-complex `ccdb6e86aed5eaada64808f85d03d08d2834294a`
 * rubysl-pathname `cdf215804c4349353a60226b5c1d71f695d45570`
-* rubysl-tempfile `97c4464b4d235f773aab537fbc80608a730a58fc`
 * rubysl-socket `c4a53910481d789a00e49a94eccee83264a51060`
 * rubysl-securerandom `00e31daaf492f7987aa50750dfc3ebc8e8c42a7e`
 * rubysl-timeout `4208724abdbd4651b970f7340bffcd83c0458e8e`
