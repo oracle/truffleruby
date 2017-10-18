@@ -1965,5 +1965,4 @@ RUBY_SYMBOL_EXPORT_END
 { /* satisfy cc-mode */
 #endif
 }  /* extern "C" { */
-#endif
 #endif /* RUBY_RUBY_H */
