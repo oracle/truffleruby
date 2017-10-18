@@ -378,7 +378,7 @@ module Process
       end
     end
 
-    Errno.handle if ret == -1
+    Errno.handle_nfi if ret == -1
 
     uid
   end

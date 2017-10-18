@@ -53,4 +53,17 @@ module Truffle::POSIX
   attach_function :seteuid, [:uid_t], :int
   attach_function :setgid, [:gid_t], :int
   attach_function :setuid, [:uid_t], :int
+
+  if Rubinius.linux?
+    attach_function :__errno_location, [], :pointer
+    def self.errno_address; __errno_location; end
+  elsif Rubinius.darwin?
+    attach_function :__error, [], :pointer
+    def self.errno_address; __error; end
+  elsif Rubinius.solaris?
+    attach_function :___errno, [], :pointer
+    def self.errno_address; ___errno; end
+  else
+    raise 'Unsupported platform'
+  end
 end
