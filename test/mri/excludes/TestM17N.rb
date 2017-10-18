@@ -45,4 +45,5 @@ exclude :"test_utf_16_32_inspect(UTF-32LE-BOM)", "needs investigation"
 exclude :"test_symbol_op", "needs investigation"
 exclude :"test_utf_16_32_inspect(UTF-16BE)", "needs investigation"
 exclude :"test_utf_16_32_inspect(UTF-16LE)", "needs investigation"
-
+exclude :"test_scrub_replace_block", "needs investigation"
+exclude :"test_scrub_widechar", "needs investigation"
