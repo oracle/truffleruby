@@ -44,10 +44,7 @@ enum ruby_encoding_consts {
 
 #define RB_ENCODING_GET_INLINED(obj) \
     (int)((RBASIC(obj)->flags & RUBY_ENCODING_MASK)>>RUBY_ENCODING_SHIFT)
-#define RB_ENCODING_GET(obj) \
-    (RB_ENCODING_GET_INLINED(obj) != RUBY_ENCODING_INLINE_MAX ? \
-     RB_ENCODING_GET_INLINED(obj) : \
-     rb_enc_get_index(obj))
+#define RB_ENCODING_GET(obj) rb_enc_get_index(obj)
 
 #define RB_ENCODING_IS_ASCII8BIT(obj) (RB_ENCODING_GET_INLINED(obj) == 0)
 
@@ -60,12 +57,9 @@ enum ruby_encoding_consts {
 
 enum ruby_coderange_type {
     RUBY_ENC_CODERANGE_UNKNOWN	= 0,
-    RUBY_ENC_CODERANGE_7BIT	= ((int)RUBY_FL_USER8),
-    RUBY_ENC_CODERANGE_VALID	= ((int)RUBY_FL_USER9),
-    RUBY_ENC_CODERANGE_BROKEN	= ((int)(RUBY_FL_USER8|RUBY_FL_USER9)),
-    RUBY_ENC_CODERANGE_MASK	= (RUBY_ENC_CODERANGE_7BIT|
-				   RUBY_ENC_CODERANGE_VALID|
-				   RUBY_ENC_CODERANGE_BROKEN)
+    RUBY_ENC_CODERANGE_7BIT     = 1,
+    RUBY_ENC_CODERANGE_VALID    = 2,
+    RUBY_ENC_CODERANGE_BROKEN   = 4
 };
 
 static inline int
@@ -74,7 +68,7 @@ rb_enc_coderange_clean_p(int cr)
     return (cr ^ (cr >> 1)) & RUBY_ENC_CODERANGE_7BIT;
 }
 #define RB_ENC_CODERANGE_CLEAN_P(cr) rb_enc_coderange_clean_p(cr)
-#define RB_ENC_CODERANGE(obj) ((int)RBASIC(obj)->flags & RUBY_ENC_CODERANGE_MASK)
+enum ruby_coderange_type RB_ENC_CODERANGE(VALUE obj);
 #define RB_ENC_CODERANGE_ASCIIONLY(obj) (RB_ENC_CODERANGE(obj) == RUBY_ENC_CODERANGE_7BIT)
 #define RB_ENC_CODERANGE_SET(obj,cr) (\
 	RBASIC(obj)->flags = \
@@ -107,7 +101,9 @@ rb_enc_coderange_clean_p(int cr)
 #define ENC_CODERANGE_AND(a, b)      RB_ENC_CODERANGE_AND(a, b)
 #define ENCODING_CODERANGE_SET(obj, encindex, cr) RB_ENCODING_CODERANGE_SET(obj, encindex, cr)
 
-typedef const OnigEncodingType rb_encoding;
+typedef struct {
+  char *name;
+} rb_encoding;
 
 int rb_char_to_option_kcode(int c, int *option, int *kcode);
 
@@ -140,6 +136,9 @@ VALUE rb_obj_encoding(VALUE);
 VALUE rb_enc_str_buf_cat(VALUE str, const char *ptr, long len, rb_encoding *enc);
 VALUE rb_enc_uint_chr(unsigned int code, rb_encoding *enc);
 
+VALUE rb_external_str_with_enc(VALUE string, rb_encoding *eenc);
+rb_encoding *get_encoding(VALUE string);
+#define STR_ENC_GET(string) get_encoding(string)
 VALUE rb_external_str_new_with_enc(const char *ptr, long len, rb_encoding *);
 VALUE rb_str_export_to_enc(VALUE, rb_encoding *);
 VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to);
@@ -172,8 +171,8 @@ rb_encoding *rb_enc_find(const char *name);
 #define rb_enc_name(enc) (enc)->name
 
 /* rb_encoding * -> minlen/maxlen */
-#define rb_enc_mbminlen(enc) (enc)->min_enc_len
-#define rb_enc_mbmaxlen(enc) (enc)->max_enc_len
+int rb_enc_mbminlen(rb_encoding *enc);
+int rb_enc_mbmaxlen(rb_encoding *enc);
 
 /* -> mbclen (no error notification: 0 < ret <= e-p, no exception) */
 int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc);
@@ -183,11 +182,11 @@ int rb_enc_fast_mbclen(const char *p, const char *e, rb_encoding *enc);
 
 /* -> chlen, invalid or needmore */
 int rb_enc_precise_mbclen(const char *p, const char *e, rb_encoding *enc);
-#define MBCLEN_CHARFOUND_P(ret)     ONIGENC_MBCLEN_CHARFOUND_P(ret)
-#define MBCLEN_CHARFOUND_LEN(ret)     ONIGENC_MBCLEN_CHARFOUND_LEN(ret)
+int MBCLEN_CHARFOUND_P(int r);
+int MBCLEN_CHARFOUND_LEN(int r);
 #define MBCLEN_INVALID_P(ret)       ONIGENC_MBCLEN_INVALID_P(ret)
-#define MBCLEN_NEEDMORE_P(ret)      ONIGENC_MBCLEN_NEEDMORE_P(ret)
-#define MBCLEN_NEEDMORE_LEN(ret)      ONIGENC_MBCLEN_NEEDMORE_LEN(ret)
+int MBCLEN_NEEDMORE_P(int r);
+int MBCLEN_NEEDMORE_LEN(int r);
 
 /* -> 0x00..0x7f, -1 */
 int rb_enc_ascget(const char *p, const char *e, int *len, rb_encoding *enc);
@@ -214,7 +213,7 @@ int rb_enc_code_to_mbclen(int code, rb_encoding *enc);
 /* start, ptr, end, encoding -> prev_char */
 #define rb_enc_prev_char(s,p,e,enc) ((char *)onigenc_get_prev_char_head((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e)))
 /* start, ptr, end, encoding -> next_char */
-#define rb_enc_left_char_head(s,p,e,enc) ((char *)onigenc_get_left_adjust_char_head((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e)))
+char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc);
 #define rb_enc_right_char_head(s,p,e,enc) ((char *)onigenc_get_right_adjust_char_head((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e)))
 #define rb_enc_step_back(s,p,e,n,enc) ((char *)onigenc_step_back((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e),(int)(n)))
 
@@ -232,7 +231,7 @@ int rb_enc_code_to_mbclen(int code, rb_encoding *enc);
 #define rb_enc_isspace(c,enc) ONIGENC_IS_CODE_SPACE((enc),(c))
 #define rb_enc_isdigit(c,enc) ONIGENC_IS_CODE_DIGIT((enc),(c))
 
-#define rb_enc_asciicompat(enc) (rb_enc_mbminlen(enc)==1 && !rb_enc_dummy_p(enc))
+
 
 int rb_enc_casefold(char *to, const char *p, const char *e, rb_encoding *enc);
 int rb_enc_toupper(int c, rb_encoding *enc);
@@ -283,6 +282,8 @@ VALUE rb_check_symbol_cstr(const char *ptr, long len, rb_encoding *enc);
 RUBY_EXTERN VALUE rb_cEncoding;
 
 /* econv stuff */
+struct rb_econv_t {};
+
 
 typedef enum {
     econv_invalid_byte_sequence,
@@ -379,24 +380,24 @@ enum ruby_econv_flag_type {
 #else
 	0,
 #endif
-#define ECONV_ERROR_HANDLER_MASK                RUBY_ECONV_ERROR_HANDLER_MASK
+// #define ECONV_ERROR_HANDLER_MASK                RUBY_ECONV_ERROR_HANDLER_MASK
 #define ECONV_INVALID_MASK                      RUBY_ECONV_INVALID_MASK
 #define ECONV_INVALID_REPLACE                   RUBY_ECONV_INVALID_REPLACE
 #define ECONV_UNDEF_MASK                        RUBY_ECONV_UNDEF_MASK
 #define ECONV_UNDEF_REPLACE                     RUBY_ECONV_UNDEF_REPLACE
 #define ECONV_UNDEF_HEX_CHARREF                 RUBY_ECONV_UNDEF_HEX_CHARREF
-#define ECONV_DECORATOR_MASK                    RUBY_ECONV_DECORATOR_MASK
-#define ECONV_NEWLINE_DECORATOR_MASK            RUBY_ECONV_NEWLINE_DECORATOR_MASK
-#define ECONV_NEWLINE_DECORATOR_READ_MASK       RUBY_ECONV_NEWLINE_DECORATOR_READ_MASK
-#define ECONV_NEWLINE_DECORATOR_WRITE_MASK      RUBY_ECONV_NEWLINE_DECORATOR_WRITE_MASK
+// #define ECONV_DECORATOR_MASK                    RUBY_ECONV_DECORATOR_MASK
+// #define ECONV_NEWLINE_DECORATOR_MASK            RUBY_ECONV_NEWLINE_DECORATOR_MASK
+// #define ECONV_NEWLINE_DECORATOR_READ_MASK       RUBY_ECONV_NEWLINE_DECORATOR_READ_MASK
+// #define ECONV_NEWLINE_DECORATOR_WRITE_MASK      RUBY_ECONV_NEWLINE_DECORATOR_WRITE_MASK
 #define ECONV_UNIVERSAL_NEWLINE_DECORATOR       RUBY_ECONV_UNIVERSAL_NEWLINE_DECORATOR
 #define ECONV_CRLF_NEWLINE_DECORATOR            RUBY_ECONV_CRLF_NEWLINE_DECORATOR
 #define ECONV_CR_NEWLINE_DECORATOR              RUBY_ECONV_CR_NEWLINE_DECORATOR
 #define ECONV_XML_TEXT_DECORATOR                RUBY_ECONV_XML_TEXT_DECORATOR
 #define ECONV_XML_ATTR_CONTENT_DECORATOR        RUBY_ECONV_XML_ATTR_CONTENT_DECORATOR
-#define ECONV_STATEFUL_DECORATOR_MASK           RUBY_ECONV_STATEFUL_DECORATOR_MASK
+// #define ECONV_STATEFUL_DECORATOR_MASK           RUBY_ECONV_STATEFUL_DECORATOR_MASK
 #define ECONV_XML_ATTR_QUOTE_DECORATOR          RUBY_ECONV_XML_ATTR_QUOTE_DECORATOR
-#define ECONV_DEFAULT_NEWLINE_DECORATOR         RUBY_ECONV_DEFAULT_NEWLINE_DECORATOR
+// #define ECONV_DEFAULT_NEWLINE_DECORATOR         RUBY_ECONV_DEFAULT_NEWLINE_DECORATOR
 /* end of flags for rb_econv_open */
 
 /* flags for rb_econv_convert */
