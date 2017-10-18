@@ -124,18 +124,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int getrlimit(int resource, Pointer rlim) {
-        return posix.getrlimit(resource, rlim);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int setrlimit(int resource, Pointer rlim) {
-        return posix.setrlimit(resource, rlim);
-    }
-
-    @TruffleBoundary
-    @Override
     public int kill(int pid, int signal) {
         return posix.kill(pid, signal);
     }
