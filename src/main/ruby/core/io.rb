@@ -1709,7 +1709,7 @@ class IO
   def fsync
     flush
     err = Truffle::POSIX.fsync @descriptor
-    Errno.handle 'fsync(2)' if err < 0
+    Errno.handle_nfi 'fsync(2)' if err < 0
     err
   end
 

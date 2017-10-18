@@ -238,7 +238,7 @@ class File < IO
 
     paths.each do |path|
       n = POSIX.chmod Rubinius::Type.coerce_to_path(path), mode
-      Errno.handle if n == -1
+      Errno.handle_nfi if n == -1
     end
     paths.size
   end
@@ -286,7 +286,7 @@ class File < IO
 
     paths.each do |path|
       n = POSIX.chown Rubinius::Type.coerce_to_path(path), owner, group
-      Errno.handle if n == -1
+      Errno.handle_nfi if n == -1
     end
 
     paths.size
@@ -295,7 +295,7 @@ class File < IO
   def chmod(mode)
     mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
     n = POSIX.fchmod @descriptor, clamp_short(mode)
-    Errno.handle if n == -1
+    Errno.handle_nfi if n == -1
     n
   end
 
@@ -313,7 +313,7 @@ class File < IO
     end
 
     n = POSIX.fchown @descriptor, owner, group
-    Errno.handle if n == -1
+    Errno.handle_nfi if n == -1
     n
   end
 

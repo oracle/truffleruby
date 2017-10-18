@@ -345,7 +345,7 @@ module Process
       end
     end
 
-    Errno.handle if ret == -1
+    Errno.handle_nfi if ret == -1
 
     uid
   end
@@ -704,7 +704,7 @@ module Process
         gid = Rubinius::Type.coerce_to gid, Integer, :to_int
 
         ret = Truffle::POSIX.setgid gid
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         nil
       end
 
@@ -712,7 +712,7 @@ module Process
         uid = Rubinius::Type.coerce_to uid, Integer, :to_int
 
         ret = Truffle::POSIX.setuid uid
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         nil
       end
 
@@ -720,7 +720,7 @@ module Process
         egid = Rubinius::Type.coerce_to egid, Integer, :to_int
 
         ret = Truffle::POSIX.setegid egid
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         nil
       end
 
@@ -728,7 +728,7 @@ module Process
         euid = Rubinius::Type.coerce_to euid, Integer, :to_int
 
         ret = Truffle::POSIX.seteuid euid
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         nil
       end
 
@@ -798,7 +798,7 @@ module Process
         uid = Rubinius::Type.coerce_to uid, Integer, :to_int
 
         ret = Truffle::POSIX.seteuid(uid)
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         uid
       end
       alias_method :grant_privilege, :eid=
