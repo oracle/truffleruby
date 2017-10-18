@@ -389,27 +389,19 @@ module Process
   end
 
   def self.uid
-    ret = Truffle::POSIX.getuid
-    Errno.handle if ret == -1
-    ret
+    Truffle::POSIX.getuid
   end
 
   def self.gid
-    ret = Truffle::POSIX.getgid
-    Errno.handle if ret == -1
-    ret
+    Truffle::POSIX.getgid
   end
 
   def self.euid
-    ret = Truffle::POSIX.geteuid
-    Errno.handle if ret == -1
-    ret
+    Truffle::POSIX.geteuid
   end
 
   def self.egid
-    ret = Truffle::POSIX.getegid
-    Errno.handle if ret == -1
-    ret
+    Truffle::POSIX.getegid
   end
 
   def self.getpriority(kind, id)
@@ -689,27 +681,19 @@ module Process
   module Sys
     class << self
       def getegid
-        ret = Truffle::POSIX.getegid
-        Errno.handle if ret == -1
-        ret
+        Truffle::POSIX.getegid
       end
 
       def geteuid
-        ret = Truffle::POSIX.geteuid
-        Errno.handle if ret == -1
-        ret
+        Truffle::POSIX.geteuid
       end
 
       def getgid
-        ret = Truffle::POSIX.getgid
-        Errno.handle if ret == -1
-        ret
+        Truffle::POSIX.getgid
       end
 
       def getuid
-        ret = Truffle::POSIX.getuid
-        Errno.handle if ret == -1
-        ret
+        Truffle::POSIX.getuid
       end
 
       def issetugid
@@ -807,9 +791,7 @@ module Process
       end
 
       def eid
-        ret = Truffle::POSIX.geteuid
-        Errno.handle if ret == -1
-        ret
+        Truffle::POSIX.geteuid
       end
 
       def eid=(uid)
@@ -823,9 +805,7 @@ module Process
 
       def re_exchange
         real = Truffle::POSIX.getuid
-        Errno.handle if real == -1
         eff = Truffle::POSIX.geteuid
-        Errno.handle if eff == -1
         ret = Truffle::POSIX.setreuid(eff, real)
         Errno.handle if ret == -1
         eff
@@ -836,9 +816,7 @@ module Process
       end
 
       def rid
-        ret = Truffle::POSIX.getuid
-        Errno.handle if ret == -1
-        ret
+        Truffle::POSIX.getuid
       end
 
       def sid_available?
@@ -870,9 +848,7 @@ module Process
       end
 
       def eid
-        ret = Truffle::POSIX.getegid
-        Errno.handle if ret == -1
-        ret
+        Truffle::POSIX.getegid
       end
 
       def eid=(gid)
@@ -886,9 +862,7 @@ module Process
 
       def re_exchange
         real = Truffle::POSIX.getgid
-        Errno.handle if real == -1
         eff = Truffle::POSIX.getegid
-        Errno.handle if eff == -1
         ret = Truffle::POSIX.setregid(eff, real)
         Errno.handle if ret == -1
         eff
@@ -899,9 +873,7 @@ module Process
       end
 
       def rid
-        ret = Truffle::POSIX.getgid
-        Errno.handle if ret == -1
-        ret
+        Truffle::POSIX.getgid
       end
 
       def sid_available?
