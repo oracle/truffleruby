@@ -166,11 +166,6 @@ public class OptionsCatalog {
             "Sync operations on standard IO streams",
             null,
             true);
-    public static final BooleanOptionDescription PLATFORM_USE_JAVA = new BooleanOptionDescription(
-            "ruby.platform.use_java",
-            "Use a pure-Java platform, so no native POSIX",
-            null,
-            false);
     public static final BooleanOptionDescription NATIVE_INTERRUPT = new BooleanOptionDescription(
             "ruby.platform.native_interrupt",
             "Use the SIGVTALRM signal to interrupt native blocking calls",
@@ -664,8 +659,6 @@ public class OptionsCatalog {
                 return POLYGLOT_STDIO;
             case "ruby.sync.stdio":
                 return SYNC_STDIO;
-            case "ruby.platform.use_java":
-                return PLATFORM_USE_JAVA;
             case "ruby.platform.native_interrupt":
                 return NATIVE_INTERRUPT;
             case "ruby.cexts.lock":
@@ -875,7 +868,6 @@ public class OptionsCatalog {
             EXTERNAL_ENCODING,
             POLYGLOT_STDIO,
             SYNC_STDIO,
-            PLATFORM_USE_JAVA,
             NATIVE_INTERRUPT,
             CEXT_LOCK,
             TRACE_CALLS,

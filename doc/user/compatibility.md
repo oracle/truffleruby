@@ -214,7 +214,6 @@ but these may behave differently or be removed in future versions.
 
 * Signal handlers
 * Finalizers
-* Java native platform fallback (`-Xplatform.use_java`)
 * Setting the process name (for example `$0 =`)
 * Java interop
 
