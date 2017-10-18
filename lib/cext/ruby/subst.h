@@ -3,7 +3,7 @@
 
 #undef snprintf
 #undef vsnprintf
-
+#define snprintf ruby_snprintf
 #define vsnprintf ruby_vsnprintf
 
 #ifdef BROKEN_CLOSE

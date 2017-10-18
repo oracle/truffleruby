@@ -224,15 +224,11 @@ module MakeMakefile
     map.inject(dir) {|d, (orig, new)| d.gsub(orig, new)}
   end
 
-  # Modified for TruffleRuby
-  # topdir = File.dirname(File.dirname(__FILE__))
-  topdir = RbConfig::CONFIG['prefix']
+  topdir = File.dirname(File.dirname(__FILE__))
   path = File.expand_path($0)
   until (dir = File.dirname(path)) == path
     if File.identical?(dir, topdir)
-      # Modified for TruffleRuby
-      # $extmk = true if %r"\A(?:ext|enc|tool|test)\z" =~ File.basename(path)
-      $extmk = true if %r"\A(?:ext|enc|tool|test|src)\z" =~ File.basename(path)
+      $extmk = true if %r"\A(?:ext|enc|tool|test)\z" =~ File.basename(path)
       break
     end
     path = dir
@@ -242,13 +238,9 @@ module MakeMakefile
     $topdir = $hdrdir
     $top_srcdir = $hdrdir
     $arch_hdrdir = RbConfig::CONFIG["rubyarchhdrdir"]
-  # Modified for TruffleRuby
-  #elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
-  elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir + "/lib/cext") + "/include")  + "/ruby.h")
+  elsif File.exist?(($hdrdir = ($top_srcdir ||= topdir) + "/include")  + "/ruby.h")
     $topdir ||= RbConfig::CONFIG["topdir"]
-    # Modified for TruffleRuby
-    #$arch_hdrdir = "$(extout)/include/$(arch)"
-    $arch_hdrdir = $top_srcdir
+    $arch_hdrdir = "$(extout)/include/$(arch)"
   else
     abort "mkmf.rb can't find header files for ruby at #{$hdrdir}/ruby.h"
   end
@@ -496,8 +488,7 @@ MSG
     conf = RbConfig::CONFIG.merge('hdrdir' => $hdrdir.quote, 'srcdir' => $srcdir.quote,
                                   'arch_hdrdir' => $arch_hdrdir.quote,
                                   'top_srcdir' => $top_srcdir.quote)
-    # Truffle: specify output file (-o) explictly. Clang 3.8 produces conftest.o and 3.9 conftest.bc.
-    RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -o #{CONFTEST}.#{$OBJEXT} -c #{CONFTEST_C}",
+    RbConfig::expand("$(CC) #$INCFLAGS #$CPPFLAGS #$CFLAGS #$ARCH_FLAG #{opt} -c #{CONFTEST_C}",
                      conf)
   end
 
@@ -548,7 +539,7 @@ MSG
       end
     else
       try_do(src, cmd, *opts, &b)
-    end and File.exist?(CONFTEST+$EXEEXT) # TruffleRuby: TRY_LINK generates a non-executable file containing bitcode
+    end and File.executable?(CONFTEST+$EXEEXT)
   end
 
   # Returns whether or not the +src+ can be compiled as a C source and linked
@@ -2128,8 +2119,6 @@ RULES
     unless suffixes.empty?
       depout.unshift(".SUFFIXES: ." + suffixes.uniq.join(" .") + "\n\n")
     end
-    # Truffle: added dependency on Makefile as we should recompile if the Makefile was re-generated
-    depout.unshift("$(OBJS): Makefile\n")
     depout.unshift("$(OBJS): $(RUBY_EXTCONF_H)\n\n") if $extconf_h
     depout.flatten!
     depout
@@ -2189,15 +2178,6 @@ RULES
   # +VPATH+ and added to the list of +INCFLAGS+.
   #
   def create_makefile(target, srcprefix = nil)
-    
-    # Modified for TruffleRuby
-    unless system("#{RbConfig::CLANG} --version > /dev/null")
-      raise 'clang does not appear to be available - you may need to install LLVM - see doc/user/installing-llvm.md'
-    end
-    unless system("#{RbConfig::OPT} --version > /dev/null")
-      raise 'opt does not appear to be available - you may need to install LLVM - see doc/user/installing-llvm.md'
-    end
-    
     $target = target
     libpath = $DEFLIBPATH|$LIBPATH
     message "creating Makefile\n"
@@ -2476,8 +2456,7 @@ site-install-rb: install-rb
     if File.exist?(depend)
       mfile.print("###\n", *depend_rules(File.read(depend)))
     else
-      # Truffle: added dependency on Makefile as we should recompile if the Makefile was re-generated
-      mfile.print "$(OBJS): $(HDRS) $(ruby_headers) Makefile\n"
+      mfile.print "$(OBJS): $(HDRS) $(ruby_headers)\n"
     end
 
     $makefile_created = true
@@ -2614,9 +2593,7 @@ MESSAGE
     RbConfig::CONFIG["topdir"] = curdir
   end
   $configure_args["--topdir"] ||= $curdir
-  # Modified for TruffleRuby
-  #$ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
-  $ruby = arg_config("--ruby", RbConfig.ruby)
+  $ruby = arg_config("--ruby", File.join(RbConfig::CONFIG["bindir"], CONFIG["ruby_install_name"]))
 
   RbConfig.expand(CONFIG["RUBY_SO_NAME"])
 
