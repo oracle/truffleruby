@@ -526,26 +526,10 @@ int rb_type(VALUE value);
 
 bool RB_TYPE_P(VALUE value, int type);
 
-
-#ifdef __GNUC__
-#define RB_GC_GUARD(v) \
-    (*__extension__ ({ \
-	volatile VALUE *rb_gc_guarded_ptr = &(v); \
-	__asm__("" : : "m"(rb_gc_guarded_ptr)); \
-	rb_gc_guarded_ptr; \
-    }))
-#elif defined _MSC_VER
-#pragma optimize("", off)
-static inline volatile VALUE *rb_gc_guarded_ptr(volatile VALUE *ptr) {return ptr;}
-#pragma optimize("", on)
-#define RB_GC_GUARD(v) (*rb_gc_guarded_ptr(&(v)))
-#else
-volatile VALUE *rb_gc_guarded_ptr_val(volatile VALUE *ptr, VALUE val);
 #define HAVE_RB_GC_GUARDED_PTR_VAL 1
+#define rb_gc_guarded_ptr_val(ptr, val) (ptr)
 #define RB_GC_GUARD(v) (v)
-#endif
-#define RB_GC_GUARD_PTR(ptr) rb_gc_guarded_ptr(ptr)
-#endif
+#define RB_GC_GUARD_PTR(ptr) (ptr)
 
 #ifdef __GNUC__
 #define RB_UNUSED_VAR(x) x __attribute__ ((unused))
@@ -1965,4 +1949,5 @@ RUBY_SYMBOL_EXPORT_END
 { /* satisfy cc-mode */
 #endif
 }  /* extern "C" { */
+#endif
 #endif /* RUBY_RUBY_H */
