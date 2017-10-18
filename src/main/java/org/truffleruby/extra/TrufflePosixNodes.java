@@ -16,7 +16,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import jnr.constants.platform.Fcntl;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -71,23 +70,6 @@ public abstract class TrufflePosixNodes {
         public DynamicObject getGroups() {
             final long[] groups = getContext().getNativePlatform().getPosix().getgroups();
             return createArray(groups, groups.length);
-        }
-
-    }
-
-    @CoreMethod(names = "getrlimit", isModuleFunction = true, required = 2, lowerFixnum = 1)
-    public abstract static class GetRLimitNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary(throwsControlFlowException = true)
-        @Specialization(guards = "isRubyPointer(pointer)")
-        public int getrlimit(int resource, DynamicObject pointer) {
-            final int result = posix().getrlimit(resource, Layouts.POINTER.getPointer(pointer));
-
-            if (result == -1) {
-                throw new RaiseException(coreExceptions().errnoError(posix().errno(), this));
-            }
-
-            return result;
         }
 
     }
@@ -315,25 +297,6 @@ public abstract class TrufflePosixNodes {
         @Specialization
         public int setreuid(int uid, int id) {
             throw new RaiseException(coreExceptions().notImplementedError("setreuid", this));
-        }
-
-    }
-
-    @CoreMethod(names = "setrlimit", isModuleFunction = true, required = 2, lowerFixnum = 1)
-    public abstract static class SetRLimitNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary(throwsControlFlowException = true)
-        @Specialization(guards = "isRubyPointer(pointer)")
-        public int setrlimit(int resource, DynamicObject pointer,
-                @Cached("create()") BranchProfile errorProfile) {
-            final int result = posix().setrlimit(resource, Layouts.POINTER.getPointer(pointer));
-
-            if (result == -1) {
-                errorProfile.enter();
-                throw new RaiseException(coreExceptions().errnoError(posix().errno(), this));
-            }
-
-            return result;
         }
 
     }

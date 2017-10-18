@@ -208,7 +208,7 @@ module Process
     rlimit[:rlim_max] = undefined.equal?(max_limit) ? cur_limit : max_limit
 
     ret = Truffle::POSIX.setrlimit(resource, rlimit.pointer)
-    Errno.handle if ret == -1
+    Errno.handle_nfi if ret == -1
     nil
   end
 
@@ -217,7 +217,7 @@ module Process
 
     rlimit = Rlimit.new
     ret = Truffle::POSIX.getrlimit(resource, rlimit.pointer)
-    Errno.handle if ret == -1
+    Errno.handle_nfi if ret == -1
 
     [rlimit[:rlim_cur], rlimit[:rlim_max]]
   end
