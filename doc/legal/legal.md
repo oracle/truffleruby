@@ -65,9 +65,10 @@ Some parts of the Truffle Java code (such as the implementation of Rubinius
 primitives) are derived from Rubinius C++ code which is copyright 2007-2015,
 Evan Phoenix and contributors, and released under the 3-clause BSD license.
 
-Some parts of the RubySL implementations of the standard library in lib/rubysl
+Some parts of the RubySL implementations of the standard library in `lib/rubysl`
 are copyright 2013 Brian Shirai and are licensed under the 3-clause BSD license.
-In some cases this code is just code from MRI, and covered by their licence.
+In some cases this code is just code from MRI, and covered by their licence. In
+some cases we have modified this code.
 
 # Included gems
 
