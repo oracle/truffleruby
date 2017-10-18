@@ -86,17 +86,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "mkfifo", isModuleFunction = true, required = 2, lowerFixnum = 2)
-    public abstract static class MkfifoNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(path)")
-        public int mkfifo(DynamicObject path, int mode) {
-            return posix().mkfifo(decodeUTF8(path), mode);
-        }
-
-    }
-
     @CoreMethod(names = "readlink", isModuleFunction = true, required = 3, lowerFixnum = 3)
     public abstract static class ReadlinkNode extends CoreMethodArrayArgumentsNode {
 

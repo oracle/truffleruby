@@ -81,7 +81,6 @@ public interface TrufflePosix {
     int rename(CharSequence oldName, CharSequence newName);
     String getcwd();
     int isatty(int fd);
-    int mkfifo(String path, int mode);
     long[] getgroups();
     String nl_langinfo(int item);
 
