@@ -29,7 +29,6 @@ public interface TrufflePosix {
     FileStat allocateStat();
     int execve(String path, String[] argv, String[] envp);
     int fstat(int fd, FileStat stat);
-    String getenv(String envName);
     int getpgid(int pid);
     int setpgid(int pid, int pgid);
     int getpgrp();

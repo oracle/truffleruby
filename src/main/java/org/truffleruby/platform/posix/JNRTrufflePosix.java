@@ -72,12 +72,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public String getenv(String envName) {
-        return posix.getenv(envName);
-    }
-
-    @TruffleBoundary
-    @Override
     public int getpgid(int pid) {
         return posix.getpgid(pid);
     }
