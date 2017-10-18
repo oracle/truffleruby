@@ -434,12 +434,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int mkfifo(String path, int mode) {
-        return posix.mkfifo(path, mode);
-    }
-
-    @TruffleBoundary
-    @Override
     public long[] getgroups() {
         return posix.getgroups();
     }

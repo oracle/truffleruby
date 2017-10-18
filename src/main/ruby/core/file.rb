@@ -350,7 +350,7 @@ class File < IO
     mode = Rubinius::Type.coerce_to mode, Integer, :to_int
     path = Rubinius::Type.coerce_to_path(path)
     status = Truffle::POSIX.mkfifo(path, mode)
-    Errno.handle path if status != 0
+    Errno.handle_nfi path if status != 0
     status
   end
 

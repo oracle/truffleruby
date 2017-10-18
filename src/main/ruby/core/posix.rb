@@ -45,6 +45,7 @@ module Truffle::POSIX
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
   attach_function :fsync, [:int], :int
+  attach_function :mkfifo, [:string, :mode_t], :int
 
   attach_function :getegid, [], :gid_t
   attach_function :geteuid, [], :uid_t
