@@ -30,10 +30,6 @@ public interface TrufflePosix {
     int execve(String path, String[] argv, String[] envp);
     int fstat(int fd, FileStat stat);
     String getenv(String envName);
-    int getegid();
-    int geteuid();
-    int seteuid(int euid);
-    int getgid();
     int getpgid(int pid);
     int setpgid(int pid, int pgid);
     int getpgrp();
@@ -41,7 +37,6 @@ public interface TrufflePosix {
     int getppid();
     int getpriority(int which, int who);
     Passwd getpwnam(String which);
-    int getuid();
     int getrlimit(int resource, Pointer rlim);
     int setrlimit(int resource, Pointer rlim);
     int kill(int pid, int signal);
@@ -54,9 +49,7 @@ public interface TrufflePosix {
     int rmdir(String path);
     int setenv(String envName, String envValue, int overwrite);
     int setsid();
-    int setgid(int gid);
     int setpriority(int which, int who, int prio);
-    int setuid(int uid);
     FileStat stat(String path);
     int stat(String path, FileStat stat);
     int symlink(String oldpath,String newpath);

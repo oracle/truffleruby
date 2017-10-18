@@ -78,30 +78,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int getegid() {
-        return posix.getegid();
-    }
-
-    @TruffleBoundary
-    @Override
-    public int geteuid() {
-        return posix.geteuid();
-    }
-
-    @TruffleBoundary
-    @Override
-    public int seteuid(int euid) {
-        return posix.seteuid(euid);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int getgid() {
-        return posix.getgid();
-    }
-
-    @TruffleBoundary
-    @Override
     public int getpgid(int pid) {
         return posix.getpgid(pid);
     }
@@ -144,12 +120,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public Passwd getpwnam(String which) {
         return posix.getpwnam(which);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int getuid() {
-        return posix.getuid();
     }
 
     @TruffleBoundary
@@ -226,20 +196,8 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int setgid(int gid) {
-        return posix.setgid(gid);
-    }
-
-    @TruffleBoundary
-    @Override
     public int setpriority(int which, int who, int prio) {
         return posix.setpriority(which, who, prio);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int setuid(int uid) {
-        return posix.setuid(uid);
     }
 
     @TruffleBoundary
