@@ -1349,6 +1349,7 @@ module Truffle::CExt
   end
 
   def rb_ivar_lookup(object, name, default_value)
+    name = "@#{name}" unless name.to_s.start_with?('@')
     # TODO CS 24-Jul-16 races - needs a new primitive or be defined in Java?
     if object.instance_variable_defined?(name)
       object.instance_variable_get(name)
