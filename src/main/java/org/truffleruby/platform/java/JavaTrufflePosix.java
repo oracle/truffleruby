@@ -167,18 +167,6 @@ public class JavaTrufflePosix extends JNRTrufflePosix {
 
     @TruffleBoundary
     @Override
-    public String getenv(String envName) {
-        final String javaValue = System.getenv(envName);
-
-        if (javaValue != null) {
-            return javaValue;
-        }
-
-        return super.getenv(envName);
-    }
-
-    @TruffleBoundary
-    @Override
     public int isatty(int fd) {
         return System.console() != null ? 1 : 0;
     }

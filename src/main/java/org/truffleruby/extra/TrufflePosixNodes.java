@@ -18,7 +18,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.constants.platform.Fcntl;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -42,24 +41,6 @@ public abstract class TrufflePosixNodes {
     private static void invalidateENV(String name) {
         if (name.equals("TZ")) {
             GetTimeZoneNode.invalidateTZ();
-        }
-    }
-
-    @CoreMethod(names = "getenv", isModuleFunction = true, required = 1)
-    public abstract static class GetenvNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(name)")
-        public DynamicObject getenv(DynamicObject name) {
-            String result = posix().getenv(decodeUTF8(name));
-
-            if (result == null) {
-                return nil();
-            }
-
-            return makeStringNode.executeMake(result, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
 

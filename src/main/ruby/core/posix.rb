@@ -58,6 +58,17 @@ module Truffle::POSIX
   attach_function :getrlimit, [:int, :pointer], :int
   attach_function :setrlimit, [:int, :pointer], :int
 
+  attach_function :getenv_native, :getenv, [:string], :string
+  def self.getenv(name)
+    value = getenv_native(name)
+    if value.nil?
+      nil
+    else
+      ptr = Rubinius::FFI::Pointer.new(Truffle::Interop.as_pointer(value))
+      ptr.read_string_to_null
+    end
+  end
+
   if Rubinius.linux?
     attach_function :errno_address, :__errno_location, [], :pointer
   elsif Rubinius.darwin?
