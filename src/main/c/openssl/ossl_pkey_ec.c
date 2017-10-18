@@ -1511,7 +1511,9 @@ static VALUE ossl_ec_point_mul(int argc, VALUE *argv, VALUE self)
     VALUE bn_v1, bn_v2, r, points_v;
     BIGNUM *bn1 = NULL, *bn2 = NULL;
 
-    VALUE group_v_addr[1]; // TruffleRuby to allow the preprocessor to turn into a managed malloc
+ 		// TruffleRuby to allow the preprocessor to turn into a managed malloc
+    VALUE group_v_addr[1];
+
     group_v_addr[0] = group_v; // TruffleRuby
     Require_EC_POINT(self, point1);
     SafeRequire_EC_GROUP(group_v, group);
