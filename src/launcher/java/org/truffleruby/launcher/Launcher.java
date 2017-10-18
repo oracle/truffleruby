@@ -131,8 +131,8 @@ public class Launcher {
     public static void printPreRunInformation(boolean isGraal, CommandLineOptions config) {
         if (config.isIrbInsteadOfInputUsed()) {
             RubyLogger.LOGGER.warning(
-                    "By default truffleruby drops into IRB instead of reading stdin as MRI. " +
-                            "(Use '-' to explicitly read from stdin.)");
+                    "by default truffleruby drops into IRB instead of reading stdin as MRI - " +
+                            "use '-' to explicitly read from stdin");
         }
 
         if (config.getOption(OptionsCatalog.SHOW_VERSION)) {
