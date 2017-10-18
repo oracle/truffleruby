@@ -345,3 +345,4 @@ class TestFiber < Test::Unit::TestCase
     assert_equal(s1, $_, bug7678)
   end
 end
+
