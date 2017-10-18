@@ -316,8 +316,9 @@ class Tempfile < DelegateClass(File)
     #   ensure
     #      f.close
     #   end
-    def open(*args)
-      tempfile = new(*args)
+    # TruffleRuby, open(base_name='', *args) instead of open(*args)
+    def open(base_name='', *args)
+      tempfile = new(base_name, *args)
 
       if block_given?
         begin
