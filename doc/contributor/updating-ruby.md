@@ -1,83 +1,72 @@
 # Updating our version of Ruby
 
-First, check with Chris Seaton for clearance.
+Before you do anything, check with Chris Seaton for clearance to upgrade.
 
-From MRI copy and paste over our versions of:
+## Create a diff against MRI
 
-* `lib` to `lib/mri`
-* `ext/{bigdecimal,psych,pty}/lib` to `lib/mri`
-* `ext/openssl/*.{c,h}` to `src/main/c/openssl`
-* `ext/openssl/lib` to `lib/mri`
-* `test/mri`
-* `ext/-test-` to `test/mri`
-* `doc/legal/ruby-bsdl.txt` and `doc/legal/ruby-licence.txt`
-* Move `test/mri/-ext-` to `test/mri/cext/ruby`, and `test/mri/-test-` to `test/mri/cext/c`
-* Change instances of `-test-` in the MRI cext tests to `c`
+We want to create diffs of all changes we have applied on top of the last set
+of files we got from MRI. Get the hash of the commit with the unmodified version
+of the files from the last version of MRI. This will be called something like
+`MRI a.b.c unmodified files`.
 
-The script `tool/update-mri.sh` will do the above for you, assuming you have the
-version of MRI you want checked out in `../ruby`. You should be able to commit
-changes from this script without modification. If you can't, you need to update
-the script or these instructions.
+```
+git diff <hash> HEAD -- lib/mri lib/cext src/main/c/openssl test/mri/tests > ../mri.patch
+```
 
-Look at `mkmf.rb` and `src/main/c/openssl` to restore the
-modifications we have made there, and in general check for changes that we need
-to match in some way in other code, or legal questions.
+## Import new files from MRI
 
-Then copy and paste:
+Then we want to create a new commit with the new, unmodified files imported from
+MRI. You need MRI checked out into `../mri` at the version you want to import.
+Then run `tool/import-mri-files.sh`.
 
-* `-h` and `--help` output in `CommandLineParser`
-* `lib/json` using the version of `flori/json` specified but not totally included in `ext/json`
+## Create a reference commit of the imported unmodified files
 
-Then:
+So that we can create the diffs that we created in our first step in the future,
+now create a commit called something like `MRI a.b.d unmodified files`.
 
+```
+git commit -am 'MRI a.b.d unmodified files'
+```
+
+## Restore our modifications on top of the imported unmodified files
+
+```
+git apply -3 ../mri.patch
+git commit -am 'Restore MRI modifications'
+```
+
+## Make other changes
+
+* Copy and paste `-h` and `--help` output to `CommandLineParser`
 * Update version information in `Launcher`
 * Update `doc/user/compatibility.md`
 * Update `doc/user/legal.md`
+* Search for other instances of the old version number (there are a couple in tests)
 
-Check again with everyone for clearance.
+## Update libraries from third-party repos
+
+Look in `../ruby/ext/json` to see the version of `flori/json` being used, and
+then copy the original source of `flori/json` into `lib/json`.
 
 ## Updating bundled gems
 
-The current list of bundled gems their versions are found here:
-https://github.com/ruby/ruby/blob/ruby_2_3/gems/bundled_gems
+The current list of bundled gems their versions are found at
+https://github.com/ruby/ruby/blob/ruby_a_b/gems/bundled_gems (replace `_a_b`
+with the right version branch for what you are importing). See if we need to
+update any bundled gems.
 
 To update a bundled gem, follow these steps:
 
-1.  Remove the current gem and gemspec from `lib/gems/2.3.0/gems` and `lib/gems/2.3.0/specifications`
-2.  Run the gem install command with the desired version. E.g. `gem install rake -v 10.4.2 --no-doc`
-3.  Update the project `.gitignore` to allow the newly install gem sources and gemspec
-4.  If the gem installs any executables like `rake` in `bin`. Add these to the `.gitignore` using `!bin/rake` if not already and ensure that the shebang has a format as follows:
-    
-    ```bash
-    #!/usr/bin/env bash
-    exec "$(dirname $0)/truffleruby" "$(dirname $0)/the-executable" "$@" # ignored by Ruby interpreter
-    #!ruby
-    # ^ marks start of Ruby interpretation
+* Remove the current gem and gemspec from `lib/gems/a.b.c/gems` and `lib/gems/a.b.c/specifications`
+* Run the gem install command with the desired version. E.g. `gem install rake -v 10.4.2 --no-doc`
+* Update the project `.gitignore` to allow the newly install gem sources and gemspec
+* If the gem installs any executables like `rake` in `bin`. Add these to the `.gitignore` using `!bin/rake` if not already and ensure that the shebang has a format as follows:
 
-    # ... the content of the executable
-    ```
-    
-    See [Launchers doc](launchers.md) 
+```bash
+#!/usr/bin/env bash
+exec "$(dirname $0)/truffleruby" "$(dirname $0)/the-executable" "$@" # ignored by Ruby interpreter
+#!ruby
+# ^ marks start of Ruby interpretation
 
-## Updating C headers
-
-Use the following steps to update C headers to another MRI version. The example commands assume truffleruby project is the current directory and there is a ruby directory as a sibling.
-
-1. Create a patch of all header changes made to original headers. For example, diff changes following the commit message "Copy MRI x.x.x changes".
-
-`git diff <commit hash of original headers changes> HEAD > headers.patch -- lib/cext`
-
-2. Removing existing MRI headers while preserving a few added headers.
-
-`rm -rf lib/cext/ruby.h lib/cext/ruby`
-`git checkout lib/cext/ruby/config.h`
-
-2. Copy the updated MRI headers over, review changes, and then commit them.
-
-`cp -r ../ruby/include/. lib/cext/`
-
-`cp -r ../ruby/ccan/. lib/cext/ccan`
-
-3. Apply the patch from step one and resolve any conflicts.
-
-`git apply -3 headers.patch`
+# ... the content of the executable
+```
