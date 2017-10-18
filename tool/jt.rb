@@ -885,6 +885,8 @@ module Commands
       files_to_run = (include_files - exclude_files)
     end
 
+    files_to_run.sort!
+
     run_mri_tests(args, files_to_run)
   end
   private :test_mri
