@@ -494,6 +494,7 @@ typedef struct {
     VALUE *klass;
 } ossl_asn1_info_t;
 
+// TruffleRuby
 static const ossl_asn1_info_t ossl_asn1_info[] = {
     { "EOC",               /*&cASN1EndOfContent*/ NULL,    },  /*  0 */
     { "BOOLEAN",           /*&cASN1Boolean*/ NULL,         },  /*  1 */
@@ -845,8 +846,8 @@ int_ossl_asn1_decode0_prim(unsigned char **pp, long length, long hlen, int tag,
     *pp += hlen + length;
     *num_read = hlen + length;
 
-    if (tc == sUNIVERSAL && tag < ossl_asn1_info_size && ossl_asn1_info_klass[tag]) { // ossl_asn1_info[tag].klass) {
-	VALUE klass = *ossl_asn1_info_klass[tag]; // *ossl_asn1_info[tag].klass;
+    if (tc == sUNIVERSAL && tag < ossl_asn1_info_size && ossl_asn1_info_klass[tag]) { // TruffleRuby instead of ossl_asn1_info[tag].klass) {
+	VALUE klass = *ossl_asn1_info_klass[tag]; // TruffleRuby instead of *ossl_asn1_info[tag].klass;
 	VALUE args[4];
 	args[0] = value;
 	args[1] = INT2NUM(tag);
@@ -1478,6 +1479,7 @@ OSSL_ASN1_IMPL_FACTORY_METHOD(EndOfContent)
 void
 Init_ossl_asn1(void)
 {
+    // TruffleRuby
     ossl_asn1_info_klass = truffle_managed_malloc(sizeof(VALUE *) * 31);
     ossl_asn1_info_klass[ 0] = &cASN1EndOfContent;
     ossl_asn1_info_klass[ 1] = &cASN1Boolean;
