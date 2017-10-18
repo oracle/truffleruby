@@ -238,7 +238,7 @@ ossl_verify_cb(int ok, X509_STORE_CTX *ctx)
 	}
 	else {
 	    args.proc = rb_tr_handle_for_managed_leaking(proc);
-	    args.preverify_ok = ok;
+	    args.preverify_ok = ok; // TruffleRuby
 	    args.store_ctx = rb_tr_handle_for_managed_leaking(rctx);
 	    ret = rb_protect((VALUE(*)(VALUE))ossl_call_verify_cb_proc, (VALUE)&args, &state);
 	    if (state) {
