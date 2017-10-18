@@ -159,11 +159,6 @@ public class JavaTrufflePosix extends JNRTrufflePosix {
         return super.close(fd);
     }
 
-    @Override
-    public int getgid() {
-        return 0;
-    }
-
     @TruffleBoundary
     @Override
     public FileStat allocateStat() {

@@ -46,17 +46,6 @@ public abstract class TrufflePosixNodes {
         }
     }
 
-    @CoreMethod(names = "getegid", isModuleFunction = true)
-    public abstract static class GetEGIDNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int getEGID() {
-            return posix().getegid();
-        }
-
-    }
-
     @CoreMethod(names = "getenv", isModuleFunction = true, required = 1)
     public abstract static class GetenvNode extends CoreMethodArrayArgumentsNode {
 
@@ -73,28 +62,6 @@ public abstract class TrufflePosixNodes {
 
             return makeStringNode.executeMake(result, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
-    }
-
-    @CoreMethod(names = "geteuid", isModuleFunction = true)
-    public abstract static class GetEUIDNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int getEUID() {
-            return posix().geteuid();
-        }
-
-    }
-
-    @CoreMethod(names = "getgid", isModuleFunction = true)
-    public abstract static class GetGIDNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int getGID() {
-            return posix().getgid();
-        }
-
     }
 
     @CoreMethod(names = "getgroups", isModuleFunction = true)
@@ -121,17 +88,6 @@ public abstract class TrufflePosixNodes {
             }
 
             return result;
-        }
-
-    }
-
-    @CoreMethod(names = "getuid", isModuleFunction = true)
-    public abstract static class GetUIDNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int getUID() {
-            return posix().getuid();
         }
 
     }
@@ -319,17 +275,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "setgid", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class SetgidNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int setgid(int gid) {
-            return posix().setgid(gid);
-        }
-
-    }
-
     @CoreMethod(names = "setpgid", isModuleFunction = true, required = 2, lowerFixnum = {1, 2})
     public abstract static class SetpgidNode extends CoreMethodArrayArgumentsNode {
 
@@ -359,17 +304,6 @@ public abstract class TrufflePosixNodes {
         @Specialization
         public int setresuid(int uid, int id, int priority) {
             throw new RaiseException(coreExceptions().notImplementedError("setresuid", this));
-        }
-
-    }
-
-    @CoreMethod(names = "seteuid", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class SetEuidNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int seteuid(int uid) {
-            return posix().seteuid(uid);
         }
 
     }
@@ -410,17 +344,6 @@ public abstract class TrufflePosixNodes {
         @Specialization
         public int setruid(int uid) {
             throw new RaiseException(coreExceptions().notImplementedError("setruid", this));
-        }
-
-    }
-
-    @CoreMethod(names = "setuid", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class SetUidNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int setuid(int uid) {
-            return posix().setuid(uid);
         }
 
     }
