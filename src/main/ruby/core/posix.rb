@@ -26,13 +26,13 @@ module Truffle::POSIX
     end
   end
 
-  def self.attach_function(name, argument_types, return_type)
-    func = LIBC[name]
+  def self.attach_function(method_name, native_name = method_name, argument_types, return_type)
+    func = LIBC[native_name]
     return_type = to_nfi_type(return_type)
     argument_types = argument_types.map { |type| to_nfi_type(type) }
     bound_func = func.bind("(#{argument_types.join(',')}):#{return_type}")
 
-    define_singleton_method(name) { |*args|
+    define_singleton_method(method_name) { |*args|
       bound_func.call(*args)
     }
   end
@@ -58,14 +58,11 @@ module Truffle::POSIX
   attach_function :setrlimit, [:int, :pointer], :int
 
   if Rubinius.linux?
-    attach_function :__errno_location, [], :pointer
-    def self.errno_address; __errno_location; end
+    attach_function :errno_address, :__errno_location, [], :pointer
   elsif Rubinius.darwin?
-    attach_function :__error, [], :pointer
-    def self.errno_address; __error; end
+    attach_function :errno_address, :__error, [], :pointer
   elsif Rubinius.solaris?
-    attach_function :___errno, [], :pointer
-    def self.errno_address; ___errno; end
+    attach_function :errno_address, :___errno, [], :pointer
   else
     raise 'Unsupported platform'
   end
