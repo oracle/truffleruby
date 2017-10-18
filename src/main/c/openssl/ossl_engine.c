@@ -212,7 +212,9 @@ ossl_engine_s_by_id(VALUE klass, VALUE id)
 {
     ENGINE *e;
     VALUE obj;
-    VALUE argv[1]; // TruffleRuby to allow the preprocessor to turn into a managed malloc
+    
+    // TruffleRuby to allow the preprocessor to turn into a managed malloc
+    VALUE argv[1];
 
     StringValue(id);
     argv[0] = id; // TruffleRuby
