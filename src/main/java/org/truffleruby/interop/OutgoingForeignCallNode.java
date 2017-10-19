@@ -365,7 +365,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     protected class RespondToOutgoingNode extends OutgoingNode {
 
-        @Child private SnippetNode snippetNode = new SnippetNode();
+        @Child private ForeignToRubyNode toRubyStringNode = ForeignToRubyNode.create();
+        @Child private CallDispatchHeadNode callRespondTo = CallDispatchHeadNode.create();
 
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
@@ -375,10 +376,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             }
 
             // We have already converted Ruby strings to Java strings at this point, so we need to convert back!
-
-            return snippetNode.execute(frame, "Truffle::Interop.respond_to?(object, String.new(name))",
-                    "object", receiver,
-                    "name", args[0]);
+            final Object name = toRubyStringNode.executeConvert(frame, args[0]);
+            return callRespondTo.call(frame, coreLibrary().getTruffleInteropModule(), "respond_to?", receiver, name);
         }
 
     }
