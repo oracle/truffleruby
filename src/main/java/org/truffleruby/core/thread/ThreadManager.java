@@ -11,7 +11,6 @@ package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -27,7 +26,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.ExitException;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
 import org.truffleruby.language.control.KillException;
@@ -168,35 +166,21 @@ public class ThreadManager {
 
     private static void setupSignalHandler(RubyContext context) {
         TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
-        if (nfi != null) {
-            if (!Signal.SIGVTALRM.defined()) {
-                throw new UnsupportedOperationException("SIGVTALRM not defined");
-            }
+        if (!Signal.SIGVTALRM.defined()) {
+            throw new UnsupportedOperationException("SIGVTALRM not defined");
+        }
 
-            TruffleObject libC = nfi.getDefaultLibrary();
-            // We use abs() as a function taking a int and having no side effects
+        TruffleObject libC = nfi.getDefaultLibrary();
 
-            TruffleObject abs;
+        // We use abs() as a function taking a int and having no side effects
+        TruffleObject abs = nfi.lookup(libC, "abs");
+        TruffleObject sigaction = (TruffleObject) nfi.invoke(nfi.lookup(libC, "sigaction"), "bind", "(SINT32,POINTER,POINTER):SINT32");
 
-            try {
-                abs = nfi.lookup(libC, "abs");
-            } catch (JavaException e) {
-                if (e.getCause() instanceof UnknownIdentifierException) {
-                    Log.LOGGER.warning("not able to set up a native signal handler - maybe the NFI was not available");
-                    return;
-                }
-
-                throw e;
-            }
-
-            TruffleObject sigaction = (TruffleObject) nfi.invoke(nfi.lookup(libC, "sigaction"), "bind", "(SINT32,POINTER,POINTER):SINT32");
-
-            // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
-            try (Pointer structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs))) {
-                int result = (int) nfi.execute(sigaction, Signal.SIGVTALRM.intValue(), structSigAction.getAddress(), 0L);
-                if (result != 0) {
-                    throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
-                }
+        // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
+        try (Pointer structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs))) {
+            int result = (int) nfi.execute(sigaction, Signal.SIGVTALRM.intValue(), structSigAction.getAddress(), 0L);
+            if (result != 0) {
+                throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
             }
         }
     }
