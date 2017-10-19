@@ -16,6 +16,9 @@ Dockerfile, and update the Dockerfile for the version.
 $ docker build -t truffleruby-test-ubuntu . --build-arg GRAALVM_VERSION=n.n
 ```
 
+Also set `--build-arg TEST_BRANCH=master` to pick a branch to test against
+if you are testing a pre-release.
+
 You need to specify `GRAALVM_VERSION` as the version of GraalVM that you are
 using.
 
