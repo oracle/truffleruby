@@ -1118,26 +1118,32 @@ public abstract class StringNodes {
 
         @Child private ToStrNode toStrNode;
 
-        @Specialization
-        public DynamicObject initializeJavaString(DynamicObject self, String from) {
-            StringOperations.setRope(self, StringOperations.encodeRope(from, ASCIIEncoding.INSTANCE));
+        @Specialization(guards = "isRubyEncoding(encoding)")
+        public DynamicObject initializeJavaString(DynamicObject self, String from, DynamicObject encoding) {
+            StringOperations.setRope(self, StringOperations.encodeRope(from, EncodingOperations.getEncoding(encoding)));
             return self;
         }
 
+        @Specialization(guards = "isNil(encoding)")
+        public DynamicObject initializeJavaStringNoEncoding(DynamicObject self, String from, DynamicObject encoding) {
+            throw new RaiseException(coreExceptions().argumentError("String.new(javaString) needs to be called with an Encoding like String.new(javaString, encoding: someEncoding)", this));
+        }
+
         @Specialization(guards = "isRubyString(from)")
-        public DynamicObject initialize(DynamicObject self, DynamicObject from) {
+        public DynamicObject initialize(DynamicObject self, DynamicObject from, DynamicObject encoding) {
             StringOperations.setRope(self, rope(from));
             return self;
         }
 
         @Specialization(guards = {"!isRubyString(from)", "!isString(from)"})
-        public DynamicObject initialize(VirtualFrame frame, DynamicObject self, Object from) {
+        public DynamicObject initialize(VirtualFrame frame, DynamicObject self, Object from, DynamicObject encoding) {
             if (toStrNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toStrNode = insert(ToStrNodeGen.create(null));
             }
 
-            return initialize(self, toStrNode.executeToStr(frame, from));
+            StringOperations.setRope(self, rope(toStrNode.executeToStr(frame, from)));
+            return self;
         }
 
     }

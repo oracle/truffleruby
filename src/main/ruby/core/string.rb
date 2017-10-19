@@ -1373,7 +1373,7 @@ class String
   def initialize(other = undefined, encoding: nil)
     unless undefined.equal?(other)
       Truffle.check_frozen
-      Truffle.invoke_primitive(:string_initialize, self, other)
+      Truffle.invoke_primitive(:string_initialize, self, other, encoding)
       taint if other.tainted?
     end
     self.force_encoding(encoding) if encoding
