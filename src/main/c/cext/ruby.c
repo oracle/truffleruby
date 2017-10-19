@@ -2559,7 +2559,7 @@ VALUE rb_reg_match_pre(VALUE match) {
 }
 
 VALUE rb_reg_new(const char *s, long len, int options) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_new", truffle_read_n_string(s, len), options);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_reg_new", rb_str_new(s, len), options);
 }
 
 VALUE rb_reg_new_str(VALUE s, int options) {

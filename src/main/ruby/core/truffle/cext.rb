@@ -898,8 +898,8 @@ module Truffle::CExt
     Range.new(beg, last, exclude_end != 0)
   end
 
-  def rb_reg_new(java_string, options)
-    Regexp.new(String.new(java_string), options)
+  def rb_reg_new(pattern, options)
+    Regexp.new(pattern, options)
   end
 
   def rb_reg_new_str(str, options)
@@ -1044,7 +1044,7 @@ module Truffle::CExt
   end
 
   def rb_str_new_cstr(java_string)
-    String.new(java_string)
+    String.new(java_string, encoding: Encoding::BINARY)
   end
 
   def rb_enc_str_coderange(str)
