@@ -159,7 +159,7 @@ public abstract class RegexpNodes {
     public static Rope shimModifiers(Rope bytes) {
         // Joni doesn't support (?u) etc but we can shim some common cases
 
-        String bytesString = bytes.toString();
+        String bytesString = RopeOperations.decodeRope(bytes);
 
         if (bytesString.startsWith("(?u)") || bytesString.startsWith("(?d)") || bytesString.startsWith("(?a)")) {
             final char modifier = (char) bytes.get(2);
@@ -182,7 +182,7 @@ public abstract class RegexpNodes {
                     throw new UnsupportedOperationException();
             }
 
-            bytes = StringOperations.encodeRope(bytesString, ASCIIEncoding.INSTANCE);
+            bytes = StringOperations.encodeRope(bytesString, bytes.getEncoding());
         }
 
         return bytes;
