@@ -36,6 +36,11 @@ describe "A Symbol literal" do
     }
   end
 
+  it 'inherits the encoding of the magic comment and can have a binary encoding' do
+    ruby_exe(fixture(__FILE__, "binary_symbol.rb"))
+      .should == "[105, 108, 95, 195, 169, 116, 97, 105, 116]\nASCII-8BIT\n"
+  end
+
   it "may contain '::' in the string" do
     :'Some::Class'.should be_kind_of(Symbol)
   end
