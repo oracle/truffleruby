@@ -4641,7 +4641,7 @@ void rb_secure_update(VALUE obj) {
   rb_tr_error("rb_secure_update not implemented");
 }
 
-VALUE rb_uint2big(unsigned long n) {
+VALUE rb_uint2big(VALUE n) {
   rb_tr_error("rb_uint2big not implemented");
 }
 
