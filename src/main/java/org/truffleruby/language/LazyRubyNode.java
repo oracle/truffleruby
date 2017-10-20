@@ -9,21 +9,29 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
+
 import org.truffleruby.Log;
 import org.truffleruby.RubyLanguage;
 
-import java.util.function.Supplier;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeUtil;
 
 public class LazyRubyNode extends RubyNode {
 
     private final Supplier<RubyNode> resolver;
+    private final ReentrantLock lock;
+    private final AtomicReference<RubyNode> resolutionMaster;
 
     @Child volatile RubyNode resolved;
 
     public LazyRubyNode(Supplier<RubyNode> resolver) {
         this.resolver = resolver;
+        this.lock = new ReentrantLock();
+        resolutionMaster = new AtomicReference<>();
     }
 
     @Override
@@ -47,12 +55,7 @@ public class LazyRubyNode extends RubyNode {
                 return resolved;
             }
 
-            if (getContext().getOptions().LAZY_TRANSLATION_LOG) {
-                Log.LOGGER.info(() -> "lazy translating " + RubyLanguage.fileLine(getParent().getEncapsulatingSourceSection()) + " in " + getRootNode());
-            }
-
-            final RubyNode result = resolver.get();
-            transferFlagsTo(result);
+            RubyNode result = getOrCreateMasterResolution();
 
             resolved = insert(result);
             // Tell instrumentation about our new node
@@ -62,4 +65,23 @@ public class LazyRubyNode extends RubyNode {
         });
     }
 
+    private RubyNode getOrCreateMasterResolution() {
+        lock.lock();
+        try {
+            RubyNode masterResolution = resolutionMaster.get();
+            if (masterResolution == null) {
+                if (getContext().getOptions().LAZY_TRANSLATION_LOG) {
+                    Log.LOGGER.info(() -> "lazy translating " + RubyLanguage.fileLine(getParent().getEncapsulatingSourceSection()) + " in " + getRootNode());
+                }
+
+                masterResolution = resolver.get();
+                transferFlagsTo(masterResolution);
+
+                resolutionMaster.set(masterResolution);
+            }
+            return NodeUtil.cloneNode(masterResolution);
+        } finally {
+            lock.unlock();
+        }
+    }
 }
