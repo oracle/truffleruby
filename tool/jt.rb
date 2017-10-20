@@ -1277,14 +1277,8 @@ module Commands
     unless Dir.exist?(test_pack)
       $stderr.puts "Downloading latest gem test pack..."
 
-      # To update these files contact Manuel Zach for infra and Gilles Duboscq for lafo
-      if build_url = ENV['BUILD_URL']
-        base = build_url[%r{^https?://[^/]+/}] + "slavefiles2/truffleruby"
-      else
-        base = "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/"
-      end
-
-      url = "#{base}/#{name}.tar.gz"
+      # To update these files contact someone with permissions on lafo.
+      url = mx('urlrewrite', "https://lafo.ssw.uni-linz.ac.at/pub/graal-external-deps/#{name}.tar.gz", capture: true).first.rstrip
       archive = "#{test_pack}.tar.gz"
       sh 'curl', '-L', '-o', archive, url
       sh 'tar', '-zxf', archive
