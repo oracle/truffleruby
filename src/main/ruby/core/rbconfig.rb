@@ -165,6 +165,7 @@ module RbConfig
   opt_passes     = ['-always-inline', '-mem2reg', '-constprop'].join(' ')
   cc             = CLANG
   cpp            = cc
+  cxx            = 'clang++'
   linkflags      = ['-g',                                     # Show debug information such as line numbers in backtrace
                     '-Wimplicit-function-declaration',        # To make missing C ext functions clear
                     '-Wno-unknown-warning-option',            # If we're on an earlier version of clang without a warning option, ignore it
@@ -173,7 +174,8 @@ module RbConfig
                     '-Wno-unused-value',                      # RB_GC_GUARD leaves
                     '-Wno-incompatible-pointer-types',        # Fix byebug 8.2.1 compile (st_data_t error)
                     '-ferror-limit=500'].join(' ')
-  cflags         =  "#{linkflags} -c -emit-llvm"
+  cflags         = "#{linkflags} -c -emit-llvm"
+  cxxflags       = "#{cflags} -stdlib=libc++"
   # We do not have a launcher if we are embedded with the polyglot API
   ruby_launcher = Truffle::Boot.ruby_launcher
   ruby_launcher ||= "#{expanded['bindir']}/#{ruby_install_name}" if ruby_home
@@ -182,13 +184,17 @@ module RbConfig
   common = {
     'CC' => cc,
     'CPP' => cpp,
+    'CXX' => cxx,
     'CFLAGS' => cflags,
+    'CXXFLAGS' => cxxflags
   }
   expanded.merge!(common)
   mkconfig.merge!(common)
 
   expanded['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | #{cc} $(INCFLAGS) #{cppflags} #{cflags} $(COUTFLAG) -xc - -o $@ && #{OPT} #{opt_passes} $@ -o $@",
   mkconfig['COMPILE_C'] = "ruby #{libdir}/cext/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{OPT} #{opt_passes} $@ -o $@",
+  expanded['COMPILE_CXX'] = "ruby #{libdir}/cext/preprocess.rb $< | #{cxx} $(INCFLAGS) #{cppflags} #{cxxflags} $(COUTFLAG) -xc++ - -o $@ && #{OPT} #{opt_passes} $@ -o $@",
+  mkconfig['COMPILE_CXX'] = "ruby #{libdir}/cext/preprocess.rb $< | $(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{OPT} #{opt_passes} $@ -o $@",
   expanded['LINK_SO'] = "#{ruby_launcher} -Xgraal.warn_unless=false -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) #{libs}"
   mkconfig['LINK_SO'] = "#{ruby_launcher} -Xgraal.warn_unless=false -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) $(LIBS)"
   expanded['TRY_LINK'] = "#{CLANG} -o conftest $(CPPFLAGS) #{libdir}/cext/ruby.bc #{libdir}/cext/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} #{libs}"
