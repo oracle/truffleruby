@@ -1036,8 +1036,7 @@ module Commands
       tests = [
           ['oily_png', ['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
           ['psd_native', ['chunky_png-1.3.6', 'oily_png-1.2.0', 'bindata-2.3.1', 'hashie-3.4.4', 'psd-enginedata-1.1.1', 'psd-2.1.2', 'psd_native-1.1.3'], ['oily_png', 'psd_native']],
-          ['nokogiri', [], ['nokogiri']],
-          ['unf_ext', ['unf_ext-0.0.7.4'], ['unf_ext']]
+          ['nokogiri', [], ['nokogiri']]
       ]
 
       tests.each do |gem_name, dependencies, libs|
@@ -1046,11 +1045,7 @@ module Commands
         gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
         ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
 
-        if gem_name == 'unf_ext'
-          compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}.su", '-Werror=implicit-function-declaration'
-        else
-          compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'
-        end
+        compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'
 
         next if gem_name == 'psd_native' # psd_native is excluded just for running
         run *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
@@ -1060,6 +1055,7 @@ module Commands
 
       # Tests using gem install to compile the cexts
       sh "test/truffle/cexts/puma/puma.sh"
+      sh "test/truffle/cexts/unf_ext/unf_ext.sh"
     end
   end
   private :test_cexts
