@@ -102,12 +102,12 @@ module Truffle::CExt
     end
 
     def [](index)
-      raise unless index == DATA_FIELD_INDEX
+      raise "bad index: #{index}" unless index == DATA_FIELD_INDEX
       data_holder.data
     end
 
     def []=(index, value)
-      raise unless index == DATA_FIELD_INDEX
+      raise "bad index: #{index}" unless index == DATA_FIELD_INDEX
       data_holder.data = value
     end
 
