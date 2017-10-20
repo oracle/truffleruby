@@ -146,14 +146,14 @@ MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *excl
     *exclp = (int) truffle_invoke_b(range, "exclude_end?");
   }
   else {
-    if (!truffle_invoke_b(range, "respond_to?", rb_intern("begin"))) return (int)Qfalse;
-    if (!truffle_invoke_b(range, "respond_to?", rb_intern("end"))) return (int)Qfalse;
+    if (!truffle_invoke_b(range, "respond_to?", rb_intern("begin"))) return 0;
+    if (!truffle_invoke_b(range, "respond_to?", rb_intern("end"))) return 0;
 
     *begp = truffle_invoke(range, "begin");
     *endp = truffle_invoke(range, "end");
     *exclp = (int) RTEST(truffle_invoke(range, "exclude_end?"));
   }
-  return (int) Qtrue;
+  return 1;
 }
 
 MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
