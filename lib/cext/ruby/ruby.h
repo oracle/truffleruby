@@ -721,7 +721,7 @@ rb_num2ll_inline(VALUE x)
 double rb_num2dbl(VALUE);
 #define NUM2DBL(x) rb_num2dbl((VALUE)(x))
 
-VALUE rb_uint2big(VALUE);
+VALUE rb_uint2big(unsigned long);
 VALUE rb_int2big(SIGNED_VALUE);
 
 VALUE rb_newobj(void);
@@ -1044,7 +1044,7 @@ struct RFile {
 #define RCOMPLEX_SET_IMAG(cmp, i) RB_OBJ_WRITE((cmp), &((struct RComplex *)(cmp))->imag,(i))
 
 struct RData {
-    struct RBasic basic;
+    //struct RBasic basic;  // RBasic is an empty struct. clang makes it size 0 for C, but size 1 for C++. That difference affects field offsets, so we comment out the reference to ensure the size is always 0.
     void (*dmark)(void*);
     void (*dfree)(void*);
     void *data;
