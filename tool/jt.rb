@@ -26,7 +26,7 @@ M2_REPO         = File.expand_path('~/.m2/repository')
 MRI_TEST_CEXT_DIR = "#{TRUFFLERUBY_DIR}/test/mri/tests/cext-c"
 MRI_TEST_CEXT_LIB_DIR = "#{TRUFFLERUBY_DIR}/.ext/c"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = 3
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = 4
 
 JDEBUG_PORT = 51819
 JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},suspend=y"
@@ -1036,7 +1036,8 @@ module Commands
       tests = [
           ['oily_png', ['chunky_png-1.3.6', 'oily_png-1.2.0'], ['oily_png']],
           ['psd_native', ['chunky_png-1.3.6', 'oily_png-1.2.0', 'bindata-2.3.1', 'hashie-3.4.4', 'psd-enginedata-1.1.1', 'psd-2.1.2', 'psd_native-1.1.3'], ['oily_png', 'psd_native']],
-          ['nokogiri', [], ['nokogiri']]
+          ['nokogiri', [], ['nokogiri']],
+          ['unf_ext', ['unf_ext-0.0.7.4'], ['unf_ext']]
       ]
 
       tests.each do |gem_name, dependencies, libs|
@@ -1044,7 +1045,12 @@ module Commands
         next if gem_name == 'nokogiri' # nokogiri totally excluded
         gem_root = "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}"
         ext_dir = Dir.glob("#{gem_home}/gems/#{gem_name}*/")[0] + "ext/#{gem_name}"
-        compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'
+
+        if gem_name == 'unf_ext'
+          compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}.su", '-Werror=implicit-function-declaration'
+        else
+          compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'
+        end
 
         next if gem_name == 'psd_native' # psd_native is excluded just for running
         run *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
