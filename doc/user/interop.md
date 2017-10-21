@@ -322,8 +322,8 @@ is automatically converted to a Java string from either a Ruby string or a Ruby
 symbol.
 
 A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
-or `WRITE`, that returns a Java string will convert the returned string to a
-Ruby string.
+`WRITE`, or `UNBOX`, that returns a Java string will convert the returned string
+to a Ruby string.
 
 A call from a foreign language to Ruby using `NEW`, `EXECUTE`, `INVOKE`, or
 `WRITE`, that has Java strings as arguments, will convert each Java string
