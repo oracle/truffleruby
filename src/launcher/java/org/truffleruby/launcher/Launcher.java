@@ -53,7 +53,6 @@ import org.truffleruby.launcher.options.CommandLineParser;
 import org.truffleruby.launcher.options.ExecutionAction;
 import org.truffleruby.launcher.options.OptionsCatalog;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
@@ -106,18 +105,11 @@ public class Launcher {
 
         try (Context context = createContext(contextBuilder, config)) {
             printTruffleTimeMetric("before-run");
-            final Source source;
-            try {
-                source = Source.newBuilder(
-                        LANGUAGE_ID,
-                        // language=ruby
-                        "Truffle::Boot.main",
-                        BOOT_SOURCE_NAME)
-                        .internal(true)
-                        .build();
-            } catch (IOException e) {
-                throw new IllegalStateException(e);
-            }
+            final Source source = Source.newBuilder(
+                    LANGUAGE_ID,
+                    // language=ruby
+                    "Truffle::Boot.main",
+                    BOOT_SOURCE_NAME).internal(true).buildLiteral();
             final int exitCode = context.eval(source).asInt();
             printTruffleTimeMetric("after-run");
             return exitCode;
