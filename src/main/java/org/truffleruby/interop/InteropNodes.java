@@ -149,26 +149,23 @@ public abstract class InteropNodes {
     public abstract static class InvokeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(
-                guards = {
-                        "isRubyString(identifier) || isRubySymbol(identifier)",
-                        "args.length == cachedArgsLength"
-                },
+                guards = "args.length == cachedArgsLength",
                 limit = "getCacheLimit()"
         )
         public Object invokeCached(
                 VirtualFrame frame,
                 TruffleObject receiver,
-                DynamicObject identifier,
+                Object identifier,
                 Object[] args,
                 @Cached("args.length") int cachedArgsLength,
+                @Cached("create()") RubyStringToJavaStringNode rubyStringToJavaStringNode,
                 @Cached("createInvokeNode(cachedArgsLength)") Node invokeNode,
-                        @Cached("create()") RubyStringToJavaStringNode toJavaStringNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 return ForeignAccess.sendInvoke(
                         invokeNode,
                         receiver,
-                        toJavaStringNode.executeToJavaString(frame, identifier),
+                        rubyStringToJavaStringNode.executeToJavaString(frame, identifier),
                         args);
             } catch (UnsupportedTypeException
                     | ArityException
@@ -179,20 +176,23 @@ public abstract class InteropNodes {
             }
         }
 
-        @Specialization(
-                guards = "isRubyString(identifier) || isRubySymbol(identifier)",
-                replaces = "invokeCached"
-        )
+        @Specialization(replaces = "invokeCached")
         public Object invokeUncached(
+                VirtualFrame frame,
                 TruffleObject receiver,
                 DynamicObject identifier,
-                Object[] args) {
+                Object[] args,
+                @Cached("create()") RubyStringToJavaStringNode rubyStringToJavaStringNode) {
             Log.notOptimizedOnce("megamorphic interop INVOKE message send");
 
             final Node invokeNode = createInvokeNode(args.length);
 
             try {
-                return ForeignAccess.sendInvoke(invokeNode, receiver, objectToString(identifier), args);
+                return ForeignAccess.sendInvoke(
+                        invokeNode,
+                        receiver,
+                        rubyStringToJavaStringNode.executeToJavaString(frame, identifier),
+                        args);
             } catch (UnsupportedTypeException
                     | ArityException
                     | UnsupportedMessageException
@@ -204,11 +204,6 @@ public abstract class InteropNodes {
         @TruffleBoundary
         protected Node createInvokeNode(int argsLength) {
             return Message.createInvoke(argsLength).createNode();
-        }
-
-        @TruffleBoundary
-        protected String objectToString(Object object) {
-            return object.toString();
         }
 
         protected int getCacheLimit() {
@@ -506,12 +501,17 @@ public abstract class InteropNodes {
 
         @Specialization
         public Object read(
+                VirtualFrame frame,
                 TruffleObject receiver,
                 Object identifier,
                 @Cached("createReadNode()") Node readNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("create()") RubyToForeignNode rubyToForeignNode) {
             try {
-                return ForeignAccess.sendRead(readNode, receiver, identifier);
+                return ForeignAccess.sendRead(
+                        readNode,
+                        receiver,
+                        rubyToForeignNode.executeConvert(frame, identifier));
             } catch (UnknownIdentifierException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
@@ -534,13 +534,19 @@ public abstract class InteropNodes {
 
         @Specialization
         public Object write(
+                VirtualFrame frame,
                 TruffleObject receiver,
                 Object identifier,
                 Object value,
+                @Cached("create()") RubyToForeignNode rubyToForeignNode,
                 @Cached("createWriteNode()") Node writeNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                return ForeignAccess.sendWrite(writeNode, receiver, identifier, value);
+                return ForeignAccess.sendWrite(
+                        writeNode,
+                        receiver,
+                        rubyToForeignNode.executeConvert(frame, identifier),
+                        value);
             } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
