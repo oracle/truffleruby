@@ -98,40 +98,49 @@ public abstract class InteropNodes {
     @CoreMethod(names = "execute", isModuleFunction = true, required = 1, rest = true)
     public abstract static class ExecuteNode extends CoreMethodArrayArgumentsNode {
 
-        // NOTE (eregon, 30/05/2016): If you want to introduce automatic argument conversion here,
-        // look first at cext.rb #rb_define_method which wants no automatic conversion.
-
         @Specialization(
                 guards = "args.length == cachedArgsLength",
                 limit = "getCacheLimit()"
         )
         public Object executeForeignCached(
+                VirtualFrame frame,
                 TruffleObject receiver,
                 Object[] args,
                 @Cached("args.length") int cachedArgsLength,
                 @Cached("createExecuteNode(cachedArgsLength)") Node executeNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
+            final Object foreign;
+
             try {
-                return ForeignAccess.sendExecute(executeNode, receiver, args);
+                foreign = ForeignAccess.sendExecute(executeNode, receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
+
+            return foreignToRubyNode.executeConvert(frame, foreign);
         }
 
         @Specialization(replaces = "executeForeignCached")
         public Object executeForeignUncached(
+                VirtualFrame frame,
                 TruffleObject receiver,
-                Object[] args) {
+                Object[] args,
+                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
             Log.notOptimizedOnce("megamorphic interop EXECUTE message send");
 
             final Node executeNode = createExecuteNode(args.length);
 
+            final Object foreign;
+
             try {
-                return ForeignAccess.sendExecute(executeNode, receiver, args);
+                foreign = ForeignAccess.sendExecute(executeNode, receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 throw new JavaException(e);
             }
+
+            return foreignToRubyNode.executeConvert(frame, foreign);
         }
 
         @TruffleBoundary
@@ -160,9 +169,12 @@ public abstract class InteropNodes {
                 @Cached("args.length") int cachedArgsLength,
                 @Cached("create()") RubyStringToJavaStringNode rubyStringToJavaStringNode,
                 @Cached("createInvokeNode(cachedArgsLength)") Node invokeNode,
+                @Cached("create()") ForeignToRubyNode foreignToRubyNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
+            final Object foreign;
+
             try {
-                return ForeignAccess.sendInvoke(
+                foreign = ForeignAccess.sendInvoke(
                         invokeNode,
                         receiver,
                         rubyStringToJavaStringNode.executeToJavaString(frame, identifier),
@@ -174,6 +186,8 @@ public abstract class InteropNodes {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
+
+            return foreignToRubyNode.executeConvert(frame, foreign);
         }
 
         @Specialization(replaces = "invokeCached")
@@ -182,13 +196,16 @@ public abstract class InteropNodes {
                 TruffleObject receiver,
                 DynamicObject identifier,
                 Object[] args,
-                @Cached("create()") RubyStringToJavaStringNode rubyStringToJavaStringNode) {
+                @Cached("create()") RubyStringToJavaStringNode rubyStringToJavaStringNode,
+                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
             Log.notOptimizedOnce("megamorphic interop INVOKE message send");
 
             final Node invokeNode = createInvokeNode(args.length);
 
+            final Object foreign;
+
             try {
-                return ForeignAccess.sendInvoke(
+                foreign = ForeignAccess.sendInvoke(
                         invokeNode,
                         receiver,
                         rubyStringToJavaStringNode.executeToJavaString(frame, identifier),
@@ -199,6 +216,8 @@ public abstract class InteropNodes {
                     | UnknownIdentifierException e) {
                 throw new JavaException(e);
             }
+
+            return foreignToRubyNode.executeConvert(frame, foreign);
         }
 
         @TruffleBoundary
@@ -220,13 +239,17 @@ public abstract class InteropNodes {
                 limit = "getCacheLimit()"
         )
         public Object newCached(
+                VirtualFrame frame,
                 TruffleObject receiver,
                 Object[] args,
                 @Cached("args.length") int cachedArgsLength,
                 @Cached("createNewNode(cachedArgsLength)") Node newNode,
+                @Cached("create()") ForeignToRubyNode foreignToRubyNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
+            final Object foreign;
+
             try {
-                return ForeignAccess.sendNew(
+                foreign = ForeignAccess.sendNew(
                         newNode,
                         receiver,
                         args);
@@ -236,23 +259,31 @@ public abstract class InteropNodes {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
+
+            return foreignToRubyNode.executeConvert(frame, foreign);
         }
 
         @Specialization(replaces = "newCached")
         public Object newUncached(
+                VirtualFrame frame,
                 TruffleObject receiver,
-                Object[] args) {
+                Object[] args,
+                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
             Log.notOptimizedOnce("megamorphic interop NEW message send");
 
             final Node invokeNode = createNewNode(args.length);
 
+            final Object foreign;
+
             try {
-                return ForeignAccess.sendNew(invokeNode, receiver, args);
+                foreign = ForeignAccess.sendNew(invokeNode, receiver, args);
             } catch (UnsupportedTypeException
                     | ArityException
                     | UnsupportedMessageException e) {
                 throw new JavaException(e);
             }
+
+            return foreignToRubyNode.executeConvert(frame, foreign);
         }
 
         @TruffleBoundary
@@ -506,9 +537,12 @@ public abstract class InteropNodes {
                 Object identifier,
                 @Cached("createReadNode()") Node readNode,
                 @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("create()") RubyToForeignNode rubyToForeignNode) {
+                @Cached("create()") RubyToForeignNode rubyToForeignNode,
+                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
+            final Object foreign;
+
             try {
-                return ForeignAccess.sendRead(
+                foreign = ForeignAccess.sendRead(
                         readNode,
                         receiver,
                         rubyToForeignNode.executeConvert(frame, identifier));
@@ -516,6 +550,8 @@ public abstract class InteropNodes {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
+
+            return foreignToRubyNode.executeConvert(frame, foreign);
         }
 
         protected static Node createReadNode() {
@@ -540,9 +576,12 @@ public abstract class InteropNodes {
                 Object value,
                 @Cached("create()") RubyToForeignNode rubyToForeignNode,
                 @Cached("createWriteNode()") Node writeNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
+            final Object foreign;
+
             try {
-                return ForeignAccess.sendWrite(
+                foreign = ForeignAccess.sendWrite(
                         writeNode,
                         receiver,
                         rubyToForeignNode.executeConvert(frame, identifier),
@@ -551,6 +590,8 @@ public abstract class InteropNodes {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
+
+            return foreignToRubyNode.executeConvert(frame, foreign);
         }
 
         protected static Node createWriteNode() {
