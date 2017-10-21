@@ -66,7 +66,7 @@ module Truffle::POSIX
         bound_func.call(*args)
       }
     else
-      define_singleton_method(method_name) { |*args|
+      define_singleton_method(method_name) { |*|
         raise NotImplementedError, "#{native_name} is not available"
       }
       Truffle.invoke_primitive :method_unimplement, method(method_name)
