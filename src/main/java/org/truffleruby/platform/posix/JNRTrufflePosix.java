@@ -160,12 +160,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int setenv(String envName, String envValue, int overwrite) {
-        return posix.setenv(envName, envValue, overwrite);
-    }
-
-    @TruffleBoundary
-    @Override
     public int setsid() {
         return posix.setsid();
     }
@@ -198,12 +192,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public int umask(int mask) {
         return posix.umask(mask);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int unsetenv(String envName) {
-        return posix.unsetenv(envName);
     }
 
     @TruffleBoundary

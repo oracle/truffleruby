@@ -77,6 +77,18 @@ module Truffle::POSIX
     end
   end
 
+  attach_function :setenv_native, :setenv, [:string, :string, :int], :int
+  def self.setenv(name, value, overwrite)
+    Truffle.invoke_primitive :posix_invalidate_env, name
+    setenv_native(name, value, overwrite)
+  end
+
+  attach_function :unsetenv_native, :unsetenv, [:string], :int
+  def self.unsetenv(name)
+    Truffle.invoke_primitive :posix_invalidate_env, name
+    unsetenv_native(name)
+  end
+
   if Rubinius.linux?
     attach_function :errno_address, :__errno_location, [], :pointer
   elsif Rubinius.darwin?
