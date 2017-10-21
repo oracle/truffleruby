@@ -136,12 +136,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int link(String oldpath, String newpath) {
-        return posix.link(oldpath, newpath);
-    }
-
-    @TruffleBoundary
-    @Override
     public int lstat(String path, FileStat stat) {
         return posix.lstat(path, stat);
     }
@@ -279,12 +273,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public int close(int fd) {
         return posix.close(fd);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int unlink(CharSequence path) {
-        return posix.unlink(path);
     }
 
     @TruffleBoundary

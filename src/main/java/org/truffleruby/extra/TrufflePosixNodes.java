@@ -102,28 +102,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "link", isModuleFunction = true, required = 2)
-    public abstract static class LinkNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = {"isRubyString(path)", "isRubyString(other)"})
-        public int link(DynamicObject path, DynamicObject other) {
-            return posix().link(decodeUTF8(path), decodeUTF8(other));
-        }
-
-    }
-
-    @CoreMethod(names = "unlink", isModuleFunction = true, required = 1)
-    public abstract static class UnlinkNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(path)")
-        public int unlink(DynamicObject path) {
-            return posix().unlink(decodeUTF8(path));
-        }
-
-    }
-
     @CoreMethod(names = "umask", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class UmaskNode extends CoreMethodArrayArgumentsNode {
 

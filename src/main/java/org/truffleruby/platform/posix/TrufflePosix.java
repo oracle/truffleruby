@@ -39,7 +39,6 @@ public interface TrufflePosix {
     int kill(int pid, int signal);
     int lchmod(String filename, int mode);
     SignalHandler signal(Signal sig, SignalHandler handler);
-    int link(String oldpath,String newpath);
     int lstat(String path, FileStat stat);
     int mkdir(String path, int mode);
     int rmdir(String path);
@@ -64,7 +63,6 @@ public interface TrufflePosix {
     int fcntlInt(int fd, Fcntl fcntlConst, int arg);
     int fcntl(int fd, Fcntl fcntlConst);
     int close(int fd);
-    int unlink(CharSequence path);
     int open(CharSequence path, int flags, int perm);
     int write(int fd, byte[] buf, int n);
     int read(int fd, byte[] buf, int n);

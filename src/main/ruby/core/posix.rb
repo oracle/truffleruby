@@ -43,6 +43,7 @@ module Truffle::POSIX
     }
   end
 
+  # Filesystem-related
   attach_function :access, [:string, :int], :int
   attach_function :chmod, [:string, :mode_t], :int
   attach_function :chown, [:string, :uid_t, :gid_t], :int
@@ -51,9 +52,12 @@ module Truffle::POSIX
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
   attach_function :fsync, [:int], :int
+  attach_function :link, [:string, :string], :int
   attach_function :mkfifo, [:string, :mode_t], :int
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
+  attach_function :unlink, [:string], :int
 
+  # Process-related
   attach_function :getegid, [], :gid_t
   attach_function :geteuid, [], :uid_t
   attach_function :getgid, [], :gid_t
@@ -66,6 +70,7 @@ module Truffle::POSIX
   attach_function :getrlimit, [:int, :pointer], :int
   attach_function :setrlimit, [:int, :pointer], :int
 
+  # ENV-related
   attach_function :getenv_native, :getenv, [:string], :string
   def self.getenv(name)
     value = getenv_native(name)
