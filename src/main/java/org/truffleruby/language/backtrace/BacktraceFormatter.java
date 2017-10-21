@@ -254,12 +254,8 @@ public class BacktraceFormatter {
             return true;
         }
 
-        if (sourceSection.getSource() == context.getCoreLibrary().getSource()) {
-            return true;
-        }
-
         final Source source = sourceSection.getSource();
-        if (source == null) {
+        if (source == null || source == context.getCoreLibrary().getSource()) {
             return true;
         }
 
