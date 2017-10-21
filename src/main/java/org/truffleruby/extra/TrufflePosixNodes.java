@@ -31,7 +31,6 @@ import org.truffleruby.language.SnippetNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.platform.signal.Signal;
 
 import static org.truffleruby.core.string.StringOperations.decodeUTF8;
 
@@ -593,34 +592,6 @@ public abstract class TrufflePosixNodes {
         @Specialization
         public int close(int file) {
             return posix().close(file);
-        }
-
-    }
-
-    @CoreMethod(names = "kill", isModuleFunction = true, required = 3, lowerFixnum = { 1, 2 })
-    public abstract static class KillNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(signalName)")
-        public int kill(int pid, int signalNumber, DynamicObject signalName) {
-            int self = posix().getpid();
-
-            if (self == pid) {
-                Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(decodeUTF8(signalName));
-                return raise(signal);
-            } else {
-                return posix().kill(pid, signalNumber);
-            }
-        }
-
-        @TruffleBoundary(throwsControlFlowException = true)
-        private int raise(Signal signal) {
-            try {
-                getContext().getNativePlatform().getSignalManager().raise(signal);
-            } catch (IllegalArgumentException e) {
-                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
-            }
-            return 1;
         }
 
     }

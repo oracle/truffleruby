@@ -13,12 +13,10 @@ import com.kenai.jffi.Platform;
 import com.kenai.jffi.Platform.OS;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import jnr.constants.platform.Fcntl;
-import jnr.constants.platform.Signal;
 import jnr.constants.platform.Sysconf;
 import jnr.posix.FileStat;
 import jnr.posix.POSIX;
 import jnr.posix.Passwd;
-import jnr.posix.SignalHandler;
 import jnr.posix.SpawnAttribute;
 import jnr.posix.SpawnFileAction;
 import jnr.posix.Times;
@@ -71,26 +69,8 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int getpid() {
-        return posix.getpid();
-    }
-
-    @TruffleBoundary
-    @Override
     public Passwd getpwnam(String which) {
         return posix.getpwnam(which);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int kill(int pid, int signal) {
-        return posix.kill(pid, signal);
-    }
-
-    @TruffleBoundary
-    @Override
-    public SignalHandler signal(Signal sig, SignalHandler handler) {
-        return posix.signal(sig, handler);
     }
 
     @TruffleBoundary

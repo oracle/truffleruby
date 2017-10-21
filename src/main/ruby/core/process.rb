@@ -263,15 +263,17 @@ module Process
       use_process_group = true
     end
 
-    signal_name = Signal::Numbers[signal]
-
     pids.each do |pid|
       pid = Rubinius::Type.coerce_to pid, Integer, :to_int
 
-      pid = -pid if use_process_group
-      result = Truffle::POSIX.kill(pid, signal, signal_name)
-
-      Errno.handle if result == -1
+      if pid == Process.pid
+        signal_name = Signal::Numbers[signal].to_sym
+        Truffle.invoke_primitive :process_kill_raise, signal_name
+      else
+        pid = -pid if use_process_group
+        result = Truffle::POSIX.kill(pid, signal)
+        Errno.handle_nfi if result == -1
+      end
     end
 
     pids.length

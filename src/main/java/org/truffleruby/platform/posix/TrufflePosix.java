@@ -10,11 +10,9 @@
 package org.truffleruby.platform.posix;
 
 import jnr.constants.platform.Fcntl;
-import jnr.constants.platform.Signal;
 import jnr.constants.platform.Sysconf;
 import jnr.posix.FileStat;
 import jnr.posix.Passwd;
-import jnr.posix.SignalHandler;
 import jnr.posix.SpawnAttribute;
 import jnr.posix.SpawnFileAction;
 import jnr.posix.Times;
@@ -28,10 +26,7 @@ public interface TrufflePosix {
     FileStat allocateStat();
     int execve(String path, String[] argv, String[] envp);
     int fstat(int fd, FileStat stat);
-    int getpid();
     Passwd getpwnam(String which);
-    int kill(int pid, int signal);
-    SignalHandler signal(Signal sig, SignalHandler handler);
     int lstat(String path, FileStat stat);
     FileStat stat(String path);
     int stat(String path, FileStat stat);
