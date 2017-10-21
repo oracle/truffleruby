@@ -36,6 +36,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.parser.parser.SuppressFBWarnings;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -428,6 +429,7 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "dead_block", onSingleton = true)
     public abstract static class DeadBlockNode extends CoreMethodArrayArgumentsNode {
 
+        @SuppressFBWarnings("UW")
         @TruffleBoundary
         @Specialization
         public DynamicObject deadBlock() {

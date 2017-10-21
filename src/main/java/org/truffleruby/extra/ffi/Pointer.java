@@ -10,15 +10,19 @@
 package org.truffleruby.extra.ffi;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
 import jnr.ffi.Address;
 import jnr.ffi.Runtime;
 import jnr.ffi.Type;
 import org.truffleruby.core.FinalizationService;
+import org.truffleruby.parser.parser.SuppressFBWarnings;
+
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 
+@SuppressFBWarnings("Nm")
 public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
 
     public static final jnr.ffi.Pointer JNR_NULL = Runtime.getSystemRuntime().getMemoryManager().newOpaquePointer(0);

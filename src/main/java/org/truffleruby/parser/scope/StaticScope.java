@@ -37,6 +37,7 @@ import org.truffleruby.parser.ast.LocalAsgnParseNode;
 import org.truffleruby.parser.ast.LocalVarParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.VCallParseNode;
+import org.truffleruby.parser.parser.SuppressFBWarnings;
 
 import java.util.Arrays;
 
@@ -124,6 +125,7 @@ public class StaticScope {
      * @param names The array of strings
      * @return true if they are all interned, false otherwise
      */
+    @SuppressFBWarnings("ES")
     private static boolean namesAreInterned(String[] names) {
         for (String name : names) {
             // Note that this object equality check is intentional, to ensure

@@ -1421,8 +1421,6 @@ public abstract class StringNodes {
                             ret = enc.length(pBytes, q, q + clen);
                             if (MBCLEN_NEEDMORE_P(ret)) {
                                 break;
-                            } else if (MBCLEN_INVALID_P(ret)) {
-                                continue;
                             }
                         }
                     }
