@@ -92,12 +92,15 @@ public class RubyMessageResolution {
     public static abstract class ForeignIsBoxedNode extends Node {
 
         private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile symbolProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (stringProfile.profile(RubyGuards.isRubyString(object))) {
+                return true;
+            } else if (symbolProfile.profile(RubyGuards.isRubySymbol(object))) {
                 return true;
             } else if (pointerProfile.profile(Layouts.POINTER.isPointer(object))) {
                 return true;
@@ -111,7 +114,7 @@ public class RubyMessageResolution {
     @Resolve(message = "UNBOX")
     public static abstract class ForeignUnboxNode extends Node {
 
-        private final ConditionProfile stringProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile stringSymbolProfile = ConditionProfile.createBinaryProfile();
         private final ConditionProfile pointerProfile = ConditionProfile.createBinaryProfile();
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
@@ -119,7 +122,7 @@ public class RubyMessageResolution {
         @Child private RubyStringToJavaStringNode toJavaStringNode;
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
-            if (stringProfile.profile(RubyGuards.isRubyString(object))) {
+            if (stringSymbolProfile.profile(RubyGuards.isRubyString(object) || RubyGuards.isRubySymbol(object))) {
                 if (toJavaStringNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     toJavaStringNode = insert(RubyStringToJavaStringNode.create());

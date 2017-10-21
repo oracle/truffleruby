@@ -40,6 +40,12 @@ describe "Truffle::Interop.unbox" do
     Truffle::Interop.from_java_string(unboxed).should == 'test'
   end
     
+  it "unboxes a Ruby symbol to a Java string" do
+    unboxed = Truffle::Interop.unbox(:test)
+    Truffle::Interop.java_string?(unboxed).should be_true
+    Truffle::Interop.from_java_string(unboxed).should == 'test'
+  end
+    
   it "unboxes a pointer to the address" do
     Truffle::Interop.unbox(Rubinius::FFI::Pointer.new(1024)).should == 1024
   end
