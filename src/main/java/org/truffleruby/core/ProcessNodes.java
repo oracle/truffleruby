@@ -15,16 +15,20 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.cast.DefaultValueNodeGen;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.TimeSpec;
+import org.truffleruby.platform.signal.Signal;
 
 @CoreClass("Process")
 public abstract class ProcessNodes {
@@ -115,6 +119,23 @@ public abstract class ProcessNodes {
 
         protected static boolean isMonotonicRaw(int clock_id) {
             return clock_id == CLOCK_MONOTONIC_RAW;
+        }
+
+    }
+
+    @Primitive(name = "process_kill_raise", needsSelf = false)
+    public abstract static class ProcessKillRaiseNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary(throwsControlFlowException = true)
+        @Specialization(guards = "isRubySymbol(signalName)")
+        public int raise(DynamicObject signalName) {
+            final Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(Layouts.SYMBOL.getString(signalName));
+            try {
+                getContext().getNativePlatform().getSignalManager().raise(signal);
+            } catch (IllegalArgumentException e) {
+                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
+            }
+            return 1;
         }
 
     }
