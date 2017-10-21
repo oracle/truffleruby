@@ -165,6 +165,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
     protected class IndexReadOutgoingNode extends OutgoingNode {
 
         @Child private Node node;
+        @Child private RubyToForeignNode rubyToForeignNode = RubyToForeignNode.create();
 
         public IndexReadOutgoingNode() {
             node = Message.READ.createNode();
@@ -175,7 +176,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             assert args.length == 1;
 
             try {
-                return ForeignAccess.sendRead(node, receiver, args[0]);
+                return ForeignAccess.sendRead(node, receiver, rubyToForeignNode.executeConvert(frame, args[0]));
             } catch (UnknownIdentifierException | UnsupportedMessageException e) {
                 exceptionProfile();
                 throw new JavaException(e);
@@ -187,6 +188,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
     protected class IndexWriteOutgoingNode extends OutgoingNode {
 
         @Child private Node node;
+        @Child private RubyToForeignNode rubyToForeignNode = RubyToForeignNode.create();
 
         public IndexWriteOutgoingNode() {
             node = Message.WRITE.createNode();
@@ -197,7 +199,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             assert args.length == 2;
 
             try {
-                return ForeignAccess.sendWrite(node, receiver, args[0], args[1]);
+                return ForeignAccess.sendWrite(node, receiver, rubyToForeignNode.executeConvert(frame, args[0]), args[1]);
             } catch (UnknownIdentifierException | UnsupportedMessageException | UnsupportedTypeException e) {
                 exceptionProfile();
                 throw new JavaException(e);
