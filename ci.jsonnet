@@ -457,9 +457,9 @@
     timelimit: "30:00"
   },
 
-  deploy_and_test_fast: {
+  deploy_and_test_linux: {
     run: deploy_binaries.run +
-      jt(["test", "fast"]),
+      jt(["test", "-Gci"]),
     timelimit: "30:00"
   },
 
@@ -496,14 +496,6 @@
 
   local linux_gate = $.common_linux + $.gate_caps,
 
-  local specs_job = [
-    { name: "command-line", args: [":command_line"] },
-    { name: "language", args: [":language", ":security"] },
-    { name: "core", args: ["-Gci", ":core"] },
-    { name: "library", args: [":library"] },
-    { name: "truffle", args: [":truffle"] },
-  ],
-
   local compiler_standalone_java9 = labsjdk9 + {
     run: [
       [
@@ -517,18 +509,15 @@
   },
 
   tests_jobs: [
-    {name: "ruby-deploy-and-test-fast-linux"} + linux_gate + $.deploy_and_test_fast,
+    {name: "ruby-deploy-and-test-fast-linux"} + linux_gate + $.deploy_and_test_linux,
     {name: "ruby-deploy-and-test-fast-darwin"} + $.common_darwin + $.gate_caps_darwin + $.deploy_and_test_darwin,
     {name: "ruby-deploy-and-test-fast-solaris"} + $.common_solaris + $.gate_caps_solaris + $.deploy_and_test_solaris,
 
     {name: "ruby-test-fast-java9-linux"} + linux_gate + labsjdk9 + $.test_fast,
+    {name: "ruby-test-specs-command-line"} + linux_gate + {run: jt(["test", "specs", ":command_line"])},
 
     {name: "ruby-lint"} + linux_gate + $.lint,
     {name: "ruby-test-tck"} + linux_gate + {run: [["mx", "rubytck"]]},
-  ] + [
-    {name: "ruby-test-specs-" + config.name} + linux_gate + {run: jt(["test", "specs"] + config.args)},
-    for config in specs_job
-  ] + [
     {name: "ruby-test-mri"} + linux_gate + {run: jt(["test", "mri"])},
     {name: "ruby-test-integration"} + linux_gate + {run: jt(["test", "integration"])},
     {name: "ruby-test-cexts"} + linux_gate + $.test_cexts,
