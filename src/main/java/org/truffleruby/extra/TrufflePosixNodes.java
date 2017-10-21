@@ -44,17 +44,6 @@ public abstract class TrufflePosixNodes {
         }
     }
 
-    @CoreMethod(names = "getgroups", isModuleFunction = true)
-    public abstract static class GetGroupsNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public DynamicObject getGroups() {
-            final long[] groups = getContext().getNativePlatform().getPosix().getgroups();
-            return createArray(groups, groups.length);
-        }
-
-    }
-
     @CoreMethod(names = "memset", isModuleFunction = true, required = 3, lowerFixnum = 2)
     public abstract static class MemsetNode extends CoreMethodArrayArgumentsNode {
 
