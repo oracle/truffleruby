@@ -1,0 +1,2 @@
+slow:The -C command line option changes the PWD when using a file
+slow:The -C command line option changes the PWD when using -e

@@ -1,0 +1,1 @@
+slow:The -w command line option sets $VERBOSE to true
