@@ -55,7 +55,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
-import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.interop.RubyStringToJavaStringNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.proc.ProcSignalHandler;
@@ -192,11 +192,11 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_method_lookup", needsSelf = false)
     public static abstract class VMMethodLookupNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private NameToJavaStringNode nameToJavaStringNode;
+        @Child private RubyStringToJavaStringNode nameToJavaStringNode;
         @Child private LookupMethodNode lookupMethodNode;
 
         public VMMethodLookupNode() {
-            nameToJavaStringNode = NameToJavaStringNode.create();
+            nameToJavaStringNode = RubyStringToJavaStringNode.create();
             lookupMethodNode = LookupMethodNodeGen.create(true, false, null, null);
         }
 

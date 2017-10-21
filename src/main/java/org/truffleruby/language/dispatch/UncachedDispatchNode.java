@@ -16,7 +16,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.interop.RubyStringToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNodeGen;
 import org.truffleruby.language.RubyGuards;
@@ -36,7 +36,7 @@ public class UncachedDispatchNode extends DispatchNode {
     @Child private LookupMethodNode lookupMethodMissingNode;
     @Child private IndirectCallNode indirectCallNode;
     @Child private ToSymbolNode toSymbolNode;
-    @Child private NameToJavaStringNode toJavaStringNode;
+    @Child private RubyStringToJavaStringNode toJavaStringNode;
 
     private final BranchProfile methodNotFoundProfile = BranchProfile.create();
     private final BranchProfile methodMissingProfile = BranchProfile.create();
@@ -50,7 +50,7 @@ public class UncachedDispatchNode extends DispatchNode {
         this.lookupMethodMissingNode = LookupMethodNode.createIgnoreVisibility();
         this.indirectCallNode = Truffle.getRuntime().createIndirectCallNode();
         this.toSymbolNode = ToSymbolNodeGen.create(null);
-        this.toJavaStringNode = NameToJavaStringNode.create();
+        this.toJavaStringNode = RubyStringToJavaStringNode.create();
     }
 
     @Override
