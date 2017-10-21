@@ -28,6 +28,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Log;
+import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyNode;
@@ -47,7 +48,6 @@ import java.util.Arrays;
 })
 public abstract class OutgoingForeignCallNode extends RubyNode {
 
-    @Child private RubyToForeignNode megamorphicToForeignNode;
     @Child private ExceptionTranslatingNode exceptionTranslatingNode;
 
     private final String name;
@@ -69,45 +69,28 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             TruffleObject receiver,
             Object[] args,
             @Cached("args.length") int cachedArgsLength,
-            @Cached("createHelperNode(cachedArgsLength)") OutgoingNode outgoingNode,
-            @Cached("createToForeignNodes(cachedArgsLength)") RubyToForeignNode[] toForeignNodes,
-            @Cached("create()") ForeignToRubyNode toRubyNode) {
-        Object[] foreignArgs = argsToForeign(frame, toForeignNodes, args);
-        return doCall(frame, receiver, outgoingNode, foreignArgs, toRubyNode);
+            @Cached("createHelperNode(cachedArgsLength)") OutgoingNode outgoingNode) {
+        return doCall(frame, receiver, outgoingNode, args);
     }
 
     @Specialization(replaces = "callCached")
     public Object callUncached(
             VirtualFrame frame,
             TruffleObject receiver,
-            Object[] args,
-            @Cached("create()") ForeignToRubyNode toRubyNode) {
+            Object[] args) {
         Log.notOptimizedOnce("megamorphic outgoing foreign call");
 
-        if (megamorphicToForeignNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            megamorphicToForeignNode = insert(RubyToForeignNodeGen.create(null));
-        }
-
-        final Object[] foreignArgs = new Object[args.length];
-
-        for (int n = 0; n < args.length; n++) {
-            foreignArgs[n] = megamorphicToForeignNode.executeConvert(frame, args[n]);
-        }
-
         final OutgoingNode outgoingNode = createHelperNode(args.length);
-        return doCall(frame, receiver, outgoingNode, foreignArgs, toRubyNode);
+        return doCall(frame, receiver, outgoingNode, args);
     }
 
-    private Object doCall(VirtualFrame frame, TruffleObject receiver, OutgoingNode outgoingNode, Object[] foreignArgs, ForeignToRubyNode toRubyNode) {
-        final Object foreignValue;
+    private Object doCall(VirtualFrame frame, TruffleObject receiver, OutgoingNode outgoingNode, Object[] args) {
         try {
-            foreignValue = outgoingNode.executeCall(frame, receiver, foreignArgs);
+            return outgoingNode.executeCall(frame, receiver, args);
         } catch (Throwable t) {
             errorProfile.enter();
             throw exceptionTranslatingNode.translate(t);
         }
-        return toRubyNode.executeConvert(frame, foreignValue);
     }
 
     @TruffleBoundary
@@ -365,7 +348,6 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
     protected class RespondToOutgoingNode extends OutgoingNode {
 
-        @Child private ForeignToRubyNode toRubyStringNode = ForeignToRubyNode.create();
         @Child private CallDispatchHeadNode callRespondTo = CallDispatchHeadNode.create();
 
         @Override
@@ -375,9 +357,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                 throw new RaiseException(getContext().getCoreExceptions().argumentError(args.length, 1, this));
             }
 
-            // We have already converted Ruby strings to Java strings at this point, so we need to convert back!
-            final Object name = toRubyStringNode.executeConvert(frame, args[0]);
-            return callRespondTo.call(frame, coreLibrary().getTruffleInteropModule(), "respond_to?", receiver, name);
+            return callRespondTo.call(frame, coreLibrary().getTruffleInteropModule(), "respond_to?", receiver, args[0]);
         }
 
     }
