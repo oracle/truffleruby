@@ -18,6 +18,8 @@ module Truffle::POSIX
     :ulong => :uint64,
   }
 
+  FS_ENCODING = Encoding.find('filesystem')
+
   def self.to_nfi_type(type)
     if Array === type
       return "[#{to_nfi_type(type[0])}]"
@@ -44,7 +46,23 @@ module Truffle::POSIX
       argument_types = argument_types.map { |type| to_nfi_type(type) }
       bound_func = func.bind("(#{argument_types.join(',')}):#{return_type}")
 
+      string_args = []
+      argument_types.each_with_index { |arg_type, i|
+        string_args << i if arg_type == :string
+      }
+      string_args.freeze
+
       define_singleton_method(method_name) { |*args|
+        string_args.each do |i|
+          str = args.fetch(i)
+          if str.encoding == Encoding::BINARY
+            str = str.dup.force_encoding(FS_ENCODING)
+          else
+            str = str.encode(FS_ENCODING)
+          end
+          args[i] = str
+        end
+
         bound_func.call(*args)
       }
     else
