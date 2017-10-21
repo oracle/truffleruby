@@ -68,7 +68,9 @@ module Truffle::POSIX
   attach_function :link, [:string, :string], :int
   attach_function :mkfifo, [:string, :mode_t], :int
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
+  attach_function :umask, [:mode_t], :mode_t
   attach_function :unlink, [:string], :int
+  attach_function :utimes, [:string, :pointer], :int
 
   # Process-related
   attach_function :getegid, [], :gid_t

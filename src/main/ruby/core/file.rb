@@ -1134,7 +1134,7 @@ class File < IO
 
       paths.each do |path|
         n = POSIX.utimes(Rubinius::Type.coerce_to_path(path), ptr)
-        Errno.handle unless n == 0
+        Errno.handle_nfi unless n == 0
       end
     end
   end

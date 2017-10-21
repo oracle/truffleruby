@@ -12,7 +12,6 @@ package org.truffleruby.platform.posix;
 import jnr.constants.platform.Fcntl;
 import jnr.constants.platform.Signal;
 import jnr.constants.platform.Sysconf;
-import jnr.ffi.Pointer;
 import jnr.posix.FileStat;
 import jnr.posix.Passwd;
 import jnr.posix.SignalHandler;
@@ -46,8 +45,6 @@ public interface TrufflePosix {
     FileStat stat(String path);
     int stat(String path, FileStat stat);
     int symlink(String oldpath,String newpath);
-    int umask(int mask);
-    int utimes(String path, Pointer times);
     int waitpid(int pid, int[] status, int flags);
     int errno();
     void errno(int value);
