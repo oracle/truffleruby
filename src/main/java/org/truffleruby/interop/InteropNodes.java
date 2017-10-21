@@ -421,7 +421,16 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(frame, foreign);
         }
 
-        @Specialization(guards = "!isTruffleObject(receiver)")
+        @Specialization
+        public DynamicObject unbox(VirtualFrame frame, String receiver,
+                                   @Cached("create()") JavaStringToRubyStringNode javaStringToRubyStringNode) {
+            return javaStringToRubyStringNode.executeConvert(frame, receiver);
+        }
+
+        @Specialization(guards = {
+                "!isTruffleObject(receiver)",
+                "!isString(receiver)"
+        })
         public Object unbox(Object receiver) {
             return receiver;
         }

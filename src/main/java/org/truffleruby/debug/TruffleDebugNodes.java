@@ -16,6 +16,7 @@ import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.interop.ForeignAccess;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.object.ObjectType;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -404,6 +405,40 @@ public abstract class TruffleDebugNodes {
         @Specialization
         public Object foreignObject() {
             return new ForeignObject();
+        }
+
+    }
+
+    @CoreMethod(names = "foreign_string", onSingleton = true, required = 1)
+    public abstract static class ForeignStringNode extends CoreMethodArrayArgumentsNode {
+
+        public static class ForeignStringObjectType extends ObjectType {
+
+        }
+
+        public static class ForeignString implements TruffleObject {
+
+            private final String string;
+
+            public ForeignString(String string) {
+                this.string = string;
+            }
+
+            public String getString() {
+                return string;
+            }
+
+            @Override
+            public ForeignAccess getForeignAccess() {
+                return ForeignStringMessageResolutionForeign.ACCESS;
+            }
+
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(string)")
+        public Object foreignString(DynamicObject string) {
+            return new ForeignString(string.toString());
         }
 
     }
