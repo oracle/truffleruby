@@ -91,17 +91,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "lchmod", isModuleFunction = true, required = 2, lowerFixnum = 2)
-    public abstract static class LchmodNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(path)")
-        public int lchmod(DynamicObject path, int mode) {
-            return posix().lchmod(decodeUTF8(path), mode);
-        }
-
-    }
-
     @CoreMethod(names = "umask", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class UmaskNode extends CoreMethodArrayArgumentsNode {
 

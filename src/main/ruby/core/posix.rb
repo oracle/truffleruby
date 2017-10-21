@@ -33,14 +33,26 @@ module Truffle::POSIX
   end
 
   def self.attach_function(method_name, native_name = method_name, argument_types, return_type)
-    func = LIBC[native_name]
-    return_type = to_nfi_type(return_type)
-    argument_types = argument_types.map { |type| to_nfi_type(type) }
-    bound_func = func.bind("(#{argument_types.join(',')}):#{return_type}")
+    begin
+      func = LIBC[native_name]
+    rescue RubyTruffleError => e
+      raise e unless e.message.include?('Unknown identifier')
+    end
 
-    define_singleton_method(method_name) { |*args|
-      bound_func.call(*args)
-    }
+    if func
+      return_type = to_nfi_type(return_type)
+      argument_types = argument_types.map { |type| to_nfi_type(type) }
+      bound_func = func.bind("(#{argument_types.join(',')}):#{return_type}")
+
+      define_singleton_method(method_name) { |*args|
+        bound_func.call(*args)
+      }
+    else
+      define_singleton_method(method_name) { |*args|
+        raise NotImplementedError, "#{native_name} is not available"
+      }
+      Truffle.invoke_primitive :method_unimplement, method(method_name)
+    end
   end
 
   # Filesystem-related
@@ -52,6 +64,7 @@ module Truffle::POSIX
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
   attach_function :fsync, [:int], :int
+  attach_function :lchmod, [:string, :mode_t], :int
   attach_function :link, [:string, :string], :int
   attach_function :mkfifo, [:string, :mode_t], :int
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
