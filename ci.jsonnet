@@ -462,9 +462,9 @@
     timelimit: "30:00"
   },
 
-  deploy_and_test_fast_darwin: {
+  deploy_and_test_darwin: {
     run: deploy_binaries.run +
-      jt(["test", "fast", "-GdarwinCI"]),
+      jt(["test", "-GdarwinCI"]),
     timelimit: "30:00"
   },
 
@@ -517,7 +517,7 @@
 
   tests_jobs: [
     {name: "ruby-deploy-and-test-fast-linux"} + linux_gate + $.deploy_and_test_fast,
-    {name: "ruby-deploy-and-test-fast-darwin"} + $.common_darwin + $.gate_caps_darwin + $.deploy_and_test_fast_darwin,
+    {name: "ruby-deploy-and-test-fast-darwin"} + $.common_darwin + $.gate_caps_darwin + $.deploy_and_test_darwin,
     {name: "ruby-deploy-and-test-fast-solaris"} + $.common_solaris + $.gate_caps_solaris + $.deploy_and_test_solaris,
 
     {name: "ruby-test-fast-java9-linux"} + linux_gate + labsjdk9 + $.test_fast,
