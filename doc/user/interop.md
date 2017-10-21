@@ -329,6 +329,11 @@ A call from a foreign language to Ruby using `NEW`, `EXECUTE`, `INVOKE`, or
 `WRITE`, that has Java strings as arguments, will convert each Java string
 argument to a Ruby string.
 
+It is planned that Java strings, and boxed foreign strings (foreign objects that
+respond positively to `IS_BOXED` and `UNBOX` to a Java string), will be able to
+be used in all locations where a Ruby string could, and will be converted to a
+Ruby string at that point, but this is not implemented yet.
+
 ## Import and export
 
 `Truffle::Interop.export(:name, value)`
