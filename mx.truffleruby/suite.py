@@ -210,6 +210,7 @@ suite = {
             ],
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
+            "findbugsIgnoresGenerated" : True,
             "checkPackagePrefix": "false",
             "license": ["EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0"],
         },

@@ -1307,6 +1307,7 @@ public class ParserSupport {
     }
 
     // 1.9
+    @SuppressFBWarnings("ES")
     public ArgumentParseNode arg_var(String name) {
         StaticScope current = getCurrentScope();
 
@@ -1331,6 +1332,7 @@ public class ParserSupport {
     }
 
     // 1.9
+    @SuppressFBWarnings("ES")
     public String shadowing_lvar(String name) {
         if (name == "_") return name;
 

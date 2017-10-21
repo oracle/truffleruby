@@ -24,6 +24,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.parser.ParserContext;
+import org.truffleruby.parser.parser.SuppressFBWarnings;
 
 public class SnippetNode extends RubyBaseNode {
 
@@ -92,6 +93,7 @@ public class SnippetNode extends RubyBaseNode {
         return directCallNode.call(callArguments);
     }
 
+    @SuppressFBWarnings("ES")
     private boolean ensureConstantExpressionParameters(String expression, Object[] arguments) {
         assert this.expression == expression :
                 "has to be always called with same expression: " + this.expression + " != " + expression;

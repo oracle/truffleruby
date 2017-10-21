@@ -10,6 +10,8 @@
 package org.truffleruby;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.CompilerOptions;
 import com.oracle.truffle.api.Truffle;
@@ -99,7 +101,7 @@ public class RubyContext {
     private final ThreadManager threadManager;
     private final LexicalScope rootLexicalScope;
     private final CoverageManager coverageManager;
-    private ConsoleHolder consoleHolder;
+    @CompilationFinal private volatile ConsoleHolder consoleHolder;
 
     private final Object classVariableDefinitionLock = new Object();
 
@@ -408,6 +410,7 @@ public class RubyContext {
 
     public ConsoleHolder getConsoleHolder() {
         if (consoleHolder == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             synchronized (this) {
                 if (consoleHolder == null) {
                     consoleHolder = new ConsoleHolder();

@@ -23,6 +23,7 @@ import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.parser.parser.SuppressFBWarnings;
 
 public abstract class LookupConstantWithLexicalScopeNode extends RubyNode implements LookupConstantInterface {
 
@@ -41,6 +42,7 @@ public abstract class LookupConstantWithLexicalScopeNode extends RubyNode implem
 
     public abstract RubyConstant executeLookupConstant();
 
+    @SuppressFBWarnings("ES")
     @Override
     public RubyConstant lookupConstant(VirtualFrame frame, Object module, String name) {
         assert name == this.name;
