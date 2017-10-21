@@ -42,7 +42,6 @@ public interface TrufflePosix {
     int link(String oldpath,String newpath);
     int lstat(String path, FileStat stat);
     int mkdir(String path, int mode);
-    int readlink(CharSequence path, Pointer bufPtr, int bufsize);
     int rmdir(String path);
     int setenv(String envName, String envValue, int overwrite);
     int setsid();

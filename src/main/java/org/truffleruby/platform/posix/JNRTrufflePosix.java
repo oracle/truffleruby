@@ -154,12 +154,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int readlink(CharSequence path, Pointer bufPtr, int bufsize) {
-        return posix.readlink(path, bufPtr, bufsize);
-    }
-
-    @TruffleBoundary
-    @Override
     public int rmdir(String path) {
         return posix.rmdir(path);
     }
