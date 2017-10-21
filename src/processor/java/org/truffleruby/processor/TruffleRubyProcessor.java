@@ -11,6 +11,7 @@ package org.truffleruby.processor;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -33,6 +34,8 @@ import org.truffleruby.builtins.Primitive;
 public class TruffleRubyProcessor extends AbstractProcessor {
 
     private static final String SUFFIX = "Builtins";
+
+    private final Set<String> processed = new HashSet<>();
 
     @Override
     public SourceVersion getSupportedSourceVersion() {
@@ -60,7 +63,13 @@ public class TruffleRubyProcessor extends AbstractProcessor {
         final PackageElement packageElement = (PackageElement) element.getEnclosingElement();
         final String packageName = packageElement.getQualifiedName().toString();
 
-        final JavaFileObject output = processingEnv.getFiler().createSourceFile(element.getQualifiedName() + SUFFIX, element);
+        final String qualifiedName = element.getQualifiedName().toString();
+        if (!processed.add(qualifiedName)) {
+            // Already processed, do nothing. This seems an Eclipse bug.
+            return;
+        }
+
+        final JavaFileObject output = processingEnv.getFiler().createSourceFile(qualifiedName + SUFFIX, element);
 
         try (PrintStream stream = new PrintStream(output.openOutputStream(), true, "UTF-8")) {
             final List<? extends Element> enclosedElements = element.getEnclosedElements();
