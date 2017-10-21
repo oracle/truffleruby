@@ -32,7 +32,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
-import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Log;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -42,12 +41,9 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayStrategy;
-import org.truffleruby.interop.RubyStringToJavaStringNodeGen;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -379,7 +375,7 @@ public abstract class InteropNodes {
         }
 
         @Specialization
-        public boolean isBoxed(CharSequence receiver) {
+        public boolean isBoxed(String receiver) {
             return true;
         }
 
@@ -406,15 +402,6 @@ public abstract class InteropNodes {
     @CoreMethod(names = "unbox", isModuleFunction = true, required = 1)
     public abstract static class UnboxNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject unbox(CharSequence receiver) {
-            // TODO CS-21-Dec-15 this shouldn't be needed - we need to convert j.l.String to Ruby's String automatically
-            return makeStringNode.executeMake(receiver, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
         @Specialization
         public Object unbox(
                 TruffleObject receiver,
@@ -428,13 +415,13 @@ public abstract class InteropNodes {
             }
         }
 
-        protected Node createUnboxNode() {
-            return Message.UNBOX.createNode();
-        }
-
-        @Fallback
+        @Specialization(guards = "!isTruffleObject(receiver)")
         public Object unbox(Object receiver) {
             return receiver;
+        }
+
+        protected Node createUnboxNode() {
+            return Message.UNBOX.createNode();
         }
 
     }
