@@ -514,7 +514,6 @@
     {name: "ruby-deploy-and-test-fast-solaris"} + $.common_solaris + $.gate_caps_solaris + $.deploy_and_test_solaris,
 
     {name: "ruby-test-fast-java9-linux"} + linux_gate + labsjdk9 + $.test_fast,
-    {name: "ruby-test-specs-command-line"} + linux_gate + {run: jt(["test", "specs", ":command_line"])},
 
     {name: "ruby-lint"} + linux_gate + $.lint,
     {name: "ruby-test-tck"} + linux_gate + {run: [["mx", "rubytck"]]},

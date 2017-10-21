@@ -137,7 +137,7 @@ class MSpecScript
   MSpec.enable_feature :encoding
   MSpec.enable_feature :readline
 
-  set :files, get(:language) + get(:core) + get(:library) + get(:truffle) + get(:security)
+  set :files, get(:command_line) + get(:language) + get(:core) + get(:library) + get(:truffle) + get(:security)
 end
 
 if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_process?
