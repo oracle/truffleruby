@@ -316,6 +316,10 @@ module Process
     ret
   end
 
+  def self.pid
+    Truffle::POSIX.getpid
+  end
+
   def self.ppid
     Truffle::POSIX.getppid
   end

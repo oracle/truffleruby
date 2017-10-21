@@ -18,7 +18,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
-import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.cast.DefaultValueNodeGen;
 import org.truffleruby.language.RubyGuards;
@@ -116,16 +115,6 @@ public abstract class ProcessNodes {
 
         protected static boolean isMonotonicRaw(int clock_id) {
             return clock_id == CLOCK_MONOTONIC_RAW;
-        }
-
-    }
-
-    @CoreMethod(names = "pid", onSingleton = true)
-    public abstract static class PidNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int pid() {
-            return posix().getpid();
         }
 
     }
