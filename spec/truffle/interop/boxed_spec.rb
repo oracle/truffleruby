@@ -11,9 +11,13 @@ require_relative '../../ruby/spec_helper'
 describe "Truffle::Interop.boxed?" do
   
   it "returns true for strings" do
-    Truffle::Interop.boxed?('tests').should be_true
+    Truffle::Interop.boxed?('test').should be_true
   end
   
+  it "returns true for symbols" do
+    Truffle::Interop.boxed?(:test).should be_true
+  end
+
   it "returns true for Rubinius::FFI::Pointer objects" do
     Truffle::Interop.boxed?(Rubinius::FFI::Pointer.new(0)).should be_true
   end
