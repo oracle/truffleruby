@@ -22,6 +22,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -42,6 +43,18 @@ public abstract class TrufflePosixNodes {
         if (name.equals("TZ")) {
             GetTimeZoneNode.invalidateTZ();
         }
+    }
+
+    @Primitive(name = "posix_invalidate_env", needsSelf = false)
+    public abstract static class InvalidateEnvNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(envVar)")
+        public DynamicObject invalidate(DynamicObject envVar) {
+            invalidateENV(StringOperations.getString(envVar));
+            return envVar;
+        }
+
     }
 
     @CoreMethod(names = "memset", isModuleFunction = true, required = 3, lowerFixnum = 2)
@@ -74,19 +87,6 @@ public abstract class TrufflePosixNodes {
         @Specialization(guards = "isRubyPointer(messagePtr)")
         public int sendmsg(int socket, DynamicObject messagePtr, int flags) {
             return nativeSockets().sendmsg(socket, Layouts.POINTER.getPointer(messagePtr), flags);
-        }
-
-    }
-
-    @CoreMethod(names = "setenv", isModuleFunction = true, required = 3, lowerFixnum = 3)
-    public abstract static class SetenvNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = { "isRubyString(name)", "isRubyString(value)" })
-        public int setenv(DynamicObject name, DynamicObject value, int overwrite) {
-            final String nameString = decodeUTF8(name);
-            invalidateENV(nameString);
-            return posix().setenv(nameString, decodeUTF8(value), overwrite);
         }
 
     }
@@ -131,19 +131,6 @@ public abstract class TrufflePosixNodes {
         @Specialization
         public int umask(int mask) {
             return posix().umask(mask);
-        }
-
-    }
-
-    @CoreMethod(names = "unsetenv", isModuleFunction = true, required = 1)
-    public abstract static class UnsetenvNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(name)")
-        public int unsetenv(DynamicObject name) {
-            final String nameString = decodeUTF8(name);
-            invalidateENV(nameString);
-            return posix().unsetenv(nameString);
         }
 
     }

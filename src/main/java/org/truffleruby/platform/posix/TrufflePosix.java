@@ -43,14 +43,12 @@ public interface TrufflePosix {
     int lstat(String path, FileStat stat);
     int mkdir(String path, int mode);
     int rmdir(String path);
-    int setenv(String envName, String envValue, int overwrite);
     int setsid();
     int setpriority(int which, int who, int prio);
     FileStat stat(String path);
     int stat(String path, FileStat stat);
     int symlink(String oldpath,String newpath);
     int umask(int mask);
-    int unsetenv(String envName);
     int utimes(String path, Pointer times);
     int waitpid(int pid, int[] status, int flags);
     int errno();
