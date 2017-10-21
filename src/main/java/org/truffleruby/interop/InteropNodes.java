@@ -505,7 +505,7 @@ public abstract class InteropNodes {
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class ReadNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = {"!isRubySymbol(identifier)", "!isRubyString(identifier)"})
+        @Specialization
         public Object read(
                 TruffleObject receiver,
                 Object identifier,
@@ -517,67 +517,6 @@ public abstract class InteropNodes {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
-        }
-
-        @Specialization(guards = { "identifier == cachedIdentifier", "isRubySymbol(cachedIdentifier)" })
-        public Object read(
-                TruffleObject receiver,
-                DynamicObject identifier,
-                @Cached("identifier") DynamicObject cachedIdentifier,
-                @Cached("cachedIdentifier.toString()") String identifierString,
-                @Cached("createReadNode()") Node readNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
-            try {
-                return ForeignAccess.sendRead(readNode, receiver, identifierString);
-            } catch (UnknownIdentifierException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-        }
-
-        @Specialization(
-                guards = {
-                        "isRubyString(identifier)",
-                        "equalNode.execute(rope(identifier), cachedIdentifier)"
-                },
-                limit = "getCacheLimit()"
-        )
-        public Object readCached(
-                TruffleObject receiver,
-                DynamicObject identifier,
-                @Cached("privatizeRope(identifier)") Rope cachedIdentifier,
-                @Cached("cachedIdentifier.toString()") String identifierString,
-                @Cached("createReadNode()") Node readNode,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("create()") RopeNodes.EqualNode equalNode) {
-            try {
-                return ForeignAccess.sendRead(readNode, receiver, identifierString);
-            } catch (UnknownIdentifierException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-        }
-
-        @Specialization(
-                guards = "isRubyString(identifier)",
-                replaces = "readCached"
-        )
-        public Object readUncached(
-                TruffleObject receiver,
-                DynamicObject identifier,
-                @Cached("createReadNode()") Node readNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
-            try {
-                return ForeignAccess.sendRead(readNode, receiver, objectToString(identifier));
-            } catch (UnknownIdentifierException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-        }
-
-        @TruffleBoundary
-        protected String objectToString(Object object) {
-            return object.toString();
         }
 
         protected static Node createReadNode() {
@@ -594,7 +533,7 @@ public abstract class InteropNodes {
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public abstract static class WriteNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = {"!isRubySymbol(identifier)", "!isRubyString(identifier)"})
+        @Specialization
         public Object write(
                 TruffleObject receiver,
                 Object identifier,
@@ -607,70 +546,6 @@ public abstract class InteropNodes {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
-        }
-
-        @Specialization(guards = { "identifier == cachedIdentifier", "isRubySymbol(cachedIdentifier)" })
-        public Object write(
-                TruffleObject receiver,
-                DynamicObject identifier,
-                Object value,
-                @Cached("identifier") DynamicObject cachedIdentifier,
-                @Cached("cachedIdentifier.toString()") String identifierString,
-                @Cached("createWriteNode()") Node writeNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
-            try {
-                return ForeignAccess.sendWrite(writeNode, receiver, identifierString, value);
-            } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-        }
-
-        @Specialization(
-                guards = {
-                        "isRubyString(identifier)",
-                        "equalNode.execute(rope(identifier), cachedIdentifier)"
-                },
-                limit = "getCacheLimit()"
-        )
-        public Object writeCached(
-                TruffleObject receiver,
-                DynamicObject identifier,
-                Object value,
-                @Cached("privatizeRope(identifier)") Rope cachedIdentifier,
-                @Cached("cachedIdentifier.toString()") String identifierString,
-                @Cached("createWriteNode()") Node writeNode,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("create()") RopeNodes.EqualNode equalNode) {
-            try {
-                return ForeignAccess.sendWrite(writeNode, receiver, identifierString, value);
-            } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-        }
-
-        @Specialization(
-                guards = "isRubyString(identifier)",
-                replaces = "writeCached"
-        )
-        public Object writeUncached(
-                TruffleObject receiver,
-                DynamicObject identifier,
-                Object value,
-                @Cached("createWriteNode()") Node writeNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
-            try {
-                return ForeignAccess.sendWrite(writeNode, receiver, objectToString(identifier), value);
-            } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
-        }
-
-        @TruffleBoundary
-        protected String objectToString(Object object) {
-            return object.toString();
         }
 
         protected static Node createWriteNode() {
