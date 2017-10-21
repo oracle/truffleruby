@@ -459,13 +459,13 @@
 
   deploy_and_test_linux: {
     run: deploy_binaries.run +
-      jt(["test", "-Gci"]),
+      jt(["test", "specs", "-Gci"]),
     timelimit: "30:00"
   },
 
   deploy_and_test_darwin: {
     run: deploy_binaries.run +
-      jt(["test", "-GdarwinCI"]),
+      jt(["test", "specs", "-GdarwinCI"]),
     timelimit: "30:00"
   },
 
