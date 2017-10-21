@@ -254,7 +254,7 @@ class File < IO
 
     paths.each do |path|
       n = POSIX.lchmod Rubinius::Type.coerce_to_path(path), mode
-      Errno.handle if n == -1
+      Errno.handle_nfi if n == -1
     end
 
     paths.size

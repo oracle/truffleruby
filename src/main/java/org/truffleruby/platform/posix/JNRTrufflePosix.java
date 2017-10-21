@@ -130,12 +130,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int lchmod(String filename, int mode) {
-        return posix.lchmod(filename, mode);
-    }
-
-    @TruffleBoundary
-    @Override
     public int lstat(String path, FileStat stat) {
         return posix.lstat(path, stat);
     }

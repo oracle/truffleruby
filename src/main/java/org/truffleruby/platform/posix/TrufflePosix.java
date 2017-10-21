@@ -37,7 +37,6 @@ public interface TrufflePosix {
     int getpriority(int which, int who);
     Passwd getpwnam(String which);
     int kill(int pid, int signal);
-    int lchmod(String filename, int mode);
     SignalHandler signal(Signal sig, SignalHandler handler);
     int lstat(String path, FileStat stat);
     int mkdir(String path, int mode);
