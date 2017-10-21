@@ -377,15 +377,15 @@ module Rubinius
             require 'fcntl'
 
             if pgroup = @options[:pgroup]
-              Truffle::POSIX.setpgid(0, pgroup)
+              Process.setpgid(0, pgroup)
             end
 
             if mask = @options[:mask]
-              Truffle::POSIX.umask(mask)
+              File.umask(mask)
             end
 
             if chdir = @options[:chdir]
-              Truffle::POSIX.chdir(chdir)
+              Dir.chdir(chdir)
             end
 
             if _close_others = @options[:close_others]
