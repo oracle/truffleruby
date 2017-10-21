@@ -91,34 +91,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "umask", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class UmaskNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int umask(int mask) {
-            return posix().umask(mask);
-        }
-
-    }
-
-    @CoreMethod(names = "utimes", isModuleFunction = true, required = 2)
-    public abstract static class UtimesNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary(throwsControlFlowException = true)
-        @Specialization(guards = {"isRubyString(path)", "isRubyPointer(pointer)"})
-        public int utimes(DynamicObject path, DynamicObject pointer) {
-            final int result = posix().utimes(decodeUTF8(path), Layouts.POINTER.getPointer(pointer));
-
-            if (result == -1) {
-                throw new RaiseException(coreExceptions().errnoError(posix().errno(), this));
-            }
-
-            return result;
-        }
-
-    }
-
     @CoreMethod(names = "mkdir", isModuleFunction = true, required = 2, lowerFixnum = 2)
     public abstract static class MkdirNode extends CoreMethodArrayArgumentsNode {
 

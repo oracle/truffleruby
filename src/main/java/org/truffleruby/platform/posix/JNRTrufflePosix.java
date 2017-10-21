@@ -15,7 +15,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import jnr.constants.platform.Fcntl;
 import jnr.constants.platform.Signal;
 import jnr.constants.platform.Sysconf;
-import jnr.ffi.Pointer;
 import jnr.posix.FileStat;
 import jnr.posix.POSIX;
 import jnr.posix.Passwd;
@@ -174,18 +173,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public int symlink(String oldpath, String newpath) {
         return posix.symlink(oldpath, newpath);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int umask(int mask) {
-        return posix.umask(mask);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int utimes(String path, Pointer times) {
-        return posix.utimes(path, times);
     }
 
     @TruffleBoundary
