@@ -95,12 +95,26 @@ module Truffle::POSIX
 
   # Process-related
   attach_function :getegid, [], :gid_t
-  attach_function :geteuid, [], :uid_t
   attach_function :getgid, [], :gid_t
-  attach_function :getuid, [], :uid_t
-  attach_function :seteuid, [:uid_t], :int
+  attach_function :setresgid, [:gid_t, :gid_t, :gid_t], :int
+  attach_function :setregid, [:gid_t, :gid_t], :int
+  attach_function :setegid, [:uid_t], :int
   attach_function :setgid, [:gid_t], :int
+
+  attach_function :geteuid, [], :uid_t
+  attach_function :getuid, [], :uid_t
+  attach_function :setresuid, [:uid_t, :uid_t, :uid_t], :int
+  attach_function :setreuid, [:uid_t, :uid_t], :int
+  attach_function :setruid, [:uid_t], :int
+  attach_function :seteuid, [:uid_t], :int
   attach_function :setuid, [:uid_t], :int
+
+  attach_function :getppid, [], :pid_t
+  attach_function :getpgrp, [], :pid_t
+  attach_function :getpgid, [:pid_t], :pid_t
+  attach_function :setpgid, [:pid_t, :pid_t], :int
+  attach_function :setsid, [], :pid_t
+
   attach_function :getgroups, [:int, [:gid_t]], :int
 
   attach_function :getrlimit, [:int, :pointer], :int

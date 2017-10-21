@@ -224,7 +224,7 @@ module Process
 
   def self.setsid
     pgid = Truffle::POSIX.setsid
-    Errno.handle if pgid == -1
+    Errno.handle_nfi if pgid == -1
     pgid
   end
 
@@ -289,7 +289,7 @@ module Process
     pid = Rubinius::Type.coerce_to pid, Integer, :to_int
 
     ret = Truffle::POSIX.getpgid(pid)
-    Errno.handle if ret == -1
+    Errno.handle_nfi if ret == -1
     ret
   end
 
@@ -298,7 +298,7 @@ module Process
     int = Rubinius::Type.coerce_to int, Integer, :to_int
 
     ret = Truffle::POSIX.setpgid(pid, int)
-    Errno.handle if ret == -1
+    Errno.handle_nfi if ret == -1
     ret
   end
 
@@ -312,14 +312,12 @@ module Process
   end
   def self.getpgrp
     ret = Truffle::POSIX.getpgrp
-    Errno.handle if ret == -1
+    Errno.handle_nfi if ret == -1
     ret
   end
 
   def self.ppid
-    ret = Truffle::POSIX.getppid
-    Errno.handle if ret == -1
-    ret
+    Truffle::POSIX.getppid
   end
 
   def self.uid=(uid)
@@ -760,7 +758,7 @@ module Process
         eid = Rubinius::Type.coerce_to eid, Integer, :to_int
 
         ret = Truffle::POSIX.setregid rid, eid
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         nil
       end
 
@@ -769,7 +767,7 @@ module Process
         eid = Rubinius::Type.coerce_to eid, Integer, :to_int
 
         ret = Truffle::POSIX.setreuid rid, eid
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         nil
       end
 
@@ -779,7 +777,7 @@ module Process
         sid = Rubinius::Type.coerce_to sid, Integer, :to_int
 
         ret = Truffle::POSIX.setresgid rid, eid, sid
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         nil
       end
 
@@ -789,7 +787,7 @@ module Process
         sid = Rubinius::Type.coerce_to sid, Integer, :to_int
 
         ret = Truffle::POSIX.setresuid rid, eid, sid
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         nil
       end
     end
@@ -801,7 +799,7 @@ module Process
         uid = Rubinius::Type.coerce_to uid, Integer, :to_int
 
         ret = Truffle::POSIX.setreuid(uid, uid)
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         uid
       end
 
@@ -822,7 +820,7 @@ module Process
         real = Truffle::POSIX.getuid
         eff = Truffle::POSIX.geteuid
         ret = Truffle::POSIX.setreuid(eff, real)
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         eff
       end
 
@@ -858,7 +856,7 @@ module Process
         gid = Rubinius::Type.coerce_to gid, Integer, :to_int
 
         ret = Truffle::POSIX.setregid(gid, gid)
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         gid
       end
 
@@ -870,7 +868,7 @@ module Process
         gid = Rubinius::Type.coerce_to gid, Integer, :to_int
 
         ret = Truffle::POSIX.setegid(gid)
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         gid
       end
       alias_method :grant_privilege, :eid=
@@ -879,7 +877,7 @@ module Process
         real = Truffle::POSIX.getgid
         eff = Truffle::POSIX.getegid
         ret = Truffle::POSIX.setregid(eff, real)
-        Errno.handle if ret == -1
+        Errno.handle_nfi if ret == -1
         eff
       end
 
