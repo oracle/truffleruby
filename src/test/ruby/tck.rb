@@ -233,7 +233,7 @@ export def meta_objects_int
 end
 
 export def meta_objects_int_metaclass
-  Truffle::Interop.to_java_string('Fixnum')
+  'Fixnum'
 end
 
 export def meta_objects_str
@@ -241,7 +241,7 @@ export def meta_objects_str
 end
 
 export def meta_objects_str_metaclass
-  Truffle::Interop.to_java_string('String')
+  'String'
 end
 
 export def meta_objects_proc
@@ -249,5 +249,5 @@ export def meta_objects_proc
 end
 
 export def meta_objects_proc_metaclass
-  Truffle::Interop.to_java_string('Proc')
+  'Proc'
 end

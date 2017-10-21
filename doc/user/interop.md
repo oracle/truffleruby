@@ -11,6 +11,7 @@ Interop ignores visibility entirely.
 * [How to explicitly send messages from Ruby](#how-to-explicitly-send-messages-from-ruby)
 * [How to send messages using idiomatic Ruby](#how-to-send-messages-using-idiomatic-ruby)
 * [What messages are sent for Ruby syntax on foreign objects](#what-messages-are-sent-for-ruby-syntax-on-foreign-objects)
+* [String conversion](#string-conversion)
 * [Import and export](#import-and-export)
 * [Interop eval](#interop-eval)
 * [Additional methods](#additional-methods)
@@ -46,12 +47,12 @@ Call `size` on the object.
 
 ### `IS_BOXED`
 
-Returns true only for instances of `String`, `Rubinius::FFI::Pointer` and
-objects that respond to `unbox`.
+Returns true only for instances of `String`, `Symbol`, `Rubinius::FFI::Pointer`
+and objects that respond to `unbox`.
 
 ### `UNBOX`
 
-For a `String`, produces a `java.lang.String`, similar to
+For a `String` or `Symbol`, produces a `java.lang.String`, similar to
 `Truffle::Interop.to_java_string`. For a `Rubinius::FFI::Pointer`, produces the
 address as a `long`. For all other objects calls `unbox`.
 
@@ -83,12 +84,12 @@ Otherwise, return the instance variable names, without the leading `@`.
 
 `KEYS(other)` → `other.instance_variables.map { |key| key[1..-1 }`
 
-In both cases the keys are returned as a Ruby `Array` containing Java `String`
+In both cases the keys are returned as a Ruby `Array` containing Ruby `String`
 objects.
 
 ### `READ`
 
-The name must be a Java `int` or `String`, or a Ruby `String` or `Symbol`.
+The name must be a `Fixnum` (or a Java integer) or a `String` or `Symbol`.
 
 If the receiver is a Ruby `String` and the name is an integer, read a byte from
 the string, ignoring the encoding. If the index is out of range you'll get 0:
@@ -118,7 +119,7 @@ An exception during a read will result in an `UnknownIdentifierException`.
 
 ### `WRITE`
 
-The name must be a Java `String`, or a Ruby `String` or `Symbol`.
+The name must be a `String` or `Symbol`.
 
 If the name starts with `@`, write it as an instance variable:
 
@@ -206,13 +207,9 @@ TruffleRuby will convert the returned value from a foreign object of Java
 
 `Truffle::Interop.read(object, name)`
 
-If `name` is a `String` or `Symbol` it will be converted into a Java `String`.
-
 ### `WRITE`
 
 `Truffle::Interop.read(object, name, value)`
-
-If `name` is a `String` or `Symbol` it will be converted into a Java `String`.
 
 ## How to send messages using idiomatic Ruby
 
@@ -314,6 +311,23 @@ an integer, or anything else
 `object.__send__(name, *args)` works in the same way as literal method call on the
 foreign object, including allowing the special-forms listed above (see
 [notes on method resolution](#notes-on-method-resolution)).
+
+## String conversion
+
+Ruby strings and symbols are unboxable to Java strings. Foreign languages should
+call `IS_BOXED` to determine this, and `UNBOX` to get the Java string.
+
+The name in an `INVOKE`, `READ`, or `WRITE` made from Ruby to a foreign language
+is automatically converted to a Java string from either a Ruby string or a Ruby
+symbol.
+
+A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
+or `WRITE`, that returns a Java string will convert the returned string to a
+Ruby string.
+
+A call from a foreign language to Ruby using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
+or `WRITE`, that has Java strings as arguments, will convert each Java string
+argument to a Ruby string.
 
 ## Import and export
 

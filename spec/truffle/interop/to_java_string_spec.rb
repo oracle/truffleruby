@@ -10,8 +10,12 @@ require_relative '../../ruby/spec_helper'
 
 describe "Truffle::Interop.to_java_string" do
 
-  it "can be round-tripped with from_java_string" do
+  it "can be round-tripped with from_java_string with a string" do
     Truffle::Interop.from_java_string(Truffle::Interop.to_java_string("foo")).should == "foo"
+  end
+
+  it "can be round-tripped with from_java_string with a symbol" do
+    Truffle::Interop.from_java_string(Truffle::Interop.to_java_string(:foo)).should == "foo"
   end
 
 end

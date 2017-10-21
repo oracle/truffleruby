@@ -27,13 +27,9 @@ module Truffle
 
     def self.object_keys(object)
       if object.is_a?(Hash)
-        object.keys.map do |key|
-          Truffle::Interop.to_java_string(key)
-        end
+        object.keys.map(&:to_s)
       else
-        object.instance_variables.map do |key|
-          Truffle::Interop.to_java_string(key[1..-1])
-        end
+        object.instance_variables.map(&:to_s)
       end
     end
     
