@@ -29,7 +29,11 @@ module Truffle
       if object.is_a?(Hash)
         object.keys.map(&:to_s)
       else
-        object.instance_variables.map(&:to_s)
+        object.instance_variables.map { |i|
+          i = i.to_s
+          i = i[1..-1] if i.start_with?('@')
+          i
+        }
       end
     end
     
