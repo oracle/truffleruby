@@ -850,7 +850,7 @@ class File < IO
   #  IO.readlines(".testfile")[0]         #=> "This is line one\n"
   def self.link(from, to)
     n = POSIX.link Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
-    Errno.handle if n == -1
+    Errno.handle_nfi if n == -1
     n
   end
 
@@ -1109,7 +1109,7 @@ class File < IO
   def self.unlink(*paths)
     paths.each do |path|
       n = POSIX.unlink Rubinius::Type.coerce_to_path(path)
-      Errno.handle if n == -1
+      Errno.handle_nfi if n == -1
     end
 
     paths.size
