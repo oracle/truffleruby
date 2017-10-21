@@ -101,16 +101,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int getpriority(int which, int who) {
-        // getpriority can return -1 so errno has to be cleared.
-        // it should be done as close as possible to the syscall
-        // as JVM classloading could change errno.
-        posix.errno(0);
-        return posix.getpriority(which, who);
-    }
-
-    @TruffleBoundary
-    @Override
     public Passwd getpwnam(String which) {
         return posix.getpwnam(which);
     }
@@ -137,12 +127,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public int setsid() {
         return posix.setsid();
-    }
-
-    @TruffleBoundary
-    @Override
-    public int setpriority(int which, int who, int prio) {
-        return posix.setpriority(which, who, prio);
     }
 
     @TruffleBoundary

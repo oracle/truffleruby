@@ -33,13 +33,11 @@ public interface TrufflePosix {
     int getpgrp();
     int getpid();
     int getppid();
-    int getpriority(int which, int who);
     Passwd getpwnam(String which);
     int kill(int pid, int signal);
     SignalHandler signal(Signal sig, SignalHandler handler);
     int lstat(String path, FileStat stat);
     int setsid();
-    int setpriority(int which, int who, int prio);
     FileStat stat(String path);
     int stat(String path, FileStat stat);
     int symlink(String oldpath,String newpath);
