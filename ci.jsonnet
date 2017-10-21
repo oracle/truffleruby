@@ -72,6 +72,7 @@
 
   common_darwin: common + {
     environment+: {
+      LANG: "en_US.UTF-8",
       # Homebrew does not put llvm on the PATH by default
       PATH: "/usr/local/opt/llvm/bin:" + common.environment["PATH"],
       OPENSSL_PREFIX: "/usr/local/opt/openssl"
