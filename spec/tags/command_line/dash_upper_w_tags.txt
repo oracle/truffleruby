@@ -1,0 +1,3 @@
+slow:The -W command line option with 0 sets $VERBOSE to nil
+slow:The -W command line option with 1 sets $VERBOSE to false
+slow:The -W command line option with 2 sets $VERBOSE to true
