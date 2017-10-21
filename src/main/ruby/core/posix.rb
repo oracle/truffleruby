@@ -14,6 +14,8 @@ module Truffle::POSIX
     :ushort => :uint16,
     :int => :sint32,
     :uint => :uint32,
+    :long => :sint64,
+    :ulong => :uint64,
   }
 
   def self.to_nfi_type(type)
@@ -46,6 +48,7 @@ module Truffle::POSIX
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
   attach_function :fsync, [:int], :int
   attach_function :mkfifo, [:string, :mode_t], :int
+  attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
 
   attach_function :getegid, [], :gid_t
   attach_function :geteuid, [], :uid_t

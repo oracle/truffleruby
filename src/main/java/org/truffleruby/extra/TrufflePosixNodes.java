@@ -67,23 +67,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "readlink", isModuleFunction = true, required = 3, lowerFixnum = 3)
-    public abstract static class ReadlinkNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary(throwsControlFlowException = true)
-        @Specialization(guards = {"isRubyString(path)", "isRubyPointer(pointer)"})
-        public int readlink(DynamicObject path, DynamicObject pointer, int bufsize) {
-            final int result = posix().readlink(decodeUTF8(path), Layouts.POINTER.getPointer(pointer), bufsize);
-
-            if (result == -1) {
-                throw new RaiseException(coreExceptions().errnoError(posix().errno(), this));
-            }
-
-            return result;
-        }
-
-    }
-
     @CoreMethod(names = "recvmsg", isModuleFunction = true, required = 3, lowerFixnum = { 1, 3 })
     public abstract static class RecvMsgNode extends CoreMethodArrayArgumentsNode {
 
