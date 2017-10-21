@@ -14,11 +14,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 
 @NodeChild(value = "value", type = RubyNode.class)
