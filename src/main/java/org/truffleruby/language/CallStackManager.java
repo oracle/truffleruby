@@ -23,6 +23,7 @@ import org.truffleruby.language.exceptions.DisablingBacktracesNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.launcher.Launcher;
+import org.truffleruby.parser.parser.SuppressFBWarnings;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -284,15 +285,10 @@ public class CallStackManager {
 
         });
 
-        if (!activations.isEmpty()) {
-            final Activation last = activations.get(activations.size() - 1);
-            if (last.getCallNode().getRootNode().getSourceSection().getSource().getName() == Launcher.BOOT_SOURCE_NAME) {
-                activations.remove(activations.size() - 1);
-            }
-        }
         return activations.toArray(new Activation[activations.size()]);
     }
 
+    @SuppressFBWarnings("ES")
     private boolean ignoreFrame(FrameInstance frameInstance) {
         final Node callNode = frameInstance.getCallNode();
 
@@ -303,10 +299,14 @@ public class CallStackManager {
 
         final RootNode rootNode = callNode.getRootNode();
 
-        // Ignore the call to Truffle::Boot.main
+        // Ignore Truffle::Boot.main and its caller
         if (rootNode instanceof RubyRootNode) {
-            SharedMethodInfo sharedMethodInfo = ((RubyRootNode) rootNode).getSharedMethodInfo();
+            final SharedMethodInfo sharedMethodInfo = ((RubyRootNode) rootNode).getSharedMethodInfo();
             if (context.getCoreLibrary().isTruffleBootMainMethod(sharedMethodInfo)) {
+                return true;
+            }
+            final SourceSection sourceSection = sharedMethodInfo.getSourceSection();
+            if (sourceSection != null && sourceSection.getSource().getName() == Launcher.BOOT_SOURCE_NAME) {
                 return true;
             }
         }
@@ -332,7 +332,7 @@ public class CallStackManager {
         return sourceSection == null || sourceSection.getSource() == null;
     }
 
-    private Node getCallNode(FrameInstance frameInstance, final InternalMethod method) {
+    private Node getCallNode(FrameInstance frameInstance, InternalMethod method) {
         Node callNode = frameInstance.getCallNode();
         if (callNode == null && method != null &&
                 BacktraceFormatter.isCore(context, method.getSharedMethodInfo().getSourceSection())) {
