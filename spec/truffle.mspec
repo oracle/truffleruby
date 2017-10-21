@@ -107,6 +107,7 @@ class MSpecScript
 
   set :tags_patterns, [
     [%r(^.*/command_line/),             'spec/tags/command_line/'],
+    [%r(^.*/security/),                 'spec/tags/security/'],
     [%r(^.*/language/),                 'spec/tags/language/'],
     [%r(^.*/core/),                     'spec/tags/core/'],
     [%r(^.*/library/),                  'spec/tags/library/'],
