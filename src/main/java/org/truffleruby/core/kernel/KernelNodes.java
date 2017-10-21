@@ -1001,7 +1001,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToSymbolOrStringNodeGen.create(name);
+            return ToStringOrSymbolNodeGen.create(name);
         }
 
         @Specialization

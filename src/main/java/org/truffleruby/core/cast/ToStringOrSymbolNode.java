@@ -7,7 +7,6 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-
 package org.truffleruby.core.cast;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -23,11 +22,10 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 /**
- * Take a Symbol or some object accepting #to_str
- * and convert it to a RubySymbol or a RubyString.
+ * Convert objects to a String by calling #to_str, but leave existing Strings or Symbols as they are.
  */
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class NameToSymbolOrStringNode extends RubyNode {
+public abstract class ToStringOrSymbolNode extends RubyNode {
 
     @Child private CallDispatchHeadNode toStr = CallDispatchHeadNode.create();
 
