@@ -71,32 +71,8 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int getpgid(int pid) {
-        return posix.getpgid(pid);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int setpgid(int pid, int pgid) {
-        return posix.setpgid(pid, pgid);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int getpgrp() {
-        return posix.getpgrp();
-    }
-
-    @TruffleBoundary
-    @Override
     public int getpid() {
         return posix.getpid();
-    }
-
-    @TruffleBoundary
-    @Override
-    public int getppid() {
-        return posix.getppid();
     }
 
     @TruffleBoundary
@@ -121,12 +97,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public int lstat(String path, FileStat stat) {
         return posix.lstat(path, stat);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int setsid() {
-        return posix.setsid();
     }
 
     @TruffleBoundary

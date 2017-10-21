@@ -91,60 +91,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "setpgid", isModuleFunction = true, required = 2, lowerFixnum = {1, 2})
-    public abstract static class SetpgidNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int setpgid(int pid, int pgid) {
-            return posix().setpgid(pid, pgid);
-        }
-
-    }
-
-    @CoreMethod(names = "setresuid", isModuleFunction = true, required = 3, lowerFixnum = { 1, 2, 3 })
-    public abstract static class SetResuidNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int setresuid(int uid, int id, int priority) {
-            throw new RaiseException(coreExceptions().notImplementedError("setresuid", this));
-        }
-
-    }
-
-    @CoreMethod(names = "setreuid", isModuleFunction = true, required = 2, lowerFixnum = { 1, 2 })
-    public abstract static class SetReuidNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int setreuid(int uid, int id) {
-            throw new RaiseException(coreExceptions().notImplementedError("setreuid", this));
-        }
-
-    }
-
-    @CoreMethod(names = "setruid", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class SetRuidNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int setruid(int uid) {
-            throw new RaiseException(coreExceptions().notImplementedError("setruid", this));
-        }
-
-    }
-
-    @CoreMethod(names = "setsid", isModuleFunction = true)
-    public abstract static class SetSidNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int setsid() {
-            return posix().setsid();
-        }
-
-    }
-
     @CoreMethod(names = "flock", isModuleFunction = true, required = 2, lowerFixnum = { 1, 2 })
     public abstract static class FlockNode extends CoreMethodArrayArgumentsNode {
 
@@ -249,28 +195,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "getpgid", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class GetpgidNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int getpgid(int pid) {
-            return posix().getpgid(pid);
-        }
-
-    }
-
-    @CoreMethod(names = "getpgrp", isModuleFunction = true)
-    public abstract static class GetpgrpNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int getpgrp() {
-            return posix().getpgrp();
-        }
-
-    }
-
     @CoreMethod(names = "isatty", isModuleFunction = true, required = 1, lowerFixnum = 1)
     public abstract static class IsATTYNode extends CoreMethodArrayArgumentsNode {
 
@@ -278,17 +202,6 @@ public abstract class TrufflePosixNodes {
         @Specialization
         public int isATTY(int fd) {
             return posix().isatty(fd);
-        }
-
-    }
-
-    @CoreMethod(names = "getppid", isModuleFunction = true)
-    public abstract static class GetppidNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int getppid() {
-            return posix().getppid();
         }
 
     }

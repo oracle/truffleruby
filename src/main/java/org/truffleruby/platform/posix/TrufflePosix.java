@@ -28,16 +28,11 @@ public interface TrufflePosix {
     FileStat allocateStat();
     int execve(String path, String[] argv, String[] envp);
     int fstat(int fd, FileStat stat);
-    int getpgid(int pid);
-    int setpgid(int pid, int pgid);
-    int getpgrp();
     int getpid();
-    int getppid();
     Passwd getpwnam(String which);
     int kill(int pid, int signal);
     SignalHandler signal(Signal sig, SignalHandler handler);
     int lstat(String path, FileStat stat);
-    int setsid();
     FileStat stat(String path);
     int stat(String path, FileStat stat);
     int symlink(String oldpath,String newpath);
