@@ -914,7 +914,7 @@ class File < IO
       n = POSIX.readlink Rubinius::Type.coerce_to_path(path), ptr, 1024
       Errno.handle if n == -1
 
-      return ptr.read_string(n)
+      return ptr.read_string(n).force_encoding(Encoding.find('filesystem'))
     end
   end
 
