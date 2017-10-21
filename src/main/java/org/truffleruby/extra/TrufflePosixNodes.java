@@ -91,17 +91,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "getpriority", isModuleFunction = true, required = 2, lowerFixnum = { 1, 2 })
-    public abstract static class GetPriorityNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int getpriority(int kind, int id) {
-            return posix().getpriority(kind, id);
-        }
-
-    }
-
     @CoreMethod(names = "setpgid", isModuleFunction = true, required = 2, lowerFixnum = {1, 2})
     public abstract static class SetpgidNode extends CoreMethodArrayArgumentsNode {
 
@@ -109,17 +98,6 @@ public abstract class TrufflePosixNodes {
         @Specialization
         public int setpgid(int pid, int pgid) {
             return posix().setpgid(pid, pgid);
-        }
-
-    }
-
-    @CoreMethod(names = "setpriority", isModuleFunction = true, required = 3, lowerFixnum = { 1, 2, 3 })
-    public abstract static class SetPriorityNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int setpriority(int kind, int id, int priority) {
-            return posix().setpriority(kind, id, priority);
         }
 
     }

@@ -57,7 +57,12 @@ module Errno
 
     raise SystemCallError.new(additional, err)
   end
-    
+
+  def self.set_nfi_errno(value)
+    ptr = FFI::Pointer.new(Truffle::Interop.unbox(Truffle::POSIX.errno_address))
+    ptr.write_int value
+  end
+
   # TODO CS 18-Apr-15 this should be a separate class
   DomainError = EDOM
 end

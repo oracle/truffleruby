@@ -106,6 +106,9 @@ module Truffle::POSIX
   attach_function :getrlimit, [:int, :pointer], :int
   attach_function :setrlimit, [:int, :pointer], :int
 
+  attach_function :getpriority, [:int, :id_t], :int
+  attach_function :setpriority, [:int, :id_t, :int], :int
+
   # ENV-related
   attach_function :getenv_native, :getenv, [:string], :string
   def self.getenv(name)
