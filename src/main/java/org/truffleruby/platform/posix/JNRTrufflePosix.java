@@ -422,12 +422,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public long[] getgroups() {
-        return posix.getgroups();
-    }
-
-    @TruffleBoundary
-    @Override
     public String nl_langinfo(int item) {
         return posix.nl_langinfo(item);
     }

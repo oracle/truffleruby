@@ -19,6 +19,10 @@ module Truffle::POSIX
   }
 
   def self.to_nfi_type(type)
+    if Array === type
+      return "[#{to_nfi_type(type[0])}]"
+    end
+
     if found = TYPES[type]
       found
     elsif typedef = Rubinius::Config["rbx.platform.typedef.#{type}"]
@@ -57,6 +61,7 @@ module Truffle::POSIX
   attach_function :seteuid, [:uid_t], :int
   attach_function :setgid, [:gid_t], :int
   attach_function :setuid, [:uid_t], :int
+  attach_function :getgroups, [:int, [:gid_t]], :int
 
   attach_function :getrlimit, [:int, :pointer], :int
   attach_function :setrlimit, [:int, :pointer], :int

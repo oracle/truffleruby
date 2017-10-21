@@ -424,7 +424,18 @@ module Process
   end
 
   def self.groups
-    Truffle::POSIX.getgroups
+    ngroups = Truffle::POSIX.getgroups(0, nil)
+    Errno.handle_nfi if ngroups == -1
+
+    gid_t = Rubinius::Config['rbx.platform.typedef.gid_t']
+    raise gid_t unless gid_t == 'uint'
+
+    groups = Truffle::Interop.to_java_array(Array.new(ngroups, 0))
+    ret = Truffle::POSIX.getgroups(ngroups, groups)
+    Errno.handle_nfi if ret == -1
+    Truffle::Interop.to_array(groups).map { |n|
+      n >= 0 ? n : n + (1 << 32)
+    }
   end
 
   def self.groups=(g)
