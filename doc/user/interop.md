@@ -325,8 +325,8 @@ A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
 or `WRITE`, that returns a Java string will convert the returned string to a
 Ruby string.
 
-A call from a foreign language to Ruby using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
-or `WRITE`, that has Java strings as arguments, will convert each Java string
+A call from a foreign language to Ruby using `NEW`, `EXECUTE`, `INVOKE`, or
+`WRITE`, that has Java strings as arguments, will convert each Java string
 argument to a Ruby string.
 
 ## Import and export
