@@ -101,14 +101,6 @@ public class OpElementAsgnParseNode extends ParseNode {
         return receiverNode;
     }
 
-    public boolean isOr() {
-        return getOperatorName() == "||";
-    }
-
-    public boolean isAnd() {
-        return getOperatorName() == "&&";
-    }
-
     /**
      * Gets the valueNode.
      * @return Returns a ParseNode
