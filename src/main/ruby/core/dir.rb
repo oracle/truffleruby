@@ -201,30 +201,30 @@ class Dir
       if block_given?
         original_path = self.getwd
         ret = Truffle::POSIX.chdir path
-        Errno.handle(path) if ret != 0
+        Errno.handle_nfi(path) if ret != 0
 
         begin
           yield path
         ensure
           ret = Truffle::POSIX.chdir original_path
-          Errno.handle(original_path) if ret != 0
+          Errno.handle_nfi(original_path) if ret != 0
         end
       else
         ret = Truffle::POSIX.chdir path
-        Errno.handle path if ret != 0
+        Errno.handle_nfi path if ret != 0
         ret
       end
     end
 
     def mkdir(path, mode = 0777)
       ret = Truffle::POSIX.mkdir(Rubinius::Type.coerce_to_path(path), mode)
-      Errno.handle path if ret != 0
+      Errno.handle_nfi path if ret != 0
       ret
     end
 
     def rmdir(path)
       ret = Truffle::POSIX.rmdir(Rubinius::Type.coerce_to_path(path))
-      Errno.handle path if ret != 0
+      Errno.handle_nfi path if ret != 0
       ret
     end
     alias_method :delete, :rmdir

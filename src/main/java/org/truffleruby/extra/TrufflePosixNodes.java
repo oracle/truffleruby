@@ -91,29 +91,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "mkdir", isModuleFunction = true, required = 2, lowerFixnum = 2)
-    public abstract static class MkdirNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary(throwsControlFlowException = true)
-        @Specialization(guards = "isRubyString(path)")
-        public int mkdir(DynamicObject path, int mode) {
-            return posix().mkdir(decodeUTF8(path), mode);
-        }
-
-    }
-
-    @CoreMethod(names = "chdir", isModuleFunction = true, required = 1)
-    public abstract static class ChdirNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(path)")
-        public int chdir(DynamicObject path) {
-            final String pathString = decodeUTF8(path);
-            return posix().chdir(pathString);
-        }
-
-    }
-
     @CoreMethod(names = "getpriority", isModuleFunction = true, required = 2, lowerFixnum = { 1, 2 })
     public abstract static class GetPriorityNode extends CoreMethodArrayArgumentsNode {
 
@@ -236,17 +213,6 @@ public abstract class TrufflePosixNodes {
         @Specialization(guards = {"isRubyString(path)", "isRubyString(other)"})
         public int rename(DynamicObject path, DynamicObject other) {
             return posix().rename(decodeUTF8(path), decodeUTF8(other));
-        }
-
-    }
-
-    @CoreMethod(names = "rmdir", isModuleFunction = true, required = 1)
-    public abstract static class RmdirNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(path)")
-        public int rmdir(DynamicObject path) {
-            return posix().rmdir(decodeUTF8(path));
         }
 
     }
