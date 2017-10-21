@@ -56,15 +56,8 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
-import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
-import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
-import org.truffleruby.core.cast.NameToJavaStringNode;
-import org.truffleruby.core.cast.NameToJavaStringNodeGen;
-import org.truffleruby.core.cast.NameToSymbolOrStringNodeGen;
-import org.truffleruby.core.cast.TaintResultNode;
-import org.truffleruby.core.cast.ToPathNodeGen;
+import org.truffleruby.core.cast.*;
+import org.truffleruby.interop.RubyStringToJavaStringNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -91,6 +84,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
+import org.truffleruby.interop.RubyStringToJavaStringNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -752,7 +746,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return RubyStringToJavaStringNodeGen.create(name);
         }
 
         @Specialization
@@ -799,7 +793,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceName(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return RubyStringToJavaStringNodeGen.create(name);
         }
 
         @Specialization
@@ -824,7 +818,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceName(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return RubyStringToJavaStringNodeGen.create(name);
         }
 
         @Specialization
@@ -848,7 +842,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return RubyStringToJavaStringNodeGen.create(name);
         }
 
         @TruffleBoundary
@@ -1001,7 +995,7 @@ public abstract class KernelNodes {
     })
     public abstract static class MethodNode extends CoreMethodNode {
 
-        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
+        @Child private RubyStringToJavaStringNode nameToJavaStringNode = RubyStringToJavaStringNode.create();
         @Child private LookupMethodNode lookupMethodNode = LookupMethodNodeGen.create(true, false, null, null);
         @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createOnSelf();
 
@@ -1451,7 +1445,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.create(name);
+            return RubyStringToJavaStringNodeGen.create(name);
         }
 
         @Specialization

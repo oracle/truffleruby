@@ -24,8 +24,8 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.core.cast.NameToJavaStringNode;
-import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.interop.RubyStringToJavaStringNode;
+import org.truffleruby.interop.RubyStringToJavaStringNodeGen;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -50,7 +50,7 @@ public class JavaUtilitiesNodes {
     public abstract static class JavaClassByNameNode extends CoreMethodNode {
         @CreateCast("name")
         public RubyNode coercetNameToString(RubyNode newName) {
-            return NameToJavaStringNodeGen.create(newName);
+            return RubyStringToJavaStringNodeGen.create(newName);
         }
 
         @Specialization
@@ -96,7 +96,7 @@ public class JavaUtilitiesNodes {
         @Specialization
         public Object getJavaMethod(VirtualFrame frame, Object target, Object name,
                 boolean staticMethod, Object returnType, Object[] rest,
-                @Cached("create()") NameToJavaStringNode toJavaStringNode) {
+                @Cached("create()") RubyStringToJavaStringNode toJavaStringNode) {
             if (!TruffleOptions.AOT) {
                 String methodName = toJavaStringNode.executeToJavaString(frame, name);
                 Class<?> klass = (Class<?>) target;

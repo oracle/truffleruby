@@ -42,8 +42,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayStrategy;
-import org.truffleruby.core.cast.NameToJavaStringNode;
-import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.interop.RubyStringToJavaStringNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -163,7 +162,7 @@ public abstract class InteropNodes {
                 Object[] args,
                 @Cached("args.length") int cachedArgsLength,
                 @Cached("createInvokeNode(cachedArgsLength)") Node invokeNode,
-                        @Cached("create()") NameToJavaStringNode toJavaStringNode,
+                        @Cached("create()") RubyStringToJavaStringNode toJavaStringNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
             try {
                 return ForeignAccess.sendInvoke(
@@ -602,7 +601,7 @@ public abstract class InteropNodes {
 
         @CreateCast("name")
         public RubyNode coercetNameToString(RubyNode newName) {
-            return NameToJavaStringNodeGen.create(newName);
+            return RubyStringToJavaStringNodeGen.create(newName);
         }
 
         @Specialization
@@ -692,7 +691,7 @@ public abstract class InteropNodes {
         @Specialization
         public Object toJavaString(
                 VirtualFrame frame, Object value,
-                @Cached("create()") NameToJavaStringNode toJavaStringNode) {
+                @Cached("create()") RubyStringToJavaStringNode toJavaStringNode) {
             return toJavaStringNode.executeToJavaString(frame, value);
         }
 

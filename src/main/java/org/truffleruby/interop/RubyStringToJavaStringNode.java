@@ -8,7 +8,7 @@
  * GNU Lesser General Public License version 2.1
  */
 
-package org.truffleruby.core.cast;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -27,16 +27,12 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-/**
- * Take a Symbol or some object accepting #to_str
- * and convert it to a Java String.
- */
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class NameToJavaStringNode extends RubyNode {
+public abstract class RubyStringToJavaStringNode extends RubyNode {
 
-    public static NameToJavaStringNode create() {
-        return NameToJavaStringNodeGen.create(null);
+    public static RubyStringToJavaStringNode create() {
+        return RubyStringToJavaStringNodeGen.create(null);
     }
 
     public abstract String executeToJavaString(VirtualFrame frame, Object name);

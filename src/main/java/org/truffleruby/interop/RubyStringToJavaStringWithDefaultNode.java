@@ -7,11 +7,13 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.core.cast;
+package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.interop.RubyStringToJavaStringNode;
+import org.truffleruby.interop.RubyStringToJavaStringNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 
@@ -21,12 +23,12 @@ import org.truffleruby.language.RubyNode;
  * the given value if not provided.
  */
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class NameToJavaStringWithDefaultNode extends RubyNode {
+public abstract class RubyStringToJavaStringWithDefaultNode extends RubyNode {
 
     private final String defaultValue;
-    @Child private NameToJavaStringNode toJavaStringNode = NameToJavaStringNodeGen.create(null);
+    @Child private RubyStringToJavaStringNode toJavaStringNode = RubyStringToJavaStringNodeGen.create(null);
 
-    public NameToJavaStringWithDefaultNode(String defaultValue) {
+    public RubyStringToJavaStringWithDefaultNode(String defaultValue) {
         this.defaultValue = defaultValue;
     }
 

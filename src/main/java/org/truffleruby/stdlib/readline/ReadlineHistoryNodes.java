@@ -53,8 +53,8 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.core.cast.NameToJavaStringNode;
-import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.interop.RubyStringToJavaStringNode;
+import org.truffleruby.interop.RubyStringToJavaStringNodeGen;
 import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -68,7 +68,7 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = { "push", "<<" }, rest = true)
     public abstract static class PushNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private NameToJavaStringNode toJavaStringNode = NameToJavaStringNodeGen.create();
+        @Child private RubyStringToJavaStringNode toJavaStringNode = RubyStringToJavaStringNodeGen.create();
 
         @Specialization
         public DynamicObject push(VirtualFrame frame, DynamicObject history, Object... lines) {
@@ -220,7 +220,7 @@ public abstract class ReadlineHistoryNodes {
         }
 
         @CreateCast("line") public RubyNode coerceLineToJavaString(RubyNode line) {
-            return NameToJavaStringNodeGen.create(line);
+            return RubyStringToJavaStringNodeGen.create(line);
         }
 
         @TruffleBoundary

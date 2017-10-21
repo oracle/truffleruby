@@ -27,7 +27,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyObjectType;
 import org.truffleruby.language.control.RaiseException;
@@ -117,13 +116,13 @@ public class RubyMessageResolution {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
-        @Child private NameToJavaStringNode toJavaStringNode;
+        @Child private RubyStringToJavaStringNode toJavaStringNode;
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (stringProfile.profile(RubyGuards.isRubyString(object))) {
                 if (toJavaStringNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    toJavaStringNode = insert(NameToJavaStringNode.create());
+                    toJavaStringNode = insert(RubyStringToJavaStringNode.create());
                 }
 
                 return toJavaStringNode.executeToJavaString(frame, object);
