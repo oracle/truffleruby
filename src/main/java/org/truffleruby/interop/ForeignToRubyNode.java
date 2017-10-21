@@ -21,9 +21,6 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 
-/**
- * Only converts primitive types (including java.lang.String).
- */
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class ForeignToRubyNode extends RubyNode {
 
@@ -33,30 +30,10 @@ public abstract class ForeignToRubyNode extends RubyNode {
 
     public abstract Object executeConvert(VirtualFrame frame, Object value);
 
-    @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
-    public DynamicObject convertStringCached(
-            String value,
-            @Cached("value") String cachedValue,
-            @Cached("getRope(value)") Rope cachedRope) {
-        return createString(cachedRope);
-    }
-
-    @Specialization(replaces = "convertStringCached")
-    public DynamicObject convertStringUncached(String value,
-                                               @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-        return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-    }
-
-    protected boolean stringsEquals(String a, String b) {
-        return a.equals(b);
-    }
-
-    protected Rope getRope(String value) {
-        return StringOperations.encodeRope(value, UTF8Encoding.INSTANCE);
-    }
-
-    protected int getLimit() {
-        return getContext().getOptions().INTEROP_CONVERT_CACHE;
+    @Specialization
+    public DynamicObject convertStringCached(VirtualFrame frame, String value,
+                                             @Cached("create()") JavaStringToRubyStringNode javaStringToRubyStringNode) {
+        return javaStringToRubyStringNode.executeConvert(frame, value);
     }
 
     @Specialization(guards = "!isString(value)")
