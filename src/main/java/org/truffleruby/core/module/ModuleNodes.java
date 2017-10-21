@@ -811,7 +811,7 @@ public abstract class ModuleNodes {
         @CreateCast("name")
         public RubyNode coerceToSymbolOrString(RubyNode name) {
             // We want to know if the name is a Symbol, as then scoped lookup is not tried
-            return NameToSymbolOrStringNodeGen.create(name);
+            return ToStringOrSymbolNodeGen.create(name);
         }
 
         @CreateCast("inherit")
