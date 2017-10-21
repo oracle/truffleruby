@@ -59,11 +59,7 @@ export def identity(value)
 end
 
 export def evaluate_source(mime, source)
-  # TODO CS-21-Dec-15 java_string_to_ruby shouldn't be needed - we need to convert j.l.String to Ruby's String automatically
-
-  Truffle::Interop.eval(
-      Truffle::Interop.unbox(mime),
-      Truffle::Interop.unbox(source))
+  Truffle::Interop.eval(mime, source)
 end
 
 export def complex_add(a, b)
