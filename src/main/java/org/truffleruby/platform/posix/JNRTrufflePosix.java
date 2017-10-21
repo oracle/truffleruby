@@ -135,18 +135,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int mkdir(String path, int mode) {
-        return posix.mkdir(path, mode);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int rmdir(String path) {
-        return posix.rmdir(path);
-    }
-
-    @TruffleBoundary
-    @Override
     public int setsid() {
         return posix.setsid();
     }

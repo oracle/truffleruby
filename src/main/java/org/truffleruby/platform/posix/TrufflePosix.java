@@ -38,8 +38,6 @@ public interface TrufflePosix {
     int kill(int pid, int signal);
     SignalHandler signal(Signal sig, SignalHandler handler);
     int lstat(String path, FileStat stat);
-    int mkdir(String path, int mode);
-    int rmdir(String path);
     int setsid();
     int setpriority(int which, int who, int prio);
     FileStat stat(String path);
