@@ -216,9 +216,14 @@ public class RubyMessageResolution {
     public static abstract class ForeignWriteNode extends Node {
 
         @Child private ForeignWriteStringCachingHelperNode helperNode = ForeignWriteStringCachingHelperNodeGen.create(null, null, null);
+        @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject object, Object name, Object value) {
-            return helperNode.executeStringCachingHelper(frame, object, name, value);
+            return helperNode.executeStringCachingHelper(
+                    frame,
+                    object,
+                    name,
+                    foreignToRubyNode.executeConvert(frame, value));
         }
 
     }
@@ -258,9 +263,12 @@ public class RubyMessageResolution {
     public static abstract class ForeignExecuteNode extends Node {
 
         @Child private ForeignExecuteHelperNode executeMethodNode = ForeignExecuteHelperNodeGen.create(null, null);
+        @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject object, Object[] arguments) {
-            return executeMethodNode.executeCall(object, arguments);
+            return executeMethodNode.executeCall(
+                    object,
+                    foreignToRubyArgumentsNode.executeConvert(frame, arguments));
         }
 
     }
@@ -269,9 +277,15 @@ public class RubyMessageResolution {
     public static abstract class ForeignInvokeNode extends Node {
 
         @Child private DispatchHeadNode dispatchHeadNode = CallDispatchHeadNode.createOnSelf();
+        @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject receiver, String name, Object[] arguments) {
-            return dispatchHeadNode.dispatch(frame, receiver, name, null, arguments);
+            return dispatchHeadNode.dispatch(
+                    frame,
+                    receiver,
+                    name,
+                    null,
+                    foreignToRubyArgumentsNode.executeConvert(frame, arguments));
         }
 
     }
@@ -280,9 +294,15 @@ public class RubyMessageResolution {
     public static abstract class ForeignNewNode extends Node {
 
         @Child private DispatchHeadNode dispatchHeadNode = CallDispatchHeadNode.createOnSelf();
+        @Child private ForeignToRubyArgumentsNode foreignToRubyArgumentsNode = ForeignToRubyArgumentsNode.create();
 
         protected Object access(VirtualFrame frame, DynamicObject receiver, Object[] arguments) {
-            return dispatchHeadNode.dispatch(frame, receiver, "new", null, arguments);
+            return dispatchHeadNode.dispatch(
+                    frame,
+                    receiver,
+                    "new",
+                    null,
+                    foreignToRubyArgumentsNode.executeConvert(frame, arguments));
         }
 
     }
