@@ -826,7 +826,8 @@ public abstract class BigDecimalNodes {
             BigDecimal halfBack = new BigDecimal(BigInteger.ONE.shiftLeft(shift/2));
 
             int scale = squarD.scale();
-            if (scale % 2 == 1) root *= SQRT_10; // 5 -> 2, -5 -> -3 need half a scale more..
+            assert scale >= 0 : "unexpected negative scale";
+            if (scale % 2 != 0) root *= SQRT_10; // 5 -> 2, -5 -> -3 need half a scale more..
 
             scale = (int) Math.ceil(scale/2.);         // ..where 100 -> 10 shifts the scale
 
@@ -855,7 +856,7 @@ public abstract class BigDecimalNodes {
             // The loop of "Square Root by Coupled Newton Iteration"
             for (int i = nPrecs.size() - 1; i > -1; i--) {
                 // Increase precision - next iteration supplies n exact digits
-                nMC = new MathContext(nPrecs.get(i), i%2 == 1 ? RoundingMode.HALF_UP : RoundingMode.HALF_DOWN);
+                nMC = new MathContext(nPrecs.get(i), i % 2 != 0 ? RoundingMode.HALF_UP : RoundingMode.HALF_DOWN);
 
                 // Next x                                        // e = d - x^2
                 BigDecimal e = squarD.subtract(x.multiply(x, nMC), nMC);
