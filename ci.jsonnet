@@ -490,7 +490,9 @@
     run: [
       # Build with ECJ to get warnings
       ["mx", "build", "--jdt", "$JDT", "--warning-as-error"],
-    ] + jt(["lint"]),
+    ] + jt(["lint"]) + [
+      ["mx", "findbugs"]
+    ],
     timelimit: "30:00"
   },
 
