@@ -404,15 +404,21 @@ public abstract class InteropNodes {
 
         @Specialization
         public Object unbox(
+                VirtualFrame frame,
                 TruffleObject receiver,
                 @Cached("createUnboxNode()") Node unboxNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @Cached("create()") BranchProfile exceptionProfile,
+                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
+            final Object foreign;
+
             try {
-                return ForeignAccess.sendUnbox(unboxNode, receiver);
+                foreign = ForeignAccess.sendUnbox(unboxNode, receiver);
             } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this, e));
             }
+
+            return foreignToRubyNode.executeConvert(frame, foreign);
         }
 
         @Specialization(guards = "!isTruffleObject(receiver)")
