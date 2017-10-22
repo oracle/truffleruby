@@ -1,2 +1,2 @@
-fails:Java strings are unboxed automatically on the LHS of string concatenation
-fails:Java strings are unboxed automatically on the RHS of string concatenation
+fails:Java strings are converted to Ruby automatically on the LHS of string concatenation
+fails:Java strings are converted to Ruby automatically on the RHS of string concatenation

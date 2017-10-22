@@ -10,23 +10,23 @@ require_relative '../../ruby/spec_helper'
 
 describe "Java strings" do
   
-  it "are boxed" do
-    Truffle::Interop.boxed?(Truffle::Interop.to_java_string('test')).should be_true
+  it "are not boxed" do
+    Truffle::Interop.boxed?(Truffle::Interop.to_java_string('test')).should be_false
   end
   
-  it "unbox to the same Java string" do
+  it "return the same object if attempted to be unboxed" do
     unboxed = Truffle::Interop.unbox_without_conversion(Truffle::Interop.to_java_string('test'))
     Truffle::Interop.java_string?(unboxed).should be_true
     Truffle::Interop.from_java_string(unboxed).should == 'test'
   end
   
-  it "are unboxed automatically on the LHS of string concatenation" do
+  it "are converted to Ruby automatically on the LHS of string concatenation" do
     a = Truffle::Interop.to_java_string('a')
     b = 'b'
     (a + b).should == 'ab'
   end
   
-  it "are unboxed automatically on the RHS of string concatenation" do
+  it "are converted to Ruby automatically on the RHS of string concatenation" do
     a = 'a'
     b = Truffle::Interop.to_java_string('a')
     (a + b).should == 'ab'
