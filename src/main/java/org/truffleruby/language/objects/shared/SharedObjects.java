@@ -50,6 +50,11 @@ public class SharedObjects {
             stack.push(object);
         }
 
+        // Share the Rubinius configuration
+        for (DynamicObject object : context.getNativePlatform().getRubiniusConfiguration().dynamicObjectValues()) {
+            stack.push(object);
+        }
+
         // Share all named modules and constants (including the shared TOPLEVEL_BINDING)
         stack.push(context.getCoreLibrary().getObjectClass());
 

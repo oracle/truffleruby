@@ -382,9 +382,6 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(key)")
         public Object get(DynamicObject key) {
-            // Sharing: we do not need to share here as it's only called by the main thread
-            assert getContext().getThreadManager().getCurrentThread() == getContext().getThreadManager().getRootThread();
-
             final Object value = getContext().getNativePlatform().getRubiniusConfiguration().get(key.toString());
 
             if (value == null) {

@@ -42,6 +42,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
+
 public class RubiniusConfiguration {
 
     private final Map<String, Object> configuration = new HashMap<>(); // Only written to by create() once per RubyContext.
@@ -64,6 +67,18 @@ public class RubiniusConfiguration {
         }
 
         return sectionKeys;
+    }
+
+    @TruffleBoundary
+    public Collection<DynamicObject> dynamicObjectValues() {
+        final Collection<Object> values = configuration.values();
+        final ArrayList<DynamicObject> objects = new ArrayList<>(values.size());
+        for (Object value : values) {
+            if (value instanceof DynamicObject) {
+                objects.add((DynamicObject) value);
+            }
+        }
+        return objects;
     }
 
 }
