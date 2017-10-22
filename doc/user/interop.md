@@ -314,12 +314,12 @@ foreign object, including allowing the special-forms listed above (see
 
 ## String conversion
 
-Ruby strings and symbols are unboxable to Java strings. Foreign languages should
-call `IS_BOXED` to determine this, and `UNBOX` to get the Java string.
+Ruby strings and symbols are unboxable to Java strings.
 
-The name in an `INVOKE`, `READ`, or `WRITE` made from Ruby to a foreign language
-is automatically converted to a Java string from either a Ruby string or a Ruby
-symbol.
+A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, or
+`WRITE`, that has Ruby strings or symbols as arguments, will convert each Ruby
+string or symbol argument to a Java string. You can avoid this conversion for
+`EXECUTE` using `Truffle::Interop.execute_without_conversion`.
 
 A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
 `WRITE`, or `UNBOX`, that returns a Java string will convert the returned string
