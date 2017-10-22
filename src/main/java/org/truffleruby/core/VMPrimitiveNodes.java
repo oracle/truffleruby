@@ -331,7 +331,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = { "isRubyString(signalName)", "isRubyString(action)" })
         public boolean watchSignal(DynamicObject signalName, DynamicObject action) {
-            if (!action.toString().equals("DEFAULT")) {
+            if (!StringOperations.getString(action).equals("DEFAULT")) {
                 throw new UnsupportedOperationException();
             }
 
@@ -354,7 +354,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private boolean handleDefault(DynamicObject signalName) {
-            Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(signalName.toString());
+            Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(StringOperations.getString(signalName));
             try {
                 getContext().getNativePlatform().getSignalManager().watchDefaultForSignal(signal);
             } catch (IllegalArgumentException e) {
@@ -365,7 +365,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private boolean handle(DynamicObject signalName, SignalHandler newHandler) {
-            Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(signalName.toString());
+            Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(StringOperations.getString(signalName));
             try {
                 getContext().getNativePlatform().getSignalManager().watchSignal(signal, newHandler);
             } catch (IllegalArgumentException e) {
@@ -382,7 +382,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(key)")
         public Object get(DynamicObject key) {
-            final Object value = getContext().getNativePlatform().getRubiniusConfiguration().get(key.toString());
+            final Object value = getContext().getNativePlatform().getRubiniusConfiguration().get(StringOperations.getString(key));
 
             if (value == null) {
                 return nil();
@@ -403,14 +403,17 @@ public abstract class VMPrimitiveNodes {
         public DynamicObject getSection(DynamicObject section) {
             final List<DynamicObject> sectionKeyValues = new ArrayList<>();
 
-            for (String key : getContext().getNativePlatform().getRubiniusConfiguration().getSection(section.toString())) {
+            for (String key : getContext().getNativePlatform().getRubiniusConfiguration().getSection(StringOperations.getString(section))) {
                 Object value = getContext().getNativePlatform().getRubiniusConfiguration().get(key);
                 final String stringValue;
                 if (RubyGuards.isRubyBignum(value)) {
                     stringValue = Layouts.BIGNUM.getValue((DynamicObject) value).toString();
-                } else {
-                    // This toString() is fine as we only have boolean, int, long and RubyString in config.
+                } else if (RubyGuards.isRubyString(value)) {
+                    stringValue = StringOperations.getString((DynamicObject) value);
+                } else if (value instanceof Boolean || value instanceof Integer || value instanceof Long) {
                     stringValue = value.toString();
+                } else {
+                    throw new UnsupportedOperationException(value.getClass().toString());
                 }
 
                 Object[] objects = new Object[] {
@@ -604,7 +607,7 @@ public abstract class VMPrimitiveNodes {
         @Specialization(guards = "isRubyString(name)")
         protected Object writeProgramName(DynamicObject name) {
             if (getContext().getNativePlatform().getProcessName().canSet()) {
-                getContext().getNativePlatform().getProcessName().set(name.toString());
+                getContext().getNativePlatform().getProcessName().set(StringOperations.getString(name));
             }
 
             return name;
