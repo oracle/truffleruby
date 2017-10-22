@@ -171,18 +171,13 @@ public abstract class InteropNodes {
                 Object[] args,
                 @Cached("args.length") int cachedArgsLength,
                 @Cached("createExecuteNode(cachedArgsLength)") Node executeNode,
-                @Cached("create()") BranchProfile exceptionProfile,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
-            final Object foreign;
-
+                @Cached("create()") BranchProfile exceptionProfile) {
             try {
-                foreign = ForeignAccess.sendExecute(executeNode, receiver, args);
+                return ForeignAccess.sendExecute(executeNode, receiver, args);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
-
-            return foreignToRubyNode.executeConvert(frame, foreign);
         }
 
         @Specialization(replaces = "executeWithoutConversionForeignCached")
