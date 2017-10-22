@@ -63,7 +63,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.interop.ToJavaStringNodeGen;
-import org.truffleruby.interop.RubyStringToJavaStringWithDefaultNodeGen;
+import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
@@ -152,7 +152,7 @@ public abstract class ReadlineNodes {
         @Child private TaintNode taintNode = TaintNode.create();
 
         @CreateCast("prompt") public RubyNode coercePromptToJavaString(RubyNode prompt) {
-            return RubyStringToJavaStringWithDefaultNodeGen.create(coreStrings().EMPTY_STRING.toString(), prompt);
+            return ToJavaStringWithDefaultNodeGen.create(coreStrings().EMPTY_STRING.toString(), prompt);
         }
 
         @CreateCast("addToHistory") public RubyNode coerceToBoolean(RubyNode addToHistory) {

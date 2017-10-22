@@ -21,12 +21,12 @@ import org.truffleruby.language.RubyNode;
  * the given value if not provided.
  */
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class RubyStringToJavaStringWithDefaultNode extends RubyNode {
+public abstract class ToJavaStringWithDefaultNode extends RubyNode {
 
     private final String defaultValue;
     @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNodeGen.create(null);
 
-    public RubyStringToJavaStringWithDefaultNode(String defaultValue) {
+    public ToJavaStringWithDefaultNode(String defaultValue) {
         this.defaultValue = defaultValue;
     }
 
