@@ -15,6 +15,7 @@ import com.oracle.truffle.api.interop.MessageResolution;
 import com.oracle.truffle.api.interop.Resolve;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.debug.TruffleDebugNodes.ForeignStringNode.ForeignString;
 
 @MessageResolution(receiverType = TruffleDebugNodes.ForeignStringNode.ForeignStringObjectType.class)
 public class ForeignStringMessageResolution {
@@ -23,7 +24,7 @@ public class ForeignStringMessageResolution {
     public abstract static class Check extends Node {
 
         protected static boolean test(TruffleObject receiver) {
-            return receiver instanceof TruffleDebugNodes.ForeignStringNode.ForeignString;
+            return receiver instanceof ForeignString;
         }
 
     }
@@ -31,7 +32,7 @@ public class ForeignStringMessageResolution {
     @Resolve(message = "IS_BOXED")
     public static abstract class ForeignIsBoxedNode extends Node {
 
-        protected Object access(VirtualFrame frame, TruffleDebugNodes.ForeignStringNode.ForeignString string) {
+        protected Object access(VirtualFrame frame, ForeignString string) {
             return true;
         }
 
@@ -40,7 +41,7 @@ public class ForeignStringMessageResolution {
     @Resolve(message = "UNBOX")
     public static abstract class ForeignUnboxNode extends Node {
 
-        protected Object access(VirtualFrame frame, TruffleDebugNodes.ForeignStringNode.ForeignString string) {
+        protected Object access(VirtualFrame frame, ForeignString string) {
             return string.getString();
         }
 
