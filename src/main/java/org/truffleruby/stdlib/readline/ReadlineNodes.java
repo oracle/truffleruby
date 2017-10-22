@@ -62,7 +62,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
-import org.truffleruby.interop.RubyStringToJavaStringNodeGen;
+import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.interop.RubyStringToJavaStringWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
@@ -212,7 +212,7 @@ public abstract class ReadlineNodes {
     public abstract static class InsertTextNode extends CoreMethodNode {
 
         @CreateCast("text") public RubyNode coerceTextToString(RubyNode text) {
-            return RubyStringToJavaStringNodeGen.create(text);
+            return ToJavaStringNodeGen.create(text);
         }
 
         @TruffleBoundary

@@ -39,7 +39,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
-import org.truffleruby.interop.RubyStringToJavaStringNodeGen;
+import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes;
@@ -677,7 +677,7 @@ public class CExtNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return ToJavaStringNodeGen.create(name);
         }
 
         @Child private LookupConstantNode lookupConstantNode = LookupConstantNode.create(true, false);

@@ -34,7 +34,7 @@ abstract class ForeignReadStringCachingHelperNode extends RubyNode {
 
     @Specialization(guards = "isStringLike(name)")
     public Object cacheStringLikeAndForward(VirtualFrame frame, DynamicObject receiver, Object name,
-            @Cached("create()") RubyStringToJavaStringNode toJavaStringNode,
+            @Cached("create()") ToJavaStringNode toJavaStringNode,
             @Cached("createNextHelper()") ForeignReadStringCachedHelperNode nextHelper) {
         String nameAsJavaString = toJavaStringNode.executeToJavaString(frame, name);
         boolean isIVar = isIVar(nameAsJavaString);

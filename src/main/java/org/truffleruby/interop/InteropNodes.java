@@ -163,7 +163,7 @@ public abstract class InteropNodes {
                 Object identifier,
                 Object[] args,
                 @Cached("args.length") int cachedArgsLength,
-                @Cached("create()") RubyStringToJavaStringNode rubyStringToJavaStringNode,
+                @Cached("create()") ToJavaStringNode toJavaStringNode,
                 @Cached("createInvokeNode(cachedArgsLength)") Node invokeNode,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode,
                 @Cached("create()") BranchProfile exceptionProfile) {
@@ -173,7 +173,7 @@ public abstract class InteropNodes {
                 foreign = ForeignAccess.sendInvoke(
                         invokeNode,
                         receiver,
-                        rubyStringToJavaStringNode.executeToJavaString(frame, identifier),
+                        toJavaStringNode.executeToJavaString(frame, identifier),
                         args);
             } catch (UnsupportedTypeException
                     | ArityException
@@ -192,7 +192,7 @@ public abstract class InteropNodes {
                 TruffleObject receiver,
                 DynamicObject identifier,
                 Object[] args,
-                @Cached("create()") RubyStringToJavaStringNode rubyStringToJavaStringNode,
+                @Cached("create()") ToJavaStringNode toJavaStringNode,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
             Log.notOptimizedOnce("megamorphic interop INVOKE message send");
 
@@ -204,7 +204,7 @@ public abstract class InteropNodes {
                 foreign = ForeignAccess.sendInvoke(
                         invokeNode,
                         receiver,
-                        rubyStringToJavaStringNode.executeToJavaString(frame, identifier),
+                        toJavaStringNode.executeToJavaString(frame, identifier),
                         args);
             } catch (UnsupportedTypeException
                     | ArityException
@@ -423,8 +423,8 @@ public abstract class InteropNodes {
 
         @Specialization
         public DynamicObject unbox(VirtualFrame frame, String receiver,
-                                   @Cached("create()") JavaStringToRubyStringNode javaStringToRubyStringNode) {
-            return javaStringToRubyStringNode.executeConvert(frame, receiver);
+                                   @Cached("create()") FromJavaStringNode fromJavaStringNode) {
+            return fromJavaStringNode.executeFromJavaString(frame, receiver);
         }
 
         @Specialization(guards = {
@@ -650,7 +650,7 @@ public abstract class InteropNodes {
 
         @CreateCast("name")
         public RubyNode coercetNameToString(RubyNode newName) {
-            return RubyStringToJavaStringNodeGen.create(newName);
+            return ToJavaStringNodeGen.create(newName);
         }
 
         @Specialization
@@ -740,7 +740,7 @@ public abstract class InteropNodes {
         @Specialization
         public Object toJavaString(
                 VirtualFrame frame, Object value,
-                @Cached("create()") RubyStringToJavaStringNode toJavaStringNode) {
+                @Cached("create()") ToJavaStringNode toJavaStringNode) {
             return toJavaStringNode.executeToJavaString(frame, value);
         }
 

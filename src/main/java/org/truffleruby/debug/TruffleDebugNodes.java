@@ -28,7 +28,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.interop.RubyStringToJavaStringNode;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -333,7 +333,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         public DynamicObject logWarning(
                 VirtualFrame frame, Object value,
-                @Cached("create()") RubyStringToJavaStringNode toJavaStringNode) {
+                @Cached("create()") ToJavaStringNode toJavaStringNode) {
             warning(toJavaStringNode.executeToJavaString(frame, value));
             return nil();
         }

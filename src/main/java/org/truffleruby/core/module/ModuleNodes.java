@@ -43,8 +43,14 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.RaiseIfFrozenNode;
-import org.truffleruby.core.cast.*;
-import org.truffleruby.interop.RubyStringToJavaStringNode;
+import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.cast.TaintResultNode;
+import org.truffleruby.core.cast.ToPathNodeGen;
+import org.truffleruby.core.cast.ToStrNode;
+import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -54,7 +60,6 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.SymbolTable;
-import org.truffleruby.interop.RubyStringToJavaStringNodeGen;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyConstant;
@@ -289,12 +294,12 @@ public abstract class ModuleNodes {
 
         @CreateCast("newName")
         public RubyNode coercetNewNameToString(RubyNode newName) {
-            return RubyStringToJavaStringNodeGen.create(newName);
+            return NameToJavaStringNodeGen.create(newName);
         }
 
         @CreateCast("oldName")
         public RubyNode coerceOldNameToString(RubyNode oldName) {
-            return RubyStringToJavaStringNodeGen.create(oldName);
+            return NameToJavaStringNodeGen.create(oldName);
         }
 
         @Specialization
@@ -343,7 +348,7 @@ public abstract class ModuleNodes {
     public abstract static class GenerateAccessorNode extends RubyNode {
 
         final boolean isGetter;
-        @Child private RubyStringToJavaStringNode nameToJavaStringNode = RubyStringToJavaStringNode.create();
+        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
 
         public GenerateAccessorNode(boolean isGetter) {
             this.isGetter = isGetter;
@@ -481,7 +486,7 @@ public abstract class ModuleNodes {
     public abstract static class AutoloadNode extends CoreMethodNode {
 
         @CreateCast("name") public RubyNode coerceNameToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @CreateCast("filename") public RubyNode coerceFilenameToPath(RubyNode filename) {
@@ -647,7 +652,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @TruffleBoundary(throwsControlFlowException = true)
@@ -671,7 +676,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @Specialization
@@ -700,7 +705,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @Specialization
@@ -779,7 +784,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @CreateCast("inherit")
@@ -922,7 +927,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @Specialization
@@ -942,7 +947,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @TruffleBoundary
@@ -971,7 +976,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @TruffleBoundary
@@ -1210,7 +1215,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @CreateCast("inherit")
@@ -1385,7 +1390,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @Specialization
@@ -1474,7 +1479,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @Specialization
@@ -1541,7 +1546,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @Specialization
@@ -1563,7 +1568,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "private_constant", rest = true)
     public abstract static class PrivateConstantNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RubyStringToJavaStringNode nameToJavaStringNode = RubyStringToJavaStringNode.create();
+        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
 
         @Specialization
         public DynamicObject privateConstant(VirtualFrame frame, DynamicObject module, Object[] args) {
@@ -1578,7 +1583,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "deprecate_constant", rest = true, raiseIfFrozenSelf = true)
     public abstract static class DeprecateConstantNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RubyStringToJavaStringNode nameToJavaStringNode = RubyStringToJavaStringNode.create();
+        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
 
         @Specialization
         public DynamicObject deprecateConstant(VirtualFrame frame, DynamicObject module, Object[] args) {
@@ -1593,7 +1598,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "public_constant", rest = true)
     public abstract static class PublicConstantNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RubyStringToJavaStringNode nameToJavaStringNode = RubyStringToJavaStringNode.create();
+        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
 
         @Specialization
         public DynamicObject publicConstant(VirtualFrame frame, DynamicObject module, Object[] args) {
@@ -1626,7 +1631,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @TruffleBoundary(throwsControlFlowException = true)
@@ -1647,7 +1652,7 @@ public abstract class ModuleNodes {
 
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
-            return RubyStringToJavaStringNodeGen.create(name);
+            return NameToJavaStringNodeGen.create(name);
         }
 
         @TruffleBoundary
@@ -1672,7 +1677,7 @@ public abstract class ModuleNodes {
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
-        @Child private RubyStringToJavaStringNode nameToJavaStringNode = RubyStringToJavaStringNode.create();
+        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private IsFrozenNode isFrozenNode = IsFrozenNodeGen.create(null);
         @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createOnSelf();
 
@@ -1742,7 +1747,7 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "undef_method", rest = true, visibility = Visibility.PRIVATE)
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private RubyStringToJavaStringNode nameToJavaStringNode = RubyStringToJavaStringNode.create();
+        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private RaiseIfFrozenNode raiseIfFrozenNode = new RaiseIfFrozenNode(ProfileArgumentNodeGen.create(new ReadSelfNode()));
         @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createOnSelf();
 
@@ -1802,7 +1807,7 @@ public abstract class ModuleNodes {
 
         private final Visibility visibility;
 
-        @Child private RubyStringToJavaStringNode nameToJavaStringNode = RubyStringToJavaStringNode.create();
+        @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private AddMethodNode addMethodNode = AddMethodNodeGen.create(true, false, null, null, null);
 
         public SetMethodVisibilityNode(Visibility visibility) {

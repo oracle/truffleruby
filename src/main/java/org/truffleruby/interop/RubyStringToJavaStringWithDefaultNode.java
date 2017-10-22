@@ -12,8 +12,6 @@ package org.truffleruby.interop;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.interop.RubyStringToJavaStringNode;
-import org.truffleruby.interop.RubyStringToJavaStringNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 
@@ -26,7 +24,7 @@ import org.truffleruby.language.RubyNode;
 public abstract class RubyStringToJavaStringWithDefaultNode extends RubyNode {
 
     private final String defaultValue;
-    @Child private RubyStringToJavaStringNode toJavaStringNode = RubyStringToJavaStringNodeGen.create(null);
+    @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNodeGen.create(null);
 
     public RubyStringToJavaStringWithDefaultNode(String defaultValue) {
         this.defaultValue = defaultValue;
