@@ -10,7 +10,7 @@ module Truffle::POSIX
   LIBC = Truffle::Interop.eval('application/x-native', 'default')
 
   TYPES = {
-    :short => :int16,
+    :short => :sint16,
     :ushort => :uint16,
     :int => :sint32,
     :uint => :uint32,
