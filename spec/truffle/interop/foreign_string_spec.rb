@@ -18,13 +18,13 @@ describe "Foreign strings" do
     Truffle::Interop.unbox(Truffle::Debug.foreign_string('test')).should == 'test'
   end
   
-  it "are unboxed automatically on the LHS of string concatenation" do
+  it "are unboxed and converted to Ruby automatically on the LHS of string concatenation" do
     a = Truffle::Debug.foreign_string('a')
     b = 'b'
     (a + b).should == 'ab'
   end
   
-  it "are unboxed automatically on the RHS of string concatenation" do
+  it "are unboxed and converted to Ruby automatically on the RHS of string concatenation" do
     a = 'a'
     b = Truffle::Debug.foreign_string('a')
     (a + b).should == 'ab'

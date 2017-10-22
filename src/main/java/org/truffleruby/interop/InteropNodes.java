@@ -409,51 +409,9 @@ public abstract class InteropNodes {
     public abstract static class BoxedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public boolean isBoxed(boolean receiver) {
-            return true;
-        }
-
-        @Specialization
-        public boolean isBoxed(byte receiver) {
-            return true;
-        }
-
-        @Specialization
-        public boolean isBoxed(short receiver) {
-            return true;
-        }
-
-        @Specialization
-        public boolean isBoxed(int receiver) {
-            return true;
-        }
-
-        @Specialization
-        public boolean isBoxed(long receiver) {
-            return true;
-        }
-
-        @Specialization
-        public boolean isBoxed(float receiver) {
-            return true;
-        }
-
-        @Specialization
-        public boolean isBoxed(double receiver) {
-            return true;
-        }
-
-        @Specialization
-        public boolean isBoxed(String receiver) {
-            return true;
-        }
-
-        @Specialization
         public boolean isBoxed(
-                VirtualFrame frame,
                 TruffleObject receiver,
-                @Cached("createIsBoxedNode()") Node isBoxedNode,
-                @Cached("create()") BranchProfile exceptionProfile) {
+                @Cached("createIsBoxedNode()") Node isBoxedNode) {
             return ForeignAccess.sendIsBoxed(isBoxedNode, receiver);
         }
 
@@ -461,7 +419,7 @@ public abstract class InteropNodes {
             return Message.IS_BOXED.createNode();
         }
 
-        @Fallback
+        @Specialization(guards = "!isTruffleObject(receiver)")
         public boolean isBoxed(Object receiver) {
             return false;
         }
