@@ -35,9 +35,15 @@ public abstract class NameToJavaStringNode extends RubyNode {
 
     public abstract String executeToJavaString(VirtualFrame frame, Object name);
 
-    @Specialization(guards = "isRubyString(value) || isRubySymbol(value)")
-    public String nameToJavaString(VirtualFrame frame, DynamicObject value,
-                            @Cached("create()") ToJavaStringNode toJavaStringNode) {
+    @Specialization(guards = "isRubyString(value)")
+    public String stringNameToJavaString(VirtualFrame frame, DynamicObject value,
+                                         @Cached("create()") ToJavaStringNode toJavaStringNode) {
+        return toJavaStringNode.executeToJavaString(frame, value);
+    }
+
+    @Specialization(guards = "isRubySymbol(value)")
+    public String symbolNameToJavaString(VirtualFrame frame, DynamicObject value,
+                                         @Cached("create()") ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(frame, value);
     }
 
