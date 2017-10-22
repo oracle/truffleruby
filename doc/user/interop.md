@@ -82,7 +82,7 @@ If the receiver is a Ruby `Hash`, return the hash keys.
 
 Otherwise, return the instance variable names, without the leading `@`.
 
-`KEYS(other)` → `other.instance_variables.map { |key| key[1..-1 }`
+`KEYS(other)` → `other.instance_variables.map { |key| ...key without @... }`
 
 In both cases the keys are returned as a Ruby `Array` containing Ruby `String`
 objects.
