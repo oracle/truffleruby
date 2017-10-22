@@ -193,7 +193,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
     protected class IndexWriteOutgoingNode extends OutgoingNode {
 
         @Child private Node node;
-        @Child private RubyToForeignNode rubyToForeignNode = RubyToForeignNode.create();
+        @Child private RubyToForeignNode identifierToForeignNode = RubyToForeignNode.create();
+        @Child private RubyToForeignNode valueToForeignNode = RubyToForeignNode.create();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
 
         public IndexWriteOutgoingNode() {
@@ -207,7 +208,11 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             final Object foreign;
 
             try {
-                foreign = ForeignAccess.sendWrite(node, receiver, rubyToForeignNode.executeConvert(frame, args[0]), args[1]);
+                foreign = ForeignAccess.sendWrite(
+                        node,
+                        receiver,
+                        identifierToForeignNode.executeConvert(frame, args[0]),
+                        valueToForeignNode.executeConvert(frame, args[1]));
             } catch (UnknownIdentifierException | UnsupportedMessageException | UnsupportedTypeException e) {
                 exceptionProfile();
                 throw new JavaException(e);
@@ -253,6 +258,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         private final String name;
 
         @Child private Node node;
+        @Child private RubyToForeignNode rubyToForeignNode = RubyToForeignNode.create();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
 
         public PropertyWriteOutgoingNode(String name) {
@@ -267,7 +273,11 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             final Object foreign;
 
             try {
-                foreign = ForeignAccess.sendWrite(node, receiver, name, args[0]);
+                foreign = ForeignAccess.sendWrite(
+                        node,
+                        receiver,
+                        name,
+                        rubyToForeignNode.executeConvert(frame, args[0]));
             } catch (UnknownIdentifierException | UnsupportedMessageException | UnsupportedTypeException e) {
                 exceptionProfile();
                 throw new JavaException(e);
@@ -284,6 +294,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
         @Child private Node node;
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
+        @Child private RubyToForeignArgumentsNode rubyToForeignArgumentsNode = RubyToForeignArgumentsNode.create();
 
         public CallOutgoingNode(int argsLength) {
             this.argsLength = argsLength;
@@ -297,7 +308,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             final Object foreign;
 
             try {
-                foreign = ForeignAccess.sendExecute(node, receiver, args);
+                foreign = ForeignAccess.sendExecute(
+                        node,
+                        receiver,
+                        rubyToForeignArgumentsNode.executeConvert(frame, args));
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile();
                 throw new JavaException(e);
@@ -337,6 +351,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
         @Child private Node node;
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
+        @Child private RubyToForeignArgumentsNode rubyToForeignArgumentsNode = RubyToForeignArgumentsNode.create();
 
         public NewOutgoingNode(int argsLength) {
             this.argsLength = argsLength;
@@ -350,7 +365,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             final Object foreign;
 
             try {
-                foreign = ForeignAccess.sendNew(node, receiver, args);
+                foreign = ForeignAccess.sendNew(
+                        node,
+                        receiver,
+                        rubyToForeignArgumentsNode.executeConvert(frame, args));
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile();
                 throw new JavaException(e);
@@ -432,6 +450,7 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         private final int argsLength;
 
         @Child private Node node;
+        @Child private RubyToForeignArgumentsNode rubyToForeignArgumentsNode = RubyToForeignArgumentsNode.create();
         @Child private ForeignToRubyNode foreignToRubyNode = ForeignToRubyNode.create();
 
         public InvokeOutgoingNode(String name, int argsLength) {
@@ -447,7 +466,11 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             final Object foreign;
 
             try {
-                foreign = ForeignAccess.sendInvoke(node, receiver, name, args);
+                foreign = ForeignAccess.sendInvoke(
+                        node,
+                        receiver,
+                        name,
+                        rubyToForeignArgumentsNode.executeConvert(frame, args));
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException | UnknownIdentifierException e) {
                 exceptionProfile();
                 throw new JavaException(e);
