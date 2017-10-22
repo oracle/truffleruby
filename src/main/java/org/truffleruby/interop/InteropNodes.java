@@ -510,6 +510,33 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "unbox_without_conversion", isModuleFunction = true, required = 1)
+    public abstract static class UnboxWithoutConversionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object unbox(
+                TruffleObject receiver,
+                @Cached("createUnboxNode()") Node unboxNode,
+                @Cached("create()") BranchProfile exceptionProfile) {
+            try {
+                return ForeignAccess.sendUnbox(unboxNode, receiver);
+            } catch (UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this, e));
+            }
+        }
+
+        @Specialization(guards = "!isTruffleObject(receiver)")
+        public Object unbox(Object receiver) {
+            return receiver;
+        }
+
+        protected Node createUnboxNode() {
+            return Message.UNBOX.createNode();
+        }
+
+    }
+
     @CoreMethod(names = "null?", isModuleFunction = true, required = 1)
     public abstract static class NullNode extends CoreMethodArrayArgumentsNode {
 
