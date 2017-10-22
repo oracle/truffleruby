@@ -89,7 +89,8 @@ objects.
 
 ### `READ`
 
-The name must be a `Fixnum` (or a Java integer) or a `String` or `Symbol`.
+The name must be an `int` (small Ruby `Fixnum`), or a Ruby `String` or `Symbol`,
+or a Java `String`.
 
 If the receiver is a Ruby `String` and the name is an integer, read a byte from
 the string, ignoring the encoding. If the index is out of range you'll get 0:
