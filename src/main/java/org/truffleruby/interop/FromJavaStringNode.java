@@ -40,7 +40,7 @@ public abstract class FromJavaStringNode extends RubyNode {
 
     @Specialization(replaces = "fromJavaString")
     public DynamicObject fromJavaString(String value,
-                                               @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+                                        @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
         return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }
 
