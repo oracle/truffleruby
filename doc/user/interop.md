@@ -155,6 +155,8 @@ In all cases where a call is made no block is passed.
 
 `Truffle::Interop.execute(receiver, *args)`
 
+`Truffle::Interop.execute_without_conversion(receiver, *args)`
+
 ### `INVOKE`
 
 `Truffle::Interop.invoke(receiver, name, *args)`
@@ -180,6 +182,8 @@ In all cases where a call is made no block is passed.
 ### `UNBOX`
 
 `Truffle::Interop.unbox(value)`
+
+`Truffle::Interop.unbox_without_conversion(value)`
 
 ### `IS_POINTER`
 
@@ -320,7 +324,8 @@ Ruby strings and symbols are unboxable to Java strings.
 A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
 or `WRITE`, that has Ruby strings or symbols as arguments, will convert each
 Ruby string or symbol argument to a Java string. You can avoid this conversion
-for `EXECUTE` using `Truffle::Interop.execute_without_conversion`.
+for `EXECUTE` using `Truffle::Interop.execute_without_conversion`, and for
+`UNBOX` using `Truffle::Interop.unbox_without_conversion`.
 
 A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
 `WRITE`, or `UNBOX`, that returns a Java string will convert the returned string

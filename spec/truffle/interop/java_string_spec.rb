@@ -14,8 +14,10 @@ describe "Java strings" do
     Truffle::Interop.boxed?(Truffle::Interop.to_java_string('test')).should be_true
   end
   
-  it "unbox to Ruby strings" do
-    Truffle::Interop.unbox(Truffle::Interop.to_java_string('test')).should == 'test'
+  it "unbox to the same Java string" do
+    unboxed = Truffle::Interop.unbox_without_conversion(Truffle::Interop.to_java_string('test'))
+    Truffle::Interop.java_string?(unboxed).should be_true
+    Truffle::Interop.from_java_string(unboxed).should == 'test'
   end
   
   it "are unboxed automatically on the LHS of string concatenation" do
