@@ -12,7 +12,6 @@ package org.truffleruby.language.objects.shared;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.language.RubyBaseNode;
@@ -61,12 +60,6 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
 
     @Specialization(guards = "!isDynamicObject(value)")
     protected void noWriteBarrier(Object value) {
-        assert value instanceof Boolean ||
-                value instanceof Integer ||
-                value instanceof Long ||
-                value instanceof Double ||
-                value instanceof TruffleObject
-                    : value.getClass().getName();
     }
 
     protected static boolean isDynamicObject(Object value) {
