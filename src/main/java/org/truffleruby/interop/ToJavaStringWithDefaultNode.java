@@ -16,9 +16,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 
 /**
- * Take a Symbol or some object accepting #to_str
- * and convert it to a Java String and defaults to
- * the given value if not provided.
+ * Convert a Ruby String or Symbol to a Java string, or return a default string if a value was not provided.
  */
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class ToJavaStringWithDefaultNode extends RubyNode {
@@ -41,6 +39,5 @@ public abstract class ToJavaStringWithDefaultNode extends RubyNode {
     public String doProvided(VirtualFrame frame, Object value) {
         return toJavaStringNode.executeToJavaString(frame, value);
     }
-
 
 }
