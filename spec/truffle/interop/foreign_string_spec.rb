@@ -14,7 +14,7 @@ describe "Foreign strings" do
     Truffle::Interop.boxed?(Truffle::Debug.foreign_string('test')).should be_true
   end
   
-  it "unbox to Ruby strings" do
+  it "unbox to Ruby strings with Truffle::Interop.unbox" do
     Truffle::Interop.unbox(Truffle::Debug.foreign_string('test')).should == 'test'
   end
   
