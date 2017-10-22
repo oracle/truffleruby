@@ -7,7 +7,6 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-
 package org.truffleruby.interop;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -16,23 +15,19 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class RubyStringToJavaStringNode extends RubyNode {
+public abstract class ToJavaStringNode extends RubyNode {
 
-    public static RubyStringToJavaStringNode create() {
-        return RubyStringToJavaStringNodeGen.create(null);
+    public static ToJavaStringNode create() {
+        return ToJavaStringNodeGen.create(null);
     }
 
     public abstract String executeToJavaString(VirtualFrame frame, Object name);
@@ -62,6 +57,10 @@ public abstract class RubyStringToJavaStringNode extends RubyNode {
         return symbolToString(symbol);
     }
 
+    protected String symbolToString(DynamicObject symbol) {
+        return Layouts.SYMBOL.getString(symbol);
+    }
+
     @Specialization(guards = "string == cachedString", limit = "getLimit()")
     public String javaStringCached(String string,
             @Cached("string") String cachedString) {
@@ -73,35 +72,8 @@ public abstract class RubyStringToJavaStringNode extends RubyNode {
         return value;
     }
 
-    @Specialization(guards = { "!isString(object)", "!isRubySymbol(object)", "!isRubyString(object)" })
-    public String coerceObjectToStr(VirtualFrame frame, Object object,
-            @Cached("create()") BranchProfile errorProfile,
-            @Cached("create()") CallDispatchHeadNode toStr) {
-        final Object coerced;
-        try {
-            coerced = toStr.call(frame, object, "to_str");
-        } catch (RaiseException e) {
-            errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().getNoMethodErrorClass()) {
-                throw new RaiseException(coreExceptions().typeErrorNoImplicitConversion(object, "String", this));
-            } else {
-                throw e;
-            }
-        }
-
-        if (RubyGuards.isRubyString(coerced)) {
-            return StringOperations.getString((DynamicObject) coerced);
-        } else {
-            errorProfile.enter();
-            throw new RaiseException(coreExceptions().typeErrorBadCoercion(object, "String", "to_str", coerced, this));
-        }
-    }
-
-    protected String symbolToString(DynamicObject symbol) {
-        return Layouts.SYMBOL.getString(symbol);
-    }
-
     protected int getLimit() {
         return getContext().getOptions().INTEROP_CONVERT_CACHE;
     }
+
 }

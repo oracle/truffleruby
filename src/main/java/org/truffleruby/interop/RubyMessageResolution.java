@@ -119,13 +119,13 @@ public class RubyMessageResolution {
 
         @Child private DoesRespondDispatchHeadNode doesRespond = DoesRespondDispatchHeadNode.create();
         @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createOnSelf();
-        @Child private RubyStringToJavaStringNode toJavaStringNode;
+        @Child private ToJavaStringNode toJavaStringNode;
 
         protected Object access(VirtualFrame frame, DynamicObject object) {
             if (stringSymbolProfile.profile(RubyGuards.isRubyString(object) || RubyGuards.isRubySymbol(object))) {
                 if (toJavaStringNode == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    toJavaStringNode = insert(RubyStringToJavaStringNode.create());
+                    toJavaStringNode = insert(ToJavaStringNode.create());
                 }
 
                 return toJavaStringNode.executeToJavaString(frame, object);

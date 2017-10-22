@@ -27,8 +27,8 @@ public abstract class ForeignToRubyNode extends RubyNode {
 
     @Specialization
     public DynamicObject convertStringCached(VirtualFrame frame, String value,
-                                             @Cached("create()") JavaStringToRubyStringNode javaStringToRubyStringNode) {
-        return javaStringToRubyStringNode.executeConvert(frame, value);
+                                             @Cached("create()") FromJavaStringNode fromJavaStringNode) {
+        return fromJavaStringNode.executeFromJavaString(frame, value);
     }
 
     @Specialization(guards = "!isString(value)")

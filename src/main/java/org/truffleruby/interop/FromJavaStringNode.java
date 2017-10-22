@@ -22,24 +22,24 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyNode;
 
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class JavaStringToRubyStringNode extends RubyNode {
+public abstract class FromJavaStringNode extends RubyNode {
 
-    public static JavaStringToRubyStringNode create() {
-        return JavaStringToRubyStringNodeGen.create(null);
+    public static FromJavaStringNode create() {
+        return FromJavaStringNodeGen.create(null);
     }
 
-    public abstract DynamicObject executeConvert(VirtualFrame frame, Object value);
+    public abstract DynamicObject executeFromJavaString(VirtualFrame frame, Object value);
 
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
-    public DynamicObject convertStringCached(
+    public DynamicObject fromJavaString(
             String value,
             @Cached("value") String cachedValue,
             @Cached("getRope(value)") Rope cachedRope) {
         return createString(cachedRope);
     }
 
-    @Specialization(replaces = "convertStringCached")
-    public DynamicObject convertStringUncached(String value,
+    @Specialization(replaces = "fromJavaString")
+    public DynamicObject fromJavaString(String value,
                                                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
         return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }

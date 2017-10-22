@@ -32,7 +32,7 @@ public abstract class RubyToForeignNode extends RubyNode {
     public String convertString(
             VirtualFrame frame,
             DynamicObject value,
-            @Cached("create()") RubyStringToJavaStringNode toJavaStringNode) {
+            @Cached("create()") ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(frame, value);
     }
 
