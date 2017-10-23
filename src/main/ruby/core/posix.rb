@@ -64,7 +64,16 @@ module Truffle::POSIX
         end
 
         result = bound_func.call(*args)
-        result = Truffle::Interop.from_java_string(Truffle::Interop.unbox(result)) if return_type == :string
+        
+        if return_type == :string
+          if result.nil?
+            nil
+          else
+            ptr = Rubinius::FFI::Pointer.new(Truffle::Interop.as_pointer(result))
+            result = ptr.read_string_to_null
+          end
+        end
+        
         result
       }
     else
