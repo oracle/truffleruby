@@ -45,12 +45,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public byte[] crypt(byte[] key, byte[] salt) {
-        return posix.crypt(key, salt);
-    }
-
-    @TruffleBoundary
-    @Override
     public FileStat allocateStat() {
         return posix.allocateStat();
     }

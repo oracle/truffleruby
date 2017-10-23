@@ -22,7 +22,6 @@ import java.util.Collection;
 
 public interface TrufflePosix {
 
-    byte[] crypt(byte[] key, byte[] salt);
     FileStat allocateStat();
     int execve(String path, String[] argv, String[] envp);
     int fstat(int fd, FileStat stat);
