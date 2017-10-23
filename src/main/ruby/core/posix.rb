@@ -63,7 +63,9 @@ module Truffle::POSIX
           args[i] = str
         end
 
-        bound_func.call(*args)
+        result = bound_func.call(*args)
+        result = Truffle::Interop.from_java_string(Truffle::Interop.unbox(result)) if return_type == :string
+        result
       }
     else
       define_singleton_method(method_name) { |*|
@@ -132,8 +134,7 @@ module Truffle::POSIX
     if value.nil?
       nil
     else
-      ptr = Rubinius::FFI::Pointer.new(Truffle::Interop.as_pointer(value))
-      ptr.read_string_to_null
+      value
     end
   end
 
