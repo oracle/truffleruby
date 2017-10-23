@@ -42,4 +42,9 @@ public class WriteLocalVariableNode extends RubyNode {
         return coreStrings().ASSIGNMENT.createInstance();
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + " " + frameSlot.getIdentifier() + " = " + valueNode;
+    }
+
 }

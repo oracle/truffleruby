@@ -84,4 +84,9 @@ public class ReadOptionalArgumentNode extends RubyNode {
         return defaultValue.execute(frame);
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " " + index;
+    }
+
 }

@@ -39,4 +39,9 @@ public class ReadPostArgumentNode extends RubyNode {
         return RubyArguments.getArgument(frame, effectiveIndex);
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " -" + indexFromCount;
+    }
+
 }
