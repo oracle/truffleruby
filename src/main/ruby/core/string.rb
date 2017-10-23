@@ -1537,5 +1537,15 @@ class String
 
     nil # Fallback value if recursive calls are detected.
   end
+  
+  def crypt(salt)
+    salt = StringValue(salt)
+    raise ArgumentError, 'salt too short (need >= 2 bytes)' if salt.bytesize < 2 || salt[0] == "\0" || salt[1] == "\0"
+    raise ArgumentError, 'string contains null byte' if include?("\0")
+    crypted = Truffle::POSIX.crypt(self, salt)
+    Errno.handle_nfi unless crypted
+    crypted.taint if tainted? || salt.tainted?
+    crypted
+  end
 
 end

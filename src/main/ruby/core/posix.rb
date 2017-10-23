@@ -149,6 +149,11 @@ module Truffle::POSIX
     Truffle.invoke_primitive :posix_invalidate_env, name
     unsetenv_native(name)
   end
+  
+  # Other routines
+  attach_function :crypt, [:string, :string], :string
+  
+  # Errno-related
 
   if Rubinius.linux?
     attach_function :errno_address, :__errno_location, [], :pointer

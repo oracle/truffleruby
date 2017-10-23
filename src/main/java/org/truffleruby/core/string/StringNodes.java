@@ -73,7 +73,6 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.jcodings.constants.CharacterType;
@@ -141,7 +140,6 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.yield.YieldNode;
-import org.truffleruby.platform.posix.TrufflePosix;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -786,62 +784,6 @@ public abstract class StringNodes {
 
             return StringSupport.strCount(rope(string), table, tables, enc);
         }
-    }
-
-    @CoreMethod(names = "crypt", required = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "string"),
-            @NodeChild(type = RubyNode.class, value = "salt")
-    })
-    public abstract static class CryptNode extends CoreMethodNode {
-
-        @Child private TaintResultNode taintResultNode;
-
-        @CreateCast("salt") public RubyNode coerceSaltToString(RubyNode other) {
-            return ToStrNodeGen.create(other);
-        }
-
-        @TruffleBoundary(throwsControlFlowException = true)
-        @Specialization(guards = "isRubyString(salt)")
-        public Object crypt(DynamicObject string, DynamicObject salt) {
-            // Taken from org.jruby.RubyString#crypt.
-
-            final Rope value = rope(string);
-            final Rope other = rope(salt);
-
-            if (other.byteLength() < 2) {
-                throw new RaiseException(coreExceptions().argumentError("salt too short (need >= 2 bytes)", this));
-            }
-
-            final TrufflePosix posix = posix();
-            final byte[] keyBytes = Arrays.copyOfRange(value.getBytes(), 0, value.byteLength());
-            final byte[] saltBytes = Arrays.copyOfRange(other.getBytes(), 0, other.byteLength());
-
-            if (saltBytes[0] == 0 || saltBytes[1] == 0) {
-                throw new RaiseException(coreExceptions().argumentError("salt too short (need >= 2 bytes)", this));
-            }
-
-            final byte[] cryptedString = posix.crypt(keyBytes, saltBytes);
-
-            // We differ from MRI in that we do not process salt to make it work and we will
-            // return any errors via errno.
-            if (cryptedString == null) {
-                throw new RaiseException(coreExceptions().errnoError(posix.errno(), this));
-            }
-
-            if (taintResultNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                taintResultNode = insert(new TaintResultNode());
-            }
-
-            final DynamicObject ret = createString(RopeOperations.ropeFromByteList(RopeBuilder.createRopeBuilder(cryptedString, 0, cryptedString.length - 1, ASCIIEncoding.INSTANCE)));
-
-            taintResultNode.maybeTaint(string, ret);
-            taintResultNode.maybeTaint(salt, ret);
-
-            return ret;
-        }
-
     }
 
     @CoreMethod(names = "delete!", rest = true, raiseIfFrozenSelf = true)
