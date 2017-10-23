@@ -10,19 +10,31 @@
 package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
 public class ReadPostArgumentNode extends RubyNode {
 
     private final int indexFromCount;
+    private final boolean keywordArguments;
 
-    public ReadPostArgumentNode(int indexFromCount) {
+    public ReadPostArgumentNode(int indexFromCount, boolean keywordArguments) {
         this.indexFromCount = indexFromCount;
+        this.keywordArguments = keywordArguments;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final int count = RubyArguments.getArgumentsCount(frame);
+        int count = RubyArguments.getArgumentsCount(frame);
+
+        if (keywordArguments) {
+            final Object lastArgument = RubyArguments.getArgument(frame, count - 1);
+            if (!RubyGuards.isRubyHash(lastArgument)) {
+                count++;
+            }
+        }
+
         final int effectiveIndex = count - indexFromCount;
         return RubyArguments.getArgument(frame, effectiveIndex);
     }
