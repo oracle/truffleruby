@@ -319,7 +319,7 @@ public class LoadArgumentsTranslator extends Translator {
             if (state == State.PRE) {
                 return ProfileArgumentNodeGen.create(new ReadPreArgumentNode(index, isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
             } else if (state == State.POST) {
-                return new ReadPostArgumentNode(-index);
+                return new ReadPostArgumentNode(-index, hasKeywordArguments);
             } else {
                 throw new IllegalStateException();
             }
