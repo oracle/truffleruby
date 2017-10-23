@@ -30,8 +30,8 @@ public class ReadPostArgumentNode extends RubyNode {
 
         if (keywordArguments) {
             final Object lastArgument = RubyArguments.getArgument(frame, count - 1);
-            if (!RubyGuards.isRubyHash(lastArgument)) {
-                count++;
+            if (RubyGuards.isRubyHash(lastArgument)) {
+                count--;
             }
         }
 

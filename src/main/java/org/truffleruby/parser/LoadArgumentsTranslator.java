@@ -220,10 +220,6 @@ public class LoadArgumentsTranslator extends Translator {
             state = State.POST;
             index = -1;
 
-            if (!useArray() && hasKeywordArguments) {
-                index--;
-            }
-
             int postIndex = node.getPostIndex();
             for (int i = postCount - 1; i >= 0; i--) {
                 notNilAtLeastAsLargeSequence.add(args[postIndex + i].accept(this));
