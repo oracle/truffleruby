@@ -25,8 +25,41 @@ import org.truffleruby.language.RubyBaseNode;
 
 public abstract class ArrayBuilderNode extends RubyBaseNode {
 
+    private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
+        @Child ArrayBuilderNode realNode = new UninitializedArrayBuilderNode();
+
+        @Override
+        public Object start() {
+            return realNode.start();
+        }
+
+        @Override
+        public Object start(int length) {
+            return realNode.start(length);
+        }
+
+        @Override
+        public Object ensure(Object store, int length) {
+            return realNode.ensure(store, length);
+        }
+
+        @Override
+        public Object appendArray(Object store, int index, DynamicObject array) {
+            return realNode.appendArray(store, index, array);
+        }
+
+        @Override
+        public Object appendValue(Object store, int index, Object value) {
+            return realNode.appendValue(store, index, value);
+        }
+
+        @Override
+        public Object finish(Object store, int length) {
+            return realNode.finish(store, length);
+        }
+    }
     public static ArrayBuilderNode create() {
-        return new UninitializedArrayBuilderNode();
+        return new ArrayBuilderProxyNode();
     }
 
     public abstract Object start();
