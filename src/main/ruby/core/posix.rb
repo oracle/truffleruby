@@ -67,7 +67,7 @@ module Truffle::POSIX
         
         if return_type == :string
           if result.nil?
-            nil
+            result = nil
           else
             ptr = Rubinius::FFI::Pointer.new(Truffle::Interop.as_pointer(result))
             result = ptr.read_string_to_null
@@ -137,15 +137,7 @@ module Truffle::POSIX
   attach_function :setpriority, [:int, :id_t, :int], :int
 
   # ENV-related
-  attach_function :getenv_native, :getenv, [:string], :string
-  def self.getenv(name)
-    value = getenv_native(name)
-    if value.nil?
-      nil
-    else
-      value
-    end
-  end
+  attach_function :getenv, [:string], :string
 
   attach_function :setenv_native, :setenv, [:string, :string, :int], :int
   def self.setenv(name, value, overwrite)
