@@ -11,6 +11,7 @@ package org.truffleruby.language.arguments;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 
@@ -48,6 +49,11 @@ public class ReadPreArgumentNode extends RubyNode {
             default:
                 throw new UnsupportedOperationException("unknown missing argument behaviour");
         }
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " " + index;
     }
 
 }

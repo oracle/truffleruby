@@ -21,6 +21,8 @@ import org.truffleruby.language.RubyNode;
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ProfileArgumentNode extends RubyNode {
 
+    protected abstract RubyNode getChild();
+
     @Specialization(guards = "value == cachedValue", limit = "1")
     protected boolean cacheBoolean(boolean value,
             @Cached("value") boolean cachedValue) {
@@ -71,6 +73,11 @@ public abstract class ProfileArgumentNode extends RubyNode {
     protected static boolean exactCompare(double a, double b) {
         // -0.0 == 0.0, but you can tell the difference through other means, so we need to differentiate.
         return Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
+    }
+
+    @Override
+    public String toString() {
+        return getChild().toString();
     }
 
 }
