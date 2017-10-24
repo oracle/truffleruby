@@ -94,13 +94,17 @@ module Truffle::POSIX
   attach_function :dup2, [:int, :int], :int
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
+  attach_function :flock, [:int, :int], :int
   attach_function :fsync, [:int], :int
+  attach_function :isatty, [:int], :int
   attach_function :lchmod, [:string, :mode_t], :int
   attach_function :link, [:string, :string], :int
   attach_function :mkdir, [:string, :mode_t], :int
   attach_function :mkfifo, [:string, :mode_t], :int
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
+  attach_function :rename, [:string, :string], :int
   attach_function :rmdir, [:string], :int
+  attach_function :symlink, [:string, :string], :int
   attach_function :umask, [:mode_t], :mode_t
   attach_function :unlink, [:string], :int
   attach_function :utimes, [:string, :pointer], :int

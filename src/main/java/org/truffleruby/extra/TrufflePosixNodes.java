@@ -90,17 +90,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "flock", isModuleFunction = true, required = 2, lowerFixnum = { 1, 2 })
-    public abstract static class FlockNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int flock(int fd, int constant) {
-            return posix().flock(fd, constant);
-        }
-
-    }
-
     @CoreMethod(names = "major", isModuleFunction = true, required = 1)
     public abstract static class MajorNode extends CoreMethodArrayArgumentsNode {
 
@@ -125,17 +114,6 @@ public abstract class TrufflePosixNodes {
             } else {
                 return (int) (dev & 0xffffff);
             }
-        }
-
-    }
-
-    @CoreMethod(names = "rename", isModuleFunction = true, required = 2)
-    public abstract static class RenameNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = {"isRubyString(path)", "isRubyString(other)"})
-        public int rename(DynamicObject path, DynamicObject other) {
-            return posix().rename(decodeUTF8(path), decodeUTF8(other));
         }
 
     }
@@ -194,17 +172,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "isatty", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class IsATTYNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int isATTY(int fd) {
-            return posix().isatty(fd);
-        }
-
-    }
-
     @CoreMethod(names = "send", isModuleFunction = true, required = 4, lowerFixnum = {1, 3, 4})
     public abstract static class SendNode extends CoreMethodArrayArgumentsNode {
 
@@ -212,17 +179,6 @@ public abstract class TrufflePosixNodes {
         @Specialization(guards = "isRubyPointer(buffer)")
         public int send(int descriptor, DynamicObject buffer, int bytes, int flags) {
             return nativeSockets().send(descriptor, Layouts.POINTER.getPointer(buffer), bytes, flags);
-        }
-
-    }
-
-    @CoreMethod(names = "symlink", isModuleFunction = true, required = 2)
-    public abstract static class SymlinkNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = {"isRubyString(first)", "isRubyString(second)"})
-        public int symlink(DynamicObject first, DynamicObject second) {
-            return posix().symlink(decodeUTF8(first), decodeUTF8(second));
         }
 
     }
