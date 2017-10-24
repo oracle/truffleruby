@@ -115,6 +115,7 @@ public class LoadArgumentsTranslator extends Translator {
     @Override
     public RubyNode visitArgsNode(ArgsParseNode node) {
         argsNode = node;
+        required = node.getPreCount() + node.getPostCount();
 
         final SourceIndexLength sourceSection = node.getPosition();
 
@@ -142,7 +143,7 @@ public class LoadArgumentsTranslator extends Translator {
             }
 
             sequence.add(new IfNode(
-                    new ArrayIsAtLeastAsLargeAsNode(node.getPreCount() + node.getPostCount(), loadArray(sourceSection)),
+                    new ArrayIsAtLeastAsLargeAsNode(required, loadArray(sourceSection)),
                     new RunBlockKWArgsHelperNode(arraySlotStack.peek().getArraySlot(), keyRestNameOrNil)));
         }
 
@@ -154,7 +155,6 @@ public class LoadArgumentsTranslator extends Translator {
             for (int i = 0; i < preCount; i++) {
                 sequence.add(args[i].accept(this));
                 index++;
-                required++;
             }
         }
 
@@ -223,7 +223,6 @@ public class LoadArgumentsTranslator extends Translator {
             int postIndex = node.getPostIndex();
             for (int i = postCount - 1; i >= 0; i--) {
                 notNilAtLeastAsLargeSequence.add(args[postIndex + i].accept(this));
-                required++;
                 index--;
             }
         }
@@ -315,7 +314,7 @@ public class LoadArgumentsTranslator extends Translator {
             if (state == State.PRE) {
                 return ProfileArgumentNodeGen.create(new ReadPreArgumentNode(index, isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
             } else if (state == State.POST) {
-                return new ReadPostArgumentNode(-index, hasKeywordArguments, argsNode.getPreCount() + argsNode.getPostCount());
+                return new ReadPostArgumentNode(-index, hasKeywordArguments, required);
             } else {
                 throw new IllegalStateException();
             }
