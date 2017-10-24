@@ -1064,7 +1064,16 @@ VALUE rb_str_new(const char *string, long length) {
   } else if (truffle_is_truffle_object((VALUE) string)) {
     return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new", string, length);
   } else {
-    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new_cstr", truffle_read_n_string(string, length));
+    // Copy the string to a new unmanaged buffer, because otherwise it's very
+    // hard to accomodate all the different things this pointer could really be
+    // - unmanaged pointer, foreign object, foreign object plus offset, etc.
+    // TODO CS 24-Oct-17 work with Sulong to make this copying not needed
+    
+    const char* copy = malloc(length);
+    memcpy(copy, string, length);
+    VALUE ruby_string = (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new_cstr", copy, length);
+    free(copy);
+    return ruby_string;
   }
 }
 
@@ -1081,7 +1090,8 @@ VALUE rb_str_new_cstr(const char *string) {
     int len = strlen(string);
     return (VALUE) truffle_invoke(ruby_string, "[]", 0, len);
   } else {
-    return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_new_cstr", truffle_read_string(string));
+    // TODO CS 24-Oct-17 would be nice to read in one go rather than strlen followed by read
+    return rb_str_new(string, strlen(string));
   }
 }
 

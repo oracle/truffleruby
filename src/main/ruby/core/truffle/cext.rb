@@ -1047,8 +1047,8 @@ module Truffle::CExt
     "\0".b * length
   end
 
-  def rb_str_new_cstr(java_string)
-    String.new(java_string, encoding: Encoding::BINARY)
+  def rb_str_new_cstr(pointer, length)
+    Rubinius::FFI::Pointer.new(pointer).read_string(length)
   end
 
   def rb_enc_str_coderange(str)
