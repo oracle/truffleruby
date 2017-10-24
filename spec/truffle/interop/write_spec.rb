@@ -88,4 +88,25 @@ describe "Truffle::Interop.write" do
     hash[3].should == 14
   end
 
+  it "raises a NameError when the identifier is not found on a Ruby object" do
+    obj = Object.new
+    lambda {
+      Truffle::Interop.write(obj, Truffle::Interop.to_java_string('foo'), 42)
+    }.should raise_error(NameError, /Unknown identifier: foo/) { |e|
+      e.receiver.should equal obj
+      e.name.should == :foo
+    }
+  end
+
+  it "raises a NameError when the identifier is not found on a foreign object" do
+    foreign = Truffle::Interop.java_array(1, 2, 3)
+    lambda { foreign.foo = 42 }.should raise_error(NameError, /Unknown identifier: foo/) { |e|
+      e.name.should == :foo
+    }
+  end
+
+  it "raises a NameError when the name is not a supported type" do
+    lambda { Truffle::Interop.write(Math, Truffle::Debug.foreign_object, 42) }.should raise_error(NameError, /Unknown identifier: /)
+  end
+
 end

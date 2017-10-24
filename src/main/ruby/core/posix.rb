@@ -37,8 +37,8 @@ module Truffle::POSIX
   def self.attach_function(method_name, native_name = method_name, argument_types, return_type)
     begin
       func = LIBC[native_name]
-    rescue RubyTruffleError => e
-      raise e unless e.message.include?('Unknown identifier')
+    rescue NameError # Missing function
+      func = nil
     end
 
     if func
