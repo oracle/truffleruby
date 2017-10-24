@@ -106,8 +106,7 @@ public class MethodTranslator extends BodyTranslator {
         }
 
         final boolean isProc = type == ProcType.PROC;
-        final LoadArgumentsTranslator loadArgumentsTranslator = new LoadArgumentsTranslator(currentNode, context, source, parserContext, isProc, this);
-        final RubyNode loadArguments = argsNode.accept(loadArgumentsTranslator);
+        final RubyNode loadArguments = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, isProc, this).translate();
 
         final RubyNode preludeProc;
         if (shouldConsiderDestructuringArrayArg(arity)) {
@@ -117,9 +116,9 @@ public class MethodTranslator extends BodyTranslator {
             final FrameSlot arraySlot = environment.declareVar(environment.allocateLocalTemp("destructure"));
             final RubyNode writeArrayNode = new WriteLocalVariableNode(arraySlot, castArrayNode);
 
-            final LoadArgumentsTranslator destructureArgumentsTranslator = new LoadArgumentsTranslator(currentNode, context, source, parserContext, isProc, this);
+            final LoadArgumentsTranslator destructureArgumentsTranslator = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, isProc, this);
             destructureArgumentsTranslator.pushArraySlot(arraySlot);
-            final RubyNode newDestructureArguments = argsNode.accept(destructureArgumentsTranslator);
+            final RubyNode newDestructureArguments = destructureArgumentsTranslator.translate();
 
             final RubyNode shouldDestructure = new ShouldDestructureNode(readArrayNode);
 
@@ -233,8 +232,7 @@ public class MethodTranslator extends BodyTranslator {
         declareArguments();
         final Arity arity = getArity(argsNode);
 
-        final LoadArgumentsTranslator loadArgumentsTranslator = new LoadArgumentsTranslator(currentNode, context, source, parserContext, false, this);
-        final RubyNode loadArguments = argsNode.accept(loadArgumentsTranslator);
+        final RubyNode loadArguments = new LoadArgumentsTranslator(currentNode, argsNode, context, source, parserContext, false, this).translate();
         
         final boolean isPrimitive = isPrimitive(bodyNode);
 

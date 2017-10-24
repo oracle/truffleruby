@@ -96,29 +96,27 @@ public class LoadArgumentsTranslator extends Translator {
         POST
     }
 
-    private int required;
+    private final ArgsParseNode argsNode;
+    private final int required;
+    private final boolean hasKeywordArguments;
+
     private int index;
     private int indexFromEnd = 1;
     private State state;
-    private boolean hasKeywordArguments;
     private List<String> excludedKeywords = new ArrayList<>();
     private boolean firstOpt = false;
 
-    private ArgsParseNode argsNode;
-
-    public LoadArgumentsTranslator(Node currentNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, BodyTranslator methodBodyTranslator) {
+    public LoadArgumentsTranslator(Node currentNode, ArgsParseNode argsNode, RubyContext context, Source source, ParserContext parserContext, boolean isProc, BodyTranslator methodBodyTranslator) {
         super(currentNode, context, source, parserContext);
         this.isProc = isProc;
         this.methodBodyTranslator = methodBodyTranslator;
+        this.argsNode = argsNode;
+        this.required = argsNode.getRequiredCount();
+        this.hasKeywordArguments = argsNode.hasKwargs();
     }
 
-    @Override
-    public RubyNode visitArgsNode(ArgsParseNode node) {
-        argsNode = node;
-        required = node.getRequiredCount();
-        hasKeywordArguments = node.hasKwargs();
-
-        final SourceIndexLength sourceSection = node.getPosition();
+    public RubyNode translate() {
+        final SourceIndexLength sourceSection = argsNode.getPosition();
 
         final List<RubyNode> sequence = new ArrayList<>();
 
@@ -126,17 +124,17 @@ public class LoadArgumentsTranslator extends Translator {
         sequence.add(loadSelf(context, methodBodyTranslator.getEnvironment()));
         //}
 
-        final ParseNode[] args = node.getArgs();
+        final ParseNode[] args = argsNode.getArgs();
 
-        final boolean useHelper = useArray() && node.hasKeyRest();
+        final boolean useHelper = useArray() && argsNode.hasKeyRest();
 
         if (useHelper) {
-            sequence.add(node.getKeyRest().accept(this));
+            sequence.add(argsNode.getKeyRest().accept(this));
 
             final Object keyRestNameOrNil;
 
-            if (node.hasKeyRest()) {
-                final String name = node.getKeyRest().getName();
+            if (argsNode.hasKeyRest()) {
+                final String name = argsNode.getKeyRest().getName();
                 methodBodyTranslator.getEnvironment().declareVar(name);
                 keyRestNameOrNil = context.getSymbolTable().getSymbol(name);
             } else {
@@ -148,7 +146,7 @@ public class LoadArgumentsTranslator extends Translator {
                     new RunBlockKWArgsHelperNode(arraySlotStack.peek().getArraySlot(), keyRestNameOrNil)));
         }
 
-        final int preCount = node.getPreCount();
+        final int preCount = argsNode.getPreCount();
 
         if (preCount > 0) {
             state = State.PRE;
@@ -159,12 +157,12 @@ public class LoadArgumentsTranslator extends Translator {
             }
         }
 
-        final int optArgCount = node.getOptionalArgsCount();
+        final int optArgCount = argsNode.getOptionalArgsCount();
         if (optArgCount > 0) {
             // (BlockParseNode 0, (OptArgParseNode:a 0, (LocalAsgnParseNode:a 0, (FixnumParseNode 0))), ...)
             state = State.OPT;
             index = argsNode.getPreCount();
-            final int optArgIndex = node.getOptArgIndex();
+            final int optArgIndex = argsNode.getOptArgIndex();
             for (int i = 0; i < optArgCount; i++) {
                 firstOpt = i == 0;
                 sequence.add(args[optArgIndex + i].accept(this));
@@ -172,12 +170,12 @@ public class LoadArgumentsTranslator extends Translator {
             }
         }
 
-        if (node.getRestArgNode() != null) {
+        if (argsNode.getRestArgNode() != null) {
             methodBodyTranslator.getEnvironment().hasRestParameter = true;
-            sequence.add(node.getRestArgNode().accept(this));
+            sequence.add(argsNode.getRestArgNode().accept(this));
         }
 
-        int postCount = node.getPostCount();
+        int postCount = argsNode.getPostCount();
 
         // The load to use when the array is not nil and the length is smaller than the number of required arguments
 
@@ -185,8 +183,8 @@ public class LoadArgumentsTranslator extends Translator {
 
         if (postCount > 0) {
             state = State.POST;
-            ParseNode[] children = node.getPost().children();
-            index = node.getPreCount();
+            ParseNode[] children = argsNode.getPost().children();
+            index = argsNode.getPreCount();
             for (int i = 0; i < children.length; i++) {
                 notNilSmallerSequence.add(children[i].accept(this));
                 index++;
@@ -201,8 +199,8 @@ public class LoadArgumentsTranslator extends Translator {
 
         if (postCount > 0) {
             state = State.POST;
-            ParseNode[] children = node.getPost().children();
-            index = node.getPreCount() + node.getOptionalArgsCount();
+            ParseNode[] children = argsNode.getPost().children();
+            index = argsNode.getPreCount() + argsNode.getOptionalArgsCount();
             for (int i = 0; i < children.length; i++) {
                 noRestSequence.add(children[i].accept(this));
                 index++;
@@ -219,7 +217,7 @@ public class LoadArgumentsTranslator extends Translator {
             state = State.POST;
             index = -1;
 
-            int postIndex = node.getPostIndex();
+            int postIndex = argsNode.getPostIndex();
             for (int i = postCount - 1; i >= 0; i--) {
                 notNilAtLeastAsLargeSequence.add(args[postIndex + i].accept(this));
                 index--;
@@ -229,7 +227,7 @@ public class LoadArgumentsTranslator extends Translator {
         final RubyNode notNilAtLeastAsLarge = sequence(sourceSection, notNilAtLeastAsLargeSequence);
 
         if (useArray()) {
-            if (node.getPreCount() == 0 || node.hasRestArg()) {
+            if (argsNode.getPreCount() == 0 || argsNode.hasRestArg()) {
                 sequence.add(new IfElseNode(
                         new ArrayIsAtLeastAsLargeAsNode(required, loadArray(sourceSection)),
                         notNilAtLeastAsLarge,
@@ -243,22 +241,22 @@ public class LoadArgumentsTranslator extends Translator {
         }
 
         if (hasKeywordArguments) {
-            final int keywordIndex = node.getKeywordsIndex();
-            final int keywordCount = node.getKeywordCount();
+            final int keywordIndex = argsNode.getKeywordsIndex();
+            final int keywordCount = argsNode.getKeywordCount();
 
             for (int i = 0; i < keywordCount; i++) {
                 sequence.add(args[keywordIndex + i].accept(this));
             }
         }
 
-        if (node.getKeyRest() != null) {
+        if (argsNode.getKeyRest() != null) {
             if (!useHelper) {
-                sequence.add(node.getKeyRest().accept(this));
+                sequence.add(argsNode.getKeyRest().accept(this));
             }
         }
 
-        if (node.getBlock() != null) {
-            sequence.add(node.getBlock().accept(this));
+        if (argsNode.getBlock() != null) {
+            sequence.add(argsNode.getBlock().accept(this));
         }
 
         return sequence(sourceSection, sequence);
