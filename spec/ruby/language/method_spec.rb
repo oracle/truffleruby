@@ -1178,7 +1178,7 @@ describe "A method" do
     end
 
     evaluate <<-ruby do
-        def m a, b=1, *c, d, e:, f: 2, g:, **k, &l
+        def m(a, b=1, *c, d, e:, f: 2, g:, **k, &l)
           [a, b, c, d, e, f, g, k, l]
         end
       ruby
@@ -1188,7 +1188,7 @@ describe "A method" do
     end
 
     evaluate <<-ruby do
-        def m (a, b = nil, c = nil, d, e: nil, **f)
+        def m(a, b = nil, c = nil, d, e: nil, **f)
           [a, b, c, d, e, f]
         end
     ruby
