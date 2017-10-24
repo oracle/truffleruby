@@ -77,7 +77,7 @@ public abstract class ProfileArgumentNode extends RubyNode {
 
     @Override
     public String toString() {
-        return getChild().toString();
+        return "Profiled(" + getChild() + ")";
     }
 
 }
