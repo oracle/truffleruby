@@ -94,6 +94,7 @@ module Truffle::POSIX
   attach_function :dup2, [:int, :int], :int
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
+  attach_function :fcntl, [:int, :int, :int], :int
   attach_function :flock, [:int, :int], :int
   attach_function :fsync, [:int], :int
   attach_function :isatty, [:int], :int

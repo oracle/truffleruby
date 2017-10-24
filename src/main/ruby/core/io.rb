@@ -1078,8 +1078,7 @@ class IO
   #
   def self.setup(io, fd, mode=nil, sync=false)
     cur_mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
-
-    Errno.handle if cur_mode < 0
+    Errno.handle_nfi if cur_mode < 0
 
     cur_mode &= ACCMODE
 
