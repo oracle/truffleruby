@@ -115,7 +115,7 @@ public class LoadArgumentsTranslator extends Translator {
     @Override
     public RubyNode visitArgsNode(ArgsParseNode node) {
         argsNode = node;
-        required = node.getPreCount() + node.getPostCount();
+        required = node.getRequiredCount();
         hasKeywordArguments = node.hasKwargs();
 
         final SourceIndexLength sourceSection = node.getPosition();
@@ -231,7 +231,7 @@ public class LoadArgumentsTranslator extends Translator {
         if (useArray()) {
             if (node.getPreCount() == 0 || node.hasRestArg()) {
                 sequence.add(new IfElseNode(
-                        new ArrayIsAtLeastAsLargeAsNode(node.getPreCount() + node.getPostCount(), loadArray(sourceSection)),
+                        new ArrayIsAtLeastAsLargeAsNode(required, loadArray(sourceSection)),
                         notNilAtLeastAsLarge,
                         notNilSmaller));
             } else {

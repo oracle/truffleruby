@@ -199,6 +199,10 @@ public class ArgsParseNode extends ParseNode {
         return optIndex;
     }
 
+    public int getRequiredCount() {
+        return getPreCount() + getPostCount();
+    }
+
     public ListParseNode getKeywords() {
         return new ListParseNode(getPosition()).addAll(args, keywordsIndex, getKeywordCount());
     }
