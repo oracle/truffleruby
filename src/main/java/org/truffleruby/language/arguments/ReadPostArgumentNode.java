@@ -18,17 +18,19 @@ public class ReadPostArgumentNode extends RubyNode {
 
     private final int indexFromCount;
     private final boolean keywordArguments;
+    private final int minimumForKWargs;
 
-    public ReadPostArgumentNode(int indexFromCount, boolean keywordArguments) {
+    public ReadPostArgumentNode(int indexFromCount, boolean keywordArguments, int minimumForKWargs) {
         this.indexFromCount = indexFromCount;
         this.keywordArguments = keywordArguments;
+        this.minimumForKWargs = minimumForKWargs;
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
         int count = RubyArguments.getArgumentsCount(frame);
 
-        if (keywordArguments) {
+        if (keywordArguments && count > minimumForKWargs) {
             final Object lastArgument = RubyArguments.getArgument(frame, count - 1);
             if (RubyGuards.isRubyHash(lastArgument)) {
                 count--;
