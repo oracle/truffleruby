@@ -72,12 +72,25 @@ describe "Truffle::Interop.read" do
     Truffle::Interop.read([1, 2, 3], 1).should == 2
   end
 
-  it "throws a Java UnknownIdentifierException exception when there is a Ruby exception during the read" do
-    lambda { Truffle::Interop.read([], Truffle::Interop.to_java_string('foo')) }.should raise_error(RubyTruffleError, /Unknown identifier: foo/)
+  it "raises a NameError when the identifier is not found on a Ruby object" do
+    ary = []
+    lambda {
+      Truffle::Interop.read(ary, Truffle::Interop.to_java_string('foo'))
+    }.should raise_error(NameError, /Unknown identifier: foo/) { |e|
+      e.receiver.should equal ary
+      e.name.should == :foo
+    }
+    end
+
+  it "raises a NameError when the identifier is not found on a foreign object" do
+    foreign = Truffle::Interop.java_array(1, 2, 3)
+    lambda { foreign.foo }.should raise_error(NameError, /Unknown identifier: foo/) { |e|
+      e.name.should == :foo
+    }
   end
 
-  it "throws a Java UnknownIdentifierException exception when the name is not a supported type" do
-    lambda { Truffle::Interop.read(Math, Truffle::Debug.foreign_object) }.should raise_error(RubyTruffleError, /Unknown identifier: /)
+  it "raises a NameError when the name is not a supported type" do
+    lambda { Truffle::Interop.read(Math, Truffle::Debug.foreign_object) }.should raise_error(NameError, /Unknown identifier: /)
   end
 
   it "can be used to index a hash" do

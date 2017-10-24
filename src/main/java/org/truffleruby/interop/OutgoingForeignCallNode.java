@@ -153,11 +153,16 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
     protected abstract class OutgoingNode extends Node {
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
+        private final BranchProfile unknownIdentifierProfile = BranchProfile.create();
 
         public abstract Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args);
 
         protected void exceptionProfile() {
             exceptionProfile.enter();
+        }
+
+        protected void unknownIdentifierProfile() {
+            unknownIdentifierProfile.enter();
         }
 
     }
@@ -176,11 +181,14 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             assert args.length == 1;
 
+            final Object name = rubyToForeignNode.executeConvert(frame, args[0]);
             final Object foreign;
-
             try {
-                foreign = ForeignAccess.sendRead(node, receiver, rubyToForeignNode.executeConvert(frame, args[0]));
-            } catch (UnknownIdentifierException | UnsupportedMessageException e) {
+                foreign = ForeignAccess.sendRead(node, receiver, name);
+            } catch (UnknownIdentifierException e) {
+                unknownIdentifierProfile();
+                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+            } catch (UnsupportedMessageException e) {
                 exceptionProfile();
                 throw new JavaException(e);
             }
@@ -213,7 +221,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                         receiver,
                         identifierToForeignNode.executeConvert(frame, args[0]),
                         valueToForeignNode.executeConvert(frame, args[1]));
-            } catch (UnknownIdentifierException | UnsupportedMessageException | UnsupportedTypeException e) {
+            } catch (UnknownIdentifierException e) {
+                unknownIdentifierProfile();
+                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+            } catch (UnsupportedMessageException | UnsupportedTypeException e) {
                 exceptionProfile();
                 throw new JavaException(e);
             }
@@ -243,7 +254,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
 
             try {
                 foreign = ForeignAccess.sendRead(node, receiver, name);
-            } catch (UnknownIdentifierException | UnsupportedMessageException e) {
+            } catch (UnknownIdentifierException e) {
+                unknownIdentifierProfile();
+                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+            } catch (UnsupportedMessageException e) {
                 exceptionProfile();
                 throw new JavaException(e);
             }
@@ -278,7 +292,10 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
                         receiver,
                         name,
                         rubyToForeignNode.executeConvert(frame, args[0]));
-            } catch (UnknownIdentifierException | UnsupportedMessageException | UnsupportedTypeException e) {
+            } catch (UnknownIdentifierException e) {
+                unknownIdentifierProfile();
+                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+            } catch (UnsupportedMessageException | UnsupportedTypeException e) {
                 exceptionProfile();
                 throw new JavaException(e);
             }
@@ -462,16 +479,19 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
         @Override
         public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
             assert args.length == argsLength;
+            final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(frame, args);
 
             final Object foreign;
-
             try {
                 foreign = ForeignAccess.sendInvoke(
                         node,
                         receiver,
                         name,
-                        rubyToForeignArgumentsNode.executeConvert(frame, args));
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException | UnknownIdentifierException e) {
+                        arguments);
+            } catch (UnknownIdentifierException e) {
+                unknownIdentifierProfile();
+                throw new RaiseException(coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
+            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 exceptionProfile();
                 throw new JavaException(e);
             }

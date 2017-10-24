@@ -10,6 +10,8 @@
 package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.constants.platform.Errno;
@@ -565,6 +567,11 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
+    public DynamicObject nameErrorUnknownIdentifier(TruffleObject receiver, Object name, UnknownIdentifierException exception, Node currentNode) {
+        return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
+    }
+
+    @TruffleBoundary
     public DynamicObject nameError(String message, Object receiver, String name, Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
@@ -628,6 +635,10 @@ public class CoreExceptions {
         final Object stringRepresentation = hasInspect ? context.send(receiver, "inspect", null) : context.getCoreLibrary().getNil();
 
         return noMethodError(StringUtils.format("undefined method `%s' for %s:%s", name, stringRepresentation, moduleName), receiver, name, args, currentNode);
+    }
+
+    public DynamicObject noMethodErrorUnknownIdentifier(TruffleObject receiver, Object name, Object[] args, UnknownIdentifierException exception, Node currentNode) {
+        return noMethodError(exception.getMessage(), receiver, name.toString(), args, currentNode);
     }
 
     @TruffleBoundary

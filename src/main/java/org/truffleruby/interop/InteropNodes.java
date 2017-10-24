@@ -229,19 +229,24 @@ public abstract class InteropNodes {
                 @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @Cached("createInvokeNode(cachedArgsLength)") Node invokeNode,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode,
+                @Cached("create()") BranchProfile unknownIdentifierProfile,
                 @Cached("create()") BranchProfile exceptionProfile) {
-            final Object foreign;
+            final String name = toJavaStringNode.executeToJavaString(frame, identifier);
+            final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(frame, args);
 
+            final Object foreign;
             try {
                 foreign = ForeignAccess.sendInvoke(
                         invokeNode,
                         receiver,
-                        toJavaStringNode.executeToJavaString(frame, identifier),
-                        rubyToForeignArgumentsNode.executeConvert(frame, args));
+                        name,
+                        arguments);
+            } catch (UnknownIdentifierException e) {
+                unknownIdentifierProfile.enter();
+                throw new RaiseException(coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
             } catch (UnsupportedTypeException
                     | ArityException
-                    | UnsupportedMessageException
-                    | UnknownIdentifierException e) {
+                    | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
@@ -257,23 +262,29 @@ public abstract class InteropNodes {
                 Object[] args,
                 @Cached("create()") ToJavaStringNode toJavaStringNode,
                 @Cached("create()") RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
-                @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
+                @Cached("create()") ForeignToRubyNode foreignToRubyNode,
+                @Cached("create()") BranchProfile unknownIdentifierProfile,
+                @Cached("create()") BranchProfile exceptionProfile) {
             Log.notOptimizedOnce("megamorphic interop INVOKE message send");
 
             final Node invokeNode = createInvokeNode(args.length);
+            final String name = toJavaStringNode.executeToJavaString(frame, identifier);
+            final Object[] arguments = rubyToForeignArgumentsNode.executeConvert(frame, args);
 
             final Object foreign;
-
             try {
                 foreign = ForeignAccess.sendInvoke(
                         invokeNode,
                         receiver,
-                        toJavaStringNode.executeToJavaString(frame, identifier),
-                        rubyToForeignArgumentsNode.executeConvert(frame, args));
+                        name,
+                        arguments);
+            } catch (UnknownIdentifierException e) {
+                unknownIdentifierProfile.enter();
+                throw new RaiseException(coreExceptions().noMethodErrorUnknownIdentifier(receiver, name, args, e, this));
             } catch (UnsupportedTypeException
                     | ArityException
-                    | UnsupportedMessageException
-                    | UnknownIdentifierException e) {
+                    | UnsupportedMessageException e) {
+                exceptionProfile.enter();
                 throw new JavaException(e);
             }
 
@@ -592,17 +603,22 @@ public abstract class InteropNodes {
                 TruffleObject receiver,
                 Object identifier,
                 @Cached("createReadNode()") Node readNode,
+                @Cached("create()") BranchProfile unknownIdentifierProfile,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") RubyToForeignNode rubyToForeignNode,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
-            final Object foreign;
 
+            final Object name = rubyToForeignNode.executeConvert(frame, identifier);
+            final Object foreign;
             try {
                 foreign = ForeignAccess.sendRead(
                         readNode,
                         receiver,
-                        rubyToForeignNode.executeConvert(frame, identifier));
-            } catch (UnknownIdentifierException | UnsupportedMessageException e) {
+                        name);
+            } catch (UnknownIdentifierException e) {
+                unknownIdentifierProfile.enter();
+                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+            } catch (UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
@@ -633,17 +649,22 @@ public abstract class InteropNodes {
                 @Cached("create()") RubyToForeignNode identifierToForeignNode,
                 @Cached("create()") RubyToForeignNode valueToForeignNode,
                 @Cached("createWriteNode()") Node writeNode,
+                @Cached("create()") BranchProfile unknownIdentifierProfile,
                 @Cached("create()") BranchProfile exceptionProfile,
                 @Cached("create()") ForeignToRubyNode foreignToRubyNode) {
-            final Object foreign;
 
+            final Object name = identifierToForeignNode.executeConvert(frame, identifier);
+            final Object foreign;
             try {
                 foreign = ForeignAccess.sendWrite(
                         writeNode,
                         receiver,
-                        identifierToForeignNode.executeConvert(frame, identifier),
+                        name,
                         valueToForeignNode.executeConvert(frame, value));
-            } catch (UnknownIdentifierException | UnsupportedTypeException | UnsupportedMessageException e) {
+            } catch (UnknownIdentifierException e) {
+                unknownIdentifierProfile.enter();
+                throw new RaiseException(coreExceptions().nameErrorUnknownIdentifier(receiver, name, e, this));
+            } catch (UnsupportedTypeException | UnsupportedMessageException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
