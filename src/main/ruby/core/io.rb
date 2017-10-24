@@ -2546,7 +2546,14 @@ class IO
     begin
       flush
     ensure
-      Truffle.invoke_primitive :io_close, self
+      fd = @descriptor
+      if fd >= 0
+        @descriptor = -1
+        if fd >= 3
+          ret = Truffle::POSIX.close(fd)
+          Errno.handle_nfi if ret < 0
+        end
+      end
     end
 
     if @pid and @pid != 0
