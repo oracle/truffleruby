@@ -310,6 +310,8 @@ an integer, or anything else
 
 `object.to_a` and `object.to_ary` calls `Truffle::Interop.to_array(object)`
 
+`object.equal?(other)` returns whether object is the same as other, like BasicObject#equal?
+
 `object.inspect` produces a simple string of the format
 `#<Truffle::Interop::Foreign:system-identity-hash-code>`
 
@@ -403,5 +405,5 @@ Method calls on foreign objects are usually translated exactly into foreign
 are a kind of special-form - they are implemented as a special case in the
 call-site logic. They are not being provided by `BasicObject` or `Kernel` as you
 may expect. This means that for example `#method` isn't available, and you can't
-use it to get the method for `#to_a` on a foreign object, as it it's a
+use it to get the method for `#to_a` on a foreign object, as it is a
 special-form, not a method.
