@@ -310,7 +310,7 @@ an integer, or anything else
 
 `object.to_a` and `object.to_ary` calls `Truffle::Interop.to_array(object)`
 
-`object.equal?(other)` returns whether object is the same as other, like BasicObject#equal?
+`object.equal?(other)` returns whether `object` is the same as `other` using reference equality, like `BasicObject#equal?`
 
 `object.inspect` produces a simple string of the format
 `#<Truffle::Interop::Foreign:system-identity-hash-code>`
