@@ -67,28 +67,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "recvmsg", isModuleFunction = true, required = 3, lowerFixnum = { 1, 3 })
-    public abstract static class RecvMsgNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyPointer(messagePtr)")
-        public int recvmsg(int socket, DynamicObject messagePtr, int flags) {
-            return nativeSockets().recvmsg(socket, Layouts.POINTER.getPointer(messagePtr), flags);
-        }
-
-    }
-
-    @CoreMethod(names = "sendmsg", isModuleFunction = true, required = 3, lowerFixnum = { 1, 3 })
-    public abstract static class SendMsgNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyPointer(messagePtr)")
-        public int sendmsg(int socket, DynamicObject messagePtr, int flags) {
-            return nativeSockets().sendmsg(socket, Layouts.POINTER.getPointer(messagePtr), flags);
-        }
-
-    }
-
     @CoreMethod(names = "major", isModuleFunction = true, required = 1)
     public abstract static class MajorNode extends CoreMethodArrayArgumentsNode {
 
@@ -150,6 +128,30 @@ public abstract class TrufflePosixNodes {
         public int errno(int errno) {
             posix().errno(errno);
             return 0;
+        }
+
+    }
+
+    // Sockets
+
+    @CoreMethod(names = "recvmsg", isModuleFunction = true, required = 3, lowerFixnum = { 1, 3 })
+    public abstract static class RecvMsgNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyPointer(messagePtr)")
+        public int recvmsg(int socket, DynamicObject messagePtr, int flags) {
+            return nativeSockets().recvmsg(socket, Layouts.POINTER.getPointer(messagePtr), flags);
+        }
+
+    }
+
+    @CoreMethod(names = "sendmsg", isModuleFunction = true, required = 3, lowerFixnum = { 1, 3 })
+    public abstract static class SendMsgNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyPointer(messagePtr)")
+        public int sendmsg(int socket, DynamicObject messagePtr, int flags) {
+            return nativeSockets().sendmsg(socket, Layouts.POINTER.getPointer(messagePtr), flags);
         }
 
     }
