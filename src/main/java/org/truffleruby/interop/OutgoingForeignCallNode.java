@@ -114,6 +114,8 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             return new SendOutgoingNode();
         } else if (name.equals("nil?") && argsLength == 0) {
             return new IsNilOutgoingNode();
+        } else if (name.equals("equal?") && argsLength == 1) {
+            return new IsReferenceEqualOutgoingNode();
         } else if (name.endsWith("!") && argsLength == 0) {
             return new InvokeOutgoingNode(name.substring(0, name.length() - 1), argsLength);
         } else if (argsLength == 0) {
@@ -457,6 +459,16 @@ public abstract class OutgoingForeignCallNode extends RubyNode {
             assert args.length == 0;
 
             return ForeignAccess.sendIsNull(node, receiver);
+        }
+
+    }
+
+    protected class IsReferenceEqualOutgoingNode extends OutgoingNode {
+
+        @Override
+        public Object executeCall(VirtualFrame frame, TruffleObject receiver, Object[] args) {
+            assert args.length == 1;
+            return receiver == args[0];
         }
 
     }
