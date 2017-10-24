@@ -51,7 +51,7 @@ class SpinnerFormatter < DottedFormatter
   end
 
   def compute_percentage
-    @percent = @loaded * 100 / @total
+    @percent = @total > 0 ? @loaded * 100 / @total : 0
     bar = ("=" * (@percent / @ratio)).ljust @length
     label = "%d%%" % @percent
     bar[@position, label.size] = label
