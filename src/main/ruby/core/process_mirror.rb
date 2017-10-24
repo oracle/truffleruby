@@ -408,8 +408,8 @@ module Rubinius
           result = Truffle::POSIX.dup2(to, from)
           Errno.handle_nfi if result < 0
 
-          flags = Truffle::POSIX.fcntl(from, Fcntl::F_GETFD, nil)
-          Errno.handle if flags < 0
+          flags = Truffle::POSIX.fcntl(from, Fcntl::F_GETFD, 0)
+          Errno.handle_nfi if flags < 0
 
           Truffle::POSIX.fcntl(from, Fcntl::F_SETFD, flags & ~Fcntl::FD_CLOEXEC)
         end

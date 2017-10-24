@@ -16,7 +16,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import jnr.constants.platform.Fcntl;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -151,23 +150,6 @@ public abstract class TrufflePosixNodes {
         public int errno(int errno) {
             posix().errno(errno);
             return 0;
-        }
-
-    }
-
-    @CoreMethod(names = "fcntl", isModuleFunction = true, required = 3, lowerFixnum = {1, 2, 3})
-    public abstract static class FcntlNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isNil(nil)")
-        public int fcntl(int fd, int fcntl, Object nil) {
-            return posix().fcntl(fd, Fcntl.valueOf(fcntl));
-        }
-
-        @TruffleBoundary
-        @Specialization
-        public int fcntl(int fd, int fcntl, int arg) {
-            return posix().fcntlInt(fd, Fcntl.valueOf(fcntl), arg);
         }
 
     }
