@@ -1195,6 +1195,12 @@ describe "A method" do
 
       result = m(1, 2)
       result.should == [1, nil, nil, 2, nil, {}]
+
+      result = m(1, 2, {foo: :bar})
+      result.should == [1, nil, nil, 2, nil, {foo: :bar}]
+
+      result = m(1, {foo: :bar})
+      result.should == [1, nil, nil, {foo: :bar}, nil, {}]
     end
   end
 end
