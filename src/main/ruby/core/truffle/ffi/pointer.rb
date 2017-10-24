@@ -58,6 +58,9 @@ module Rubinius::FFI
   class Pointer
     def initialize(a1, a2=undefined)
       if undefined.equal? a2
+        if Truffle::Interop.foreign?(a1) && Truffle::Interop.pointer?(a1)
+          a1 = Truffle::Interop.as_pointer(a1)
+        end
         self.address = a1
       else
         @type = a1
