@@ -48,7 +48,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubyWarnings;
-import org.truffleruby.parser.Signature;
 import org.truffleruby.parser.ast.AliasParseNode;
 import org.truffleruby.parser.ast.AndParseNode;
 import org.truffleruby.parser.ast.ArgsCatParseNode;
@@ -1203,8 +1202,6 @@ public class ParserSupport {
             argsNode = new ArgsParseNode(position, pre, optional, rest, post,
                     tail.getKeywordArgs(), tail.getKeywordRestArgNode(), tail.getBlockArg());
         }
-
-        getCurrentScope().setSignature(Signature.from(argsNode));
 
         return argsNode;
     }

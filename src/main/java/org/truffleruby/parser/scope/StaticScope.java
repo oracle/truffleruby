@@ -29,7 +29,6 @@
 package org.truffleruby.parser.scope;
 
 import org.truffleruby.language.SourceIndexLength;
-import org.truffleruby.parser.Signature;
 import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
 import org.truffleruby.parser.ast.DVarParseNode;
@@ -63,9 +62,6 @@ public class StaticScope {
 
     // A list of booleans indicating which variables are named captures from regexp
     private boolean[] namedCaptures;
-
-    // Arity of this scope if there is one
-    private Signature signature;
 
     // File name where this static scope came from or null if a native or artificial scope
     private String file;
@@ -335,21 +331,6 @@ public class StaticScope {
 
     public boolean isBlockScope() {
         return isBlockOrEval;
-    }
-
-    /**
-     * For all block or method associated with static scopes this will return the signature for that
-     * signature-providing scope.  module bodies and other non-arity specific code will return null.
-     */
-    public Signature getSignature() {
-        return signature;
-    }
-
-    /**
-     * This happens in when first defining ArgsNodes or when reifying a method from AOT.
-     */
-    public void setSignature(Signature signature) {
-        this.signature = signature;
     }
 
     public void setCommandArgumentStack(long commandArgumentStack) {
