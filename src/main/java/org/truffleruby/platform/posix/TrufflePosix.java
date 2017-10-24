@@ -29,7 +29,6 @@ public interface TrufflePosix {
     int lstat(String path, FileStat stat);
     FileStat stat(String path);
     int stat(String path, FileStat stat);
-    int symlink(String oldpath,String newpath);
     int waitpid(int pid, int[] status, int flags);
     int errno();
     void errno(int value);
@@ -38,8 +37,6 @@ public interface TrufflePosix {
     Times times();
     int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends SpawnAttribute> spawnAttributes,
             Collection<? extends CharSequence> argv, Collection<? extends CharSequence> envp);
-    int flock(int fd, int operation);
-
     int dup2(int oldFd, int newFd);
     int fcntlInt(int fd, Fcntl fcntlConst, int arg);
     int fcntl(int fd, Fcntl fcntlConst);
@@ -53,9 +50,7 @@ public interface TrufflePosix {
     int pipe(int[] fds);
     int truncate(CharSequence path, long length);
     int ftruncate(int fd, long offset);
-    int rename(CharSequence oldName, CharSequence newName);
     String getcwd();
-    int isatty(int fd);
     String nl_langinfo(int item);
 
 }

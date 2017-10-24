@@ -87,12 +87,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int symlink(String oldpath, String newpath) {
-        return posix.symlink(oldpath, newpath);
-    }
-
-    @TruffleBoundary
-    @Override
     public int waitpid(int pid, int[] status, int flags) {
         return posix.waitpid(pid, status, flags);
     }
@@ -140,12 +134,6 @@ public class JNRTrufflePosix implements TrufflePosix {
         } else {
             return CoreLibrary.long2int(pid);
         }
-    }
-
-    @TruffleBoundary
-    @Override
-    public int flock(int fd, int operation) {
-        return posix.flock(fd, operation);
     }
 
     @TruffleBoundary
@@ -277,20 +265,8 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int rename(CharSequence oldName, CharSequence newName) {
-        return posix.rename(oldName, newName);
-    }
-
-    @TruffleBoundary
-    @Override
     public String getcwd() {
         return posix.getcwd();
-    }
-
-    @TruffleBoundary
-    @Override
-    public int isatty(int fd) {
-        return posix.libc().isatty(fd);
     }
 
     @TruffleBoundary

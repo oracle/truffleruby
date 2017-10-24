@@ -979,7 +979,7 @@ class File < IO
   #  File.rename("afile", "afile.bak")   #=> 0
   def self.rename(from, to)
     n = POSIX.rename Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
-    Errno.handle if n == -1
+    Errno.handle_nfi if n == -1
     n
   end
 
@@ -1046,7 +1046,7 @@ class File < IO
   #  File.symlink("testfile", "link2test")   #=> 0
   def self.symlink(from, to)
     n = POSIX.symlink Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
-    Errno.handle if n == -1
+    Errno.handle_nfi if n == -1
     n
   end
 
