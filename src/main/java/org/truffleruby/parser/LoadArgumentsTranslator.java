@@ -116,6 +116,7 @@ public class LoadArgumentsTranslator extends Translator {
     public RubyNode visitArgsNode(ArgsParseNode node) {
         argsNode = node;
         required = node.getPreCount() + node.getPostCount();
+        hasKeywordArguments = node.hasKwargs();
 
         final SourceIndexLength sourceSection = node.getPosition();
 
@@ -157,8 +158,6 @@ public class LoadArgumentsTranslator extends Translator {
                 index++;
             }
         }
-
-        hasKeywordArguments = node.hasKwargs();
 
         final int optArgCount = node.getOptionalArgsCount();
         if (optArgCount > 0) {
