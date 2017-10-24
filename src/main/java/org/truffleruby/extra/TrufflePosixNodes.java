@@ -95,20 +95,6 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "getcwd", isModuleFunction = true)
-    public abstract static class GetcwdNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject getcwd() {
-            final String path = posix().getcwd();
-
-            // TODO (nirvdrum 12-Sept-16) The rope table always returns UTF-8, but this call should be based on Encoding.default_external and reflect updates to that value.
-            return StringOperations.createString(getContext(), getContext().getRopeTable().getRope(path));
-        }
-
-    }
-
     @CoreMethod(names = "errno", isModuleFunction = true)
     public abstract static class ErrnoNode extends CoreMethodArrayArgumentsNode {
 
