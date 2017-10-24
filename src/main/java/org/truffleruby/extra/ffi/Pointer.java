@@ -147,7 +147,9 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
     }
 
     public void free() {
-        UNSAFE.freeMemory(address);
+        if (!autorelease) {
+            UNSAFE.freeMemory(address);
+        }
     }
 
     @Override
@@ -165,7 +167,10 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
             return;
         }
 
-        finalizationService.addFinalizer(this, Pointer.class, () -> free());
+        // We must be careful here that the finalizer does not capture the Pointer itself that we'd
+        // like to finalize.
+        long pointer = address;
+        finalizationService.addFinalizer(this, Pointer.class, () -> UNSAFE.freeMemory(pointer));
 
         autorelease = true;
     }

@@ -41,6 +41,15 @@ VALUE rb_tr_managed_from_handle_or_null(void *handle);
 VALUE rb_tr_managed_from_handle(void *handle);
 void rb_tr_release_handle(void *handle);
 
+void *rb_tr_new_local_ref(VALUE obj);
+VALUE rb_tr_get_local_ref(void *obj);
+void *rb_tr_new_global_ref(VALUE obj);
+VALUE rb_tr_get_global_ref(void *obj);
+void rb_tr_release_global_ref(void * obj);
+void *rb_tr_new_weak_ref(VALUE obj);
+VALUE rb_tr_get_weak_ref(void *obj);
+void rb_tr_release_weak_ref(void * obj);
+
 bool rb_tr_obj_taintable_p(VALUE object);
 bool rb_tr_obj_tainted_p(VALUE object);
 void rb_tr_obj_infect(VALUE a, VALUE b);

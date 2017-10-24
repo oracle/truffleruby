@@ -2918,7 +2918,7 @@ struct RData *RDATA(VALUE value) {
 }
 
 VALUE rb_data_object_wrap(VALUE klass, void *datap, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, datap, dmark, dfree);
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_data_object_wrap", klass, datap, dmark, dfree ? truffle_address_to_function(dfree) : Qnil );
 }
 
 VALUE rb_data_object_zalloc(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree) {
@@ -3013,6 +3013,38 @@ VALUE rb_tr_managed_from_handle(void *handle) {
 
 void rb_tr_release_handle(void *handle) {
   truffle_release_handle(handle);
+}
+
+void *rb_tr_new_local_ref(VALUE obj) {
+  return (void *)NUM2LONG(truffle_invoke(RUBY_CEXT, "rb_tr_new_local_ref", obj));
+}
+
+VALUE rb_tr_get_local_ref(void *obj) {
+  return (VALUE)truffle_invoke(RUBY_CEXT, "rb_tr_get_local_ref", LONG2NUM((long) obj));
+}
+
+void *rb_tr_new_global_ref(VALUE obj) {
+  return (void *)NUM2LONG(truffle_invoke(RUBY_CEXT, "rb_tr_new_global_ref", obj));
+}
+
+VALUE rb_tr_get_global_ref(void *obj) {
+  return (VALUE)truffle_invoke(RUBY_CEXT, "rb_tr_get_global_ref", LONG2NUM((long) obj));
+}
+
+void rb_tr_release_global_ref(void *obj) {
+  truffle_invoke(RUBY_CEXT, "rb_tr_release_global_ref", LONG2NUM((long) obj));
+}
+
+void *rb_tr_new_weak_ref(VALUE obj) {
+  return (void *)NUM2LONG(truffle_invoke(RUBY_CEXT, "rb_tr_new_weak_ref", obj));
+}
+
+VALUE rb_tr_get_weak_ref(void *obj) {
+  return (VALUE)truffle_invoke(RUBY_CEXT, "rb_tr_get_weak_ref", LONG2NUM((long) obj));
+}
+
+void rb_tr_release_weak_ref(void *obj) {
+  truffle_invoke(RUBY_CEXT, "rb_tr_release_weak_ref", LONG2NUM((long) obj));
 }
 
 void rb_tr_load_library(const char *library) {
