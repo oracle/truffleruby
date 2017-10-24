@@ -862,7 +862,7 @@ public class CExtNodes {
                     return null;
                 } else if (method.getName().equals(/* Truffle::Cext. */ "rb_call_super")
                         || method.getName().equals(/* Truffle::CExt. */ "execute_with_mutex")
-                        || method.getName().equals(/* Truffle::Interop. */ "execute")
+                        || method.getName().equals(/* Truffle::Interop. */ "execute_without_conversion")
                         || method.getName().equals(/* Truffle::Cext. */ "rb_call_super_splatted")) {
                     // TODO CS 11-Mar-17 must have a more precise check to skip these methods
                     return null;
