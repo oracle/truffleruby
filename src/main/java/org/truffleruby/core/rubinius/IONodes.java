@@ -759,30 +759,6 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_close")
-    public static abstract class IOClosePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public int close(DynamicObject io) {
-            final int fd = Layouts.IO.getDescriptor(io);
-
-            if (fd == CLOSED_FD) {
-                return 0;
-            }
-
-            Layouts.IO.setDescriptor(io, CLOSED_FD);
-
-            if (fd < 3) {
-                return 0;
-            }
-
-            ensureSuccessful(posix().close(fd));
-
-            return 0;
-        }
-
-    }
-
     @Primitive(name = "io_seek", lowerFixnum = { 1, 2 })
     public static abstract class IOSeekPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 

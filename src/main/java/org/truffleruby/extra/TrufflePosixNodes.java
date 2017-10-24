@@ -585,15 +585,4 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "close", isModuleFunction = true, required = 1, lowerFixnum = 1)
-    public abstract static class CloseNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int close(int file) {
-            return posix().close(file);
-        }
-
-    }
-
 }
