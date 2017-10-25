@@ -8,6 +8,15 @@
 
 module Truffle::POSIX
   LIBC = Truffle::Interop.eval('application/x-native', 'default')
+  DL_EXT = RbConfig::CONFIG['NATIVE_DLEXT']
+
+  home = Truffle::Boot.ruby_home
+  libtruffleposix = "#{home}/lib/cext/truffleposix.#{DL_EXT}" if home
+  if home and File.exist?(libtruffleposix)
+    LIBTRUFFLEPOSIX = Truffle::Interop.eval('application/x-native', "load '#{libtruffleposix}'")
+  else
+    LIBTRUFFLEPOSIX = LIBC
+  end
 
   TYPES = {
     :short => :sint16,
@@ -101,7 +110,7 @@ module Truffle::POSIX
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
   attach_function :fcntl, [:int, :int, :int], :int
-  attach_function :flock, [:int, :int], :int
+  attach_function :flock, :truffleposix_flock, [:int, :int], :int, library: LIBTRUFFLEPOSIX
   attach_function :fsync, [:int], :int
   attach_function :getcwd, [:pointer, :size_t], :string
   attach_function :isatty, [:int], :int
