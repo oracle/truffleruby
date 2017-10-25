@@ -13,8 +13,16 @@ module BenchmarkInterface
       INITIAL_ITERATIONS = 1
       MAX_ITERATIONS = 2147483647
 
-      def self.get_time
-        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      # Accomodates Rubinius
+      
+      if defined?(Process::CLOCK_MONOTONIC)
+        def self.get_time
+          Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        end
+      else
+        def self.get_time
+          Time.now
+        end
       end
 
       def self.run(benchmark_set, names, options)
