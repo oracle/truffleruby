@@ -34,9 +34,15 @@ module Truffle::POSIX
     end
   end
 
-  def self.attach_function(method_name, native_name = method_name, argument_types, return_type)
+  def self.attach_function(method_name, native_name, argument_types, return_type = nil, options = {})
+    unless return_type && Symbol === native_name
+      native_name, argument_types, return_type, options = method_name, native_name, argument_types, return_type
+      options ||= {}
+    end
+
+    lib = options.fetch(:library, LIBC)
     begin
-      func = LIBC[native_name]
+      func = lib[native_name]
     rescue NameError # Missing function
       func = nil
     end
