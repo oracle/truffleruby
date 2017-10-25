@@ -44,24 +44,30 @@ module Rubinius
 
   HOST_OS = Truffle::System.host_os
 
-  def self.bsd?
-    !!(HOST_OS =~ /bsd/i)
-  end
+  IS_LINUX = HOST_OS == 'linux'
+  IS_SOLARIS = HOST_OS == 'solaris'
+  IS_DARWIN = HOST_OS == 'darwin'
+  IS_BSD = HOST_OS == 'freebsd' || HOST_OS == 'netbsd' || HOST_OS == 'openbsd'
+  IS_WINDOWS = HOST_OS == 'mswin32'
 
   def self.linux?
-    !!(HOST_OS =~ /linux/i)
-  end
-
-  def self.solaris?
-    !!(HOST_OS =~ /solaris|sunos/i)
-  end
-
-  def self.windows?
-    false
+    IS_LINUX
   end
 
   def self.darwin?
-    HOST_OS == 'darwin'
+    IS_DARWIN
+  end
+
+  def self.solaris?
+    IS_SOLARIS
+  end
+
+  def self.bsd?
+    IS_BSD
+  end
+
+  def self.windows?
+    IS_WINDOWS
   end
 
   def self.mathn_loaded?
