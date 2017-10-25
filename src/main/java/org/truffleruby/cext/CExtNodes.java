@@ -1154,6 +1154,8 @@ public class CExtNodes {
         }
     }
 
+    // Those primitives store a Symbol as key, so they effectively have
+    // different namespace than normal ivars which use java.lang.String.
     @CoreMethod(names = "hidden_variable_get", onSingleton = true, required = 2)
     public abstract static class HiddenVariableGetNode extends CoreMethodArrayArgumentsNode {
 
