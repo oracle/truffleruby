@@ -231,8 +231,8 @@ class Dir
     alias_method :unlink, :rmdir
 
     def getwd
-      Rubinius::FFI::MemoryPointer.new(1024) do |ptr|
-        wd = Truffle::POSIX.getcwd(ptr, 1024)
+      Rubinius::FFI::MemoryPointer.new(Rubinius::PATH_MAX) do |ptr|
+        wd = Truffle::POSIX.getcwd(ptr, Rubinius::PATH_MAX)
         Errno.handle_nfi unless wd
 
         Rubinius::Type.external_string wd
