@@ -903,7 +903,7 @@ public class CExtNodes {
         private static final int RB_WAITFD_PRI = 2;
         private static final int RB_WAITFD_OUT = 4;
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public int waitForSingleFDNode(int fd, int events, long tv_secs, long tv_usecs) {
             final boolean isRead = (events & RB_WAITFD_IN) != 0;

@@ -71,7 +71,7 @@ public abstract class LookupForExistingModuleNode extends RubyNode {
         return constant;
     }
 
-    @TruffleBoundary(throwsControlFlowException = true)
+    @TruffleBoundary(transferToInterpreterOnException = false)
     private RubyConstant deepConstantSearch(String name, LexicalScope lexicalScope, DynamicObject lexicalParent) {
         RubyConstant constant = Layouts.MODULE.getFields(lexicalParent).getConstant(name);
 

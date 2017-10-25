@@ -161,7 +161,7 @@ public class JavaUtilitiesNodes {
     @CoreMethod(names = "proxy_class", required = 1, rest = true, isModuleFunction = true)
     public static abstract class JavaProxyClassNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public Object createJavaProxyClass(Object loader, Object[] rest) {
             if (TruffleOptions.AOT) {

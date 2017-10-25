@@ -203,7 +203,7 @@ public abstract class MatchDataNodes {
             return createArray(store, length);
         }
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubySymbol(index)")
         public Object getIndexSymbol(DynamicObject matchData, DynamicObject index, NotProvided length,
                 @Cached("create()") BranchProfile errorProfile,
@@ -219,7 +219,7 @@ public abstract class MatchDataNodes {
             }
         }
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubyString(index)")
         public Object getIndexString(DynamicObject matchData, DynamicObject index, NotProvided length,
                                      @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile) {

@@ -2517,7 +2517,7 @@ public abstract class StringNodes {
             return string;
         }
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "!isSingleByteOptimizable(string)")
         public DynamicObject capitalizeBang(DynamicObject string) {
             // Taken from org.jruby.RubyString#capitalize_bang19.
@@ -3142,7 +3142,7 @@ public abstract class StringNodes {
             return createString(rope);
         }
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = { "isRubyEncoding(rubyEncoding)", "!isSimple(code, rubyEncoding)", "isCodepoint(code)" })
         public DynamicObject stringFromCodepoint(long code, DynamicObject rubyEncoding,
                                                  @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
@@ -3189,7 +3189,7 @@ public abstract class StringNodes {
     @Primitive(name = "string_to_f", needsSelf = false)
     public static abstract class StringToFPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public Object stringToF(DynamicObject string, boolean strict,
                                 @Cached("create(getSourceIndexLength())") FixnumOrBignumNode fixnumOrBignumNode) {

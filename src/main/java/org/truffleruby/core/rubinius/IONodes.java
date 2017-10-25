@@ -180,7 +180,7 @@ public abstract class IONodes {
             return true;
         }
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         private void newOpenFd(int newFd) {
             final int FD_CLOEXEC = 1;
 
@@ -213,7 +213,7 @@ public abstract class IONodes {
     @Primitive(name = "io_open", needsSelf = false, lowerFixnum = {2, 3})
     public static abstract class IOOpenPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubyString(path)")
         public int open(DynamicObject path, int mode, int permission) {
             String pathString = StringOperations.getString(path);
@@ -229,7 +229,7 @@ public abstract class IONodes {
     @Primitive(name = "file_truncate", needsSelf = false)
     public static abstract class FileTruncatePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubyString(path)")
         public int truncate(DynamicObject path, long length) {
             return ensureSuccessful(posix().truncate(StringOperations.getString(path), length));
@@ -240,7 +240,7 @@ public abstract class IONodes {
     @Primitive(name = "file_ftruncate")
     public static abstract class FileFTruncatePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public int ftruncate(DynamicObject file, long length) {
             final int fd = Layouts.IO.getDescriptor(file);
@@ -542,7 +542,7 @@ public abstract class IONodes {
     @CoreMethod(names = "socket_recv", required = 3, lowerFixnum = { 1, 2, 3 }, visibility = Visibility.PRIVATE)
     public static abstract class IOSocketReadNode extends IOPrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public Object socketRead(DynamicObject io, int length, int flags, int type) {
             final int sockfd = Layouts.IO.getDescriptor(io);
@@ -565,7 +565,7 @@ public abstract class IONodes {
     @Primitive(name = "io_read_if_available", lowerFixnum = 1)
     public static abstract class IOReadIfAvailableNode extends IOPrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public Object readIfAvailable(DynamicObject file, int numberOfBytes) {
             // Taken from Rubinius's IO::read_if_available.
@@ -605,7 +605,7 @@ public abstract class IONodes {
     @Primitive(name = "io_reopen")
     public static abstract class IOReopenPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         protected DynamicObject reopen(DynamicObject self, DynamicObject target) {
             final int fdSelf = Layouts.IO.getDescriptor(self);
@@ -623,7 +623,7 @@ public abstract class IONodes {
     @Primitive(name = "io_reopen_path", lowerFixnum = 2)
     public static abstract class IOReopenPathPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         protected DynamicObject reopenPath(DynamicObject self, DynamicObject path, int mode) {
             final int fdSelf = Layouts.IO.getDescriptor(self);
@@ -660,7 +660,7 @@ public abstract class IONodes {
     @Primitive(name = "io_write")
     public static abstract class IOWritePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubyString(string)")
         public int write(DynamicObject file, DynamicObject string) {
             final int fd = Layouts.IO.getDescriptor(file);
@@ -697,7 +697,7 @@ public abstract class IONodes {
             }
         }
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubyString(string)")
         public int writeNonBlock(DynamicObject io, DynamicObject string) {
             setNonBlocking(io);
@@ -798,7 +798,7 @@ public abstract class IONodes {
     public abstract static class AcceptNode extends IOPrimitiveArrayArgumentsNode {
 
         @SuppressWarnings("restriction")
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public int accept(DynamicObject io) {
             final int fd = Layouts.IO.getDescriptor(io);
@@ -818,7 +818,7 @@ public abstract class IONodes {
     @Primitive(name = "io_sysread", lowerFixnum = 1)
     public static abstract class IOSysReadPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public DynamicObject sysread(DynamicObject file, int length) {
             final int fd = Layouts.IO.getDescriptor(file);
@@ -868,7 +868,7 @@ public abstract class IONodes {
             return doSelect(readables, writables, errorables, timeoutMicros);
         }
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         private Object doSelect(DynamicObject readables, DynamicObject writables, DynamicObject errorables, int timeoutMicros) {
             final Object[] readableObjects = toObjectArray(readables);
             final Object[] writableObjects = toObjectArray(writables);

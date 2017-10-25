@@ -162,7 +162,7 @@ public abstract class ThreadNodes {
     @CoreMethod(names = { "kill", "exit", "terminate" })
     public abstract static class KillNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public DynamicObject kill(DynamicObject rubyThread) {
             final ThreadManager threadManager = getContext().getThreadManager();
