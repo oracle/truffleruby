@@ -16,18 +16,16 @@ import org.truffleruby.platform.solaris.SolarisPlatform;
 
 public abstract class NativePlatformFactory {
 
-    private static final Platform.OS_TYPE OS = Platform.getPlatform().getOS();
-
     public static NativePlatform createPlatform(RubyContext context) {
-        if (OS == Platform.OS_TYPE.LINUX) {
+        if (Platform.OS == Platform.OS_TYPE.LINUX) {
             return new LinuxPlatform(context);
         }
 
-        if (OS == Platform.OS_TYPE.SOLARIS) {
+        if (Platform.OS == Platform.OS_TYPE.SOLARIS) {
             return new SolarisPlatform(context);
         }
 
-        if (OS == Platform.OS_TYPE.DARWIN) {
+        if (Platform.OS == Platform.OS_TYPE.DARWIN) {
             return new DarwinPlatform(context);
         }
 

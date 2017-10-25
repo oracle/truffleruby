@@ -740,7 +740,7 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(processModule).setConstant(context, node, "CLOCK_MONOTONIC", ProcessNodes.CLOCK_MONOTONIC);
         Layouts.MODULE.getFields(processModule).setConstant(context, node, "CLOCK_REALTIME", ProcessNodes.CLOCK_REALTIME);
 
-        if (Platform.getPlatform().getOS() == Platform.OS_TYPE.LINUX) {
+        if (Platform.OS == Platform.OS_TYPE.LINUX) {
             // Naming is not very consistent here, we just follow MRI
             Layouts.MODULE.getFields(processModule).setConstant(context, node, "CLOCK_THREAD_CPUTIME_ID", ProcessNodes.CLOCK_THREAD_CPUTIME);
             Layouts.MODULE.getFields(processModule).setConstant(context, node, "CLOCK_MONOTONIC_RAW", ProcessNodes.CLOCK_MONOTONIC_RAW);

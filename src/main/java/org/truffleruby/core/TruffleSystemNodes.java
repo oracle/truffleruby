@@ -122,10 +122,9 @@ public abstract class TruffleSystemNodes {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
-        @TruffleBoundary
         @Specialization
         public DynamicObject hostOS() {
-            return makeStringNode.executeMake(Platform.getOSName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(Platform.getOSName(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
     }
