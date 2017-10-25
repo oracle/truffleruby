@@ -21,9 +21,10 @@ nbproject
 .factorypath
 
 # C extensions
+lib/cext/truffleposix.so
+lib/cext/trufflemock.bc
 lib/cext/ruby.su
 lib/cext/ruby.bc
-lib/cext/trufflemock.bc
 lib/mri/openssl.su
 lib/mri/zlib.su
 lib/mri/syslog.su
@@ -44,6 +45,8 @@ src/main/c/*/*.bc
 src/main/c/*/*.su
 src/main/c/*/extconf.h
 src/main/c/*/mkmf.log
+src/main/c/truffleposix/truffleposix.o
+src/main/c/truffleposix/truffleposix.so
 
 test/truffle/cexts/**/Makefile
 test/truffle/cexts/**/*.bc

@@ -1,19 +1,28 @@
-ROOT := $(realpath ../../..)
-RUBY := $(ROOT)/bin/truffleruby -Xgraal.warn_unless=false
 OS := $(shell uname)
+ifeq ($(OS),Darwin)
+DLEXT := dylib
+else
+DLEXT := so
+endif
+
+ROOT := $(realpath ../../..)
+CEXTS_DIR := $(ROOT)/lib/mri
+RUBY := $(ROOT)/bin/truffleruby -Xgraal.warn_unless=false
+
+TRUFFLE_POSIX := $(ROOT)/lib/cext/truffleposix.$(DLEXT)
+TRUFFLE_MOCK := $(ROOT)/lib/cext/trufflemock.bc
+RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
+
 RUBY_HEADERS := $(wildcard $(ROOT)/lib/cext/*.h) $(wildcard $(ROOT)/lib/cext/ruby/*.h)
 RBCONFIG := $(ROOT)/src/main/ruby/core/rbconfig.rb
 PREPROCESS := $(ROOT)/lib/cext/preprocess.rb
 MKMF := $(ROOT)/lib/mri/mkmf.rb
-BASIC_EXTCONF_DEPS := $(RUBY_HEADERS) $(RBCONFIG) $(PREPROCESS) $(MKMF)
-TRUFFLE_MOCK := $(ROOT)/lib/cext/trufflemock.bc
-RUBY_LIBRARY := $(ROOT)/lib/cext/ruby.su
+BASIC_EXTCONF_DEPS := $(TRUFFLE_POSIX) $(RUBY_HEADERS) $(RBCONFIG) $(PREPROCESS) $(MKMF)
 # These 2 libraries are needed for try_link() in extconf.rb
 EXTCONF_DEPS := $(BASIC_EXTCONF_DEPS) $(TRUFFLE_MOCK) $(RUBY_LIBRARY)
-CEXTS_DIR := $(ROOT)/lib/mri
 
 ifeq ($(TRUFFLERUBY_CEXT_ENABLED),false)
-goal: no_cexts
+goal: no_cexts $(TRUFFLE_POSIX)
 else
 goal: all
 endif
@@ -24,6 +33,10 @@ no_cexts: clean
 all: $(RUBY_LIBRARY) $(CEXTS_DIR)/openssl.su $(CEXTS_DIR)/zlib.su $(CEXTS_DIR)/syslog.su
 
 clean:
+	rm -f $(TRUFFLE_POSIX)
+	rm -f truffleposix/*.o truffleposix/truffleposix.$(DLEXT)
+	rm -f trufflemock/Makefile trufflemock/*.bc trufflemock/trufflemock.su
+	rm -f $(ROOT)/lib/cext/trufflemock.bc
 	rm -f $(RUBY_LIBRARY)
 	rm -f $(ROOT)/lib/cext/ruby.bc
 	rm -f cext/Makefile cext/*.bc cext/ruby.su
@@ -33,8 +46,13 @@ clean:
 	rm -f zlib/Makefile zlib/*.bc zlib/zlib.su
 	rm -f $(CEXTS_DIR)/syslog.su
 	rm -f syslog/Makefile syslog/*.bc syslog/syslog.su
-	rm -f trufflemock/Makefile trufflemock/*.bc trufflemock/trufflemock.su
-	rm -f $(ROOT)/lib/cext/trufflemock.bc
+
+# truffleposix
+truffleposix/truffleposix.$(DLEXT): truffleposix/Makefile truffleposix/truffleposix.c
+	cd truffleposix && $(MAKE)
+
+$(TRUFFLE_POSIX): truffleposix/truffleposix.$(DLEXT)
+	cp $< $@
 
 # trufflemock.bc
 trufflemock/Makefile: trufflemock/extconf.rb $(BASIC_EXTCONF_DEPS)
