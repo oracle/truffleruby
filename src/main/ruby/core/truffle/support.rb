@@ -13,10 +13,12 @@ module Truffle
 
     # flock() does not work on Solaris if the File is not open in write mode
     unless Rubinius.solaris?
-      # I think if the file can't be locked then we just silently ignore
-      if file.flock(File::LOCK_EX | File::LOCK_NB)
-        Truffle::KernelOperations.at_exit true do
-          file.flock(File::LOCK_UN)
+      if Truffle::POSIX.respond_to? :flock
+        # I think if the file can't be locked then we just silently ignore
+        if file.flock(File::LOCK_EX | File::LOCK_NB)
+          Truffle::KernelOperations.at_exit true do
+            file.flock(File::LOCK_UN)
+          end
         end
       end
     end
