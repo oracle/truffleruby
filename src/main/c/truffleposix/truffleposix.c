@@ -65,7 +65,11 @@ int truffleposix_flock(int fd, int operation) {
   lock.l_whence = SEEK_SET;
   lock.l_start = 0L;
   lock.l_len = 0L;
-  return fcntl(fd, (operation & LOCK_NB) ? F_SETLK : F_SETLKW, &lock);
+  int r = fcntl(fd, (operation & LOCK_NB) ? F_SETLK : F_SETLKW, &lock);
+  if (r == -1 && errno == EAGAIN) {
+    errno = EWOULDBLOCK;
+  }
+  return r;
 }
 #else
 #include <sys/file.h>
