@@ -1,5 +1,11 @@
 {
-  overlay: "00590f090c94b77f0c0438e050dec81035d5c994",
+  # Used to run just a few jobs and not all (see tests_jobs)
+  local debug = false,
+
+  local overlay = "00590f090c94b77f0c0438e050dec81035d5c994",
+  local no_overlay = "6f4eafb4da3b14be3593b07ed562d12caad9b64b",
+
+  overlay: if debug then no_overlay else overlay,
 
   local jt = function(args)
     [
@@ -510,7 +516,9 @@
     ]
   },
 
-  tests_jobs: [
+  tests_jobs: if debug then [
+    # Copy the job(s) you want to debug here
+  ] else [
     {name: "ruby-deploy-and-specs-linux"} + linux_gate + $.deploy_and_specs_linux,
     {name: "ruby-deploy-and-specs-darwin"} + $.common_darwin + $.gate_caps_darwin + $.deploy_and_specs_darwin,
     {name: "ruby-deploy-and-specs-solaris"} + $.common_solaris + $.gate_caps_solaris + $.deploy_and_specs_solaris,
@@ -562,7 +570,6 @@
 
   generate_benchmarks_jobs:: function(svm_configs)
     local bench_configs = bench_configs_no_svm + svm_configs;
-
     local metrics_jobs = [
       {name: "ruby-metrics-truffle"} + $.common_linux + $.bench_caps + no_graal + $.metrics,
     ] + [
@@ -575,7 +582,6 @@
       {name: "ruby-metrics-" + config.name} + $.common_linux + $.svm_bench_caps + config.setup + $.svm_metrics,
       for config in svm_configs
     ];
-
     local benchmarks_jobs = [
       {name: "ruby-benchmarks-classic-" + config.name} + $.common_linux + config.caps + config.setup + $.classic_benchmarks +
         {[if config.kind == "svm" then "timelimit"]: "01:10:00"},
@@ -600,8 +606,7 @@
       {name: "ruby-benchmarks-cext"} + $.common_linux + $.daily_bench_caps + $.cext_benchmarks + truffleruby_cexts,
       # {name: "ruby-benchmarks-cext-mri"} + $.common_linux + $.weekly_bench_caps + $.cext_benchmarks + $.mri_benchmark,
     ];
-
-    metrics_jobs + benchmarks_jobs,
+    if debug then [] else metrics_jobs + benchmarks_jobs,
 
   # To allow this file to resolve standalone
   builds: self.tests_jobs + self.generate_benchmarks_jobs([])
