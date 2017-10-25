@@ -913,5 +913,3 @@ module Process
     end
   end
 end
-
-$$ = Process.pid

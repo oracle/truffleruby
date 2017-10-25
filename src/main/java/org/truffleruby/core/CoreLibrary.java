@@ -1508,7 +1508,6 @@ public class CoreLibrary {
             "/core/bignum.rb",
             "/core/regexp.rb",
             "/core/encoding.rb",
-            "/core/posix.rb",
             "/core/env.rb",
             "/core/errno.rb",
             "/core/file.rb",
@@ -1542,6 +1541,7 @@ public class CoreLibrary {
             "/core/truffle/cext.rb",
             "/core/truffle/interop.rb",
             "/core/rbconfig.rb",
+            "/core/posix.rb",
             "/core/main.rb",
             "/core/post.rb"
     };

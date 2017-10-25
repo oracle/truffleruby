@@ -32,6 +32,36 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# Set up IO only now as it has lots of dependencies
+STDIN = File.new(0)
+STDOUT = File.new(1)
+STDERR = File.new(2)
+
+$stdin = STDIN
+$stdout = STDOUT
+$stderr = STDERR
+
+class << STDIN
+  def external_encoding
+    super || Encoding.default_external
+  end
+end
+
+if STDOUT.tty? || Truffle::Boot.get_option('sync.stdio')
+  STDOUT.sync = true
+end
+if STDERR.tty? || Truffle::Boot.get_option('sync.stdio')
+  STDERR.sync = true
+end
+
+# Always flush standard streams on exit
+Truffle::KernelOperations.at_exit true do
+  STDOUT.flush
+end
+Truffle::KernelOperations.at_exit true do
+  STDERR.flush
+end
+
 module Rubinius
   module Type
     def self.const_get(mod, name, inherit=true, resolve=true)
@@ -58,12 +88,13 @@ module Kernel
   module_function :p
 end
 
+$$ = Process.pid
+
 ARGV.concat(Truffle::Boot.original_argv)
 
 $LOAD_PATH.concat(Truffle::Boot.original_load_path)
 
 ruby_home = Truffle::Boot.ruby_home
-
 if ruby_home
   # Does not exist but it's used by rubygems to determine index where to insert gem lib directories, as a result
   # paths supplied by -I will stay before gem lib directories.
@@ -85,7 +116,6 @@ end
 
 # We defined Psych at the top level because several things depend on its name.
 # Here we fix that up and put it back into Truffle.
-
 Truffle::Psych = Psych
 
 class Object

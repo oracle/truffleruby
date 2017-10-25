@@ -1337,35 +1337,3 @@ end     # File
 class IO
   include File::Constants
 end
-
-STDIN = File.new(0)
-STDOUT = File.new(1)
-STDERR = File.new(2)
-
-$stdin = STDIN
-$stdout = STDOUT
-$stderr = STDERR
-
-class << STDIN
-  def external_encoding
-    super || Encoding.default_external
-  end
-end
-
-if STDOUT.tty? || Truffle::Boot.get_option('sync.stdio')
-  STDOUT.sync = true
-end
-
-if STDERR.tty? || Truffle::Boot.get_option('sync.stdio')
-  STDERR.sync = true
-end
-
-# Always flush standard streams on exit
-
-Truffle::KernelOperations.at_exit true do
-  STDOUT.flush
-end
-
-Truffle::KernelOperations.at_exit true do
-  STDERR.flush
-end
