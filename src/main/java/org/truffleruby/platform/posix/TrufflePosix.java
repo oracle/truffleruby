@@ -23,7 +23,6 @@ import java.util.Collection;
 public interface TrufflePosix {
 
     FileStat allocateStat();
-    int execve(String path, String[] argv, String[] envp);
     int fstat(int fd, FileStat stat);
     Passwd getpwnam(String which);
     int lstat(String path, FileStat stat);

@@ -53,7 +53,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -614,38 +613,5 @@ public abstract class VMPrimitiveNodes {
         }
 
     }
-
-    @Primitive(name = "vm_exec", needsSelf = false)
-    public abstract static class VMExecNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = { "isRubyString(path)", "isRubyArray(args)", "isRubyArray(env)" })
-        protected Object vmExec(DynamicObject path, DynamicObject args, DynamicObject env) {
-            final String convertedCommand = StringOperations.decodeUTF8(path).trim();
-            final String[] convertedCommandLine = convertToJava(args);
-            final String[] convertedEnv = convertToJava(env);
-
-            final int ret = posix().execve(convertedCommand, convertedCommandLine, convertedEnv);
-
-            if (ret == -1) {
-                throw new RaiseException(coreExceptions().errnoError(posix().errno(), this));
-            }
-
-            throw new RaiseException(coreExceptions().systemCallError("execve() should not return", 0, this));
-        }
-
-        private String[] convertToJava(DynamicObject array) {
-            final Object[] javaArray = ArrayOperations.toObjectArray(array);
-            final String[] ret = new String[javaArray.length];
-
-            for (int i = 0; i < javaArray.length; i++) {
-                ret[i] = StringOperations.decodeUTF8((DynamicObject) javaArray[i]);
-            }
-
-            return ret;
-        }
-
-    }
-
 
 }

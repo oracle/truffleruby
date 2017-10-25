@@ -249,6 +249,17 @@ public abstract class PointerNodes {
 
     }
 
+    @Primitive(name = "pointer_write_pointer", lowerFixnum = 2)
+    public static abstract class PointerWritePointerPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyPointer(value)")
+        public DynamicObject address(DynamicObject pointer, DynamicObject value) {
+            Layouts.POINTER.getPointer(pointer).writePointer(0, Layouts.POINTER.getPointer(value));
+            return value;
+        }
+
+    }
+
     // Reads and writes of number types
 
     @Primitive(name = "pointer_read_char")

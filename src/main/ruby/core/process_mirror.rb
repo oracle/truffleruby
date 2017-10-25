@@ -443,7 +443,15 @@ module Rubinius
               raise Errno::ENOENT, "No such file or directory - #{@command}"
             end
           end
-          Truffle.invoke_primitive :vm_exec, @command, @argv, @env_array
+
+          with_array_of_strings_pointer(@argv) do |argv|
+            with_array_of_strings_pointer(@env_array) do |env|
+              ret = Truffle::POSIX.execve(@command, argv, env)
+              Errno.handle_nfi if ret == -1
+            end
+          end
+
+          raise SystemCallError.new('execve() should not return', 0)
         end
 
         def should_use_shell?(command)
@@ -471,6 +479,17 @@ module Rubinius
           end
 
           nil
+        end
+
+        def with_array_of_strings_pointer(strings)
+          Rubinius::FFI::MemoryPointer.new(:pointer, strings.size + 1) do |ptr|
+            pointers = strings.map { |str|
+              Rubinius::FFI::MemoryPointer.from_string(str)
+            }
+            pointers << Rubinius::FFI::Pointer::NULL
+            ptr.write_array_of_pointer pointers
+            yield(ptr)
+          end
         end
       end
     end
