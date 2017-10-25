@@ -445,7 +445,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         return null;
     }
 
-    @TruffleBoundary(throwsControlFlowException = true)
+    @TruffleBoundary(transferToInterpreterOnException = false)
     public void alias(RubyContext context, Node currentNode, String newName, String oldName) {
         InternalMethod method = deepMethodSearch(context, oldName);
 

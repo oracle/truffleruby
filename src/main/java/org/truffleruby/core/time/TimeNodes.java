@@ -581,7 +581,7 @@ public abstract class TimeNodes {
         private static final Pattern TZ_PATTERN =
                 Pattern.compile("([a-zA-Z]{3,}+)([\\+-]?)(\\d+)(?::(\\d+))?(?::(\\d+))?");
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         public static TimeZoneAndName parse(RubyNode node, String zoneString) {
             String zone = zoneString;
 

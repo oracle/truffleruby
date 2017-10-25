@@ -126,7 +126,7 @@ public abstract class ProcessNodes {
     @Primitive(name = "process_kill_raise", needsSelf = false)
     public abstract static class ProcessKillRaiseNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(throwsControlFlowException = true)
+        @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubySymbol(signalName)")
         public int raise(DynamicObject signalName) {
             final Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(Layouts.SYMBOL.getString(signalName));
