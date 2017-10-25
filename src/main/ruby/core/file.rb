@@ -1291,8 +1291,13 @@ class File < IO
     const = Rubinius::Type.coerce_to const, Integer, :to_int
 
     result = POSIX.flock @descriptor, const
-
-    return false if result == -1
+    if result == -1
+      begin
+        Errno.handle_nfi
+      rescue Errno::EWOULDBLOCK
+        return false
+      end
+    end
     result
   end
 
