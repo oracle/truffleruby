@@ -910,8 +910,8 @@ class File < IO
   #  File.symlink("testfile", "link2test")   #=> 0
   #  File.readlink("link2test")              #=> "testfile"
   def self.readlink(path)
-    FFI::MemoryPointer.new(1024) do |ptr|
-      n = POSIX.readlink Rubinius::Type.coerce_to_path(path), ptr, 1024
+    FFI::MemoryPointer.new(Rubinius::PATH_MAX) do |ptr|
+      n = POSIX.readlink Rubinius::Type.coerce_to_path(path), ptr, Rubinius::PATH_MAX
       Errno.handle_nfi if n == -1
 
       return ptr.read_string(n).force_encoding(Encoding.find('filesystem'))
