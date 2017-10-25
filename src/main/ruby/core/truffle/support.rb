@@ -11,11 +11,14 @@ module Truffle
     file = File.open(path)
     file.seek(offset)
 
-    # I think if the file can't be locked then we just silently ignore
-    file.flock(File::LOCK_EX | File::LOCK_NB)
+    # flock() does not work on Solaris if the File is not open in write mode
+    unless Rubinius.solaris?
+      # I think if the file can't be locked then we just silently ignore
+      file.flock(File::LOCK_EX | File::LOCK_NB)
 
-    Truffle::KernelOperations.at_exit true do
-      file.flock(File::LOCK_UN)
+      Truffle::KernelOperations.at_exit true do
+        file.flock(File::LOCK_UN)
+      end
     end
 
     file
