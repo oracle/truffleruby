@@ -33,8 +33,6 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
 */
 
-extern int my_flock(int fd, int operation);
-
 /* flock() is not available on Solaris */
 #if defined __sun
 #define LOCK_SH 1
