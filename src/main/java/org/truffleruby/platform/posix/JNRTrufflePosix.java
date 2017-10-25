@@ -51,12 +51,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int execve(String path, String[] argv, String[] envp) {
-        return posix.execve(path, argv, envp);
-    }
-
-    @TruffleBoundary
-    @Override
     public int fstat(int fd, FileStat stat) {
         return posix.fstat(fd, stat);
     }
