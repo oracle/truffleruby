@@ -68,3 +68,4 @@ ActionController::LiveStreamTest:
 - test_exception_callback_when_committed
 - test_async_stream # failed on travis
 - test_abort_with_full_buffer # fails intermittently on CI
+- test_exceptions_raised_handling_exceptions_and_committed # Hash modified concurrently
