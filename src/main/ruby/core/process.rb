@@ -412,12 +412,10 @@ module Process
     kind = Rubinius::Type.coerce_to kind, Integer, :to_int
     id =   Rubinius::Type.coerce_to id, Integer, :to_int
 
-    # getpriority can return -1 so errno has to be cleared.
-    # The clearing should be done as close as possible to the syscall
-    # as JVM classloading could change errno.
-    Errno.set_nfi_errno(0)
-    ret = Truffle::POSIX.getpriority(kind, id)
-    Errno.handle_nfi
+    ret = Truffle::POSIX.truffleposix_getpriority(kind, id)
+    if ret <= -100
+      raise SystemCallError.new(nil, -(ret + 100))
+    end
     ret
   end
 

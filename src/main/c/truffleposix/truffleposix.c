@@ -33,6 +33,22 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
 */
 
+#include <errno.h>
+
+#include <sys/time.h>
+#include <sys/resource.h>
+
+int truffleposix_getpriority(int which, id_t who) {
+  /* getpriority() can return -1 so errno has to be cleared. */
+  errno = 0;
+  int r = getpriority(which, who);
+  if (r == -1 && errno != 0) {
+    /* getpriority() is between -20 and 19 on Linux and -20 and 20 on macOS and Solaris */
+    return -100 - errno;
+  }
+  return r;
+}
+
 /* flock() is not available on Solaris */
 #if defined __sun
 #define LOCK_SH 1
@@ -42,7 +58,6 @@ SUCH DAMAGE.
 
 #include <fcntl.h>
 #include <unistd.h>
-#include <errno.h>
 
 int truffleposix_flock(int fd, int operation) {
   struct flock lock;
