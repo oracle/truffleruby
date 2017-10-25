@@ -52,10 +52,14 @@ module Errno
   end
 
   def self.handle_nfi(additional = nil)
-    err = FFI::Pointer.new(Truffle::Interop.unbox(Truffle::POSIX.errno_address)).read_int
+    err = nfi_errno
     return if err == 0
 
     raise SystemCallError.new(additional, err)
+  end
+
+  def self.nfi_errno
+    FFI::Pointer.new(Truffle::Interop.unbox(Truffle::POSIX.errno_address)).read_int
   end
 
   def self.set_nfi_errno(value)

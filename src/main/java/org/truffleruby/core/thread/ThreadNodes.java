@@ -67,6 +67,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
@@ -658,6 +659,18 @@ public abstract class ThreadNodes {
         public DynamicObject getFiberLocals(DynamicObject thread) {
             final DynamicObject fiber = Layouts.THREAD.getFiberManager(thread).getCurrentFiberRacy();
             return Layouts.FIBER.getFiberLocals(fiber);
+        }
+    }
+
+    @Primitive(name = "thread_run_blocking_nfi_system_call")
+    public static abstract class ThreadRunBlockingSystemCallNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyProc(block)")
+        public int runBlockingSystemCall(DynamicObject block,
+                @Cached("new()") YieldNode yieldNode,
+                @Cached("create()") IntegerCastNode integerCastNode) {
+            return getContext().getThreadManager().runBlockingNFISystemCallUntilResult(this,
+                    () -> integerCastNode.executeCastInt(yieldNode.dispatch(block)));
         }
     }
 

@@ -413,6 +413,21 @@ public class ThreadManager {
         }, blockingNativeCallUnblockingAction.get());
     }
 
+    @TruffleBoundary
+    public int runBlockingNFISystemCallUntilResult(Node currentNode, BlockingAction<Integer> action) {
+        assert Errno.EINTR.defined();
+        int EINTR = Errno.EINTR.intValue();
+        final int INTERRUPTED = -EINTR;
+
+        return runUntilResult(currentNode, () -> {
+            int result = action.block();
+            if (result == INTERRUPTED) {
+                throw new InterruptedException("EINTR");
+            }
+            return result;
+        }, blockingNativeCallUnblockingAction.get());
+    }
+
     public void initializeValuesForJavaThread(DynamicObject rubyThread, Thread thread) {
         assert RubyGuards.isRubyThread(rubyThread);
 

@@ -28,6 +28,8 @@ module Truffle::POSIX
   }
 
   FS_ENCODING = Encoding.find('filesystem')
+  EINTR = Errno::EINTR::Errno
+  INTERRUPTED = -EINTR
 
   def self.to_nfi_type(type)
     if Array === type
@@ -44,7 +46,8 @@ module Truffle::POSIX
   end
 
 
-  def self.attach_function(native_name, argument_types, return_type, as: native_name, library: LIBC)
+  def self.attach_function(native_name, argument_types, return_type,
+                           as: native_name, library: LIBC, blocking: false)
     method_name = as
 
     begin
@@ -73,7 +76,20 @@ module Truffle::POSIX
           args[i] = Truffle.invoke_primitive :string_to_null_terminated_byte_array, str
         end
 
-        result = bound_func.call(*args)
+        if blocking
+          result = Truffle.invoke_primitive :thread_run_blocking_nfi_system_call, -> {
+            r = bound_func.call(*args)
+            if r == INTERRUPTED
+              raise "#{native_name} returned -EINTR = #{INTERRUPTED} but :blocking expected it did not"
+            elsif r == -1 and Errno.nfi_errno == EINTR
+              INTERRUPTED
+            else
+              r
+            end
+          }
+        else
+          result = bound_func.call(*args)
+        end
 
         if return_type == :string
           if result.nil?
@@ -105,7 +121,7 @@ module Truffle::POSIX
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
   attach_function :fcntl, [:int, :int, :int], :int
-  attach_function :truffleposix_flock, [:int, :int], :int, as: :flock, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_flock, [:int, :int], :int, as: :flock, library: LIBTRUFFLEPOSIX, blocking: true
   attach_function :fsync, [:int], :int
   attach_function :getcwd, [:pointer, :size_t], :string
   attach_function :isatty, [:int], :int
@@ -154,7 +170,7 @@ module Truffle::POSIX
   attach_function :setpriority, [:int, :id_t, :int], :int
 
   attach_function :execve, [:string, :pointer, :pointer], :int
-  attach_function :truffleposix_waitpid, [:pid_t, :int, :pointer], :pid_t, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_waitpid, [:pid_t, :int, :pointer], :pid_t, library: LIBTRUFFLEPOSIX, blocking: true
 
   # ENV-related
   attach_function :getenv, [:string], :string
@@ -175,7 +191,6 @@ module Truffle::POSIX
   attach_function :crypt, [:string, :string], :string
 
   # Errno-related
-
   if Rubinius.linux?
     attach_function :__errno_location, [], :pointer, as: :errno_address
   elsif Rubinius.darwin?
