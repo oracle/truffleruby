@@ -71,11 +71,11 @@ public class BasicPlatform {
     }
 
     public static String getOSName() {
-        if (isJNRCompatibleWindows()) {
+        final String osName = System.getProperty("os.name");
+        if (osName.toLowerCase().contains("windows")) {
             return RUBY_WIN32;
         }
 
-        final String osName = getJNRCompatibleOSName();
         return RUBY_OS_NAMES.getOrDefault(osName, osName);
     }
 
@@ -91,24 +91,4 @@ public class BasicPlatform {
 
         return architecture;
     }
-
-    // compatible with jnr.posix.util.Platform.IS_WINDOWS
-    private static boolean isJNRCompatibleWindows() {
-        return System.getProperty("os.name").toLowerCase().contains("windows");
-    }
-
-    // compatible with jnr.posix.util.Platform.getOSName()
-    private static String getJNRCompatibleOSName() {
-        final String osNameProperty = System.getProperty("os.name");
-        switch (osNameProperty) {
-            case "Mac OS X":
-            case "Darwin":
-                return "darwin";
-            case "Linux":
-                return "linux";
-            default:
-                return osNameProperty;
-        }
-    }
-
 }
