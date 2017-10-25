@@ -154,6 +154,7 @@ module Truffle::POSIX
   attach_function :setpriority, [:int, :id_t, :int], :int
 
   attach_function :execve, [:string, :pointer, :pointer], :int
+  attach_function :truffleposix_waitpid, [:pid_t, :int, :pointer], :pid_t, library: LIBTRUFFLEPOSIX
 
   # ENV-related
   attach_function :getenv, [:string], :string

@@ -28,7 +28,6 @@ public interface TrufflePosix {
     int lstat(String path, FileStat stat);
     FileStat stat(String path);
     int stat(String path, FileStat stat);
-    int waitpid(int pid, int[] status, int flags);
     int errno();
     void errno(int value);
     int chdir(String path);

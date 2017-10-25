@@ -35,8 +35,10 @@ SUCH DAMAGE.
 
 #include <errno.h>
 
-#include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 int truffleposix_getpriority(int which, id_t who) {
   /* getpriority() can return -1 so errno has to be cleared. */
@@ -46,6 +48,28 @@ int truffleposix_getpriority(int which, id_t who) {
     /* getpriority() is between -20 and 19 on Linux and -20 and 20 on macOS and Solaris */
     return -100 - errno;
   }
+  return r;
+}
+
+pid_t truffleposix_waitpid(pid_t pid, int options, int result[3]) {
+  int status = 0;
+  pid_t r = waitpid(pid, &status, options);
+  if (r <= 0) {
+    return r;
+  }
+
+  int exitcode = -1000, termsig = -1000, stopsig = -1000;
+  if (WIFEXITED(status)) {
+    exitcode = WEXITSTATUS(status);
+  } else if (WIFSIGNALED(status)) {
+    termsig = WTERMSIG(status);
+  } else if (WIFSTOPPED(status)) {
+    stopsig = WSTOPSIG(status);
+  }
+
+  result[0] = exitcode;
+  result[1] = termsig;
+  result[2] = stopsig;
   return r;
 }
 

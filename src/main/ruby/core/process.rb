@@ -66,8 +66,8 @@ module Process
       RLIMIT_NICE       = Rubinius::Config['rbx.platform.process.RLIMIT_NICE']
     end
 
-    WNOHANG = 1
-    WUNTRACED = 2
+    WNOHANG =   Rubinius::Config['rbx.platform.process.WNOHANG']
+    WUNTRACED = Rubinius::Config['rbx.platform.process.WUNTRACED']
   end
   include Constants
 
@@ -104,11 +104,6 @@ module Process
       code = Rubinius::Type.coerce_to code, Integer, :to_int
     end
     exit! code
-  end
-
-  def self.wait_pid_prim(pid, no_hang)
-    Truffle.primitive :vm_wait_pid
-    raise PrimitiveFailure, 'Process.wait_pid primitive failed'
   end
 
   def self.time
@@ -493,27 +488,23 @@ module Process
   #
   def self.wait2(input_pid=-1, flags=nil)
     input_pid = Rubinius::Type.coerce_to input_pid, Integer, :to_int
+    flags ||= 0
 
-    if flags and (flags & WNOHANG) == WNOHANG
-      value = wait_pid_prim input_pid, true
-      return if value.nil?
-    else
-      value = wait_pid_prim input_pid, false
+    FFI::MemoryPointer.new(:int, 3) do |ptr|
+      pid = Truffle::POSIX.truffleposix_waitpid(input_pid, flags, ptr)
+      if pid == 0
+        return nil
+      elsif pid == -1
+        Errno.handle_nfi "No child process: #{input_pid}"
+      else
+        exitcode, termsig, stopsig = ptr.read_array_of_int(3).map { |e| e == -1000 ? nil : e }
+
+        status = Process::Status.new(pid, exitcode, termsig, stopsig)
+        $? = status
+
+        [pid, status]
+      end
     end
-
-    if value == false
-      raise Errno::ECHILD, "No child process: #{input_pid}"
-    end
-
-    # wait_pid_prim returns a tuple when wait needs to communicate
-    # the pid that was actually detected as stopped (since wait
-    # can wait for all child pids, groups, etc)
-    status, termsig, stopsig, pid = value
-
-    status = Process::Status.new(pid, status, termsig, stopsig)
-    $? = status
-
-    [pid, status]
   end
 
   #

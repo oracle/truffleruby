@@ -81,12 +81,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int waitpid(int pid, int[] status, int flags) {
-        return posix.waitpid(pid, status, flags);
-    }
-
-    @TruffleBoundary
-    @Override
     public int errno() {
         return posix.errno();
     }
