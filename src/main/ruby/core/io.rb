@@ -2547,7 +2547,8 @@ class IO
     ensure
       fd = @descriptor
       if fd >= 0
-        @descriptor = -1
+        # Need to not set even if the instance is frozen
+        Truffle.invoke_primitive :object_ivar_set, self, :@descriptor, -1
         if fd >= 3
           ret = Truffle::POSIX.close(fd)
           Errno.handle_nfi if ret < 0
