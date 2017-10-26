@@ -1,0 +1,1 @@
+aot:Dir.exist? understands non-ASCII paths
