@@ -6,3 +6,10 @@ slow:String#hash resists CVE-2011-4815 by having different hash codes in differe
 slow:Symbol#hash resists CVE-2011-4815 by having different hash codes in different processes
 slow:Array#hash resists CVE-2011-4815 by having different hash codes in different processes
 slow:Hash#hash resists CVE-2011-4815 by having different hash codes in different processes
+fails:Integer#hash with a small value resists CVE-2011-4815 by having different hash codes in different processes
+fails:Integer#hash with a large value resists CVE-2011-4815 by having different hash codes in different processes
+fails:Float#hash resists CVE-2011-4815 by having different hash codes in different processes
+fails:String#hash resists CVE-2011-4815 by having different hash codes in different processes
+fails:Symbol#hash resists CVE-2011-4815 by having different hash codes in different processes
+fails:Array#hash resists CVE-2011-4815 by having different hash codes in different processes
+fails:Hash#hash resists CVE-2011-4815 by having different hash codes in different processes
