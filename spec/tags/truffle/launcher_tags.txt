@@ -35,3 +35,11 @@ slow:The launcher '-J:classpath ' adds the jar
 slow:The launcher '-J:cp ' adds the jar
 slow:The launcher '--jvm.classpath=' adds the jar
 slow:The launcher '--jvm.cp=' adds the jar
+aot:The launcher prints the full java command with --jvm.cmd
+aot:The launcher takes options from system properties set on the command line using --jvm
+aot:The launcher '-J-classpath ' adds the jar
+aot:The launcher '-J-cp ' adds the jar
+aot:The launcher '-J:classpath ' adds the jar
+aot:The launcher '-J:cp ' adds the jar
+aot:The launcher '--jvm.classpath=' adds the jar
+aot:The launcher '--jvm.cp=' adds the jar
