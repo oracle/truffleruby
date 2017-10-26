@@ -129,7 +129,7 @@ def download_binary_suite(args):
     ], kind=None)
 
 def ruby_run_specs(launcher, format, args):
-    mx.run([launcher, 'spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args)
+    mx.run([launcher, 'spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args, cwd=root)
 
 def ruby_testdownstream(args):
     build_truffleruby()
