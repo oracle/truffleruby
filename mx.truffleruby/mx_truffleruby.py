@@ -137,7 +137,7 @@ def ruby_testdownstream(args):
 
 def ruby_testdownstream_hello(args):
     build_truffleruby()
-    mx.run(['bin/truffleruby', '-e', 'puts "Hello Ruby!"'])
+    mx.run(['bin/truffleruby', '-e', 'puts "Hello Ruby!"'], cwd=root)
 
 def ruby_testdownstream_aot(args):
     if len(args) > 3:
