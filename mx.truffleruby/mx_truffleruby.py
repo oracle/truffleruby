@@ -129,11 +129,11 @@ def download_binary_suite(args):
     ], kind=None)
 
 def ruby_run_specs(launcher, format, args):
-    mx.run([launcher, 'spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args, cwd=root)
+    mx.run(launcher + ['spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args, cwd=root)
 
 def ruby_testdownstream(args):
     build_truffleruby()
-    ruby_run_specs('bin/truffleruby', 'specdoc', ['--excl-tag', 'slow'])
+    ruby_run_specs(['bin/truffleruby'], 'specdoc', ['--excl-tag', 'slow'])
 
 def ruby_testdownstream_hello(args):
     build_truffleruby()
@@ -158,7 +158,7 @@ def ruby_testdownstream_aot(args):
     if debug_build:
         mspec_args.append(':language')
 
-    ruby_run_specs(aot_bin, format, mspec_args)
+    ruby_run_specs([aot_bin, '-Xhome='+root], format, mspec_args)
 
 def ruby_testdownstream_sulong(args):
     build_truffleruby()
