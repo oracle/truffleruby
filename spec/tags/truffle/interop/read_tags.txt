@@ -1,0 +1,1 @@
+fails:Truffle::Interop.read raises a NameError when the identifier is not found on a foreign object
