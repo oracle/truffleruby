@@ -275,6 +275,8 @@ public abstract class ThreadNodes {
             final String info = RubyLanguage.fileLine(sourceSection);
             getContext().getThreadManager().initialize(thread, this, info, () -> {
                 final Object value = ProcOperations.rootCall(block, args);
+                assert value != null;
+
                 Layouts.THREAD.setValue(thread, value);
             });
             return nil();
