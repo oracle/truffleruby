@@ -196,6 +196,8 @@ public class ThreadManager {
     }
 
     private void threadMain(DynamicObject thread, Node currentNode, Runnable task) {
+        assert task != null;
+
         start(thread, Thread.currentThread());
         try {
             task.run();
