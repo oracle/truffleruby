@@ -148,6 +148,7 @@ def ruby_testdownstream_aot(args):
     debug_build = args[2] == 'debug' if len(args) >= 3 else False
 
     mspec_args = [
+        '--excl-tag', 'ci',
         '--excl-tag', 'graalvm',
         '--excl-tag', 'aot',
         '-t', aot_bin,
