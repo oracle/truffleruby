@@ -288,6 +288,13 @@ suite = {
             "outputDir": "",
             "prefix": "",
         },
+
+        "truffleruby-specs": {
+            "class": "ArchiveProject",
+            "prefix": "spec",
+            "outputDir": "spec",
+            "license": ["EPL-1.0", "MIT"],
+        },
     },
 
     "distributions": {
@@ -356,6 +363,16 @@ suite = {
                 "truffle:TRUFFLE_TCK"
             ],
             "license": "EPL-1.0",
+        },
+
+        "TRUFFLERUBY-SPECS": {
+            "native": True, # Not Java
+            "relpath": True,
+            "dependencies": [
+                "truffleruby-specs",
+            ],
+            "description": "TruffleRuby spec files from ruby/spec",
+            "license": ["EPL-1.0", "MIT"],
         },
     },
 }
