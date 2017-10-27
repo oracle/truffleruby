@@ -83,11 +83,6 @@ test/mri/tests/cext-c/**/*.o
 /truffleruby-gem-test-pack-*
 /test/truffle/docker/*/graalvm-*.tar.gz
 
-# Findbugs
-truffle-findbugs-report.html
-findbugs-noUpdateChecks-3.0.0.tar.gz
-findbugs-3.0.0
-
 # Benchmarking
 bench-results.json
 bench-results-processed.json
