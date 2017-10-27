@@ -3458,28 +3458,16 @@ public abstract class StringNodes {
             final int total = stringRope.byteLength();
             int p = 0;
             final int e = p + total;
-            int pp = 0;
-            final int pe = pp + patternRope.byteLength();
-            int s;
-            int ss;
+            final int pe = patternRope.byteLength();
+            final int l = e - pe + 1;
 
             final byte[] stringBytes = stringRope.getBytes();
             final byte[] patternBytes = patternRope.getBytes();
 
             if (stringRope.isSingleByteOptimizable()) {
-                for(s = p += offset, ss = pp; p < e; s = ++p) {
-                    if (stringBytes[p] != patternBytes[pp]) continue;
-
-                    while (p < e && pp < pe && stringBytes[p] == patternBytes[pp]) {
-                        p++;
-                        pp++;
-                    }
-
-                    if (pp < pe) {
-                        p = s;
-                        pp = ss;
-                    } else {
-                        return s;
+                for (p += offset; p < l; p++) {
+                    if (ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0) {
+                        return p;
                     }
                 }
 
@@ -3488,7 +3476,7 @@ public abstract class StringNodes {
 
             final Encoding enc = stringRope.getEncoding();
             int index = 0;
-            int c;
+            int c = 0;
 
             while(p < e && index < offset) {
                 c = StringSupport.preciseLength(enc, stringBytes, p, e);
@@ -3501,44 +3489,16 @@ public abstract class StringNodes {
                 }
             }
 
-            for(s = p, ss = pp; p < e; s = p += c, ++index) {
+            for (; p < l; p += c, ++index) {
                 c = StringSupport.preciseLength(enc, stringBytes, p, e);
                 if ( !StringSupport.MBCLEN_CHARFOUND_P(c)) return nil();
-
-                if (stringBytes[p] != patternBytes[pp]) continue;
-
-                while (p < e && pp < pe) {
-                    boolean breakOut = false;
-
-                    for (int pc = p + c; p < e && p < pc && pp < pe; ) {
-                        if (stringBytes[p] == patternBytes[pp]) {
-                            ++p;
-                            ++pp;
-                        } else {
-                            breakOut = true;
-                            break;
-                        }
-                    }
-
-                    if (breakOut) {
-                        break;
-                    }
-
-                    c = StringSupport.preciseLength(enc, stringBytes, p, e);
-                    if (! StringSupport.MBCLEN_CHARFOUND_P(c)) break;
-                }
-
-                if (pp < pe) {
-                    p = s;
-                    pp = ss;
-                } else {
+                if (ArrayUtils.memcmp(stringBytes, p, patternBytes, 0, pe) == 0) {
                     return index;
                 }
             }
 
             return nil();
         }
-
     }
 
     @Primitive(name = "string_byte_index_from_char_index", needsSelf = false, lowerFixnum = 2)
