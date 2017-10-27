@@ -1288,7 +1288,7 @@ module Truffle::CExt
   end
 
   def foreign_call_with_block(function, *args, &block)
-    Truffle::Interop.execute(function, *args)
+    Truffle::Interop.execute_without_conversion(function, *args)
   end
 
   # The idea of rb_protect and rb_jump_tag is to avoid unwinding the
