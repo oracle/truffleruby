@@ -212,8 +212,8 @@ public class ThreadManager {
         } catch (ReturnException e) {
             setException(context, thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
         } finally {
-            cleanup(thread, Thread.currentThread());
             assert Layouts.THREAD.getValue(thread) != null || Layouts.THREAD.getException(thread) != null;
+            cleanup(thread, Thread.currentThread());
         }
     }
 
