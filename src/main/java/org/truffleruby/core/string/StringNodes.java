@@ -803,7 +803,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "!isEmpty(string)")
-        public Object deleteBang(VirtualFrame frame, DynamicObject string, Object[] args,
+        public DynamicObject deleteBang(VirtualFrame frame, DynamicObject string, Object[] args,
                 @Cached("create()") BranchProfile errorProfile) {
             if (args.length == 0) {
                 errorProfile.enter();
@@ -820,7 +820,7 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        private Object deleteBangSlow(DynamicObject string, DynamicObject[] otherStrings) {
+        private DynamicObject deleteBangSlow(DynamicObject string, DynamicObject[] otherStrings) {
             assert RubyGuards.isRubyString(string);
 
             DynamicObject otherString = otherStrings[0];
