@@ -22,6 +22,7 @@ nbproject
 
 # C extensions
 lib/cext/truffleposix.so
+lib/cext/truffleposix.dylib
 lib/cext/trufflemock.bc
 lib/cext/ruby.su
 lib/cext/ruby.bc
@@ -47,6 +48,7 @@ src/main/c/*/extconf.h
 src/main/c/*/mkmf.log
 src/main/c/truffleposix/truffleposix.o
 src/main/c/truffleposix/truffleposix.so
+src/main/c/truffleposix/truffleposix.dylib
 
 test/truffle/cexts/**/Makefile
 test/truffle/cexts/**/*.bc
