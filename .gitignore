@@ -81,8 +81,8 @@ test/mri/tests/cext-c/**/*.o
 /test/truffle/docker/*/graalvm-*.tar.gz
 
 # Benchmarking
-bench-results.json
-bench-results-processed.json
+/bench-results.json
+/bench-results-processed.json
 
 # Gem dirs
 lib/ruby/gems/2.3.0/*
