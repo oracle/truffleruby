@@ -1857,7 +1857,7 @@ VALUE rb_hash_delete_if(VALUE hash) {
 }
 
 void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
-  rb_tr_error("rb_hash_foreach not implemented");
+  truffle_invoke(RUBY_CEXT, "rb_hash_foreach", hash, truffle_address_to_function(func), farg);
 }
 
 VALUE rb_hash_size(VALUE hash) {

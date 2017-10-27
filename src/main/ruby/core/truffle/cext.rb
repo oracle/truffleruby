@@ -1267,6 +1267,22 @@ module Truffle::CExt
     hash.default = value
   end
 
+  ST_CONTINUE = 0
+  ST_STOP = 1
+  ST_DELETE = 2
+
+  def rb_hash_foreach(hash, func, farg)
+    hash.each do |key, value|
+      st_result = foreign_call_with_block(func, key, value, farg)
+
+      case st_result
+      when ST_CONTINUE then next
+      when ST_STOP then break
+      when ST_DELETE then hash.delete(key)
+      end
+    end
+  end
+
   def rb_path_to_class(path)
     begin
       const = Object.const_get(path, false)
