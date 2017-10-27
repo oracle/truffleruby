@@ -1,0 +1,1 @@
+fails:YAML.load loads strings with chars from non-base Unicode plane
