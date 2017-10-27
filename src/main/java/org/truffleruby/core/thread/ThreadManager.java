@@ -48,6 +48,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Supplier;
 
 public class ThreadManager {
 
@@ -185,7 +186,7 @@ public class ThreadManager {
         }
     }
 
-    public void initialize(DynamicObject rubyThread, Node currentNode, String info, Runnable task) {
+    public void initialize(DynamicObject rubyThread, Node currentNode, String info, Supplier<Object> task) {
         Layouts.THREAD.setSourceLocation(rubyThread, info);
 
         final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task));
@@ -195,12 +196,13 @@ public class ThreadManager {
         FiberManager.waitForInitialization(context, Layouts.THREAD.getFiberManager(rubyThread).getRootFiber(), currentNode);
     }
 
-    private void threadMain(DynamicObject thread, Node currentNode, Runnable task) {
+    private void threadMain(DynamicObject thread, Node currentNode, Supplier<Object> task) {
         assert task != null;
 
         start(thread, Thread.currentThread());
         try {
-            task.run();
+            final Object result = task.get();
+            setThreadValue(context, thread, result);
         // Handlers in the same order as in FiberManager
         } catch (KillException e) {
             setThreadValue(context, thread, nil());
@@ -225,6 +227,7 @@ public class ThreadManager {
 
     private static void setThreadValue(RubyContext context, DynamicObject thread, Object value) {
         // A Thread is always shared (Thread.list)
+        assert value != null;
         SharedObjects.propagate(context, thread, value);
         Layouts.THREAD.setValue(thread, value);
     }
