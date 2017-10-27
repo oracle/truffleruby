@@ -273,12 +273,8 @@ public abstract class ThreadNodes {
             final Object[] args = ArrayOperations.toObjectArray(arguments);
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
             final String info = RubyLanguage.fileLine(sourceSection);
-            getContext().getThreadManager().initialize(thread, this, info, () -> {
-                final Object value = ProcOperations.rootCall(block, args);
-                assert value != null;
-
-                Layouts.THREAD.setValue(thread, value);
-            });
+            getContext().getThreadManager().initialize(thread, this, info,
+                    () -> ProcOperations.rootCall(block, args));
             return nil();
         }
 

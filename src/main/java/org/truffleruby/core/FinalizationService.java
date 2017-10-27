@@ -114,7 +114,7 @@ public class FinalizationService {
         threadManager.initialize(finalizerThread, null, "finalizer", () -> {
             if (TruffleOptions.AOT) {
                 // Temporary workaround for GR-5440.
-                return;
+                return context.getCoreLibrary().getNil();
             }
 
             while (true) {
