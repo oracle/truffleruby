@@ -1809,7 +1809,6 @@ VALUE rb_hash_fetch(VALUE hash, VALUE key) {
 
 VALUE rb_hash_aset(VALUE hash, VALUE key, VALUE value) {
   return (VALUE) truffle_invoke(hash, "[]=", key, value);
-  return value;
 }
 
 VALUE rb_hash_dup(VALUE hash) {
