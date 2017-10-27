@@ -305,6 +305,66 @@ PATCHED_FILES = {
         replacement: BYEBUG_THREADS_INIT
       }
     ]
+  },
+  'parser.c' => {
+    gem: 'json',
+    ext_dir: 'parser',
+    patches: [
+      *read_write_field('json','Vsource', false),
+      *read_write_field('json','create_id', false),
+      *read_write_field('json','object_class', false),
+      *read_write_field('json','array_class', false),
+      *read_write_field('json','decimal_class', false),
+      *read_write_field('json','match_string', false),
+      { # cParser_initialize
+        match: /if \(rb_tr_managed_from_handle\(json->Vsource\)\)/,
+        replacement: 'if (rb_tr_managed_from_handle_or_null(json->Vsource))'
+      },
+      { # cParser_parse
+        match: /VALUE result = Qnil;/,
+        replacement: "VALUE result[1];\nresult[0] = Qnil;"
+      },
+      { # cParser_parse
+        match: /char \*np = JSON_parse_value\(json, p, pe, &result, 0\);/,
+        replacement: 'char *np = JSON_parse_value(json, p, pe, result, 0);'
+      },
+      {
+        match: /if \(cs >= JSON_first_final && p == pe\) {\s+return result;/m,
+        replacement: "if (cs >= JSON_first_final && p == pe) {\n return result[0];"
+      },
+      { # JSON_parse_object
+        match: /VALUE last_name = Qnil;/,
+        replacement: "VALUE last_name[1];\nlast_name[0] = Qnil;"
+      },
+      { # JSON_parse_object
+        match: /np = JSON_parse_string\(json, p, pe, &last_name\);/,
+        replacement: 'np = JSON_parse_string(json, p, pe, last_name);'
+      },
+      { # JSON_parse_object
+        match: /rb_hash_aset\(\*result, last_name, v\);/,
+        replacement: 'rb_hash_aset(*result, last_name[0], v[0]);'
+      },
+      { # JSON_parse_object
+        match: /rb_funcall\(\*result, i_aset, 2, last_name, v\);/,
+        replacement: 'rb_funcall(*result, i_aset, 2, last_name[0], v[0]);'
+      },
+      { # JSON_parse_object
+        match: /VALUE v = Qnil;/,
+        replacement: "VALUE v[1];\nv[0] = Qnil;"
+      },
+      { # JSON_parse_object
+        match: /char \*np = JSON_parse_value\(json, p, pe, &v, current_nesting\);/,
+        replacement: 'char *np = JSON_parse_value(json, p, pe, v, current_nesting);'
+      },
+      { # JSON_parse_object
+        match: /rb_ary_push\(\*result, v\);/,
+        replacement: 'rb_ary_push(*result, v[0]);'
+      },
+      { # JSON_parse_object
+        match: /rb_funcall\(\*result, i_leftshift, 1, v\);/,
+        replacement: 'rb_funcall(*result, i_leftshift, 1, v[0]);'
+      }
+    ]
   }
 }
 
@@ -352,7 +412,11 @@ end
 
 def patch(file, contents, directory)
   if patched_file = PATCHED_FILES[File.basename(file)]
-    regexp = /^#{Regexp.escape(patched_file[:gem])}\b/
+    regexp = if patched_file[:ext_dir]
+               /^#{Regexp.escape(patched_file[:gem])}|#{Regexp.escape(patched_file[:ext_dir])}\b/
+             else
+               /^#{Regexp.escape(patched_file[:gem])}\b/
+             end
     if directory.split('/').last(2).any? { |part| part =~ regexp }
       patched_file[:patches].each do |patch|
         contents = contents.gsub(patch[:match], patch[:replacement].rstrip)
