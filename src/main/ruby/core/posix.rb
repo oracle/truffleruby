@@ -43,15 +43,12 @@ module Truffle::POSIX
     end
   end
 
-  def self.attach_function(method_name, native_name, argument_types, return_type = nil, options = {})
-    unless return_type && Symbol === native_name
-      native_name, argument_types, return_type, options = method_name, native_name, argument_types, return_type
-      options ||= {}
-    end
 
-    lib = options.fetch(:library, LIBC)
+  def self.attach_function(native_name, argument_types, return_type, as: native_name, library: LIBC)
+    method_name = as
+
     begin
-      func = lib[native_name]
+      func = library[native_name]
     rescue NameError # Missing function
       func = nil
     end
@@ -79,7 +76,7 @@ module Truffle::POSIX
         end
 
         result = bound_func.call(*args)
-        
+
         if return_type == :string
           if result.nil?
             result = nil
@@ -88,7 +85,7 @@ module Truffle::POSIX
             result = ptr.read_string_to_null
           end
         end
-        
+
         result
       }
     else
@@ -110,7 +107,7 @@ module Truffle::POSIX
   attach_function :fchmod, [:int, :mode_t], :int
   attach_function :fchown, [:int, :uid_t, :gid_t], :int
   attach_function :fcntl, [:int, :int, :int], :int
-  attach_function :flock, :truffleposix_flock, [:int, :int], :int, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_flock, [:int, :int], :int, as: :flock, library: LIBTRUFFLEPOSIX
   attach_function :fsync, [:int], :int
   attach_function :getcwd, [:pointer, :size_t], :string
   attach_function :isatty, [:int], :int
@@ -161,29 +158,29 @@ module Truffle::POSIX
   # ENV-related
   attach_function :getenv, [:string], :string
 
-  attach_function :setenv_native, :setenv, [:string, :string, :int], :int
+  attach_function :setenv, [:string, :string, :int], :int, as: :setenv_native
   def self.setenv(name, value, overwrite)
     Truffle.invoke_primitive :posix_invalidate_env, name
     setenv_native(name, value, overwrite)
   end
 
-  attach_function :unsetenv_native, :unsetenv, [:string], :int
+  attach_function :unsetenv, [:string], :int, as: :unsetenv_native
   def self.unsetenv(name)
     Truffle.invoke_primitive :posix_invalidate_env, name
     unsetenv_native(name)
   end
-  
+
   # Other routines
   attach_function :crypt, [:string, :string], :string
-  
+
   # Errno-related
 
   if Rubinius.linux?
-    attach_function :errno_address, :__errno_location, [], :pointer
+    attach_function :__errno_location, [], :pointer, as: :errno_address
   elsif Rubinius.darwin?
-    attach_function :errno_address, :__error, [], :pointer
+    attach_function :__error, [], :pointer, as: :errno_address
   elsif Rubinius.solaris?
-    attach_function :errno_address, :___errno, [], :pointer
+    attach_function :___errno, [], :pointer, as: :errno_address
   else
     raise 'Unsupported platform'
   end
