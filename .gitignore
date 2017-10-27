@@ -78,9 +78,6 @@ test/mri/tests/cext-c/**/*.o
 # ruby/spec
 /rubyspec_temp
 
-# jt install graal-core
-/graal
-
 # Tests
 /test/truffle/integration/gem-testing
 /truffleruby-gem-test-pack-*
