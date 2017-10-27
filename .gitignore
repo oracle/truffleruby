@@ -12,9 +12,6 @@
 nbproject
 
 # Eclipse
-/.metadata
-/.recommenders
-/workingsets.xml
 .classpath
 .project
 .settings
