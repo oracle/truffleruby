@@ -54,15 +54,18 @@ module Truffle::POSIX
     end
 
     if func
+      string_args = []
+      argument_types.each_with_index { |arg_type, i|
+        if arg_type == :string
+          string_args << i
+          argument_types[i] = "[sint8]"
+        end
+      }
+      string_args.freeze
+
       return_type = to_nfi_type(return_type)
       argument_types = argument_types.map { |type| to_nfi_type(type) }
       bound_func = func.bind("(#{argument_types.join(',')}):#{return_type}")
-
-      string_args = []
-      argument_types.each_with_index { |arg_type, i|
-        string_args << i if arg_type == :string
-      }
-      string_args.freeze
 
       define_singleton_method(method_name) { |*args|
         string_args.each do |i|
@@ -72,7 +75,7 @@ module Truffle::POSIX
           else
             str = str.encode(FS_ENCODING)
           end
-          args[i] = str
+          args[i] = Truffle.invoke_primitive :string_to_null_terminated_byte_array, str
         end
 
         result = bound_func.call(*args)
