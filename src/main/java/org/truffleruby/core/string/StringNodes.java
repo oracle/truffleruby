@@ -152,6 +152,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.java.JavaInterop;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -4163,6 +4165,22 @@ public abstract class StringNodes {
             final Encoding compatibleEncoding = checkEncodingNode.executeCheckEncoding(string, other);
 
             return makeConcatNode.executeMake(left, right, compatibleEncoding);
+        }
+
+    }
+
+    @Primitive(name = "string_to_null_terminated_byte_array", needsSelf = false)
+    public static abstract class StringToNullTerminatedByteArrayNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected TruffleObject stringToNullTerminatedByteArray(DynamicObject string,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            // NOTE: we always need one copy here, as native code could modify the passed byte[]
+            final byte[] bytes = bytesNode.execute(rope(string));
+            final byte[] bytesWithNull = new byte[bytes.length + 1];
+            System.arraycopy(bytes, 0, bytesWithNull, 0, bytes.length);
+
+            return JavaInterop.asTruffleObject(bytesWithNull);
         }
 
     }
