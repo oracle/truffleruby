@@ -1290,7 +1290,7 @@ class File < IO
   def flock(const)
     const = Rubinius::Type.coerce_to const, Integer, :to_int
 
-    result = POSIX.flock @descriptor, const
+    result = POSIX.truffleposix_flock @descriptor, const
     if result == -1
       begin
         Errno.handle_nfi
