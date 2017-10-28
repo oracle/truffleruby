@@ -12,7 +12,7 @@ module Truffle::POSIX
 
   home = Truffle::Boot.ruby_home
   libtruffleposix = "#{home}/lib/cext/truffleposix.#{DL_EXT}" if home
-  if home and File.exist?(libtruffleposix)
+  if home
     LIBTRUFFLEPOSIX = Truffle::Interop.eval('application/x-native', "load '#{libtruffleposix}'")
   else
     LIBTRUFFLEPOSIX = LIBC
