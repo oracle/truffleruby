@@ -1042,6 +1042,10 @@ module Truffle::CExt
     Truffle.invoke_primitive :string_to_inum, string, base, raise != 0
   end
 
+  def rb_cstr_to_dbl(string, badcheck)
+    Truffle.invoke_primitive :string_to_f, string, badcheck
+  end
+
   def rb_str_new_nul(length)
     "\0".b * length
   end

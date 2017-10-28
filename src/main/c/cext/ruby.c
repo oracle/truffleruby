@@ -965,8 +965,8 @@ VALUE rb_cstr_to_inum(const char* string, int base, int raise) {
   return truffle_invoke(RUBY_CEXT, "rb_cstr_to_inum", rb_str_new_cstr(string), base, raise);
 }
 
-double rb_cstr_to_dbl(const char *p, int badcheck) {
-  rb_tr_error("rb_cstr_to_dbl not implemented");
+double rb_cstr_to_dbl(const char* string, int badcheck) {
+  return truffle_invoke_d(RUBY_CEXT, "rb_cstr_to_dbl", rb_str_new_cstr(string), rb_boolean(badcheck));
 }
 
 double rb_big2dbl(VALUE x) {
