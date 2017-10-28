@@ -363,6 +363,32 @@ PATCHED_FILES = {
       { # JSON_parse_object
         match: /rb_funcall\(\*result, i_leftshift, 1, v\);/,
         replacement: 'rb_funcall(*result, i_leftshift, 1, v[0]);'
+      },
+      { # JSON_parse_string
+        match: /if \(json->create_additions && RTEST\(match_string = rb_tr_managed_from_handle\(json->match_string\)\)\) {/,
+        replacement: 'if (json->create_additions && RTEST(match_string = rb_tr_managed_from_handle_or_null(json->match_string))) {'
+      },
+      { # JSON_parse_string
+        match: /rb_str_resize\(\*result, RSTRING_LEN\(\*result\)\);/,
+        replacement: ''
+      }
+    ]
+  },
+  'generator.c' => {
+    gem: 'json',
+    ext_dir: 'generator',
+    patches: [
+      { # generate_json
+        match: /if \(obj == Qnil\)/,
+        replacement: 'if (NIL_P(obj))'
+      },
+      { # generate_json
+        match: /if \(obj == Qfalse\)/,
+        replacement: 'if (!FIXNUM_P(obj) && !FLONUM_P(obj) && obj == Qfalse)'
+      },
+      { # generate_json
+        match: /if \(obj == Qtrue\)/,
+        replacement: 'if (!FIXNUM_P(obj) && !FLONUM_P(obj) && obj == Qtrue)'
       }
     ]
   }
