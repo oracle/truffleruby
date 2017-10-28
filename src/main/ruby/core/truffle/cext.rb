@@ -710,6 +710,10 @@ module Truffle::CExt
     value.is_a?(Fixnum)
   end
 
+  def RB_FLONUM_P(value)
+    value.is_a?(Float)
+  end
+
   def RTEST(value)
     !nil.equal?(value) && !false.equal?(value)
   end

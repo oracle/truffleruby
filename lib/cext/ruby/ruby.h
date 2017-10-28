@@ -391,11 +391,14 @@ ID SYM2ID(VALUE value);
 #endif
 #endif
 
+/* Truffle: Define our own RB_FLONUM_P
 #if USE_FLONUM
 #define RB_FLONUM_P(x) ((((int)(SIGNED_VALUE)(x))&RUBY_FLONUM_MASK) == RUBY_FLONUM_FLAG)
 #else
 #define RB_FLONUM_P(x) 0
 #endif
+*/
+int RB_FLONUM_P(VALUE value);
 #define FLONUM_P(x) RB_FLONUM_P(x)
 
 /* Module#methods, #singleton_methods and so on return Symbols */
