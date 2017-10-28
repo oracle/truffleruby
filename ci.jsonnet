@@ -246,6 +246,10 @@
     capabilities: ["solaris", "sparcv9"]
   },
 
+  local deploy_caps = {
+    targets: ["deploy", "post-push"],
+  },
+
   local linux_amd64_bench = ["linux", "amd64", "no_frequency_scaling"],
 
   bench_caps: {
@@ -519,9 +523,9 @@
   tests_jobs: if debug then [
     # Copy the job(s) you want to debug here
   ] else [
-    {name: "ruby-deploy-and-specs-linux"} + linux_gate + $.deploy_and_specs_linux,
-    {name: "ruby-deploy-and-specs-darwin"} + $.common_darwin + $.gate_caps_darwin + $.deploy_and_specs_darwin,
-    {name: "ruby-deploy-and-specs-solaris"} + $.common_solaris + $.gate_caps_solaris + $.deploy_and_specs_solaris,
+    {name: "ruby-deploy-and-specs-linux"}   + $.common_linux   + $.gate_caps         + deploy_caps + $.deploy_and_specs_linux,
+    {name: "ruby-deploy-and-specs-darwin"}  + $.common_darwin  + $.gate_caps_darwin  + deploy_caps + $.deploy_and_specs_darwin,
+    {name: "ruby-deploy-and-specs-solaris"} + $.common_solaris + $.gate_caps_solaris + deploy_caps + $.deploy_and_specs_solaris,
 
     {name: "ruby-test-fast-java9-linux"} + linux_gate + labsjdk9 + $.test_fast,
 
