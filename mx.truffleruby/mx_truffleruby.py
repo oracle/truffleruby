@@ -76,6 +76,16 @@ class TruffleRubyLauncherBuildTask(mx.ArchivableBuildTask):
         if exists(self.launcher):
             os.remove(self.launcher)
 
+# Utilities
+
+class VerboseMx:
+    def __enter__(self):
+        self.verbose = mx.get_opts().verbose
+        mx.get_opts().verbose = True
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        mx.get_opts().verbose = self.verbose
+
 # Commands
 
 def jt(*args):
@@ -129,7 +139,8 @@ def download_binary_suite(args):
     ], kind=None)
 
 def ruby_run_specs(launcher, format, args):
-    mx.run(launcher + ['spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args, cwd=root)
+    with VerboseMx():
+        mx.run(launcher + ['spec/mspec/bin/mspec', 'run', '--config', 'spec/truffle.mspec', '--format', format, '--excl-tag', 'fails'] + args, cwd=root)
 
 def ruby_testdownstream(args):
     build_truffleruby()
@@ -137,7 +148,8 @@ def ruby_testdownstream(args):
 
 def ruby_testdownstream_hello(args):
     build_truffleruby()
-    mx.run(['bin/truffleruby', '-e', 'puts "Hello Ruby!"'], cwd=root)
+    with VerboseMx():
+        mx.run(['bin/truffleruby', '-e', 'puts "Hello Ruby!"'], cwd=root)
 
 def ruby_testdownstream_aot(args):
     if len(args) > 3:
