@@ -133,7 +133,7 @@ def ruby_run_specs(launcher, format, args):
 
 def ruby_testdownstream(args):
     build_truffleruby()
-    ruby_run_specs(['bin/truffleruby'], 'specdoc', ['--excl-tag', 'slow'])
+    ruby_run_specs(['bin/truffleruby'], 'specdoc', ['--excl-tag', 'slow'] + args)
 
 def ruby_testdownstream_hello(args):
     build_truffleruby()
