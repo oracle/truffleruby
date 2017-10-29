@@ -759,11 +759,6 @@ module Truffle::CExt
     val.to_i
   end
 
-  def rb_ulong2num
-    raise NotImplementedError, 'rb_ulong2num not implemented'
-  end
-
-
   def rb_num_coerce_bin(x, y, func)
     a, b = do_coerce(x, y, true)
     a.__send__(func, b)
