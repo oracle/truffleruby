@@ -131,7 +131,7 @@ class Dir
 
     def [](*patterns)
       if patterns.size == 1
-        pattern = Rubinius::Type.coerce_to_path(patterns[0])
+        pattern = Rubinius::Type.coerce_to_path(patterns[0], false)
         return [] if pattern.empty?
         patterns = glob_split pattern
       end
@@ -143,7 +143,7 @@ class Dir
       if pattern.kind_of? Array
         patterns = pattern
       else
-        pattern = Rubinius::Type.coerce_to_path pattern
+        pattern = Rubinius::Type.coerce_to_path(pattern, false)
 
         return [] if pattern.empty?
 
