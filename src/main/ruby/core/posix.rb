@@ -70,9 +70,7 @@ module Truffle::POSIX
       define_singleton_method(method_name) { |*args|
         string_args.each do |i|
           str = args.fetch(i)
-          if str.encoding == Encoding::BINARY
-            str = str.dup.force_encoding(FS_ENCODING)
-          else
+          if str.encoding != Encoding::BINARY and str.encoding != FS_ENCODING
             str = str.encode(FS_ENCODING)
           end
           args[i] = Truffle.invoke_primitive :string_to_null_terminated_byte_array, str
