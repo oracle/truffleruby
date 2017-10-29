@@ -523,16 +523,22 @@ module Rubinius
       false
     end
 
-    def self.coerce_to_path(obj)
+    def self.coerce_to_path(obj, check_null = true)
       if object_kind_of?(obj, String)
-        obj
+        path = obj
       else
         if object_respond_to? obj, :to_path
           obj = obj.to_path
         end
 
-        StringValue(obj)
+        path = StringValue(obj)
       end
+
+      unless path.encoding.ascii_compatible?
+        raise Encoding::CompatibilityError, "path name must be ASCII-compatible (#{path.encoding.name})"
+      end
+      check_null_safe(path) if check_null
+      path
     end
 
     def self.coerce_to_symbol(obj)
