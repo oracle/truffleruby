@@ -95,4 +95,12 @@ describe "A Symbol literal" do
   it "can be created from list syntax %I{a b c} with interpolation" do
     %I{a b #{"c"}}.should == [:a, :b, :c]
   end
+
+  it "with invalid bytes raises an EncodingError at parse time" do
+    ScratchPad.record []
+    -> {
+      eval 'ScratchPad << 1; :"\xC3"'
+    }.should raise_error(EncodingError, /invalid/)
+    ScratchPad.recorded.should == []
+  end
 end
