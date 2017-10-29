@@ -60,7 +60,7 @@ class File
     def initialize(path)
       path = Rubinius::Type.coerce_to_path(path)
       result = Truffle.invoke_primitive(:stat_stat, self, path)
-      Errno.handle path unless result == 0
+      Errno.handle_jnr path unless result == 0
     end
 
     def self.stat(path)
@@ -75,7 +75,7 @@ class File
 
     def self.lstat(path)
       stat = lstat?(path)
-      Errno.handle path unless stat
+      Errno.handle_jnr path unless stat
       stat
     end
 
@@ -94,7 +94,7 @@ class File
       fd = Rubinius::Type.coerce_to fd, Integer, :to_int
       stat = allocate
       result = Truffle.invoke_primitive(:stat_fstat, stat, fd)
-      Errno.handle "file descriptor #{descriptor}" unless result == 0
+      Errno.handle_jnr "file descriptor #{descriptor}" unless result == 0
       stat
     end
 
