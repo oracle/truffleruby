@@ -568,10 +568,6 @@ VALUE LONG2NUM(long value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2NUM", value);
 }
 
-VALUE ULONG2NUM(unsigned long value) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "ULONG2NUM", value);
-}
-
 VALUE LONG2FIX(long value) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "LONG2FIX", value);
 }

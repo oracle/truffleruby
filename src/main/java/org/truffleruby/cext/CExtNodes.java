@@ -283,8 +283,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "ULONG2NUM", onSingleton = true, required = 1)
-    public abstract static class ULONG2NUMNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "rb_ulong2num", onSingleton = true, required = 1)
+    public abstract static class ULong2NumNode extends CoreMethodArrayArgumentsNode {
 
         private static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
 
