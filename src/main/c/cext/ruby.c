@@ -1147,8 +1147,8 @@ VALUE rb_str_append(VALUE string, VALUE to_append) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_append", string, to_append);
 }
 
-VALUE rb_str_concat(VALUE str1, VALUE str2) {
-  rb_tr_error("rb_str_concat not implemented");
+VALUE rb_str_concat(VALUE string, VALUE to_concat) {
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_str_concat", string, to_concat);
 }
 
 void rb_str_set_len(VALUE string, long length) {

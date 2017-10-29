@@ -1153,6 +1153,10 @@ module Truffle::CExt
     str.append(to_append)
   end
 
+  def rb_str_concat(str, to_concat)
+    str << to_concat
+  end
+
   def rb_str_encode(str, to, ecflags, ecopts)
     opts = {}
     opts.merge!(ecopts) unless ecopts.nil?
