@@ -47,7 +47,8 @@ module Truffle::POSIX
 
 
   def self.attach_function(native_name, argument_types, return_type,
-                           as: native_name, library: LIBC, blocking: false)
+                           on: Truffle::POSIX, as: native_name,
+                           library: LIBC, blocking: false)
     method_name = as
 
     begin
@@ -70,7 +71,7 @@ module Truffle::POSIX
       argument_types = argument_types.map { |type| to_nfi_type(type) }
       bound_func = func.bind("(#{argument_types.join(',')}):#{return_type}")
 
-      define_singleton_method(method_name) { |*args|
+      on.define_singleton_method(method_name) { |*args|
         string_args.each do |i|
           str = args.fetch(i)
           args[i] = Truffle.invoke_primitive :string_to_null_terminated_byte_array, str
@@ -105,7 +106,7 @@ module Truffle::POSIX
         result
       }
     else
-      define_singleton_method(method_name) { |*|
+      on.define_singleton_method(method_name) { |*|
         raise NotImplementedError, "#{native_name} is not available"
       }
       Truffle.invoke_primitive :method_unimplement, method(method_name)

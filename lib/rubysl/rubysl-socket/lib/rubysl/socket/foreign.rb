@@ -1,7 +1,11 @@
 module RubySL
   module Socket
     module Foreign
-      extend Rubinius::FFI::Library
+      def self.attach_function(method_name, native_name = method_name, args_types, return_type)
+        blocking = (return_type == :int || return_type == :ssize_t)
+        Truffle::POSIX.attach_function(native_name, args_types, return_type,
+                                       on: self, as: method_name, blocking: blocking)
+      end
 
       SIZEOF_INT = Rubinius::FFI.type_size(:int)
 
