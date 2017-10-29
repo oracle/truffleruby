@@ -9,10 +9,6 @@
 require_relative '../ruby/spec_helper'
 
 describe "Strings going through NFI" do
-  it "the filesystem encoding is UTF-8" do
-    Encoding.find('filesystem').should equal Encoding::UTF_8
-  end
-
   describe "via strdup() are the same byte by byte" do
     before(:all) do
       Truffle::POSIX.attach_function :strdup, [:string], :string
