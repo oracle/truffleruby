@@ -87,12 +87,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public void errno(int value) {
-        posix.errno(value);
-    }
-
-    @TruffleBoundary
-    @Override
     public long sysconf(Sysconf name) {
         return posix.sysconf(name);
     }
