@@ -109,7 +109,7 @@ module Rubinius::FFI
     end
 
     def errno
-      Truffle::POSIX.errno
+      Errno.nfi_errno
     end
 
   end
