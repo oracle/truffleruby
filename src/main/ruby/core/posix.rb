@@ -58,7 +58,7 @@ module Truffle::POSIX
       argument_types.each_with_index { |arg_type, i|
         if arg_type == :string
           string_args << i
-          argument_types[i] = "[sint8]"
+          argument_types[i] = '[sint8]'
         end
       }
       string_args.freeze
