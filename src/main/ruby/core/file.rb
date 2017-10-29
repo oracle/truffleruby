@@ -1263,7 +1263,7 @@ class File < IO
       perm = 0666 if undefined.equal? perm
 
       fd = IO.sysopen(path, nmode, perm)
-      Errno.handle path if fd < 0
+      Errno.handle_jnr path if fd < 0
 
       @path = path
       super(fd, mode, options)
