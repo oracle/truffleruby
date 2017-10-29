@@ -4132,7 +4132,7 @@ public abstract class StringNodes {
     @Primitive(name = "string_to_null_terminated_byte_array", needsSelf = false)
     public static abstract class StringToNullTerminatedByteArrayNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization
+        @Specialization(guards = "isRubyString(string)")
         protected TruffleObject stringToNullTerminatedByteArray(DynamicObject string,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             // NOTE: we always need one copy here, as native code could modify the passed byte[]
@@ -4141,6 +4141,11 @@ public abstract class StringNodes {
             System.arraycopy(bytes, 0, bytesWithNull, 0, bytes.length);
 
             return JavaInterop.asTruffleObject(bytesWithNull);
+        }
+
+        @Specialization(guards = "isNil(string)")
+        protected TruffleObject emptyString(DynamicObject string) {
+            return JavaInterop.asTruffleObject(null);
         }
 
     }
