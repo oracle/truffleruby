@@ -127,6 +127,15 @@ module Truffle::CExt
   class RbEncoding
     NAME_FIELD_INDEX = 0
 
+    @cache = {}
+    @mutex = Mutex.new
+
+    def self.get(encoding)
+      @mutex.synchronize do
+        @cache.fetch(encoding) { |key| @cache[key] = RbEncoding.new(encoding) }
+      end
+    end
+
     attr_reader :encoding
 
     def initialize(encoding)
@@ -1960,7 +1969,7 @@ module Truffle::CExt
 
   def rb_to_encoding(encoding)
     encoding = Encoding.find(encoding.to_str) unless encoding.is_a?(Encoding)
-    RbEncoding.new(encoding)
+    RbEncoding.get(encoding)
   end
 
   def GetOpenFile(io)
