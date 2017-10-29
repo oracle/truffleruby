@@ -1150,7 +1150,7 @@ module Truffle::CExt
   end
 
   def rb_str_append(str, to_append)
-    str << StringValue(to_append)
+    str.append(to_append)
   end
 
   def rb_str_encode(str, to, ecflags, ecopts)
