@@ -94,7 +94,6 @@ module FFI
       function = function.bind(Truffle::Interop.to_java_string(signature))
 
       define_singleton_method(method_name) { |*args|
-        args = args.map { |arg| Struct === arg ? arg.to_ptr : arg }
         result = function.call(*args)
         if return_type == :pointer
           FFI::Pointer.new(Truffle::Interop.unbox(result))

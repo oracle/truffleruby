@@ -264,6 +264,11 @@ module Rubinius::FFI
       @pointer
     end
 
+    # For interop TO_NATIVE
+    def to_native
+      @pointer
+    end
+
     def free
       @pointer.free
     end
