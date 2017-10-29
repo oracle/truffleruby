@@ -30,7 +30,6 @@ public interface TrufflePosix {
     int stat(String path, FileStat stat);
     int errno();
     void errno(int value);
-    int chdir(String path);
     long sysconf(Sysconf name);
     Times times();
     int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends SpawnAttribute> spawnAttributes,
