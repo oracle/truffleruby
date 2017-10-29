@@ -98,6 +98,8 @@ module Truffle::POSIX
             ptr = Rubinius::FFI::Pointer.new(Truffle::Interop.as_pointer(result))
             result = ptr.read_string_to_null
           end
+        elsif return_type == :pointer
+          result = Rubinius::FFI::Pointer.new(Truffle::Interop.as_pointer(result))
         end
 
         result
