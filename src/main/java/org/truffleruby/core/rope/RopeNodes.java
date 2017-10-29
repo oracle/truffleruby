@@ -1257,9 +1257,7 @@ public abstract class RopeNodes {
 
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "rope")
-    })
+    @NodeChild(type = RubyNode.class, value = "rope")
     public abstract static class BytesNode extends RubyNode {
 
         public static BytesNode create() {
@@ -1278,16 +1276,14 @@ public abstract class RopeNodes {
             return rope.getBytes();
         }
 
-        @Specialization(guards = "rope.getRawBytes() == null")
         @TruffleBoundary
+        @Specialization(guards = "rope.getRawBytes() == null")
         protected byte[] getBytesFromRope(ManagedRope rope) {
             return rope.getBytes();
         }
     }
 
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "rope")
-    })
+    @NodeChild(type = RubyNode.class, value = "rope")
     public abstract static class BytesSlowNode extends RubyNode {
 
         public static BytesSlowNode create() {
