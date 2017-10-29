@@ -45,7 +45,7 @@ module Errno
   # Unlike rb_sys_fail(), handle does not raise an exception if errno is 0.
 
   def self.handle_jnr(additional = nil)
-    err = Truffle::POSIX.errno
+    err = Truffle::POSIX.jnr_errno
     return if err == 0
 
     raise SystemCallError.new(additional, err)
