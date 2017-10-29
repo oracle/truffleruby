@@ -6,6 +6,10 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
+if wd = Truffle::Boot.get_option('working_directory') and !wd.empty?
+  Dir.chdir wd
+end
+
 # Always provided features: ruby --disable-gems -e 'puts $"'
 begin
   require 'enumerator'

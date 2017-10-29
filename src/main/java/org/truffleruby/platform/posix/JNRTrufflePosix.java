@@ -93,12 +93,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int chdir(String path) {
-        return posix.chdir(path);
-    }
-
-    @TruffleBoundary
-    @Override
     public long sysconf(Sysconf name) {
         return posix.sysconf(name);
     }
