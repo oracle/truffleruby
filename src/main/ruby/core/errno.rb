@@ -62,12 +62,11 @@ module Errno
   end
 
   def self.nfi_errno
-    FFI::Pointer.new(Truffle::Interop.unbox(Truffle::POSIX.errno_address)).read_int
+    Truffle::POSIX.errno_address.read_int
   end
 
   def self.set_nfi_errno(value)
-    ptr = FFI::Pointer.new(Truffle::Interop.unbox(Truffle::POSIX.errno_address))
-    ptr.write_int value
+    Truffle::POSIX.errno_address.write_int value
   end
 
   # TODO CS 18-Apr-15 this should be a separate class
