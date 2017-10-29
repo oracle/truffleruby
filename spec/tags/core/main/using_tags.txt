@@ -1,0 +1,7 @@
+fails:main.using requires one Module argument
+fails:main.using uses refinements from the given module only in the target file
+fails:main.using uses refinements from the given module for method calls in the target file
+fails:main.using uses refinements from the given module in the eval string
+fails:main.using does not affect methods defined before it is called
+fails:main.using propagates refinements added to existing modules after it is called
+fails:main.using does not propagate refinements of new modules added after it is called

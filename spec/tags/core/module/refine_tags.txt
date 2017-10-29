@@ -1,0 +1,30 @@
+fails:Module#refine runs its block in an anonymous module
+fails:Module#refine uses the same anonymous module for future refines of the same class
+fails:Module#refine adds methods defined in its block to the anonymous module's public instance methods
+fails:Module#refine returns created anonymous module
+fails:Module#refine raises ArgumentError if not passed an argument
+fails:Module#refine raises TypeError if not passed a class
+fails:Module#refine raises TypeError if passed a module
+fails:Module#refine raises ArgumentError if not given a block
+fails:Module#refine applies refinements to calls in the refine block
+fails:Module#refine doesn't apply refinements outside the refine block
+fails:Module#refine does not apply refinements to external scopes not using the module
+fails:Module#refine makes available all refinements from the same module
+fails:Module#refine does not make available methods from another refinement module
+fails:Module#refine does not override methods in subclasses
+fails:Module#refine method lookup looks in the object singleton class first
+fails:Module#refine method lookup looks in prepended modules from the refinement first
+fails:Module#refine method lookup looks in refinement then
+fails:Module#refine method lookup looks in included modules from the refinement then
+fails:Module#refine method lookup looks in the class then
+fails:Module#refine for methods accesses indirectly is not honored by Kernel#send
+fails:Module#refine for methods accesses indirectly is not honored by BasicObject#__send__
+fails:Module#refine for methods accesses indirectly is not honored by Symbol#to_proc
+fails:Module#refine for methods accesses indirectly is honored by Kernel#binding
+fails:Module#refine for methods accesses indirectly is not honored by Kernel#method
+fails:Module#refine for methods accesses indirectly is not honored by Kernel#respond_to?
+fails:Module#refine when super is called in a refinement looks in the included to refinery module
+fails:Module#refine when super is called in a refinement looks in the refined class
+fails:Module#refine when super is called in a refinement looks in the refined class even if there is another active refinement
+fails:Module#refine module inclusion activates all refinements from all ancestors
+fails:Module#refine module inclusion overrides methods of ancestors by methods in descendants

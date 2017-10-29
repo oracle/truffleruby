@@ -1,2 +1,3 @@
 slow:A Symbol literal inherits the encoding of the magic comment and can have a binary encoding
 fails:A Symbol literal inherits the encoding of the magic comment and can have a binary encoding
+fails:A Symbol literal with invalid bytes raises an EncodingError at parse time

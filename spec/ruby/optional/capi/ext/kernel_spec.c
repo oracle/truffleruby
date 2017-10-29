@@ -231,7 +231,8 @@ static VALUE kernel_spec_rb_yield(VALUE self, VALUE obj) {
 }
 
 static VALUE kernel_spec_rb_yield_each(int argc, VALUE *args, VALUE self) {
-  for(int i = 0; i < 4; i++) {
+  int i;
+  for(i = 0; i < 4; i++) {
     rb_yield(INT2FIX(i));
   }
   return INT2FIX(4);
