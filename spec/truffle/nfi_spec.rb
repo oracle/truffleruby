@@ -14,34 +14,29 @@ describe "Strings going through NFI" do
       Truffle::POSIX.attach_function :strdup, [:string], :string
     end
 
-    def compare_strings(s, r)
-      r.encoding.should == s.encoding
-      r.bytes.should == s.bytes
-      r.should == s
-    end
-
     it "for a 7-bit String" do
       s = "abc"
-      r = Truffle::POSIX.strdup(s).force_encoding("utf-8")
-      compare_strings(s, r)
+      r = Truffle::POSIX.strdup(s)
+      r.encoding.should equal Encoding::BINARY
+      r.bytes.should == s.bytes
     end
 
     it "for a String with Unicode characters" do
       s = "déf"
-      r = Truffle::POSIX.strdup(s).force_encoding("utf-8")
-      compare_strings(s, r)
+      r = Truffle::POSIX.strdup(s)
+      r.bytes.should == s.bytes
     end
 
     it "for a String with Japanese characters" do
       s = "こんにちは.txt"
-      r = Truffle::POSIX.strdup(s).force_encoding("utf-8")
-      compare_strings(s, r)
+      r = Truffle::POSIX.strdup(s)
+      r.bytes.should == s.bytes
     end
 
     it "for a invalid UTF-8 String" do
       s = "\xa0\xa1"
-      r = Truffle::POSIX.strdup(s).force_encoding("utf-8")
-      compare_strings(s, r)
+      r = Truffle::POSIX.strdup(s)
+      r.bytes.should == s.bytes
     end
   end
 end
