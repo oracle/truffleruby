@@ -1,8 +1,7 @@
 module RubySL
   module Socket
     module Foreign
-      def self.attach_function(method_name, native_name = method_name, args_types, return_type)
-        blocking = (return_type == :int || return_type == :ssize_t)
+      def self.attach_function(method_name, native_name = method_name, args_types, return_type, blocking: false)
         Truffle::POSIX.attach_function(native_name, args_types, return_type,
                                        on: self, as: method_name, blocking: blocking)
       end
@@ -10,24 +9,24 @@ module RubySL
       SIZEOF_INT = Rubinius::FFI.type_size(:int)
 
       attach_function :_bind, :bind, [:int, :pointer, :socklen_t], :int
-      attach_function :_connect, :connect, [:int, :pointer, :socklen_t], :int
+      attach_function :_connect, :connect, [:int, :pointer, :socklen_t], :int, blocking: true
 
-      attach_function :accept, [:int, :pointer, :pointer], :int
+      attach_function :accept, [:int, :pointer, :pointer], :int, blocking: true
       attach_function :close, [:int], :int
       attach_function :shutdown, [:int, :int], :int
       attach_function :listen, [:int, :int], :int
       attach_function :socket, [:int, :int, :int], :int
-      attach_function :send, [:int, :pointer, :size_t, :int], :ssize_t
+      attach_function :send, [:int, :pointer, :size_t, :int], :ssize_t, blocking: true
 
       attach_function :sendto,
-        [:int, :pointer, :size_t, :int, :pointer, :socklen_t], :ssize_t
+        [:int, :pointer, :size_t, :int, :pointer, :socklen_t], :ssize_t, blocking: true
 
-      attach_function :recv, [:int, :pointer, :size_t, :int], :ssize_t
-      attach_function :recvmsg, :recvmsg, [:int, :pointer, :int], :ssize_t
-      attach_function :sendmsg, :sendmsg, [:int, :pointer, :int], :ssize_t
+      attach_function :recv, [:int, :pointer, :size_t, :int], :ssize_t, blocking: true
+      attach_function :recvmsg, :recvmsg, [:int, :pointer, :int], :ssize_t, blocking: true
+      attach_function :sendmsg, :sendmsg, [:int, :pointer, :int], :ssize_t, blocking: true
 
       attach_function :recvfrom,
-        [:int, :pointer, :size_t, :int, :pointer, :pointer], :int
+        [:int, :pointer, :size_t, :int, :pointer, :pointer], :int, blocking: true
 
       attach_function :_getsockopt,
         :getsockopt, [:int, :int, :int, :pointer, :pointer], :int
@@ -68,7 +67,7 @@ module RubySL
         [:pointer, :socklen_t, :pointer, :socklen_t, :pointer, :socklen_t, :int],
         :int
 
-      attach_function :getifaddrs, [:pointer], :int
+      attach_function :getifaddrs, [:pointer], :int, blocking: true
       attach_function :freeifaddrs, [:pointer], :void
 
       def self.bind(descriptor, sockaddr)
