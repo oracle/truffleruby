@@ -66,9 +66,11 @@ public class LazyRubyNode extends RubyNode {
     }
 
     private RubyNode getOrCreateMasterResolution() {
+        RubyNode masterResolution;
+
         lock.lock();
         try {
-            RubyNode masterResolution = resolutionMaster.get();
+            masterResolution = resolutionMaster.get();
             if (masterResolution == null) {
                 if (getContext().getOptions().LAZY_TRANSLATION_LOG) {
                     Log.LOGGER.info(() -> "lazy translating " + RubyLanguage.fileLine(getParent().getEncapsulatingSourceSection()) + " in " + getRootNode());
@@ -79,9 +81,10 @@ public class LazyRubyNode extends RubyNode {
 
                 resolutionMaster.set(masterResolution);
             }
-            return NodeUtil.cloneNode(masterResolution);
         } finally {
             lock.unlock();
         }
+
+        return NodeUtil.cloneNode(masterResolution);
     }
 }
