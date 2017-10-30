@@ -735,6 +735,10 @@ module Truffle::CExt
     value.to_f
   end
 
+  def rb_absint_singlebit_p(val)
+    Truffle.invoke_primitive(:rb_int_singlebit_p, val.abs)
+  end
+
   def rb_num2int(val)
     Rubinius::Type.rb_num2int(val)
   end

@@ -35,6 +35,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
@@ -460,6 +461,29 @@ public class CExtNodes {
         @TruffleBoundary
         public int bitLength(DynamicObject num) {
             return Layouts.BIGNUM.getValue(num).bitLength();
+        }
+    }
+
+    @Primitive(name = "rb_int_singlebit_p")
+    public abstract static class IntSinglebitPPrimitiveNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public int intSinglebitP(int num) {
+            assert num >= 0;
+            return Integer.bitCount(num) == 1 ? 1 : 0;
+        }
+
+        @Specialization
+        public int intSinglebitP(long num) {
+            assert num >= 0;
+            return Long.bitCount(num) == 1 ? 1 : 0;
+        }
+
+        @Specialization(guards = "isRubyBignum(num)")
+        @TruffleBoundary
+        public int intSinglebitP(DynamicObject num) {
+            assert Layouts.BIGNUM.getValue(num).signum() >= 0;
+            return Layouts.BIGNUM.getValue(num).bitCount() == 1 ? 1 : 0;
         }
     }
 

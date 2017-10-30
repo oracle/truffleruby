@@ -3525,7 +3525,7 @@ size_t rb_absint_numwords(VALUE val, size_t word_numbits, size_t *nlz_bits_ret) 
 }
 
 int rb_absint_singlebit_p(VALUE val) {
-  rb_tr_error("rb_absint_singlebit_p not implemented");
+  return truffle_invoke_i(RUBY_CEXT, "rb_absint_singlebit_p", val);
 }
 
 VALUE rb_class_boot(VALUE super) {
