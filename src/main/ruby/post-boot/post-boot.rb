@@ -6,9 +6,8 @@
 # GNU General Public License version 2
 # GNU Lesser General Public License version 2.1
 
-if wd = Truffle::Boot.get_option('working_directory') and !wd.empty?
-  Dir.chdir wd
-end
+wd = Truffle::Boot.get_option('working_directory')
+Dir.chdir(wd) unless wd.empty?
 
 # Always provided features: ruby --disable-gems -e 'puts $"'
 begin
