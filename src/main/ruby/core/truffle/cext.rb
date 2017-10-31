@@ -1734,6 +1734,8 @@ module Truffle::CExt
   end
 
   def test_kwargs(kwargs, raise_error)
+    return false if kwargs.nil?
+
     if kwargs.keys.all? { |k| k.is_a?(Symbol) }
       true
     elsif raise_error
