@@ -719,7 +719,7 @@ module Truffle::CExt
     value.is_a?(Fixnum)
   end
 
-  def RB_FLONUM_P(value)
+  def RB_FLOAT_TYPE_P(value)
     value.is_a?(Float)
   end
 
