@@ -322,47 +322,47 @@ PATCHED_FILES = {
       },
       { # cParser_parse
         match: /VALUE result = Qnil;/,
-        replacement: "VALUE result[1];\nresult[0] = Qnil;"
+        replacement: "VALUE result_array_for_address[1];\nresult_array_for_address[0] = Qnil;"
       },
       { # cParser_parse
         match: /char \*np = JSON_parse_value\(json, p, pe, &result, 0\);/,
-        replacement: 'char *np = JSON_parse_value(json, p, pe, result, 0);'
+        replacement: 'char *np = JSON_parse_value(json, p, pe, result_array_for_address, 0);'
       },
       {
         match: /if \(cs >= JSON_first_final && p == pe\) {\s+return result;/m,
-        replacement: "if (cs >= JSON_first_final && p == pe) {\n return result[0];"
+        replacement: "if (cs >= JSON_first_final && p == pe) {\n return result_array_for_address[0];"
       },
       { # JSON_parse_object
         match: /VALUE last_name = Qnil;/,
-        replacement: "VALUE last_name[1];\nlast_name[0] = Qnil;"
-      },
-      { # JSON_parse_object
-        match: /np = JSON_parse_string\(json, p, pe, &last_name\);/,
-        replacement: 'np = JSON_parse_string(json, p, pe, last_name);'
-      },
-      { # JSON_parse_object
-        match: /rb_hash_aset\(\*result, last_name, v\);/,
-        replacement: 'rb_hash_aset(*result, last_name[0], v[0]);'
-      },
-      { # JSON_parse_object
-        match: /rb_funcall\(\*result, i_aset, 2, last_name, v\);/,
-        replacement: 'rb_funcall(*result, i_aset, 2, last_name[0], v[0]);'
+        replacement: "VALUE last_name_array_for_address[1];\nlast_name_array_for_address[0] = Qnil;"
       },
       { # JSON_parse_object
         match: /VALUE v = Qnil;/,
-        replacement: "VALUE v[1];\nv[0] = Qnil;"
+        replacement: "VALUE v_array_for_address[1];\nv_array_for_address[0] = Qnil;"
+      },
+      { # JSON_parse_object
+        match: /np = JSON_parse_string\(json, p, pe, &last_name\);/,
+        replacement: 'np = JSON_parse_string(json, p, pe, last_name_array_for_address);'
+      },
+      { # JSON_parse_object
+        match: /rb_hash_aset\(\*result, last_name, v\);/,
+        replacement: 'rb_hash_aset(*result, last_name_array_for_address[0], v_array_for_address[0]);'
+      },
+      { # JSON_parse_object
+        match: /rb_funcall\(\*result, i_aset, 2, last_name, v\);/,
+        replacement: 'rb_funcall(*result, i_aset, 2, last_name_array_for_address[0], v_array_for_address[0]);'
       },
       { # JSON_parse_object
         match: /char \*np = JSON_parse_value\(json, p, pe, &v, current_nesting\);/,
-        replacement: 'char *np = JSON_parse_value(json, p, pe, v, current_nesting);'
+        replacement: 'char *np = JSON_parse_value(json, p, pe, v_array_for_address, current_nesting);'
       },
       { # JSON_parse_object
         match: /rb_ary_push\(\*result, v\);/,
-        replacement: 'rb_ary_push(*result, v[0]);'
+        replacement: 'rb_ary_push(*result, v_array_for_address[0]);'
       },
       { # JSON_parse_object
         match: /rb_funcall\(\*result, i_leftshift, 1, v\);/,
-        replacement: 'rb_funcall(*result, i_leftshift, 1, v[0]);'
+        replacement: 'rb_funcall(*result, i_leftshift, 1, v_array_for_address[0]);'
       },
       { # JSON_parse_string
         match: /if \(json->create_additions && RTEST\(match_string = rb_tr_managed_from_handle\(json->match_string\)\)\) {/,
