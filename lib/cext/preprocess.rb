@@ -369,6 +369,9 @@ PATCHED_FILES = {
         replacement: 'if (json->create_additions && RTEST(match_string = rb_tr_managed_from_handle_or_null(json->match_string))) {'
       },
       { # JSON_parse_string
+        # Work around a bug in the json extension where it tries to call `rb_str_resize` on non-String objects.
+        # We remove it entirely because the string resize is an MRI-optimization to reduce large preallocated strings
+        # to embedded strings. We don't have that distinction in our implementation and the resize would be a wasteful operation.
         match: /rb_str_resize\(\*result, RSTRING_LEN\(\*result\)\);/,
         replacement: ''
       }
