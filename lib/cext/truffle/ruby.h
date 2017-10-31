@@ -63,7 +63,7 @@ if (!rb_block_given_p())                                    \
 // Exceptions
 
 #define rb_raise(EXCEPTION, FORMAT, ...) \
-rb_exc_raise(rb_exc_new_str(EXCEPTION, (VALUE) truffle_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)))
+rb_exc_raise(rb_exc_new_str(EXCEPTION, (VALUE) truffle_invoke(RUBY_CEXT, "rb_sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)))
 
 // Utilities
 
