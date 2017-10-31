@@ -130,7 +130,7 @@ class Array
       total = size
 
       while i < total
-        return false unless self[i] == other[i]
+        return false unless Truffle.invoke_primitive(:object_same_or_equal, self[i], other[i])
         i += 1
       end
     end
