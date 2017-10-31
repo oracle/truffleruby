@@ -91,6 +91,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
+import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -148,6 +149,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
@@ -1536,21 +1538,23 @@ public abstract class KernelNodes {
         public static long sleepFor(Node currentNode, RubyContext context, DynamicObject thread, long durationInMillis) {
             assert durationInMillis >= 0;
 
-            final long start = System.currentTimeMillis();
+            // We want a monotonic clock to measure sleep duration
+            final long startInNanos = System.nanoTime();
 
-            long slept = context.getThreadManager().runUntilResult(currentNode, () -> {
-                long now = System.currentTimeMillis();
-                long slept1 = now - start;
+            context.getThreadManager().runUntilResult(currentNode, () -> {
+                final long nowInNanos = System.nanoTime();
+                final long sleptInNanos = nowInNanos - startInNanos;
+                final long sleptInMillis = TimeUnit.NANOSECONDS.toMillis(sleptInNanos);
 
-                if (slept1 >= durationInMillis || Layouts.THREAD.getWakeUp(thread).getAndSet(false)) {
-                    return slept1;
+                if (sleptInMillis >= durationInMillis || Layouts.THREAD.getWakeUp(thread).getAndSet(false)) {
+                    return BlockingAction.SUCCESS;
                 }
-                Thread.sleep(durationInMillis - slept1);
 
-                return System.currentTimeMillis() - start;
+                Thread.sleep(durationInMillis - sleptInMillis);
+                return BlockingAction.SUCCESS;
             });
 
-            return slept / 1000;
+            return TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - startInNanos);
         }
 
     }
