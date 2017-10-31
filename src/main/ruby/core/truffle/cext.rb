@@ -1299,7 +1299,7 @@ module Truffle::CExt
       st_result = foreign_call_with_block(func, key, value, farg)
 
       case st_result
-      when ST_CONTINUE then next
+      when ST_CONTINUE
       when ST_STOP then break
       when ST_DELETE then hash.delete(key)
       else raise ArgumentError, "Unknown 'func' return value: #{st_result}"
