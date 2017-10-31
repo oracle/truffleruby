@@ -28,7 +28,8 @@ describe "Mutex#sleep" do
     start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     m.sleep duration
     now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-    (now - start).should be_close(duration, 0.2)
+    (now - start).should > 0
+    (now - start).should < 2.0
   end
 
   it "unlocks the mutex while sleeping" do
