@@ -48,9 +48,9 @@ import org.truffleruby.core.format.pack.PackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
-import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
+import org.truffleruby.core.kernel.KernelNodes.ObjectSameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
+import org.truffleruby.core.kernel.KernelNodesFactory.ObjectSameOrEqualNodeFactory;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.rope.Rope;
@@ -605,7 +605,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class DeleteNode extends YieldingCoreMethodNode {
 
-        @Child private KernelNodes.SameOrEqualNode equalNode = KernelNodesFactory.SameOrEqualNodeFactory.create(null);
+        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
         @Child private IsFrozenNode isFrozenNode;
 
         @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
@@ -620,7 +620,7 @@ public abstract class ArrayNodes {
             while (n < strategy.getSize(array)) {
                 final Object stored = store.get(n);
 
-                if (equalNode.executeSameOrEqual(frame, stored, value)) {
+                if (sameOrEqualNode.executeObjectSameOrEqual(frame, stored, value)) {
                     checkFrozen(array);
                     found = stored;
                     n++;
@@ -744,7 +744,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class EqualNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private SameOrEqualNode equalNode = SameOrEqualNodeFactory.create(null);
+        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
 
         @Specialization(guards = { "isRubyArray(b)", "strategy.matches(a)", "strategy.matches(b)",
                 "!strategy.accepts(nil())" }, limit = "ARRAY_STRATEGIES")
@@ -771,7 +771,7 @@ public abstract class ArrayNodes {
             final ArrayMirror bMirror = strategy.newMirror(b);
 
             for (int i = 0; i < aSize; i++) {
-                if (!equalNode.executeSameOrEqual(frame, aMirror.get(i), bMirror.get(i))) {
+                if (!sameOrEqualNode.executeObjectSameOrEqual(frame, aMirror.get(i), bMirror.get(i))) {
                     falseProfile.enter();
                     return false;
                 }
@@ -912,7 +912,7 @@ public abstract class ArrayNodes {
     @CoreMethod(names = "include?", required = 1)
     public abstract static class IncludeNode extends ArrayCoreMethodNode {
 
-        @Child private KernelNodes.SameOrEqualNode equalNode = KernelNodesFactory.SameOrEqualNodeFactory.create(null);
+        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
 
         @Specialization(guards = "strategy.matches(array)", limit = "ARRAY_STRATEGIES")
         public boolean include(VirtualFrame frame, DynamicObject array, Object value,
@@ -922,7 +922,7 @@ public abstract class ArrayNodes {
             for (int n = 0; n < strategy.getSize(array); n++) {
                 final Object stored = store.get(n);
 
-                if (equalNode.executeSameOrEqual(frame, stored, value)) {
+                if (sameOrEqualNode.executeObjectSameOrEqual(frame, stored, value)) {
                     return true;
                 }
             }
