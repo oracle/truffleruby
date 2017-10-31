@@ -32,6 +32,7 @@ void rb_tr_log_warning(const char *message);
 long rb_tr_obj_id(VALUE object);
 void rb_tr_hidden_variable_set(VALUE object, const char *name, VALUE value);
 VALUE rb_tr_hidden_variable_get(VALUE object, const char *name);
+int rb_tr_obj_equal(VALUE first, VALUE second);
 
 // Handles
 
@@ -118,10 +119,6 @@ VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
 #define memcpy truffle_managed_memcpy
 
 // Inline implementations
-
-MUST_INLINE int rb_tr_obj_equal(VALUE first, VALUE second) {
-  return rb_funcall(first, rb_intern("equal?"), 1, second);
-}
 
 MUST_INLINE int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock) {
   *lock = truffle_invoke(RUBY_CEXT, "rb_nativethread_lock_initialize");
