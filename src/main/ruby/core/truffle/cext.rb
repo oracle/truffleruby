@@ -1302,6 +1302,7 @@ module Truffle::CExt
       when ST_CONTINUE then next
       when ST_STOP then break
       when ST_DELETE then hash.delete(key)
+      else raise ArgumentError, "Unknown 'func' return value: #{st_result}"
       end
     end
   end
