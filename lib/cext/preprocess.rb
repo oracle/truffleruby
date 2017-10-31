@@ -318,7 +318,7 @@ PATCHED_FILES = {
       *read_write_field('json','match_string', false),
       { # cParser_initialize
         match: /if \(rb_tr_managed_from_handle\(json->Vsource\)\)/,
-        replacement: 'if (rb_tr_managed_from_handle_or_null(json->Vsource))'
+        replacement: 'if (json->Vsource)'
       },
       { # cParser_parse
         match: /VALUE result = Qnil;/,
