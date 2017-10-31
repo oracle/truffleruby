@@ -384,11 +384,11 @@ PATCHED_FILES = {
       },
       { # generate_json
         match: /if \(obj == Qfalse\)/,
-        replacement: 'if (!FIXNUM_P(obj) && !FLONUM_P(obj) && obj == Qfalse)'
+        replacement: 'if (!FIXNUM_P(obj) && !RB_FLOAT_TYPE_P(obj) && obj == Qfalse)'
       },
       { # generate_json
         match: /if \(obj == Qtrue\)/,
-        replacement: 'if (!FIXNUM_P(obj) && !FLONUM_P(obj) && obj == Qtrue)'
+        replacement: 'if (!FIXNUM_P(obj) && !RB_FLOAT_TYPE_P(obj) && obj == Qtrue)'
       }
     ]
   }

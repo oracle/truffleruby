@@ -664,8 +664,8 @@ int RB_FIXNUM_P(VALUE value) {
   return truffle_invoke_b(RUBY_CEXT, "RB_FIXNUM_P", value);
 }
 
-int RB_FLONUM_P(VALUE value) {
-  return truffle_invoke_b(RUBY_CEXT, "RB_FLONUM_P", value);
+int RB_FLOAT_TYPE_P(VALUE value) {
+  return truffle_invoke_b(RUBY_CEXT, "RB_FLOAT_TYPE_P", value);
 }
 
 int RTEST(VALUE value) {
