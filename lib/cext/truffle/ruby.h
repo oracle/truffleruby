@@ -119,6 +119,10 @@ VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
 
 // Inline implementations
 
+MUST_INLINE int rb_tr_obj_equal(VALUE first, VALUE second) {
+  return rb_funcall(first, rb_intern("equal?"), 1, second);
+}
+
 MUST_INLINE int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock) {
   *lock = truffle_invoke(RUBY_CEXT, "rb_nativethread_lock_initialize");
   return 0;
