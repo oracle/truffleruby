@@ -438,12 +438,13 @@ end
 
 def patch(file, contents, directory)
   if patched_file = PATCHED_FILES[File.basename(file)]
-    regexp = if patched_file[:ext_dir]
-               /^#{Regexp.escape(patched_file[:gem])}|#{Regexp.escape(patched_file[:ext_dir])}\b/
-             else
-               /^#{Regexp.escape(patched_file[:gem])}\b/
-             end
-    if directory.split('/').last(2).any? { |part| part =~ regexp }
+    matched = if patched_file[:ext_dir]
+                directory.end_with?(File.join(patched_file[:gem], 'ext', patched_file[:ext_dir]))
+              else
+                regexp = /^#{Regexp.escape(patched_file[:gem])}\b/
+                directory.split('/').last(2).any? { |part| part =~ regexp }
+              end
+    if matched
       patched_file[:patches].each do |patch|
         contents = contents.gsub(patch[:match], patch[:replacement].rstrip)
       end
