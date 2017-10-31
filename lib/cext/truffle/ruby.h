@@ -269,7 +269,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     VALUE arg;
 
     if (pre > 0 || optional > 0) {
-      if (argn < argc - trailing) {
+      if (argn - pre < argc - trailing) {
         arg = argv[argn];
         argn++;
       } else {
