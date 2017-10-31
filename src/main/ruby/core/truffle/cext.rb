@@ -124,13 +124,13 @@ module Truffle::CExt
     end
   end
 
-  ENCODING_CACHE = {}
-  ENCODING_CACHE_MUTEX = Mutex.new
-
   class RbEncoding
-    private_class_method :new
+    ENCODING_CACHE = {}
+    ENCODING_CACHE_MUTEX = Mutex.new
 
     NAME_FIELD_INDEX = 0
+
+    private_class_method :new
 
     def self.get(encoding)
       ENCODING_CACHE_MUTEX.synchronize do
