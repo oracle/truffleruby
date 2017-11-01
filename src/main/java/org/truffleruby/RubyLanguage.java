@@ -41,7 +41,8 @@ import java.util.Map;
         name = RubyLanguage.NAME,
         id = RubyLanguage.ID,
         version = RubyLanguage.RUBY_VERSION,
-        mimeType = RubyLanguage.MIME_TYPE)
+        mimeType = RubyLanguage.MIME_TYPE,
+        dependentLanguages = "llvm")
 @ProvidedTags({
         CoverageManager.LineTag.class,
         TraceManager.CallTag.class,
