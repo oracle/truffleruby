@@ -120,6 +120,11 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
+    protected void finalizeContext(RubyContext context) {
+        context.finalizeContext();
+    }
+
+    @Override
     protected void disposeContext(RubyContext context) {
         context.shutdown();
     }
