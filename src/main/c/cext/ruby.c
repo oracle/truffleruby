@@ -1469,7 +1469,7 @@ int rb_enc_str_coderange(VALUE str) {
 }
 
 int rb_tr_obj_equal(VALUE first, VALUE second) {
-  return rb_funcall(first, rb_intern("equal?"), 1, second);
+  return RTEST(rb_funcall(first, rb_intern("equal?"), 1, second));
 }
 
 
