@@ -242,6 +242,11 @@ public class RubyContext {
                 RubyArguments.pack(null, null, method.getMethod(), DeclarationContext.METHOD, null, object, block, arguments));
     }
 
+    @TruffleBoundary
+    public void finalizeContext() {
+        atExitManager.runSystemExitHooks();
+    }
+
     private final ReentrantLock shutdownLock = new ReentrantLock();
     private boolean disposed = false;
 
@@ -266,14 +271,12 @@ public class RubyContext {
             Log.LOGGER.info("total ropes interned: " + getRopeTable().totalRopes());
         }
 
-        atExitManager.runSystemExitHooks();
-
-        threadManager.shutdown();
-        safepointManager.shutdown();
-
         if (options.COVERAGE_GLOBAL) {
             coverageManager.print(System.out);
         }
+
+        threadManager.shutdown();
+        safepointManager.shutdown();
     }
 
     public RubyLanguage getLanguage() {
