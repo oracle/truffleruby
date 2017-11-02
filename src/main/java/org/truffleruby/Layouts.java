@@ -18,8 +18,6 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
 import org.truffleruby.core.binding.BindingLayout;
 import org.truffleruby.core.binding.BindingLayoutImpl;
-import org.truffleruby.core.dir.DirLayout;
-import org.truffleruby.core.dir.DirLayoutImpl;
 import org.truffleruby.core.encoding.EncodingConverterLayout;
 import org.truffleruby.core.encoding.EncodingConverterLayoutImpl;
 import org.truffleruby.core.encoding.EncodingLayout;
@@ -118,7 +116,6 @@ public abstract class Layouts {
     public static final BindingLayout BINDING = BindingLayoutImpl.INSTANCE;
     public static final ByteArrayLayout BYTE_ARRAY = ByteArrayLayoutImpl.INSTANCE;
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;
-    public static final DirLayout DIR = DirLayoutImpl.INSTANCE;
     public static final EncodingConverterLayout ENCODING_CONVERTER = EncodingConverterLayoutImpl.INSTANCE;
     public static final EncodingLayout ENCODING = EncodingLayoutImpl.INSTANCE;
     public static final ExceptionLayout EXCEPTION = ExceptionLayoutImpl.INSTANCE;

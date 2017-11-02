@@ -27,7 +27,6 @@ module Truffle::POSIX
     :ulong => :uint64,
   }
 
-  FS_ENCODING = Encoding.find('filesystem')
   EINTR = Errno::EINTR::Errno
   INTERRUPTED = -EINTR
 
@@ -119,6 +118,7 @@ module Truffle::POSIX
   attach_function :chmod, [:string, :mode_t], :int
   attach_function :chown, [:string, :uid_t, :gid_t], :int
   attach_function :close, [:int], :int
+  attach_function :closedir, [:pointer], :int
   attach_function :dup, [:int], :int
   attach_function :dup2, [:int, :int], :int
   attach_function :fchmod, [:int, :mode_t], :int
@@ -132,10 +132,15 @@ module Truffle::POSIX
   attach_function :link, [:string, :string], :int
   attach_function :mkdir, [:string, :mode_t], :int
   attach_function :mkfifo, [:string, :mode_t], :int
+  attach_function :opendir, [:string], :pointer
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
+  attach_function :readdir, [:pointer], :pointer
   attach_function :rename, [:string, :string], :int
+  attach_function :rewinddir, [:pointer], :void
   attach_function :rmdir, [:string], :int
+  attach_function :seekdir, [:pointer, :long], :void
   attach_function :symlink, [:string, :string], :int
+  attach_function :telldir, [:pointer], :long
   attach_function :umask, [:mode_t], :mode_t
   attach_function :unlink, [:string], :int
   attach_function :utimes, [:string, :pointer], :int
