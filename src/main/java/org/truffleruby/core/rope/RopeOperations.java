@@ -127,11 +127,11 @@ public class RopeOperations {
         return decode(UTF8, bytes, byteOffset, byteLength);
     }
 
-    public static Rope encodeAscii(CharSequence value, Encoding encoding) {
+    public static Rope encodeAscii(String value, Encoding encoding) {
         return create(encodeAsciiBytes(value), encoding, CR_7BIT);
     }
 
-    public static byte[] encodeAsciiBytes(CharSequence value) {
+    public static byte[] encodeAsciiBytes(String value) {
         assert StringOperations.isASCIIOnly(value);
 
         final byte[] bytes = new byte[value.length()];
