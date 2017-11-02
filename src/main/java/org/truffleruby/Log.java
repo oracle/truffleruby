@@ -35,6 +35,7 @@ public class Log extends RubyLogger {
     private static final Set<String> DISPLAYED_WARNINGS = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public static final String KWARGS_NOT_OPTIMIZED_YET = "keyword arguments are not yet optimized";
+    public static final String UNSTABLE_INTERPOLATED_REGEXP = "unstable interpolated regexps are not optimized";
 
     /**
      * Warn about something that has lower performance than might be expected. Only prints the
