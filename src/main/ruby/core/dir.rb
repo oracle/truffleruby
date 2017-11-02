@@ -39,7 +39,7 @@ class Dir
   alias_method :to_path, :path
 
   def initialize(path, options=undefined)
-    path = Rubinius::Type.coerce_to_path path
+    @path = Rubinius::Type.coerce_to_path path
 
     if undefined.equal? options
       enc = nil
@@ -51,11 +51,21 @@ class Dir
 
     @encoding = enc || Encoding.find('filesystem')
 
-    @ptr = Truffle::POSIX.opendir(path)
+    @ptr = Truffle::POSIX.opendir(@path)
     Errno.handle if @ptr.null?
   end
 
+  private def ensure_open
+    raise IOError, 'closed directory' if closed?
+  end
+
+  def fileno
+    ensure_open
+    Truffle::POSIX.dirfd(@ptr)
+  end
+
   def pos
+    ensure_open
     pos = Truffle::POSIX.telldir(@ptr)
     Errno.handle if pos == -1
     pos
@@ -63,6 +73,7 @@ class Dir
   alias_method :tell, :pos
 
   def seek(pos)
+    ensure_open
     Truffle::POSIX.seekdir(@ptr, pos)
     self
   end
@@ -73,11 +84,13 @@ class Dir
   end
 
   def rewind
+    ensure_open
     Truffle::POSIX.rewinddir(@ptr)
     self
   end
 
   def read
+    ensure_open
     entry = Truffle::POSIX.truffleposix_readdir(@ptr)
     unless entry
       Errno.handle unless Errno.nfi_errno == 0
@@ -118,7 +131,7 @@ class Dir
   end
 
   def inspect
-    "#<#{self.class}:#{object_id.to_s(16)} @path=#{@path}>"
+    "#<#{self.class}:#{@path}>"
   end
 
   class << self
