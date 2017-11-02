@@ -50,7 +50,6 @@ import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.rope.CodeRange.CR_VALID;
 
 public class RopeOperations {
-    private static final Charset UTF8 = Charset.forName("UTF-8");
 
     private static final ConcurrentHashMap<Encoding, Charset> encodingToCharsetMap = new ConcurrentHashMap<>();
 
@@ -114,19 +113,6 @@ public class RopeOperations {
         return withEncodingVerySlow(originalRope, newEncoding, originalRope.getCodeRange());
     }
 
-    @TruffleBoundary
-    public static String decodeUTF8(Rope rope) {
-        if (rope.isAsciiOnly()) {
-            return decodeAscii(rope);
-        }
-
-        return decode(UTF8, rope.getBytes(), 0, rope.byteLength());
-    }
-
-    public static String decodeUTF8(byte[] bytes, int byteOffset, int byteLength) {
-        return decode(UTF8, bytes, byteOffset, byteLength);
-    }
-
     public static Rope encodeAscii(String value, Encoding encoding) {
         return create(encodeAsciiBytes(value), encoding, CR_7BIT);
     }
@@ -141,12 +127,6 @@ public class RopeOperations {
         }
 
         return bytes;
-    }
-
-    private static String decodeAscii(Rope rope) {
-        assert rope.getCodeRange() == CR_7BIT;
-
-        return decodeAscii(rope.getBytes(), 0, rope.byteLength());
     }
 
     public static String decodeAscii(byte[] bytes, int byteOffset, int byteLength) {

@@ -25,7 +25,7 @@ public abstract class LeafRope extends ManagedRope {
     @Override
     public String toString() {
         // This should be used for debugging only.
-        return RopeOperations.decodeUTF8(this);
+        return RopeOperations.decodeRope(this);
     }
 
     public LeafRope computeHashCode() {

@@ -66,7 +66,6 @@ import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
@@ -105,7 +104,7 @@ public abstract class ReadlineNodes {
         @TruffleBoundary
         @Specialization
         public DynamicObject setBasicWordBreakCharacters(DynamicObject characters) {
-            ProcCompleter.setDelimiter(RopeOperations.decodeUTF8(StringOperations.rope(characters)));
+            ProcCompleter.setDelimiter(StringOperations.getString(characters));
             return characters;
         }
 

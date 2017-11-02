@@ -131,12 +131,6 @@ public abstract class StringOperations {
         return rope(string).getCodeRange();
     }
 
-    public static String decodeUTF8(DynamicObject string) {
-        assert RubyGuards.isRubyString(string);
-
-        return RopeOperations.decodeUTF8(Layouts.STRING.getRope(string));
-    }
-
     /**
      * Create a byte[] from a String assuming a raw/ISO-8859-1 encoding
      */
