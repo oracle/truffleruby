@@ -1009,7 +1009,7 @@ public abstract class StringNodes {
         @Specialization(guards = "isRubyString(encodingName)")
         public DynamicObject forceEncodingString(DynamicObject string, DynamicObject encodingName,
                                                  @Cached("createBinaryProfile()") ConditionProfile differentEncodingProfile) {
-            final DynamicObject encoding = getContext().getEncodingManager().getRubyEncoding(StringOperations.decodeUTF8(encodingName));
+            final DynamicObject encoding = getContext().getEncodingManager().getRubyEncoding(StringOperations.getString(encodingName));
             return forceEncodingEncoding(string, encoding, differentEncodingProfile);
         }
 

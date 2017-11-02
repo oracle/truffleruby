@@ -69,8 +69,7 @@ public class SubstringRope extends ManagedRope {
     @Override
     public String toString() {
         // This should be used for debugging only.
-        final byte[] childBytes = RopeOperations.extractRange(child, byteOffset, byteLength());
-        return RopeOperations.decodeUTF8(childBytes, 0, childBytes.length);
+        return RopeOperations.decodeRopeSegment(child, byteOffset, byteLength());
     }
 
 }

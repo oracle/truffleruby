@@ -26,7 +26,7 @@ public abstract class LazyRope extends ManagedRope {
 
     @Override
     public String toString() {
-        return RopeOperations.decodeUTF8(this);
+        return RopeOperations.decodeRope(this);
     }
 
 }

@@ -47,7 +47,7 @@ public abstract class StatNodes {
         @Specialization(guards = "isRubyString(path)")
         public int stat(DynamicObject rubyStat, DynamicObject path) {
             final FileStat stat = posix().allocateStat();
-            final int code = posix().stat(StringOperations.decodeUTF8(path), stat);
+            final int code = posix().stat(StringOperations.getString(path), stat);
 
             if (code == 0) {
                 Layouts.STAT.setStat(rubyStat, stat);
