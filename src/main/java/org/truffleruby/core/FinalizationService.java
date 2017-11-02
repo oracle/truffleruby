@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core;
 
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.ThreadManager;
@@ -112,11 +111,6 @@ public class FinalizationService {
         context.send(finalizerThread, "internal_thread_initialize", null);
 
         threadManager.initialize(finalizerThread, null, "finalizer", () -> {
-            if (TruffleOptions.AOT) {
-                // Temporary workaround for GR-5440.
-                return context.getCoreLibrary().getNil();
-            }
-
             while (true) {
                 final FinalizerReference finalizerReference = (FinalizerReference) threadManager.runUntilResult(null,
                         () -> finalizerQueue.remove());
