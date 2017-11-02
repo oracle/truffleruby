@@ -212,9 +212,6 @@ but these may behave differently or be removed in future versions.
 
 ## Features not yet supported on the SVM
 
-* Signal handlers
-* Finalizers
-* Setting the process name (for example `$0 =`)
 * Java interop
 
 Most of these features will silently not work, in order to let as much as
