@@ -1,2 +1,0 @@
-graalvm:Dir.entries returns entries encoded with the filesystem encoding by default
-darwinCI:Dir.entries returns entries encoded with the filesystem encoding by default
