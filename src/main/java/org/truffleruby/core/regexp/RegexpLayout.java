@@ -28,7 +28,7 @@ public interface RegexpLayout extends BasicObjectLayout {
                                @Nullable Regex regex,
                                @Nullable Rope source,
                                RegexpOptions options,
-            @Nullable EncodingCache cachedEncodings);
+                               @Nullable EncodingCache cachedEncodings);
 
     boolean isRegexp(DynamicObject object);
     boolean isRegexp(Object object);
