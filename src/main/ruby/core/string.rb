@@ -158,7 +158,7 @@ class String
     end
 
     # Nothing worked out, this is the default.
-    empty = ''.encode(encoding)
+    empty = String.new(encoding: encoding)
     [self, empty, empty.dup]
   end
 
@@ -180,7 +180,7 @@ class String
       end
 
       # Nothing worked out, this is the default.
-      empty = ''.encode(encoding)
+      empty = String.new(encoding: encoding)
       [empty, empty.dup, self]
     end
   end
@@ -643,13 +643,13 @@ class String
     stop = StringValue(stop)
 
     if stop.size == 1 && size == 1
-      enc = Encoding.compatible?(self.encoding, stop.encoding)
+      enc = Rubinius::Type.compatible_encoding(self.encoding, stop.encoding)
 
       return self if self > stop
       after_stop = stop.getbyte(0) + (exclusive ? 0 : 1)
       current = getbyte(0)
       until current == after_stop
-        yield current.chr.force_encoding(enc)
+        yield current.chr(enc)
         current += 1
       end
     else
@@ -1357,7 +1357,6 @@ class String
       start += size if start < 0
       if start < 0 or start > size
         Truffle.invoke_primitive(:regexp_set_last_match, nil) if str.kind_of? Regexp
-
         return
       end
     end
