@@ -693,11 +693,23 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "to_s")
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
+        @Specialization(guards = "regexp == cachedRegexp")
+        public DynamicObject toSCached(DynamicObject regexp,
+                @Cached("regexp") DynamicObject cachedRegexp,
+                @Cached("createRope(regexp)") Rope rope) {
+            return createString(rope);
+        }
+
         @Specialization
         public DynamicObject toS(DynamicObject regexp) {
+            final Rope rope = createRope(regexp);
+            return createString(rope);
+        }
+
+        @TruffleBoundary
+        protected Rope createRope(DynamicObject regexp) {
             final ClassicRegexp classicRegexp = ClassicRegexp.newRegexp(getContext(), Layouts.REGEXP.getSource(regexp), Layouts.REGEXP.getRegex(regexp).getOptions());
-            return createString(classicRegexp.toByteList());
+            return classicRegexp.toByteList().toRope();
         }
 
     }
