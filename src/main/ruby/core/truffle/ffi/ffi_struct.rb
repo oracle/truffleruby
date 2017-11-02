@@ -106,8 +106,6 @@ module Rubinius::FFI
       mod.respond_to?(:find_type) ? mod : nil
     end
 
-    attr_reader :pointer
-
     def self.layout(*spec)
       return @layout if spec.size == 0
 
@@ -218,16 +216,8 @@ module Rubinius::FFI
       @size
     end
 
-    def size
-      self.class.size
-    end
-
     def self.offset_of(name)
       @layout[name].first
-    end
-
-    def offset_of(name)
-      @cspec[name].first
     end
 
     def self.offsets
@@ -236,19 +226,11 @@ module Rubinius::FFI
       end
     end
 
-    def offsets
-      members.map do |member|
-        [member, @cspec[member].first]
-      end
-    end
-
     def self.members
       @members
     end
 
-    def members
-      self.class.members
-    end
+    attr_reader :pointer
 
     def initialize(pointer=nil, *spec)
       @cspec = self.class.layout(*spec)
@@ -258,6 +240,10 @@ module Rubinius::FFI
       else
         @pointer = MemoryPointer.new size
       end
+    end
+
+    def initialize_copy(ptr)
+      @pointer = ptr.pointer.dup
     end
 
     def to_ptr
@@ -273,13 +259,27 @@ module Rubinius::FFI
       @pointer.free
     end
 
+    def size
+      self.class.size
+    end
+
+    def members
+      self.class.members
+    end
+
+    def offsets
+      members.map do |member|
+        [member, @cspec[member].first]
+      end
+    end
+
+    def offset_of(name)
+      @cspec[name].first
+    end
+
     def ==(other)
       return false unless other.is_a?(self.class)
       @pointer == other.pointer
-    end
-
-    def initialize_copy(ptr)
-      @pointer = ptr.pointer.dup
     end
 
     def []=(field, val)
