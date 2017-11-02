@@ -93,8 +93,11 @@ public abstract class StringOperations {
         return bytes;
     }
 
-    @TruffleBoundary
     public static Rope encodeRope(CharSequence value, Encoding encoding, CodeRange codeRange) {
+        if (codeRange == CodeRange.CR_7BIT) {
+            return RopeOperations.encodeAscii(value, encoding);
+        }
+
         final byte[] bytes = encodeBytes(value, encoding);
 
         return RopeOperations.create(bytes, encoding, codeRange);
