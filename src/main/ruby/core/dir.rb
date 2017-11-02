@@ -35,6 +35,10 @@
 class Dir
   include Enumerable
 
+  class DirEntry < Rubinius::FFI::Struct
+    config 'rbx.platform.dirent', :d_ino, :d_name, :d_reclen
+  end
+
   attr_reader :path
   alias_method :to_path, :path
 
@@ -49,7 +53,22 @@ class Dir
       enc = Rubinius::Type.coerce_to_encoding enc if enc
     end
 
-    Truffle.invoke_primitive :dir_open, self, path, enc
+    @encoding = enc || Encoding.find('filesystem')
+
+    @ptr = Truffle::POSIX.opendir(path)
+    Errno.handle if @ptr.null?
+  end
+
+  def pos
+    pos = Truffle::POSIX.telldir(@ptr)
+    Errno.handle if pos == -1
+    pos
+  end
+  alias_method :tell, :pos
+
+  def seek(pos)
+    Truffle::POSIX.seekdir(@ptr, pos)
+    self
   end
 
   def pos=(position)
@@ -57,14 +76,17 @@ class Dir
     position
   end
 
-  def closed?
-    Truffle.primitive :dir_closed_p
-    raise PrimitiveFailure, 'Dir#closed? primitive failed'
+  def rewind
+    Truffle::POSIX.rewinddir(@ptr)
+    self
   end
 
   def read
-    entry = Truffle.invoke_primitive :dir_read, self
-    return unless entry
+    ptr = Truffle::POSIX.readdir(@ptr)
+    return if ptr.null?
+
+    dir_entry = DirEntry.new(ptr)
+    entry = dir_entry[:d_name].force_encoding(@encoding)
 
     if Encoding.default_external == Encoding::US_ASCII && !entry.valid_encoding?
       entry.force_encoding Encoding::ASCII_8BIT
@@ -73,6 +95,18 @@ class Dir
 
     enc = Encoding.default_internal
     enc ? entry.encode(enc) : entry
+  end
+
+  def close
+    unless closed?
+      ret = Truffle::POSIX.closedir(@ptr)
+      Errno.handle if ret == -1
+      @ptr = nil
+    end
+  end
+
+  def closed?
+    @ptr == nil
   end
 
   def each

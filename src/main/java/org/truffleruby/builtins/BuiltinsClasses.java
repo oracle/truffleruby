@@ -42,8 +42,6 @@ import org.truffleruby.core.bool.FalseClassNodesBuiltins;
 import org.truffleruby.core.bool.FalseClassNodesFactory;
 import org.truffleruby.core.bool.TrueClassNodesBuiltins;
 import org.truffleruby.core.bool.TrueClassNodesFactory;
-import org.truffleruby.core.dir.DirNodesBuiltins;
-import org.truffleruby.core.dir.DirNodesFactory;
 import org.truffleruby.core.encoding.EncodingConverterNodesBuiltins;
 import org.truffleruby.core.encoding.EncodingConverterNodesFactory;
 import org.truffleruby.core.encoding.EncodingNodesBuiltins;
@@ -190,7 +188,6 @@ public abstract class BuiltinsClasses {
         ClassNodesBuiltins.setup(coreManager, primitiveManager);
         CoverageNodesBuiltins.setup(coreManager, primitiveManager);
         DigestNodesBuiltins.setup(coreManager, primitiveManager);
-        DirNodesBuiltins.setup(coreManager, primitiveManager);
         EncodingConverterNodesBuiltins.setup(coreManager, primitiveManager);
         EncodingNodesBuiltins.setup(coreManager, primitiveManager);
         EtcNodesBuiltins.setup(coreManager, primitiveManager);
@@ -273,7 +270,6 @@ public abstract class BuiltinsClasses {
             ClassNodesFactory.getFactories(),
             CoverageNodesFactory.getFactories(),
             DigestNodesFactory.getFactories(),
-            DirNodesFactory.getFactories(),
             EncodingConverterNodesFactory.getFactories(),
             EncodingNodesFactory.getFactories(),
             EtcNodesFactory.getFactories(),

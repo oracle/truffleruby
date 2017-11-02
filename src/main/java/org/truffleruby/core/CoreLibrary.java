@@ -415,7 +415,6 @@ public class CoreLibrary {
         bindingFactory = Layouts.BINDING.createBindingShape(bindingClass, bindingClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(bindingClass, bindingFactory);
         dirClass = defineClass("Dir");
-        Layouts.CLASS.setInstanceFactoryUnsafe(dirClass, Layouts.DIR.createDirShape(dirClass, dirClass));
         encodingClass = defineClass("Encoding");
         encodingFactory = Layouts.ENCODING.createEncodingShape(encodingClass, encodingClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingClass, encodingFactory);
