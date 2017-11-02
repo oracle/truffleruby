@@ -1248,13 +1248,13 @@ public class BodyTranslator extends Translator {
     public RubyNode visitDRegxNode(DRegexpParseNode node) {
         SourceIndexLength sourceSection = node.getPosition();
 
-        final List<RubyNode> children = new ArrayList<>();
+        final List<ToSNode> children = new ArrayList<>();
 
         for (ParseNode child : node.children()) {
-            children.add(child.accept(this));
+            children.add(ToSNodeGen.create(child.accept(this)));
         }
 
-        final InterpolatedRegexpNode i = new InterpolatedRegexpNode(children.toArray(new RubyNode[children.size()]), node.getOptions());
+        final InterpolatedRegexpNode i = new InterpolatedRegexpNode(children.toArray(new ToSNode[children.size()]), node.getOptions());
         i.unsafeSetSourceSection(sourceSection);
 
         if (node.getOptions().isOnce()) {
