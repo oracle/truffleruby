@@ -242,7 +242,6 @@ public class RubyContext {
                 RubyArguments.pack(null, null, method.getMethod(), DeclarationContext.METHOD, null, object, block, arguments));
     }
 
-    @TruffleBoundary
     public void finalizeContext() {
         atExitManager.runSystemExitHooks();
     }
@@ -250,7 +249,6 @@ public class RubyContext {
     private final ReentrantLock shutdownLock = new ReentrantLock();
     private boolean disposed = false;
 
-    @TruffleBoundary
     public void shutdown() {
         shutdownLock.lock();
         try {
