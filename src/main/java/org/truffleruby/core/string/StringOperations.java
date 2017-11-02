@@ -76,7 +76,7 @@ public abstract class StringOperations {
     }
 
     @TruffleBoundary
-    public static byte[] encodeBytes(CharSequence value, Encoding encoding) {
+    public static byte[] encodeBytes(String value, Encoding encoding) {
         // Taken from org.jruby.RubyString#encodeByteList.
 
         Charset charset = encoding.getCharset();
@@ -93,7 +93,7 @@ public abstract class StringOperations {
         return bytes;
     }
 
-    public static Rope encodeRope(CharSequence value, Encoding encoding, CodeRange codeRange) {
+    public static Rope encodeRope(String value, Encoding encoding, CodeRange codeRange) {
         if (codeRange == CodeRange.CR_7BIT) {
             return RopeOperations.encodeAscii(value, encoding);
         }
@@ -103,7 +103,7 @@ public abstract class StringOperations {
         return RopeOperations.create(bytes, encoding, codeRange);
     }
 
-    public static Rope encodeRope(CharSequence value, Encoding encoding) {
+    public static Rope encodeRope(String value, Encoding encoding) {
         return encodeRope(value, encoding, CodeRange.CR_UNKNOWN);
     }
 
@@ -138,28 +138,15 @@ public abstract class StringOperations {
     }
 
     /**
-     * Create a byte[] from a CharSequence assuming a raw/ISO-8859-1 encoding
-     *
-     * @param s the CharSequence to convert
-     * @return a byte[]
+     * Create a byte[] from a String assuming a raw/ISO-8859-1 encoding
      */
     @TruffleBoundary
-    public static byte[] plain(CharSequence s) {
+    public static byte[] plain(String s) {
         // Taken from org.jruby.util.ByteList.plain
-
-        if (s instanceof String) {
-            return StandardCharsets.ISO_8859_1.encode(CharBuffer.wrap(s)).array();
-        }
-
-        // Not a String...get it the slow way
-        byte[] bytes = new byte[s.length()];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = (byte) s.charAt(i);
-        }
-        return bytes;
+        return StandardCharsets.ISO_8859_1.encode(CharBuffer.wrap(s)).array();
     }
 
-    public static boolean isASCIIOnly(CharSequence string) {
+    public static boolean isASCIIOnly(String string) {
         for (int i = 0; i < string.length(); i++) {
             int c = string.charAt(i);
             if (!Encoding.isAscii(c)) {
