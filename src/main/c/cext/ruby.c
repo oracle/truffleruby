@@ -1133,14 +1133,7 @@ VALUE rb_str_buf_new(long capacity) {
 }
 
 VALUE rb_vsprintf(const char *format, va_list args) {
-  // TODO CS 7-May-17 this needs to use the Ruby sprintf, not C's
-  char *buffer;
-  if (vasprintf(&buffer, format, args) < 0) {
-    rb_tr_error("vasprintf error");
-  }
-  VALUE string = rb_str_new_cstr(buffer);
-  free(buffer);
-  return string;
+  return rb_enc_vsprintf(rb_ascii8bit_encoding(), format, args);
 }
 
 VALUE rb_str_append(VALUE string, VALUE to_append) {
@@ -3235,8 +3228,16 @@ VALUE rb_enc_reg_new(const char *s, long len, rb_encoding *enc, int options) {
   rb_tr_error("rb_enc_reg_new not implemented");
 }
 
-VALUE rb_enc_vsprintf(rb_encoding *enc, const char *fmt, va_list ap) {
-  rb_tr_error("rb_enc_vsprintf not implemented");
+VALUE rb_enc_vsprintf(rb_encoding *enc, const char *format, va_list args) {
+  // TODO CS 7-May-17 this needs to use the Ruby sprintf, not C's
+  char *buffer;
+  if (vasprintf(&buffer, format, args) < 0) {
+    rb_tr_error("vasprintf error");
+  }
+  VALUE string = rb_str_new_cstr(buffer);
+  rb_enc_associate(string, enc);
+  free(buffer);
+  return string;
 }
 
 long rb_enc_strlen(const char *p, const char *e, rb_encoding *enc) {
