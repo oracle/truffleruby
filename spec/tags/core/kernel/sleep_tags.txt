@@ -1,2 +1,5 @@
 slow:Kernel#sleep accepts a Float
 slow:Kernel#sleep accepts a Rational
+aot:Kernel#sleep accepts a Float
+aot:Kernel#sleep accepts a Fixnum
+aot:Kernel#sleep accepts a Rational
