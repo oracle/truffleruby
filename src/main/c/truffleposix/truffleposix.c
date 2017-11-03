@@ -33,12 +33,24 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
 */
 
+#include <dirent.h>
 #include <errno.h>
+#include <stdlib.h>
 
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+char* truffleposix_readdir(DIR *dirp) {
+  errno = 0;
+  struct dirent *entry = readdir(dirp);
+  if (entry != NULL) {
+    return entry->d_name;
+  } else {
+    return NULL;
+  }
+}
 
 int truffleposix_getpriority(int which, id_t who) {
   /* getpriority() can return -1 so errno has to be cleared. */

@@ -35,10 +35,6 @@
 class Dir
   include Enumerable
 
-  class DirEntry < Rubinius::FFI::Struct
-    config 'rbx.platform.dirent', :d_ino, :d_name, :d_reclen
-  end
-
   attr_reader :path
   alias_method :to_path, :path
 
@@ -82,11 +78,13 @@ class Dir
   end
 
   def read
-    ptr = Truffle::POSIX.readdir(@ptr)
-    return if ptr.null?
+    entry = Truffle::POSIX.truffleposix_readdir(@ptr)
+    unless entry
+      Errno.handle unless Errno.nfi_errno == 0
+      return
+    end
 
-    dir_entry = DirEntry.new(ptr)
-    entry = dir_entry[:d_name].force_encoding(@encoding)
+    entry = entry.force_encoding(@encoding)
 
     if Encoding.default_external == Encoding::US_ASCII && !entry.valid_encoding?
       entry.force_encoding Encoding::ASCII_8BIT
