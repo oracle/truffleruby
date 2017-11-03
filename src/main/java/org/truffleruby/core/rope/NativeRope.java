@@ -64,6 +64,7 @@ public class NativeRope extends Rope {
 
     @Override
     public String toString() {
+        assert ALLOW_TO_STRING;
         throw new UnsupportedOperationException();
     }
 

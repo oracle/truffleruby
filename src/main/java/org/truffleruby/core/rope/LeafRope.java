@@ -24,7 +24,7 @@ public abstract class LeafRope extends ManagedRope {
 
     @Override
     public String toString() {
-        // This should be used for debugging only.
+        assert ALLOW_TO_STRING;
         return RopeOperations.decodeRope(this);
     }
 
