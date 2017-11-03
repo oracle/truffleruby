@@ -83,7 +83,7 @@ public abstract class StringOperations {
 
         // if null charset, fall back on Java default charset
         if (charset == null) {
-            charset = Charset.defaultCharset();
+            throw new UnsupportedOperationException("Cannot find Charset to encode " + value + " with " + encoding);
         }
 
         final ByteBuffer buffer = charset.encode(CharBuffer.wrap(value));
