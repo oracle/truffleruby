@@ -214,9 +214,12 @@ but these may behave differently or be removed in future versions.
 
 * Java interop
 
-Most of these features will silently not work, in order to let as much as
-possible work for testing but while potentially missing signals, leaking
-resources, etc.
+Running TruffleRuby on the SVM is substantially the same as running on
+GraalVM. There are differences in resource management, as both VMs use different
+garbage collectors. But, functionality-wise, they are essentially on par
+with one another. The big difference is support for Java interop, which
+currently relies on reflection. TruffleRuby's implementation of Java interop
+does not work with the SVM's limited support for runtime reflection.
 
 ## Spec Completeness
 
