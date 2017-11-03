@@ -17,10 +17,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 
 import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
@@ -391,8 +389,7 @@ public abstract class PointerNodes {
         public DynamicObject getAtOffsetString(DynamicObject pointer, int offset, int type,
                                                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final byte[] bytes = Layouts.POINTER.getPointer(pointer).readZeroTerminatedByteArray(offset);
-            final String string = Charset.defaultCharset().decode(ByteBuffer.wrap(bytes)).toString();
-            return makeStringNode.executeMake(string, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
         @Specialization(guards = "type == TYPE_PTR")
