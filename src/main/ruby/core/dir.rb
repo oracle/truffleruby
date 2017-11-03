@@ -49,7 +49,7 @@ class Dir
       enc = Rubinius::Type.coerce_to_encoding enc if enc
     end
 
-    @encoding = enc || Encoding.find('filesystem')
+    @encoding = enc || Encoding::FILESYSTEM
 
     @ptr = Truffle::POSIX.opendir(@path)
     Errno.handle if @ptr.null?
