@@ -92,10 +92,8 @@ class Dir
   def read
     ensure_open
     entry = Truffle::POSIX.truffleposix_readdir(@ptr)
-    unless entry
-      Errno.handle unless Errno.nfi_errno == 0
-      return
-    end
+    Errno.handle unless entry
+    return if entry.empty?
 
     entry = entry.force_encoding(@encoding)
 
