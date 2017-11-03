@@ -364,6 +364,10 @@ PATCHED_FILES = {
         match: /rb_funcall\(\*result, i_leftshift, 1, v\);/,
         replacement: 'rb_funcall(*result, i_leftshift, 1, v_array_for_address[0]);'
       },
+      { # JSON_parse_object
+        match: /char \*np = JSON_parse_value\(json, p, pe, &v\);/,
+        replacement: 'char *np = JSON_parse_value(json, p, pe, v_array_for_address);'
+      },
       { # JSON_parse_string
         match: /if \(json->create_additions && RTEST\(match_string = rb_tr_managed_from_handle\(json->match_string\)\)\) {/,
         replacement: 'if (json->create_additions && RTEST(match_string = rb_tr_managed_from_handle_or_null(json->match_string))) {'
@@ -374,6 +378,22 @@ PATCHED_FILES = {
         # to embedded strings. We don't have that distinction in our implementation and the resize would be a wasteful operation.
         match: /rb_str_resize\(\*result, RSTRING_LEN\(\*result\)\);/,
         replacement: ''
+      },
+      { # cParser_parse_strict
+        match: /np = JSON_parse_array\(json, p, pe, &result\);/,
+        replacement: 'np = JSON_parse_array(json, p, pe, result_array_for_address);'
+      },
+      { # cParser_parse_strict
+        match: /np = JSON_parse_object\(json, p, pe, &result\);/,
+        replacement: 'np = JSON_parse_object(json, p, pe, result_array_for_address);'
+      },
+      { # cParser_parse_quirks_mode
+        match: /if \(cs >= JSON_quirks_mode_first_final && p == pe\) {\s+return result;/m,
+        replacement: "if (cs >= JSON_quirks_mode_first_final && p == pe) {\n return result_array_for_address[0];"
+      },
+      { # cParser_parse_quirks_mode
+        match: /char \*np = JSON_parse_value\(json, p, pe, &result\);/,
+        replacement: 'char *np = JSON_parse_value(json, p, pe, result_array_for_address);'
       }
     ]
   },
