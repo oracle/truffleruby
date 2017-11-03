@@ -950,13 +950,13 @@ module Commands
 
     puts "1. Tagging tests"
     output_file = "mri_tests.txt"
-    run_mri_tests(options, test_file, out: output_file, continue_on_failure: true)
+    run_mri_tests(options, test_files, out: output_file, continue_on_failure: true)
 
     puts "2. Parsing errors"
     sh "ruby", "tool/parse_mri_errors.rb", output_file
 
     puts "3. Verifying tests pass"
-    run_mri_tests(options, test_file)
+    run_mri_tests(options, test_files)
   end
 
   def test_compiler(*args)
