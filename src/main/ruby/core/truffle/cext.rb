@@ -1192,11 +1192,11 @@ module Truffle::CExt
       end
       return str
     end
-    begin
-      rb_str_encode(str, to, ecflags, ecopts)
-    rescue Encoding::InvalidByteSequenceError
-      str
-    end
+
+    ec = Encoding::Converter.new(from, to, ecopts || ecflags)
+    dest = ''
+    status = ec.primitive_convert str, dest, nil, nil, ec.options
+    status == :finished ? dest : str
   end
 
   def rb_cmpint(val, a, b)
