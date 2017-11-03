@@ -85,7 +85,7 @@ class Dir
 
   def rewind
     ensure_open
-    Truffle::POSIX.rewinddir(@ptr)
+    Truffle::POSIX.truffleposix_rewinddir(@ptr)
     self
   end
 

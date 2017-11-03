@@ -138,7 +138,7 @@ module Truffle::POSIX
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
   attach_function :truffleposix_readdir, [:pointer], :string, library: LIBTRUFFLEPOSIX
   attach_function :rename, [:string, :string], :int
-  attach_function :rewinddir, [:pointer], :void
+  attach_function :truffleposix_rewinddir, [:pointer], :void, library: LIBTRUFFLEPOSIX
   attach_function :rmdir, [:string], :int
   attach_function :seekdir, [:pointer, :long], :void
   attach_function :symlink, [:string, :string], :int
