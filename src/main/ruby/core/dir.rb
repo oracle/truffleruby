@@ -284,7 +284,8 @@ class Dir
     alias_method :pwd, :getwd
 
     def chroot(path)
-      ret = Truffle::POSIX.chroot Rubinius::Type.coerce_to_path(path)
+      path = Rubinius::Type.coerce_to_path(path)
+      ret = Truffle::POSIX.chroot path
       Errno.handle path if ret != 0
       ret
     end
