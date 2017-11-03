@@ -557,6 +557,7 @@ class Encoding
     find name
   end
 
+  FILESYSTEM = Encoding.find('filesystem')
 end
 
 Encoding::TranscodingMap[:'UTF-16BE'] = {}
