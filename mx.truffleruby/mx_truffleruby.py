@@ -168,9 +168,6 @@ def ruby_testdownstream_aot(args):
         '-T-Xhome=' + root
     ]
 
-    if debug_build:
-        mspec_args.append(':language')
-
     ruby_run_specs([aot_bin, '-Xhome='+root], format, mspec_args)
 
 def ruby_testdownstream_sulong(args):
