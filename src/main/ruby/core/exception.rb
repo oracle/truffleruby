@@ -297,10 +297,10 @@ end
 
 class SystemCallError < StandardError
 
-
   def self.errno_error(message, errno, location)
-    Truffle.primitive :exception_errno_error
-    raise PrimitiveFailure, 'SystemCallError.errno_error failed'
+    message = message ? " - #{message}" : ''
+    message = " @ #{location}#{message}" if location
+    Truffle.invoke_primitive :exception_errno_error, message, errno
   end
 
   # We use .new here because when errno is set, we attempt to

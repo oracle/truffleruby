@@ -24,7 +24,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -148,18 +147,8 @@ public abstract class ExceptionNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject exceptionErrnoError(DynamicObject message, int errno, DynamicObject location) {
-            final String errorMessage;
-            if (message != nil()) {
-                if (RubyGuards.isRubyString(location)) {
-                    errorMessage = " @ " + StringOperations.getString(location) + " - " + StringOperations.getString(message);
-                } else {
-                    errorMessage = " - " + StringOperations.getString(message);
-                }
-            } else {
-                errorMessage = "";
-            }
-            return coreExceptions().errnoError(errno, errorMessage, this);
+        public DynamicObject exceptionErrnoError(DynamicObject message, int errno) {
+            return coreExceptions().errnoError(errno, StringOperations.getString(message), this);
         }
 
     }
