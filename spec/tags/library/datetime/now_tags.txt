@@ -1,0 +1,4 @@
+aot:DateTime.now sets the current date
+aot:DateTime.now sets the current time
+graalvm:DateTime.now sets the current date
+graalvm:DateTime.now sets the current time
