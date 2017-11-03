@@ -140,16 +140,10 @@ public class EncodingManager {
 
     @TruffleBoundary
     public Encoding getLocaleEncoding() {
-        String localeEncodingName;
-        try {
-            final int codeset;
-            assert LangInfo.CODESET.defined();
-            codeset = LangInfo.CODESET.intValue();
-            localeEncodingName = context.getNativePlatform().getPosix().nl_langinfo(codeset);
-        }
-        catch (UnsupportedOperationException e) {
-            localeEncodingName = Charset.defaultCharset().name();
-        }
+        final int codeset;
+        assert LangInfo.CODESET.defined();
+        codeset = LangInfo.CODESET.intValue();
+        final String localeEncodingName = context.getNativePlatform().getPosix().nl_langinfo(codeset);
 
         DynamicObject rubyEncoding = getRubyEncoding(localeEncodingName);
         if (rubyEncoding == null) {
