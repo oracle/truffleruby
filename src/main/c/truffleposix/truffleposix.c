@@ -54,6 +54,10 @@ char* truffleposix_readdir(DIR *dirp) {
   }
 }
 
+void truffleposix_rewinddir(DIR *dirp) {
+  rewinddir(dirp);
+}
+
 int truffleposix_getpriority(int which, id_t who) {
   /* getpriority() can return -1 so errno has to be cleared. */
   errno = 0;
