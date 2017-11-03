@@ -134,7 +134,7 @@ module Truffle::POSIX
   attach_function :mkfifo, [:string, :mode_t], :int
   attach_function :opendir, [:string], :pointer
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
-  attach_function :readdir, [:pointer], :pointer
+  attach_function :truffleposix_readdir, [:pointer], :string, library: LIBTRUFFLEPOSIX
   attach_function :rename, [:string, :string], :int
   attach_function :rewinddir, [:pointer], :void
   attach_function :rmdir, [:string], :int
