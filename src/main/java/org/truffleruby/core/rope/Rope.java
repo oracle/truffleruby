@@ -18,6 +18,9 @@ import java.util.Arrays;
 
 public abstract class Rope {
 
+    // Useful for debugging. Setting to false allow to catch wrong usages.
+    protected static final boolean ALLOW_TO_STRING = true;
+
     private final Encoding encoding;
     private final CodeRange codeRange;
     private final boolean singleByteOptimizable;

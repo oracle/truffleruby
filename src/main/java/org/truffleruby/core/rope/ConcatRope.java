@@ -71,7 +71,7 @@ public class ConcatRope extends ManagedRope {
 
     @Override
     public String toString() {
-        // This should be used for debugging only.
+        assert ALLOW_TO_STRING;
         return left.toString() + right.toString();
     }
 

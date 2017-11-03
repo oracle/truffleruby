@@ -68,6 +68,7 @@ public class RepeatingRope extends ManagedRope {
 
     @Override
     public String toString() {
+        assert ALLOW_TO_STRING;
         final String childString = child.toString();
         final StringBuilder builder = new StringBuilder(childString.length() * times);
 
