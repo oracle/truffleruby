@@ -47,6 +47,8 @@ char* truffleposix_readdir(DIR *dirp) {
   struct dirent *entry = readdir(dirp);
   if (entry != NULL) {
     return entry->d_name;
+  } else if (errno == 0) {
+    return "";
   } else {
     return NULL;
   }
