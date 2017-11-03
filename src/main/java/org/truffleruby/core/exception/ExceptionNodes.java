@@ -22,7 +22,6 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -153,9 +152,9 @@ public abstract class ExceptionNodes {
             final String errorMessage;
             if (message != nil()) {
                 if (RubyGuards.isRubyString(location)) {
-                    errorMessage = " @ " + location.toString() + " - " + RopeOperations.decodeRope(StringOperations.rope(message));
+                    errorMessage = " @ " + StringOperations.getString(location) + " - " + StringOperations.getString(message);
                 } else {
-                    errorMessage = " - " + RopeOperations.decodeRope(StringOperations.rope(message));
+                    errorMessage = " - " + StringOperations.getString(message);
                 }
             } else {
                 errorMessage = "";
