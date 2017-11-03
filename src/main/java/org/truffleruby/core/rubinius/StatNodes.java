@@ -13,6 +13,10 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.posix.FileStat;
+
+import java.nio.charset.StandardCharsets;
+
+import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -25,6 +29,15 @@ import org.truffleruby.language.Visibility;
 
 @CoreClass("File::Stat")
 public abstract class StatNodes {
+
+    @TruffleBoundary
+    private static String getPathStringHandlingBinary(DynamicObject path) {
+        if (StringOperations.encoding(path) == ASCIIEncoding.INSTANCE) {
+            return RopeOperations.decodeRope(StandardCharsets.UTF_8, StringOperations.rope(path));
+        } else {
+            return StringOperations.getString(path);
+        }
+    }
 
     static FileStat getStat(DynamicObject rubyStat) {
         return Layouts.STAT.getStat(rubyStat);
@@ -47,7 +60,7 @@ public abstract class StatNodes {
         @Specialization(guards = "isRubyString(path)")
         public int stat(DynamicObject rubyStat, DynamicObject path) {
             final FileStat stat = posix().allocateStat();
-            final int code = posix().stat(StringOperations.getString(path), stat);
+            final int code = posix().stat(getPathStringHandlingBinary(path), stat);
 
             if (code == 0) {
                 Layouts.STAT.setStat(rubyStat, stat);
@@ -65,7 +78,7 @@ public abstract class StatNodes {
         @Specialization(guards = "isRubyString(path)")
         public int lstat(DynamicObject rubyStat, DynamicObject path) {
             final FileStat stat = posix().allocateStat();
-            final int code = posix().lstat(RopeOperations.decodeRope(StringOperations.rope(path)), stat);
+            final int code = posix().lstat(getPathStringHandlingBinary(path), stat);
 
             if (code == 0) {
                 Layouts.STAT.setStat(rubyStat, stat);
