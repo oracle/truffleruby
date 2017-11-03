@@ -83,6 +83,7 @@ import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rubinius.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.rubinius.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.string.StringCachingGuards;
@@ -593,16 +594,15 @@ public abstract class KernelNodes {
         }
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line, boolean ownScopeForAssignments) {
-
             String sourceString;
             if (line > 0) {
                 String s = StringUtils.replace(new String(new char[Math.max(line - 1, 0)]), '\0', '\n');
-                sourceString = s + sourceText.toString();
+                sourceString = s + RopeOperations.decodeRope(sourceText);
             } else {
-                sourceString = sourceText.toString();
+                sourceString = RopeOperations.decodeRope(sourceText);
             }
             final Encoding encoding = sourceText.getEncoding();
-            final Source source = Source.newBuilder(sourceString).name(file.toString()).mimeType(RubyLanguage.MIME_TYPE).build();
+            final Source source = Source.newBuilder(sourceString).name(RopeOperations.decodeRope(file)).mimeType(RubyLanguage.MIME_TYPE).build();
 
             final TranslatorDriver translator = new TranslatorDriver(getContext());
 
