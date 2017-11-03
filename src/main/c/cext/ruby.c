@@ -3217,7 +3217,13 @@ int rb_define_dummy_encoding(const char *name) {
 
 #undef rb_enc_str_new_cstr
 VALUE rb_enc_str_new_cstr(const char *ptr, rb_encoding *enc) {
-  rb_tr_error("rb_enc_str_new_cstr not implemented");
+  if (rb_enc_mbminlen(enc) != 1) {
+    rb_raise(rb_eArgError, "wchar encoding given");
+  }
+
+  VALUE string = rb_str_new_cstr(ptr);
+  rb_enc_associate(string, enc);
+  return string;
 }
 
 VALUE rb_enc_str_new_static(const char *ptr, long len, rb_encoding *enc) {
@@ -3234,8 +3240,7 @@ VALUE rb_enc_vsprintf(rb_encoding *enc, const char *format, va_list args) {
   if (vasprintf(&buffer, format, args) < 0) {
     rb_tr_error("vasprintf error");
   }
-  VALUE string = rb_str_new_cstr(buffer);
-  rb_enc_associate(string, enc);
+  VALUE string = rb_enc_str_new_cstr(buffer, enc);
   free(buffer);
   return string;
 }
