@@ -44,10 +44,11 @@ function copy {
 
 revision=$(git rev-parse --short HEAD)
 
+# Make sure Truffle is used as binary distribution
+grep MX_BINARY_SUITES mx.truffleruby/env 2>/dev/null || echo MX_BINARY_SUITES=truffle,sdk >> mx.truffleruby/env
+
 # Setup binary suites
 if [ "$sulong" = true ]; then
-  # You need to manually add sulong as a binary dependency in suite.py with the right revision
-  grep MX_BINARY_SUITES mx.truffleruby/env 2>/dev/null || echo MX_BINARY_SUITES=truffle,sdk,sulong >> mx.truffleruby/env
   if [ -z "${SULONG_REVISION+x}" ]; then
     echo "You need to set SULONG_REVISION (can be '' for latest uploaded)"
     exit 1
@@ -56,7 +57,6 @@ if [ "$sulong" = true ]; then
   export TRUFFLERUBY_CEXT_ENABLED=true
   export TRUFFLERUBYOPT="-Xgraal.warn_unless=false"
 else
-  grep MX_BINARY_SUITES mx.truffleruby/env 2>/dev/null || echo MX_BINARY_SUITES=truffle,sdk >> mx.truffleruby/env
   export TRUFFLERUBY_CEXT_ENABLED=false
   export TRUFFLERUBYOPT="-Xgraal.warn_unless=false -Xpatching_openssl=true"
 fi
