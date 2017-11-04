@@ -44,7 +44,7 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
     private final String name;
     private final INameNode constNode;
 
-    // TODO: Split this into two sub-classes so that name and constNode can be specified seperately.
+    // TODO: Split this into two sub-classes so that name and constNode can be specified separately.
     public ConstDeclParseNode(SourceIndexLength position, String name, INameNode constNode, ParseNode valueNode) {
         super(position, valueNode);
 

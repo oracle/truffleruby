@@ -1429,7 +1429,7 @@ public class ParserSupport {
         return value.getCodeRange() == CodeRange.CR_7BIT;
     }
 
-    // TODO: Put somewhere more consolidated (similiar
+    // TODO: Put somewhere more consolidated (similar)
     private char optionsEncodingChar(Encoding optionEncoding) {
         if (optionEncoding == USASCII_ENCODING) return 'n';
         if (optionEncoding == org.jcodings.specific.EUCJPEncoding.INSTANCE) return 'e';

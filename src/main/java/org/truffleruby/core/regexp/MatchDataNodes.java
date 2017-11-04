@@ -380,7 +380,7 @@ public abstract class MatchDataNodes {
             final Rope sourceRope = StringOperations.rope(source);
             final Region region = Layouts.MATCH_DATA.getRegion(matchData);
             final Object[] values = new Object[region.numRegs];
-            boolean isTained = isTaintedNode.executeIsTainted(source);
+            boolean isTainted = isTaintedNode.executeIsTainted(source);
 
             for (int n = 0; n < region.numRegs; n++) {
                 final int start = region.beg[n];
@@ -388,7 +388,7 @@ public abstract class MatchDataNodes {
 
                 if (start > -1 && end > -1) {
                     Rope rope = makeSubstringNode.executeMake(sourceRope, start, end - start);
-                    DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, isTained, rope));
+                    DynamicObject string = allocateNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(source), Layouts.STRING.build(false, isTainted, rope));
                     values[n] = string;
                 } else {
                     values[n] = nil();

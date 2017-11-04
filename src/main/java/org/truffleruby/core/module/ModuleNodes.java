@@ -293,7 +293,7 @@ public abstract class ModuleNodes {
     public abstract static class AliasMethodNode extends CoreMethodNode {
 
         @CreateCast("newName")
-        public RubyNode coercetNewNameToString(RubyNode newName) {
+        public RubyNode coerceNewNameToString(RubyNode newName) {
             return NameToJavaStringNodeGen.create(newName);
         }
 
@@ -359,12 +359,12 @@ public abstract class ModuleNodes {
         @Specialization
         public DynamicObject generateAccessor(VirtualFrame frame, DynamicObject module, Object nameObject) {
             final String name = nameToJavaStringNode.executeToJavaString(frame, nameObject);
-            createAccesor(module, name);
+            createAccessor(module, name);
             return nil();
         }
 
         @TruffleBoundary
-        private void createAccesor(DynamicObject module, String name) {
+        private void createAccessor(DynamicObject module, String name) {
             final FrameInstance callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend();
             final SourceSection sourceSection = callerFrame.getCallNode().getEncapsulatingSourceSection();
             final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection.getCharIndex(), sourceSection.getCharLength());

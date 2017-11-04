@@ -150,7 +150,7 @@ public class StaticScope {
 
         if (slot >= 0) return slot;
 
-        // This is perhaps innefficient timewise?  Optimal spacewise
+        // This is perhaps inefficient timewise?  Optimal spacewise
         growVariableNames(name);
 
         // Returns slot of variable
@@ -183,7 +183,7 @@ public class StaticScope {
 
         if (slot >= 0) return slot;
 
-        // This is perhaps innefficient timewise?  Optimal spacewise
+        // This is perhaps inefficient timewise?  Optimal spacewise
         growVariableNames(name);
 
         // Returns slot of variable

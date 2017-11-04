@@ -1407,7 +1407,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "!isAsciiCompatible(string)" })
-        public DynamicObject scrubAscciIncompatible(VirtualFrame frame, DynamicObject string, DynamicObject block,
+        public DynamicObject scrubAsciiIncompatible(VirtualFrame frame, DynamicObject string, DynamicObject block,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
