@@ -14,19 +14,24 @@ KIND="$2"
 
 if [ -z "$KIND" ]; then
   echo "usage: $0 PREFIX KIND"
-  echo "KIND is 'minimal' or 'sulong'"
+  echo "KIND is 'minimal' or 'sulong' or 'graal'"
   exit 1
 fi
 
 sulong=false
+graal=false
+
 case "$KIND" in
   minimal)
     ;;
   sulong)
     sulong=true
     ;;
+  graal)
+    graal=true
+    ;;
   *)
-    echo "KIND must be 'minimal' or 'sulong'"
+    echo "KIND must be 'minimal' or 'sulong' or 'graal'"
     exit 1
     ;;
 esac
@@ -55,10 +60,18 @@ if [ "$sulong" = true ]; then
   fi
   mx ruby_download_binary_suite sulong "$SULONG_REVISION"
   export TRUFFLERUBY_CEXT_ENABLED=true
-  export TRUFFLERUBYOPT="-Xgraal.warn_unless=false"
+  export TRUFFLERUBYOPT="-Xgraal.warn_unless=$graal"
 else
   export TRUFFLERUBY_CEXT_ENABLED=false
-  export TRUFFLERUBYOPT="-Xgraal.warn_unless=false -Xpatching_openssl=true"
+  export TRUFFLERUBYOPT="-Xgraal.warn_unless=$graal -Xpatching_openssl=true"
+fi
+
+if [ "$graal" = true ]; then
+  mx ruby_download_binary_suite compiler truffle
+
+  ruby tool/jt.rb install jvmci
+  jvmci=$(ruby tool/jt.rb install jvmci 2>/dev/null)
+  jvmci_basename=$(basename "$jvmci")
 fi
 
 # Build
@@ -79,6 +92,16 @@ if [ "$sulong" = true ]; then
   copy mx.imports/binary/sulong/build/sulong.jar
   copy mx.imports/binary/sulong/mxbuild/sulong-libs/libsulong.bc
   copy mx.imports/binary/sulong/mxbuild/sulong-libs/libsulong.so
+fi
+
+# Graal
+if [ "$graal" = true ]; then
+  graal_dist=mx.imports/binary/compiler/mxbuild/dists/graal.jar
+  copy "$graal_dist"
+
+  cp -r "$jvmci" "$DEST"
+  # Remove JavaDoc as it's >250MB
+  rm -r "$DEST/$jvmci_basename/docs/api"
 fi
 
 # TruffleRuby
@@ -103,6 +126,12 @@ if [ -z "$file" ]; then file="$0"; fi
 root=$(cd "$(dirname "$file")" && pwd -P)
 export PATH="$root/bin:$PATH"
 EOS
+if [ "$graal" = true ]; then
+  cat >> setup_env <<EOS
+export JAVACMD="\$root/$jvmci_basename/bin/java"
+export JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=\$root/$graal_dist"
+EOS
+fi
 
 source setup_env
 
