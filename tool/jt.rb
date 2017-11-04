@@ -1656,6 +1656,8 @@ module Commands
 
   def install(name)
     case name
+    when "jvmci"
+      install_jvmci
     when "graal", "graal-core"
       install_graal
     else
@@ -1663,10 +1665,8 @@ module Commands
     end
   end
 
-  def install_graal
-    raise "Installing graal is only available on Linux and macOS currently" unless LINUX || MAC
-
-    build
+  def install_jvmci
+    raise "Installing JVMCI is only available on Linux and macOS currently" unless LINUX || MAC
 
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
     java_home = chdir(dir) do
@@ -1703,6 +1703,13 @@ module Commands
 
     puts "Testing JDK"
     raw_sh "#{java_home}/bin/java", "-version"
+
+    java_home
+  end
+
+  def install_graal
+    build
+    java_home = install_jvmci
 
     puts "Building graal"
     graal = Utilities.find_or_clone_repo('https://github.com/graalvm/graal.git')
