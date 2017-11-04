@@ -138,5 +138,5 @@ source setup_env
 # Install bundler as we require a specific version and it's convenient
 gem install -E bundler -v 1.14.6
 
-cd ..
+cd "$PREFIX"
 tar czf "truffleruby-$revision.tar.gz" truffleruby
