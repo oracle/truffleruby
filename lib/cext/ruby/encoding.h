@@ -36,10 +36,7 @@ enum ruby_encoding_consts {
 #define ENCODING_SHIFT RUBY_ENCODING_SHIFT
 #define ENCODING_MASK RUBY_ENCODING_MASK
 
-#define RB_ENCODING_SET_INLINED(obj,i) do {\
-    RBASIC(obj)->flags &= ~RUBY_ENCODING_MASK;\
-    RBASIC(obj)->flags |= (VALUE)(i) << RUBY_ENCODING_SHIFT;\
-} while (0)
+#define RB_ENCODING_SET_INLINED(obj,i) RB_ENCODING_SET(obj,i)
 #define RB_ENCODING_SET(obj,i) rb_enc_set_index((obj), (i))
 
 #define RB_ENCODING_GET_INLINED(obj) \
