@@ -38,7 +38,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import java.util.List;
 
 /** 
- * Represents the unassignable star in a multiple assignent (e.g. a,b,* = arr).
+ * Represents the unassignable star in a multiple assignment (e.g. a,b,* = arr).
  */
 public class StarParseNode extends ParseNode {
     /**

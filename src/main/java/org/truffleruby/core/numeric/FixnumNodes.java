@@ -803,13 +803,13 @@ public abstract class FixnumNodes {
         @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
         public Object bitAndCoerce(int a, Object b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().AMPERSTAND.getSymbol(), b);
+            return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().AMPERSAND.getSymbol(), b);
         }
 
         @Specialization(guards = { "!isInteger(b)", "!isLong(b)", "!isRubyBignum(b)" })
         public Object bitAndCoerce(long a, Object b,
                 @Cached("createOnSelf()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().AMPERSTAND.getSymbol(), b);
+            return redoCoerced.call(null, a, "redo_bit_coerced", coreStrings().AMPERSAND.getSymbol(), b);
         }
 
 

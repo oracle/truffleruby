@@ -10,7 +10,7 @@
  * Contains code modified from JRuby's RubyConverter.java and licensed under the same EPL1.0/GPL 2.0/LGPL 2.1
  * used throughout.
  *
- * Contains code modifed jcodings's TranscoderDB.java and EConv.java, which is licensed under the MIT license:
+ * Contains code modified jcodings's TranscoderDB.java and EConv.java, which is licensed under the MIT license:
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -158,7 +158,7 @@ public class TranscodingManager {
 
     @TruffleBoundary
     private static EConv open(byte[] sourceEncodingName, byte[] destinationEncodingName, int ecflags) {
-        // Taken from org.jcodings.transcode.TrascoderDB.open.
+        // Taken from org.jcodings.transcode.TranscoderDB.open.
 
         byte[][] decorators = new byte[MAX_ECFLAGS_DECORATORS][];
 
@@ -183,7 +183,7 @@ public class TranscodingManager {
 
     @TruffleBoundary
     private static EConv open0(byte[] sourceEncodingName, byte[] destinationEncodingName, int ecflags) {
-        // Taken from org.jcodings.transcode.TrascoderDB.open0.
+        // Taken from org.jcodings.transcode.TranscoderDB.open0.
 
         final List<Transcoder> transcoders = searchPath(sourceEncodingName, destinationEncodingName);
 

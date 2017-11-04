@@ -330,7 +330,7 @@ public abstract class FormatFloatNode extends FormatNode {
                                 len += decDigits;
                             }
                         } else {
-                            // all precision numebers printed
+                            // all precision numbers printed
                             len += precision;
                         }
                     }

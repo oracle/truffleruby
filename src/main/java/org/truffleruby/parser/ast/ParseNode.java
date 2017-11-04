@@ -169,7 +169,7 @@ public abstract class ParseNode {
     }
 
     /**
-     * Overridden by nodes that have additional internal state to be displated in toString.
+     * Overridden by nodes that have additional internal state to be displayed in toString.
      *
      * For nodes that have it, name is handled separately, by implementing INameNode.
      *

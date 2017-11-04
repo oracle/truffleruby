@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Collects paramter names from a JRuby AST.
+ * Collects parameter names from a JRuby AST.
  */
 public class ParameterCollector extends AbstractNodeVisitor<Object> {
 

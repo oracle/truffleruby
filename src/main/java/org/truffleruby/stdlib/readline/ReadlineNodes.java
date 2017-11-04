@@ -334,7 +334,7 @@ public abstract class ReadlineNodes {
     }
 
     // Taken from org.jruby.ext.readline.Readline.RubyFileNameCompleter.
-    // Fix FileNameCompletor to work mid-line
+    // Fix FileNameCompleter to work mid-line
     public static class RubyFileNameCompleter extends FileNameCompleter {
 
         @TruffleBoundary

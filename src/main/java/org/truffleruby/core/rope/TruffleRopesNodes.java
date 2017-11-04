@@ -154,7 +154,7 @@ public abstract class TruffleRopesNodes {
 
     /*
      * Truffle.create_simple_string creates a string 'test' without any part of the string escaping. Useful
-     * for testing compilation of String becuase most other ways to construct a string can currently escape.
+     * for testing compilation of String because most other ways to construct a string can currently escape.
      */
 
     @CoreMethod(names = "create_simple_string", onSingleton = true)

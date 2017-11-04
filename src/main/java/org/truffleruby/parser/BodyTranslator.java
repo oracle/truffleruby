@@ -648,7 +648,7 @@ public class BodyTranslator extends Translator {
          *
          *   foo
          *
-         * While we translate foo we'll mark all call sites as ignoring visbility.
+         * While we translate foo we'll mark all call sites as ignoring visibility.
          */
 
         if (!(node.getIterNode() instanceof IterParseNode)) {
@@ -669,7 +669,7 @@ public class BodyTranslator extends Translator {
         currentCallMethodName = "privately";
 
         /*
-         * While we translate the body of the iter we want to create all call nodes with the ignore-visbility flag.
+         * While we translate the body of the iter we want to create all call nodes with the ignore-visibility flag.
          * This flag is checked in visitCallNode.
          */
 

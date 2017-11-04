@@ -73,7 +73,7 @@ public abstract class DurationToMillisecondsNode extends RubyNode {
 
     private long validate(long durationInMillis) {
         if (durationLessThanZeroProfile.profile(durationInMillis < 0)) {
-            throw new RaiseException(coreExceptions().argumentErrorTimeItervalPositive(this));
+            throw new RaiseException(coreExceptions().argumentErrorTimeIntervalPositive(this));
         }
         return durationInMillis;
     }

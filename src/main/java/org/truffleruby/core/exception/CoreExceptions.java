@@ -89,7 +89,7 @@ public class CoreExceptions {
         return argumentError(coreStrings().TOO_FEW_ARGUMENTS.getRope(), currentNode, null);
     }
 
-    public DynamicObject argumentErrorTimeItervalPositive(Node currentNode) {
+    public DynamicObject argumentErrorTimeIntervalPositive(Node currentNode) {
         return argumentError(coreStrings().TIME_INTERVAL_MUST_BE_POS.getRope(), currentNode, null);
     }
 

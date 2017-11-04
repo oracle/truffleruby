@@ -49,7 +49,7 @@ public class JavaUtilitiesNodes {
     })
     public abstract static class JavaClassByNameNode extends CoreMethodNode {
         @CreateCast("name")
-        public RubyNode coercetNameToString(RubyNode newName) {
+        public RubyNode coerceNameToString(RubyNode newName) {
             return ToJavaStringNodeGen.create(newName);
         }
 
