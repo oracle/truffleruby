@@ -396,7 +396,7 @@ class SignalException < Exception
   def initialize(signo = nil, signm = nil)
     # MRI overrides this behavior just for SignalException itself
     # but not for anything that inherits from it, therefore we
-    # need this ugly check to make sure it works as intented.
+    # need this ugly check to make sure it works as intended.
     return super(signo) unless self.class == SignalException
     if signo.is_a? Integer
       unless @signm = Signal::Numbers[signo]
