@@ -27,14 +27,18 @@ else
 goal: all
 endif
 
-no_cexts: clean
+no_cexts: clean_cexts
 	@echo "WARNING: TRUFFLERUBY_CEXT_ENABLED is set to false - not building cexts" 1>&2
 
 all: $(RUBY_LIBRARY) $(CEXTS_DIR)/openssl.su $(CEXTS_DIR)/zlib.su $(CEXTS_DIR)/syslog.su
 
-clean:
+clean: clean_cexts clean_truffleposix
+
+clean_truffleposix:
 	rm -f $(TRUFFLE_POSIX)
 	rm -f truffleposix/*.o truffleposix/truffleposix.$(DLEXT)
+
+clean_cexts:
 	rm -f trufflemock/Makefile trufflemock/*.bc trufflemock/trufflemock.su
 	rm -f $(ROOT)/lib/cext/trufflemock.bc
 	rm -f $(RUBY_LIBRARY)
