@@ -102,6 +102,8 @@ if [ "$graal" = true ]; then
   cp -r "$jvmci" "$DEST"
   # Remove JavaDoc as it's >250MB
   rm -r "$DEST/$jvmci_basename/docs/api"
+  # Removes sources (~50MB)
+  rm "$DEST/$jvmci_basename/src.zip"
 fi
 
 # TruffleRuby
