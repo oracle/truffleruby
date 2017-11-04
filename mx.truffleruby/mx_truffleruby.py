@@ -128,11 +128,18 @@ def download_binary_suite(args):
 
     if len(version) == 0:
         version = None
+    elif version == 'truffle':
+        version = mx.suite('truffle').version()
 
     # Add to MX_BINARY_SUITES dynamically, make sure to not use a source suite
     if not mx._binary_suites:
         mx._binary_suites = []
     mx._binary_suites.append(name)
+
+    # For Graal's mx_post_parse_cmd_line()
+    mx.get_opts().vm_prefix = None
+    # Do not check JAVA_HOME within Graal's suite yet
+    os.environ['JVMCI_VERSION_CHECK'] = 'ignore'
 
     suite = _suite.import_suite(name=name, version=version, urlinfos=[
         mx.SuiteImportURLInfo('https://curio.ssw.jku.at/nexus/content/repositories/snapshots', 'binary', mx.vc_system('binary'))
