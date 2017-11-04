@@ -140,6 +140,15 @@ PATCHED_FILES = {
       }
     ]
   },
+  'pg_type_map_by_class.c' => {
+    gem: 'pg',
+    patches: [
+      {
+        match: /#define CACHE_LOOKUP\(this, klass\) \( &this->cache_row\[\(klass >> 8\) & 0xff\] \)/,
+        replacement: '#define CACHE_LOOKUP(this, klass) ( &this->cache_row[FIX2INT(rb_obj_id(klass)) & 0xff] )'
+      }
+    ]
+  },
   'bytebuffer.c' => {
     gem: 'nio4r',
     patches: [
