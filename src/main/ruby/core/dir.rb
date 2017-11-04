@@ -134,7 +134,7 @@ class Dir
 
   class << self
 
-    # This seems silly, I know. But we do this to make Dir more resistent to people
+    # This seems silly, I know. But we do this to make Dir more resistant to people
     # screwing with ::File later (ie, fakefs)
     PrivateFile = ::File
 

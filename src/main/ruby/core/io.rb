@@ -895,7 +895,7 @@ class IO
     # the proper half.
     if readable and writable
       # Transmogrify pa_read into a BidirectionalPipe object,
-      # and then tell it abou it's pid and pa_write
+      # and then tell it about it's pid and pa_write
 
       Rubinius::Unsafe.set_class pa_read, IO::BidirectionalPipe
 
@@ -2129,7 +2129,7 @@ class IO
   end
 
   ##
-  # Reassociates ios with the I/O stream given in other_IO or to
+  # Re-associates ios with the I/O stream given in other_IO or to
   # a new stream opened on path. This may dynamically change the
   # actual class of this stream.
   #

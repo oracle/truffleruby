@@ -564,7 +564,7 @@ class Array
         hash_val = hash_internal
 
         # An inner version will raise to return back here, indicating that
-        # the whole structure is recursive. In which case, abondon most of
+        # the whole structure is recursive. In which case, abandon most of
         # the work and return a simple hash value.
       rescue Thread::InnerRecursionDetected
         return size

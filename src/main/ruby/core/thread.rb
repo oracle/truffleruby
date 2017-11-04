@@ -67,7 +67,7 @@ class Thread
   # Currently it doesn't cause problems, but if ever
   # a method :foo calls a method :bar which could
   # recurse back to :foo, it could require making
-  # the tables independant.
+  # the tables independent.
   def self.recursion_guard(obj)
     id = obj.object_id
     objects = current.recursive_objects

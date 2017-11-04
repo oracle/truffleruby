@@ -172,7 +172,7 @@ module Rubinius::FFI
   # Use for a C struct with a char [] embedded inside.
   add_typedef TYPE_CHARARR, :char_array
 
-  # A set of unambigious integer types
+  # A set of unambiguous integer types
   add_typedef TYPE_CHAR,   :int8
   add_typedef TYPE_UCHAR,  :uint8
   add_typedef TYPE_SHORT,  :int16
