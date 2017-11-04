@@ -1705,9 +1705,10 @@ module Commands
     abort "Could not find the extracted JDK" unless java_home
     java_home = File.expand_path(java_home)
 
-    puts "Testing JDK"
+    $stderr.puts "Testing JDK"
     raw_sh "#{java_home}/bin/java", "-version"
 
+    puts java_home
     java_home
   end
 
