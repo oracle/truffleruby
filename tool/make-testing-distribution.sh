@@ -85,10 +85,10 @@ fi
 copy mxbuild/dists/truffleruby.jar
 copy mxbuild/dists/truffleruby-launcher.jar
 
-copy mxbuild/dists/truffleruby-zip.tar
+copy mxbuild/linux-amd64/dists/truffleruby-zip.tar
 cd "$DEST"
-tar xf mxbuild/dists/truffleruby-zip.tar
-rm mxbuild/dists/truffleruby-zip.tar
+tar xf mxbuild/linux-amd64/dists/truffleruby-zip.tar
+rm mxbuild/linux-amd64/dists/truffleruby-zip.tar
 
 # Script to setup the environment easily
 cat > setup_env <<EOS
