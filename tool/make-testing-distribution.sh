@@ -114,17 +114,17 @@ tar xf mxbuild/linux-amd64/dists/truffleruby-zip.tar
 rm mxbuild/linux-amd64/dists/truffleruby-zip.tar
 
 # Script to setup the environment easily
-cat > setup_env <<EOS
+cat > setup_env <<'EOS'
 #!/usr/bin/env bash
-export TRUFFLERUBY_RESILIENT_GEM_HOME=true
-export TRUFFLERUBY_CEXT_ENABLED=$TRUFFLERUBY_CEXT_ENABLED
-export TRUFFLERUBYOPT="$TRUFFLERUBYOPT"
-EOS
-cat >> setup_env <<'EOS'
 file="${BASH_SOURCE[0]}"
 if [ -z "$file" ]; then file="$0"; fi
 root=$(cd "$(dirname "$file")" && pwd -P)
 export PATH="$root/bin:$PATH"
+EOS
+cat >> setup_env <<EOS
+export TRUFFLERUBY_RESILIENT_GEM_HOME=true
+export TRUFFLERUBY_CEXT_ENABLED=$TRUFFLERUBY_CEXT_ENABLED
+export TRUFFLERUBYOPT="$TRUFFLERUBYOPT"
 EOS
 if [ "$graal" = true ]; then
   cat >> setup_env <<EOS
