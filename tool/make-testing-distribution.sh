@@ -14,7 +14,7 @@ KIND="$2"
 
 if [ -z "$KIND" ]; then
   echo "usage: $0 PREFIX KIND"
-  echo "KIND is 'minimal' or 'sulong' or 'graal'"
+  echo "KIND is 'minimal' or 'sulong' or 'graal' or 'full'"
   exit 1
 fi
 
@@ -30,8 +30,12 @@ case "$KIND" in
   graal)
     graal=true
     ;;
+  full)
+    sulong=true
+    graal=true
+    ;;
   *)
-    echo "KIND must be 'minimal' or 'sulong' or 'graal'"
+    echo "KIND is 'minimal' or 'sulong' or 'graal' or 'full'"
     exit 1
     ;;
 esac
