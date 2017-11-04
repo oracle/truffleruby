@@ -1671,7 +1671,7 @@ module Commands
     dir = File.expand_path("..", TRUFFLERUBY_DIR)
     java_home = chdir(dir) do
       if LINUX
-        jvmci_version = "jvmci-0.33"
+        jvmci_version = "jvmci-0.36"
         jvmci_grep = "#{dir}/openjdk1.8.0*#{jvmci_version}"
         if Dir[jvmci_grep].empty?
           puts "Downloading JDK8 with JVMCI"
