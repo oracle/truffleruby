@@ -134,7 +134,7 @@ module Process
 
   # Very hacky implementation to pass the specs, since the JVM doesn't give us argv[0]
   # Overwrite *argv inplace because finding the argv pointer itself is harder.
-  # Truncates title if title would cover our org.jruby (main class) marker.
+  # Truncates title if title is longer than the orginal command line.
   def self.setproctitle_linux_from_proc_maps(title)
     @_argv0_address ||= begin
       command = File.binread('/proc/self/cmdline')
