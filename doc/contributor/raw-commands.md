@@ -14,7 +14,7 @@ commands are then printed with `$`.
 For an example command such as:
 
 ```
->>> jt run -e 'puts "hello"'
+>>> jt ruby -e 'puts "hello"'
 ```
 
 `jt` will automatically print the command that it runs, but this is just a
@@ -22,7 +22,7 @@ launcher shell script which itself runs `java`. To get that command you need
 to use the `-J-cmd` option.
 
 ```
->>> jt run -J-cmd -e 'puts "hello"'
+>>> jt ruby -J-cmd -e 'puts "hello"'
 $ /Users/chrisseaton/Documents/ruby/truffleruby/bin/truffleruby -Xcore.load_path=/Users/chrisseaton/Documents/ruby/truffleruby/src/main/ruby -Xgraal.warn_unless=false -J-cmd -e 'puts "hello"'
 $ /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/bin/java -Dfile.encoding=UTF-8 -Xbootclasspath/a:/Users/chrisseaton/Documents/ruby/truffleruby/lib/truffleruby.jar org.truffleruby.Main -Xhome=/Users/chrisseaton/Documents/ruby/truffleruby -Xlauncher=/Users/chrisseaton/Documents/ruby/truffleruby/bin/truffleruby -Xcore.load_path=/Users/chrisseaton/Documents/ruby/truffleruby/src/main/ruby -Xgraal.warn_unless=false -e puts "hello"
 hello

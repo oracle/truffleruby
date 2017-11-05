@@ -7,7 +7,7 @@
 # GNU Lesser General Public License version 2.1
 
 # For example:
-# $ jt run tool/cext-compile-explore.rb spec/ruby/optional/capi/ext/util_spec.c -Ispec/ruby/optional/capi/ext
+# $ jt ruby tool/cext-compile-explore.rb spec/ruby/optional/capi/ext/util_spec.c -Ispec/ruby/optional/capi/ext
 
 raise 'you need to run this with TruffleRuby' unless RUBY_ENGINE == 'truffleruby'
 

@@ -14,5 +14,5 @@ Then set the environment variable `GRAALVM_BIN` to the `bin/java` executable in
 GraalVM and use `jt` to run TruffleRuby.
 
 ```
-$ GRAALVM_BIN=..../bin/java jt run --graal ...
+$ GRAALVM_BIN=..../bin/java jt ruby --graal ...
 ```
