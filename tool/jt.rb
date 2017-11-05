@@ -397,7 +397,7 @@ module Commands
       jt env                                         prints the current environment
       jt rebuild                                     clean, sforceimports, and build
       jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
-      jt run [options] args...                       run TruffleRuby with args
+      jt ruby [options] args...                      run TruffleRuby with args
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --js            add Graal.js to the classpath (set GRAAL_JS_JAR)
@@ -675,7 +675,7 @@ module Commands
   end
 
   def e(*args)
-    run '-e', args.join(' ')
+    ruby '-e', args.join(' ')
   end
 
   def command_puts(*args)
