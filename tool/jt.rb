@@ -132,7 +132,7 @@ module Utilities
   def self.find_graal_js
     jar = ENV['GRAAL_JS_JAR']
     return jar if jar
-    raise "couldn't find trufflejs.jar - download GraalVM as described in https://github.com/jruby/jruby/wiki/Downloading-GraalVM and find it in there"
+    raise "couldn't find trufflejs.jar - download GraalVM as described in https://github.com/graalvm/truffleruby/blob/master/doc/user/using-graalvm.md and find it in there"
   end
 
   def self.find_sl
@@ -397,7 +397,7 @@ module Commands
       jt env                                         prints the current environment
       jt rebuild                                     clean, sforceimports, and build
       jt dis <file>                                  finds the bc file in the project, disassembles, and returns new filename
-      jt run [options] args...                       run JRuby with args
+      jt run [options] args...                       run TruffleRuby with args
           --graal         use Graal (set either GRAALVM_BIN, JVMCI_BIN or GRAAL_HOME, or have graal built as a sibling)
               --stress    stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --js            add Graal.js to the classpath (set GRAAL_JS_JAR)
@@ -445,7 +445,7 @@ module Commands
       jt untag spec/ruby/language                    untag passing specs in this directory
       jt untag spec/ruby/language/while_spec.rb      untag passing specs in this file
       jt mspec ...                                   run MSpec with the TruffleRuby configuration and custom arguments
-      jt metrics alloc [--json] ...                  how much memory is allocated running a program (use -Xclassic to test normal JRuby on this metric and others)
+      jt metrics alloc [--json] ...                  how much memory is allocated running a program
       jt metrics instructions ...                    how many CPU instructions are used to run a program
       jt metrics minheap ...                         what is the smallest heap you can use to run an application
       jt metrics time ...                            how long does it take to run a command, broken down into different phases
@@ -562,7 +562,7 @@ module Commands
     env_vars = args.first.is_a?(Hash) ? args.shift : {}
     options = args.last.is_a?(Hash) ? args.pop : {}
 
-    jruby_args = []
+    vm_args = []
 
     {
       '--asm' => '--graal',
@@ -574,7 +574,7 @@ module Commands
     end
 
     unless args.delete('--no-core-load-path')
-      jruby_args << "-Xcore.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"
+      vm_args << "-Xcore.load_path=#{TRUFFLERUBY_DIR}/src/main/ruby"
     end
 
     if args.delete('--graal')
@@ -584,71 +584,71 @@ module Commands
       else
         javacmd, javacmd_options = Utilities.find_graal_javacmd_and_options
         env_vars["JAVACMD"] = javacmd
-        jruby_args.push(*javacmd_options)
+        vm_args.push(*javacmd_options)
       end
     else
       if ENV["RUBY_BIN"]
         # Assume if RUBY_BIN is set and '--graal' is not, that we're running
         # a non-TruffleRuby, such as MRI.
       else
-        jruby_args << '-Xgraal.warn_unless=false'
+        vm_args << '-Xgraal.warn_unless=false'
       end
     end
 
     if args.delete('--stress')
-      jruby_args << '-J-Dgraal.TruffleCompileImmediately=true'
-      jruby_args << '-J-Dgraal.TruffleBackgroundCompilation=false'
-      jruby_args << '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
+      vm_args << '-J-Dgraal.TruffleCompileImmediately=true'
+      vm_args << '-J-Dgraal.TruffleBackgroundCompilation=false'
+      vm_args << '-J-Dgraal.TruffleCompilationExceptionsAreFatal=true'
     end
 
     if args.delete('--js')
-      jruby_args << '-J-cp'
-      jruby_args << Utilities.find_graal_js
+      vm_args << '-J-cp'
+      vm_args << Utilities.find_graal_js
     end
 
     if args.delete('--asm')
-      jruby_args += %w[-J-XX:+UnlockDiagnosticVMOptions -J-XX:CompileCommand=print,*::callRoot]
+      vm_args += %w[-J-XX:+UnlockDiagnosticVMOptions -J-XX:CompileCommand=print,*::callRoot]
     end
 
     if args.delete('--jdebug')
-      jruby_args << JDEBUG
+      vm_args << JDEBUG
     end
 
     if args.delete('--jexception') || args.delete('--jexceptions')
-      jruby_args << JEXCEPTION
+      vm_args << JEXCEPTION
     end
 
     if args.delete('--server')
-      jruby_args += %w[-Xinstrumentation_server_port=8080]
+      vm_args += %w[-Xinstrumentation_server_port=8080]
     end
 
     if args.delete('--profile')
       v = Utilities.truffle_version
-      jruby_args << "-J-Xbootclasspath/a:#{M2_REPO}/com/oracle/truffle/truffle-debug/#{v}/truffle-debug-#{v}.jar"
-      jruby_args << "-J-Dtruffle.profiling.enabled=true"
+      vm_args << "-J-Xbootclasspath/a:#{M2_REPO}/com/oracle/truffle/truffle-debug/#{v}/truffle-debug-#{v}.jar"
+      vm_args << "-J-Dtruffle.profiling.enabled=true"
     end
 
     if args.delete('--igv')
       if args.delete('--full')
-        jruby_args << "-J-Dgraal.Dump=:2"
+        vm_args << "-J-Dgraal.Dump=:2"
       else
-        jruby_args << "-J-Dgraal.Dump=TruffleTree,PartialEscape:2"
+        vm_args << "-J-Dgraal.Dump=TruffleTree,PartialEscape:2"
       end
-      jruby_args << "-J-Dgraal.PrintGraphFile=true" unless Utilities.igv_running?
-      jruby_args << "-J-Dgraal.PrintBackendCFG=false"
+      vm_args << "-J-Dgraal.PrintGraphFile=true" unless Utilities.igv_running?
+      vm_args << "-J-Dgraal.PrintBackendCFG=false"
     end
 
     if args.delete('--infopoints')
-      jruby_args << "-J-XX:+UnlockDiagnosticVMOptions" << "-J-XX:+DebugNonSafepoints"
-      jruby_args << "-J-Dgraal.TruffleEnableInfopoints=true"
+      vm_args << "-J-XX:+UnlockDiagnosticVMOptions" << "-J-XX:+DebugNonSafepoints"
+      vm_args << "-J-Dgraal.TruffleEnableInfopoints=true"
     end
 
     if args.delete('--fg')
-      jruby_args << "-J-Dgraal.TruffleBackgroundCompilation=false"
+      vm_args << "-J-Dgraal.TruffleBackgroundCompilation=false"
     end
 
     if args.delete('--trace')
-      jruby_args << "-J-Dgraal.TraceTruffleCompilation=true"
+      vm_args << "-J-Dgraal.TraceTruffleCompilation=true"
     end
 
     if args.delete('--no-print-cmd')
@@ -666,7 +666,7 @@ module Commands
                  Utilities.find_launcher
                end
 
-    raw_sh env_vars, ruby_bin, *jruby_args, *args, options
+    raw_sh env_vars, ruby_bin, *vm_args, *args, options
   end
 
   # Same as #run but uses exec()
