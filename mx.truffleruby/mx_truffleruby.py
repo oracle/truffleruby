@@ -190,6 +190,9 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'mri', '--cext')
     jt('test', 'bundle')
 
+def ruby_get_os_arch_path_segment(args):
+    print(mx.get_os() + '-' + mx.get_arch())
+
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],
     'deploy-binary-if-master': [deploy_binary_if_master, ''],
@@ -198,4 +201,5 @@ mx.update_commands(_suite, {
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
     'ruby_testdownstream_sulong': [ruby_testdownstream_sulong, ''],
+    'ruby_get_arch_path': [ruby_get_os_arch_path_segment, ''],
 })

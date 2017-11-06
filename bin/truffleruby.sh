@@ -12,7 +12,7 @@
 
 set -e
 
-function libext {
+function get_libext {
     uname_str=$(uname)
     if [ "$uname_str" = 'Linux' ] || [ "$uname_str" = 'SunOS' ]; then
         echo so
@@ -72,7 +72,31 @@ java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar:$graal_sdk")
 CP="$CP:$truffle/dists/truffle-nfi.jar"
 CP="$CP:$root/mxbuild/dists/truffleruby-launcher.jar"
 CP="$CP:$root/mxbuild/dists/truffleruby.jar"
-java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.$(libext)")
+
+libext=$(get_libext)
+libtrufflenfi_candidates=()
+# look in architecture specific mxbuild directories
+libtrufflenfi_candidates+=($(ls -1 "$truffle"/*/truffle-nfi-native/bin/libtrufflenfi."$libext" 2> /dev/null || true))
+if [ ${#libtrufflenfi_candidates[@]} -eq 0 ]; then
+    # fallback to old path
+    # TODO (pitr-ch 07-Nov-2017): remove fallback
+    libtrufflenfi=$truffle/truffle-nfi-native/bin/libtrufflenfi.$libext
+else
+    if [ ${#libtrufflenfi_candidates[@]} -eq 1 ]; then
+        libtrufflenfi=${libtrufflenfi_candidates[0]} # take the only candidate
+    else
+        # more candidates, ask mx which one to use
+        platform_segment=$(mx ruby_get_os_arch_path_segment)
+        libtrufflenfi=$truffle/$platform_segment/truffle-nfi-native/bin/libtrufflenfi.$libext
+    fi
+fi
+
+if [ ! -f "$libtrufflenfi" ]; then
+    echo "libtrufflenfi.$libext not found."
+    exit 1
+fi
+
+java_args+=("-Dtruffle.nfi.library=$libtrufflenfi")
 
 # Sulong
 binary_sulong="$root/mx.imports/binary/sulong"
