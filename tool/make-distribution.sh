@@ -36,6 +36,12 @@ case "$KIND" in
     ;;
 esac
 
+rm -rf "${PREFIX:?}"/*
+mkdir -p "$PREFIX"
+
+# Expand $PREFIX
+PREFIX=$(cd "$PREFIX" && pwd -P)
+
 DEST="$PREFIX/truffleruby"
 
 function copy {
@@ -76,9 +82,6 @@ fi
 
 # Build
 tool/jt.rb build
-
-rm -rf "${PREFIX:?}"/*
-mkdir -p "$PREFIX"
 
 # Copy distributions
 # Truffle
