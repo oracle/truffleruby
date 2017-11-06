@@ -117,27 +117,20 @@ cd "$DEST"
 tar xf mxbuild/linux-amd64/dists/truffleruby-zip.tar
 rm mxbuild/linux-amd64/dists/truffleruby-zip.tar
 
-# Script to setup the environment easily
-cat > setup_env <<'EOS'
-#!/usr/bin/env bash
-file="${BASH_SOURCE[0]}"
-if [ -z "$file" ]; then file="$0"; fi
-root=$(cd "$(dirname "$file")" && pwd -P)
-export PATH="$root/bin:$PATH"
-EOS
-cat >> setup_env <<EOS
+# Environment sourced by the launcher, so adding to $PATH is enough
+cat > truffleruby_env <<EOS
 export TRUFFLERUBY_RESILIENT_GEM_HOME=true
 export TRUFFLERUBY_CEXT_ENABLED=$TRUFFLERUBY_CEXT_ENABLED
 export TRUFFLERUBYOPT="$TRUFFLERUBYOPT"
 EOS
 if [ "$graal" = true ]; then
-  cat >> setup_env <<EOS
+  cat >> truffleruby_env <<EOS
 export JAVACMD="\$root/$jvmci_basename/bin/java"
 export JAVA_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -Djvmci.class.path.append=\$root/$graal_dist"
 EOS
 fi
 
-source setup_env
+export PATH="$DEST/bin:$PATH"
 
 # Install bundler as we require a specific version and it's convenient
 gem install -E bundler -v 1.14.6

@@ -44,6 +44,11 @@ if [ -n "$RUBY_BIN" ]; then
     exec "$RUBY_BIN" "$@"
 fi
 
+# Source truffleruby_env generated for the distribution
+if [ -f "$root/truffleruby_env" ]; then
+  source "$root/truffleruby_env"
+fi
+
 if [ -z "$JAVACMD" ]; then
     if [ -z "$JAVA_HOME" ]; then
         JAVACMD='java'
