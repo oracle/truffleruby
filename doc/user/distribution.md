@@ -12,13 +12,11 @@ and with or without Graal are also made available on the
 Currently, these distributions are limited to Linux as we do not know a way to
 get OpenJDK 8 binaries for other platforms on which to build the JVMCI support.
 
-To use such a distribution, you need to unpack it and
-`source` the included script `truffleruby/setup_env` to setup the right
-environment ($PATH, gems config, etc):
+To use such a distribution, unpack it and add `truffleruby/bin` to your `$PATH`:
 
 ```bash
 $ tar xf truffleruby-....tar.gz
-$ source truffleruby/setup_env
+$ export PATH="$(pwd)/truffleruby/bin:$PATH"
 $ ruby -v
 # => truffleruby
 ```
@@ -28,7 +26,7 @@ You can also download and extract in a single step (useful in CI):
 ```bash
 # Download and extract in folder truffleruby/
 $ curl -L https://github.com/graalvm/truffleruby/releases/....tar.gz | tar xz
-$ source truffleruby/setup_env
+$ export PATH="$(pwd)/truffleruby/bin:$PATH"
 $ ruby -v
 # => truffleruby
 ```
