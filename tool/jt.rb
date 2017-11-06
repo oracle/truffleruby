@@ -558,7 +558,7 @@ module Commands
     build
   end
 
-  def run(*args)
+  def run_ruby(*args)
     env_vars = args.first.is_a?(Hash) ? args.shift : {}
     options = args.last.is_a?(Hash) ? args.pop : {}
 
@@ -668,11 +668,15 @@ module Commands
 
     raw_sh env_vars, ruby_bin, *vm_args, *args, options
   end
+  private :run_ruby
 
   # Same as #run but uses exec()
   def ruby(*args)
-    run(*args, '--exec')
+    run_ruby(*args, '--exec')
   end
+
+  # Legacy alias
+  alias_method :run, :ruby
 
   def e(*args)
     ruby '-e', args.join(' ')
@@ -702,7 +706,7 @@ module Commands
     build("cexts")
 
     chdir(ext_dir) do
-      run('-rmkmf', "extconf.rb") # -rmkmf is required for C ext tests
+      run_ruby('-rmkmf', "extconf.rb") # -rmkmf is required for C ext tests
       if File.exists?('Makefile')
         raw_sh("make")
         FileUtils::Verbose.cp("#{name}.su", target) if target
@@ -933,7 +937,7 @@ module Commands
 
     command = %w[test/mri/tests/runner.rb -v --color=never --tty=no -q]
     command.unshift("-I#{TRUFFLERUBY_DIR}/.ext")  if !cext_tests.empty?
-    run(env_vars, *truffle_args, *extra_args, *command, *test_files, run_options)
+    run_ruby(env_vars, *truffle_args, *extra_args, *command, *test_files, run_options)
   end
   private :run_mri_tests
 
@@ -1011,14 +1015,14 @@ module Commands
         compile_cext gem_name, ext_dir, "#{dir}/lib/#{gem_name}/#{gem_name}.su"
         case gem_name
         when 'backtraces'
-          run "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", err: output_file, continue_on_failure: true
+          run_ruby "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", err: output_file, continue_on_failure: true
           unless File.read(output_file)
               .gsub(TRUFFLERUBY_DIR, '')
               .gsub(/\/cext\.rb:(\d+)/, '/cext.rb:n') == File.read("#{dir}/expected.txt")
             abort "c extension #{dir} didn't work as expected"
           end
         else
-          run "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", out: output_file
+          run_ruby "-I#{dir}/lib", "#{dir}/bin/#{gem_name}", out: output_file
           unless File.read(output_file) == File.read("#{dir}/expected.txt")
             abort "c extension #{dir} didn't work as expected"
           end
@@ -1048,9 +1052,9 @@ module Commands
         compile_cext gem_name, ext_dir, "#{gem_root}/lib/#{gem_name}/#{gem_name}.su", '-Werror=implicit-function-declaration'
 
         next if gem_name == 'psd_native' # psd_native is excluded just for running
-        run *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
-            *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
-            "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root
+        run_ruby *dependencies.map { |d| "-I#{gem_home}/gems/#{d}/lib" },
+          *libs.map { |l| "-I#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{l}/lib" },
+          "#{TRUFFLERUBY_DIR}/test/truffle/cexts/#{gem_name}/test.rb", gem_root
       end
 
       # Tests using gem install to compile the cexts
@@ -1183,11 +1187,11 @@ module Commands
 
           openssl_options = no_sulong ? %w[-Xpatching_openssl=true] : []
 
-          run(environment, '-Xexceptions.print_java=true', *openssl_options,
+          run_ruby(environment, '-Xexceptions.print_java=true', *openssl_options,
               '-S', 'gem', 'install', '--no-document', 'bundler', '-v', '1.14.6', '--backtrace')
-          run(environment, '-Xexceptions.print_java=true', *openssl_options,
+          run_ruby(environment, '-Xexceptions.print_java=true', *openssl_options,
               '-J-Xmx512M','-S', 'bundle', 'install')
-          run(environment, '-Xexceptions.print_java=true', *openssl_options,
+          run_ruby(environment, '-Xexceptions.print_java=true', *openssl_options,
               '-S', 'bundle', 'exec', 'rake')
         end
       ensure
@@ -1379,7 +1383,7 @@ module Commands
     samples = []
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
-      out, err = run '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, capture: true, no_print_cmd: true
+      out, err = run_ruby '-J-Dtruffleruby.metrics.memory_used_on_exit=true', '-J-verbose:gc', *args, capture: true, no_print_cmd: true
       samples.push memory_allocated(out+err)
     end
     Utilities.log "\n", nil
@@ -1453,7 +1457,7 @@ module Commands
   end
 
   def can_run_in_heap(heap, *command)
-    run("-J-Xmx#{heap}M", *command, err: '/dev/null', out: '/dev/null', no_print_cmd: true, continue_on_failure: true, timeout: 60)
+    run_ruby("-J-Xmx#{heap}M", *command, err: '/dev/null', out: '/dev/null', no_print_cmd: true, continue_on_failure: true, timeout: 60)
   end
 
   def metrics_maxrss(*args)
@@ -1533,7 +1537,7 @@ module Commands
     METRICS_REPS.times do
       Utilities.log '.', "sampling\n"
       start = Time.now
-      out, err = run metrics_time_option, '--no-core-load-path', *args, capture: true, no_print_cmd: true
+      out, err = run_ruby metrics_time_option, '--no-core-load-path', *args, capture: true, no_print_cmd: true
       finish = Time.now
       samples.push get_times(err, finish - start)
     end
@@ -1641,7 +1645,7 @@ module Commands
     if benchmark_ruby
       sh benchmark_ruby, *run_args
     else
-      run *run_args
+      run_ruby *run_args
     end
   end
 
@@ -1714,7 +1718,7 @@ module Commands
     end
 
     puts "Running with Graal"
-    run "--graal", "-e", "p Truffle.graal?"
+    run_ruby "--graal", "-e", "p Truffle.graal?"
 
     puts
     puts "To run TruffleRuby with Graal, use:"
@@ -1734,7 +1738,7 @@ module Commands
     mx 'clean'
     # We need to build with -parameters to get parameter names
     mx 'build', '--force-javac', '-A-parameters'
-    run({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-Xlazy.default=false', '-e', 'exit')
+    run_ruby({ "TRUFFLE_CHECK_DSL_USAGE" => "true" }, '-Xlazy.default=false', '-e', 'exit')
   end
 
   def rubocop(*args)
