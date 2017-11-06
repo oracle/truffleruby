@@ -9,7 +9,12 @@
  */
 package org.truffleruby.language.methods;
 
+import org.truffleruby.parser.ArgumentDescriptor;
+import org.truffleruby.parser.ArgumentType;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Arity {
 
@@ -88,6 +93,36 @@ public class Arity {
 
     public String[] getKeywordArguments() {
         return keywordArguments;
+    }
+
+    public ArgumentDescriptor[] toAnonymousArgumentDescriptors() {
+        List<ArgumentDescriptor> descs = new ArrayList<>();
+
+        for (int i = 0; i < preRequired; i++) {
+            descs.add(new ArgumentDescriptor(ArgumentType.anonreq));
+        }
+
+        for (int i = 0; i < optional; i++) {
+            descs.add(new ArgumentDescriptor(ArgumentType.anonopt));
+        }
+
+        if (hasRest) {
+            descs.add(new ArgumentDescriptor(ArgumentType.anonrest));
+        }
+
+        for (int i = 0; i < postRequired; i++) {
+            descs.add(new ArgumentDescriptor(ArgumentType.anonreq));
+        }
+
+        for (String keyword : keywordArguments) {
+            descs.add(new ArgumentDescriptor(ArgumentType.key, keyword));
+        }
+
+        if (hasKeywordsRest) {
+            descs.add(new ArgumentDescriptor(ArgumentType.anonkeyrest));
+        }
+
+        return descs.toArray(new ArgumentDescriptor[descs.size()]);
     }
 
     @Override
