@@ -1137,6 +1137,15 @@ public abstract class StringNodes {
 
     }
 
+    @Primitive(name = "string_get_rope", needsSelf = false)
+    public abstract static class GetRopeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(str)")
+        public Rope getRope(DynamicObject str) {
+            return Layouts.STRING.getRope(str);
+        }
+    }
+
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
