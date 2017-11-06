@@ -517,6 +517,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "Ropes");
         defineModule(truffleModule, "GC");
         defineModule(truffleModule, "Array");
+        defineModule(truffleModule, "RegexpOperations");
         defineModule(truffleModule, "StringOperations");
         truffleBootModule = defineModule(truffleModule, "Boot");
         defineModule(truffleModule, "Fixnum");

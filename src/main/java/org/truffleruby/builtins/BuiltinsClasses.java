@@ -98,6 +98,8 @@ import org.truffleruby.core.regexp.MatchDataNodesBuiltins;
 import org.truffleruby.core.regexp.MatchDataNodesFactory;
 import org.truffleruby.core.regexp.RegexpNodesBuiltins;
 import org.truffleruby.core.regexp.RegexpNodesFactory;
+import org.truffleruby.core.regexp.TruffleRegexpNodesBuiltins;
+import org.truffleruby.core.regexp.TruffleRegexpNodesFactory;
 import org.truffleruby.core.rope.TruffleRopesNodesBuiltins;
 import org.truffleruby.core.rope.TruffleRopesNodesFactory;
 import org.truffleruby.core.rubinius.AtomicReferenceNodesBuiltins;
@@ -240,6 +242,7 @@ public abstract class BuiltinsClasses {
         TruffleGraalNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleKernelNodesBuiltins.setup(coreManager, primitiveManager);
         TrufflePosixNodesBuiltins.setup(coreManager, primitiveManager);
+        TruffleRegexpNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleRopesNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleStringNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleSystemNodesBuiltins.setup(coreManager, primitiveManager);
@@ -320,6 +323,7 @@ public abstract class BuiltinsClasses {
             TruffleGraalNodesFactory.getFactories(),
             TruffleKernelNodesFactory.getFactories(),
             TrufflePosixNodesFactory.getFactories(),
+            TruffleRegexpNodesFactory.getFactories(),
             TruffleRopesNodesFactory.getFactories(),
             TruffleStringNodesFactory.getFactories(),
             TruffleSystemNodesFactory.getFactories(),

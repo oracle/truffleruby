@@ -157,19 +157,20 @@ class Regexp
       enc = convert(patterns.first).encoding
     end
 
-    str = ''.encode(enc)
     sep = '|'.encode(enc)
-    patterns.each_with_index do |pat, idx|
-      str << sep if idx != 0
-      if pat.kind_of? Regexp
-        str << pat.to_s
+    str = ''.encode(enc)
+
+    patterns = patterns.map do |pat|
+      unless pat.kind_of? Regexp
+        Truffle.invoke_primitive(:string_get_rope, StringValue(pat))
       else
-        str << Regexp.quote(StringValue(pat))
+        pat
       end
     end
-
-    Regexp.new(str)
+    Truffle::RegexpOperations.union(str, sep, *patterns)
   end
+
+  Truffle::Graal.always_split(method(:union))
 
   def initialize(pattern, opts=nil, lang=nil)
     if pattern.kind_of?(Regexp)
