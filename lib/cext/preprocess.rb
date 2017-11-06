@@ -79,6 +79,20 @@ Init_threads_table(VALUE mByebug)
   locker = Qnil;
 EOF
 
+PG_CONNECTION_FREE = <<-EOF
+pgconn_gc_free( t_pg_connection *this )
+{
+  rb_tr_release_handle(this->socket_io);
+  rb_tr_release_handle(this->notice_receiver);
+  rb_tr_release_handle(this->notice_processor);
+  rb_tr_release_handle(this->type_map_for_queries);
+  rb_tr_release_handle(this->type_map_for_results);
+  rb_tr_release_handle(this->trace_stream);
+  rb_tr_release_handle(this->external_encoding);
+  rb_tr_release_handle(this->encoder_for_put_copy_data);
+  rb_tr_release_handle(this->decoder_for_get_copy_data);
+EOF
+
 NO_ASSIGNMENT = /(?:[\),;]|==|!=)/
 
 def read_field(struct_var_name, field_name)
@@ -146,6 +160,31 @@ PATCHED_FILES = {
       {
         match: /#define CACHE_LOOKUP\(this, klass\) \( &this->cache_row\[\(klass >> 8\) & 0xff\] \)/,
         replacement: '#define CACHE_LOOKUP(this, klass) ( &this->cache_row[FIX2INT(rb_obj_id(klass)) & 0xff] )'
+      }
+    ]
+  },
+  'pg_coder.c' => {
+    gem: 'pg',
+    patches: [
+      *read_write_field('conv','coder_obj', true),
+      *read_write_field('this','coder_obj', true)
+    ]
+  },
+  'pg_connection.c' => {
+    gem: 'pg',
+    patches: [
+      *read_write_field('this','socket_io', false),
+      *read_write_field('this','notice_receiver', false),
+      *read_write_field('this','notice_processor', false),
+      *read_write_field('this','type_map_for_queries', false),
+      *read_write_field('this','type_map_for_results', false),
+      *read_write_field('this','trace_stream', false),
+      *read_write_field('this','external_encoding', false),
+      *read_write_field('this','encoder_for_put_copy_data', false),
+      *read_write_field('this','decoder_for_get_copy_data', false),
+      {
+        match: /pgconn_gc_free\( t_pg_connection \*this \)\n{/m,
+        replacement: PG_CONNECTION_FREE
       }
     ]
   },
