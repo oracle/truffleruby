@@ -42,9 +42,6 @@ public class SharedMethodInfo {
             String notes,
             ArgumentDescriptor[] argumentDescriptors,
             boolean alwaysClone) {
-        if (argumentDescriptors == null) {
-            argumentDescriptors = new ArgumentDescriptor[]{};
-        }
 
         assert lexicalScope != null;
         this.sourceSection = sourceSection;
@@ -78,7 +75,7 @@ public class SharedMethodInfo {
     }
 
     public ArgumentDescriptor[] getArgumentDescriptors() {
-        return argumentDescriptors;
+        return argumentDescriptors == null ? arity.toAnonymousArgumentDescriptors() : argumentDescriptors;
     }
 
     public boolean shouldAlwaysClone() {
