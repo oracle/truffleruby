@@ -16,7 +16,7 @@ To use such a distribution, unpack it and add `truffleruby/bin` to your `$PATH`:
 
 ```bash
 $ tar xf truffleruby-....tar.gz
-$ export PATH="$(pwd)/truffleruby/bin:$PATH"
+$ export PATH="$PWD/truffleruby/bin:$PATH"
 $ ruby -v
 # => truffleruby
 ```
@@ -26,7 +26,7 @@ You can also download and extract in a single step (useful in CI):
 ```bash
 # Download and extract in folder truffleruby/
 $ curl -L https://github.com/graalvm/truffleruby/releases/....tar.gz | tar xz
-$ export PATH="$(pwd)/truffleruby/bin:$PATH"
+$ export PATH="$PWD/truffleruby/bin:$PATH"
 $ ruby -v
 # => truffleruby
 ```
