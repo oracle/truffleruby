@@ -12,17 +12,39 @@
 
 set -e
 
-function libext {
-    uname_str=$(uname)
-    if [ "$uname_str" = 'Linux' ] || [ "$uname_str" = 'SunOS' ]; then
-        echo so
-    elif [ "$uname_str" = 'Darwin' ]; then
-        echo dylib
-    else
-        echo "unknown platform $uname_str" 1>&2
-        exit 1
-    fi
-}
+# Check platform
+case $(uname) in
+  Linux)
+    os=linux
+    libext=so
+    ;;
+  Darwin)
+    os=darwin
+    libext=dylib
+    ;;
+  SunOS|Solaris)
+    os=solaris
+    libext=so
+    ;;
+  *)
+    echo "unknown platform $(uname)" 1>&2
+    exit 1
+    ;;
+esac
+
+# Check architecture
+case $(uname -m) in
+  x86_64)
+    arch=amd64
+    ;;
+  sun4v)
+    arch=sparcv9
+    ;;
+  *)
+    echo "unknown architecture $(uname -m)" 1>&2
+    exit 1
+    ;;
+esac
 
 # get the absolute path of the executable and resolve symlinks
 SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
@@ -77,7 +99,19 @@ java_args+=("-Xbootclasspath/a:$truffle/dists/truffle-api.jar:$graal_sdk")
 CP="$CP:$truffle/dists/truffle-nfi.jar"
 CP="$CP:$root/mxbuild/dists/truffleruby-launcher.jar"
 CP="$CP:$root/mxbuild/dists/truffleruby.jar"
-java_args+=("-Dtruffle.nfi.library=$truffle/truffle-nfi-native/bin/libtrufflenfi.$(libext)")
+
+libtrufflenfi_os_arch="$truffle/$os-$arch/truffle-nfi-native/bin/libtrufflenfi.$libext"
+libtrufflenfi_no_arch="$truffle/truffle-nfi-native/bin/libtrufflenfi.$libext"
+if [ -f "$libtrufflenfi_os_arch" ]; then
+  libtrufflenfi="$libtrufflenfi_os_arch"
+elif [ -f "$libtrufflenfi_no_arch" ]; then
+  # TODO (eregon, 08-Nov-2017): remove fallback
+  libtrufflenfi="$libtrufflenfi_no_arch"
+else
+  echo "libtrufflenfi.$libext found in neither $libtrufflenfi_os_arch nor $libtrufflenfi_no_arch" 1>&2
+  exit 1
+fi
+java_args+=("-Dtruffle.nfi.library=$libtrufflenfi")
 
 # Sulong
 binary_sulong="$root/mx.imports/binary/sulong"
