@@ -101,7 +101,7 @@ Otherwise, if the name starts with `@`, read it as an instance variable:
 
 `READ(object, "@name")` → `object.instance_variable_get("name")`
 
-Otherwise, if there isn't a method defined on the object with the same name as
+Otherwise, if there is a method defined on the object with the same name as
 the name, perform a method call using the name as the called method name:
 
 `READ(object, name)` → `object.name` if `object.responds_to?(name)`
