@@ -14,7 +14,6 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -160,9 +159,7 @@ public class SafepointManager {
                 if (System.nanoTime() >= max) {
                     Log.LOGGER.severe(String.format("waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
                             waits * WAIT_TIME_IN_SECONDS, phaser.getUnarrivedParties(), phaser.getRegisteredParties()));
-                    if (!TruffleOptions.AOT) { // Thread.getAllStackTraces() not yet supported on SVM
-                        printStacktracesOfBlockedThreads();
-                    }
+                    printStacktracesOfBlockedThreads();
 
                     if (waits == 1) {
                         restoreDefaultInterruptHandler();
