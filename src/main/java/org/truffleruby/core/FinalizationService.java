@@ -100,7 +100,16 @@ public class FinalizationService {
 
         finalizerReference.addFinalizer(owner, action, roots);
 
-        if (finalizerThread == null) {
+        /*
+         * We can't create a new thread while the context is initializing, as the polyglot API locks on creating new
+         * threads, and some core loading does things such as stat files which could allocate memory that is marked to
+         * be automatically freed and so would want to start the finalization thread. So don't start the finalization
+         * thread if we are initializing. We will rely on some other finalizer to be created to ever free this memory
+         * allocated during startup, but that's a reasonable assumption and a low risk of leaking a tiny number of bytes
+         * if it doesn't hold.
+         */
+
+        if (finalizerThread == null && context.isInitialized()) {
             createFinalizationThread();
         }
     }
