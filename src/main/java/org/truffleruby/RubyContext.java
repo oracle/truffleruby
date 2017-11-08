@@ -105,6 +105,8 @@ public class RubyContext {
 
     private final Object classVariableDefinitionLock = new Object();
 
+    private boolean initialized;
+
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Launcher.printTruffleTimeMetric("before-context-constructor");
 
@@ -225,6 +227,8 @@ public class RubyContext {
         if (options.SHARED_OBJECTS_ENABLED && options.SHARED_OBJECTS_FORCE) {
             sharedObjects.startSharing();
         }
+
+        initialized = true;
     }
 
     public Object send(Object object, String methodName, DynamicObject block, Object... arguments) {
@@ -416,6 +420,10 @@ public class RubyContext {
         }
 
         return consoleHolder;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
     }
 
     // Returns a canonical path to the home
