@@ -1441,6 +1441,11 @@ module Zlib
         return ""
       end
 
+      # Truffle: This works around https://github.com/djberg96/pr-zlib/issues/14.
+      if @gz.z.buf.nil?
+        @gz.z.buf = Bytef.new(0.chr * len)
+      end
+
       while (!@gz.z.ZSTREAM_IS_FINISHED() && @gz.z.buf.offset < len)
         gzfile_read_more()
       end
