@@ -181,6 +181,17 @@ module Truffle::CExt
   end
 
   class RStringPtr
+    RSTRING_CACHE = {}.compare_by_identity
+    RSTRING_CACHE_MUTEX = Mutex.new
+
+    private_class_method :new
+
+    def self.get(string)
+      RSTRING_CACHE_MUTEX.synchronize do
+        RSTRING_CACHE.fetch(string) { |key| RSTRING_CACHE[key] = new(string) }
+      end
+    end
+
     attr_reader :string
 
     def initialize(string)
@@ -1990,7 +2001,7 @@ module Truffle::CExt
   end
 
   def RSTRING_PTR(string)
-    RStringPtr.new(string)
+    RStringPtr.get(string)
   end
 
   def RSTRING_END(string)
