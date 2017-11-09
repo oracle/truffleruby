@@ -1538,6 +1538,10 @@ module Truffle::CExt
     end
   end
 
+  def rb_obj_clone(obj)
+    obj.clone
+  end
+
   def rb_obj_instance_eval(obj, args, block)
     obj.instance_eval(*args, &block)
   end
