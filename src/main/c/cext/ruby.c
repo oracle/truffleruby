@@ -4128,7 +4128,7 @@ int rb_eql(VALUE obj1, VALUE obj2) {
 }
 
 VALUE rb_obj_clone(VALUE obj) {
-  return truffle_invoke(RUBY_CEXT, "rb_obj_clone", obj);
+  return rb_funcall(obj, rb_intern("clone"), 0);
 }
 
 VALUE rb_obj_init_copy(VALUE obj, VALUE orig) {
