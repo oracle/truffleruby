@@ -4123,7 +4123,7 @@ int rb_eql(VALUE obj1, VALUE obj2) {
 }
 
 VALUE rb_obj_clone(VALUE obj) {
-  rb_tr_error("rb_obj_clone not implemented");
+  return truffle_invoke(RUBY_CEXT, "rb_obj_clone", obj);
 }
 
 VALUE rb_obj_init_copy(VALUE obj, VALUE orig) {
