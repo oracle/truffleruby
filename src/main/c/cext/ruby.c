@@ -3227,7 +3227,12 @@ VALUE rb_enc_str_new_cstr(const char *ptr, rb_encoding *enc) {
 }
 
 VALUE rb_enc_str_new_static(const char *ptr, long len, rb_encoding *enc) {
-  rb_tr_error("rb_enc_str_new_static not implemented");
+  if (len < 0) {
+    rb_raise(rb_eArgError, "negative string size (or size too big)");
+  }
+
+  VALUE string = rb_enc_str_new(ptr, len, enc);
+  return string;
 }
 
 VALUE rb_enc_reg_new(const char *s, long len, rb_encoding *enc, int options) {
