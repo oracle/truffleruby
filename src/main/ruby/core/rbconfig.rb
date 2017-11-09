@@ -160,8 +160,14 @@ module RbConfig
   end
 
   def self.ruby
-    Truffle::Boot.ruby_launcher or
-        raise "we can't find the TruffleRuby launcher - set -Xlauncher=, or your launcher should be doing this for you"
+    @ruby_launcher ||= begin
+      # ruby launcher is properly set
+      Truffle::Boot.ruby_launcher ||
+          # determine launcher from ruby_home
+          ("#{CONFIG['bindir']}/#{CONFIG['ruby_install_name']}" if Truffle::Boot.ruby_home) ||
+          # use fallback, e.g. there is no launcher if TruffleRuby is embedded with the polyglot API
+          CONFIG['ruby_install_name']
+    end
   end
 
   def RbConfig.expand(val, config = CONFIG)
