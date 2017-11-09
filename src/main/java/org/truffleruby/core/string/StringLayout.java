@@ -14,6 +14,7 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
+import com.oracle.truffle.api.object.dsl.Nullable;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.rope.Rope;
@@ -27,7 +28,7 @@ public interface StringLayout extends BasicObjectLayout {
     DynamicObjectFactory createStringShape(DynamicObject logicalClass,
                                            DynamicObject metaClass);
 
-    Object[] build(boolean frozen, boolean tainted, Rope rope);
+    Object[] build(boolean frozen, boolean tainted, Rope rope, @Nullable DynamicObject rstringPtr);
 
     boolean isString(ObjectType objectType);
     boolean isString(DynamicObject object);
@@ -41,5 +42,8 @@ public interface StringLayout extends BasicObjectLayout {
 
     Rope getRope(DynamicObject object);
     void setRope(DynamicObject object, Rope value);
+
+    DynamicObject getRstringPtr(DynamicObject object);
+    void setRstringPtr(DynamicObject object, DynamicObject value);
 
 }

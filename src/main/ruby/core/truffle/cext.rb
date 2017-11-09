@@ -181,19 +181,12 @@ module Truffle::CExt
   end
 
   class RStringPtr
-    RSTRING_CACHE = {}.compare_by_identity
-    RSTRING_CACHE_MUTEX = Mutex.new
-
     private_class_method :new
-
-    def self.get(string)
-      RSTRING_CACHE_MUTEX.synchronize do
-        RSTRING_CACHE.fetch(string) { |key| RSTRING_CACHE[key] = new(string) }
-      end
-    end
 
     attr_reader :string
 
+    # If you're looking to create an RStringPtr object, you should probably be using
+    # `string_get_rstring_ptr` primitive instead.
     def initialize(string)
       @string = string
     end
@@ -1997,7 +1990,7 @@ module Truffle::CExt
   end
 
   def RSTRING_PTR(string)
-    RStringPtr.get(string)
+    Truffle.invoke_primitive(:string_get_rstring_ptr, string)
   end
 
   def RSTRING_END(string)

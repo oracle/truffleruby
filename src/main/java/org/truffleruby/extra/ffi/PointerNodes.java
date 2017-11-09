@@ -202,7 +202,7 @@ public abstract class PointerNodes {
         @Specialization(guards = "isNullPointer(pointer)")
         public DynamicObject readNullPointer(DynamicObject pointer,
                                              @Cached("create()") AllocateObjectNode allocateObjectNode) {
-            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE, null));
         }
 
         @Specialization(guards = "!isNullPointer(pointer)")
