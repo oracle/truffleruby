@@ -1097,7 +1097,7 @@ public class CExtNodes {
             } else {
                 nativeRope = new NativeRope(getContext().getFinalizationService(), bytesNode.execute(currentRope), currentRope.getEncoding(), currentRope.characterLength(),
                         currentRope.getCodeRange());
-                Layouts.STRING.setRope(string, nativeRope);
+                StringOperations.setRope(string, nativeRope);
             }
 
             return nativeRope.getNativePointer().getAddress();
