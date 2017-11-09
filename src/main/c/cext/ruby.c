@@ -1115,7 +1115,7 @@ ID rb_intern_str(VALUE string) {
 }
 
 VALUE rb_str_cat(VALUE string, const char *to_concat, long length) {
-  truffle_invoke(string, "concat", rb_str_new(to_concat, length));
+  truffle_invoke(string, "concat", rb_enc_str_new(to_concat, length, STR_ENC_GET(string)));
   return string;
 }
 
