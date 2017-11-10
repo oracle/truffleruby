@@ -242,12 +242,10 @@ public class CommandLineParser {
                     disallowedInRubyOpts(argument);
                     throw notImplemented("-F");
                 case 'h':
-                    if (parseVersionAndHelp) {
-                        disallowedInRubyOpts(argument);
-                        config.setOption(OptionsCatalog.SHOW_HELP, ShowHelp.SHORT);
-                        // cancel other execution actions
-                        config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
-                    }
+                    disallowedInRubyOpts(argument);
+                    config.setOption(OptionsCatalog.SHOW_HELP, ShowHelp.SHORT);
+                    // cancel other execution actions
+                    config.setOption(OptionsCatalog.EXECUTION_ACTION, ExecutionAction.NONE);
                     break;
                 case 'i':
                     disallowedInRubyOpts(argument);
