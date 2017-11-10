@@ -13,7 +13,6 @@ import com.kenai.jffi.Platform;
 import com.kenai.jffi.Platform.OS;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import jnr.constants.platform.Sysconf;
-import jnr.posix.FileStat;
 import jnr.posix.POSIX;
 import jnr.posix.Passwd;
 import jnr.posix.SpawnAttribute;
@@ -44,38 +43,8 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public FileStat allocateStat() {
-        return posix.allocateStat();
-    }
-
-    @TruffleBoundary
-    @Override
-    public int fstat(int fd, FileStat stat) {
-        return posix.fstat(fd, stat);
-    }
-
-    @TruffleBoundary
-    @Override
     public Passwd getpwnam(String which) {
         return posix.getpwnam(which);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int lstat(String path, FileStat stat) {
-        return posix.lstat(path, stat);
-    }
-
-    @TruffleBoundary
-    @Override
-    public FileStat stat(String path) {
-        return posix.stat(path);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int stat(String path, FileStat stat) {
-        return posix.stat(path, stat);
     }
 
     @TruffleBoundary

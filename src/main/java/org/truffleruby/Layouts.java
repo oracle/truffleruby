@@ -72,8 +72,6 @@ import org.truffleruby.core.rubinius.IOLayout;
 import org.truffleruby.core.rubinius.IOLayoutImpl;
 import org.truffleruby.core.rubinius.RandomizerLayout;
 import org.truffleruby.core.rubinius.RandomizerLayoutImpl;
-import org.truffleruby.core.rubinius.StatLayout;
-import org.truffleruby.core.rubinius.StatLayoutImpl;
 import org.truffleruby.core.rubinius.WeakRefLayout;
 import org.truffleruby.core.rubinius.WeakRefLayoutImpl;
 import org.truffleruby.core.string.StringLayout;
@@ -150,6 +148,5 @@ public abstract class Layouts {
     public static final HandleLayout HANDLE = HandleLayoutImpl.INSTANCE;
     public static final TracePointLayout TRACE_POINT = TracePointLayoutImpl.INSTANCE;
     public static final DigestLayout DIGEST = DigestLayoutImpl.INSTANCE;
-    public static final StatLayout STAT = StatLayoutImpl.INSTANCE;
     public static final SystemCallErrorLayout SYSTEM_CALL_ERROR = SystemCallErrorLayoutImpl.INSTANCE;
 }

@@ -10,7 +10,6 @@
 package org.truffleruby.platform.posix;
 
 import jnr.constants.platform.Sysconf;
-import jnr.posix.FileStat;
 import jnr.posix.Passwd;
 import jnr.posix.SpawnAttribute;
 import jnr.posix.SpawnFileAction;
@@ -21,12 +20,7 @@ import java.util.Collection;
 
 public interface TrufflePosix {
 
-    FileStat allocateStat();
-    int fstat(int fd, FileStat stat);
     Passwd getpwnam(String which);
-    int lstat(String path, FileStat stat);
-    FileStat stat(String path);
-    int stat(String path, FileStat stat);
     int errno();
     long sysconf(Sysconf name);
     Times times();

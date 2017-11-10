@@ -185,7 +185,6 @@ public class CoreLibrary {
     private final DynamicObjectFactory unboundMethodFactory;
     private final DynamicObject byteArrayClass;
     private final DynamicObjectFactory byteArrayFactory;
-    private final DynamicObjectFactory statFactory;
     private final DynamicObject fiberErrorClass;
     private final DynamicObject threadErrorClass;
     private final DynamicObject internalBufferClass;
@@ -481,9 +480,6 @@ public class CoreLibrary {
         internalBufferClass = defineClass(ioClass, objectClass, "InternalBuffer");
         Layouts.CLASS.setInstanceFactoryUnsafe(internalBufferClass, Layouts.IO_BUFFER.createIOBufferShape(internalBufferClass, internalBufferClass));
         final DynamicObject fileClass = defineClass(ioClass, "File");
-        final DynamicObject statClass = defineClass(fileClass, objectClass, "Stat");
-        statFactory = Layouts.STAT.createStatShape(statClass, statClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(statClass, statFactory);
 
         weakRefClass = defineClass(basicObjectClass, "WeakRef");
         weakRefFactory = Layouts.WEAK_REF_LAYOUT.createWeakRefShape(weakRefClass, weakRefClass);
@@ -1254,10 +1250,6 @@ public class CoreLibrary {
         return byteArrayFactory;
     }
 
-    public DynamicObjectFactory getStatFactory() {
-        return statFactory;
-    }
-
     @TruffleBoundary
     public DynamicObject getErrnoClass(Errno errno) {
         return errnoClasses.get(errno);
@@ -1472,7 +1464,6 @@ public class CoreLibrary {
             "/core/gc.rb",
             "/core/nil.rb",
             "/core/rubinius.rb",
-            "/core/stat.rb",
             "/core/string.rb",
             "/core/random.rb",
             "/core/thread.rb",
@@ -1489,6 +1480,7 @@ public class CoreLibrary {
             "/core/truffle/debug.rb",
             "/core/truffle/string_operations.rb",
             "/core/truffle/regexp_operations.rb",
+            "/core/stat.rb",
             "/core/io.rb",
             "/core/immediate.rb",
             "/core/string_mirror.rb",
