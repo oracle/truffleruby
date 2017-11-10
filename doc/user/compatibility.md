@@ -39,12 +39,6 @@ You cannot `fork` the TruffleRuby interpreter. The feature is unlikely to ever
 be supported when running on the JVM, but could be supported in the future on
 the SVM.
 
-#### Refinements
-
-We intend to implement refinements, and don't believe that they pose major
-technical challenge, but the need for them seems relatively low compared to
-other priorities.
-
 #### Standard libraries
 
 Quite a few of the less commonly used  standard libraries are currently not

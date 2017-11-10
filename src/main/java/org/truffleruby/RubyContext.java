@@ -284,7 +284,7 @@ public class RubyContext {
     public Object send(Object object, String methodName, Object... arguments) {
         CompilerAsserts.neverPartOfCompilation();
 
-        final InternalMethod method = ModuleOperations.lookupMethodUncached(coreLibrary.getMetaClass(object), methodName);
+        final InternalMethod method = ModuleOperations.lookupMethodUncached(coreLibrary.getMetaClass(object), methodName, null);
         if (method == null || method.isUndefined()) {
             return null;
         }

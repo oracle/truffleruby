@@ -27,6 +27,7 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.BlockDefinitionNode;
+import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 
 public class RubyCallNode extends RubyNode {
@@ -208,7 +209,8 @@ public class RubyCallNode extends RubyNode {
                 return nil();
             }
 
-            final InternalMethod method = doLookup(receiverObject);
+            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
+            final InternalMethod method = doLookup(receiverObject, declarationContext);
             final Object self = RubyArguments.getSelf(frame);
 
             if (methodNotFoundProfile.profile(method == null)) {
@@ -229,11 +231,11 @@ public class RubyCallNode extends RubyNode {
         // TODO CS-10-Apr-17 remove this boundary
 
         @TruffleBoundary
-        private InternalMethod doLookup(Object receiverObject) {
+        private InternalMethod doLookup(Object receiverObject, DeclarationContext declarationContext) {
             // TODO CS-10-Apr-17 I'd like to use this but it doesn't give the same result
             // lookupMethodNode.executeLookupMethod(frame, coreLibrary().getMetaClass(receiverObject), methodName);
 
-            return ModuleOperations.lookupMethodUncached(coreLibrary().getMetaClass(receiverObject), methodName);
+            return ModuleOperations.lookupMethodUncached(coreLibrary().getMetaClass(receiverObject), methodName, declarationContext);
         }
 
         // TODO CS-10-Apr-17 remove this boundary

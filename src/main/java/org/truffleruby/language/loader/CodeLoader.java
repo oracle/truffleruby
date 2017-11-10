@@ -93,7 +93,8 @@ public class CodeLoader {
                 declarationContext,
                 rootNode.getSharedMethodInfo().getName(),
                 declaringModule,
-                Visibility.PUBLIC, callTarget);
+                Visibility.PUBLIC,
+                callTarget);
 
         return new DeferredCall(callTarget, RubyArguments.pack(
                 parentFrame,

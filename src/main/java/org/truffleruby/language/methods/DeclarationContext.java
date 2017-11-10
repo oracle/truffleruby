@@ -20,11 +20,15 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.SingletonClassNode;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
- * Declaration context for methods:
+ * The set of values captured when a method is defined:
  * <ul>
- * <li>visibility</li>
- * <li>default definee / current module (which module to define on)</li>
+ * <li>the visibility of the method</li>
+ * <li>the current module (default definee) to define the method on</li>
+ * <li>the currently activated refinement modules which apply to the method</li>
  * </ul>
  */
 public class DeclarationContext {
@@ -34,6 +38,7 @@ public class DeclarationContext {
         DynamicObject getModuleToDefineMethods(SingletonClassNode singletonClassNode);
     }
 
+    /** #instance_eval, the default definee is self.singleton_class */
     public static class SingletonClassOfSelfDefaultDefinee implements DefaultDefinee {
         private final Object self;
 
@@ -46,6 +51,7 @@ public class DeclarationContext {
         }
     }
 
+    /** class/module body or Module#class_eval, the default definee is opened module */
     public static class FixedDefaultDefinee implements DefaultDefinee {
         private final DynamicObject module;
 
@@ -65,10 +71,17 @@ public class DeclarationContext {
 
     public final Visibility visibility;
     public final DefaultDefinee defaultDefinee;
+    /** Maps a refined class (C) to refinement modules (M) */
+    private final Map<DynamicObject, DynamicObject[]> refinements; // immutable
 
     public DeclarationContext(Visibility visibility, DefaultDefinee defaultDefinee) {
+        this(visibility, defaultDefinee, Collections.emptyMap());
+    }
+
+    public DeclarationContext(Visibility visibility, DefaultDefinee defaultDefinee, Map<DynamicObject, DynamicObject[]> refinements) {
         this.visibility = visibility;
         this.defaultDefinee = defaultDefinee;
+        this.refinements = refinements;
     }
 
     @TruffleBoundary
@@ -105,12 +118,30 @@ public class DeclarationContext {
         changeVisibility(callerFrame, visibility);
     }
 
+    @TruffleBoundary
+    public static void setRefinements(Frame callerFrame, DeclarationContext declarationContext, Map<DynamicObject, DynamicObject[]> refinements) {
+        RubyArguments.setDeclarationContext(callerFrame, declarationContext.withRefinements(refinements));
+    }
+
     public DeclarationContext withVisibility(Visibility visibility) {
         if (visibility == this.visibility) {
             return this;
         } else {
-            return new DeclarationContext(visibility, defaultDefinee);
+            return new DeclarationContext(visibility, defaultDefinee, refinements);
         }
+    }
+
+    public DeclarationContext withRefinements(Map<DynamicObject, DynamicObject[]> refinements) {
+        assert refinements != null;
+        return new DeclarationContext(visibility, defaultDefinee, refinements);
+    }
+
+    public Map<DynamicObject, DynamicObject[]> getRefinements() {
+        return refinements;
+    }
+
+    public DynamicObject[] getRefinementsFor(DynamicObject module) {
+        return refinements.get(module);
     }
 
     @TruffleBoundary

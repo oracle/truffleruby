@@ -198,6 +198,24 @@ public final class RubyArguments {
         return null;
     }
 
+    public static DeclarationContext tryGetDeclarationContext(Frame frame) {
+        if (frame == null) {
+            return null;
+        }
+
+        if (ArgumentIndicies.DECLARATION_CONTEXT.ordinal() >= frame.getArguments().length) {
+            return null;
+        }
+
+        final Object declarationContext = frame.getArguments()[ArgumentIndicies.DECLARATION_CONTEXT.ordinal()];
+
+        if (declarationContext instanceof DeclarationContext) {
+            return (DeclarationContext) declarationContext;
+        }
+
+        return null;
+    }
+
     // Setters
 
     public static void setDeclarationFrame(Frame frame, MaterializedFrame declarationFrame) {

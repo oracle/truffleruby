@@ -17,6 +17,7 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
@@ -356,7 +357,7 @@ public abstract class BasicObjectNodes {
 
             if (lastCallWasSuper(relevantCallerFrame)) {
                 return coreExceptions().noSuperMethodError(name, self, args, this);
-            } else if ((visibility = lastCallWasCallingPrivateOrProtectedMethod(self, name)) != null) {
+            } else if ((visibility = lastCallWasCallingPrivateOrProtectedMethod(self, name, relevantCallerFrame)) != null) {
                 if (visibility.isPrivate()) {
                     return coreExceptions().privateMethodError(name, self, args, this);
                 } else {
@@ -408,8 +409,9 @@ public abstract class BasicObjectNodes {
          * See {@link org.truffleruby.language.dispatch.DispatchNode#lookup}.
          * The only way to fail if method is not null and not undefined is visibility.
          */
-        private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name) {
-            final InternalMethod method = ModuleOperations.lookupMethodUncached(coreLibrary().getMetaClass(self), name);
+        private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name, FrameInstance callerFrame) {
+            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame.getFrame(FrameAccess.READ_ONLY));
+            final InternalMethod method = ModuleOperations.lookupMethodUncached(coreLibrary().getMetaClass(self), name, declarationContext);
             if (method != null && !method.isUndefined()) {
                 assert method.getVisibility().isPrivate() || method.getVisibility().isProtected();
                 return method.getVisibility();

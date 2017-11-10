@@ -34,7 +34,7 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
 
 /**
- * Caches {@link ModuleOperations#lookupMethodCached(DynamicObject, String)}
+ * Caches {@link ModuleOperations#lookupMethodCached(DynamicObject, String, DeclarationContext)}
  * on an actual instance.
  */
 @NodeChildren({ @NodeChild("self"), @NodeChild("name") })
@@ -86,6 +86,7 @@ public abstract class LookupMethodNode extends RubyNode {
             @Cached("create()") BranchProfile foreignProfile,
             @Cached("createBinaryProfile()") ConditionProfile noPrependedModulesProfile,
             @Cached("createBinaryProfile()") ConditionProfile onMetaClassProfile,
+            @Cached("createBinaryProfile()") ConditionProfile isRefinedProfile,
             @Cached("createBinaryProfile()") ConditionProfile notFoundProfile,
             @Cached("createBinaryProfile()") ConditionProfile publicProfile,
             @Cached("createBinaryProfile()") ConditionProfile privateProfile,
@@ -104,10 +105,12 @@ public abstract class LookupMethodNode extends RubyNode {
         final ModuleFields fields = Layouts.MODULE.getFields(metaClass);
         InternalMethod topMethod;
         if (noPrependedModulesProfile.profile(fields.getFirstModuleChain() == fields) &&
-                onMetaClassProfile.profile((topMethod = fields.getMethod(name)) != null)) {
+                onMetaClassProfile.profile((topMethod = fields.getMethod(name)) != null) &&
+                !isRefinedProfile.profile(topMethod.isRefined())) {
             method = topMethod;
         } else {
-            method = ModuleOperations.lookupMethodUncached(metaClass, name);
+            final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(frame);
+            method = ModuleOperations.lookupMethodUncached(metaClass, name, declarationContext);
         }
 
         if (notFoundProfile.profile(method == null || method.isUndefined())) {
@@ -168,8 +171,8 @@ public abstract class LookupMethodNode extends RubyNode {
         if (RubyGuards.isForeignObject(receiver)) {
             throw new UnsupportedOperationException("method lookup not supported on foreign objects");
         }
-
-        final MethodLookupResult method = ModuleOperations.lookupMethodCached(context.getCoreLibrary().getMetaClass(receiver), name);
+        final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callingFrame);
+        final MethodLookupResult method = ModuleOperations.lookupMethodCached(context.getCoreLibrary().getMetaClass(receiver), name, declarationContext);
 
         if (!method.isDefined()) {
             return method.withNoMethod();

@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.CompilerAsserts;
+
 import org.truffleruby.RubyContext;
 
 import java.lang.reflect.Array;
@@ -124,6 +125,16 @@ public abstract class ArrayUtils {
     }
 
     public static boolean contains(double[] array, double value) {
+        for (int n = 0; n < array.length; n++) {
+            if (array[n] == value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static <T> boolean contains(T[] array, T value) {
         for (int n = 0; n < array.length; n++) {
             if (array[n] == value) {
                 return true;
