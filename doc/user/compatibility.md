@@ -104,6 +104,18 @@ Using `set_trace_func` will temporarily lower the performance of your program.
 As with `ObjectSpace`, we would recommend that you do not use this in the inner
 loop of your production application.
 
+#### Backtraces
+
+Throwing exceptions, and other operations which need to create a backtrace, are
+slower than on MRI. This is because we have to undo optimizations that we have
+applied to run your Ruby code fast in order to recreate the backtrace entries.
+We wouldn't recommend using exceptions for control flow on any implementation of
+Ruby anyway.
+
+To help alleviate this problem in some cases backtraces are automatically
+disabled where we dynamically detect that they probably won't be used. See the
+`-Xbacktraces.omit_unused` option.
+
 ## C Extension Compatibility
 
 #### Identifiers may be macros or functions
