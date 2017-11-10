@@ -27,6 +27,23 @@
 class File
   class Stat
     include Comparable
+    
+    class StatStruct < Rubinius::FFI::Struct
+      config 'rbx.platform.stat',
+        :st_atime,
+        :st_mtime,
+        :st_ctime,
+        :st_nlink,
+        :st_rdev,
+        :st_blksize,
+        :st_blocks,
+        :st_dev,
+        :st_ino,
+        :st_size,
+        :st_mode,
+        :st_gid,
+        :st_uid
+    end
 
     S_IRUSR  = Rubinius::Config['rbx.platform.file.S_IRUSR']
     S_IWUSR  = Rubinius::Config['rbx.platform.file.S_IWUSR']
@@ -56,17 +73,25 @@ class File
     S_ISVTX  = Rubinius::Config['rbx.platform.file.S_ISVTX']
 
     attr_reader :path
+    
+    attr_reader :struct
+    
+    def self.__allocate__
+      instance = super
+      instance.instance_variable_set :@struct, StatStruct.new
+      instance
+    end
 
     def initialize(path)
       path = Rubinius::Type.coerce_to_path(path)
-      result = Truffle.invoke_primitive(:stat_stat, self, path)
-      Errno.handle_jnr path unless result == 0
+      result = Truffle::POSIX.stat(path, struct)
+      Errno.handle_nfi path unless result == 0
     end
 
     def self.stat(path)
       path = Rubinius::Type.coerce_to_path(path)
-      stat = allocate
-      if Truffle.invoke_primitive(:stat_stat, stat, path) == 0
+      stat = __allocate__
+      if Truffle::POSIX.stat(path, stat.struct) == 0
         stat
       else
         nil
@@ -75,14 +100,14 @@ class File
 
     def self.lstat(path)
       stat = lstat?(path)
-      Errno.handle_jnr path unless stat
+      Errno.handle_nfi path unless stat
       stat
     end
 
     def self.lstat?(path)
       path = Rubinius::Type.coerce_to_path(path)
       stat = allocate
-      result = Truffle.invoke_primitive(:stat_lstat, stat, path)
+      result = Truffle::POSIX.lstat(path, stat.struct)
       if result == 0
         stat
       else
@@ -93,8 +118,8 @@ class File
     def self.fstat(fd)
       fd = Rubinius::Type.coerce_to fd, Integer, :to_int
       stat = allocate
-      result = Truffle.invoke_primitive(:stat_fstat, stat, fd)
-      Errno.handle_jnr "file descriptor #{descriptor}" unless result == 0
+      result = Truffle::POSIX.fstat(fd, stat.struct)
+      Errno.handle_nfi "file descriptor #{descriptor}" unless result == 0
       stat
     end
 
@@ -279,15 +304,55 @@ class File
     end
 
     def atime
-      Time.at Truffle.invoke_primitive(:stat_atime, self)
+      Time.at struct[:st_atime]
     end
 
     def mtime
-      Time.at Truffle.invoke_primitive(:stat_mtime, self)
+      Time.at struct[:st_mtime]
     end
 
     def ctime
-      Time.at Truffle.invoke_primitive(:stat_ctime, self)
+      Time.at struct[:st_ctime]
+    end
+    
+    def nlink
+      struct[:st_nlink]
+    end
+    
+    def rdev
+      struct[:st_rdev]
+    end
+    
+    def blksize
+      struct[:st_blksize]
+    end
+    
+    def blocks
+      struct[:st_blocks]
+    end
+    
+    def dev
+      struct[:st_dev]
+    end
+    
+    def ino
+      struct[:st_ino]
+    end
+    
+    def size
+      struct[:st_size]
+    end
+    
+    def mode
+      struct[:st_mode]
+    end
+    
+    def gid
+      struct[:st_gid]
+    end
+    
+    def uid
+      struct[:st_uid]
     end
 
     def inspect

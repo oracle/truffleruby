@@ -110,8 +110,6 @@ import org.truffleruby.core.rubinius.IONodesBuiltins;
 import org.truffleruby.core.rubinius.IONodesFactory;
 import org.truffleruby.core.rubinius.RandomizerNodesBuiltins;
 import org.truffleruby.core.rubinius.RandomizerNodesFactory;
-import org.truffleruby.core.rubinius.StatNodesBuiltins;
-import org.truffleruby.core.rubinius.StatNodesFactory;
 import org.truffleruby.core.rubinius.TypeNodesBuiltins;
 import org.truffleruby.core.rubinius.TypeNodesFactory;
 import org.truffleruby.core.rubinius.WeakRefNodesBuiltins;
@@ -225,7 +223,6 @@ public abstract class BuiltinsClasses {
         ReadlineHistoryNodesBuiltins.setup(coreManager, primitiveManager);
         RegexpNodesBuiltins.setup(coreManager, primitiveManager);
         SizedQueueNodesBuiltins.setup(coreManager, primitiveManager);
-        StatNodesBuiltins.setup(coreManager, primitiveManager);
         StringNodesBuiltins.setup(coreManager, primitiveManager);
         SymbolNodesBuiltins.setup(coreManager, primitiveManager);
         SystemCallErrorNodesBuiltins.setup(coreManager, primitiveManager);
@@ -307,7 +304,6 @@ public abstract class BuiltinsClasses {
             ReadlineHistoryNodesFactory.getFactories(),
             RegexpNodesFactory.getFactories(),
             SizedQueueNodesFactory.getFactories(),
-            StatNodesFactory.getFactories(),
             StringNodesFactory.getFactories(),
             SymbolNodesFactory.getFactories(),
             SystemCallErrorNodesFactory.getFactories(),
