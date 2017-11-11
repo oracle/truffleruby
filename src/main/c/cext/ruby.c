@@ -799,8 +799,8 @@ int rb_obj_respond_to(VALUE object, ID id, int priv) {
   return truffle_invoke_i(RUBY_CEXT, "rb_obj_respond_to", object, id, priv);
 }
 
-VALUE rb_special_const_p(VALUE object) {
-  return truffle_invoke(RUBY_CEXT, "rb_special_const_p", object);
+int rb_special_const_p(VALUE object) {
+  return truffle_invoke_b(RUBY_CEXT, "rb_special_const_p", object);
 }
 
 VALUE rb_to_int(VALUE object) {
@@ -1463,6 +1463,18 @@ int rb_enc_str_coderange(VALUE str) {
 
 int rb_tr_obj_equal(VALUE first, VALUE second) {
   return RTEST(rb_funcall(first, rb_intern("equal?"), 1, second));
+}
+
+int rb_tr_flags(VALUE value) {
+  int flags = 0;
+  if (OBJ_FROZEN(value)) {
+    flags |= FL_FREEZE;
+  }
+  if (OBJ_TAINTED(value)) {
+    flags |= FL_TAINT;
+  }
+  // TODO BJF Nov-11-2017 Implement more flags
+  return flags;
 }
 
 
