@@ -1244,13 +1244,13 @@ struct RData *RDATA(VALUE value);
 #define FL_USER18 	RUBY_FL_USER18
 #define FL_USER19 	RUBY_FL_USER19
 
-VALUE rb_special_const_p(VALUE object);
+int rb_special_const_p(VALUE object);
 #define RB_SPECIAL_CONST_P(x) rb_special_const_p(x)
 
 #define SPECIAL_CONST_P(x) RB_SPECIAL_CONST_P(x)
 
 #define RB_FL_ABLE(x) (!RB_SPECIAL_CONST_P(x) && RB_BUILTIN_TYPE(x) != RUBY_T_NODE)
-#define RB_FL_TEST_RAW(x,f) (RBASIC(x)->flags&(f))
+#define RB_FL_TEST_RAW(x,f) (rb_tr_flags(x)&(f))
 #define RB_FL_TEST(x,f) (RB_FL_ABLE(x)?RB_FL_TEST_RAW((x),(f)):0)
 #define RB_FL_ANY_RAW(x,f) RB_FL_TEST_RAW((x),(f))
 #define RB_FL_ANY(x,f) RB_FL_TEST((x),(f))
