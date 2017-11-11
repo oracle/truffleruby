@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -69,7 +70,6 @@ import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsFrozenNodeGen;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.TaintNode;
-import org.truffleruby.language.yield.YieldNode;
 
 import java.util.Arrays;
 
@@ -1876,13 +1876,15 @@ public abstract class ArrayNodes {
     public abstract static class SortNode extends ArrayCoreMethodNode {
 
         @Child private CallDispatchHeadNode compareDispatchNode = CallDispatchHeadNode.create();
-        @Child private YieldNode yieldNode = new YieldNode();
         @Child private FixnumLowerNode fixnumLowerNode = FixnumLowerNode.create();
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
+        protected final Assumption fixnumCmpAssumption = getContext().getCoreMethods().fixnumCmpAssumption;
+        protected final Assumption floatCmpAssumption = getContext().getCoreMethods().floatCmpAssumption;
+
         @Specialization(guards = "isEmptyArray(array)")
-        public DynamicObject sortNull(DynamicObject array, Object unusedBlock) {
+        public DynamicObject sortEmpty(DynamicObject array, Object unusedBlock) {
             return createArray(null, 0);
         }
 
@@ -1922,32 +1924,61 @@ public abstract class ArrayNodes {
             return createArray(store.getArray(), size);
         }
 
-        @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)" })
-        public Object sortLargeArray(VirtualFrame frame, DynamicObject array, NotProvided block,
-                @Cached("new()") SnippetNode snippetNode) {
-            return snippetNode.execute(frame,
-                    "sorted = dup; Truffle.privately { sorted.mergesort! }; sorted");
-        }
-
-        @Specialization(guards = { "!isEmptyArray(array)", "isObjectArray(array)" })
-        public Object sortObjectWithBlock(DynamicObject array, DynamicObject block) {
+        @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "isIntArray(array)" },
+                        assumptions = "fixnumCmpAssumption")
+        public Object sortIntArray(DynamicObject array, NotProvided block) {
             final int size = getSize(array);
-            Object[] copy = ((Object[]) getStore(array)).clone();
-            doSort(copy, size, block);
+            int[] copy = ((int[]) getStore(array)).clone();
+            doSort(copy, size);
             return createArray(copy, size);
         }
 
-        @TruffleBoundary
-        private void doSort(Object[] copy, int size, DynamicObject block) {
-            Arrays.sort(copy, 0, size, (a, b) -> castSortValue(yieldNode.dispatch(block, a, b)));
+        @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "isLongArray(array)" },
+                        assumptions = "fixnumCmpAssumption")
+        public Object sortLongArray(DynamicObject array, NotProvided block) {
+            final int size = getSize(array);
+            long[] copy = ((long[]) getStore(array)).clone();
+            doSort(copy, size);
+            return createArray(copy, size);
         }
 
-        @Specialization(guards = { "!isEmptyArray(array)", "!isObjectArray(array)" })
-        public Object sortWithBlock(VirtualFrame frame, DynamicObject array, DynamicObject block,
-                @Cached("new()") SnippetNode snippet) {
-            return snippet.execute(frame,
-                    "sorted = dup; Truffle.privately { sorted.mergesort_block!(block) }; sorted",
-                    "block", block);
+        @Specialization(guards = { "!isEmptyArray(array)", "!isSmall(array)", "isDoubleArray(array)" },
+                        assumptions = "floatCmpAssumption")
+        public Object sortDoubleArray(DynamicObject array, NotProvided block) {
+            final int size = getSize(array);
+            double[] copy = ((double[]) getStore(array)).clone();
+            doSort(copy, size);
+            return createArray(copy, size);
+        }
+
+        @Specialization(guards = "!isEmptyArray(array)")
+        public Object sortGenericWithoutBlock(VirtualFrame frame, DynamicObject array, NotProvided block,
+                                              @Cached("new()") SnippetNode snippetNode) {
+            return snippetNode.execute(frame,
+                    "sorted = dup; Truffle.privately { sorted.mergesort! }; ret = []; Truffle::Array.steal_storage(ret, sorted)");
+        }
+
+        @Specialization(guards = "!isEmptyArray(array)")
+        public Object sortGenericWithBlock(VirtualFrame frame, DynamicObject array, DynamicObject block,
+                                           @Cached("new()") SnippetNode snippetNode) {
+            return snippetNode.execute(frame,
+                    "sorted = dup; Truffle.privately { sorted.mergesort_block!(block) }; ret = []; Truffle::Array.steal_storage(ret, sorted)",
+                   "block", block);
+        }
+
+        @TruffleBoundary
+        private void doSort(int[] array, int size) {
+            Arrays.sort(array, 0, size);
+        }
+
+        @TruffleBoundary
+        private void doSort(long[] array, int size) {
+            Arrays.sort(array, 0, size);
+        }
+
+        @TruffleBoundary
+        private void doSort(double[] array, int size) {
+            Arrays.sort(array, 0, size);
         }
 
         private int castSortValue(Object value) {

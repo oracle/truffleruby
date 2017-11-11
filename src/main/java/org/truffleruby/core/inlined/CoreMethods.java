@@ -51,6 +51,7 @@ public class CoreMethods {
     final Assumption fixnumMulAssumption, floatMulAssumption;
     final Assumption fixnumDivAssumption, floatDivAssumption;
     final Assumption fixnumModAssumption, floatModAssumption;
+    public final Assumption fixnumCmpAssumption, floatCmpAssumption;
 
     final Assumption fixnumLeftShiftAssumption;
     final Assumption fixnumRightShiftAssumption;
@@ -89,6 +90,9 @@ public class CoreMethods {
 
         fixnumModAssumption = registerAssumption(fixnumClass, "%");
         floatModAssumption = registerAssumption(floatClass, "%");
+
+        fixnumCmpAssumption = registerAssumption(fixnumClass, "<=>");
+        floatCmpAssumption = registerAssumption(floatClass, "<=>");
 
         fixnumLeftShiftAssumption = registerAssumption(fixnumClass, "<<");
         fixnumRightShiftAssumption = registerAssumption(fixnumClass, ">>");
