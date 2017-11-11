@@ -432,6 +432,8 @@
 #endif
 
 /* Object */
+#define HAVE_FL_ABLE                       1
+#define HAVE_FL_TEST                       1
 #define HAVE_OBJ_TAINT                     1
 #define HAVE_OBJ_TAINTED                   1
 #define HAVE_OBJ_INFECT                    1
