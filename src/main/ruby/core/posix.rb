@@ -25,6 +25,8 @@ module Truffle::POSIX
     :uint => :uint32,
     :long => :sint64,
     :ulong => :uint64,
+    :long_long => :sint64,
+    :ulong_long => :uint64,
   }
 
   EINTR = Errno::EINTR::Errno
