@@ -2205,8 +2205,8 @@ class IO
       if closed?
         @descriptor = IO.sysopen(path, mode)
       else
-        File.open(path, mode) do |io|
-          r = Truffle::POSIX.dup2(io.fileno, @descriptor)
+        File.open(path, mode) do |f|
+          r = Truffle::POSIX.dup2(f.fileno, @descriptor)
           Errno.handle if r == -1
         end
       end
