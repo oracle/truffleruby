@@ -114,12 +114,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int dup2(int oldFd, int newFd) {
-        return posix.dup2(oldFd, newFd);
-    }
-
-    @TruffleBoundary
-    @Override
     public int fcntlInt(int fd, Fcntl fcntlConst, int arg) {
         return posix.fcntlInt(fd, fcntlConst, arg);
     }
