@@ -217,12 +217,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int pipe(int[] fds) {
-        return posix.pipe(fds);
-    }
-
-    @TruffleBoundary
-    @Override
     public int truncate(CharSequence path, long length) {
         return posix.truncate(path, length);
     }

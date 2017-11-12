@@ -42,7 +42,6 @@ public interface TrufflePosix {
     int write(int fd, ByteBuffer buf, int n);
     int read(int fd, ByteBuffer buf, int n);
     int lseek(int fd, long offset, int whence);
-    int pipe(int[] fds);
     int truncate(CharSequence path, long length);
     int ftruncate(int fd, long offset);
     String getcwd();

@@ -97,7 +97,6 @@ import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.Platform;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -152,60 +151,6 @@ public abstract class IONodes {
         public DynamicObject allocate(VirtualFrame frame, DynamicObject classToAllocate) {
             final DynamicObject buffer = (DynamicObject) newBufferNode.call(frame, coreLibrary().getInternalBufferClass(), "new");
             return allocateNode.allocate(classToAllocate, buffer, 0, CLOSED_FD, 0);
-        }
-
-    }
-
-    @Primitive(name = "io_connect_pipe", needsSelf = false)
-    public static abstract class IOConnectPipeNode extends IOPrimitiveArrayArgumentsNode {
-
-        @CompilationFinal private int RDONLY = -1;
-        @CompilationFinal private int WRONLY = -1;
-
-        @Specialization
-        public boolean connectPipe(DynamicObject lhs, DynamicObject rhs) {
-            final int[] fds = new int[2];
-
-            ensureSuccessful(posix().pipe(fds));
-
-            newOpenFd(fds[0]);
-            newOpenFd(fds[1]);
-
-            Layouts.IO.setDescriptor(lhs, fds[0]);
-            Layouts.IO.setMode(lhs, getRDONLY());
-
-            Layouts.IO.setDescriptor(rhs, fds[1]);
-            Layouts.IO.setMode(rhs, getWRONLY());
-
-            return true;
-        }
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        private void newOpenFd(int newFd) {
-            final int FD_CLOEXEC = 1;
-
-            if (newFd > 2) {
-                final int flags = ensureSuccessful(posix().fcntl(newFd, Fcntl.F_GETFD));
-                ensureSuccessful(posix().fcntlInt(newFd, Fcntl.F_SETFD, flags | FD_CLOEXEC));
-            }
-        }
-
-        private int getRDONLY() {
-            if (RDONLY == -1) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                RDONLY = (int) getContext().getNativePlatform().getRubiniusConfiguration().get("rbx.platform.file.O_RDONLY");
-            }
-
-            return RDONLY;
-        }
-
-        private int getWRONLY() {
-            if (WRONLY == -1) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                WRONLY = (int) getContext().getNativePlatform().getRubiniusConfiguration().get("rbx.platform.file.O_WRONLY");
-            }
-
-            return WRONLY;
         }
 
     }
