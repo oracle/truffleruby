@@ -271,6 +271,12 @@ module Rubinius::FFI
     def members
       self.class.members
     end
+    
+    def to_h
+      members.map { |member|
+        [member, self[member]]
+      }.to_h
+    end
 
     def offsets
       members.map do |member|
