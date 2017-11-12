@@ -10,7 +10,11 @@ describe "Process.groups" do
       actual = (Process.groups - [gid]).sort
       actual.should == expected
     end
+  end
+end
 
+describe "Process.groups=" do
+  platform_is_not :windows do
     # NOTE: This is kind of sketchy.
     it "sets the list of gids of groups in the supplemental group access list" do
       groups = Process.groups
@@ -47,8 +51,4 @@ describe "Process.groups" do
       end
     end
   end
-end
-
-describe "Process.groups=" do
-  it "needs to be reviewed for spec completeness"
 end
