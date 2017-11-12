@@ -237,6 +237,11 @@ module Rubinius::FFI
 
       if pointer
         @pointer = pointer
+      elsif block_given?
+        MemoryPointer.new size do |pointer|
+          @pointer = pointer
+          yield self
+        end
       else
         @pointer = MemoryPointer.new size
       end
