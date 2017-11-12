@@ -438,13 +438,18 @@ module Process
     end
   end
 
-  def self.groups=(g)
-    @maxgroups = g.length if g.length > @maxgroups
-    FFI::MemoryPointer.new(:int, @maxgroups) do |p|
-      p.write_array_of_int(g)
-      Errno.handle if Truffle::POSIX.setgroups(g.length, p) == -1
+  def self.groups=(groups)
+    gid_t = Rubinius::Config['rbx.platform.typedef.gid_t']
+    raise gid_t unless gid_t == 'uint'
+
+    @maxgroups = groups.size if groups.size > @maxgroups
+
+    FFI::MemoryPointer.new(:gid_t, groups.size) do |ptr|
+      ptr.write_array_of_uint(groups)
+      r = Truffle::POSIX.setgroups(groups.size, ptr)
+      Errno.handle if r == -1
     end
-    g
+    groups
   end
 
   def self.initgroups(username, gid)

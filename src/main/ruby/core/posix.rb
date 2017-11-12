@@ -169,6 +169,7 @@ module Truffle::POSIX
   attach_function :setsid, [], :pid_t
 
   attach_function :getgroups, [:int, :pointer], :int
+  attach_function :setgroups, [:size_t, :pointer], :int
 
   attach_function :getrlimit, [:int, :pointer], :int
   attach_function :setrlimit, [:int, :pointer], :int
