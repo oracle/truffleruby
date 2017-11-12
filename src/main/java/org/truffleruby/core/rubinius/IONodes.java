@@ -594,17 +594,6 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_seek", lowerFixnum = { 1, 2 })
-    public static abstract class IOSeekPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public int seek(DynamicObject io, int amount, int whence) {
-            final int fd = Layouts.IO.getDescriptor(io);
-            return ensureSuccessful(posix().lseek(fd, amount, whence));
-        }
-
-    }
-
     @Primitive(name = "io_accept")
     public abstract static class AcceptNode extends IOPrimitiveArrayArgumentsNode {
 

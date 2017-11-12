@@ -253,7 +253,8 @@ class IO
         return unless write_synced?
         unless empty?
           amount = @start - @used
-          Truffle.invoke_primitive :io_seek, io, amount, IO::SEEK_CUR
+          r = Truffle::POSIX.lseek(io.fileno, amount, IO::SEEK_CUR)
+          Errno.handle if r == -1
         end
         reset!
       end
@@ -1834,7 +1835,9 @@ class IO
   def pos
     flush
     reset_buffering
-    Truffle.invoke_primitive :io_seek, self, 0, SEEK_CUR
+    r = Truffle::POSIX.lseek(@descriptor, 0, SEEK_CUR)
+    Errno.handle if r == -1
+    r
   end
   alias_method :tell, :pos
 
@@ -2271,7 +2274,8 @@ class IO
     reset_buffering
     @eof = false
 
-    Truffle.invoke_primitive :io_seek, self, Integer(amount), whence
+    r = Truffle::POSIX.lseek(@descriptor, Integer(amount), whence)
+    Errno.handle if r == -1
     0
   end
 
@@ -2477,7 +2481,9 @@ class IO
     end
 
     amount = Integer(amount)
-    Truffle.invoke_primitive :io_seek, self, amount, whence
+    r = Truffle::POSIX.lseek(@descriptor, amount, whence)
+    Errno.handle if r == -1
+    r
   end
 
   def to_io

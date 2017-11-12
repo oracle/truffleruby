@@ -36,7 +36,6 @@ public interface TrufflePosix {
     int read(int fd, byte[] buf, int n);
     int write(int fd, ByteBuffer buf, int n);
     int read(int fd, ByteBuffer buf, int n);
-    int lseek(int fd, long offset, int whence);
     String getcwd();
     String nl_langinfo(int item);
 

@@ -186,12 +186,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int lseek(int fd, long offset, int whence) {
-        return posix.lseek(fd, offset, whence);
-    }
-
-    @TruffleBoundary
-    @Override
     public String getcwd() {
         return posix.getcwd();
     }
