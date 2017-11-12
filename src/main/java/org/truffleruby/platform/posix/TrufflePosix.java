@@ -9,7 +9,6 @@
  */
 package org.truffleruby.platform.posix;
 
-import jnr.constants.platform.Fcntl;
 import jnr.constants.platform.Sysconf;
 import jnr.posix.FileStat;
 import jnr.posix.Passwd;
@@ -33,8 +32,6 @@ public interface TrufflePosix {
     Times times();
     int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends SpawnAttribute> spawnAttributes,
             Collection<? extends CharSequence> argv, Collection<? extends CharSequence> envp);
-    int fcntlInt(int fd, Fcntl fcntlConst, int arg);
-    int fcntl(int fd, Fcntl fcntlConst);
     int write(int fd, byte[] buf, int n);
     int read(int fd, byte[] buf, int n);
     int write(int fd, ByteBuffer buf, int n);

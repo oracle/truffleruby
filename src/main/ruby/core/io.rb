@@ -1792,6 +1792,15 @@ class IO
     @lineno = Truffle::Fixnum.lower Integer(line_number)
   end
 
+  # Normally only provided by io/nonblock
+  def nonblock=(value)
+    if value
+      fcntl(F_SETFL, fcntl(F_GETFL) | NONBLOCK)
+    else
+      fcntl(F_SETFL, fcntl(F_GETFL) & ~NONBLOCK)
+    end
+  end
+
   ##
   # FIXME
   # Returns the process ID of a child process
@@ -2571,6 +2580,7 @@ class IO
 
     @ibuffer.unseek!(self) unless @sync
 
+    self.nonblock = true
     Truffle.invoke_primitive :io_write_nonblock, self, data
   end
 

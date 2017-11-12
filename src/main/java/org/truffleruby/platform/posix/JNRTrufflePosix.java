@@ -12,7 +12,6 @@ package org.truffleruby.platform.posix;
 import com.kenai.jffi.Platform;
 import com.kenai.jffi.Platform.OS;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import jnr.constants.platform.Fcntl;
 import jnr.constants.platform.Sysconf;
 import jnr.posix.FileStat;
 import jnr.posix.POSIX;
@@ -110,18 +109,6 @@ public class JNRTrufflePosix implements TrufflePosix {
         } else {
             return CoreLibrary.long2int(pid);
         }
-    }
-
-    @TruffleBoundary
-    @Override
-    public int fcntlInt(int fd, Fcntl fcntlConst, int arg) {
-        return posix.fcntlInt(fd, fcntlConst, arg);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int fcntl(int fd, Fcntl fcntlConst) {
-        return posix.fcntl(fd, fcntlConst);
     }
 
     @TruffleBoundary
