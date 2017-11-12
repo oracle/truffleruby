@@ -821,7 +821,21 @@ class IO
     lhs.send :initialize_allocated
     rhs.send :initialize_allocated
 
-    Truffle.invoke_primitive :io_connect_pipe, lhs, rhs
+    fds = []
+    FFI::MemoryPointer.new(:int, 2) do |ptr|
+      r = Truffle::POSIX.pipe(ptr)
+      Errno.handle if r == -1
+      fds = ptr.read_array_of_int(2)
+    end
+
+    lhs.instance_variable_set :@descriptor, fds[0]
+    rhs.instance_variable_set :@descriptor, fds[1]
+
+    lhs.instance_variable_set :@mode, RDONLY
+    rhs.instance_variable_set :@mode, WRONLY
+
+    lhs.close_on_exec = true
+    rhs.close_on_exec = true
 
     lhs.set_encoding external || Encoding.default_external,
                      internal || Encoding.default_internal, options
