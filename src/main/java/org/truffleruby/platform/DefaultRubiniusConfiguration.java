@@ -157,7 +157,6 @@ public abstract class DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.socket.AI_PASSIVE", string(context, "1"));
         configuration.config("rbx.platform.socket.AF_UNSPEC", string(context, "0"));
         configuration.config("rbx.platform.socket.SOCK_STREAM", string(context, "1"));
-        configuration.config("rbx.platform.socket.SOCK_STREAM", string(context, "1"));
     }
 
     protected static DynamicObject newBignum(RubyContext context, String value) {
