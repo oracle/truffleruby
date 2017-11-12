@@ -107,8 +107,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 import jnr.constants.platform.Errno;
-import jnr.constants.platform.Fcntl;
-import jnr.constants.platform.OpenFlags;
 import jnr.posix.DefaultNativeTimeval;
 import jnr.posix.Timeval;
 import org.truffleruby.extra.ffi.Pointer;
@@ -574,8 +572,6 @@ public abstract class IONodes {
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubyString(string)")
         public int writeNonBlock(DynamicObject io, DynamicObject string) {
-            setNonBlocking(io);
-
             final int fd = Layouts.IO.getDescriptor(io);
             final Rope rope = rope(string);
 
@@ -618,17 +614,6 @@ public abstract class IONodes {
             }
 
             return rope.byteLength();
-        }
-
-        protected void setNonBlocking(DynamicObject io) {
-            final int fd = Layouts.IO.getDescriptor(io);
-            int flags = ensureSuccessful(posix().fcntl(fd, Fcntl.F_GETFL));
-
-            if ((flags & OpenFlags.O_NONBLOCK.intValue()) == 0) {
-                flags |= OpenFlags.O_NONBLOCK.intValue();
-                ensureSuccessful(posix().fcntlInt(fd, Fcntl.F_SETFL, flags));
-                Layouts.IO.setMode(io, flags);
-            }
         }
 
     }
