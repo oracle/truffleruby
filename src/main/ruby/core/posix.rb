@@ -31,10 +31,6 @@ module Truffle::POSIX
   INTERRUPTED = -EINTR
 
   def self.to_nfi_type(type)
-    if Array === type
-      return "[#{to_nfi_type(type[0])}]"
-    end
-
     if found = TYPES[type]
       found
     elsif typedef = Rubinius::Config["rbx.platform.typedef.#{type}"]
@@ -172,7 +168,7 @@ module Truffle::POSIX
   attach_function :setpgid, [:pid_t, :pid_t], :int
   attach_function :setsid, [], :pid_t
 
-  attach_function :getgroups, [:int, [:gid_t]], :int
+  attach_function :getgroups, [:int, :pointer], :int
 
   attach_function :getrlimit, [:int, :pointer], :int
   attach_function :setrlimit, [:int, :pointer], :int
