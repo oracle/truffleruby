@@ -822,7 +822,7 @@ class IO
     lhs.send :initialize_allocated
     rhs.send :initialize_allocated
 
-    fds = []
+    fds = nil
     FFI::MemoryPointer.new(:int, 2) do |ptr|
       r = Truffle::POSIX.pipe(ptr)
       Errno.handle if r == -1
