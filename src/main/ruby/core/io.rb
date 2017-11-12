@@ -1079,7 +1079,9 @@ class IO
     mode = parse_mode(mode || 'r')
     perm ||= 0666
 
-    Truffle.invoke_primitive :io_open, path, mode, perm
+    fd = Truffle::POSIX.open(path, mode, perm)
+    Errno.handle(path) if fd == -1
+    fd
   end
 
   #

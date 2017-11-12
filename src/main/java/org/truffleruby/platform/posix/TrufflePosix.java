@@ -35,8 +35,6 @@ public interface TrufflePosix {
             Collection<? extends CharSequence> argv, Collection<? extends CharSequence> envp);
     int fcntlInt(int fd, Fcntl fcntlConst, int arg);
     int fcntl(int fd, Fcntl fcntlConst);
-    int close(int fd);
-    int open(CharSequence path, int flags, int perm);
     int write(int fd, byte[] buf, int n);
     int read(int fd, byte[] buf, int n);
     int write(int fd, ByteBuffer buf, int n);

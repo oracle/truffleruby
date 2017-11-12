@@ -155,22 +155,6 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_open", needsSelf = false, lowerFixnum = {2, 3})
-    public static abstract class IOOpenPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization(guards = "isRubyString(path)")
-        public int open(DynamicObject path, int mode, int permission) {
-            String pathString = StringOperations.getString(path);
-            int fd = posix().open(pathString, mode, permission);
-            if (fd == -1) {
-                ensureSuccessful(fd, pathString);
-            }
-            return fd;
-        }
-
-    }
-
     @Primitive(name = "file_truncate", needsSelf = false)
     public static abstract class FileTruncatePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
