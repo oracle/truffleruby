@@ -130,6 +130,7 @@ module Truffle::POSIX
   attach_function :link, [:string, :string], :int
   attach_function :mkdir, [:string, :mode_t], :int
   attach_function :mkfifo, [:string, :mode_t], :int
+  attach_function :open, [:string, :int, :mode_t], :int
   attach_function :opendir, [:string], :pointer
   attach_function :pipe, [:pointer], :int
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t

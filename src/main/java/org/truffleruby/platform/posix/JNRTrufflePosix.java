@@ -126,18 +126,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int close(int fd) {
-        return posix.close(fd);
-    }
-
-    @TruffleBoundary
-    @Override
-    public int open(CharSequence path, int flags, int perm) {
-        return posix.open(path, flags, perm);
-    }
-
-    @TruffleBoundary
-    @Override
     public int write(int fd, byte[] buf, int n) {
         if (context.getOptions().POLYGLOT_STDIO && (fd == 1 || fd == 2)) {
             return polyglotWrite(fd, buf, 0, n);
