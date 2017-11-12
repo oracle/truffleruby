@@ -28,21 +28,20 @@ class File
   class Stat
     include Comparable
     
-    class StatStruct < Rubinius::FFI::Struct
-      config 'rbx.platform.stat',
-        :st_atime,
-        :st_mtime,
-        :st_ctime,
-        :st_nlink,
-        :st_rdev,
-        :st_blksize,
-        :st_blocks,
-        :st_dev,
-        :st_ino,
-        :st_size,
-        :st_mode,
-        :st_gid,
-        :st_uid
+    class Buffer < Rubinius::FFI::Struct
+      layout  :atime,   :uint64,
+              :mtime,   :uint64,
+              :ctime,   :uint64,
+              :nlink,   :uint64,
+              :rdev,    :uint64,
+              :blksize, :uint64,
+              :blocks,  :uint64,
+              :dev,     :uint64,
+              :ino,     :uint64,
+              :size,    :uint64,
+              :mode,    :uint64,
+              :gid,     :uint64,
+              :uid,     :uint64
     end
 
     S_IRUSR  = Rubinius::Config['rbx.platform.file.S_IRUSR']
@@ -73,29 +72,30 @@ class File
     S_ISVTX  = Rubinius::Config['rbx.platform.file.S_ISVTX']
 
     attr_reader :path
-    
-    attr_reader :struct
-    
-    def self.__allocate__
-      instance = super
-      instance.instance_variable_set :@struct, StatStruct.new
-      instance
-    end
 
-    def initialize(path)
-      path = Rubinius::Type.coerce_to_path(path)
-      result = Truffle::POSIX.stat(path, struct)
-      Errno.handle_nfi path unless result == 0
+    def initialize(path_or_buffer)
+      if path_or_buffer.is_a?(Buffer)
+        @buffer = path_or_buffer.to_h
+      else
+        path = Rubinius::Type.coerce_to_path(path_or_buffer)
+        Buffer.new { |buffer|
+          result = Truffle::POSIX.truffleposix_stat(path, buffer)
+          Errno.handle_nfi path unless result == 0
+          @buffer = buffer.to_h
+        }
+      end
     end
 
     def self.stat(path)
       path = Rubinius::Type.coerce_to_path(path)
-      stat = __allocate__
-      if Truffle::POSIX.stat(path, stat.struct) == 0
-        stat
-      else
-        nil
-      end
+      Buffer.new { |buffer|
+        result = Truffle::POSIX.truffleposix_stat(path, buffer)
+        if result == 0
+          return Stat.new buffer
+        else
+          return nil
+        end
+      }
     end
 
     def self.lstat(path)
@@ -106,21 +106,23 @@ class File
 
     def self.lstat?(path)
       path = Rubinius::Type.coerce_to_path(path)
-      stat = allocate
-      result = Truffle::POSIX.lstat(path, stat.struct)
-      if result == 0
-        stat
-      else
-        nil
-      end
+      Buffer.new { |buffer|
+        result = Truffle::POSIX.truffleposix_lstat(path, buffer)
+        if result == 0
+          return Stat.new buffer
+        else
+          return nil
+        end
+      }
     end
 
     def self.fstat(fd)
       fd = Rubinius::Type.coerce_to fd, Integer, :to_int
-      stat = allocate
-      result = Truffle::POSIX.fstat(fd, stat.struct)
-      Errno.handle_nfi "file descriptor #{descriptor}" unless result == 0
-      stat
+      Buffer.new { |buffer|
+        result = Truffle::POSIX.truffleposix_fstat(fd, buffer)
+        Errno.handle_nfi "file descriptor #{descriptor}" unless result == 0
+        return Stat.new buffer
+      }
     end
 
     def blockdev?
@@ -304,55 +306,55 @@ class File
     end
 
     def atime
-      Time.at struct[:st_atime]
+      Time.at @buffer[:atime]
     end
 
     def mtime
-      Time.at struct[:st_mtime]
+      Time.at @buffer[:mtime]
     end
 
     def ctime
-      Time.at struct[:st_ctime]
+      Time.at @buffer[:ctime]
     end
     
     def nlink
-      struct[:st_nlink]
+      @buffer[:nlink]
     end
     
     def rdev
-      struct[:st_rdev]
+      @buffer[:rdev]
     end
     
     def blksize
-      struct[:st_blksize]
+      @buffer[:blksize]
     end
     
     def blocks
-      struct[:st_blocks]
+      @buffer[:blocks]
     end
     
     def dev
-      struct[:st_dev]
+      @buffer[:dev]
     end
     
     def ino
-      struct[:st_ino]
+      @buffer[:ino]
     end
     
     def size
-      struct[:st_size]
+      @buffer[:size]
     end
     
     def mode
-      struct[:st_mode]
+      @buffer[:mode]
     end
     
     def gid
-      struct[:st_gid]
+      @buffer[:gid]
     end
     
     def uid
-      struct[:st_uid]
+      @buffer[:uid]
     end
 
     def inspect

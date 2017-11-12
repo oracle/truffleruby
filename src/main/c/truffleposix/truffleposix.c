@@ -41,6 +41,25 @@ SUCH DAMAGE.
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+
+struct truffleposix_stat {
+  uint64_t atime;
+  uint64_t mtime;
+  uint64_t ctime;
+  uint64_t nlink;
+  uint64_t rdev;
+  uint64_t blksize;
+  uint64_t blocks;
+  uint64_t dev;
+  uint64_t ino;
+  uint64_t size;
+  uint64_t mode;
+  uint64_t gid;
+  uint64_t uid;
+};
+
+static void copy_stat(struct stat *stat, struct truffleposix_stat* buffer);
 
 char* truffleposix_readdir(DIR *dirp) {
   errno = 0;
@@ -132,3 +151,47 @@ int truffleposix_flock(int fd, int operation) {
   return flock(fd, operation);
 }
 #endif
+
+int truffleposix_stat(const char *path, struct truffleposix_stat *buffer) {
+  struct stat native_stat;
+  int result = stat(path, &native_stat);
+  if (result == 0) {
+    copy_stat(&native_stat, buffer);
+  }
+  return result;
+}
+
+int truffleposix_fstat(int fd, struct truffleposix_stat *buffer) {
+  struct stat native_stat;
+  int result = fstat(fd, &native_stat);
+  if (result == 0) {
+    copy_stat(&native_stat, buffer);
+  }
+  return result;
+}
+
+int truffleposix_lstat(const char *path, struct truffleposix_stat *buffer) {
+  struct stat native_stat;
+  int result = lstat(path, &native_stat);
+  if (result == 0) {
+    copy_stat(&native_stat, buffer);
+  }
+  return result;
+}
+
+static void copy_stat(struct stat *native_stat, struct truffleposix_stat* buffer) {
+  buffer->atime   = native_stat->st_atime;
+  buffer->atime   = native_stat->st_atime;
+  buffer->mtime   = native_stat->st_mtime;
+  buffer->ctime   = native_stat->st_ctime;
+  buffer->nlink   = native_stat->st_nlink;
+  buffer->rdev    = native_stat->st_rdev;
+  buffer->blksize = native_stat->st_blksize;
+  buffer->blocks  = native_stat->st_blocks;
+  buffer->dev     = native_stat->st_dev;
+  buffer->ino     = native_stat->st_ino;
+  buffer->size    = native_stat->st_size;
+  buffer->mode    = native_stat->st_mode;
+  buffer->gid     = native_stat->st_gid;
+  buffer->uid     = native_stat->st_uid;
+}
