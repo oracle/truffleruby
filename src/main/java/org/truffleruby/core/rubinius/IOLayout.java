@@ -41,7 +41,6 @@ public interface IOLayout extends BasicObjectLayout {
     int getDescriptor(DynamicObject object);
     void setDescriptor(DynamicObject object, int value);
 
-    int getMode(DynamicObject object);
     void setMode(DynamicObject object, int value);
 
 }

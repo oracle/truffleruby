@@ -33,7 +33,6 @@ public interface TrufflePosix {
     Times times();
     int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends SpawnAttribute> spawnAttributes,
             Collection<? extends CharSequence> argv, Collection<? extends CharSequence> envp);
-    int dup2(int oldFd, int newFd);
     int fcntlInt(int fd, Fcntl fcntlConst, int arg);
     int fcntl(int fd, Fcntl fcntlConst);
     int close(int fd);

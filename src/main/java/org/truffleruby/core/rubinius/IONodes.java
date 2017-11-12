@@ -602,61 +602,6 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_reopen")
-    public static abstract class IOReopenPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization
-        protected DynamicObject reopen(DynamicObject self, DynamicObject target) {
-            final int fdSelf = Layouts.IO.getDescriptor(self);
-            final int fdTarget = Layouts.IO.getDescriptor(target);
-
-            ensureSuccessful(posix().dup2(fdTarget, fdSelf));
-
-            final int newSelfMode = ensureSuccessful(posix().fcntl(fdSelf, Fcntl.F_GETFL));
-            Layouts.IO.setMode(self, newSelfMode);
-            return self;
-        }
-
-    }
-
-    @Primitive(name = "io_reopen_path", lowerFixnum = 2)
-    public static abstract class IOReopenPathPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization
-        protected DynamicObject reopenPath(DynamicObject self, DynamicObject path, int mode) {
-            final int fdSelf = Layouts.IO.getDescriptor(self);
-            final int newFdSelf;
-            final String targetPathString = StringOperations.getString(path);
-
-            int fdTarget = ensureSuccessful(posix().open(targetPathString, mode, 0_666));
-
-            final int result = posix().dup2(fdTarget, fdSelf);
-            if (result == -1) {
-                final int errno = posix().errno();
-                if (errno == Errno.EBADF.intValue()) {
-                    Layouts.IO.setDescriptor(self, fdTarget);
-                    newFdSelf = fdTarget;
-                } else {
-                    if (fdTarget > 0) {
-                        ensureSuccessful(posix().close(fdTarget));
-                    }
-                    ensureSuccessful(result, errno, targetPathString); // throws
-                    return self;
-                }
-            } else {
-                ensureSuccessful(posix().close(fdTarget));
-                newFdSelf = fdSelf;
-            }
-
-            final int newSelfMode = ensureSuccessful(posix().fcntl(newFdSelf, Fcntl.F_GETFL));
-            Layouts.IO.setMode(self, newSelfMode);
-            return self;
-        }
-
-    }
-
     @Primitive(name = "io_write")
     public static abstract class IOWritePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 

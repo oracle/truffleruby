@@ -2156,7 +2156,13 @@ class IO
       end
 
       io.reset_buffering
-      Truffle.invoke_primitive :io_reopen, self, io
+
+      r = Truffle::POSIX.dup2(io.fileno, @descriptor)
+      Errno.handle if r == -1
+
+      mode = Truffle::POSIX.fcntl(@descriptor, F_GETFL, 0)
+      Errno.handle if mode < 0
+      @mode = mode
 
       Rubinius::Unsafe.set_class self, io.class
       if io.respond_to?(:path)
@@ -2179,7 +2185,20 @@ class IO
 
       path = Rubinius::Type.coerce_to_path(other)
       reset_buffering
-      Truffle.invoke_primitive :io_reopen_path, self, path, mode
+
+      if closed?
+        @descriptor = IO.sysopen(path, mode)
+      else
+        File.open(path, mode) do |io|
+          r = Truffle::POSIX.dup2(io.fileno, @descriptor)
+          Errno.handle if r == -1
+        end
+      end
+
+      mode = Truffle::POSIX.fcntl(@descriptor, F_GETFL, 0)
+      Errno.handle if mode < 0
+      @mode = mode
+
       seek 0, SEEK_SET
     end
 
