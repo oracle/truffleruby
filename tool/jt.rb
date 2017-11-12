@@ -33,6 +33,14 @@ JDEBUG = "-J-agentlib:jdwp=transport=dt_socket,server=y,address=#{JDEBUG_PORT},s
 JEXCEPTION = "-Xexceptions.print_uncaught_java=true"
 METRICS_REPS = Integer(ENV["TRUFFLERUBY_METRICS_REPS"] || 10)
 
+RUBOCOP_INCLUDE_LIST = %w[
+  lib/cext
+  lib/truffle
+  lib/truffleruby-tool
+  src/main/ruby
+  src/test/ruby
+]
+
 UNAME = `uname`.chomp
 MAC = UNAME == 'Darwin'
 LINUX = UNAME == 'Linux'
@@ -1756,7 +1764,7 @@ module Commands
       "GEM_PATH" => gem_home,
       "PATH" => "#{gem_home}/bin:#{ENV['PATH']}"
     }
-    sh env, "ruby", "#{gem_home}/bin/rubocop", *args
+    sh env, "ruby", "#{gem_home}/bin/rubocop", *RUBOCOP_INCLUDE_LIST, *args
   end
 
   def check_parser

@@ -2,25 +2,6 @@ AllCops:
   DisabledByDefault: true
   DisplayCopNames: true
   ExtraDetails: true
-  Exclude:
-    - '*.rb' # test scripts at the root of the repo
-    - 'bin/**/*'
-    - 'bench/**/*'
-    - 'gem_home/**/*'
-    - 'lib/bin/**/*'
-    - 'lib/json/**/*'
-    - 'lib/mri/**/*'
-    - 'lib/patches/**/*'
-    - 'lib/pr-zlib/**/*'
-    - 'lib/ruby/**/*'
-    - 'lib/rubysl/**/*'
-    - 'mxbuild/**/*'
-    - 'spec/**/*'
-    - 'src/main/c/*/extconf.rb'
-    - 'test/**/*'
-    - 'tool/**/*'
-    - 'truffleruby/target/**/*'
-    - 'truffleruby-gem-test-pack-*/**/*'
 
 # Department 'Lint' (58):
 Lint/AmbiguousOperator:
