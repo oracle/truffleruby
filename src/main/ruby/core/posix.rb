@@ -124,6 +124,7 @@ module Truffle::POSIX
   attach_function :fcntl, [:int, :int, :int], :int
   attach_function :truffleposix_flock, [:int, :int], :int, library: LIBTRUFFLEPOSIX, blocking: true
   attach_function :fsync, [:int], :int
+  attach_function :ftruncate, [:int, :off_t], :int
   attach_function :getcwd, [:pointer, :size_t], :string
   attach_function :isatty, [:int], :int
   attach_function :lchmod, [:string, :mode_t], :int
@@ -141,6 +142,7 @@ module Truffle::POSIX
   attach_function :seekdir, [:pointer, :long], :void
   attach_function :symlink, [:string, :string], :int
   attach_function :telldir, [:pointer], :long
+  attach_function :truncate, [:string, :off_t], :int
   attach_function :umask, [:mode_t], :mode_t
   attach_function :unlink, [:string], :int
   attach_function :utimes, [:string, :pointer], :int
