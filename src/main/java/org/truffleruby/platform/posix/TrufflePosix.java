@@ -37,8 +37,6 @@ public interface TrufflePosix {
     int write(int fd, ByteBuffer buf, int n);
     int read(int fd, ByteBuffer buf, int n);
     int lseek(int fd, long offset, int whence);
-    int truncate(CharSequence path, long length);
-    int ftruncate(int fd, long offset);
     String getcwd();
     String nl_langinfo(int item);
 

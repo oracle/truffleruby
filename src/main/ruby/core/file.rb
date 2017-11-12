@@ -1078,7 +1078,9 @@ class File < IO
 
     length = Rubinius::Type.coerce_to length, Integer, :to_int
 
-    Truffle.invoke_primitive :file_truncate, path, length
+    r = Truffle::POSIX.truncate(path, length)
+    Errno.handle(path) if r == -1
+    r
   end
 
   ##
@@ -1323,7 +1325,10 @@ class File < IO
 
     flush
     reset_buffering
-    Truffle.invoke_primitive :file_ftruncate, self, length
+
+    r = Truffle::POSIX.ftruncate(@descriptor, length)
+    Errno.handle(path) if r == -1
+    r
   end
 
   def inspect

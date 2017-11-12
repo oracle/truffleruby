@@ -83,7 +83,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -149,29 +148,6 @@ public abstract class IONodes {
         public DynamicObject allocate(VirtualFrame frame, DynamicObject classToAllocate) {
             final DynamicObject buffer = (DynamicObject) newBufferNode.call(frame, coreLibrary().getInternalBufferClass(), "new");
             return allocateNode.allocate(classToAllocate, buffer, 0, CLOSED_FD, 0);
-        }
-
-    }
-
-    @Primitive(name = "file_truncate", needsSelf = false)
-    public static abstract class FileTruncatePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization(guards = "isRubyString(path)")
-        public int truncate(DynamicObject path, long length) {
-            return ensureSuccessful(posix().truncate(StringOperations.getString(path), length));
-        }
-
-    }
-
-    @Primitive(name = "file_ftruncate")
-    public static abstract class FileFTruncatePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization
-        public int ftruncate(DynamicObject file, long length) {
-            final int fd = Layouts.IO.getDescriptor(file);
-            return ensureSuccessful(posix().ftruncate(fd, length));
         }
 
     }
