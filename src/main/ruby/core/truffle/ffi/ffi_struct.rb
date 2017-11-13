@@ -238,8 +238,8 @@ module Rubinius::FFI
       if pointer
         @pointer = pointer
       elsif block_given?
-        MemoryPointer.new size do |pointer|
-          @pointer = pointer
+        MemoryPointer.new size do |new_pointer|
+          @pointer = new_pointer
           yield self
         end
       else
