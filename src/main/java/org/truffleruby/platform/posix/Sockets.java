@@ -12,8 +12,6 @@ package org.truffleruby.platform.posix;
 import jnr.ffi.Pointer;
 import jnr.posix.Timeval;
 
-import java.nio.ByteBuffer;
-
 public interface Sockets {
 
     /*
@@ -31,10 +29,5 @@ public interface Sockets {
      */
 
     int select(int nfds, Pointer readfds, Pointer writefds, Pointer errorfds, Timeval timeout);
-
-    /*
-     * int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen
-     */
-    int recvfrom(int sockfd, ByteBuffer buf, int len, int flags, Pointer src_addr, Pointer addrlen);
 
 }

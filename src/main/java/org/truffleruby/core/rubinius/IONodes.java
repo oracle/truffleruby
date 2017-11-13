@@ -440,31 +440,6 @@ public abstract class IONodes {
 
     }
 
-
-    @NonStandard
-    @CoreMethod(names = "socket_recv", required = 3, lowerFixnum = { 1, 2, 3 }, visibility = Visibility.PRIVATE)
-    public static abstract class IOSocketReadNode extends IOPrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization
-        public Object socketRead(DynamicObject io, int length, int flags, int type) {
-            final int sockfd = Layouts.IO.getDescriptor(io);
-
-            if (type != 0) {
-                throw new UnsupportedOperationException();
-            }
-
-            final ByteBuffer buffer = ByteBuffer.allocate(length);
-            final int bytesRead = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
-                    () -> nativeSockets().recvfrom(sockfd, buffer, length, flags, Pointer.JNR_NULL, Pointer.JNR_NULL));
-            ensureSuccessful(bytesRead);
-            buffer.position(bytesRead);
-
-            return createString(RopeBuilder.createRopeBuilder(buffer.array(), buffer.arrayOffset(), buffer.position()));
-        }
-
-    }
-
     @Primitive(name = "io_read_if_available", lowerFixnum = 1)
     public static abstract class IOReadIfAvailableNode extends IOPrimitiveArrayArgumentsNode {
 
