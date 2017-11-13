@@ -47,12 +47,13 @@ class << STDIN
   end
 end
 
+# stdout is line-buffered if it refers to a terminal
 if STDOUT.tty? || Truffle::Boot.get_option('sync.stdio')
   STDOUT.sync = true
 end
-if STDERR.tty? || Truffle::Boot.get_option('sync.stdio')
-  STDERR.sync = true
-end
+
+# stderr is always unbuffered, see setvbuf(3)
+STDERR.sync = true
 
 # Always flush standard streams on exit
 Truffle::KernelOperations.at_exit true do
