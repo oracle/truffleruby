@@ -36,6 +36,7 @@ SUCH DAMAGE.
 #include <dirent.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include <sys/resource.h>
 #include <sys/time.h>
