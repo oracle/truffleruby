@@ -61,6 +61,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 
 import jnr.constants.platform.Errno;
 
+import java.nio.ByteBuffer;
+
 @CoreClass("IO::InternalBuffer")
 public abstract class IOBufferNodes {
 
@@ -151,7 +153,7 @@ public abstract class IOBufferNodes {
             int bytesRead;
             while (true) {
                 bytesRead = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
-                        () -> posix().read(fd, readBuffer, count));
+                        () -> posix().read(fd, ByteBuffer.wrap(readBuffer), count));
 
                 if (bytesRead == -1) {
                     final int errno = posix().errno();
