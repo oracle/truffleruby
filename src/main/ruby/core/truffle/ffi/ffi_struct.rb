@@ -237,6 +237,7 @@ module Rubinius::FFI
 
       if pointer
         @pointer = pointer
+        raise ArgumentError, 'existing pointer passed but auto-release block used' if block_given?
       elsif block_given?
         MemoryPointer.new size do |new_pointer|
           @pointer = new_pointer
