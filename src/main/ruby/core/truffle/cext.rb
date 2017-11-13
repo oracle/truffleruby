@@ -369,6 +369,8 @@ module Truffle::CExt
       value.is_a?(Array)
     when T_FILE
       value.is_a?(File)
+    when T_HASH
+      value.is_a?(Hash)
     else
       raise "unknown type #{type}"
     end
