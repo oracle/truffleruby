@@ -26,7 +26,6 @@ public interface TrufflePosix {
     Times times();
     int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends SpawnAttribute> spawnAttributes,
             Collection<? extends CharSequence> argv, Collection<? extends CharSequence> envp);
-    int write(int fd, byte[] buf, int n);
     int read(int fd, byte[] buf, int n);
     int write(int fd, ByteBuffer buf, int n);
     int read(int fd, ByteBuffer buf, int n);
