@@ -118,11 +118,11 @@ class File
 
     def self.fstat(fd)
       fd = Rubinius::Type.coerce_to fd, Integer, :to_int
-      Buffer.new { |buffer|
+      Buffer.new do |buffer|
         result = Truffle::POSIX.truffleposix_fstat(fd, buffer)
         Errno.handle_nfi "file descriptor #{descriptor}" unless result == 0
         return Stat.new buffer
-      }
+      end
     end
 
     def blockdev?
