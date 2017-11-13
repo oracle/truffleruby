@@ -469,7 +469,7 @@ public abstract class IONodes {
             }
 
             final byte[] bytes = new byte[numberOfBytes];
-            final int bytesRead = ensureSuccessful(posix().read(fd, bytes, numberOfBytes));
+            final int bytesRead = ensureSuccessful(posix().read(fd, ByteBuffer.wrap(bytes), numberOfBytes));
 
             if (bytesRead == 0) { // EOF
                 return nil();
