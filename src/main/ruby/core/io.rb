@@ -37,13 +37,6 @@ class IO
 
   include Enumerable
 
-  module Socketable
-    def accept
-      Truffle.primitive :io_accept
-      raise PrimitiveFailure, 'io_accept failed'
-    end
-  end
-
   module TransferIO
     def send_io
       Truffle.primitive :io_send_io

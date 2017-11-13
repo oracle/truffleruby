@@ -16,14 +16,6 @@ public interface Sockets {
 
     /*
      * int
-     * accept(int socket, struct sockaddr *restrict address,
-     *        socklen_t *restrict address_len);
-     */
-
-    int accept(int socket, Pointer address, int[] addressLength);
-
-    /*
-     * int
      * select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds,
      *        fd_set *restrict errorfds, struct timeval *restrict timeout);
      */
