@@ -182,7 +182,6 @@ int truffleposix_lstat(const char *path, struct truffleposix_stat *buffer) {
 
 static void copy_stat(struct stat *native_stat, struct truffleposix_stat* buffer) {
   buffer->atime   = native_stat->st_atime;
-  buffer->atime   = native_stat->st_atime;
   buffer->mtime   = native_stat->st_mtime;
   buffer->ctime   = native_stat->st_ctime;
   buffer->nlink   = native_stat->st_nlink;
