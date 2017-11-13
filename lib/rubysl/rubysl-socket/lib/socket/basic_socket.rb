@@ -127,7 +127,11 @@ class BasicSocket < IO
   end
 
   def recv(bytes_to_read, flags = 0)
-    return socket_recv(bytes_to_read, flags, 0)
+    RubySL::Socket::Foreign.memory_pointer(bytes_to_read) do |buf|
+      n_bytes = RubySL::Socket::Foreign.recv(@descriptor, buf, bytes_to_read, flags)
+      Errno.handle('recv(2)') if n_bytes == -1
+      return buf.read_string(n_bytes)
+    end
   end
 
   def recvmsg(max_msg_len = nil, flags = 0, *_)
@@ -263,7 +267,7 @@ class BasicSocket < IO
     fcntl(Fcntl::F_SETFL, Fcntl::O_NONBLOCK)
 
     RubySL::Socket::Error.wrap_read_nonblock do
-      socket_recv(bytes_to_read, flags, 0)
+      recv(bytes_to_read, flags)
     end
   end
 

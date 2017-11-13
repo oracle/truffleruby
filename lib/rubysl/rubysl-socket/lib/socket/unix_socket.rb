@@ -32,7 +32,11 @@ class UNIXSocket < BasicSocket
   end
 
   def recvfrom(bytes_read, flags = 0)
-    socket_recv(bytes_read, flags, 2)
+    RubySL::Socket::Foreign.memory_pointer(bytes_read) do |buf|
+      n_bytes = RubySL::Socket::Foreign.recvfrom(@descriptor, buf, bytes_read, flags, nil, nil)
+      Errno.handle('recvfrom(2)') if n_bytes == -1
+      return [buf.read_string(n_bytes), ['AF_UNIX', '']]
+    end
   end
 
   def path
