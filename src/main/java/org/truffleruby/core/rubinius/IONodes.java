@@ -569,27 +569,6 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_accept")
-    public abstract static class AcceptNode extends IOPrimitiveArrayArgumentsNode {
-
-        @SuppressWarnings("restriction")
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization
-        public int accept(DynamicObject io) {
-            final int fd = Layouts.IO.getDescriptor(io);
-
-            final int[] addressLength = { 16 };
-            final int newFd;
-
-            try (Pointer address = Pointer.malloc(addressLength[0])) {
-                newFd = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
-                        () -> nativeSockets().accept(fd, address, addressLength));
-                return ensureSuccessful(newFd);
-            }
-        }
-
-    }
-
     @Primitive(name = "io_sysread", lowerFixnum = 1)
     public static abstract class IOSysReadPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 
