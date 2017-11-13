@@ -78,24 +78,24 @@ class File
         @buffer = path_or_buffer.to_h
       else
         path = Rubinius::Type.coerce_to_path(path_or_buffer)
-        Buffer.new { |buffer|
+        Buffer.new do |buffer|
           result = Truffle::POSIX.truffleposix_stat(path, buffer)
           Errno.handle_nfi path unless result == 0
           @buffer = buffer.to_h
-        }
+        end
       end
     end
 
     def self.stat(path)
       path = Rubinius::Type.coerce_to_path(path)
-      Buffer.new { |buffer|
+      Buffer.new do |buffer|
         result = Truffle::POSIX.truffleposix_stat(path, buffer)
         if result == 0
           return Stat.new buffer
         else
           return nil
         end
-      }
+      end
     end
 
     def self.lstat(path)
@@ -106,14 +106,14 @@ class File
 
     def self.lstat?(path)
       path = Rubinius::Type.coerce_to_path(path)
-      Buffer.new { |buffer|
+      Buffer.new do |buffer|
         result = Truffle::POSIX.truffleposix_lstat(path, buffer)
         if result == 0
           return Stat.new buffer
         else
           return nil
         end
-      }
+      end
     end
 
     def self.fstat(fd)
