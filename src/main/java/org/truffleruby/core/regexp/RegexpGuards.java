@@ -29,4 +29,8 @@ public class RegexpGuards {
         return StringOperations.codeRange(string) != CodeRange.CR_BROKEN;
     }
 
+    public static boolean isSameRegexp(DynamicObject a, DynamicObject b) {
+        return Layouts.REGEXP.getRegex(a) == Layouts.REGEXP.getRegex(b);
+    }
+
 }

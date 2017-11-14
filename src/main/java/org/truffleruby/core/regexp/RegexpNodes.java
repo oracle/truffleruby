@@ -102,10 +102,6 @@ public abstract class RegexpNodes {
 
         if (encodingConversion && regex.getEncoding() != enc) {
             EncodingCache encodingCache = Layouts.REGEXP.getCachedEncodings(regexp);
-            if (encodingCache == null) {
-                encodingCache = new EncodingCache();
-                Layouts.REGEXP.setCachedEncodings(regexp, encodingCache);
-            }
             regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e));
         }
 
@@ -250,6 +246,7 @@ public abstract class RegexpNodes {
 
     public static void setRegex(DynamicObject regexp, Regex regex) {
         Layouts.REGEXP.setRegex(regexp, regex);
+        Layouts.REGEXP.setCachedEncodings(regexp, new EncodingCache());
     }
 
     public static void setSource(DynamicObject regexp, Rope source) {
@@ -327,7 +324,7 @@ public abstract class RegexpNodes {
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
         // constructing the final regexp.
-        return Layouts.REGEXP.createRegexp(factory, regexp, (Rope) regexp.getUserObject(), options, null);
+        return Layouts.REGEXP.createRegexp(factory, regexp, (Rope) regexp.getUserObject(), options, new EncodingCache());
     }
 
     @TruffleBoundary
@@ -691,9 +688,10 @@ public abstract class RegexpNodes {
     }
 
     @CoreMethod(names = "to_s")
+    @ImportStatic(RegexpGuards.class)
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "regexp == cachedRegexp")
+        @Specialization(guards = "isSameRegexp(regexp,cachedRegexp)")
         public DynamicObject toSCached(DynamicObject regexp,
                 @Cached("regexp") DynamicObject cachedRegexp,
                 @Cached("createRope(regexp)") Rope rope) {
@@ -711,7 +709,6 @@ public abstract class RegexpNodes {
             final ClassicRegexp classicRegexp = ClassicRegexp.newRegexp(getContext(), Layouts.REGEXP.getSource(regexp), Layouts.REGEXP.getRegex(regexp).getOptions());
             return classicRegexp.toByteList().toRope();
         }
-
     }
 
     @Primitive(name = "regexp_names")
@@ -785,6 +782,30 @@ public abstract class RegexpNodes {
             return regexp;
         }
 
+    }
+
+    @CoreMethod(names = "initialize_copy", required = 1, needsSelf = true)
+    @ImportStatic(RegexpGuards.class)
+    public static abstract class RegexpInitializeCopyPrimitiveNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = { "isRegexpLiteral(regexp)", "isRubyRegexp(other)" })
+        public DynamicObject initializeRegexpLiteral(DynamicObject regexp, DynamicObject other) {
+            throw new RaiseException(coreExceptions().securityError("can't modify literal regexp", this));
+        }
+
+        @Specialization(guards = { "!isRegexpLiteral(regexp)", "isInitialized(regexp)", "isRubyRegexp(other)" })
+        public DynamicObject initializeAlreadyInitialized(DynamicObject regexp, DynamicObject other) {
+            throw new RaiseException(coreExceptions().typeError("already initialized regexp", this));
+        }
+
+        @Specialization(guards = { "!isRegexpLiteral(regexp)", "!isInitialized(regexp)", "isRubyRegexp(other)" })
+        public DynamicObject initialize(DynamicObject regexp, DynamicObject other) {
+            Layouts.REGEXP.setRegex(regexp, Layouts.REGEXP.getRegex(other));
+            Layouts.REGEXP.setSource(regexp, Layouts.REGEXP.getSource(other));
+            Layouts.REGEXP.setOptions(regexp, Layouts.REGEXP.getOptions(other));
+            Layouts.REGEXP.setCachedEncodings(regexp, Layouts.REGEXP.getCachedEncodings(other));
+            return regexp;
+        }
     }
 
     @Primitive(name = "regexp_options")
