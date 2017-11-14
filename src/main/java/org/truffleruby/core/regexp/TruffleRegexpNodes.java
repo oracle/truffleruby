@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.regexp;
 
+import static org.truffleruby.language.RubyGuards.isRubyRegexp;
+
 import org.joni.Regex;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -19,6 +21,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -36,16 +39,17 @@ public class TruffleRegexpNodes {
 
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child ToSNode toSNode = ToSNode.create();
+        @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.create();
 
-        @Specialization(guards = "argsMatch(cachedArgs, args)")
-        public DynamicObject executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
+        @Specialization(guards = "argsMatch(cachedArgs, args)", limit = "getCacheLimit()")
+        public Object executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached("buildUnion(frame, str, sep, args)") DynamicObject union) {
-            return union;
+            return copyNode.call(frame, union, "clone");
         }
 
-        @Specialization
-        public DynamicObject executeSlowUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args) {
+        @Specialization(replaces = "executeFastUnion")
+        public Object executeSlowUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args) {
             return buildUnion(frame, str, sep, args);
         }
 
@@ -53,7 +57,6 @@ public class TruffleRegexpNodes {
             DynamicObject regexpString = null;
             for (int i = 0; i < strs.length; i++) {
                 if (regexpString == null) {
-                    regexpString = str;
                     regexpString = appendNode.executeStringAppend(str, string(frame, strs[i]));
                 } else {
                     regexpString = appendNode.executeStringAppend(regexpString, sep);
@@ -81,17 +84,17 @@ public class TruffleRegexpNodes {
                 for (int i = 0; i < cachedStrs.length; i++) {
                     Object a = cachedStrs[i];
                     Object b = strs[i];
-                    if (a != b) {
-                        return false;
+                    if (a == b) {
+                        continue;
                     }
+                    if (isRubyRegexp(a) && isRubyRegexp(b) &&
+                            Layouts.REGEXP.getRegex((DynamicObject) a) == Layouts.REGEXP.getRegex((DynamicObject) b)) {
+                        continue;
+                    }
+                    return false;
                 }
                 return true;
             }
-        }
-
-        @TruffleBoundary
-        private void debug(DynamicObject regexpString) {
-            System.out.printf("Making regexp union %s.\n", regexpString);
         }
 
         @TruffleBoundary
@@ -100,7 +103,7 @@ public class TruffleRegexpNodes {
             final Regex regex = RegexpNodes.compile(this, getContext(), pattern, regexpOptions);
 
             final DynamicObjectFactory factory = getContext().getCoreLibrary().getRegexpFactory();
-            return Layouts.REGEXP.createRegexp(factory, regex, (Rope) regex.getUserObject(), regexpOptions, null);
+            return Layouts.REGEXP.createRegexp(factory, regex, (Rope) regex.getUserObject(), regexpOptions, new EncodingCache());
         }
 
         protected int getCacheLimit() {
