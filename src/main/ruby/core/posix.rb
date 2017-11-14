@@ -42,10 +42,20 @@ module Truffle::POSIX
     end
   end
 
-
+  # the actual function is looked up and attached on its fist call
   def self.attach_function(native_name, argument_types, return_type,
-                           on: Truffle::POSIX, as: native_name,
-                           library: LIBC, blocking: false)
+                           on: Truffle::POSIX, as: native_name, library: LIBC, blocking: false)
+
+    on.define_singleton_method(as) do |*args|
+      Truffle::POSIX.attach_function_eagerly native_name, argument_types, return_type,
+                                             on: on, as: as, library: library, blocking: blocking
+      __send__ as, *args
+    end
+  end
+
+  def self.attach_function_eagerly(native_name, argument_types, return_type,
+                                   on: Truffle::POSIX, as: native_name, library: LIBC, blocking: false)
+
     method_name = as
 
     begin
