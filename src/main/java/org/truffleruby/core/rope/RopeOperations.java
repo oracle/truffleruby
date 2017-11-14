@@ -219,7 +219,7 @@ public class RopeOperations {
 
     @TruffleBoundary
     public static void visitBytes(Rope rope, BytesVisitor visitor, int offset, int length) {
-        // TODO CS 9-May-16 make this the primitive, and have flatten use it
+        // TODO CS 14-Nov-17 use a proper ropes visiting API
 
         visitor.accept(flattenBytes(rope), offset, length);
     }

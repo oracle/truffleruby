@@ -159,6 +159,10 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
         return address;
     }
 
+    public boolean isNull() {
+        return address == 0;
+    }
+
     @TruffleBoundary
     public synchronized void enableAutorelease(FinalizationService finalizationService) {
         if (autorelease) {
