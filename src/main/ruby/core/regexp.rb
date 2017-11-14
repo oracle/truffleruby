@@ -191,10 +191,6 @@ class Regexp
     compile pattern, opts
   end
 
-  def initialize_copy(other)
-    initialize other.source, other.options
-  end
-
   def match(str, pos=0)
     unless str
       Truffle.invoke_primitive(:regexp_set_last_match, nil)
