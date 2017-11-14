@@ -254,11 +254,8 @@
 
   bench_caps: {
     capabilities: ["x52"] + linux_amd64_bench,
-    targets: ["bench", "post-push"],
+    targets: ["bench", "daily"],
     timelimit: "02:00:00",
-    environment+: {
-      REPORT_GITHUB_STATUS: "true"
-    }
   },
 
   svm_bench_caps: $.bench_caps + {
