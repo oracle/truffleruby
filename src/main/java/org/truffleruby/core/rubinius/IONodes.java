@@ -63,6 +63,8 @@ package org.truffleruby.core.rubinius;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import org.truffleruby.Layouts;
@@ -78,14 +80,15 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode;
 import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
-import org.truffleruby.core.rope.BytesVisitor;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
+import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -101,11 +104,9 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import jnr.constants.platform.Errno;
 import jnr.posix.DefaultNativeTimeval;
 import jnr.posix.Timeval;
 import org.truffleruby.extra.ffi.Pointer;
@@ -480,89 +481,37 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_write")
-    public static abstract class IOWritePrimitiveNode extends IOPrimitiveArrayArgumentsNode {
+    @Primitive(name = "io_write_polyglot")
+    public static abstract class IOWritePolyglotNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubyString(string)")
-        public int write(DynamicObject file, DynamicObject string) {
-            final int fd = Layouts.IO.getDescriptor(file);
+        public int write(int fd, DynamicObject string) {
+            final OutputStream stream;
+
+            switch (fd) {
+                case 1:
+                    stream = getContext().getEnv().out();
+                    break;
+                case 2:
+                    stream = getContext().getEnv().err();
+                    break;
+                default:
+                    throw new UnsupportedOperationException();
+            }
 
             final Rope rope = rope(string);
-            final IOWritePrimitiveNode currentNode = this;
 
             RopeOperations.visitBytes(rope, (bytes, offset, length) -> {
-                final ByteBuffer buffer = ByteBuffer.wrap(bytes, offset, length);
-
-                while (buffer.hasRemaining()) {
-                    int written = getContext().getThreadManager().runBlockingSystemCallUntilResult(currentNode,
-                            () -> posix().write(fd, buffer, buffer.remaining()));
-                    ensureSuccessful(written);
-                    buffer.position(buffer.position() + written);
-                }
-            });
-
-            return rope.byteLength();
-        }
-
-    }
-
-    @Primitive(name = "io_write_nonblock")
-    public static abstract class IOWriteNonBlockPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
-
-        static class StopWriting extends ControlFlowException {
-            private static final long serialVersionUID = 1096318435617097172L;
-
-            final int bytesWritten;
-
-            public StopWriting(int bytesWritten) {
-                this.bytesWritten = bytesWritten;
-            }
-        }
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization(guards = "isRubyString(string)")
-        public int writeNonBlock(DynamicObject io, DynamicObject string) {
-            final int fd = Layouts.IO.getDescriptor(io);
-            final Rope rope = rope(string);
-
-            final IOWriteNonBlockPrimitiveNode currentNode = this;
-
-            try {
-                RopeOperations.visitBytes(rope, new BytesVisitor() {
-
-                    int totalWritten = 0;
-
-                    @Override
-                    public void accept(byte[] bytes, int offset, int length) {
-                        final ByteBuffer buffer = ByteBuffer.wrap(bytes, offset, length);
-
-                        while (buffer.hasRemaining()) {
-                            final int result = getContext().getThreadManager().runBlockingSystemCallUntilResult(currentNode,
-                                    () -> posix().write(fd, buffer, buffer.remaining()));
-                            if (result <= 0) {
-                                int errno = posix().errno();
-                                if (errno == Errno.EAGAIN.intValue() || errno == Errno.EWOULDBLOCK.intValue()) {
-                                    throw new RaiseException(coreExceptions().eAGAINWaitWritable(currentNode));
-                                } else {
-                                    ensureSuccessful(result);
-                                }
-                            } else {
-                                totalWritten += result;
-                            }
-
-                            if (result < buffer.remaining()) {
-                                throw new StopWriting(totalWritten);
-                            }
-
-                            buffer.position(buffer.position() + result);
-                        }
+                getContext().getThreadManager().runUntilResult(this, () -> {
+                    try {
+                        stream.write(bytes, offset, length);
+                    } catch (IOException e) {
+                        throw new JavaException(e);
                     }
-
+                    return BlockingAction.SUCCESS;
                 });
-            } catch (StopWriting e) {
-                return e.bytesWritten;
-            }
+            });
 
             return rope.byteLength();
         }
@@ -803,6 +752,32 @@ public abstract class IONodes {
             lastMatch.set(matchData);
             return matchData;
         }
+    }
+
+    @Primitive(name = "io_get_thread_buffer", needsSelf = false)
+    public static abstract class GetThreadBufferNode extends PrimitiveArrayArgumentsNode {
+
+        private static final ThreadLocal<Pointer> THREAD_BUFFER_THREAD_LOCAL = ThreadLocal.withInitial(() -> Pointer.NULL);
+
+        @Specialization
+        public DynamicObject getThreadBuffer(long size,
+                @Cached("create()") AllocateObjectNode allocateObjectNode) {
+            return allocateObjectNode.allocate(getContext().getCoreLibrary().getRubiniusFFIPointerClass(), getBuffer(size));
+        }
+
+        @TruffleBoundary
+        private Pointer getBuffer(long size) {
+            final Pointer buffer = THREAD_BUFFER_THREAD_LOCAL.get();
+            if (buffer.size() >= size) {
+                return buffer;
+            } else {
+                final Pointer newBuffer = Pointer.malloc(Math.max(size * 2, 1024));
+                newBuffer.enableAutorelease(getContext().getFinalizationService());
+                THREAD_BUFFER_THREAD_LOCAL.set(newBuffer);
+                return newBuffer;
+            }
+        }
+
     }
 
 }

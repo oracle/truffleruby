@@ -71,6 +71,7 @@ module Truffle::POSIX
       on.define_singleton_method(method_name) { |*args|
         string_args.each do |i|
           str = args.fetch(i)
+          # TODO CS 14-Nov-17 this involves copying to a Java byte[], and then NFI will copy it again!
           args[i] = Truffle.invoke_primitive :string_to_null_terminated_byte_array, str
         end
 
@@ -153,6 +154,7 @@ module Truffle::POSIX
   attach_function :umask, [:mode_t], :mode_t
   attach_function :unlink, [:string], :int
   attach_function :utimes, [:string, :pointer], :int
+  attach_function :write, [:int, :pointer, :size_t], :ssize_t, blocking: true
 
   # Process-related
   attach_function :getegid, [], :gid_t
@@ -218,12 +220,45 @@ module Truffle::POSIX
   else
     raise 'Unsupported platform'
   end
-  
+
   # Platform-specific
   if Rubinius.darwin?
     attach_function :_NSGetArgv, [], :pointer
   end
-  
+
+  def self.write_string(fd, string, nonblock=false)
+    length = string.bytesize
+    buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
+    buffer.write_string string
+    written = 0
+    while written < length
+      ret = write(fd, buffer + written, length - written)
+      if ret < 0
+        if nonblock
+          errno = Errno.errno
+          if errno == Errno::EAGAIN::Errno || errno == Errno::EWOULDBLOCK::Errno
+            raise IO::EAGAINWaitWritable
+          end
+        end
+        Errno.handle
+      end
+      written += ret
+    end
+    written
+  end
+
+  if Truffle::Boot.get_option('ployglot.stdio')
+    singleton_class.send :alias_method, :write_string_native, :write_string
+
+    def self.write_string(fd, string, nonblock=false)
+      if fd == 1 || fd == 2
+        # Ignore non-blocking for polyglot writes
+        Truffle.invoke_primitive :io_write_polyglot, fd, string
+      else
+        write_string_native(fd, string, nonblock)
+      end
+    end
+  end
 end
 
 # Initialize errno methods so they do not cause classloading when called later on.

@@ -188,7 +188,7 @@ class IO
       @write_synced = true
 
       data = String.from_bytearray(@storage, @start, size)
-      Truffle.invoke_primitive :io_write, io, data
+      Truffle::POSIX.write_string io.descriptor, data
       reset!
 
       size
@@ -2501,7 +2501,7 @@ class IO
     ensure_open_and_writable
     @ibuffer.unseek!(self) unless @sync
 
-    Truffle.invoke_primitive :io_write, self, data
+    Truffle::POSIX.write_string @descriptor, data
   end
 
   def ungetbyte(obj)
@@ -2557,7 +2557,7 @@ class IO
     end
 
     if @sync
-      Truffle.invoke_primitive :io_write, self, data
+      Truffle::POSIX.write_string @descriptor, data
     else
       reset_buffering
       bytes_to_write = data.bytesize
@@ -2580,7 +2580,7 @@ class IO
     @ibuffer.unseek!(self) unless @sync
 
     self.nonblock = true
-    Truffle.invoke_primitive :io_write_nonblock, self, data
+    Truffle::POSIX.write_string(@descriptor, data, true)
   end
 
   def close

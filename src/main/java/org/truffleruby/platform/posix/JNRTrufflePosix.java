@@ -82,16 +82,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     @TruffleBoundary
     @Override
-    public int write(int fd, ByteBuffer buf, int n) {
-        if (context.getOptions().POLYGLOT_STDIO && (fd == 1 || fd == 2)) {
-            return polyglotWrite(fd, buf.array(), buf.arrayOffset(), n);
-        }
-
-        return posix.write(fd, buf, n);
-    }
-
-    @TruffleBoundary
-    @Override
     public int read(int fd, ByteBuffer buf, int n) {
         if (context.getOptions().POLYGLOT_STDIO && fd == 0) {
             return polyglotRead(buf.array(), buf.arrayOffset(), n);
