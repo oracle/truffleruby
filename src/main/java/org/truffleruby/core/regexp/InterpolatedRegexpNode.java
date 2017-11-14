@@ -44,7 +44,7 @@ public class InterpolatedRegexpNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return builderNode.execute(executeChildren(frame));
+        return builderNode.execute(frame, executeChildren(frame));
     }
 
     @ExplodeLoop
@@ -61,6 +61,7 @@ public class InterpolatedRegexpNode extends RubyNode {
     public static abstract class RegexpBuilderNode extends RubyNode {
 
         @Child private RopeNodes.EqualNode ropesEqualNode = RopeNodes.EqualNode.create();
+        @Child private CallDispatchHeadNode copyNode = CallDispatchHeadNode.create();
         private final RegexpOptions options;
 
         public static RegexpBuilderNode create(RegexpOptions options) {
@@ -71,17 +72,18 @@ public class InterpolatedRegexpNode extends RubyNode {
             this.options = options;
         }
 
-        public abstract DynamicObject execute(Rope[] parts);
+        public abstract Object execute(VirtualFrame frame, Rope[] parts);
 
         @Specialization(guards = "ropesMatch(cachedParts, parts)", limit = "getCacheLimit()")
-        public DynamicObject executeFast(Rope[] parts,
+        public Object executeFast(VirtualFrame frame, Rope[] parts,
                 @Cached(value = "parts", dimensions = 1) Rope[] cachedParts,
                 @Cached("createRegexp(cachedParts)") DynamicObject regexp) {
-            return regexp;
+            final Object clone = copyNode.call(frame, regexp, "clone");
+            return clone;
         }
 
         @Specialization(replaces = "executeFast")
-        public DynamicObject executeSlow(Rope[] parts) {
+        public Object executeSlow(Rope[] parts) {
             Log.notOptimizedOnce(Log.UNSTABLE_INTERPOLATED_REGEXP);
             return createRegexp(parts);
         }
