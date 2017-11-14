@@ -258,7 +258,7 @@
     timelimit: "02:00:00",
   },
 
-  svm_bench_caps: $.bench_caps + {
+  svm_metrics_caps: $.bench_caps + {
     capabilities: ["x52_18"] + linux_amd64_bench
   },
 
@@ -580,7 +580,7 @@
       {name: "ruby-build-stats-" + config.name} + $.common_linux + config.caps + config.setup + $.svm_build_stats,
       for config in svm_configs
     ] + [
-      {name: "ruby-metrics-" + config.name} + $.common_linux + $.svm_bench_caps + config.setup + $.svm_metrics,
+      {name: "ruby-metrics-" + config.name} + $.common_linux + $.svm_metrics_caps + config.setup + $.svm_metrics,
       for config in svm_configs
     ];
     local benchmarks_jobs = [
