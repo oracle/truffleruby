@@ -9,18 +9,19 @@
  */
 package org.truffleruby.core.regexp;
 
-import static org.truffleruby.language.RubyGuards.isRubyRegexp;
-
 import org.joni.Regex;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.core.kernel.KernelNodes.ObjectSameOrEqualNode;
+import org.truffleruby.core.kernel.KernelNodesFactory.ObjectSameOrEqualNodeFactory;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -40,8 +41,9 @@ public class TruffleRegexpNodes {
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child ToSNode toSNode = ToSNode.create();
         @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.create();
+        @Child private ObjectSameOrEqualNode sameOrEqualNode = ObjectSameOrEqualNodeFactory.create(null);
 
-        @Specialization(guards = "argsMatch(cachedArgs, args)", limit = "getCacheLimit()")
+        @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getCacheLimit()")
         public Object executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached("buildUnion(frame, str, sep, args)") DynamicObject union) {
@@ -53,22 +55,22 @@ public class TruffleRegexpNodes {
             return buildUnion(frame, str, sep, args);
         }
 
-        public DynamicObject buildUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] strs) {
+        public DynamicObject buildUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args) {
             DynamicObject regexpString = null;
-            for (int i = 0; i < strs.length; i++) {
+            for (int i = 0; i < args.length; i++) {
                 if (regexpString == null) {
-                    regexpString = appendNode.executeStringAppend(str, string(frame, strs[i]));
+                    regexpString = appendNode.executeStringAppend(str, string(frame, args[i]));
                 } else {
                     regexpString = appendNode.executeStringAppend(regexpString, sep);
-                    regexpString = appendNode.executeStringAppend(regexpString, string(frame, strs[i]));
+                    regexpString = appendNode.executeStringAppend(regexpString, string(frame, args[i]));
                 }
             }
             return createRegexp(StringOperations.rope(regexpString));
         }
 
         public DynamicObject string(VirtualFrame frame, Object obj) {
-            if (obj instanceof Rope) {
-                final Rope rope = (Rope) obj;
+            if (RubyGuards.isRubyString(obj)) {
+                final Rope rope = StringOperations.rope((DynamicObject) obj);
                 final boolean isAsciiOnly = rope.getEncoding().isAsciiCompatible() && rope.getCodeRange() == CodeRange.CR_7BIT;
                 return createString(ClassicRegexp.quote19(rope, isAsciiOnly));
             } else {
@@ -77,21 +79,14 @@ public class TruffleRegexpNodes {
         }
 
         @ExplodeLoop
-        protected boolean argsMatch(Object[] cachedStrs, Object[] strs) {
-            if (cachedStrs.length != strs.length) {
+        protected boolean argsMatch(VirtualFrame frame, Object[] cachedArgs, Object[] args) {
+            if (cachedArgs.length != args.length) {
                 return false;
             } else {
-                for (int i = 0; i < cachedStrs.length; i++) {
-                    Object a = cachedStrs[i];
-                    Object b = strs[i];
-                    if (a == b) {
-                        continue;
+                for (int i = 0; i < cachedArgs.length; i++) {
+                    if (!sameOrEqualNode.executeObjectSameOrEqual(frame, cachedArgs[i], args[i])) {
+                        return false;
                     }
-                    if (isRubyRegexp(a) && isRubyRegexp(b) &&
-                            Layouts.REGEXP.getRegex((DynamicObject) a) == Layouts.REGEXP.getRegex((DynamicObject) b)) {
-                        continue;
-                    }
-                    return false;
                 }
                 return true;
             }

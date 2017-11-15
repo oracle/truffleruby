@@ -162,14 +162,14 @@ class Regexp
 
     patterns = patterns.map do |pat|
       unless pat.kind_of? Regexp
-        Truffle.invoke_primitive(:string_get_rope, StringValue(pat))
+        StringValue(pat)
       else
         pat
       end
     end
+
     Truffle::RegexpOperations.union(str, sep, *patterns)
   end
-
   Truffle::Graal.always_split(method(:union))
 
   def initialize(pattern, opts=nil, lang=nil)
