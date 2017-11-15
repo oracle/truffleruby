@@ -151,6 +151,7 @@ public abstract class PointerNodes {
 
         @Specialization
         public DynamicObject malloc(DynamicObject pointerClass, long size) {
+            // TODO CS 15-Nov-17 I think this should possibly also set @total to size
             return allocateObjectNode.allocate(pointerClass, Pointer.malloc(size));
         }
 
