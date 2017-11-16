@@ -116,10 +116,10 @@ module Process
     raise PrimitiveFailure, 'Process.cpu_times primitive failed'
   end
   
-  CLOCK_MONOTONIC       = 1
-  CLOCK_REALTIME        = 2
-  CLOCK_THREAD_CPUTIME  = 3
-  CLOCK_MONOTONIC_RAW   = 4
+  CLOCK_MONOTONIC         = 1
+  CLOCK_REALTIME          = 2
+  CLOCK_THREAD_CPUTIME_ID = 3
+  CLOCK_MONOTONIC_RAW_ID  = 4
   
   def self.clock_gettime(id, unit=:float_second)
     case id
