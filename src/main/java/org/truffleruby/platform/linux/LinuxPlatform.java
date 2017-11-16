@@ -20,7 +20,6 @@ import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.java.JavaProcessName;
-import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.Threads;
@@ -39,7 +38,6 @@ public class LinuxPlatform implements NativePlatform {
     private final ProcessName processName;
     private final Sockets sockets;
     private final Threads threads;
-    private final ClockGetTime clockGetTime;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public LinuxPlatform(RubyContext context) {
@@ -49,7 +47,6 @@ public class LinuxPlatform implements NativePlatform {
         processName = new JavaProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("libc.so.6").load();
         threads = context.getOptions().NATIVE_INTERRUPT ? LibraryLoader.create(Threads.class).library("libc.so.6").library("libpthread.so.0").load() : new NoopThreads();
-        clockGetTime = LibraryLoader.create(ClockGetTime.class).library("libc.so.6").library("librt.so.1").load();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         LinuxRubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -83,11 +80,6 @@ public class LinuxPlatform implements NativePlatform {
     @Override
     public Threads getThreads() {
         return threads;
-    }
-
-    @Override
-    public ClockGetTime getClockGetTime() {
-        return clockGetTime;
     }
 
     @Override

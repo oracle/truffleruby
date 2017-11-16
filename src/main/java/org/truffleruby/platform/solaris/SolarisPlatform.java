@@ -21,7 +21,6 @@ import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.java.JavaProcessName;
-import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.PosixFDSet8Bytes;
@@ -40,7 +39,6 @@ public class SolarisPlatform implements NativePlatform {
     private final ProcessName processName;
     private final Sockets sockets;
     private final Threads threads;
-    private final ClockGetTime clockGetTime;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public SolarisPlatform(RubyContext context) {
@@ -51,7 +49,6 @@ public class SolarisPlatform implements NativePlatform {
         processName = new JavaProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("socket").load();
         threads = context.getOptions().NATIVE_INTERRUPT ? new SolarisThreadsImplementation(LibraryLoader.create(SolarisThreads.class).library("libpthread.so.1").load()) : new NoopThreads();
-        clockGetTime = LibraryLoader.create(ClockGetTime.class).library("c").library("rt").load();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -85,11 +82,6 @@ public class SolarisPlatform implements NativePlatform {
     @Override
     public Threads getThreads() {
         return threads;
-    }
-
-    @Override
-    public ClockGetTime getClockGetTime() {
-        return clockGetTime;
     }
 
     @Override

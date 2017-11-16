@@ -19,8 +19,6 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
-import org.truffleruby.platform.java.JavaClockGetTime;
-import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
@@ -38,7 +36,6 @@ public class DarwinPlatform implements NativePlatform {
     private final SignalManager signalManager;
     private final ProcessName processName;
     private final Sockets sockets;
-    private final ClockGetTime clockGetTime;
     private final Threads threads;
     private final RubiniusConfiguration rubiniusConfiguration;
 
@@ -49,7 +46,6 @@ public class DarwinPlatform implements NativePlatform {
         processName = new DarwinProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("c").load();
         threads = context.getOptions().NATIVE_INTERRUPT ? LibraryLoader.create(Threads.class).library("c").library("pthread").load() : new NoopThreads();
-        clockGetTime = new JavaClockGetTime();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         DarwinRubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -78,11 +74,6 @@ public class DarwinPlatform implements NativePlatform {
     @Override
     public Sockets getSockets() {
         return sockets;
-    }
-
-    @Override
-    public ClockGetTime getClockGetTime() {
-        return clockGetTime;
     }
 
     @Override
