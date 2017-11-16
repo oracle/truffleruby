@@ -222,7 +222,7 @@ public abstract class TruffleSystemNodes {
         @Specialization(guards = "isRubyString(name)")
         protected DynamicObject setProcessTitle(DynamicObject name) {
             if (TruffleOptions.AOT) {
-                Compiler.command(new Object[] { "com.oracle.svm.core.JavaMainWrapper.setCRuntimeArgument0(String)boolean", name });
+                Compiler.command(new Object[] { "com.oracle.svm.core.JavaMainWrapper.setCRuntimeArgument0(String)boolean", StringOperations.getString(name) });
             } else {
                 throw new UnsupportedOperationException();
             }
