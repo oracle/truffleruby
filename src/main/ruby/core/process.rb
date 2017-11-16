@@ -167,6 +167,7 @@ module Process
       title
     else
       # Silently don't set the process title if we can't do it
+      title
     end
   end
 
