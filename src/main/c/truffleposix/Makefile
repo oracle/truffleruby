@@ -14,6 +14,14 @@ endif
 CFLAGS := -Wall -Werror -fPIC
 LDFLAGS := -m64
 
+ifeq ($(OS),Linux)
+LDFLAGS += -lrt
+endif
+
+ifeq ($(OS),SunOS)
+LDFLAGS += -lrt
+endif
+
 truffleposix.$(DLEXT): truffleposix.o Makefile
 	$(CC) -shared $(LDFLAGS) -o $@ $<
 
