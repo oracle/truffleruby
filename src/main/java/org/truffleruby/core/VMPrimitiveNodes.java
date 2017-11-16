@@ -439,19 +439,4 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_set_process_title", needsSelf = false)
-    public abstract static class VMSetProcessTitleNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(name)")
-        protected Object writeProgramName(DynamicObject name) {
-            if (getContext().getNativePlatform().getProcessName().canSet()) {
-                getContext().getNativePlatform().getProcessName().set(StringOperations.getString(name));
-            }
-
-            return name;
-        }
-
-    }
-
 }
