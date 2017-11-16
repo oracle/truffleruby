@@ -17,10 +17,8 @@ import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.platform.ProcessName;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
-import org.truffleruby.platform.java.JavaProcessName;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.PosixFDSet8Bytes;
@@ -36,7 +34,6 @@ public class SolarisPlatform implements NativePlatform {
     private final TruffleNFIPlatform nfi;
     private final TrufflePosix posix;
     private final SignalManager signalManager;
-    private final ProcessName processName;
     private final Sockets sockets;
     private final Threads threads;
     private final RubiniusConfiguration rubiniusConfiguration;
@@ -46,7 +43,6 @@ public class SolarisPlatform implements NativePlatform {
         POSIX _posix = POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context));
         posix = new JNRTrufflePosix(context, _posix);
         signalManager = new SunMiscSignalManager();
-        processName = new JavaProcessName();
         sockets = LibraryLoader.create(Sockets.class).library("socket").load();
         threads = context.getOptions().NATIVE_INTERRUPT ? new SolarisThreadsImplementation(LibraryLoader.create(SolarisThreads.class).library("libpthread.so.1").load()) : new NoopThreads();
         rubiniusConfiguration = new RubiniusConfiguration();
@@ -67,11 +63,6 @@ public class SolarisPlatform implements NativePlatform {
     @Override
     public SignalManager getSignalManager() {
         return signalManager;
-    }
-
-    @Override
-    public ProcessName getProcessName() {
-        return processName;
     }
 
     @Override

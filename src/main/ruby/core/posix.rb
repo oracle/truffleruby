@@ -218,6 +218,12 @@ module Truffle::POSIX
   else
     raise 'Unsupported platform'
   end
+  
+  # Platform-specific
+  if Rubinius.darwin?
+    attach_function :_NSGetArgv, [], :pointer
+  end
+  
 end
 
 # Initialize errno methods so they do not cause classloading when called later on.

@@ -50,6 +50,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -210,6 +211,22 @@ public abstract class TruffleSystemNodes {
         @TruffleBoundary
         public static void log(Level level, String message) {
             Log.LOGGER.log(level, message);
+        }
+
+    }
+
+    @CoreMethod(names = "aot_set_process_title", isModuleFunction = true, required = 1)
+    public abstract static class SetProcessTitleNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(name)")
+        protected DynamicObject setProcessTitle(DynamicObject name) {
+            if (TruffleOptions.AOT) {
+                Compiler.command(new Object[] { "com.oracle.svm.core.JavaMainWrapper.setCRuntimeArgument0(String)boolean", name });
+            } else {
+                throw new UnsupportedOperationException();
+            }
+            return name;
         }
 
     }

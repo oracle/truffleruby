@@ -21,8 +21,6 @@ public interface NativePlatform {
 
     SignalManager getSignalManager();
 
-    ProcessName getProcessName();
-
     Sockets getSockets();
 
     Threads getThreads();
