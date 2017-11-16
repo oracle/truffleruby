@@ -10,7 +10,6 @@
 package org.truffleruby.platform;
 
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.platform.posix.ClockGetTime;
 import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.TrufflePosix;
@@ -27,8 +26,6 @@ public interface NativePlatform {
     Sockets getSockets();
 
     Threads getThreads();
-
-    ClockGetTime getClockGetTime();
 
     RubiniusConfiguration getRubiniusConfiguration();
 

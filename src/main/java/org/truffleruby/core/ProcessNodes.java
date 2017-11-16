@@ -10,115 +10,35 @@
 package org.truffleruby.core;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeChildren;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
-import org.truffleruby.builtins.CoreMethod;
-import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.cast.DefaultValueNodeGen;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.platform.posix.ClockGetTime;
-import org.truffleruby.platform.posix.TimeSpec;
 import org.truffleruby.platform.signal.Signal;
 
 @CoreClass("Process")
 public abstract class ProcessNodes {
 
-    // These are just distinct values, not clock_gettime(3) values.
-    public static final int CLOCK_MONOTONIC = 1;
-    public static final int CLOCK_REALTIME = 2;
-    public static final int CLOCK_THREAD_CPUTIME = 3; // Linux only
-    public static final int CLOCK_MONOTONIC_RAW = 4; // Linux only
+    @Primitive(name = "process_time_nanotime", needsSelf = false)
+    public abstract static class ProcessTimeNanoTimeNode extends PrimitiveArrayArgumentsNode {
 
-    @CoreMethod(names = "clock_gettime", onSingleton = true, required = 1, optional = 1, lowerFixnum = 1)
-    @NodeChildren({
-            @NodeChild(type = RubyNode.class, value = "clock_id"),
-            @NodeChild(type = RubyNode.class, value = "unit")
-    })
-    public abstract static class ClockGetTimeNode extends CoreMethodNode {
-
-        public static final int CLOCK_THREAD_CPUTIME_ID = 3; // Linux only
-        public static final int CLOCK_MONOTONIC_RAW_ID = 4; // Linux only
-
-        private final DynamicObject floatSecondSymbol = getSymbol("float_second");
-        private final DynamicObject floatMicrosecondSymbol = getSymbol("float_microsecond");
-        private final DynamicObject nanosecondSymbol = getSymbol("nanosecond");
-
-        @CreateCast("unit")
-        public RubyNode coerceUnit(RubyNode unit) {
-            return DefaultValueNodeGen.create(floatSecondSymbol, unit);
+        @Specialization
+        public long nanoTime() {
+            return System.nanoTime();
         }
 
-        @Specialization(guards = { "isMonotonic(clock_id)", "isRubySymbol(unit)" })
-        protected Object clock_gettime_monotonic(int clock_id, DynamicObject unit) {
-            long time = System.nanoTime();
-            return timeToUnit(time, unit);
-        }
+    }
 
-        @Specialization(guards = { "isRealtime(clock_id)", "isRubySymbol(unit)" })
-        protected Object clock_gettime_realtime(int clock_id, DynamicObject unit) {
-            long time = System.currentTimeMillis() * 1_000_000;
-            return timeToUnit(time, unit);
-        }
+    @Primitive(name = "process_time_currenttimemillis", needsSelf = false)
+    public abstract static class ProcessTimeCurrentTimeMillisNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isThreadCPUTime(clock_id)", "isRubySymbol(unit)" })
-        protected Object clock_gettime_thread_cputime(int clock_id, DynamicObject unit) {
-            return clock_gettime_clock_id(CLOCK_THREAD_CPUTIME_ID, unit);
-        }
-
-        @Specialization(guards = { "isMonotonicRaw(clock_id)", "isRubySymbol(unit)" })
-        protected Object clock_gettime_monotonic_raw(int clock_id, DynamicObject unit) {
-            return clock_gettime_clock_id(CLOCK_MONOTONIC_RAW_ID, unit);
-        }
-
-        @TruffleBoundary
-        private Object clock_gettime_clock_id(int clock_id, DynamicObject unit) {
-            final ClockGetTime libCClockGetTime = getContext().getNativePlatform().getClockGetTime();
-            TimeSpec timeSpec = new TimeSpec(jnr.ffi.Runtime.getRuntime(libCClockGetTime));
-            int r = libCClockGetTime.clock_gettime(clock_id, timeSpec);
-            if (r != 0) {
-                throw new RaiseException(coreExceptions().systemCallError("clock_gettime failed: " + r, r, this));
-            }
-            long nanos = timeSpec.getTVsec() * 1_000_000_000 + timeSpec.getTVnsec();
-            return timeToUnit(nanos, unit);
-        }
-
-        private Object timeToUnit(long time, DynamicObject unit) {
-            assert RubyGuards.isRubySymbol(unit);
-            if (unit == nanosecondSymbol) {
-                return time;
-            } else if (unit == floatMicrosecondSymbol) {
-                return time / 1e3;
-            } else if (unit == floatSecondSymbol) {
-                return time / 1e9;
-            } else {
-                throw new UnsupportedOperationException(Layouts.SYMBOL.getString(unit));
-            }
-        }
-
-        protected static boolean isMonotonic(int clock_id) {
-            return clock_id == CLOCK_MONOTONIC;
-        }
-
-        protected static boolean isRealtime(int clock_id) {
-            return clock_id == CLOCK_REALTIME;
-        }
-
-        protected static boolean isThreadCPUTime(int clock_id) {
-            return clock_id == CLOCK_THREAD_CPUTIME;
-        }
-
-        protected static boolean isMonotonicRaw(int clock_id) {
-            return clock_id == CLOCK_MONOTONIC_RAW;
+        @Specialization
+        public long currentTimeMillis() {
+            return System.currentTimeMillis();
         }
 
     }

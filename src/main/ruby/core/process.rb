@@ -115,6 +115,33 @@ module Process
     Truffle.primitive :vm_times
     raise PrimitiveFailure, 'Process.cpu_times primitive failed'
   end
+  
+  CLOCK_MONOTONIC       = 1
+  CLOCK_REALTIME        = 2
+  CLOCK_THREAD_CPUTIME  = 3
+  CLOCK_MONOTONIC_RAW   = 4
+  
+  def self.clock_gettime(id, unit=:float_second)
+    case id
+    when CLOCK_MONOTONIC
+      time = Truffle.invoke_primitive(:process_time_nanotime)
+    when CLOCK_REALTIME
+      time = Truffle.invoke_primitive(:process_time_currenttimemillis) * 1_000_000
+    else
+      time = Truffle::POSIX.truffleposix_clock_gettime(id)
+      Errno.handle_nfi if time == 0
+    end
+    case unit
+    when :nanosecond
+      time
+    when :float_microsecond
+      time / 1e3
+    when :float_second
+      time / 1e9
+    else
+      raise "unsupported time unit #{unit}"
+    end
+  end
 
   ##
   # Sets the process title. Calling this method does not affect the value of

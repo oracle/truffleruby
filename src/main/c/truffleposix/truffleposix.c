@@ -37,6 +37,7 @@ SUCH DAMAGE.
 #include <errno.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <time.h>
 
 #include <sys/resource.h>
 #include <sys/time.h>
@@ -194,4 +195,13 @@ static void copy_stat(struct stat *native_stat, struct truffleposix_stat* buffer
   buffer->mode    = native_stat->st_mode;
   buffer->gid     = native_stat->st_gid;
   buffer->uid     = native_stat->st_uid;
+}
+
+int64_t truffleposix_clock_gettime(int clock) {
+  struct timespec timespec;
+  int ret = clock_gettime((clockid_t) clock, &timespec);
+  if (ret != 0) {
+    return 0;
+  }
+  return ((int64_t) timespec.tv_sec * 1000000000) + (int64_t) timespec.tv_nsec;
 }
