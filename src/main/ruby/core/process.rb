@@ -166,7 +166,7 @@ module Process
       name_address.write_string_length title.encode('utf-8'), 40
       title
     else
-      raise 'cannot set the process title'
+      # Silently don't set the process title if we can't do it
     end
   end
 
