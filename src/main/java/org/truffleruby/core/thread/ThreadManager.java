@@ -75,7 +75,8 @@ public class ThreadManager {
 
     private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal.withInitial(() -> EMPTY_UNBLOCKING_ACTION);
 
-    private TruffleObject pthread_self, pthread_kill;
+    private TruffleObject pthread_self;
+    private TruffleObject pthread_kill;
 
     private final ExecutorService fiberPool;
 
