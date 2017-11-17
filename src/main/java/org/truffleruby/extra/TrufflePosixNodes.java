@@ -84,15 +84,4 @@ public abstract class TrufflePosixNodes {
 
     }
 
-    @CoreMethod(names = "jnr_errno", isModuleFunction = true)
-    public abstract static class ErrnoNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public int errno() {
-            return posix().errno();
-        }
-
-    }
-
 }
