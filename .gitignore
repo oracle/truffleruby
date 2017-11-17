@@ -39,6 +39,7 @@ bench/psd.rb/psd_native/ext/psd_native/*.su
 bench/psd.rb/psd_native/lib/psd_native/psd_native.su
 
 src/main/c/*/Makefile
+!src/main/c/truffleposix/Makefile
 src/main/c/*/*.bc
 src/main/c/*/*.su
 src/main/c/*/extconf.h
