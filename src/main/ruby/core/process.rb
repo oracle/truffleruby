@@ -163,7 +163,7 @@ module Process
       # which is a number without any foundation, but it at least allows the specs to pass, the functionality to be
       # useful, and probably avoid crashing anyone's programs. I can't pretend this is great engineering.
       name_address = Truffle::POSIX._NSGetArgv.read_pointer.read_pointer
-      name_address.write_string_length title.encode('utf-8'), 40
+      name_address.write_string_length title, 40
       title
     else
       # Silently don't set the process title if we can't do it
