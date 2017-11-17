@@ -109,7 +109,7 @@ module Rubinius::FFI
     end
 
     def errno
-      Errno.nfi_errno
+      Errno.errno
     end
 
   end

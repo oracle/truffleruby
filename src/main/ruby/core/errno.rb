@@ -45,17 +45,17 @@ module Errno
   # Unlike rb_sys_fail(), handle does not raise an exception if errno is 0.
 
   def self.handle(additional = nil)
-    err = nfi_errno
+    err = errno
     return if err == 0
 
     raise SystemCallError.new(additional, err)
   end
 
-  def self.nfi_errno
+  def self.errno
     Truffle::POSIX.errno_address.read_int
   end
 
-  def self.set_nfi_errno(value)
+  def self.errno=(value)
     Truffle::POSIX.errno_address.write_int value
   end
 
