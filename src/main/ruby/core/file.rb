@@ -238,7 +238,7 @@ class File < IO
 
     paths.each do |path|
       n = POSIX.chmod Rubinius::Type.coerce_to_path(path), mode
-      Errno.handle_nfi if n == -1
+      Errno.handle if n == -1
     end
     paths.size
   end
@@ -254,7 +254,7 @@ class File < IO
 
     paths.each do |path|
       n = POSIX.lchmod Rubinius::Type.coerce_to_path(path), mode
-      Errno.handle_nfi if n == -1
+      Errno.handle if n == -1
     end
 
     paths.size
@@ -286,7 +286,7 @@ class File < IO
 
     paths.each do |path|
       n = POSIX.chown Rubinius::Type.coerce_to_path(path), owner, group
-      Errno.handle_nfi if n == -1
+      Errno.handle if n == -1
     end
 
     paths.size
@@ -295,7 +295,7 @@ class File < IO
   def chmod(mode)
     mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
     n = POSIX.fchmod @descriptor, clamp_short(mode)
-    Errno.handle_nfi if n == -1
+    Errno.handle if n == -1
     n
   end
 
@@ -313,7 +313,7 @@ class File < IO
     end
 
     n = POSIX.fchown @descriptor, owner, group
-    Errno.handle_nfi if n == -1
+    Errno.handle if n == -1
     n
   end
 
@@ -350,7 +350,7 @@ class File < IO
     mode = Rubinius::Type.coerce_to mode, Integer, :to_int
     path = Rubinius::Type.coerce_to_path(path)
     status = Truffle::POSIX.mkfifo(path, mode)
-    Errno.handle_nfi path if status != 0
+    Errno.handle path if status != 0
     status
   end
 
@@ -850,7 +850,7 @@ class File < IO
   #  IO.readlines(".testfile")[0]         #=> "This is line one\n"
   def self.link(from, to)
     n = POSIX.link Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
-    Errno.handle_nfi if n == -1
+    Errno.handle if n == -1
     n
   end
 
@@ -912,7 +912,7 @@ class File < IO
   def self.readlink(path)
     FFI::MemoryPointer.new(Rubinius::PATH_MAX) do |ptr|
       n = POSIX.readlink Rubinius::Type.coerce_to_path(path), ptr, Rubinius::PATH_MAX
-      Errno.handle_nfi if n == -1
+      Errno.handle if n == -1
 
       return ptr.read_string(n).force_encoding(Encoding.find('filesystem'))
     end
@@ -979,7 +979,7 @@ class File < IO
   #  File.rename("afile", "afile.bak")   #=> 0
   def self.rename(from, to)
     n = POSIX.rename Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
-    Errno.handle_nfi if n == -1
+    Errno.handle if n == -1
     n
   end
 
@@ -1046,7 +1046,7 @@ class File < IO
   #  File.symlink("testfile", "link2test")   #=> 0
   def self.symlink(from, to)
     n = POSIX.symlink Rubinius::Type.coerce_to_path(from), Rubinius::Type.coerce_to_path(to)
-    Errno.handle_nfi if n == -1
+    Errno.handle if n == -1
     n
   end
 
@@ -1111,7 +1111,7 @@ class File < IO
   def self.unlink(*paths)
     paths.each do |path|
       n = POSIX.unlink Rubinius::Type.coerce_to_path(path)
-      Errno.handle_nfi if n == -1
+      Errno.handle if n == -1
     end
 
     paths.size
@@ -1136,7 +1136,7 @@ class File < IO
 
       paths.each do |path|
         n = POSIX.utimes(Rubinius::Type.coerce_to_path(path), ptr)
-        Errno.handle_nfi unless n == 0
+        Errno.handle unless n == 0
       end
     end
   end
@@ -1294,7 +1294,7 @@ class File < IO
     result = POSIX.truffleposix_flock @descriptor, const
     if result == -1
       begin
-        Errno.handle_nfi
+        Errno.handle
       rescue Errno::EWOULDBLOCK
         return false
       end

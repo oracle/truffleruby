@@ -406,10 +406,10 @@ module Rubinius
           to = (-to + 1) if to < 0
 
           result = Truffle::POSIX.dup2(to, from)
-          Errno.handle_nfi if result < 0
+          Errno.handle if result < 0
 
           flags = Truffle::POSIX.fcntl(from, Fcntl::F_GETFD, 0)
-          Errno.handle_nfi if flags < 0
+          Errno.handle if flags < 0
 
           Truffle::POSIX.fcntl(from, Fcntl::F_SETFD, flags & ~Fcntl::FD_CLOEXEC)
         end
@@ -447,7 +447,7 @@ module Rubinius
           with_array_of_strings_pointer(@argv) do |argv|
             with_array_of_strings_pointer(@env_array) do |env|
               ret = Truffle::POSIX.execve(@command, argv, env)
-              Errno.handle_nfi if ret == -1
+              Errno.handle if ret == -1
             end
           end
 

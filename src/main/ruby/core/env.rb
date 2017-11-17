@@ -67,7 +67,7 @@ module Rubinius
         @variables.delete(key)
       else
         if Truffle::POSIX.setenv(key, StringValue(value), 1) != 0
-          Errno.handle_nfi('setenv')
+          Errno.handle('setenv')
         end
         unless @variables.include?(key)
           @variables << set_encoding(key.dup)
