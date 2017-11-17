@@ -79,7 +79,7 @@ module Truffle::POSIX
             r = bound_func.call(*args)
             if r == INTERRUPTED
               raise "#{native_name} returned -EINTR = #{INTERRUPTED} but :blocking expected it did not"
-            elsif r == -1 and Errno.nfi_errno == EINTR
+            elsif r == -1 and Errno.errno == EINTR
               INTERRUPTED
             else
               r
@@ -228,6 +228,6 @@ end
 
 # Initialize errno methods so they do not cause classloading when called later on.
 # Classloading may change the value of errno as a side-effect.
-Errno.nfi_errno
-Errno.set_nfi_errno(0)
+Errno.errno
+Errno.errno = 0
 Errno.handle
