@@ -20,10 +20,8 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
-import org.truffleruby.platform.posix.NoopThreads;
 import org.truffleruby.platform.posix.PosixFDSet8Bytes;
 import org.truffleruby.platform.posix.Sockets;
-import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.TrufflePosix;
 import org.truffleruby.platform.posix.TrufflePosixHandler;
 import org.truffleruby.platform.signal.SignalManager;
@@ -35,7 +33,6 @@ public class SolarisPlatform implements NativePlatform {
     private final TrufflePosix posix;
     private final SignalManager signalManager;
     private final Sockets sockets;
-    private final Threads threads;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public SolarisPlatform(RubyContext context) {
@@ -44,7 +41,6 @@ public class SolarisPlatform implements NativePlatform {
         posix = new JNRTrufflePosix(context, _posix);
         signalManager = new SunMiscSignalManager();
         sockets = LibraryLoader.create(Sockets.class).library("socket").load();
-        threads = context.getOptions().NATIVE_INTERRUPT ? new SolarisThreadsImplementation(LibraryLoader.create(SolarisThreads.class).library("libpthread.so.1").load()) : new NoopThreads();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -68,11 +64,6 @@ public class SolarisPlatform implements NativePlatform {
     @Override
     public Sockets getSockets() {
         return sockets;
-    }
-
-    @Override
-    public Threads getThreads() {
-        return threads;
     }
 
     @Override

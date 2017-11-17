@@ -11,7 +11,6 @@ package org.truffleruby.platform;
 
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.posix.Sockets;
-import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.TrufflePosix;
 import org.truffleruby.platform.signal.SignalManager;
 
@@ -22,8 +21,6 @@ public interface NativePlatform {
     SignalManager getSignalManager();
 
     Sockets getSockets();
-
-    Threads getThreads();
 
     RubiniusConfiguration getRubiniusConfiguration();
 

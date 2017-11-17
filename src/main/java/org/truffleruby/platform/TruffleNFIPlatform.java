@@ -61,11 +61,26 @@ public class TruffleNFIPlatform {
         }
     }
 
+    public TruffleObject bind(TruffleObject function, String signature) {
+        return (TruffleObject) invoke(function, "bind", signature);
+    }
+
     public long asPointer(TruffleObject function) {
         try {
             return ForeignAccess.sendAsPointer(asPointerNode, function);
         } catch (UnsupportedMessageException e) {
             throw new JavaException(e);
+        }
+    }
+
+    public String toNFIType(String type) {
+        switch (type) {
+            case "uint":
+                return "uint32";
+            case "ulong":
+                return "uint64";
+            default:
+                return type;
         }
     }
 
