@@ -22,6 +22,7 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -74,6 +75,8 @@ public class ThreadManager {
 
     private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal.withInitial(() -> EMPTY_UNBLOCKING_ACTION);
 
+    private TruffleObject pthread_self, pthread_kill;
+
     private final ExecutorService fiberPool;
 
     public ThreadManager(RubyContext context) {
@@ -86,6 +89,7 @@ public class ThreadManager {
     public void initialize() {
         if (context.getOptions().NATIVE_INTERRUPT) {
             setupSignalHandler(context);
+            setupNativeThreadSupport();
         }
 
         rubyManagedThreads.add(rootJavaThread);
@@ -175,7 +179,7 @@ public class ThreadManager {
 
         // We use abs() as a function taking a int and having no side effects
         TruffleObject abs = nfi.lookup(libC, "abs");
-        TruffleObject sigaction = (TruffleObject) nfi.invoke(nfi.lookup(libC, "sigaction"), "bind", "(SINT32,POINTER,POINTER):SINT32");
+        TruffleObject sigaction = nfi.bind(nfi.lookup(libC, "sigaction"), "(sint32,pointer,pointer):sint32");
 
         // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
         try (Pointer structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs))) {
@@ -184,6 +188,17 @@ public class ThreadManager {
                 throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
             }
         }
+    }
+
+    private void setupNativeThreadSupport() {
+        final TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
+        final TruffleObject defaultLibrary = nfi.getDefaultLibrary();
+
+        final Object pthread_t_typedef = context.getNativePlatform().getRubiniusConfiguration().get("rbx.platform.typedef.pthread_t");
+        final String pthread_t = nfi.toNFIType(StringOperations.getString((DynamicObject) pthread_t_typedef));
+
+        pthread_self = nfi.bind(nfi.lookup(defaultLibrary, "pthread_self"), "():" + pthread_t);
+        pthread_kill = nfi.bind(nfi.lookup(defaultLibrary, "pthread_kill"), "(" + pthread_t + ",sint32):sint32");
     }
 
     public void initialize(DynamicObject rubyThread, Node currentNode, String info, Supplier<Object> task) {
@@ -439,11 +454,12 @@ public class ThreadManager {
         }
 
         if (isRubyManagedThread(thread)) {
-            final long pThreadID = context.getNativePlatform().getThreads().pthread_self();
+            final TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
+            final long pThreadID = ((Number) nfi.execute(pthread_self)).longValue();
             final int SIGVTALRM = jnr.constants.platform.Signal.SIGVTALRM.intValue();
 
             blockingNativeCallUnblockingAction.set(() -> {
-                context.getNativePlatform().getThreads().pthread_kill(pThreadID, SIGVTALRM);
+                nfi.execute(pthread_kill, pThreadID, SIGVTALRM);
             });
         }
 

@@ -10,14 +10,5 @@
 package org.truffleruby.platform.posix;
 
 public interface Threads {
-
-    // Assumes pthread_t is 8 bytes, which is the case on Linux where it's a long and on macOS where
-    // it's a pointer. On Solaris it's a 4-bytes int so a different interface is used.
-
-    // pthread_t pthread_self(void);
-    long pthread_self();
-
-    // int pthread_kill(pthread_t thread, int sig);
-    int pthread_kill(long thread, int sig);
-
+    // Unused - just referenced by SVM
 }

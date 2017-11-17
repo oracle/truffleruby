@@ -794,6 +794,9 @@ public class DarwinRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.typedef.sae_associd_t", string(context, "uint"));
         configuration.config("rbx.platform.typedef.sae_connid_t", string(context, "uint"));
         configuration.config("rbx.platform.typedef.rlim_t", string(context, "ulong_long"));
+
+        // Added manually
+        configuration.config("rbx.platform.typedef.pthread_t", string(context, "ulong")); // pthread_t is a pointer on macOS
     }
 
 }

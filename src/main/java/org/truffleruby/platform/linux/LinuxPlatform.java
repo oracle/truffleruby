@@ -19,8 +19,6 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
-import org.truffleruby.platform.posix.NoopThreads;
-import org.truffleruby.platform.posix.Threads;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
 import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.TrufflePosix;
@@ -34,7 +32,6 @@ public class LinuxPlatform implements NativePlatform {
     private final TrufflePosix posix;
     private final SignalManager signalManager;
     private final Sockets sockets;
-    private final Threads threads;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public LinuxPlatform(RubyContext context) {
@@ -42,7 +39,6 @@ public class LinuxPlatform implements NativePlatform {
         posix = new JNRTrufflePosix(context, POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context)));
         signalManager = new SunMiscSignalManager();
         sockets = LibraryLoader.create(Sockets.class).library("libc.so.6").load();
-        threads = context.getOptions().NATIVE_INTERRUPT ? LibraryLoader.create(Threads.class).library("libc.so.6").library("libpthread.so.0").load() : new NoopThreads();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         LinuxRubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -66,11 +62,6 @@ public class LinuxPlatform implements NativePlatform {
     @Override
     public Sockets getSockets() {
         return sockets;
-    }
-
-    @Override
-    public Threads getThreads() {
-        return threads;
     }
 
     @Override

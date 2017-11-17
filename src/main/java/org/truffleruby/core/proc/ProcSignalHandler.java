@@ -10,6 +10,7 @@
 package org.truffleruby.core.proc;
 
 import com.oracle.truffle.api.object.DynamicObject;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.fiber.FiberManager;
@@ -34,12 +35,22 @@ public class ProcSignalHandler implements SignalHandler {
         final DynamicObject rootThread = context.getThreadManager().getRootThread();
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
 
-        context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(true, (rubyThread, currentNode) -> {
-            if (rubyThread == rootThread &&
-                    fiberManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
-                ProcOperations.rootCall(proc);
-            }
+        // Workaround: we need to use a "Truffle-created thread" so that NFI can get its context (GR-7014)
+        final Thread thread = context.getEnv().createThread(() -> {
+            context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(true, (rubyThread, currentNode) -> {
+                if (rubyThread == rootThread &&
+                        fiberManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
+                    ProcOperations.rootCall(proc);
+                }
+            });
         });
+
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            throw new UnsupportedOperationException("InterruptedException in sun.misc.Signal's Thread: " + Thread.currentThread());
+        }
     }
 
 }
