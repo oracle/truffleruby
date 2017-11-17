@@ -1088,7 +1088,7 @@ class IO
   #
   def self.setup(io, fd, mode=nil, sync=false)
     cur_mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
-    Errno.handle_nfi if cur_mode < 0
+    Errno.handle if cur_mode < 0
 
     cur_mode &= ACCMODE
 
@@ -1718,7 +1718,7 @@ class IO
   def fsync
     flush
     err = Truffle::POSIX.fsync @descriptor
-    Errno.handle_nfi 'fsync(2)' if err < 0
+    Errno.handle 'fsync(2)' if err < 0
     err
   end
 
@@ -2595,7 +2595,7 @@ class IO
         Truffle.invoke_primitive :object_ivar_set, self, :@descriptor, -1
         if fd >= 3
           ret = Truffle::POSIX.close(fd)
-          Errno.handle_nfi if ret < 0
+          Errno.handle if ret < 0
         end
       end
     end

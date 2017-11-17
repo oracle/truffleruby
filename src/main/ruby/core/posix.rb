@@ -230,4 +230,4 @@ end
 # Classloading may change the value of errno as a side-effect.
 Errno.nfi_errno
 Errno.set_nfi_errno(0)
-Errno.handle_nfi
+Errno.handle

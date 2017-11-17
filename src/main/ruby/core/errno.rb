@@ -44,14 +44,11 @@ module Errno
   #
   # Unlike rb_sys_fail(), handle does not raise an exception if errno is 0.
 
-  def self.handle_nfi(additional = nil)
+  def self.handle(additional = nil)
     err = nfi_errno
     return if err == 0
 
     raise SystemCallError.new(additional, err)
-  end
-  class << self
-    alias :handle :handle_nfi
   end
 
   def self.nfi_errno

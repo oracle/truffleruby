@@ -129,7 +129,7 @@ module Process
       time = Truffle.invoke_primitive(:process_time_currenttimemillis) * 1_000_000
     else
       time = Truffle::POSIX.truffleposix_clock_gettime(id)
-      Errno.handle_nfi if time == 0
+      Errno.handle if time == 0
     end
     case unit
     when :nanosecond
@@ -242,7 +242,7 @@ module Process
     rlimit[:rlim_max] = undefined.equal?(max_limit) ? cur_limit : max_limit
 
     ret = Truffle::POSIX.setrlimit(resource, rlimit.pointer)
-    Errno.handle_nfi if ret == -1
+    Errno.handle if ret == -1
     nil
   end
 
@@ -251,14 +251,14 @@ module Process
 
     rlimit = Rlimit.new
     ret = Truffle::POSIX.getrlimit(resource, rlimit.pointer)
-    Errno.handle_nfi if ret == -1
+    Errno.handle if ret == -1
 
     [rlimit[:rlim_cur], rlimit[:rlim_max]]
   end
 
   def self.setsid
     pgid = Truffle::POSIX.setsid
-    Errno.handle_nfi if pgid == -1
+    Errno.handle if pgid == -1
     pgid
   end
 
@@ -306,7 +306,7 @@ module Process
       else
         pid = -pid if use_process_group
         result = Truffle::POSIX.kill(pid, signal)
-        Errno.handle_nfi if result == -1
+        Errno.handle if result == -1
       end
     end
 
@@ -325,7 +325,7 @@ module Process
     pid = Rubinius::Type.coerce_to pid, Integer, :to_int
 
     ret = Truffle::POSIX.getpgid(pid)
-    Errno.handle_nfi if ret == -1
+    Errno.handle if ret == -1
     ret
   end
 
@@ -334,7 +334,7 @@ module Process
     int = Rubinius::Type.coerce_to int, Integer, :to_int
 
     ret = Truffle::POSIX.setpgid(pid, int)
-    Errno.handle_nfi if ret == -1
+    Errno.handle if ret == -1
     ret
   end
 
@@ -348,7 +348,7 @@ module Process
   end
   def self.getpgrp
     ret = Truffle::POSIX.getpgrp
-    Errno.handle_nfi if ret == -1
+    Errno.handle if ret == -1
     ret
   end
 
@@ -383,7 +383,7 @@ module Process
       end
     end
 
-    Errno.handle_nfi if ret == -1
+    Errno.handle if ret == -1
 
     uid
   end
@@ -416,7 +416,7 @@ module Process
       end
     end
 
-    Errno.handle_nfi if ret == -1
+    Errno.handle if ret == -1
 
     uid
   end
@@ -459,20 +459,20 @@ module Process
     priority = Rubinius::Type.coerce_to priority, Integer, :to_int
 
     ret = Truffle::POSIX.setpriority(kind, id, priority)
-    Errno.handle_nfi if ret == -1
+    Errno.handle if ret == -1
     ret
   end
 
   def self.groups
     ngroups = Truffle::POSIX.getgroups(0, FFI::Pointer::NULL)
-    Errno.handle_nfi if ngroups == -1
+    Errno.handle if ngroups == -1
 
     gid_t = Rubinius::Config['rbx.platform.typedef.gid_t']
     raise gid_t unless gid_t == 'uint'
 
     FFI::MemoryPointer.new(:gid_t, ngroups) do |ptr|
       ret = Truffle::POSIX.getgroups(ngroups, ptr)
-      Errno.handle_nfi if ret == -1
+      Errno.handle if ret == -1
       return ptr.read_array_of_uint(ngroups)
     end
   end
@@ -538,7 +538,7 @@ module Process
       if pid == 0
         return nil
       elsif pid == -1
-        Errno.handle_nfi "No child process: #{input_pid}"
+        Errno.handle "No child process: #{input_pid}"
       else
         exitcode, termsig, stopsig = ptr.read_array_of_int(3).map { |e| e == -1000 ? nil : e }
 
@@ -755,7 +755,7 @@ module Process
         gid = Rubinius::Type.coerce_to gid, Integer, :to_int
 
         ret = Truffle::POSIX.setgid gid
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         nil
       end
 
@@ -763,7 +763,7 @@ module Process
         uid = Rubinius::Type.coerce_to uid, Integer, :to_int
 
         ret = Truffle::POSIX.setuid uid
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         nil
       end
 
@@ -771,7 +771,7 @@ module Process
         egid = Rubinius::Type.coerce_to egid, Integer, :to_int
 
         ret = Truffle::POSIX.setegid egid
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         nil
       end
 
@@ -779,7 +779,7 @@ module Process
         euid = Rubinius::Type.coerce_to euid, Integer, :to_int
 
         ret = Truffle::POSIX.seteuid euid
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         nil
       end
 
@@ -796,7 +796,7 @@ module Process
         eid = Rubinius::Type.coerce_to eid, Integer, :to_int
 
         ret = Truffle::POSIX.setregid rid, eid
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         nil
       end
 
@@ -805,7 +805,7 @@ module Process
         eid = Rubinius::Type.coerce_to eid, Integer, :to_int
 
         ret = Truffle::POSIX.setreuid rid, eid
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         nil
       end
 
@@ -815,7 +815,7 @@ module Process
         sid = Rubinius::Type.coerce_to sid, Integer, :to_int
 
         ret = Truffle::POSIX.setresgid rid, eid, sid
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         nil
       end
 
@@ -825,7 +825,7 @@ module Process
         sid = Rubinius::Type.coerce_to sid, Integer, :to_int
 
         ret = Truffle::POSIX.setresuid rid, eid, sid
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         nil
       end
     end
@@ -837,7 +837,7 @@ module Process
         uid = Rubinius::Type.coerce_to uid, Integer, :to_int
 
         ret = Truffle::POSIX.setreuid(uid, uid)
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         uid
       end
 
@@ -849,7 +849,7 @@ module Process
         uid = Rubinius::Type.coerce_to uid, Integer, :to_int
 
         ret = Truffle::POSIX.seteuid(uid)
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         uid
       end
       alias_method :grant_privilege, :eid=
@@ -858,7 +858,7 @@ module Process
         real = Truffle::POSIX.getuid
         eff = Truffle::POSIX.geteuid
         ret = Truffle::POSIX.setreuid(eff, real)
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         eff
       end
 
@@ -894,7 +894,7 @@ module Process
         gid = Rubinius::Type.coerce_to gid, Integer, :to_int
 
         ret = Truffle::POSIX.setregid(gid, gid)
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         gid
       end
 
@@ -906,7 +906,7 @@ module Process
         gid = Rubinius::Type.coerce_to gid, Integer, :to_int
 
         ret = Truffle::POSIX.setegid(gid)
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         gid
       end
       alias_method :grant_privilege, :eid=
@@ -915,7 +915,7 @@ module Process
         real = Truffle::POSIX.getgid
         eff = Truffle::POSIX.getegid
         ret = Truffle::POSIX.setregid(eff, real)
-        Errno.handle_nfi if ret == -1
+        Errno.handle if ret == -1
         eff
       end
 

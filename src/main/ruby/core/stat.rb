@@ -80,7 +80,7 @@ class File
         path = Rubinius::Type.coerce_to_path(path_or_buffer)
         Buffer.new do |buffer|
           result = Truffle::POSIX.truffleposix_stat(path, buffer)
-          Errno.handle_nfi path unless result == 0
+          Errno.handle path unless result == 0
           @buffer = buffer.to_h
         end
       end
@@ -100,7 +100,7 @@ class File
 
     def self.lstat(path)
       stat = lstat?(path)
-      Errno.handle_nfi path unless stat
+      Errno.handle path unless stat
       stat
     end
 
@@ -120,7 +120,7 @@ class File
       fd = Rubinius::Type.coerce_to fd, Integer, :to_int
       Buffer.new do |buffer|
         result = Truffle::POSIX.truffleposix_fstat(fd, buffer)
-        Errno.handle_nfi "file descriptor #{descriptor}" unless result == 0
+        Errno.handle "file descriptor #{descriptor}" unless result == 0
         return Stat.new buffer
       end
     end
