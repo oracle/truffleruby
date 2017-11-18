@@ -38,8 +38,11 @@ public class CoreMethods {
     final Assumption fixnumLessThanAssumption, fixnumLessOrEqualAssumption;
     final Assumption fixnumGreaterThanAssumption, fixnumGreaterOrEqualAssumption;
 
+    final Assumption nilClassIsNilAssumption;
+
     public final InternalMethod BLOCK_GIVEN;
     public final InternalMethod NOT;
+    public final InternalMethod KERNEL_IS_NIL;
 
     public CoreMethods(RubyContext context) {
         this.context = context;
@@ -47,6 +50,7 @@ public class CoreMethods {
         final DynamicObject kernelModule = context.getCoreLibrary().getKernelModule();
         final DynamicObject fixnumClass = context.getCoreLibrary().getFixnumClass();
         final DynamicObject floatClass = context.getCoreLibrary().getFloatClass();
+        final DynamicObject nilClass = context.getCoreLibrary().getNilClass();
 
         fixnumAddAssumption = registerAssumption(fixnumClass, "+");
         floatAddAssumption = registerAssumption(floatClass, "+");
@@ -74,8 +78,11 @@ public class CoreMethods {
         fixnumGreaterThanAssumption = registerAssumption(fixnumClass, ">");
         fixnumGreaterOrEqualAssumption = registerAssumption(fixnumClass, ">=");
 
+        nilClassIsNilAssumption = registerAssumption(nilClass, "nil?");
+
         BLOCK_GIVEN = getMethod(kernelModule, "block_given?");
         NOT = getMethod(basicObjectClass, "!");
+        KERNEL_IS_NIL = getMethod(kernelModule, "nil?");
     }
 
     private Assumption registerAssumption(DynamicObject klass, String methodName) {
@@ -109,6 +116,8 @@ public class CoreMethods {
                         return InlinedBlockGivenNodeGen.create(context, callParameters, self);
                     }
                     break;
+                case "nil?":
+                    return InlinedIsNilNodeGen.create(context, callParameters, self);
                 default:
             }
         } else if (n == 2) {

@@ -41,10 +41,6 @@ class NilClass
     'nil'
   end
 
-  def nil?
-    true
-  end
-
   def to_a
     []
   end
