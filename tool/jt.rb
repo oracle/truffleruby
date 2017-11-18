@@ -726,6 +726,7 @@ module Commands
 
   module PR
     include ShellUtils
+    extend self
 
     def pr_clean(*args)
       require 'net/http'
@@ -806,8 +807,6 @@ module Commands
         end
       end
     end
-
-    extend self
   end
 
   def pr(*args)
