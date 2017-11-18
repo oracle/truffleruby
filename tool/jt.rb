@@ -789,6 +789,14 @@ module Commands
       sh 'git', 'push', '--force', bb, "#{github_pr_branch}:refs/heads/github/pr/#{pr_number}"
     end
 
+    def pr_update_master
+      remote_urls = self.remote_urls
+      upstream = upstream(remote_urls)
+      bb = bb(remote_urls)
+      sh 'git', 'fetch', upstream
+      sh 'git', 'push', bb, "#{upstream}/master:master"
+    end
+
     def bb(remote_urls)
       remote_urls.find { |r, u| u.include? 'ol-bitbucket' }.first
     end
@@ -810,9 +818,12 @@ module Commands
   end
 
   def pr(*args)
-    command = args.first
-    if command == 'clean'
-      PR.pr_clean *args
+    command, *options = args
+    case command
+    when 'clean'
+      PR.pr_clean *options
+    when 'up'
+      PR.pr_update_master *options
     else
       PR.pr_push *args
     end
