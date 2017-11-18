@@ -45,6 +45,7 @@ Announcements about GraalVM, including TruffleRuby, are made on the
 TruffleRuby is actively tested on these systems:
 
 * Ubuntu 16.04 LTS
+* Fedora 26
 * macOS 10.12
 
 You need to [install LLVM](doc/user/installing-llvm.md) to build and run C

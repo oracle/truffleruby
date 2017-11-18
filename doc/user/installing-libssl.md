@@ -18,20 +18,25 @@ a place where we can find it.
 
 ## Fedora
 
-If on Fedora 26 or more recent, the default openssl is 1.1.0 which is too recent.
-A workaround is to install the compatibility openssl 1.0:
+On Fedora 25 or older, the default openssl is correct, so you only need to
+install `openssl-devel`:
 
 ```
-sudo dnf install compat-openssl10
+sudo dnf install openssl-devel
 ```
 
-If you want to build TruffleRuby, you also need the headers and make sure the
-openssl 1.1 headers are not used:
+However, on Fedora 26 or more recent, the default openssl is 1.1.0 which is too
+recent. A workaround is to install the compatibility openssl 1.0.
 
 ```
+# Make sure the 1.1.0 headers are not installed as they would conflict
 sudo dnf remove openssl-devel
+# Install openssl 1.0
 sudo dnf install compat-openssl10-devel
 ```
+
+We recommend `compat-openssl10-devel` instead of `compat-openssl10`, because the
+latter doesn't seem to put the shared library in a place where we can find it.
 
 ## macOS
 
