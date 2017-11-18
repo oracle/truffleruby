@@ -7,6 +7,9 @@ require 'rbconfig'
 require 'fileutils'
 require 'shellwords'
 
+# Truffle: setup config here as we need to check the clang version
+require 'rbconfig-for-mkmf'
+
 # :stopdoc:
 class String
   # Wraps a string in escaped quotes if it contains whitespace.
@@ -2189,15 +2192,6 @@ RULES
   # +VPATH+ and added to the list of +INCFLAGS+.
   #
   def create_makefile(target, srcprefix = nil)
-    
-    # Modified for TruffleRuby
-    unless system("#{RbConfig::CLANG} --version > /dev/null")
-      raise 'clang does not appear to be available - you may need to install LLVM - see doc/user/installing-llvm.md'
-    end
-    unless system("#{RbConfig::OPT} --version > /dev/null")
-      raise 'opt does not appear to be available - you may need to install LLVM - see doc/user/installing-llvm.md'
-    end
-    
     $target = target
     libpath = $DEFLIBPATH|$LIBPATH
     message "creating Makefile\n"
