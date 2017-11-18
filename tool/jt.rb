@@ -1767,6 +1767,24 @@ module Commands
     sh env, "ruby", "#{gem_home}/bin/rubocop", *RUBOCOP_INCLUDE_LIST, *args
   end
 
+  def check_filename_length
+    # For eCryptfs, see https://bugs.launchpad.net/ecryptfs/+bug/344878
+    max_length = 143
+
+    too_long = []
+    Dir.chdir(TRUFFLERUBY_DIR) do
+      Dir.glob("**/*") do |f|
+        if File.basename(f).size > max_length
+          too_long << f
+        end
+      end
+    end
+
+    unless too_long.empty?
+      abort "Too long filenames for eCryptfs:\n#{too_long.join "\n"}"
+    end
+  end
+
   def check_parser
     build('parser')
     diff, _err = sh 'git', 'diff', 'src/main/java/org/truffleruby/parser/parser/RubyParser.java', :err => :out, capture: true
@@ -1779,6 +1797,7 @@ module Commands
 
   def lint(*args)
     check_dsl_usage unless args.delete '--no-build'
+    check_filename_length
     rubocop
     sh "tool/lint.sh"
     check_parser
