@@ -1387,6 +1387,10 @@ public class CoreLibrary {
         return encodingFactory;
     }
 
+    public DynamicObject getEncodingErrorClass() {
+        return encodingErrorClass;
+    }
+
     public DynamicObject getEncodingCompatibilityErrorClass() {
         return encodingCompatibilityErrorClass;
     }

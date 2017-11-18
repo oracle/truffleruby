@@ -836,6 +836,13 @@ public class CoreExceptions {
     // Encoding conversion errors.
 
     @TruffleBoundary
+    public DynamicObject encodingError(String message, Node currentNode) {
+        DynamicObject exceptionClass = context.getCoreLibrary().getEncodingErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+    }
+
+    @TruffleBoundary
     public DynamicObject encodingCompatibilityErrorIncompatible(Encoding a, Encoding b, Node currentNode) {
         return encodingCompatibilityError(StringUtils.format("incompatible character encodings: %s and %s", a, b), currentNode);
     }
