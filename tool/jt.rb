@@ -523,6 +523,7 @@ module Commands
   def clean
     mx 'clean'
     sh 'rm', '-rf', 'mxbuild'
+    sh 'rm', '-rf', 'spec/ruby/ext'
   end
 
   def dis(file)
