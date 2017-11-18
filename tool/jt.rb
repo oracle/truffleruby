@@ -818,6 +818,8 @@ module Commands
       PR.pr_update_master *options
     else
       PR.pr_push *args
+      # To regularly update bb/master
+      PR.pr_update_master
     end
   end
 
