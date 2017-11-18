@@ -14,6 +14,8 @@ require 'rbconfig'
 clang = 'clang'
 opt = 'opt'
 
+extra_cflags = nil
+
 [clang, opt].each do |tool|
   begin
     version = `#{tool} --version`
@@ -23,7 +25,11 @@ opt = 'opt'
 
   if version =~ /\bversion (\d+\.\d+\.\d+)/
     major, minor, _patch = $1.split('.').map(&:to_i)
-    unless (major == 3 && minor >= 8) || (major == 4 && minor == 0)
+    if (major == 3 && minor >= 8) || (major == 4 && minor == 0)
+      # OK
+    elsif major == 5 && minor == 0
+      extra_cflags = '-Xclang -disable-O0-optnone'
+    else
       raise "unsupported #{tool} version: #{$1} - see doc/user/installing-llvm.md"
     end
   else
@@ -57,6 +63,7 @@ cc = clang
 cxx = 'clang++'
 
 cflags = "#{linkflags} -c -emit-llvm"
+cflags = "#{extra_cflags} #{cflags}" if extra_cflags
 cxxflags = "#{cflags} -stdlib=libc++"
 
 cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
