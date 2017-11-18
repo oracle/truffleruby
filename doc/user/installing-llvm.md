@@ -21,6 +21,20 @@ Additionally, for building C extensions:
 apt-get install clang llvm libc++abi-dev
 ```
 
+## Fedora
+
+For using C extensions:
+
+```
+sudo dnf install libcxx libcxxabi
+```
+
+Additionally, for building C extensions:
+
+```
+sudo dnf install clang llvm libcxx-devel
+```
+
 ## macOS
 
 We need the `opt` command, so you can't just use what is installed by Xcode if
