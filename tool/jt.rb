@@ -563,7 +563,6 @@ module Commands
 
   def rebuild
     clean
-    mx 'sforceimports'
     build
   end
 
