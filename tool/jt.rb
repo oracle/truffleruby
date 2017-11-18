@@ -731,7 +731,6 @@ module Commands
       require 'net/http'
 
       dry_run = args.delete '--dry-run'
-      bb      = bb(remote_urls)
       uri     = URI('https://api.github.com/repos/graalvm/truffleruby/pulls')
       puts "Contacting GitHub: #{uri}"
       data     = Net::HTTP.get(uri)
@@ -758,10 +757,6 @@ module Commands
     end
 
     def pr_push(*args)
-      remote_urls = self.remote_urls
-      upstream    = upstream(remote_urls)
-      bb          = bb(remote_urls)
-
       # Fetch PRs on GitHub
       fetch     = "+refs/pull/*/head:refs/remotes/#{upstream}/pr/*"
       out, _err = sh 'git', 'config', '--get-all', "remote.#{upstream}.fetch", capture: true
@@ -790,27 +785,26 @@ module Commands
     end
 
     def pr_update_master
-      remote_urls = self.remote_urls
-      upstream = upstream(remote_urls)
-      bb = bb(remote_urls)
       sh 'git', 'fetch', upstream
       sh 'git', 'push', bb, "#{upstream}/master:master"
     end
 
-    def bb(remote_urls)
+    def bb
       remote_urls.find { |r, u| u.include? 'ol-bitbucket' }.first
     end
 
-    def upstream(remote_urls)
+    def upstream
       remote_urls.find { |r, u| u.include? 'graalvm/truffleruby' }.first
     end
 
     def remote_urls
-      out, _err   = sh 'git', 'remote', capture: true
-      remotes     = out.split
-      remotes.map do |remote|
-        out, _err = sh 'git', 'config', '--get', "remote.#{remote}.url", capture: true
-        [remote, out.chomp!]
+      @remote_urls ||= begin
+        out, _err   = sh 'git', 'remote', capture: true
+        remotes     = out.split
+        remotes.map do |remote|
+          out, _err = sh 'git', 'config', '--get', "remote.#{remote}.url", capture: true
+          [remote, out.chomp!]
+        end
       end
     end
 
