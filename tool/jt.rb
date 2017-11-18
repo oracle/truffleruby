@@ -729,7 +729,6 @@ module Commands
 
     def pr_clean(*args)
       require 'net/http'
-      require 'pp'
 
       dry_run = args.delete '--dry-run'
       bb      = bb(remote_urls)
