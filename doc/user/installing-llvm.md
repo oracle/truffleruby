@@ -2,6 +2,8 @@
 
 TruffleRuby needs LLVM to run and build C extensions - version 3.8, 3.9 or 4.0.
 
+LLVM 5.0 should also work but is not actively tested.
+
 ## Ubuntu
 
 For using C extensions:
