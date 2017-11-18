@@ -799,11 +799,10 @@ module Commands
 
     def remote_urls
       @remote_urls ||= begin
-        out, _err   = sh 'git', 'remote', capture: true
-        remotes     = out.split
-        remotes.map do |remote|
-          out, _err = sh 'git', 'config', '--get', "remote.#{remote}.url", capture: true
-          [remote, out.chomp!]
+        out, _err = sh 'git', 'remote', capture: true
+        out.split.map do |remote|
+          url, _err = sh 'git', 'config', '--get', "remote.#{remote}.url", capture: true
+          [remote, url.chomp]
         end
       end
     end
