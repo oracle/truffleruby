@@ -40,6 +40,8 @@ import org.truffleruby.core.binding.TruffleBindingNodesBuiltins;
 import org.truffleruby.core.binding.TruffleBindingNodesFactory;
 import org.truffleruby.core.bool.FalseClassNodesBuiltins;
 import org.truffleruby.core.bool.FalseClassNodesFactory;
+import org.truffleruby.core.bool.NilClassNodesBuiltins;
+import org.truffleruby.core.bool.NilClassNodesFactory;
 import org.truffleruby.core.bool.TrueClassNodesBuiltins;
 import org.truffleruby.core.bool.TrueClassNodesFactory;
 import org.truffleruby.core.encoding.EncodingConverterNodesBuiltins;
@@ -208,6 +210,7 @@ public abstract class BuiltinsClasses {
         ModuleNodesBuiltins.setup(coreManager, primitiveManager);
         MutexNodesBuiltins.setup(coreManager, primitiveManager);
         NameErrorNodesBuiltins.setup(coreManager, primitiveManager);
+        NilClassNodesBuiltins.setup(coreManager, primitiveManager);
         NoMethodErrorNodesBuiltins.setup(coreManager, primitiveManager);
         ObjectSpaceNodesBuiltins.setup(coreManager, primitiveManager);
         ObjSpaceNodesBuiltins.setup(coreManager, primitiveManager);
@@ -289,6 +292,7 @@ public abstract class BuiltinsClasses {
             ModuleNodesFactory.getFactories(),
             MutexNodesFactory.getFactories(),
             NameErrorNodesFactory.getFactories(),
+            NilClassNodesFactory.getFactories(),
             NoMethodErrorNodesFactory.getFactories(),
             ObjectSpaceNodesFactory.getFactories(),
             ObjSpaceNodesFactory.getFactories(),
