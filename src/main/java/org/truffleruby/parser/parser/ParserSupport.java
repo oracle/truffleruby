@@ -138,6 +138,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.parser.lexer.RubyLexer.ASCII8BIT_ENCODING;
 import static org.truffleruby.parser.lexer.RubyLexer.USASCII_ENCODING;
@@ -1050,16 +1051,33 @@ public class ParserSupport {
     }
 
     public ParseNode asSymbol(SourceIndexLength position, String value) {
-        return new SymbolParseNode(position, value, lexer.getEncoding(), lexer.getTokenCR());
+        final SymbolParseNode symbolParseNode = new SymbolParseNode(position, value, lexer.getEncoding(), lexer.getTokenCR());
+        checkSymbolCodeRange(symbolParseNode);
+        return symbolParseNode;
     }
 
     public ParseNode asSymbol(SourceIndexLength position, Rope value) {
-        return new SymbolParseNode(position, value);
+        final SymbolParseNode symbolParseNode = new SymbolParseNode(position, value);
+        checkSymbolCodeRange(symbolParseNode);
+        return symbolParseNode;
     }
 
     public ParseNode asSymbol(SourceIndexLength position, ParseNode value) {
-        return value instanceof StrParseNode ? new SymbolParseNode(position, ((StrParseNode) value).getValue()) :
-                new DSymbolParseNode(position, (DStrParseNode) value);
+        final ParseNode parseNode;
+        if (value instanceof StrParseNode) {
+            final SymbolParseNode symbolParseNode = new SymbolParseNode(position, ((StrParseNode) value).getValue());
+            checkSymbolCodeRange(symbolParseNode);
+            parseNode = symbolParseNode;
+        } else {
+            parseNode = new DSymbolParseNode(position, (DStrParseNode) value);
+        }
+        return parseNode;
+    }
+
+    private void checkSymbolCodeRange(SymbolParseNode symbolParseNode) {
+        if (symbolParseNode.getRope().getCodeRange() == CR_BROKEN) {
+            throw new RaiseException(getConfiguration().getContext().getCoreExceptions().encodingError("invalid encoding symbol", null));
+        }
     }
 
     public ParseNode literal_concat(ParseNode head, ParseNode tail) {
