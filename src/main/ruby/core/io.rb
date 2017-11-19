@@ -2020,6 +2020,7 @@ class IO
   def read_nonblock(size, buffer = nil, exception: true)
     raise ArgumentError, 'illegal read size' if size < 0
     ensure_open
+    self.nonblock = true
 
     buffer = StringValue buffer if buffer
 
@@ -2030,9 +2031,7 @@ class IO
     end
 
     begin
-      str = self.nonblock do
-        Truffle::POSIX.read_string(@descriptor, size, true)
-      end
+      str = Truffle::POSIX.read_string(@descriptor, size, true)
     rescue Errno::EAGAIN
       if exception
         raise EAGAINWaitReadable
