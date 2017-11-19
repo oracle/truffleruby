@@ -518,42 +518,6 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_sysread", lowerFixnum = 1)
-    public static abstract class IOSysReadPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization
-        public DynamicObject sysread(DynamicObject file, int length) {
-            final int fd = Layouts.IO.getDescriptor(file);
-
-            final ByteBuffer buffer = ByteBuffer.allocate(length);
-
-            int toRead = length;
-
-            while (toRead > 0) {
-                final int finalToRead = toRead;
-                final int bytesRead = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
-                        () -> posix().read(fd, buffer, finalToRead));
-
-                ensureSuccessful(bytesRead);
-
-                if (bytesRead == 0) { // EOF
-                    if (toRead == length) { // if EOF at first iteration
-                        return nil();
-                    } else {
-                        break;
-                    }
-                }
-
-                buffer.position(bytesRead);
-                toRead -= bytesRead;
-            }
-
-            return createString(RopeBuilder.createRopeBuilder(buffer.array(), buffer.arrayOffset(), buffer.position()));
-        }
-
-    }
-
     @Primitive(name = "io_select", needsSelf = false, lowerFixnum = 4)
     public static abstract class IOSelectPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
 

@@ -2423,7 +2423,7 @@ class IO
     flush
     raise IOError unless @ibuffer.empty?
 
-    str = Truffle.invoke_primitive :io_sysread, self, number_of_bytes
+    str = Truffle::POSIX.read_string(@descriptor, number_of_bytes)
     raise EOFError if str.nil?
 
     unless undefined.equal? buffer
