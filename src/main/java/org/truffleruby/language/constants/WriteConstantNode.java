@@ -9,10 +9,12 @@
  */
 package org.truffleruby.language.constants;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
+import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -23,6 +25,7 @@ public class WriteConstantNode extends RubyNode {
 
     @Child private RubyNode moduleNode;
     @Child private RubyNode valueNode;
+    @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
 
     private final ConditionProfile moduleProfile = ConditionProfile.createBinaryProfile();
 
@@ -41,9 +44,19 @@ public class WriteConstantNode extends RubyNode {
             throw new RaiseException(coreExceptions().typeErrorIsNotAClassModule(moduleObject, this));
         }
 
-        Layouts.MODULE.getFields((DynamicObject) moduleObject).setConstant(getContext(), this, name, value);
-
+        final boolean redefined = Layouts.MODULE.getFields((DynamicObject) moduleObject).setConstant(getContext(), this, name, value);
+        if (redefined) {
+            warnAlreadyInitializedConstant((DynamicObject) moduleObject, name);
+        }
         return value;
+    }
+
+    private void warnAlreadyInitializedConstant(DynamicObject module, String name) {
+        if (warnAlreadyInitializedNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            warnAlreadyInitializedNode = insert(new WarnAlreadyInitializedNode());
+        }
+        warnAlreadyInitializedNode.warnAlreadyInitialized(module, name, getSourceSection());
     }
 
 }

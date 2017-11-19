@@ -51,12 +51,13 @@ import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
+import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.SymbolTable;
@@ -945,6 +946,8 @@ public abstract class ModuleNodes {
     })
     public abstract static class ConstSetNode extends CoreMethodNode {
 
+        @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
+
         @CreateCast("name")
         public RubyNode coerceToString(RubyNode name) {
             return NameToJavaStringNodeGen.create(name);
@@ -957,8 +960,19 @@ public abstract class ModuleNodes {
                 throw new RaiseException(coreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, this));
             }
 
-            Layouts.MODULE.getFields(module).setConstant(getContext(), this, name, value);
+            final boolean redefined = Layouts.MODULE.getFields(module).setConstant(getContext(), this, name, value);
+            if (redefined) {
+                warnAlreadyInitializedConstant(module, name);
+            }
             return value;
+        }
+
+        private void warnAlreadyInitializedConstant(DynamicObject module, String name) {
+            if (warnAlreadyInitializedNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                warnAlreadyInitializedNode = insert(new WarnAlreadyInitializedNode());
+            }
+            warnAlreadyInitializedNode.warnAlreadyInitialized(module, name, getSourceSection());
         }
 
     }
