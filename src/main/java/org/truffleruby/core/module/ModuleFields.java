@@ -100,14 +100,14 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         start = new PrependMarker(this);
     }
 
-    public void getAdoptedByLexicalParent(
+    public boolean getAdoptedByLexicalParent(
             RubyContext context,
             DynamicObject lexicalParent,
             String name,
             Node currentNode) {
         assert RubyGuards.isRubyModule(lexicalParent);
 
-        Layouts.MODULE.getFields(lexicalParent).setConstantInternal(
+        boolean redefined = Layouts.MODULE.getFields(lexicalParent).setConstantInternal(
                 context,
                 currentNode,
                 name,
@@ -129,6 +129,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
             // else: Our lexicalParent is also an anonymous module
             // and will name us when it gets named via updateAnonymousChildrenModules()
         }
+        return redefined;
     }
 
     public void updateAnonymousChildrenModules(RubyContext context) {
@@ -301,11 +302,11 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
      * Set the value of a constant, possibly redefining it.
      */
     @TruffleBoundary
-    public void setConstant(RubyContext context, Node currentNode, String name, Object value) {
+    public boolean setConstant(RubyContext context, Node currentNode, String name, Object value) {
         if (RubyGuards.isRubyModule(value)) {
-            Layouts.MODULE.getFields((DynamicObject) value).getAdoptedByLexicalParent(context, rubyModuleObject, name, currentNode);
+            return Layouts.MODULE.getFields((DynamicObject) value).getAdoptedByLexicalParent(context, rubyModuleObject, name, currentNode);
         } else {
-            setConstantInternal(context, currentNode, name, value, false);
+            return setConstantInternal(context, currentNode, name, value, false);
         }
     }
 
@@ -315,10 +316,8 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         setConstantInternal(context, currentNode, name, filename, true);
     }
 
-    public void setConstantInternal(RubyContext context, Node currentNode, String name, Object value, boolean autoload) {
+    public boolean setConstantInternal(RubyContext context, Node currentNode, String name, Object value, boolean autoload) {
         checkFrozen(context, currentNode);
-        // TODO(CS): warn when redefining a constant
-        // TODO (nirvdrum 18-Feb-15): But don't warn when redefining an autoloaded constant.
 
         SharedObjects.propagate(context, rubyModuleObject, value);
 
@@ -330,7 +329,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
             if ((previous == null) ? (constants.putIfAbsent(name, newValue) == null) : constants.replace(name, previous, newValue)) {
                 newConstantsVersion();
-                break;
+                return !autoload && previous != null;
             }
         }
     }
