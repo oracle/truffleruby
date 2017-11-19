@@ -1246,7 +1246,7 @@ public abstract class ModuleNodes {
         @Specialization
         public DynamicObject moduleFunction(VirtualFrame frame, DynamicObject module, Object[] names,
                 @Cached("create()") BranchProfile errorProfile) {
-            if (RubyGuards.isRubyClass(module) && !coreLibrary().isLoadingRubyCore()) {
+            if (RubyGuards.isRubyClass(module)) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().typeError("module_function must be called for modules", this));
             }
