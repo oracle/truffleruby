@@ -15,10 +15,6 @@ import jnr.posix.POSIX;
 import jnr.posix.Passwd;
 import jnr.posix.Times;
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.control.JavaException;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class JNRTrufflePosix implements TrufflePosix {
 
@@ -56,25 +52,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public Times times() {
         return posix.times();
-    }
-
-    @TruffleBoundary
-    @Override
-    public int read(int fd, ByteBuffer buf, int n) {
-        if (context.getOptions().POLYGLOT_STDIO && fd == 0) {
-            return polyglotRead(buf.array(), buf.arrayOffset(), n);
-        }
-
-        return posix.read(fd, buf, n);
-    }
-
-    @TruffleBoundary
-    protected int polyglotRead(byte[] buf, int offset, int n) {
-        try {
-            return context.getEnv().in().read(buf, offset, n);
-        } catch (IOException e) {
-            throw new JavaException(e);
-        }
     }
 
     @TruffleBoundary
