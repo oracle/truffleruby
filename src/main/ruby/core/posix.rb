@@ -276,7 +276,18 @@ module Truffle::POSIX
   end
 
   if Truffle::Boot.get_option('ployglot.stdio')
-    singleton_class.send :alias_method, :write_string_native, :write_string
+    class << self
+      alias_method :read_string_native, :read_string
+      alias_method :write_string_native, :write_string
+    end
+
+    def self.read_string(fd, length)
+      if fd == 0
+        Truffle.invoke_primitive :io_read_polyglot, fd, length
+      else
+        read_string_native(fd, length)
+      end
+    end
 
     def self.write_string(fd, string, nonblock=false)
       if fd == 1 || fd == 2

@@ -64,8 +64,11 @@ package org.truffleruby.core.rubinius;
 import static org.truffleruby.core.string.StringOperations.rope;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 
+import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
@@ -79,9 +82,12 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode;
 import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeNodes.MakeLeafRopeNode;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -434,6 +440,42 @@ public abstract class IONodes {
                 throw new RaiseException(coreExceptions().ioError("shutdown stream", this));
             }
             return nil();
+        }
+
+    }
+
+    @Primitive(name = "io_read_polyglot")
+    public static abstract class IOReadPolyglotNode extends IOPrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary(transferToInterpreterOnException = false)
+        @Specialization
+        public DynamicObject read(int fd, int length,
+                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
+            if (fd != 0) {
+                throw new UnsupportedOperationException();
+            }
+            final InputStream stream = getContext().getEnv().in();
+            final byte[] buffer = new byte[length];
+            final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> {
+                try {
+                    return stream.read(buffer, 0, length);
+                } catch (IOException e) {
+                    throw new JavaException(e);
+                }
+            });
+
+            if (bytesRead < 0) {
+                return nil();
+            }
+
+            final byte[] bytes;
+            if (bytesRead == buffer.length) {
+                bytes = buffer;
+            } else {
+                bytes = Arrays.copyOf(buffer, bytesRead);
+            }
+
+            return createString(makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE));
         }
 
     }
