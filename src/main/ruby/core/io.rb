@@ -108,6 +108,7 @@ class IO
   # source for more data or just present what is already in the
   # buffer.
   class InternalBuffer
+    SIZE = 32768
 
     attr_reader :used
 
@@ -140,7 +141,12 @@ class IO
     # the IO, and +unshift+ again beginning at +start_pos+.
     def unshift(str, start_pos)
       @write_synced = false
-      written = Truffle.invoke_primitive :iobuffer_unshift, self, str, start_pos, @used
+      available = SIZE - @used
+      written = str.bytesize - start_pos
+      if written > available
+        written = available
+      end
+      @storage.fill(@used, str, start_pos, written)
       self.used += written
       written
     end
@@ -166,7 +172,8 @@ class IO
         if bytes_read > (@total - @used)
           raise RubyTruffleError, 'internal implementation error - IO buffer overrun'
         end
-        @storage.fill(@used, buffer)
+        @storage.fill(@used, buffer, 0, buffer.bytesize)
+        @storage.length = @used + buffer.bytesize
         @used += bytes_read
       end
       bytes_read
