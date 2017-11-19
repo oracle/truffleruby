@@ -153,7 +153,7 @@ class IO
       end
 
       max = 8192
-      left = @total - @used
+      left = unused
       count = left < max ? left : max
 
       begin
@@ -165,7 +165,7 @@ class IO
       if bytes_read > 0
         # Detect if another thread has updated the buffer
         # and now there isn't enough room for this data.
-        if bytes_read > (@total - @used)
+        if bytes_read > unused
           raise RubyTruffleError, 'internal implementation error - IO buffer overrun'
         end
         @storage.fill(@used, buffer, 0, buffer.bytesize)
