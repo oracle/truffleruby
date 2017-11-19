@@ -49,25 +49,16 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-
-import jnr.constants.platform.Errno;
-
-import java.nio.ByteBuffer;
 
 @CoreClass("IO::InternalBuffer")
 public abstract class IOBufferNodes {
 
     private static final int IOBUFFER_SIZE = 32768;
-    private static final int STACK_BUF_SZ = 8192;
 
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
@@ -109,79 +100,6 @@ public abstract class IOBufferNodes {
             System.arraycopy(bytes, startPosition, storage.getUnsafeBytes(), used, written);
 
             return written;
-        }
-
-    }
-
-    @Primitive(name = "iobuffer_fill")
-    public static abstract class IOBufferFillPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization
-        public int fill(VirtualFrame frame, DynamicObject ioBuffer, DynamicObject io,
-                @Cached("create()") BranchProfile errorProfile) {
-            final int fd = Layouts.IO.getDescriptor(io);
-
-            // TODO CS 21-Apr-15 allocating this buffer for each read is crazy
-            final byte[] readBuffer = new byte[STACK_BUF_SZ];
-            int count = STACK_BUF_SZ;
-
-            if (left(frame, ioBuffer) < count) {
-                count = left(frame, ioBuffer);
-            }
-
-            int bytesRead = performFill(fd, readBuffer, count);
-
-            if (bytesRead > 0) {
-                // Detect if another thread has updated the buffer
-                // and now there isn't enough room for this data.
-                if (bytesRead > left(frame, ioBuffer)) {
-                    errorProfile.enter();
-                    throw new RaiseException(coreExceptions().internalError("IO buffer overrun", this));
-                }
-                final int used = Layouts.IO_BUFFER.getUsed(ioBuffer);
-                final ByteArrayBuilder storage = Layouts.BYTE_ARRAY.getBytes(Layouts.IO_BUFFER.getStorage(ioBuffer));
-                System.arraycopy(readBuffer, 0, storage.getUnsafeBytes(), used, bytesRead);
-                storage.setLength(used + bytesRead);
-                Layouts.IO_BUFFER.setUsed(ioBuffer, used + bytesRead);
-            }
-
-            return bytesRead;
-        }
-
-        @TruffleBoundary
-        private int performFill(int fd, byte[] readBuffer, int count) {
-            int bytesRead;
-            while (true) {
-                bytesRead = getContext().getThreadManager().runBlockingSystemCallUntilResult(this,
-                        () -> posix().read(fd, ByteBuffer.wrap(readBuffer), count));
-
-                if (bytesRead == -1) {
-                    final int errno = posix().errno();
-
-                    if (errno == Errno.ECONNRESET.intValue() || errno == Errno.ETIMEDOUT.intValue()) {
-                        // Treat as seeing eof
-                        bytesRead = 0;
-                        break;
-                    } else if (errno == Errno.EAGAIN.intValue()) {
-                        //if (!state -> check_async(calling_environment))
-                        //    return NULL;
-                        //io -> ensure_open(state);
-                        getContext().getSafepointManager().pollFromBlockingCall(this);
-                        continue;
-                    } else {
-                        throw new RaiseException(getContext().getCoreExceptions().errnoError(errno, this));
-                    }
-                } else {
-                    break;
-                }
-            }
-            return bytesRead;
-        }
-
-        private int left(VirtualFrame frame, DynamicObject ioBuffer) {
-            final int total = Layouts.IO_BUFFER.getTotal(ioBuffer);
-            final int used = Layouts.IO_BUFFER.getUsed(ioBuffer);
-            return total - used;
         }
 
     }
