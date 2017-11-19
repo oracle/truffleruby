@@ -65,7 +65,6 @@ import static org.truffleruby.core.string.StringOperations.rope;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CallerFrameAccess;
@@ -81,8 +80,6 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode;
 import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyGuards;
@@ -437,46 +434,6 @@ public abstract class IONodes {
                 throw new RaiseException(coreExceptions().ioError("shutdown stream", this));
             }
             return nil();
-        }
-
-    }
-
-    @Primitive(name = "io_read_if_available", lowerFixnum = 1)
-    public static abstract class IOReadIfAvailableNode extends IOPrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization
-        public Object readIfAvailable(DynamicObject file, int numberOfBytes) {
-            // Taken from Rubinius's IO::read_if_available.
-
-            if (numberOfBytes == 0) {
-                return createString(RopeConstants.EMPTY_ASCII_8BIT_ROPE);
-            }
-
-            final int fd = Layouts.IO.getDescriptor(file);
-
-            try (FDSet fdSet = getContext().getNativePlatform().createFDSet()) {
-                fdSet.set(fd);
-
-                final Timeval timeoutObject = new DefaultNativeTimeval(jnr.ffi.Runtime.getSystemRuntime());
-                timeoutObject.setTime(new long[]{ 0, 0 });
-
-                final int res = ensureSuccessful(nativeSockets().select(fd + 1, fdSet.getPointer(),
-                        Pointer.JNR_NULL, Pointer.JNR_NULL, timeoutObject));
-
-                if (res == 0) {
-                    throw new RaiseException(coreExceptions().eAGAINWaitReadable(this));
-                }
-            }
-
-            final byte[] bytes = new byte[numberOfBytes];
-            final int bytesRead = ensureSuccessful(posix().read(fd, ByteBuffer.wrap(bytes), numberOfBytes));
-
-            if (bytesRead == 0) { // EOF
-                return nil();
-            }
-
-            return createString(RopeBuilder.createRopeBuilder(bytes, 0, bytesRead));
         }
 
     }

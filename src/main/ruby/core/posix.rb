@@ -238,7 +238,7 @@ module Truffle::POSIX
     attach_function :_NSGetArgv, [], :pointer
   end
 
-  def self.read_string(fd, length)
+  def self.read_string(fd, length, nonblock=false)
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     bytes_read = 0
     while bytes_read < length
@@ -250,6 +250,7 @@ module Truffle::POSIX
         break
       end
       bytes_read += ret
+      break if nonblock
     end
     buffer.read_string(bytes_read)
   end

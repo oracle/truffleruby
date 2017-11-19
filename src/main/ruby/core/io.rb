@@ -1787,6 +1787,22 @@ class IO
   end
 
   # Normally only provided by io/nonblock
+  def nonblock?
+    (fcntl(F_GETFL) & NONBLOCK) != 0
+  end
+
+  # Normally only provided by io/nonblock
+  def nonblock(nonblock=true)
+    prev_nonblock = self.nonblock?
+    self.nonblock = nonblock
+    begin
+      yield self
+    ensure
+      self.nonblock = prev_nonblock
+    end
+  end
+
+  # Normally only provided by io/nonblock
   def nonblock=(value)
     if value
       fcntl(F_SETFL, fcntl(F_GETFL) | NONBLOCK)
@@ -2007,25 +2023,33 @@ class IO
 
     buffer = StringValue buffer if buffer
 
+    return "".b if size == 0
+
     if @ibuffer.size > 0
       return @ibuffer.shift(size)
     end
 
-    if str = Truffle.invoke_primitive(:io_read_if_available, self, size)
+    begin
+      str = self.nonblock do
+        Truffle::POSIX.read_string(@descriptor, size, true)
+      end
+    rescue Errno::EAGAIN
+      if exception
+        raise EAGAINWaitReadable
+      else
+        return :wait_readable
+      end
+    end
+
+    if str
       buffer.replace(str) if buffer
       str
-    else
+    else # EOF
       if exception
         raise EOFError, 'stream closed'
       else
         nil
       end
-    end
-  rescue EAGAINWaitReadable => e
-    if exception
-      raise e
-    else
-      :wait_readable
     end
   end
 
