@@ -47,7 +47,7 @@ public abstract class ByteArrayNodes {
 
     }
 
-    @CoreMethod(names = "initialize", required = 1)
+    @CoreMethod(names = "initialize", required = 1, lowerFixnum = 1)
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -142,7 +142,7 @@ public abstract class ByteArrayNodes {
 
     }
 
-    @CoreMethod(names = "length=", required = 1)
+    @CoreMethod(names = "length=", required = 1, lowerFixnum = 1)
     public abstract static class SetLengthNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

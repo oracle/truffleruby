@@ -443,7 +443,7 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_read_polyglot")
+    @Primitive(name = "io_read_polyglot", needsSelf = false, lowerFixnum = { 1, 2 })
     public static abstract class IOReadPolyglotNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
@@ -479,7 +479,7 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_write_polyglot")
+    @Primitive(name = "io_write_polyglot", needsSelf = false, lowerFixnum = 1)
     public static abstract class IOWritePolyglotNode extends IOPrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
