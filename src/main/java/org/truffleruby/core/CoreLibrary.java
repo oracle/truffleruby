@@ -187,7 +187,6 @@ public class CoreLibrary {
     private final DynamicObjectFactory byteArrayFactory;
     private final DynamicObject fiberErrorClass;
     private final DynamicObject threadErrorClass;
-    private final DynamicObject internalBufferClass;
     private final DynamicObject weakRefClass;
     private final DynamicObjectFactory weakRefFactory;
     private final DynamicObject objectSpaceModule;
@@ -477,7 +476,6 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(unboundMethodClass, unboundMethodFactory);
         ioClass = defineClass("IO");
         Layouts.CLASS.setInstanceFactoryUnsafe(ioClass, Layouts.IO.createIOShape(ioClass, ioClass));
-        internalBufferClass = defineClass(ioClass, objectClass, "InternalBuffer");
         defineClass(ioClass, "File");
 
         weakRefClass = defineClass(basicObjectClass, "WeakRef");
@@ -1255,10 +1253,6 @@ public class CoreLibrary {
 
     public DynamicObjectFactory getThreadBacktraceLocationFactory() {
         return threadBacktraceLocationFactory;
-    }
-
-    public DynamicObject getInternalBufferClass() {
-        return internalBufferClass;
     }
 
     public boolean isInitializing() {

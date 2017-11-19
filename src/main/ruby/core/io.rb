@@ -1092,6 +1092,7 @@ class IO
     io.descriptor = fd
     io.mode       = mode || cur_mode
     io.sync       = !!sync
+    io.instance_variable_set :@ibuffer, IO::InternalBuffer.new
 
     # Truffle: STDOUT isn't defined by the time this call is made during bootstrap, so we need to guard it.
     if defined? STDOUT and STDOUT.respond_to?(:fileno) and not STDOUT.closed?
