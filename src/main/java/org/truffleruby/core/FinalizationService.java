@@ -86,7 +86,7 @@ public class FinalizationService {
         this.context = context;
     }
 
-    public synchronized void addFinalizer(Object object, Class<?> owner, Runnable action) {
+    public void addFinalizer(Object object, Class<?> owner, Runnable action) {
         addFinalizer(object, owner, action, Collections.emptyList());
     }
 
