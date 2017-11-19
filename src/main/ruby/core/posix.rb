@@ -238,21 +238,16 @@ module Truffle::POSIX
     attach_function :_NSGetArgv, [], :pointer
   end
 
-  def self.read_string(fd, length, retry_read)
+  def self.read_string(fd, length)
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
-    bytes_read = 0
-    while bytes_read < length
-      ret = read(fd, buffer + bytes_read, length - bytes_read)
-      if ret < 0
-        Errno.handle
-      elsif ret == 0 # EOF
-        return nil if bytes_read == 0
-        break
-      end
-      bytes_read += ret
-      break unless retry_read
+    bytes_read = read(fd, buffer, length)
+    if bytes_read < 0
+      Errno.handle
+    elsif bytes_read == 0 # EOF
+      nil
+    else
+      buffer.read_string(bytes_read)
     end
-    buffer.read_string(bytes_read)
   end
 
   def self.write_string(fd, string, nonblock=false)
