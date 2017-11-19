@@ -93,12 +93,40 @@ public abstract class ByteArrayNodes {
 
     }
 
+    @CoreMethod(names = "fill", required = 2, lowerFixnum = { 1, 2 })
+    public abstract static class FillNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyString(string)")
+        public Object fill(DynamicObject byteArray, int start, DynamicObject string,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            final Rope rope = StringOperations.rope(string);
+            final int length = rope.byteLength();
+            final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+
+            System.arraycopy(bytesNode.execute(rope), 0, bytes.getUnsafeBytes(), start, length);
+            bytes.setLength(start + length);
+            return string;
+        }
+
+    }
+
     @CoreMethod(names = "size")
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         public int size(DynamicObject bytes) {
             return Layouts.BYTE_ARRAY.getBytes(bytes).getLength();
+        }
+
+    }
+
+    @CoreMethod(names = "length=", required = 1)
+    public abstract static class SetLengthNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public int setLength(DynamicObject bytes, int length) {
+            Layouts.BYTE_ARRAY.getBytes(bytes).setLength(length);
+            return length;
         }
 
     }

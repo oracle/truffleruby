@@ -146,13 +146,30 @@ class IO
     end
 
     def fill(io)
-      Truffle.primitive :iobuffer_fill
-
       unless io.kind_of? IO
-        return fill(io.to_io)
+        io = io.to_io
       end
 
-      raise PrimitiveFailure, 'InternalBuffer#fill primitive failed'
+      max = 8192
+      left = @total - @used
+      count = left < max ? left : max
+
+      begin
+        buffer = Truffle::POSIX.read_string(io.descriptor, count)
+      rescue Errno::EAGAIN
+        retry
+      end
+      bytes_read = buffer ? buffer.bytesize : 0
+      if bytes_read > 0
+        # Detect if another thread has updated the buffer
+        # and now there isn't enough room for this data.
+        if bytes_read > (@total - @used)
+          raise RubyTruffleError, 'internal implementation error - IO buffer overrun'
+        end
+        @storage.fill(@used, buffer)
+        @used += bytes_read
+      end
+      bytes_read
     end
 
     ##
