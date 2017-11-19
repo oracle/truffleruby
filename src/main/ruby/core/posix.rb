@@ -243,6 +243,10 @@ module Truffle::POSIX
         Errno.handle
       end
       written += ret
+
+      # Return immediately if nonblock, as otherwise we could get EAGAIN
+      # and the caller cannot know how much was written.
+      break if nonblock
     end
     written
   end
