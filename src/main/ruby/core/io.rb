@@ -1998,7 +1998,7 @@ class IO
 
     buffer = StringValue buffer if buffer
 
-    return "".b if size == 0
+    return ''.b if size == 0
 
     if @ibuffer.size > 0
       return @ibuffer.shift(size)
