@@ -93,18 +93,16 @@ public abstract class ByteArrayNodes {
 
     }
 
-    @CoreMethod(names = "fill", required = 2, lowerFixnum = { 1, 2 })
+    @CoreMethod(names = "fill", required = 4, lowerFixnum = { 1, 3, 4 })
     public abstract static class FillNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        public Object fill(DynamicObject byteArray, int start, DynamicObject string,
+        public Object fill(DynamicObject byteArray, int dstStart, DynamicObject string, int srcStart, int length,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(string);
-            final int length = rope.byteLength();
             final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
 
-            System.arraycopy(bytesNode.execute(rope), 0, bytes.getUnsafeBytes(), start, length);
-            bytes.setLength(start + length);
+            System.arraycopy(bytesNode.execute(rope), srcStart, bytes.getUnsafeBytes(), dstStart, length);
             return string;
         }
 
