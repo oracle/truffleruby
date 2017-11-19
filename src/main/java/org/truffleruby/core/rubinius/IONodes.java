@@ -150,7 +150,7 @@ public abstract class IONodes {
 
         @Specialization
         public DynamicObject allocate(VirtualFrame frame, DynamicObject classToAllocate) {
-            return allocateNode.allocate(classToAllocate, 0, CLOSED_FD, 0);
+            return allocateNode.allocate(classToAllocate, CLOSED_FD);
         }
 
     }
