@@ -17,7 +17,6 @@ import org.truffleruby.core.basicobject.BasicObjectLayout;
 @Layout
 public interface IOLayout extends BasicObjectLayout {
 
-    String I_BUFFER_IDENTIFIER = "@ibuffer";
     String LINE_NO_IDENTIFIER = "@lineno";
     String DESCRIPTOR_IDENTIFIER = "@descriptor";
     String MODE_IDENTIFIER = "@mode";
@@ -26,14 +25,11 @@ public interface IOLayout extends BasicObjectLayout {
                                        DynamicObject metaClass);
 
     DynamicObject createIO(DynamicObjectFactory factory,
-                           DynamicObject iBuffer,
                            int lineNo,
                            int descriptor,
                            int mode);
 
     boolean isIO(DynamicObject object);
-
-    DynamicObject getIBuffer(DynamicObject object);
 
     int getLineNo(DynamicObject object);
     void setLineNo(DynamicObject object, int value);
