@@ -829,12 +829,6 @@ class IO
   end
 
   def self.pipe(external=nil, internal=nil, options=nil)
-    lhs = allocate
-    rhs = allocate
-
-    lhs.send :initialize_allocated
-    rhs.send :initialize_allocated
-
     fds = nil
     FFI::MemoryPointer.new(:int, 2) do |ptr|
       r = Truffle::POSIX.pipe(ptr)
@@ -842,11 +836,8 @@ class IO
       fds = ptr.read_array_of_int(2)
     end
 
-    lhs.instance_variable_set :@descriptor, fds[0]
-    rhs.instance_variable_set :@descriptor, fds[1]
-
-    lhs.instance_variable_set :@mode, RDONLY
-    rhs.instance_variable_set :@mode, WRONLY
+    lhs = self.new(fds[0], RDONLY)
+    rhs = self.new(fds[1], WRONLY)
 
     lhs.close_on_exec = true
     rhs.close_on_exec = true
@@ -1117,10 +1108,11 @@ class IO
   # Create a new IO associated with the given fd.
   #
   def initialize(fd, mode=nil, options=undefined)
-    initialize_allocated
     if block_given?
       warn 'IO::new() does not take block; use IO::open() instead'
     end
+
+    @eof = false
 
     mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
 
@@ -1153,10 +1145,6 @@ class IO
     end
 
     @pipe = false
-  end
-
-  private def initialize_allocated
-    @eof = false
   end
 
   ##
