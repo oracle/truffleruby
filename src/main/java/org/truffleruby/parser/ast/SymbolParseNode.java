@@ -55,14 +55,14 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
 
     // Interned ident path (e.g. [':', ident]).
     public SymbolParseNode(SourceIndexLength position, String name, Encoding encoding, CodeRange cr) {
+        // The cr argument is ignored since it is not always correct
         super(position);
         this.name = name;  // Assumed all names are already intern'd by lexer.
-
-        if (encoding == USASCIIEncoding.INSTANCE || cr == CodeRange.CR_7BIT) {
-            encoding = USASCIIEncoding.INSTANCE;
+        if (encoding.isAsciiCompatible() && StringOperations.isASCIIOnly(name)) {
+            this.rope = StringOperations.encodeRope(name, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+        } else {
+            this.rope = StringOperations.encodeRope(name, encoding, CodeRange.CR_UNKNOWN);
         }
-
-        this.rope = StringOperations.encodeRope(name, encoding, cr == null ? CodeRange.CR_UNKNOWN : cr);
     }
 
     // String path (e.g. [':', str_beg, str_content, str_end])
