@@ -351,14 +351,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
                 // e.g. "block in _routes route_set.rb:525" in rails/actionpack/lib/action_dispatch/routing/
                 (method.isUndefined() && methods.get(method.getName()) != null);
 
-        if (context.getCoreLibrary().isLoadingRubyCore()) {
-            final InternalMethod currentMethod = methods.get(method.getName());
-
-            if (currentMethod != null && currentMethod.getSharedMethodInfo().getSourceSection().getSource() == null) {
-                return;
-            }
-        }
-
         checkFrozen(context, currentNode);
 
         if (SharedObjects.isShared(context, rubyModuleObject)) {
