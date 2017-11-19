@@ -66,8 +66,6 @@ import org.truffleruby.core.rubinius.AtomicReferenceLayout;
 import org.truffleruby.core.rubinius.AtomicReferenceLayoutImpl;
 import org.truffleruby.core.rubinius.ByteArrayLayout;
 import org.truffleruby.core.rubinius.ByteArrayLayoutImpl;
-import org.truffleruby.core.rubinius.IOBufferLayout;
-import org.truffleruby.core.rubinius.IOBufferLayoutImpl;
 import org.truffleruby.core.rubinius.IOLayout;
 import org.truffleruby.core.rubinius.IOLayoutImpl;
 import org.truffleruby.core.rubinius.RandomizerLayout;
@@ -120,7 +118,6 @@ public abstract class Layouts {
     public static final FiberLayout FIBER = FiberLayoutImpl.INSTANCE;
     public static final HashLayout HASH = HashLayoutImpl.INSTANCE;
     public static final IntRangeLayout INT_RANGE = IntRangeLayoutImpl.INSTANCE;
-    public static final IOBufferLayout IO_BUFFER = IOBufferLayoutImpl.INSTANCE;
     public static final IOLayout IO = IOLayoutImpl.INSTANCE;
     public static final LongRangeLayout LONG_RANGE = LongRangeLayoutImpl.INSTANCE;
     public static final MatchDataLayout MATCH_DATA = MatchDataLayoutImpl.INSTANCE;

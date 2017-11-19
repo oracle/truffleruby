@@ -104,8 +104,6 @@ import org.truffleruby.core.rubinius.AtomicReferenceNodesBuiltins;
 import org.truffleruby.core.rubinius.AtomicReferenceNodesFactory;
 import org.truffleruby.core.rubinius.ByteArrayNodesBuiltins;
 import org.truffleruby.core.rubinius.ByteArrayNodesFactory;
-import org.truffleruby.core.rubinius.IOBufferNodesBuiltins;
-import org.truffleruby.core.rubinius.IOBufferNodesFactory;
 import org.truffleruby.core.rubinius.IONodesBuiltins;
 import org.truffleruby.core.rubinius.IONodesFactory;
 import org.truffleruby.core.rubinius.RandomizerNodesBuiltins;
@@ -198,7 +196,6 @@ public abstract class BuiltinsClasses {
         HashNodesBuiltins.setup(coreManager, primitiveManager);
         IntegerNodesBuiltins.setup(coreManager, primitiveManager);
         InteropNodesBuiltins.setup(coreManager, primitiveManager);
-        IOBufferNodesBuiltins.setup(coreManager, primitiveManager);
         IONodesBuiltins.setup(coreManager, primitiveManager);
         KernelNodesBuiltins.setup(coreManager, primitiveManager);
         MainNodesBuiltins.setup(coreManager, primitiveManager);
@@ -279,7 +276,6 @@ public abstract class BuiltinsClasses {
             HashNodesFactory.getFactories(),
             IntegerNodesFactory.getFactories(),
             InteropNodesFactory.getFactories(),
-            IOBufferNodesFactory.getFactories(),
             IONodesFactory.getFactories(),
             KernelNodesFactory.getFactories(),
             MainNodesFactory.getFactories(),

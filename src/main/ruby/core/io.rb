@@ -110,17 +110,13 @@ class IO
   class InternalBuffer
     SIZE = 32768
 
-    attr_reader :used
-
     def initialize
-      # Truffle: other fields are initialized in Java.
+      @storage = Rubinius::ByteArray.new(SIZE)
+      @used = 0
+      @total = SIZE
       @write_synced = true
       @start = 0
       @eof = false
-    end
-
-    def used= value
-      @used = Truffle::Fixnum.lower(value)
     end
 
     ##
@@ -147,7 +143,7 @@ class IO
         written = available
       end
       @storage.fill(@used, str, start_pos, written)
-      self.used += written
+      @used += written
       written
     end
 
@@ -255,7 +251,7 @@ class IO
     # Resets the buffer state so the buffer can be filled again.
     def reset!
       @start = 0
-      self.used = 0
+      @used = 0
       @eof = false
       @write_synced = true
     end
@@ -357,7 +353,7 @@ class IO
         @storage = @storage.prepend(chr.chr)
         @start = 0
         @total = @storage.size
-        self.used += 1
+        @used += 1
       end
     end
 
