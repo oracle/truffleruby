@@ -198,14 +198,12 @@ class Time
   end
 
   def round(places = 0)
-    roundable_time = (to_i + subsec.to_r).round(places)
-
-    sec = roundable_time.floor
-    nano = ((roundable_time - sec) * 1_000_000_000).floor
+    original = to_i + subsec.to_r
+    rounded = original.round(places)
 
     time = Time.allocate
     time.send(:initialize_copy, self)
-    Truffle.invoke_primitive(:time_add, time, sec - tv_sec, nano - tv_nsec)
+    time + (rounded - original)
   end
 
   def self._load(data)
