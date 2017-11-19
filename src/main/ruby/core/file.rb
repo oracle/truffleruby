@@ -123,11 +123,10 @@ class File < IO
   # value happens to be in the least significant 16 bits, just set
   # the value to 0 if it is greater than 0xffff. Also, negative values
   # don't make any sense here.
-  def clamp_short(value)
+  def self.clamp_short(value)
     mode = Rubinius::Type.coerce_to value, Integer, :to_int
     mode < 0 || mode > 0xffff ? 0 : mode
   end
-  module_function :clamp_short
 
   def self.absolute_path(obj, dir = nil)
     obj = path(obj)
@@ -294,7 +293,7 @@ class File < IO
 
   def chmod(mode)
     mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
-    n = POSIX.fchmod @descriptor, clamp_short(mode)
+    n = POSIX.fchmod @descriptor, File.clamp_short(mode)
     Errno.handle if n == -1
     n
   end
@@ -1095,7 +1094,7 @@ class File < IO
   #  File.umask         #=> 6
   def self.umask(mask = nil)
     if mask
-      POSIX.umask clamp_short(mask)
+      POSIX.umask File.clamp_short(mask)
     else
       old_mask = POSIX.umask(0)
       POSIX.umask old_mask
