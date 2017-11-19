@@ -302,14 +302,6 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
      */
     @TruffleBoundary
     public void setConstant(RubyContext context, Node currentNode, String name, Object value) {
-        if (context.getCoreLibrary().isLoadingRubyCore()) {
-            final RubyConstant currentConstant = constants.get(name);
-
-            if (currentConstant != null) {
-                return;
-            }
-        }
-
         if (RubyGuards.isRubyModule(value)) {
             Layouts.MODULE.getFields((DynamicObject) value).getAdoptedByLexicalParent(context, rubyModuleObject, name, currentNode);
         } else {
