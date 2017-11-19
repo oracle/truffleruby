@@ -151,6 +151,7 @@ module Truffle::POSIX
   attach_function :open, [:string, :int, :mode_t], :int
   attach_function :opendir, [:string], :pointer
   attach_function :pipe, [:pointer], :int
+  attach_function :read, [:int, :pointer, :size_t], :ssize_t, blocking: true
   attach_function :readlink, [:string, :pointer, :size_t], :ssize_t
   attach_function :truffleposix_readdir, [:pointer], :string, library: LIBTRUFFLEPOSIX
   attach_function :rename, [:string, :string], :int
@@ -235,6 +236,22 @@ module Truffle::POSIX
   # Platform-specific
   if Rubinius.darwin?
     attach_function :_NSGetArgv, [], :pointer
+  end
+
+  def self.read_string(fd, length)
+    buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
+    bytes_read = 0
+    while bytes_read < length
+      ret = read(fd, buffer + bytes_read, length - bytes_read)
+      if ret < 0
+        Errno.handle
+      elsif ret == 0 # EOF
+        return nil if bytes_read == 0
+        break
+      end
+      bytes_read += ret
+    end
+    buffer.read_string(bytes_read)
   end
 
   def self.write_string(fd, string, nonblock=false)
