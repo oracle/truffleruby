@@ -2005,7 +2005,7 @@ class IO
     end
 
     begin
-      str = Truffle::POSIX.read_string(@descriptor, size, false)
+      str = Truffle::POSIX.read_string(@descriptor, size)
     rescue Errno::EAGAIN
       if exception
         raise EAGAINWaitReadable
@@ -2446,7 +2446,7 @@ class IO
     flush
     raise IOError unless @ibuffer.empty?
 
-    str = Truffle::POSIX.read_string(@descriptor, number_of_bytes, false)
+    str = Truffle::POSIX.read_string(@descriptor, number_of_bytes)
     raise EOFError if str.nil?
 
     unless undefined.equal? buffer
