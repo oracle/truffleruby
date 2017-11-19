@@ -23,7 +23,6 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.control.JavaException;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 
@@ -88,30 +87,6 @@ public class JNRTrufflePosix implements TrufflePosix {
         }
 
         return posix.read(fd, buf, n);
-    }
-
-    @TruffleBoundary
-    protected int polyglotWrite(int fd, byte[] buf, int offset, int n) {
-        final OutputStream stream;
-
-        switch (fd) {
-            case 1:
-                stream = context.getEnv().out();
-                break;
-            case 2:
-                stream = context.getEnv().err();
-                break;
-            default:
-                throw new UnsupportedOperationException();
-        }
-
-        try {
-            stream.write(buf, offset, n);
-        } catch (IOException e) {
-            throw new JavaException(e);
-        }
-
-        return n;
     }
 
     @TruffleBoundary
