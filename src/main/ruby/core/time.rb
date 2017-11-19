@@ -198,8 +198,6 @@ class Time
   end
 
   def round(places = 0)
-    return dup if nsec == 0
-
     roundable_time = (to_i + subsec.to_r).round(places)
 
     sec = roundable_time.floor
