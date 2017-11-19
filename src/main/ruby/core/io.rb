@@ -377,11 +377,6 @@ class IO
   attr_accessor :internal
   attr_accessor :mode
 
-  # Truffle: redefine setter to lower
-  def mode=(value)
-    @mode = Truffle::Fixnum.lower(value)
-  end
-
   def mode_read_only?
     @mode & ACCMODE == RDONLY
   end
@@ -1119,6 +1114,7 @@ class IO
     io.mode       = mode || cur_mode
     io.sync       = !!sync
     io.instance_variable_set :@ibuffer, IO::InternalBuffer.new
+    io.instance_variable_set :@lineno, 0
 
     # Truffle: STDOUT isn't defined by the time this call is made during bootstrap, so we need to guard it.
     if defined? STDOUT and STDOUT.respond_to?(:fileno) and not STDOUT.closed?
@@ -1792,7 +1788,7 @@ class IO
   def lineno=(line_number)
     ensure_open
     raise TypeError if line_number.nil?
-    @lineno = Truffle::Fixnum.lower Integer(line_number)
+    @lineno = Integer(line_number)
   end
 
   # Normally only provided by io/nonblock
