@@ -35,6 +35,30 @@ public abstract class ByteArrayNodes {
         return Layouts.BYTE_ARRAY.createByteArray(factory, bytes);
     }
 
+    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    public abstract static class AllocateNode extends UnaryCoreMethodNode {
+
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+
+        @Specialization
+        public DynamicObject allocate(DynamicObject rubyClass) {
+            return allocateObjectNode.allocate(rubyClass, new ByteArrayBuilder());
+        }
+
+    }
+
+    @CoreMethod(names = "initialize", required = 1)
+    public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject initialize(DynamicObject byteArray, int size) {
+            final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            bytes.unsafeReplace(new byte[size], 0);
+            return byteArray;
+        }
+
+    }
+
     @CoreMethod(names = {"get_byte", "[]"}, required = 1, lowerFixnum = 1)
     public abstract static class GetByteNode extends CoreMethodArrayArgumentsNode {
 
@@ -171,18 +195,6 @@ public abstract class ByteArrayNodes {
                 }
             }
             return -1;
-        }
-
-    }
-
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
-    public abstract static class AllocateNode extends UnaryCoreMethodNode {
-
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
-        @Specialization
-        public DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, new ByteArrayBuilder());
         }
 
     }
