@@ -106,6 +106,7 @@ public class RubyContext {
     private final Object classVariableDefinitionLock = new Object();
 
     private boolean initialized;
+    private volatile boolean finalizing;
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Launcher.printTruffleTimeMetric("before-context-constructor");
@@ -247,6 +248,7 @@ public class RubyContext {
     }
 
     public void finalizeContext() {
+        finalizing = true;
         atExitManager.runSystemExitHooks();
     }
 
@@ -424,6 +426,10 @@ public class RubyContext {
 
     public boolean isInitialized() {
         return initialized;
+    }
+
+    public boolean isFinalizing() {
+        return finalizing;
     }
 
     // Returns a canonical path to the home
