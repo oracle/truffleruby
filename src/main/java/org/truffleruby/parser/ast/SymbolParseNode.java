@@ -58,11 +58,13 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
         super(position);
         this.name = name;  // Assumed all names are already intern'd by lexer.
 
-        if (encoding == USASCIIEncoding.INSTANCE || cr == CodeRange.CR_7BIT) {
+        assert cr != CodeRange.CR_UNKNOWN;
+
+        if (cr == CodeRange.CR_7BIT) {
             encoding = USASCIIEncoding.INSTANCE;
         }
 
-        this.rope = StringOperations.encodeRope(name, encoding, cr == null ? CodeRange.CR_UNKNOWN : cr);
+        this.rope = StringOperations.encodeRope(name, encoding, cr);
     }
 
     // String path (e.g. [':', str_beg, str_content, str_end])
