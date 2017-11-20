@@ -35,12 +35,15 @@ SUCH DAMAGE.
 
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <spawn.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
+#include <sys/file.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -121,9 +124,6 @@ pid_t truffleposix_waitpid(pid_t pid, int options, int result[3]) {
 #define LOCK_NB 4
 #define LOCK_UN 8
 
-#include <fcntl.h>
-#include <unistd.h>
-
 int truffleposix_flock(int fd, int operation) {
   struct flock lock;
   switch (operation & ~LOCK_NB) {
@@ -150,7 +150,6 @@ int truffleposix_flock(int fd, int operation) {
   return r;
 }
 #else
-#include <sys/file.h>
 int truffleposix_flock(int fd, int operation) {
   return flock(fd, operation);
 }
