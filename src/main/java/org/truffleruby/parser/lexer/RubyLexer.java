@@ -90,6 +90,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
 
 /*
  * This is a port of the MRI lexer to Java.
@@ -2638,7 +2639,7 @@ public class RubyLexer {
     }
 
     public boolean isASCII(int c) {
-        return Encoding.isMbcAscii((byte) c);
+        return c < 128;
     }
 
     // FIXME: I added number gvars here and they did not.
@@ -2758,20 +2759,28 @@ public class RubyLexer {
     }
 
     public int precise_mbclen() {
+        assert current_enc == lexb.getEncoding();
+
+        // A broken string has at least one character with an invalid byte sequence. It doesn't matter which one we
+        // report as invalid because the error reported to the user will only note the start position of the string.
+        if (lexb.getCodeRange() == CR_BROKEN) {
+            return -1;
+        }
+
         // A substring of a single-byte optimizable string is always single-byte optimizable, so there's no need
         // to actually perform the substring operation.
-        if ((current_enc == lexb.getEncoding() && lexb.isSingleByteOptimizable()) || current_enc.isSingleByte()) {
+        if (lexb.isSingleByteOptimizable()) {
             return 1;
         }
 
         // we subtract one since we have read past first byte by time we are calling this.
-        int start = lex_p - 1;
-        int end = lex_pend;
-        int length = end - start;
+        final int start = lex_p - 1;
+        final int end = lex_pend;
+        final int length = end - start;
 
         // Otherwise, take the substring and see if that new string is single-byte optimizable.
-        Rope rope = parserRopeOperations.makeShared(lexb, start, length);
-        if ((current_enc == rope.getEncoding() && rope.isSingleByteOptimizable())) {
+        final Rope rope = parserRopeOperations.makeShared(lexb, start, length);
+        if (rope.isSingleByteOptimizable()) {
             return 1;
         }
 
@@ -2956,12 +2965,12 @@ public class RubyLexer {
      * Because this version does not use a separate token buffer we only just increment lex_p.  When we reach
      * end of the token it will just get the bytes directly from source directly.
      */
-    public boolean tokadd_mbchar(int first_byte) {
+    public boolean tokadd_mbchar(int firstByte) {
         int length = precise_mbclen();
 
         if (length <= 0) {
             compile_error("invalid multibyte char (" + getEncoding() + ")");
-        } else if (length > 1 || (tokenCR == CR_7BIT && first_byte > 127)) {
+        } else if (length > 1 || (tokenCR == CR_7BIT && !isASCII(firstByte))) {
             tokenCR = CodeRange.CR_VALID;
         }
 
@@ -2971,12 +2980,12 @@ public class RubyLexer {
     }
 
     // mri: parser_tokadd_mbchar
-    public boolean tokadd_mbchar(int first_byte, RopeBuilder buffer) {
+    public boolean tokadd_mbchar(int firstByte, RopeBuilder buffer) {
         int length = precise_mbclen();
 
         if (length <= 0) compile_error("invalid multibyte char (" + getEncoding() + ")");
 
-        tokAdd(first_byte, buffer);                  // add first byte since we have it.
+        tokAdd(firstByte, buffer);                  // add first byte since we have it.
         lex_p += length - 1;                         // we already read first byte so advance pointer for remainder
         if (length > 1) tokCopy(length - 1, buffer); // copy next n bytes over.
 
