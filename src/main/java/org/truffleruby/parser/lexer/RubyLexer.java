@@ -2961,7 +2961,7 @@ public class RubyLexer {
 
         if (length <= 0) {
             compile_error("invalid multibyte char (" + getEncoding() + ")");
-        } else if (length > 1) {
+        } else if (length > 1 || (tokenCR == CR_7BIT && first_byte > 127)) {
             tokenCR = CodeRange.CR_VALID;
         }
 
