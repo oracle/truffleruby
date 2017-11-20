@@ -35,15 +35,17 @@ SUCH DAMAGE.
 
 #include <dirent.h>
 #include <errno.h>
-#include <stdlib.h>
+#include <spawn.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
 #include <sys/resource.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
 
 struct truffleposix_stat {
   uint64_t atime;
@@ -204,4 +206,46 @@ int64_t truffleposix_clock_gettime(int clock) {
     return 0;
   }
   return ((int64_t) timespec.tv_sec * 1000000000) + (int64_t) timespec.tv_nsec;
+}
+
+#define CHECK(call) if ((call) < 0) { perror(#call); return -1; }
+
+pid_t truffleposix_posix_spawnp(const char *command, char *const argv[], char *const envp[],
+                                int nredirects, int* redirects, int pgroup) {
+  posix_spawn_file_actions_t *file_actions_ptr = NULL;
+  posix_spawn_file_actions_t file_actions;
+  if (nredirects > 0) {
+    CHECK(posix_spawn_file_actions_init(&file_actions));
+    file_actions_ptr = &file_actions;
+    for (int i = 0; i < nredirects; i += 2) {
+      int from = redirects[i];
+      int to = redirects[i+1];
+      CHECK(posix_spawn_file_actions_adddup2(&file_actions, to, from));
+    }
+  }
+
+  posix_spawnattr_t *attrs_ptr = NULL;
+  posix_spawnattr_t attrs;
+  if (pgroup >= 0) {
+    CHECK(posix_spawnattr_init(&attrs));
+    attrs_ptr = &attrs;
+    CHECK(posix_spawnattr_setflags(&attrs, POSIX_SPAWN_SETPGROUP));
+    CHECK(posix_spawnattr_setpgroup(&attrs, pgroup));
+  }
+
+  pid_t pid = -1;
+  int ret = posix_spawnp(&pid, command, file_actions_ptr, attrs_ptr, argv, envp);
+
+  if (attrs_ptr) {
+    CHECK(posix_spawnattr_destroy(attrs_ptr));
+  }
+  if (file_actions_ptr) {
+    CHECK(posix_spawn_file_actions_destroy(file_actions_ptr));
+  }
+
+  if (ret == 0) {
+    return pid;
+  } else {
+    return -ret;
+  }
 }

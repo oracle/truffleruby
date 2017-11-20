@@ -415,13 +415,13 @@ module Rubinius
         end
 
         def spawn
-          pid = Truffle::Process.spawn @command, @argv, @env_array, @options
+          pid = posix_spawnp @command, @argv, @env_array, @options
           # Check if the command exists *after* invoking posix_spawn so we have a pid
-          unless resolve_in_path(@command)
+          if not resolve_in_path(@command)
             if pid < 0
               # macOS posix_spawnp(3) returns -1 and no pid when the command is not found,
               # Linux returns 0, sets the pid and let the child do the PATH lookup.
-              $? = ::Process::Status.new(pid, 127, nil, nil)
+              $? = ::Process::Status.new(-1, 127, nil, nil)
             else
               # the subprocess will fail, just wait for it
               ::Process.wait(pid) # Sets $? and avoids a zombie process
@@ -430,8 +430,41 @@ module Rubinius
               end
             end
             raise Errno::ENOENT, "No such file or directory - #{@command}"
+          elsif pid < 0
+            raise SystemCallError.new("posix_spawnp #{@command}", -pid)
           end
           pid
+        end
+
+        def posix_spawnp(command, args, env_array, options)
+          redirects = []
+          pgroup = -1
+
+          options.each_pair do |key, value|
+            case key
+            when :redirect_fd
+              redirects = value.map do |fd|
+                if fd < 0
+                  # :child fd
+                  -fd - 1
+                else
+                  fd
+                end
+              end
+            when :pgroup
+              pgroup = value
+            else
+              raise "Unknown spawn option: #{key}"
+            end
+          end
+
+          with_array_of_ints(redirects) do |redirects_ptr|
+            with_array_of_strings_pointer(args) do |argv|
+              with_array_of_strings_pointer(env_array) do |env|
+                return Truffle::POSIX.truffleposix_posix_spawnp(command, argv, env, redirects.size, redirects_ptr, pgroup)
+              end
+            end
+          end
         end
 
         def exec
@@ -479,6 +512,17 @@ module Rubinius
           end
 
           nil
+        end
+
+        def with_array_of_ints(ints)
+          if ints.empty?
+            yield Rubinius::FFI::Pointer::NULL
+          else
+            Rubinius::FFI::MemoryPointer.new(:int, ints.size) do |ptr|
+              ptr.write_array_of_int(ints)
+              yield ptr
+            end
+          end
         end
 
         def with_array_of_strings_pointer(strings)
