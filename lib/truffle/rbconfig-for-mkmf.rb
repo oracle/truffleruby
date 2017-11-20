@@ -37,15 +37,7 @@ extra_cflags = nil
   end
 end
 
-# We do not have a launcher if we are embedded with the polyglot API
-ruby_launcher = Truffle::Boot.ruby_launcher
-unless ruby_launcher
-  if ruby_home
-    ruby_launcher = "#{RbConfig::CONFIG['bindir']}/#{RbConfig::CONFIG['ruby_install_name']}"
-  else
-    ruby_launcher = RbConfig::CONFIG['ruby_install_name']
-  end
-end
+ruby_launcher = RbConfig.ruby
 
 opt_passes = ['-always-inline', '-mem2reg', '-constprop'].join(' ')
 linkflags = [
