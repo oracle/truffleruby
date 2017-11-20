@@ -91,6 +91,7 @@ import java.util.HashMap;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 
 /*
  * This is a port of the MRI lexer to Java.
@@ -2625,7 +2626,22 @@ public class RubyLexer {
     }
 
     public CodeRange getTokenCR() {
-        return tokenCR;
+        if (tokenCR != null) {
+            return tokenCR;
+        } else {
+            // The CR is null if the yaccValue is hard-coded inside the lexer, rather than determined by a token scan.
+            // This can happen, for instance, if the lexer is consuming tokens that might correspond to operators and
+            // then determines the characters are actually part of an identifier (see <code>lessThan</code> for such
+            // a case).
+
+            if (lexb.isAsciiOnly()) {
+                // We don't know which substring of lexb was used for the token at this point, but if the source string
+                // is CR_7BIT, all substrings must be CR_7BIT by definition.
+                return CR_7BIT;
+            } else {
+                return CR_UNKNOWN;
+            }
+        }
     }
 
     public int incrementParenNest() {
