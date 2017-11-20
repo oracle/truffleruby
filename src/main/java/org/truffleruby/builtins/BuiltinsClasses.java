@@ -22,8 +22,6 @@ import org.truffleruby.core.ProcessNodesBuiltins;
 import org.truffleruby.core.ProcessNodesFactory;
 import org.truffleruby.core.TruffleGCNodesBuiltins;
 import org.truffleruby.core.TruffleGCNodesFactory;
-import org.truffleruby.core.TruffleProcessNodesBuiltins;
-import org.truffleruby.core.TruffleProcessNodesFactory;
 import org.truffleruby.core.TruffleSystemNodesBuiltins;
 import org.truffleruby.core.TruffleSystemNodesFactory;
 import org.truffleruby.core.VMPrimitiveNodesBuiltins;
@@ -245,7 +243,6 @@ public abstract class BuiltinsClasses {
         TruffleGraalNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleKernelNodesBuiltins.setup(coreManager, primitiveManager);
         TrufflePosixNodesBuiltins.setup(coreManager, primitiveManager);
-        TruffleProcessNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleRopesNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleStringNodesBuiltins.setup(coreManager, primitiveManager);
         TruffleSystemNodesBuiltins.setup(coreManager, primitiveManager);
@@ -327,7 +324,6 @@ public abstract class BuiltinsClasses {
             TruffleGraalNodesFactory.getFactories(),
             TruffleKernelNodesFactory.getFactories(),
             TrufflePosixNodesFactory.getFactories(),
-            TruffleProcessNodesFactory.getFactories(),
             TruffleRopesNodesFactory.getFactories(),
             TruffleStringNodesFactory.getFactories(),
             TruffleSystemNodesFactory.getFactories(),

@@ -9,22 +9,16 @@
  */
 package org.truffleruby.platform.posix;
 
-import com.kenai.jffi.Platform;
-import com.kenai.jffi.Platform.OS;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import jnr.constants.platform.Sysconf;
 import jnr.posix.POSIX;
 import jnr.posix.Passwd;
-import jnr.posix.SpawnAttribute;
-import jnr.posix.SpawnFileAction;
 import jnr.posix.Times;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.control.JavaException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Collection;
 
 public class JNRTrufflePosix implements TrufflePosix {
 
@@ -62,21 +56,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public Times times() {
         return posix.times();
-    }
-
-    @TruffleBoundary
-    @Override
-    public int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends SpawnAttribute> spawnAttributes, Collection<? extends CharSequence> argv,
-            Collection<? extends CharSequence> envp) {
-        final long pid = posix.posix_spawnp(path, fileActions, spawnAttributes, argv, envp);
-        // posix_spawnp() is declared as int return value, but jnr-posix declares as long.
-        if (Platform.getPlatform().getOS() == OS.SOLARIS) {
-            // Solaris/SPARCv9 has the int value in the wrong half.
-            // Due to big endian, we need to take the other half.
-            return (int) (pid >> 32);
-        } else {
-            return CoreLibrary.long2int(pid);
-        }
     }
 
     @TruffleBoundary

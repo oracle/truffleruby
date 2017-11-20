@@ -11,12 +11,9 @@ package org.truffleruby.platform.posix;
 
 import jnr.constants.platform.Sysconf;
 import jnr.posix.Passwd;
-import jnr.posix.SpawnAttribute;
-import jnr.posix.SpawnFileAction;
 import jnr.posix.Times;
 
 import java.nio.ByteBuffer;
-import java.util.Collection;
 
 public interface TrufflePosix {
 
@@ -24,8 +21,6 @@ public interface TrufflePosix {
     int errno();
     long sysconf(Sysconf name);
     Times times();
-    int posix_spawnp(String path, Collection<? extends SpawnFileAction> fileActions, Collection<? extends SpawnAttribute> spawnAttributes,
-            Collection<? extends CharSequence> argv, Collection<? extends CharSequence> envp);
     int read(int fd, ByteBuffer buf, int n);
     String getcwd();
     String nl_langinfo(int item);
