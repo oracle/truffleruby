@@ -11,7 +11,7 @@ else
 CC := cc
 endif
 
-CFLAGS := -Wall -Werror -fPIC
+CFLAGS := -Wall -Werror -fPIC -std=c99
 LDFLAGS := -m64
 
 ifeq ($(OS),Linux)

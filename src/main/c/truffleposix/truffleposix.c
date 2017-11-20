@@ -33,6 +33,11 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
 */
 
+/* For clock_gettime() and lstat() on Linux */
+#define _POSIX_C_SOURCE 200112L
+/* For flock() on Darwin */
+#define _DARWIN_C_SOURCE 1
+
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
