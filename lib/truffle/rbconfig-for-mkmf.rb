@@ -37,8 +37,6 @@ extra_cflags = nil
   end
 end
 
-ruby_launcher = RbConfig.ruby
-
 opt_passes = ['-always-inline', '-mem2reg', '-constprop'].join(' ')
 linkflags = [
   '-g',                              # Show debug information such as line numbers in backtrace
@@ -75,7 +73,7 @@ mkconfig.merge!(common)
 
 mkconfig['COMPILE_C']   = "ruby #{cext_dir}/preprocess.rb $< | $(CC) $(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG) -xc - -o $@ && #{opt} #{opt_passes} $@ -o $@"
 mkconfig['COMPILE_CXX'] = "ruby #{cext_dir}/preprocess.rb $< | $(CXX) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG) -xc++ - -o $@ && #{opt} #{opt_passes} $@ -o $@"
-mkconfig['LINK_SO']     = "#{ruby_launcher} -Xgraal.warn_unless=false -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) $(LIBS)"
+mkconfig['LINK_SO']     = "#{RbConfig.ruby} -Xgraal.warn_unless=false -e Truffle::CExt::Linker.main -- -o $@ $(OBJS) $(LIBS)"
 mkconfig['TRY_LINK']    = "#{cc} -o conftest $(CPPFLAGS) #{cext_dir}/ruby.bc #{cext_dir}/trufflemock.bc $(src) $(INCFLAGS) #{linkflags} $(LIBS)"
 
 %w[COMPILE_C COMPILE_CXX LINK_SO TRY_LINK].each do |key|
