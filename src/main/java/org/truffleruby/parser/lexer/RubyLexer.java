@@ -2683,8 +2683,9 @@ public class RubyLexer {
     public void newtok(boolean unreadOnce) {
         tokline = getPosition();
         ruby_sourceline_when_tokline_created = ruby_sourceline;
-        // We assume all idents are 7BIT until they aren't.
-        tokenCR = CodeRange.CR_7BIT;
+
+        // We assume all idents are valid (or 7BIT if ASCII-compatible), until they aren't.
+        tokenCR = lexb.getEncoding().isAsciiCompatible() ? CodeRange.CR_7BIT : CodeRange.CR_VALID;
 
         tokp = lex_p - (unreadOnce ? 1 : 0); // We use tokp of ripper to mark beginning of tokens.
     }
