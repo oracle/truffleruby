@@ -708,6 +708,11 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
         return sourceSection;
     }
 
+    /**
+     * Registers an Assumption for a given method name, which is invalidated when a method with same
+     * name is defined or undefined in this class or when a module is prepended to this class.
+     * This does not check re-definitions in subclasses.
+     */
     public Assumption registerAssumption(String methodName) {
         assert context.getCoreLibrary().isInitializing();
         Assumption assumption = Truffle.getRuntime().createAssumption("inlined " + getName() + "#" + methodName);
