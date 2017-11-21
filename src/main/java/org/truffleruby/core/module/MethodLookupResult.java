@@ -12,7 +12,6 @@ package org.truffleruby.core.module;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
-import org.truffleruby.language.Visibility;
 import org.truffleruby.language.methods.InternalMethod;
 
 public class MethodLookupResult {
@@ -35,10 +34,6 @@ public class MethodLookupResult {
 
     public boolean isDefined() {
         return method != null && !method.isUndefined();
-    }
-
-    public Visibility getVisibility() {
-        return method.getVisibility();
     }
 
     public InternalMethod getMethod() {

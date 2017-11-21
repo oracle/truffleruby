@@ -177,7 +177,7 @@ public abstract class LookupMethodNode extends RubyNode {
 
         // Check visibility
         if (!ignoreVisibility) {
-            final Visibility visibility = method.getVisibility();
+            final Visibility visibility = method.getMethod().getVisibility();
             if (visibility == Visibility.PUBLIC) {
                 return method;
             }
