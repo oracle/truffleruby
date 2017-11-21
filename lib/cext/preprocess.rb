@@ -21,9 +21,9 @@ EOF
 
 # Found in pg
 PG_BINARY_ENCODER_PATCH = <<-EOF
-	switch(rb_tr_to_int_const(value)){
-		case Qtrue_int_const : mybool = 1; break;
-		case Qfalse_int_const : mybool = 0; break;
+    switch(rb_tr_to_int_const(value)){
+        case Qtrue_int_const : mybool = 1; break;
+        case Qfalse_int_const : mybool = 0; break;
 EOF
 
 # Found in puma
@@ -95,8 +95,168 @@ EOF
 
 NO_ASSIGNMENT = /(?:[\),;]|==|!=)/
 
+NOKOGIRI_ERR_PATCH = { match: "(void *)err,",
+                              replacement: "NEW_LOCAL_REF(err),"
+                            }
+NOKOGIRI_ERROR_LIST_PATCH = { match: "(void *)error_list",
+                              replacement: "NEW_LOCAL_REF(error_list)"
+                            }
+
+NOKOGIRI_ERRORS_PATCH = { match: "(void *)errors",
+                              replacement: "NEW_LOCAL_REF(errors)"
+                            }
+NOKOGIRI_ERRSTR_PATCH = { match: "(void *)errstr",
+                              replacement: "NEW_LOCAL_REF(errstr)"
+                            }
+
+NOKOGIRI_HASH_POINTER_PATCH = { match: "(void *)hash",
+                              replacement: "NEW_GLOBAL_REF(hash)"
+                            }
+NOKOGIRI_XPATH_HANDLER_POINTER_PATCH = { match: "(void *)xpath_handler",
+                              replacement: "NEW_GLOBAL_REF(xpath_handler)"
+                            }
+NOKOGIRI_INST_POINTER_PATCH = { match: "(void *)inst",
+                              replacement: "NEW_GLOBAL_REF(inst)"
+                            }
+NOKOGIRI_IO_POINTER_PATCH = { match: "(void *)io",
+                              replacement: "NEW_GLOBAL_REF(io)"
+                            }
+NOKOGIRI_RB_IO_POINTER_PATCH = { match: "(void *)rb_io",
+                              replacement: "NEW_GLOBAL_REF(rb_io)"
+                            }
+NOKOGIRI_NS_POINTER_PATCH = { match: "(void *)ns",
+                              replacement: "NEW_WEAK_REF(ns)"
+                            }
+NOKOGIRI_RB_NODE_POINTER_PATCH = { match: "(void *)rb_node",
+                              replacement: "NEW_WEAK_REF(rb_node)"
+                            }
+NOKOGIRI_SELF_POINTER_PATCH = { match: "(void *)self",
+                              replacement: "NEW_WEAK_REF(self)"
+                            }
+NOKOGIRI_FUNC_INSTANCE_POINTER_PATCH = { match: "rb_ary_new()",
+                              replacement: "NEW_GLOBAL_REF(rb_ary_new())"
+                            }
+NOKOGIRI_BLOCK_PROC_POINTER_PATCH = { match: "(void *)rb_block_proc();",
+                              replacement: "NEW_LOCAL_REF(rb_block_proc());"
+                            }
+
+NOKOGIRI_TUPLE_DOC_POINTER_PATCH = { match: "tuple->doc = rb_doc",
+                              replacement: "tuple->doc = NEW_WEAK_REF(rb_doc)"
+                            }
+NOKOGIRI_TUPLE_CACHE_POINTER_PATCH = { match: "tuple->node_cache = cache",
+                              replacement: "tuple->node_cache = NEW_WEAK_REF(cache)"
+                            }
+
+NOKOGIRI_CONTEXT_CAST_PATCH = { match: "(VALUE)ctx;",
+                              replacement: "GET_LOCAL_REF(ctx);"
+                            }
+NOKOGIRI_CONTEXT_CAST_PATCH_2 = { match: "(VALUE)ctx;",
+                              replacement: "GET_GLOBAL_REF(ctx);"
+                            }
+NOKOGIRI_CONTEXT_USERDATA_CAST_PATCH = { match: "(VALUE)(ctx->context->userData);",
+                              replacement: "GET_LOCAL_REF(ctx->context->userData);"
+                            }
+NOKOGIRI_DATA_CAST_PATCH = { match: "(VALUE)data;",
+                              replacement: "GET_LOCAL_REF(data);"
+                            }
+
+NOKOGIRI_HANDLER_CAST_PATCH = { match: "(VALUE)xsltGetExtData(transform, functionURI);",
+                              replacement: "GET_GLOBAL_REF(xsltGetExtData(transform, functionURI));"
+                            }
+
+NOKOGIRI_NODE_PRIVATE_CAST_PATCH = { match: "(VALUE)node->_private;",
+                              replacement: "GET_WEAK_REF(node->_private);"
+                            }
+
+NOKOGIRI_CTX_STYLE_CAST_PATCH = { match: "ctxt->style->_private",
+                              replacement: "GET_WEAK_REF(ctxt->style->_private)"
+                            }
+
+NOKOGIRI_FUNC_INSTANCE_CAST_PATCH = { match: "(wrapper->func_instances",
+                              replacement: "(GET_GLOBAL_REF(wrapper->func_instances)"
+                                    }
+
+NOKOGIRI_XPATH_ERROR_PATCH_1 = { match: "VALUE thing = Qnil;",
+                              replacement: "VALUE thing = Qnil;\n  VALUE errors = rb_ary_new();"
+                                    }
+
+NOKOGIRI_XPATH_ERROR_PATCH_2 = { match: "xmlSetStructuredErrorFunc(NULL, Nokogiri_error_raise);",
+                              replacement: "xmlSetStructuredErrorFunc(NEW_LOCAL_REF(errors), Nokogiri_error_array_pusher);"
+                                    }
+NOKOGIRI_XPATH_ERROR_PATCH_3 = { match: "if(xpath == NULL)",
+                              replacement: "if (RARRAY_LEN(errors) > 0) { rb_exc_raise(rb_ary_entry(errors, 0)); }\nif(xpath == NULL)"
+                               }
+NOKOGIRI_WRAP_ERROR_PATCH_1 = { match: 'VALUE msg',
+                                replacement: 'VALUE msg[1]'
+                              }
+NOKOGIRI_WRAP_ERROR_PATCH_2 = { match: 'msg = ',
+                                replacement: 'msg[0] = '
+                              }
+NOKOGIRI_WRAP_ERROR_PATCH_3 = { match: '&msg',
+                                replacement: 'msg'
+                              }
+
+NOKOGIRI_DEALLOC_DECL_ORIG = <<-EOF
+static int dealloc_node_i(xmlNodePtr key, xmlNodePtr node, xmlDocPtr doc)
+{
+EOF
+
+NOKOGIRI_DEALLOC_DECL_NEW = <<-EOF
+static int dealloc_node_i(st_data_t a, st_data_t b, st_data_t c, int errorState)
+{
+  xmlNodePtr key = (xmlNodePtr)a;
+  xmlNodePtr node = (xmlNodePtr)b;
+  xmlDocPtr doc = (xmlDocPtr)c;
+EOF
+
+NOKOGIRI_DEALLOC_NODE_I_PATCH = { match: NOKOGIRI_DEALLOC_DECL_ORIG,
+                                  replacement: NOKOGIRI_DEALLOC_DECL_NEW
+                                }
+
+ID = /([a-zA-Z0-9_]+)/
+STRUCT_REF = /#{ID}(->#{ID})*/
+
+NOKOGIRI_DOC_RUBY_OBJECT_ORIG = /(DOC_RUBY_OBJECT\(#{STRUCT_REF}\))/
+NOKOGIRI_DOC_RUBY_OBJECT_NEW = '(GET_WEAK_REF(\1))'
+
+NOKOGIRI_DOC_NODE_CACHE_ORIG = /(DOC_NODE_CACHE\(#{STRUCT_REF}\))/
+NOKOGIRI_DOC_NODE_CACHE_NEW = '(GET_WEAK_REF(\1))'
+
+NOKOGIRI_DOC_RUBY_OBJECT_PATCH = { match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
+                                  replacement: NOKOGIRI_DOC_RUBY_OBJECT_NEW
+                                }
+
+NOKOGIRI_DOC_NODE_CACHE_PATCH = { match: NOKOGIRI_DOC_NODE_CACHE_ORIG,
+                                  replacement: NOKOGIRI_DOC_NODE_CACHE_NEW
+                                }
+
+NOKOGIRI_SAX_SELF_PATCH = { match: 'NOKOGIRI_SAX_SELF(ctx)',
+                      replacement: 'GET_WEAK_REF(NOKOGIRI_SAX_SELF(ctx))'
+                    }
+
+def tuple_new_patch(ctx, slf)
+  { match: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, #{slf})",
+    replacement: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, NEW_WEAK_REF(#{slf}))" }
+end
+
+NOKOGIRI_VA_START_PATCH = { match: 'va_list args;',
+                            replacement: 'va_list args; rb_raise(rb_eRuntimeError, "%s", "Exception:"); return;'
+                          }
+
+NOKOGIRI_VA_START_PATCH_2 = { match: 'va_list args;',
+                            replacement: 'va_list args; rb_str_cat2(GET_LOCAL_REF(ctx), "Generic error"); return;'
+                          }
+
+NOKOGIRI_VA_START_PATCH_3 = { match: /va_list args;[^}]*id_warning, 1, ruby_message\);/,
+                            replacement: 'rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));'
+                          }
+
+NOKOGIRI_VA_START_PATCH_4 = { match: /va_list args;[^}]*id_error, 1, ruby_message\);/,
+                            replacement: 'rb_funcall(doc, id_error, 1, NOKOGIRI_STR_NEW2("Warning."));'
+                          }
+
 def read_field(struct_var_name, field_name)
-  { 
+  {
     match: /\b#{struct_var_name}(\.|->)#{field_name}(\s*#{NO_ASSIGNMENT})/,
     replacement: "rb_tr_managed_from_handle(#{struct_var_name}\\1#{field_name})\\2"
   }
@@ -111,12 +271,12 @@ def write_field(struct_var_name, field_name, leaking)
 end
 
 def read_write_field(struct_var_name, field_name, leaking)
-  [read_field(struct_var_name, field_name), 
+  [read_field(struct_var_name, field_name),
    write_field(struct_var_name, field_name, leaking)]
 end
 
 def read_array(name)
-  { 
+  {
     match: /\b#{name}\[(\w+)\](\s*#{NO_ASSIGNMENT})/,
     replacement: "rb_tr_managed_from_handle(#{name}[\\1])\\2"
   }
@@ -131,7 +291,7 @@ def write_array(name, leaking)
 end
 
 def read_write_array(name, leaking)
-  [read_array(name), 
+  [read_array(name),
    write_array(name, leaking)]
 end
 
@@ -142,7 +302,161 @@ PATCHED_FILES = {
       {
         match: /[[:blank:]]*?switch\s*?\(.*?Qnil:/m,
         replacement: XML_NODE_SET_PATCH
-      }
+      },
+      {
+        match: 'static VALUE to_array(VALUE self, VALUE rb_node)',
+        replacement: 'static VALUE to_array(VALUE self)'
+      },
+      NOKOGIRI_IO_POINTER_PATCH
+    ]
+  },
+  'xml_io.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_CONTEXT_CAST_PATCH_2
+    ]
+  },
+  'xslt_stylesheet.c' => {
+    gem: 'nokogiri',
+    patches: [
+      {
+        match: /[[:blank:]]*?switch\s*?\(.*?Qnil:/m,
+        replacement: XML_NODE_SET_PATCH
+      },
+      NOKOGIRI_FUNC_INSTANCE_POINTER_PATCH,
+      NOKOGIRI_SELF_POINTER_PATCH,
+      NOKOGIRI_ERRSTR_PATCH,
+      NOKOGIRI_INST_POINTER_PATCH,
+      NOKOGIRI_HANDLER_CAST_PATCH,
+      NOKOGIRI_CTX_STYLE_CAST_PATCH,
+      NOKOGIRI_FUNC_INSTANCE_CAST_PATCH,
+      NOKOGIRI_VA_START_PATCH_2,
+    ]
+  },
+  'html_document.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_ERROR_LIST_PATCH,
+      NOKOGIRI_IO_POINTER_PATCH
+
+    ]
+  },
+  'html_sax_push_parser.c' => {
+    gem: 'nokogiri',
+    patches: [
+      tuple_new_patch('ctx', 'self')
+    ]
+  },
+  'xml_sax_push_parser.c' => {
+    gem: 'nokogiri',
+    patches: [
+      tuple_new_patch('ctx', 'self')
+    ]
+  },
+  'xml_document.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_ERROR_LIST_PATCH,
+      NOKOGIRI_IO_POINTER_PATCH,
+      NOKOGIRI_CONTEXT_CAST_PATCH,
+      NOKOGIRI_BLOCK_PROC_POINTER_PATCH,
+      NOKOGIRI_TUPLE_DOC_POINTER_PATCH,
+      NOKOGIRI_TUPLE_CACHE_POINTER_PATCH,
+      NOKOGIRI_DEALLOC_NODE_I_PATCH,
+      NOKOGIRI_DOC_RUBY_OBJECT_PATCH,
+      NOKOGIRI_DOC_NODE_CACHE_PATCH,
+    ]
+  },
+  'xml_dtd.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_ERROR_LIST_PATCH,
+      NOKOGIRI_DATA_CAST_PATCH,
+      NOKOGIRI_HASH_POINTER_PATCH
+    ]
+  },
+  'xml_node.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_ERR_PATCH,
+      NOKOGIRI_ERROR_LIST_PATCH,
+      NOKOGIRI_IO_POINTER_PATCH,
+      NOKOGIRI_DOC_RUBY_OBJECT_PATCH,
+      NOKOGIRI_DOC_NODE_CACHE_PATCH,
+      NOKOGIRI_NODE_PRIVATE_CAST_PATCH,
+      NOKOGIRI_RB_NODE_POINTER_PATCH,
+   ]
+  },
+  'xml_namespace.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_DOC_RUBY_OBJECT_PATCH,
+      NOKOGIRI_NS_POINTER_PATCH,
+      NOKOGIRI_NODE_PRIVATE_CAST_PATCH
+    ]
+  },
+  'xml_reader.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_ERROR_LIST_PATCH,
+      NOKOGIRI_IO_POINTER_PATCH,
+      NOKOGIRI_RB_IO_POINTER_PATCH
+    ]
+  },
+  'xml_sax_parser.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_SAX_SELF_PATCH,
+      NOKOGIRI_VA_START_PATCH_3,
+      NOKOGIRI_VA_START_PATCH_4,
+    ]
+  },
+  'xml_sax_parser_context.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_ERROR_LIST_PATCH,
+      NOKOGIRI_IO_POINTER_PATCH,
+      tuple_new_patch('ctxt', 'sax_handler')
+    ]
+  },
+  'html_sax_parser_context.c' => {
+    gem: 'nokogiri',
+    patches: [
+      tuple_new_patch('ctxt', 'sax_handler')
+    ]
+  },
+  'xml_syntax_error.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_CONTEXT_CAST_PATCH,
+      NOKOGIRI_WRAP_ERROR_PATCH_1,
+      NOKOGIRI_WRAP_ERROR_PATCH_2,
+      NOKOGIRI_WRAP_ERROR_PATCH_3,
+    ]
+  },
+  'xml_xpath_context.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_CONTEXT_CAST_PATCH,
+      NOKOGIRI_DOC_RUBY_OBJECT_PATCH,
+      NOKOGIRI_VA_START_PATCH,
+      NOKOGIRI_XPATH_HANDLER_POINTER_PATCH,
+      NOKOGIRI_XPATH_ERROR_PATCH_1,
+      NOKOGIRI_XPATH_ERROR_PATCH_2,
+      NOKOGIRI_XPATH_ERROR_PATCH_3,
+      NOKOGIRI_CONTEXT_USERDATA_CAST_PATCH,
+    ]
+  },
+  'xml_schema.c' => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_ERRORS_PATCH
+    ]
+  },
+  "xml_relax_ng.c" => {
+    gem: 'nokogiri',
+    patches: [
+      NOKOGIRI_ERRORS_PATCH
     ]
   },
   'pg_binary_encoder.c' => {
