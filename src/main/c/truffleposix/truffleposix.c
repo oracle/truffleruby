@@ -212,41 +212,53 @@ int64_t truffleposix_clock_gettime(int clock) {
   return ((int64_t) timespec.tv_sec * 1000000000) + (int64_t) timespec.tv_nsec;
 }
 
-#define CHECK(call) if ((call) < 0) { perror(#call); return -1; }
+#define CHECK(call, label) if ((error = call) != 0) { perror(#call); goto label; }
 
 pid_t truffleposix_posix_spawnp(const char *command, char *const argv[], char *const envp[],
                                 int nredirects, int* redirects, int pgroup) {
+  int ret = -1;
+  pid_t pid = -1;
+  int error = 0;
+  int called_posix_spawn = 0;
+
   posix_spawn_file_actions_t *file_actions_ptr = NULL;
   posix_spawn_file_actions_t file_actions;
   if (nredirects > 0) {
-    CHECK(posix_spawn_file_actions_init(&file_actions));
+    CHECK(posix_spawn_file_actions_init(&file_actions), end);
     file_actions_ptr = &file_actions;
     for (int i = 0; i < nredirects; i += 2) {
       int from = redirects[i];
       int to = redirects[i+1];
-      CHECK(posix_spawn_file_actions_adddup2(&file_actions, to, from));
+      CHECK(posix_spawn_file_actions_adddup2(&file_actions, to, from), cleanup_actions);
     }
   }
 
   posix_spawnattr_t *attrs_ptr = NULL;
   posix_spawnattr_t attrs;
   if (pgroup >= 0) {
-    CHECK(posix_spawnattr_init(&attrs));
+    CHECK(posix_spawnattr_init(&attrs), cleanup_actions);
     attrs_ptr = &attrs;
-    CHECK(posix_spawnattr_setflags(&attrs, POSIX_SPAWN_SETPGROUP));
-    CHECK(posix_spawnattr_setpgroup(&attrs, pgroup));
+    CHECK(posix_spawnattr_setflags(&attrs, POSIX_SPAWN_SETPGROUP), cleanup_attrs);
+    CHECK(posix_spawnattr_setpgroup(&attrs, pgroup), cleanup_attrs);
   }
 
-  pid_t pid = -1;
-  int ret = posix_spawnp(&pid, command, file_actions_ptr, attrs_ptr, argv, envp);
+  ret = posix_spawnp(&pid, command, file_actions_ptr, attrs_ptr, argv, envp);
+  called_posix_spawn = 1;
 
+cleanup_attrs:
   if (attrs_ptr) {
-    CHECK(posix_spawnattr_destroy(attrs_ptr));
+    posix_spawnattr_destroy(attrs_ptr);
+    attrs_ptr = NULL;
   }
+cleanup_actions:
   if (file_actions_ptr) {
-    CHECK(posix_spawn_file_actions_destroy(file_actions_ptr));
+    posix_spawn_file_actions_destroy(file_actions_ptr);
+    file_actions_ptr = NULL;
   }
-
+end:
+  if (!called_posix_spawn) {
+    return -error;
+  }
   if (ret == 0) {
     return pid;
   } else {
