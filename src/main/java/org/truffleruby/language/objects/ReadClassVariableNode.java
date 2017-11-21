@@ -9,12 +9,14 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 
 public class ReadClassVariableNode extends RubyNode {
@@ -23,6 +25,7 @@ public class ReadClassVariableNode extends RubyNode {
     private final BranchProfile missingProfile = BranchProfile.create();
 
     @Child private RubyNode lexicalScopeNode;
+    @Child private WarnNode warnNode;
 
     public ReadClassVariableNode(RubyNode lexicalScopeNode, String name) {
         this.lexicalScopeNode = lexicalScopeNode;
@@ -42,6 +45,10 @@ public class ReadClassVariableNode extends RubyNode {
             throw new RaiseException(coreExceptions().nameErrorUninitializedClassVariable(module, name, this));
         }
 
+        if (lexicalScope.getParent() == null) {
+            warnTopLevelClassVariableAccess();
+        }
+
         return value;
     }
 
@@ -52,11 +59,23 @@ public class ReadClassVariableNode extends RubyNode {
 
         final Object value = ModuleOperations.lookupClassVariable(module, name);
 
+        if (lexicalScope.getParent() == null) {
+            warnTopLevelClassVariableAccess();
+        }
+
         if (value == null) {
             return nil();
         } else {
             return coreStrings().CLASS_VARIABLE.createInstance();
         }
+    }
+
+    private void warnTopLevelClassVariableAccess() {
+        if (warnNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            warnNode = insert(new WarnNode());
+        }
+        warnNode.warningMessage(getSourceSection(), "class variable access from toplevel");
     }
 
 }
