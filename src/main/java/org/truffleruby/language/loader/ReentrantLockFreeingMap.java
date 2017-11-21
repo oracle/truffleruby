@@ -13,7 +13,6 @@ package org.truffleruby.language.loader;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.core.thread.ThreadManager;
-import org.truffleruby.language.RubyNode;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -58,10 +57,6 @@ public class ReentrantLockFreeingMap<K> {
             lock = currentLock;
         }
         return lock;
-    }
-
-    public boolean lock(RubyNode currentNode, K key, final ReentrantLock lock) {
-        return lock(currentNode, currentNode.getContext().getThreadManager(), key, lock);
     }
 
     @TruffleBoundary
