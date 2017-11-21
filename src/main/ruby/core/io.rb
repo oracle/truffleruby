@@ -903,10 +903,8 @@ class IO
     # the proper half.
     if readable and writable
       # Transmogrify pa_read into a BidirectionalPipe object,
-      # and then tell it about it's pid and pa_write
-
+      # and then tell it about its pid and pa_write
       Rubinius::Unsafe.set_class pa_read, IO::BidirectionalPipe
-
       pipe = pa_read
       pipe.set_pipe_info(pa_write)
     elsif readable
