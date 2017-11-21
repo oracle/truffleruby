@@ -879,8 +879,7 @@ class IO
       end
     end
 
-    mode, binary, external, internal, _autoclose =
-      IO.normalize_options(mode, io_options)
+    mode, binary, external, internal, _autoclose = IO.normalize_options(mode, io_options)
     mode_int = parse_mode mode
 
     readable = false
