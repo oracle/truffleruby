@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.SourceSection;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 
@@ -21,14 +22,17 @@ public class RubyConstant {
     private final boolean isPrivate;
     private final boolean autoload;
     private final boolean isDeprecated;
+    private final SourceSection sourceSection;
 
-    public RubyConstant(DynamicObject declaringModule, Object value, boolean isPrivate, boolean autoload, boolean isDeprecated) {
+    public RubyConstant(DynamicObject declaringModule, Object value, boolean isPrivate, boolean autoload, boolean isDeprecated,
+                        SourceSection sourceSection) {
         assert RubyGuards.isRubyModule(declaringModule);
         this.declaringModule = declaringModule;
         this.value = value;
         this.isPrivate = isPrivate;
         this.autoload = autoload;
         this.isDeprecated = isDeprecated;
+        this.sourceSection = sourceSection;
     }
 
     public DynamicObject getDeclaringModule() {
@@ -47,11 +51,15 @@ public class RubyConstant {
         return isDeprecated;
     }
 
+    public SourceSection getSourceSection() {
+        return sourceSection;
+    }
+
     public RubyConstant withPrivate(boolean isPrivate) {
         if (isPrivate == this.isPrivate) {
             return this;
         } else {
-            return new RubyConstant(declaringModule, value, isPrivate, autoload, isDeprecated);
+            return new RubyConstant(declaringModule, value, isPrivate, autoload, isDeprecated, sourceSection);
         }
     }
 
@@ -59,7 +67,7 @@ public class RubyConstant {
         if (this.isDeprecated()) {
             return this;
         } else {
-            return new RubyConstant(declaringModule, value, isPrivate, autoload, true);
+            return new RubyConstant(declaringModule, value, isPrivate, autoload, true, sourceSection);
         }
     }
 
@@ -68,7 +76,7 @@ public class RubyConstant {
         if (newDeclaringModule == declaringModule) {
             return this;
         } else {
-            return new RubyConstant(newDeclaringModule, value, isPrivate, autoload, isDeprecated);
+            return new RubyConstant(newDeclaringModule, value, isPrivate, autoload, isDeprecated, sourceSection);
         }
     }
 

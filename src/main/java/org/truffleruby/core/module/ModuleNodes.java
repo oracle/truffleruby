@@ -960,19 +960,19 @@ public abstract class ModuleNodes {
                 throw new RaiseException(coreExceptions().nameError(StringUtils.format("wrong constant name %s", name), module, name, this));
             }
 
-            final boolean redefined = Layouts.MODULE.getFields(module).setConstant(getContext(), this, name, value);
-            if (redefined) {
-                warnAlreadyInitializedConstant(module, name);
+            final RubyConstant previous = Layouts.MODULE.getFields(module).setConstant(getContext(), this, name, value);
+            if (previous != null) {
+                warnAlreadyInitializedConstant(module, name, previous.getSourceSection());
             }
             return value;
         }
 
-        private void warnAlreadyInitializedConstant(DynamicObject module, String name) {
+        private void warnAlreadyInitializedConstant(DynamicObject module, String name, SourceSection previousSourceSection) {
             if (warnAlreadyInitializedNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 warnAlreadyInitializedNode = insert(new WarnAlreadyInitializedNode());
             }
-            warnAlreadyInitializedNode.warnAlreadyInitialized(module, name, getSourceSection());
+            warnAlreadyInitializedNode.warnAlreadyInitialized(module, name, getSourceSection(), previousSourceSection);
         }
 
     }
