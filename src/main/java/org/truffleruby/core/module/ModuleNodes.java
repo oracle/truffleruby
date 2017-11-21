@@ -1240,14 +1240,14 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         public boolean isMethodDefined(DynamicObject module, String name, boolean inherit) {
-            final MethodLookupResult method;
+            final InternalMethod method;
             if (inherit) {
-                method = ModuleOperations.lookupMethod(module, name);
+                method = ModuleOperations.lookupMethodUncached(module, name);
             } else {
-                method = new MethodLookupResult(Layouts.MODULE.getFields(module).getMethod(name));
+                method = Layouts.MODULE.getFields(module).getMethod(name);
             }
 
-            return method.isDefined() && !method.getVisibility().isPrivate();
+            return method != null && !method.isUndefined() && !method.getVisibility().isPrivate();
         }
 
     }
@@ -1411,9 +1411,9 @@ public abstract class ModuleNodes {
         public DynamicObject publicInstanceMethod(DynamicObject module, String name,
                 @Cached("create()") BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
-            final MethodLookupResult method = ModuleOperations.lookupMethod(module, name);
+            final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name);
 
-            if (!method.isDefined()) {
+            if (method == null || method.isUndefined()) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().nameErrorUndefinedMethod(name, module, this));
             } else if (method.getVisibility() != Visibility.PUBLIC) {
@@ -1421,7 +1421,7 @@ public abstract class ModuleNodes {
                 throw new RaiseException(coreExceptions().nameErrorPrivateMethod(name, module, this));
             }
 
-            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method.getMethod());
+            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method);
         }
 
     }
@@ -1567,14 +1567,14 @@ public abstract class ModuleNodes {
         public DynamicObject instanceMethod(DynamicObject module, String name,
                 @Cached("create()") BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
-            final MethodLookupResult method = ModuleOperations.lookupMethod(module, name);
+            final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name);
 
-            if (!method.isDefined()) {
+            if (method == null || method.isUndefined()) {
                 errorProfile.enter();
                 throw new RaiseException(coreExceptions().nameErrorUndefinedMethod(name, module, this));
             }
 
-            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method.getMethod());
+            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().getUnboundMethodFactory(), module, method);
         }
 
     }

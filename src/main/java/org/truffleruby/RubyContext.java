@@ -27,7 +27,6 @@ import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.inlined.CoreMethods;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.core.kernel.TraceManager;
-import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.rope.RopeTable;
@@ -46,6 +45,7 @@ import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.FeatureLoader;
 import org.truffleruby.language.loader.SourceLoader;
 import org.truffleruby.language.methods.DeclarationContext;
+import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.launcher.Launcher;
 import org.truffleruby.launcher.options.Options;
@@ -234,17 +234,15 @@ public class RubyContext {
 
     public Object send(Object object, String methodName, DynamicObject block, Object... arguments) {
         CompilerAsserts.neverPartOfCompilation();
-
         assert block == null || RubyGuards.isRubyProc(block);
 
-        final MethodLookupResult method = ModuleOperations.lookupMethod(coreLibrary.getMetaClass(object), methodName);
-
-        if (!method.isDefined()) {
+        final InternalMethod method = ModuleOperations.lookupMethodUncached(coreLibrary.getMetaClass(object), methodName);
+        if (method == null || method.isUndefined()) {
             return null;
         }
 
-        return method.getMethod().getCallTarget().call(
-                RubyArguments.pack(null, null, method.getMethod(), DeclarationContext.METHOD, null, object, block, arguments));
+        return method.getCallTarget().call(
+                RubyArguments.pack(null, null, method, DeclarationContext.METHOD, null, object, block, arguments));
     }
 
     public void finalizeContext() {
