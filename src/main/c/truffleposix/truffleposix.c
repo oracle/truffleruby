@@ -221,6 +221,9 @@ pid_t truffleposix_posix_spawnp(const char *command, char *const argv[], char *c
   int error = 0;
   int called_posix_spawn = 0;
 
+  /* We want to use NULL for actions and attrs if there are no special options,
+   * as that is more efficient on Linux as it uses vfork() (see the man page).
+   * It also avoids the extra _init/_destroy calls in such a case. */
   posix_spawn_file_actions_t *file_actions_ptr = NULL;
   posix_spawn_file_actions_t file_actions;
   if (nredirects > 0) {
