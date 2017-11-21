@@ -9,11 +9,13 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.WarnNode;
 
 public class WriteClassVariableNode extends RubyNode {
 
@@ -21,6 +23,7 @@ public class WriteClassVariableNode extends RubyNode {
 
     @Child private RubyNode lexicalScopeNode;
     @Child private RubyNode rhs;
+    @Child private WarnNode warnNode;
 
     public WriteClassVariableNode(RubyNode lexicalScopeNode, String name, RubyNode rhs) {
         this.lexicalScopeNode = lexicalScopeNode;
@@ -38,12 +41,24 @@ public class WriteClassVariableNode extends RubyNode {
 
         ModuleOperations.setClassVariable(getContext(), module, name, rhsValue, this);
 
+        if (lexicalScope.getParent() == null) {
+            warnTopLevelClassVariableAccess();
+        }
+
         return rhsValue;
     }
 
     @Override
     public Object isDefined(VirtualFrame frame) {
         return coreStrings().ASSIGNMENT.createInstance();
+    }
+
+    private void warnTopLevelClassVariableAccess() {
+        if (warnNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            warnNode = insert(new WarnNode());
+        }
+        warnNode.warningMessage(getSourceSection(), "class variable access from toplevel");
     }
 
 }
