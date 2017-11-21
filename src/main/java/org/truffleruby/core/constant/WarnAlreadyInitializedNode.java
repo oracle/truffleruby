@@ -21,13 +21,17 @@ public class WarnAlreadyInitializedNode extends RubyBaseNode {
     @Child private WarnNode warnNode = new WarnNode();
 
     @TruffleBoundary
-    public void warnAlreadyInitialized(DynamicObject module, String name, SourceSection sourceSection) {
+    public void warnAlreadyInitialized(DynamicObject module, String name, SourceSection sourceSection, SourceSection previousSourceSection) {
         final String moduleName = Layouts.MODULE.getFields(module).getName();
-        if (sourceSection != null) {
-            warnNode.warn(sourceSection.getSource().getName(), ":", Integer.toString(sourceSection.getStartLine()),
-                    ": warning: already initialized constant ", moduleName, "::", name);
+        final String constName;
+        if (module == getContext().getCoreLibrary().getObjectClass()) {
+            constName = name;
         } else {
-            warnNode.warn("warning: already initialized constant ", moduleName, "::", name);
+            constName = moduleName + "::" + name;
+        }
+        warnNode.warningMessage(sourceSection, "already initialized constant " + constName);
+        if (previousSourceSection != null) {
+            warnNode.warningMessage(previousSourceSection, "previous definition of " + name + " was here");
         }
     }
 
