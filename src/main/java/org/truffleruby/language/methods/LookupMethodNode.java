@@ -34,7 +34,7 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
 
 /**
- * Caches {@link ModuleOperations#lookupMethod(DynamicObject, String)}
+ * Caches {@link ModuleOperations#lookupMethodCached(DynamicObject, String)}
  * on an actual instance.
  */
 @NodeChildren({ @NodeChild("self"), @NodeChild("name") })
@@ -158,10 +158,10 @@ public abstract class LookupMethodNode extends RubyNode {
     }
 
     protected MethodLookupResult doCachedLookup(VirtualFrame frame, Object self, String name) {
-        return lookupMethodWithVisibility(getContext(), frame, self, name, ignoreVisibility, onlyLookupPublic);
+        return lookupMethodCachedWithVisibility(getContext(), frame, self, name, ignoreVisibility, onlyLookupPublic);
     }
 
-    public static MethodLookupResult lookupMethodWithVisibility(RubyContext context, VirtualFrame callingFrame,
+    public static MethodLookupResult lookupMethodCachedWithVisibility(RubyContext context, VirtualFrame callingFrame,
             Object receiver, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
         CompilerAsserts.neverPartOfCompilation("slow-path method lookup should not be compiled");
 
@@ -169,7 +169,7 @@ public abstract class LookupMethodNode extends RubyNode {
             throw new UnsupportedOperationException("method lookup not supported on foreign objects");
         }
 
-        final MethodLookupResult method = ModuleOperations.lookupMethod(context.getCoreLibrary().getMetaClass(receiver), name);
+        final MethodLookupResult method = ModuleOperations.lookupMethodCached(context.getCoreLibrary().getMetaClass(receiver), name);
 
         if (!method.isDefined()) {
             return method.withNoMethod();

@@ -50,7 +50,7 @@ public abstract class DispatchNode extends RubyNode {
             String name,
             boolean ignoreVisibility,
             boolean onlyCallPublic) {
-        final MethodLookupResult method = LookupMethodNode.lookupMethodWithVisibility(getContext(),
+        final MethodLookupResult method = LookupMethodNode.lookupMethodCachedWithVisibility(getContext(),
                 frame, receiver, name, ignoreVisibility, onlyCallPublic);
         if (dispatchAction == DispatchAction.RESPOND_TO_METHOD && method.isDefined() && method.getMethod().isUnimplemented()) {
             return method.withNoMethod();

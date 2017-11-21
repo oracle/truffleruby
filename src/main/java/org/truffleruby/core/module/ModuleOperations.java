@@ -294,10 +294,7 @@ public abstract class ModuleOperations {
     }
 
     @TruffleBoundary
-    public static MethodLookupResult lookupMethod(DynamicObject module, String name) {
-        CompilerAsserts.neverPartOfCompilation();
-        assert RubyGuards.isRubyModule(module);
-
+    public static MethodLookupResult lookupMethodCached(DynamicObject module, String name) {
         final ArrayList<Assumption> assumptions = new ArrayList<>();
 
         // Look in ancestors
