@@ -921,31 +921,8 @@ class IO
     pipe.set_encoding(external || Encoding.default_external, internal)
 
     if cmd == '-'
-      pid = Rubinius::Mirror::Process.fork
-
-      if !pid
-        # Child
-        begin
-          if readable
-            pa_read.close
-            STDOUT.reopen ch_write
-          end
-
-          if writable
-            pa_write.close
-            STDIN.reopen ch_read
-          end
-
-          if block_given?
-            yield nil
-            exit! 0
-          else
-            return nil
-          end
-        rescue
-          exit! 0
-        end
-      end
+      Kernel.fork # will throw an error
+      raise 'unreachable'
     else
       options = {}
       options[:in] = ch_read.fileno if ch_read
