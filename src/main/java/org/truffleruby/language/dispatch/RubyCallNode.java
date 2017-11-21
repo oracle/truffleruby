@@ -230,7 +230,7 @@ public class RubyCallNode extends RubyNode {
             // TODO CS-10-Apr-17 I'd like to use this but it doesn't give the same result
             // lookupMethodNode.executeLookupMethod(frame, coreLibrary().getMetaClass(receiverObject), methodName);
 
-            return ModuleOperations.lookupMethod(coreLibrary().getMetaClass(receiverObject), methodName).getMethod();
+            return ModuleOperations.lookupMethodUncached(coreLibrary().getMetaClass(receiverObject), methodName);
         }
 
         // TODO CS-10-Apr-17 remove this boundary

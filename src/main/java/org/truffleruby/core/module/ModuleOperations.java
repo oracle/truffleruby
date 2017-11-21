@@ -329,9 +329,12 @@ public abstract class ModuleOperations {
         return null;
     }
 
-    public static MethodLookupResult lookupMethod(DynamicObject module, String name, Visibility visibility) {
-        MethodLookupResult method = lookupMethod(module, name);
-        return (method.isDefined() && method.getMethod().getVisibility() == visibility) ? method : null;
+    public static InternalMethod lookupMethod(DynamicObject module, String name, Visibility visibility) {
+        final InternalMethod method = lookupMethodUncached(module, name);
+        if (method == null || method.isUndefined()) {
+            return null;
+        }
+        return method.getVisibility() == visibility ? method : null;
     }
 
     public static MethodLookupResult lookupSuperMethod(InternalMethod currentMethod, DynamicObject objectMetaClass) {
