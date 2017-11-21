@@ -29,6 +29,8 @@ public class TruffleNFIPlatform {
     private final Node readNode = Message.READ.createNode();
     private final Node asPointerNode = Message.AS_POINTER.createNode();
 
+    private final Node bindNode = Message.createInvoke(1).createNode();
+
     public TruffleNFIPlatform(RubyContext context) {
         defaultLibrary = (TruffleObject) context.getEnv().parse(Source.newBuilder("default").mimeType("application/x-native").name("native").build()).call();
     }
@@ -45,24 +47,24 @@ public class TruffleNFIPlatform {
         }
     }
 
-    public Object execute(TruffleObject function, Object... args) {
+    public Object execute(Node executeNode, TruffleObject function, Object... args) {
         try {
-            return ForeignAccess.sendExecute(Message.createExecute(args.length).createNode(), function, args);
+            return ForeignAccess.sendExecute(executeNode, function, args);
         } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
             throw new JavaException(e);
         }
     }
 
-    public Object invoke(TruffleObject receiver, String identifier, Object... args) {
+    public Object invoke(Node invokeNode, TruffleObject receiver, String identifier, Object... args) {
         try {
-            return ForeignAccess.sendInvoke(Message.createInvoke(args.length).createNode(), receiver, identifier, args);
+            return ForeignAccess.sendInvoke(invokeNode, receiver, identifier, args);
         } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException | UnknownIdentifierException e) {
             throw new JavaException(e);
         }
     }
 
     public TruffleObject bind(TruffleObject function, String signature) {
-        return (TruffleObject) invoke(function, "bind", signature);
+        return (TruffleObject) invoke(bindNode, function, "bind", signature);
     }
 
     public long asPointer(TruffleObject function) {
@@ -82,6 +84,28 @@ public class TruffleNFIPlatform {
             default:
                 return type;
         }
+    }
+
+    public NativeFunction getFunction(String functionName, int arguments, String signature) {
+        final TruffleObject symbol = lookup(defaultLibrary, functionName);
+        final TruffleObject function = bind(symbol, signature);
+        return new NativeFunction(function, arguments);
+    }
+
+    public class NativeFunction {
+
+        private final TruffleObject function;
+        private final Node executeNode;
+
+        private NativeFunction(TruffleObject function, int numberOfArguments) {
+            this.function = function;
+            this.executeNode = Message.createExecute(numberOfArguments).createNode();
+        }
+
+        public Object call(Object... arguments) {
+            return execute(executeNode, function, arguments);
+        }
+
     }
 
 }
