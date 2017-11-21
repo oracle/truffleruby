@@ -36,6 +36,7 @@ import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.TruffleNFIPlatform;
+import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,8 +76,8 @@ public class ThreadManager {
 
     private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal.withInitial(() -> EMPTY_UNBLOCKING_ACTION);
 
-    private TruffleObject pthread_self;
-    private TruffleObject pthread_kill;
+    private NativeFunction pthread_self;
+    private NativeFunction pthread_kill;
 
     private final ExecutorService fiberPool;
 
@@ -180,11 +181,11 @@ public class ThreadManager {
 
         // We use abs() as a function taking a int and having no side effects
         TruffleObject abs = nfi.lookup(libC, "abs");
-        TruffleObject sigaction = nfi.bind(nfi.lookup(libC, "sigaction"), "(sint32,pointer,pointer):sint32");
+        NativeFunction sigaction = nfi.getFunction("sigaction", 3, "(sint32,pointer,pointer):sint32");
 
         // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
         try (Pointer structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs))) {
-            int result = (int) nfi.execute(sigaction, Signal.SIGVTALRM.intValue(), structSigAction.getAddress(), 0L);
+            int result = (int) sigaction.call(Signal.SIGVTALRM.intValue(), structSigAction.getAddress(), 0L);
             if (result != 0) {
                 throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
             }
@@ -193,13 +194,12 @@ public class ThreadManager {
 
     private void setupNativeThreadSupport() {
         final TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
-        final TruffleObject defaultLibrary = nfi.getDefaultLibrary();
 
         final Object pthread_t_typedef = context.getNativePlatform().getRubiniusConfiguration().get("rbx.platform.typedef.pthread_t");
         final String pthread_t = nfi.toNFIType(StringOperations.getString((DynamicObject) pthread_t_typedef));
 
-        pthread_self = nfi.bind(nfi.lookup(defaultLibrary, "pthread_self"), "():" + pthread_t);
-        pthread_kill = nfi.bind(nfi.lookup(defaultLibrary, "pthread_kill"), "(" + pthread_t + ",sint32):sint32");
+        pthread_self = nfi.getFunction("pthread_self", 0, "():" + pthread_t);
+        pthread_kill = nfi.getFunction("pthread_kill", 2, "(" + pthread_t + ",sint32):sint32");
     }
 
     public void initialize(DynamicObject rubyThread, Node currentNode, String info, Supplier<Object> task) {
@@ -455,12 +455,11 @@ public class ThreadManager {
         }
 
         if (isRubyManagedThread(thread)) {
-            final TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
-            final long pThreadID = ((Number) nfi.execute(pthread_self)).longValue();
+            final long pThreadID = ((Number) pthread_self.call()).longValue();
             final int SIGVTALRM = jnr.constants.platform.Signal.SIGVTALRM.intValue();
 
             blockingNativeCallUnblockingAction.set(() -> {
-                nfi.execute(pthread_kill, pThreadID, SIGVTALRM);
+                pthread_kill.call(pThreadID, SIGVTALRM);
             });
         }
 
