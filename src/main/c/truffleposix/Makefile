@@ -14,6 +14,14 @@ endif
 CFLAGS := -Wall -Werror -fPIC -std=c99
 LDFLAGS := -m64
 
+ifeq ($(OS),Darwin)
+DARWIN_VERSION := $(shell uname -r | sed 's/\..*//')
+MACOS_SIERRA := $(shell test $(DARWIN_VERSION) -gt 15 || echo no)
+ifeq ($(MACOS_SIERRA),no)
+CFLAGS := $(CFLAGS) -DNO_CLOCK_GETTIME
+endif
+endif
+
 ifeq ($(OS),Linux)
 LDFLAGS += -lrt
 endif
