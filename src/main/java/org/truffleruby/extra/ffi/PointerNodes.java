@@ -331,6 +331,16 @@ public abstract class PointerNodes {
 
     }
 
+    @Primitive(name = "pointer_read_double")
+    public static abstract class PointerReadDoublePrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public double readDouble(DynamicObject pointer) {
+            return Layouts.POINTER.getPointer(pointer).readDouble(0);
+        }
+
+    }
+
     @Primitive(name = "pointer_get_at_offset", lowerFixnum = { 1, 2 })
     @ImportStatic(RubiniusTypes.class)
     public static abstract class PointerGetAtOffsetPrimitiveNode extends PrimitiveArrayArgumentsNode {
