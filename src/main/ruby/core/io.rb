@@ -89,6 +89,8 @@ class IO
   # the number of bytes taken. Once +start+ == +used+, the
   # buffer is +empty?+ and needs to be refilled.
   #
+  # 0 <= @start <= @used <= @total
+  #
   # This description should be independent of the "direction"
   # in which the buffer is used. As a read buffer, +fill_from+
   # appends at +used+, but not exceeding +total+. When +used+
@@ -112,10 +114,10 @@ class IO
 
     def initialize
       @storage = Truffle::ByteArray.new(SIZE)
+      @start = 0
       @used = 0
       @total = SIZE
       @write_synced = true
-      @start = 0
       @eof = false
     end
 
