@@ -14,7 +14,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeChildren;
@@ -781,8 +780,22 @@ public abstract class ArrayNodes {
             return true;
         }
 
-        @Fallback
-        protected Object fallback(Object a, Object b) {
+        @Specialization(guards = { "isRubyArray(b)", "strategy.matches(a)", "!strategy.matches(b)",
+                "!strategy.accepts(nil())" }, limit = "ARRAY_STRATEGIES")
+        protected Object equalDifferentPrimitiveType(DynamicObject a, DynamicObject b,
+                @Cached("of(a)") ArrayStrategy strategy) {
+            return FAILURE;
+        }
+
+        @Specialization(guards = { "isRubyArray(b)", "strategy.matches(a)",
+                "strategy.accepts(nil())" }, limit = "ARRAY_STRATEGIES")
+        protected Object equalNotPrimitiveType(DynamicObject a, DynamicObject b,
+                @Cached("of(a)") ArrayStrategy strategy) {
+            return FAILURE;
+        }
+
+        @Specialization(guards = "!isRubyArray(b)")
+        protected Object equalNotArray(DynamicObject a, Object b) {
             return FAILURE;
         }
 
@@ -829,8 +842,22 @@ public abstract class ArrayNodes {
             return true;
         }
 
-        @Fallback
-        protected Object fallback(Object a, Object b) {
+        @Specialization(guards = { "isRubyArray(b)", "strategy.matches(a)", "!strategy.matches(b)",
+                "!strategy.accepts(nil())" }, limit = "ARRAY_STRATEGIES")
+        protected Object eqlDifferentPrimitiveType(DynamicObject a, DynamicObject b,
+                @Cached("of(a)") ArrayStrategy strategy) {
+            return FAILURE;
+        }
+
+        @Specialization(guards = { "isRubyArray(b)", "strategy.matches(a)",
+                "strategy.accepts(nil())" }, limit = "ARRAY_STRATEGIES")
+        protected Object eqlNotPrimitiveType(DynamicObject a, DynamicObject b,
+                @Cached("of(a)") ArrayStrategy strategy) {
+            return FAILURE;
+        }
+
+        @Specialization(guards = "!isRubyArray(b)")
+        protected Object eqlNotArray(DynamicObject a, Object b) {
             return FAILURE;
         }
 
