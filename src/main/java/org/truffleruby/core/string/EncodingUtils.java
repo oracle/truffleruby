@@ -172,7 +172,7 @@ public class EncodingUtils {
 //        str.modify();
         if (len == 0) return;
 
-        // much logic is missing here, since we don't manually manage the ByteList buffer
+        // much logic is missing here, since we don't manually manage the rope builder buffer
 
         total = str.getLength() + len;
         str.unsafeEnsureSpace(total);
@@ -188,8 +188,8 @@ public class EncodingUtils {
     private static final Encoding UTF32Dummy = EncodingDB.getEncodings().get("UTF-32".getBytes()).getEncoding();
 
     // MRI: get_actual_encoding
-    public static Encoding getActualEncoding(Encoding enc, RopeBuilder byteList) {
-        return getActualEncoding(enc, byteList.getUnsafeBytes(), 0, byteList.getLength());
+    public static Encoding getActualEncoding(Encoding enc, RopeBuilder builder) {
+        return getActualEncoding(enc, builder.getUnsafeBytes(), 0, builder.getLength());
     }
 
     public static Encoding getActualEncoding(Encoding enc, byte[] bytes, int p, int end) {

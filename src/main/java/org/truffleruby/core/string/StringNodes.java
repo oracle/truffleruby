@@ -503,8 +503,8 @@ public abstract class StringNodes {
             } else {
 
                 if (begin == stringLength) {
-                    final RopeBuilder byteList = new RopeBuilder();
-                    byteList.setEncoding(encoding(string));
+                    final RopeBuilder builder = new RopeBuilder();
+                    builder.setEncoding(encoding(string));
                     return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
                             Layouts.STRING.build(false, false, RopeOperations.withEncodingVerySlow(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string)), null));
                 }
@@ -1849,7 +1849,7 @@ public abstract class StringNodes {
             // Taken from org.jruby.RubyString#squeeze_bang19.
 
             final Rope rope = rope(string);
-            final RopeBuilder buffer = RopeOperations.toByteListCopy(rope);
+            final RopeBuilder buffer = RopeOperations.toRopeBuilderCopy(rope);
 
             final boolean squeeze[] = new boolean[StringSupport.TRANS_SIZE];
             for (int i = 0; i < StringSupport.TRANS_SIZE; i++) squeeze[i] = true;
@@ -1858,13 +1858,13 @@ public abstract class StringNodes {
                 if (! StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil();
                 } else {
-                    StringOperations.setRope(string, RopeOperations.ropeFromByteList(buffer));
+                    StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
                 if (! squeezeCommonMultiByte(buffer, squeeze, null, encoding(string), false)) {
                     return nil();
                 } else {
-                    StringOperations.setRope(string, RopeOperations.ropeFromByteList(buffer));
+                    StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             }
 
@@ -1900,7 +1900,7 @@ public abstract class StringNodes {
             }
 
             final Rope rope = rope(string);
-            final RopeBuilder buffer = RopeOperations.toByteListCopy(rope);
+            final RopeBuilder buffer = RopeOperations.toRopeBuilderCopy(rope);
 
             DynamicObject otherStr = otherStrings[0];
             Rope otherRope = rope(otherStr);
@@ -1922,13 +1922,13 @@ public abstract class StringNodes {
                 if (! StringSupport.singleByteSqueeze(buffer, squeeze)) {
                     return nil();
                 } else {
-                    StringOperations.setRope(string, RopeOperations.ropeFromByteList(buffer));
+                    StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             } else {
                 if (! StringSupport.multiByteSqueeze(buffer, squeeze, tables, enc, true)) {
                     return nil();
                 } else {
-                    StringOperations.setRope(string, RopeOperations.ropeFromByteList(buffer));
+                    StringOperations.setRope(string, RopeOperations.ropeFromRopeBuilder(buffer));
                 }
             }
 
@@ -1955,9 +1955,9 @@ public abstract class StringNodes {
             final Rope rope = rope(string);
 
             if (! rope.isEmpty()) {
-                final RopeBuilder succByteList = StringSupport.succCommon(rope);
+                final RopeBuilder succBuilder = StringSupport.succCommon(rope);
 
-                final Rope newRope = makeLeafRopeNode.executeMake(succByteList.getBytes(), rope.getEncoding(), CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
+                final Rope newRope = makeLeafRopeNode.executeMake(succBuilder.getBytes(), rope.getEncoding(), CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
                 StringOperations.setRope(string, newRope);
             }
 
@@ -2483,7 +2483,7 @@ public abstract class StringNodes {
             final RopeBuilder bytes = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport.multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
             if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(string, RopeOperations.ropeFromByteList(bytes, rope.getCodeRange()));
+                StringOperations.setRope(string, RopeOperations.ropeFromBuilder(bytes, rope.getCodeRange()));
 
                 return string;
             } else {

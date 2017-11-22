@@ -103,7 +103,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     static Regex getRegexpFromCache(RubyContext runtime, RopeBuilder bytes, Encoding enc, RegexpOptions options) {
-        Rope key = RopeOperations.ropeFromByteList(bytes);
+        Rope key = RopeOperations.ropeFromRopeBuilder(bytes);
         Regex regex = patternCache.get(key);
         if (regex != null && regex.getEncoding() == enc && regex.getOptions() == options.toJoniOptions()) return regex;
         regex = makeRegexp(runtime, bytes, options, enc);
@@ -495,7 +495,7 @@ public class ClassicRegexp implements ReOptions {
             final Encoding[] encodingHolder = new Encoding[]{null};
             regexpEnc = processDRegexpElement(context, options, regexpEnc, encodingHolder, str);
             if (string == null) {
-                string = RopeOperations.getByteListReadOnly(str);
+                string = RopeOperations.getRopeBuilderReadOnly(str);
             } else {
                 string.append(str.getBytes());
             }
@@ -516,9 +516,9 @@ public class ClassicRegexp implements ReOptions {
             strEnc = ASCIIEncoding.INSTANCE;
         }
 
-        // This used to call preprocess, but the resulting bytelist was not
+        // This used to call preprocess, but the resulting rope builder was not
         // used. Since the preprocessing error-checking can be done without
-        // creating a new bytelist, I added a "light" path.
+        // creating a new rope builder, I added a "light" path.
         ClassicRegexp.preprocessLight(context, str, strEnc, fixedEnc, RegexpSupport.ErrorMode.PREPROCESS);
 
         if (fixedEnc[0] != null) {
@@ -634,7 +634,7 @@ public class ClassicRegexp implements ReOptions {
         }
 
         result.setLength(op);
-        return RopeOperations.ropeFromByteList(result);
+        return RopeOperations.ropeFromRopeBuilder(result);
     }
 
     // rb_reg_initialize
@@ -679,7 +679,7 @@ public class ClassicRegexp implements ReOptions {
     }
 
     @SuppressWarnings("unused")
-    public RopeBuilder toByteList() {
+    public RopeBuilder toRopeBuilder() {
         RegexpOptions newOptions = (RegexpOptions)options.clone();
         int p = 0;
         int len = str.byteLength();

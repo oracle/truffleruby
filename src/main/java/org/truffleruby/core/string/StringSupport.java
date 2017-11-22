@@ -863,14 +863,6 @@ public final class StringSupport {
         return modify ? RopeOperations.create(ArrayUtils.extractRange(bytes, 0, t), enc, cr) : null;
     }
 
-    public static RopeBuilder addByteLists(RopeBuilder value1, RopeBuilder value2) {
-        RopeBuilder result = RopeBuilder.createRopeBuilder(value1.getLength() + value2.getLength());
-        result.setLength(value1.getLength() + value2.getLength());
-        System.arraycopy(value1.getUnsafeBytes(), 0, result.getUnsafeBytes(), 0, value1.getLength());
-        System.arraycopy(value2.getUnsafeBytes(), 0, result.getUnsafeBytes(), value1.getLength(), value2.getLength());
-        return result;
-    }
-
     /**
      * rb_str_tr / rb_str_tr_bang
      */

@@ -32,33 +32,33 @@ public class RopeBuilder extends ByteArrayBuilder {
     }
 
     public static RopeBuilder createRopeBuilder(byte[] bytes, Encoding encoding) {
-        final RopeBuilder byteList = new RopeBuilder(bytes.length);
-        byteList.append(bytes);
-        byteList.setEncoding(encoding);
-        return byteList;
+        final RopeBuilder builder = new RopeBuilder(bytes.length);
+        builder.append(bytes);
+        builder.setEncoding(encoding);
+        return builder;
     }
 
     public static RopeBuilder createRopeBuilder(byte[] wrap) {
-        final RopeBuilder byteList = new RopeBuilder(wrap.length);
-        byteList.append(wrap);
-        return byteList;
+        final RopeBuilder builder = new RopeBuilder(wrap.length);
+        builder.append(wrap);
+        return builder;
     }
 
     public static RopeBuilder createRopeBuilder(byte[] wrap, int index, int len) {
-        final RopeBuilder byteList = new RopeBuilder(wrap.length);
-        byteList.append(wrap, index, len);
-        return byteList;
+        final RopeBuilder builder = new RopeBuilder(wrap.length);
+        builder.append(wrap, index, len);
+        return builder;
     }
 
     public static RopeBuilder createRopeBuilder(ByteArrayBuilder wrap, int index, int len) {
-        final RopeBuilder byteList = new RopeBuilder(wrap.getLength());
+        final RopeBuilder builder = new RopeBuilder(wrap.getLength());
         if (index + len > wrap.getLength()) {
             // TODO S 17-Jan-16 fix this use beyond the known length
-            byteList.append(wrap.getUnsafeBytes(), index, len);
+            builder.append(wrap.getUnsafeBytes(), index, len);
         } else {
-            byteList.append(wrap.getBytes(), index, len);
+            builder.append(wrap.getBytes(), index, len);
         }
-        return byteList;
+        return builder;
     }
 
     public Encoding getEncoding() {

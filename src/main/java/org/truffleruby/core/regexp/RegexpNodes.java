@@ -707,7 +707,7 @@ public abstract class RegexpNodes {
         @TruffleBoundary
         protected Rope createRope(DynamicObject regexp) {
             final ClassicRegexp classicRegexp = ClassicRegexp.newRegexp(getContext(), Layouts.REGEXP.getSource(regexp), Layouts.REGEXP.getRegex(regexp).getOptions());
-            return classicRegexp.toByteList().toRope();
+            return classicRegexp.toRopeBuilder().toRope();
         }
     }
 
