@@ -32,13 +32,7 @@ public class ParserRopeOperations {
 
             return RopeOperations.create(rope.getBytes(), encoding, CR_UNKNOWN);
         } else {
-            final Rope newRope = ropeNode.getWithEncodingNode().executeWithEncoding(rope, encoding, CR_UNKNOWN);
-
-            if (newRope == rope) {
-                return rope;
-            }
-
-            return newRope;
+            return ropeNode.getWithEncodingNode().executeWithEncoding(rope, encoding, CR_UNKNOWN);
         }
     }
 
@@ -50,13 +44,7 @@ public class ParserRopeOperations {
 
             return RopeOperations.create(Arrays.copyOfRange(rope.getBytes(), sharedStart, sharedStart + sharedLength), rope.getEncoding(), rope.getCodeRange() == CR_7BIT ? CR_7BIT : CR_UNKNOWN);
         } else {
-            final Rope newRope = ropeNode.getMakeSubstringNode().executeMake(rope, sharedStart, sharedLength);
-
-            if (newRope == rope) {
-                return rope;
-            }
-
-            return newRope;
+            return ropeNode.getMakeSubstringNode().executeMake(rope, sharedStart, sharedLength);
         }
     }
 
