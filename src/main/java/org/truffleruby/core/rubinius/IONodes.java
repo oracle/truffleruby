@@ -84,10 +84,9 @@ import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode;
 import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes.MakeLeafRopeNode;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -449,7 +448,7 @@ public abstract class IONodes {
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
         public DynamicObject read(int fd, int length,
-                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode) {
+                @Cached("create()") MakeStringNode makeStringNode) {
             if (fd != 0) {
                 throw new UnsupportedOperationException();
             }
@@ -474,7 +473,7 @@ public abstract class IONodes {
                 bytes = Arrays.copyOf(buffer, bytesRead);
             }
 
-            return createString(makeLeafRopeNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE));
+            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
