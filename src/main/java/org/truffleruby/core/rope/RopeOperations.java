@@ -643,11 +643,6 @@ public class RopeOperations {
         return create(builder.getBytes(), builder.getEncoding(), CR_UNKNOWN);
     }
 
-    public static Rope ropeFromBuilder(RopeBuilder builder, CodeRange codeRange) {
-        // TODO CS 17-Jan-16 can we take the bytes from the RopeBuilder and set its bytes to null so it can't use them again
-        return create(builder.getBytes(), builder.getEncoding(), codeRange);
-    }
-
     public static boolean isAsciiOnly(byte[] bytes, Encoding encoding) {
         if (!encoding.isAsciiCompatible()) {
             return false;

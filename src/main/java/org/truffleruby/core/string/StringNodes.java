@@ -1544,7 +1544,7 @@ public abstract class StringNodes {
             outputBytes.setEncoding(encoding(string));
 
             final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
-                    Layouts.STRING.build(false, false, RopeOperations.ropeFromBuilder(outputBytes, CodeRange.CR_7BIT), null));
+                    Layouts.STRING.build(false, false, outputBytes.toRope(CodeRange.CR_7BIT), null));
 
             return result;
         }
@@ -1569,7 +1569,7 @@ public abstract class StringNodes {
             outputBytes.setEncoding(ASCIIEncoding.INSTANCE);
 
             final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
-                    Layouts.STRING.build(false, false, RopeOperations.ropeFromBuilder(outputBytes, CodeRange.CR_7BIT), null));
+                    Layouts.STRING.build(false, false, outputBytes.toRope(CodeRange.CR_7BIT), null));
 
             return result;
         }
@@ -2483,7 +2483,7 @@ public abstract class StringNodes {
             final RopeBuilder bytes = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport.multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
             if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(string, RopeOperations.ropeFromBuilder(bytes, rope.getCodeRange()));
+                StringOperations.setRope(string, bytes.toRope(rope.getCodeRange()));
 
                 return string;
             } else {
@@ -3052,7 +3052,7 @@ public abstract class StringNodes {
             if (p > prev) result.append(pBytes, prev, p - prev);
 
             result.setEncoding(USASCIIEncoding.INSTANCE);
-            return RopeOperations.ropeFromBuilder(result, CodeRange.CR_7BIT);
+            return result.toRope(CodeRange.CR_7BIT);
         }
 
         private static int MBCLEN_CHARFOUND_LEN(int r) {
