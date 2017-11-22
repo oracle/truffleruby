@@ -111,11 +111,6 @@ module Process
     raise PrimitiveFailure, 'Process.time primitive failed'
   end
 
-  def self.cpu_times
-    Truffle.primitive :vm_times
-    raise PrimitiveFailure, 'Process.cpu_times primitive failed'
-  end
-  
   CLOCK_MONOTONIC         = 1
   CLOCK_REALTIME          = 2
   CLOCK_THREAD_CPUTIME_ID = 3
@@ -268,6 +263,12 @@ module Process
   Truffle.invoke_primitive :method_unimplement, method(:fork)
 
   def self.times
+    cpu_times = nil
+    Rubinius::FFI::MemoryPointer.new(:double, 4) do |ptr|
+      ret = Truffle::POSIX.truffleposix_getrusage(ptr)
+      Errno.handle if ret == -1
+      cpu_times = ptr.read_array_of_double(4)
+    end
     Struct::Tms.new(*cpu_times)
   end
 

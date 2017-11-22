@@ -9,14 +9,9 @@
  */
 package org.truffleruby.platform.posix;
 
-import jnr.constants.platform.Sysconf;
-import jnr.posix.Times;
-
 public interface TrufflePosix {
 
     int errno();
-    long sysconf(Sysconf name);
-    Times times();
     String getcwd();
     String nl_langinfo(int item);
 
