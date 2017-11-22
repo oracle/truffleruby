@@ -498,8 +498,16 @@ class File < IO
         end
 
         name = path.byteslice 1, length - 1
-        unless dir = Truffle::POSIX.truffleposix_get_user_home(name)
-          raise ArgumentError, "user #{name} does not exist"
+
+        if ptr = Truffle::POSIX.truffleposix_get_user_home(name)
+          dir = ptr.read_string
+          if dir.empty?
+            raise ArgumentError, "user #{name} does not exist"
+          else
+            Truffle.invoke_primitive :pointer_free, ptr
+          end
+        else
+          Errno.handle
         end
 
         path = dir + path.byteslice(length, path.bytesize - length)
