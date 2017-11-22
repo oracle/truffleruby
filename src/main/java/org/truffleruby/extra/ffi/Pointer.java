@@ -120,6 +120,10 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
         return UNSAFE.getLong(address + offset);
     }
 
+    public double readDouble(long offset) {
+        return UNSAFE.getDouble(address + offset);
+    }
+
     public byte[] readZeroTerminatedByteArray(long offset) {
         final int length = findByte(offset, (byte) 0);
         final byte[] bytes = new byte[length];
