@@ -34,7 +34,7 @@ SUCH DAMAGE.
 */
 
 /* For clock_gettime(), lstat() and strdup() on Linux */
-#define _POSIX_C_SOURCE 200809L
+#define _XOPEN_SOURCE 600
 /* For flock() on Darwin */
 #define _DARWIN_C_SOURCE 1
 
