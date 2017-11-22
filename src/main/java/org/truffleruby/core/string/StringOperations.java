@@ -53,7 +53,7 @@ import java.nio.charset.StandardCharsets;
 public abstract class StringOperations {
 
     public static DynamicObject createString(RubyContext context, RopeBuilder bytes) {
-        return context.getCoreLibrary().getStringFactory().newInstance(Layouts.STRING.build(false, false, RopeOperations.ropeFromBuilder(bytes, CodeRange.CR_UNKNOWN), null));
+        return context.getCoreLibrary().getStringFactory().newInstance(Layouts.STRING.build(false, false, bytes.toRope(CodeRange.CR_UNKNOWN), null));
     }
 
     public static DynamicObject createString(RubyContext context, Rope rope) {
