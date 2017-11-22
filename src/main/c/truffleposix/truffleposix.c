@@ -41,6 +41,7 @@ SUCH DAMAGE.
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <pwd.h>
 #include <spawn.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -72,6 +73,15 @@ struct truffleposix_stat {
 };
 
 static void copy_stat(struct stat *stat, struct truffleposix_stat* buffer);
+
+char* truffleposix_get_user_home(const char *name) {
+  struct passwd *entry = getpwnam(name);
+  if (entry != NULL) {
+    return entry->pw_dir;
+  } else {
+    return NULL;
+  }
+}
 
 char* truffleposix_readdir(DIR *dirp) {
   errno = 0;

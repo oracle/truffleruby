@@ -12,7 +12,6 @@ package org.truffleruby.platform.posix;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import jnr.constants.platform.Sysconf;
 import jnr.posix.POSIX;
-import jnr.posix.Passwd;
 import jnr.posix.Times;
 import org.truffleruby.RubyContext;
 
@@ -28,12 +27,6 @@ public class JNRTrufflePosix implements TrufflePosix {
 
     protected POSIX getPosix() {
         return posix;
-    }
-
-    @TruffleBoundary
-    @Override
-    public Passwd getpwnam(String which) {
-        return posix.getpwnam(which);
     }
 
     @TruffleBoundary

@@ -498,7 +498,7 @@ class File < IO
         end
 
         name = path.byteslice 1, length - 1
-        unless dir = Truffle.invoke_primitive(:vm_get_user_home, name)
+        unless dir = Truffle::POSIX.truffleposix_get_user_home(name)
           raise ArgumentError, "user #{name} does not exist"
         end
 

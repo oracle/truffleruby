@@ -46,7 +46,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import jnr.constants.platform.Sysconf;
-import jnr.posix.Passwd;
 import jnr.posix.Times;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -59,7 +58,6 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.proc.ProcSignalHandler;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.ExitException;
@@ -151,26 +149,6 @@ public abstract class VMPrimitiveNodes {
             }
 
             return nil();
-        }
-
-    }
-
-    @Primitive(name = "vm_get_user_home", needsSelf = false)
-    public abstract static class VMGetUserHomePrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(username)")
-        public DynamicObject vmGetUserHome(DynamicObject username) {
-            // TODO BJF 30-APR-2015 Review the more robust getHomeDirectoryPath implementation
-            final String user = StringOperations.getString(username);
-            final Passwd passwd = posix().getpwnam(user);
-            if (passwd == null) {
-                throw new RaiseException(coreExceptions().argumentError("user " + user + " does not exist", this));
-            }
-
-            return makeStringNode.executeMake(passwd.getHome(), UTF8Encoding.INSTANCE, org.truffleruby.core.rope.CodeRange.CR_UNKNOWN);
         }
 
     }

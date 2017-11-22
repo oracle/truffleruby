@@ -10,12 +10,10 @@
 package org.truffleruby.platform.posix;
 
 import jnr.constants.platform.Sysconf;
-import jnr.posix.Passwd;
 import jnr.posix.Times;
 
 public interface TrufflePosix {
 
-    Passwd getpwnam(String which);
     int errno();
     long sysconf(Sysconf name);
     Times times();
