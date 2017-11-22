@@ -222,7 +222,7 @@ module Truffle::POSIX
 
   # Other routines
   attach_function :crypt, [:string, :string], :string
-  attach_function :truffleposix_get_user_home, [:string], :string, library: LIBTRUFFLEPOSIX
+  attach_function :truffleposix_get_user_home, [:string], :pointer, library: LIBTRUFFLEPOSIX
 
   # Errno-related
   if Rubinius.linux?

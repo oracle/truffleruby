@@ -33,8 +33,8 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
 */
 
-/* For clock_gettime() and lstat() on Linux */
-#define _POSIX_C_SOURCE 200112L
+/* For clock_gettime(), lstat() and strdup() on Linux */
+#define _POSIX_C_SOURCE 200809L
 /* For flock() on Darwin */
 #define _DARWIN_C_SOURCE 1
 
@@ -46,6 +46,7 @@ SUCH DAMAGE.
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -96,11 +97,41 @@ int truffleposix_getrusage(double times[4]) {
 }
 
 char* truffleposix_get_user_home(const char *name) {
-  struct passwd *entry = getpwnam(name);
-  if (entry != NULL) {
-    return entry->pw_dir;
-  } else {
+  struct passwd entry;
+  struct passwd *result = NULL;
+  int ret;
+
+  size_t buffer_size = sysconf(_SC_GETPW_R_SIZE_MAX);
+  if (buffer_size <= 0) {
+    buffer_size = 16384;
+  }
+
+  char *buffer = malloc(buffer_size);
+  if (buffer == NULL) {
     return NULL;
+  }
+
+retry:
+  ret = getpwnam_r(name, &entry, buffer, buffer_size, &result);
+  if (result != NULL) {
+    char *home = strdup(entry.pw_dir);
+    free(buffer);
+    return home;
+  } else if (ret == ERANGE) {
+    buffer_size *= 2;
+    free(buffer);
+    buffer = malloc(buffer_size);
+    if (buffer == NULL) {
+      return NULL;
+    }
+    goto retry;
+  } else if (ret != 0) {
+    free(buffer);
+    errno = ret;
+    return NULL;
+  } else {
+    /* ret == 0 && result == NULL means not found */
+    return "";
   }
 }
 
