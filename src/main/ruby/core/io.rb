@@ -159,6 +159,7 @@ class IO
       begin
         buffer = Truffle::POSIX.read_string(io.descriptor, count)
       rescue Errno::EAGAIN
+        IO.select([io]) # Wait if io is in non-blocking mode
         retry
       end
       bytes_read = buffer ? buffer.bytesize : 0
