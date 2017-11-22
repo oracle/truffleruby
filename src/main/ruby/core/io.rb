@@ -1788,7 +1788,6 @@ class IO
   #  $. # lineno of last read   #=> 1001
   def lineno=(line_number)
     ensure_open
-    raise TypeError if line_number.nil?
     @lineno = Integer(line_number)
   end
 
