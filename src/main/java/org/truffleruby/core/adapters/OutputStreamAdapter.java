@@ -13,7 +13,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 
 import java.io.IOException;
@@ -34,7 +34,7 @@ public class OutputStreamAdapter extends OutputStream {
     @Override
     public void write(int bite) throws IOException {
         context.send(object, "write", null,
-                StringOperations.createString(context, RopeBuilder.createRopeBuilder(new byte[]{(byte) bite}, encoding).toRope(CodeRange.CR_VALID)));
+                StringOperations.createString(context, RopeOperations.create((byte) bite, encoding, CodeRange.CR_UNKNOWN)));
     }
 
 }
