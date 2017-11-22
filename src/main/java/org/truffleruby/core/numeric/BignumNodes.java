@@ -708,7 +708,7 @@ public abstract class BignumNodes {
 
         @Specialization(guards = "!isRubyBignum(b)")
         public Object compareFallback(DynamicObject a, DynamicObject b) {
-            return null; // Primitive failure
+            return FAILURE;
         }
 
     }
@@ -719,14 +719,14 @@ public abstract class BignumNodes {
         private final ConditionProfile negativeProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization
-        public DynamicObject pow(DynamicObject a, int b) {
+        public Object pow(DynamicObject a, int b) {
             return pow(a, (long) b);
         }
 
         @Specialization
-        public DynamicObject pow(DynamicObject a, long b) {
+        public Object pow(DynamicObject a, long b) {
             if (negativeProfile.profile(b < 0)) {
-                return null; // Primitive failure
+                return FAILURE;
             } else {
                 // TODO CS 15-Feb-15 what about this cast?
                 return createBignum(pow(Layouts.BIGNUM.getValue(a), (int) b));

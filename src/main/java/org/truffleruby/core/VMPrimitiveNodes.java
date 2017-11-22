@@ -123,7 +123,7 @@ public abstract class VMPrimitiveNodes {
 
         @Fallback
         public Object vmExit(Object status) {
-            return null; // Primitive failure
+            return FAILURE;
         }
 
     }
