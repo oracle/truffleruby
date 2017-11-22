@@ -93,6 +93,25 @@ public class RopeOperations {
     }
 
     @TruffleBoundary
+    public static LeafRope create(byte b, Encoding encoding, CodeRange codeRange) {
+        final int index = b & 0xff;
+
+        if (encoding == UTF8Encoding.INSTANCE) {
+            return RopeConstants.UTF8_SINGLE_BYTE_ROPES[index];
+        }
+
+        if (encoding == USASCIIEncoding.INSTANCE) {
+            return RopeConstants.US_ASCII_SINGLE_BYTE_ROPES[index];
+        }
+
+        if (encoding == ASCIIEncoding.INSTANCE) {
+            return RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[index];
+        }
+
+        return create(new byte[] { b }, encoding, codeRange);
+    }
+
+    @TruffleBoundary
     public static Rope withEncodingVerySlow(Rope originalRope, Encoding newEncoding, CodeRange newCodeRange) {
         if ((originalRope.getEncoding() == newEncoding) && (originalRope.getCodeRange() == newCodeRange)) {
             return originalRope;
