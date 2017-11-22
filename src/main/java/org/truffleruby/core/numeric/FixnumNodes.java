@@ -1165,8 +1165,8 @@ public abstract class FixnumNodes {
         }
 
         @Specialization(guards = "!isInteger(b)")
-        public DynamicObject coerce(int a, Object b) {
-            return null; // Primitive failure
+        public Object coerce(int a, Object b) {
+            return FAILURE;
         }
 
     }

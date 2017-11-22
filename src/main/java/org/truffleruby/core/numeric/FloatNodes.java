@@ -693,12 +693,12 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "ndigits != 0")
         public Object roundDigits(double n, int ndigits) {
-            return null; // Primitive failure
+            return FAILURE;
         }
 
         @Specialization(guards = "!isInteger(ndigits)")
         public Object roundFallback(double n, Object ndigits) {
-            return null; // Primitive failure
+            return FAILURE;
         }
 
     }
