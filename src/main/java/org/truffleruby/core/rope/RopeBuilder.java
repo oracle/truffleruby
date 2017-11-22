@@ -50,13 +50,6 @@ public class RopeBuilder extends ByteArrayBuilder {
         return byteList;
     }
 
-    public static RopeBuilder createRopeBuilder(byte[] wrap, int index, int len, Encoding encoding) {
-        final RopeBuilder byteList = new RopeBuilder(wrap.length);
-        byteList.append(wrap, index, len);
-        byteList.setEncoding(encoding);
-        return byteList;
-    }
-
     public static RopeBuilder createRopeBuilder(ByteArrayBuilder wrap, int index, int len) {
         final RopeBuilder byteList = new RopeBuilder(wrap.getLength());
         if (index + len > wrap.getLength()) {
