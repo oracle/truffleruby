@@ -140,7 +140,7 @@ class IO
 
     # Returns +true+ if the buffer is filled to capacity.
     def full?
-      @total == @used
+      @used == @total
     end
 
     # Returns +true+ if the buffer is empty and cannot be filled further.
