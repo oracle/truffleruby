@@ -422,7 +422,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isRubyString(other)")
         public DynamicObject concat(DynamicObject string, DynamicObject other,
-                                                    @Cached("create()") StringAppendPrimitiveNode stringAppendNode) {
+                                    @Cached("create()") StringAppendPrimitiveNode stringAppendNode) {
             return stringAppendNode.executeStringAppend(string, other);
         }
 
