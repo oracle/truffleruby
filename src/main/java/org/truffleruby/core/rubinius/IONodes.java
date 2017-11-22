@@ -449,9 +449,7 @@ public abstract class IONodes {
         @Specialization
         public DynamicObject read(int fd, int length,
                 @Cached("create()") MakeStringNode makeStringNode) {
-            if (fd != 0) {
-                throw new UnsupportedOperationException();
-            }
+            assert fd == 0 : "Only handles fd 0 (STDIN)";
             final InputStream stream = getContext().getEnv().in();
             final byte[] buffer = new byte[length];
             final int bytesRead = getContext().getThreadManager().runUntilResult(this, () -> {
