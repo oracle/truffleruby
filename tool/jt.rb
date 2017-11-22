@@ -511,7 +511,9 @@ module Commands
         mx 'build', '--dependencies', 'SULONG'
       end
     when "cexts" # Included in 'mx build' but useful to recompile just that part
-      raw_sh "make", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
+      require 'etc'
+      cores = Etc.respond_to?(:nprocessors) ? Etc.nprocessors : 4
+      raw_sh "make", "-j#{cores}", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
     when nil
       mx 'sforceimports'
       mx 'build', '--force-javac', '--warning-as-error'
