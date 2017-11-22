@@ -74,6 +74,27 @@ struct truffleposix_stat {
 
 static void copy_stat(struct stat *stat, struct truffleposix_stat* buffer);
 
+#define timeval2double(timeval) \
+  (((double) (timeval).tv_sec) + ((double) (timeval).tv_usec) / 1e6)
+
+int truffleposix_getrusage(double times[4]) {
+   struct rusage self, children;
+   int r;
+   r = getrusage(RUSAGE_SELF, &self);
+   if (r == -1) {
+     return -1;
+   }
+   r = getrusage(RUSAGE_CHILDREN, &children);
+   if (r == -1) {
+     return -1;
+   }
+   times[0] = timeval2double(self.ru_utime);
+   times[1] = timeval2double(self.ru_stime);
+   times[2] = timeval2double(children.ru_utime);
+   times[3] = timeval2double(children.ru_stime);
+   return 0;
+}
+
 char* truffleposix_get_user_home(const char *name) {
   struct passwd *entry = getpwnam(name);
   if (entry != NULL) {

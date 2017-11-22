@@ -45,8 +45,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import jnr.constants.platform.Sysconf;
-import jnr.posix.Times;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
@@ -73,8 +71,6 @@ import org.truffleruby.platform.signal.Signal;
 import org.truffleruby.platform.signal.SignalHandler;
 import org.truffleruby.platform.signal.SignalManager;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -247,49 +243,6 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         public long time() {
             return System.currentTimeMillis() / 1000;
-        }
-
-    }
-
-    @Primitive(name = "vm_times", needsSelf = false)
-    public abstract static class TimesNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        public DynamicObject times() {
-            // Copied from org/jruby/RubyProcess.java - see copyright and license information there
-
-            Times tms = posix().times();
-            double utime = 0.0d, stime = 0.0d, cutime = 0.0d, cstime = 0.0d;
-            if (tms == null) {
-                ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-                if (bean.isCurrentThreadCpuTimeSupported()) {
-                    cutime = utime = bean.getCurrentThreadUserTime();
-                    cstime = stime = bean.getCurrentThreadCpuTime() - bean.getCurrentThreadUserTime();
-                }
-            } else {
-                utime = tms.utime();
-                stime = tms.stime();
-                cutime = tms.cutime();
-                cstime = tms.cstime();
-            }
-
-            long hz = posix().sysconf(Sysconf._SC_CLK_TCK);
-            if (hz == -1) {
-                hz = 60; //https://github.com/ruby/ruby/blob/trunk/process.c#L6616
-            }
-
-            utime /= hz;
-            stime /= hz;
-            cutime /= hz;
-            cstime /= hz;
-
-            return createArray(new double[] {
-                    utime,
-                    stime,
-                    cutime,
-                    cstime
-            }, 4);
         }
 
     }

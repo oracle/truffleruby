@@ -196,6 +196,7 @@ module Truffle::POSIX
 
   attach_function :getrlimit, [:int, :pointer], :int
   attach_function :setrlimit, [:int, :pointer], :int
+  attach_function :truffleposix_getrusage, [:pointer], :int, library: LIBTRUFFLEPOSIX
 
   attach_function :truffleposix_getpriority, [:int, :id_t], :int, library: LIBTRUFFLEPOSIX
   attach_function :setpriority, [:int, :id_t, :int], :int

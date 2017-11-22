@@ -10,9 +10,7 @@
 package org.truffleruby.platform.posix;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import jnr.constants.platform.Sysconf;
 import jnr.posix.POSIX;
-import jnr.posix.Times;
 import org.truffleruby.RubyContext;
 
 public class JNRTrufflePosix implements TrufflePosix {
@@ -33,18 +31,6 @@ public class JNRTrufflePosix implements TrufflePosix {
     @Override
     public int errno() {
         return posix.errno();
-    }
-
-    @TruffleBoundary
-    @Override
-    public long sysconf(Sysconf name) {
-        return posix.sysconf(name);
-    }
-
-    @TruffleBoundary
-    @Override
-    public Times times() {
-        return posix.times();
     }
 
     @TruffleBoundary
