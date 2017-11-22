@@ -70,10 +70,10 @@ public class StringTerm extends StrTerm {
         return flags;
     }
 
-    protected RopeBuilder createByteList(RubyLexer lexer) {
-        RopeBuilder bytelist = new RopeBuilder();
-        bytelist.setEncoding(lexer.getEncoding());
-        return bytelist;
+    protected RopeBuilder createRopeBuilder(RubyLexer lexer) {
+        RopeBuilder builder = new RopeBuilder();
+        builder.setEncoding(lexer.getEncoding());
+        return builder;
     }
 
     private int endFound(RubyLexer lexer) {
@@ -85,9 +85,9 @@ public class StringTerm extends StrTerm {
 
             if ((flags & STR_FUNC_REGEXP) != 0) {
                 RegexpOptions options = parseRegexpFlags(lexer);
-                Rope regexpBytelist = RopeConstants.EMPTY_US_ASCII_ROPE;
+                Rope regexpRope = RopeConstants.EMPTY_US_ASCII_ROPE;
 
-                lexer.setValue(new RegexpParseNode(lexer.getPosition(), regexpBytelist, options));
+                lexer.setValue(new RegexpParseNode(lexer.getPosition(), regexpRope, options));
                 return Tokens.tREGEXP_END;
             }
 
@@ -192,7 +192,7 @@ public class StringTerm extends StrTerm {
             return ' ';
         }
 
-        RopeBuilder buffer = createByteList(lexer);
+        RopeBuilder buffer = createRopeBuilder(lexer);
         lexer.newtok(true);
         if ((flags & STR_FUNC_EXPAND) != 0 && c == '#') {
             int token = parsePeekVariableName(lexer);

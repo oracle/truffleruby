@@ -220,7 +220,7 @@ public abstract class EncodingConverterNodes {
             final boolean nonNullSource = source != nil();
             Rope sourceRope = nonNullSource ? rope(source) : RopeConstants.EMPTY_UTF8_ROPE;
             final Rope targetRope = rope(target);
-            final RopeBuilder outBytes = RopeOperations.toByteListCopy(targetRope);
+            final RopeBuilder outBytes = RopeOperations.toRopeBuilderCopy(targetRope);
 
             final Ptr inPtr = new Ptr();
             final Ptr outPtr = new Ptr();
@@ -289,7 +289,7 @@ public abstract class EncodingConverterNodes {
                     outBytes.setEncoding(ec.destinationEncoding);
                 }
 
-                StringOperations.setRope(target, RopeOperations.ropeFromByteList(outBytes));
+                StringOperations.setRope(target, RopeOperations.ropeFromRopeBuilder(outBytes));
 
                 return getSymbol(res.symbolicName());
             }

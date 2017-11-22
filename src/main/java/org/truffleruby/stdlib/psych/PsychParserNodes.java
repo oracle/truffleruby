@@ -501,7 +501,7 @@ public abstract class PsychParserNodes {
                     len = dp.p;
                     newStr.setLength(len);
                     newStr.setEncoding(toEncoding);
-                    return RopeOperations.ropeFromByteList(newStr);
+                    return RopeOperations.ropeFromRopeBuilder(newStr);
 
                 default:
                     // some error, return original

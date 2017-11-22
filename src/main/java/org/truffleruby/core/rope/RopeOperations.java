@@ -543,11 +543,11 @@ public class RopeOperations {
     }
 
 
-    public static RopeBuilder getByteListReadOnly(Rope rope) {
+    public static RopeBuilder getRopeBuilderReadOnly(Rope rope) {
         return RopeBuilder.createRopeBuilder(rope.getBytes(), rope.getEncoding());
     }
 
-    public static RopeBuilder toByteListCopy(Rope rope) {
+    public static RopeBuilder toRopeBuilderCopy(Rope rope) {
         return RopeBuilder.createRopeBuilder(rope.getBytes(), rope.getEncoding());
     }
 
@@ -639,18 +639,13 @@ public class RopeOperations {
         return size == other.byteLength() ? 0 : size == len ? -1 : 1;
     }
 
-    public static Rope ropeFromByteList(RopeBuilder byteList) {
-        return create(byteList.getBytes(), byteList.getEncoding(), CR_UNKNOWN);
+    public static Rope ropeFromRopeBuilder(RopeBuilder builder) {
+        return create(builder.getBytes(), builder.getEncoding(), CR_UNKNOWN);
     }
 
-    public static Rope ropeFromByteList(RopeBuilder byteList, CodeRange codeRange) {
-        // TODO (nirvdrum 08-Jan-16) We need to make a copy of the ByteList's bytes for now to be safe, but we should be able to use the unsafe bytes as we move forward.
-        return create(byteList.getBytes(), byteList.getEncoding(), codeRange);
-    }
-
-    public static Rope ropeFromBuilder(RopeBuilder byteList, CodeRange codeRange) {
+    public static Rope ropeFromBuilder(RopeBuilder builder, CodeRange codeRange) {
         // TODO CS 17-Jan-16 can we take the bytes from the RopeBuilder and set its bytes to null so it can't use them again
-        return create(byteList.getBytes(), byteList.getEncoding(), codeRange);
+        return create(builder.getBytes(), builder.getEncoding(), codeRange);
     }
 
     public static boolean isAsciiOnly(byte[] bytes, Encoding encoding) {
