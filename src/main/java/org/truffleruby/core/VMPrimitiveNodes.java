@@ -284,18 +284,12 @@ public abstract class VMPrimitiveNodes {
             cutime /= hz;
             cstime /= hz;
 
-            // TODO CS 24-Mar-15 what are these?
-            final double tutime = 0;
-            final double tstime = 0;
-
             return createArray(new double[] {
                     utime,
                     stime,
                     cutime,
-                    cstime,
-                    tutime,
-                    tstime
-            }, 6);
+                    cstime
+            }, 4);
         }
 
     }

@@ -25,17 +25,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Struct
-  Struct.new 'Tms', :utime, :stime, :cutime, :cstime, :tutime, :tstime
+  Struct.new 'Tms', :utime, :stime, :cutime, :cstime
 
   class Tms
-    def initialize(utime=nil, stime=nil, cutime=nil, cstime=nil,
-                   tutime=nil, tstime=nil)
+    def initialize(utime=nil, stime=nil, cutime=nil, cstime=nil)
       @utime = utime
       @stime = stime
       @cutime = cutime
       @cstime = cstime
-      @tutime = tutime
-      @tstime = tstime
     end
   end
 end
