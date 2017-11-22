@@ -121,14 +121,43 @@ class IO
       @eof = false
     end
 
+    # Returns the number of bytes available in the buffer.
+    def size
+      @used - @start
+    end
+
     # Returns +true+ if the buffer can be filled.
     def empty?
       @start == @used
     end
 
+    # Returns the number of bytes of capacity remaining in the buffer.
+    # This is the number of additional bytes that can be added to the
+    # buffer before it is full.
+    def unused
+      @total - @used
+    end
+
+    # Returns +true+ if the buffer is filled to capacity.
+    def full?
+      @total == @used
+    end
+
     # Returns +true+ if the buffer is empty and cannot be filled further.
     def exhausted?
       @eof and empty?
+    end
+
+    # Resets the buffer state so the buffer can be filled again.
+    def reset!
+      @start = 0
+      @used = 0
+      @eof = false
+      @write_synced = true
+    end
+
+    def write_synced?
+      @write_synced
     end
 
     # Returns the number of bytes that could be written to the buffer.
@@ -227,29 +256,6 @@ class IO
       end
     end
 
-    # Returns +true+ if the buffer is filled to capacity.
-    def full?
-      @total == @used
-    end
-
-    def inspect # :nodoc:
-      content = (@start..@used).map { |i| @storage[i].chr }.join.inspect
-      format '#<IO::InternalBuffer:0x%x total=%p start=%p used=%p data=%p %s>',
-             object_id, @total, @start, @used, @storage, content
-    end
-
-    # Resets the buffer state so the buffer can be filled again.
-    def reset!
-      @start = 0
-      @used = 0
-      @eof = false
-      @write_synced = true
-    end
-
-    def write_synced?
-      @write_synced
-    end
-
     def unseek!(io)
       Truffle.synchronize(self) do
         # Unseek the still buffered amount
@@ -344,16 +350,10 @@ class IO
       end
     end
 
-    # Returns the number of bytes available in the buffer.
-    def size
-      @used - @start
-    end
-
-    # Returns the number of bytes of capacity remaining in the buffer.
-    # This is the number of additional bytes that can be added to the
-    # buffer before it is full.
-    def unused
-      @total - @used
+    def inspect # :nodoc:
+      content = (@start..@used).map { |i| @storage[i].chr }.join.inspect
+      format '#<IO::InternalBuffer:0x%x total=%p start=%p used=%p data=%p %s>',
+             object_id, @total, @start, @used, @storage, content
     end
   end
 
