@@ -915,25 +915,25 @@ public class CoreLibrary {
         // External should always have a value, but Encoding.external_encoding{,=} will lazily setup
         final String externalEncodingName = getContext().getOptions().EXTERNAL_ENCODING;
         if (!externalEncodingName.isEmpty()) {
-            final DynamicObject loadedEncoding = getContext().getEncodingManager().getRubyEncoding(externalEncodingName);
+            final DynamicObject loadedEncoding = encodingManager.getRubyEncoding(externalEncodingName);
             if (loadedEncoding == null) {
                 // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit with a status code of 1 -- it's essentially an input validation error -- no need to show the user a full trace.
                 throw new RuntimeException("unknown encoding name - " + externalEncodingName);
             } else {
-                getContext().getEncodingManager().setDefaultExternalEncoding(EncodingOperations.getEncoding(loadedEncoding));
+                encodingManager.setDefaultExternalEncoding(EncodingOperations.getEncoding(loadedEncoding));
             }
         } else {
-            getContext().getEncodingManager().setDefaultExternalEncoding(getContext().getEncodingManager().getLocaleEncoding());
+            encodingManager.setDefaultExternalEncoding(encodingManager.getLocaleEncoding());
         }
 
         final String internalEncodingName = getContext().getOptions().INTERNAL_ENCODING;
         if (!internalEncodingName.isEmpty()) {
-            final DynamicObject rubyEncoding = getContext().getEncodingManager().getRubyEncoding(internalEncodingName);
+            final DynamicObject rubyEncoding = encodingManager.getRubyEncoding(internalEncodingName);
             if (rubyEncoding == null) {
                 // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit with a status code of 1 -- it's essentially an input validation error -- no need to show the user a full trace.
                 throw new RuntimeException("unknown encoding name - " + internalEncodingName);
             } else {
-                getContext().getEncodingManager().setDefaultInternalEncoding(EncodingOperations.getEncoding(rubyEncoding));
+                encodingManager.setDefaultInternalEncoding(EncodingOperations.getEncoding(rubyEncoding));
             }
         }
     }
