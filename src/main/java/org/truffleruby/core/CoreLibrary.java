@@ -906,8 +906,11 @@ public class CoreLibrary {
             Compiler.command(new Object[]{"com.oracle.svm.core.posix.PosixUtils.setLocale(String, String)String", "LC_ALL", ""});
         }
 
+        final EncodingManager encodingManager = getContext().getEncodingManager();
+
         initializeEncodings();
         initializeEncodingAliases();
+        encodingManager.initializeLocaleEncoding(getContext().getNativePlatform());
 
         // External should always have a value, but Encoding.external_encoding{,=} will lazily setup
         final String externalEncodingName = getContext().getOptions().EXTERNAL_ENCODING;
