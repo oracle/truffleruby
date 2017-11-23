@@ -65,8 +65,7 @@ public class FeatureLoader {
 
     public void initialize(NativePlatform nativePlatform) {
         final TruffleNFIPlatform nfi = nativePlatform.getTruffleNFI();
-        final Object size_t_typedef = nativePlatform.getRubiniusConfiguration().get("rbx.platform.typedef.size_t");
-        final String size_t = nfi.toNFIType(StringOperations.getString((DynamicObject) size_t_typedef));
+        final String size_t = nfi.resolveType(nativePlatform, "size_t");
 
         this.getcwd = nfi.getFunction("getcwd", 2, "(pointer," + size_t + "):pointer");
     }
