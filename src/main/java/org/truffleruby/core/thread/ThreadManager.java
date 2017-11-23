@@ -14,7 +14,6 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
-import jnr.constants.platform.Errno;
 import jnr.constants.platform.Signal;
 import jnr.posix.Timeval;
 import org.truffleruby.Layouts;
@@ -347,12 +346,12 @@ public class ThreadManager {
     }
 
     /**
-     * Runs {@code action} until it returns a non-null value.
-     * The given action should throw an {@link InterruptedException} when {@link Thread#interrupt()} is called.
-     * Otherwise, the {@link SafepointManager} will not be able to interrupt this action.
-     * See {@link ThreadManager#runBlockingSystemCallUntilResult(Node, BlockingAction)} for blocking native calls.
-     * If the action throws an {@link InterruptedException},
-     * it will be retried until it returns a non-null value.
+     * Runs {@code action} until it returns a non-null value. The given action should throw an
+     * {@link InterruptedException} when {@link Thread#interrupt()} is called. Otherwise, the
+     * {@link SafepointManager} will not be able to interrupt this action. See
+     * {@link ThreadManager#runBlockingNFISystemCallUntilResult(Node, BlockingAction)} for blocking
+     * native calls. If the action throws an {@link InterruptedException}, it will be retried until
+     * it returns a non-null value.
      *
      * @param action must not touch any Ruby state
      * @return the first non-null return value from {@code action}
@@ -410,23 +409,9 @@ public class ThreadManager {
     /**
      * Similar to {@link ThreadManager#runUntilResult(Node, BlockingAction)} but purposed for
      * blocking native calls. If the {@link SafepointManager} needs to interrupt the thread, it will
-     * send a SIGVTALRM to abort the blocking syscall which will return with a value < 0 and
-     * errno=EINTR.
+     * send a SIGVTALRM to abort the blocking syscall and the action will return NotProvided if the
+     * syscall fails with errno=EINTR, meaning it was interrupted.
      */
-    @TruffleBoundary
-    public int runBlockingSystemCallUntilResult(Node currentNode, BlockingAction<Integer> action) {
-        assert Errno.EINTR.defined();
-        int EINTR = Errno.EINTR.intValue();
-
-        return runUntilResult(currentNode, () -> {
-            int result = action.block();
-            if (result < 0 && context.getNativePlatform().getPosix().errno() == EINTR) {
-                throw new InterruptedException("EINTR");
-            }
-            return result;
-        }, blockingNativeCallUnblockingAction.get());
-    }
-
     @TruffleBoundary
     public Object runBlockingNFISystemCallUntilResult(Node currentNode, BlockingAction<Object> action) {
         return runUntilResult(currentNode, () -> {
