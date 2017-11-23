@@ -78,22 +78,22 @@ public class FeatureLoader {
             });
         }
 
-        final String currentDirectory = context.getNativePlatform().getPosix().getcwd();
+        final String cwd = context.getNativePlatform().getPosix().getcwd();
 
         if (context.getOptions().LOG_FEATURE_LOCATION) {
-            Log.LOGGER.info(String.format("current directory: %s", currentDirectory));
+            Log.LOGGER.info(String.format("current directory: %s", cwd));
         }
 
         if (feature.startsWith("./")) {
-            feature = currentDirectory + "/" + feature.substring(2);
+            feature = cwd + "/" + feature.substring(2);
 
             if (context.getOptions().LOG_FEATURE_LOCATION) {
                 Log.LOGGER.info(String.format("feature adjusted to %s", feature));
             }
         } else if (feature.startsWith("../")) {
-            feature = currentDirectory.substring(
+            feature = cwd.substring(
                     0,
-                    currentDirectory.lastIndexOf('/')) + "/" + feature.substring(3);
+                    cwd.lastIndexOf('/')) + "/" + feature.substring(3);
 
             if (context.getOptions().LOG_FEATURE_LOCATION) {
                 Log.LOGGER.info(String.format("feature adjusted to %s", feature));
@@ -104,7 +104,7 @@ public class FeatureLoader {
 
         if (feature.startsWith(SourceLoader.RESOURCE_SCHEME)
                 || new File(feature).isAbsolute()) {
-            found = findFeatureWithAndWithoutExtension(feature);
+            found = findFeatureWithAndWithoutExtension(cwd, feature);
         } else {
             for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
                 if (context.getOptions().LOG_FEATURE_LOCATION) {
@@ -112,7 +112,7 @@ public class FeatureLoader {
                 }
 
                 final String fileWithinPath = new File(pathObject.toString(), feature).getPath();
-                final String result = findFeatureWithAndWithoutExtension(fileWithinPath);
+                final String result = findFeatureWithAndWithoutExtension(cwd, fileWithinPath);
 
                 if (result != null) {
                     found = result;
@@ -132,30 +132,30 @@ public class FeatureLoader {
         return found;
     }
 
-    private String findFeatureWithAndWithoutExtension(String path) {
+    private String findFeatureWithAndWithoutExtension(String cwd, String path) {
         if (path.endsWith(".so")) {
             final String base = path.substring(0, path.length() - 3);
 
-            final String asSO = findFeatureWithExactPath(base + RubyLanguage.CEXT_EXTENSION);
+            final String asSO = findFeatureWithExactPath(cwd, base + RubyLanguage.CEXT_EXTENSION);
 
             if (asSO != null) {
                 return asSO;
             }
         }
 
-        final String withExtension = findFeatureWithExactPath(path + RubyLanguage.EXTENSION);
+        final String withExtension = findFeatureWithExactPath(cwd, path + RubyLanguage.EXTENSION);
 
         if (withExtension != null) {
             return withExtension;
         }
 
-        final String asSU = findFeatureWithExactPath(path + RubyLanguage.CEXT_EXTENSION);
+        final String asSU = findFeatureWithExactPath(cwd, path + RubyLanguage.CEXT_EXTENSION);
 
         if (asSU != null) {
             return asSU;
         }
 
-        final String withoutExtension = findFeatureWithExactPath(path);
+        final String withoutExtension = findFeatureWithExactPath(cwd, path);
 
         if (withoutExtension != null) {
             return withoutExtension;
@@ -164,7 +164,7 @@ public class FeatureLoader {
         return null;
     }
 
-    private String findFeatureWithExactPath(String path) {
+    private String findFeatureWithExactPath(String cwd, String path) {
         if (context.getOptions().LOG_FEATURE_LOCATION) {
             Log.LOGGER.info(String.format("trying %s...", path));
         }
@@ -183,9 +183,7 @@ public class FeatureLoader {
             if (file.isAbsolute()) {
                 return file.getCanonicalPath();
             } else {
-                return new File(
-                        context.getNativePlatform().getPosix().getcwd(),
-                        file.getPath()).getCanonicalPath();
+                return new File(cwd, file.getPath()).getCanonicalPath();
             }
         } catch (IOException e) {
             return null;
