@@ -9,7 +9,6 @@
  */
 package org.truffleruby.platform.solaris;
 
-import jnr.ffi.LibraryLoader;
 import jnr.posix.POSIX;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
@@ -21,7 +20,6 @@ import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.PosixFDSet8Bytes;
-import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.TrufflePosix;
 import org.truffleruby.platform.posix.TrufflePosixHandler;
 import org.truffleruby.platform.signal.SignalManager;
@@ -32,7 +30,6 @@ public class SolarisPlatform implements NativePlatform {
     private final TruffleNFIPlatform nfi;
     private final TrufflePosix posix;
     private final SignalManager signalManager;
-    private final Sockets sockets;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public SolarisPlatform(RubyContext context) {
@@ -40,7 +37,6 @@ public class SolarisPlatform implements NativePlatform {
         POSIX _posix = POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context));
         posix = new JNRTrufflePosix(context, _posix);
         signalManager = new SunMiscSignalManager();
-        sockets = LibraryLoader.create(Sockets.class).library("socket").load();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -59,11 +55,6 @@ public class SolarisPlatform implements NativePlatform {
     @Override
     public SignalManager getSignalManager() {
         return signalManager;
-    }
-
-    @Override
-    public Sockets getSockets() {
-        return sockets;
     }
 
     @Override
