@@ -165,10 +165,10 @@ class IO
     # the IO, and +unshift+ again beginning at +start_pos+.
     def unshift(str, start_pos)
       @write_synced = false
-      available = SIZE - @used
+      free = unused
       written = str.bytesize - start_pos
-      if written > available
-        written = available
+      if written > free
+        written = free
       end
       @storage.fill(@used, str, start_pos, written)
       @used += written
