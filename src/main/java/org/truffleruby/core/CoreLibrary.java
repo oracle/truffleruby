@@ -65,7 +65,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
@@ -901,11 +900,6 @@ public class CoreLibrary {
     }
 
     public void initializeEncodingManager() {
-        if (TruffleOptions.AOT) {
-            // Call setlocale(LC_ALL, "") to ensure the locale is set to the environment's locale rather than the default "C" locale.
-            Compiler.command(new Object[]{"com.oracle.svm.core.posix.PosixUtils.setLocale(String, String)String", "LC_ALL", ""});
-        }
-
         final EncodingManager encodingManager = getContext().getEncodingManager();
 
         initializeEncodings();
