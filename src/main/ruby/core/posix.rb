@@ -155,6 +155,7 @@ module Truffle::POSIX
   attach_function :truffleposix_rewinddir, [:pointer], :void, library: LIBTRUFFLEPOSIX
   attach_function :rmdir, [:string], :int
   attach_function :seekdir, [:pointer, :long], :void
+  attach_function :truffleposix_select, [:int, :pointer, :int, :pointer, :int, :pointer, :long], :int, library: LIBTRUFFLEPOSIX
   attach_function :truffleposix_stat, [:string, :pointer], :int, library: LIBTRUFFLEPOSIX
   attach_function :symlink, [:string, :string], :int
   attach_function :telldir, [:pointer], :long

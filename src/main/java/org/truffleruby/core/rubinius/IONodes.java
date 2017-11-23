@@ -79,8 +79,6 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.array.ArrayOperations;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.regexp.RegexpNodes.RegexpSetLastMatchPrimitiveNode;
 import org.truffleruby.core.regexp.RegexpNodesFactory.RegexpSetLastMatchPrimitiveNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
@@ -88,7 +86,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.JavaException;
@@ -98,7 +95,6 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNode;
 import org.truffleruby.language.threadlocal.FindThreadAndFrameLocalStorageNodeGen;
 import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
-import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.Platform;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -110,8 +106,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import jnr.posix.DefaultNativeTimeval;
-import jnr.posix.Timeval;
 import org.truffleruby.extra.ffi.Pointer;
 
 @CoreClass("IO")
@@ -510,164 +504,6 @@ public abstract class IONodes {
             });
 
             return rope.byteLength();
-        }
-
-    }
-
-    @Primitive(name = "io_select", needsSelf = false, lowerFixnum = 4)
-    public static abstract class IOSelectPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "isNil(noTimeout)")
-        public Object selectNoTimeout(DynamicObject readables, DynamicObject writables, DynamicObject errorables, DynamicObject noTimeout) {
-            Object result;
-            do {
-                result = doSelect(readables, writables, errorables, Integer.MAX_VALUE);
-            } while (result == nil());
-            return result;
-        }
-
-        @Specialization(guards = { "isNilOrArray(readables)", "isNilOrArray(writables)", "isNilOrArray(errorables)" })
-        public Object selectWithTimeout(DynamicObject readables, DynamicObject writables, DynamicObject errorables, int timeoutMicros) {
-            return doSelect(readables, writables, errorables, timeoutMicros);
-        }
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        private Object doSelect(DynamicObject readables, DynamicObject writables, DynamicObject errorables, int timeoutMicros) {
-            final Object[] readableObjects = toObjectArray(readables);
-            final Object[] writableObjects = toObjectArray(writables);
-            final Object[] errorableObjects = toObjectArray(errorables);
-
-            final int[] readableFDs = getFileDescriptors(readableObjects);
-            final int[] writableFDs = getFileDescriptors(writableObjects);
-            final int[] errorableFDs = getFileDescriptors(errorableObjects);
-
-            final int nfds;
-            if (readableFDs.length == 0 && writableFDs.length == 0 && errorableFDs.length == 0) {
-                nfds = 0;
-            } else {
-                nfds = max(readableFDs, writableFDs, errorableFDs) + 1;
-            }
-
-            try (FDSet readableFDSet = getContext().getNativePlatform().createFDSet();
-                    FDSet writableFDSet = getContext().getNativePlatform().createFDSet();
-                    FDSet errorableFDSet = getContext().getNativePlatform().createFDSet()) {
-
-                final Timeval timeoutToUse = new DefaultNativeTimeval(jnr.ffi.Runtime.getSystemRuntime());
-                timeoutToUse.setTime(new long[]{
-                        timeoutMicros / 1_000_000,
-                        timeoutMicros % 1_000_000
-                });
-
-                final long end = System.nanoTime() + timeoutMicros * 1000L;
-
-                final int result = getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
-                    // Set each fd each time since they are removed if the fd was not available
-                    for (int fd : readableFDs) {
-                        readableFDSet.set(fd);
-                    }
-                    for (int fd : writableFDs) {
-                        writableFDSet.set(fd);
-                    }
-                    for (int fd : errorableFDs) {
-                        errorableFDSet.set(fd);
-                    }
-
-                    final int ret = nativeSockets().select(
-                            nfds,
-                            readableFDSet.getPointer(),
-                            writableFDSet.getPointer(),
-                            errorableFDSet.getPointer(),
-                            timeoutToUse);
-
-                    if (ret < 0) { // interrupted or error, adjust timeout
-                        final long remainingMicros = (end - System.nanoTime()) / 1000L;
-
-                        timeoutToUse.setTime(new long[]{
-                                remainingMicros / 1_000_000,
-                                remainingMicros % 1_000_000
-                        });
-                    }
-
-                    return ret;
-                });
-
-                ensureSuccessful(result);
-
-                if (result == 0) {
-                    return nil();
-                }
-
-                return createArray(new Object[]{
-                        getSetObjects(readableObjects, readableFDs, readableFDSet),
-                        getSetObjects(writableObjects, writableFDs, writableFDSet),
-                        getSetObjects(errorableObjects, errorableFDs, errorableFDSet)
-                }, 3);
-            }
-        }
-
-        private int[] getFileDescriptors(Object[] objects) {
-            final int[] fileDescriptors = new int[objects.length];
-
-            for (int n = 0; n < objects.length; n++) {
-                if (!(objects[n] instanceof DynamicObject)) {
-                    throw new UnsupportedOperationException();
-                }
-
-                DynamicObject object = (DynamicObject) objects[n];
-                if (!RubyGuards.isRubyIO(object) && RubyGuards.isRubyArray(object)) {
-                    // A [object with #to_io, IO] pair
-                    object = (DynamicObject) ArrayOperations.toObjectArray(object)[1];
-                }
-                fileDescriptors[n] = Layouts.IO.getDescriptor(object);
-            }
-
-            return fileDescriptors;
-        }
-
-        private static int max(int[]... arrays) {
-            int max = Integer.MIN_VALUE;
-
-            for (int n = 0; n < arrays.length; n++) {
-                final int[] array = arrays[n];
-                for (int i = 0; i < array.length; i++) {
-                    if (array[i] > max) {
-                        max = array[i];
-                    }
-                }
-            }
-
-            return max;
-        }
-
-        private DynamicObject getSetObjects(Object[] ioObjects, int[] fds, FDSet set) {
-            final Object[] setObjects = new Object[ioObjects.length];
-            int setFdsCount = 0;
-
-            for (int n = 0; n < ioObjects.length; n++) {
-                if (set.isSet(fds[n])) {
-                    DynamicObject object = (DynamicObject) ioObjects[n];
-                    if (!RubyGuards.isRubyIO(object) && RubyGuards.isRubyArray(object)) {
-                        // A [object with #to_io, IO] pair
-                        object = (DynamicObject) ArrayOperations.toObjectArray(object)[0];
-                    }
-                    setObjects[setFdsCount] = object;
-                    setFdsCount++;
-                }
-            }
-
-            return createArray(setObjects, setFdsCount);
-        }
-
-        protected boolean isNilOrArray(DynamicObject fds) {
-            return isNil(fds) || RubyGuards.isRubyArray(fds);
-        }
-
-        private Object[] toObjectArray(DynamicObject nilOrArray) {
-            if (nilOrArray == nil()) {
-                return ArrayUtils.EMPTY_ARRAY;
-            } else {
-                return ArrayOperations.toObjectArray(nilOrArray);
-            }
         }
 
     }
