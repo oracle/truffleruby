@@ -28,13 +28,19 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.Linker;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.rubinius.IONodes.GetThreadBufferNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.launcher.options.OptionsCatalog;
+import org.truffleruby.platform.NativePlatform;
+import org.truffleruby.platform.TruffleNFIPlatform;
+import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,8 +56,31 @@ public class FeatureLoader {
     private TruffleObject sulongLoadLibraryFunction;
     private Map<String, String> nativeLibraryMap;
 
+    private NativeFunction getcwd;
+    private static final int PATH_MAX = 1024; // jnr-posix hard codes this value
+
     public FeatureLoader(RubyContext context) {
         this.context = context;
+    }
+
+    public void initialize(NativePlatform nativePlatform) {
+        final TruffleNFIPlatform nfi = nativePlatform.getTruffleNFI();
+        final Object size_t_typedef = nativePlatform.getRubiniusConfiguration().get("rbx.platform.typedef.size_t");
+        final String size_t = nfi.toNFIType(StringOperations.getString((DynamicObject) size_t_typedef));
+
+        this.getcwd = nfi.getFunction("getcwd", 2, "(pointer," + size_t + "):pointer");
+    }
+
+    private String getWorkingDirectory() {
+        final TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
+        final int bufferSize = PATH_MAX;
+        final Pointer buffer = GetThreadBufferNode.getBuffer(context, bufferSize);
+        final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.address(), bufferSize));
+        if (address == 0) {
+            throw new UnsupportedOperationException("getcwd() failed");
+        }
+        final byte[] bytes = buffer.readZeroTerminatedByteArray(0);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
     public ReentrantLockFreeingMap<String> getFileLocks() {
@@ -67,7 +96,6 @@ public class FeatureLoader {
                 final Node callerNode = context.getCallStack().getTopMostUserCallNode();
 
                 final SourceSection sourceSection;
-
                 if (callerNode == null) {
                     sourceSection = null;
                 } else {
@@ -78,7 +106,7 @@ public class FeatureLoader {
             });
         }
 
-        final String cwd = context.getNativePlatform().getPosix().getcwd();
+        final String cwd = getWorkingDirectory();
 
         if (context.getOptions().LOG_FEATURE_LOCATION) {
             Log.LOGGER.info(String.format("current directory: %s", cwd));
