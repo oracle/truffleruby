@@ -129,6 +129,8 @@ module Process
     case unit
     when :nanosecond
       time
+    when :microsecond
+      time / 1000
     when :float_microsecond
       time / 1e3
     when :float_second
