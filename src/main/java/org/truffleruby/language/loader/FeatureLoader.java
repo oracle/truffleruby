@@ -22,12 +22,14 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
+import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.Linker;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rubinius.IONodes.GetThreadBufferNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
@@ -40,7 +42,6 @@ import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,7 +80,8 @@ public class FeatureLoader {
             throw new UnsupportedOperationException("getcwd() failed");
         }
         final byte[] bytes = buffer.readZeroTerminatedByteArray(0);
-        return new String(bytes, StandardCharsets.UTF_8);
+        final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding();
+        return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
     }
 
     public ReentrantLockFreeingMap<String> getFileLocks() {
