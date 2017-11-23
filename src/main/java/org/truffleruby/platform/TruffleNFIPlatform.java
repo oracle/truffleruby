@@ -10,6 +10,7 @@
 package org.truffleruby.platform;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
 
 import com.oracle.truffle.api.interop.ArityException;
@@ -20,6 +21,7 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
 public class TruffleNFIPlatform {
@@ -75,7 +77,12 @@ public class TruffleNFIPlatform {
         }
     }
 
-    public String toNFIType(String type) {
+    public String resolveType(NativePlatform nativePlatform, String type) {
+        final Object typedef = nativePlatform.getRubiniusConfiguration().get("rbx.platform.typedef." + type);
+        return toNFIType(StringOperations.getString((DynamicObject) typedef));
+    }
+
+    private String toNFIType(String type) {
         switch (type) {
             case "uint":
                 return "uint32";

@@ -22,7 +22,6 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -194,9 +193,7 @@ public class ThreadManager {
 
     private void setupNativeThreadSupport() {
         final TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
-
-        final Object pthread_t_typedef = context.getNativePlatform().getRubiniusConfiguration().get("rbx.platform.typedef.pthread_t");
-        final String pthread_t = nfi.toNFIType(StringOperations.getString((DynamicObject) pthread_t_typedef));
+        final String pthread_t = nfi.resolveType(context.getNativePlatform(), "pthread_t");
 
         pthread_self = nfi.getFunction("pthread_self", 0, "():" + pthread_t);
         pthread_kill = nfi.getFunction("pthread_kill", 2, "(" + pthread_t + ",sint32):sint32");
