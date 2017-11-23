@@ -22,6 +22,7 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -427,14 +428,10 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public int runBlockingNFISystemCallUntilResult(Node currentNode, BlockingAction<Integer> action) {
-        assert Errno.EINTR.defined();
-        int EINTR = Errno.EINTR.intValue();
-        final int INTERRUPTED = -EINTR;
-
+    public Object runBlockingNFISystemCallUntilResult(Node currentNode, BlockingAction<Object> action) {
         return runUntilResult(currentNode, () -> {
-            int result = action.block();
-            if (result == INTERRUPTED) {
+            final Object result = action.block();
+            if (result == NotProvided.INSTANCE) {
                 throw new InterruptedException("EINTR");
             }
             return result;

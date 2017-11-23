@@ -30,7 +30,6 @@ module Truffle::POSIX
   }
 
   EINTR = Errno::EINTR::Errno
-  INTERRUPTED = -EINTR
 
   def self.to_nfi_type(type)
     if found = TYPES[type]
@@ -88,10 +87,8 @@ module Truffle::POSIX
         if blocking
           result = Truffle.invoke_primitive :thread_run_blocking_nfi_system_call, -> {
             r = bound_func.call(*args)
-            if r == INTERRUPTED
-              raise "#{native_name} returned -EINTR = #{INTERRUPTED} but :blocking expected it did not"
-            elsif r == -1 and Errno.errno == EINTR
-              INTERRUPTED
+            if Integer === r and r == -1 and Errno.errno == EINTR
+              undefined
             else
               r
             end
