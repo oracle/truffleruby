@@ -212,10 +212,7 @@ class IO
         return size unless empty?
 
         reset!
-
-        if fill(io) < 0
-          raise IOError, "error occurred while filling buffer (#{obj})"
-        end
+        fill(io)
 
         if @used == 0
           io.eof!
