@@ -9,17 +9,6 @@
  */
 package org.truffleruby.platform.posix;
 
-import jnr.ffi.Pointer;
-import jnr.posix.Timeval;
-
 public interface Sockets {
-
-    /*
-     * int
-     * select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds,
-     *        fd_set *restrict errorfds, struct timeval *restrict timeout);
-     */
-
-    int select(int nfds, Pointer readfds, Pointer writefds, Pointer errorfds, Timeval timeout);
-
+    // Unused - just referenced by SVM
 }

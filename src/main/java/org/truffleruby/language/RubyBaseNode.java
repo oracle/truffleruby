@@ -33,7 +33,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.TrufflePosix;
 import org.truffleruby.stdlib.CoverageManager;
 
@@ -109,10 +108,6 @@ public abstract class RubyBaseNode extends Node {
 
     protected TrufflePosix posix() {
         return getContext().getNativePlatform().getPosix();
-    }
-
-    protected Sockets nativeSockets() {
-        return getContext().getNativePlatform().getSockets();
     }
 
     protected DynamicObject handle(Object object) {

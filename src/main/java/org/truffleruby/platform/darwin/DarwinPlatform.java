@@ -9,7 +9,6 @@
  */
 package org.truffleruby.platform.darwin;
 
-import jnr.ffi.LibraryLoader;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
@@ -20,7 +19,6 @@ import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
 import org.truffleruby.platform.posix.PosixFDSet4Bytes;
-import org.truffleruby.platform.posix.Sockets;
 import org.truffleruby.platform.posix.TrufflePosix;
 import org.truffleruby.platform.posix.TrufflePosixHandler;
 import org.truffleruby.platform.signal.SignalManager;
@@ -31,14 +29,12 @@ public class DarwinPlatform implements NativePlatform {
     private final TruffleNFIPlatform nfi;
     private final TrufflePosix posix;
     private final SignalManager signalManager;
-    private final Sockets sockets;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public DarwinPlatform(RubyContext context) {
         nfi = context.getOptions().NATIVE_INTERRUPT ? new TruffleNFIPlatform(context) : null;
         posix = new JNRTrufflePosix(context, POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context)));
         signalManager = new SunMiscSignalManager();
-        sockets = LibraryLoader.create(Sockets.class).library("c").load();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         DarwinRubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -57,11 +53,6 @@ public class DarwinPlatform implements NativePlatform {
     @Override
     public SignalManager getSignalManager() {
         return signalManager;
-    }
-
-    @Override
-    public Sockets getSockets() {
-        return sockets;
     }
 
     @Override
