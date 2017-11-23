@@ -212,9 +212,7 @@ class IO
         return size unless empty?
 
         reset!
-        fill(io)
-
-        if @used == 0
+        if fill(io) == 0
           io.eof!
           @eof = true
         end
