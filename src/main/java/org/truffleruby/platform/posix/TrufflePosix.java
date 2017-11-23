@@ -12,6 +12,5 @@ package org.truffleruby.platform.posix;
 public interface TrufflePosix {
 
     int errno();
-    String getcwd();
 
 }

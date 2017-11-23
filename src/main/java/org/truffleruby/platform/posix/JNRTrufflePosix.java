@@ -33,10 +33,4 @@ public class JNRTrufflePosix implements TrufflePosix {
         return posix.errno();
     }
 
-    @TruffleBoundary
-    @Override
-    public String getcwd() {
-        return posix.getcwd();
-    }
-
 }

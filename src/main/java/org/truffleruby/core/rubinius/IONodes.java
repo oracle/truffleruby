@@ -70,6 +70,7 @@ import java.util.Arrays;
 
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CallerFrameAccess;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.CoreMethod;
@@ -721,17 +722,17 @@ public abstract class IONodes {
         @Specialization
         public DynamicObject getThreadBuffer(long size,
                 @Cached("create()") AllocateObjectNode allocateObjectNode) {
-            return allocateObjectNode.allocate(getContext().getCoreLibrary().getRubiniusFFIPointerClass(), getBuffer(size));
+            return allocateObjectNode.allocate(getContext().getCoreLibrary().getRubiniusFFIPointerClass(), getBuffer(getContext(), size));
         }
 
         @TruffleBoundary
-        private Pointer getBuffer(long size) {
+        public static Pointer getBuffer(RubyContext context, long size) {
             final Pointer buffer = THREAD_BUFFER_THREAD_LOCAL.get();
             if (buffer.size() >= size) {
                 return buffer;
             } else {
                 final Pointer newBuffer = Pointer.malloc(Math.max(size * 2, 1024));
-                newBuffer.enableAutorelease(getContext().getFinalizationService());
+                newBuffer.enableAutorelease(context.getFinalizationService());
                 THREAD_BUFFER_THREAD_LOCAL.set(newBuffer);
                 return newBuffer;
             }

@@ -179,6 +179,7 @@ public class RubyContext {
 
         Launcher.printTruffleTimeMetric("before-create-native-platform");
         nativePlatform = NativePlatformFactory.createPlatform(this);
+        featureLoader.initialize(nativePlatform);
         Launcher.printTruffleTimeMetric("after-create-native-platform");
 
         // The encoding manager relies on POSIX having been initialized, so we can't process it during
