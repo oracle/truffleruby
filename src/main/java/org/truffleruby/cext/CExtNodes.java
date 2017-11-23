@@ -26,8 +26,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
-import jnr.posix.DefaultNativeTimeval;
-import jnr.posix.Timeval;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -90,8 +88,6 @@ import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.language.supercall.CallSuperMethodNodeGen;
 import org.truffleruby.language.threadlocal.ThreadAndFrameLocalStorage;
 import org.truffleruby.parser.Identifiers;
-import org.truffleruby.platform.FDSet;
-import org.truffleruby.extra.ffi.Pointer;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -894,112 +890,6 @@ public class CExtNodes {
                     return frame;
                 }
             });
-        }
-
-    }
-
-    @CoreMethod(names = "rb_thread_wait_fd", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class ThreadWaitFDNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public DynamicObject threadWaitFDNode(int fd) {
-            try (FDSet fdSet = getContext().getNativePlatform().createFDSet()) {
-                getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
-                    fdSet.set(fd);
-                    return nativeSockets().select(fd + 1,
-                            fdSet.getPointer(),
-                            Pointer.JNR_NULL,
-                            Pointer.JNR_NULL,
-                            null);
-                });
-            }
-
-            return nil();
-        }
-
-    }
-
-    @CoreMethod(names = "rb_wait_for_single_fd", onSingleton = true, required = 4, lowerFixnum = {1, 2, 3, 4})
-    public abstract static class WaitForSingleFDNode extends CoreMethodArrayArgumentsNode {
-
-        // From ruby.h
-        private static final int RB_WAITFD_IN = 1;
-        private static final int RB_WAITFD_PRI = 2;
-        private static final int RB_WAITFD_OUT = 4;
-
-        @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization
-        public int waitForSingleFDNode(int fd, int events, long tv_secs, long tv_usecs) {
-            final boolean isRead = (events & RB_WAITFD_IN) != 0;
-            final boolean isWrite = (events & RB_WAITFD_OUT) != 0;
-            final boolean isError = (events & RB_WAITFD_PRI) != 0;
-
-            try (FDSet readFDSet = getContext().getNativePlatform().createFDSet();
-                    FDSet writeFDSet = getContext().getNativePlatform().createFDSet();
-                    FDSet errorFDSet = getContext().getNativePlatform().createFDSet()) {
-
-                final Pointer readFds = isRead ? readFDSet.getPointer() : Pointer.NULL;
-                final Pointer writeFds = isWrite ? writeFDSet.getPointer() : Pointer.NULL;
-                final Pointer errorFds = isError ? errorFDSet.getPointer() : Pointer.NULL;
-
-                final Timeval timeout;
-                if (tv_secs > 0 || tv_usecs > 0) {
-                    timeout = new DefaultNativeTimeval(jnr.ffi.Runtime.getSystemRuntime());
-                    timeout.setTime(new long[]{ tv_secs, tv_usecs });
-                } else {
-                    timeout = null;
-                }
-
-                final int fdsResult = getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
-                    if (isRead) {
-                        readFDSet.set(fd);
-                    }
-                    if (isWrite) {
-                        writeFDSet.set(fd);
-                    }
-                    if (isError) {
-                        writeFDSet.set(fd);
-                    }
-                    return nativeSockets().select(fd + 1, readFds, writeFds, errorFds, timeout);
-                });
-
-                if (fdsResult < 0) { // error
-                    return fdsResult;
-                } else if (fdsResult == 0) { // timeout
-                    return 0;
-                } else {
-                    int result = 0;
-                    if (isRead && readFDSet.isSet(fd)) {
-                        result |= RB_WAITFD_IN;
-                    }
-                    if (isWrite && writeFDSet.isSet(fd)) {
-                        result |= RB_WAITFD_OUT;
-                    }
-                    if (isError && errorFDSet.isSet(fd)) {
-                        result |= RB_WAITFD_PRI;
-                    }
-                    return result;
-                }
-            }
-        }
-
-    }
-
-    @CoreMethod(names = "rb_thread_fd_writable", onSingleton = true, required = 1, lowerFixnum = 1)
-    public abstract static class ThreadFDWritableNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int threadFDWritableNode(int fd) {
-            try (FDSet fdSet = getContext().getNativePlatform().createFDSet()) {
-                return getContext().getThreadManager().runBlockingSystemCallUntilResult(this, () -> {
-                    fdSet.set(fd);
-                    return nativeSockets().select(fd + 1,
-                            Pointer.JNR_NULL,
-                            fdSet.getPointer(),
-                            Pointer.JNR_NULL,
-                            null);
-                });
-            }
         }
 
     }

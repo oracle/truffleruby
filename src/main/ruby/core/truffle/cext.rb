@@ -1898,6 +1898,47 @@ module Truffle::CExt
     end
   end
 
+  def rb_thread_wait_fd(fd)
+    io = IO.for_fd(fd)
+    io.autoclose = false
+    IO.select([io])
+    nil
+  end
+
+  def rb_thread_fd_writable(fd)
+    io = IO.for_fd(fd)
+    io.autoclose = false
+    _r, w, _e = IO.select(nil, [io])
+    w.size
+  end
+
+  # From ruby.h
+  RB_WAITFD_IN = 1
+  RB_WAITFD_PRI = 2
+  RB_WAITFD_OUT = 4
+
+  def rb_wait_for_single_fd(fd, events, tv_secs, tv_usecs)
+    io = IO.for_fd(fd)
+    io.autoclose = false
+    read = (events & RB_WAITFD_IN) != 0 ? [io] : nil
+    write = (events & RB_WAITFD_OUT) != 0 ? [io] : nil
+    error = (events & RB_WAITFD_PRI) != 0 ? [io] : nil
+    timeout = nil
+    if tv_secs > 0 || tv_usecs > 0
+      timeout = tv_secs + tv_usecs/1.0e6
+    end
+    r, w, e = IO.select(read, write, error, *timeout)
+    if r.nil? # timeout
+      0
+    else
+      result = 0
+      result |= RB_WAITFD_IN unless r.empty?
+      result |= RB_WAITFD_OUT unless w.empty?
+      result |= RB_WAITFD_PRI unless e.empty?
+      result
+    end
+  end
+
   def call_c_with_block(function, arg, &block)
     old_c_block = Thread.current[:__C_BLOCK__]
     begin
