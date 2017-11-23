@@ -39,10 +39,4 @@ public class JNRTrufflePosix implements TrufflePosix {
         return posix.getcwd();
     }
 
-    @TruffleBoundary
-    @Override
-    public String nl_langinfo(int item) {
-        return posix.nl_langinfo(item);
-    }
-
 }

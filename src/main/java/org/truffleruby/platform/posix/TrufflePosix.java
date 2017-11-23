@@ -13,6 +13,5 @@ public interface TrufflePosix {
 
     int errno();
     String getcwd();
-    String nl_langinfo(int item);
 
 }

@@ -14,6 +14,7 @@ package org.truffleruby.core.encoding;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.constants.platform.LangInfo;
 import org.jcodings.Encoding;
@@ -27,7 +28,10 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.ISO_8859_16;
+import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.NativePlatform;
+import org.truffleruby.platform.TruffleNFIPlatform;
+import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -58,10 +62,19 @@ public class EncodingManager {
     }
 
     public void initializeLocaleEncoding(NativePlatform nativePlatform) {
-        final int codeset;
-        assert LangInfo.CODESET.defined();
-        codeset = LangInfo.CODESET.intValue();
-        final String localeEncodingName = nativePlatform.getPosix().nl_langinfo(codeset);
+        if (!LangInfo.CODESET.defined()) {
+            throw new UnsupportedOperationException("LangInfo.CODESET is unknown");
+        }
+        final int codeset = LangInfo.CODESET.intValue();
+
+        // char *nl_langinfo(nl_item item);
+        // nl_item is int on at least Linux, macOS & Solaris
+        final TruffleNFIPlatform nfi = nativePlatform.getTruffleNFI();
+        final NativeFunction nl_langinfo = nfi.getFunction("nl_langinfo", 1, "(sint32):string");
+
+        final long address = nfi.asPointer((TruffleObject) nl_langinfo.call(codeset));
+        final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(0);
+        final String localeEncodingName = new String(bytes, StandardCharsets.ISO_8859_1);
 
         DynamicObject rubyEncoding = getRubyEncoding(localeEncodingName);
         if (rubyEncoding == null) {
