@@ -1660,7 +1660,11 @@ class IO
   end
 
   def external_encoding
-    @external
+    if @mode & ACCMODE == RDONLY
+      @external || Encoding.default_external
+    else
+      @external
+    end
   end
 
   ##
