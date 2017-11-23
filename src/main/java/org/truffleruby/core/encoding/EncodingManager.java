@@ -12,6 +12,7 @@
  */
 package org.truffleruby.core.encoding;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.constants.platform.LangInfo;
@@ -26,6 +27,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.ISO_8859_16;
+import org.truffleruby.platform.NativePlatform;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -46,11 +48,27 @@ public class EncodingManager {
 
     private final RubyContext context;
 
+    @CompilationFinal private Encoding localeEncoding;
     private Encoding defaultExternalEncoding;
     private Encoding defaultInternalEncoding;
 
+
     public EncodingManager(RubyContext context) {
         this.context = context;
+    }
+
+    public void initializeLocaleEncoding(NativePlatform nativePlatform) {
+        final int codeset;
+        assert LangInfo.CODESET.defined();
+        codeset = LangInfo.CODESET.intValue();
+        final String localeEncodingName = nativePlatform.getPosix().nl_langinfo(codeset);
+
+        DynamicObject rubyEncoding = getRubyEncoding(localeEncodingName);
+        if (rubyEncoding == null) {
+            rubyEncoding = getRubyEncoding("US-ASCII");
+        }
+
+        localeEncoding = EncodingOperations.getEncoding(rubyEncoding);
     }
 
     @TruffleBoundary
@@ -139,21 +157,6 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public Encoding getLocaleEncoding() {
-        final int codeset;
-        assert LangInfo.CODESET.defined();
-        codeset = LangInfo.CODESET.intValue();
-        final String localeEncodingName = context.getNativePlatform().getPosix().nl_langinfo(codeset);
-
-        DynamicObject rubyEncoding = getRubyEncoding(localeEncodingName);
-        if (rubyEncoding == null) {
-            rubyEncoding = getRubyEncoding("US-ASCII");
-        }
-
-        return EncodingOperations.getEncoding(rubyEncoding);
-    }
-
-    @TruffleBoundary
     public static Charset charsetForEncoding(Encoding encoding) {
         final String encodingName = encoding.toString();
 
@@ -170,6 +173,10 @@ public class EncodingManager {
         } catch (UnsupportedCharsetException uce) {
             throw new UnsupportedOperationException("no java.nio.charset.Charset found for encoding `" + encoding.toString() + "'", uce);
         }
+    }
+
+    public Encoding getLocaleEncoding() {
+        return localeEncoding;
     }
 
     public void setDefaultExternalEncoding(Encoding defaultExternalEncoding) {
