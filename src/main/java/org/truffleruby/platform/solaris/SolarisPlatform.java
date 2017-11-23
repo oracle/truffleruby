@@ -13,13 +13,11 @@ import jnr.posix.POSIX;
 import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
-import org.truffleruby.platform.FDSet;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.posix.JNRTrufflePosix;
-import org.truffleruby.platform.posix.PosixFDSet8Bytes;
 import org.truffleruby.platform.posix.TrufflePosix;
 import org.truffleruby.platform.posix.TrufflePosixHandler;
 import org.truffleruby.platform.signal.SignalManager;
@@ -60,11 +58,6 @@ public class SolarisPlatform implements NativePlatform {
     @Override
     public RubiniusConfiguration getRubiniusConfiguration() {
         return rubiniusConfiguration;
-    }
-
-    @Override
-    public FDSet createFDSet() {
-        return new PosixFDSet8Bytes();
     }
 
     @Override
