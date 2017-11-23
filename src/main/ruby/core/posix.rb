@@ -240,6 +240,28 @@ module Truffle::POSIX
     attach_function :_NSGetArgv, [], :pointer
   end
 
+  def self.with_array_of_ints(ints)
+    if ints.empty?
+      yield Rubinius::FFI::Pointer::NULL
+    else
+      Rubinius::FFI::MemoryPointer.new(:int, ints.size) do |ptr|
+        ptr.write_array_of_int(ints)
+        yield ptr
+      end
+    end
+  end
+
+  def self.with_array_of_strings_pointer(strings)
+    Rubinius::FFI::MemoryPointer.new(:pointer, strings.size + 1) do |ptr|
+      pointers = strings.map { |str|
+        Rubinius::FFI::MemoryPointer.from_string(str)
+      }
+      pointers << Rubinius::FFI::Pointer::NULL
+      ptr.write_array_of_pointer pointers
+      yield(ptr)
+    end
+  end
+
   def self.read_string(fd, length)
     buffer = Truffle.invoke_primitive(:io_get_thread_buffer, length)
     bytes_read = read(fd, buffer, length)

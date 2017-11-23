@@ -458,9 +458,9 @@ module Rubinius
             end
           end
 
-          with_array_of_ints(redirects) do |redirects_ptr|
-            with_array_of_strings_pointer(args) do |argv|
-              with_array_of_strings_pointer(env_array) do |env|
+          Truffle::POSIX.with_array_of_ints(redirects) do |redirects_ptr|
+            Truffle::POSIX.with_array_of_strings_pointer(args) do |argv|
+              Truffle::POSIX.with_array_of_strings_pointer(env_array) do |env|
                 return Truffle::POSIX.truffleposix_posix_spawnp(command, argv, env, redirects.size, redirects_ptr, pgroup)
               end
             end
@@ -477,8 +477,8 @@ module Rubinius
             end
           end
 
-          with_array_of_strings_pointer(@argv) do |argv|
-            with_array_of_strings_pointer(@env_array) do |env|
+          Truffle::POSIX.with_array_of_strings_pointer(@argv) do |argv|
+            Truffle::POSIX.with_array_of_strings_pointer(@env_array) do |env|
               ret = Truffle::POSIX.execve(@command, argv, env)
               Errno.handle if ret == -1
             end
@@ -512,28 +512,6 @@ module Rubinius
           end
 
           nil
-        end
-
-        def with_array_of_ints(ints)
-          if ints.empty?
-            yield Rubinius::FFI::Pointer::NULL
-          else
-            Rubinius::FFI::MemoryPointer.new(:int, ints.size) do |ptr|
-              ptr.write_array_of_int(ints)
-              yield ptr
-            end
-          end
-        end
-
-        def with_array_of_strings_pointer(strings)
-          Rubinius::FFI::MemoryPointer.new(:pointer, strings.size + 1) do |ptr|
-            pointers = strings.map { |str|
-              Rubinius::FFI::MemoryPointer.from_string(str)
-            }
-            pointers << Rubinius::FFI::Pointer::NULL
-            ptr.write_array_of_pointer pointers
-            yield(ptr)
-          end
         end
       end
     end
