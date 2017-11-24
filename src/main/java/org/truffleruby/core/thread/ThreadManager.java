@@ -186,7 +186,8 @@ public class ThreadManager {
         try (Pointer structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs))) {
             int result = (int) sigaction.call(Signal.SIGVTALRM.intValue(), structSigAction.getAddress(), 0L);
             if (result != 0) {
-                throw new UnsupportedOperationException("sigaction() failed: errno=" + context.getNativePlatform().getPosix().errno());
+                // TODO (eregon, 24 Nov. 2017): we should show the NFI errno here.
+                throw new UnsupportedOperationException("sigaction() failed");
             }
         }
     }
