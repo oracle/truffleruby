@@ -541,7 +541,7 @@ public abstract class IONodes {
         @TruffleBoundary
         public static Pointer getBuffer(RubyContext context, long size) {
             final Pointer buffer = THREAD_BUFFER_THREAD_LOCAL.get();
-            if (buffer.size() >= size) {
+            if (buffer.getSize() >= size) {
                 return buffer;
             } else {
                 final Pointer newBuffer = Pointer.malloc(Math.max(size * 2, 1024));

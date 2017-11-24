@@ -170,6 +170,10 @@ public class Pointer implements AutoCloseable {
         return address == 0;
     }
 
+    public long getSize() {
+        return size;
+    }
+
     @TruffleBoundary
     public synchronized void enableAutorelease(FinalizationService finalizationService) {
         if (autorelease) {
@@ -204,9 +208,5 @@ public class Pointer implements AutoCloseable {
     }
 
     private static final Unsafe UNSAFE = getUnsafe();
-
-    public long size() {
-        return size;
-    }
 
 }
