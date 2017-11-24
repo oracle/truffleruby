@@ -10,12 +10,9 @@
 package org.truffleruby.platform;
 
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.platform.posix.TrufflePosix;
 import org.truffleruby.platform.signal.SignalManager;
 
 public interface NativePlatform {
-
-    TrufflePosix getPosix();
 
     SignalManager getSignalManager();
 
