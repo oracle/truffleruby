@@ -449,7 +449,7 @@
     ],
 
   local deploy_binaries_commands = [
-    ["mx", "deploy-binary-if-master", "--skip-existing", "truffleruby-binary-snapshots"]
+    ["mx", "deploy-binary-if-master"]
   ],
 
   local deploy_binaries_no_rewrites = without_rewrites(deploy_binaries_commands),

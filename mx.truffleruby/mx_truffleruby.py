@@ -112,10 +112,16 @@ def ruby_tck(args):
 
 def deploy_binary_if_master(args):
     """If the active branch is 'master', deploy binaries for the primary suite to remote maven repository."""
+    assert len(args) == 0
     primary_branch = 'master'
     active_branch = mx.VC.get_vc(root).active_branch(root)
+    deploy_binary = mx.command_function('deploy-binary')
     if active_branch == primary_branch:
-        return mx.command_function('deploy-binary')(args)
+        # Deploy platform-independent distributions only on Linux to avoid duplicates
+        if sys.platform.startswith('linux'):
+            return deploy_binary(['--skip-existing', 'truffleruby-binary-snapshots'])
+        else:
+            return deploy_binary(['--skip-existing', '--platform-dependent', 'truffleruby-binary-snapshots'])
     else:
         mx.log('The active branch is "%s". Binaries are deployed only if the active branch is "%s".' % (active_branch, primary_branch))
         return 0
