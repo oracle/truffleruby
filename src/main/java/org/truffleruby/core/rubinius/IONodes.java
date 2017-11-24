@@ -401,7 +401,6 @@ public abstract class IONodes {
         @Specialization
         public DynamicObject ensureOpen(DynamicObject file,
                 @Cached("create()") BranchProfile errorProfile) {
-            // TODO BJF 13-May-2015 Handle nil case
             final int fd = Layouts.IO.getDescriptor(file);
             if (fd == CLOSED_FD) {
                 errorProfile.enter();
