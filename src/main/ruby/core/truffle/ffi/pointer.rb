@@ -1171,7 +1171,7 @@ module Rubinius::FFI
       ptr = malloc total
       ptr.total = total
       ptr.type_size = size
-      Truffle::POSIX.memset ptr, 0, total if clear
+      Truffle.invoke_primitive :pointer_clear, ptr, total if clear
 
       if block_given?
         begin

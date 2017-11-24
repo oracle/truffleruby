@@ -168,6 +168,17 @@ public abstract class PointerNodes {
 
     }
 
+    @Primitive(name = "pointer_clear", lowerFixnum = 1)
+    public abstract static class PointerClearNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyPointer(pointer)")
+        public DynamicObject clear(DynamicObject pointer, long length) {
+            Layouts.POINTER.getPointer(pointer).writeBytes(0, length, (byte) 0);
+            return pointer;
+        }
+
+    }
+
     @Primitive(name = "pointer_add")
     public static abstract class PointerAddPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
