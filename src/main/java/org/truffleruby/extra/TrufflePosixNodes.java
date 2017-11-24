@@ -12,9 +12,7 @@ package org.truffleruby.extra;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreClass;
-import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.string.StringOperations;
@@ -38,18 +36,6 @@ public abstract class TrufflePosixNodes {
         public DynamicObject invalidate(DynamicObject envVar) {
             invalidateENV(StringOperations.getString(envVar));
             return envVar;
-        }
-
-    }
-
-    @CoreMethod(names = "memset", isModuleFunction = true, required = 3, lowerFixnum = 2)
-    public abstract static class MemsetNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyPointer(pointer)")
-        public DynamicObject memset(DynamicObject pointer, int c, long length) {
-            Layouts.POINTER.getPointer(pointer).writeBytes(0, length, (byte) c);
-            return pointer;
         }
 
     }
