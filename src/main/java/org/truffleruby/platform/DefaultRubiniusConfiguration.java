@@ -62,8 +62,6 @@ public abstract class DefaultRubiniusConfiguration {
             }
         }
 
-        configuration.config("rbx.platform.fcntl.FD_CLOEXEC", 1); // TODO BJF 15-May-2015 Get from JNR constants or stdlib FFI
-
         for (OpenFlags openFlag : OpenFlags.values()) {
             if (openFlag.defined()) {
                 configuration.config("rbx.platform.file." + openFlag.name(), openFlag.intValue());
