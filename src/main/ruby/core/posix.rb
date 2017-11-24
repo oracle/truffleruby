@@ -18,6 +18,12 @@ module Truffle::POSIX
     LIBTRUFFLEPOSIX = LIBC
   end
 
+  if Rubinius.linux?
+    LIBCRYPT = Truffle::Interop.eval('application/x-native', 'load libcrypt.so')
+  else
+    LIBCRYPT = LIBC
+  end
+
   TYPES = {
     :short => :sint16,
     :ushort => :uint16,
@@ -221,7 +227,7 @@ module Truffle::POSIX
   end
 
   # Other routines
-  attach_function :crypt, [:string, :string], :string
+  attach_function :crypt, [:string, :string], :string, library: LIBCRYPT
   attach_function :truffleposix_get_user_home, [:string], :pointer, library: LIBTRUFFLEPOSIX
 
   # Errno-related
