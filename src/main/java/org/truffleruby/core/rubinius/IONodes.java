@@ -114,28 +114,6 @@ public abstract class IONodes {
     private static final int CLOSED_FD = -1;
     public static final String LAST_LINE_VARIABLE = "$_";
 
-    public static abstract class IOPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
-
-        private final BranchProfile errorProfile = BranchProfile.create();
-
-        protected int ensureSuccessful(int result, int errno, String extra) {
-            assert result >= -1;
-            if (result == -1) {
-                errorProfile.enter();
-                throw new RaiseException(coreExceptions().errnoError(errno, extra, this));
-            }
-            return result;
-        }
-
-        protected int ensureSuccessful(int result) {
-            return ensureSuccessful(result, posix().errno(), "");
-        }
-
-        protected int ensureSuccessful(int result, String extra) {
-            return ensureSuccessful(result, posix().errno(), " - " + extra);
-        }
-    }
-
     @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
@@ -150,7 +128,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "file_fnmatch", needsSelf = false, lowerFixnum = 3)
-    public static abstract class FileFNMatchPrimitiveNode extends IOPrimitiveArrayArgumentsNode {
+    public static abstract class FileFNMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(pattern)", "isRubyString(path)" })
@@ -438,7 +416,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "io_read_polyglot", needsSelf = false, lowerFixnum = { 1, 2 })
-    public static abstract class IOReadPolyglotNode extends IOPrimitiveArrayArgumentsNode {
+    public static abstract class IOReadPolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
@@ -472,7 +450,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "io_write_polyglot", needsSelf = false, lowerFixnum = 1)
-    public static abstract class IOWritePolyglotNode extends IOPrimitiveArrayArgumentsNode {
+    public static abstract class IOWritePolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubyString(string)")
