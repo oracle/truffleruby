@@ -143,6 +143,7 @@ suite = {
                 "TRUFFLERUBY-PROCESSOR",
             ],
             "javaCompliance": "1.8",
+            "checkstyle" : "truffleruby",
             "workingSets": "TruffleRuby",
             "findbugsIgnoresGenerated" : True,
             "checkPackagePrefix": "false",
