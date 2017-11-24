@@ -9,31 +9,23 @@
  */
 package org.truffleruby.platform.solaris;
 
-import jnr.posix.POSIX;
-import jnr.posix.POSIXFactory;
 import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
-import org.truffleruby.platform.posix.JNRTrufflePosix;
-import org.truffleruby.platform.posix.TrufflePosix;
-import org.truffleruby.platform.posix.TrufflePosixHandler;
 import org.truffleruby.platform.signal.SignalManager;
 import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 
 public class SolarisPlatform implements NativePlatform {
 
     private final TruffleNFIPlatform nfi;
-    private final TrufflePosix posix;
     private final SignalManager signalManager;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public SolarisPlatform(RubyContext context) {
         nfi = context.getOptions().NATIVE_INTERRUPT ? new TruffleNFIPlatform(context) : null;
-        POSIX _posix = POSIXFactory.getNativePOSIX(new TrufflePosixHandler(context));
-        posix = new JNRTrufflePosix(context, _posix);
         signalManager = new SunMiscSignalManager();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -43,11 +35,6 @@ public class SolarisPlatform implements NativePlatform {
     @Override
     public TruffleNFIPlatform getTruffleNFI() {
         return nfi;
-    }
-
-    @Override
-    public TrufflePosix getPosix() {
-        return posix;
     }
 
     @Override

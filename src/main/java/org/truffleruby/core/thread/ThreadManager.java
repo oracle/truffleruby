@@ -15,7 +15,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import jnr.constants.platform.Signal;
-import jnr.posix.Timeval;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
@@ -300,10 +299,6 @@ public class ThreadManager {
         boolean SUCCESS = true;
 
         T block() throws InterruptedException;
-    }
-
-    public interface BlockingTimeoutAction<T> {
-        T block(Timeval timeoutToUse) throws InterruptedException;
     }
 
     public interface UnblockingAction {

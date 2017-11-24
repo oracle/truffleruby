@@ -133,21 +133,12 @@ licence (see `ffi.txt`).
 TruffleRuby has Java dependencies on these modules, which are then included in
 the distribution:
 
-#### Java Native Runtime and associated libraries
+#### Java Native Runtime Constants
 
-TruffleRuby distributes jnr-posix, jnr-constants, jnr-ffi, jffi (versions as
-described in `mx.truffleruby/suite.py`) and their dependencies. These are
-generally by the JRuby team and are licensed as:
+TruffleRuby distributes jnr-constants (version as described in
+`mx.truffleruby/suite.py`). jnr-constants is licensed as Apache 2.
 
-* jnr-posix (EPL 1.0 `epl-1.0.txt` or GPL 2 `gpl-2.txt` or LGPL 2.1 `lgpl-2.1.txt`)
 * jnr-constants (Apache 2.0 `apache-2.0.txt`)
-* jnr-ffi (Apache 2.0 `apache-2.0.txt` or LGPL 3.0 `lgpl-3.0.txt`)
-* jffi (Apache 2.0 `apache-2.0.txt` or LGPL 3.0 `lgpl-3.0.txt`, some native parts MIT `mit.txt`)
-* asm (copyright 2000-2011 INRIA, 3-clause BSD `bsd.txt`)
-* asm-commons (as above)
-* asm-analysis (as above)
-* asm-tree (as above)
-* asm-util (as above)
 
 #### SnakeYAML
 

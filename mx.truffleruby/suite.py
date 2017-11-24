@@ -62,27 +62,6 @@ suite = {
 
         # ------------- Libraries -------------
 
-        "ASM": {
-            "maven": {
-                "groupId": "org.ow2.asm",
-                "artifactId": "asm",
-                "version": "5.0.4",
-            },
-            "sha1": "0da08b8cce7bbf903602a25a3a163ae252435795",
-            "license": "BSD-new",
-        },
-
-        "JNR_POSIX": {
-            "maven": {
-                "groupId": "com.github.jnr",
-                "artifactId": "jnr-posix",
-                "version": "3.0.37"
-            },
-            "sha1": "35a85096ba99b478a92f05693abd236988d47c6d",
-            "sourceSha1": "7a80c45c80033774e1c3f6816ee68f3f8fca0aa5",
-            "licence": "EPL-1.0"
-        },
-
         "JNR_CONSTANTS": {
             "maven": {
                 "groupId": "com.github.jnr",
@@ -92,39 +71,6 @@ suite = {
             "sha1": "84955256aa28919f12b6c7c9437ed65d814a3c0c",
             "sourceSha1": "5579ab41c687085e714fc330536ec4dda3350b08",
             "licence": "Apache-2.0"
-        },
-
-        "JNR_FFI": {
-            "maven": {
-                "groupId": "com.github.jnr",
-                "artifactId": "jnr-ffi",
-                "version": "2.1.3"
-            },
-            "sha1": "eae1dd4a7454ddbf000bb95f5c1912894221f5e1",
-            "sourceSha1": "fcd823ddc2d1d17dca8ea63ba680d6c50f388e0b",
-            "licence": "Apache-2.0"
-        },
-
-        "JFFI": {
-            "maven": {
-                "groupId": "com.github.jnr",
-                "artifactId": "jffi",
-                "version": "1.2.13"
-            },
-            "sha1": "8926bd0b2d0e9a46e7607eb7866356845c7df9a2",
-            "sourceSha1": "691ec868b9569092687553a8099a28f71f175097",
-            "licence": "Apache-2.0"
-        },
-
-        "JFFI_NATIVE": {
-            "maven": {
-                "groupId": "com.github.jnr",
-                "artifactId": "jffi",
-                "version": "1.2.13",
-                "suffix": "native"
-            },
-            "sha1": "c4b81ddacd1e94a73780aa6e4e8b9d2945d5eb4c",
-            "licenses": ["Apache-2.0", "MIT"]
         },
 
         "SNAKEYAML": {
@@ -194,12 +140,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-LAUNCHER",
                 "truffle:TRUFFLE_API",
                 "truffle:JLINE",
-                "ASM",
-                "JNR_POSIX",
                 "JNR_CONSTANTS",
-                "JNR_FFI",
-                "JFFI",
-                "JFFI_NATIVE",
                 "SNAKEYAML",
                 "JONI",
                 "JCODINGS",
