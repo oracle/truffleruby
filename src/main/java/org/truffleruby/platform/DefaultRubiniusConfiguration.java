@@ -40,7 +40,6 @@ package org.truffleruby.platform;
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.constants.platform.Fcntl;
 import jnr.constants.platform.OpenFlags;
-import jnr.posix.FileStat;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.numeric.BignumOperations;
@@ -57,27 +56,6 @@ public abstract class DefaultRubiniusConfiguration {
     private static final int SIZE_OF_POINTER = 8;
 
     public static void load(RubiniusConfiguration configuration, RubyContext context) {
-        configuration.config("rbx.platform.file.S_IRUSR", FileStat.S_IRUSR);
-        configuration.config("rbx.platform.file.S_IWUSR", FileStat.S_IWUSR);
-        configuration.config("rbx.platform.file.S_IXUSR", FileStat.S_IXUSR);
-        configuration.config("rbx.platform.file.S_IRGRP", FileStat.S_IRGRP);
-        configuration.config("rbx.platform.file.S_IWGRP", FileStat.S_IWGRP);
-        configuration.config("rbx.platform.file.S_IXGRP", FileStat.S_IXGRP);
-        configuration.config("rbx.platform.file.S_IROTH", FileStat.S_IROTH);
-        configuration.config("rbx.platform.file.S_IWOTH", FileStat.S_IWOTH);
-        configuration.config("rbx.platform.file.S_IXOTH", FileStat.S_IXOTH);
-        configuration.config("rbx.platform.file.S_IFMT", FileStat.S_IFMT);
-        configuration.config("rbx.platform.file.S_IFIFO", FileStat.S_IFIFO);
-        configuration.config("rbx.platform.file.S_IFCHR", FileStat.S_IFCHR);
-        configuration.config("rbx.platform.file.S_IFDIR", FileStat.S_IFDIR);
-        configuration.config("rbx.platform.file.S_IFBLK", FileStat.S_IFBLK);
-        configuration.config("rbx.platform.file.S_IFREG", FileStat.S_IFREG);
-        configuration.config("rbx.platform.file.S_IFLNK", FileStat.S_IFLNK);
-        configuration.config("rbx.platform.file.S_IFSOCK", FileStat.S_IFSOCK);
-        configuration.config("rbx.platform.file.S_ISUID", FileStat.S_ISUID);
-        configuration.config("rbx.platform.file.S_ISGID", FileStat.S_ISGID);
-        configuration.config("rbx.platform.file.S_ISVTX", FileStat.S_ISVTX);
-
         for (Fcntl fcntl : Fcntl.values()) {
             if (fcntl.defined()) {
                 configuration.config("rbx.platform.fcntl." + fcntl.name(), fcntl.intValue());
