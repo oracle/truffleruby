@@ -134,13 +134,11 @@ class File
     end
 
     def dev_major
-      major = Truffle::POSIX.major dev
-      major < 0 ? nil : major
+      Truffle::POSIX.truffleposix_major(dev)
     end
 
     def dev_minor
-      minor = Truffle::POSIX.minor dev
-      minor < 0 ? nil : minor
+      Truffle::POSIX.truffleposix_minor(dev)
     end
 
     def directory?
@@ -194,13 +192,11 @@ class File
     end
 
     def rdev_major
-      major = Truffle::POSIX.major rdev
-      major < 0 ? nil : major
+      Truffle::POSIX.truffleposix_major(rdev)
     end
 
     def rdev_minor
-      minor = Truffle::POSIX.minor rdev
-      minor < 0 ? nil : minor
+      Truffle::POSIX.truffleposix_minor(rdev)
     end
 
     def readable?
