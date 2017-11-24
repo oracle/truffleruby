@@ -454,10 +454,7 @@
 
   local deploy_binaries_no_rewrites = without_rewrites(deploy_binaries_commands),
 
-  local deploy_binaries = {
-    run: deploy_binaries_commands + deploy_binaries_no_rewrites,
-    timelimit: "30:00"
-  },
+  local deploy_binaries = deploy_binaries_commands + deploy_binaries_no_rewrites,
 
   test_fast: {
     run: jt(["test", "fast"]),
@@ -465,19 +462,19 @@
   },
 
   deploy_and_specs_linux: {
-    run: deploy_binaries.run +
+    run: deploy_binaries +
       jt(["test", "specs", "-Gci"]),
     timelimit: "30:00"
   },
 
   deploy_and_specs_darwin: {
-    run: deploy_binaries.run +
+    run: deploy_binaries +
       jt(["test", "specs", "-GdarwinCI"]),
     timelimit: "30:00"
   },
 
   deploy_and_specs_solaris: {
-    run: deploy_binaries.run +
+    run: deploy_binaries +
       jt(["test", "specs"]),
     timelimit: "30:00"
   },
