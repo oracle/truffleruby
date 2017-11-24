@@ -75,7 +75,7 @@ public class FeatureLoader {
         final TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
         final int bufferSize = PATH_MAX;
         final Pointer buffer = GetThreadBufferNode.getBuffer(context, bufferSize);
-        final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.address(), bufferSize));
+        final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
         if (address == 0) {
             throw new UnsupportedOperationException("getcwd() failed");
         }

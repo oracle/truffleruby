@@ -11,21 +11,15 @@ package org.truffleruby.extra.ffi;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-import jnr.ffi.Address;
-import jnr.ffi.Runtime;
-import jnr.ffi.Type;
 import org.truffleruby.core.FinalizationService;
 import org.truffleruby.parser.parser.SuppressFBWarnings;
 
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
-import java.nio.charset.Charset;
 
 @SuppressFBWarnings("Nm")
-public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
-
-    public static final jnr.ffi.Pointer JNR_NULL = Runtime.getSystemRuntime().getMemoryManager().newOpaquePointer(0);
+public class Pointer implements AutoCloseable {
 
     public static final Pointer NULL = new Pointer(0);
 
@@ -58,7 +52,6 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
     }
 
     public Pointer(long address, long size) {
-        super(null, address, true);
         this.address = address;
         this.size = size;
     }
@@ -212,264 +205,8 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
 
     private static final Unsafe UNSAFE = getUnsafe();
 
-    @Override
     public long size() {
         return size;
-    }
-
-    @Override
-    public boolean hasArray() {
-        return false;
-    }
-
-    @Override
-    public Object array() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int arrayOffset() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int arrayLength() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public byte getByte(long offset) {
-        return readByte(offset);
-    }
-
-    @Override
-    public short getShort(long offset) {
-        return readShort(offset);
-    }
-
-    @Override
-    public int getInt(long offset) {
-        return readInt(offset);
-    }
-
-    @Override
-    public long getLong(long offset) {
-        return readLong(offset);
-    }
-
-    @Override
-    public long getLongLong(long offset) {
-        return readLong(offset);
-    }
-
-    @Override
-    public float getFloat(long offset) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public double getDouble(long offset) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public long getNativeLong(long offset) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public long getInt(Type type, long offset) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void putByte(long offset, byte value) {
-        writeByte(offset, value);
-    }
-
-    @Override
-    public void putShort(long offset, short value) {
-        writeShort(offset, value);
-    }
-
-    @Override
-    public void putInt(long offset, int value) {
-        writeInt(offset, value);
-    }
-
-    @Override
-    public void putLong(long offset, long value) {
-        writeLong(offset, value);
-    }
-
-    @Override
-    public void putLongLong(long offset, long value) {
-        writeLong(offset, value);
-    }
-
-    @Override
-    public void putFloat(long offset, float value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void putDouble(long offset, double value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void putNativeLong(long offset, long value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void putInt(Type type, long offset, long value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public long getAddress(long offset) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void putAddress(long offset, long value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void putAddress(long offset, Address value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void get(long offset, byte[] dst, int idx, int len) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void put(long offset, byte[] src, int idx, int len) {
-        writeBytes(offset, src, idx, len);
-    }
-
-    @Override
-    public void get(long offset, short[] dst, int idx, int len) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void put(long offset, short[] src, int idx, int len) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void get(long offset, int[] dst, int idx, int len) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void put(long offset, int[] src, int idx, int len) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void get(long offset, long[] dst, int idx, int len) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void put(long offset, long[] src, int idx, int len) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void get(long offset, float[] dst, int idx, int len) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void put(long offset, float[] src, int idx, int len) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void get(long offset, double[] dst, int idx, int len) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void put(long offset, double[] src, int idx, int len) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public jnr.ffi.Pointer getPointer(long offset) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public jnr.ffi.Pointer getPointer(long offset, long size) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void putPointer(long offset, jnr.ffi.Pointer value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getString(long offset) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getString(long offset, int maxLength, Charset cs) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void putString(long offset, String string, int maxLength, Charset cs) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public jnr.ffi.Pointer slice(long offset) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public jnr.ffi.Pointer slice(long offset, long size) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void transferTo(long offset, jnr.ffi.Pointer dst, long dstOffset, long count) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void transferFrom(long offset, jnr.ffi.Pointer src, long srcOffset, long count) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void checkBounds(long offset, long length) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setMemory(long offset, long size, byte value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int indexOf(long offset, byte value) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int indexOf(long offset, byte value, int maxlen) {
-        throw new UnsupportedOperationException();
     }
 
 }
