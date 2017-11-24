@@ -9,8 +9,6 @@
  */
 package org.truffleruby.extra;
 
-import com.kenai.jffi.Platform;
-import com.kenai.jffi.Platform.OS;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -52,34 +50,6 @@ public abstract class TrufflePosixNodes {
         public DynamicObject memset(DynamicObject pointer, int c, long length) {
             Layouts.POINTER.getPointer(pointer).writeBytes(0, length, (byte) c);
             return pointer;
-        }
-
-    }
-
-    @CoreMethod(names = "major", isModuleFunction = true, required = 1)
-    public abstract static class MajorNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int major(long dev) {
-            if (Platform.getPlatform().getOS() == OS.SOLARIS) {
-                return (int) (dev >> 32); // Solaris has major number in the upper 32 bits.
-            } else {
-                return (int) ((dev >> 24) & 0xff);
-
-            }
-        }
-    }
-
-    @CoreMethod(names = "minor", isModuleFunction = true, required = 1)
-    public abstract static class MinorNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        public int minor(long dev) {
-            if (Platform.getPlatform().getOS() == OS.SOLARIS) {
-                return (int) dev; // Solaris has minor number in the lower 32 bits.
-            } else {
-                return (int) (dev & 0xffffff);
-            }
         }
 
     }

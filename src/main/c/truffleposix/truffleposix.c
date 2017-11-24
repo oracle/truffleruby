@@ -35,6 +35,9 @@ SUCH DAMAGE.
 
 /* For clock_gettime(), lstat() and strdup() on Linux */
 #define _XOPEN_SOURCE 600
+/* For minor()/major() on Linux */
+#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 /* For flock() on Darwin */
 #define _DARWIN_C_SOURCE 1
 
@@ -57,6 +60,11 @@ SUCH DAMAGE.
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+/* For minor()/major() on Solaris */
+#if defined __sun
+#include <sys/mkdev.h>
+#endif
 
 struct truffleposix_stat {
   uint64_t atime;
@@ -294,6 +302,14 @@ int truffleposix_lstat(const char *path, struct truffleposix_stat *buffer) {
     copy_stat(&native_stat, buffer);
   }
   return result;
+}
+
+unsigned int truffleposix_major(dev_t dev) {
+  return major(dev);
+}
+
+unsigned int truffleposix_minor(dev_t dev) {
+  return minor(dev);
 }
 
 static void copy_stat(struct stat *native_stat, struct truffleposix_stat* buffer) {
