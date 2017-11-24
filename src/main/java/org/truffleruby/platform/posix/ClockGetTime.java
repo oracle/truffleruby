@@ -10,9 +10,5 @@
 package org.truffleruby.platform.posix;
 
 public interface ClockGetTime {
-
     // Unused - just referenced by SVM
-
-    int clock_gettime(int clock_id, TimeSpec timeSpec);
-
 }
