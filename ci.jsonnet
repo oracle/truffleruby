@@ -247,7 +247,7 @@
   },
 
   local deploy_caps = {
-    targets: ["deploy", "post-push"],
+    targets: ["deploy", "gate", "post-push"],
   },
 
   local linux_amd64_bench = ["linux", "amd64", "no_frequency_scaling"],
