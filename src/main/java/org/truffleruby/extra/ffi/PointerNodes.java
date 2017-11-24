@@ -532,7 +532,7 @@ public abstract class PointerNodes {
     /* Rubinius use these write primitives for both signed and unsigned numbers.
      * Values from 0 to MAX_SIGNED are encoded the same for both signed and unsigned.
      * Larger values need to be converted to the corresponding negative signed number
-     * as the JNR API only accepts Java signed numbers. */
+     * as Java only has signed numbers. */
 
     @Primitive(name = "pointer_write_char", lowerFixnum = 1)
     public static abstract class PointerWriteCharPrimitiveNode extends PrimitiveArrayArgumentsNode {
