@@ -36,18 +36,18 @@ import org.truffleruby.debug.DebugHelpers;
 
 public class RubyWarnings implements WarnCallback {
 
-    private final RubyContext runtime;
+    private final RubyContext context;
 
-    public RubyWarnings(RubyContext runtime) {
-        this.runtime = runtime;
+    public RubyWarnings(RubyContext context) {
+        this.context = context;
     }
 
     public boolean warningsEnabled() {
-        return runtime.getCoreLibrary().warningsEnabled();
+        return context.getCoreLibrary().warningsEnabled();
     }
 
     public boolean isVerbose() {
-        return runtime != null && runtime.getCoreLibrary().isVerbose();
+        return context != null && context.getCoreLibrary().isVerbose();
     }
 
     @Override
@@ -68,7 +68,7 @@ public class RubyWarnings implements WarnCallback {
 
         buffer.append(fileName).append(':').append(lineNumber).append(": ");
         buffer.append("warning: ").append(message).append('\n');
-        DebugHelpers.eval(runtime, "$stderr.write Truffle::Interop.from_java_string(message)", "message", buffer.toString());
+        DebugHelpers.eval(context, "$stderr.write Truffle::Interop.from_java_string(message)", "message", buffer.toString());
     }
     /**
      * Prints a warning, unless $VERBOSE is nil.
@@ -86,7 +86,7 @@ public class RubyWarnings implements WarnCallback {
         }
         buffer.append("warning: ").append(message).append('\n');
         DebugHelpers.eval(
-                runtime,
+                context,
                 "$stderr.write Truffle::Interop.from_java_string(message)",
                 "message",
                 buffer.toString());
