@@ -32,15 +32,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-module Truffle::POSIX
-  #--
-  # Internal class for accessing timevals
-  #++
-  class TimeVal < Rubinius::FFI::Struct
-    config 'rbx.platform.timeval', :tv_sec, :tv_usec
-  end
-end
-
 class File < IO
   include Enumerable
 
@@ -1129,22 +1120,15 @@ class File < IO
   # file to the first two arguments. Returns the number
   # of file names in the argument list.
   #  #=> Integer
-  def self.utime(a_in, m_in, *paths)
-    a_in ||= Time.now
-    m_in ||= Time.now
-    FFI::MemoryPointer.new(POSIX::TimeVal, 2) do |ptr|
-      atime = POSIX::TimeVal.new ptr
-      mtime = POSIX::TimeVal.new ptr[1]
-      atime[:tv_sec] = a_in.to_i
-      atime[:tv_usec] = 0
-
-      mtime[:tv_sec] = m_in.to_i
-      mtime[:tv_usec] = 0
-
-      paths.each do |path|
-        n = POSIX.utimes(Rubinius::Type.coerce_to_path(path), ptr)
-        Errno.handle unless n == 0
-      end
+  def self.utime(atime, mtime, *paths)
+    atime ||= Time.now
+    mtime ||= Time.now
+    atime_us = (atime.to_f * 1_000_000).to_i
+    mtime_us = (mtime.to_f * 1_000_000).to_i
+    paths.each do |path|
+      path = Rubinius::Type.coerce_to_path(path)
+      n = POSIX.truffleposix_utimes(path, atime_us, mtime_us)
+      Errno.handle unless n == 0
     end
   end
 

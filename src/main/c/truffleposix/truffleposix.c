@@ -52,6 +52,7 @@ SUCH DAMAGE.
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <utime.h>
 
 #include <sys/file.h>
 #include <sys/resource.h>
@@ -128,6 +129,15 @@ int truffleposix_select(int nread, int *readfds, int nwrite, int *writefds,
     mark_ready_from_set(&exceptset, nexcept, exceptfds);
   }
   return ret;
+}
+
+int truffleposix_utimes(const char *filename, long atime_us, long mtime_us) {
+  struct timeval timevals[2];
+  timevals[0].tv_sec = (atime_us / 1000000);
+  timevals[0].tv_usec = (atime_us % 1000000);
+  timevals[1].tv_sec = (mtime_us / 1000000);
+  timevals[1].tv_usec = (mtime_us % 1000000);
+  return utimes(filename, timevals);
 }
 
 #define timeval2double(timeval) \

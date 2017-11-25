@@ -170,7 +170,7 @@ module Truffle::POSIX
   attach_function :truncate, [:string, :off_t], :int
   attach_function :umask, [:mode_t], :mode_t
   attach_function :unlink, [:string], :int
-  attach_function :utimes, [:string, :pointer], :int
+  attach_function :truffleposix_utimes, [:string, :long, :long], :int, library: LIBTRUFFLEPOSIX
   attach_function :write, [:int, :pointer, :size_t], :ssize_t, blocking: true
 
   # Process-related
