@@ -330,7 +330,7 @@ public class ModuleFields implements ModuleChain, ObjectGraphNode {
 
             if ((previous == null) ? (constants.putIfAbsent(name, newValue) == null) : constants.replace(name, previous, newValue)) {
                 newConstantsVersion();
-                if (!autoload) {
+                if (!autoload && previous != null && !previous.isAutoload()) {
                     return previous;
                 } else {
                     return null;
