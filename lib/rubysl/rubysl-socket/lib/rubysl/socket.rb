@@ -14,6 +14,7 @@ module RubySL
 
     def self.aliases_for_hostname(hostname)
       pointer = Foreign.gethostbyname(hostname)
+      return [] if pointer.null? # Truffle: added null check
 
       Foreign::Hostent.new(pointer).aliases
     end
