@@ -73,10 +73,6 @@ module Process
 
   FFI = Rubinius::FFI
 
-  class Rlimit < FFI::Struct
-    config 'rbx.platform.rlimit', :rlim_cur, :rlim_max
-  end
-
   # Terminate with given status code.
   #
   def self.exit(code=0)
@@ -230,27 +226,39 @@ module Process
     resource =  coerce_rlimit_resource(resource)
     cur_limit = Rubinius::Type.coerce_to cur_limit, Integer, :to_int
 
-    unless undefined.equal? max_limit
+    if undefined.equal? max_limit
+      max_limit = cur_limit
+    else
       max_limit = Rubinius::Type.coerce_to max_limit, Integer, :to_int
     end
 
-    rlimit = Rlimit.new
-    rlimit[:rlim_cur] = cur_limit
-    rlimit[:rlim_max] = undefined.equal?(max_limit) ? cur_limit : max_limit
+    rlim_t = Rubinius::Config['rbx.platform.typedef.rlim_t']
+    raise rlim_t unless rlim_t == 'ulong' or rlim_t == 'ulong_long'
 
-    ret = Truffle::POSIX.setrlimit(resource, rlimit.pointer)
-    Errno.handle if ret == -1
+    Rubinius::FFI::MemoryPointer.new(:rlim_t, 2) do |ptr|
+      ptr[0].write_ulong cur_limit
+      ptr[1].write_ulong max_limit
+      ret = Truffle::POSIX.setrlimit(resource, ptr)
+      Errno.handle if ret == -1
+    end
     nil
   end
 
   def self.getrlimit(resource)
     resource = coerce_rlimit_resource(resource)
 
-    rlimit = Rlimit.new
-    ret = Truffle::POSIX.getrlimit(resource, rlimit.pointer)
-    Errno.handle if ret == -1
+    rlim_t = Rubinius::Config['rbx.platform.typedef.rlim_t']
+    raise rlim_t unless rlim_t == 'ulong' or rlim_t == 'ulong_long'
 
-    [rlimit[:rlim_cur], rlimit[:rlim_max]]
+    cur, max = nil, nil
+    Rubinius::FFI::MemoryPointer.new(:rlim_t, 2) do |ptr|
+      ret = Truffle::POSIX.getrlimit(resource, ptr)
+      Errno.handle if ret == -1
+      cur = ptr[0].read_ulong
+      max = ptr[1].read_ulong
+    end
+
+    [cur, max]
   end
 
   def self.setsid
