@@ -64,18 +64,22 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
     }
 
     public void writeByte(long offset, byte b) {
+        assert address + offset != 0;
         UNSAFE.putByte(address + offset, b);
     }
 
     public void writeShort(long offset, short value) {
+        assert address + offset != 0;
         UNSAFE.putShort(address + offset, value);
     }
 
     public void writeInt(long offset, int value) {
+        assert address + offset != 0;
         UNSAFE.putInt(address + offset, value);
     }
 
     public void writeLong(long offset, long value) {
+        assert address + offset != 0;
         UNSAFE.putLong(address + offset, value);
     }
 
@@ -89,6 +93,7 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
     }
 
     public void writeBytes(long offset, long size, byte value) {
+        assert address + offset != 0;
         UNSAFE.setMemory(address + offset, size, value);
     }
 
@@ -99,6 +104,7 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
     }
 
     public byte readByte(long offset) {
+        assert address + offset != 0;
         return UNSAFE.getByte(address + offset);
     }
 
@@ -109,18 +115,22 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
     }
 
     public short readShort(long offset) {
+        assert address + offset != 0;
         return UNSAFE.getShort(address + offset);
     }
 
     public int readInt(long offset) {
+        assert address + offset != 0;
         return UNSAFE.getInt(address + offset);
     }
 
     public long readLong(long offset) {
+        assert address + offset != 0;
         return UNSAFE.getLong(address + offset);
     }
 
     public double readDouble(long offset) {
+        assert address + offset != 0;
         return UNSAFE.getDouble(address + offset);
     }
 
