@@ -1355,9 +1355,7 @@ public class ParserSupport {
         if (current.isBlockScope()) {
             if (current.exists(name) >= 0) yyerror("duplicated argument name");
 
-            if (warnings.isVerbose() && current.isDefined(name) >= 0 &&
-                    !skipTruffleRubiniusWarnings(lexer)) {
-
+            if (warnings.isVerbose() && current.isDefined(name) >= 0) {
                 warnings.warning(file, lexer.getPosition().toSourceSection(lexer.getSource()).getStartLine(),
                         "shadowing outer local variable - " + name);
             }
@@ -1605,10 +1603,6 @@ public class ParserSupport {
 
     public String internalId() {
         return "";
-    }
-
-    public boolean skipTruffleRubiniusWarnings(RubyLexer lexer) {
-        return lexer.getFile().startsWith(context.getOptions().CORE_LOAD_PATH);
     }
 
     public SourceIndexLength extendedUntil(SourceIndexLength start, SourceIndexLength end) {
