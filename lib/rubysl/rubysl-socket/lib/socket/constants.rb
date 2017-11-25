@@ -24,9 +24,10 @@ class Socket < BasicSocket
 
     # MRI defines these constants manually, thus our FFI generators don't pick
     # them up.
-    EAI_ADDRFAMILY = 1
-    EAI_NODATA = 7
-    IPPORT_USERRESERVED = 5000
+    # Truffle: added unless const_defined? to avoid warnings
+    EAI_ADDRFAMILY = 1 unless const_defined?(:EAI_ADDRFAMILY)
+    EAI_NODATA = 7 unless const_defined?(:EAI_NODATA)
+    IPPORT_USERRESERVED = 5000 unless const_defined?(:IPPORT_USERRESERVED)
 
     # This constant is hidden behind a #ifdef __GNU on Linux, meaning it won't
     # be available when using clang.
@@ -36,6 +37,7 @@ class Socket < BasicSocket
   end
 
   [:EAI_ADDRFAMILY, :EAI_NODATA, :IPPORT_USERRESERVED, :SCM_CREDENTIALS].each do |const|
-    const_set(const, Constants.const_get(const))
+    # Truffle: added unless const_defined? to avoid warnings
+    const_set(const, Constants.const_get(const)) unless const_defined?(const)
   end
 end
