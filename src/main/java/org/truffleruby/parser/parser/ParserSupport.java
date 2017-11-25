@@ -1240,20 +1240,49 @@ public class ParserSupport {
 
     public ParseNode remove_duplicate_keys(HashParseNode hash) {
         List<ParseNode> encounteredKeys = new ArrayList<>();
+        visitPairsRecursive(hash, encounteredKeys);
+        return hash;
+    }
 
+    private void visitPairsRecursive(HashParseNode hash, List<ParseNode> encounteredKeys) {
         for (ParseNodeTuple pair : hash.getPairs()) {
             ParseNode key = pair.getKey();
-            if (key == null) continue;
-            int index = encounteredKeys.indexOf(key);
+            if (key == null) {
+                if (pair.getValue() instanceof HashParseNode) {
+                    visitPairsRecursive((HashParseNode) pair.getValue(), encounteredKeys);
+                }
+                continue;
+            }
+            int index = matchesExistingIndex(key, encounteredKeys);
             if (index >= 0) {
-                warn(hash.getPosition(), "key " + key +
+                encounteredKeys.set(index, key);
+                warn(hash.getPosition(), "key " + keyToString(key) +
                         " is duplicated and overwritten on line " + (encounteredKeys.get(index).getPosition().toSourceSection(lexer.getSource()).getStartLine()));
             } else {
                 encounteredKeys.add(key);
             }
         }
+    }
 
-        return hash;
+    private String keyToString(ParseNode node) {
+        if (node instanceof SymbolParseNode) {
+            return ":" + ((SymbolParseNode) node).getName();
+        } else {
+            return node.toString();
+        }
+    }
+
+    private int matchesExistingIndex(ParseNode currentNode, List<ParseNode> encounteredKeys) {
+        for (int i = 0; i < encounteredKeys.size(); i++) {
+            final ParseNode parseNode = encounteredKeys.get(i);
+            // TODO BJF 27-Nov-17 Handle additional literal nodes, consider interface with valueEquals
+            if (parseNode instanceof SymbolParseNode && currentNode instanceof SymbolParseNode) {
+                if (((SymbolParseNode) parseNode).getRope().equals(((SymbolParseNode) currentNode).getRope())) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 
     public ParseNode newAlias(SourceIndexLength position, ParseNode newNode, ParseNode oldNode) {
