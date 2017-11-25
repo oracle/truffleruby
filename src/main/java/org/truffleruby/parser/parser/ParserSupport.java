@@ -714,7 +714,7 @@ public class ParserSupport {
                     dotNode.isExclusive(), slot);
         }
         case REGEXPNODE:
-            warningUnlessEOption(node, "regex literal in condition");
+            warnUnlessEOption(node, "regex literal in condition");
             return new MatchParseNode(node.getPosition(), node);
         }
 
