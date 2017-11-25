@@ -30,9 +30,17 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import org.jcodings.specific.UTF8Encoding;
 import org.joni.WarnCallback;
 import org.truffleruby.RubyContext;
-import org.truffleruby.debug.DebugHelpers;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.control.JavaException;
+
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class RubyWarnings implements WarnCallback {
 
@@ -58,7 +66,6 @@ public class RubyWarnings implements WarnCallback {
     /**
      * Prints a warning, unless $VERBOSE is nil.
      */
-    @SuppressWarnings("deprecation")
     public void warn(String fileName, int lineNumber, String message) {
         if (!warningsEnabled()) {
             return;
@@ -68,12 +75,11 @@ public class RubyWarnings implements WarnCallback {
 
         buffer.append(fileName).append(':').append(lineNumber).append(": ");
         buffer.append("warning: ").append(message).append('\n');
-        DebugHelpers.eval(context, "$stderr.write Truffle::Interop.from_java_string(message)", "message", buffer.toString());
+        writeToStderr(buffer.toString());
     }
     /**
      * Prints a warning, unless $VERBOSE is nil.
      */
-    @SuppressWarnings("deprecation")
     public void warn(String fileName, String message) {
         if (!warningsEnabled()) {
             return;
@@ -85,11 +91,22 @@ public class RubyWarnings implements WarnCallback {
             buffer.append(fileName).append(' ');
         }
         buffer.append("warning: ").append(message).append('\n');
-        DebugHelpers.eval(
-                context,
-                "$stderr.write Truffle::Interop.from_java_string(message)",
-                "message",
-                buffer.toString());
+        writeToStderr(buffer.toString());
+    }
+
+    private void writeToStderr(String message) {
+        if (context.getCoreLibrary().isLoaded()) {
+            final Object stderr = context.getCoreLibrary().getStderr();
+            final Rope messageRope = StringOperations.encodeRope(message, UTF8Encoding.INSTANCE);
+            final DynamicObject messageString = StringOperations.createString(context, messageRope);
+            context.send(stderr, "write", null, messageString);
+        } else {
+            try {
+                context.getEnv().err().write(message.getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new JavaException(e);
+            }
+        }
     }
 
     /**
