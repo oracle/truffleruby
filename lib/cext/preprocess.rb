@@ -96,84 +96,84 @@ EOF
 NO_ASSIGNMENT = /(?:[\),;]|==|!=)/
 
 NOKOGIRI_ERR_PATCH = { match: "(void *)err,",
-                              replacement: "NEW_LOCAL_REF(err),"
+                              replacement: "rb_tr_handle_for_managed(err),"
                             }
 NOKOGIRI_ERROR_LIST_PATCH = { match: "(void *)error_list",
-                              replacement: "NEW_LOCAL_REF(error_list)"
+                              replacement: "rb_tr_handle_for_managed(error_list)"
                             }
 
 NOKOGIRI_ERRORS_PATCH = { match: "(void *)errors",
-                              replacement: "NEW_LOCAL_REF(errors)"
+                              replacement: "rb_tr_handle_for_managed(errors)"
                             }
 NOKOGIRI_ERRSTR_PATCH = { match: "(void *)errstr",
-                              replacement: "NEW_LOCAL_REF(errstr)"
+                              replacement: "rb_tr_handle_for_managed(errstr)"
                             }
 
 NOKOGIRI_HASH_POINTER_PATCH = { match: "(void *)hash",
-                              replacement: "NEW_GLOBAL_REF(hash)"
+                              replacement: "rb_tr_handle_for_managed(hash)"
                             }
 NOKOGIRI_XPATH_HANDLER_POINTER_PATCH = { match: "(void *)xpath_handler",
-                              replacement: "NEW_GLOBAL_REF(xpath_handler)"
+                              replacement: "rb_tr_handle_for_managed(xpath_handler)"
                             }
 NOKOGIRI_INST_POINTER_PATCH = { match: "(void *)inst",
-                              replacement: "NEW_GLOBAL_REF(inst)"
+                              replacement: "rb_tr_handle_for_managed(inst)"
                             }
 NOKOGIRI_IO_POINTER_PATCH = { match: "(void *)io",
-                              replacement: "NEW_GLOBAL_REF(io)"
+                              replacement: "rb_tr_handle_for_managed(io)"
                             }
 NOKOGIRI_RB_IO_POINTER_PATCH = { match: "(void *)rb_io",
-                              replacement: "NEW_GLOBAL_REF(rb_io)"
+                              replacement: "rb_tr_handle_for_managed(rb_io)"
                             }
 NOKOGIRI_NS_POINTER_PATCH = { match: "(void *)ns",
-                              replacement: "NEW_WEAK_REF(ns)"
+                              replacement: "rb_tr_handle_for_managed(ns)"
                             }
 NOKOGIRI_RB_NODE_POINTER_PATCH = { match: "(void *)rb_node",
-                              replacement: "NEW_WEAK_REF(rb_node)"
+                              replacement: "rb_tr_handle_for_managed(rb_node)"
                             }
 NOKOGIRI_SELF_POINTER_PATCH = { match: "(void *)self",
-                              replacement: "NEW_WEAK_REF(self)"
+                              replacement: "rb_tr_handle_for_managed(self)"
                             }
 NOKOGIRI_FUNC_INSTANCE_POINTER_PATCH = { match: "rb_ary_new()",
-                              replacement: "NEW_GLOBAL_REF(rb_ary_new())"
+                              replacement: "rb_tr_handle_for_managed(rb_ary_new())"
                             }
 NOKOGIRI_BLOCK_PROC_POINTER_PATCH = { match: "(void *)rb_block_proc();",
-                              replacement: "NEW_LOCAL_REF(rb_block_proc());"
+                              replacement: "rb_tr_handle_for_managed(rb_block_proc());"
                             }
 
 NOKOGIRI_TUPLE_DOC_POINTER_PATCH = { match: "tuple->doc = rb_doc",
-                              replacement: "tuple->doc = NEW_WEAK_REF(rb_doc)"
+                              replacement: "tuple->doc = rb_tr_handle_for_managed(rb_doc)"
                             }
 NOKOGIRI_TUPLE_CACHE_POINTER_PATCH = { match: "tuple->node_cache = cache",
-                              replacement: "tuple->node_cache = NEW_WEAK_REF(cache)"
+                              replacement: "tuple->node_cache = rb_tr_handle_for_managed(cache)"
                             }
 
 NOKOGIRI_CONTEXT_CAST_PATCH = { match: "(VALUE)ctx;",
-                              replacement: "GET_LOCAL_REF(ctx);"
+                              replacement: "rb_tr_managed_from_handle_or_null(ctx);"
                             }
 NOKOGIRI_CONTEXT_CAST_PATCH_2 = { match: "(VALUE)ctx;",
-                              replacement: "GET_GLOBAL_REF(ctx);"
+                              replacement: "rb_tr_managed_from_handle_or_null(ctx);"
                             }
 NOKOGIRI_CONTEXT_USERDATA_CAST_PATCH = { match: "(VALUE)(ctx->context->userData);",
-                              replacement: "GET_LOCAL_REF(ctx->context->userData);"
+                              replacement: "rb_tr_managed_from_handle_or_null(ctx->context->userData);"
                             }
 NOKOGIRI_DATA_CAST_PATCH = { match: "(VALUE)data;",
-                              replacement: "GET_LOCAL_REF(data);"
+                              replacement: "rb_tr_managed_from_handle_or_null(data);"
                             }
 
 NOKOGIRI_HANDLER_CAST_PATCH = { match: "(VALUE)xsltGetExtData(transform, functionURI);",
-                              replacement: "GET_GLOBAL_REF(xsltGetExtData(transform, functionURI));"
+                              replacement: "rb_tr_managed_from_handle_or_null(xsltGetExtData(transform, functionURI));"
                             }
 
 NOKOGIRI_NODE_PRIVATE_CAST_PATCH = { match: "(VALUE)node->_private;",
-                              replacement: "GET_WEAK_REF(node->_private);"
+                              replacement: "rb_tr_managed_from_handle_or_null(node->_private);"
                             }
 
 NOKOGIRI_CTX_STYLE_CAST_PATCH = { match: "ctxt->style->_private",
-                              replacement: "GET_WEAK_REF(ctxt->style->_private)"
+                              replacement: "rb_tr_managed_from_handle_or_null(ctxt->style->_private)"
                             }
 
 NOKOGIRI_FUNC_INSTANCE_CAST_PATCH = { match: "(wrapper->func_instances",
-                              replacement: "(GET_GLOBAL_REF(wrapper->func_instances)"
+                              replacement: "(rb_tr_managed_from_handle_or_null(wrapper->func_instances)"
                                     }
 
 NOKOGIRI_XPATH_ERROR_PATCH_1 = { match: "VALUE thing = Qnil;",
@@ -181,7 +181,7 @@ NOKOGIRI_XPATH_ERROR_PATCH_1 = { match: "VALUE thing = Qnil;",
                                     }
 
 NOKOGIRI_XPATH_ERROR_PATCH_2 = { match: "xmlSetStructuredErrorFunc(NULL, Nokogiri_error_raise);",
-                              replacement: "xmlSetStructuredErrorFunc(NEW_LOCAL_REF(errors), Nokogiri_error_array_pusher);"
+                              replacement: "xmlSetStructuredErrorFunc(rb_tr_handle_for_managed(errors), Nokogiri_error_array_pusher);"
                                     }
 NOKOGIRI_XPATH_ERROR_PATCH_3 = { match: "if(xpath == NULL)",
                               replacement: "if (RARRAY_LEN(errors) > 0) { rb_exc_raise(rb_ary_entry(errors, 0)); }\nif(xpath == NULL)"
@@ -217,10 +217,10 @@ ID = /([a-zA-Z0-9_]+)/
 STRUCT_REF = /#{ID}(->#{ID})*/
 
 NOKOGIRI_DOC_RUBY_OBJECT_ORIG = /(DOC_RUBY_OBJECT\(#{STRUCT_REF}\))/
-NOKOGIRI_DOC_RUBY_OBJECT_NEW = '(GET_WEAK_REF(\1))'
+NOKOGIRI_DOC_RUBY_OBJECT_NEW = '(rb_tr_managed_from_handle_or_null(\1))'
 
 NOKOGIRI_DOC_NODE_CACHE_ORIG = /(DOC_NODE_CACHE\(#{STRUCT_REF}\))/
-NOKOGIRI_DOC_NODE_CACHE_NEW = '(GET_WEAK_REF(\1))'
+NOKOGIRI_DOC_NODE_CACHE_NEW = '(rb_tr_managed_from_handle_or_null(\1))'
 
 NOKOGIRI_DOC_RUBY_OBJECT_PATCH = { match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
                                   replacement: NOKOGIRI_DOC_RUBY_OBJECT_NEW
@@ -231,12 +231,12 @@ NOKOGIRI_DOC_NODE_CACHE_PATCH = { match: NOKOGIRI_DOC_NODE_CACHE_ORIG,
                                 }
 
 NOKOGIRI_SAX_SELF_PATCH = { match: 'NOKOGIRI_SAX_SELF(ctx)',
-                      replacement: 'GET_WEAK_REF(NOKOGIRI_SAX_SELF(ctx))'
+                      replacement: 'rb_tr_managed_from_handle_or_null(NOKOGIRI_SAX_SELF(ctx))'
                     }
 
 def tuple_new_patch(ctx, slf)
   { match: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, #{slf})",
-    replacement: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, NEW_WEAK_REF(#{slf}))" }
+    replacement: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, rb_tr_handle_for_managed(#{slf}))" }
 end
 
 NOKOGIRI_VA_START_PATCH = { match: 'va_list args;',
@@ -244,7 +244,7 @@ NOKOGIRI_VA_START_PATCH = { match: 'va_list args;',
                           }
 
 NOKOGIRI_VA_START_PATCH_2 = { match: 'va_list args;',
-                            replacement: 'va_list args; rb_str_cat2(GET_LOCAL_REF(ctx), "Generic error"); return;'
+                            replacement: 'va_list args; rb_str_cat2(rb_tr_managed_from_handle_or_null(ctx), "Generic error"); return;'
                           }
 
 NOKOGIRI_VA_START_PATCH_3 = { match: /va_list args;[^}]*id_warning, 1, ruby_message\);/,
@@ -445,6 +445,9 @@ PATCHED_FILES = {
       NOKOGIRI_XPATH_ERROR_PATCH_2,
       NOKOGIRI_XPATH_ERROR_PATCH_3,
       NOKOGIRI_CONTEXT_USERDATA_CAST_PATCH,
+      { match: 'VALUE *argv', replacement: 'VALUE argv[32]' },
+      { match: /argv =.*$/, replacement: '' },
+      { match: 'free(argv)', replacement: '' },
     ]
   },
   'xml_schema.c' => {
