@@ -1121,8 +1121,11 @@ class File < IO
   # of file names in the argument list.
   #  #=> Integer
   def self.utime(atime, mtime, *paths)
-    atime ||= Time.now
-    mtime ||= Time.now
+    if !atime || !mtime
+      now = Time.now
+      atime ||= now
+      mtime ||= now
+    end
     atime_us = (atime.to_f * 1_000_000).to_i
     mtime_us = (mtime.to_f * 1_000_000).to_i
     paths.each do |path|
