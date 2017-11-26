@@ -1003,7 +1003,7 @@ public abstract class KernelNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 warnNode = insert(new WarnNode());
             }
-            final SourceSection sourceSection = getContext().getCallStack().getCallerFrameIgnoringSend().getCallNode().getEncapsulatingSourceSection();
+            final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
             warnNode.warningMessage(sourceSection, "tried to create Proc object without a block");
         }
 
