@@ -918,7 +918,8 @@ module Commands
 
     env_vars = {
       "EXCLUDES" => "test/mri/excludes",
-      "RUBYOPT" => '--disable-gems'
+      "RUBYOPT" => '--disable-gems',
+      "TRUFFLERUBYOPT" => '-Xgraal.warn_unless=false'
     }
 
     cext_tests = test_files.select { |f| f.include?("cext-ruby") }
