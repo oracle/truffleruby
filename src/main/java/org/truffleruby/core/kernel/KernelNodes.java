@@ -36,6 +36,7 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -98,6 +99,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Activation;
@@ -926,6 +928,8 @@ public abstract class KernelNodes {
     @CoreMethod(names = "lambda", isModuleFunction = true, needsBlock = true)
     public abstract static class LambdaNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private WarnNode warnNode;
+
         @TruffleBoundary
         @Specialization
         public DynamicObject lambda(NotProvided block) {
@@ -934,6 +938,8 @@ public abstract class KernelNodes {
 
             if (parentBlock == null) {
                 throw new RaiseException(coreExceptions().argumentError("tried to create Proc object without a block", this));
+            } else {
+                warnProcWithoutBlock();
             }
 
             Node callNode = getContext().getCallStack().getCallerFrameIgnoringSend(1).getCallNode();
@@ -990,6 +996,15 @@ public abstract class KernelNodes {
                 }
             }
             return false;
+        }
+
+        private void warnProcWithoutBlock() {
+            if (warnNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                warnNode = insert(new WarnNode());
+            }
+            final SourceSection sourceSection = getContext().getCallStack().getCallerFrameIgnoringSend().getCallNode().getEncapsulatingSourceSection();
+            warnNode.warningMessage(sourceSection, "tried to create Proc object without a block");
         }
 
         protected boolean isCloningEnabled() {
