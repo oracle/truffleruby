@@ -176,6 +176,16 @@ public class CallStackManager {
         });
     }
 
+    @TruffleBoundary
+    public SourceSection getTopMostUserSourceSection() {
+        final Node callNode = getTopMostUserCallNode();
+        if (callNode == null) {
+            return null;
+        } else {
+            return callNode.getEncapsulatingSourceSection();
+        }
+    }
+
     private InternalMethod getMethod(FrameInstance frame) {
         return RubyArguments.tryGetMethod(frame.getFrame(FrameInstance.FrameAccess.READ_ONLY));
     }
