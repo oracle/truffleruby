@@ -84,17 +84,20 @@ public class CommandLineParser {
             boolean rubyOpts) throws CommandLineException {
 
         String value = System.getenv(name);
-        if (value != null && value.length() != 0) {
-            List<String> args = Arrays.asList(value.split("\\s+"));
+        if (value != null) {
+            value = value.trim();
+            if (value.length() != 0) {
+                List<String> args = Arrays.asList(value.split("\\s+"));
 
-            if (args.size() != 0) {
-                new CommandLineParser(
-                        args,
-                        commandLineOptions,
-                        false,
-                        rubyOpts,
-                        true // let it parse and fail
-                ).processArguments();
+                if (args.size() != 0) {
+                    new CommandLineParser(
+                            args,
+                            commandLineOptions,
+                            false,
+                            rubyOpts,
+                            true // let it parse and fail
+                    ).processArguments();
+                }
             }
         }
     }
