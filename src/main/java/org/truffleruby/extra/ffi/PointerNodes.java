@@ -242,6 +242,7 @@ public abstract class PointerNodes {
         public DynamicObject address(DynamicObject pointer, DynamicObject string, int maxLength) {
             final Rope rope = StringOperations.rope(string);
             final int length = Math.min(rope.byteLength(), maxLength);
+            // Does NOT write an extra final NULL byte, like upstream FFI.
             Layouts.POINTER.getPointer(pointer).writeBytes(0, rope.getBytes(), 0, length);
             return pointer;
         }
