@@ -296,7 +296,7 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
     } else if (kwargs && !taken_kwargs) {
        if (argn < argc) {
         arg = argv[argn];
-        truffle_invoke(RUBY_CEXT, "test_kwargs", argv[argn], Qtrue);
+        truffle_invoke(RUBY_CEXT, "test_kwargs", arg, Qtrue);
         argn++;
         found_kwargs = true;
       } else {
