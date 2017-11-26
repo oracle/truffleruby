@@ -1847,7 +1847,8 @@ module Truffle::CExt
   end
 
   def warning?
-    $VERBOSE
+    # has to return true or false
+    true == $VERBOSE
   end
 
   def rb_time_nano_new(sec, nsec)
