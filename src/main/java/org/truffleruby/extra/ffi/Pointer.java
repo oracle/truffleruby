@@ -93,7 +93,7 @@ public class Pointer extends jnr.ffi.Pointer implements AutoCloseable {
     }
 
     public void writeBytes(long offset, long size, byte value) {
-        assert address + offset != 0;
+        assert address + offset != 0 || size == 0;
         UNSAFE.setMemory(address + offset, size, value);
     }
 
