@@ -1126,11 +1126,10 @@ class File < IO
       atime ||= now
       mtime ||= now
     end
-    atime_us = (atime.to_f * 1_000_000).to_i
-    mtime_us = (mtime.to_f * 1_000_000).to_i
     paths.each do |path|
       path = Rubinius::Type.coerce_to_path(path)
-      n = POSIX.truffleposix_utimes(path, atime_us, mtime_us)
+      n = POSIX.truffleposix_utimes(path, atime.to_i, atime.usec,
+                                          mtime.to_i, mtime.usec)
       Errno.handle unless n == 0
     end
   end
