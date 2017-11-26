@@ -1978,7 +1978,7 @@ VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value) {
 }
 
 VALUE rb_proc_call(VALUE self, VALUE args) {
-  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_proc_call", self, args);  
+  return (VALUE) truffle_invoke(RUBY_CEXT, "rb_proc_call", self, args);
 }
 
 int rb_proc_arity(VALUE self) {
