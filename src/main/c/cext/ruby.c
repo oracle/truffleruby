@@ -1200,6 +1200,7 @@ VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length) {
   return rb_str_cat(string, to_concat, length);
 }
 
+// returns Truffle::CExts::RbEncoding, takes Encoding or String
 rb_encoding *rb_to_encoding(VALUE encoding) {
   return truffle_invoke(RUBY_CEXT, "rb_to_encoding", encoding);
 }
@@ -1449,6 +1450,7 @@ rb_encoding *rb_enc_find(const char *name) {
   return rb_enc_from_index(idx);
 }
 
+// returns Encoding, takes rb_encoding struct or RbEncoding
 VALUE rb_enc_from_encoding(rb_encoding *encoding) {
   return truffle_invoke(RUBY_CEXT, "rb_enc_from_encoding", encoding);
 }
