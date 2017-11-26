@@ -1751,10 +1751,10 @@ module Truffle::CExt
   def test_kwargs(kwargs, raise_error)
     return false if kwargs.nil?
 
-    if kwargs.keys.all? { |k| k.is_a?(Symbol) }
+    if kwargs.is_a?(Hash) && kwargs.keys.all? { |k| k.is_a?(Symbol) }
       true
     elsif raise_error
-      raise ArgumentError
+      raise ArgumentError, "the value is not a Hash with all keys being Symbols as kwargs requires: #{kwargs}"
     else
       false
     end
