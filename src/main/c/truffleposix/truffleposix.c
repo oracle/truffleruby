@@ -131,12 +131,13 @@ int truffleposix_select(int nread, int *readfds, int nwrite, int *writefds,
   return ret;
 }
 
-int truffleposix_utimes(const char *filename, long atime_us, long mtime_us) {
+int truffleposix_utimes(const char *filename, long atime_sec, int atime_us,
+                        long mtime_sec, int mtime_us) {
   struct timeval timevals[2];
-  timevals[0].tv_sec = (atime_us / 1000000);
-  timevals[0].tv_usec = (atime_us % 1000000);
-  timevals[1].tv_sec = (mtime_us / 1000000);
-  timevals[1].tv_usec = (mtime_us % 1000000);
+  timevals[0].tv_sec = atime_sec;
+  timevals[0].tv_usec = atime_us;
+  timevals[1].tv_sec = mtime_sec;
+  timevals[1].tv_usec = mtime_us;
   return utimes(filename, timevals);
 }
 
