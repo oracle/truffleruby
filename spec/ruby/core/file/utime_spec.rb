@@ -33,4 +33,11 @@ describe "File.utime" do
   it "accepts an object that has a #to_path method" do
     File.utime(@atime, @mtime, mock_to_path(@file1), mock_to_path(@file2))
   end
+
+  it "allows Time instances in the far future to set mtime and atime" do
+    time = Time.at(1<<44)
+    File.utime(time, time, @file1)
+    File.atime(@file1).year.should == 559444
+    File.mtime(@file1).year.should == 559444
+  end
 end
