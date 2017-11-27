@@ -105,7 +105,7 @@ module JavaUtilities
 
       return ::Java::JavaPackage.new(*name.split('.')) unless must_be_class
     else
-      if a_class == nil
+      if a_class.nil?
         raise NameError, "Missing class name ('#{name}')"
       end
 
