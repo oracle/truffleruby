@@ -1596,7 +1596,7 @@ void rb_econv_check_error(rb_econv_t *ec) {
 }
 
 int rb_econv_prepare_opts(VALUE opthash, VALUE *opts) {
-  rb_tr_error("rb_ary_each not implemented");
+  rb_tr_error("rb_econv_prepare_opts not implemented");
 }
 
 
