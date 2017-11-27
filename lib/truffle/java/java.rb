@@ -18,14 +18,14 @@ module Java
     private_constant :NULL_LOCK
 
     def initialize(a_value)
-      if a_value != nil && a_value.class != Truffle::Interop::Foreign
+      if !a_value.nil? && a_value.class != Truffle::Interop::Foreign
         raise ArgumentError, 'Can only wrap native java objects'
       end
       @value = a_value
     end
 
     def to_s
-      return @value.java_send('toString') if @value != nil
+      return @value.java_send('toString') unless @value.nil?
       ''
     end
 
@@ -34,7 +34,7 @@ module Java
     end
 
     def hash
-      @value.hashCode() if @value != nil
+      @value.hashCode() unless @value.nil?
       0
     end
 
@@ -65,7 +65,7 @@ module Java
     end
 
     def synchronized(&block)
-      return @value.__synchronize__(block) if @value != nil
+      return @value.__synchronize__(block) unless @value.nil?
       NULL_LOCK.synchronize block
     end
 
@@ -142,7 +142,7 @@ module Java
 
       val = @children[name]
 
-      return val if val != nil
+      return val unless val.nil?
 
       val = JavaUtilities.get_relative_package_or_class(self, name)
       @children[name] = val
@@ -171,7 +171,7 @@ module Java
 
     val = @packages[name.capitalize]
 
-    return val if val != nil
+    return val unless val.nil?
 
     val = JavaUtilities.get_package_module_dot_format(name.to_s)
 

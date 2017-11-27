@@ -101,7 +101,7 @@ module JavaUtilities
               end
     if !probably_class
       # Probably not true, but somebody may have been silly in their class names.
-      return make_proxy(a_class) if a_class != nil
+      return make_proxy(a_class) unless a_class.nil?
 
       return ::Java::JavaPackage.new(*name.split('.')) unless must_be_class
     else
@@ -229,7 +229,7 @@ module JavaUtilities
 
       a_proxy = PROXIES[a_class]
 
-      return a_proxy if a_proxy != nil
+      return a_proxy unless a_proxy.nil?
 
       parent = ensure_owner(a_class)
 
@@ -291,7 +291,7 @@ module JavaUtilities
       _package = make_proxy(Java.invoke_java_method(CLASS_GET_ENCLOSING_CLASS, a_class))
     else
       package = Java.invoke_java_method(CLASS_GET_PACKAGE, a_class)
-      if package != nil
+      unless package.nil?
         name = Interop.from_java_string(
           Java.invoke_java_method(PACKAGE_GET_NAME, package))
         ::Java::JavaPackage.new(*name.split('.'))
