@@ -247,6 +247,6 @@ number TruffleRuby passes, and then the TruffleRuby number as a percentage of
 the MRI number. This is run on macOS. The numbers probably vary a little based
 on platform and configuration.
 
-* Language: 3855, 3819, 99%
-* Core: 175112, 168286, 96%
-* Library (`:library` and `:openssl` on TruffleRuby): 20052, 15612, 78%
+* Language: 3913, 3903, 99%
+* Core: 176111, 169117, 96%
+* Library (`:library` and `:openssl` on TruffleRuby): 20820, 16934, 81.3%
