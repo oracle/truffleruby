@@ -76,6 +76,9 @@ class MSpecScript
     # Uses the Rubinius FFI generator
     "^spec/ruby/library/etc",
 
+    # Hangs in CI
+    "^spec/ruby/library/net",
+
     # openssl is tested separately as it needs Sulong
     "^spec/ruby/library/openssl",
   ]
