@@ -57,7 +57,7 @@ class Module
           # we only rescue NameError, since other errors should bubble out
           last_error = $!
         end
-        return java_class if java_class != nil
+        return java_class unless java_class.nil?
       end
     end
   end

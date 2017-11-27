@@ -44,7 +44,7 @@ module JavaUtilities
 
     def fast_checker(a)
       a_class = a.class
-      if a != nil
+      unless a.nil?
         lambda { |x| x.class == a_class }
       else
         lambda { |x| x == nil }
@@ -242,7 +242,7 @@ module JavaUtilities
     def initialize(value_class, boxed_class, wide_type=nil)
       @value_class = value_class
       @boxed_class = boxed_class
-      if wide_type != nil
+      unless wide_type.nil?
         @wide_type = wide_type
       else
         @wide_type = self

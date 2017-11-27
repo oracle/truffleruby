@@ -83,7 +83,7 @@ module JavaUtilities
 
     def add_static_field(f)
       mh = JavaUtilities.unreflect_getter(f)
-      if mh != nil
+      unless mh.nil?
         is_static = JavaUtilities.static_field?(f)
         return if !is_static
         name = Interop.from_java_string(Java.invoke_java_method(FIELD_GET_NAME, f))
@@ -108,7 +108,7 @@ module JavaUtilities
 
     def add_instance_field(f)
       mh = JavaUtilities.unreflect_getter(f)
-      if mh != nil
+      unless mh.nil?
         is_static = JavaUtilities.static_field?(f)
         return if is_static
         name = Interop.from_java_string(Java.invoke_java_method(FIELD_GET_NAME, f))
@@ -130,7 +130,7 @@ module JavaUtilities
         m = JavaUtilities.java_array_get(methods, i)
         if JavaUtilities.static_method?(m)
           mh = JavaUtilities.unreflect_method(m)
-          if mh != nil
+          unless mh.nil?
             name = Interop.from_java_string(Java.invoke_java_method(METHOD_GET_NAME, m))
             a_method = Method.new(name, mh)
             arity = a_method.arity
@@ -148,7 +148,7 @@ module JavaUtilities
         m = JavaUtilities.java_array_get(methods, i)
         if !JavaUtilities.static_method?(m)
           mh = JavaUtilities.unreflect_method(m)
-          if mh != nil
+          unless mh.nil?
             name = Interop.from_java_string(Java.invoke_java_method(METHOD_GET_NAME, m))
             a_method = Method.new(name, mh)
             arity = a_method.arity
@@ -179,7 +179,7 @@ module JavaUtilities
       (0...constructors_size).each do |i|
         c = JavaUtilities.java_array_get(constructors, i)
         mh = JavaUtilities.unreflect_constructor(c)
-        if mh != nil
+        unless mh.nil?
           add_to_singleton('new', Constructor.new(mh))
         end
       end
@@ -229,7 +229,7 @@ module JavaUtilities
                   :define_method
                 end
       a_proxy.__send__(message, @name, @getter)
-      a_proxy.__send__(message, @name, @setter) if @xssetter != nil
+      a_proxy.__send__(message, @name, @setter) unless @xssetter.nil?
     end
 
     def combine_with(a_field)

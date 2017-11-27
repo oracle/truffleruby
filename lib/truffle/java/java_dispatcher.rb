@@ -82,7 +82,7 @@ module JavaUtilities
       (0...params_size).each do |i|
         p = JavaUtilities.java_array_get(params, i)
         wt = WideningType::PrimitiveTypes[p]
-        if wt != nil
+        unless wt.nil?
           new_params[i] = wt.wide_type.value_class
         else
           new_params[i] = p
