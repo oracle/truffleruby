@@ -1050,7 +1050,24 @@ public class CExtNodes {
                 System.err.printf("Printing %d values%n", objects.length);
             }
             for (Object object : objects) {
-                System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), object);
+                final String representation;
+
+                if (RubyGuards.isRubyString(object)) {
+                    final Rope rope = StringOperations.rope((DynamicObject) object);
+                    final String str = RopeOperations.decodeRope(rope);
+                    final byte[] bytes = rope.getBytes();
+                    final StringBuilder builder = new StringBuilder();
+                    for (int i = 0; i < bytes.length; i++) {
+                        if (i % 4 == 0 && i != 0 && i != bytes.length-1) {
+                            builder.append(" ");
+                        }
+                        builder.append(String.format("%02x", bytes[i]));
+                    }
+                    representation = str + " (" + builder.toString() + ")";
+                } else {
+                    representation = object.toString();
+                }
+                System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), representation);
             }
             return nil();
         }
