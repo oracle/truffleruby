@@ -9,31 +9,30 @@
  */
 package org.truffleruby.core.exception;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
+import static org.truffleruby.core.array.ArrayHelpers.createArray;
+
+import java.util.EnumSet;
+
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.encoding.EncodingOperations;
-import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import org.truffleruby.platform.ErrnoDescriptions;
 
-import java.util.EnumSet;
-
-import static org.truffleruby.core.array.ArrayHelpers.createArray;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class CoreExceptions {
 
@@ -50,6 +49,15 @@ public class CoreExceptions {
                 Layouts.EXCEPTION.getLogicalClass(exception),
                 Layouts.EXCEPTION.getMessage(exception),
                 Layouts.EXCEPTION.getBacktrace(exception));
+    }
+
+    @TruffleBoundary
+    public void showExceptionIfDebug(DynamicObject rubyException, Backtrace backtrace) {
+        if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
+            final DynamicObject rubyClass = Layouts.BASIC_OBJECT.getLogicalClass(rubyException);
+            final Object message = context.send(rubyException, "to_s");
+            showExceptionIfDebug(rubyClass, message, backtrace);
+        }
     }
 
     @TruffleBoundary
@@ -574,12 +582,13 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject nameError(String message, Object receiver, String name, Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
+        final DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
         final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return Layouts.NAME_ERROR.createNameError(
                 context.getCoreLibrary().getNameErrorFactory(),
                 messageString,
+                null,
                 backtrace,
                 receiver,
                 context.getSymbolTable().getSymbol(name));
@@ -591,12 +600,13 @@ public class CoreExceptions {
     public DynamicObject noMethodError(String message, Object receiver, String name, Object[] args, Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final DynamicObject argsArray =  createArray(context, args, args.length);
-        DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
+        final DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
         final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return Layouts.NO_METHOD_ERROR.createNoMethodError(
                 context.getCoreLibrary().getNoMethodErrorFactory(),
                 messageString,
+                null,
                 backtrace,
                 receiver,
                 context.getSymbolTable().getSymbol(name),
@@ -604,15 +614,33 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
+    public DynamicObject noMethodError(DynamicObject formatter, Object receiver, String name, Object[] args, Node currentNode) {
+        final DynamicObject argsArray = createArray(context, args, args.length);
+        final DynamicObject exceptionClass = context.getCoreLibrary().getNoMethodErrorClass();
+        final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
+        final DynamicObject exception = Layouts.NO_METHOD_ERROR.createNoMethodError(
+                context.getCoreLibrary().getNoMethodErrorFactory(),
+                null,
+                formatter,
+                backtrace,
+                receiver,
+                context.getSymbolTable().getSymbol(name),
+                argsArray);
+        showExceptionIfDebug(exception, backtrace);
+        return exception;
+    }
+
+    @TruffleBoundary
     public DynamicObject noSuperMethodOutsideMethodError(Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(context, StringOperations.encodeRope("super called outside of method", UTF8Encoding.INSTANCE));
-        DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
+        final DynamicObject exceptionClass = context.getCoreLibrary().getNameErrorClass();
         final Backtrace backtrace = context.getCallStack().getBacktraceForException(currentNode, exceptionClass);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         // TODO BJF Jul 21, 2016 Review to add receiver
         DynamicObject noMethodError = Layouts.NAME_ERROR.createNameError(
                 context.getCoreLibrary().getNoMethodErrorFactory(),
                 messageString,
+                null,
                 backtrace,
                 null,
                 context.getSymbolTable().getSymbol("<unknown>"));
@@ -620,37 +648,8 @@ public class CoreExceptions {
         return noMethodError;
     }
 
-    @TruffleBoundary
-    public DynamicObject noSuperMethodError(String name, Object self, Object[] args,  Node currentNode) {
-        return noMethodError(StringUtils.format("super: no superclass method `%s'", name), self, name, args, currentNode);
-    }
-
-    @TruffleBoundary
-    public DynamicObject noMethodErrorOnReceiver(String name, Object receiver, Object[] args, Node currentNode) {
-        final DynamicObject logicalClass = context.getCoreLibrary().getLogicalClass(receiver);
-        final String moduleName = Layouts.MODULE.getFields(logicalClass).getName();
-
-        // e.g. BasicObject does not have inspect
-        final boolean hasInspect = ModuleOperations.lookupMethod(logicalClass, "inspect", Visibility.PUBLIC) != null;
-        final Object stringRepresentation = hasInspect ? context.send(receiver, "inspect") : context.getCoreLibrary().getNil();
-
-        return noMethodError(StringUtils.format("undefined method `%s' for %s:%s", name, stringRepresentation, moduleName), receiver, name, args, currentNode);
-    }
-
     public DynamicObject noMethodErrorUnknownIdentifier(TruffleObject receiver, Object name, Object[] args, UnknownIdentifierException exception, Node currentNode) {
         return noMethodError(exception.getMessage(), receiver, name.toString(), args, currentNode);
-    }
-
-    @TruffleBoundary
-    public DynamicObject privateMethodError(String name, Object self, Object[] args, Node currentNode) {
-        String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(self)).getName();
-        return noMethodError(StringUtils.format("private method `%s' called for %s", name, className), self, name, args, currentNode);
-    }
-
-    @TruffleBoundary
-    public DynamicObject protectedMethodError(String name, Object self, Object[] args, Node currentNode) {
-        String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(self)).getName();
-        return noMethodError(StringUtils.format("protected method `%s' called for %s", name, className), self, name, args, currentNode);
     }
 
     // LoadError

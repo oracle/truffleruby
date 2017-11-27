@@ -31,7 +31,7 @@ public abstract class NameErrorNodes {
 
         @Specialization
         public DynamicObject allocateNameError(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, nil(), null, null, nil());
+            return allocateObjectNode.allocate(rubyClass, nil(), null, null, null, nil());
         }
 
     }

@@ -48,7 +48,14 @@ class Exception
   def to_s
     msg = Truffle.invoke_primitive :exception_message, self
     if msg.nil?
-      self.class.to_s
+      formatter = Truffle.invoke_primitive :exception_formatter, self
+      if formatter.nil?
+        self.class.to_s
+      else
+        msg = formatter.call(self).to_s
+        Truffle.invoke_primitive :exception_set_message, self, msg
+        msg
+      end
     else
       msg.to_s
     end

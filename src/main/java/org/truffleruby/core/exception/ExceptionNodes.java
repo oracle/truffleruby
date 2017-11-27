@@ -40,7 +40,7 @@ public abstract class ExceptionNodes {
 
         @Specialization
         public DynamicObject allocateNameError(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, nil(), null);
+            return allocateObjectNode.allocate(rubyClass, nil(), null, null);
         }
 
     }
@@ -138,6 +138,16 @@ public abstract class ExceptionNodes {
         public Object setMessage(DynamicObject error, Object message) {
             Layouts.EXCEPTION.setMessage(error, message);
             return error;
+        }
+
+    }
+
+    @Primitive(name = "exception_formatter")
+    public abstract static class FormatterPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        public DynamicObject formatter(DynamicObject exception) {
+            return Layouts.EXCEPTION.getFormatter(exception);
         }
 
     }

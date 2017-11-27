@@ -24,7 +24,8 @@ public interface NoMethodErrorLayout extends NameErrorLayout {
 
     DynamicObject createNoMethodError(
         DynamicObjectFactory factory,
-        Object message,
+        @Nullable Object message,
+        @Nullable DynamicObject formatter,
         @Nullable Backtrace backtrace,
         @Nullable Object receiver,
         Object name,
