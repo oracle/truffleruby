@@ -10,13 +10,18 @@
 package org.truffleruby.language.control;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.BranchProfile;
+
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.arguments.RubyArguments;
 
 public class ReturnNode extends RubyNode {
 
     private final ReturnID returnID;
 
     @Child private RubyNode value;
+
+    private final BranchProfile unexpectedReturnProfile = BranchProfile.create();
 
     public ReturnNode(ReturnID returnID, RubyNode value) {
         this.returnID = returnID;
@@ -25,6 +30,13 @@ public class ReturnNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
+        final FrameOnStackMarker marker = RubyArguments.getFrameOnStackMarker(frame);
+
+        if (marker != null && !marker.isOnStack()) {
+            unexpectedReturnProfile.enter();
+            throw new RaiseException(coreExceptions().unexpectedReturn(this));
+        }
+
         throw new ReturnException(returnID, value.execute(frame));
     }
 
