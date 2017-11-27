@@ -953,6 +953,15 @@ public class CoreExceptions {
                 currentNode, Errno.EAGAIN.intValue());
     }
 
+    // FFI::NullPointerError
+
+    @TruffleBoundary
+    public DynamicObject ffiNullPointerError(String message, Node currentNode) {
+        DynamicObject exceptionClass = context.getCoreLibrary().getRubiniusFFINullPointerErrorClass();
+        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+    }
+
     // SystemExit
 
     @TruffleBoundary
