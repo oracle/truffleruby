@@ -167,6 +167,7 @@ public class CoreLibrary {
     private final DynamicObject rubiniusModule;
     private final DynamicObject rubiniusFFIModule;
     private final DynamicObject rubiniusFFIPointerClass;
+    private final DynamicObject rubiniusFFINullPointerErrorClass;
     private final DynamicObject rubiniusTypeModule;
     private final DynamicObject signalModule;
     private final DynamicObject truffleModule;
@@ -550,6 +551,7 @@ public class CoreLibrary {
         rubiniusFFIModule = defineModule(rubiniusModule, "FFI");
         rubiniusFFIPointerClass = defineClass(rubiniusFFIModule, objectClass, "Pointer");
         Layouts.CLASS.setInstanceFactoryUnsafe(rubiniusFFIPointerClass, Layouts.POINTER.createPointerShape(rubiniusFFIPointerClass, rubiniusFFIPointerClass));
+        rubiniusFFINullPointerErrorClass = defineClass(rubiniusFFIModule, runtimeErrorClass, "NullPointerError");
 
         defineClass(rubiniusModule, objectClass, "Mirror");
         rubiniusTypeModule = defineModule(rubiniusModule, "Type");
@@ -1138,6 +1140,10 @@ public class CoreLibrary {
 
     public DynamicObject getRubiniusFFIPointerClass() {
         return rubiniusFFIPointerClass;
+    }
+
+    public DynamicObject getRubiniusFFINullPointerErrorClass() {
+        return rubiniusFFINullPointerErrorClass;
     }
 
     public DynamicObject getRubiniusTypeModule() {
