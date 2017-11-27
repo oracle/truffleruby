@@ -699,34 +699,27 @@ zstream_expand_buffer_protect(void *ptr)
 static int
 zstream_expand_buffer_without_gvl(struct zstream *z)
 {
-// TODO (pitr-ch 08-Jun-2017): reimplement?
-//    char * new_str;
-//    long inc, len;
-//
-//    if (RSTRING_LEN(z->buf) - z->buf_filled >= ZSTREAM_AVAIL_OUT_STEP_MAX) {
-//	z->stream.avail_out = ZSTREAM_AVAIL_OUT_STEP_MAX;
-//    }
-//    else {
-//	inc = z->buf_filled / 2;
-//	if (inc < ZSTREAM_AVAIL_OUT_STEP_MIN) {
-//	    inc = ZSTREAM_AVAIL_OUT_STEP_MIN;
-//	}
-//
-//	len = z->buf_filled + inc;
-//
-//	new_str = ruby_xrealloc(RSTRING(z->buf)->as.heap.ptr, len + 1);
-//
-//	/* from rb_str_resize */
-//	RSTRING(z->buf)->as.heap.ptr = new_str;
-//	RSTRING(z->buf)->as.heap.ptr[len] = '\0'; /* sentinel */
-//	RSTRING(z->buf)->as.heap.len =
-//	    RSTRING(z->buf)->as.heap.aux.capa = len;
-//
-//	z->stream.avail_out = (inc < ZSTREAM_AVAIL_OUT_STEP_MAX) ?
-//	    (int)inc : ZSTREAM_AVAIL_OUT_STEP_MAX;
-//    }
-//    z->stream.next_out = (Bytef*)RSTRING_PTR(z->buf) + z->buf_filled;
-//
+    char * new_str;
+    long inc, len;
+
+    if (RSTRING_LEN(rb_tr_managed_from_handle(z->buf)) - z->buf_filled >= ZSTREAM_AVAIL_OUT_STEP_MAX) {
+	z->stream.avail_out = ZSTREAM_AVAIL_OUT_STEP_MAX;
+    }
+    else {
+	inc = z->buf_filled / 2;
+	if (inc < ZSTREAM_AVAIL_OUT_STEP_MIN) {
+	    inc = ZSTREAM_AVAIL_OUT_STEP_MIN;
+	}
+
+	len = z->buf_filled + inc;
+
+        rb_str_resize(rb_tr_managed_from_handle(z->buf), len);
+
+	z->stream.avail_out = (inc < ZSTREAM_AVAIL_OUT_STEP_MAX) ?
+	    (int)inc : ZSTREAM_AVAIL_OUT_STEP_MAX;
+    }
+    z->stream.next_out = (Bytef*)RSTRING_PTR(rb_tr_managed_from_handle(z->buf)) + z->buf_filled;
+
     return ZSTREAM_EXPAND_BUFFER_OK;
 }
 
