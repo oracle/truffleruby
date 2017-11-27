@@ -37,4 +37,10 @@ module Java
   end
 end
 
-ENV_JAVA = Java::SystemPropertyMap.new
+verbose = $VERBOSE
+begin
+  $VERBOSE = nil
+  ENV_JAVA = Java::SystemPropertyMap.new
+ensure
+  $VERBOSE = verbose
+end

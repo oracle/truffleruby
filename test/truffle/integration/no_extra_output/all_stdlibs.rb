@@ -24,7 +24,6 @@ glob('lib/rubysl/rubysl-*') { |dir|
 stdlibs += %w[json]
 
 ignore = %w[continuation debug mathn profile psych_jars shell]
-ignore += %w[java]
 
 stdlibs -= ignore
 

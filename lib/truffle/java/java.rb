@@ -147,9 +147,6 @@ module Java
       val = JavaUtilities.get_relative_package_or_class(self, name)
       @children[name] = val
 
-      if name[0] == name[0].upcase && !val.kind_of?(JavaPackage)
-        const_set(name, val)
-      end
       val
     end
 
