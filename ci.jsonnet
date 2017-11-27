@@ -434,6 +434,11 @@
     ]
   },
 
+  test_integration: $.sulong {
+    setup: common.setup + $.sulong.setup,
+    run: jt(["test", "integration"])
+  },
+
   local test_compilation_flags = {
     environment+: {
       JAVA_OPTS: java_opts + " -Dgraal.TraceTruffleCompilation=true -Dgraal.TruffleCompilationExceptionsAreFatal=true"
@@ -526,7 +531,7 @@
     {name: "ruby-lint"} + linux_gate + $.lint,
     {name: "ruby-test-tck"} + linux_gate + {run: [["mx", "rubytck"]]},
     {name: "ruby-test-mri"} + linux_gate + {run: jt(["test", "mri"])},
-    {name: "ruby-test-integration"} + linux_gate + {run: jt(["test", "integration"])},
+    {name: "ruby-test-integration"} + linux_gate + $.test_integration,
     {name: "ruby-test-cexts"} + linux_gate + $.test_cexts,
     {name: "ruby-test-gems"} + linux_gate + $.test_gems,
     {name: "ruby-test-bundle-no-sulong"} + linux_gate + {run: jt(["test", "bundle", "--no-sulong"])},
