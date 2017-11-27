@@ -65,10 +65,6 @@ class MSpecScript
   set :library, [
     "spec/ruby/library",
 
-    # Since 2.3
-    "^spec/ruby/library/resolv",
-    "^spec/ruby/library/drb",
-
     # Not yet explored
     "^spec/ruby/library/mathn",
     "^spec/ruby/library/readline",
@@ -79,13 +75,6 @@ class MSpecScript
 
     # Uses the Rubinius FFI generator
     "^spec/ruby/library/etc",
-
-    # Hangs
-    "^spec/ruby/library/net",
-
-    # Load issues with 'delegate'.
-    "^spec/ruby/library/delegate/delegate_class/instance_method_spec.rb",
-    "^spec/ruby/library/delegate/delegator/protected_methods_spec.rb",
 
     # openssl is tested separately as it needs Sulong
     "^spec/ruby/library/openssl",
