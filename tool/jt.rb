@@ -598,7 +598,7 @@ module Commands
       end
     else
       if ENV["RUBY_BIN"]
-        # Assume if RUBY_BIN is set and '--graal' is not, that we're running
+        # Assume Graal is available if RUBY_BIN is set or that we are running
         # a non-TruffleRuby, such as MRI.
       else
         vm_args << '-Xgraal.warn_unless=false'
