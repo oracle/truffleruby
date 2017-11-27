@@ -27,6 +27,11 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ExceptionOperations {
 
+    public static final String SUPER_METHOD_ERROR = "SUPER_METHOD_ERROR";
+    public static final String PROTECTED_METHOD_ERROR = "PROTECTED_METHOD_ERROR";
+    public static final String PRIVATE_METHOD_ERROR = "PRIVATE_METHOD_ERROR";
+    public static final String NO_METHOD_ERROR = "NO_METHOD_ERROR";
+
     private static final EnumSet<BacktraceFormatter.FormattingFlags> FORMAT_FLAGS = EnumSet.of(
             FormattingFlags.OMIT_FROM_PREFIX,
             FormattingFlags.OMIT_EXCEPTION);
@@ -66,7 +71,7 @@ public abstract class ExceptionOperations {
     public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message, Node node, Throwable javaException) {
         Backtrace backtrace = context.getCallStack().getBacktraceForException(node, rubyClass, javaException);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        return Layouts.EXCEPTION.createException(Layouts.CLASS.getInstanceFactory(rubyClass), message, backtrace);
+        return Layouts.EXCEPTION.createException(Layouts.CLASS.getInstanceFactory(rubyClass), message, null, backtrace);
     }
 
     // because the factory is not constant
@@ -74,6 +79,11 @@ public abstract class ExceptionOperations {
     public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass, Object message, Node node, int errno) {
         Backtrace backtrace = context.getCallStack().getBacktraceForException(node, rubyClass);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        return Layouts.SYSTEM_CALL_ERROR.createSystemCallError(Layouts.CLASS.getInstanceFactory(rubyClass), message, backtrace, errno);
+        return Layouts.SYSTEM_CALL_ERROR.createSystemCallError(Layouts.CLASS.getInstanceFactory(rubyClass), message, null, backtrace, errno);
     }
+
+    public static DynamicObject getFormatter(String name, RubyContext context) {
+        return (DynamicObject) Layouts.MODULE.getFields(context.getCoreLibrary().getTruffleExceptionOperationsModule()).getConstant(name).getValue();
+    }
+
 }

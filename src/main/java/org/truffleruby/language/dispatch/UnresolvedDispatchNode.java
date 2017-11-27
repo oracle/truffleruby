@@ -14,6 +14,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -200,7 +201,9 @@ public final class UnresolvedDispatchNode extends DispatchNode {
 
                 if (!methodMissing.isDefined()) {
                     final String methodNameString = toString(methodName);
-                    throw new RaiseException(coreExceptions().noMethodErrorOnReceiver(methodNameString, receiverObject, argumentsObjects, this));
+                    final DynamicObject formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
+                    throw new RaiseException(coreExceptions().noMethodError(formatter, receiverObject, methodNameString,
+                            argumentsObjects, this));
                 }
 
                 return new CachedMethodMissingDispatchNode(getContext(), methodName, first, coreLibrary().getMetaClass(receiverObject),

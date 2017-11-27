@@ -35,6 +35,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNodeFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
@@ -355,18 +356,23 @@ public abstract class BasicObjectNodes {
             final FrameInstance relevantCallerFrame = getRelevantCallerFrame();
             Visibility visibility;
 
+            final DynamicObject formatter;
             if (lastCallWasSuper(relevantCallerFrame)) {
-                return coreExceptions().noSuperMethodError(name, self, args, this);
+                formatter = ExceptionOperations.getFormatter(ExceptionOperations.SUPER_METHOD_ERROR, getContext());
+                return coreExceptions().noMethodError(formatter, self, name, args, this);
             } else if ((visibility = lastCallWasCallingPrivateOrProtectedMethod(self, name, relevantCallerFrame)) != null) {
                 if (visibility.isPrivate()) {
-                    return coreExceptions().privateMethodError(name, self, args, this);
+                    formatter = ExceptionOperations.getFormatter(ExceptionOperations.PRIVATE_METHOD_ERROR, getContext());
+                    return coreExceptions().noMethodError(formatter, self, name, args, this);
                 } else {
-                    return coreExceptions().protectedMethodError(name, self, args, this);
+                    formatter = ExceptionOperations.getFormatter(ExceptionOperations.PROTECTED_METHOD_ERROR, getContext());
+                    return coreExceptions().noMethodError(formatter, self, name, args, this);
                 }
             } else if (lastCallWasVCall(relevantCallerFrame)) {
                 return coreExceptions().nameErrorUndefinedLocalVariableOrMethod(name, self, this);
             } else {
-                return coreExceptions().noMethodErrorOnReceiver(name, self, args, this);
+                formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
+                return coreExceptions().noMethodError(formatter, self, name, args, this);
             }
         }
 

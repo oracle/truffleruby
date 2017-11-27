@@ -14,10 +14,12 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.cast.ToSymbolNodeGen;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -95,7 +97,8 @@ public class UncachedDispatchNode extends DispatchNode {
                 return false;
             } else {
                 methodMissingNotFoundProfile.enter();
-                throw new RaiseException(coreExceptions().noMethodErrorOnReceiver(methodName, receiver, arguments, this));
+                final DynamicObject formatter = ExceptionOperations.getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
+                throw new RaiseException(coreExceptions().noMethodError(formatter, receiver, methodName, arguments, this));
             }
         }
 
