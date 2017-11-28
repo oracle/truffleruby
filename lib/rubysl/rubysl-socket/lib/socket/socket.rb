@@ -142,7 +142,7 @@ class Socket < BasicSocket
       out_pointer = RubySL::Socket::Foreign
         .gethostbyaddr(in_pointer, in_pointer.total, family)
 
-      unless out_pointer
+      if out_pointer.null?
         raise SocketError, "No host found for address #{addr.inspect}"
       end
 
@@ -155,7 +155,7 @@ class Socket < BasicSocket
   def self.getservbyname(service, proto = 'tcp')
     pointer = RubySL::Socket::Foreign.getservbyname(service, proto)
 
-    raise SocketError, "no such service #{service}/#{proto}" unless pointer
+    raise SocketError, "no such service #{service}/#{proto}" if pointer.null?
 
     struct = RubySL::Socket::Foreign::Servent.new(pointer)
 
@@ -166,7 +166,7 @@ class Socket < BasicSocket
     proto ||= 'tcp'
     pointer = RubySL::Socket::Foreign.getservbyport(port, proto)
 
-    raise SocketError, "no such service for port #{port}/#{proto}" unless pointer
+    raise SocketError, "no such service for port #{port}/#{proto}" if pointer.null?
 
     struct = RubySL::Socket::Foreign::Servent.new(pointer)
 
