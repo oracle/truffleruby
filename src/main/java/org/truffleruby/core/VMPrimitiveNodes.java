@@ -47,14 +47,16 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
-import org.truffleruby.core.proc.ProcSignalHandler;
+import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
@@ -67,12 +69,12 @@ import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
-import org.truffleruby.platform.signal.SignalHandler;
 import org.truffleruby.platform.sunmisc.SunMiscSignal;
 import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 @CoreClass(value = "VM primitives")
 public abstract class VMPrimitiveNodes {
@@ -270,7 +272,30 @@ public abstract class VMPrimitiveNodes {
                 // The proc will be executed on the main thread
                 SharedObjects.writeBarrier(getContext(), proc);
             }
-            return handle(signalName, new ProcSignalHandler(getContext(), proc));
+
+            final RubyContext context = getContext();
+
+            return handle(signalName, signal -> {
+                final DynamicObject rootThread = context.getThreadManager().getRootThread();
+                final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
+
+                // Workaround: we need to use a "Truffle-created thread" so that NFI can get its context (GR-7014)
+                final Thread thread = context.getEnv().createThread(() -> {
+                    context.getSafepointManager().pauseAllThreadsAndExecuteFromNonRubyThread(true, (rubyThread, currentNode) -> {
+                        if (rubyThread == rootThread &&
+                                fiberManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
+                            ProcOperations.rootCall(proc);
+                        }
+                    });
+                });
+
+                thread.start();
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    throw new UnsupportedOperationException("InterruptedException in sun.misc.Signal's Thread: " + Thread.currentThread());
+                }
+            });
         }
 
         @TruffleBoundary
@@ -285,7 +310,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        private boolean handle(DynamicObject signalName, SignalHandler newHandler) {
+        private boolean handle(DynamicObject signalName, Consumer<SunMiscSignal> newHandler) {
             SunMiscSignal signal = getContext().getNativePlatform().getSignalManager().createSignal(StringOperations.getString(signalName));
             try {
                 getContext().getNativePlatform().getSignalManager().watchSignal(signal, newHandler);

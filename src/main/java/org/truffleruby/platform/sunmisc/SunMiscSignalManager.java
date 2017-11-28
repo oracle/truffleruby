@@ -11,7 +11,6 @@ package org.truffleruby.platform.sunmisc;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import jnr.constants.platform.Signal;
-import org.truffleruby.platform.signal.SignalHandler;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
 
 @SuppressWarnings("restriction")
 public class SunMiscSignalManager {
@@ -74,7 +74,7 @@ public class SunMiscSignalManager {
 
     public static final Map<String, Integer> SIGNALS_LIST = Collections.unmodifiableMap(list());
 
-    public static final SignalHandler IGNORE_HANDLER = signal -> {
+    public static final Consumer<SunMiscSignal> IGNORE_HANDLER = signal -> {
         // Just ignore the signal.
     };
 
@@ -114,7 +114,7 @@ public class SunMiscSignalManager {
         return new SunMiscSignal(name);
     }
 
-    public void watchSignal(SunMiscSignal signal, SignalHandler newHandler) throws IllegalArgumentException {
+    public void watchSignal(SunMiscSignal signal, Consumer<SunMiscSignal> newHandler) throws IllegalArgumentException {
         handle(signal, newHandler);
     }
 
@@ -123,7 +123,7 @@ public class SunMiscSignalManager {
     }
 
     @TruffleBoundary
-    public void handle(final SunMiscSignal signal, final SignalHandler newHandler) throws IllegalArgumentException {
+    public void handle(final SunMiscSignal signal, final Consumer<SunMiscSignal> newHandler) throws IllegalArgumentException {
         final sun.misc.SignalHandler oldSunHandler = sun.misc.Signal.handle(
                 signal.getSunMiscSignal(), wrapHandler(signal, newHandler));
 
@@ -139,8 +139,8 @@ public class SunMiscSignalManager {
     }
 
     @TruffleBoundary
-    private sun.misc.SignalHandler wrapHandler(final SunMiscSignal signal, final SignalHandler newHandler) {
-        return wrappedSignal -> newHandler.handle(signal);
+    private sun.misc.SignalHandler wrapHandler(final SunMiscSignal signal, final Consumer<SunMiscSignal> newHandler) {
+        return wrappedSignal -> newHandler.accept(signal);
     }
 
     @TruffleBoundary
