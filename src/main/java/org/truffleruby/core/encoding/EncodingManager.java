@@ -30,7 +30,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.ISO_8859_16;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
