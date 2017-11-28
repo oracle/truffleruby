@@ -69,7 +69,7 @@ import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
-import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
+import org.truffleruby.platform.Signals;
 import sun.misc.Signal;
 
 import java.util.ArrayList;
@@ -302,7 +302,7 @@ public abstract class VMPrimitiveNodes {
         private boolean handleDefault(DynamicObject signalName) {
             Signal signal = new Signal(StringOperations.getString(signalName));
             try {
-                final sun.misc.SignalHandler defaultHandler = SunMiscSignalManager.DEFAULT_HANDLERS.get(signal);
+                final sun.misc.SignalHandler defaultHandler = Signals.DEFAULT_HANDLERS.get(signal);
                 if (defaultHandler != null) { // otherwise it is already the default signal
                     Signal.handle(signal, defaultHandler);
                 }
@@ -319,7 +319,7 @@ public abstract class VMPrimitiveNodes {
                 final sun.misc.SignalHandler oldSunHandler = Signal.handle(
                         signal, wrappedSignal -> newHandler.accept(signal));
 
-                SunMiscSignalManager.DEFAULT_HANDLERS.putIfAbsent(signal, oldSunHandler);
+                Signals.DEFAULT_HANDLERS.putIfAbsent(signal, oldSunHandler);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
             }
