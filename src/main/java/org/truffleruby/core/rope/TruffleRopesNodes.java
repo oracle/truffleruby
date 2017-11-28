@@ -144,10 +144,12 @@ public abstract class TruffleRopesNodes {
 
         @Specialization(guards = "isRubyString(string)")
         public DynamicObject flattenRope(DynamicObject string,
-                                         @Cached("create()") RopeNodes.FlattenNode flattenNode) {
+                                         @Cached("create()") RopeNodes.FlattenNode flattenNode,
+                                         @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+
             final Rope flattened = flattenNode.executeFlatten(StringOperations.rope(string));
 
-            return createString(flattened);
+            return makeStringNode.fromRope(flattened);
         }
 
     }
@@ -161,9 +163,11 @@ public abstract class TruffleRopesNodes {
     public abstract static class CreateSimpleStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject createSimpleString() {
-            return createString(new AsciiOnlyLeafRope(new byte[]{'t', 'e', 's', 't'}, UTF8Encoding.INSTANCE));
+        public DynamicObject createSimpleString(
+                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            return makeStringNode.fromRope(new AsciiOnlyLeafRope(new byte[]{'t', 'e', 's', 't'}, UTF8Encoding.INSTANCE));
         }
+
     }
 
 }

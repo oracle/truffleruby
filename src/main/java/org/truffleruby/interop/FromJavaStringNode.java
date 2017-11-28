@@ -34,8 +34,9 @@ public abstract class FromJavaStringNode extends RubyNode {
     public DynamicObject fromJavaString(
             String value,
             @Cached("value") String cachedValue,
-            @Cached("getRope(value)") Rope cachedRope) {
-        return createString(cachedRope);
+            @Cached("getRope(value)") Rope cachedRope,
+            @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+        return makeStringNode.fromRope(cachedRope);
     }
 
     @Specialization(replaces = "fromJavaString")

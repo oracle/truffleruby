@@ -1591,6 +1591,7 @@ public abstract class KernelNodes {
     public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
+        @Child private StringNodes.MakeStringNode makeStringNode;
         @Child private TaintNode taintNode;
         @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen.create(ReadGlobalVariableNodeGen.create("$DEBUG"));
 
@@ -1653,7 +1654,12 @@ public abstract class KernelNodes {
                 makeLeafRopeNode = insert(RopeNodes.MakeLeafRopeNode.create());
             }
 
-            final DynamicObject string = createString(makeLeafRopeNode.executeMake(
+            if (makeStringNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                makeStringNode = insert(StringNodes.MakeStringNode.create());
+            }
+
+            final DynamicObject string = makeStringNode.fromRope(makeLeafRopeNode.executeMake(
                     bytes,
                     result.getEncoding().getEncodingForLength(formatLength),
                     result.getStringCodeRange(),

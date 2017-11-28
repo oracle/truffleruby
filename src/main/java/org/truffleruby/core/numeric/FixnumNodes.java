@@ -1056,15 +1056,16 @@ public abstract class FixnumNodes {
     @CoreMethod(names = "inspect")
     public abstract static class InspectNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization
         public DynamicObject inspect(int n) {
-            return createString(new LazyIntRope(n));
+            return makeStringNode.fromRope(new LazyIntRope(n));
         }
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject inspect(long n,
-                                     @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+        public DynamicObject inspect(long n) {
             if (CoreLibrary.fitsIntoInteger(n)) {
                 return inspect((int) n);
             }
@@ -1106,7 +1107,7 @@ public abstract class FixnumNodes {
 
         @Specialization
         public DynamicObject toS(int n, NotProvided base) {
-            return createString(new LazyIntRope(n));
+            return makeStringNode.fromRope(new LazyIntRope(n));
         }
 
         @TruffleBoundary

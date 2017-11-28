@@ -25,6 +25,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.Visibility;
@@ -140,8 +141,9 @@ public abstract class SymbolNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject toS(DynamicObject symbol) {
-            return createString(Layouts.SYMBOL.getRope(symbol));
+        public DynamicObject toS(DynamicObject symbol,
+                                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            return makeStringNode.fromRope(Layouts.SYMBOL.getRope(symbol));
         }
 
     }

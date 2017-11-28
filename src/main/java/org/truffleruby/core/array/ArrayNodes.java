@@ -55,6 +55,7 @@ import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -1293,6 +1294,7 @@ public abstract class ArrayNodes {
     public abstract static class PackNode extends ArrayCoreMethodNode {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
         @Child private TaintNode taintNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
@@ -1352,7 +1354,12 @@ public abstract class ArrayNodes {
                 makeLeafRopeNode = insert(RopeNodes.MakeLeafRopeNode.create());
             }
 
-            final DynamicObject string = createString(makeLeafRopeNode.executeMake(
+            if (makeStringNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                makeStringNode = insert(StringNodes.MakeStringNode.create());
+            }
+
+            final DynamicObject string = makeStringNode.fromRope(makeLeafRopeNode.executeMake(
                     bytes,
                     result.getEncoding().getEncodingForLength(formatLength),
                     result.getStringCodeRange(),
