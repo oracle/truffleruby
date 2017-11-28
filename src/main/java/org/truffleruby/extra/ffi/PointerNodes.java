@@ -35,6 +35,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.RubiniusTypes;
 
@@ -50,7 +51,7 @@ public abstract class PointerNodes {
         protected void checkNull(Pointer ptr) {
             if (ptr.isNull()) {
                 nullPointerProfile.enter();
-                coreExceptions().ffiNullPointerError("invalid memory access at address=0x0", this);
+                throw new RaiseException(coreExceptions().ffiNullPointerError("invalid memory access at address=0x0", this));
             }
         }
 
