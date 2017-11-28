@@ -341,7 +341,7 @@ class TypesGenerator < Generator
     output.lines.select { |line|
       line =~ /typedef/
     }.reject { |line|
-      line =~ /union|struct/
+      line =~ /\b(union|struct|enum)\b/
     }.each { |line|
       line.chomp!
       # strip off the starting typedef and ending ;
