@@ -30,9 +30,7 @@ import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.string.CoreStrings;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.stdlib.CoverageManager;
 
 import java.math.BigInteger;

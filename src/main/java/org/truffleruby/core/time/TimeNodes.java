@@ -26,7 +26,6 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;

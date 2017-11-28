@@ -1294,7 +1294,7 @@ public abstract class ArrayNodes {
     public abstract static class PackNode extends ArrayCoreMethodNode {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private StringNodes.MakeStringNode makeStringNode;
         @Child private TaintNode taintNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
