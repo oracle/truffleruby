@@ -794,4 +794,5 @@ public class SolarisSparcV9RubiniusConfiguration extends DefaultRubiniusConfigur
         configuration.config("rbx.platform.typedef.rlim_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.rlim64_t", string(context, "ulong_long"));
     }
+
 }
