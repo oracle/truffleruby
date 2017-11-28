@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2013, 2017 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -63,6 +64,7 @@
 package org.truffleruby.core.string;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.rope.RopeConstants.EMPTY_ASCII_8BIT_ROPE;
 import static org.truffleruby.core.string.StringOperations.encoding;
 import static org.truffleruby.core.string.StringOperations.rope;
@@ -4156,10 +4158,11 @@ public abstract class StringNodes {
     public static abstract class StringFromByteArrayPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubiniusByteArray(bytes)")
-        public DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count) {
+        public DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count,
+                                                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             // Data is copied here - can we do something COW?
             final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
-            return createString(RopeBuilder.createRopeBuilder(builder, start, count));
+            return makeStringNode.fromRope(RopeBuilder.createRopeBuilder(builder, start, count).toRope(CR_UNKNOWN));
         }
 
     }

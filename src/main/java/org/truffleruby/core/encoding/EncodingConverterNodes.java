@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
 import static org.truffleruby.core.string.StringOperations.rope;
 
 @CoreClass("Encoding::Converter")
@@ -342,7 +343,8 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object encodingConverterLastError(DynamicObject encodingConverter) {
+        public Object encodingConverterLastError(DynamicObject encodingConverter,
+                                                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
             final EConv.LastError lastError = ec.lastError;
 
@@ -357,15 +359,15 @@ public abstract class EncodingConverterNodes {
             final Object[] store = new Object[size];
 
             store[0] = eConvResultToSymbol(lastError.getResult());
-            store[1] = createString(RopeBuilder.createRopeBuilder(lastError.getSource()));
-            store[2] = createString(RopeBuilder.createRopeBuilder(lastError.getDestination()));
-            store[3] = createString(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
-                    lastError.getErrorBytesP(), lastError.getErrorBytesP() + lastError.getErrorBytesLength()));
+            store[1] = makeStringNode.executeMake(lastError.getSource(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
+            store[2] = makeStringNode.executeMake(lastError.getDestination(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
+            store[3] = makeStringNode.fromRope(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
+                    lastError.getErrorBytesP(), lastError.getErrorBytesP() + lastError.getErrorBytesLength()).toRope(CR_UNKNOWN));
 
             if (readAgain) {
-                store[4] = createString(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
+                store[4] = makeStringNode.fromRope(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
                     lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
-                    lastError.getReadAgainLength()));
+                    lastError.getReadAgainLength()).toRope(CR_UNKNOWN));
             }
 
             return createArray(store, size);
@@ -392,22 +394,23 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        public Object encodingConverterLastError(DynamicObject encodingConverter) {
+        public Object encodingConverterLastError(DynamicObject encodingConverter,
+                                                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
             final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil(), nil(), nil(), nil() };
 
             if (ec.lastError.getSource() != null) {
-                ret[1] = createString(RopeBuilder.createRopeBuilder(ec.lastError.getSource()));
+                ret[1] = makeStringNode.executeMake(ec.lastError.getSource(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
             }
 
             if (ec.lastError.getDestination() != null) {
-                ret[2] = createString(RopeBuilder.createRopeBuilder(ec.lastError.getDestination()));
+                ret[2] = makeStringNode.executeMake(ec.lastError.getDestination(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
             }
 
             if (ec.lastError.getErrorBytes() != null) {
-                ret[3] = createString(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP(), ec.lastError.getErrorBytesLength()));
-                ret[4] = createString(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(), ec.lastError.getReadAgainLength()));
+                ret[3] = makeStringNode.fromRope(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP(), ec.lastError.getErrorBytesLength()).toRope(CR_UNKNOWN));
+                ret[4] = makeStringNode.fromRope(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(), ec.lastError.getReadAgainLength()).toRope(CR_UNKNOWN));
             }
 
             return createArray(ret, ret.length);
