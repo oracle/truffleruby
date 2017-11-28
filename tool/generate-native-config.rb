@@ -397,6 +397,14 @@ class TypesGenerator < Generator
         register "typedef.#{type}", resolved
       end
     }
+
+    # The typedef for pthread_t on Darwin is a multiline definition,
+    # which this script does not handle yet:
+    # typedef struct _opaque_pthread_t
+    # *__darwin_pthread_t;
+    if RUBY_PLATFORM =~ /x86_64-darwin/
+      register "typedef.pthread_t", :pointer
+    end
   end
 end
 
