@@ -69,8 +69,8 @@ import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
-import org.truffleruby.platform.sunmisc.SunMiscSignal;
 import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
+import sun.misc.Signal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -300,7 +300,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private boolean handleDefault(DynamicObject signalName) {
-            SunMiscSignal signal = getContext().getNativePlatform().getSignalManager().createSignal(StringOperations.getString(signalName));
+            Signal signal = new Signal(StringOperations.getString(signalName));
             try {
                 getContext().getNativePlatform().getSignalManager().watchDefaultForSignal(signal);
             } catch (IllegalArgumentException e) {
@@ -310,8 +310,8 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        private boolean handle(DynamicObject signalName, Consumer<SunMiscSignal> newHandler) {
-            SunMiscSignal signal = getContext().getNativePlatform().getSignalManager().createSignal(StringOperations.getString(signalName));
+        private boolean handle(DynamicObject signalName, Consumer<Signal> newHandler) {
+            Signal signal = new Signal(StringOperations.getString(signalName));
             try {
                 getContext().getNativePlatform().getSignalManager().watchSignal(signal, newHandler);
             } catch (IllegalArgumentException e) {

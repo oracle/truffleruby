@@ -74,7 +74,7 @@ public class SunMiscSignalManager {
 
     public static final Map<String, Integer> SIGNALS_LIST = Collections.unmodifiableMap(list());
 
-    public static final Consumer<SunMiscSignal> IGNORE_HANDLER = signal -> {
+    public static final Consumer<sun.misc.Signal> IGNORE_HANDLER = signal -> {
         // Just ignore the signal.
     };
 
@@ -110,42 +110,38 @@ public class SunMiscSignalManager {
 
     private final ConcurrentMap<sun.misc.Signal, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 
-    public SunMiscSignal createSignal(String name) {
-        return new SunMiscSignal(name);
-    }
-
-    public void watchSignal(SunMiscSignal signal, Consumer<SunMiscSignal> newHandler) throws IllegalArgumentException {
+    public void watchSignal(sun.misc.Signal signal, Consumer<sun.misc.Signal> newHandler) throws IllegalArgumentException {
         handle(signal, newHandler);
     }
 
-    public void watchDefaultForSignal(SunMiscSignal signal) throws IllegalArgumentException {
+    public void watchDefaultForSignal(sun.misc.Signal signal) throws IllegalArgumentException {
         handleDefault(signal);
     }
 
     @TruffleBoundary
-    public void handle(final SunMiscSignal signal, final Consumer<SunMiscSignal> newHandler) throws IllegalArgumentException {
+    public void handle(final sun.misc.Signal signal, final Consumer<sun.misc.Signal> newHandler) throws IllegalArgumentException {
         final sun.misc.SignalHandler oldSunHandler = sun.misc.Signal.handle(
-                signal.getSunMiscSignal(), wrapHandler(signal, newHandler));
+                signal, wrapHandler(signal, newHandler));
 
-        DEFAULT_HANDLERS.putIfAbsent(signal.getSunMiscSignal(), oldSunHandler);
+        DEFAULT_HANDLERS.putIfAbsent(signal, oldSunHandler);
     }
 
     @TruffleBoundary
-    public void handleDefault(final SunMiscSignal signal) throws IllegalArgumentException {
-        final sun.misc.SignalHandler defaultHandler = DEFAULT_HANDLERS.get(signal.getSunMiscSignal());
+    public void handleDefault(final sun.misc.Signal signal) throws IllegalArgumentException {
+        final sun.misc.SignalHandler defaultHandler = DEFAULT_HANDLERS.get(signal);
         if (defaultHandler != null) { // otherwise it is already the default signal
-            sun.misc.Signal.handle(signal.getSunMiscSignal(), defaultHandler);
+            sun.misc.Signal.handle(signal, defaultHandler);
         }
     }
 
     @TruffleBoundary
-    private sun.misc.SignalHandler wrapHandler(final SunMiscSignal signal, final Consumer<SunMiscSignal> newHandler) {
+    private sun.misc.SignalHandler wrapHandler(final sun.misc.Signal signal, final Consumer<sun.misc.Signal> newHandler) {
         return wrappedSignal -> newHandler.accept(signal);
     }
 
     @TruffleBoundary
-    public void raise(SunMiscSignal signal) throws IllegalArgumentException {
-        sun.misc.Signal.raise((signal).getSunMiscSignal());
+    public void raise(sun.misc.Signal signal) throws IllegalArgumentException {
+        sun.misc.Signal.raise((signal));
     }
 
 }
