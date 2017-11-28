@@ -9,8 +9,10 @@
  */
 package org.truffleruby.platform.signal;
 
+import org.truffleruby.platform.sunmisc.SunMiscSignal;
+
 public interface SignalHandler {
 
-    void handle(Signal signal);
+    void handle(SunMiscSignal signal);
 
 }

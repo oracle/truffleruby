@@ -9,10 +9,8 @@
  */
 package org.truffleruby.platform.sunmisc;
 
-import org.truffleruby.platform.signal.Signal;
-
 @SuppressWarnings("restriction")
-public class SunMiscSignal implements Signal {
+public class SunMiscSignal {
 
     private final sun.misc.Signal sunMiscSignal;
 

@@ -67,9 +67,9 @@ import org.truffleruby.language.methods.LookupMethodNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
-import org.truffleruby.platform.signal.Signal;
 import org.truffleruby.platform.signal.SignalHandler;
-import org.truffleruby.platform.signal.SignalManager;
+import org.truffleruby.platform.sunmisc.SunMiscSignal;
+import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -261,7 +261,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = { "isRubyString(signalName)", "isNil(nil)" })
         public boolean watchSignal(DynamicObject signalName, Object nil) {
-            return handle(signalName, SignalManager.IGNORE_HANDLER);
+            return handle(signalName, SunMiscSignalManager.IGNORE_HANDLER);
         }
 
         @Specialization(guards = { "isRubyString(signalName)", "isRubyProc(proc)" })
@@ -275,7 +275,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private boolean handleDefault(DynamicObject signalName) {
-            Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(StringOperations.getString(signalName));
+            SunMiscSignal signal = getContext().getNativePlatform().getSignalManager().createSignal(StringOperations.getString(signalName));
             try {
                 getContext().getNativePlatform().getSignalManager().watchDefaultForSignal(signal);
             } catch (IllegalArgumentException e) {
@@ -286,7 +286,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private boolean handle(DynamicObject signalName, SignalHandler newHandler) {
-            Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(StringOperations.getString(signalName));
+            SunMiscSignal signal = getContext().getNativePlatform().getSignalManager().createSignal(StringOperations.getString(signalName));
             try {
                 getContext().getNativePlatform().getSignalManager().watchSignal(signal, newHandler);
             } catch (IllegalArgumentException e) {
