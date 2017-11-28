@@ -66,7 +66,7 @@ public class FeatureLoader {
 
     public void initialize(RubyContext context) {
         final TruffleNFIPlatform nfi = context.getTruffleNFI();
-        final String size_t = nfi.resolveType(context.getNativePlatform(), "size_t");
+        final String size_t = nfi.resolveType(context, "size_t");
 
         this.getcwd = nfi.getFunction("getcwd", 2, "(pointer," + size_t + "):pointer");
     }

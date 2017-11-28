@@ -13,21 +13,12 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.platform.RubiniusConfiguration;
 
 public class DarwinPlatform implements NativePlatform {
-`
-    private final RubiniusConfiguration rubiniusConfiguration;
 
     public DarwinPlatform(RubyContext context) {
-        rubiniusConfiguration = new RubiniusConfiguration();
-        DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
-        DarwinRubiniusConfiguration.load(rubiniusConfiguration, context);
-    }
-
-    @Override
-    public RubiniusConfiguration getRubiniusConfiguration() {
-        return rubiniusConfiguration;
+        DefaultRubiniusConfiguration.load(context.getRubiniusConfiguration(), context);
+        DarwinRubiniusConfiguration.load(context.getRubiniusConfiguration(), context);
     }
 
     @Override

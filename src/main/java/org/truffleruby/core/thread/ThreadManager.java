@@ -193,7 +193,7 @@ public class ThreadManager {
 
     private void setupNativeThreadSupport() {
         final TruffleNFIPlatform nfi = context.getTruffleNFI();
-        final String pthread_t = nfi.resolveType(context.getNativePlatform(), "pthread_t");
+        final String pthread_t = nfi.resolveType(context, "pthread_t");
 
         pthread_self = nfi.getFunction("pthread_self", 0, "():" + pthread_t);
         pthread_kill = nfi.getFunction("pthread_kill", 2, "(" + pthread_t + ",sint32):sint32");

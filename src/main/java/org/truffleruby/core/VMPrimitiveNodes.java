@@ -334,7 +334,7 @@ public abstract class VMPrimitiveNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(key)")
         public Object get(DynamicObject key) {
-            final Object value = getContext().getNativePlatform().getRubiniusConfiguration().get(StringOperations.getString(key));
+            final Object value = getContext().getRubiniusConfiguration().get(StringOperations.getString(key));
 
             if (value == null) {
                 return nil();
@@ -355,8 +355,8 @@ public abstract class VMPrimitiveNodes {
         public DynamicObject getSection(DynamicObject section) {
             final List<DynamicObject> sectionKeyValues = new ArrayList<>();
 
-            for (String key : getContext().getNativePlatform().getRubiniusConfiguration().getSection(StringOperations.getString(section))) {
-                Object value = getContext().getNativePlatform().getRubiniusConfiguration().get(key);
+            for (String key : getContext().getRubiniusConfiguration().getSection(StringOperations.getString(section))) {
+                Object value = getContext().getRubiniusConfiguration().get(key);
                 final String stringValue;
                 if (RubyGuards.isRubyBignum(value)) {
                     stringValue = Layouts.BIGNUM.getValue((DynamicObject) value).toString();

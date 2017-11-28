@@ -52,6 +52,7 @@ import org.truffleruby.launcher.options.Options;
 import org.truffleruby.launcher.options.OptionsBuilder;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.NativePlatformFactory;
+import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
@@ -93,6 +94,7 @@ public class RubyContext {
     private final FrozenStrings frozenStrings = new FrozenStrings(this);
     private final CoreExceptions coreExceptions = new CoreExceptions(this);
     private final EncodingManager encodingManager = new EncodingManager(this);
+    private final RubiniusConfiguration rubiniusConfiguration = new RubiniusConfiguration();
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
@@ -495,5 +497,9 @@ public class RubyContext {
 
     public TruffleNFIPlatform getTruffleNFI() {
         return truffleNFIPlatform;
+    }
+
+    public RubiniusConfiguration getRubiniusConfiguration() {
+        return rubiniusConfiguration;
     }
 }
