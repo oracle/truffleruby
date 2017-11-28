@@ -9,15 +9,10 @@
  */
 package org.truffleruby.platform.linux;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
 
 public class LinuxPlatform implements NativePlatform {
-
-    public LinuxPlatform(RubyContext context) {
-        LinuxRubiniusConfiguration.load(context.getRubiniusConfiguration(), context);
-    }
 
     @Override
     public Pointer createSigAction(long handler) {

@@ -9,15 +9,10 @@
  */
 package org.truffleruby.platform.solaris;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
 
 public class SolarisPlatform implements NativePlatform {
-
-    public SolarisPlatform(RubyContext context) {
-        SolarisSparcV9RubiniusConfiguration.load(context.getRubiniusConfiguration(), context);
-    }
 
     @Override
     public Pointer createSigAction(long handler) {

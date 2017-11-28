@@ -9,15 +9,10 @@
  */
 package org.truffleruby.platform.darwin;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
 
 public class DarwinPlatform implements NativePlatform {
-
-    public DarwinPlatform(RubyContext context) {
-        DarwinRubiniusConfiguration.load(context.getRubiniusConfiguration(), context);
-    }
 
     @Override
     public Pointer createSigAction(long handler) {
