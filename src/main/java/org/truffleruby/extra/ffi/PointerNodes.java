@@ -253,12 +253,7 @@ public abstract class PointerNodes {
         public DynamicObject readPointer(DynamicObject pointer) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
-            Pointer readPointer = ptr.readPointer(0);
-
-            if (readPointer == null) {
-                readPointer = Pointer.NULL;
-            }
-
+            final Pointer readPointer = ptr.readPointer(0);
             return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(pointer), readPointer);
         }
 
@@ -483,12 +478,7 @@ public abstract class PointerNodes {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             checkNull(ptr);
             final Pointer readPointer = ptr.readPointer(offset);
-
-            if (readPointer == null) {
-                return nil();
-            } else {
-                return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(pointer), readPointer);
-            }
+            return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(pointer), readPointer);
         }
 
     }
