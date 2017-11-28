@@ -413,19 +413,21 @@ public abstract class TimeNodes {
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     public static abstract class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization(guards = { "isRubyString(format)",
                 "equalNode.execute(rope(format), cachedFormat)" }, limit = "getContext().getOptions().TIME_FORMAT_CACHE")
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format,
                                           @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("compilePattern(cachedFormat)") List<Token> pattern,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
-            return createString(formatTime(time, pattern));
+            return makeStringNode.fromRope(formatTime(time, pattern));
         }
 
         @Specialization(guards = "isRubyString(format)")
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format) {
             final List<Token> pattern = compilePattern(StringOperations.rope(format));
-            return createString(formatTime(time, pattern));
+            return makeStringNode.fromRope(formatTime(time, pattern));
         }
 
         @TruffleBoundary
@@ -433,9 +435,9 @@ public abstract class TimeNodes {
             return RubyDateFormatter.compilePattern(format, false, getContext(), this);
         }
 
-        private RopeBuilder formatTime(DynamicObject time, List<Token> pattern) {
+        private Rope formatTime(DynamicObject time, List<Token> pattern) {
             return RubyDateFormatter.formatToRopeBuilder(
-                    pattern, Layouts.TIME.getDateTime(time), Layouts.TIME.getZone(time), getContext(), this);
+                    pattern, Layouts.TIME.getDateTime(time), Layouts.TIME.getZone(time), getContext(), this).toRope(CodeRange.CR_UNKNOWN);
         }
 
     }
