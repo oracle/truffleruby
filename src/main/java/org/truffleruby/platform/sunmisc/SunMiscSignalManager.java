@@ -108,18 +108,18 @@ public class SunMiscSignalManager {
         return signame.startsWith("SIG") ? signame.substring(3) : signame;
     }
 
-    private final ConcurrentMap<sun.misc.Signal, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<sun.misc.Signal, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 
-    public void watchSignal(sun.misc.Signal signal, Consumer<sun.misc.Signal> newHandler) throws IllegalArgumentException {
+    public static void watchSignal(sun.misc.Signal signal, Consumer<sun.misc.Signal> newHandler) throws IllegalArgumentException {
         handle(signal, newHandler);
     }
 
-    public void watchDefaultForSignal(sun.misc.Signal signal) throws IllegalArgumentException {
+    public static void watchDefaultForSignal(sun.misc.Signal signal) throws IllegalArgumentException {
         handleDefault(signal);
     }
 
     @TruffleBoundary
-    public void handle(final sun.misc.Signal signal, final Consumer<sun.misc.Signal> newHandler) throws IllegalArgumentException {
+    public static void handle(final sun.misc.Signal signal, final Consumer<sun.misc.Signal> newHandler) throws IllegalArgumentException {
         final sun.misc.SignalHandler oldSunHandler = sun.misc.Signal.handle(
                 signal, wrapHandler(signal, newHandler));
 
@@ -127,7 +127,7 @@ public class SunMiscSignalManager {
     }
 
     @TruffleBoundary
-    public void handleDefault(final sun.misc.Signal signal) throws IllegalArgumentException {
+    public static void handleDefault(final sun.misc.Signal signal) throws IllegalArgumentException {
         final sun.misc.SignalHandler defaultHandler = DEFAULT_HANDLERS.get(signal);
         if (defaultHandler != null) { // otherwise it is already the default signal
             sun.misc.Signal.handle(signal, defaultHandler);
@@ -135,12 +135,12 @@ public class SunMiscSignalManager {
     }
 
     @TruffleBoundary
-    private sun.misc.SignalHandler wrapHandler(final sun.misc.Signal signal, final Consumer<sun.misc.Signal> newHandler) {
+    private static sun.misc.SignalHandler wrapHandler(final sun.misc.Signal signal, final Consumer<sun.misc.Signal> newHandler) {
         return wrappedSignal -> newHandler.accept(signal);
     }
 
     @TruffleBoundary
-    public void raise(sun.misc.Signal signal) throws IllegalArgumentException {
+    public static void raise(sun.misc.Signal signal) throws IllegalArgumentException {
         sun.misc.Signal.raise((signal));
     }
 

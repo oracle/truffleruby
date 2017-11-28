@@ -18,6 +18,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 import sun.misc.Signal;
 
 @CoreClass("Process")
@@ -51,7 +52,7 @@ public abstract class ProcessNodes {
         public int raise(DynamicObject signalName) {
             final Signal signal = new Signal(Layouts.SYMBOL.getString(signalName));
             try {
-                getContext().getNativePlatform().getSignalManager().raise(signal);
+                SunMiscSignalManager.raise(signal);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
             }
