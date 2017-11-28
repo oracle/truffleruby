@@ -29,6 +29,8 @@ import com.oracle.truffle.api.source.Source;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Log;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyNode;
@@ -62,7 +64,8 @@ public abstract class RequireNode extends RubyNode {
     @Specialization
     protected boolean require(VirtualFrame frame, String feature,
             @Cached("create()") BranchProfile errorProfile,
-            @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile,
+            @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
 
         final String expandedPath = featureLoader.findFeature(feature);
@@ -72,8 +75,7 @@ public abstract class RequireNode extends RubyNode {
             throw new RaiseException(getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
         }
 
-        final DynamicObject pathString = StringOperations.createString(getContext(),
-                StringOperations.encodeRope(expandedPath, UTF8Encoding.INSTANCE));
+        final DynamicObject pathString = makeStringNode.executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
         if (isLoadedProfile.profile(isFeatureLoaded(frame, pathString))) {
             return false;
