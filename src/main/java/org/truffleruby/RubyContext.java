@@ -184,28 +184,9 @@ public class RubyContext {
         // Create objects that need core classes
 
         Launcher.printTruffleTimeMetric("before-create-native-platform");
-
         truffleNFIPlatform = options.NATIVE_INTERRUPT ? new TruffleNFIPlatform(this) : null;
-
-        DefaultRubiniusConfiguration.load(rubiniusConfiguration, this);
-
-        switch (Platform.OS) {
-            case LINUX:
-                LinuxRubiniusConfiguration.load(rubiniusConfiguration, this);
-                break;
-            case DARWIN:
-                DarwinRubiniusConfiguration.load(rubiniusConfiguration, this);
-                break;
-            case SOLARIS:
-                SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, this);
-                break;
-            default:
-                Log.LOGGER.severe("no Rubinius configuration for this platform");
-                break;
-        }
-
+        loadRubiniusConfiguration();
         featureLoader.initialize(this);
-
         Launcher.printTruffleTimeMetric("after-create-native-platform");
 
         // The encoding manager relies on POSIX having been initialized, so we can't process it during
@@ -226,6 +207,25 @@ public class RubyContext {
         Launcher.printTruffleTimeMetric("after-instruments");
 
         Launcher.printTruffleTimeMetric("after-context-constructor");
+    }
+
+    private void loadRubiniusConfiguration() {
+        DefaultRubiniusConfiguration.load(rubiniusConfiguration, this);
+
+        switch (Platform.OS) {
+            case LINUX:
+                LinuxRubiniusConfiguration.load(rubiniusConfiguration, this);
+                break;
+            case DARWIN:
+                DarwinRubiniusConfiguration.load(rubiniusConfiguration, this);
+                break;
+            case SOLARIS:
+                SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, this);
+                break;
+            default:
+                Log.LOGGER.severe("no Rubinius configuration for this platform");
+                break;
+        }
     }
 
     public void initialize() {
