@@ -186,7 +186,7 @@ public class RubyContext {
         Launcher.printTruffleTimeMetric("before-create-native-platform");
         truffleNFIPlatform = options.NATIVE_INTERRUPT ? new TruffleNFIPlatform(this) : null;
         loadRubiniusConfiguration();
-        featureLoader.initialize(this);
+        featureLoader.initialize(rubiniusConfiguration, truffleNFIPlatform);
         Launcher.printTruffleTimeMetric("after-create-native-platform");
 
         // The encoding manager relies on POSIX having been initialized, so we can't process it during
