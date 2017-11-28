@@ -67,7 +67,7 @@ module RubySL
         def each_address
           next_pointer = self.next
 
-          while next_pointer
+          until next_pointer.null?
             struct = self.class.new(next_pointer)
 
             yield struct
