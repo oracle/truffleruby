@@ -7,7 +7,7 @@
  * GNU General Public License version 2
  * GNU Lesser General Public License version 2.1
  */
-package org.truffleruby.platform.sunmisc;
+package org.truffleruby.platform;
 
 import jnr.constants.platform.Signal;
 
@@ -20,8 +20,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-@SuppressWarnings("restriction")
-public class SunMiscSignalManager {
+public class Signals {
 
     private static final Set<String> RUBY_SIGNALS = new HashSet<>(Arrays.asList(new String[]{
             "EXIT",
@@ -70,8 +69,6 @@ public class SunMiscSignalManager {
             "INFO",
     }));
 
-    public static final Map<String, Integer> SIGNALS_LIST = Collections.unmodifiableMap(list());
-
     private static Map<String, Integer> list() {
         Map<String, Integer> signals = new HashMap<>();
 
@@ -98,6 +95,8 @@ public class SunMiscSignalManager {
 
         return signals;
     }
+
+    public static final Map<String, Integer> SIGNALS_LIST = Collections.unmodifiableMap(list());
 
     public static final ConcurrentMap<sun.misc.Signal, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 

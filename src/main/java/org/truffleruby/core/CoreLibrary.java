@@ -57,7 +57,7 @@ import org.truffleruby.launcher.Launcher;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.RubiniusTypes;
-import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
+import org.truffleruby.platform.Signals;
 import org.truffleruby.stdlib.psych.YAMLEncoding;
 
 import com.oracle.truffle.api.CallTarget;
@@ -765,10 +765,10 @@ public class CoreLibrary {
     }
 
     private void initializeSignalConstants() {
-        Object[] signals = new Object[SunMiscSignalManager.SIGNALS_LIST.size()];
+        Object[] signals = new Object[Signals.SIGNALS_LIST.size()];
 
         int i = 0;
-        for (Map.Entry<String, Integer> signal : SunMiscSignalManager.SIGNALS_LIST.entrySet()) {
+        for (Map.Entry<String, Integer> signal : Signals.SIGNALS_LIST.entrySet()) {
             Object[] objects = new Object[]{ frozenUSASCIIString(signal.getKey()), signal.getValue() };
             signals[i++] = Layouts.ARRAY.createArray(arrayFactory, objects, objects.length);
         }

@@ -22,7 +22,7 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
+import org.truffleruby.platform.Signals;
 import sun.misc.Signal;
 
 import java.util.Arrays;
@@ -206,7 +206,7 @@ public class SafepointManager {
 
         try {
             final Signal signal = new Signal("INT");
-            final sun.misc.SignalHandler defaultHandler = SunMiscSignalManager.DEFAULT_HANDLERS.get(signal);
+            final sun.misc.SignalHandler defaultHandler = Signals.DEFAULT_HANDLERS.get(signal);
             if (defaultHandler != null) { // otherwise it is already the default signal
                 Signal.handle(signal, defaultHandler);
             }
