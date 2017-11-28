@@ -3001,8 +3001,9 @@ public abstract class StringNodes {
         private final ConditionProfile taintedProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization
-        public DynamicObject string_escape(DynamicObject string) {
-            final DynamicObject result = StringOperations.createString(getContext(), rbStrEscape(rope(string)));
+        public DynamicObject string_escape(DynamicObject string,
+                                           @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            final DynamicObject result = makeStringNode.fromRope(rbStrEscape(rope(string)));
 
             if (taintedProfile.profile(isTaintedNode.isTainted(string))) {
                 taintNode.executeTaint(result);
