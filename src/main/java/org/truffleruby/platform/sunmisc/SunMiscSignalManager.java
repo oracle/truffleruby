@@ -10,63 +10,142 @@
 package org.truffleruby.platform.sunmisc;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import org.truffleruby.platform.signal.Signal;
+import jnr.constants.platform.Signal;
 import org.truffleruby.platform.signal.SignalHandler;
-import org.truffleruby.platform.signal.SignalManager;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @SuppressWarnings("restriction")
-public class SunMiscSignalManager implements SignalManager {
+public class SunMiscSignalManager {
+
+    private static final Set<String> RUBY_SIGNALS = new HashSet<>(Arrays.asList(new String[]{
+            "EXIT",
+            "HUP",
+            "INT",
+            "QUIT",
+            "ILL",
+            "TRAP",
+            "IOT",
+            "ABRT",
+            "EMT",
+            "FPE",
+            "KILL",
+            "BUS",
+            "SEGV",
+            "SYS",
+            "PIPE",
+            "ALRM",
+            "TERM",
+            "URG",
+            "STOP",
+            "TSTP",
+            "CONT",
+            "CHLD",
+            "CLD",
+            "TTIN",
+            "TTOU",
+            "IO",
+            "XCPU",
+            "XFSZ",
+            "VTALRM",
+            "PROF",
+            "WINCH",
+            "USR1",
+            "USR2",
+            "LOST",
+            "MSG",
+            "PWR",
+            "POLL",
+            "DANGER",
+            "MIGRATE",
+            "PRE",
+            "GRANT",
+            "RETRACT",
+            "SOUND",
+            "INFO",
+    }));
+
+    public static final Map<String, Integer> SIGNALS_LIST = Collections.unmodifiableMap(list());
+
+    public static final SignalHandler IGNORE_HANDLER = signal -> {
+        // Just ignore the signal.
+    };
+
+    private static Map<String, Integer> list() {
+        Map<String, Integer> signals = new HashMap<>();
+
+        for (Signal s : Signal.values()) {
+            if (!s.defined())
+                continue;
+
+            final String name = signameWithoutPrefix(s.description());
+            if (!RUBY_SIGNALS.contains(name))
+                continue;
+
+            int signo = s.intValue();
+            // omit unsupported signals
+            if (signo >= 20000)
+                continue;
+
+            signals.put(name, signo);
+        }
+
+        if (!Signal.SIGCLD.defined() && Signal.SIGCHLD.defined()) {
+            signals.put("CLD", Signal.SIGCHLD.intValue());
+        }
+
+        return signals;
+    }
+
+    private static String signameWithoutPrefix(String signame) {
+        return signame.startsWith("SIG") ? signame.substring(3) : signame;
+    }
 
     private final ConcurrentMap<sun.misc.Signal, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 
-    @Override
-    public Signal createSignal(String name) {
+    public SunMiscSignal createSignal(String name) {
         return new SunMiscSignal(name);
     }
 
-    @Override
-    public void watchSignal(Signal signal, SignalHandler newHandler) throws IllegalArgumentException {
+    public void watchSignal(SunMiscSignal signal, SignalHandler newHandler) throws IllegalArgumentException {
         handle(signal, newHandler);
     }
 
-    @Override
-    public void watchDefaultForSignal(Signal signal) throws IllegalArgumentException {
+    public void watchDefaultForSignal(SunMiscSignal signal) throws IllegalArgumentException {
         handleDefault(signal);
     }
 
     @TruffleBoundary
-    @Override
-    public void handle(final Signal signal, final SignalHandler newHandler) throws IllegalArgumentException {
-        final SunMiscSignal smSignal = (SunMiscSignal) signal;
-
+    public void handle(final SunMiscSignal signal, final SignalHandler newHandler) throws IllegalArgumentException {
         final sun.misc.SignalHandler oldSunHandler = sun.misc.Signal.handle(
-                smSignal.getSunMiscSignal(), wrapHandler(signal, newHandler));
+                signal.getSunMiscSignal(), wrapHandler(signal, newHandler));
 
-        DEFAULT_HANDLERS.putIfAbsent(smSignal.getSunMiscSignal(), oldSunHandler);
+        DEFAULT_HANDLERS.putIfAbsent(signal.getSunMiscSignal(), oldSunHandler);
     }
 
     @TruffleBoundary
-    @Override
-    public void handleDefault(final Signal signal) throws IllegalArgumentException {
-        final SunMiscSignal smSignal = (SunMiscSignal) signal;
-        final sun.misc.SignalHandler defaultHandler = DEFAULT_HANDLERS.get(smSignal.getSunMiscSignal());
+    public void handleDefault(final SunMiscSignal signal) throws IllegalArgumentException {
+        final sun.misc.SignalHandler defaultHandler = DEFAULT_HANDLERS.get(signal.getSunMiscSignal());
         if (defaultHandler != null) { // otherwise it is already the default signal
-            sun.misc.Signal.handle(smSignal.getSunMiscSignal(), defaultHandler);
+            sun.misc.Signal.handle(signal.getSunMiscSignal(), defaultHandler);
         }
     }
 
     @TruffleBoundary
-    private sun.misc.SignalHandler wrapHandler(final Signal signal, final SignalHandler newHandler) {
-        final SunMiscSignal smSignal = (SunMiscSignal) signal;
-        return wrappedSignal -> newHandler.handle(smSignal);
+    private sun.misc.SignalHandler wrapHandler(final SunMiscSignal signal, final SignalHandler newHandler) {
+        return wrappedSignal -> newHandler.handle(signal);
     }
 
     @TruffleBoundary
-    @Override
-    public void raise(Signal signal) throws IllegalArgumentException {
-        sun.misc.Signal.raise(((SunMiscSignal) signal).getSunMiscSignal());
+    public void raise(SunMiscSignal signal) throws IllegalArgumentException {
+        sun.misc.Signal.raise((signal).getSunMiscSignal());
     }
+
 }

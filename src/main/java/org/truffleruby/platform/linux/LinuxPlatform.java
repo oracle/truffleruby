@@ -15,13 +15,12 @@ import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
-import org.truffleruby.platform.signal.SignalManager;
 import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 
 public class LinuxPlatform implements NativePlatform {
 
     private final TruffleNFIPlatform nfi;
-    private final SignalManager signalManager;
+    private final SunMiscSignalManager signalManager;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public LinuxPlatform(RubyContext context) {
@@ -38,7 +37,7 @@ public class LinuxPlatform implements NativePlatform {
     }
 
     @Override
-    public SignalManager getSignalManager() {
+    public SunMiscSignalManager getSignalManager() {
         return signalManager;
     }
 

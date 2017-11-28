@@ -22,7 +22,7 @@ import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.platform.signal.Signal;
+import org.truffleruby.platform.sunmisc.SunMiscSignal;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -204,7 +204,7 @@ public class SafepointManager {
         Log.LOGGER.warning("restoring default interrupt handler");
 
         try {
-            final Signal signal = context.getNativePlatform().getSignalManager().createSignal("INT");
+            final SunMiscSignal signal = context.getNativePlatform().getSignalManager().createSignal("INT");
             context.getNativePlatform().getSignalManager().watchDefaultForSignal(signal);
         } catch (Throwable t) {
             Log.LOGGER.warning("failed to restore default interrupt handler\n" + t);

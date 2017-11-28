@@ -15,8 +15,8 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.platform.signal.Signal;
 import org.truffleruby.platform.signal.SignalHandler;
+import org.truffleruby.platform.sunmisc.SunMiscSignal;
 
 public class ProcSignalHandler implements SignalHandler {
 
@@ -31,7 +31,7 @@ public class ProcSignalHandler implements SignalHandler {
     }
 
     @Override
-    public void handle(Signal signal) {
+    public void handle(SunMiscSignal signal) {
         final DynamicObject rootThread = context.getThreadManager().getRootThread();
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
 

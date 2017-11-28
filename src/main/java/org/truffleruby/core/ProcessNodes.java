@@ -18,7 +18,7 @@ import org.truffleruby.builtins.CoreClass;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.platform.signal.Signal;
+import org.truffleruby.platform.sunmisc.SunMiscSignal;
 
 @CoreClass("Process")
 public abstract class ProcessNodes {
@@ -49,7 +49,7 @@ public abstract class ProcessNodes {
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = "isRubySymbol(signalName)")
         public int raise(DynamicObject signalName) {
-            final Signal signal = getContext().getNativePlatform().getSignalManager().createSignal(Layouts.SYMBOL.getString(signalName));
+            final SunMiscSignal signal = getContext().getNativePlatform().getSignalManager().createSignal(Layouts.SYMBOL.getString(signalName));
             try {
                 getContext().getNativePlatform().getSignalManager().raise(signal);
             } catch (IllegalArgumentException e) {
