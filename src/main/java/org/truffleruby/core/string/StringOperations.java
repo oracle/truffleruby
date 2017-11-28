@@ -41,7 +41,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyGuards;
 
