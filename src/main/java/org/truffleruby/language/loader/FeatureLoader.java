@@ -36,6 +36,7 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.launcher.options.OptionsCatalog;
+import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
@@ -63,11 +64,9 @@ public class FeatureLoader {
         this.context = context;
     }
 
-    public void initialize(RubyContext context) {
-        final TruffleNFIPlatform nfi = context.getTruffleNFI();
-        final String size_t = nfi.resolveType(context, "size_t");
-
-        this.getcwd = nfi.getFunction("getcwd", 2, "(pointer," + size_t + "):pointer");
+    public void initialize(RubiniusConfiguration rubiniusConfiguration, TruffleNFIPlatform nfiPlatform) {
+        final String size_t = nfiPlatform.resolveType(rubiniusConfiguration, "size_t");
+        this.getcwd = nfiPlatform.getFunction("getcwd", 2, "(pointer," + size_t + "):pointer");
     }
 
     private String getWorkingDirectory() {

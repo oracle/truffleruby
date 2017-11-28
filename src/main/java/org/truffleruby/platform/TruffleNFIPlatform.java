@@ -77,11 +77,11 @@ public class TruffleNFIPlatform {
         }
     }
 
-    public String resolveType(RubyContext context, String type) {
-        final Object typedef = context.getRubiniusConfiguration().get("rbx.platform.typedef." + type);
-            if (typedef == null) {
-                throw new UnsupportedOperationException("Type " + type + " is not defined in the native configuration");
-            }
+    public String resolveType(RubiniusConfiguration rubiniusConfiguration, String type) {
+        final Object typedef = rubiniusConfiguration.get("rbx.platform.typedef." + type);
+        if (typedef == null) {
+            throw new UnsupportedOperationException("Type " + type + " is not defined in the native configuration");
+        }
         return toNFIType(StringOperations.getString((DynamicObject) typedef));
     }
 
