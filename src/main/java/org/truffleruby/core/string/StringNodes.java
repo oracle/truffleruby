@@ -170,10 +170,19 @@ public abstract class StringNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
-        public abstract DynamicObject executeMake(Object payload, Encoding encoding, CodeRange codeRange);
+        public abstract DynamicObject executeMake(Object payload, Object encoding, Object codeRange);
+
+        public DynamicObject fromRope(Rope rope) {
+            return executeMake(rope, NotProvided.INSTANCE, NotProvided.INSTANCE);
+        }
 
         public static MakeStringNode create() {
             return StringNodesFactory.MakeStringNodeGen.create(null, null, null);
+        }
+
+        @Specialization
+        protected DynamicObject makeStringFromRope(Rope rope, NotProvided encoding, NotProvided codeRange) {
+            return allocateObjectNode.allocate(coreLibrary().getStringClass(), Layouts.STRING.build(false, false, rope, null));
         }
 
         @Specialization
@@ -632,6 +641,7 @@ public abstract class StringNodes {
 
         @Specialization
         public DynamicObject b(DynamicObject string,
+                               @Cached("create()") StringNodes.MakeStringNode makeStringNode,
                                @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
                                @Cached("createBinaryProfile()") ConditionProfile isAsciiCompatibleProfile) {
             final Rope rope = rope(string);
@@ -655,7 +665,7 @@ public abstract class StringNodes {
 
             final Rope newRope = withEncodingNode.executeWithEncoding(rope, ASCIIEncoding.INSTANCE, newCodeRange);
 
-            return createString(newRope);
+            return makeStringNode.fromRope(newRope);
         }
 
     }
@@ -1363,6 +1373,7 @@ public abstract class StringNodes {
         @Child private YieldNode yieldNode = new YieldNode();
         @Child private RopeNodes.MakeConcatNode makeConcatNode = RopeNodes.MakeConcatNode.create();
         @Child private RopeNodes.MakeSubstringNode makeSubstringNode = RopeNodes.MakeSubstringNode.create();
+        @Child private MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "isAsciiCompatible(string)" })
         public DynamicObject scrubAsciiCompat(VirtualFrame frame, DynamicObject string, DynamicObject block,
@@ -1412,7 +1423,7 @@ public abstract class StringNodes {
                             }
                         }
                     }
-                    DynamicObject repl = (DynamicObject) yield(frame, block, createString(makeSubstringNode.executeMake(rope, p, clen)));
+                    DynamicObject repl = (DynamicObject) yield(frame, block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, clen)));
                     buf = makeConcatNode.executeMake(buf, rope(repl), enc);
                     p += clen;
                     p1 = p;
@@ -1427,11 +1438,11 @@ public abstract class StringNodes {
                 buf = makeConcatNode.executeMake(buf, makeSubstringNode.executeMake(rope, p1, p - p1), enc);
             }
             if (p < e) {
-                DynamicObject repl = (DynamicObject) yield(frame, block, createString(makeSubstringNode.executeMake(rope, p, e - p)));
+                DynamicObject repl = (DynamicObject) yield(frame, block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, e - p)));
                 buf = makeConcatNode.executeMake(buf, rope(repl), enc);
             }
 
-            return createString(buf);
+            return makeStringNode.fromRope(buf);
         }
 
         @Specialization(guards = { "isBrokenCodeRange(string)", "!isAsciiCompatible(string)" })
@@ -1477,7 +1488,7 @@ public abstract class StringNodes {
                         }
                     }
 
-                    DynamicObject repl = (DynamicObject) yield(frame, block, createString(makeSubstringNode.executeMake(rope, p, clen)));
+                    DynamicObject repl = (DynamicObject) yield(frame, block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, clen)));
                     buf = makeConcatNode.executeMake(buf, rope(repl), enc);
                     p += clen;
                     p1 = p;
@@ -1487,11 +1498,11 @@ public abstract class StringNodes {
                 buf = makeConcatNode.executeMake(buf, makeSubstringNode.executeMake(rope, p1, p - p1), enc);
             }
             if (p < e) {
-                DynamicObject repl = (DynamicObject) yield(frame, block, createString(makeSubstringNode.executeMake(rope, p, e - p)));
+                DynamicObject repl = (DynamicObject) yield(frame, block, makeStringNode.fromRope(makeSubstringNode.executeMake(rope, p, e - p)));
                 buf = makeConcatNode.executeMake(buf, rope(repl), enc);
             }
 
-            return createString(buf);
+            return makeStringNode.fromRope(buf);
         }
 
         public Object yield(VirtualFrame frame, DynamicObject block, Object... arguments) {
@@ -3172,6 +3183,8 @@ public abstract class StringNodes {
     @CoreMethod(names = "from_codepoint", onSingleton = true, required = 2, lowerFixnum = 1)
     public static abstract class StringFromCodepointPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+
         @Specialization(guards = { "isRubyEncoding(rubyEncoding)", "isSimple(longCode, rubyEncoding)", "isCodepoint(longCode)" })
         public DynamicObject stringFromCodepointSimple(long longCode, DynamicObject rubyEncoding,
                                                        @Cached("createBinaryProfile()") ConditionProfile isUTF8Profile,
@@ -3191,13 +3204,12 @@ public abstract class StringNodes {
                 rope = RopeOperations.create(new byte[] { (byte) code }, encoding, CodeRange.CR_UNKNOWN);
             }
 
-            return createString(rope);
+            return makeStringNode.fromRope(rope);
         }
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization(guards = { "isRubyEncoding(rubyEncoding)", "!isSimple(code, rubyEncoding)", "isCodepoint(code)" })
-        public DynamicObject stringFromCodepoint(long code, DynamicObject rubyEncoding,
-                                                 @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+        public DynamicObject stringFromCodepoint(long code, DynamicObject rubyEncoding) {
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
             final int length;
 

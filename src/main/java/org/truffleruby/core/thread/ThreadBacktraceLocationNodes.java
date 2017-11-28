@@ -10,6 +10,7 @@
 package org.truffleruby.core.thread;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
@@ -31,7 +32,8 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject absolutePath(DynamicObject threadBacktraceLocation) {
+        public DynamicObject absolutePath(DynamicObject threadBacktraceLocation,
+                                          @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final Activation activation = Layouts.THREAD_BACKTRACE_LOCATION.getActivation(threadBacktraceLocation);
 
             if (activation.getCallNode() == null) {
@@ -47,7 +49,7 @@ public class ThreadBacktraceLocationNodes {
             if (path == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
-                return createString(getContext().getRopeTable().getRope(path));
+                return makeStringNode.fromRope(getContext().getRopeTable().getRope(path));
             }
         }
 
@@ -58,7 +60,8 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        public DynamicObject path(DynamicObject threadBacktraceLocation) {
+        public DynamicObject path(DynamicObject threadBacktraceLocation,
+                                  @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final Activation activation = Layouts.THREAD_BACKTRACE_LOCATION.getActivation(threadBacktraceLocation);
 
             if (activation.getCallNode() == null) {
@@ -74,7 +77,7 @@ public class ThreadBacktraceLocationNodes {
             if (path == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
-                return createString(getContext().getRopeTable().getRope(path));
+                return makeStringNode.fromRope(getContext().getRopeTable().getRope(path));
             }
         }
 

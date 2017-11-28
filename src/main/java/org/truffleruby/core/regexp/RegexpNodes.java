@@ -618,6 +618,7 @@ public abstract class RegexpNodes {
     @CoreMethod(names = { "quote", "escape" }, onSingleton = true, required = 1)
     public abstract static class QuoteNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private StringNodes.MakeStringNode makeStringNode;
         @Child private ToStrNode toStrNode;
 
         abstract public DynamicObject executeQuote(VirtualFrame frame, Object raw);
@@ -627,13 +628,12 @@ public abstract class RegexpNodes {
         public DynamicObject quoteString(DynamicObject raw) {
             final Rope rope = StringOperations.rope(raw);
             boolean isAsciiOnly = rope.getEncoding().isAsciiCompatible() && rope.getCodeRange() == CodeRange.CR_7BIT;
-            return createString(ClassicRegexp.quote19(rope, isAsciiOnly));
+            return getMakeStringNode().fromRope(ClassicRegexp.quote19(rope, isAsciiOnly));
         }
 
         @Specialization(guards = "isRubySymbol(raw)")
-        public DynamicObject quoteSymbol(DynamicObject raw,
-                                         @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            return quoteString(makeStringNode.executeMake(Layouts.SYMBOL.getString(raw), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+        public DynamicObject quoteSymbol(DynamicObject raw) {
+            return quoteString(getMakeStringNode().executeMake(Layouts.SYMBOL.getString(raw), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
 
         @Fallback
@@ -646,6 +646,14 @@ public abstract class RegexpNodes {
             return executeQuote(frame, toStrNode.executeToStr(frame, raw));
         }
 
+        private StringNodes.MakeStringNode getMakeStringNode() {
+            if (makeStringNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                makeStringNode = insert(StringNodes.MakeStringNode.create());
+            }
+
+            return makeStringNode;
+        }
     }
 
     @NonStandard
@@ -689,8 +697,9 @@ public abstract class RegexpNodes {
     public abstract static class SourceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        public DynamicObject source(DynamicObject regexp) {
-            return createString(Layouts.REGEXP.getSource(regexp));
+        public DynamicObject source(DynamicObject regexp,
+                                    @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
+            return makeStringNode.fromRope(Layouts.REGEXP.getSource(regexp));
         }
 
     }
@@ -698,6 +707,8 @@ public abstract class RegexpNodes {
     @CoreMethod(names = "to_s")
     @ImportStatic(RegexpGuards.class)
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         public static ToSNode create() {
             return ToSNodeFactory.create(null);
@@ -709,13 +720,13 @@ public abstract class RegexpNodes {
         public DynamicObject toSCached(DynamicObject regexp,
                 @Cached("regexp") DynamicObject cachedRegexp,
                 @Cached("createRope(regexp)") Rope rope) {
-            return createString(rope);
+            return makeStringNode.fromRope(rope);
         }
 
         @Specialization
         public DynamicObject toS(DynamicObject regexp) {
             final Rope rope = createRope(regexp);
-            return createString(rope);
+            return makeStringNode.fromRope(rope);
         }
 
         @TruffleBoundary

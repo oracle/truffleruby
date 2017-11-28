@@ -220,7 +220,7 @@ public abstract class PointerNodes {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
-                return createString(RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+                return makeStringNode.fromRope(RopeConstants.EMPTY_ASCII_8BIT_ROPE);
             } else {
                 checkNull(ptr);
                 final byte[] bytes = new byte[length];
