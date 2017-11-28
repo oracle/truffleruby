@@ -44,7 +44,7 @@ import org.truffleruby.platform.RubiniusConfiguration;
 public class LinuxRubiniusConfiguration extends DefaultRubiniusConfiguration {
 
     public static void load(RubiniusConfiguration configuration, RubyContext context) {
-        // Generated from tool/generate-native-config.rb
+        // Generated from tool/generate-native-config.rb on x86_64-linux
         configuration.config("rbx.platform.addrinfo.sizeof", 48);
         configuration.config("rbx.platform.addrinfo.ai_flags.offset", 0);
         configuration.config("rbx.platform.addrinfo.ai_flags.size", 4);
@@ -628,12 +628,14 @@ public class LinuxRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.typedef.u_quad_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.loff_t", string(context, "long"));
         configuration.config("rbx.platform.typedef.ino_t", string(context, "ulong"));
+        configuration.config("rbx.platform.typedef.ino64_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.dev_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.gid_t", string(context, "uint"));
         configuration.config("rbx.platform.typedef.mode_t", string(context, "uint"));
         configuration.config("rbx.platform.typedef.nlink_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.uid_t", string(context, "uint"));
         configuration.config("rbx.platform.typedef.off_t", string(context, "long"));
+        configuration.config("rbx.platform.typedef.off64_t", string(context, "long"));
         configuration.config("rbx.platform.typedef.pid_t", string(context, "int"));
         configuration.config("rbx.platform.typedef.id_t", string(context, "uint"));
         configuration.config("rbx.platform.typedef.ssize_t", string(context, "long"));
@@ -644,6 +646,8 @@ public class LinuxRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.typedef.clockid_t", string(context, "int"));
         configuration.config("rbx.platform.typedef.time_t", string(context, "long"));
         configuration.config("rbx.platform.typedef.timer_t", string(context, "pointer"));
+        configuration.config("rbx.platform.typedef.useconds_t", string(context, "uint"));
+        configuration.config("rbx.platform.typedef.suseconds_t", string(context, "long"));
         configuration.config("rbx.platform.typedef.size_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.ulong", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.ushort", string(context, "ushort"));
@@ -653,18 +657,21 @@ public class LinuxRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.typedef.u_int32_t", string(context, "uint"));
         configuration.config("rbx.platform.typedef.u_int64_t", string(context, "ulong_long"));
         configuration.config("rbx.platform.typedef.register_t", string(context, "long"));
-        configuration.config("rbx.platform.typedef.suseconds_t", string(context, "long"));
         configuration.config("rbx.platform.typedef.fd_mask", string(context, "long"));
         configuration.config("rbx.platform.typedef.blksize_t", string(context, "long"));
         configuration.config("rbx.platform.typedef.blkcnt_t", string(context, "long"));
         configuration.config("rbx.platform.typedef.fsblkcnt_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.fsfilcnt_t", string(context, "ulong"));
+        configuration.config("rbx.platform.typedef.blkcnt64_t", string(context, "long"));
+        configuration.config("rbx.platform.typedef.fsblkcnt64_t", string(context, "ulong"));
+        configuration.config("rbx.platform.typedef.fsfilcnt64_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.pthread_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.pthread_key_t", string(context, "uint"));
         configuration.config("rbx.platform.typedef.pthread_once_t", string(context, "int"));
         configuration.config("rbx.platform.typedef.socklen_t", string(context, "uint"));
         configuration.config("rbx.platform.typedef.sa_family_t", string(context, "ushort"));
         configuration.config("rbx.platform.typedef.rlim_t", string(context, "ulong"));
+        configuration.config("rbx.platform.typedef.rlim64_t", string(context, "ulong"));
     }
 
 }
