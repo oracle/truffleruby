@@ -10,14 +10,12 @@
 package org.truffleruby.platform.darwin;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
 
 public class DarwinPlatform implements NativePlatform {
 
     public DarwinPlatform(RubyContext context) {
-        DefaultRubiniusConfiguration.load(context.getRubiniusConfiguration(), context);
         DarwinRubiniusConfiguration.load(context.getRubiniusConfiguration(), context);
     }
 

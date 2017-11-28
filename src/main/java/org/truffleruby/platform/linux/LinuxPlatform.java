@@ -10,14 +10,12 @@
 package org.truffleruby.platform.linux;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
 
 public class LinuxPlatform implements NativePlatform {
 
     public LinuxPlatform(RubyContext context) {
-        DefaultRubiniusConfiguration.load(context.getRubiniusConfiguration(), context);
         LinuxRubiniusConfiguration.load(context.getRubiniusConfiguration(), context);
     }
 

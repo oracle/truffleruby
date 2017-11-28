@@ -50,6 +50,7 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.launcher.Launcher;
 import org.truffleruby.launcher.options.Options;
 import org.truffleruby.launcher.options.OptionsBuilder;
+import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.NativePlatformFactory;
 import org.truffleruby.platform.RubiniusConfiguration;
@@ -184,6 +185,7 @@ public class RubyContext {
         Launcher.printTruffleTimeMetric("before-create-native-platform");
         nativePlatform = NativePlatformFactory.createPlatform(this);
         truffleNFIPlatform = options.NATIVE_INTERRUPT ? new TruffleNFIPlatform(this) : null;
+        DefaultRubiniusConfiguration.load(rubiniusConfiguration, this);
         featureLoader.initialize(this);
         Launcher.printTruffleTimeMetric("after-create-native-platform");
 
