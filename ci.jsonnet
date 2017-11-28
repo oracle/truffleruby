@@ -454,7 +454,7 @@
     ],
 
   local deploy_binaries_commands = [
-    ["mx", "deploy-binary-if-master"]
+    ["mx", "deploy-binary-if-master-or-release"]
   ],
 
   local deploy_binaries_no_rewrites = without_rewrites(deploy_binaries_commands),

@@ -110,20 +110,19 @@ def ruby_tck(args):
         run_unittest('--blacklist', 'mx.truffleruby/tck.blacklist')
         run_unittest('RubyTckTest')
 
-def deploy_binary_if_master(args):
-    """If the active branch is 'master', deploy binaries for the primary suite to remote maven repository."""
+def deploy_binary_if_master_or_release(args):
+    """If the active branch is 'master' or starts with 'release', deploy binaries for the primary suite."""
     assert len(args) == 0
-    primary_branch = 'master'
     active_branch = mx.VC.get_vc(root).active_branch(root)
     deploy_binary = mx.command_function('deploy-binary')
-    if active_branch == primary_branch:
+    if active_branch == 'master' or active_branch.startswith('release'):
         # Deploy platform-independent distributions only on Linux to avoid duplicates
         if sys.platform.startswith('linux'):
             return deploy_binary(['--skip-existing', 'truffleruby-binary-snapshots'])
         else:
             return deploy_binary(['--skip-existing', '--platform-dependent', 'truffleruby-binary-snapshots'])
     else:
-        mx.log('The active branch is "%s". Binaries are deployed only if the active branch is "%s".' % (active_branch, primary_branch))
+        mx.log('The active branch is "%s". Binaries are deployed only if the active branch is "master" or starts with "release".' % (active_branch))
         return 0
 
 def download_binary_suite(args):
@@ -198,7 +197,7 @@ def ruby_testdownstream_sulong(args):
 
 mx.update_commands(_suite, {
     'rubytck': [ruby_tck, ''],
-    'deploy-binary-if-master': [deploy_binary_if_master, ''],
+    'deploy-binary-if-master-or-release': [deploy_binary_if_master_or_release, ''],
     'ruby_download_binary_suite': [download_binary_suite, 'name', 'revision'],
     'ruby_testdownstream': [ruby_testdownstream, ''],
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
