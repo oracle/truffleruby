@@ -66,7 +66,6 @@ class File
     S_IFREG  = Rubinius::Config['rbx.platform.file.S_IFREG']
     S_IFLNK  = Rubinius::Config['rbx.platform.file.S_IFLNK']
     S_IFSOCK = Rubinius::Config['rbx.platform.file.S_IFSOCK']
-    S_IFWHT  = Rubinius::Config['rbx.platform.file.S_IFWHT']
     S_ISUID  = Rubinius::Config['rbx.platform.file.S_ISUID']
     S_ISGID  = Rubinius::Config['rbx.platform.file.S_ISGID']
     S_ISVTX  = Rubinius::Config['rbx.platform.file.S_ISVTX']
