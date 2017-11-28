@@ -1088,14 +1088,18 @@ class IO
               errorables.size, errorables_ptr,
               timeout_us)
             if ret < 0
-              if original_timeout && Errno.errno == Errno::EINTR::Errno
-                # Update timeout
-                now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-                waited = now - start
-                if waited >= timeout_us
-                  nil # timeout
+              if Errno.errno == Errno::EINTR::Errno
+                if original_timeout
+                  # Update timeout
+                  now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
+                  waited = now - start
+                  if waited >= timeout_us
+                    nil # timeout
+                  else
+                    timeout_us = original_timeout - waited
+                    undefined # retry
+                  end
                 else
-                  timeout_us = original_timeout - waited
                   undefined # retry
                 end
               else
