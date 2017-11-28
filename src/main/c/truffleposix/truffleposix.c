@@ -68,7 +68,7 @@ SUCH DAMAGE.
 #endif
 
 /* For minor()/major() on Solaris */
-#if defined __sun
+#ifdef __sun
 #include <sys/mkdev.h>
 #endif
 
@@ -256,7 +256,7 @@ pid_t truffleposix_waitpid(pid_t pid, int options, int result[3]) {
 }
 
 /* flock() is not available on Solaris */
-#if defined __sun
+#ifdef __sun
 #define LOCK_SH 1
 #define LOCK_EX 2
 #define LOCK_NB 4
