@@ -50,15 +50,16 @@ module Process
     RLIMIT_CPU     = Rubinius::Config['rbx.platform.process.RLIMIT_CPU']
     RLIMIT_DATA    = Rubinius::Config['rbx.platform.process.RLIMIT_DATA']
     RLIMIT_FSIZE   = Rubinius::Config['rbx.platform.process.RLIMIT_FSIZE']
-    RLIMIT_MEMLOCK = Rubinius::Config['rbx.platform.process.RLIMIT_MEMLOCK']
     RLIMIT_NOFILE  = Rubinius::Config['rbx.platform.process.RLIMIT_NOFILE']
-    RLIMIT_NPROC   = Rubinius::Config['rbx.platform.process.RLIMIT_NPROC']
-    RLIMIT_RSS     = Rubinius::Config['rbx.platform.process.RLIMIT_RSS']
-    RLIMIT_SBSIZE  = Rubinius::Config['rbx.platform.process.RLIMIT_SBSIZE']
     RLIMIT_STACK   = Rubinius::Config['rbx.platform.process.RLIMIT_STACK']
 
-    has_rlimit_rtprio = Rubinius::Config['rbx.platform.process.RLIMIT_RTPRIO']
-    if has_rlimit_rtprio
+    %i[RLIMIT_MEMLOCK RLIMIT_NPROC RLIMIT_RSS RLIMIT_SBSIZE].each do |limit|
+      if value = Rubinius::Config.lookup("rbx.platform.process.#{limit}")
+        const_set limit, value
+      end
+    end
+
+    if Rubinius::Config.lookup('rbx.platform.process.RLIMIT_RTPRIO')
       RLIMIT_RTPRIO     = Rubinius::Config['rbx.platform.process.RLIMIT_RTPRIO']
       RLIMIT_RTTIME     = Rubinius::Config['rbx.platform.process.RLIMIT_RTTIME']
       RLIMIT_SIGPENDING = Rubinius::Config['rbx.platform.process.RLIMIT_SIGPENDING']

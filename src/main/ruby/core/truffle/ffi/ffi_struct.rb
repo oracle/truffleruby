@@ -198,7 +198,7 @@ module Rubinius::FFI
         field  = field.to_sym
         offset = Rubinius::Config["#{base}.#{field}.offset"]
         size   = Rubinius::Config["#{base}.#{field}.size"]
-        type   = Rubinius::Config["#{base}.#{field}.type"]
+        type   = Rubinius::Config.lookup("#{base}.#{field}.type")
         type   = type ? type.to_sym : FFI.size_to_type(size)
 
         code = FFI.find_type type
