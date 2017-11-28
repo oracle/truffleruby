@@ -10,11 +10,8 @@
 package org.truffleruby.platform;
 
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 
 public interface NativePlatform {
-
-    SunMiscSignalManager getSignalManager();
 
     RubiniusConfiguration getRubiniusConfiguration();
 

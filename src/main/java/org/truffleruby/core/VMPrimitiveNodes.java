@@ -302,7 +302,7 @@ public abstract class VMPrimitiveNodes {
         private boolean handleDefault(DynamicObject signalName) {
             Signal signal = new Signal(StringOperations.getString(signalName));
             try {
-                getContext().getNativePlatform().getSignalManager().watchDefaultForSignal(signal);
+                SunMiscSignalManager.watchDefaultForSignal(signal);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -313,7 +313,7 @@ public abstract class VMPrimitiveNodes {
         private boolean handle(DynamicObject signalName, Consumer<Signal> newHandler) {
             Signal signal = new Signal(StringOperations.getString(signalName));
             try {
-                getContext().getNativePlatform().getSignalManager().watchSignal(signal, newHandler);
+                SunMiscSignalManager.watchSignal(signal, newHandler);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
             }

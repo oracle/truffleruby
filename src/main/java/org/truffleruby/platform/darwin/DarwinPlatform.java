@@ -15,17 +15,14 @@ import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
-import org.truffleruby.platform.sunmisc.SunMiscSignalManager;
 
 public class DarwinPlatform implements NativePlatform {
 
     private final TruffleNFIPlatform nfi;
-    private final SunMiscSignalManager signalManager;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public DarwinPlatform(RubyContext context) {
         nfi = context.getOptions().NATIVE_INTERRUPT ? new TruffleNFIPlatform(context) : null;
-        signalManager = new SunMiscSignalManager();
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         DarwinRubiniusConfiguration.load(rubiniusConfiguration, context);
@@ -34,11 +31,6 @@ public class DarwinPlatform implements NativePlatform {
     @Override
     public TruffleNFIPlatform getTruffleNFI() {
         return nfi;
-    }
-
-    @Override
-    public SunMiscSignalManager getSignalManager() {
-        return signalManager;
     }
 
     @Override
