@@ -13,8 +13,6 @@ import org.truffleruby.extra.ffi.Pointer;
 
 public interface NativePlatform {
 
-    RubiniusConfiguration getRubiniusConfiguration();
-
     Pointer createSigAction(long handler);
 
 }
