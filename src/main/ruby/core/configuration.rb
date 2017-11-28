@@ -51,8 +51,14 @@ module Rubinius
       end
     end
 
-    def [](name)
+    def lookup(name)
       get_variable(name)
+    end
+
+    def [](name)
+      value = get_variable(name)
+      raise KeyError, "key #{name} not found" if value.nil?
+      value
     end
 
     alias_method :get, :[]
