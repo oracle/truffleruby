@@ -77,14 +77,6 @@ public abstract class RubyBaseNode extends Node {
         return getContext().getEncodingManager().getLocaleEncoding();
     }
 
-    protected DynamicObject createString(RopeBuilder bytes) {
-        return StringOperations.createString(getContext(), bytes);
-    }
-
-    protected DynamicObject createString(Rope rope) {
-        return StringOperations.createString(getContext(), rope);
-    }
-
     protected DynamicObject createArray(Object store, int size) {
         return ArrayHelpers.createArray(getContext(), store, size);
     }
