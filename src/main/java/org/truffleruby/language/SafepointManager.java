@@ -206,7 +206,10 @@ public class SafepointManager {
 
         try {
             final Signal signal = new Signal("INT");
-            SunMiscSignalManager.watchDefaultForSignal(signal);
+            final sun.misc.SignalHandler defaultHandler = SunMiscSignalManager.DEFAULT_HANDLERS.get(signal);
+            if (defaultHandler != null) { // otherwise it is already the default signal
+                Signal.handle(signal, defaultHandler);
+            }
         } catch (Throwable t) {
             Log.LOGGER.warning("failed to restore default interrupt handler\n" + t);
         }

@@ -263,7 +263,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = { "isRubyString(signalName)", "isNil(nil)" })
         public boolean watchSignal(DynamicObject signalName, Object nil) {
-            return handle(signalName, SunMiscSignalManager.IGNORE_HANDLER);
+            return handle(signalName, (signal) -> {});
         }
 
         @Specialization(guards = { "isRubyString(signalName)", "isRubyProc(proc)" })
@@ -302,7 +302,10 @@ public abstract class VMPrimitiveNodes {
         private boolean handleDefault(DynamicObject signalName) {
             Signal signal = new Signal(StringOperations.getString(signalName));
             try {
-                SunMiscSignalManager.watchDefaultForSignal(signal);
+                final sun.misc.SignalHandler defaultHandler = SunMiscSignalManager.DEFAULT_HANDLERS.get(signal);
+                if (defaultHandler != null) { // otherwise it is already the default signal
+                    Signal.handle(signal, defaultHandler);
+                }
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -313,7 +316,10 @@ public abstract class VMPrimitiveNodes {
         private boolean handle(DynamicObject signalName, Consumer<Signal> newHandler) {
             Signal signal = new Signal(StringOperations.getString(signalName));
             try {
-                SunMiscSignalManager.watchSignal(signal, newHandler);
+                final sun.misc.SignalHandler oldSunHandler = Signal.handle(
+                        signal, wrappedSignal -> newHandler.accept(signal));
+
+                SunMiscSignalManager.DEFAULT_HANDLERS.putIfAbsent(signal, oldSunHandler);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
             }
