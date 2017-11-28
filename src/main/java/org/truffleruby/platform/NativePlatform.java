@@ -17,6 +17,4 @@ public interface NativePlatform {
 
     Pointer createSigAction(long handler);
 
-    TruffleNFIPlatform getTruffleNFI();
-
 }

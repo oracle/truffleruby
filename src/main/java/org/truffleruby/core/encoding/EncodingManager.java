@@ -69,7 +69,7 @@ public class EncodingManager {
     }
 
     // This must be run after the locale is set for AOT, see the setLocale() call above
-    public void initializeLocaleEncoding(NativePlatform nativePlatform) {
+    public void initializeLocaleEncoding(RubyContext context) {
         if (!LangInfo.CODESET.defined()) {
             throw new UnsupportedOperationException("LangInfo.CODESET is unknown");
         }
@@ -77,7 +77,7 @@ public class EncodingManager {
 
         // char *nl_langinfo(nl_item item);
         // nl_item is int on at least Linux, macOS & Solaris
-        final TruffleNFIPlatform nfi = nativePlatform.getTruffleNFI();
+        final TruffleNFIPlatform nfi = context.getTruffleNFI();
         final NativeFunction nl_langinfo = nfi.getFunction("nl_langinfo", 1, "(sint32):string");
 
         final long address = nfi.asPointer((TruffleObject) nl_langinfo.call(codeset));

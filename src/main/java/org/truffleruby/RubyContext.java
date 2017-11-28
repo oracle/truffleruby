@@ -52,6 +52,7 @@ import org.truffleruby.launcher.options.Options;
 import org.truffleruby.launcher.options.OptionsBuilder;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.NativePlatformFactory;
+import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
@@ -96,6 +97,7 @@ public class RubyContext {
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
     private final NativePlatform nativePlatform;
+    private final TruffleNFIPlatform truffleNFIPlatform;
     private final CoreLibrary coreLibrary;
     private CoreMethods coreMethods;
     private final ThreadManager threadManager;
@@ -179,7 +181,8 @@ public class RubyContext {
 
         Launcher.printTruffleTimeMetric("before-create-native-platform");
         nativePlatform = NativePlatformFactory.createPlatform(this);
-        featureLoader.initialize(nativePlatform);
+        truffleNFIPlatform = options.NATIVE_INTERRUPT ? new TruffleNFIPlatform(this) : null;
+        featureLoader.initialize(this);
         Launcher.printTruffleTimeMetric("after-create-native-platform");
 
         // The encoding manager relies on POSIX having been initialized, so we can't process it during
@@ -490,4 +493,7 @@ public class RubyContext {
                 Paths.get(path.toString(), "lib", "ruby").toFile().isDirectory();
     }
 
+    public TruffleNFIPlatform getTruffleNFI() {
+        return truffleNFIPlatform;
+    }
 }

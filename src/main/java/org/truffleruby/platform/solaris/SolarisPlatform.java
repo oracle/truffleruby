@@ -14,23 +14,15 @@ import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.RubiniusConfiguration;
-import org.truffleruby.platform.TruffleNFIPlatform;
 
 public class SolarisPlatform implements NativePlatform {
 
-    private final TruffleNFIPlatform nfi;
     private final RubiniusConfiguration rubiniusConfiguration;
 
     public SolarisPlatform(RubyContext context) {
-        nfi = context.getOptions().NATIVE_INTERRUPT ? new TruffleNFIPlatform(context) : null;
         rubiniusConfiguration = new RubiniusConfiguration();
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, context);
         SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, context);
-    }
-
-    @Override
-    public TruffleNFIPlatform getTruffleNFI() {
-        return nfi;
     }
 
     @Override

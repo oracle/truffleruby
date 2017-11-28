@@ -170,7 +170,7 @@ public class ThreadManager {
     }
 
     private static void setupSignalHandler(RubyContext context) {
-        TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
+        TruffleNFIPlatform nfi = context.getTruffleNFI();
         if (!Signal.SIGVTALRM.defined()) {
             throw new UnsupportedOperationException("SIGVTALRM not defined");
         }
@@ -192,7 +192,7 @@ public class ThreadManager {
     }
 
     private void setupNativeThreadSupport() {
-        final TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
+        final TruffleNFIPlatform nfi = context.getTruffleNFI();
         final String pthread_t = nfi.resolveType(context.getNativePlatform(), "pthread_t");
 
         pthread_self = nfi.getFunction("pthread_self", 0, "():" + pthread_t);
