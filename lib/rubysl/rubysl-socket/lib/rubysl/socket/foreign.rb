@@ -148,7 +148,7 @@ module RubySL
           ptr = res_p.read_pointer
 
           # Be sure to feed a legit pointer to freeaddrinfo
-          freeaddrinfo(ptr) if ptr && !ptr.null?
+          freeaddrinfo(ptr) unless ptr.null?
 
           res_p.free
         end
@@ -263,7 +263,7 @@ module RubySL
         if res_p
           ptr = res_p.read_pointer
 
-          freeaddrinfo(ptr) if ptr && !ptr.null?
+          freeaddrinfo(ptr) unless ptr.null?
 
           res_p.free
         end
