@@ -53,8 +53,15 @@ import org.truffleruby.launcher.options.OptionsBuilder;
 import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.NativePlatform;
 import org.truffleruby.platform.NativePlatformFactory;
+import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
+import org.truffleruby.platform.darwin.DarwinPlatform;
+import org.truffleruby.platform.darwin.DarwinRubiniusConfiguration;
+import org.truffleruby.platform.linux.LinuxPlatform;
+import org.truffleruby.platform.linux.LinuxRubiniusConfiguration;
+import org.truffleruby.platform.solaris.SolarisPlatform;
+import org.truffleruby.platform.solaris.SolarisSparcV9RubiniusConfiguration;
 import org.truffleruby.stdlib.CoverageManager;
 import org.truffleruby.stdlib.readline.ConsoleHolder;
 
@@ -183,10 +190,29 @@ public class RubyContext {
         // Create objects that need core classes
 
         Launcher.printTruffleTimeMetric("before-create-native-platform");
+
         nativePlatform = NativePlatformFactory.createPlatform(this);
         truffleNFIPlatform = options.NATIVE_INTERRUPT ? new TruffleNFIPlatform(this) : null;
+
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, this);
+
+        switch (Platform.OS) {
+            case LINUX:
+                LinuxRubiniusConfiguration.load(rubiniusConfiguration, this);
+                break;
+            case DARWIN:
+                DarwinRubiniusConfiguration.load(rubiniusConfiguration, this);
+                break;
+            case SOLARIS:
+                SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, this);
+                break;
+            default:
+                Log.LOGGER.severe("no Rubinius configuration for this platform");
+                break;
+        }
+
         featureLoader.initialize(this);
+
         Launcher.printTruffleTimeMetric("after-create-native-platform");
 
         // The encoding manager relies on POSIX having been initialized, so we can't process it during

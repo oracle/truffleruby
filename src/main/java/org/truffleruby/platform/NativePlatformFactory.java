@@ -18,15 +18,15 @@ public abstract class NativePlatformFactory {
 
     public static NativePlatform createPlatform(RubyContext context) {
         if (Platform.OS == Platform.OS_TYPE.LINUX) {
-            return new LinuxPlatform(context);
+            return new LinuxPlatform();
         }
 
         if (Platform.OS == Platform.OS_TYPE.SOLARIS) {
-            return new SolarisPlatform(context);
+            return new SolarisPlatform();
         }
 
         if (Platform.OS == Platform.OS_TYPE.DARWIN) {
-            return new DarwinPlatform(context);
+            return new DarwinPlatform();
         }
 
         throw new UnsupportedOperationException();
