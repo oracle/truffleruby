@@ -15,6 +15,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -212,15 +213,20 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_read_string", lowerFixnum = 1)
     public static abstract class PointerReadStringPrimitiveNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
         @Specialization
-        public DynamicObject readString(DynamicObject pointer, int length) {
+        public DynamicObject readString(DynamicObject pointer, int length,
+                @Cached("createBinaryProfile()") ConditionProfile zeroProfile,
+                @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
-            checkNull(ptr);
-            final byte[] bytes = new byte[length];
-            ptr.readBytes(0, bytes, 0, length);
-            return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            if (zeroProfile.profile(length == 0)) {
+                // No need to check the pointer address if we read nothing
+                return createString(RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+            } else {
+                checkNull(ptr);
+                final byte[] bytes = new byte[length];
+                ptr.readBytes(0, bytes, 0, length);
+                return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            }
         }
 
     }
