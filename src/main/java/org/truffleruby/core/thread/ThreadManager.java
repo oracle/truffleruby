@@ -33,6 +33,7 @@ import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
@@ -181,8 +182,31 @@ public class ThreadManager {
         TruffleObject abs = nfi.lookup(libC, "abs");
         NativeFunction sigaction = nfi.getFunction("sigaction", 3, "(sint32,pointer,pointer):sint32");
 
-        // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
-        try (Pointer structSigAction = context.getNativePlatform().createSigAction(nfi.asPointer(abs))) {
+        final int sizeOfSigAction;
+        final int handlerOffset;
+
+        switch (Platform.OS) {
+            case LINUX:
+                sizeOfSigAction = 152;
+                handlerOffset = 0;
+                break;
+            case DARWIN:
+                sizeOfSigAction = 16;
+                handlerOffset = 0;
+                break;
+            case SOLARIS:
+                sizeOfSigAction = 32;
+                handlerOffset = 8; // offsetof(struct sigaction, sa_handler)
+                break;
+            default:
+                Log.LOGGER.severe("no signal action logic for this platform");
+                return;
+        }
+
+        try (Pointer structSigAction = Pointer.calloc(sizeOfSigAction)) {
+            structSigAction.writeLong(handlerOffset, nfi.asPointer(abs));
+
+            // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
             int result = (int) sigaction.call(Signal.SIGVTALRM.intValue(), structSigAction.getAddress(), 0L);
             if (result != 0) {
                 // TODO (eregon, 24 Nov. 2017): we should show the NFI errno here.

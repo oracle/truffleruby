@@ -10,15 +10,7 @@
 package org.truffleruby.platform.solaris;
 
 import org.truffleruby.platform.NativePlatform;
-import org.truffleruby.extra.ffi.Pointer;
 
 public class SolarisPlatform implements NativePlatform {
-
-    @Override
-    public Pointer createSigAction(long handler) {
-        Pointer structSigAction = Pointer.calloc(32); // sizeof(struct sigaction)
-        structSigAction.writeLong(8, handler); // offsetof(struct sigaction, sa_handler)
-        return structSigAction;
-    }
 
 }
