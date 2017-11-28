@@ -62,6 +62,11 @@ SUCH DAMAGE.
 #include <sys/types.h>
 #include <sys/wait.h>
 
+/* For minor()/major() on Linux */
+#ifdef __linux__
+#include <sys/sysmacros.h>
+#endif
+
 /* For minor()/major() on Solaris */
 #if defined __sun
 #include <sys/mkdev.h>
