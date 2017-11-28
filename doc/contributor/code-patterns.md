@@ -7,16 +7,13 @@
 * If the helper node is used by only one specialization: use `@Cached`.
 ```java
         @Specialization
-        public long objectID(DynamicObject object,
-                @Cached("createReadObjectIDNode()") ReadObjectFieldNode readObjectIDNode) {
-            final Object id = readObjectIDNode.executeRead(object);
+        public Object lookupMethod(DynamicObject object,
+                @Cached("create()") MetaClassNode metaClassNode) {
+            final DynamicObject rubyClass = metaClassNode.executeMetaClass(object);
             ...
         }
-
-        protected ReadObjectFieldNode createReadObjectIDNode() {
-            return new ReadObjectFieldNode(Layouts.OBJECT_ID_IDENTIFIER);
-        }
 ```
+If the helper node does not have a static `create()` method, add it.
 
 * If the helper node is needed by every specialization, allocate the helper node eagerly as a `@Child`.
 ```java
