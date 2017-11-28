@@ -907,7 +907,7 @@ public class CoreLibrary {
 
         initializeEncodings();
         initializeEncodingAliases();
-        encodingManager.initializeLocaleEncoding(getContext().getNativePlatform());
+        encodingManager.initializeLocaleEncoding(getContext());
 
         // External should always have a value, but Encoding.external_encoding{,=} will lazily setup
         final String externalEncodingName = getContext().getOptions().EXTERNAL_ENCODING;

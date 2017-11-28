@@ -64,15 +64,15 @@ public class FeatureLoader {
         this.context = context;
     }
 
-    public void initialize(NativePlatform nativePlatform) {
-        final TruffleNFIPlatform nfi = nativePlatform.getTruffleNFI();
-        final String size_t = nfi.resolveType(nativePlatform, "size_t");
+    public void initialize(RubyContext context) {
+        final TruffleNFIPlatform nfi = context.getTruffleNFI();
+        final String size_t = nfi.resolveType(context.getNativePlatform(), "size_t");
 
         this.getcwd = nfi.getFunction("getcwd", 2, "(pointer," + size_t + "):pointer");
     }
 
     private String getWorkingDirectory() {
-        final TruffleNFIPlatform nfi = context.getNativePlatform().getTruffleNFI();
+        final TruffleNFIPlatform nfi = context.getTruffleNFI();
         final int bufferSize = PATH_MAX;
         final Pointer buffer = GetThreadBufferNode.getBuffer(context, bufferSize);
         final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
