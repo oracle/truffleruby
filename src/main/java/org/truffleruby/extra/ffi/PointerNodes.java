@@ -266,9 +266,12 @@ public abstract class PointerNodes {
         @Specialization(guards = "isRubyString(string)")
         public DynamicObject address(DynamicObject pointer, DynamicObject string, int maxLength) {
             final Pointer ptr = Layouts.POINTER.getPointer(pointer);
-            checkNull(ptr);
             final Rope rope = StringOperations.rope(string);
             final int length = Math.min(rope.byteLength(), maxLength);
+            if (length != 0) {
+                // No need to check the pointer address if we write nothing
+                checkNull(ptr);
+            }
             // Does NOT write an extra final NULL byte, like upstream FFI.
             ptr.writeBytes(0, rope.getBytes(), 0, length);
             return pointer;
