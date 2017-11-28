@@ -430,7 +430,7 @@ public class ThreadManager {
         }
 
         if (isRubyManagedThread(thread)) {
-            final long pThreadID = ((Number) pthread_self.call()).longValue();
+            final Object pThreadID = pthread_self.call();
             final int SIGVTALRM = jnr.constants.platform.Signal.SIGVTALRM.intValue();
 
             blockingNativeCallUnblockingAction.set(() -> {
