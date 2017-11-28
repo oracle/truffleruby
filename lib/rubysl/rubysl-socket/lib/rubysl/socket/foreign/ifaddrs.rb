@@ -85,7 +85,7 @@ module RubySL
         end
 
         def address_to_addrinfo
-          return unless address
+          return if address.null?
 
           sockaddr = Sockaddr.new(address)
 
@@ -99,19 +99,19 @@ module RubySL
         end
 
         def broadcast_to_addrinfo
-          return if !broadcast? || !broadcast_address
+          return if !broadcast? || broadcast_address.null?
 
           ::Addrinfo.raw_with_family(Sockaddr.new(broadcast_address).family)
         end
 
         def destination_to_addrinfo
-          return if !point_to_point? || !destination_address
+          return if !point_to_point? || destination_address.null?
 
           ::Addrinfo.raw_with_family(Sockaddr.new(destination_address).family)
         end
 
         def netmask_to_addrinfo
-          return unless netmask_address
+          return if netmask_address.null?
 
           sockaddr = Sockaddr.new(netmask_address)
 

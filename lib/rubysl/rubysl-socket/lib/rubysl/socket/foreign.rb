@@ -118,7 +118,7 @@ module RubySL
 
         ptr = res_p.read_pointer
 
-        return [] unless ptr
+        return [] if ptr.null?
 
         res = Addrinfo.new(ptr)
 
@@ -135,7 +135,7 @@ module RubySL
 
           addrinfos << addrinfo
 
-          break unless res[:ai_next]
+          break if res[:ai_next].null?
 
           res = Addrinfo.new(res[:ai_next])
         end
