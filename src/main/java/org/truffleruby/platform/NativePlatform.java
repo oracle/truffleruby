@@ -13,6 +13,4 @@ import org.truffleruby.extra.ffi.Pointer;
 
 public interface NativePlatform {
 
-    Pointer createSigAction(long handler);
-
 }

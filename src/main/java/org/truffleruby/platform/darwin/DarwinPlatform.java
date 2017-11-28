@@ -10,15 +10,7 @@
 package org.truffleruby.platform.darwin;
 
 import org.truffleruby.platform.NativePlatform;
-import org.truffleruby.extra.ffi.Pointer;
 
 public class DarwinPlatform implements NativePlatform {
-
-    @Override
-    public Pointer createSigAction(long handler) {
-        Pointer structSigAction = Pointer.calloc(16); // sizeof(struct sigaction)
-        structSigAction.writeLong(0, handler);
-        return structSigAction;
-    }
 
 }

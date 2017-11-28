@@ -10,15 +10,7 @@
 package org.truffleruby.platform.linux;
 
 import org.truffleruby.platform.NativePlatform;
-import org.truffleruby.extra.ffi.Pointer;
 
 public class LinuxPlatform implements NativePlatform {
-
-    @Override
-    public Pointer createSigAction(long handler) {
-        Pointer structSigAction = Pointer.calloc(152); // sizeof(struct sigaction)
-        structSigAction.writeLong(0, handler);
-        return structSigAction;
-    }
 
 }
