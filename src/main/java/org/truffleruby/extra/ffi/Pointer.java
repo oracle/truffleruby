@@ -135,12 +135,7 @@ public class Pointer implements AutoCloseable {
     }
 
     public Pointer readPointer(long offset) {
-        final long p = readLong(offset);
-        if (p == 0) {
-            return null;
-        } else {
-            return new Pointer(p);
-        }
+        return new Pointer(readLong(offset));
     }
 
     public int findByte(long offset, byte value) {
