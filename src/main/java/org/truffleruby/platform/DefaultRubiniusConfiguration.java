@@ -39,7 +39,6 @@ package org.truffleruby.platform;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import jnr.constants.platform.Fcntl;
-import jnr.constants.platform.OpenFlags;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.numeric.BignumOperations;
@@ -54,12 +53,6 @@ public abstract class DefaultRubiniusConfiguration {
         for (Fcntl fcntl : Fcntl.values()) {
             if (fcntl.defined()) {
                 configuration.config("rbx.platform.fcntl." + fcntl.name(), fcntl.intValue());
-            }
-        }
-
-        for (OpenFlags openFlag : OpenFlags.values()) {
-            if (openFlag.defined()) {
-                configuration.config("rbx.platform.file." + openFlag.name(), openFlag.intValue());
             }
         }
     }
