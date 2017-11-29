@@ -17,7 +17,6 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
-import jnr.constants.platform.LangInfo;
 import org.jcodings.Encoding;
 import org.jcodings.EncodingDB;
 import org.jcodings.EncodingDB.Entry;
@@ -30,6 +29,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.ISO_8859_16;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
@@ -68,11 +68,8 @@ public class EncodingManager {
     }
 
     // This must be run after the locale is set for AOT, see the setLocale() call above
-    public void initializeLocaleEncoding(TruffleNFIPlatform nfi) {
-        if (!LangInfo.CODESET.defined()) {
-            throw new UnsupportedOperationException("LangInfo.CODESET is unknown");
-        }
-        final int codeset = LangInfo.CODESET.intValue();
+    public void initializeLocaleEncoding(TruffleNFIPlatform nfi, RubiniusConfiguration rubiniusConfiguration) {
+        final int codeset = (int) rubiniusConfiguration.get("rbx.platform.langinfo.CODESET");
 
         // char *nl_langinfo(nl_item item);
         // nl_item is int on at least Linux, macOS & Solaris
