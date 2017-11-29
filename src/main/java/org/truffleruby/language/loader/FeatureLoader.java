@@ -64,9 +64,9 @@ public class FeatureLoader {
         this.context = context;
     }
 
-    public void initialize(RubiniusConfiguration rubiniusConfiguration, TruffleNFIPlatform nfiPlatform) {
-        final String size_t = nfiPlatform.resolveType(rubiniusConfiguration, "size_t");
-        this.getcwd = nfiPlatform.getFunction("getcwd", 2, "(pointer," + size_t + "):pointer");
+    public void initialize(RubiniusConfiguration rubiniusConfiguration, TruffleNFIPlatform nfi) {
+        final String size_t = nfi.resolveType(rubiniusConfiguration, "size_t");
+        this.getcwd = nfi.getFunction("getcwd", 2, "(pointer," + size_t + "):pointer");
     }
 
     private String getWorkingDirectory() {
