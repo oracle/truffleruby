@@ -37,14 +37,3 @@ $ bin/truffleruby \
     -e 'loop { 14 + 2}'
 [truffle] opt done ......
 ```
-
-You may see this warning caused by `jnr-posix`, but it can be safely ignored
-for now.
-
-```
-WARNING: An illegal reflective access operation has occurred
-WARNING: Illegal reflective access by jnr.posix.JavaLibCHelper (file:.../truffleruby.jar) to method sun.nio.ch.SelChImpl.getFD()
-WARNING: Please consider reporting this to the maintainers of jnr.posix.JavaLibCHelper
-WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
-WARNING: All illegal access operations will be denied in a future release
-```
