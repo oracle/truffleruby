@@ -20,7 +20,7 @@ To add TruffleRuby to `chruby` a symbolic link has to be added to the
 ln -s path/to/graalvm/jre/languages/ruby "$HOME/.rubies/truffleruby"
 ```
 
-On mac the path is slightly different:
+On macOS the path is slightly different:
 
 ```bash
 ln -s path/to/graalvm/Contents/Home/jre/languages/ruby "$HOME/.rubies/truffleruby"
