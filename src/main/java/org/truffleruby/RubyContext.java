@@ -97,7 +97,7 @@ public class RubyContext {
     private final FrozenStrings frozenStrings = new FrozenStrings(this);
     private final CoreExceptions coreExceptions = new CoreExceptions(this);
     private final EncodingManager encodingManager = new EncodingManager(this);
-    private final RubiniusConfiguration rubiniusConfiguration = new RubiniusConfiguration();
+    private final RubiniusConfiguration rubiniusConfiguration;
 
     private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
@@ -185,7 +185,7 @@ public class RubyContext {
 
         Launcher.printTruffleTimeMetric("before-create-native-platform");
         truffleNFIPlatform = options.NATIVE_INTERRUPT ? new TruffleNFIPlatform(this) : null;
-        loadRubiniusConfiguration();
+        rubiniusConfiguration = loadRubiniusConfiguration();
         featureLoader.initialize(rubiniusConfiguration, truffleNFIPlatform);
         Launcher.printTruffleTimeMetric("after-create-native-platform");
 
@@ -209,7 +209,9 @@ public class RubyContext {
         Launcher.printTruffleTimeMetric("after-context-constructor");
     }
 
-    private void loadRubiniusConfiguration() {
+    private RubiniusConfiguration loadRubiniusConfiguration() {
+        final RubiniusConfiguration rubiniusConfiguration = new RubiniusConfiguration();
+
         DefaultRubiniusConfiguration.load(rubiniusConfiguration, this);
 
         switch (Platform.OS) {
@@ -226,6 +228,8 @@ public class RubyContext {
                 Log.LOGGER.severe("no Rubinius configuration for this platform");
                 break;
         }
+
+        return rubiniusConfiguration;
     }
 
     public void initialize() {
