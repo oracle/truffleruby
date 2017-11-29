@@ -2799,7 +2799,10 @@ NORETURN(void rb_eof_error(void)) {
 }
 
 VALUE rb_io_addstr(VALUE io, VALUE str) {
-  return (VALUE) truffle_invoke(io, "<<", str);
+  // use write instead of just #<<, it's closer to what MRI does
+  // and avoids stack-overflow in zlib where >> is defined with this method
+  truffle_invoke(io, "write", str);
+  return io; 
 }
 
 VALUE rb_io_check_io(VALUE io) {
