@@ -14,7 +14,6 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
-import jnr.constants.platform.Signal;
 import org.truffleruby.Layouts;
 import org.truffleruby.Log;
 import org.truffleruby.RubyContext;
@@ -75,6 +74,7 @@ public class ThreadManager {
 
     private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal.withInitial(() -> EMPTY_UNBLOCKING_ACTION);
 
+    private int SIGVTALRM;
     private NativeFunction pthread_self;
     private NativeFunction pthread_kill;
 
@@ -170,17 +170,15 @@ public class ThreadManager {
         return threadLocals;
     }
 
-    private static void setupSignalHandler(RubyContext context) {
-        TruffleNFIPlatform nfi = context.getTruffleNFI();
-        if (!Signal.SIGVTALRM.defined()) {
-            throw new UnsupportedOperationException("SIGVTALRM not defined");
-        }
+    private void setupSignalHandler(RubyContext context) {
+        SIGVTALRM = (int) context.getRubiniusConfiguration().get("rbx.platform.signal.SIGVTALRM");
 
-        TruffleObject libC = nfi.getDefaultLibrary();
+        final TruffleNFIPlatform nfi = context.getTruffleNFI();
+        final TruffleObject libC = nfi.getDefaultLibrary();
 
         // We use abs() as a function taking a int and having no side effects
-        TruffleObject abs = nfi.lookup(libC, "abs");
-        NativeFunction sigaction = nfi.getFunction("sigaction", 3, "(sint32,pointer,pointer):sint32");
+        final TruffleObject abs = nfi.lookup(libC, "abs");
+        final NativeFunction sigaction = nfi.getFunction("sigaction", 3, "(sint32,pointer,pointer):sint32");
 
         final int sizeOfSigAction;
         final int handlerOffset;
@@ -207,7 +205,7 @@ public class ThreadManager {
             structSigAction.writeLong(handlerOffset, nfi.asPointer(abs));
 
             // flags = 0 is OK as we want no SA_RESTART so we can interrupt blocking syscalls.
-            int result = (int) sigaction.call(Signal.SIGVTALRM.intValue(), structSigAction.getAddress(), 0L);
+            final int result = (int) sigaction.call(SIGVTALRM, structSigAction.getAddress(), 0L);
             if (result != 0) {
                 // TODO (eregon, 24 Nov. 2017): we should show the NFI errno here.
                 throw new UnsupportedOperationException("sigaction() failed");
@@ -455,7 +453,6 @@ public class ThreadManager {
 
         if (isRubyManagedThread(thread)) {
             final Object pThreadID = pthread_self.call();
-            final int SIGVTALRM = jnr.constants.platform.Signal.SIGVTALRM.intValue();
 
             blockingNativeCallUnblockingAction.set(() -> {
                 pthread_kill.call(pThreadID, SIGVTALRM);
