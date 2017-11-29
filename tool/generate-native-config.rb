@@ -420,6 +420,11 @@ def constants(name)
   constants.generate
 end
 
+struct 'sigaction' do |s|
+  s.include 'signal.h'
+  s.field :sa_handler, :pointer
+end
+
 # Structs used by rubysl-socket
 
 struct 'addrinfo' do |s|
