@@ -81,7 +81,9 @@ module Truffle::CExt
       if lib.start_with?('lib') or lib.start_with?('/')
         lib
       else
-        "lib#{lib}.#{RbConfig::CONFIG['NATIVE_DLEXT']}"
+        res = "lib#{lib}.#{RbConfig::CONFIG['NATIVE_DLEXT']}"
+        res += '.6' if lib == 'm'
+        res
       end
     end
   end
