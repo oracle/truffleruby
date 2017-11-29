@@ -32,7 +32,7 @@ import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.platform.Platform;
+import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
@@ -171,7 +171,8 @@ public class ThreadManager {
     }
 
     private void setupSignalHandler(RubyContext context) {
-        SIGVTALRM = (int) context.getRubiniusConfiguration().get("rbx.platform.signal.SIGVTALRM");
+        final RubiniusConfiguration config = context.getRubiniusConfiguration();
+        SIGVTALRM = (int) config.get("rbx.platform.signal.SIGVTALRM");
 
         final TruffleNFIPlatform nfi = context.getTruffleNFI();
         final TruffleObject libC = nfi.getDefaultLibrary();
@@ -180,26 +181,8 @@ public class ThreadManager {
         final TruffleObject abs = nfi.lookup(libC, "abs");
         final NativeFunction sigaction = nfi.getFunction("sigaction", 3, "(sint32,pointer,pointer):sint32");
 
-        final int sizeOfSigAction;
-        final int handlerOffset;
-
-        switch (Platform.OS) {
-            case LINUX:
-                sizeOfSigAction = 152;
-                handlerOffset = 0;
-                break;
-            case DARWIN:
-                sizeOfSigAction = 16;
-                handlerOffset = 0;
-                break;
-            case SOLARIS:
-                sizeOfSigAction = 32;
-                handlerOffset = 8; // offsetof(struct sigaction, sa_handler)
-                break;
-            default:
-                Log.LOGGER.severe("no signal action logic for this platform");
-                return;
-        }
+        final int sizeOfSigAction = (int) config.get("rbx.platform.sigaction.sizeof");
+        final int handlerOffset = (int) config.get("rbx.platform.sigaction.sa_handler.offset");
 
         try (Pointer structSigAction = Pointer.calloc(sizeOfSigAction)) {
             structSigAction.writeLong(handlerOffset, nfi.asPointer(abs));

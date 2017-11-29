@@ -45,6 +45,10 @@ public class SolarisSparcV9RubiniusConfiguration extends DefaultRubiniusConfigur
 
     public static void load(RubiniusConfiguration configuration, RubyContext context) {
         // Generated from tool/generate-native-config.rb on sparcv9-solaris2.11
+        configuration.config("rbx.platform.sigaction.sizeof", 32);
+        configuration.config("rbx.platform.sigaction.sa_handler.offset", 8);
+        configuration.config("rbx.platform.sigaction.sa_handler.size", 8);
+        configuration.config("rbx.platform.sigaction.sa_handler.type", string(context, "pointer"));
         configuration.config("rbx.platform.addrinfo.sizeof", 48);
         configuration.config("rbx.platform.addrinfo.ai_flags.offset", 0);
         configuration.config("rbx.platform.addrinfo.ai_flags.size", 4);
