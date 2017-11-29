@@ -42,7 +42,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
-import jnr.constants.platform.Errno;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
@@ -523,7 +522,7 @@ public abstract class RubyDateFormatter {
             try {
                 output = formatter.format(output, value, type);
             } catch (IndexOutOfBoundsException ioobe) {
-                throw new RaiseException(context.getCoreExceptions().errnoError(Errno.ERANGE.intValue(), "strftime", currentNode));
+                throw new RaiseException(context.getCoreExceptions().errnoError(context.getCoreLibrary().getErrnoValue("ERANGE"), "strftime", currentNode));
             }
 
             // reset formatter

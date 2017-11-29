@@ -174,6 +174,7 @@ public class RubyContext {
 
         Launcher.printTruffleTimeMetric("before-create-core-library");
         coreLibrary = new CoreLibrary(this);
+        rubiniusConfiguration = loadRubiniusConfiguration();
         coreLibrary.initialize();
         Launcher.printTruffleTimeMetric("after-create-core-library");
 
@@ -185,7 +186,6 @@ public class RubyContext {
         Launcher.printTruffleTimeMetric("before-create-native-platform");
         // TODO (eregon, 29 Nov. 2017): fix check, TruffleNFIPlatform is not only for native interrupts
         truffleNFIPlatform = options.NATIVE_INTERRUPT ? new TruffleNFIPlatform(this) : null;
-        rubiniusConfiguration = loadRubiniusConfiguration();
         featureLoader.initialize(rubiniusConfiguration, truffleNFIPlatform);
         Launcher.printTruffleTimeMetric("after-create-native-platform");
 
