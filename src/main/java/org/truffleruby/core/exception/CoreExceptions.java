@@ -279,11 +279,11 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject errnoError(int errno, String extraMessage, Node currentNode) {
         final String errnoName = context.getCoreLibrary().getErrnoName(errno);
-        final DynamicObject errnoClass = context.getCoreLibrary().getErrnoClass(errnoName);
-        if (errnoName == null || errnoClass == null) {
+        if (errnoName == null) {
             return systemCallError(StringUtils.format("Unknown Error (%s)%s", errno, extraMessage), errno, currentNode);
         }
 
+        final DynamicObject errnoClass = context.getCoreLibrary().getErrnoClass(errnoName);
         final String fullMessage = ErrnoDescriptions.getDescription(errnoName) + extraMessage;
         final DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
 
