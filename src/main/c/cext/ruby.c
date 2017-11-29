@@ -2055,7 +2055,7 @@ VALUE rb_call_super(int args_count, const VALUE *args) {
 }
 
 int rb_block_given_p() {
-  return rb_block_proc() != Qnil;
+  return !NIL_P(rb_block_proc());
 }
 
 VALUE rb_block_proc(void) {
