@@ -34,13 +34,20 @@ module Signal
   }
 
   # Fill the Names and Numbers Hash.
-  SIGNAL_LIST.each do |name, number|
+  prefix = 'rbx.platform.signal.'
+  Rubinius::Config.section(prefix) do |name, number|
+    name = name[prefix.size+3..-1]
     Names[name] = number
     Numbers[number] = name
   end
-  remove_const :SIGNAL_LIST
 
-  # replace CLD with CHLD since CLD is not recognized by in `new sun.misc.Signal("CLD")`
+  # Define CLD as CHLD if it's not defined by the platform
+  unless Names.key? 'CLD'
+    Names['CLD'] = Names['CHLD']
+  end
+
+  # We want Numbers[SIGCHLD_VALUE] to refer to 'CHLD' not 'CLD',
+  # as CLD is not recognized by `new sun.misc.Signal("CLD")`
   Numbers[Names['CHLD']] = 'CHLD'
 
   @threads = {}

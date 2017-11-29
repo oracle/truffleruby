@@ -59,7 +59,6 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.RubiniusTypes;
-import org.truffleruby.platform.Signals;
 import org.truffleruby.stdlib.psych.YAMLEncoding;
 
 import com.oracle.truffle.api.CallTarget;
@@ -171,7 +170,6 @@ public class CoreLibrary {
     private final DynamicObject rubiniusFFIPointerClass;
     private final DynamicObject rubiniusFFINullPointerErrorClass;
     private final DynamicObject rubiniusTypeModule;
-    private final DynamicObject signalModule;
     private final DynamicObject truffleModule;
     private final DynamicObject truffleBootModule;
     private final DynamicObject truffleInteropModule;
@@ -487,7 +485,6 @@ public class CoreLibrary {
         kernelModule = defineModule("Kernel");
         defineModule("Math");
         objectSpaceModule = defineModule("ObjectSpace");
-        signalModule = defineModule("Signal");
 
         // The rest
 
@@ -611,7 +608,6 @@ public class CoreLibrary {
     public void initialize() {
         initializeGlobalVariables();
         initializeConstants();
-        initializeSignalConstants();
     }
 
     public void loadCoreNodes(PrimitiveManager primitiveManager) {
@@ -760,18 +756,6 @@ public class CoreLibrary {
         if (getErrnoValue("EWOULDBLOCK") == getErrnoValue("EAGAIN")) {
             Layouts.MODULE.getFields(errnoModule).setConstant(context, node, "EWOULDBLOCK", errnoClasses.get("EAGAIN"));
         }
-    }
-
-    private void initializeSignalConstants() {
-        Object[] signals = new Object[Signals.SIGNALS_LIST.size()];
-
-        int i = 0;
-        for (Map.Entry<String, Integer> signal : Signals.SIGNALS_LIST.entrySet()) {
-            Object[] objects = new Object[]{ frozenUSASCIIString(signal.getKey()), signal.getValue() };
-            signals[i++] = Layouts.ARRAY.createArray(arrayFactory, objects, objects.length);
-        }
-
-        Layouts.MODULE.getFields(signalModule).setConstant(context, node, "SIGNAL_LIST", Layouts.ARRAY.createArray(arrayFactory, signals, signals.length));
     }
 
     private DynamicObject frozenUSASCIIString(String string) {

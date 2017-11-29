@@ -9,95 +9,11 @@
  */
 package org.truffleruby.platform;
 
-import jnr.constants.platform.Signal;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 
 public class Signals {
-
-    private static final Set<String> RUBY_SIGNALS = new HashSet<>(Arrays.asList(new String[]{
-            "EXIT",
-            "HUP",
-            "INT",
-            "QUIT",
-            "ILL",
-            "TRAP",
-            "IOT",
-            "ABRT",
-            "EMT",
-            "FPE",
-            "KILL",
-            "BUS",
-            "SEGV",
-            "SYS",
-            "PIPE",
-            "ALRM",
-            "TERM",
-            "URG",
-            "STOP",
-            "TSTP",
-            "CONT",
-            "CHLD",
-            "CLD",
-            "TTIN",
-            "TTOU",
-            "IO",
-            "XCPU",
-            "XFSZ",
-            "VTALRM",
-            "PROF",
-            "WINCH",
-            "USR1",
-            "USR2",
-            "LOST",
-            "MSG",
-            "PWR",
-            "POLL",
-            "DANGER",
-            "MIGRATE",
-            "PRE",
-            "GRANT",
-            "RETRACT",
-            "SOUND",
-            "INFO",
-    }));
-
-    private static Map<String, Integer> list() {
-        Map<String, Integer> signals = new HashMap<>();
-
-        for (Signal s : Signal.values()) {
-            if (!s.defined())
-                continue;
-
-            String signame = s.description();
-            final String name = signame.startsWith("SIG") ? signame.substring(3) : signame;
-            if (!RUBY_SIGNALS.contains(name))
-                continue;
-
-            int signo = s.intValue();
-            // omit unsupported signals
-            if (signo >= 20000)
-                continue;
-
-            signals.put(name, signo);
-        }
-
-        if (!Signal.SIGCLD.defined() && Signal.SIGCHLD.defined()) {
-            signals.put("CLD", Signal.SIGCHLD.intValue());
-        }
-
-        return signals;
-    }
-
-    public static final Map<String, Integer> SIGNALS_LIST = Collections.unmodifiableMap(list());
 
     private static final ConcurrentMap<sun.misc.Signal, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
 
