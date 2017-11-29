@@ -50,7 +50,6 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.launcher.Launcher;
 import org.truffleruby.launcher.options.Options;
 import org.truffleruby.launcher.options.OptionsBuilder;
-import org.truffleruby.platform.DefaultRubiniusConfiguration;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
@@ -243,8 +242,6 @@ public class RubyContext {
 
     private RubiniusConfiguration loadRubiniusConfiguration() {
         final RubiniusConfiguration rubiniusConfiguration = new RubiniusConfiguration();
-
-        DefaultRubiniusConfiguration.load(rubiniusConfiguration, this);
 
         switch (Platform.OS) {
             case LINUX:

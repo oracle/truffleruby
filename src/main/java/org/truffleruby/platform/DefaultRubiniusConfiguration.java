@@ -48,9 +48,6 @@ import java.math.BigInteger;
 
 public abstract class DefaultRubiniusConfiguration {
 
-    public static void load(RubiniusConfiguration configuration, RubyContext context) {
-    }
-
     protected static DynamicObject newBignum(RubyContext context, String value) {
         return BignumOperations.createBignum(context, new BigInteger(value));
     }
