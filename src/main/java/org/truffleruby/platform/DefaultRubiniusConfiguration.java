@@ -38,7 +38,6 @@
 package org.truffleruby.platform;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import jnr.constants.platform.Fcntl;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.numeric.BignumOperations;
@@ -50,11 +49,6 @@ import java.math.BigInteger;
 public abstract class DefaultRubiniusConfiguration {
 
     public static void load(RubiniusConfiguration configuration, RubyContext context) {
-        for (Fcntl fcntl : Fcntl.values()) {
-            if (fcntl.defined()) {
-                configuration.config("rbx.platform.fcntl." + fcntl.name(), fcntl.intValue());
-            }
-        }
     }
 
     protected static DynamicObject newBignum(RubyContext context, String value) {
