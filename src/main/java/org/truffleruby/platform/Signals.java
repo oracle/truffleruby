@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
 
 public class Signals {
 
@@ -98,6 +99,19 @@ public class Signals {
 
     public static final Map<String, Integer> SIGNALS_LIST = Collections.unmodifiableMap(list());
 
-    public static final ConcurrentMap<sun.misc.Signal, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<sun.misc.Signal, sun.misc.SignalHandler> DEFAULT_HANDLERS = new ConcurrentHashMap<>();
+
+    public static void registerHandler(Consumer<sun.misc.Signal> newHandler, sun.misc.Signal signal) {
+        final sun.misc.SignalHandler oldSunHandler =
+                sun.misc.Signal.handle(signal, wrappedSignal -> newHandler.accept(signal));
+        DEFAULT_HANDLERS.putIfAbsent(signal, oldSunHandler);
+    }
+
+    public static void restoreDefaultHandler(sun.misc.Signal signal) {
+        final sun.misc.SignalHandler defaultHandler = Signals.DEFAULT_HANDLERS.get(signal);
+        if (defaultHandler != null) { // otherwise it is already the default signal
+            sun.misc.Signal.handle(signal, defaultHandler);
+        }
+    }
 
 }

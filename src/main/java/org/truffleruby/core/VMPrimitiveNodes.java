@@ -300,12 +300,9 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private boolean handleDefault(DynamicObject signalName) {
-            Signal signal = new Signal(StringOperations.getString(signalName));
+            final Signal signal = new Signal(StringOperations.getString(signalName));
             try {
-                final sun.misc.SignalHandler defaultHandler = Signals.DEFAULT_HANDLERS.get(signal);
-                if (defaultHandler != null) { // otherwise it is already the default signal
-                    Signal.handle(signal, defaultHandler);
-                }
+                Signals.restoreDefaultHandler(signal);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -314,12 +311,9 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         private boolean handle(DynamicObject signalName, Consumer<Signal> newHandler) {
-            Signal signal = new Signal(StringOperations.getString(signalName));
+            final Signal signal = new Signal(StringOperations.getString(signalName));
             try {
-                final sun.misc.SignalHandler oldSunHandler = Signal.handle(
-                        signal, wrappedSignal -> newHandler.accept(signal));
-
-                Signals.DEFAULT_HANDLERS.putIfAbsent(signal, oldSunHandler);
+                Signals.registerHandler(newHandler, signal);
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(coreExceptions().argumentError(e.getMessage(), this));
             }
