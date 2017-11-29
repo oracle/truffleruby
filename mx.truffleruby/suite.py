@@ -62,17 +62,6 @@ suite = {
 
         # ------------- Libraries -------------
 
-        "JNR_CONSTANTS": {
-            "maven": {
-                "groupId": "com.github.jnr",
-                "artifactId": "jnr-constants",
-                "version": "0.9.6"
-            },
-            "sha1": "84955256aa28919f12b6c7c9437ed65d814a3c0c",
-            "sourceSha1": "5579ab41c687085e714fc330536ec4dda3350b08",
-            "licence": "Apache-2.0"
-        },
-
         "SNAKEYAML": {
             "maven": {
                 "groupId": "org.yaml",
@@ -140,7 +129,6 @@ suite = {
                 "truffleruby:TRUFFLERUBY-LAUNCHER",
                 "truffle:TRUFFLE_API",
                 "truffle:JLINE",
-                "JNR_CONSTANTS",
                 "SNAKEYAML",
                 "JONI",
                 "JCODINGS",
