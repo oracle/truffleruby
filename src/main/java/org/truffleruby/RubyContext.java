@@ -209,29 +209,6 @@ public class RubyContext {
         Launcher.printTruffleTimeMetric("after-context-constructor");
     }
 
-    private RubiniusConfiguration loadRubiniusConfiguration() {
-        final RubiniusConfiguration rubiniusConfiguration = new RubiniusConfiguration();
-
-        DefaultRubiniusConfiguration.load(rubiniusConfiguration, this);
-
-        switch (Platform.OS) {
-            case LINUX:
-                LinuxRubiniusConfiguration.load(rubiniusConfiguration, this);
-                break;
-            case DARWIN:
-                DarwinRubiniusConfiguration.load(rubiniusConfiguration, this);
-                break;
-            case SOLARIS:
-                SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, this);
-                break;
-            default:
-                Log.LOGGER.severe("no Rubinius configuration for this platform");
-                break;
-        }
-
-        return rubiniusConfiguration;
-    }
-
     public void initialize() {
         // Load the nodes
 
@@ -261,6 +238,29 @@ public class RubyContext {
         }
 
         initialized = true;
+    }
+
+    private RubiniusConfiguration loadRubiniusConfiguration() {
+        final RubiniusConfiguration rubiniusConfiguration = new RubiniusConfiguration();
+
+        DefaultRubiniusConfiguration.load(rubiniusConfiguration, this);
+
+        switch (Platform.OS) {
+            case LINUX:
+                LinuxRubiniusConfiguration.load(rubiniusConfiguration, this);
+                break;
+            case DARWIN:
+                DarwinRubiniusConfiguration.load(rubiniusConfiguration, this);
+                break;
+            case SOLARIS:
+                SolarisSparcV9RubiniusConfiguration.load(rubiniusConfiguration, this);
+                break;
+            default:
+                Log.LOGGER.severe("no Rubinius configuration for this platform");
+                break;
+        }
+
+        return rubiniusConfiguration;
     }
 
     public Object send(Object object, String methodName, DynamicObject block, Object... arguments) {
