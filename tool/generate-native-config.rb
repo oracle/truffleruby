@@ -541,6 +541,11 @@ constants 'errno' do |cg|
   ]
 end
 
+constants 'langinfo' do |cg|
+  cg.include 'langinfo.h'
+  cg.consts %w[CODESET]
+end
+
 constants 'file' do |cg|
   cg.include 'stdio.h'
   cg.include 'fcntl.h'

@@ -282,6 +282,7 @@ public class LinuxRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.errno.ENOSTR", 60);
         configuration.config("rbx.platform.errno.EPROTO", 71);
         configuration.config("rbx.platform.errno.ETIME", 62);
+        configuration.config("rbx.platform.langinfo.CODESET", 14);
         configuration.config("rbx.platform.file.FNM_CASEFOLD", 16);
         configuration.config("rbx.platform.file.FNM_NOESCAPE", 2);
         configuration.config("rbx.platform.file.FNM_PATHNAME", 1);

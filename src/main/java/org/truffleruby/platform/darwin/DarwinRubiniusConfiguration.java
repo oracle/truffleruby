@@ -282,6 +282,7 @@ public class DarwinRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.errno.ENOSTR", 99);
         configuration.config("rbx.platform.errno.EPROTO", 100);
         configuration.config("rbx.platform.errno.ETIME", 101);
+        configuration.config("rbx.platform.langinfo.CODESET", 0);
         configuration.config("rbx.platform.file.FNM_CASEFOLD", 16);
         configuration.config("rbx.platform.file.FNM_NOESCAPE", 1);
         configuration.config("rbx.platform.file.FNM_PATHNAME", 2);
