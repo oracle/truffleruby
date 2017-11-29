@@ -184,6 +184,7 @@ public class RubyContext {
         // Create objects that need core classes
 
         Launcher.printTruffleTimeMetric("before-create-native-platform");
+        // TODO (eregon, 29 Nov. 2017): fix check, TruffleNFIPlatform is not only for native interrupts
         truffleNFIPlatform = options.NATIVE_INTERRUPT ? new TruffleNFIPlatform(this) : null;
         rubiniusConfiguration = loadRubiniusConfiguration();
         featureLoader.initialize(rubiniusConfiguration, truffleNFIPlatform);
