@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -57,16 +58,16 @@ public class RubiniusConfiguration {
         return configuration.get(key);
     }
 
-    public Collection<String> getSection(String section) {
-        final Collection<String> sectionKeys = new ArrayList<>();
+    public Collection<Entry<String, Object>> getSection(String section) {
+        final Collection<Entry<String, Object>> entries = new ArrayList<>();
 
-        for (String key : configuration.keySet()) {
-            if (key.startsWith(section)) {
-                sectionKeys.add(key);
+        for (Entry<String, Object> entry : configuration.entrySet()) {
+            if (entry.getKey().startsWith(section)) {
+                entries.add(entry);
             }
         }
 
-        return sectionKeys;
+        return entries;
     }
 
     @TruffleBoundary

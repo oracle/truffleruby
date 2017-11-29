@@ -74,6 +74,7 @@ import sun.misc.Signal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.function.Consumer;
 
 @CoreClass(value = "VM primitives")
@@ -349,8 +350,8 @@ public abstract class VMPrimitiveNodes {
         public DynamicObject getSection(DynamicObject section) {
             final List<DynamicObject> sectionKeyValues = new ArrayList<>();
 
-            for (String key : getContext().getRubiniusConfiguration().getSection(StringOperations.getString(section))) {
-                Object value = getContext().getRubiniusConfiguration().get(key);
+            for (Entry<String, Object> entry : getContext().getRubiniusConfiguration().getSection(StringOperations.getString(section))) {
+                Object value = entry.getValue();
                 final String stringValue;
                 if (RubyGuards.isRubyBignum(value)) {
                     stringValue = Layouts.BIGNUM.getValue((DynamicObject) value).toString();
@@ -363,7 +364,7 @@ public abstract class VMPrimitiveNodes {
                 }
 
                 Object[] objects = new Object[] {
-                        makeStringNode.executeMake(key, UTF8Encoding.INSTANCE, CodeRange.CR_7BIT),
+                        makeStringNode.executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT),
                         makeStringNode.executeMake(stringValue, UTF8Encoding.INSTANCE, CodeRange.CR_7BIT) };
                 sectionKeyValues.add(createArray(objects, objects.length));
             }
