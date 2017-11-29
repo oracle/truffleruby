@@ -237,9 +237,18 @@ public class SolarisSparcV9RubiniusConfiguration extends DefaultRubiniusConfigur
         configuration.config("rbx.platform.io.SEEK_END", 2);
         configuration.config("rbx.platform.fcntl.F_GETFL", 3);
         configuration.config("rbx.platform.fcntl.F_SETFL", 4);
+        configuration.config("rbx.platform.fcntl.F_DUPFD", 0);
         configuration.config("rbx.platform.fcntl.F_GETFD", 1);
         configuration.config("rbx.platform.fcntl.F_SETFD", 2);
         configuration.config("rbx.platform.fcntl.FD_CLOEXEC", 1);
+        configuration.config("rbx.platform.fcntl.F_GETOWN", 23);
+        configuration.config("rbx.platform.fcntl.F_SETOWN", 24);
+        configuration.config("rbx.platform.fcntl.F_GETLK", 14);
+        configuration.config("rbx.platform.fcntl.F_SETLK", 6);
+        configuration.config("rbx.platform.fcntl.F_SETLKW", 7);
+        configuration.config("rbx.platform.fcntl.F_RDLCK", 1);
+        configuration.config("rbx.platform.fcntl.F_UNLCK", 3);
+        configuration.config("rbx.platform.fcntl.F_WRLCK", 2);
         configuration.config("rbx.platform.socket.AF_APPLETALK", 16);
         configuration.config("rbx.platform.socket.PF_APPLETALK", 16);
         configuration.config("rbx.platform.socket.AF_INET", 2);

@@ -44,7 +44,7 @@ import org.truffleruby.platform.RubiniusConfiguration;
 public class DarwinRubiniusConfiguration extends DefaultRubiniusConfiguration {
 
     public static void load(RubiniusConfiguration configuration, RubyContext context) {
-        // Generated from tool/generate-native-config.rb on x86_64-darwin17
+        // Generated from tool/generate-native-config.rb on x86_64-darwin15
         configuration.config("rbx.platform.addrinfo.sizeof", 48);
         configuration.config("rbx.platform.addrinfo.ai_flags.offset", 0);
         configuration.config("rbx.platform.addrinfo.ai_flags.size", 4);
@@ -242,9 +242,33 @@ public class DarwinRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.io.SEEK_END", 2);
         configuration.config("rbx.platform.fcntl.F_GETFL", 3);
         configuration.config("rbx.platform.fcntl.F_SETFL", 4);
+        configuration.config("rbx.platform.fcntl.F_DUPFD", 0);
         configuration.config("rbx.platform.fcntl.F_GETFD", 1);
         configuration.config("rbx.platform.fcntl.F_SETFD", 2);
         configuration.config("rbx.platform.fcntl.FD_CLOEXEC", 1);
+        configuration.config("rbx.platform.fcntl.F_GETOWN", 5);
+        configuration.config("rbx.platform.fcntl.F_SETOWN", 6);
+        configuration.config("rbx.platform.fcntl.F_GETLK", 7);
+        configuration.config("rbx.platform.fcntl.F_SETLK", 8);
+        configuration.config("rbx.platform.fcntl.F_SETLKW", 9);
+        configuration.config("rbx.platform.fcntl.F_RDLCK", 1);
+        configuration.config("rbx.platform.fcntl.F_UNLCK", 2);
+        configuration.config("rbx.platform.fcntl.F_WRLCK", 3);
+        configuration.config("rbx.platform.fcntl.F_CHKCLEAN", 41);
+        configuration.config("rbx.platform.fcntl.F_PREALLOCATE", 42);
+        configuration.config("rbx.platform.fcntl.F_SETSIZE", 43);
+        configuration.config("rbx.platform.fcntl.F_RDADVISE", 44);
+        configuration.config("rbx.platform.fcntl.F_RDAHEAD", 45);
+        configuration.config("rbx.platform.fcntl.F_NOCACHE", 48);
+        configuration.config("rbx.platform.fcntl.F_LOG2PHYS", 49);
+        configuration.config("rbx.platform.fcntl.F_GETPATH", 50);
+        configuration.config("rbx.platform.fcntl.F_FULLFSYNC", 51);
+        configuration.config("rbx.platform.fcntl.F_PATHPKG_CHECK", 52);
+        configuration.config("rbx.platform.fcntl.F_FREEZE_FS", 53);
+        configuration.config("rbx.platform.fcntl.F_THAW_FS", 54);
+        configuration.config("rbx.platform.fcntl.F_GLOBAL_NOCACHE", 55);
+        configuration.config("rbx.platform.fcntl.F_ALLOCATECONTIG", 2);
+        configuration.config("rbx.platform.fcntl.F_ALLOCATEALL", 4);
         configuration.config("rbx.platform.socket.AF_APPLETALK", 16);
         configuration.config("rbx.platform.socket.PF_APPLETALK", 16);
         configuration.config("rbx.platform.socket.AF_INET", 2);
@@ -505,12 +529,15 @@ public class DarwinRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.typedef.uint_fast16_t", string(context, "ushort"));
         configuration.config("rbx.platform.typedef.uint_fast32_t", string(context, "uint"));
         configuration.config("rbx.platform.typedef.uint_fast64_t", string(context, "ulong_long"));
+        configuration.config("rbx.platform.typedef.intptr_t", string(context, "long"));
+        configuration.config("rbx.platform.typedef.uintptr_t", string(context, "ulong"));
+        configuration.config("rbx.platform.typedef.intmax_t", string(context, "long"));
+        configuration.config("rbx.platform.typedef.uintmax_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.u_int8_t", string(context, "uchar"));
         configuration.config("rbx.platform.typedef.u_int16_t", string(context, "ushort"));
         configuration.config("rbx.platform.typedef.u_int32_t", string(context, "uint"));
         configuration.config("rbx.platform.typedef.u_int64_t", string(context, "ulong_long"));
         configuration.config("rbx.platform.typedef.register_t", string(context, "long_long"));
-        configuration.config("rbx.platform.typedef.uintptr_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.user_addr_t", string(context, "ulong_long"));
         configuration.config("rbx.platform.typedef.user_size_t", string(context, "ulong_long"));
         configuration.config("rbx.platform.typedef.user_ssize_t", string(context, "long_long"));
@@ -519,9 +546,6 @@ public class DarwinRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.typedef.user_time_t", string(context, "long_long"));
         configuration.config("rbx.platform.typedef.user_off_t", string(context, "long_long"));
         configuration.config("rbx.platform.typedef.syscall_arg_t", string(context, "ulong_long"));
-        configuration.config("rbx.platform.typedef.intptr_t", string(context, "long"));
-        configuration.config("rbx.platform.typedef.intmax_t", string(context, "long"));
-        configuration.config("rbx.platform.typedef.uintmax_t", string(context, "ulong"));
         configuration.config("rbx.platform.typedef.u_char", string(context, "uchar"));
         configuration.config("rbx.platform.typedef.u_short", string(context, "ushort"));
         configuration.config("rbx.platform.typedef.u_int", string(context, "uint"));

@@ -242,9 +242,18 @@ public class LinuxRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.io.SEEK_END", 2);
         configuration.config("rbx.platform.fcntl.F_GETFL", 3);
         configuration.config("rbx.platform.fcntl.F_SETFL", 4);
+        configuration.config("rbx.platform.fcntl.F_DUPFD", 0);
         configuration.config("rbx.platform.fcntl.F_GETFD", 1);
         configuration.config("rbx.platform.fcntl.F_SETFD", 2);
         configuration.config("rbx.platform.fcntl.FD_CLOEXEC", 1);
+        configuration.config("rbx.platform.fcntl.F_GETOWN", 9);
+        configuration.config("rbx.platform.fcntl.F_SETOWN", 8);
+        configuration.config("rbx.platform.fcntl.F_GETLK", 5);
+        configuration.config("rbx.platform.fcntl.F_SETLK", 6);
+        configuration.config("rbx.platform.fcntl.F_SETLKW", 7);
+        configuration.config("rbx.platform.fcntl.F_RDLCK", 0);
+        configuration.config("rbx.platform.fcntl.F_UNLCK", 2);
+        configuration.config("rbx.platform.fcntl.F_WRLCK", 1);
         configuration.config("rbx.platform.socket.AF_APPLETALK", 5);
         configuration.config("rbx.platform.socket.PF_APPLETALK", 5);
         configuration.config("rbx.platform.socket.AF_AX25", 3);
