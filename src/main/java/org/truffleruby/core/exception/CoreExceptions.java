@@ -14,7 +14,6 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import jnr.constants.platform.Errno;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -30,6 +29,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
+import org.truffleruby.platform.ErrnoDescriptions;
 
 import java.util.EnumSet;
 
@@ -265,10 +265,10 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject mathDomainError(String method, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().getErrnoClass(Errno.EDOM);
+        DynamicObject exceptionClass = context.getCoreLibrary().getErrnoClass("EDOM");
         Rope rope = StringOperations.encodeRope(StringUtils.format("Numerical argument is out of domain - \"%s\"", method), UTF8Encoding.INSTANCE);
         DynamicObject errorMessage = StringOperations.createString(context, rope);
-        return ExceptionOperations.createSystemCallError(context, exceptionClass, errorMessage, currentNode, Errno.EDOM.intValue());
+        return ExceptionOperations.createSystemCallError(context, exceptionClass, errorMessage, currentNode, context.getCoreLibrary().getErrnoValue("EDOM"));
     }
 
     @TruffleBoundary
@@ -278,14 +278,14 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject errnoError(int errno, String extraMessage, Node currentNode) {
-        Errno errnoObj = Errno.valueOf(errno);
-        DynamicObject errnoClass = context.getCoreLibrary().getErrnoClass(errnoObj);
-        if (errnoObj == null || errnoClass == null) {
+        final String errnoName = context.getCoreLibrary().getErrnoName(errno);
+        final DynamicObject errnoClass = context.getCoreLibrary().getErrnoClass(errnoName);
+        if (errnoName == null || errnoClass == null) {
             return systemCallError(StringUtils.format("Unknown Error (%s)%s", errno, extraMessage), errno, currentNode);
         }
 
-        String fullMessage = StringUtils.format("%s%s", errnoObj.description(), extraMessage);
-        DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
+        final String fullMessage = ErrnoDescriptions.getDescription(errnoName) + extraMessage;
+        final DynamicObject errorMessage = StringOperations.createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
 
         return ExceptionOperations.createSystemCallError(context, errnoClass, errorMessage, currentNode, errno);
     }
@@ -940,7 +940,7 @@ public class CoreExceptions {
                 context,
                 exceptionClass,
                 coreStrings().RESOURCE_TEMP_UNAVAIL_READ.createInstance(),
-                currentNode, Errno.EAGAIN.intValue());
+                currentNode, context.getCoreLibrary().getErrnoValue("EAGAIN"));
     }
 
     @TruffleBoundary
@@ -950,7 +950,7 @@ public class CoreExceptions {
                 context,
                 exceptionClass,
                 coreStrings().RESOURCE_TEMP_UNAVAIL_WRITE.createInstance(),
-                currentNode, Errno.EAGAIN.intValue());
+                currentNode, context.getCoreLibrary().getErrnoValue("EAGAIN"));
     }
 
     // FFI::NullPointerError

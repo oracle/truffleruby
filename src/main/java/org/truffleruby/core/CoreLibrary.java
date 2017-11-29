@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jcodings.EncodingDB;
 import org.jcodings.specific.USASCIIEncoding;
@@ -56,6 +57,7 @@ import org.truffleruby.language.objects.SingletonClassNodeGen;
 import org.truffleruby.launcher.Launcher;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.platform.Platform;
+import org.truffleruby.platform.RubiniusConfiguration;
 import org.truffleruby.platform.RubiniusTypes;
 import org.truffleruby.platform.Signals;
 import org.truffleruby.stdlib.psych.YAMLEncoding;
@@ -73,11 +75,11 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-import jnr.constants.platform.Errno;
-
 public class CoreLibrary {
 
     private static final String CLI_RECORD_SEPARATOR = "\n";
+
+    private static final String ERRNO_CONFIG_PREFIX = RubiniusConfiguration.PREFIX + "errno.";
 
     private static final Property ALWAYS_FROZEN_PROPERTY = Property.create(Layouts.FROZEN_IDENTIFIER, Layout.createLayout().createAllocator().constantLocation(true), 0);
 
@@ -210,7 +212,8 @@ public class CoreLibrary {
     @CompilationFinal private DynamicObject eagainWaitReadable;
     @CompilationFinal private DynamicObject eagainWaitWritable;
 
-    private final Map<Errno, DynamicObject> errnoClasses = new HashMap<>();
+    private final Map<String, DynamicObject> errnoClasses = new HashMap<>();
+    private final Map<Integer, String> errnoValueToNames = new HashMap<>();
 
     @CompilationFinal private boolean cloningEnabled;
     @CompilationFinal private InternalMethod basicObjectSendMethod;
@@ -364,15 +367,6 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(systemCallErrorClass, Layouts.SYSTEM_CALL_ERROR.createSystemCallErrorShape(systemCallErrorClass, systemCallErrorClass));
 
         errnoModule = defineModule("Errno");
-
-        for (Errno errno : Errno.values()) {
-            if (errno.defined()) {
-                if (errno.equals(Errno.EWOULDBLOCK) && Errno.EWOULDBLOCK.intValue() == Errno.EAGAIN.intValue()){
-                    continue; // Don't define it as a class, define it as constant later.
-                }
-                errnoClasses.put(errno, defineClass(errnoModule, systemCallErrorClass, errno.name()));
-            }
-        }
 
         // ScriptError
         DynamicObject scriptErrorClass = defineClass(exceptionClass, "ScriptError");
@@ -751,17 +745,21 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(psychParserClass).setConstant(context, node, "UTF16LE", YAMLEncoding.YAML_UTF16LE_ENCODING.ordinal());
         Layouts.MODULE.getFields(psychParserClass).setConstant(context, node, "UTF16BE", YAMLEncoding.YAML_UTF16BE_ENCODING.ordinal());
 
-        // Errno constants
-        for (Map.Entry<Errno, DynamicObject> entry : errnoClasses.entrySet()) {
-            final Errno errno = entry.getKey();
-            final DynamicObject errnoClass = entry.getValue();
-            Layouts.CLASS.getFields(errnoClass).setConstant(context, node, "Errno", errno.intValue());
+        // Errno classes and constants
+        for (Entry<String, Object> entry : context.getRubiniusConfiguration().getSection(ERRNO_CONFIG_PREFIX)) {
+            final String name = entry.getKey().substring(ERRNO_CONFIG_PREFIX.length());
+            if (name.equals("EWOULDBLOCK") && getErrnoValue("EWOULDBLOCK") == getErrnoValue("EAGAIN")) {
+                continue; // Don't define it as a class, define it as constant later.
+            }
+            errnoValueToNames.put((int) entry.getValue(), name);
+            final DynamicObject rubyClass = defineClass(errnoModule, systemCallErrorClass, name);
+            Layouts.MODULE.getFields(rubyClass).setConstant(context, node, "Errno", entry.getValue());
+            errnoClasses.put(name, rubyClass);
         }
 
-        if (Errno.EWOULDBLOCK.intValue() == Errno.EAGAIN.intValue()) {
-            Layouts.MODULE.getFields(errnoModule).setConstant(context, node, Errno.EWOULDBLOCK.name(), errnoClasses.get(Errno.EAGAIN));
+        if (getErrnoValue("EWOULDBLOCK") == getErrnoValue("EAGAIN")) {
+            Layouts.MODULE.getFields(errnoModule).setConstant(context, node, "EWOULDBLOCK", errnoClasses.get("EAGAIN"));
         }
-
     }
 
     private void initializeSignalConstants() {
@@ -1243,8 +1241,18 @@ public class CoreLibrary {
     }
 
     @TruffleBoundary
-    public DynamicObject getErrnoClass(Errno errno) {
-        return errnoClasses.get(errno);
+    public int getErrnoValue(String errnoName) {
+        return (int) context.getRubiniusConfiguration().get(ERRNO_CONFIG_PREFIX + errnoName);
+    }
+
+    @TruffleBoundary
+    public String getErrnoName(int errnoValue) {
+        return errnoValueToNames.get(errnoValue);
+    }
+
+    @TruffleBoundary
+    public DynamicObject getErrnoClass(String name) {
+        return errnoClasses.get(name);
     }
 
     public DynamicObject getSymbolClass() {
