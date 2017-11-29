@@ -207,6 +207,7 @@ public class DarwinRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.file.O_RDONLY", 0);
         configuration.config("rbx.platform.file.O_WRONLY", 1);
         configuration.config("rbx.platform.file.O_RDWR", 2);
+        configuration.config("rbx.platform.file.O_ACCMODE", 3);
         configuration.config("rbx.platform.file.O_CREAT", 512);
         configuration.config("rbx.platform.file.O_EXCL", 2048);
         configuration.config("rbx.platform.file.O_NOCTTY", 131072);
@@ -241,7 +242,6 @@ public class DarwinRubiniusConfiguration extends DefaultRubiniusConfiguration {
         configuration.config("rbx.platform.io.SEEK_END", 2);
         configuration.config("rbx.platform.fcntl.F_GETFL", 3);
         configuration.config("rbx.platform.fcntl.F_SETFL", 4);
-        configuration.config("rbx.platform.fcntl.O_ACCMODE", 3);
         configuration.config("rbx.platform.fcntl.F_GETFD", 1);
         configuration.config("rbx.platform.fcntl.F_SETFD", 2);
         configuration.config("rbx.platform.fcntl.FD_CLOEXEC", 1);
