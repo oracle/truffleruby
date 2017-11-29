@@ -133,13 +133,6 @@ licence (see `ffi.txt`).
 TruffleRuby has Java dependencies on these modules, which are then included in
 the distribution:
 
-#### Java Native Runtime Constants
-
-TruffleRuby distributes jnr-constants (version as described in
-`mx.truffleruby/suite.py`). jnr-constants is licensed as Apache 2.
-
-* jnr-constants (Apache 2.0 `apache-2.0.txt`)
-
 #### SnakeYAML
 
 TruffleRuby uses SnakeYaml (version as described in `mx.truffleruby/suite.py`).
