@@ -27,3 +27,4 @@ slow:Processing RUBYOPT raises a RuntimeError for '-0'
 slow:Processing RUBYOPT raises a RuntimeError for '--copyright'
 slow:Processing RUBYOPT raises a RuntimeError for '--version'
 slow:Processing RUBYOPT raises a RuntimeError for '--yydebug'
+slow:Processing RUBYOPT ignores whitespace around the option
