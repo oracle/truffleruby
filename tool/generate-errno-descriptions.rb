@@ -1,4 +1,4 @@
-# The list if from tool/generate-native-config.rb
+# The list is from tool/generate-native-config.rb
 errnos = %w[
   EPERM ENOENT ESRCH EINTR EIO ENXIO E2BIG ENOEXEC EBADF ECHILD EDEADLK ENOMEM
   EACCES EFAULT ENOTBLK EBUSY EEXIST EXDEV ENODEV ENOTDIR EISDIR EINVAL ENFILE
