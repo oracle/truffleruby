@@ -36,19 +36,8 @@ module Rubinius
       raise PrimitiveFailure, 'Rubinius::Configuration#get_variable primitive failed'
     end
 
-    def get_section(section)
-      Truffle.primitive :vm_get_config_section
-      raise PrimitiveFailure, 'Rubinius::Configuration#get_section primitive failed'
-    end
-
-    def section(section)
-      ary = get_section(section)
-      i = 0
-      while i < ary.size
-        tup = ary[i]
-        yield tup[0], tup[1]
-        i += 1
-      end
+    def section(section, &block)
+      Truffle.invoke_primitive :vm_get_config_section, section, block
     end
 
     def lookup(name)

@@ -98,7 +98,8 @@ module RubySL
     end
 
     def self.constant_pairs
-      Rubinius::FFI.config_hash('socket').reject { |name, value| value.empty? }
+      # Truffle: no need to filter here since only defined constants are in the config
+      Rubinius::FFI.config_hash('socket')
     end
 
     def self.coerce_to_string(object)

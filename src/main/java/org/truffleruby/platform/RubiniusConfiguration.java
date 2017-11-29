@@ -56,10 +56,12 @@ public class RubiniusConfiguration {
         configuration.put(key, value);
     }
 
+    @TruffleBoundary
     public Object get(String key) {
         return configuration.get(key);
     }
 
+    @TruffleBoundary
     public Collection<Entry<String, Object>> getSection(String section) {
         final Collection<Entry<String, Object>> entries = new ArrayList<>();
 

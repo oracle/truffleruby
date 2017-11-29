@@ -58,8 +58,8 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
@@ -72,8 +72,6 @@ import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Signals;
 import sun.misc.Signal;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 
@@ -343,34 +341,18 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_get_config_section", needsSelf = false)
     public abstract static class VMGetConfigSectionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private org.truffleruby.core.string.StringNodes.MakeStringNode makeStringNode = org.truffleruby.core.string.StringNodes.MakeStringNode.create();
+        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private YieldNode yieldNode = new YieldNode();
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(section)")
-        public DynamicObject getSection(DynamicObject section) {
-            final List<DynamicObject> sectionKeyValues = new ArrayList<>();
-
+        @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
+        public DynamicObject getSection(DynamicObject section, DynamicObject block) {
             for (Entry<String, Object> entry : getContext().getRubiniusConfiguration().getSection(StringOperations.getString(section))) {
-                Object value = entry.getValue();
-                final String stringValue;
-                if (RubyGuards.isRubyBignum(value)) {
-                    stringValue = Layouts.BIGNUM.getValue((DynamicObject) value).toString();
-                } else if (RubyGuards.isRubyString(value)) {
-                    stringValue = StringOperations.getString((DynamicObject) value);
-                } else if (value instanceof Boolean || value instanceof Integer || value instanceof Long) {
-                    stringValue = value.toString();
-                } else {
-                    throw new UnsupportedOperationException(value.getClass().toString());
-                }
-
-                Object[] objects = new Object[] {
-                        makeStringNode.executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT),
-                        makeStringNode.executeMake(stringValue, UTF8Encoding.INSTANCE, CodeRange.CR_7BIT) };
-                sectionKeyValues.add(createArray(objects, objects.length));
+                final DynamicObject key = makeStringNode.executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
+                yieldNode.dispatch(block, key, entry.getValue());
             }
 
-            Object[] objects = sectionKeyValues.toArray();
-            return createArray(objects, objects.length);
+            return nil();
         }
 
     }
