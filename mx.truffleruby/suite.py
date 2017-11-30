@@ -41,10 +41,6 @@ suite = {
             "name": "Apache License 2.0",
             "url": "https://opensource.org/licenses/Apache-2.0"
         },
-        "GPLv2": {
-            "name": "GNU General Public License, version 2",
-            "url": "http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html"
-        },
         "zlib": {
             "name": "The zlib License",
             "url": "https://opensource.org/licenses/zlib"
@@ -55,14 +51,12 @@ suite = {
         "truffleruby-binary-snapshots": {
             "url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots",
             "licenses": [
-                "EPL-1.0",
-                "BSD-simplified",
-                "BSD-new",
-                "MIT",
-                "Apache-2.0",
-                "GPLv2",
-                "LGPLv21",
-                "zlib",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "BSD-simplified",   # MRI
+                "BSD-new",          # Rubinius, FFI
+                "MIT",              # JCodings, minitest, did_you_mean, rake
+                "Apache-2.0",       # SnakeYAML
+                "zlib",             # pr-zlib
             ]
         },
     },
@@ -80,7 +74,7 @@ suite = {
             "sha1": "7a27ea250c5130b2922b86dea63cbb1cc10a660c",
             "sourceSha1": "63577e87886c76228db9f8a2c50ea43cde5072eb",
             "licence": [
-                "Apache-2.0",
+                "Apache-2.0",       # SnakeYAML
             ],
         },
 
@@ -93,7 +87,7 @@ suite = {
             "sha1": "3ba3cb50e9a0b87b645cd412a8f7b7296c314aa1",
             "sourceSha1": "2fdcca5bd2c629c8c120d46cc1ed325c994ea3eb",
             "licence": [
-                "MIT",
+                "MIT",              # Joni
             ],
         },
 
@@ -106,7 +100,7 @@ suite = {
             "sha1": "179d05303c51e1e2b87c643147fac56c8437ccbb",
             "sourceSha1": "6b2043ee228ec5e2964d1cc5ada11d3ddbf8e9ff",
             "licence": [
-                "MIT",
+                "MIT",              # JCodings
             ],
         },
     },
@@ -122,7 +116,7 @@ suite = {
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
             "license": [
-                "EPL-1.0",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
 
@@ -136,7 +130,7 @@ suite = {
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
             "license": [
-                "EPL-1.0",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
 
@@ -161,11 +155,11 @@ suite = {
             "findbugsIgnoresGenerated" : True,
             "checkPackagePrefix": "false",
             "license": [
-                "EPL-1.0",
-                "BSD-new",
-                "BSD-simplified",
-                "MIT",
-                "Apache-2.0",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "BSD-new",          # Rubinius
+                "BSD-simplified",   # MRI
+                "MIT",              # Joni, JCodings
+                "Apache-2.0",       # SnakeYAML
             ],
         },
 
@@ -179,7 +173,7 @@ suite = {
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
             "license": [
-                "EPL-1.0",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
 
@@ -188,8 +182,8 @@ suite = {
             "outputDir": "src/main/ruby",
             "prefix": "truffleruby",
             "license": [
-                "EPL-1.0",
-                "BSD-new",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "BSD-new",          # Rubinius
             ],
         },
 
@@ -204,7 +198,7 @@ suite = {
             "javaCompliance": "1.8",
             "checkPackagePrefix": "false",
             "license": [
-                "EPL-1.0",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
 
@@ -213,7 +207,7 @@ suite = {
             "outputDir": "src/test/ruby",
             "prefix": "src/test/ruby",
             "license": [
-                "EPL-1.0",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
 
@@ -227,10 +221,8 @@ suite = {
             "output": ".",
             "results": [], # Empty results as they overlap with truffleruby-lib
             "license": [
-                "EPL-1.0",
-                "GPLv2",
-                "LGPLv21",
-                "BSD-simplified",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "BSD-simplified",   # MRI
             ],
         },
 
@@ -243,12 +235,10 @@ suite = {
             "prefix": "lib",
             "license": [
                 "EPL-1.0",
-                "MIT",
-                "BSD-simplified",
-                "BSD-new",
-                "GPLv2",
-                "LGPLv21",
-                "zlib",
+                "MIT",              # minitest, did_you_mean, rake
+                "BSD-simplified",   # MRI
+                "BSD-new",          # Rubinius, FFI and RubySL
+                "zlib",             # pr-zlib
             ],
         },
 
@@ -257,9 +247,7 @@ suite = {
             "outputDir": "bin",
             "prefix": "bin",
             "license": [
-                "EPL-1.0",
-                "GPLv2",
-                "LGPLv21",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
 
@@ -274,8 +262,8 @@ suite = {
             "prefix": "spec",
             "outputDir": "spec",
             "license": [
-                "EPL-1.0",
-                "MIT",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "MIT",              # Ruby Specs
             ],
         },
     },
@@ -290,7 +278,7 @@ suite = {
             ],
             "description": "TruffleRuby Annotation Processor",
             "license": [
-                "EPL-1.0",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
 
@@ -307,11 +295,11 @@ suite = {
             ],
             "description": "TruffleRuby",
             "license": [
-                "EPL-1.0",
-                "BSD-new",
-                "BSD-simplified",
-                "MIT",
-                "Apache-2.0",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "BSD-new",          # Rubinius
+                "BSD-simplified",   # MRI
+                "MIT",              # Joni, JCodings
+                "Apache-2.0",       # SnakeYAML
             ],
         },
 
@@ -324,7 +312,7 @@ suite = {
             ],
             "description": "TruffleRuby Launcher",
             "license": [
-                "EPL-1.0",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
 
@@ -340,12 +328,11 @@ suite = {
             ],
             "description": "TruffleRuby libraries, documentation, bin directory",
             "license": [
-                "EPL-1.0",
-                "MIT",
-                "BSD-simplified",
-                "GPLv2",
-                "LGPLv21",
-                "zlib",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "MIT",              # minitest, did_you_mean, rake
+                "BSD-simplified",   # MRI
+                "BSD-new",          # Rubinius, FFI
+                "zlib",             # pr-zlib
             ],
         },
 
@@ -363,7 +350,7 @@ suite = {
                 "truffle:TRUFFLE_TCK"
             ],
             "license": [
-                "EPL-1.0",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
             ],
         },
 
@@ -375,8 +362,8 @@ suite = {
             ],
             "description": "TruffleRuby spec files from ruby/spec",
             "license": [
-                "EPL-1.0",
-                "MIT",
+                "EPL-1.0",          # JRuby (we're choosing EPL out of EPL,GPL,LGPL)
+                "MIT",              # Ruby Specs
             ],
         },
     },
