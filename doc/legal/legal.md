@@ -36,7 +36,7 @@ general this code is available under these licences:
 * Eclipse Public License version 1.0, or
 * GNU General Public License version 2, or
 * GNU Lesser General Public License version 2.1, or
-* Common Public License 1.0 (only in some files)
+* Common Public License 1.0 (only for the parser)
 
 See `epl-1.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`, `cpl-1.0.txt`.
 
