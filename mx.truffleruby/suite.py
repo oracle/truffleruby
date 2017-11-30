@@ -54,7 +54,16 @@ suite = {
     "repositories": {
         "truffleruby-binary-snapshots": {
             "url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots",
-            "licenses": ["EPL-1.0", "BSD-simplified", "BSD-new", "MIT", "Apache-2.0", "GPLv2", "LGPLv21", "zlib"]
+            "licenses": [
+                "EPL-1.0",
+                "BSD-simplified",
+                "BSD-new",
+                "MIT",
+                "Apache-2.0",
+                "GPLv2",
+                "LGPLv21",
+                "zlib",
+            ]
         },
     },
 
@@ -70,7 +79,9 @@ suite = {
             },
             "sha1": "7a27ea250c5130b2922b86dea63cbb1cc10a660c",
             "sourceSha1": "63577e87886c76228db9f8a2c50ea43cde5072eb",
-            "licence": "Apache-2.0"
+            "licence": [
+                "Apache-2.0",
+            ],
         },
 
         "JONI": {
@@ -81,7 +92,9 @@ suite = {
             },
             "sha1": "3ba3cb50e9a0b87b645cd412a8f7b7296c314aa1",
             "sourceSha1": "2fdcca5bd2c629c8c120d46cc1ed325c994ea3eb",
-            "licence": "MIT"
+            "licence": [
+                "MIT",
+            ],
         },
 
         "JCODINGS": {
@@ -92,7 +105,9 @@ suite = {
             },
             "sha1": "179d05303c51e1e2b87c643147fac56c8437ccbb",
             "sourceSha1": "6b2043ee228ec5e2964d1cc5ada11d3ddbf8e9ff",
-            "licence": "MIT"
+            "licence": [
+                "MIT",
+            ],
         },
     },
 
@@ -106,7 +121,9 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": ["EPL-1.0"],
+            "license": [
+                "EPL-1.0",
+            ],
         },
 
         "truffleruby-processor": {
@@ -118,7 +135,9 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": ["EPL-1.0"],
+            "license": [
+                "EPL-1.0",
+            ],
         },
 
         "truffleruby": {
@@ -141,7 +160,13 @@ suite = {
             "workingSets": "TruffleRuby",
             "findbugsIgnoresGenerated" : True,
             "checkPackagePrefix": "false",
-            "license": ["EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0"],
+            "license": [
+                "EPL-1.0",
+                "BSD-new",
+                "BSD-simplified",
+                "MIT",
+                "Apache-2.0",
+            ],
         },
 
         "truffleruby-launcher": {
@@ -153,14 +178,19 @@ suite = {
             "javaCompliance": "1.8",
             "workingSets": "TruffleRuby",
             "checkPackagePrefix": "false",
-            "license": ["EPL-1.0"],
+            "license": [
+                "EPL-1.0",
+            ],
         },
 
         "truffleruby-core": {
             "class": "ArchiveProject",
             "outputDir": "src/main/ruby",
             "prefix": "truffleruby",
-            "license": ["EPL-1.0", "BSD-new"],
+            "license": [
+                "EPL-1.0",
+                "BSD-new",
+            ],
         },
 
         "truffleruby-test": {
@@ -173,14 +203,18 @@ suite = {
             ],
             "javaCompliance": "1.8",
             "checkPackagePrefix": "false",
-            "license": "EPL-1.0",
+            "license": [
+                "EPL-1.0",
+            ],
         },
 
         "truffleruby-test-ruby": {
             "class": "ArchiveProject",
             "outputDir": "src/test/ruby",
             "prefix": "src/test/ruby",
-            "license": "EPL-1.0",
+            "license": [
+                "EPL-1.0",
+            ],
         },
 
         "truffleruby-cext": {
@@ -192,7 +226,12 @@ suite = {
             ],
             "output": ".",
             "results": [], # Empty results as they overlap with truffleruby-lib
-            "license": ["EPL-1.0", "GPLv2", "LGPLv21", "BSD-simplified"],
+            "license": [
+                "EPL-1.0",
+                "GPLv2",
+                "LGPLv21",
+                "BSD-simplified",
+            ],
         },
 
         "truffleruby-lib": {
@@ -202,14 +241,26 @@ suite = {
             ],
             "outputDir": "lib",
             "prefix": "lib",
-            "license": ["EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib"],
+            "license": [
+                "EPL-1.0",
+                "MIT",
+                "BSD-simplified",
+                "BSD-new",
+                "GPLv2",
+                "LGPLv21",
+                "zlib",
+            ],
         },
 
         "truffleruby-bin": {
             "class": "TruffleRubyLauncherProject",
             "outputDir": "bin",
             "prefix": "bin",
-            "license": ["EPL-1.0", "GPLv2", "LGPLv21"],
+            "license": [
+                "EPL-1.0",
+                "GPLv2",
+                "LGPLv21",
+            ],
         },
 
         "truffleruby-doc": {
@@ -222,7 +273,10 @@ suite = {
             "class": "ArchiveProject",
             "prefix": "spec",
             "outputDir": "spec",
-            "license": ["EPL-1.0", "MIT"],
+            "license": [
+                "EPL-1.0",
+                "MIT",
+            ],
         },
     },
 
@@ -235,7 +289,9 @@ suite = {
                 "truffleruby-processor"
             ],
             "description": "TruffleRuby Annotation Processor",
-            "license": ["EPL-1.0"]
+            "license": [
+                "EPL-1.0",
+            ],
         },
 
         "TRUFFLERUBY": {
@@ -250,7 +306,13 @@ suite = {
                 "truffleruby:TRUFFLERUBY-LAUNCHER",
             ],
             "description": "TruffleRuby",
-            "license": ["EPL-1.0", "BSD-new", "BSD-simplified", "MIT", "Apache-2.0"],
+            "license": [
+                "EPL-1.0",
+                "BSD-new",
+                "BSD-simplified",
+                "MIT",
+                "Apache-2.0",
+            ],
         },
 
         "TRUFFLERUBY-LAUNCHER": {
@@ -261,7 +323,9 @@ suite = {
                 "sdk:GRAAL_SDK",
             ],
             "description": "TruffleRuby Launcher",
-            "license": ["EPL-1.0"]
+            "license": [
+                "EPL-1.0",
+            ],
         },
 
         # Set of extra files to extract to run Ruby
@@ -275,7 +339,14 @@ suite = {
                 "truffleruby-doc",
             ],
             "description": "TruffleRuby libraries, documentation, bin directory",
-            "license": ["EPL-1.0", "MIT", "BSD-simplified", "GPLv2", "LGPLv21", "zlib"],
+            "license": [
+                "EPL-1.0",
+                "MIT",
+                "BSD-simplified",
+                "GPLv2",
+                "LGPLv21",
+                "zlib",
+            ],
         },
 
         "TRUFFLERUBY-TEST": {
@@ -291,7 +362,9 @@ suite = {
                 "TRUFFLERUBY",
                 "truffle:TRUFFLE_TCK"
             ],
-            "license": "EPL-1.0",
+            "license": [
+                "EPL-1.0",
+            ],
         },
 
         "TRUFFLERUBY-SPECS": {
@@ -301,7 +374,10 @@ suite = {
                 "truffleruby-specs",
             ],
             "description": "TruffleRuby spec files from ruby/spec",
-            "license": ["EPL-1.0", "MIT"],
+            "license": [
+                "EPL-1.0",
+                "MIT",
+            ],
         },
     },
 }
