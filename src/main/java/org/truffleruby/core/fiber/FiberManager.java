@@ -9,14 +9,12 @@
  */
 package org.truffleruby.core.fiber;
 
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.nodes.ControlFlowException;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.source.SourceSection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -31,14 +29,16 @@ import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ReturnException;
+import org.truffleruby.language.control.TerminationException;
 import org.truffleruby.language.objects.ObjectIDOperations;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.source.SourceSection;
 
 /**
  * Manages Ruby {@code Fiber} objects for a given Ruby thread.
@@ -377,7 +377,7 @@ public class FiberManager {
     /**
      * Used to cleanup and terminate Fibers when the parent Thread dies.
      */
-    private static class FiberShutdownException extends ControlFlowException {
+    private static class FiberShutdownException extends TerminationException {
         private static final long serialVersionUID = 1522270454305076317L;
     }
 

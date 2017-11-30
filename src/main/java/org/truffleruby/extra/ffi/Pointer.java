@@ -179,10 +179,13 @@ public class Pointer implements AutoCloseable {
 
         // We must be careful here that the finalizer does not capture the Pointer itself that we'd
         // like to finalize.
-        long pointer = address;
-        finalizationService.addFinalizer(this, Pointer.class, () -> UNSAFE.freeMemory(pointer));
+        addFinalizer(finalizationService, this, address);
 
         autorelease = true;
+    }
+
+    private static void addFinalizer(FinalizationService finalizationService, Pointer pointer, long address) {
+        finalizationService.addFinalizer(pointer, Pointer.class, () -> UNSAFE.freeMemory(address));
     }
 
     @TruffleBoundary
