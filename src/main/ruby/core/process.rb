@@ -251,15 +251,13 @@ module Process
     rlim_t = Rubinius::Config['rbx.platform.typedef.rlim_t']
     raise rlim_t unless rlim_t == 'ulong' or rlim_t == 'ulong_long'
 
-    cur, max = nil, nil
     Rubinius::FFI::MemoryPointer.new(:rlim_t, 2) do |ptr|
       ret = Truffle::POSIX.getrlimit(resource, ptr)
       Errno.handle if ret == -1
       cur = ptr[0].read_ulong
       max = ptr[1].read_ulong
+      [cur, max]
     end
-
-    [cur, max]
   end
 
   def self.setsid
@@ -274,13 +272,11 @@ module Process
   Truffle.invoke_primitive :method_unimplement, method(:fork)
 
   def self.times
-    cpu_times = nil
     Rubinius::FFI::MemoryPointer.new(:double, 4) do |ptr|
       ret = Truffle::POSIX.truffleposix_getrusage(ptr)
       Errno.handle if ret == -1
-      cpu_times = ptr.read_array_of_double(4)
+      Struct::Tms.new(*ptr.read_array_of_double(4))
     end
-    Struct::Tms.new(*cpu_times)
   end
 
   def self.kill(signal, *pids)
@@ -485,7 +481,7 @@ module Process
     FFI::MemoryPointer.new(:gid_t, ngroups) do |ptr|
       ret = Truffle::POSIX.getgroups(ngroups, ptr)
       Errno.handle if ret == -1
-      return ptr.read_array_of_uint(ngroups)
+      ptr.read_array_of_uint(ngroups)
     end
   end
 

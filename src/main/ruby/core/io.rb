@@ -825,11 +825,10 @@ class IO
   end
 
   def self.pipe(external=nil, internal=nil, options=nil)
-    fds = nil
-    FFI::MemoryPointer.new(:int, 2) do |ptr|
+    fds = FFI::MemoryPointer.new(:int, 2) do |ptr|
       r = Truffle::POSIX.pipe(ptr)
       Errno.handle if r == -1
-      fds = ptr.read_array_of_int(2)
+      ptr.read_array_of_int(2)
     end
 
     lhs = self.new(fds[0], RDONLY)
@@ -1073,7 +1072,6 @@ class IO
       }
     }
 
-    value = nil
     Truffle::POSIX.with_array_of_ints(to_fds.call(readables)) do |readables_ptr|
       Truffle::POSIX.with_array_of_ints(to_fds.call(writables)) do |writables_ptr|
         Truffle::POSIX.with_array_of_ints(to_fds.call(errorables)) do |errorables_ptr|
@@ -1081,7 +1079,7 @@ class IO
             start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
           end
 
-          value = Truffle.invoke_primitive :thread_run_blocking_nfi_system_call, -> do
+          Truffle.invoke_primitive :thread_run_blocking_nfi_system_call, -> do
             ret = Truffle::POSIX.truffleposix_select(
               readables.size, readables_ptr,
               writables.size, writables_ptr,
@@ -1117,7 +1115,6 @@ class IO
         end
       end
     end
-    value
   end
 
   ##

@@ -910,7 +910,7 @@ class File < IO
       n = POSIX.readlink Rubinius::Type.coerce_to_path(path), ptr, Rubinius::PATH_MAX
       Errno.handle if n == -1
 
-      return ptr.read_string(n).force_encoding(Encoding.find('filesystem'))
+      ptr.read_string(n).force_encoding(Encoding.find('filesystem'))
     end
   end
 
