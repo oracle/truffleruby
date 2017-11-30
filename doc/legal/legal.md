@@ -149,3 +149,8 @@ copyright its authors and is released under an MIT licence (see `mit.txt`).
 TruffleRuby uses JCodings (version as described in `mx.truffleruby/suite.py`).
 JCodings is copyright its authors and is released under an MIT licence (see
 `mit.txt`).
+
+# Ruby Specs
+
+We do not distribute MSpec or the Ruby Specs, but they are both copyright 2008
+Engine Yard and are released under an MIT licence (see `mit.txt`).
