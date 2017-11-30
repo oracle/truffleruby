@@ -516,7 +516,9 @@ module Commands
       raw_sh "make", "-j#{cores}", chdir: "#{TRUFFLERUBY_DIR}/src/main/c"
     when nil
       mx 'sforceimports'
-      mx 'build', '--force-javac', '--warning-as-error'
+      mx 'build', '--force-javac', '--warning-as-error',
+         # show more than default 100 errors not to hide actual errors under pile of missing symbols
+         '-A-Xmaxerrs', '-A1000'
     else
       raise ArgumentError, project
     end
