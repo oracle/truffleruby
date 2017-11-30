@@ -461,7 +461,7 @@ module Rubinius
           Truffle::POSIX.with_array_of_ints(redirects) do |redirects_ptr|
             Truffle::POSIX.with_array_of_strings_pointer(args) do |argv|
               Truffle::POSIX.with_array_of_strings_pointer(env_array) do |env|
-                return Truffle::POSIX.truffleposix_posix_spawnp(command, argv, env, redirects.size, redirects_ptr, pgroup)
+                Truffle::POSIX.truffleposix_posix_spawnp(command, argv, env, redirects.size, redirects_ptr, pgroup)
               end
             end
           end

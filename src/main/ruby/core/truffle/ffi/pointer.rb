@@ -1175,12 +1175,10 @@ module Rubinius::FFI
 
       if block_given?
         begin
-          value = yield ptr
+          yield ptr
         ensure
           ptr.free
         end
-
-        return value
       else
         ptr.autorelease = true
         ptr
