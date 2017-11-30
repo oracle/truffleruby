@@ -38,7 +38,6 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
-import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes;
@@ -53,11 +52,13 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodesFactory;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.rope.SubstringRope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodesFactory;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -1043,33 +1044,65 @@ public class CExtNodes {
     @CoreMethod(names = "rb_tr_debug", onSingleton = true, rest = true)
     public abstract static class DebugNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
+        @Child CallDispatchHeadNode toSCall;
+
         @Specialization
-        public Object debug(Object... objects) {
+        public Object debug(VirtualFrame frame, Object... objects) {
             if (objects.length > 1) {
-                System.err.printf("Printing %d values%n", objects.length);
+                printf("Printing %d values%n", objects.length);
             }
             for (Object object : objects) {
                 final String representation;
-
                 if (RubyGuards.isRubyString(object)) {
-                    final Rope rope = StringOperations.rope((DynamicObject) object);
-                    final String str = RopeOperations.decodeRope(rope);
-                    final byte[] bytes = rope.getBytes();
-                    final StringBuilder builder = new StringBuilder();
-                    for (int i = 0; i < bytes.length; i++) {
-                        if (i % 4 == 0 && i != 0 && i != bytes.length-1) {
-                            builder.append(" ");
-                        }
-                        builder.append(String.format("%02x", bytes[i]));
-                    }
-                    representation = str + " (" + builder.toString() + ")";
+                    representation = getRubyStringRepresentation((DynamicObject) object);
+                } else if (RubyGuards.isRubyBasicObject(object)) {
+                    representation = getString(object) + " (" +
+                            StringOperations.getString(callToS(frame, object)) + ")";
                 } else {
-                    representation = object.toString();
+                    representation = getString(object);
                 }
-                System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), representation);
+                printf("%s @ %s: %s%n", object.getClass(), identityHashCode(object), representation);
             }
             return nil();
+        }
+
+        private DynamicObject callToS(VirtualFrame frame, Object object) {
+            if (toSCall == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                toSCall = CallDispatchHeadNode.create();
+            }
+
+            return (DynamicObject) toSCall.call(frame, object, "to_s");
+        }
+
+        @TruffleBoundary
+        private int identityHashCode(Object object) {
+            return System.identityHashCode(object);
+        }
+
+        @TruffleBoundary
+        private void printf(String format, Object... objects) {
+            System.err.printf(format, objects);
+        }
+
+        @TruffleBoundary
+        private String getString(Object object) {
+            return object.toString();
+        }
+
+        @TruffleBoundary
+        private String getRubyStringRepresentation(DynamicObject object) {
+            final Rope rope = StringOperations.rope(object);
+            final String str = RopeOperations.decodeRope(rope);
+            final byte[] bytes = rope.getBytes();
+            final StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.length; i++) {
+                if (i % 4 == 0 && i != 0 && i != bytes.length - 1) {
+                    builder.append(" ");
+                }
+                builder.append(String.format("%02x", bytes[i]));
+            }
+            return str + " (" + getString(builder) + ")";
         }
     }
 
