@@ -93,42 +93,6 @@ pgconn_gc_free( t_pg_connection *this )
   rb_tr_release_handle(this->decoder_for_get_copy_data);
 EOF
 
-NO_ASSIGNMENT = /(?:[\),;]|==|!=)/
-
-NOKOGIRI_FUNC_INSTANCE_POINTER_PATCH = { match: 'rb_ary_new()',
-                              replacement: 'rb_tr_handle_for_managed(rb_ary_new())'
-                            }
-NOKOGIRI_TUPLE_DOC_POINTER_PATCH = { match:'tuple->doc = rb_doc',
-                              replacement: 'tuple->doc = rb_tr_handle_for_managed(rb_doc)'
-                            }
-NOKOGIRI_TUPLE_CACHE_POINTER_PATCH = { match: 'tuple->node_cache = cache',
-                              replacement: 'tuple->node_cache = rb_tr_handle_for_managed(cache)'
-                            }
-
-NOKOGIRI_FUNC_INSTANCE_CAST_PATCH = { match: '(wrapper->func_instances',
-                              replacement: '(rb_tr_managed_from_handle_or_null(wrapper->func_instances)'
-                                    }
-
-NOKOGIRI_XPATH_ERROR_PATCH_1 = { match: 'VALUE thing = Qnil;',
-                              replacement: "VALUE thing = Qnil;\n  VALUE errors = rb_ary_new();"
-                                    }
-
-NOKOGIRI_XPATH_ERROR_PATCH_2 = { match: 'xmlSetStructuredErrorFunc(NULL, Nokogiri_error_raise);',
-                              replacement: 'xmlSetStructuredErrorFunc(rb_tr_handle_for_managed(errors), Nokogiri_error_array_pusher);'
-                                    }
-NOKOGIRI_XPATH_ERROR_PATCH_3 = { match: 'if(xpath == NULL)',
-                              replacement: "if (RARRAY_LEN(errors) > 0) { rb_exc_raise(rb_ary_entry(errors, 0)); }\nif(xpath == NULL)"
-                               }
-NOKOGIRI_WRAP_ERROR_PATCH_1 = { match: 'VALUE msg',
-                                replacement: 'VALUE msg[1]'
-                              }
-NOKOGIRI_WRAP_ERROR_PATCH_2 = { match: 'msg = ',
-                                replacement: 'msg[0] = '
-                              }
-NOKOGIRI_WRAP_ERROR_PATCH_3 = { match: '&msg',
-                                replacement: 'msg'
-                              }
-
 NOKOGIRI_DEALLOC_DECL_ORIG = <<-EOF
 static int dealloc_node_i(xmlNodePtr key, xmlNodePtr node, xmlDocPtr doc)
 {
@@ -142,10 +106,6 @@ static int dealloc_node_i(st_data_t a, st_data_t b, st_data_t c, int errorState)
   xmlDocPtr doc = (xmlDocPtr)c;
 EOF
 
-NOKOGIRI_DEALLOC_NODE_I_PATCH = { match: NOKOGIRI_DEALLOC_DECL_ORIG,
-                                  replacement: NOKOGIRI_DEALLOC_DECL_NEW
-                                }
-
 ID = /([a-zA-Z0-9_]+)/
 STRUCT_REF = /#{ID}(->#{ID})*/
 
@@ -155,59 +115,7 @@ NOKOGIRI_DOC_RUBY_OBJECT_NEW = '(rb_tr_managed_from_handle_or_null(\1))'
 NOKOGIRI_DOC_NODE_CACHE_ORIG = /(DOC_NODE_CACHE\(#{STRUCT_REF}\))/
 NOKOGIRI_DOC_NODE_CACHE_NEW = '(rb_tr_managed_from_handle_or_null(\1))'
 
-NOKOGIRI_DOC_RUBY_OBJECT_PATCH = { match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
-                                  replacement: NOKOGIRI_DOC_RUBY_OBJECT_NEW
-                                }
-
-NOKOGIRI_DOC_NODE_CACHE_PATCH = { match: NOKOGIRI_DOC_NODE_CACHE_ORIG,
-                                  replacement: NOKOGIRI_DOC_NODE_CACHE_NEW
-                                }
-
-NOKOGIRI_SAX_SELF_PATCH = { match: 'NOKOGIRI_SAX_SELF(ctx)',
-                      replacement: 'rb_tr_managed_from_handle_or_null(NOKOGIRI_SAX_SELF(ctx))'
-                    }
-
-def cast_value_for_native(name, suffix = '', type = :local)
-  # type is not currently used but is there to help preserve the semantic intent.
-  { match: /\(void\ \*\)(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
-    replacement: "rb_tr_handle_for_managed(\\1)#{suffix}"
-  }
-end
-
-def cast_native_for_value(name, suffix = '', type = :local)
-  # type is not currently used but is there to help preserve the semantic intent.
-  { match: /\(VALUE\)(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
-    replacement: "rb_tr_managed_from_handle_or_null(\\1)#{suffix}"
-  }
-end
-
-def force_cast_native_for_value(name, suffix = '', type = :local)
-  # type is not currently used but is there to help preserve the semantic intent.
-  { match: /(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
-    replacement: "rb_tr_managed_from_handle_or_null(\\1)#{suffix}"
-  }
-end
-
-def tuple_new_patch(ctx, slf)
-  { match: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, #{slf})",
-    replacement: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, rb_tr_handle_for_managed(#{slf}))" }
-end
-
-NOKOGIRI_VA_START_PATCH = { match: 'va_list args;',
-                            replacement: 'va_list args; rb_raise(rb_eRuntimeError, "%s", "Exception:"); return;'
-                          }
-
-NOKOGIRI_VA_START_PATCH_2 = { match: 'va_list args;',
-                            replacement: 'va_list args; rb_str_cat2(rb_tr_managed_from_handle_or_null(ctx), "Generic error"); return;'
-                          }
-
-NOKOGIRI_VA_START_PATCH_3 = { match: /va_list args;[^}]*id_warning, 1, ruby_message\);/,
-                            replacement: 'rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));'
-                          }
-
-NOKOGIRI_VA_START_PATCH_4 = { match: /va_list args;[^}]*id_error, 1, ruby_message\);/,
-                            replacement: 'rb_funcall(doc, id_error, 1, NOKOGIRI_STR_NEW2("Warning."));'
-                          }
+NO_ASSIGNMENT = /(?:[\),;]|==|!=)/
 
 def read_field(struct_var_name, field_name)
   {
@@ -249,6 +157,33 @@ def read_write_array(name, leaking)
    write_array(name, leaking)]
 end
 
+def cast_value_for_native(name, suffix = '', type = :local)
+  # type is not currently used but is there to help preserve the semantic intent.
+  { match: /\(void\ \*\)(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
+    replacement: "rb_tr_handle_for_managed(\\1)#{suffix}"
+  }
+end
+
+def cast_native_for_value(name, suffix = '', type = :local)
+  # type is not currently used but is there to help preserve the semantic intent.
+  { match: /\(VALUE\)(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
+    replacement: "rb_tr_managed_from_handle_or_null(\\1)#{suffix}"
+  }
+end
+
+def force_cast_native_for_value(name, suffix = '', type = :local)
+  # type is not currently used but is there to help preserve the semantic intent.
+  { match: /(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
+    replacement: "rb_tr_managed_from_handle_or_null(\\1)#{suffix}"
+  }
+end
+
+def tuple_new_patch(ctx, slf)
+  { match: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, #{slf})",
+    replacement: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, rb_tr_handle_for_managed(#{slf}))" }
+end
+
+
 PATCHED_FILES = {
   'xml_node_set.c' => {
     gem: 'nokogiri',
@@ -277,14 +212,23 @@ PATCHED_FILES = {
         match: /[[:blank:]]*?switch\s*?\(.*?Qnil:/m,
         replacement: XML_NODE_SET_PATCH
       },
-      NOKOGIRI_FUNC_INSTANCE_POINTER_PATCH,
+      {
+        match: 'rb_ary_new()',
+        replacement: 'rb_tr_handle_for_managed(rb_ary_new())'
+      },
       cast_value_for_native('self'),
       cast_value_for_native('errstr'),
       cast_value_for_native('inst'),
       cast_native_for_value('xsltGetExtData(transform, functionURI)', ';'),
       force_cast_native_for_value('ctxt->style->_private'),
-      NOKOGIRI_FUNC_INSTANCE_CAST_PATCH,
-      NOKOGIRI_VA_START_PATCH_2,
+      {
+        match: '(wrapper->func_instances',
+        replacement: '(rb_tr_managed_from_handle_or_null(wrapper->func_instances)'
+      },
+      {
+        match: 'va_list args;',
+        replacement: 'va_list args; rb_str_cat2(rb_tr_managed_from_handle_or_null(ctx), "Generic error"); return;'
+      }
     ]
   },
   'html_document.c' => {
@@ -314,11 +258,26 @@ PATCHED_FILES = {
       cast_value_for_native('io'),
       cast_native_for_value('ctx'),
       cast_value_for_native('rb_block_proc()', ';'),
-      NOKOGIRI_TUPLE_DOC_POINTER_PATCH,
-      NOKOGIRI_TUPLE_CACHE_POINTER_PATCH,
-      NOKOGIRI_DEALLOC_NODE_I_PATCH,
-      NOKOGIRI_DOC_RUBY_OBJECT_PATCH,
-      NOKOGIRI_DOC_NODE_CACHE_PATCH,
+      {
+        match:'tuple->doc = rb_doc',
+        replacement: 'tuple->doc = rb_tr_handle_for_managed(rb_doc)'
+      },
+      {
+        match: 'tuple->node_cache = cache',
+        replacement: 'tuple->node_cache = rb_tr_handle_for_managed(cache)'
+      },
+      {
+        match: NOKOGIRI_DEALLOC_DECL_ORIG,
+        replacement: NOKOGIRI_DEALLOC_DECL_NEW
+      },
+      {
+        match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
+        replacement: NOKOGIRI_DOC_RUBY_OBJECT_NEW
+      },
+      {
+        match: NOKOGIRI_DOC_NODE_CACHE_ORIG,
+        replacement: NOKOGIRI_DOC_NODE_CACHE_NEW
+      }
     ]
   },
   'xml_dtd.c' => {
@@ -335,8 +294,14 @@ PATCHED_FILES = {
       cast_value_for_native('err', ','),
       cast_value_for_native('error_list'),
       cast_value_for_native('io'),
-      NOKOGIRI_DOC_RUBY_OBJECT_PATCH,
-      NOKOGIRI_DOC_NODE_CACHE_PATCH,
+      {
+        match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
+        replacement: NOKOGIRI_DOC_RUBY_OBJECT_NEW
+      },
+      {
+        match: NOKOGIRI_DOC_NODE_CACHE_ORIG,
+        replacement: NOKOGIRI_DOC_NODE_CACHE_NEW
+      },
       cast_native_for_value('node->_private', ';'),
       cast_value_for_native('rb_node'),
    ]
@@ -344,7 +309,9 @@ PATCHED_FILES = {
   'xml_namespace.c' => {
     gem: 'nokogiri',
     patches: [
-      NOKOGIRI_DOC_RUBY_OBJECT_PATCH,
+      { match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
+                                  replacement: NOKOGIRI_DOC_RUBY_OBJECT_NEW
+                                },
       cast_value_for_native('ns'),
       cast_native_for_value('node->_private', ';')
     ]
@@ -360,9 +327,17 @@ PATCHED_FILES = {
   'xml_sax_parser.c' => {
     gem: 'nokogiri',
     patches: [
-      NOKOGIRI_SAX_SELF_PATCH,
-      NOKOGIRI_VA_START_PATCH_3,
-      NOKOGIRI_VA_START_PATCH_4,
+      {
+        match: 'NOKOGIRI_SAX_SELF(ctx)',
+        replacement: 'rb_tr_managed_from_handle_or_null(NOKOGIRI_SAX_SELF(ctx))'
+      },
+      {
+        match: /va_list args;[^}]*id_warning, 1, ruby_message\);/,
+        replacement: 'rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));'
+      },
+      { match: /va_list args;[^}]*id_error, 1, ruby_message\);/,
+        replacement: 'rb_funcall(doc, id_error, 1, NOKOGIRI_STR_NEW2("Warning."));'
+      }
     ]
   },
   'xml_sax_parser_context.c' => {
@@ -383,21 +358,45 @@ PATCHED_FILES = {
     gem: 'nokogiri',
     patches: [
       cast_native_for_value('ctx'),
-      NOKOGIRI_WRAP_ERROR_PATCH_1,
-      NOKOGIRI_WRAP_ERROR_PATCH_2,
-      NOKOGIRI_WRAP_ERROR_PATCH_3,
+      {
+        match: 'VALUE msg',
+        replacement: 'VALUE msg[1]'
+      },
+      {
+        match: 'msg = ',
+        replacement: 'msg[0] = '
+      },
+      {
+        match: '&msg',
+        replacement: 'msg'
+      },
     ]
   },
   'xml_xpath_context.c' => {
     gem: 'nokogiri',
     patches: [
       cast_native_for_value('ctx'),
-      NOKOGIRI_DOC_RUBY_OBJECT_PATCH,
-      NOKOGIRI_VA_START_PATCH,
+      {
+        match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
+        replacement: NOKOGIRI_DOC_RUBY_OBJECT_NEW
+      },
+      {
+        match: 'va_list args;',
+        replacement: 'va_list args; rb_raise(rb_eRuntimeError, "%s", "Exception:"); return;'
+      },
       cast_value_for_native('xpath_handler'),
-      NOKOGIRI_XPATH_ERROR_PATCH_1,
-      NOKOGIRI_XPATH_ERROR_PATCH_2,
-      NOKOGIRI_XPATH_ERROR_PATCH_3,
+      {
+        match: 'VALUE thing = Qnil;',
+        replacement: "VALUE thing = Qnil;\n  VALUE errors = rb_ary_new();"
+      },
+      {
+        match: 'xmlSetStructuredErrorFunc(NULL, Nokogiri_error_raise);',
+        replacement: 'xmlSetStructuredErrorFunc(rb_tr_handle_for_managed(errors), Nokogiri_error_array_pusher);'
+      },
+      {
+        match: 'if(xpath == NULL)',
+        replacement: "if (RARRAY_LEN(errors) > 0) { rb_exc_raise(rb_ary_entry(errors, 0)); }\nif(xpath == NULL)"
+      },
       cast_native_for_value('(ctx->context->userData)', ';'),
       { match: 'VALUE *argv', replacement: 'VALUE argv[32]' },
       { match: /argv =.*$/, replacement: '' },
@@ -410,7 +409,7 @@ PATCHED_FILES = {
       cast_value_for_native('errors')
     ]
   },
-  "xml_relax_ng.c" => {
+  'xml_relax_ng.c' => {
     gem: 'nokogiri',
     patches: [
       cast_value_for_native('errors')
