@@ -50,15 +50,6 @@ public class RopeBuilder extends ByteArrayBuilder {
         return builder;
     }
 
-    public static RopeBuilder createRopeBuilder(ByteArrayBuilder wrap, int index, int len) {
-        final RopeBuilder builder = new RopeBuilder(wrap.getLength());
-
-        // TODO S 17-Jan-16 fix this use beyond the known length (i.e., index + len > wrap.getLength()).
-        builder.append(wrap.getUnsafeBytes(), index, len);
-
-        return builder;
-    }
-
     public Encoding getEncoding() {
         return encoding;
     }
