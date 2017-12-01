@@ -157,7 +157,7 @@ public class OptionsCatalog {
             new String[]{"-E"},
             "");
     public static final BooleanOptionDescription POLYGLOT_STDIO = new BooleanOptionDescription(
-            "ruby.ployglot.stdio",
+            "ruby.polyglot.stdio",
             "Use standard IO streams from the PolyglotEngine",
             null,
             true);
@@ -655,7 +655,7 @@ public class OptionsCatalog {
                 return INTERNAL_ENCODING;
             case "ruby.external_encoding":
                 return EXTERNAL_ENCODING;
-            case "ruby.ployglot.stdio":
+            case "ruby.polyglot.stdio":
                 return POLYGLOT_STDIO;
             case "ruby.sync.stdio":
                 return SYNC_STDIO;

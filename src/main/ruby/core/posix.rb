@@ -305,7 +305,7 @@ module Truffle::POSIX
     written
   end
 
-  if Truffle::Boot.get_option('ployglot.stdio')
+  if Truffle::Boot.get_option('polyglot.stdio')
     class << self
       alias_method :read_string_native, :read_string
       alias_method :write_string_native, :write_string
