@@ -434,7 +434,7 @@ public class ThreadManager {
             foreignThreadMap.put(thread, rubyThread);
         }
 
-        if (isRubyManagedThread(thread)) {
+        if (context.getOptions().NATIVE_INTERRUPT && isRubyManagedThread(thread)) {
             final Object pThreadID = pthread_self.call();
 
             blockingNativeCallUnblockingAction.set(() -> {
