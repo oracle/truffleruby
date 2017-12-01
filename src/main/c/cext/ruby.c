@@ -2825,13 +2825,18 @@ int rb_tr_writable(int mode) {
   return truffle_invoke_i(RUBY_CEXT, "rb_tr_writable", mode);
 }
 
+MUST_INLINE
 int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **enc2_p, int *fmode_p) {
   // TODO (pitr-ch 12-Jun-2017): review, just approximate implementation
-  VALUE IO = rb_tr_get_IO();
-  VALUE external_encoding = truffle_invoke(IO, "external_encoding");
-  VALUE internal_encoding = truffle_invoke(IO, "internal_encoding");
-  *enc_p = rb_to_encoding(external_encoding);
-  *enc2_p = rb_to_encoding(internal_encoding);
+  VALUE Encoding = rb_tr_get_Encoding();
+  VALUE external_encoding = truffle_invoke(Encoding, "default_external");
+  VALUE internal_encoding = truffle_invoke(Encoding, "default_internal");
+  if (!NIL_P(external_encoding)) {
+    *enc_p = rb_tr_handle_for_managed_leaking(rb_to_encoding(external_encoding));
+  }
+  if (!NIL_P(internal_encoding)) {
+    *enc2_p = rb_tr_handle_for_managed_leaking(rb_to_encoding(internal_encoding));
+  }
   return 1;
 }
 
