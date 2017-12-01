@@ -67,11 +67,6 @@ public abstract class TracePointNodes {
 
         @Specialization(guards = "isTracePoint(tracePoint)")
         public boolean enable(DynamicObject tracePoint, NotProvided block) {
-            return enable(tracePoint, (DynamicObject) null);
-        }
-
-        @Specialization(guards = "isTracePoint(tracePoint)")
-        public boolean enable(DynamicObject tracePoint, DynamicObject block) {
             EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
             final boolean alreadyEnabled = eventBinding != null;
 
@@ -80,18 +75,27 @@ public abstract class TracePointNodes {
                 Layouts.TRACE_POINT.setEventBinding(tracePoint, eventBinding);
             }
 
-            if (block != null) {
-                try {
-                    yield(block);
-                } finally {
-                    if (!alreadyEnabled) {
-                        dispose(eventBinding);
-                        Layouts.TRACE_POINT.setEventBinding(tracePoint, null);
-                    }
-                }
+            return alreadyEnabled;
+        }
+
+        @Specialization(guards = "isTracePoint(tracePoint)")
+        public Object enable(DynamicObject tracePoint, DynamicObject block) {
+            EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
+            final boolean alreadyEnabled = eventBinding != null;
+
+            if (!alreadyEnabled) {
+                eventBinding = createEventBinding(getContext(), tracePoint);
+                Layouts.TRACE_POINT.setEventBinding(tracePoint, eventBinding);
             }
 
-            return alreadyEnabled;
+            try {
+                return yield(block);
+            } finally {
+                if (!alreadyEnabled) {
+                    dispose(eventBinding);
+                    Layouts.TRACE_POINT.setEventBinding(tracePoint, null);
+                }
+            }
         }
 
         @TruffleBoundary
