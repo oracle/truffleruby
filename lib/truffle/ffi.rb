@@ -16,6 +16,8 @@ module FFI
     RTLD_GLOBAL = Rubinius::Config['rbx.platform.dlopen.RTLD_GLOBAL']
     RTLD_LOCAL  = Rubinius::Config['rbx.platform.dlopen.RTLD_LOCAL']
 
+    attr_reader :name
+
     def self.open(libname, flags)
       code = libname ? "load '#{libname}'" : 'default'
       handle = Truffle::Interop.eval('application/x-native', code)
@@ -29,10 +31,6 @@ module FFI
 
     def find_symbol(name)
       @handle[name]
-    end
-
-    def name
-      @name
     end
 
     def inspect
