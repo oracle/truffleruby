@@ -73,7 +73,7 @@ suite = {
             },
             "sha1": "7a27ea250c5130b2922b86dea63cbb1cc10a660c",
             "sourceSha1": "63577e87886c76228db9f8a2c50ea43cde5072eb",
-            "licence": [
+            "license": [
                 "Apache-2.0",       # SnakeYAML
             ],
         },
@@ -86,7 +86,7 @@ suite = {
             },
             "sha1": "3ba3cb50e9a0b87b645cd412a8f7b7296c314aa1",
             "sourceSha1": "2fdcca5bd2c629c8c120d46cc1ed325c994ea3eb",
-            "licence": [
+            "license": [
                 "MIT",              # Joni
             ],
         },
@@ -99,7 +99,7 @@ suite = {
             },
             "sha1": "179d05303c51e1e2b87c643147fac56c8437ccbb",
             "sourceSha1": "6b2043ee228ec5e2964d1cc5ada11d3ddbf8e9ff",
-            "licence": [
+            "license": [
                 "MIT",              # JCodings
             ],
         },
