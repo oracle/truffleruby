@@ -48,7 +48,7 @@ class << STDIN
 end
 
 # stdout is line-buffered if it refers to a terminal
-if STDOUT.tty? || Truffle::Boot.get_option('sync.stdio')
+if Truffle::Boot.get_option('sync.stdio') || STDOUT.tty?
   STDOUT.sync = true
 end
 
@@ -89,7 +89,7 @@ module Kernel
   module_function :p
 end
 
-$$ = Process.pid
+$$ = Process.pid if Truffle::Boot.get_option 'platform.native'
 
 ARGV.concat(Truffle::Boot.original_argv)
 

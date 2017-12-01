@@ -1139,16 +1139,17 @@ class IO
   # The +sync+ attribute will also be set.
   #
   def self.setup(io, fd, mode=nil, sync=false)
-    cur_mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
-    Errno.handle if cur_mode < 0
-
-    cur_mode &= ACCMODE
+    if Truffle::POSIX::NATIVE
+      cur_mode = Truffle::POSIX.fcntl(fd, F_GETFL, 0)
+      Errno.handle if cur_mode < 0
+      cur_mode &= ACCMODE
+    end
 
     if mode
       mode = parse_mode(mode)
       mode &= ACCMODE
 
-      if (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
+      if cur_mode and (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
         raise Errno::EINVAL, "Invalid new mode for existing descriptor #{fd}"
       end
     end
