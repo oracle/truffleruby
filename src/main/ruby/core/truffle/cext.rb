@@ -86,10 +86,10 @@ module Truffle::CExt
       # handle. This pass will, for example, map "jpeg" -> "libjpeg.so".
       normalized_lib_name = FFI.map_library_name(lib_name)
 
-      # Mapping a library name will only handle hard-coded cases accurately. Otherwise, it takes a best effort approach
-      # towards standardizing a library name. On Linux, that name may correspond to an `ld` script, rather than the
-      # actual library we want to load. So, we try loading the library here, which will properly resolve the full
-      # library path if necessary.
+      # Mapping a library name is a best effort approach towards standardizing a library name. It works in many cases,
+      # but in others the simple mapping is not sufficient. On Linux, for example, that name may correspond to an `ld`
+      # script, rather than the actual library we want to load. So, we try loading the library here, which will properly
+      # resolve the full library path if necessary (and possible).
       dynamic_lib = ffi_lib(normalized_lib_name).first
       dynamic_lib.name
     end
