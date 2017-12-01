@@ -65,11 +65,17 @@ public class FeatureLoader {
     }
 
     public void initialize(RubiniusConfiguration rubiniusConfiguration, TruffleNFIPlatform nfi) {
-        final String size_t = nfi.resolveType(rubiniusConfiguration, "size_t");
-        this.getcwd = nfi.getFunction("getcwd", 2, "(pointer," + size_t + "):pointer");
+        if (context.getOptions().NATIVE_PLATFORM) {
+            final String size_t = nfi.resolveType(rubiniusConfiguration, "size_t");
+            this.getcwd = nfi.getFunction("getcwd", 2, "(pointer," + size_t + "):pointer");
+        }
     }
 
     private String getWorkingDirectory() {
+        if (!context.getOptions().NATIVE_PLATFORM) {
+            // The current working cannot change if there are no native calls
+            return System.getProperty("user.dir");
+        }
         final TruffleNFIPlatform nfi = context.getTruffleNFI();
         final int bufferSize = PATH_MAX;
         final Pointer buffer = GetThreadBufferNode.getBuffer(context, bufferSize);
