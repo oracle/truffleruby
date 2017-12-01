@@ -1124,6 +1124,8 @@ class File < IO
       atime ||= now
       mtime ||= now
     end
+    atime = Time.at(atime) unless atime.kind_of?(Time)
+    mtime = Time.at(mtime) unless mtime.kind_of?(Time)
     paths.each do |path|
       path = Rubinius::Type.coerce_to_path(path)
       n = POSIX.truffleposix_utimes(path, atime.to_i, atime.usec,
