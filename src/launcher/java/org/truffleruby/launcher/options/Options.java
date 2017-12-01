@@ -46,6 +46,7 @@ public class Options {
     public final String EXTERNAL_ENCODING;
     public final boolean POLYGLOT_STDIO;
     public final boolean SYNC_STDIO;
+    public final boolean NATIVE_PLATFORM;
     public final boolean NATIVE_INTERRUPT;
     public final boolean CEXT_LOCK;
     public final boolean TRACE_CALLS;
@@ -164,7 +165,8 @@ public class Options {
         EXTERNAL_ENCODING = builder.getOrDefault(OptionsCatalog.EXTERNAL_ENCODING);
         POLYGLOT_STDIO = builder.getOrDefault(OptionsCatalog.POLYGLOT_STDIO);
         SYNC_STDIO = builder.getOrDefault(OptionsCatalog.SYNC_STDIO);
-        NATIVE_INTERRUPT = builder.getOrDefault(OptionsCatalog.NATIVE_INTERRUPT);
+        NATIVE_PLATFORM = builder.getOrDefault(OptionsCatalog.NATIVE_PLATFORM);
+        NATIVE_INTERRUPT = builder.getOrDefault(OptionsCatalog.NATIVE_INTERRUPT, NATIVE_PLATFORM);
         CEXT_LOCK = builder.getOrDefault(OptionsCatalog.CEXT_LOCK);
         TRACE_CALLS = builder.getOrDefault(OptionsCatalog.TRACE_CALLS);
         COVERAGE_GLOBAL = builder.getOrDefault(OptionsCatalog.COVERAGE_GLOBAL);
@@ -314,6 +316,8 @@ public class Options {
                 return POLYGLOT_STDIO;
             case "ruby.sync.stdio":
                 return SYNC_STDIO;
+            case "ruby.platform.native":
+                return NATIVE_PLATFORM;
             case "ruby.platform.native_interrupt":
                 return NATIVE_INTERRUPT;
             case "ruby.cexts.lock":
