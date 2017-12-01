@@ -245,6 +245,10 @@ module Truffle::POSIX
   if Rubinius.darwin?
     attach_function :_NSGetArgv, [], :pointer
   end
+end if Truffle::Boot.get_option 'platform.native'
+
+module Truffle::POSIX
+  NATIVE = Truffle::Boot.get_option 'platform.native'
 
   def self.with_array_of_ints(ints)
     if ints.empty?
@@ -330,8 +334,10 @@ module Truffle::POSIX
   end
 end
 
-# Initialize errno methods so they do not cause classloading when called later on.
-# Classloading may change the value of errno as a side-effect.
-Errno.errno
-Errno.errno = 0
-Errno.handle
+if Truffle::Boot.get_option 'platform.native'
+  # Initialize errno methods so they do not cause classloading when called later on.
+  # Classloading may change the value of errno as a side-effect.
+  Errno.errno
+  Errno.errno = 0
+  Errno.handle
+end
