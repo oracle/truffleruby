@@ -3438,12 +3438,15 @@ rb_gzfile_ecopts(struct gzfile *gz, VALUE opts)
         rb_io_extract_encoding_option(opts, &gz->enc, &gz->enc2, NULL);
     }
     if (gz->enc2) {
-      	gz->ecflags = rb_econv_prepare_opts(opts, &opts);
-        rb_encoding *enc = rb_tr_managed_from_handle(gz->enc);
-        rb_encoding *enc2 = rb_tr_managed_from_handle(gz->enc2);
-      	gz->ec = rb_econv_open_opts(enc2->name, enc->name,
-      				    gz->ecflags, opts);
-      	gz->ecopts = opts;
+        // TODO not supported, when uncommented the method fails to execute
+        // it tryes to convert opts to native because of &opts
+        // gz->ecflags = rb_econv_prepare_opts(opts, &opts);
+        // rb_encoding *enc = rb_tr_managed_from_handle(gz->enc);
+        // rb_encoding *enc2 = rb_tr_managed_from_handle(gz->enc2);
+        // gz->ec = rb_econv_open_opts(enc2->name, enc->name,
+        //                             gz->ecflags, opts);
+        // gz->ecopts = opts;
+        rb_tr_error("external encoding not supported");
     }
 }
 
