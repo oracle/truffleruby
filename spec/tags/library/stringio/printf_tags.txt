@@ -1,0 +1,31 @@
+fails:StringIO#printf formatting float formats a converts floating point argument as [-]0xh.hhhhp[+-]dd
+fails:StringIO#printf formatting float formats a displays Float::INFINITY as Inf
+fails:StringIO#printf formatting float formats a displays Float::NAN as NaN
+fails:StringIO#printf formatting float formats A converts floating point argument as [-]0xh.hhhhp[+-]dd and use uppercase X and P
+fails:StringIO#printf formatting float formats A displays Float::INFINITY as Inf
+fails:StringIO#printf formatting float formats A displays Float::NAN as NaN
+fails:StringIO#printf formatting other formats c raises ArgumentError if argument is an empty string
+fails:StringIO#printf formatting other formats c supports Unicode characters
+fails:StringIO#printf formatting other formats s does not try to convert with to_str
+fails:StringIO#printf formatting other formats % is escaped by %
+fails:StringIO#printf formatting flags space applies to numeric formats bBdiouxXeEfgGaA leaves a space at the start of non-negative numbers
+fails:StringIO#printf formatting flags space applies to numeric formats bBdiouxXeEfgGaA does not leave a space at the start of negative numbers
+fails:StringIO#printf formatting flags space applies to numeric formats bBdiouxXeEfgGaA treats several white spaces as one
+fails:StringIO#printf formatting flags (digit)$ specifies the absolute argument number for this field
+fails:StringIO#printf formatting flags (digit)$ raises exception if argument number is bigger than actual arguments list
+fails:StringIO#printf formatting flags # applies to format o does nothing for negative argument
+fails:StringIO#printf formatting flags # applies to formats bBxX does nothing for zero argument
+fails:StringIO#printf formatting flags # applies to formats aAeEfgG forces a decimal point to be added, even if no digits follow
+fails:StringIO#printf formatting flags # applies to gG does not remove trailing zeros
+fails:StringIO#printf formatting flags + applies to numeric formats bBdiouxXaAeEfgG adds a leading plus sign to non-negative numbers
+fails:StringIO#printf formatting flags - left-justifies the result of conversion if width is specified
+fails:StringIO#printf formatting flags 0 (zero) applies to numeric formats bBdiouxXaAeEfgG and width is specified pads with zeros, not spaces
+fails:StringIO#printf formatting flags 0 (zero) applies to numeric formats bBdiouxXaAeEfgG and width is specified uses radix-1 when displays negative argument as a two's complement
+fails:StringIO#printf formatting flags * uses the previous argument as the field width
+fails:StringIO#printf formatting flags * left-justifies the result if width is negative
+fails:StringIO#printf formatting flags * uses the specified argument as the width if * is followed by a number and $
+fails:StringIO#printf formatting flags * left-justifies the result if specified with $ argument is negative
+fails:StringIO#printf formatting width specifies the minimum number of characters that will be written to the result
+fails:StringIO#printf formatting precision float types controls the number of decimal places displayed in fraction part
+fails:StringIO#printf formatting precision string formats determines the maximum number of characters to be copied from the string
+fails:StringIO#printf formatting reference by name %{name} style supports flags, width and precision

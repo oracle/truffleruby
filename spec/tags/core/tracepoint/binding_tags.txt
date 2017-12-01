@@ -1,0 +1,1 @@
+fails:TracePoint#binding return the generated binding object from event
