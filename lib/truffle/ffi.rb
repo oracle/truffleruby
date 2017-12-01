@@ -17,7 +17,7 @@ module FFI
     RTLD_LOCAL  = Rubinius::Config['rbx.platform.dlopen.RTLD_LOCAL']
 
     def self.open(libname, flags)
-      code = libname ? "load #{libname}" : 'default'
+      code = libname ? "load '#{libname}'" : 'default'
       handle = Truffle::Interop.eval('application/x-native', code)
       DynamicLibrary.new(libname, handle)
     end
