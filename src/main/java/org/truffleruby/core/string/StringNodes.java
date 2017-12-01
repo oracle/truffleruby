@@ -1583,6 +1583,7 @@ public abstract class StringNodes {
     public abstract static class DumpNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode = RopeNodes.MakeLeafRopeNode.create();
 
         @Specialization(guards = "isAsciiCompatible(string)")
         public DynamicObject dumpAsciiCompatible(DynamicObject string) {
@@ -1591,8 +1592,9 @@ public abstract class StringNodes {
             RopeBuilder outputBytes = dumpCommon(string);
             outputBytes.setEncoding(encoding(string));
 
+            final Rope rope = makeLeafRopeNode.executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
             final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
-                    Layouts.STRING.build(false, false, outputBytes.toRope(CodeRange.CR_7BIT), null));
+                    Layouts.STRING.build(false, false, rope, null));
 
             return result;
         }
@@ -1616,8 +1618,9 @@ public abstract class StringNodes {
 
             outputBytes.setEncoding(ASCIIEncoding.INSTANCE);
 
+            final Rope rope = makeLeafRopeNode.executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
             final DynamicObject result = allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(string),
-                    Layouts.STRING.build(false, false, outputBytes.toRope(CodeRange.CR_7BIT), null));
+                    Layouts.STRING.build(false, false, rope, null));
 
             return result;
         }
