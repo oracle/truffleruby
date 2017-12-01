@@ -52,12 +52,10 @@ public class RopeBuilder extends ByteArrayBuilder {
 
     public static RopeBuilder createRopeBuilder(ByteArrayBuilder wrap, int index, int len) {
         final RopeBuilder builder = new RopeBuilder(wrap.getLength());
-        if (index + len > wrap.getLength()) {
-            // TODO S 17-Jan-16 fix this use beyond the known length
-            builder.append(wrap.getUnsafeBytes(), index, len);
-        } else {
-            builder.append(wrap.getBytes(), index, len);
-        }
+
+        // TODO S 17-Jan-16 fix this use beyond the known length (i.e., index + len > wrap.getLength()).
+        builder.append(wrap.getUnsafeBytes(), index, len);
+
         return builder;
     }
 
