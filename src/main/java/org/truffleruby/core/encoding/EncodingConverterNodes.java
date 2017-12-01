@@ -361,11 +361,11 @@ public abstract class EncodingConverterNodes {
             store[0] = eConvResultToSymbol(lastError.getResult());
             store[1] = makeStringNode.executeMake(lastError.getSource(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
             store[2] = makeStringNode.executeMake(lastError.getDestination(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);
-            store[3] = makeStringNode.fromBuilder(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
+            store[3] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
                     lastError.getErrorBytesP(), lastError.getErrorBytesP() + lastError.getErrorBytesLength()), CR_UNKNOWN);
 
             if (readAgain) {
-                store[4] = makeStringNode.fromBuilder(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
+                store[4] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(lastError.getErrorBytes(),
                     lastError.getErrorBytesLength() + lastError.getErrorBytesP(),
                     lastError.getReadAgainLength()), CR_UNKNOWN);
             }
@@ -409,8 +409,8 @@ public abstract class EncodingConverterNodes {
             }
 
             if (ec.lastError.getErrorBytes() != null) {
-                ret[3] = makeStringNode.fromBuilder(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP(), ec.lastError.getErrorBytesLength()), CR_UNKNOWN);
-                ret[4] = makeStringNode.fromBuilder(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(), ec.lastError.getReadAgainLength()), CR_UNKNOWN);
+                ret[3] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP(), ec.lastError.getErrorBytesLength()), CR_UNKNOWN);
+                ret[4] = makeStringNode.fromBuilderUnsafe(RopeBuilder.createRopeBuilder(ec.lastError.getErrorBytes(), ec.lastError.getErrorBytesP() + ec.lastError.getErrorBytesLength(), ec.lastError.getReadAgainLength()), CR_UNKNOWN);
             }
 
             return createArray(ret, ret.length);
