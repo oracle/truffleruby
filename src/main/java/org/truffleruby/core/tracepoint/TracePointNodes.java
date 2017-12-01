@@ -196,6 +196,17 @@ public abstract class TracePointNodes {
 
     }
 
+    @CoreMethod(names = "self")
+    public abstract static class SelfNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isTracePoint(tracePoint)")
+        public Object self(DynamicObject tracePoint) {
+            final DynamicObject binding = Layouts.TRACE_POINT.getBinding(tracePoint);
+            return RubyArguments.getSelf(BindingNodes.getFrame(binding));
+        }
+
+    }
+
     @CoreMethod(names = "binding")
     public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
 
