@@ -78,11 +78,17 @@ module Truffle::CExt
     end
 
     def self.standardize_lib_name(lib)
-      if lib.start_with?('lib') or lib.start_with?('/')
-        lib
-      else
-        "lib#{lib}.#{RbConfig::CONFIG['NATIVE_DLEXT']}"
-      end
+      require 'ffi'
+      extend FFI::Library
+
+      mapped_lib = FFI.map_library_name(lib)
+
+      # Mapping a library name will only handle hard-coded cases accurately. Otherwise, it takes a best effort approach
+      # towards standardizing a library name. On Linux, that name may correspond to an `ld` script, rather than the
+      # actual library we want to load. So, we try loading the library here, which will properly resolve the full
+      # library path if necessary.
+      dynamic_lib = ffi_lib(mapped_lib).first
+      dynamic_lib.name
     end
   end
 

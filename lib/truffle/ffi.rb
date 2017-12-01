@@ -31,6 +31,10 @@ module FFI
       @handle[name]
     end
 
+    def name
+      @name
+    end
+
     def inspect
       "\#<#{self.class} @name=#{@name.inspect}>"
     end
