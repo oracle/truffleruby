@@ -422,7 +422,7 @@ describe "CApiObject" do
     end
 
     it "returns correct status for FL_FREEZE" do
-      obj = Object.new 
+      obj = Object.new
       @o.FL_TEST(obj, "FL_FREEZE").should == 0
       obj.freeze
       @o.FL_TEST(obj, "FL_FREEZE").should_not == 0

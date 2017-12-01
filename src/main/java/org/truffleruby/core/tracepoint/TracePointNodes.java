@@ -10,10 +10,13 @@
 package org.truffleruby.core.tracepoint;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.object.DynamicObject;
+
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -22,9 +25,14 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 @CoreClass("TracePoint")
@@ -59,11 +67,6 @@ public abstract class TracePointNodes {
 
         @Specialization(guards = "isTracePoint(tracePoint)")
         public boolean enable(DynamicObject tracePoint, NotProvided block) {
-            return enable(tracePoint, (DynamicObject) null);
-        }
-
-        @Specialization(guards = "isTracePoint(tracePoint)")
-        public boolean enable(DynamicObject tracePoint, DynamicObject block) {
             EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
             final boolean alreadyEnabled = eventBinding != null;
 
@@ -72,18 +75,27 @@ public abstract class TracePointNodes {
                 Layouts.TRACE_POINT.setEventBinding(tracePoint, eventBinding);
             }
 
-            if (block != null) {
-                try {
-                    yield(block);
-                } finally {
-                    if (!alreadyEnabled) {
-                        dispose(eventBinding);
-                        Layouts.TRACE_POINT.setEventBinding(tracePoint, null);
-                    }
-                }
+            return alreadyEnabled;
+        }
+
+        @Specialization(guards = "isTracePoint(tracePoint)")
+        public Object enable(DynamicObject tracePoint, DynamicObject block) {
+            EventBinding<?> eventBinding = (EventBinding<?>) Layouts.TRACE_POINT.getEventBinding(tracePoint);
+            final boolean alreadyEnabled = eventBinding != null;
+
+            if (!alreadyEnabled) {
+                eventBinding = createEventBinding(getContext(), tracePoint);
+                Layouts.TRACE_POINT.setEventBinding(tracePoint, eventBinding);
             }
 
-            return alreadyEnabled;
+            try {
+                return yield(block);
+            } finally {
+                if (!alreadyEnabled) {
+                    dispose(eventBinding);
+                    Layouts.TRACE_POINT.setEventBinding(tracePoint, null);
+                }
+            }
         }
 
         @TruffleBoundary
@@ -171,6 +183,30 @@ public abstract class TracePointNodes {
         @Specialization(guards = "isTracePoint(tracePoint)")
         public int line(DynamicObject tracePoint) {
             return Layouts.TRACE_POINT.getLine(tracePoint);
+        }
+
+    }
+
+    @CoreMethod(names = "method_id")
+    public abstract static class MethodIDNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isTracePoint(tracePoint)")
+        public DynamicObject methodId(DynamicObject tracePoint,
+                @Cached("create()") MakeStringNode makeStringNode) {
+            final DynamicObject binding = Layouts.TRACE_POINT.getBinding(tracePoint);
+            final InternalMethod method = RubyArguments.getMethod(BindingNodes.getFrame(binding));
+            return makeStringNode.executeMake(method.getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
+    }
+
+    @CoreMethod(names = "self")
+    public abstract static class SelfNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isTracePoint(tracePoint)")
+        public Object self(DynamicObject tracePoint) {
+            final DynamicObject binding = Layouts.TRACE_POINT.getBinding(tracePoint);
+            return RubyArguments.getSelf(BindingNodes.getFrame(binding));
         }
 
     }
