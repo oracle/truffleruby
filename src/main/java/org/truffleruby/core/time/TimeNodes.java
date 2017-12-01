@@ -421,13 +421,13 @@ public abstract class TimeNodes {
                                           @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("compilePattern(cachedFormat)") List<Token> pattern,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
-            return makeStringNode.fromBuilder(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
+            return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
 
         @Specialization(guards = "isRubyString(format)")
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format) {
             final List<Token> pattern = compilePattern(StringOperations.rope(format));
-            return makeStringNode.fromBuilder(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
+            return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
 
         @TruffleBoundary

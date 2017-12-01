@@ -45,7 +45,7 @@ public class RopeBuilder extends ByteArrayBuilder {
     }
 
     public static RopeBuilder createRopeBuilder(byte[] wrap, int index, int len) {
-        final RopeBuilder builder = new RopeBuilder(wrap.length);
+        final RopeBuilder builder = new RopeBuilder(len);
         builder.append(wrap, index, len);
         return builder;
     }

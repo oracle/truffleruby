@@ -182,6 +182,28 @@ public abstract class StringNodes {
             return executeMake(builder.getBytes(), builder.getEncoding(), codeRange);
         }
 
+        /**
+         * All callers of this factory method must guarantee that the builder's byte array cannot change after this
+         * call, otherwise the rope built from the builder will end up in an inconsistent state.
+         */
+        public DynamicObject fromBuilderUnsafe(RopeBuilder builder, CodeRange codeRange) {
+            final byte[] unsafeBytes = builder.getUnsafeBytes();
+            final byte[] ropeBytes;
+
+            // While the caller must guarantee the builder's byte[] cannot change after this call, it's possible
+            // the builder has allocated more space than it needs. Ropes require that the backing byte array
+            // is the exact length required. If the builder doesn't satisfy this constraint, we must make a copy.
+            // Alternatively, we could make a leaf rope and then take a substring of it, but that would complicate
+            // the specializations here.
+            if (unsafeBytes.length == builder.getLength()) {
+                ropeBytes = unsafeBytes;
+            } else {
+                ropeBytes = builder.getBytes();
+            }
+
+            return executeMake(ropeBytes, builder.getEncoding(), codeRange);
+        }
+
         public static MakeStringNode create() {
             return StringNodesFactory.MakeStringNodeGen.create(null, null, null);
         }
