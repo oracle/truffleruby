@@ -35,18 +35,24 @@ describe 'TracePoint#disable' do
     enabled = nil
     trace = TracePoint.new(:line) {}
     trace.enable
-    trace.disable { enabled = trace.enabled? }
-    enabled.should be_false
-    trace.enabled?.should be_true
-    trace.disable
+    begin
+      trace.disable { enabled = trace.enabled? }
+      enabled.should be_false
+      trace.enabled?.should be_true
+    ensure
+      trace.disable
+    end
   end
 
   it 'is disabled within a block & also returns false when its called with a block' do
     trace = TracePoint.new(:line) {}
     trace.enable
-    trace.disable { trace.enabled? }.should == false
-    trace.enabled?.should equal(true)
-    trace.disable
+    begin
+      trace.disable { trace.enabled? }.should == false
+      trace.enabled?.should equal(true)
+    ensure
+      trace.disable
+    end
   end
 
   ruby_bug "#14057", "2.0"..."2.5" do
@@ -54,11 +60,14 @@ describe 'TracePoint#disable' do
       event_name = nil
       trace = TracePoint.new(:line) {}
       trace.enable
-      trace.disable do |*args|
-        args.should == []
+      begin
+        trace.disable do |*args|
+          args.should == []
+        end
+        trace.enabled?.should be_true
+      ensure
+        trace.disable
       end
-      trace.enabled?.should be_true
-      trace.disable
     end
   end
 end
