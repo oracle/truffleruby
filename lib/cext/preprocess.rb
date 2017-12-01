@@ -106,7 +106,7 @@ static int dealloc_node_i(st_data_t a, st_data_t b, st_data_t c, int errorState)
   xmlDocPtr doc = (xmlDocPtr)c;
 EOF
 
-ID = /([a-zA-Z0-9_]+)/
+ID = /([a-zA-Z_][a-zA-Z0-9_]*)/
 STRUCT_REF = /#{ID}(->#{ID})*/
 
 NOKOGIRI_DOC_RUBY_OBJECT_ORIG = /(DOC_RUBY_OBJECT\(#{STRUCT_REF}\))/
@@ -158,33 +158,56 @@ def read_write_array(name, leaking)
 end
 
 def cast_value_for_native(name, suffix = '', type = :local)
+  # Generate a patch for a simple cast of a VALUE to a (void *) based
+  # on the lifetime of the native use. A type of :local indicates the
+  # native use will only be for the duration of the function call,
+  # :global indicates a reference must be created that will prevent
+  # the VALUE being garbage collected, and :weak indicates a reference
+  # must be created that will _not_ prevent the VALUE being garbage
+  # collected. Suffix specifies a string following the variable which
+  # may be used to limit matches (e.g. if 'err' should be cast, but
+  # not 'error_list'.
+  #
   # type is not currently used but is there to help preserve the semantic intent.
-  { match: /\(void\ \*\)(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
+  {
+    match: /\(void\ \*\)(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
     replacement: "rb_tr_handle_for_managed(\\1)#{suffix}"
   }
 end
 
 def cast_native_for_value(name, suffix = '', type = :local)
-  # type is not currently used but is there to help preserve the semantic intent.
-  { match: /\(VALUE\)(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
+  # Generate a patch to convert a native pointer back into a
+  # VALUE. See cast_native_for_value for the meaning of the type
+  # argument.
+
+  # Type is not currently used but is there to help preserve the
+  # semantic intent.
+  {
+    match: /\(VALUE\)(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
     replacement: "rb_tr_managed_from_handle_or_null(\\1)#{suffix}"
   }
 end
 
 def force_cast_native_for_value(name, suffix = '', type = :local)
+  # Like cast_native_for_value but for cases where the original code
+  # did not include and explicit cast to VALUE.
+
   # type is not currently used but is there to help preserve the semantic intent.
-  { match: /(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
+  {
+    match: /(#{Regexp.quote(name)})#{Regexp.quote(suffix)}/,
     replacement: "rb_tr_managed_from_handle_or_null(\\1)#{suffix}"
   }
 end
 
 def tuple_new_patch(ctx, slf)
-  { match: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, #{slf})",
+  {
+    match: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, #{slf})",
     replacement: "NOKOGIRI_SAX_TUPLE_NEW(#{ctx}, rb_tr_handle_for_managed(#{slf}))" }
 end
 
 
 PATCHED_FILES = {
+  # Patches nokogiri 1.8.1
   'xml_node_set.c' => {
     gem: 'nokogiri',
     patches: [
@@ -192,7 +215,9 @@ PATCHED_FILES = {
         match: /[[:blank:]]*?switch\s*?\(.*?Qnil:/m,
         replacement: XML_NODE_SET_PATCH
       },
-      {
+      { # Nokogiri declares the function with more arguments than it
+        # is called with. This works on MRI but causes an error in
+        # TruffleRuby.
         match: 'static VALUE to_array(VALUE self, VALUE rb_node)',
         replacement: 'static VALUE to_array(VALUE self)'
       },
@@ -209,10 +234,6 @@ PATCHED_FILES = {
     gem: 'nokogiri',
     patches: [
       {
-        match: /[[:blank:]]*?switch\s*?\(.*?Qnil:/m,
-        replacement: XML_NODE_SET_PATCH
-      },
-      {
         match: 'rb_ary_new()',
         replacement: 'rb_tr_handle_for_managed(rb_ary_new())'
       },
@@ -225,7 +246,8 @@ PATCHED_FILES = {
         match: '(wrapper->func_instances',
         replacement: '(rb_tr_managed_from_handle_or_null(wrapper->func_instances)'
       },
-      {
+      { # It is not currently possible to pass var args from native
+        # functions to sulong, so we work round the issue here.
         match: 'va_list args;',
         replacement: 'va_list args; rb_str_cat2(rb_tr_managed_from_handle_or_null(ctx), "Generic error"); return;'
       }
@@ -258,14 +280,8 @@ PATCHED_FILES = {
       cast_value_for_native('io'),
       cast_native_for_value('ctx'),
       cast_value_for_native('rb_block_proc()', ';'),
-      {
-        match:'tuple->doc = rb_doc',
-        replacement: 'tuple->doc = rb_tr_handle_for_managed(rb_doc)'
-      },
-      {
-        match: 'tuple->node_cache = cache',
-        replacement: 'tuple->node_cache = rb_tr_handle_for_managed(cache)'
-      },
+      write_field('tuple', 'doc', false),
+      write_field('tuple', 'node_cache', false),
       {
         match: NOKOGIRI_DEALLOC_DECL_ORIG,
         replacement: NOKOGIRI_DEALLOC_DECL_NEW
@@ -309,9 +325,10 @@ PATCHED_FILES = {
   'xml_namespace.c' => {
     gem: 'nokogiri',
     patches: [
-      { match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
-                                  replacement: NOKOGIRI_DOC_RUBY_OBJECT_NEW
-                                },
+      {
+        match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
+        replacement: NOKOGIRI_DOC_RUBY_OBJECT_NEW
+      },
       cast_value_for_native('ns'),
       cast_native_for_value('node->_private', ';')
     ]
@@ -331,11 +348,14 @@ PATCHED_FILES = {
         match: 'NOKOGIRI_SAX_SELF(ctx)',
         replacement: 'rb_tr_managed_from_handle_or_null(NOKOGIRI_SAX_SELF(ctx))'
       },
-      {
+      { # It is not currently possible to pass var args from native
+        # functions to sulong, so we work round the issue here.
         match: /va_list args;[^}]*id_warning, 1, ruby_message\);/,
         replacement: 'rb_funcall(doc, id_warning, 1, NOKOGIRI_STR_NEW2("Warning."));'
       },
-      { match: /va_list args;[^}]*id_error, 1, ruby_message\);/,
+      { # It is not currently possible to pass var args from native
+        # functions to sulong, so we work round the issue here.
+        match: /va_list args;[^}]*id_error, 1, ruby_message\);/,
         replacement: 'rb_funcall(doc, id_error, 1, NOKOGIRI_STR_NEW2("Warning."));'
       }
     ]
@@ -358,7 +378,7 @@ PATCHED_FILES = {
     gem: 'nokogiri',
     patches: [
       cast_native_for_value('ctx'),
-      {
+      { # rb_class_new_instance takes a pointer to an array of arguments, and forcing it to inlined simply pushes the issue to 
         match: 'VALUE msg',
         replacement: 'VALUE msg[1]'
       },
@@ -380,7 +400,8 @@ PATCHED_FILES = {
         match: NOKOGIRI_DOC_RUBY_OBJECT_ORIG,
         replacement: NOKOGIRI_DOC_RUBY_OBJECT_NEW
       },
-      {
+      { # It is not currently possible to pass var args from native
+        # functions to sulong, so we work round the issue here.
         match: 'va_list args;',
         replacement: 'va_list args; rb_raise(rb_eRuntimeError, "%s", "Exception:"); return;'
       },
@@ -398,9 +419,39 @@ PATCHED_FILES = {
         replacement: "if (RARRAY_LEN(errors) > 0) { rb_exc_raise(rb_ary_entry(errors, 0)); }\nif(xpath == NULL)"
       },
       cast_native_for_value('(ctx->context->userData)', ';'),
-      { match: 'VALUE *argv', replacement: 'VALUE argv[32]' },
-      { match: /argv =.*$/, replacement: '' },
-      { match: 'free(argv)', replacement: '' },
+      { # The following patches change
+        # Nokogiri_marshal_xpath_funcall_and_return_values to marshal
+        # arguments into a ruby array and pass call the function using
+        # rb_apply. This is the easiest way to handle passing an
+        # unknown, and potentially large set of arguments to the ruby
+        # function.
+        match: 'VALUE *argv;',
+        replacement: 'VALUE argv;'
+      },
+      {
+        match: /argv =.*$/,
+        replacement: 'argv = rb_ary_new_capa(nargs);'
+      },
+      {
+        match: /rb_gc_register_address.*$/,
+        replacement: ''
+      },
+      {
+        match: /rb_gc_unregister_address.*$/,
+        replacement: ''
+      },
+      {
+        match: /argv\[i\]\ =\ ([^;]+);/,
+        replacement: 'rb_ary_store(argv, i, \1);'
+      },
+      {
+        match: 'rb_funcall2(handler, rb_intern((const char*)function_name), nargs, argv);',
+        replacement: 'rb_apply(handler, rb_intern((const char*)function_name), argv);'
+      },
+      {
+        match: 'free(argv)',
+        replacement: ''
+      },
     ]
   },
   'xml_schema.c' => {
