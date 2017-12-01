@@ -69,15 +69,20 @@ public class EncodingManager {
 
     // This must be run after the locale is set for AOT, see the setLocale() call above
     public void initializeLocaleEncoding(TruffleNFIPlatform nfi, RubiniusConfiguration rubiniusConfiguration) {
-        final int codeset = (int) rubiniusConfiguration.get("rbx.platform.langinfo.CODESET");
+        final String localeEncodingName;
+        if (context.getOptions().NATIVE_PLATFORM) {
+            final int codeset = (int) rubiniusConfiguration.get("rbx.platform.langinfo.CODESET");
 
-        // char *nl_langinfo(nl_item item);
-        // nl_item is int on at least Linux, macOS & Solaris
-        final NativeFunction nl_langinfo = nfi.getFunction("nl_langinfo", 1, "(sint32):string");
+            // char *nl_langinfo(nl_item item);
+            // nl_item is int on at least Linux, macOS & Solaris
+            final NativeFunction nl_langinfo = nfi.getFunction("nl_langinfo", 1, "(sint32):string");
 
-        final long address = nfi.asPointer((TruffleObject) nl_langinfo.call(codeset));
-        final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(0);
-        final String localeEncodingName = new String(bytes, StandardCharsets.ISO_8859_1);
+            final long address = nfi.asPointer((TruffleObject) nl_langinfo.call(codeset));
+            final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(0);
+            localeEncodingName = new String(bytes, StandardCharsets.ISO_8859_1);
+        } else {
+            localeEncodingName = Charset.defaultCharset().name();
+        }
 
         DynamicObject rubyEncoding = getRubyEncoding(localeEncodingName);
         if (rubyEncoding == null) {
