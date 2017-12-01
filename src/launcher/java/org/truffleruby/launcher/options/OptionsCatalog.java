@@ -166,11 +166,16 @@ public class OptionsCatalog {
             "Sync operations on standard IO streams",
             null,
             true);
+    public static final BooleanOptionDescription NATIVE_PLATFORM = new BooleanOptionDescription(
+            "ruby.platform.native",
+            "Enables native calls via Truffle NFI",
+            null,
+            true);
     public static final BooleanOptionDescription NATIVE_INTERRUPT = new BooleanOptionDescription(
             "ruby.platform.native_interrupt",
             "Use the SIGVTALRM signal to interrupt native blocking calls",
             null,
-            true);
+            NATIVE_PLATFORM.getDefaultValue());
     public static final BooleanOptionDescription CEXT_LOCK = new BooleanOptionDescription(
             "ruby.cexts.lock",
             "Use a Global Lock when running C extensions",
@@ -659,6 +664,8 @@ public class OptionsCatalog {
                 return POLYGLOT_STDIO;
             case "ruby.sync.stdio":
                 return SYNC_STDIO;
+            case "ruby.platform.native":
+                return NATIVE_PLATFORM;
             case "ruby.platform.native_interrupt":
                 return NATIVE_INTERRUPT;
             case "ruby.cexts.lock":
@@ -868,6 +875,7 @@ public class OptionsCatalog {
             EXTERNAL_ENCODING,
             POLYGLOT_STDIO,
             SYNC_STDIO,
+            NATIVE_PLATFORM,
             NATIVE_INTERRUPT,
             CEXT_LOCK,
             TRACE_CALLS,
