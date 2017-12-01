@@ -4161,9 +4161,10 @@ public abstract class StringNodes {
         @Specialization(guards = "isRubiniusByteArray(bytes)")
         public DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count,
                                                  @Cached("create()") StringNodes.MakeStringNode makeStringNode) {
-            // Data is copied here - can we do something COW?
             final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
-            return makeStringNode.fromRope(RopeBuilder.createRopeBuilder(builder, start, count).toRope(CR_UNKNOWN));
+            final byte[] array = ArrayUtils.extractRange(builder.getUnsafeBytes(), start, start + count);
+
+            return makeStringNode.executeMake(array, ASCIIEncoding.INSTANCE, CR_UNKNOWN);
         }
 
     }
