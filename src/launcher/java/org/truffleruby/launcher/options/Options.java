@@ -310,7 +310,7 @@ public class Options {
                 return INTERNAL_ENCODING;
             case "ruby.external_encoding":
                 return EXTERNAL_ENCODING;
-            case "ruby.ployglot.stdio":
+            case "ruby.polyglot.stdio":
                 return POLYGLOT_STDIO;
             case "ruby.sync.stdio":
                 return SYNC_STDIO;
