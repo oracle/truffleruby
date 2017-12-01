@@ -158,6 +158,11 @@ public class CExtNodes {
             return num;
         }
 
+        @Specialization(guards = "isRubyBignum(num)")
+        public Object num2num(DynamicObject num) {
+            throw new RaiseException(getContext().getCoreExceptions().rangeError("bignum out of range of unsigned long",this));
+        }
+
     }
 
     @CoreMethod(names = "FIX2INT", onSingleton = true, required = 1, lowerFixnum = 1)
