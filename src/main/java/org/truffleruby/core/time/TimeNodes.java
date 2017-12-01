@@ -26,6 +26,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
@@ -420,13 +421,13 @@ public abstract class TimeNodes {
                                           @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("compilePattern(cachedFormat)") List<Token> pattern,
                 @Cached("create()") RopeNodes.EqualNode equalNode) {
-            return makeStringNode.fromRope(formatTime(time, pattern));
+            return makeStringNode.fromBuilder(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
 
         @Specialization(guards = "isRubyString(format)")
         public DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format) {
             final List<Token> pattern = compilePattern(StringOperations.rope(format));
-            return makeStringNode.fromRope(formatTime(time, pattern));
+            return makeStringNode.fromBuilder(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
 
         @TruffleBoundary
@@ -434,9 +435,9 @@ public abstract class TimeNodes {
             return RubyDateFormatter.compilePattern(format, false, getContext(), this);
         }
 
-        private Rope formatTime(DynamicObject time, List<Token> pattern) {
+        private RopeBuilder formatTime(DynamicObject time, List<Token> pattern) {
             return RubyDateFormatter.formatToRopeBuilder(
-                    pattern, Layouts.TIME.getDateTime(time), Layouts.TIME.getZone(time), getContext(), this).toRope(CodeRange.CR_UNKNOWN);
+                    pattern, Layouts.TIME.getDateTime(time), Layouts.TIME.getZone(time), getContext(), this);
         }
 
     }

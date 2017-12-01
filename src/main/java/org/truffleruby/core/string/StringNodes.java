@@ -178,6 +178,10 @@ public abstract class StringNodes {
             return executeMake(rope, NotProvided.INSTANCE, NotProvided.INSTANCE);
         }
 
+        public DynamicObject fromBuilder(RopeBuilder builder, CodeRange codeRange) {
+            return executeMake(builder.getBytes(), builder.getEncoding(), codeRange);
+        }
+
         public static MakeStringNode create() {
             return StringNodesFactory.MakeStringNodeGen.create(null, null, null);
         }
@@ -2493,6 +2497,7 @@ public abstract class StringNodes {
         @Specialization(guards = "!isSingleByteOptimizable(string)")
         public DynamicObject upcase(DynamicObject string,
                                     @Cached("create()") RopeNodes.BytesNode bytesNode,
+                                    @Cached("create()") RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
                                     @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
                                     @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
@@ -2505,7 +2510,7 @@ public abstract class StringNodes {
             final RopeBuilder bytes = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport.multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
             if (modifiedProfile.profile(modified)) {
-                StringOperations.setRope(string, bytes.toRope(rope.getCodeRange()));
+                StringOperations.setRope(string, makeLeafRopeNode.executeMake(bytes.getBytes(), rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
 
                 return string;
             } else {
