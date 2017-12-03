@@ -69,8 +69,6 @@ if Truffle::Boot.get_option 'rubygems'
       end
     end
 
-    require 'truffle/patching'
-
     if Truffle::Boot.get_option 'did_you_mean'
       Truffle::Boot.print_time_metric :'before-did-you-mean'
       begin
